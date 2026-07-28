@@ -1,29 +1,45 @@
-<h1 align="center">TanStack Charts</h1>
+<div align="center">
+  <img src="./media/header_charts.png" alt="TanStack Charts" />
+</div>
 
-<p align="center">
-  <strong>D3's power. A chart library's ergonomics.</strong>
-</p>
+<br />
 
-<p align="center">
-  A tiny TypeScript visualization grammar for responsive, accessible,
-  server-rendered application charts.
-</p>
+<div align="center">
+  <a href="https://github.com/TanStack/charts/actions/workflows/chart-library-benchmarks.yml">
+    <img alt="Chart library benchmarks" src="https://github.com/TanStack/charts/actions/workflows/chart-library-benchmarks.yml/badge.svg" />
+  </a>
+  <a href="https://github.com/TanStack/charts/stargazers">
+    <img alt="GitHub stars" src="https://img.shields.io/github/stars/TanStack/charts.svg?style=social&label=Star" />
+  </a>
+  <a href="./LICENSE">
+    <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue.svg" />
+  </a>
+</div>
 
-<p align="center">
-  A grammar of graphics built for typed application infrastructure.
-</p>
+<div align="center">
+  <a href="#status">
+    <img alt="Status - PRE-ALPHA" src="https://img.shields.io/badge/status-pre--alpha-orange" />
+  </a>
+  <a href="https://twitter.com/tan_stack">
+    <img alt="Follow @TanStack" src="https://img.shields.io/twitter/follow/tan_stack.svg?style=social" />
+  </a>
+</div>
 
-<p align="center">
-  <a href="#quick-look">Quick look</a> ·
-  <a href="./docs/overview.md">Documentation</a> ·
-  <a href="./examples/charts-react">React example</a> ·
-  <a href="./benchmarks/conformance">Conformance catalog</a> ·
-  <a href="./PLAN.md">Roadmap</a> ·
-  <a href="./ACKNOWLEDGEMENTS.md">Acknowledgements</a>
-</p>
+<div align="center">
+
+### [Become a Sponsor!](https://github.com/sponsors/tannerlinsley/)
+
+</div>
+
+# TanStack Charts
+
+A tiny TypeScript visualization grammar for responsive, accessible,
+server-rendered application charts.
+
+<a id="status"></a>
 
 > [!IMPORTANT]
-> TanStack Charts is currently a private `0.0.0` product proof. The packages
+> TanStack Charts is currently an unpublished `0.0.0` product proof. The packages
 > are not published or ready for production use yet.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
@@ -43,6 +59,8 @@ or dropping down to a separate API.
 - **Pay for what you import.** Marks, renderers, and chart-owned interactions
   have independent TanStack subpaths; specialized algorithms come directly
   from granular, tree-shakeable `d3-*` packages.
+
+### <a href="https://tanstack.com/charts">Read the docs →</a>
 
 ## Quick look
 
@@ -161,6 +179,77 @@ pattern.
 Architecture decisions and open production gates live in
 [`PLAN.md`](./PLAN.md). Evidence from real authoring and migration work is
 tracked in [`API-FRICTION.md`](./API-FRICTION.md).
+
+## Get Involved
+
+- We welcome issues and pull requests.
+- Chat with the community on [Discord](https://discord.com/invite/WrRKjPJ).
+- Follow the project through the [roadmap](./PLAN.md) and
+  [conformance catalog](./benchmarks/conformance).
+
+## Partners
+
+<table align="center">
+  <tr>
+    <td>
+      <a href="https://www.coderabbit.ai/?via=tanstack&dub_id=aCcEEdAOqqutX6OS">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TanStack/tanstack.com/main/src/images/coderabbit-dark.svg" />
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/TanStack/tanstack.com/main/src/images/coderabbit-light.svg" />
+          <img src="https://raw.githubusercontent.com/TanStack/tanstack.com/main/src/images/coderabbit-light.svg" height="40" alt="CodeRabbit" />
+        </picture>
+      </a>
+    </td>
+    <td>
+      <a href="https://www.cloudflare.com?utm_source=tanstack">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TanStack/tanstack.com/main/src/images/cloudflare-white.svg" />
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/TanStack/tanstack.com/main/src/images/cloudflare-black.svg" />
+          <img src="https://raw.githubusercontent.com/TanStack/tanstack.com/main/src/images/cloudflare-black.svg" height="60" alt="Cloudflare" />
+        </picture>
+      </a>
+    </td>
+  </tr>
+</table>
+
+<div align="center">
+  <img src="./media/partner_logo.svg" alt="Charts and you?" height="65" />
+  <p>
+    We're looking for TanStack Charts Partners to join our mission! Partner
+    with us to push the boundaries of TanStack Charts and build amazing things
+    together.
+  </p>
+  <a href="mailto:partners@tanstack.com?subject=TanStack Charts Partnership"><b>LET'S CHAT</b></a>
+</div>
+
+## Explore the TanStack Ecosystem
+
+- <a href="https://github.com/tanstack/config"><b>TanStack Config</b></a> –
+  Tooling for JS/TS packages
+- <a href="https://github.com/tanstack/db"><b>TanStack DB</b></a> – Reactive
+  sync client store
+- <a href="https://github.com/tanstack/devtools"><b>TanStack DevTools</b></a> –
+  Unified devtools panel
+- <a href="https://github.com/tanstack/form"><b>TanStack Form</b></a> –
+  Type-safe form state
+- <a href="https://github.com/tanstack/pacer"><b>TanStack Pacer</b></a> –
+  Debouncing, throttling, and batching
+- <a href="https://github.com/tanstack/query"><b>TanStack Query</b></a> – Async
+  state and caching
+- <a href="https://github.com/tanstack/ranger"><b>TanStack Ranger</b></a> –
+  Range and slider primitives
+- <a href="https://github.com/tanstack/router"><b>TanStack Router</b></a> –
+  Type-safe routing, caching, and URL state
+- <a href="https://github.com/tanstack/router"><b>TanStack Start</b></a> –
+  Full-stack SSR and streaming
+- <a href="https://github.com/tanstack/store"><b>TanStack Store</b></a> –
+  Reactive data store
+- <a href="https://github.com/tanstack/table"><b>TanStack Table</b></a> –
+  Headless datagrids
+- <a href="https://github.com/tanstack/virtual"><b>TanStack Virtual</b></a> –
+  Virtualized rendering
+
+… and more at <a href="https://tanstack.com"><b>TanStack.com »</b></a>
 
 ## Development
 
