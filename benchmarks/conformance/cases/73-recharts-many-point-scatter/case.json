@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 730,
+  "id": "73-recharts-many-point-scatter",
+  "title": "Many-point scatter performance",
+  "family": "performance",
+  "intent": "Render one thousand sized points split across one hundred independently colored series.",
+  "support": "native",
+  "features": [
+    "large point count",
+    "many series",
+    "radius scale",
+    "stable point keys"
+  ],
+  "geometry": [{ "role": "dot", "count": 1000 }],
+  "source": {
+    "title": "Recharts Scatter Chart with many points (performance test)",
+    "url": "https://recharts.github.io/en-US/examples/ScatterChartPerformance/"
+  },
+  "ai": {
+    "create": "Create a performance-oriented scatter chart with one hundred series of ten sized points, shared explicit domains, and pass/fail colors.",
+    "maintain": "Update point coordinates and sizes while preserving stable point identities, series membership, domains, and cast-free channels."
+  }
+}

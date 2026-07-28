@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 430,
+  "id": "43-hexbin-density",
+  "title": "Hexagonally binned density",
+  "family": "distribution",
+  "intent": "Reveal dense two-dimensional clusters by aggregating raw points into fixed-pixel hexagonal bins.",
+  "support": "composed",
+  "features": [
+    "hexbin",
+    "hexagon mark",
+    "d3-hexbin",
+    "threshold color",
+    "responsive pixel-space binning"
+  ],
+  "geometry": [{ "role": "hexagon", "count": 20 }],
+  "source": {
+    "title": "Observable Plot hexbin transform",
+    "url": "https://observablehq.com/plot/transforms/hexbin"
+  },
+  "ai": {
+    "create": "Create a responsive hexbin density chart from typed x/y points. Plot may use its hexbin transform; TanStack should use granular d3-hexbin in the resolved manual pixel range and pass inverted bin centers to hexagon.",
+    "maintain": "Change bin radius and thresholds while keeping the D3 extent synchronized with chart margins, fixed-pixel hexagons, stable bin keys, and cast-free channels."
+  }
+}

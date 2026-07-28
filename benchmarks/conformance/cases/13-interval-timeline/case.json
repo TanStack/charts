@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 140,
+  "id": "13-interval-timeline",
+  "title": "Interval timeline",
+  "family": "interval",
+  "intent": "Show task durations as horizontal ranged bars without converting intervals into a proprietary series model.",
+  "support": "native",
+  "features": [
+    "ranged horizontal bars",
+    "x1-x2 interval",
+    "categorical y scale",
+    "categorical color",
+    "long labels"
+  ],
+  "geometry": [{ "role": "bar", "count": 8 }],
+  "source": {
+    "title": "Observable Plot interval marks",
+    "url": "https://observablehq.com/plot/marks/bar"
+  },
+  "ai": {
+    "create": "Create a responsive project timeline from typed {task, start, end, phase} rows using one ranged horizontal bar per task and phase colors.",
+    "maintain": "Update task durations and reverse the task order without changing the interval data model, clipping labels, or introducing casts."
+  }
+}

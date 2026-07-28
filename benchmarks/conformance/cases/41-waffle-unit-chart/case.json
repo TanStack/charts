@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 410,
+  "id": "41-waffle-unit-chart",
+  "title": "Responsive waffle unit chart",
+  "family": "part-to-whole",
+  "intent": "Show a one-hundred-unit composition where every cell represents one percentage point.",
+  "support": "composed",
+  "features": [
+    "waffle mark",
+    "cell composition",
+    "responsive grid",
+    "categorical color",
+    "part-to-whole update"
+  ],
+  "geometry": [{ "role": "waffle", "count": 3 }],
+  "source": {
+    "title": "Observable Plot waffle mark",
+    "url": "https://observablehq.com/plot/marks/waffle"
+  },
+  "ai": {
+    "create": "Create a responsive one-hundred-unit waffle chart from typed category totals, using Plot's native waffle mark or an explicit TanStack cell grid with a stable category color scale.",
+    "maintain": "Change category totals while preserving a total of one hundred units, one stable key per unit, responsive near-square cells, and consistent category colors."
+  }
+}

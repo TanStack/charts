@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "order": 120,
+  "id": "heatmap-labeled",
+  "title": "Labeled ordinal heatmap",
+  "family": "matrix",
+  "intent": "Compare values across two ordinal dimensions with sequential color and readable cell labels.",
+  "support": "native",
+  "features": [
+    "cell mark",
+    "two band scales",
+    "sequential color scale",
+    "text labels",
+    "continuous color legend"
+  ],
+  "geometry": [
+    { "role": "cell", "count": 42 },
+    { "role": "text", "count": 42 }
+  ],
+  "source": {
+    "title": "Observable Plot: Simpsons ratings",
+    "url": "https://github.com/observablehq/plot/blob/main/test/plots/simpsons-ratings.ts"
+  },
+  "ai": {
+    "create": "Create a labeled heatmap from day, hour, and numeric value fields using ordinal position scales and a sequential color scale.",
+    "maintain": "Change the color domain and label contrast threshold while preserving all 42 cells and labels."
+  }
+}

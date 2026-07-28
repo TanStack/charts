@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "order": 830,
+  "id": "83-focus-context-window",
+  "title": "Focus and context time window",
+  "family": "interaction",
+  "intent": "Use a compact overview to choose the explicit time domain shown by a larger detail chart.",
+  "support": "composed",
+  "features": [
+    "focus plus context",
+    "linked views",
+    "explicit shared domain",
+    "semantic click targets",
+    "persistent viewport"
+  ],
+  "geometry": [
+    {
+      "id": "detail-line",
+      "view": "detail",
+      "role": "line",
+      "count": 1
+    },
+    {
+      "id": "overview-line",
+      "view": "overview",
+      "role": "line",
+      "count": 1
+    }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "move-window-late",
+      "steps": [
+        {
+          "type": "click",
+          "target": {
+            "view": "overview",
+            "anchor": "date:2025-10-01"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "window.selected", "equals": "2025-10-01" },
+            { "path": "window.start", "equals": "2025-09-01" },
+            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "detail.pointCount", "equals": 4 }
+          ]
+        },
+        { "type": "update", "revision": 1 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "window.selected", "equals": "2025-10-01" },
+            { "path": "window.start", "equals": "2025-09-01" },
+            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "detail.pointCount", "equals": 4 },
+            { "path": "detail.selectedValue", "equals": 71 }
+          ]
+        },
+        { "type": "update", "revision": 0 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "window.selected", "equals": "2025-10-01" },
+            { "path": "window.start", "equals": "2025-09-01" },
+            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "detail.pointCount", "equals": 4 },
+            { "path": "detail.selectedValue", "equals": 75 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "move-window-early",
+      "steps": [
+        {
+          "type": "click",
+          "target": {
+            "view": "overview",
+            "anchor": "date:2025-03-01"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "window.selected", "equals": "2025-03-01" },
+            { "path": "window.start", "equals": "2025-02-01" },
+            { "path": "window.end", "equals": "2025-05-01" },
+            { "path": "detail.pointCount", "equals": 4 }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Observable Plot temporal scales",
+    "url": "https://observablehq.com/plot/features/scales"
+  },
+  "ai": {
+    "create": "Create linked detail and overview time-series views where a real overview click selects a stable semantic date and updates an explicit four-month detail domain.",
+    "maintain": "Keep the selected date and window as application state, preserve them across data revisions and resizes, and resolve test targets through chart coordinates rather than DOM order."
+  }
+}

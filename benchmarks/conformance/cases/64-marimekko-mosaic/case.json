@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "order": 640,
+  "id": "64-marimekko-mosaic",
+  "title": "Marimekko market composition",
+  "family": "part-to-whole",
+  "intent": "Encode one categorical total as column width and its internal composition as stacked height.",
+  "support": "composed",
+  "features": [
+    "Marimekko chart",
+    "mosaic layout",
+    "variable-width rectangles",
+    "d3-array grouping and cumulative sums",
+    "categorical legend"
+  ],
+  "geometry": [
+    { "role": "rect", "count": 12 },
+    { "role": "text", "count": 4 }
+  ],
+  "source": {
+    "title": "Observable Plot Marimekko stack example",
+    "url": "https://observablehq.com/plot/transforms/stack"
+  },
+  "ai": {
+    "create": "Create a Marimekko chart where market totals determine column widths and each market's segment mix determines normalized vertical cells, using granular d3-array preparation and typed rectangle endpoints.",
+    "maintain": "Add a market or segment while preserving the two independent normalization denominators, explicit ordering, stable cell identity, labels, colors, and complete zero-to-one bounds."
+  }
+}

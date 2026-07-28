@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "order": 440,
+  "id": "44-framed-scatter",
+  "title": "Framed guide-free scatterplot",
+  "family": "decoration",
+  "intent": "Use a filled inner frame to separate a guide-free plotting region from its surroundings.",
+  "support": "native",
+  "features": [
+    "frame mark",
+    "guide suppression",
+    "inner chart bounds",
+    "rounded corners",
+    "scatterplot"
+  ],
+  "geometry": [
+    { "role": "frame", "count": 1 },
+    { "role": "dot", "count": 72 }
+  ],
+  "source": {
+    "title": "Observable Plot frame mark",
+    "url": "https://observablehq.com/plot/marks/frame"
+  },
+  "ai": {
+    "create": "Create a guide-free quantitative scatterplot with a rounded filled frame exactly aligned to the inner plotting region.",
+    "maintain": "Change frame inset and styling while retaining responsive inner-bound alignment, typed points, and suppressed guides."
+  }
+}

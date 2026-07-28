@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 570,
+  "id": "57-scatter-marginal-histograms",
+  "title": "Scatterplot with marginal histograms",
+  "family": "distribution",
+  "intent": "Compare a bivariate relationship while retaining the one-dimensional distribution of each measure.",
+  "support": "composed",
+  "features": [
+    "joint scatterplot",
+    "marginal histograms",
+    "d3-array bin",
+    "embedded plot regions",
+    "categorical color"
+  ],
+  "geometry": [
+    { "role": "dot", "count": 60 },
+    { "role": "rect", "count": 16 },
+    { "role": "rule", "count": 2 }
+  ],
+  "source": {
+    "title": "Observable Plot bin transform and rect mark",
+    "url": "https://observablehq.com/plot/transforms/bin"
+  },
+  "ai": {
+    "create": "Create a joint scatterplot with a top histogram for x and a right histogram for y, using explicit embedded regions and the same raw observations for all three views.",
+    "maintain": "Change the bin boundaries while retaining complete boundary semantics, responsive shared scales, inferred fields, and separate scatter and marginal regions."
+  }
+}

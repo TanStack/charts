@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 320,
+  "id": "32-change-arrows",
+  "title": "Directed change arrows",
+  "family": "change",
+  "intent": "Show the direction and magnitude of movement between two quantitative states.",
+  "support": "native",
+  "features": [
+    "arrow mark",
+    "typed endpoints",
+    "directional color",
+    "quantitative x-y scales",
+    "fixed-size arrowheads"
+  ],
+  "geometry": [{ "role": "arrow", "count": 12 }],
+  "source": {
+    "title": "Observable Plot arrow mark",
+    "url": "https://observablehq.com/plot/marks/arrow"
+  },
+  "ai": {
+    "create": "Create a quantitative change chart with one directed arrow from each prior coordinate to its current coordinate and color gains separately from losses.",
+    "maintain": "Change the endpoint calculation and arrowhead size while retaining typed coordinates, one semantic arrow per row, and stable identity."
+  }
+}

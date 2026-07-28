@@ -1,0 +1,46 @@
+name: Chart library benchmarks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '17 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chart-library-benchmarks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm benchmark:check
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm benchmark -- --profile=ci
+      - run: cat .benchmark-output/results/comparison.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chart-library-comparison-${{ github.run_id }}
+          path: .benchmark-output/results
+          if-no-files-found: error

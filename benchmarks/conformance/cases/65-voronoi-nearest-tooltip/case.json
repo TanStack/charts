@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "order": 650,
+  "id": "65-voronoi-nearest-tooltip",
+  "title": "Voronoi nearest-point interaction",
+  "family": "interaction",
+  "intent": "Partition a scatterplot into nearest-point regions and reveal the closest typed datum in two dimensions.",
+  "support": "composed",
+  "features": [
+    "Voronoi cells",
+    "two-dimensional nearest point",
+    "pointer tooltip",
+    "d3-delaunay",
+    "typed formatter"
+  ],
+  "geometry": [
+    { "role": "voronoi", "count": 18 },
+    { "role": "dot", "count": 18 }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "voronoi-nearest-tooltip",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": { "anchor": "point:point-7" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.text", "includes": "Point 8" }
+          ]
+        },
+        { "type": "pointerLeave" },
+        {
+          "type": "assert",
+          "assertions": [{ "path": "tooltip.visible", "equals": false }]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Observable Plot Voronoi and pointer interactions",
+    "url": "https://observablehq.com/plot/marks/delaunay"
+  },
+  "ai": {
+    "create": "Create a colored Voronoi scatterplot with native two-dimensional nearest-point tooltips. Use Plot's voronoi and pointer primitives and granular d3-delaunay at the TanStack composition boundary.",
+    "maintain": "Move or add points while retaining bounded cells, stable dot identity, matching color domains, typed tooltip rows, responsive recomputation, and keyboard focus without importing spatial code into the shared renderer."
+  }
+}

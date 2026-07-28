@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 550,
+  "id": "55-indexed-multi-line",
+  "title": "Indexed multi-series performance",
+  "family": "trend",
+  "intent": "Compare four series as relative change from each series' first observation.",
+  "support": "composed",
+  "features": [
+    "indexed line chart",
+    "normalize-first transform",
+    "multi-series line",
+    "reference rule",
+    "direct end labels"
+  ],
+  "geometry": [
+    { "role": "line", "count": 4 },
+    { "role": "rule", "count": 1 },
+    { "role": "text", "count": 4 }
+  ],
+  "source": {
+    "title": "Observable Plot index chart",
+    "url": "https://observablehq.com/plot/transforms/normalize"
+  },
+  "ai": {
+    "create": "Create a multi-series time chart that indexes each series to its first value, draws a 100% reference rule, and directly labels each final value.",
+    "maintain": "Change the index basis from the first row to a selected date while retaining one tidy input table, stable colors, inferred date and numeric channels, and percentage labels."
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "order": 130,
+  "id": "facets-anscombe",
+  "title": "Anscombe quartet small multiples",
+  "family": "small multiples",
+  "intent": "Reveal different distributions that share nearly identical summary statistics by faceting the same x and y encoding.",
+  "support": "native",
+  "features": [
+    "facets",
+    "shared quantitative domains",
+    "shared outer axes",
+    "dot mark",
+    "facet labels"
+  ],
+  "geometry": [{ "role": "dot", "count": 44 }],
+  "guideAssertions": [
+    {
+      "id": "shared-y-axis",
+      "axis": "y",
+      "maxRepeat": 1
+    }
+  ],
+  "source": {
+    "title": "Observable Plot: Anscombe quartet",
+    "url": "https://github.com/observablehq/plot/blob/main/test/plots/anscombe-quartet.ts"
+  },
+  "ai": {
+    "create": "Create four labeled small multiples for Anscombe's quartet with shared x and y domains.",
+    "maintain": "Change the facet layout while preserving shared domains, set order, and all 44 observations."
+  }
+}

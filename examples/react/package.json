@@ -1,0 +1,21 @@
+{
+  "name": "@plot-poc/react-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --host --port 5181 --strictPort"
+  },
+  "dependencies": {
+    "@plot-poc/fixtures": "workspace:*",
+    "@plot-poc/host-core": "workspace:*",
+    "@plot-poc/react-host": "workspace:*",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.16"
+  }
+}

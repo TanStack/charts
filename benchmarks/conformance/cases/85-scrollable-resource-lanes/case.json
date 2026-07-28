@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 850,
+  "id": "85-scrollable-resource-lanes",
+  "title": "Scrollable resource timeline lanes",
+  "family": "interaction",
+  "intent": "Navigate a wide resource schedule with native horizontal scrolling while preserving lane order and task geometry.",
+  "support": "composed",
+  "features": [
+    "resource timeline",
+    "native horizontal overflow",
+    "interval rectangles",
+    "semantic wheel interaction",
+    "viewport-relative geometry"
+  ],
+  "geometry": [{ "view": "main", "role": "rect", "count": 5 }],
+  "minimumGeometrySimilarity": 0.994,
+  "guideAssertions": [
+    {
+      "id": "lane-sequence",
+      "axis": "y",
+      "sequence": ["Design", "Infrastructure", "API", "Quality", "Docs"]
+    }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "wheel-through-resource-schedule",
+      "steps": [
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.scrollLeft", "approx": 0, "tolerance": 1 },
+            { "path": "lanes.count", "equals": 5 },
+            { "path": "tasks.count", "equals": 10 },
+            { "path": "domain.start", "equals": "2025-01-01" },
+            { "path": "domain.end", "equals": "2025-03-15" }
+          ]
+        },
+        {
+          "type": "wheel",
+          "target": { "view": "main", "anchor": "viewport" },
+          "deltaX": 260
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            {
+              "path": "viewport.scrollLeft",
+              "approx": 260,
+              "tolerance": 12
+            },
+            { "path": "lanes.count", "equals": 5 },
+            { "path": "tasks.count", "equals": 10 },
+            { "path": "domain.start", "equals": "2025-01-01" },
+            { "path": "domain.end", "equals": "2025-03-15" }
+          ]
+        },
+        { "type": "update", "revision": 1 },
+        {
+          "type": "assert",
+          "assertions": [
+            {
+              "path": "viewport.scrollLeft",
+              "approx": 260,
+              "tolerance": 12
+            },
+            { "path": "tasks.count", "equals": 10 },
+            { "path": "tasks.apiBuildEnd", "equals": "2025-02-16" },
+            {
+              "path": "tasks.qualityReleaseStart",
+              "equals": "2025-02-13"
+            }
+          ]
+        },
+        { "type": "update", "revision": 0 },
+        {
+          "type": "assert",
+          "assertions": [
+            {
+              "path": "viewport.scrollLeft",
+              "approx": 260,
+              "tolerance": 12
+            },
+            { "path": "tasks.count", "equals": 10 },
+            { "path": "tasks.apiBuildEnd", "equals": "2025-02-13" },
+            {
+              "path": "tasks.qualityReleaseStart",
+              "equals": "2025-02-15"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Apache ECharts custom series",
+    "url": "https://echarts.apache.org/handbook/en/how-to/chart-types/custom-series/"
+  },
+  "ai": {
+    "create": "Create a resource timeline whose semantic date domain is wider than its container, using native horizontal overflow and interval rectangles grouped into named lanes.",
+    "maintain": "Keep scrolling in the application layer, retain stable task keys and explicit UTC and band scales, and report geometry in viewport client coordinates after scroll."
+  }
+}

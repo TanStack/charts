@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 210,
+  "id": "20-normalized-stacked-area",
+  "title": "Normalized 100% stacked area",
+  "family": "composition",
+  "intent": "Compare each series as a share of the weekly total using a normalized stack from the original tidy time-series rows.",
+  "support": "composed",
+  "features": [
+    "area",
+    "normalized stack",
+    "100 percent composition",
+    "d3-shape-stack",
+    "d3-shape-stackOffsetExpand",
+    "percent axis"
+  ],
+  "geometry": [
+    { "role": "area", "count": 3 },
+    { "role": "rule", "count": 1 }
+  ],
+  "source": {
+    "title": "Observable Plot stack transform",
+    "url": "https://observablehq.com/plot/transforms/stack"
+  },
+  "ai": {
+    "create": "Create a responsive normalized 100% stacked UTC area chart from typed tidy rows, with Plot's native normalize offset and explicit granular d3-shape intervals for TanStack Charts.",
+    "maintain": "Change the series order while keeping each date normalized to 100%, all colors stable, the percent guide accurate, and every channel cast-free."
+  }
+}

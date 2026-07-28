@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 720,
+  "id": "72-recharts-mixed-bars",
+  "title": "Stacked and adjacent bars",
+  "family": "comparison",
+  "intent": "Compare one independent measure with two measures stacked beside it for every category.",
+  "support": "composed",
+  "features": [
+    "mixed bar layout",
+    "stacked intervals",
+    "grouped bars",
+    "categorical domain"
+  ],
+  "geometry": [{ "role": "bar", "count": 21 }],
+  "source": {
+    "title": "Recharts Mix Bar Chart",
+    "url": "https://recharts.github.io/en-US/examples/MixBarChart/"
+  },
+  "ai": {
+    "create": "Create a bar chart with two values stacked in one slot and a third independent value beside that stack for each category.",
+    "maintain": "Change category values while preserving explicit stack intervals, shared group placement, stable keys, fixed colors, and the numeric domain."
+  }
+}

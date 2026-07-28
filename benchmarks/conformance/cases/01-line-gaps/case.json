@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 1,
+  "id": "01-line-gaps",
+  "title": "Time-series line with missing-value gaps",
+  "family": "trend",
+  "intent": "Render one chronological series while preserving two explicit null observations as visible gaps rather than filtering or interpolating across them.",
+  "support": "native",
+  "features": [
+    "line",
+    "time-series",
+    "utc-scale",
+    "nullable-channel",
+    "missing-values"
+  ],
+  "geometry": [{ "role": "line", "count": 1 }],
+  "source": {
+    "title": "Observable Plot line mark — missing data",
+    "url": "https://observablehq.com/plot/marks/line"
+  },
+  "ai": {
+    "create": "Create a responsive UTC time-series chart from rows shaped as {id, date, value: number | null}. Render one logical line and preserve two null observations as gaps without filtering the rows, casting a channel, or suppressing a type error.",
+    "maintain": "Change the missing observations into two multi-row missing runs. Keep the gaps visible across updates, preserve stable keys and inferred datum types, and keep the compact and wide layouts readable."
+  }
+}

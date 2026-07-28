@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "order": 230,
+  "id": "22-bollinger-band",
+  "title": "Bollinger band",
+  "family": "trend",
+  "intent": "Show an eight-observation trailing mean with a two-standard-deviation volatility band for one typed time series.",
+  "support": "composed",
+  "features": [
+    "bollinger",
+    "area",
+    "line",
+    "moving mean",
+    "standard deviation",
+    "d3-array-mean",
+    "d3-array-deviation"
+  ],
+  "geometry": [
+    { "role": "area", "count": 1 },
+    { "role": "line", "count": 1 }
+  ],
+  "source": {
+    "title": "Observable Plot Bollinger mark",
+    "url": "https://observablehq.com/plot/marks/bollinger"
+  },
+  "ai": {
+    "create": "Create a responsive UTC Bollinger chart from typed {id, date, value, series} rows using an eight-observation strict trailing window and bands two sample deviations from the mean.",
+    "maintain": "Change the window or deviation multiplier while preserving Plot's native compound mark semantics, explicit TanStack interval rows, stable keys, and cast-free channels."
+  }
+}

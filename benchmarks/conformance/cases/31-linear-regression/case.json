@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "order": 310,
+  "id": "31-linear-regression",
+  "title": "Scatterplot with linear regression",
+  "family": "relationship",
+  "intent": "Show a quantitative relationship together with a least-squares trend line.",
+  "support": "composed",
+  "features": [
+    "linear regression",
+    "scatterplot",
+    "prepared statistics",
+    "line mark",
+    "dot mark"
+  ],
+  "geometry": [
+    { "role": "dot", "count": 72 },
+    {
+      "role": "regression",
+      "count": 1,
+      "rendererRoles": {
+        "observable-plot": "regression",
+        "tanstack": "line"
+      }
+    }
+  ],
+  "source": {
+    "title": "Observable Plot linear regression",
+    "url": "https://observablehq.com/plot/marks/linear-regression"
+  },
+  "ai": {
+    "create": "Create a quantitative scatterplot with a least-squares regression line. Plot may use linearRegressionY; TanStack should pass two typed prepared endpoints to lineY.",
+    "maintain": "Regress each group independently and retain the raw dots, granular preparation, stable group colors, and cast-free channels."
+  }
+}

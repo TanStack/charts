@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "order": 330,
+  "id": "33-difference-chart",
+  "title": "Actual versus forecast difference",
+  "family": "change",
+  "intent": "Show where an actual series is above or below a forecast while preserving exact interpolated crossings.",
+  "support": "composed",
+  "features": [
+    "difference chart",
+    "interpolated crossings",
+    "positive and negative area",
+    "area mark",
+    "line mark"
+  ],
+  "geometry": [
+    { "role": "area", "count": 4, "maxCount": 4 },
+    { "role": "line", "count": 2 }
+  ],
+  "guideAssertions": [
+    {
+      "id": "month-sequence",
+      "axis": "x",
+      "sequence": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep"
+      ]
+    },
+    {
+      "id": "value-sequence",
+      "axis": "y",
+      "sequence": ["10", "20", "30", "40", "50", "60"]
+    }
+  ],
+  "source": {
+    "title": "Observable Plot difference mark",
+    "url": "https://observablehq.com/plot/marks/difference"
+  },
+  "ai": {
+    "create": "Create an actual-versus-forecast difference chart. Plot may use differenceY; TanStack must interpolate every crossing and pass typed positive and negative lobes to areaY.",
+    "maintain": "Change the two series without losing exact crossing boundaries, semantic colors, explicit scales, or cast-free channels."
+  }
+}

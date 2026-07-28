@@ -1,0 +1,15 @@
+{
+  "name": "@plot-poc/fixtures",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "dependencies": {
+    "@observablehq/plot": "0.6.17",
+    "@plot-poc/observable": "workspace:*"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 900,
+  "id": "90-zoomable-time-window",
+  "title": "Wheel zoom and pan time window",
+  "family": "interaction",
+  "intent": "Zoom a continuous time viewport around the pointer, pan the cropped domain, and restore the full extent.",
+  "support": "composed",
+  "features": [
+    "wheel zoom",
+    "horizontal wheel pan",
+    "pointer-anchored domain",
+    "clamped continuous viewport",
+    "D3 scale inversion",
+    "ECharts data zoom"
+  ],
+  "geometry": [
+    { "id": "window-line", "view": "main", "role": "line", "count": 1 },
+    { "id": "window-points", "view": "main", "role": "dot", "count": 17 }
+  ],
+  "minimumGeometrySimilarity": 0.994,
+  "guideAssertions": [
+    {
+      "id": "non-repeating-value-ticks",
+      "axis": "y",
+      "maxRepeat": 1
+    }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "zoom-pan-and-restore",
+      "steps": [
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-01" },
+            { "path": "viewport.end", "equals": "2025-01-17" },
+            { "path": "viewport.spanDays", "approx": 16, "tolerance": 0.01 },
+            { "path": "visible.count", "equals": 17 }
+          ]
+        },
+        {
+          "type": "wheel",
+          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "deltaY": -240
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-05" },
+            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "viewport.spanDays", "approx": 8, "tolerance": 0.01 },
+            { "path": "visible.count", "equals": 9 },
+            { "path": "interaction.last", "equals": "zoom" }
+          ]
+        },
+        {
+          "type": "wheel",
+          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "deltaX": 220
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-07" },
+            { "path": "viewport.end", "equals": "2025-01-15" },
+            { "path": "visible.count", "equals": 9 },
+            { "path": "interaction.last", "equals": "pan" }
+          ]
+        },
+        { "type": "update", "revision": 1 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-07" },
+            { "path": "viewport.end", "equals": "2025-01-15" },
+            { "path": "visible.count", "equals": 9 },
+            { "path": "visible.revisionProbeValue", "equals": 59 },
+            { "path": "interaction.last", "equals": "pan" }
+          ]
+        },
+        { "type": "update", "revision": 0 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-07" },
+            { "path": "viewport.end", "equals": "2025-01-15" },
+            { "path": "visible.count", "equals": 9 },
+            { "path": "visible.revisionProbeValue", "equals": 55 },
+            { "path": "interaction.last", "equals": "pan" }
+          ]
+        },
+        {
+          "type": "wheel",
+          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "deltaY": 240
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-01" },
+            { "path": "viewport.end", "equals": "2025-01-17" },
+            { "path": "viewport.spanDays", "approx": 16, "tolerance": 0.01 },
+            { "path": "visible.count", "equals": 17 },
+            { "path": "interaction.last", "equals": "zoom" }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Apache ECharts data zoom",
+    "url": "https://echarts.apache.org/handbook/en/concepts/datazoom/"
+  },
+  "ai": {
+    "create": "Create a UTC time series whose wheel interaction zooms around the pointer and whose horizontal wheel interaction pans the cropped viewport without escaping the full data domain.",
+    "maintain": "Keep viewport state outside the renderer, derive pointer dates with the configured D3 scale copied onto resolved scene bounds, and preserve explicit clamping and minimum-span policy."
+  }
+}

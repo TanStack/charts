@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 880,
+  "id": "88-echarts-free-cursor",
+  "title": "Free two-dimensional cursor",
+  "family": "interaction",
+  "intent": "Track an unconstrained x and y plot position without snapping to the nearest datum.",
+  "support": "composed",
+  "features": [
+    "free cursor",
+    "two-dimensional crosshair",
+    "normalized plot state",
+    "semantic fractional target",
+    "case-owned overlay"
+  ],
+  "geometry": [
+    {
+      "id": "free-cursor-line",
+      "view": "main",
+      "role": "line",
+      "count": 1
+    },
+    {
+      "id": "free-cursor-dots",
+      "view": "main",
+      "role": "dot",
+      "count": 6
+    }
+  ],
+  "minimumGeometrySimilarity": 0.995,
+  "guideAssertions": [
+    {
+      "id": "value-sequence",
+      "axis": "y",
+      "sequence": ["0", "20", "40", "60", "80", "100"]
+    }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "track-fractional-plot-position",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "fraction:0.37,0.64"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "cursor.visible", "equals": true },
+            {
+              "path": "cursor.xNormalized",
+              "approx": 0.37,
+              "tolerance": 0.015
+            },
+            {
+              "path": "cursor.yNormalized",
+              "approx": 0.64,
+              "tolerance": 0.015
+            },
+            { "path": "cursor.snapped", "equals": false },
+            { "path": "cursor.datum", "equals": null },
+            { "path": "render.count", "equals": 1 }
+          ]
+        },
+        { "type": "pointerLeave", "view": "main" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "cursor.visible", "equals": false },
+            { "path": "cursor.xNormalized", "equals": null },
+            { "path": "cursor.yNormalized", "equals": null }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Apache ECharts cross axis pointer",
+    "url": "https://echarts.apache.org/handbook/en/concepts/axis/"
+  },
+  "ai": {
+    "create": "Create a free two-dimensional crosshair that reports normalized plot coordinates at arbitrary pointer positions without selecting a datum.",
+    "maintain": "Keep cursor movement DOM-only, constrain it to resolved chart bounds, hide it on leave, and preserve one chart render while pointer state changes."
+  }
+}

@@ -1,0 +1,130 @@
+export { areaY } from './area'
+export type { AreaYOptions } from './area'
+export { arrow } from './arrow'
+export type { ArrowOptions } from './arrow'
+export { barX, barY } from './bar'
+export type { BarXOptions, BarYOptions } from './bar'
+export { d3Curve } from './d3-shape'
+export { dot } from './dot'
+export type { DotOptions } from './dot'
+export { facet, facetChart } from './facet'
+export type { FacetAxes, FacetOptions } from './facet'
+export { frame } from './frame'
+export type { FrameOptions } from './frame'
+export { hexagon } from './hexagon'
+export type { HexagonOptions } from './hexagon'
+export { mountChart } from './dom'
+export { lineY } from './line'
+export type { LineYOptions } from './line'
+export { link } from './link'
+export type { LinkOptions } from './link'
+export { colorGradientLegend, colorLegend } from './legend'
+export type { ColorGradientLegendOptions, ColorLegendOptions } from './legend'
+export { createMark } from './mark'
+export { cell, rect } from './rect'
+export type { CellOptions, RectOptions } from './rect'
+export {
+  createChartRuntime,
+  isDynamicChartDefinition,
+  chartInputsEqual,
+  shallowInputEqual,
+} from './runtime'
+export {
+  createChartScene,
+  defaultChartTheme,
+  defineChart,
+  findNearestPoint,
+} from './scene'
+export { renderChartSvg } from './svg'
+export { ruleX, ruleY } from './rule'
+export type { RuleXOptions, RuleYOptions } from './rule'
+export { text } from './text'
+export type { TextAnchor, TextOptions } from './text'
+export { tickX, tickY } from './tick'
+export type { TickXOptions, TickYOptions } from './tick'
+export { vector } from './vector'
+export type { VectorAnchor, VectorOptions } from './vector'
+export type {
+  Channel,
+  ChannelAccessor,
+  ChannelField,
+  ChannelOutput,
+  DynamicChartConfig,
+  DynamicChartDefinition,
+  DynamicChartHostOptions,
+  InitializedMark,
+  MarkInitializeContext,
+  MarkRenderContext,
+  MarkScene,
+  MaterializedChannel,
+  ChartAxisOptions,
+  ChartAxisGuideOptions,
+  ChartAxisValue,
+  ChartAnimationOptions,
+  ChartBounds,
+  ChartBuildContext,
+  ChartColorOptions,
+  ConfiguredColorScaleLike,
+  ChartColorScale,
+  ChartColorScaleContext,
+  ChartColorLegend,
+  ChartColorLegendContext,
+  ChartCurve,
+  ChartDefinition,
+  ChartFocusMode,
+  ChartFocusStrategy,
+  ChartGradientStop,
+  ChartHost,
+  ChartHostCommonOptions,
+  ChartHostOptions,
+  ChartKey,
+  ChartLayoutOptions,
+  ChartMargin,
+  ChartLinearGradient,
+  ChartMark,
+  ChartMarkDatum,
+  ChartMarkX,
+  ChartMarkY,
+  ChartPoint,
+  ChartPrepareContext,
+  ChartRuntime,
+  ChartRenderContext,
+  ChartScene,
+  ChartScale,
+  ChartScaleResolveContext,
+  ChartScaleResolver,
+  ConfiguredScaleLike,
+  OptionChannelOutput,
+  ChartSize,
+  ChartSpatialIndex,
+  ChartSpatialIndexFactory,
+  ChartSpecDatum,
+  ChartSpec,
+  ChartSvgRenderer,
+  ChartTheme,
+  ChartTextMeasurer,
+  ChartTextMeasureOptions,
+  ChartTextMetrics,
+  ChartTick,
+  ChartTooltipOptions,
+  ChartValue,
+  VisualChannel,
+  WidenChartValue,
+  RenderChartSvgOptions,
+  ResolvedScale,
+  ResolvedColorScale,
+  SceneDot,
+  SceneArea,
+  SceneGroup,
+  SceneLabel,
+  SceneNode,
+  ScenePolyline,
+  SceneRect,
+  SceneRule,
+  SceneStyle,
+  StaticChartDefinition,
+  StaticChartHostOptions,
+} from './types'
+export { areaX } from './area-x'
+export type { AreaXCurve, AreaXOptions } from './area-x'
+export { d3AreaXCurve } from './d3-area-x'

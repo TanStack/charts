@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "order": 350,
+  "id": "35-grouped-tooltip",
+  "title": "Grouped X tooltip",
+  "family": "interaction",
+  "intent": "Compare all series at the nearest shared date in one pointer interaction.",
+  "support": "native",
+  "features": [
+    "grouped tooltip",
+    "nearest x focus",
+    "multi-series line",
+    "typed group formatter",
+    "keyboard navigation"
+  ],
+  "geometry": [
+    { "role": "line", "count": 3 },
+    { "role": "dot", "count": 108 }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "grouped-x-tooltip",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": { "anchor": "point:Atlas:20" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.text", "includes": "Atlas" },
+            { "path": "tooltip.text", "includes": "Beacon" },
+            { "path": "tooltip.text", "includes": "Comet" }
+          ]
+        },
+        { "type": "pointerLeave" },
+        {
+          "type": "assert",
+          "assertions": [{ "path": "tooltip.visible", "equals": false }]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Observable Plot pointerX interaction",
+    "url": "https://observablehq.com/plot/interactions/pointer"
+  },
+  "ai": {
+    "create": "Create a three-series UTC line chart whose nearest shared x position reveals all three series names and values.",
+    "maintain": "Add a fourth series while preserving one value per group, keyboard navigation by x, typed group formatting, and responsive tooltip positioning."
+  }
+}

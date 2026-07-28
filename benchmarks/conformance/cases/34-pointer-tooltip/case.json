@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "order": 340,
+  "id": "34-pointer-tooltip",
+  "title": "Pointer-selected tooltip",
+  "family": "interaction",
+  "intent": "Reveal a formatted datum on pointer proximity while keeping the chart keyboard-focusable and update-safe.",
+  "support": "native",
+  "features": [
+    "pointer interaction",
+    "tooltip",
+    "nearest point",
+    "typed formatter",
+    "keyboard focus"
+  ],
+  "geometry": [
+    { "role": "line", "count": 1 },
+    { "role": "dot", "count": 36 }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "pointer-tooltip",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": { "anchor": "point:Atlas:8" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.text", "includes": "Atlas" }
+          ]
+        },
+        { "type": "pointerLeave" },
+        {
+          "type": "assert",
+          "assertions": [{ "path": "tooltip.visible", "equals": false }]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Observable Plot tip and pointer interaction",
+    "url": "https://observablehq.com/plot/interactions/pointer"
+  },
+  "ai": {
+    "create": "Create a UTC line chart whose nearest point reveals a tooltip containing the series name and formatted value on pointer movement.",
+    "maintain": "Make the tooltip sticky on selection and keep pointer, keyboard, update, and typed datum behavior aligned without rendering custom DOM inside the mark."
+  }
+}

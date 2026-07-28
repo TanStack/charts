@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 870,
+  "id": "87-echarts-synchronized-cursors",
+  "title": "Synchronized cursors across views",
+  "family": "interaction",
+  "intent": "Track one semantic date across two time-series views with independent quantitative domains.",
+  "support": "composed",
+  "features": [
+    "synchronized cursors",
+    "linked views",
+    "semantic date state",
+    "independent y domains",
+    "external overlays"
+  ],
+  "geometry": [
+    {
+      "id": "primary-line",
+      "view": "primary",
+      "role": "line",
+      "count": 1
+    },
+    {
+      "id": "primary-dots",
+      "view": "primary",
+      "role": "dot",
+      "count": 8
+    },
+    {
+      "id": "secondary-line",
+      "view": "secondary",
+      "role": "line",
+      "count": 1
+    },
+    {
+      "id": "secondary-dots",
+      "view": "secondary",
+      "role": "dot",
+      "count": 8
+    }
+  ],
+  "minimumGeometrySimilarity": 0.995,
+  "interactionScenarios": [
+    {
+      "id": "share-date-across-both-views",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "primary",
+            "anchor": "date:2025-04-01"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "shared.date", "equals": "2025-04-01" },
+            { "path": "crosshairs.primary.visible", "equals": true },
+            { "path": "crosshairs.secondary.visible", "equals": true },
+            {
+              "path": "crosshairs.primary.xNormalized",
+              "approx": 0.434,
+              "tolerance": 0.02
+            },
+            {
+              "path": "crosshairs.secondary.xNormalized",
+              "approx": 0.434,
+              "tolerance": 0.02
+            }
+          ]
+        },
+        { "type": "update", "revision": 1 },
+        { "type": "update", "revision": 0 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "shared.date", "equals": "2025-04-01" },
+            { "path": "crosshairs.primary.visible", "equals": true },
+            { "path": "crosshairs.secondary.visible", "equals": true },
+            {
+              "path": "crosshairs.primary.xNormalized",
+              "approx": 0.434,
+              "tolerance": 0.02
+            },
+            {
+              "path": "crosshairs.secondary.xNormalized",
+              "approx": 0.434,
+              "tolerance": 0.02
+            }
+          ]
+        },
+        { "type": "pointerLeave", "view": "primary" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "shared.date", "equals": null },
+            { "path": "crosshairs.primary.visible", "equals": false },
+            { "path": "crosshairs.secondary.visible", "equals": false }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Apache ECharts linked axis pointers",
+    "url": "https://echarts.apache.org/handbook/en/concepts/axis/"
+  },
+  "ai": {
+    "create": "Create two vertically aligned time-series views with distinct y domains and a cursor linked by exact semantic date rather than shared pixel coordinates.",
+    "maintain": "Keep view IDs, row keys, date domains, external overlay ownership, and semantic cursor state stable across resize and data revision without programmatically mutating native chart focus."
+  }
+}

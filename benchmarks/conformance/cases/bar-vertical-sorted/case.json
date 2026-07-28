@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "order": 50,
+  "id": "bar-vertical-sorted",
+  "title": "Sorted vertical bars",
+  "family": "bar",
+  "intent": "Compare category totals with the largest category first.",
+  "support": "composed",
+  "features": [
+    "vertical bars",
+    "grouped sum",
+    "descending categorical domain",
+    "band scale",
+    "zero baseline"
+  ],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 8
+    }
+  ],
+  "source": {
+    "title": "Observable Plot bar mark",
+    "url": "https://observablehq.com/plot/marks/bar"
+  },
+  "ai": {
+    "create": "Create a vertical bar chart that totals the raw rows by category and sorts categories from largest total to smallest.",
+    "maintain": "Update the data revision while preserving the descending category order, zero baseline, and visible category labels."
+  }
+}

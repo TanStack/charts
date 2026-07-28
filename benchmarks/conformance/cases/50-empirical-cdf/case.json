@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 500,
+  "id": "50-empirical-cdf",
+  "title": "Empirical cumulative distribution",
+  "family": "distribution",
+  "intent": "Compare every observed value with the proportion of observations at or below it.",
+  "support": "composed",
+  "features": [
+    "empirical CDF",
+    "quantile rank transform",
+    "step curve",
+    "d3-array rank",
+    "d3-shape curve"
+  ],
+  "geometry": [{ "role": "line", "count": 1 }],
+  "source": {
+    "title": "Observable Plot map transform",
+    "url": "https://observablehq.com/plot/transforms/map"
+  },
+  "ai": {
+    "create": "Create an empirical cumulative distribution from raw numeric observations, preserving tied ranks and step-after interpolation.",
+    "maintain": "Split the distribution by group while computing ranks within each group and retaining explicit zero-to-one probability domains."
+  }
+}

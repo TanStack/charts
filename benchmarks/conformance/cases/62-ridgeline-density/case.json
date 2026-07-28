@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 620,
+  "id": "62-ridgeline-density",
+  "title": "Ridgeline density comparison",
+  "family": "distribution",
+  "intent": "Compare the shape and location of several distributions in compact vertically offset layers.",
+  "support": "native",
+  "features": [
+    "ridgeline chart",
+    "grouped range areas",
+    "offset baselines",
+    "smooth D3 curves",
+    "categorical color"
+  ],
+  "geometry": [
+    { "role": "rule", "count": 3 },
+    { "role": "area", "count": 3 },
+    { "role": "line", "count": 3 }
+  ],
+  "source": {
+    "title": "Observable Plot area ridgeline examples",
+    "url": "https://observablehq.com/plot/marks/area"
+  },
+  "ai": {
+    "create": "Create a three-series ridgeline chart from typed density rows using explicit baselines, grouped range areas, matching top lines, and a granular D3 basis curve.",
+    "maintain": "Add another distribution while keeping offsets, scale domains, labels, identity, colors, and responsive curve geometry aligned without introducing a facet or renderer dependency."
+  }
+}

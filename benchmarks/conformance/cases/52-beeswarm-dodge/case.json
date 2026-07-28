@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "order": 520,
+  "id": "52-beeswarm-dodge",
+  "title": "Beeswarm distribution",
+  "family": "distribution",
+  "intent": "Show every observation along one quantitative dimension without overplotting coincident values.",
+  "support": "composed",
+  "features": [
+    "beeswarm",
+    "pixel-space collision layout",
+    "dodge transform",
+    "d3-force collision",
+    "responsive preparation"
+  ],
+  "geometry": [{ "role": "dot", "count": 72 }],
+  "minimumGeometrySimilarity": 0.995,
+  "source": {
+    "title": "Observable Plot dodge transform",
+    "url": "https://observablehq.com/plot/transforms/dodge"
+  },
+  "ai": {
+    "create": "Create a centered beeswarm for 72 quantitative observations using fixed-radius collision avoidance.",
+    "maintain": "Change the dot radius while updating both collision distance and mark radius, preserving deterministic responsive layout."
+  }
+}

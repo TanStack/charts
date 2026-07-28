@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 290,
+  "id": "29-waterfall",
+  "title": "Waterfall bridge",
+  "family": "composition",
+  "intent": "Explain how positive and negative contributions bridge from zero to a final total.",
+  "support": "native",
+  "features": [
+    "waterfall",
+    "ranged bars",
+    "signed contributions",
+    "categorical color",
+    "explicit total"
+  ],
+  "geometry": [{ "role": "bar", "count": 7 }],
+  "source": {
+    "title": "Observable Plot ranged bar marks",
+    "url": "https://observablehq.com/plot/marks/bar"
+  },
+  "ai": {
+    "create": "Create a waterfall chart from explicit start and end intervals, distinguishing increases, decreases, and the final total.",
+    "maintain": "Insert a new negative contribution and recompute the bridge while retaining stable bar identity, the zero-based final total, and inferred interval channels."
+  }
+}

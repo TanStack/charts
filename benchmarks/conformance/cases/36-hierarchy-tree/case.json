@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "order": 360,
+  "id": "36-hierarchy-tree",
+  "title": "Tidy hierarchy tree",
+  "family": "hierarchy",
+  "intent": "Show a small product hierarchy with a tidy node-link layout and direct labels.",
+  "support": "composed",
+  "features": [
+    "hierarchy",
+    "tree layout",
+    "node-link diagram",
+    "direct labels",
+    "d3-hierarchy stratify",
+    "d3-hierarchy tree"
+  ],
+  "geometry": [
+    { "role": "link", "count": 9 },
+    { "role": "dot", "count": 10 },
+    { "role": "text", "count": 10 }
+  ],
+  "source": {
+    "title": "Observable Plot tree mark",
+    "url": "https://observablehq.com/plot/marks/tree"
+  },
+  "ai": {
+    "create": "Create a left-to-right tidy hierarchy from typed slash-delimited paths with one link per parent-child relationship, one dot per node, and direct node labels. Plot should use its native tree mark; TanStack should pass granular d3-hierarchy layout output to ordinary link, dot, and text marks.",
+    "maintain": "Change the hierarchy depth and labels while preserving stable path identity, the raw flat path rows, mirrored branch and leaf labels, granular d3-hierarchy imports, and cast-free channels."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 3,
+  "id": "03-temperature-range-band",
+  "title": "Temperature range band with boundary lines",
+  "family": "range",
+  "intent": "Show a time-varying low-to-high temperature interval with an area using explicit y1 and y2 channels and two independently styled boundary lines, mirroring Plot's sf-temperature-band-area fixture.",
+  "support": "native",
+  "features": [
+    "area",
+    "range-band",
+    "y1-y2",
+    "boundary-lines",
+    "utc-scale",
+    "fixture:sf-temperature-band-area"
+  ],
+  "geometry": [
+    { "role": "area", "count": 1 },
+    { "role": "line", "count": 2 }
+  ],
+  "source": {
+    "title": "Observable Plot area mark — range bands",
+    "url": "https://observablehq.com/plot/marks/area"
+  },
+  "ai": {
+    "create": "Create a responsive UTC temperature band from {id, date, low, high} rows. Fill the interval from low to high with one area and draw distinct low and high boundary lines from the same rows, with fully inferred channels and no data duplication.",
+    "maintain": "Add a 32-degree freezing reference rule and make the band react to light and dark themes while preserving the explicit low/high interval, boundary line geometry, and cast-free field inference."
+  }
+}

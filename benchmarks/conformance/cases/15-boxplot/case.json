@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "order": 160,
+  "id": "15-boxplot",
+  "title": "Grouped boxplot",
+  "family": "distribution",
+  "intent": "Compare three raw value distributions using quartiles, medians, whiskers, and outliers.",
+  "support": "composed",
+  "features": [
+    "boxplot",
+    "d3-array quantile",
+    "quartiles",
+    "whiskers",
+    "outliers",
+    "composite marks"
+  ],
+  "geometry": [
+    { "role": "bar", "count": 3 },
+    { "role": "tick", "count": 3 },
+    {
+      "role": "link",
+      "count": 3,
+      "rendererRoles": { "observable-plot": "rule", "tanstack": "link" }
+    }
+  ],
+  "source": {
+    "title": "Observable Plot box mark",
+    "url": "https://observablehq.com/plot/marks/box"
+  },
+  "ai": {
+    "create": "Create vertical boxplots for three groups from raw {group, value} observations. Plot may use boxY; TanStack must compose a box, median tick, whisker link, and outlier dots from D3 quantiles.",
+    "maintain": "Switch to horizontal boxplots while preserving the raw rows, Tukey whisker semantics, outliers, inferred types, and granular D3 imports."
+  }
+}

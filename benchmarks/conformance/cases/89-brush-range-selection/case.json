@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 890,
+  "id": "89-brush-range-selection",
+  "title": "Drag brush range selection",
+  "family": "interaction",
+  "intent": "Select and revise an exact continuous time range with a direct horizontal drag.",
+  "support": "composed",
+  "features": [
+    "continuous time brush",
+    "real pointer drag",
+    "normalized reverse selection",
+    "persistent selection overlay",
+    "D3 scale inversion"
+  ],
+  "geometry": [
+    { "id": "series-line", "view": "main", "role": "line", "count": 1 },
+    { "id": "series-points", "view": "main", "role": "dot", "count": 12 },
+    { "id": "selection-band", "view": "main", "role": "rect", "count": 1 }
+  ],
+  "minimumGeometrySimilarity": 0.991,
+  "guideAssertions": [
+    {
+      "id": "value-sequence",
+      "axis": "y",
+      "sequence": ["20", "40", "60", "80"]
+    }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "brush-forward",
+      "steps": [
+        {
+          "type": "drag",
+          "from": { "view": "main", "anchor": "date:2025-03-01" },
+          "to": { "view": "main", "anchor": "date:2025-07-01" },
+          "steps": 12
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selection.start", "equals": "2025-03-01" },
+            { "path": "selection.end", "equals": "2025-07-01" },
+            { "path": "selection.pointCount", "equals": 5 },
+            { "path": "selection.dragging", "equals": false }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "brush-reverse",
+      "steps": [
+        {
+          "type": "drag",
+          "from": { "view": "main", "anchor": "date:2025-08-01" },
+          "to": { "view": "main", "anchor": "date:2025-05-01" },
+          "steps": 12
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selection.start", "equals": "2025-05-01" },
+            { "path": "selection.end", "equals": "2025-08-01" },
+            { "path": "selection.pointCount", "equals": 4 },
+            { "path": "selection.dragging", "equals": false }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Apache ECharts brush selection",
+    "url": "https://echarts.apache.org/handbook/en/interaction/brush/"
+  },
+  "ai": {
+    "create": "Create a UTC line chart with a persistent horizontal brush whose range is derived from real drag coordinates and normalized when dragged in reverse.",
+    "maintain": "Keep the full semantic domain in an injected D3 UTC scale, copy it onto actual scene bounds for inversion, and keep selection state outside the renderer."
+  }
+}

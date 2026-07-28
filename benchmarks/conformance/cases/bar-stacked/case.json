@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "order": 80,
+  "id": "bar-stacked",
+  "title": "Stacked bars",
+  "family": "bar",
+  "intent": "Compare category totals while preserving each device series contribution.",
+  "support": "composed",
+  "features": [
+    "stacked bars",
+    "D3 stack intervals",
+    "categorical color",
+    "legend",
+    "explicit lower and upper bounds"
+  ],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 24
+    },
+    {
+      "role": "rule",
+      "count": 1
+    }
+  ],
+  "guideAssertions": [
+    {
+      "id": "category-order",
+      "axis": "x",
+      "sequence": [
+        "Query",
+        "Router",
+        "Table",
+        "Form",
+        "Start",
+        "Virtual",
+        "Store",
+        "DB"
+      ]
+    }
+  ],
+  "source": {
+    "title": "Observable Plot crimean-war-stacked fixture",
+    "url": "https://github.com/observablehq/plot/blob/main/test/plots/crimean-war-stacked.ts"
+  },
+  "ai": {
+    "create": "Create stacked vertical bars from the raw category and device rows, preserving all series and using explicit lower and upper stack intervals.",
+    "maintain": "Update the revision while keeping stack totals, series order, colors, and the zero baseline correct."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 190,
+  "id": "18-cumulative-histogram",
+  "title": "Cumulative histogram",
+  "family": "distribution",
+  "intent": "Show how the cumulative count grows across fixed quantitative bins.",
+  "support": "composed",
+  "features": [
+    "bin transform",
+    "cumulative reduction",
+    "rect mark",
+    "d3-array bin",
+    "fixed thresholds"
+  ],
+  "geometry": [{ "role": "rect", "count": 7 }],
+  "source": {
+    "title": "Observable Plot cumulative bin",
+    "url": "https://github.com/observablehq/plot/blob/main/test/plots/athletes-weight-cumulative.ts"
+  },
+  "ai": {
+    "create": "Create a cumulative histogram from raw numeric observations using fixed boundaries from 20 through 90.",
+    "maintain": "Convert the cumulative count to cumulative proportion without changing the raw rows or mixing Plot threshold semantics with D3 threshold semantics."
+  }
+}

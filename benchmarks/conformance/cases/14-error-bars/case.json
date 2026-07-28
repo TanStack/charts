@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "order": 150,
+  "id": "14-error-bars",
+  "title": "Point estimates with error bars",
+  "family": "uncertainty",
+  "intent": "Compare categorical point estimates while preserving explicit low and high uncertainty bounds.",
+  "support": "native",
+  "features": [
+    "link mark",
+    "tick caps",
+    "dot mark",
+    "explicit low-high interval",
+    "categorical x scale"
+  ],
+  "geometry": [
+    {
+      "role": "link",
+      "count": 8,
+      "rendererRoles": { "observable-plot": "rule", "tanstack": "link" }
+    },
+    { "role": "tick", "count": 16 },
+    { "role": "dot", "count": 8 }
+  ],
+  "source": {
+    "title": "Observable Plot rule and tick marks",
+    "url": "https://observablehq.com/plot/features/marks"
+  },
+  "ai": {
+    "create": "Create a responsive point-estimate chart from {category, mean, low, high} rows with a vertical interval, two horizontal caps, and a mean dot.",
+    "maintain": "Change the uncertainty calculation while retaining typed endpoint channels, one interval per category, and automatic categorical spacing."
+  }
+}

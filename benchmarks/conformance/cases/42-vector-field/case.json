@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 420,
+  "id": "42-vector-field",
+  "title": "Two-dimensional vector field",
+  "family": "spatial",
+  "intent": "Show direction and magnitude at regularly sampled two-dimensional positions.",
+  "support": "native",
+  "features": [
+    "vector mark",
+    "pixel length channel",
+    "rotation channel",
+    "fixed-size arrowheads",
+    "quantitative anchors"
+  ],
+  "geometry": [{ "role": "vector", "count": 30 }],
+  "source": {
+    "title": "Observable Plot vector mark",
+    "url": "https://observablehq.com/plot/marks/vector"
+  },
+  "ai": {
+    "create": "Create a vector field from typed x, y, speed, and clockwise direction fields using fixed-pixel vector lengths.",
+    "maintain": "Change the field density and vector anchor while retaining typed channels, responsive scales, and one semantic vector per sample."
+  }
+}

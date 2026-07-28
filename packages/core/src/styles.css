@@ -1,0 +1,85 @@
+.ts-plot {
+  --ts-plot-background: transparent;
+  --ts-plot-foreground: #18181b;
+  --ts-plot-muted: #71717a;
+  --ts-plot-grid: #e4e4e7;
+  --ts-plot-axis: #71717a;
+  --ts-plot-tooltip-background: #ffffff;
+  --ts-plot-tooltip-foreground: #18181b;
+  --ts-plot-focus: #2563eb;
+  --ts-plot-selection: #dbeafe;
+  --ts-plot-positive: #15803d;
+  --ts-plot-negative: #b91c1c;
+  --ts-plot-warning: #b45309;
+  --ts-plot-neutral: #71717a;
+  --ts-plot-categorical-1: #2563eb;
+  --ts-plot-categorical-2: #7c3aed;
+  --ts-plot-categorical-3: #0891b2;
+  --ts-plot-categorical-4: #16a34a;
+  --ts-plot-categorical-5: #d97706;
+  --ts-plot-categorical-6: #db2777;
+  --ts-plot-categorical-7: #4f46e5;
+  --ts-plot-categorical-8: #0f766e;
+  --plot-background: var(--ts-plot-tooltip-background);
+
+  position: relative;
+  min-width: 0;
+  overflow: visible;
+  color: var(--ts-plot-foreground);
+  background: var(--ts-plot-background);
+}
+
+.ts-plot[data-ts-plot-resolved-theme='dark'] {
+  --ts-plot-background: transparent;
+  --ts-plot-foreground: #fafafa;
+  --ts-plot-muted: #a1a1aa;
+  --ts-plot-grid: #3f3f46;
+  --ts-plot-axis: #a1a1aa;
+  --ts-plot-tooltip-background: #18181b;
+  --ts-plot-tooltip-foreground: #fafafa;
+  --ts-plot-focus: #60a5fa;
+  --ts-plot-selection: #172554;
+  --ts-plot-positive: #4ade80;
+  --ts-plot-negative: #f87171;
+  --ts-plot-warning: #fbbf24;
+  --ts-plot-neutral: #a1a1aa;
+  --ts-plot-categorical-1: #60a5fa;
+  --ts-plot-categorical-2: #a78bfa;
+  --ts-plot-categorical-3: #22d3ee;
+  --ts-plot-categorical-4: #4ade80;
+  --ts-plot-categorical-5: #fbbf24;
+  --ts-plot-categorical-6: #f472b6;
+  --ts-plot-categorical-7: #818cf8;
+  --ts-plot-categorical-8: #2dd4bf;
+}
+
+.ts-plot__surface {
+  width: 100%;
+  min-width: 0;
+}
+
+.ts-plot > :is(svg, figure),
+.ts-plot__surface > :is(svg, figure) {
+  display: block;
+  max-width: 100%;
+  margin: 0;
+  overflow: visible;
+}
+
+.ts-plot:focus-visible {
+  outline: 2px solid var(--ts-plot-focus);
+  outline-offset: 3px;
+}
+
+@media (forced-colors: active) {
+  .ts-plot {
+    --ts-plot-foreground: CanvasText;
+    --ts-plot-muted: CanvasText;
+    --ts-plot-grid: GrayText;
+    --ts-plot-axis: CanvasText;
+    --ts-plot-tooltip-background: Canvas;
+    --ts-plot-tooltip-foreground: CanvasText;
+    --ts-plot-focus: Highlight;
+    forced-color-adjust: auto;
+  }
+}

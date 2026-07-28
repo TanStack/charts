@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 380,
+  "id": "38-contour-topography",
+  "title": "Filled topographic contours",
+  "family": "spatial",
+  "intent": "Show nested level sets from a regularly sampled scalar field.",
+  "support": "composed",
+  "features": [
+    "contour mark",
+    "regular scalar grid",
+    "explicit thresholds",
+    "d3-contour",
+    "custom mark"
+  ],
+  "geometry": [{ "role": "contour", "count": 5 }],
+  "source": {
+    "title": "Observable Plot contour",
+    "url": "https://observablehq.com/plot/marks/contour"
+  },
+  "ai": {
+    "create": "Create five filled topographic contours from a typed regular grid. Plot should use contour; TanStack should inject d3-contour and render the returned GeoJSON paths through a local custom mark.",
+    "maintain": "Keep the threshold sequence, grid dimensions, vertical orientation, and literal contour palette aligned across both implementations without importing spatial code into the chart core."
+  }
+}

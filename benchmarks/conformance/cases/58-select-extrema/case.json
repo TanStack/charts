@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "order": 580,
+  "id": "58-select-extrema",
+  "title": "Annotated time-series extrema",
+  "family": "trend",
+  "intent": "Show a temporal trend while calling out the exact minimum and maximum observations.",
+  "support": "composed",
+  "features": [
+    "time-series line",
+    "minimum selection",
+    "maximum selection",
+    "direct annotations",
+    "d3-array least",
+    "d3-array greatest"
+  ],
+  "geometry": [
+    { "role": "line", "count": 1 },
+    { "role": "dot", "count": 2 },
+    { "role": "text", "count": 2 }
+  ],
+  "source": {
+    "title": "Observable Plot select transform",
+    "url": "https://observablehq.com/plot/transforms/select"
+  },
+  "ai": {
+    "create": "Create a UTC time-series line and annotate its minimum and maximum observations without preselecting the Plot data.",
+    "maintain": "Change the observations while preserving unique extrema selection, stable point keys, explicit domains, and labels that stay inside the plot."
+  }
+}

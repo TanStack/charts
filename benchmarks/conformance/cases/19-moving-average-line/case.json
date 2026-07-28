@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "order": 200,
+  "id": "19-moving-average-line",
+  "title": "Moving-average time-series line",
+  "family": "trend",
+  "intent": "Smooth three weekly time series with a trailing seven-observation mean while preserving their original tidy data model.",
+  "support": "composed",
+  "features": [
+    "line",
+    "moving average",
+    "window transform",
+    "multi-series",
+    "d3-array-group",
+    "d3-array-mean"
+  ],
+  "geometry": [{ "role": "line", "count": 3 }],
+  "source": {
+    "title": "Observable Plot window transform",
+    "url": "https://observablehq.com/plot/transforms/window"
+  },
+  "ai": {
+    "create": "Create a responsive three-series UTC line chart from typed {id, date, value, series} rows using a strict trailing seven-observation moving average and no casts.",
+    "maintain": "Change the rolling window and alignment while preserving series isolation, stable keys, explicit domains, and the same tidy source rows."
+  }
+}

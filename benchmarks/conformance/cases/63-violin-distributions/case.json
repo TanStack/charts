@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 630,
+  "id": "63-violin-distributions",
+  "title": "Violin distribution comparison",
+  "family": "distribution",
+  "intent": "Compare mirrored distribution shapes and medians across categorical cohorts.",
+  "support": "composed",
+  "features": [
+    "violin plot",
+    "first-class areaX interval mark",
+    "smooth D3 curve",
+    "median link",
+    "categorical color"
+  ],
+  "geometry": [
+    { "role": "area", "count": 3 },
+    { "role": "link", "count": 3 },
+    { "role": "dot", "count": 3 }
+  ],
+  "source": {
+    "title": "Observable Plot area marks",
+    "url": "https://observablehq.com/plot/marks/area"
+  },
+  "ai": {
+    "create": "Create three mirrored violin distributions with typed x1/x2 density envelopes, smooth curves, explicit medians, and a shared quantitative score scale.",
+    "maintain": "Change the density resolution or add a cohort while preserving symmetric widths, summary identity, categorical labels, color mapping, and strict scale-channel inference."
+  }
+}

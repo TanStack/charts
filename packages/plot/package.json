@@ -1,0 +1,16 @@
+{
+  "name": "@plot-poc/observable",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@plot-poc/host-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@observablehq/plot": "^0.6.17"
+  }
+}

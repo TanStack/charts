@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "order": 180,
+  "id": "17-dumbbell",
+  "title": "Dumbbell comparison",
+  "family": "comparison",
+  "intent": "Compare two values per category with explicit endpoints and a connecting segment.",
+  "support": "native",
+  "features": [
+    "link mark",
+    "two endpoint dot layers",
+    "categorical y scale",
+    "paired comparison"
+  ],
+  "geometry": [
+    { "role": "link", "count": 8 },
+    { "role": "dot", "count": 16 }
+  ],
+  "source": {
+    "title": "Observable Plot link mark",
+    "url": "https://observablehq.com/plot/marks/link"
+  },
+  "ai": {
+    "create": "Create a horizontal dumbbell chart comparing desktop and mobile values for each category with one connecting link and two colored endpoints.",
+    "maintain": "Swap one endpoint to tablet while preserving category order, the paired row model, and endpoint colors."
+  }
+}

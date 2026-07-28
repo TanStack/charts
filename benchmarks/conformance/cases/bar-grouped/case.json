@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "order": 70,
+  "id": "bar-grouped",
+  "title": "Grouped bars",
+  "family": "bar",
+  "intent": "Compare three device series side by side within each category.",
+  "support": "native",
+  "features": [
+    "grouped bars",
+    "nested band scales",
+    "categorical color",
+    "legend",
+    "responsive categorical labels"
+  ],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 24
+    }
+  ],
+  "guideAssertions": [
+    {
+      "id": "category-order",
+      "axis": {
+        "observable-plot": "fx",
+        "tanstack": "x"
+      },
+      "sequence": [
+        "Query",
+        "Router",
+        "Table",
+        "Form",
+        "Start",
+        "Virtual",
+        "Store",
+        "DB"
+      ]
+    }
+  ],
+  "source": {
+    "title": "Observable Plot group transform",
+    "url": "https://observablehq.com/plot/transforms/group"
+  },
+  "ai": {
+    "create": "Create grouped vertical bars for every category and device series, with side-by-side geometry and a categorical color legend.",
+    "maintain": "Update the data revision and width without stacking or overlapping the three series in each category."
+  }
+}

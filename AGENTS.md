@@ -1,0 +1,12 @@
+# Repository agent instructions
+
+- Read `API-FRICTION.md` before changing the public API, examples, adapters, or
+  production migrations.
+- While using the API, record observed friction in `API-FRICTION.md` when work
+  requires an unexpected workaround, assertion, duplicated setup, hidden
+  import, unclear ownership boundary, or repeated correction.
+- Log evidence from the actual task. Do not add speculative wishlist items.
+- Classify each finding as an API, documentation, skill, application, or
+  tooling concern. Resolve it at the narrowest correct layer.
+- Update an existing entry instead of creating duplicates. Include the
+  verification that closes a resolved entry.

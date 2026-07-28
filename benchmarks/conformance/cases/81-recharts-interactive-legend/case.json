@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 810,
+  "id": "81-recharts-interactive-legend",
+  "title": "Interactive series legend",
+  "family": "interaction",
+  "intent": "Toggle individual series from a legend without changing the chart's quantitative domain.",
+  "support": "composed",
+  "features": [
+    "interactive legend",
+    "series visibility",
+    "fixed domain",
+    "accessible controls"
+  ],
+  "geometry": [{ "role": "line", "count": 2 }],
+  "minimumGeometrySimilarity": 0.97,
+  "interactionScenarios": [
+    {
+      "id": "toggle-revenue-without-rescaling",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "legend:revenue" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "visibleSeries", "equals": ["profit"] },
+            { "path": "hiddenSeries", "equals": ["revenue"] },
+            { "path": "renderedSeries", "equals": ["profit"] },
+            { "path": "yDomain", "equals": [0, 120] }
+          ]
+        },
+        { "type": "update", "revision": 1 },
+        { "type": "update", "revision": 0 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "visibleSeries", "equals": ["profit"] },
+            { "path": "renderedSeries", "equals": ["profit"] },
+            { "path": "yDomain", "equals": [0, 120] }
+          ]
+        },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "legend:revenue" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "visibleSeries", "equals": ["revenue", "profit"] },
+            { "path": "hiddenSeries", "equals": [] },
+            {
+              "path": "renderedSeries",
+              "equals": ["revenue", "profit"]
+            },
+            { "path": "yDomain", "equals": [0, 120] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "toggle-profit-with-keyboard",
+      "steps": [
+        {
+          "type": "key",
+          "key": "Enter",
+          "target": { "view": "main", "anchor": "legend:profit" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "visibleSeries", "equals": ["revenue"] },
+            { "path": "renderedSeries", "equals": ["revenue"] },
+            { "path": "yDomain", "equals": [0, 120] }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Recharts Legend API",
+    "url": "https://recharts.github.io/en-US/api/Legend/"
+  },
+  "ai": {
+    "create": "Create a two-series line chart with an accessible legend that toggles each series while retaining an explicit y domain.",
+    "maintain": "Keep series IDs stable, preserve the quantitative domain when a series is hidden, and expose visibility as controlled application state."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 2,
+  "id": "02-multi-line-end-labels",
+  "title": "Multi-series line with end labels",
+  "family": "trend",
+  "intent": "Compare three chronological series and label the final observation of each series directly, following Observable Plot's selectLast example without requiring a separate legend.",
+  "support": "composed",
+  "features": [
+    "line",
+    "multi-series",
+    "direct-labels",
+    "select-last",
+    "d3-array-group",
+    "ordinal-color"
+  ],
+  "geometry": [
+    { "role": "line", "count": 3 },
+    { "role": "text", "count": 3 }
+  ],
+  "source": {
+    "title": "Observable Plot select transform — multi-series end labels",
+    "url": "https://observablehq.com/plot/transforms/select"
+  },
+  "ai": {
+    "create": "Create a responsive three-series UTC line chart from tidy {id, date, value, series} rows. Give each series a stable color and directly label its final observation; do not introduce a proprietary series data model, casts, or a hand-maintained endpoint array.",
+    "maintain": "Move the direct labels from the last observation to the first observation of each series while retaining series colors, stable line keys, inferred callback data, and readable label space."
+  }
+}

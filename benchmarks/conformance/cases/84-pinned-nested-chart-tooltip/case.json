@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 840,
+  "id": "84-pinned-nested-chart-tooltip",
+  "title": "Pinned tooltip with a nested chart",
+  "family": "interaction",
+  "intent": "Pin an external rich tooltip on click and render a real secondary chart inside it without making hover destructive.",
+  "support": "composed",
+  "features": [
+    "external rich tooltip",
+    "click to pin",
+    "hover without activation",
+    "nested chart",
+    "Escape dismissal"
+  ],
+  "geometry": [
+    {
+      "view": "main",
+      "role": "dot",
+      "count": 5
+    }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "hover-does-not-open-tooltip",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "point:api"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "hoveredId", "equals": "api" },
+            { "path": "tooltip.visible", "equals": false },
+            { "path": "tooltip.pinnedId", "equals": null },
+            { "path": "tooltip.miniBarCount", "equals": 0 }
+          ]
+        },
+        { "type": "pointerLeave", "view": "main" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "hoveredId", "equals": null },
+            { "path": "tooltip.visible", "equals": false }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pin-and-dismiss-with-escape",
+      "steps": [
+        {
+          "type": "click",
+          "target": {
+            "view": "main",
+            "anchor": "point:search"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.pinnedId", "equals": "search" },
+            { "path": "tooltip.miniBarCount", "equals": 4 },
+            { "path": "tooltip.chartCount", "equals": 1 }
+          ]
+        },
+        { "type": "key", "key": "Escape" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.visible", "equals": false },
+            { "path": "tooltip.pinnedId", "equals": null },
+            { "path": "tooltip.miniBarCount", "equals": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "second-click-unpins",
+      "steps": [
+        {
+          "type": "click",
+          "target": {
+            "view": "main",
+            "anchor": "point:api"
+          }
+        },
+        {
+          "type": "click",
+          "target": {
+            "view": "main",
+            "anchor": "point:api"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.visible", "equals": false },
+            { "path": "tooltip.pinnedId", "equals": null },
+            { "path": "tooltip.miniBarCount", "equals": 0 }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Recharts custom tooltip content",
+    "url": "https://recharts.github.io/en-US/examples/CustomContentOfTooltip/"
+  },
+  "ai": {
+    "create": "Create a selectable service chart where hover only exposes focus state, clicking pins an external tooltip, and the tooltip mounts a real four-bar history chart.",
+    "maintain": "Keep hover and pinned selection separate, key all state by stable service ID, destroy nested chart hosts when hidden, and preserve Escape plus second-click dismissal."
+  }
+}

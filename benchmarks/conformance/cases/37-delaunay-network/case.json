@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "order": 370,
+  "id": "37-delaunay-network",
+  "title": "Delaunay spatial network",
+  "family": "spatial",
+  "intent": "Expose local spatial adjacency by connecting every edge of a Delaunay triangulation.",
+  "support": "composed",
+  "features": [
+    "Delaunay triangulation",
+    "spatial adjacency",
+    "prepared link endpoints",
+    "d3-delaunay",
+    "scatterplot"
+  ],
+  "geometry": [
+    { "role": "delaunay", "count": 26 },
+    { "role": "dot", "count": 12 }
+  ],
+  "source": {
+    "title": "Observable Plot Delaunay marks",
+    "url": "https://observablehq.com/plot/marks/delaunay"
+  },
+  "ai": {
+    "create": "Create a quantitative point diagram that connects all unique Delaunay edges. Plot should use its native delaunayLink mark; TanStack should convert granular d3-delaunay halfedges and hull indexes into typed link endpoints before rendering.",
+    "maintain": "Add or move points while keeping each undirected edge unique, closing the convex hull, preserving raw point rows and stable point identity, and avoiding an umbrella D3 import or consumer casts."
+  }
+}

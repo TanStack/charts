@@ -1,0 +1,65 @@
+import { defineChart, rect } from '@tanstack/charts'
+import { bin } from 'd3-array'
+import { scaleLinear } from 'd3-scale'
+import { distributionData } from '../../shared/data'
+import type { DistributionPoint } from '../../shared/data'
+import { tanstackMount } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
+
+interface CumulativeBin {
+  id: string
+  x0: number
+  x1: number
+  count: number
+}
+
+const boundaries = [20, 30, 40, 50, 60, 70, 80, 90]
+const createBins = bin<DistributionPoint, number>()
+  .value((row) => row.value)
+  .domain([20, 90])
+  .thresholds(boundaries.slice(1, -1))
+
+const definition = defineChart<ConformanceInput>()(({ input }) => {
+  let cumulative = 0
+  const bins: CumulativeBin[] = createBins(
+    distributionData(input.revision),
+  ).flatMap((bucket, index) => {
+    cumulative += bucket.length
+    return bucket.x0 === undefined || bucket.x1 === undefined
+      ? []
+      : [
+          {
+            id: `bin:${index}`,
+            x0: bucket.x0,
+            x1: bucket.x1,
+            count: cumulative,
+          },
+        ]
+  })
+
+  return {
+    marks: [
+      rect(bins, {
+        x1: 'x0',
+        x2: 'x1',
+        y1: () => 0,
+        y2: 'count',
+        key: 'id',
+        fill: '#2563eb',
+        inset: 1,
+      }),
+    ],
+    x: {
+      scale: scaleLinear().domain([20, 90]),
+      grid: true,
+      label: 'Value',
+    },
+    y: {
+      scale: scaleLinear().domain([0, 240]),
+      grid: true,
+      label: 'Cumulative count',
+    },
+  }
+})
+
+export const mount = tanstackMount(definition, 'Cumulative histogram')

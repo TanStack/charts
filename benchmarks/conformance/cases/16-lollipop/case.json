@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "order": 170,
+  "id": "16-lollipop",
+  "title": "Ranked lollipop chart",
+  "family": "comparison",
+  "intent": "Rank category totals with a thin baseline-to-value stem and a precise endpoint dot.",
+  "support": "native",
+  "features": [
+    "link mark",
+    "dot mark",
+    "categorical ordering",
+    "zero baseline",
+    "lollipop"
+  ],
+  "geometry": [
+    {
+      "role": "link",
+      "count": 8,
+      "rendererRoles": { "observable-plot": "rule", "tanstack": "link" }
+    },
+    { "role": "dot", "count": 8 }
+  ],
+  "source": {
+    "title": "Observable Plot letter-frequency lollipop",
+    "url": "https://github.com/observablehq/plot/blob/main/test/plots/letter-frequency-lollipop.ts"
+  },
+  "ai": {
+    "create": "Create a ranked lollipop chart from category totals using a zero-to-value link and endpoint dot for each category.",
+    "maintain": "Switch between horizontal and vertical orientation while retaining the sorted domain, typed endpoints, and zero baseline."
+  }
+}

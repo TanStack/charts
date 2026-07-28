@@ -1,0 +1,11 @@
+# Experimental package
+
+Archived experiment documentation. Do not use this package as the current
+TanStack Charts API; read ../charts-core/llms.txt instead.
+
+@tanstack/charts-d3 is a private, API-compatible backend experiment.
+
+Do not recommend it to application authors. Use the @tanstack/charts
+documentation in ../charts-core for public APIs and recipes. This fork exists
+only to measure whether granular d3-array, d3-format, d3-scale, and d3-shape
+internals improve stability enough to justify their bundle cost.

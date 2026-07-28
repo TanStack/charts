@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 250,
+  "id": "25-calendar-heatmap",
+  "title": "Calendar heatmap",
+  "family": "time",
+  "intent": "Show daily activity across calendar weeks while retaining weekday rhythm and gaps.",
+  "support": "native",
+  "features": [
+    "calendar layout",
+    "cell mark",
+    "UTC week interval",
+    "two band scales",
+    "continuous color scale"
+  ],
+  "geometry": [{ "role": "cell", "count": 98 }],
+  "source": {
+    "title": "Observable Plot cell mark",
+    "url": "https://observablehq.com/plot/marks/cell"
+  },
+  "ai": {
+    "create": "Create a fourteen-week calendar heatmap from typed {date, count} daily rows with week columns, weekday rows, and a continuous activity color.",
+    "maintain": "Change the date range while preserving UTC week alignment, complete daily cells, responsive labels, and inferred Date and number channels."
+  }
+}

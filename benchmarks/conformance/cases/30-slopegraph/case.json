@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 300,
+  "id": "30-slopegraph",
+  "title": "Two-period slopegraph",
+  "family": "change",
+  "intent": "Compare before and after values across categories with direct endpoint labels.",
+  "support": "native",
+  "features": [
+    "slopegraph",
+    "multi-series line",
+    "categorical x scale",
+    "direct labels",
+    "endpoint dots"
+  ],
+  "geometry": [
+    { "role": "line", "count": 8 },
+    { "role": "dot", "count": 16 },
+    { "role": "text", "count": 8 }
+  ],
+  "source": {
+    "title": "Observable Plot unemployment slope",
+    "url": "https://github.com/observablehq/plot/blob/main/test/plots/metro-unemployment-slope.ts"
+  },
+  "ai": {
+    "create": "Create a two-period slopegraph for eight categories with one line per category, endpoint dots, and direct labels on the after values.",
+    "maintain": "Move labels to the larger endpoint while retaining category colors, stable series identity, and a categorical period axis."
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "@tanstack/charts-d3",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "dependencies": {
+    "d3-array": "3.2.4",
+    "d3-format": "3.1.2",
+    "d3-scale": "4.0.2",
+    "d3-shape": "3.2.0"
+  },
+  "devDependencies": {
+    "@types/d3-array": "^3.2.2",
+    "@types/d3-format": "^3.0.4",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.1.8"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./area": "./src/area.ts",
+    "./bar": "./src/bar.ts",
+    "./scales/color": "./src/color-scale.ts",
+    "./curves": "./src/curves.ts",
+    "./dom": "./src/dom.ts",
+    "./dot": "./src/dot.ts",
+    "./export": "./src/export.ts",
+    "./facet": "./src/facet.ts",
+    "./focus": "./src/focus.ts",
+    "./legend": "./src/legend.ts",
+    "./line": "./src/line.ts",
+    "./reconcile": "./src/reconcile.ts",
+    "./rect": "./src/rect.ts",
+    "./scales/radius": "./src/radius-scale.ts",
+    "./rule": "./src/rule.ts",
+    "./runtime": "./src/runtime.ts",
+    "./scales/transforms": "./src/scale-transforms.ts",
+    "./scales/time": "./src/time-scale.ts",
+    "./scene": "./src/scene.ts",
+    "./spatial": "./src/spatial.ts",
+    "./svg": "./src/svg.ts",
+    "./svg/resources": "./src/svg-resources.ts",
+    "./text": "./src/text.ts",
+    "./transforms": "./src/transforms.ts"
+  }
+}

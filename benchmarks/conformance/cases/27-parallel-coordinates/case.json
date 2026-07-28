@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "order": 270,
+  "id": "27-parallel-coordinates",
+  "title": "Parallel coordinates",
+  "family": "multivariate",
+  "intent": "Compare several entities across the same ordered set of normalized quantitative dimensions.",
+  "support": "native",
+  "features": [
+    "parallel coordinates",
+    "multi-series line",
+    "ordinal x scale",
+    "quantitative y scale",
+    "categorical color"
+  ],
+  "geometry": [
+    { "role": "line", "count": 6 },
+    { "role": "dot", "count": 30 }
+  ],
+  "source": {
+    "title": "Observable Plot line mark",
+    "url": "https://observablehq.com/plot/marks/line"
+  },
+  "ai": {
+    "create": "Create a parallel-coordinates chart from typed {model, metric, score} rows using one colored line per model across five ordered metrics.",
+    "maintain": "Add or reorder metrics while preserving series grouping, normalized quantitative domains, stable model colors, and inferred channel types."
+  }
+}

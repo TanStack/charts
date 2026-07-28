@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "order": 100,
+  "id": "scatter-bubble",
+  "title": "Bubble scatterplot",
+  "family": "relationship",
+  "intent": "Compare two quantitative variables while encoding magnitude by area and group by color.",
+  "support": "native",
+  "features": [
+    "dot mark",
+    "continuous x and y scales",
+    "radial size scale",
+    "ordinal color scale"
+  ],
+  "geometry": [{ "role": "dot", "count": 72 }],
+  "source": {
+    "title": "Observable Plot: athletes height and weight",
+    "url": "https://github.com/observablehq/plot/blob/main/test/plots/athletes-height-weight.ts"
+  },
+  "ai": {
+    "create": "Create a bubble scatterplot from rows with numeric x, y, and size fields and a categorical group field.",
+    "maintain": "Change the group palette and radius range without changing the data model or positional domains."
+  }
+}

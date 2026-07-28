@@ -1,0 +1,26 @@
+{
+  "name": "@charts-poc/sandbox",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --host --port 5183 --strictPort"
+  },
+  "dependencies": {
+    "@tanstack/charts": "workspace:*",
+    "@tanstack/react-charts": "workspace:*",
+    "d3-array": "3.2.4",
+    "d3-scale": "4.0.2",
+    "d3-shape": "3.2.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/d3-array": "^3.2.2",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.1.8",
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.16"
+  }
+}

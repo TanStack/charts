@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 920,
+  "id": "92-editable-event-range",
+  "title": "Editable event range",
+  "family": "interaction",
+  "intent": "Edit a keyed schedule event by dragging its end handle while preserving the event start, lane, and identity.",
+  "support": "composed",
+  "features": [
+    "editable timeline",
+    "interval rectangle",
+    "drag handle",
+    "controlled event range",
+    "stable data keys"
+  ],
+  "geometry": [
+    { "id": "event-ranges", "view": "main", "role": "rect", "count": 4 },
+    { "id": "event-end-handle", "view": "main", "role": "dot", "count": 1 }
+  ],
+  "minimumGeometrySimilarity": 0.995,
+  "guideAssertions": [
+    {
+      "id": "lane-sequence",
+      "axis": "y",
+      "sequence": ["Product", "Design", "Marketing", "Engineering"]
+    }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "extend-release-window",
+      "steps": [
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "editor.id", "equals": "release" },
+            { "path": "editor.start", "equals": "2025-02-03" },
+            { "path": "editor.end", "equals": "2025-02-12" },
+            { "path": "editor.durationDays", "approx": 9, "tolerance": 0 },
+            {
+              "path": "events.ids",
+              "equals": ["discovery", "design", "campaign", "release"]
+            }
+          ]
+        },
+        {
+          "type": "drag",
+          "from": { "view": "main", "anchor": "event:release:end" },
+          "to": { "view": "main", "anchor": "date:2025-02-21" },
+          "steps": 14
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "editor.id", "equals": "release" },
+            { "path": "editor.start", "equals": "2025-02-03" },
+            { "path": "editor.end", "equals": "2025-02-21" },
+            { "path": "editor.durationDays", "approx": 18, "tolerance": 0 },
+            { "path": "editor.editing", "equals": false },
+            { "path": "editor.editCount", "equals": 1 },
+            {
+              "path": "events.ids",
+              "equals": ["discovery", "design", "campaign", "release"]
+            }
+          ]
+        },
+        { "type": "update", "revision": 1 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "editor.id", "equals": "release" },
+            { "path": "editor.start", "equals": "2025-02-03" },
+            { "path": "editor.end", "equals": "2025-02-21" },
+            { "path": "editor.durationDays", "approx": 18, "tolerance": 0 },
+            { "path": "editor.editing", "equals": false },
+            { "path": "editor.editCount", "equals": 1 },
+            { "path": "events.designEnd", "equals": "2025-01-26" },
+            { "path": "events.campaignStart", "equals": "2025-01-19" },
+            {
+              "path": "events.ids",
+              "equals": ["discovery", "design", "campaign", "release"]
+            }
+          ]
+        },
+        { "type": "update", "revision": 0 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "editor.id", "equals": "release" },
+            { "path": "editor.start", "equals": "2025-02-03" },
+            { "path": "editor.end", "equals": "2025-02-21" },
+            { "path": "editor.durationDays", "approx": 18, "tolerance": 0 },
+            { "path": "editor.editing", "equals": false },
+            { "path": "editor.editCount", "equals": 1 },
+            { "path": "events.designEnd", "equals": "2025-01-24" },
+            { "path": "events.campaignStart", "equals": "2025-01-20" },
+            {
+              "path": "events.ids",
+              "equals": ["discovery", "design", "campaign", "release"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shorten-release-window",
+      "steps": [
+        {
+          "type": "drag",
+          "from": { "view": "main", "anchor": "event:release:end" },
+          "to": { "view": "main", "anchor": "date:2025-02-07" },
+          "steps": 10
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "editor.start", "equals": "2025-02-03" },
+            { "path": "editor.end", "equals": "2025-02-07" },
+            { "path": "editor.durationDays", "approx": 4, "tolerance": 0 },
+            { "path": "editor.editing", "equals": false },
+            { "path": "editor.editCount", "equals": 1 },
+            {
+              "path": "events.ids",
+              "equals": ["discovery", "design", "campaign", "release"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Apache ECharts custom series",
+    "url": "https://echarts.apache.org/handbook/en/how-to/chart-types/custom-series/"
+  },
+  "ai": {
+    "create": "Create a keyed resource schedule with interval rectangles and a controlled end-handle overlay that maps real drag pixels back through the explicit UTC scale.",
+    "maintain": "Preserve event IDs and lane assignment when editing, clamp the end after the start, and update renderer input from application-owned range state instead of mutating scene output."
+  }
+}

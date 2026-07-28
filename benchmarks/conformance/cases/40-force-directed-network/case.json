@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "order": 400,
+  "id": "40-force-directed-network",
+  "title": "Force-directed dependency network",
+  "family": "network",
+  "intent": "Reveal service clusters and the dependencies that connect them without assigning fixed coordinates by hand.",
+  "support": "composed",
+  "features": [
+    "d3-force simulation",
+    "deterministic layout",
+    "link mark",
+    "dot mark",
+    "direct node labels",
+    "categorical color"
+  ],
+  "geometry": [
+    { "role": "link", "count": 15 },
+    { "role": "dot", "count": 11 },
+    { "role": "text", "count": 11 }
+  ],
+  "source": {
+    "title": "Observable Plot link mark",
+    "url": "https://observablehq.com/plot/marks/link"
+  },
+  "ai": {
+    "create": "Create a force-directed dependency network from typed node and edge rows, run a deterministic D3 simulation, and render links behind colored nodes with direct labels.",
+    "maintain": "Change force strengths or graph topology while retaining stable node and edge keys, deterministic output, padded quantitative domains, and granular D3 imports."
+  }
+}

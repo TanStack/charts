@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 800,
+  "id": "80-echarts-axis-pointer",
+  "title": "Snapped axis pointer with grouped tooltip",
+  "family": "interaction",
+  "intent": "Track the nearest shared date with a vertical crosshair and compare every series in one rich tooltip.",
+  "support": "composed",
+  "features": [
+    "snapped x crosshair",
+    "grouped tooltip",
+    "semantic interaction driver",
+    "multi-series time line",
+    "rich color swatches"
+  ],
+  "geometry": [
+    { "view": "main", "role": "line", "count": 3 },
+    { "view": "main", "role": "dot", "count": 24 }
+  ],
+  "minimumGeometrySimilarity": 0.995,
+  "guideAssertions": [
+    {
+      "id": "value-sequence",
+      "axis": "y",
+      "sequence": ["0", "20", "40", "60", "80"]
+    }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "snap-to-shared-date",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "date:2025-04-01"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focus.date", "equals": "2025-04-01" },
+            { "path": "focus.series", "includes": "Atlas" },
+            { "path": "focus.series", "includes": "Beacon" },
+            { "path": "focus.series", "includes": "Comet" },
+            { "path": "focus.values", "includes": 53 },
+            { "path": "focus.values", "includes": 38 },
+            { "path": "focus.values", "includes": 32 },
+            { "path": "crosshair.visible", "equals": true },
+            { "path": "tooltip.visible", "equals": true }
+          ]
+        },
+        { "type": "pointerLeave", "view": "main" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "crosshair.visible", "equals": false },
+            { "path": "tooltip.visible", "equals": false }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Apache ECharts axis pointer",
+    "url": "https://echarts.apache.org/handbook/en/concepts/axis/"
+  },
+  "ai": {
+    "create": "Create a three-series UTC line chart with a snapped vertical crosshair and one rich tooltip containing the values and color swatches for every series at the nearest date.",
+    "maintain": "Update a series while preserving stable row keys, semantic date anchors, grouped focus state, external tooltip ownership, SVG accessibility, and cast-free types."
+  }
+}

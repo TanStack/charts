@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 540,
+  "id": "54-bump-ranking",
+  "title": "Bump chart of changing ranks",
+  "family": "ranking",
+  "intent": "Show how the rank of five products changes across seven annual snapshots.",
+  "support": "composed",
+  "features": [
+    "bump chart",
+    "rank preparation",
+    "multi-series line",
+    "bump-x curve",
+    "direct end labels"
+  ],
+  "geometry": [
+    { "role": "line", "count": 5 },
+    { "role": "dot", "count": 35 },
+    { "role": "text", "count": 5 }
+  ],
+  "source": {
+    "title": "Observable Plot line mark and bump curve",
+    "url": "https://observablehq.com/plot/marks/line"
+  },
+  "ai": {
+    "create": "Create a bump chart from tidy annual product values by ranking products within each year, drawing one curved line per product, and directly labeling the final rank.",
+    "maintain": "Add another annual snapshot while retaining descending rank semantics, stable series colors, inferred channels, and labels at the newest observation."
+  }
+}

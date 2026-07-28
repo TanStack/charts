@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "order": 220,
+  "id": "21-streamgraph",
+  "title": "Streamgraph",
+  "family": "composition",
+  "intent": "Show the changing composition of three weekly series with a wiggle baseline and inside-out layer order.",
+  "support": "composed",
+  "features": [
+    "area",
+    "streamgraph",
+    "wiggle offset",
+    "inside-out order",
+    "d3-shape-stack",
+    "d3-shape-stackOffsetWiggle",
+    "d3-shape-stackOrderInsideOut"
+  ],
+  "geometry": [{ "role": "area", "count": 3 }],
+  "source": {
+    "title": "Observable Plot stack transform",
+    "url": "https://observablehq.com/plot/transforms/stack"
+  },
+  "ai": {
+    "create": "Create a responsive UTC streamgraph from typed tidy rows using a wiggle baseline and inside-out order in both Plot and granular d3-shape preparation.",
+    "maintain": "Change the stack order or offset while retaining stable series identity, explicit y1/y2 intervals, equivalent zero-shift semantics, and no casts."
+  }
+}

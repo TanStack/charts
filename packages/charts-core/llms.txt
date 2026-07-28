@@ -1,0 +1,55 @@
+# TanStack Charts documentation map
+
+TanStack Charts is a small TypeScript visualization grammar inspired by
+Observable Plot. It is not a chart-type component library and does not require
+a series-shaped data model. D3 is the authoritative algorithm layer. TanStack
+owns the grammar, responsive scene compiler, renderers, and host lifecycle.
+
+Read in this order:
+
+1. README.md — package purpose, imports, implemented surface
+2. docs/AI-GUIDE.md — task router and generation rules
+3. docs/recipes.md — common chart and composition patterns
+4. docs/dynamic-charts.md — state, memoization, preparation, animation
+5. docs/responsive-theme-accessibility.md — container sizing, dark mode, UX
+6. docs/custom-marks.md — inversion of control and scene protocol
+7. docs/bundle-and-performance.md — import topology and performance rules
+8. docs/observable-plot-migration.md — concept mapping and compatibility
+9. docs/tanstack-stats-migration.md — production parity scope and migration gate
+
+Hard rules:
+
+- Keep chart definitions stable, normally at module scope.
+- Pass application state through one typed input object.
+- Use the original data directly; do not normalize it into library-owned series.
+- Use field channels for simple properties and accessors for derived values.
+- Give every dynamic or reorderable datum a stable key.
+- Compose marks in one definition instead of switching to a custom chart API.
+- Put data exploration, cleaning, and chart recommendation in tooling or skills,
+  not the runtime library.
+- Omit width for container-responsive charts. Set initialWidth for deterministic
+  SSR when the server cannot know the container width.
+- Always provide ariaLabel; add ariaDescription when the chart needs context.
+- Use subpath imports when enforcing a hard bundle boundary.
+- Supply configured D3 positional scales. Let TanStack own their responsive
+  pixel ranges and D3 own domains, mapping, ticks, and formatting.
+- For an application-owned cursor, brush, or zoom, import focusDisabled from
+  @tanstack/charts/focus/disabled and keep native datum focus out of the path.
+- Invert interaction coordinates by copying the configured D3 scale onto the
+  resolved scene.chart range. Apply explicit date or numeric rounding after
+  inversion; do not reimplement scale math.
+- Supply D3 color and radius scales directly when those channels need mapping.
+- Use named imports from granular d3-* packages, never the d3 umbrella.
+- Add curves through d3Curve(curveFactory) so straight marks do not import
+  d3-shape.
+- Let mark data infer channel fields and callback datum types. Introduce only
+  the dynamic Input type with defineChart<Input>().
+- Never use as any, double assertions, suppression comments, private imports,
+  or adapter generics to force chart code through TypeScript.
+- Treat installed TanStack Charts declarations and local recipes as
+  authoritative. Observable Plot documentation is conceptual and does not
+  imply that a Plot option exists here.
+- Dynamic React, Octane, and vanilla hosts require input. Static definitions
+  reject it.
+- Read semantic values from point.datum. Narrow heterogeneous datum unions and
+  broad coordinate values with ordinary TypeScript guards.

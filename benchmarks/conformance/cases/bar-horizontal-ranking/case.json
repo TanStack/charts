@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "order": 60,
+  "id": "bar-horizontal-ranking",
+  "title": "Horizontal ranking with long labels",
+  "family": "bar",
+  "intent": "Rank category totals while keeping deliberately long category labels visible.",
+  "support": "composed",
+  "features": [
+    "horizontal bars",
+    "grouped sum",
+    "descending categorical domain",
+    "long tick labels",
+    "automatic guide bounds"
+  ],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 8
+    },
+    {
+      "role": "rule",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "Observable Plot letter-frequency-bar fixture",
+    "url": "https://github.com/observablehq/plot/blob/main/test/plots/letter-frequency-bar.ts"
+  },
+  "ai": {
+    "create": "Create a horizontal ranking chart that totals the raw rows by category, sorts descending, and displays the supplied long category labels without clipping.",
+    "maintain": "Update the data revision and container width while keeping the rank order correct and every formatted category label visible."
+  }
+}

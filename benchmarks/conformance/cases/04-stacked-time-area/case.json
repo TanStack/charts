@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "order": 4,
+  "id": "04-stacked-time-area",
+  "title": "Stacked multi-series time area",
+  "family": "composition",
+  "intent": "Stack three tidy time series over a shared UTC axis. Observable Plot applies stackY to the raw rows; TanStack Charts consumes explicit y1/y2 intervals produced by granular d3-shape stack output, following the industry-unemployment fixture.",
+  "support": "composed",
+  "features": [
+    "area",
+    "stack",
+    "multi-series",
+    "tidy-to-wide",
+    "d3-array-group",
+    "d3-shape-stack",
+    "fixture:industry-unemployment"
+  ],
+  "geometry": [
+    { "role": "area", "count": 3 },
+    { "role": "rule", "count": 1 }
+  ],
+  "source": {
+    "title": "Observable Plot stack transform — stacked area",
+    "url": "https://observablehq.com/plot/transforms/stack"
+  },
+  "ai": {
+    "create": "Create a responsive stacked UTC area chart from tidy {id, date, value, series} rows. Plot may apply stackY directly; TanStack Charts must adapt granular d3-shape stack output into explicit y1/y2 channels while retaining series identity, stable keys, and the original values.",
+    "maintain": "Convert the chart to a normalized 100% stack. Use the corresponding Plot stack offset and granular D3 stack offset, update the y-axis formatting, and keep both implementations on the same raw tidy rows without casts or an umbrella D3 import."
+  }
+}

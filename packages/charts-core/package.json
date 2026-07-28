@@ -1,0 +1,47 @@
+{
+  "name": "@tanstack/charts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "dependencies": {
+    "d3-array": "3.2.4",
+    "d3-scale": "4.0.2",
+    "d3-shape": "3.2.0"
+  },
+  "devDependencies": {
+    "@types/d3-array": "^3.2.2",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.1.8"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./area": "./src/area.ts",
+    "./area-x": "./src/area-x.ts",
+    "./arrow": "./src/arrow.ts",
+    "./bar": "./src/bar.ts",
+    "./d3/area-x": "./src/d3-area-x.ts",
+    "./d3/shape": "./src/d3-shape.ts",
+    "./dom": "./src/dom.ts",
+    "./dot": "./src/dot.ts",
+    "./export": "./src/export.ts",
+    "./facet": "./src/facet.ts",
+    "./focus": "./src/focus.ts",
+    "./focus/disabled": "./src/focus-disabled.ts",
+    "./frame": "./src/frame.ts",
+    "./hexagon": "./src/hexagon.ts",
+    "./legend": "./src/legend.ts",
+    "./line": "./src/line.ts",
+    "./link": "./src/link.ts",
+    "./reconcile": "./src/reconcile.ts",
+    "./rect": "./src/rect.ts",
+    "./rule": "./src/rule.ts",
+    "./runtime": "./src/runtime.ts",
+    "./scene": "./src/scene.ts",
+    "./svg": "./src/svg.ts",
+    "./svg/resources": "./src/svg-resources.ts",
+    "./text": "./src/text.ts",
+    "./tick": "./src/tick.ts",
+    "./vector": "./src/vector.ts"
+  }
+}

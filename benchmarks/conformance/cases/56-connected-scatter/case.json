@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "order": 560,
+  "id": "56-connected-scatter",
+  "title": "Directed connected scatterplot",
+  "family": "relationship",
+  "intent": "Show the changing relationship between two quantitative measures along one chronological path.",
+  "support": "native",
+  "features": [
+    "connected scatterplot",
+    "catmull-rom curve",
+    "direction arrows",
+    "chronological labels",
+    "quantitative x-y scales"
+  ],
+  "geometry": [
+    { "role": "line", "count": 1 },
+    { "role": "dot", "count": 15 },
+    { "role": "arrow", "count": 3 },
+    { "role": "text", "count": 5 }
+  ],
+  "source": {
+    "title": "Observable Plot connected scatterplot",
+    "url": "https://observablehq.com/plot/marks/line#connected-scatterplots"
+  },
+  "ai": {
+    "create": "Create a connected scatterplot from chronological x-y observations with a smooth path, one dot per observation, selected year labels, and arrows that make direction clear.",
+    "maintain": "Change label cadence and arrow sampling while retaining chronological order, responsive quantitative scales, and a single inferred row type."
+  }
+}

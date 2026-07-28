@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 820,
+  "id": "82-recharts-chart-table-selection",
+  "title": "Linked chart and data table selection",
+  "family": "interaction",
+  "intent": "Select a plotted observation and highlight its matching row in an accessible data table.",
+  "support": "composed",
+  "features": [
+    "point selection",
+    "linked table",
+    "selected overlay",
+    "accessible state"
+  ],
+  "geometry": [{ "role": "dot", "count": 5 }],
+  "interactionScenarios": [
+    {
+      "id": "select-central-observation",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "point:central" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selectedId", "equals": "central" },
+            { "path": "selectedRow", "equals": "central" },
+            { "path": "selectedValue", "equals": 45 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "move-selection-between-points",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "point:north" }
+        },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "point:east" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selectedId", "equals": "east" },
+            { "path": "selectedRow", "equals": "east" },
+            { "path": "selectedValue", "equals": 72 }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Recharts Scatter API",
+    "url": "https://recharts.github.io/en-US/api/Scatter/"
+  },
+  "ai": {
+    "create": "Create a point chart linked to an accessible table so selecting a point highlights the corresponding row.",
+    "maintain": "Use stable observation IDs as the shared selection key, keep the table semantic, and render selection as a separate visual overlay."
+  }
+}

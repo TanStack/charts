@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "order": 600,
+  "id": "60-lag-autocorrelation",
+  "title": "Lag-one autocorrelation",
+  "family": "relationship",
+  "intent": "Compare each observation with the immediately preceding value to reveal serial dependence.",
+  "support": "composed",
+  "features": [
+    "lag plot",
+    "autocorrelation",
+    "map transform",
+    "shifted channel",
+    "identity reference",
+    "d3-array pairs"
+  ],
+  "geometry": [
+    { "role": "line", "count": 1 },
+    { "role": "dot", "count": 35 }
+  ],
+  "source": {
+    "title": "Observable Plot map transform",
+    "url": "https://observablehq.com/plot/transforms/map"
+  },
+  "ai": {
+    "create": "Create a lag-one scatterplot by mapping the x channel to the previous observation while retaining the current observation on y.",
+    "maintain": "Change the lag interval while preserving input order, dropping incomplete pairs, stable keys, explicit equal domains, and the identity reference."
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "order": 280,
+  "id": "28-candlestick",
+  "title": "Candlestick chart",
+  "family": "financial",
+  "intent": "Show daily open, high, low, and close values with a full-range wick and direction-colored body.",
+  "support": "native",
+  "features": [
+    "candlestick",
+    "OHLC intervals",
+    "UTC scale",
+    "link mark",
+    "data-driven stroke"
+  ],
+  "geometry": [
+    {
+      "role": "link",
+      "count": 60,
+      "rendererRoles": { "observable-plot": "rule", "tanstack": "link" }
+    }
+  ],
+  "source": {
+    "title": "Observable Plot AAPL candlestick",
+    "url": "https://github.com/observablehq/plot/blob/main/test/plots/aapl-candlestick.ts"
+  },
+  "ai": {
+    "create": "Create a responsive candlestick chart from typed OHLC rows using a low-to-high wick and a thicker open-to-close body colored by direction.",
+    "maintain": "Add a neutral color for unchanged sessions while preserving all 60 interval segments, date identity, and typed endpoint channels."
+  }
+}

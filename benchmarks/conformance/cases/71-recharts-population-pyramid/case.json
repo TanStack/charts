@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 710,
+  "id": "71-recharts-population-pyramid",
+  "title": "Population pyramid",
+  "family": "demographics",
+  "intent": "Compare male and female shares across age bands around a shared zero baseline.",
+  "support": "native",
+  "features": [
+    "horizontal bars",
+    "signed values",
+    "diverging baseline",
+    "percent formatting"
+  ],
+  "geometry": [{ "role": "bar", "count": 18 }],
+  "source": {
+    "title": "Recharts Population Pyramid",
+    "url": "https://recharts.github.io/en-US/examples/PopulationPyramid/"
+  },
+  "ai": {
+    "create": "Create a population pyramid with negative male percentages, positive female percentages, age bands on the vertical axis, and absolute percent tick labels.",
+    "maintain": "Revise a cohort while preserving the signed data model, fixed symmetric domain, category order, stable keys, and distinct series colors."
+  }
+}

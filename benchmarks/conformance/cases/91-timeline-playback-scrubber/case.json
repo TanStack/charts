@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 910,
+  "id": "91-timeline-playback-scrubber",
+  "title": "Timeline playback scrubber",
+  "family": "interaction",
+  "intent": "Scrub a semantic playhead through stable time frames with a direct drag while keeping the chart data controlled.",
+  "support": "composed",
+  "features": [
+    "timeline playback",
+    "semantic playhead",
+    "real pointer drag",
+    "snapped time frames",
+    "controlled application overlay"
+  ],
+  "geometry": [
+    { "id": "playback-line", "view": "main", "role": "line", "count": 1 },
+    { "id": "playback-points", "view": "main", "role": "dot", "count": 8 },
+    { "id": "scrubber-rules", "view": "main", "role": "rule", "count": 2 }
+  ],
+  "minimumGeometrySimilarity": 0.995,
+  "guideAssertions": [
+    {
+      "id": "value-sequence",
+      "axis": "y",
+      "sequence": ["20", "40", "60", "80"]
+    }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "scrub-forward",
+      "steps": [
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "playhead.index", "equals": 2 },
+            { "path": "playhead.date", "equals": "2025-01-15" },
+            { "path": "playhead.value", "equals": 39 },
+            { "path": "interaction.dragging", "equals": false }
+          ]
+        },
+        {
+          "type": "drag",
+          "from": { "view": "main", "anchor": "frame:2025-01-15" },
+          "to": { "view": "main", "anchor": "frame:2025-02-12" },
+          "steps": 12
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "playhead.index", "equals": 6 },
+            { "path": "playhead.date", "equals": "2025-02-12" },
+            { "path": "playhead.value", "equals": 66 },
+            {
+              "path": "playhead.progress",
+              "approx": 0.8571428571,
+              "tolerance": 0.000001
+            },
+            { "path": "interaction.dragging", "equals": false },
+            { "path": "interaction.scrubCount", "equals": 1 },
+            {
+              "path": "frames.ids",
+              "equals": [
+                "2025-01-01",
+                "2025-01-08",
+                "2025-01-15",
+                "2025-01-22",
+                "2025-01-29",
+                "2025-02-05",
+                "2025-02-12",
+                "2025-02-19"
+              ]
+            }
+          ]
+        },
+        { "type": "update", "revision": 1 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "playhead.index", "equals": 6 },
+            { "path": "playhead.date", "equals": "2025-02-12" },
+            { "path": "playhead.value", "equals": 66 },
+            { "path": "frames.revisionProbeValue", "equals": 55 },
+            { "path": "interaction.dragging", "equals": false },
+            { "path": "interaction.scrubCount", "equals": 1 }
+          ]
+        },
+        { "type": "update", "revision": 0 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "playhead.index", "equals": 6 },
+            { "path": "playhead.date", "equals": "2025-02-12" },
+            { "path": "playhead.value", "equals": 66 },
+            { "path": "frames.revisionProbeValue", "equals": 51 },
+            { "path": "interaction.dragging", "equals": false },
+            { "path": "interaction.scrubCount", "equals": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scrub-backward",
+      "steps": [
+        {
+          "type": "drag",
+          "from": { "view": "main", "anchor": "frame:2025-01-15" },
+          "to": { "view": "main", "anchor": "frame:2025-01-01" },
+          "steps": 8
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "playhead.index", "equals": 0 },
+            { "path": "playhead.date", "equals": "2025-01-01" },
+            { "path": "playhead.progress", "approx": 0, "tolerance": 0 },
+            { "path": "interaction.dragging", "equals": false },
+            { "path": "interaction.scrubCount", "equals": 1 }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Apache ECharts dynamic data",
+    "url": "https://echarts.apache.org/examples/en/editor.html?c=dynamic-data2"
+  },
+  "ai": {
+    "create": "Create a controlled UTC line chart with a semantic playback index and a case-owned playhead and scrubber overlay that snaps a real pointer drag to stable frame IDs.",
+    "maintain": "Keep frame identity and playback state outside the renderer, derive overlay coordinates from the resolved chart scale, and preserve the same index across responsive and data revisions."
+  }
+}

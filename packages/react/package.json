@@ -1,0 +1,18 @@
+{
+  "name": "@plot-poc/react-host",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./observable": "./src/Plot.tsx"
+  },
+  "dependencies": {
+    "@plot-poc/observable": "workspace:*",
+    "@plot-poc/host-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}
