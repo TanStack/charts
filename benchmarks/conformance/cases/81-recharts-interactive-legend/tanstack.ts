@@ -85,6 +85,8 @@ function seriesFromTarget(target: ConformanceTarget) {
 export const mount: ConformanceMount = (container, input) => {
   const view = container.ownerDocument.createElement('div')
   view.dataset.conformanceView = 'main'
+  view.setAttribute('role', 'region')
+  view.setAttribute('aria-label', 'Interactive revenue and profit series')
   view.style.width = `${input.width}px`
   view.style.height = `${input.height}px`
   view.style.display = 'grid'
@@ -97,9 +99,11 @@ export const mount: ConformanceMount = (container, input) => {
   legend.setAttribute('role', 'group')
   legend.setAttribute('aria-label', 'Series visibility')
   legend.style.display = 'flex'
+  legend.style.flexWrap = 'wrap'
   legend.style.justifyContent = 'center'
-  legend.style.gap = '16px'
-  legend.style.padding = '8px'
+  legend.style.alignItems = 'center'
+  legend.style.gap = '8px'
+  legend.style.padding = '6px 8px'
 
   view.append(chartSurface, legend)
   container.append(view)
@@ -107,6 +111,12 @@ export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
   let visibleSeries = initialVisibleSeries
   let host: ChartHost<LegendDatum, InteractiveLegendInput>
+  const buttons = new Map<LegendSeriesId, HTMLButtonElement>()
+  const emptyState = container.ownerDocument.createElement('span')
+  emptyState.setAttribute('role', 'status')
+  emptyState.setAttribute('aria-live', 'polite')
+  emptyState.style.color = 'CanvasText'
+  emptyState.style.font = '500 12px/1.3 system-ui, sans-serif'
 
   const options = (): ChartHostOptions<
     LegendDatum,
@@ -118,39 +128,74 @@ export const mount: ConformanceMount = (container, input) => {
       visibleSeries,
     },
     width: currentInput.width,
-    height: Math.max(180, currentInput.height - 42),
-    ariaLabel: 'Interactive revenue and profit series',
+    height: Math.max(96, currentInput.height - 62),
+    ariaLabel: 'Revenue and profit chart',
     animate: false,
     keyboard: false,
   })
 
-  const renderLegend = () => {
-    legend.replaceChildren()
+  const updateLegend = () => {
     for (const series of legendSeries) {
-      const button = container.ownerDocument.createElement('button')
-      button.type = 'button'
-      button.dataset.seriesId = series.id
-      button.setAttribute(
-        'aria-pressed',
-        String(visibleSeries.includes(series.id)),
-      )
-      button.textContent = series.label
-      button.style.border = `1px solid ${series.color}`
-      button.style.borderRadius = '999px'
-      button.style.padding = '3px 10px'
-      button.style.color = series.color
-      button.style.background = 'transparent'
-      button.style.opacity = visibleSeries.includes(series.id) ? '1' : '0.45'
-      button.addEventListener('click', () => {
-        visibleSeries = toggleLegendSeries(visibleSeries, series.id)
-        renderLegend()
-        host.update(options())
-      })
-      legend.append(button)
+      const button = buttons.get(series.id)
+      if (!button) continue
+      const visible = visibleSeries.includes(series.id)
+      button.setAttribute('aria-pressed', String(visible))
+      button.dataset.visible = String(visible)
+      button.style.background = visible
+        ? 'color-mix(in srgb, CanvasText 7%, Canvas)'
+        : 'Canvas'
+      button.style.textDecoration = visible ? 'none' : 'line-through'
+      const swatch = button.querySelector<HTMLElement>('[data-series-swatch]')
+      if (swatch) {
+        swatch.style.background = visible ? series.color : 'transparent'
+      }
     }
+    emptyState.textContent = visibleSeries.length === 0 ? 'No series shown' : ''
+    emptyState.hidden = visibleSeries.length > 0
   }
 
-  renderLegend()
+  for (const series of legendSeries) {
+    const button = container.ownerDocument.createElement('button')
+    const swatch = container.ownerDocument.createElement('span')
+    const label = container.ownerDocument.createElement('span')
+    button.type = 'button'
+    button.dataset.seriesId = series.id
+    button.setAttribute('aria-label', `Toggle ${series.label} series`)
+    Object.assign(button.style, {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '7px',
+      minWidth: '110px',
+      minHeight: '44px',
+      padding: '8px 12px',
+      border: '1px solid color-mix(in srgb, CanvasText 28%, transparent)',
+      borderRadius: '999px',
+      color: 'CanvasText',
+      cursor: 'pointer',
+      font: '600 13px/1 system-ui, sans-serif',
+      outlineOffset: '3px',
+    })
+    swatch.dataset.seriesSwatch = series.id
+    Object.assign(swatch.style, {
+      width: '11px',
+      height: '11px',
+      border: `2px solid ${series.color}`,
+      borderRadius: '3px',
+      background: series.color,
+    })
+    label.textContent = series.label
+    button.append(swatch, label)
+    button.addEventListener('click', () => {
+      visibleSeries = toggleLegendSeries(visibleSeries, series.id)
+      updateLegend()
+      host.update(options())
+    })
+    buttons.set(series.id, button)
+    legend.append(button)
+  }
+  legend.append(emptyState)
+  updateLegend()
   host = mountChart(chartSurface, options())
 
   return {
@@ -177,6 +222,10 @@ export const mount: ConformanceMount = (container, input) => {
             .filter((seriesId) => !visibleSeries.includes(seriesId)),
           renderedSeries: renderedSeries(chartSurface),
           yDomain,
+          focusedSeries:
+            container.ownerDocument.activeElement instanceof HTMLElement
+              ? (container.ownerDocument.activeElement.dataset.seriesId ?? null)
+              : null,
         }
       },
     },

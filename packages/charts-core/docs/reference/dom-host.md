@@ -1,0 +1,195 @@
+---
+title: DOM Host
+description: Mount, update, size, interact with, and destroy a TanStack Chart in a browser DOM container.
+---
+
+`mountChart` is the framework-neutral browser host. It owns responsive
+measurement, scene updates, keyed SVG reconciliation, animation, pointer and
+keyboard interaction, native tooltips, font relayout, and cleanup.
+
+```ts
+import { mountChart } from '@tanstack/charts/dom'
+```
+
+## Signature
+
+```ts
+function mountChart<
+  TDatum,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  container: HTMLElement,
+  initialOptions: ChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+  runtime?: ChartRuntime<TDatum, TInput, TXValue, TYValue>,
+): ChartHost<TDatum, TInput, TXValue, TYValue>
+```
+
+The optional runtime is for adapters or advanced applications that already
+rendered an initial scene. Passing it preserves prepared data across prerender
+and DOM mounting. Ownership transfers to the host: `host.destroy()` also
+destroys that runtime. In ordinary vanilla use, omit it.
+
+## Basic use
+
+```ts
+const options = {
+  definition,
+  height: 320,
+  ariaLabel: 'Weekly revenue',
+  tooltip: true,
+}
+
+const host = mountChart(container, options)
+
+host.update({
+  ...options,
+  height: 400,
+})
+
+host.destroy()
+```
+
+Dynamic definitions require their exact `input`:
+
+```ts
+const host = mountChart(container, {
+  definition: dynamicDefinition,
+  input: { rows, metric: 'revenue' },
+  ariaLabel: 'Revenue by month',
+})
+```
+
+Omitting the own `input` property from a dynamic definition throws at runtime
+as well as failing the TypeScript contract. Static host option types accept no
+meaningful input: `input` may be omitted or `undefined`. An extra non-undefined
+static input supplied from untyped JavaScript is ignored.
+
+## Host options
+
+All hosts require `definition` and `ariaLabel`.
+
+| Option               | Default                          | Meaning                                                                                                |
+| -------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `definition`         | Required                         | Static or dynamic [chart definition](./chart-definitions.md).                                          |
+| `input`              | Required for dynamic definitions | Exact dynamic input. Absent for static definitions.                                                    |
+| `ariaLabel`          | Required                         | Accessible chart name placed on the SVG.                                                               |
+| `ariaDescription`    | None                             | Optional SVG description.                                                                              |
+| `height`             | `320`                            | Fixed scene height in CSS pixels.                                                                      |
+| `aspectRatio`        | None                             | Computes height as `width / aspectRatio` when `height` is absent and the ratio is positive and finite. |
+| `width`              | Container width                  | Fixed scene width. Supplying it disables resize observation.                                           |
+| `initialWidth`       | `640`                            | Width used when a responsive container has not produced a positive measurement.                        |
+| `className`          | None                             | Extra class on the rendered SVG, not the container.                                                    |
+| `idPrefix`           | Empty                            | Prefix for renderer-owned resource IDs. Use a unique value for resource-aware charts.                  |
+| `maxFocusDistance`   | `48`                             | Maximum scene-pixel distance for default pointer focus.                                                |
+| `focus`              | Nearest point                    | Custom focus strategy.                                                                                 |
+| `spatialIndex`       | Linear nearest-point scan        | Factory for a dense-data nearest-point index.                                                          |
+| `animate`            | `false`                          | Enables keyed attribute, enter, and exit animation.                                                    |
+| `keyboard`           | `true`                           | Enables keyboard navigation; `false` forces the SVG tab index to `-1`.                                 |
+| `tabIndex`           | `0`                              | SVG tab index while keyboard behavior is enabled.                                                      |
+| `tooltip`            | `false`                          | Enables the native tooltip or configures formatting and sticky behavior.                               |
+| `onFocusChange`      | None                             | Receives the primary focused point or `null`.                                                          |
+| `onFocusGroupChange` | None                             | Receives all points selected by the current focus strategy.                                            |
+| `onSelect`           | None                             | Receives the clicked or keyboard-activated point, or `null` for an empty click.                        |
+| `onRender`           | None                             | Runs after reconciliation with the container, live SVG, and current scene.                             |
+| `renderSvg`          | `renderChartSvg`                 | Replaces the scene-to-SVG renderer.                                                                    |
+| `measureText`        | DOM font measurer                | Replaces guide text measurement.                                                                       |
+
+`keyboard: false` takes precedence over `tabIndex`. A negative custom tab index
+can keep chart keyboard behavior available for programmatic focus without
+placing the chart in the normal tab order.
+
+Interaction options are detailed in
+[Focus and interaction](./focus-and-interaction.md). Renderer and animation
+options are detailed in [Rendering and export](./rendering-and-export.md).
+
+## Responsive sizing
+
+When `width` is absent, the host reads the container's bounding width and
+observes it with the container document's `ResizeObserver`.
+
+```ts
+mountChart(container, {
+  definition,
+  aspectRatio: 16 / 9,
+  initialWidth: 720,
+  ariaLabel: 'Traffic over time',
+})
+```
+
+The fallback order is:
+
+1. explicit `width`
+2. positive container width
+3. `initialWidth`
+4. `640`
+
+Height is explicit `height`, then a positive finite `aspectRatio`, then `320`.
+The host schedules responsive relayout on the document's animation frame and
+skips renders when the measured width has not changed.
+
+The host temporarily assigns `position: relative` when the container's
+computed position is static, because native tooltips are absolutely positioned
+inside it. `destroy` restores the previous inline position when the host owned
+that change.
+
+## Font measurement
+
+The default DOM measurer inherits the container's computed font family, style,
+stretch, weight, direction, and letter spacing. Measurements are cached. The
+host clears that cache and relayouts when:
+
+- the inherited font signature changes during `update`
+- the document font set emits `loadingdone`
+
+Pass `measureText` to own the geometry or to make browser and nonbrowser output
+use the same metrics. See
+[Scales, guides, and color](./scales-guides-and-color.md#automatic-guide-layout)
+for the function contract.
+
+## `ChartHost`
+
+```ts
+interface ChartHost<
+  TDatum = unknown,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  update(options: ChartHostOptions<TDatum, TInput, TXValue, TYValue>): void
+  getScene(): ChartScene<TDatum, TXValue, TYValue>
+  destroy(): void
+}
+```
+
+### `update`
+
+`update` replaces the complete option set. Keep required options in every call.
+It renders synchronously when definition, semantic input, size, accessibility,
+renderer, keyboard, ID, or text measurement changes. Interaction callbacks,
+tooltip formatting, focus strategy, animation settings, and the spatial index
+can update without rebuilding the scene.
+
+An interrupted animated render is canceled before the next reconciliation.
+When a focused key remains present after a scene rebuild, focus and grouped
+focus are repainted against the new point coordinates.
+
+### `getScene`
+
+Returns the current compiled scene. It is useful for aligned application UI,
+diagnostics, or custom interaction. Treat it as immutable.
+
+### `destroy`
+
+`destroy` is idempotent. It disconnects resize and font listeners, cancels
+scheduled work and animation, aborts runtime preparation, removes interaction
+listeners, clears the container, and releases an inline positioning change
+owned by the host. A destroyed host ignores later updates.
+
+## Browser ownership
+
+The DOM host requires a live `HTMLElement` and its owning document. For static
+or server rendering, compile a scene and render SVG without mounting; see
+[Runtime and scene](./runtime-and-scene.md) and
+[Rendering and export](./rendering-and-export.md).

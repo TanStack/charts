@@ -32,6 +32,39 @@
             { "path": "yDomain", "equals": [0, 120] }
           ]
         },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "role": "button",
+                "name": "Toggle Revenue series",
+                "exact": true
+              },
+              "property": "attribute",
+              "attribute": "aria-pressed",
+              "equals": "false"
+            },
+            {
+              "target": {
+                "role": "button",
+                "name": "Toggle Revenue series",
+                "exact": true
+              },
+              "property": "height",
+              "atLeast": 44
+            },
+            {
+              "target": {
+                "role": "region",
+                "name": "Interactive revenue and profit series",
+                "exact": true
+              },
+              "property": "count",
+              "equals": 1
+            }
+          ]
+        },
         { "type": "update", "revision": 1 },
         { "type": "update", "revision": 0 },
         {
@@ -74,6 +107,60 @@
             { "path": "visibleSeries", "equals": ["revenue"] },
             { "path": "renderedSeries", "equals": ["revenue"] },
             { "path": "yDomain", "equals": [0, 120] }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "role": "button",
+                "name": "Toggle Profit series",
+                "exact": true
+              },
+              "property": "focused",
+              "equals": true
+            },
+            {
+              "target": {
+                "role": "button",
+                "name": "Toggle Profit series",
+                "exact": true
+              },
+              "property": "height",
+              "atLeast": 44
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "space-toggle-retains-focus",
+      "steps": [
+        {
+          "type": "key",
+          "key": " ",
+          "target": { "view": "main", "anchor": "legend:revenue" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "visibleSeries", "equals": ["profit"] },
+            { "path": "focusedSeries", "equals": "revenue" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "role": "button",
+                "name": "Toggle Revenue series",
+                "exact": true
+              },
+              "property": "focused",
+              "equals": true
+            }
           ]
         }
       ]

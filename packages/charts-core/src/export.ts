@@ -23,6 +23,8 @@ const presentationProperties = [
   'stroke-opacity',
   'stroke-width',
   'stroke-dasharray',
+  'stop-color',
+  'stop-opacity',
 ] as const
 
 export function serializeChartSvg(

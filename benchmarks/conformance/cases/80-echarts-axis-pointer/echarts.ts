@@ -81,6 +81,8 @@ export const mount: ConformanceMount = (container, input) => {
     'Snapped axis pointer with grouped tooltip',
     ({ chart, surface, getInput }) => {
       surface.addEventListener('mouseleave', clearState)
+      surface.addEventListener('pointercancel', clearState)
+      surface.addEventListener('touchcancel', clearState)
       return createDriver(chart, surface, getInput, state)
     },
   )
@@ -248,9 +250,7 @@ function resolveTarget(
   if (!date) return null
   const rows = axisPointerRowsAtDate(axisPointerData(input.revision), date)
   if (!rows.length) return null
-  const average =
-    rows.reduce((total, row) => total + row.value, 0) / rows.length
-  const point = pixelPoint(chart, date, average)
+  const point = pixelPoint(chart, date, 2)
   if (!point) return null
   const bounds = surface.getBoundingClientRect()
   return {

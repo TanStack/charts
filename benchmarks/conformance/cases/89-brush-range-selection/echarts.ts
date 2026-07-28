@@ -1,6 +1,5 @@
 import { LineChart } from 'echarts/charts'
 import {
-  AriaComponent,
   BrushComponent,
   GridComponent,
   ToolboxComponent,
@@ -9,7 +8,6 @@ import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import type { LineSeriesOption } from 'echarts/charts'
 import type {
-  AriaComponentOption,
   BrushComponentOption,
   GridComponentOption,
   ToolboxComponentOption,
@@ -20,8 +18,10 @@ import {
   brushData,
   brushDateFromAnchor,
   brushDateKey,
+  brushDates,
   brushDomain,
-  brushRowsInRange,
+  brushRangeSummary,
+  brushShortDate,
   clampBrushDate,
   initialBrushRange,
   normalizedBrushRange,
@@ -38,27 +38,20 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-use([
-  LineChart,
-  GridComponent,
-  BrushComponent,
-  ToolboxComponent,
-  AriaComponent,
-  SVGRenderer,
-])
+use([LineChart, GridComponent, BrushComponent, ToolboxComponent, SVGRenderer])
 
 type BrushOption = ComposeOption<
   | LineSeriesOption
   | GridComponentOption
   | BrushComponentOption
   | ToolboxComponentOption
-  | AriaComponentOption
 >
 
 interface BrushState {
   range: BrushRange
   origin: Date | null
   dragging: boolean
+  originRange: BrushRange | null
 }
 
 const color = '#2563eb'
@@ -69,12 +62,13 @@ export const mount: ConformanceMount = (container, input) => {
     range: { ...initialBrushRange },
     origin: null,
     dragging: false,
+    originRange: null,
   }
   let paint = () => {}
   let destroyInteractions = () => {}
   const mountCase = echartsMount(
     (nextInput) => brushOption(nextInput),
-    'Time series with a draggable horizontal range brush',
+    'Monthly time range brush with two adjustable handles',
     ({ chart, surface, getInput }) => {
       const interactions = createBrushInteractions(
         chart,
@@ -107,12 +101,7 @@ function brushOption(input: ConformanceInput): BrushOption {
   const rows = brushData(input.revision)
   return {
     animation: false,
-    aria: {
-      enabled: true,
-      description:
-        'A monthly time series with a persistent horizontal drag selection.',
-    },
-    grid: { top: 20, right: 24, bottom: 44, left: 58 },
+    grid: { top: 52, right: 24, bottom: 44, left: 58 },
     xAxis: {
       type: 'time',
       min: brushDomain[0].getTime(),
@@ -144,6 +133,7 @@ function brushOption(input: ConformanceInput): BrushOption {
         color: brushSelectionFill,
       },
     },
+    toolbox: { show: false },
     series: {
       id: 'brush-series',
       type: 'line',
@@ -174,6 +164,49 @@ function createBrushInteractions(
   getInput: () => ConformanceInput,
   state: BrushState,
 ) {
+  surface.style.touchAction = 'none'
+  surface.tabIndex = 0
+  surface.setAttribute('role', 'application')
+  surface.setAttribute(
+    'aria-label',
+    'Monthly time range brush with two adjustable handles',
+  )
+  const status = surface.ownerDocument.createElement('output')
+  status.setAttribute('role', 'status')
+  status.setAttribute('aria-live', 'polite')
+  Object.assign(status.style, {
+    position: 'absolute',
+    right: '24px',
+    top: '10px',
+    zIndex: '4',
+    padding: '4px 8px',
+    border: '1px solid color-mix(in srgb, CanvasText 24%, transparent)',
+    borderRadius: '999px',
+    background: 'Canvas',
+    color: 'CanvasText',
+    font: '600 12px/1.2 system-ui, sans-serif',
+    pointerEvents: 'none',
+  })
+  surface.append(status)
+  const handles = [
+    createSemanticHandle(surface, 'start'),
+    createSemanticHandle(surface, 'end'),
+  ] as const
+
+  const updateStatus = () => {
+    const summary = brushRangeSummary(
+      brushData(getInput().revision),
+      state.range,
+    )
+    const label = `${brushShortDate(state.range.start)} → ${brushShortDate(state.range.end)} · ${summary.count} pts · avg ${summary.average.toFixed(1)}`
+    status.value = label
+    status.textContent = label
+    status.setAttribute(
+      'aria-label',
+      `${brushDateKey(state.range.start)} through ${brushDateKey(state.range.end)}, ${summary.count} points, average ${summary.average.toFixed(1)}`,
+    )
+  }
+
   const paint = () => {
     chart.dispatchAction({
       type: 'brush',
@@ -186,6 +219,8 @@ function createBrushInteractions(
       ],
     })
     chart.getZr().flush()
+    positionSemanticHandles(chart, handles, state.range)
+    updateStatus()
   }
 
   const handlePointerDown = (event: PointerEvent) => {
@@ -193,6 +228,7 @@ function createBrushInteractions(
     if (!date) return
     event.preventDefault()
     state.origin = date
+    state.originRange = { ...state.range }
     state.range = { start: date, end: date }
     state.dragging = true
     surface.setPointerCapture(event.pointerId)
@@ -215,16 +251,79 @@ function createBrushInteractions(
     }
     state.dragging = false
     state.origin = null
+    state.originRange = null
     if (surface.hasPointerCapture(event.pointerId)) {
       surface.releasePointerCapture(event.pointerId)
     }
     paint()
   }
 
+  const cancelPointer = (event: PointerEvent) => {
+    if (!state.dragging) return
+    if (state.originRange) state.range = state.originRange
+    state.dragging = false
+    state.origin = null
+    state.originRange = null
+    if (surface.hasPointerCapture(event.pointerId)) {
+      surface.releasePointerCapture(event.pointerId)
+    }
+    paint()
+  }
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    const handle =
+      event.target instanceof HTMLButtonElement
+        ? event.target.dataset.conformanceBrushHandle
+        : undefined
+    if (handle !== 'start' && handle !== 'end') return
+    const isStart = handle === 'start'
+    const currentIndex = rangeIndex(
+      isStart ? state.range.start : state.range.end,
+    )
+    const boundaryIndex = rangeIndex(
+      isStart ? state.range.end : state.range.start,
+    )
+    const direction =
+      event.key === 'ArrowLeft' || event.key === 'ArrowDown'
+        ? -1
+        : event.key === 'ArrowRight' || event.key === 'ArrowUp'
+          ? 1
+          : 0
+    const requestedIndex =
+      event.key === 'Home'
+        ? isStart
+          ? 0
+          : boundaryIndex
+        : event.key === 'End'
+          ? isStart
+            ? boundaryIndex
+            : brushDates.length - 1
+          : currentIndex + direction
+    if (!direction && event.key !== 'Home' && event.key !== 'End') return
+    event.preventDefault()
+    const nextDate =
+      brushDates[
+        Math.max(
+          isStart ? 0 : boundaryIndex,
+          Math.min(
+            isStart ? boundaryIndex : brushDates.length - 1,
+            requestedIndex,
+          ),
+        )
+      ]
+    if (!nextDate) return
+    state.range = isStart
+      ? { start: nextDate, end: state.range.end }
+      : { start: state.range.start, end: nextDate }
+    paint()
+    handles[isStart ? 0 : 1].focus()
+  }
+
   surface.addEventListener('pointerdown', handlePointerDown)
   surface.addEventListener('pointermove', handlePointerMove)
   surface.addEventListener('pointerup', finishPointer)
-  surface.addEventListener('pointercancel', finishPointer)
+  surface.addEventListener('pointercancel', cancelPointer)
+  surface.addEventListener('keydown', handleKeyDown)
 
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
@@ -246,7 +345,10 @@ function createBrushInteractions(
       surface.removeEventListener('pointerdown', handlePointerDown)
       surface.removeEventListener('pointermove', handlePointerMove)
       surface.removeEventListener('pointerup', finishPointer)
-      surface.removeEventListener('pointercancel', finishPointer)
+      surface.removeEventListener('pointercancel', cancelPointer)
+      surface.removeEventListener('keydown', handleKeyDown)
+      handles.forEach((handle) => handle.remove())
+      status.remove()
     },
   }
 }
@@ -271,6 +373,18 @@ function resolveTarget(
   target: ConformanceTarget,
 ) {
   if (target.view !== undefined && target.view !== 'main') return null
+  if (target.anchor === 'handle:start' || target.anchor === 'handle:end') {
+    const handle = surface.querySelector<HTMLButtonElement>(
+      `[data-conformance-brush-handle="${target.anchor === 'handle:start' ? 'start' : 'end'}"]`,
+    )
+    if (!handle) return null
+    const bounds = handle.getBoundingClientRect()
+    return {
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+      focusElement: handle,
+    }
+  }
   const date = brushDateFromAnchor(target.anchor)
   if (!date) return null
   const point = pixelPoint(chart, date, 50)
@@ -287,12 +401,14 @@ function interactionState(
   state: BrushState,
   input: ConformanceInput,
 ): ConformanceJsonObject {
+  const summary = brushRangeSummary(brushData(input.revision), state.range)
   return {
     selection: {
       start: brushDateKey(state.range.start),
       end: brushDateKey(state.range.end),
-      pointCount: brushRowsInRange(brushData(input.revision), state.range)
-        .length,
+      pointCount: summary.count,
+      valueTotal: summary.total,
+      valueAverage: summary.average,
       dragging: state.dragging,
     },
   }
@@ -425,4 +541,72 @@ function pointsBounds(
     height: Math.max(1, bottom - top),
     paint,
   }
+}
+
+function createSemanticHandle(surface: HTMLDivElement, edge: 'start' | 'end') {
+  const handle = surface.ownerDocument.createElement('button')
+  handle.type = 'button'
+  handle.dataset.conformanceBrushHandle = edge
+  handle.setAttribute('role', 'slider')
+  handle.setAttribute(
+    'aria-label',
+    edge === 'start' ? 'Range start' : 'Range end',
+  )
+  handle.setAttribute('aria-orientation', 'horizontal')
+  handle.setAttribute(
+    'aria-keyshortcuts',
+    'ArrowLeft ArrowRight ArrowUp ArrowDown Home End',
+  )
+  Object.assign(handle.style, {
+    position: 'absolute',
+    zIndex: '3',
+    width: '16px',
+    marginLeft: '-8px',
+    padding: '0',
+    border: `2px solid ${color}`,
+    borderRadius: '4px',
+    background: 'Canvas',
+    cursor: 'ew-resize',
+  })
+  surface.append(handle)
+  return handle
+}
+
+function positionSemanticHandles(
+  chart: EChartsType,
+  handles: readonly [HTMLButtonElement, HTMLButtonElement],
+  range: BrushRange,
+) {
+  const top = pixelPoint(chart, range.start, yDomain[1])
+  const bottom = pixelPoint(chart, range.end, yDomain[0])
+  if (!top || !bottom) return
+  const startIndex = rangeIndex(range.start)
+  const endIndex = rangeIndex(range.end)
+  const positions = [
+    { date: range.start, min: 0, max: endIndex, now: startIndex },
+    {
+      date: range.end,
+      min: startIndex,
+      max: brushDates.length - 1,
+      now: endIndex,
+    },
+  ] as const
+  handles.forEach((handle, index) => {
+    const position = positions[index]
+    const point = position ? pixelPoint(chart, position.date, 50) : null
+    if (!position || !point) return
+    handle.style.left = `${point[0]}px`
+    handle.style.top = `${Math.min(top[1], bottom[1])}px`
+    handle.style.height = `${Math.abs(bottom[1] - top[1])}px`
+    handle.setAttribute('aria-valuemin', String(position.min))
+    handle.setAttribute('aria-valuemax', String(position.max))
+    handle.setAttribute('aria-valuenow', String(position.now))
+    handle.setAttribute('aria-valuetext', brushDateKey(position.date))
+  })
+}
+
+function rangeIndex(date: Date) {
+  return brushDates.findIndex(
+    (candidate) => candidate.getTime() === date.getTime(),
+  )
 }

@@ -2,8 +2,14 @@
   "name": "@tanstack/react-charts",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "sideEffects": false,
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "exports": {
     ".": "./src/index.ts"
   },
@@ -16,5 +22,14 @@
   },
   "peerDependencies": {
     "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    }
   }
 }

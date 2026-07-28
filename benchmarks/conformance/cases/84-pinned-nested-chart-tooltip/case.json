@@ -70,13 +70,115 @@
             { "path": "tooltip.chartCount", "equals": 1 }
           ]
         },
-        { "type": "key", "key": "Escape" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.selectedOverlayCount", "equals": 1 },
+            { "path": "tooltip.periodLabelCount", "equals": 4 },
+            { "path": "tooltip.closeVisible", "equals": true }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-external-tooltip=\"pinned\"]"
+              },
+              "property": "contained",
+              "equals": true,
+              "tolerance": 1
+            },
+            {
+              "target": {
+                "role": "button",
+                "name": "Close pinned service details",
+                "exact": true
+              },
+              "property": "visible",
+              "equals": true
+            },
+            {
+              "target": {
+                "role": "button",
+                "name": "Close pinned service details",
+                "exact": true
+              },
+              "property": "height",
+              "atLeast": 44
+            },
+            {
+              "target": {
+                "role": "button",
+                "name": "Close pinned service details",
+                "exact": true
+              },
+              "property": "width",
+              "atLeast": 44
+            },
+            {
+              "target": {
+                "selector": "[data-external-tooltip=\"pinned\"]"
+              },
+              "property": "attribute",
+              "attribute": "aria-labelledby",
+              "includes": "nested-tooltip-"
+            },
+            {
+              "target": {
+                "role": "region",
+                "name": "Service latency with a pinned nested-chart tooltip",
+                "exact": true
+              },
+              "property": "count",
+              "equals": 1
+            }
+          ]
+        },
+        { "type": "screenshot", "name": "pinned-nested-chart-open" },
+        {
+          "type": "key",
+          "key": "Escape",
+          "target": {
+            "view": "main",
+            "anchor": "point:search"
+          }
+        },
         {
           "type": "assert",
           "assertions": [
             { "path": "tooltip.visible", "equals": false },
             { "path": "tooltip.pinnedId", "equals": null },
-            { "path": "tooltip.miniBarCount", "equals": 0 }
+            { "path": "tooltip.miniBarCount", "equals": 0 },
+            { "path": "focusedPoint", "equals": "search" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "close-button-dismisses",
+      "steps": [
+        {
+          "type": "click",
+          "target": {
+            "view": "main",
+            "anchor": "point:jobs"
+          }
+        },
+        {
+          "type": "click",
+          "target": {
+            "view": "main",
+            "anchor": "tooltip:close"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.visible", "equals": false },
+            { "path": "tooltip.pinnedId", "equals": null },
+            { "path": "tooltip.selectedOverlayCount", "equals": 0 },
+            { "path": "focusedPoint", "equals": "jobs" }
           ]
         }
       ]

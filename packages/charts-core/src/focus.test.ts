@@ -35,6 +35,20 @@ describe('axis focus strategies', () => {
     ).toEqual(['c', 'a'])
   })
 
+  it('keeps the focused point as the sole representative of its group', () => {
+    const groupedPoints = [
+      point('a-first', 10, 20, 'A', 1),
+      point('a-focused', 10, 40, 'A', 1),
+      point('b', 10, 60, 'B', 1),
+    ]
+
+    expect(
+      focusX
+        .group(groupedPoints, groupedPoints[1]!)
+        .map((candidate) => candidate.key),
+    ).toEqual(['a-focused', 'b'])
+  })
+
   it('can disable native datum focus without a case-local strategy', () => {
     expect(focusDisabled.resolve(points, 10, 20, 100)).toEqual([])
     expect(focusDisabled.group(points, points[0]!)).toEqual([])

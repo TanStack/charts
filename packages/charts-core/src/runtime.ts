@@ -2,16 +2,21 @@ import { createChartScene, defaultChartTheme } from './scene'
 import type {
   DynamicChartDefinition,
   ChartDefinition,
+  ChartLayoutOptions,
   ChartRuntime,
   ChartScene,
   ChartSize,
+  ChartValue,
 } from './types'
 
 export function createChartRuntime<
   TDatum = unknown,
   TInput = undefined,
->(): ChartRuntime<TDatum, TInput> {
-  let currentDefinition: ChartDefinition<TDatum, TInput, any> | undefined
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(): ChartRuntime<TDatum, TInput, TXValue, TYValue> {
+  let currentDefinition:
+    ChartDefinition<TDatum, TInput, any, TXValue, TYValue> | undefined
   let previousInput: TInput | undefined
   let hasPreviousInput = false
   let prepared: unknown
@@ -19,7 +24,18 @@ export function createChartRuntime<
   let prepareController: AbortController | undefined
 
   return {
-    render(definition, input, size, layout) {
+    render<TRenderXValue extends TXValue, TRenderYValue extends TYValue>(
+      definition: ChartDefinition<
+        TDatum,
+        TInput,
+        any,
+        TRenderXValue,
+        TRenderYValue
+      >,
+      input: TInput,
+      size: ChartSize,
+      layout?: ChartLayoutOptions,
+    ): ChartScene<TDatum, TRenderXValue, TRenderYValue> {
       if (definition !== currentDefinition) {
         prepareController?.abort()
         currentDefinition = definition
@@ -60,7 +76,11 @@ export function createChartRuntime<
         theme: defaultChartTheme,
       })
 
-      return createChartScene(spec, size, layout) as ChartScene<TDatum>
+      return createChartScene(spec, size, layout) as ChartScene<
+        TDatum,
+        TRenderXValue,
+        TRenderYValue
+      >
     },
     destroy() {
       prepareController?.abort()
@@ -73,8 +93,13 @@ export function createChartRuntime<
   }
 }
 
-export function chartInputsEqual<TDatum, TInput>(
-  definition: ChartDefinition<TDatum, TInput, any>,
+export function chartInputsEqual<
+  TDatum,
+  TInput,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  definition: ChartDefinition<TDatum, TInput, any, TXValue, TYValue>,
   previous: TInput,
   next: TInput,
 ): boolean {
@@ -94,9 +119,21 @@ export function shallowInputEqual(previous: unknown, next: unknown): boolean {
   )
 }
 
-export function isDynamicChartDefinition<TInput, TPrepared, TDatum>(
-  definition: ChartDefinition<TDatum, TInput, TPrepared>,
-): definition is DynamicChartDefinition<TInput, TPrepared, TDatum> {
+export function isDynamicChartDefinition<
+  TInput,
+  TPrepared,
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  definition: ChartDefinition<TDatum, TInput, TPrepared, TXValue, TYValue>,
+): definition is DynamicChartDefinition<
+  TInput,
+  TPrepared,
+  TDatum,
+  TXValue,
+  TYValue
+> {
   return 'chart' in definition && typeof definition.chart === 'function'
 }
 

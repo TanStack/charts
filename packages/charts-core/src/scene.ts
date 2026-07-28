@@ -15,15 +15,20 @@ import type {
   ChartMargin,
   ChartMark,
   ChartMarkDatum,
+  ChartMarkPointX,
+  ChartMarkPointY,
   ChartPoint,
   ChartScene,
   ChartScaleResolver,
   ChartSize,
   ChartSpec,
   ChartSpecDatum,
+  ChartSpecXValue,
+  ChartSpecYValue,
   StaticChartDefinition,
   ChartTheme,
   ChartTextMeasurer,
+  ChartValue,
   SceneGroup,
   SceneLabel,
   SceneNode,
@@ -49,16 +54,33 @@ export function defineChart<
   const TSpec extends ChartSpec<TMarks>,
 >(
   spec: TSpec & { marks: TMarks },
-): StaticChartDefinition<ChartMarkDatum<TMarks[number]>> & TSpec
+): StaticChartDefinition<
+  ChartMarkDatum<TMarks[number]>,
+  ChartMarkPointX<TMarks[number]>,
+  ChartMarkPointY<TMarks[number]>
+> &
+  TSpec
 export function defineChart<TInput>(): {
   <const TSpec extends ChartSpec, TPrepared = TInput>(
     config: DynamicChartConfig<TInput, TPrepared, TSpec>,
-  ): DynamicChartDefinition<TInput, TPrepared, ChartSpecDatum<TSpec>>
+  ): DynamicChartDefinition<
+    TInput,
+    TPrepared,
+    ChartSpecDatum<TSpec>,
+    ChartSpecXValue<TSpec>,
+    ChartSpecYValue<TSpec>
+  >
   <const TSpec extends ChartSpec>(
     chart: (
       context: ChartBuildContext<TInput, TInput>,
     ) => CheckedChartSpec<TSpec>,
-  ): DynamicChartDefinition<TInput, TInput, ChartSpecDatum<TSpec>>
+  ): DynamicChartDefinition<
+    TInput,
+    TInput,
+    ChartSpecDatum<TSpec>,
+    ChartSpecXValue<TSpec>,
+    ChartSpecYValue<TSpec>
+  >
 }
 export function defineChart<
   TInput,
@@ -66,12 +88,24 @@ export function defineChart<
   TPrepared = TInput,
 >(
   config: DynamicChartConfig<TInput, TPrepared, TSpec>,
-): DynamicChartDefinition<TInput, TPrepared, ChartSpecDatum<TSpec>>
+): DynamicChartDefinition<
+  TInput,
+  TPrepared,
+  ChartSpecDatum<TSpec>,
+  ChartSpecXValue<TSpec>,
+  ChartSpecYValue<TSpec>
+>
 export function defineChart<TInput, const TSpec extends ChartSpec>(
   chart: (
     context: ChartBuildContext<TInput, TInput>,
   ) => CheckedChartSpec<TSpec>,
-): DynamicChartDefinition<TInput, TInput, ChartSpecDatum<TSpec>>
+): DynamicChartDefinition<
+  TInput,
+  TInput,
+  ChartSpecDatum<TSpec>,
+  ChartSpecXValue<TSpec>,
+  ChartSpecYValue<TSpec>
+>
 export function defineChart(definition?: any): any {
   if (definition === undefined) {
     return (dynamicDefinition: any) =>
@@ -84,11 +118,15 @@ export function defineChart(definition?: any): any {
   ) as StaticChartDefinition | DynamicChartDefinition
 }
 
-export function createChartScene<TDatum>(
-  definition: StaticChartDefinition<TDatum>,
+export function createChartScene<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  definition: StaticChartDefinition<TDatum, TXValue, TYValue>,
   size: ChartSize,
   layout: ChartLayoutOptions = {},
-): ChartScene<TDatum> {
+): ChartScene<TDatum, TXValue, TYValue> {
   return createChartSceneWithScaleResolver(
     definition,
     size,
@@ -113,12 +151,16 @@ function resolveSuppliedScale(
     : scale.resolve(context)
 }
 
-function createChartSceneWithScaleResolver<TDatum>(
-  definition: StaticChartDefinition<TDatum>,
+function createChartSceneWithScaleResolver<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  definition: StaticChartDefinition<TDatum, TXValue, TYValue>,
   size: ChartSize,
   resolveScale: ChartScaleResolver,
   layout: ChartLayoutOptions,
-): ChartScene<TDatum> {
+): ChartScene<TDatum, TXValue, TYValue> {
   const width = finiteSize(size.width)
   const height = finiteSize(size.height)
   const theme: ChartTheme = {
@@ -134,6 +176,11 @@ function createChartSceneWithScaleResolver<TDatum>(
   const legend = colors.domain.length ? definition.color?.legend : undefined
   const xChannels = collectScaleChannels(initialized, 'x')
   const yChannels = collectScaleChannels(initialized, 'y')
+  const guides =
+    definition.guides === false
+      ? 0
+      : +(definition.x?.guide ?? definition.x !== null) |
+        (+(definition.y?.guide ?? definition.y !== null) << 1)
   const resolvedLayout = resolveSceneLayout(
     definition,
     width,
@@ -143,12 +190,13 @@ function createChartSceneWithScaleResolver<TDatum>(
     yChannels,
     colors.domain.length,
     legend,
+    guides,
     resolveScale,
     layout.measureText,
   )
   const { margin, chart, scales, axes } = resolvedLayout
   const markNodes: SceneNode[] = []
-  const points: ChartPoint<TDatum>[] = []
+  const points: ChartPoint<TDatum, TXValue, TYValue>[] = []
 
   initialized.forEach((mark, markIndex) => {
     const rendered = mark.render({
@@ -160,28 +208,35 @@ function createChartSceneWithScaleResolver<TDatum>(
       layout,
     })
     markNodes.push(...rendered.nodes)
-    points.push(...((rendered.points ?? []) as readonly ChartPoint<TDatum>[]))
+    points.push(
+      ...((rendered.points ?? []) as readonly ChartPoint<
+        TDatum,
+        TXValue,
+        TYValue
+      >[]),
+    )
   })
+  const nodes: SceneNode[] = [
+    {
+      kind: 'group',
+      key: 'marks',
+      className: 'ts-chart__marks',
+      clip: definition.clip ? chart : undefined,
+      children: markNodes,
+    },
+  ]
+  if (guides) {
+    nodes.unshift(createGrid(chart, scales, definition, theme, guides))
+    nodes.push(axes)
+  }
+  if (legend) nodes.push(legend.render({ colors, chart, theme, width }))
 
   return {
     width,
     height,
     margin,
     chart,
-    nodes: [
-      ...(definition.guides === false
-        ? []
-        : [createGrid(chart, scales, definition, theme)]),
-      {
-        kind: 'group',
-        key: 'marks',
-        className: 'ts-chart__marks',
-        clip: definition.clip ? chart : undefined,
-        children: markNodes,
-      },
-      ...(definition.guides === false ? [] : [axes]),
-      ...(legend ? [legend.render({ colors, chart, theme, width })] : []),
-    ],
+    nodes,
     points,
     scales,
     colors,
@@ -190,12 +245,16 @@ function createChartSceneWithScaleResolver<TDatum>(
   }
 }
 
-export function findNearestPoint<TDatum>(
-  scene: ChartScene<TDatum>,
+export function findNearestPoint<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  scene: ChartScene<TDatum, TXValue, TYValue>,
   x: number,
   y: number,
   maxDistance = Infinity,
-): ChartPoint<TDatum> | null {
+): ChartPoint<TDatum, TXValue, TYValue> | null {
   return nearestPoint(scene.points, x, y, maxDistance)
 }
 
@@ -249,27 +308,29 @@ function resolveSceneLayout(
   yChannels: CollectedScaleChannels,
   colorCount: number,
   legend: ChartColorLegend | undefined,
+  guides: number,
   resolveScale: ChartScaleResolver,
   measureText: ChartTextMeasurer | undefined,
 ): ResolvedSceneLayout {
   const locks = resolveMarginLocks(definition.margin)
-  const inset = definition.guides === false ? 0 : automaticGuideInset
-  let margin = mergeMarginLocks(
-    { top: inset, right: inset, bottom: inset, left: inset },
-    locks,
-  )
+  const inset = guides ? automaticGuideInset : 0
+  let margin = mergeMarginLocks(uniformMargin(inset), locks)
   let safeMargin = margin
 
   for (let pass = 0; pass < layoutPassLimit; pass += 1) {
     const resolved = compileSceneLayout(margin)
     const next = measureMargin(resolved)
-    safeMargin = maxMargins(safeMargin, next, locks)
+    safeMargin = mergeMarginLocks(next, locks, safeMargin)
     if (marginsEqual(margin, next)) return resolved
     margin = next
   }
 
   let resolved = compileSceneLayout(safeMargin)
-  const finalMargin = maxMargins(safeMargin, measureMargin(resolved), locks)
+  const finalMargin = mergeMarginLocks(
+    measureMargin(resolved),
+    locks,
+    safeMargin,
+  )
   if (!marginsEqual(safeMargin, finalMargin)) {
     resolved = compileSceneLayout(finalMargin)
   }
@@ -312,19 +373,15 @@ function resolveSceneLayout(
               includeZero: yChannels.includeZero,
             }),
     }
-    const resolvedAxes =
-      definition.guides === false
-        ? {
-            axes: {
-              kind: 'group' as const,
-              key: 'axes',
-              className: 'ts-chart__axes',
-              ariaHidden: true,
-              children: [],
-            },
-            margin: { top: 0, right: 0, bottom: 0, left: 0 },
-          }
-        : createAxes(chart, scales, definition, theme, width, measureText)
+    const resolvedAxes = createAxes(
+      chart,
+      scales,
+      definition,
+      theme,
+      width,
+      guides,
+      measureText,
+    )
     return {
       margin,
       chart,
@@ -350,8 +407,7 @@ function resolveMarginLocks(
   margin: StaticChartDefinition['margin'],
 ): Partial<ChartMargin> {
   if (typeof margin === 'number') {
-    const value = finiteMargin(margin)
-    return { top: value, right: value, bottom: value, left: value }
+    return uniformMargin(finiteMargin(margin))
   }
   if (!margin) return {}
   const locks: Partial<ChartMargin> = {}
@@ -366,29 +422,15 @@ const marginSides = ['top', 'right', 'bottom', 'left'] as const
 function mergeMarginLocks(
   automatic: ChartMargin,
   locks: Partial<ChartMargin>,
+  previous?: ChartMargin,
 ): ChartMargin {
-  return {
-    top: locks.top ?? automatic.top,
-    right: locks.right ?? automatic.right,
-    bottom: locks.bottom ?? automatic.bottom,
-    left: locks.left ?? automatic.left,
+  const margin = { ...automatic }
+  for (const side of marginSides) {
+    margin[side] =
+      locks[side] ??
+      (previous ? Math.max(previous[side], automatic[side]) : automatic[side])
   }
-}
-
-function maxMargins(
-  previous: ChartMargin,
-  next: ChartMargin,
-  locks: Partial<ChartMargin>,
-): ChartMargin {
-  return mergeMarginLocks(
-    {
-      top: Math.max(previous.top, next.top),
-      right: Math.max(previous.right, next.right),
-      bottom: Math.max(previous.bottom, next.bottom),
-      left: Math.max(previous.left, next.left),
-    },
-    locks,
-  )
+  return margin
 }
 
 function marginsEqual(left: ChartMargin, right: ChartMargin): boolean {
@@ -399,6 +441,10 @@ function marginsEqual(left: ChartMargin, right: ChartMargin): boolean {
 
 function finiteMargin(value: number | undefined): number {
   return value !== undefined && Number.isFinite(value) ? Math.max(0, value) : 0
+}
+
+function uniformMargin(value: number): ChartMargin {
+  return { top: value, right: value, bottom: value, left: value }
 }
 
 function createUnusedScale(
@@ -427,10 +473,11 @@ function createGrid(
   scales: ChartScene['scales'],
   definition: StaticChartDefinition,
   theme: ChartTheme,
+  guides: number,
 ): SceneGroup {
   const children: SceneNode[] = []
 
-  if (definition.y?.grid ?? true) {
+  if (guides & 2 && (definition.y?.grid ?? true)) {
     for (const tick of scales.y.ticks) {
       children.push({
         kind: 'rule',
@@ -439,16 +486,11 @@ function createGrid(
         x2: chart.x + chart.width,
         y1: tick.position,
         y2: tick.position,
-        style: {
-          stroke: theme.grid,
-          strokeOpacity: 0.11,
-          strokeWidth: 1,
-        },
       })
     }
   }
 
-  if (definition.x?.grid ?? false) {
+  if (guides & 1 && (definition.x?.grid ?? false)) {
     for (const tick of scales.x.ticks) {
       children.push({
         kind: 'rule',
@@ -457,11 +499,6 @@ function createGrid(
         x2: tick.position,
         y1: chart.y,
         y2: chart.y + chart.height,
-        style: {
-          stroke: theme.grid,
-          strokeOpacity: 0.11,
-          strokeWidth: 1,
-        },
       })
     }
   }
@@ -472,6 +509,11 @@ function createGrid(
     className: 'ts-chart__grid',
     ariaHidden: true,
     children,
+    style: {
+      stroke: theme.grid,
+      strokeOpacity: 0.11,
+      strokeWidth: 1,
+    },
   }
 }
 
@@ -481,36 +523,34 @@ function createAxes(
   definition: StaticChartDefinition,
   theme: ChartTheme,
   width: number,
+  guides: number,
   measureText?: ChartTextMeasurer,
 ): ResolvedAxes {
-  const children: SceneNode[] =
-    definition.x === null
-      ? []
-      : [
-          {
-            kind: 'rule',
-            key: 'x-axis',
-            x1: chart.x,
-            x2: chart.x + chart.width,
-            y1: chart.y + chart.height,
-            y2: chart.y + chart.height,
-            style: {
-              stroke: theme.foreground,
-              strokeOpacity: 0.28,
-            },
+  const showX = guides & 1
+  const showY = guides & 2
+  const children: SceneNode[] = !showX
+    ? []
+    : [
+        {
+          kind: 'rule',
+          key: 'x-axis',
+          x1: chart.x,
+          x2: chart.x + chart.width,
+          y1: chart.y + chart.height,
+          y2: chart.y + chart.height,
+          style: {
+            stroke: theme.foreground,
+            strokeOpacity: 0.28,
           },
-        ]
+        },
+      ]
   const xTickRotate = definition.x?.tickRotate
   const xTickAnchor =
     (xTickRotate ?? 0) < 0 ? 'end' : (xTickRotate ?? 0) > 0 ? 'start' : 'middle'
   let xTickBottom = chart.y + chart.height
   let yTickLeft = chart.x
-  const margin: ChartMargin = {
-    top: automaticGuideInset,
-    right: automaticGuideInset,
-    bottom: automaticGuideInset,
-    left: automaticGuideInset,
-  }
+  const inset = guides ? automaticGuideInset : 0
+  const margin = uniformMargin(inset)
 
   const addLabel = (label: SceneLabel) => {
     const bounds = measureSceneLabelBounds(label, measureText)
@@ -530,7 +570,7 @@ function createAxes(
     return bounds
   }
 
-  for (const tick of scales.x.ticks) {
+  for (const tick of showX ? scales.x.ticks : []) {
     const key = valueKey(tick.value)
     const label: SceneLabel = {
       kind: 'label',
@@ -567,7 +607,7 @@ function createAxes(
     )
   }
 
-  for (const tick of scales.y.ticks) {
+  for (const tick of showY ? scales.y.ticks : []) {
     const key = valueKey(tick.value)
     const label: SceneLabel = {
       kind: 'label',
@@ -604,7 +644,7 @@ function createAxes(
     )
   }
 
-  if (definition.x?.label) {
+  if (showX && definition.x?.label) {
     const hasOffset = definition.x.labelOffset !== undefined
     const label: SceneLabel = {
       kind: 'label',
@@ -626,7 +666,7 @@ function createAxes(
     children.push(label)
   }
 
-  if (definition.y?.label) {
+  if (showY && definition.y?.label) {
     const yLabel: SceneLabel = {
       kind: 'label',
       key: 'y-label',

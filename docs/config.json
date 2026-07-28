@@ -1,0 +1,314 @@
+{
+  "$schema": "https://raw.githubusercontent.com/TanStack/tanstack.com/main/tanstack-docs-config.schema.json",
+  "docSearch": {
+    "appId": "",
+    "apiKey": "",
+    "indexName": "tanstack-charts"
+  },
+  "sections": [
+    {
+      "label": "Getting Started",
+      "children": [
+        {
+          "label": "Overview",
+          "to": "overview"
+        },
+        {
+          "label": "Installation",
+          "to": "installation"
+        },
+        {
+          "label": "Quick Start",
+          "to": "quick-start"
+        }
+      ],
+      "frameworks": [
+        {
+          "label": "react",
+          "children": [
+            {
+              "label": "React Quick Start",
+              "to": "framework/react/quick-start"
+            },
+            {
+              "label": "React Adapter",
+              "to": "framework/react/adapter"
+            }
+          ]
+        },
+        {
+          "label": "octane",
+          "children": [
+            {
+              "label": "Octane Quick Start",
+              "to": "framework/octane/quick-start"
+            },
+            {
+              "label": "Octane Adapter",
+              "to": "framework/octane/adapter"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Core Concepts",
+      "children": [
+        {
+          "label": "Grammar of Graphics",
+          "to": "concepts/grammar-of-graphics"
+        },
+        {
+          "label": "Chart Definitions",
+          "to": "concepts/chart-definitions"
+        },
+        {
+          "label": "Data and Channels",
+          "to": "concepts/data-and-channels"
+        },
+        {
+          "label": "Scales and D3",
+          "to": "concepts/scales-and-d3"
+        },
+        {
+          "label": "Marks and Layering",
+          "to": "concepts/marks-and-layering"
+        },
+        {
+          "label": "Layout, Axes, and Coordinates",
+          "to": "concepts/layout-axes-and-coordinates"
+        }
+      ]
+    },
+    {
+      "label": "Guides",
+      "children": [
+        {
+          "label": "Choosing a Chart",
+          "to": "guides/choosing-a-chart"
+        },
+        {
+          "label": "Responsive Charts",
+          "to": "guides/responsive-charts"
+        },
+        {
+          "label": "Themes and Styling",
+          "to": "guides/themes-and-styling"
+        },
+        {
+          "label": "Accessibility",
+          "to": "guides/accessibility"
+        },
+        {
+          "label": "Dynamic Data and Animation",
+          "to": "guides/dynamic-data-and-animation"
+        },
+        {
+          "label": "Tooltips and Focus",
+          "to": "guides/tooltips-and-focus"
+        },
+        {
+          "label": "Interactions and Selections",
+          "to": "guides/interactions-and-selections"
+        },
+        {
+          "label": "Faceting and Composition",
+          "to": "guides/faceting-and-composition"
+        },
+        {
+          "label": "Legends and Color",
+          "to": "guides/legends-and-color"
+        },
+        {
+          "label": "Custom Marks and Renderers",
+          "to": "guides/custom-marks-and-renderers"
+        },
+        {
+          "label": "Large Data",
+          "to": "guides/large-data"
+        },
+        {
+          "label": "SSR and Hydration",
+          "to": "guides/ssr-and-hydration"
+        },
+        {
+          "label": "Exporting",
+          "to": "guides/exporting"
+        },
+        {
+          "label": "Bundle Size and Performance",
+          "to": "guides/bundle-size-and-performance"
+        },
+        {
+          "label": "TypeScript",
+          "to": "guides/typescript"
+        },
+        {
+          "label": "Testing and Debugging",
+          "to": "guides/testing-and-debugging"
+        },
+        {
+          "label": "AI Authoring",
+          "to": "guides/ai-authoring"
+        },
+        {
+          "label": "Migrating",
+          "to": "guides/migrating"
+        }
+      ]
+    },
+    {
+      "label": "Examples",
+      "children": [
+        {
+          "label": "Example Gallery",
+          "to": "examples/index"
+        },
+        {
+          "label": "Lines and Areas",
+          "to": "examples/lines-and-areas"
+        },
+        {
+          "label": "Bars and Rankings",
+          "to": "examples/bars-and-rankings"
+        },
+        {
+          "label": "Scatterplots and Relationships",
+          "to": "examples/scatterplots-and-relationships"
+        },
+        {
+          "label": "Distributions",
+          "to": "examples/distributions"
+        },
+        {
+          "label": "Heatmaps and Densities",
+          "to": "examples/heatmaps-and-densities"
+        },
+        {
+          "label": "Intervals and Financial Charts",
+          "to": "examples/intervals-and-financial"
+        },
+        {
+          "label": "Stacked and Composed Charts",
+          "to": "examples/stacked-and-composition"
+        },
+        {
+          "label": "Facets and Multiple Views",
+          "to": "examples/facets-and-multiple-views"
+        },
+        {
+          "label": "Networks and Hierarchies",
+          "to": "examples/networks-and-hierarchies"
+        },
+        {
+          "label": "Maps and Spatial Charts",
+          "to": "examples/maps-and-spatial"
+        },
+        {
+          "label": "Polar and Radar Charts",
+          "to": "examples/polar-and-radar"
+        },
+        {
+          "label": "Annotations and Overlays",
+          "to": "examples/annotations-and-overlays"
+        },
+        {
+          "label": "Interactive Charts",
+          "to": "examples/interactive-charts"
+        }
+      ]
+    },
+    {
+      "label": "API Reference",
+      "children": [
+        {
+          "label": "API Overview",
+          "to": "reference/index"
+        },
+        {
+          "label": "Chart Definition API",
+          "to": "reference/chart-definitions"
+        },
+        {
+          "label": "Chart Spec",
+          "to": "reference/chart-spec"
+        },
+        {
+          "label": "Scales, Guides, and Color",
+          "to": "reference/scales-guides-and-color"
+        },
+        {
+          "label": "DOM Host",
+          "to": "reference/dom-host"
+        },
+        {
+          "label": "Runtime and Scene",
+          "to": "reference/runtime-and-scene"
+        },
+        {
+          "label": "Focus and Interaction",
+          "to": "reference/focus-and-interaction"
+        },
+        {
+          "label": "Rendering and Export",
+          "to": "reference/rendering-and-export"
+        },
+        {
+          "label": "Custom Extensions",
+          "to": "reference/custom-extensions"
+        },
+        {
+          "label": "Types",
+          "to": "reference/types"
+        }
+      ],
+      "frameworks": [
+        {
+          "label": "react",
+          "children": [
+            {
+              "label": "React Chart Reference",
+              "to": "framework/react/reference/chart"
+            }
+          ]
+        },
+        {
+          "label": "octane",
+          "children": [
+            {
+              "label": "Octane Chart Reference",
+              "to": "framework/octane/reference/chart"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Mark Reference",
+      "collapsible": true,
+      "defaultCollapsed": true,
+      "children": [
+        {
+          "label": "Line and Area Marks",
+          "to": "reference/marks/line-and-area"
+        },
+        {
+          "label": "Bar and Rect Marks",
+          "to": "reference/marks/bar-and-rect"
+        },
+        {
+          "label": "Dot and Hexagon Marks",
+          "to": "reference/marks/dot-and-hexagon"
+        },
+        {
+          "label": "Rules, Links, Arrows, Vectors, and Ticks",
+          "to": "reference/marks/rules-links-arrows-vectors-and-ticks"
+        },
+        {
+          "label": "Text, Frame, and Facet",
+          "to": "reference/marks/text-frame-and-facet"
+        }
+      ]
+    }
+  ]
+}

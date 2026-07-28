@@ -166,7 +166,7 @@ export function barY<TDatum>(
             yValue,
             x: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
             y: valuePosition,
-            color: resolvedColor,
+            color: fill,
           })
         })
 
@@ -296,7 +296,7 @@ export function barX<TDatum>(
             yValue,
             x: valuePosition,
             y: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
-            color: resolvedColor,
+            color: fill,
           })
         })
 

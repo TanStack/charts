@@ -12,11 +12,21 @@
     "interval rectangle",
     "drag handle",
     "controlled event range",
-    "stable data keys"
+    "stable data keys",
+    "native semantic range input",
+    "native date input",
+    "keyboard editing",
+    "44 pixel hit target",
+    "cancellable edits",
+    "live duration summary",
+    "visible event labels",
+    "color-independent event identity",
+    "required date validation"
   ],
   "geometry": [
     { "id": "event-ranges", "view": "main", "role": "rect", "count": 4 },
-    { "id": "event-end-handle", "view": "main", "role": "dot", "count": 1 }
+    { "id": "event-end-handle", "view": "main", "role": "dot", "count": 1 },
+    { "id": "event-edit-track", "view": "main", "role": "rule", "count": 1 }
   ],
   "minimumGeometrySimilarity": 0.995,
   "guideAssertions": [
@@ -106,10 +116,17 @@
       "id": "shorten-release-window",
       "steps": [
         {
-          "type": "drag",
-          "from": { "view": "main", "anchor": "event:release:end" },
-          "to": { "view": "main", "anchor": "date:2025-02-07" },
+          "type": "pointerDown",
+          "target": { "view": "main", "anchor": "event:release:end" }
+        },
+        {
+          "type": "pointerMove",
+          "target": { "view": "main", "anchor": "date:2025-02-07" },
           "steps": 10
+        },
+        {
+          "type": "pointerUp",
+          "target": { "view": "main", "anchor": "date:2025-02-07" }
         },
         {
           "type": "assert",
@@ -126,6 +143,193 @@
           ]
         }
       ]
+    },
+    {
+      "id": "keyboard-extend-release-window",
+      "steps": [
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "role": "slider",
+                "name": "Release end handle"
+              },
+              "property": "height",
+              "atLeast": 44
+            },
+            {
+              "target": { "selector": ".ts-conformance-event-date" },
+              "property": "height",
+              "atLeast": 44
+            },
+            {
+              "target": { "selector": ".ts-conformance-event-date" },
+              "property": "visible",
+              "equals": true
+            },
+            {
+              "target": { "selector": ".ts-conformance-event-date" },
+              "property": "attribute",
+              "attribute": "required",
+              "equals": ""
+            },
+            {
+              "target": { "selector": ".ts-conformance-event-date" },
+              "property": "attribute",
+              "attribute": "aria-invalid",
+              "equals": "false"
+            },
+            {
+              "target": { "selector": ".ts-conformance-event-handle" },
+              "property": "width",
+              "equals": 20
+            },
+            {
+              "target": { "selector": ".ts-conformance-event-handle" },
+              "property": "height",
+              "equals": 20
+            },
+            {
+              "target": { "selector": ".ts-conformance-event-track" },
+              "property": "height",
+              "equals": 4
+            },
+            {
+              "target": { "selector": ".ts-conformance-event-toolbar" },
+              "property": "contained",
+              "within": { "root": true },
+              "equals": true
+            },
+            {
+              "target": {
+                "selector": ".ts-conformance-event-identities li"
+              },
+              "property": "count",
+              "equals": 4
+            },
+            {
+              "target": {
+                "selector": ".ts-conformance-event-identities li",
+                "index": 0
+              },
+              "property": "text",
+              "includes": "Discovery"
+            }
+          ]
+        },
+        {
+          "type": "key",
+          "key": "ArrowRight",
+          "target": { "view": "main", "anchor": "event:release:end" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "editor.end", "equals": "2025-02-13" },
+            { "path": "editor.durationDays", "approx": 10, "tolerance": 0 },
+            { "path": "editor.editCount", "equals": 1 },
+            { "path": "editor.editing", "equals": false }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "role": "slider",
+                "name": "Release end handle"
+              },
+              "property": "focused",
+              "equals": true
+            },
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "includes": "Feb 13"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cancel-release-edit",
+      "steps": [
+        {
+          "type": "pointerDown",
+          "target": { "view": "main", "anchor": "event:release:end" }
+        },
+        {
+          "type": "pointerMove",
+          "target": { "view": "main", "anchor": "date:2025-02-21" },
+          "steps": 8
+        },
+        { "type": "pointerCancel" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "editor.end", "equals": "2025-02-12" },
+            { "path": "editor.durationDays", "approx": 9, "tolerance": 0 },
+            { "path": "editor.editing", "equals": false },
+            { "path": "editor.editCount", "equals": 0 }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "includes": "Feb 12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reject-cleared-date",
+      "steps": [
+        {
+          "type": "key",
+          "key": "Control+A",
+          "target": { "view": "main", "anchor": "control:date" }
+        },
+        {
+          "type": "key",
+          "key": "Backspace",
+          "target": { "view": "main", "anchor": "control:date" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "editor.end", "equals": "2025-02-12" },
+            { "path": "editor.durationDays", "approx": 9, "tolerance": 0 },
+            { "path": "editor.editing", "equals": false },
+            { "path": "editor.editCount", "equals": 0 }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "selector": ".ts-conformance-event-date" },
+              "property": "attribute",
+              "attribute": "aria-invalid",
+              "equals": "true"
+            },
+            {
+              "target": { "selector": ".ts-conformance-event-validation" },
+              "property": "text",
+              "includes": "Choose a release end date"
+            },
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "includes": "9 days"
+            }
+          ]
+        }
+      ]
     }
   ],
   "source": {
@@ -133,7 +337,7 @@
     "url": "https://echarts.apache.org/handbook/en/how-to/chart-types/custom-series/"
   },
   "ai": {
-    "create": "Create a keyed resource schedule with interval rectangles and a controlled end-handle overlay that maps real drag pixels back through the explicit UTC scale.",
-    "maintain": "Preserve event IDs and lane assignment when editing, clamp the end after the start, and update renderer input from application-owned range state instead of mutating scene output."
+    "create": "Create a keyed resource schedule with interval rectangles, a native semantic range aligned to the release end, a date input, keyboard editing, and a live duration summary.",
+    "maintain": "Preserve event IDs and lane assignment, clamp the end after the start, roll cancelled edits back to their origin, and update renderer input from application-owned state instead of mutating scene output."
   }
 }

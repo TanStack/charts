@@ -1,0 +1,82 @@
+---
+title: API Reference
+description: Reference for TanStack Charts definitions, marks, scales, runtime, rendering, interaction, and framework adapters.
+---
+
+TanStack Charts has a small framework-neutral core and thin React and Octane
+adapters. Most applications use `defineChart`, one or more marks, configured
+scales, and a framework `Chart` component. Lower-level entry points are
+available for custom marks, vanilla DOM mounting, static rendering, export, and
+application-owned interaction.
+
+## Core reference
+
+| Area                                                        | Reference                                                 |
+| ----------------------------------------------------------- | --------------------------------------------------------- |
+| Static and dynamic definitions                              | [Chart Definition API](./chart-definitions.md)            |
+| The `ChartSpec` object                                      | [Chart spec](./chart-spec.md)                             |
+| Positional scales, axes, color, legends, and gradients      | [Scales, guides, and color](./scales-guides-and-color.md) |
+| Vanilla DOM mounting and responsive sizing                  | [DOM host](./dom-host.md)                                 |
+| Dynamic preparation, scene compilation, and runtime caching | [Runtime and scene](./runtime-and-scene.md)               |
+| Pointer focus, keyboard navigation, tooltips, and selection | [Focus and interaction](./focus-and-interaction.md)       |
+| SVG rendering, reconciliation, and file export              | [Rendering and export](./rendering-and-export.md)         |
+| Custom marks, renderers, scales, and indexes                | [Custom extensions](./custom-extensions.md)               |
+| Public generic and scene types                              | [Types](./types.md)                                       |
+
+## Mark reference
+
+| Marks                                                             | Reference                                                                                   |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `lineY`, `areaY`, and `areaX`                                     | [Line and area](./marks/line-and-area.md)                                                   |
+| `barY`, `barX`, `rect`, and `cell`                                | [Bar and rect](./marks/bar-and-rect.md)                                                     |
+| `dot` and `hexagon`                                               | [Dot and hexagon](./marks/dot-and-hexagon.md)                                               |
+| `ruleX`, `ruleY`, `link`, `arrow`, `vector`, `tickX`, and `tickY` | [Rules, links, arrows, vectors, and ticks](./marks/rules-links-arrows-vectors-and-ticks.md) |
+| `text`, `frame`, `facet`, and `facetChart`                        | [Text, frame, and facet](./marks/text-frame-and-facet.md)                                   |
+
+## Framework adapters
+
+| Framework | Start                                             | Adapter behavior                          | Component API                                     |
+| --------- | ------------------------------------------------- | ----------------------------------------- | ------------------------------------------------- |
+| React     | [Quick start](../framework/react/quick-start.md)  | [Adapter](../framework/react/adapter.md)  | [`Chart`](../framework/react/reference/chart.md)  |
+| Octane    | [Quick start](../framework/octane/quick-start.md) | [Adapter](../framework/octane/adapter.md) | [`Chart`](../framework/octane/reference/chart.md) |
+
+## Import map
+
+The root `@tanstack/charts` entry point exports the common grammar, runtime,
+scene, SVG renderer, and their public types. Granular subpaths keep optional
+capabilities and individual marks independently tree-shakeable.
+
+| Import                               | Public values                                                                                                                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@tanstack/charts`                   | Common marks, legends, D3 curve bridges, `createMark`, `defineChart`, `createChartScene`, `createChartRuntime`, `mountChart`, `renderChartSvg`, and runtime comparison helpers |
+| `@tanstack/charts/area`              | `areaY`                                                                                                                                                                        |
+| `@tanstack/charts/area-x`            | `areaX`                                                                                                                                                                        |
+| `@tanstack/charts/arrow`             | `arrow`                                                                                                                                                                        |
+| `@tanstack/charts/bar`               | `barX`, `barY`                                                                                                                                                                 |
+| `@tanstack/charts/d3/area-x`         | `d3AreaXCurve`                                                                                                                                                                 |
+| `@tanstack/charts/d3/shape`          | `d3Curve`                                                                                                                                                                      |
+| `@tanstack/charts/dom`               | `mountChart`                                                                                                                                                                   |
+| `@tanstack/charts/dot`               | `dot`                                                                                                                                                                          |
+| `@tanstack/charts/export`            | SVG serialization/download and browser image export                                                                                                                            |
+| `@tanstack/charts/facet`             | `facet`, `facetChart`                                                                                                                                                          |
+| `@tanstack/charts/focus`             | `focusX`, `focusY`, `focusNearestX`, `focusNearestY`                                                                                                                           |
+| `@tanstack/charts/focus/disabled`    | `focusDisabled`                                                                                                                                                                |
+| `@tanstack/charts/frame`             | `frame`                                                                                                                                                                        |
+| `@tanstack/charts/hexagon`           | `hexagon`                                                                                                                                                                      |
+| `@tanstack/charts/legend`            | `colorLegend`, `colorGradientLegend`                                                                                                                                           |
+| `@tanstack/charts/line`              | `lineY`                                                                                                                                                                        |
+| `@tanstack/charts/link`              | `link`                                                                                                                                                                         |
+| `@tanstack/charts/mark/scale-values` | `createMarkWithScaleValues`                                                                                                                                                    |
+| `@tanstack/charts/reconcile`         | `reconcileChartSvg`                                                                                                                                                            |
+| `@tanstack/charts/rect`              | `rect`, `cell`                                                                                                                                                                 |
+| `@tanstack/charts/rule`              | `ruleX`, `ruleY`                                                                                                                                                               |
+| `@tanstack/charts/runtime`           | `createChartRuntime`, definition and input comparison helpers                                                                                                                  |
+| `@tanstack/charts/scene`             | `defineChart`, `createChartScene`, `defaultChartTheme`, `findNearestPoint`                                                                                                     |
+| `@tanstack/charts/svg`               | `renderChartSvg`                                                                                                                                                               |
+| `@tanstack/charts/svg/resources`     | `renderChartSvgWithResources`                                                                                                                                                  |
+| `@tanstack/charts/text`              | `text`                                                                                                                                                                         |
+| `@tanstack/charts/tick`              | `tickX`, `tickY`                                                                                                                                                               |
+| `@tanstack/charts/vector`            | `vector`                                                                                                                                                                       |
+
+Import from the narrowest stable entry point when bundle isolation matters.
+Do not import internal source files.

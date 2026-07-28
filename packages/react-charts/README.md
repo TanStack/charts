@@ -2,6 +2,17 @@
 
 React lifecycle adapter for `@tanstack/charts`.
 
+Declare the adapter, core grammar, framework peer, and each D3 module used by
+your chart directly:
+
+```sh
+pnpm add @tanstack/charts @tanstack/react-charts react d3-scale
+pnpm add -D @types/d3-scale @types/react
+```
+
+Add or omit granular `d3-*` modules and their matching type packages with the
+chart's actual imports.
+
 ```tsx
 import { Chart } from '@tanstack/react-charts'
 
@@ -21,8 +32,8 @@ import { Chart } from '@tanstack/react-charts'
 
 The adapter server-renders the complete shared SVG. On the client, React owns
 only the outer host; the framework-neutral chart host owns measurement,
-reconciliation, animation, and interaction. Structurally equal inline input
-does not replace the live SVG.
+reconciliation, animation, and interaction. Shallow-equal inline plain-object
+input does not replace the live SVG.
 
 The definition drives all prop inference. Dynamic definitions require their
 exact `input` shape, and focus, group, selection, and render callbacks infer the
@@ -32,5 +43,10 @@ fix the definition, channel, or scale that TypeScript rejects.
 Use `height` for a fixed-height chart or `aspectRatio` for proportional
 container sizing.
 
-Read the main package documentation at
-[`../charts-core/llms.txt`](../charts-core/llms.txt).
+Read the installed `@tanstack/charts/llms.txt` documentation map, the published
+[React Quick Start](https://tanstack.com/charts/latest/docs/framework/react/quick-start),
+or the
+[React Adapter guide](https://tanstack.com/charts/latest/docs/framework/react/adapter).
+
+Licensed under [MIT](./LICENSE). Project credits are in the repository
+[`ACKNOWLEDGEMENTS.md`](https://github.com/TanStack/charts/blob/main/ACKNOWLEDGEMENTS.md).

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build && node ../../scripts/build-conformance-site.mjs",
+    "build": "vite build && node ../../scripts/build-conformance-site.mjs && node ../../scripts/check-conformance-site.mjs",
     "check:catalog": "node ../../scripts/build-conformance-site.mjs --check",
     "dev": "vite --host --port 5194 --strictPort"
   },

@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 820,
+  "id": "82-chart-table-selection",
+  "title": "Linked chart and data table selection",
+  "family": "interaction",
+  "intent": "Select a plotted observation and highlight its matching row in an accessible data table.",
+  "support": "composed",
+  "features": [
+    "point selection",
+    "linked table",
+    "selected overlay",
+    "accessible state"
+  ],
+  "geometry": [{ "role": "dot", "count": 5 }],
+  "interactionScenarios": [
+    {
+      "id": "select-central-observation",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "point:central" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selectedId", "equals": "central" },
+            { "path": "selectedRow", "equals": "central" },
+            { "path": "selectedValue", "equals": 45 },
+            { "path": "selectedOverlayCount", "equals": 1 }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-selected-overlay], .ts-chart__dot[data-ts-key=\"selected-observation\"] circle"
+              },
+              "property": "count",
+              "equals": 1
+            },
+            {
+              "target": {
+                "selector": "[data-selected-overlay], .ts-chart__dot[data-ts-key=\"selected-observation\"] circle"
+              },
+              "property": "attribute",
+              "attribute": "fill",
+              "equals": "#f97316"
+            },
+            {
+              "target": {
+                "role": "region",
+                "name": "Selectable observations with data table",
+                "exact": true
+              },
+              "property": "count",
+              "equals": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "move-selection-between-points",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "point:north" }
+        },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "point:east" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selectedId", "equals": "east" },
+            { "path": "selectedRow", "equals": "east" },
+            { "path": "selectedValue", "equals": 72 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "select-from-table-with-keyboard",
+      "steps": [
+        {
+          "type": "key",
+          "key": "Enter",
+          "target": { "view": "main", "anchor": "row:south" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selectedId", "equals": "south" },
+            { "path": "selectedRow", "equals": "south" },
+            { "path": "focusedRow", "equals": "south" },
+            {
+              "path": "announcement",
+              "includes": "Selected south: Feb"
+            }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "role": "button",
+                "name": "south",
+                "exact": true
+              },
+              "property": "focused",
+              "equals": true
+            },
+            {
+              "target": {
+                "role": "button",
+                "name": "south",
+                "exact": true
+              },
+              "property": "height",
+              "atLeast": 44
+            },
+            {
+              "target": { "selector": "[data-row-id=\"south\"]" },
+              "property": "attribute",
+              "attribute": "aria-selected",
+              "equals": "true"
+            }
+          ]
+        },
+        { "type": "update", "revision": 1 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selectedId", "equals": "south" },
+            { "path": "selectedValue", "equals": 64 },
+            {
+              "path": "announcement",
+              "equals": "Selected south: Feb, 64"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clear-selection-retains-control-focus",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "point:north" }
+        },
+        {
+          "type": "click",
+          "target": {
+            "view": "main",
+            "anchor": "control:clear-selection"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selectedId", "equals": null },
+            { "path": "selectedRow", "equals": null },
+            { "path": "selectedOverlayCount", "equals": 0 },
+            { "path": "focusedControl", "equals": "clear-selection" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "role": "button",
+                "name": "Clear selection",
+                "exact": true
+              },
+              "property": "focused",
+              "equals": true
+            },
+            {
+              "target": {
+                "role": "button",
+                "name": "Clear selection",
+                "exact": true
+              },
+              "property": "height",
+              "atLeast": 44
+            },
+            {
+              "target": {
+                "role": "button",
+                "name": "Clear selection",
+                "exact": true
+              },
+              "property": "attribute",
+              "attribute": "aria-disabled",
+              "equals": "true"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Recharts Scatter API",
+    "url": "https://recharts.github.io/en-US/api/Scatter/"
+  },
+  "ai": {
+    "create": "Create a point chart linked to an accessible table so selecting a point highlights the corresponding row.",
+    "maintain": "Use stable observation IDs as the shared selection key, keep the table semantic, and render selection as a separate visual overlay."
+  }
+}

@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "profiles": {
+    "quick": {
+      "warmup": 1,
+      "samples": 5,
+      "preparationSamples": 3,
+      "pointerSamples": 5,
+      "pointerSweepSamples": 20,
+      "soakCycles": 3,
+      "streamDurationMs": 400,
+      "burstRevisions": 16
+    },
+    "standard": {
+      "warmup": 3,
+      "samples": 20,
+      "preparationSamples": 7,
+      "pointerSamples": 20,
+      "pointerSweepSamples": 100,
+      "soakCycles": 10,
+      "streamDurationMs": 1200,
+      "burstRevisions": 48
+    },
+    "full": {
+      "warmup": 5,
+      "samples": 30,
+      "preparationSamples": 10,
+      "pointerSamples": 30,
+      "pointerSweepSamples": 300,
+      "soakCycles": 25,
+      "streamDurationMs": 3000,
+      "burstRevisions": 96
+    }
+  },
+  "workloads": [
+    {
+      "id": "raw-line",
+      "label": "Raw line path",
+      "description": "One path retaining every observation.",
+      "lane": "raw",
+      "chartType": "line",
+      "tier": "basic",
+      "representation": "raw",
+      "sourceCounts": {
+        "quick": [10000],
+        "standard": [10000, 100000],
+        "full": [10000, 100000, 1000000]
+      },
+      "updates": ["noop", "same", "append", "replace", "resize"]
+    },
+    {
+      "id": "raw-scatter",
+      "label": "Raw scatter frontier",
+      "description": "One independently addressable mark per observation.",
+      "lane": "raw",
+      "chartType": "scatter",
+      "tier": "basic",
+      "representation": "raw",
+      "sourceCounts": {
+        "quick": [1000],
+        "standard": [1000, 10000],
+        "full": [1000, 10000, 25000]
+      },
+      "updates": ["noop", "same", "append", "replace", "reorder", "resize"]
+    },
+    {
+      "id": "interactive-scatter",
+      "label": "Interactive scatter",
+      "description": "Raw points with the library's normal pointer tooltip enabled.",
+      "lane": "product",
+      "chartType": "scatter",
+      "tier": "interactive",
+      "representation": "raw",
+      "sourceCounts": {
+        "quick": [1000],
+        "standard": [1000, 5000],
+        "full": [1000, 5000, 10000]
+      },
+      "updates": ["noop", "same", "resize"],
+      "pointer": true,
+      "pointerSweep": true,
+      "stream": true
+    },
+    {
+      "id": "binned-density",
+      "label": "Binned density",
+      "description": "Every source row contributes to one of 2,048 fixed density cells.",
+      "lane": "encoded",
+      "chartType": "scatter",
+      "tier": "basic",
+      "representation": "binned-density",
+      "variableSize": true,
+      "maximumPreparedRows": 2048,
+      "sourceCounts": {
+        "quick": [100000],
+        "standard": [100000, 1000000],
+        "full": [100000, 1000000]
+      },
+      "updates": ["noop", "same", "resize"],
+      "stream": true
+    },
+    {
+      "id": "pixel-envelope",
+      "label": "Screen-aware line envelope",
+      "description": "Per-pixel first, minimum, maximum, and last candidates preserve extrema.",
+      "lane": "encoded",
+      "chartType": "line",
+      "tier": "basic",
+      "representation": "pixel-envelope",
+      "maximumPreparedRows": 3200,
+      "sourceCounts": {
+        "quick": [100000],
+        "standard": [100000, 1000000],
+        "full": [100000, 1000000]
+      },
+      "updates": ["noop", "same", "resize"]
+    },
+    {
+      "id": "viewport-envelope",
+      "label": "Controlled viewport envelope",
+      "description": "A bounded line envelope repeatedly moves between its full and cropped numeric x domains.",
+      "lane": "encoded",
+      "chartType": "line",
+      "tier": "basic",
+      "representation": "pixel-envelope",
+      "maximumPreparedRows": 3200,
+      "sourceCounts": {
+        "quick": [100000],
+        "standard": [100000, 1000000],
+        "full": [100000, 1000000]
+      },
+      "updates": ["noop", "same", "viewport", "resize"]
+    },
+    {
+      "id": "stats-multi-series-line",
+      "label": "Stats-shaped multi-series history",
+      "description": "Many stable package-like series share x buckets, grouped x-focus, and controlled series visibility.",
+      "lane": "product",
+      "chartType": "line",
+      "tier": "interactive",
+      "representation": "raw",
+      "multiSeries": true,
+      "groupedXFocus": true,
+      "seriesShape": {
+        "quick": { "series": 8, "points": 260 },
+        "standard": { "series": 24, "points": 520 },
+        "full": { "series": 32, "points": 1040 }
+      },
+      "sourceCounts": {
+        "quick": [2080],
+        "standard": [12480],
+        "full": [33280]
+      },
+      "updates": [
+        "noop",
+        "same",
+        "reorder",
+        "append",
+        "toggle-series",
+        "resize"
+      ],
+      "pointer": true,
+      "pointerSweep": true,
+      "stream": true
+    },
+    {
+      "id": "rolling-keyed-window",
+      "label": "Rolling keyed window",
+      "description": "A fixed-size scatter window advances by five percent while overlapping datum identities survive.",
+      "lane": "product",
+      "chartType": "scatter",
+      "tier": "basic",
+      "representation": "raw-window",
+      "rollingWindow": true,
+      "burst": true,
+      "sourceCounts": {
+        "quick": [1000],
+        "standard": [1000, 5000],
+        "full": [1000, 5000, 10000]
+      },
+      "updates": ["noop", "same", "roll", "resize"],
+      "stream": true
+    },
+    {
+      "id": "histogram-128",
+      "label": "Fixed-bin histogram",
+      "description": "Every source row contributes to one of 128 quantitative bins.",
+      "lane": "encoded",
+      "chartType": "bar",
+      "tier": "basic",
+      "representation": "histogram",
+      "maximumPreparedRows": 128,
+      "sourceCounts": {
+        "quick": [100000],
+        "standard": [100000, 1000000],
+        "full": [100000, 1000000]
+      },
+      "updates": ["noop", "same", "resize"]
+    },
+    {
+      "id": "top-categories",
+      "label": "Top categories plus Other",
+      "description": "High-cardinality rows roll up to the leading 24 categories and Other.",
+      "lane": "encoded",
+      "chartType": "bar",
+      "tier": "basic",
+      "representation": "top-categories",
+      "maximumPreparedRows": 25,
+      "sourceCounts": {
+        "quick": [100000],
+        "standard": [100000, 1000000],
+        "full": [100000, 1000000]
+      },
+      "updates": ["noop", "same", "resize"]
+    },
+    {
+      "id": "dashboard-lines",
+      "label": "Small-multiple line dashboard",
+      "description": "Many independently mounted 320×180 line charts update together.",
+      "lane": "product",
+      "chartType": "line",
+      "tier": "basic",
+      "representation": "raw",
+      "sourceCounts": {
+        "quick": [1000],
+        "standard": [1000],
+        "full": [1000]
+      },
+      "instances": {
+        "quick": 4,
+        "standard": 16,
+        "full": 64
+      },
+      "updates": ["noop", "same", "resize"]
+    }
+  ]
+}

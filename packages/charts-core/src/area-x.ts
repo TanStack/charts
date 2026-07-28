@@ -177,7 +177,7 @@ export function areaX<TDatum>(
               yValue,
               x,
               y,
-              color: resolvedColor,
+              color: fill,
             })
           }
           flush()

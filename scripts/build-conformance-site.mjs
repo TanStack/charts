@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseConformanceCaseMeta } from '../benchmarks/conformance/metadata.ts'
+import { chartEmbedContract } from '../examples/conformance/src/embed-contract.ts'
 
 const rootDirectory = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -78,6 +79,11 @@ function validateCases(entries) {
     if (metadata.id !== directory) {
       throw new Error(
         `Catalog id "${metadata.id}" must match directory "${directory}"`,
+      )
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(metadata.id)) {
+      throw new Error(
+        `Catalog id "${metadata.id}" must use lowercase URL-safe words separated by hyphens`,
       )
     }
     if (ids.has(metadata.id)) {
@@ -164,6 +170,11 @@ async function generateSite(entries) {
     `${JSON.stringify(
       {
         schemaVersion: 1,
+        site: {
+          origin: publicOrigin || null,
+          basePath,
+        },
+        embed: chartEmbedContract,
         cases: sorted.map(({ metadata }) => ({
           ...metadata,
           routes: {

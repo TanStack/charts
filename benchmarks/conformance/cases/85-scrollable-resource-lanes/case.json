@@ -12,17 +12,13 @@
     "native horizontal overflow",
     "interval rectangles",
     "semantic wheel interaction",
-    "viewport-relative geometry"
+    "viewport-relative geometry",
+    "fixed resource lane rail",
+    "redundant status legend",
+    "keyboard task details"
   ],
   "geometry": [{ "view": "main", "role": "rect", "count": 5 }],
   "minimumGeometrySimilarity": 0.994,
-  "guideAssertions": [
-    {
-      "id": "lane-sequence",
-      "axis": "y",
-      "sequence": ["Design", "Infrastructure", "API", "Quality", "Docs"]
-    }
-  ],
   "interactionScenarios": [
     {
       "id": "wheel-through-resource-schedule",
@@ -35,6 +31,45 @@
             { "path": "tasks.count", "equals": 10 },
             { "path": "domain.start", "equals": "2025-01-01" },
             { "path": "domain.end", "equals": "2025-03-15" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "selector": "[data-conformance-lane]" },
+              "property": "count",
+              "equals": 5
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-lane=\"Infrastructure\"]"
+              },
+              "property": "visible",
+              "equals": true
+            },
+            {
+              "target": { "selector": "[data-conformance-lane-rail]" },
+              "property": "width",
+              "atLeast": 96
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-timeline-status]"
+              },
+              "property": "count",
+              "equals": 3
+            },
+            {
+              "target": { "selector": "[data-conformance-overflow-cue]" },
+              "property": "visible",
+              "equals": true
+            },
+            {
+              "target": { "role": "list", "name": "Task schedule details" },
+              "property": "text",
+              "includes": "Endpoint build"
+            }
           ]
         },
         {
@@ -56,6 +91,27 @@
             { "path": "domain.end", "equals": "2025-03-15" }
           ]
         },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-lane=\"Infrastructure\"]"
+              },
+              "property": "visible",
+              "equals": true
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-lane=\"Infrastructure\"]"
+              },
+              "property": "contained",
+              "within": { "selector": "[data-conformance-lane-rail]" },
+              "equals": true
+            }
+          ]
+        },
+        { "type": "screenshot", "name": "scrolled-resource-schedule" },
         { "type": "update", "revision": 1 },
         {
           "type": "assert",
@@ -89,6 +145,50 @@
               "equals": "2025-02-15"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "keyboard-focus-scrolls-offscreen-task-into-view",
+      "steps": [
+        {
+          "type": "key",
+          "key": "End",
+          "target": {
+            "view": "main",
+            "anchor": "task:docs-publish"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focus.taskId", "equals": "docs-publish" },
+            { "path": "focus.visible", "equals": true },
+            { "path": "focus.scrolled", "equals": true }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-timeline-details]"
+              },
+              "property": "text",
+              "includes": "Publish guides"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-scroll-viewport]"
+              },
+              "property": "scrollLeft",
+              "atLeast": 1
+            }
+          ]
+        },
+        {
+          "type": "screenshot",
+          "name": "keyboard-task-details"
         }
       ]
     }

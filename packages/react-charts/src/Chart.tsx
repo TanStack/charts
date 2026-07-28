@@ -16,6 +16,7 @@ import {
   type ChartSvgRenderer,
   type ChartTextMeasurer,
   type ChartTooltipOptions,
+  type ChartValue,
   type DynamicChartDefinition,
   type StaticChartDefinition,
 } from '@tanstack/charts'
@@ -26,12 +27,12 @@ interface ChartSurfaceProps {
   ariaLabel: string
   ariaDescription?: string
   height: number
-  width?: number
-  initialWidth: number
+  width: number
   keyboard: boolean
+  tabIndex?: number
   idPrefix: string
-  renderSvg: ChartSvgRenderer
-  runtime: ChartRuntime<unknown, unknown>
+  renderSvg: ChartSvgRenderer<any, any, any>
+  runtime: ChartRuntime<any, any, any, any>
   measureText?: ChartTextMeasurer
 }
 
@@ -44,8 +45,8 @@ const ChartSurface = React.memo(
       ariaDescription,
       height,
       width,
-      initialWidth,
       keyboard,
+      tabIndex,
       idPrefix,
       renderSvg,
       runtime,
@@ -57,7 +58,7 @@ const ChartSurface = React.memo(
       definition,
       input,
       {
-        width: width ?? initialWidth,
+        width,
         height,
       },
       { measureText },
@@ -66,7 +67,7 @@ const ChartSurface = React.memo(
       __html: renderSvg(scene, {
         ariaLabel,
         ariaDescription,
-        tabIndex: keyboard ? 0 : -1,
+        tabIndex: keyboard ? (tabIndex ?? 0) : -1,
         idPrefix,
       }),
     }
@@ -83,7 +84,11 @@ const ChartSurface = React.memo(
   () => true,
 )
 
-export interface ChartCommonProps<TDatum = unknown> {
+export interface ChartCommonProps<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
   ariaLabel: string
   ariaDescription?: string
   height?: number
@@ -93,45 +98,72 @@ export interface ChartCommonProps<TDatum = unknown> {
   className?: string
   style?: React.CSSProperties
   maxFocusDistance?: number
-  focus?: ChartFocusMode
-  spatialIndex?: ChartSpatialIndexFactory<TDatum>
+  focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
+  spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
   animate?: boolean | ChartAnimationOptions
   keyboard?: boolean
+  tabIndex?: number
   idPrefix?: string
-  renderSvg?: ChartSvgRenderer
+  renderSvg?: ChartSvgRenderer<
+    NoInfer<TDatum>,
+    NoInfer<TXValue>,
+    NoInfer<TYValue>
+  >
   measureText?: ChartTextMeasurer
-  tooltip?: boolean | ChartTooltipOptions<TDatum>
-  onFocusChange?: (point: ChartPoint<TDatum> | null) => void
-  onFocusGroupChange?: (points: readonly ChartPoint<TDatum>[]) => void
-  onSelect?: (point: ChartPoint<TDatum> | null) => void
-  onRender?: (context: ChartRenderContext<TDatum>) => void
+  tooltip?: boolean | ChartTooltipOptions<TDatum, TXValue, TYValue>
+  onFocusChange?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
+  onFocusGroupChange?: (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  ) => void
+  onSelect?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
+  onRender?: (context: ChartRenderContext<TDatum, TXValue, TYValue>) => void
 }
 
-export type StaticChartProps<TDatum = unknown> = ChartCommonProps<TDatum> & {
-  definition: StaticChartDefinition<TDatum>
+export type StaticChartProps<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartCommonProps<TDatum, TXValue, TYValue> & {
+  definition: StaticChartDefinition<TDatum, TXValue, TYValue>
   input?: never
 }
 
 export type DynamicChartProps<
   TDatum = unknown,
   TInput = unknown,
-> = ChartCommonProps<TDatum> & {
-  definition: DynamicChartDefinition<TInput, any, TDatum>
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartCommonProps<TDatum, TXValue, TYValue> & {
+  definition: DynamicChartDefinition<TInput, any, TDatum, TXValue, TYValue>
   input: TInput
 }
 
-export type ChartProps<TDatum = unknown, TInput = undefined> =
-  StaticChartProps<TDatum> | DynamicChartProps<TDatum, TInput>
+export type ChartProps<
+  TDatum = unknown,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | StaticChartProps<TDatum, TXValue, TYValue>
+  | DynamicChartProps<TDatum, TInput, TXValue, TYValue>
 
-export function Chart<TDatum>(
-  props: StaticChartProps<TDatum>,
-): React.JSX.Element
-export function Chart<TDatum, TInput>(
-  props: DynamicChartProps<TDatum, TInput>,
-): React.JSX.Element
-export function Chart<TDatum, TInput = undefined>(
-  props: ChartProps<TDatum, TInput>,
-) {
+export function Chart<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(props: StaticChartProps<TDatum, TXValue, TYValue>): React.JSX.Element
+export function Chart<
+  TDatum,
+  TInput,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(props: DynamicChartProps<TDatum, TInput, TXValue, TYValue>): React.JSX.Element
+export function Chart<
+  TDatum,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(props: ChartProps<TDatum, TInput, TXValue, TYValue>) {
   const {
     definition,
     input,
@@ -148,6 +180,7 @@ export function Chart<TDatum, TInput = undefined>(
     spatialIndex,
     animate,
     keyboard = true,
+    tabIndex,
     idPrefix: idPrefixOption,
     renderSvg = renderChartSvg,
     measureText,
@@ -161,19 +194,36 @@ export function Chart<TDatum, TInput = undefined>(
   const idPrefix =
     idPrefixOption ??
     `ts-chart-${generatedId.replaceAll(/[^a-zA-Z0-9_-]/g, '')}`
+  const resolvedAspectRatio =
+    typeof aspectRatio === 'number' &&
+    Number.isFinite(aspectRatio) &&
+    aspectRatio > 0
+      ? aspectRatio
+      : undefined
+  const initialSceneWidth = width ?? initialWidth
   const initialHeight =
     height ??
-    (aspectRatio && aspectRatio > 0 ? initialWidth / aspectRatio : 320)
+    (resolvedAspectRatio ? initialSceneWidth / resolvedAspectRatio : 320)
   const containerRef = React.useRef<HTMLDivElement>(null)
-  const hostRef = React.useRef<ChartHost<TDatum, TInput> | null>(null)
-  const runtimeRef = React.useRef<ChartRuntime<TDatum, TInput> | null>(null)
-  runtimeRef.current ??= createChartRuntime<TDatum, TInput>()
+  const hostRef = React.useRef<ChartHost<
+    TDatum,
+    TInput,
+    TXValue,
+    TYValue
+  > | null>(null)
+  const runtimeRef = React.useRef<ChartRuntime<
+    TDatum,
+    TInput,
+    TXValue,
+    TYValue
+  > | null>(null)
+  runtimeRef.current ??= createChartRuntime<TDatum, TInput, TXValue, TYValue>()
   const runtime = runtimeRef.current
-  const commonHostOptions: ChartHostCommonOptions<TDatum> = {
+  const commonHostOptions: ChartHostCommonOptions<TDatum, TXValue, TYValue> = {
     ariaLabel,
     ariaDescription,
     height,
-    aspectRatio,
+    aspectRatio: resolvedAspectRatio,
     width,
     initialWidth,
     maxFocusDistance,
@@ -181,6 +231,7 @@ export function Chart<TDatum, TInput = undefined>(
     spatialIndex,
     animate,
     keyboard,
+    tabIndex,
     idPrefix,
     renderSvg,
     measureText,
@@ -212,8 +263,8 @@ export function Chart<TDatum, TInput = undefined>(
       style={{
         position: 'relative',
         width: width === undefined ? '100%' : width,
-        height: height ?? (aspectRatio ? undefined : 320),
-        aspectRatio: height === undefined ? aspectRatio : undefined,
+        height: height ?? (resolvedAspectRatio ? undefined : 320),
+        aspectRatio: height === undefined ? resolvedAspectRatio : undefined,
         ...style,
       }}
     >
@@ -224,22 +275,27 @@ export function Chart<TDatum, TInput = undefined>(
         ariaLabel={ariaLabel}
         ariaDescription={ariaDescription}
         height={initialHeight}
-        width={width}
-        initialWidth={initialWidth}
+        width={initialSceneWidth}
         keyboard={keyboard}
+        tabIndex={tabIndex}
         idPrefix={idPrefix}
         renderSvg={renderSvg}
-        runtime={runtime as ChartRuntime<unknown, unknown>}
+        runtime={runtime as ChartRuntime<any, any, any, any>}
         measureText={measureText}
       />
     </div>
   )
 }
 
-function createHostOptions<TDatum, TInput>(
-  props: ChartProps<TDatum, TInput>,
-  common: ChartHostCommonOptions<TDatum>,
-): ChartHostOptions<TDatum, TInput> {
+function createHostOptions<
+  TDatum,
+  TInput,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
+  common: ChartHostCommonOptions<TDatum, TXValue, TYValue>,
+): ChartHostOptions<TDatum, TInput, TXValue, TYValue> {
   if (isDynamicProps(props)) {
     return {
       ...common,
@@ -253,8 +309,13 @@ function createHostOptions<TDatum, TInput>(
   }
 }
 
-function isDynamicProps<TDatum, TInput>(
-  props: ChartProps<TDatum, TInput>,
-): props is DynamicChartProps<TDatum, TInput> {
+function isDynamicProps<
+  TDatum,
+  TInput,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
+): props is DynamicChartProps<TDatum, TInput, TXValue, TYValue> {
   return 'chart' in props.definition
 }

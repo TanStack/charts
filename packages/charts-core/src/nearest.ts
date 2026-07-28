@@ -1,12 +1,16 @@
 import { least } from 'd3-array'
-import type { ChartPoint } from './types'
+import type { ChartPoint, ChartValue } from './types'
 
-export function nearestPoint<TDatum>(
-  points: readonly ChartPoint<TDatum>[],
+export function nearestPoint<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   x: number,
   y: number,
   maxDistance: number,
-): ChartPoint<TDatum> | null {
+): ChartPoint<TDatum, TXValue, TYValue> | null {
   const result = least(points, (point) => {
     const dx = point.x - x
     const dy = point.y - y

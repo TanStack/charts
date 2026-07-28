@@ -6,6 +6,8 @@ import { brotliCompressSync, gzipSync } from 'node:zlib'
 import { build } from 'esbuild'
 import { chromium } from 'playwright'
 import ts from 'typescript'
+import { conformanceArtifactStem } from './benchmark/conformance-artifacts.mjs'
+import { assertKnownFilterValues } from './benchmark/filters.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const conformanceDirectory = resolve(root, 'benchmarks/conformance')
@@ -108,6 +110,11 @@ await Promise.all([
 ])
 
 const allCases = await readCases()
+assertKnownFilterValues(
+  caseFilter,
+  allCases.map((entry) => entry.id),
+  'case',
+)
 const selectedCases = allCases.filter(
   (entry) => !caseFilter || caseFilter.has(entry.id),
 )
@@ -176,6 +183,9 @@ const result = {
   schemaVersion: 1,
   createdAt: new Date().toISOString(),
   profile: profileName,
+  filters: {
+    cases: caseFilter ? selectedCases.map((entry) => entry.id).sort() : [],
+  },
   environment: {
     node: process.version,
     platform: process.platform,
@@ -212,7 +222,7 @@ const result = {
     visual:
       'Geometry, guide containment, and accessibility run before and after a data revision at every viewport/theme variant. A 640px light-mode side-by-side screenshot is retained per case.',
     interaction:
-      'Ordered semantic scenarios run from fresh mounts with native Playwright mouse, keyboard, drag, wheel, and in-place revision updates. Uncaught page errors fail the active step; state assertions are renderer-independent.',
+      'Ordered semantic scenarios run from fresh mounts with native Playwright mouse, keyboard, CDP touch, drag, pixel-wheel streams, bounded waits, and in-place revision updates; pointer cancellation and line/page delta modes use explicit DOM events. Driver-state assertions remain renderer-independent; rendered assertions inspect root-scoped DOM text, attributes, focus, visibility, scroll metrics, and bounds directly. Scenarios may retain named checkpoint screenshots. Uncaught page errors fail the active step.',
   },
   cases: selectedCases,
   bundles,
@@ -232,9 +242,10 @@ const result = {
 
 const json = `${JSON.stringify(result, null, 2)}\n`
 const markdown = renderMarkdown(result)
+const artifactStem = conformanceArtifactStem(result.filters.cases)
 await Promise.all([
-  writeFile(resolve(resultDirectory, 'plot-catalog.json'), json),
-  writeFile(resolve(resultDirectory, 'plot-catalog.md'), markdown),
+  writeFile(resolve(resultDirectory, `${artifactStem}.json`), json),
+  writeFile(resolve(resultDirectory, `${artifactStem}.md`), markdown),
 ])
 console.log(markdown)
 
@@ -342,7 +353,17 @@ function isValidInteractionStep(step) {
   if (!step || typeof step !== 'object') return false
   switch (step.type) {
     case 'pointerMove':
+      return (
+        isValidTarget(step.target) &&
+        (step.steps === undefined || isPositiveInteger(step.steps))
+      )
+    case 'pointerDown':
+    case 'pointerUp':
+      return isValidTarget(step.target) && step.steps === undefined
+    case 'pointerCancel':
+      return true
     case 'click':
+    case 'touchTap':
       return isValidTarget(step.target)
     case 'pointerLeave':
       return step.view === undefined || typeof step.view === 'string'
@@ -357,15 +378,30 @@ function isValidInteractionStep(step) {
       return (
         isValidTarget(step.from) &&
         isValidTarget(step.to) &&
-        (step.steps === undefined ||
-          (Number.isInteger(step.steps) && step.steps > 0))
+        (step.steps === undefined || isPositiveInteger(step.steps))
+      )
+    case 'touchDrag':
+      return (
+        isValidTarget(step.from) &&
+        isValidTarget(step.to) &&
+        (step.steps === undefined || isPositiveInteger(step.steps)) &&
+        (step.cancel === undefined || typeof step.cancel === 'boolean')
       )
     case 'wheel':
       return (
         isValidTarget(step.target) &&
         (step.deltaX === undefined || Number.isFinite(step.deltaX)) &&
         (step.deltaY === undefined || Number.isFinite(step.deltaY)) &&
-        (step.deltaX !== undefined || step.deltaY !== undefined)
+        (step.deltaX !== undefined || step.deltaY !== undefined) &&
+        (step.steps === undefined || isPositiveInteger(step.steps)) &&
+        (step.deltaMode === undefined ||
+          ['pixel', 'line', 'page'].includes(step.deltaMode))
+      )
+    case 'wait':
+      return (
+        Number.isInteger(step.durationMs) &&
+        step.durationMs > 0 &&
+        step.durationMs <= 5_000
       )
     case 'assert':
       return (
@@ -373,9 +409,25 @@ function isValidInteractionStep(step) {
         step.assertions.length > 0 &&
         step.assertions.every(isValidStateAssertion)
       )
+    case 'assertRendered':
+      return (
+        Array.isArray(step.assertions) &&
+        step.assertions.length > 0 &&
+        step.assertions.every(isValidRenderedAssertion)
+      )
+    case 'screenshot':
+      return (
+        typeof step.name === 'string' &&
+        /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(step.name) &&
+        (step.view === undefined || typeof step.view === 'string')
+      )
     default:
       return false
   }
+}
+
+function isPositiveInteger(value) {
+  return Number.isInteger(value) && value > 0
 }
 
 function isValidTarget(target) {
@@ -384,6 +436,124 @@ function isValidTarget(target) {
     typeof target === 'object' &&
     typeof target.anchor === 'string' &&
     (target.view === undefined || typeof target.view === 'string')
+  )
+}
+
+function isValidRenderedTarget(target) {
+  if (!target || typeof target !== 'object') return false
+  const kinds = ['selector', 'role', 'root', 'page'].filter((key) =>
+    Object.hasOwn(target, key),
+  )
+  if (kinds.length !== 1) return false
+  if (Object.hasOwn(target, 'root')) {
+    return target.root === true && target.index === undefined
+  }
+  if (Object.hasOwn(target, 'page')) {
+    return target.page === true && target.index === undefined
+  }
+  if (
+    target.index !== undefined &&
+    (!Number.isInteger(target.index) || target.index < 0)
+  ) {
+    return false
+  }
+  if (Object.hasOwn(target, 'selector')) {
+    return typeof target.selector === 'string' && target.selector.length > 0
+  }
+  return (
+    typeof target.role === 'string' &&
+    target.role.length > 0 &&
+    (target.name === undefined || typeof target.name === 'string') &&
+    (target.exact === undefined || typeof target.exact === 'boolean')
+  )
+}
+
+function isValidRenderedAssertion(assertion) {
+  if (
+    !assertion ||
+    typeof assertion !== 'object' ||
+    !isValidRenderedTarget(assertion.target)
+  ) {
+    return false
+  }
+  switch (assertion.property) {
+    case 'count':
+      return (
+        assertion.target.index === undefined &&
+        isValidRenderedNumberMatcher(assertion)
+      )
+    case 'text':
+      return isValidRenderedStringMatcher(assertion)
+    case 'attribute':
+      return (
+        typeof assertion.attribute === 'string' &&
+        assertion.attribute.length > 0 &&
+        isValidRenderedStringMatcher(assertion)
+      )
+    case 'visible':
+    case 'focused':
+      return (
+        typeof assertion.equals === 'boolean' &&
+        !Object.hasOwn(assertion, 'includes') &&
+        !Object.hasOwn(assertion, 'approx')
+      )
+    case 'scrollLeft':
+    case 'scrollTop':
+    case 'scrollWidth':
+    case 'scrollHeight':
+    case 'clientWidth':
+    case 'clientHeight':
+    case 'width':
+    case 'height':
+      return isValidRenderedNumberMatcher(assertion)
+    case 'contained':
+      return (
+        assertion.equals === true &&
+        !Object.hasOwn(assertion, 'includes') &&
+        !Object.hasOwn(assertion, 'approx') &&
+        (assertion.within === undefined ||
+          isValidRenderedTarget(assertion.within)) &&
+        (assertion.tolerance === undefined ||
+          (Number.isFinite(assertion.tolerance) && assertion.tolerance >= 0))
+      )
+    default:
+      return false
+  }
+}
+
+function isValidRenderedStringMatcher(assertion) {
+  const matchers = [
+    Object.hasOwn(assertion, 'equals'),
+    Object.hasOwn(assertion, 'includes'),
+  ].filter(Boolean).length
+  return (
+    matchers === 1 &&
+    (!Object.hasOwn(assertion, 'equals') ||
+      assertion.equals === null ||
+      typeof assertion.equals === 'string') &&
+    (!Object.hasOwn(assertion, 'includes') ||
+      typeof assertion.includes === 'string')
+  )
+}
+
+function isValidRenderedNumberMatcher(assertion) {
+  const matchers = [
+    Object.hasOwn(assertion, 'equals'),
+    Object.hasOwn(assertion, 'approx'),
+    Object.hasOwn(assertion, 'atLeast'),
+    Object.hasOwn(assertion, 'atMost'),
+  ].filter(Boolean).length
+  return (
+    matchers === 1 &&
+    (!Object.hasOwn(assertion, 'equals') ||
+      Number.isFinite(assertion.equals)) &&
+    (!Object.hasOwn(assertion, 'approx') ||
+      (Number.isFinite(assertion.approx) &&
+        Number.isFinite(assertion.tolerance) &&
+        assertion.tolerance >= 0)) &&
+    (!Object.hasOwn(assertion, 'atLeast') ||
+      Number.isFinite(assertion.atLeast)) &&
+    (!Object.hasOwn(assertion, 'atMost') || Number.isFinite(assertion.atMost))
   )
 }
 
@@ -1431,34 +1601,39 @@ async function compareVisuals(
           const scrollViewportOffscreenLabels = labelInspections
             .filter((inspection) => inspection.scrollViewportAnchorOutside)
             .map((inspection) => inspection.text)
+          const accessibleNameFor = (element) => {
+            const direct = element.getAttribute('aria-label')?.trim()
+            if (direct) return direct
+            const labelledBy = element.getAttribute('aria-labelledby')
+            if (labelledBy) {
+              const label = labelledBy
+                .split(/\s+/)
+                .map((id) => element.ownerDocument.getElementById(id))
+                .map((node) => node?.textContent?.trim() ?? '')
+                .filter(Boolean)
+                .join(' ')
+              if (label) return label
+            }
+            return (
+              element.querySelector(':scope > title')?.textContent?.trim() ?? ''
+            )
+          }
           const accessibleRoots = [
             ...container.querySelectorAll(
-              '[role="img"][aria-label], [role="application"][aria-label]',
+              '[role="img"], [role="application"], [role="region"], svg:not([aria-hidden="true"])',
             ),
-            ...[
-              ...container.querySelectorAll('svg:not([aria-hidden="true"])'),
-            ].filter(
-              (element) =>
-                element.getAttribute('aria-label') ||
-                element.querySelector(':scope > title')?.textContent?.trim(),
-            ),
-          ].filter((element, index, roots) => roots.indexOf(element) === index)
+          ]
+            .filter((element) => accessibleNameFor(element))
+            .filter((element, index, roots) => roots.indexOf(element) === index)
           const accessibleRootDetails = accessibleRoots.map((element) => ({
-            label:
-              element.getAttribute('aria-label') ??
-              element.querySelector(':scope > title')?.textContent?.trim() ??
-              '',
+            label: accessibleNameFor(element),
             role: element.getAttribute('role') ?? element.tagName.toLowerCase(),
           }))
           const duplicateAccessibleRoots = accessibleRoots.flatMap(
             (outer, outerIndex) =>
               accessibleRoots.slice(outerIndex + 1).flatMap((inner) => {
-                const outerLabel =
-                  outer.getAttribute('aria-label') ??
-                  outer.querySelector(':scope > title')?.textContent?.trim()
-                const innerLabel =
-                  inner.getAttribute('aria-label') ??
-                  inner.querySelector(':scope > title')?.textContent?.trim()
+                const outerLabel = accessibleNameFor(outer)
+                const innerLabel = accessibleNameFor(inner)
                 return outerLabel &&
                   outerLabel === innerLabel &&
                   (outer.contains(inner) || inner.contains(outer))
@@ -2175,6 +2350,11 @@ async function runBehaviorImplementation(
       height: 560,
     },
     deviceScaleFactor: 1,
+    hasTouch: scenarios.some((scenario) =>
+      scenario.steps.some(
+        (step) => step.type === 'touchTap' || step.type === 'touchDrag',
+      ),
+    ),
   })
   const scenarioResults = []
   try {
@@ -2192,6 +2372,7 @@ async function runBehaviorImplementation(
         const mountResult = await page.evaluate(
           async ({ moduleUrl, width, revision, theme }) => {
             document.body.replaceChildren()
+            document.documentElement.scrollTop = 0
             document.body.style.margin = '0'
             document.body.style.padding = '24px'
             document.body.style.color = theme === 'dark' ? '#edf2fb' : '#172033'
@@ -2216,14 +2397,22 @@ async function runBehaviorImplementation(
             container.style.minHeight = '360px'
             container.style.background =
               theme === 'dark' ? '#151a24' : '#ffffff'
-            document.body.append(container)
+            const scrollProbe = document.createElement('div')
+            scrollProbe.setAttribute('aria-hidden', 'true')
+            scrollProbe.style.height = '400px'
+            document.body.append(container, scrollProbe)
             const { mount } = await import(moduleUrl)
             const handle = mount(container, {
               width,
               height: 360,
               revision,
             })
-            globalThis.__conformanceBehavior = { container, handle }
+            globalThis.__conformanceBehavior = {
+              container,
+              handle,
+              pointerTarget: null,
+              revision,
+            }
             await document.fonts?.ready
             await new Promise((resolveFrame) =>
               requestAnimationFrame(() => requestAnimationFrame(resolveFrame)),
@@ -2254,7 +2443,10 @@ async function runBehaviorImplementation(
         for (const step of scenario.steps) {
           let stepResult
           try {
-            stepResult = await performBehaviorStep(page, step, variant)
+            stepResult = await performBehaviorStep(page, step, variant, {
+              implementationId: implementation.id,
+              scenarioId: scenario.id,
+            })
             await page.waitForTimeout(0)
           } catch (error) {
             const errors = takePageErrors()
@@ -2294,6 +2486,7 @@ async function runBehaviorImplementation(
       } finally {
         try {
           if (mounted) {
+            await cancelActiveBehaviorPointer(page)
             await page.evaluate(() => {
               globalThis.__conformanceBehavior?.handle.destroy()
               delete globalThis.__conformanceBehavior
@@ -2315,7 +2508,7 @@ async function runBehaviorImplementation(
   }
 }
 
-async function performBehaviorStep(page, step, variant) {
+async function performBehaviorStep(page, step, variant, context) {
   if (step.type === 'assert') {
     const state = await readBehaviorState(page)
     const assertions = step.assertions.map((assertion) =>
@@ -2328,27 +2521,82 @@ async function performBehaviorStep(page, step, variant) {
       assertions,
     }
   }
+  if (step.type === 'assertRendered') {
+    const assertions = await Promise.all(
+      step.assertions.map((assertion) =>
+        evaluateRenderedAssertion(page, assertion),
+      ),
+    )
+    return {
+      type: step.type,
+      pass: assertions.every((assertion) => assertion.pass),
+      state: await readBehaviorState(page),
+      assertions,
+    }
+  }
+  if (step.type === 'screenshot') {
+    const screenshot = await captureBehaviorScreenshot(
+      page,
+      step,
+      variant,
+      context,
+    )
+    return {
+      type: step.type,
+      pass: true,
+      screenshot,
+      state: await readBehaviorState(page),
+    }
+  }
 
   switch (step.type) {
     case 'pointerMove': {
       const target = await resolveBehaviorTarget(page, step.target)
+      await page.mouse.move(target.x, target.y, { steps: step.steps ?? 1 })
+      break
+    }
+    case 'pointerDown': {
+      const target = await resolveBehaviorTarget(page, step.target)
       await page.mouse.move(target.x, target.y)
+      const targetFound = await rememberBehaviorPointerTarget(page, target)
+      if (!targetFound) {
+        throw new Error(`pointerDown did not hit "${step.target.anchor}"`)
+      }
+      await page.mouse.down()
+      break
+    }
+    case 'pointerUp': {
+      const target = await resolveBehaviorTarget(page, step.target)
+      await page.mouse.move(target.x, target.y)
+      await page.mouse.up()
+      await clearBehaviorPointerTarget(page)
+      break
+    }
+    case 'pointerCancel': {
+      const canceled = await page.evaluate(() => {
+        const behavior = globalThis.__conformanceBehavior
+        const target = behavior?.pointerTarget
+        if (!target) return false
+        target.dispatchEvent(
+          new PointerEvent('pointercancel', {
+            bubbles: true,
+            pointerId: 1,
+            pointerType: 'mouse',
+            isPrimary: true,
+          }),
+        )
+        behavior.pointerTarget = null
+        return true
+      })
+      if (!canceled) {
+        throw new Error('pointerCancel requires a preceding pointerDown')
+      }
+      await page.mouse.up()
       break
     }
     case 'pointerLeave': {
       if (step.view) {
-        const viewExists = await page.evaluate((view) => {
-          const container = globalThis.__conformanceBehavior?.container
-          const driver = globalThis.__conformanceBehavior?.handle.driver
-          return Boolean(
-            (container &&
-              [...container.querySelectorAll('[data-conformance-view]')].some(
-                (element) => element.dataset.conformanceView === view,
-              )) ||
-            driver?.viewBounds?.(view),
-          )
-        }, step.view)
-        if (!viewExists) {
+        if (!(await resolveBehaviorViewBounds(page, step.view))) {
           throw new Error(`could not resolve view "${step.view}"`)
         }
       }
@@ -2367,6 +2615,7 @@ async function performBehaviorStep(page, step, variant) {
             height: 360,
             revision,
           })
+          behavior.revision = revision
         },
         {
           width: variant.width,
@@ -2428,15 +2677,75 @@ async function performBehaviorStep(page, step, variant) {
       const from = await resolveBehaviorTarget(page, step.from)
       const to = await resolveBehaviorTarget(page, step.to)
       await page.mouse.move(from.x, from.y)
+      if (!(await rememberBehaviorPointerTarget(page, from))) {
+        throw new Error(`drag did not hit "${step.from.anchor}"`)
+      }
       await page.mouse.down()
-      await page.mouse.move(to.x, to.y, { steps: step.steps ?? 8 })
-      await page.mouse.up()
+      try {
+        await page.mouse.move(to.x, to.y, { steps: step.steps ?? 8 })
+      } finally {
+        await page.mouse.up()
+        await clearBehaviorPointerTarget(page)
+      }
       break
     }
     case 'wheel': {
       const target = await resolveBehaviorTarget(page, step.target)
       await page.mouse.move(target.x, target.y)
-      await page.mouse.wheel(step.deltaX ?? 0, step.deltaY ?? 0)
+      const steps = step.steps ?? 1
+      const deltaMode = step.deltaMode ?? 'pixel'
+      for (let index = 0; index < steps; index += 1) {
+        if (deltaMode === 'pixel') {
+          await page.mouse.wheel(step.deltaX ?? 0, step.deltaY ?? 0)
+        } else {
+          await page.evaluate(
+            ({ x, y, deltaX, deltaY, mode }) => {
+              const targetElement = document.elementFromPoint(x, y)
+              if (!targetElement) {
+                throw new Error('wheel target is outside the document')
+              }
+              targetElement.dispatchEvent(
+                new WheelEvent('wheel', {
+                  bubbles: true,
+                  cancelable: true,
+                  clientX: x,
+                  clientY: y,
+                  deltaX,
+                  deltaY,
+                  deltaMode: mode === 'line' ? 1 : 2,
+                }),
+              )
+            },
+            {
+              ...target,
+              deltaX: step.deltaX ?? 0,
+              deltaY: step.deltaY ?? 0,
+              mode: deltaMode,
+            },
+          )
+        }
+      }
+      break
+    }
+    case 'touchTap': {
+      const target = await resolveBehaviorTarget(page, step.target)
+      await page.touchscreen.tap(target.x, target.y)
+      break
+    }
+    case 'touchDrag': {
+      const from = await resolveBehaviorTarget(page, step.from)
+      const to = await resolveBehaviorTarget(page, step.to)
+      await performTouchDrag(
+        page,
+        from,
+        to,
+        step.steps ?? 8,
+        step.cancel ?? false,
+      )
+      break
+    }
+    case 'wait': {
+      await page.waitForTimeout(step.durationMs)
       break
     }
   }
@@ -2446,6 +2755,89 @@ async function performBehaviorStep(page, step, variant) {
     type: step.type,
     pass: true,
     state: await readBehaviorState(page),
+  }
+}
+
+async function rememberBehaviorPointerTarget(page, target) {
+  return page.evaluate(({ x, y }) => {
+    const behavior = globalThis.__conformanceBehavior
+    if (!behavior) return false
+    behavior.pointerTarget = document.elementFromPoint(x, y)
+    return Boolean(behavior.pointerTarget)
+  }, target)
+}
+
+async function clearBehaviorPointerTarget(page) {
+  await page.evaluate(() => {
+    if (globalThis.__conformanceBehavior) {
+      globalThis.__conformanceBehavior.pointerTarget = null
+    }
+  })
+}
+
+async function cancelActiveBehaviorPointer(page) {
+  const canceled = await page.evaluate(() => {
+    const behavior = globalThis.__conformanceBehavior
+    const target = behavior?.pointerTarget
+    if (!target) return false
+    target.dispatchEvent(
+      new PointerEvent('pointercancel', {
+        bubbles: true,
+        pointerId: 1,
+        pointerType: 'mouse',
+        isPrimary: true,
+      }),
+    )
+    behavior.pointerTarget = null
+    return true
+  })
+  if (canceled) await page.mouse.up()
+}
+
+async function performTouchDrag(page, from, to, steps, cancel) {
+  const session = await page.context().newCDPSession(page)
+  let active = false
+  const touchPoint = (x, y) => ({
+    x,
+    y,
+    radiusX: 1,
+    radiusY: 1,
+    force: 1,
+    id: 0,
+  })
+  try {
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [touchPoint(from.x, from.y)],
+    })
+    active = true
+    for (let index = 1; index <= steps; index += 1) {
+      const progress = index / steps
+      await session.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [
+          touchPoint(
+            from.x + (to.x - from.x) * progress,
+            from.y + (to.y - from.y) * progress,
+          ),
+        ],
+      })
+    }
+    await session.send('Input.dispatchTouchEvent', {
+      type: cancel ? 'touchCancel' : 'touchEnd',
+      touchPoints: [],
+    })
+    active = false
+  } finally {
+    if (active) {
+      await session
+        .send('Input.dispatchTouchEvent', {
+          type: 'touchCancel',
+          touchPoints: [],
+        })
+        .catch(() => {})
+    }
+    await session.detach()
   }
 }
 
@@ -2461,6 +2853,270 @@ async function resolveBehaviorTarget(page, target) {
     )
   }
   return resolved
+}
+
+async function resolveBehaviorViewBounds(page, view) {
+  return page.evaluate((viewName) => {
+    const behavior = globalThis.__conformanceBehavior
+    const container = behavior?.container
+    if (!container) return null
+    if (!viewName) {
+      const bounds = container.getBoundingClientRect()
+      return {
+        x: bounds.left,
+        y: bounds.top,
+        width: bounds.width,
+        height: bounds.height,
+      }
+    }
+    const element = [
+      ...container.querySelectorAll('[data-conformance-view]'),
+    ].find((candidate) => candidate.dataset.conformanceView === viewName)
+    if (element) {
+      const bounds = element.getBoundingClientRect()
+      return {
+        x: bounds.left,
+        y: bounds.top,
+        width: bounds.width,
+        height: bounds.height,
+      }
+    }
+    const bounds = behavior.handle.driver?.viewBounds?.(viewName)
+    return bounds
+      ? {
+          x: bounds.x,
+          y: bounds.y,
+          width: bounds.width,
+          height: bounds.height,
+        }
+      : null
+  }, view)
+}
+
+async function captureBehaviorScreenshot(page, step, variant, context) {
+  const bounds = await resolveBehaviorViewBounds(page, step.view)
+  if (!bounds) {
+    throw new Error(
+      step.view
+        ? `could not resolve screenshot view "${step.view}"`
+        : 'could not resolve the conformance root',
+    )
+  }
+  const viewport = page.viewportSize()
+  const x = Math.max(0, bounds.x)
+  const y = Math.max(0, bounds.y)
+  const width = Math.min(bounds.width - (x - bounds.x), viewport.width - x)
+  const height = Math.min(bounds.height - (y - bounds.y), viewport.height - y)
+  if (width <= 0 || height <= 0) {
+    throw new Error('screenshot bounds are outside the browser viewport')
+  }
+  const revision = await page.evaluate(
+    () => globalThis.__conformanceBehavior?.revision,
+  )
+  const fileName = [
+    context.implementationId,
+    `${variant.width}px`,
+    variant.theme,
+    `r${revision ?? variant.revision}`,
+    context.scenarioId,
+    step.name,
+  ]
+    .map(safeScreenshotSegment)
+    .join('-')
+  const path = resolve(screenshotDirectory, `${fileName}.png`)
+  await page.screenshot({
+    path,
+    clip: { x, y, width, height },
+  })
+  return relative(root, path).split(sep).join('/')
+}
+
+function safeScreenshotSegment(value) {
+  return String(value).replace(/[^a-z0-9_-]+/gi, '-')
+}
+
+function renderedLocator(page, target) {
+  if (target.page) return page.locator('html')
+  const rootLocator = page.locator('[data-conformance-root]')
+  if (target.root) return rootLocator
+  if (target.selector) return rootLocator.locator(target.selector)
+  return rootLocator.getByRole(target.role, {
+    ...(target.name === undefined ? {} : { name: target.name }),
+    ...(target.exact === undefined ? {} : { exact: target.exact }),
+  })
+}
+
+async function resolveRenderedLocator(page, target) {
+  const collection = renderedLocator(page, target)
+  const count = await collection.count()
+  if (target.index !== undefined) {
+    if (target.index >= count) {
+      return {
+        locator: null,
+        count,
+        reason: `rendered target index ${target.index} exceeds count ${count}`,
+      }
+    }
+    return { locator: collection.nth(target.index), count }
+  }
+  if (count !== 1) {
+    return {
+      locator: null,
+      count,
+      reason: `rendered target resolved ${count} elements; supply index for one`,
+    }
+  }
+  return { locator: collection, count }
+}
+
+async function evaluateRenderedAssertion(page, assertion) {
+  try {
+    if (assertion.property === 'count') {
+      const actual = await renderedLocator(page, assertion.target).count()
+      return completeRenderedAssertion(assertion, actual)
+    }
+
+    const resolved = await resolveRenderedLocator(page, assertion.target)
+    if (resolved.reason) {
+      return {
+        ...assertion,
+        actual: resolved.count,
+        pass: false,
+        reason: resolved.reason,
+      }
+    }
+    if (assertion.property === 'text') {
+      const text = await resolved.locator.textContent()
+      const actual = text?.replace(/\s+/g, ' ').trim() ?? null
+      return completeRenderedAssertion(assertion, actual)
+    }
+    if (assertion.property === 'attribute') {
+      const actual = await resolved.locator.getAttribute(assertion.attribute)
+      return completeRenderedAssertion(assertion, actual)
+    }
+    if (assertion.property === 'visible') {
+      const actual = await resolved.locator.isVisible()
+      return completeRenderedAssertion(assertion, actual)
+    }
+    if (assertion.property === 'focused') {
+      const actual = await resolved.locator.evaluate(
+        (element) => document.activeElement === element,
+      )
+      return completeRenderedAssertion(assertion, actual)
+    }
+    if (assertion.property === 'contained') {
+      const boundary = await resolveRenderedLocator(
+        page,
+        assertion.within ?? { root: true },
+      )
+      if (boundary.reason || !boundary.locator) {
+        return {
+          ...assertion,
+          actual: false,
+          pass: false,
+          reason: boundary.reason ?? 'containment boundary was unavailable',
+        }
+      }
+      const [targetBounds, boundaryBounds] = await Promise.all([
+        resolved.locator.boundingBox(),
+        boundary.locator.boundingBox(),
+      ])
+      if (!targetBounds || !boundaryBounds) {
+        return {
+          ...assertion,
+          actual: false,
+          pass: false,
+          reason: 'containment target or boundary has no rendered bounds',
+        }
+      }
+      const tolerance = assertion.tolerance ?? 0
+      const actual =
+        targetBounds.x >= boundaryBounds.x - tolerance &&
+        targetBounds.y >= boundaryBounds.y - tolerance &&
+        targetBounds.x + targetBounds.width <=
+          boundaryBounds.x + boundaryBounds.width + tolerance &&
+        targetBounds.y + targetBounds.height <=
+          boundaryBounds.y + boundaryBounds.height + tolerance
+      return {
+        ...completeRenderedAssertion(assertion, actual),
+        bounds: {
+          target: targetBounds,
+          boundary: boundaryBounds,
+        },
+      }
+    }
+
+    if (assertion.property === 'width' || assertion.property === 'height') {
+      const bounds = await resolved.locator.boundingBox()
+      if (!bounds) {
+        return {
+          ...assertion,
+          actual: null,
+          pass: false,
+          reason: 'rendered target has no bounds',
+        }
+      }
+      return completeRenderedAssertion(assertion, bounds[assertion.property])
+    }
+
+    const actual = assertion.target.page
+      ? await page.evaluate((property) => {
+          const element = document.scrollingElement ?? document.documentElement
+          return element[property]
+        }, assertion.property)
+      : await resolved.locator.evaluate(
+          (element, property) => element[property],
+          assertion.property,
+        )
+    return completeRenderedAssertion(assertion, actual)
+  } catch (error) {
+    return {
+      ...assertion,
+      actual: null,
+      pass: false,
+      reason: error instanceof Error ? error.message : String(error),
+    }
+  }
+}
+
+function completeRenderedAssertion(assertion, actual) {
+  if (Object.hasOwn(assertion, 'includes')) {
+    return {
+      ...assertion,
+      actual,
+      pass:
+        typeof actual === 'string' &&
+        actual.includes(String(assertion.includes)),
+    }
+  }
+  if (Object.hasOwn(assertion, 'approx')) {
+    return {
+      ...assertion,
+      actual,
+      pass:
+        typeof actual === 'number' &&
+        Math.abs(actual - assertion.approx) <= assertion.tolerance,
+    }
+  }
+  if (Object.hasOwn(assertion, 'atLeast')) {
+    return {
+      ...assertion,
+      actual,
+      pass: typeof actual === 'number' && actual >= assertion.atLeast,
+    }
+  }
+  if (Object.hasOwn(assertion, 'atMost')) {
+    return {
+      ...assertion,
+      actual,
+      pass: typeof actual === 'number' && actual <= assertion.atMost,
+    }
+  }
+  return {
+    ...assertion,
+    actual,
+    pass: Object.is(actual, assertion.equals),
+  }
 }
 
 async function settleBehavior(page) {
@@ -2834,7 +3490,7 @@ function renderMarkdown(result) {
     `- Reference updates follow that library's native lifecycle; Charts updates reconcile the existing SVG.`,
     `- Initial and revised data are checked at ${result.protocol.variants.map((variant) => `${variant.width}px ${variant.theme}`).join(', ')}.`,
     `- Bounding-box similarity is diagnostic unless a case declares a minimum floor. Required geometry count ranges, corresponding data-mark paints, guide assertions, containment, accessible naming, and side-by-side screenshots are the review gates.`,
-    `- Interaction scenarios use native browser input from a fresh mount, may update that mounted handle in place, fail on uncaught page errors, and assert renderer-independent semantic plus rendered state.`,
+    `- Interaction scenarios use fresh mounts with native mouse, keyboard, CDP touch, drag, pixel-wheel, bounded waits, and in-place revision input; pointer cancellation and line/page wheel modes use explicit DOM events. Driver assertions cover semantic state; root-scoped rendered assertions cover visible text, attributes, focus, scroll, and bounds. Named checkpoints may retain screenshots, and uncaught page errors fail the active step.`,
     `- Type protection compiles known-invalid paired programs without suppressions. A valid baseline for each renderer must compile first.`,
     '',
     '## AI authoring',
@@ -3103,10 +3759,12 @@ function behaviorFailureReasons(check) {
         const failedStep = scenario.trace?.find((step) => !step.pass)
         const failedAssertions = failedStep?.assertions
           ?.filter((assertion) => !assertion.pass)
-          .map(
-            (assertion) =>
-              `${assertion.path} was ${JSON.stringify(assertion.actual)}`,
-          )
+          .map((assertion) => {
+            const subject =
+              assertion.path ??
+              `${renderedTargetLabel(assertion.target)}.${assertion.property}`
+            return `${subject} was ${JSON.stringify(assertion.actual)}${assertion.reason ? `: ${assertion.reason}` : ''}`
+          })
           .join(', ')
         reasons.add(
           `${label} scenario "${scenario.id}" failed at ${variant.width}px ${variant.theme} revision ${variant.revision}${scenario.reason ? ` (${scenario.reason})` : failedAssertions ? ` (${failedAssertions})` : ''}`,
@@ -3117,6 +3775,16 @@ function behaviorFailureReasons(check) {
   return reasons.size
     ? [...reasons]
     : ['an unspecified interaction gate failed']
+}
+
+function renderedTargetLabel(target) {
+  if (!target) return 'rendered target'
+  if (target.root) return 'root'
+  if (target.page) return 'page'
+  if (target.selector) {
+    return `${target.selector}${target.index === undefined ? '' : `[${target.index}]`}`
+  }
+  return `role=${target.role}${target.name === undefined ? '' : ` name=${JSON.stringify(target.name)}`}${target.index === undefined ? '' : `[${target.index}]`}`
 }
 
 function countMatches(source, pattern) {

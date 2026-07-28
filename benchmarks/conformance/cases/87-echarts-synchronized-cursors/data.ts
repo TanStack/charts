@@ -81,11 +81,13 @@ export function synchronizedCursorDateKey(date: Date) {
 
 export function synchronizedCursorAnchorDate(anchor: string) {
   const key = anchor.startsWith('date:') ? anchor.slice(5) : ''
-  return (
-    synchronizedCursorDates.find(
-      (date) => synchronizedCursorDateKey(date) === key,
-    ) ?? null
-  )
+  const timestamp = Date.parse(`${key}T00:00:00.000Z`)
+  if (!Number.isFinite(timestamp)) return null
+  const date = new Date(timestamp)
+  return date >= synchronizedCursorDateDomain[0] &&
+    date <= synchronizedCursorDateDomain[1]
+    ? date
+    : null
 }
 
 export function synchronizedCursorDatumAtDate(
@@ -99,4 +101,21 @@ export function synchronizedCursorDatumAtDate(
       (datum) => datum.date.getTime() === timestamp,
     ) ?? null
   )
+}
+
+export function synchronizedCursorNearestDatum(
+  view: SynchronizedCursorView,
+  revision: number,
+  date: Date,
+) {
+  const timestamp = date.getTime()
+  return synchronizedCursorData(view, revision).reduce<
+    SynchronizedCursorDatum | undefined
+  >((nearest, datum) => {
+    if (!nearest) return datum
+    return Math.abs(datum.date.getTime() - timestamp) <
+      Math.abs(nearest.date.getTime() - timestamp)
+      ? datum
+      : nearest
+  }, undefined)
 }

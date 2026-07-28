@@ -13,6 +13,7 @@ import type {
   ChartRuntime,
   ChartSvgRenderer,
   ChartTextMeasurer,
+  ChartValue,
 } from '@tanstack/charts'
 import type { ChartProps, DynamicChartProps, StaticChartProps } from './types'
 
@@ -22,12 +23,12 @@ interface ChartSurfaceProps {
   ariaLabel: string
   ariaDescription?: string
   height: number
-  width?: number
-  initialWidth: number
+  width: number
   keyboard: boolean
+  tabIndex?: number
   idPrefix: string
-  renderSvg: ChartSvgRenderer
-  runtime: ChartRuntime<unknown, unknown>
+  renderSvg: ChartSvgRenderer<any, any, any>
+  runtime: ChartRuntime<any, any, any, any>
   measureText?: ChartTextMeasurer
   containerRef: { current: HTMLDivElement | null }
 }
@@ -38,7 +39,7 @@ const ChartSurface = memo(
       props.definition,
       props.input,
       {
-        width: props.width ?? props.initialWidth,
+        width: props.width,
         height: props.height,
       },
       { measureText: props.measureText },
@@ -47,7 +48,7 @@ const ChartSurface = memo(
       __html: props.renderSvg(scene, {
         ariaLabel: props.ariaLabel,
         ariaDescription: props.ariaDescription,
-        tabIndex: props.keyboard ? 0 : -1,
+        tabIndex: props.keyboard ? (props.tabIndex ?? 0) : -1,
         idPrefix: props.idPrefix,
       }),
     }
@@ -64,17 +65,40 @@ const ChartSurface = memo(
   () => true,
 )
 
-export function Chart<TDatum>(props: StaticChartProps<TDatum>): unknown
-export function Chart<TDatum, TInput>(
-  props: DynamicChartProps<TDatum, TInput>,
+export function Chart<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(props: StaticChartProps<TDatum, TXValue, TYValue>): unknown
+export function Chart<
+  TDatum,
+  TInput,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  props: DynamicChartProps<TDatum, TInput, TXValue, TYValue>,
 ): unknown
-export function Chart<TDatum, TInput = undefined>(
-  props: ChartProps<TDatum, TInput>,
+export function Chart<
+  TDatum,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
 ) {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const hostRef = useRef<ChartHost<TDatum, TInput> | null>(null)
-  const runtimeRef = useRef<ChartRuntime<TDatum, TInput> | null>(null)
-  runtimeRef.current ??= createChartRuntime<TDatum, TInput>()
+  const hostRef = useRef<
+    ChartHost<TDatum, TInput, TXValue, TYValue> | null
+  >(null)
+  const runtimeRef = useRef<
+    ChartRuntime<TDatum, TInput, TXValue, TYValue> | null
+  >(null)
+  runtimeRef.current ??= createChartRuntime<
+    TDatum,
+    TInput,
+    TXValue,
+    TYValue
+  >()
   const runtime = runtimeRef.current
   const onFocusChangeRef = useRef(props.onFocusChange)
   onFocusChangeRef.current = props.onFocusChange
@@ -86,11 +110,16 @@ export function Chart<TDatum, TInput = undefined>(
   onRenderRef.current = props.onRender
   const initialWidth = props.initialWidth ?? 640
   const height = props.height
+  const aspectRatio =
+    typeof props.aspectRatio === 'number' &&
+    Number.isFinite(props.aspectRatio) &&
+    props.aspectRatio > 0
+      ? props.aspectRatio
+      : undefined
+  const initialSceneWidth = props.width ?? initialWidth
   const initialHeight =
     height ??
-    (props.aspectRatio && props.aspectRatio > 0
-      ? initialWidth / props.aspectRatio
-      : 320)
+    (aspectRatio ? initialSceneWidth / aspectRatio : 320)
   const maxFocusDistance = props.maxFocusDistance ?? 48
   const keyboard = props.keyboard ?? true
   const generatedId = useId()
@@ -98,13 +127,15 @@ export function Chart<TDatum, TInput = undefined>(
     props.idPrefix ??
     `ts-chart-${generatedId.replaceAll(/[^a-zA-Z0-9_-]/g, '')}`
   const renderSvg = props.renderSvg ?? renderChartSvg
-  const hostOptions = useMemo<ChartHostOptions<TDatum, TInput>>(
+  const hostOptions = useMemo<
+    ChartHostOptions<TDatum, TInput, TXValue, TYValue>
+  >(
     () =>
       createHostOptions(props, {
         ariaLabel: props.ariaLabel,
         ariaDescription: props.ariaDescription,
         height,
-        aspectRatio: props.aspectRatio,
+        aspectRatio,
         width: props.width,
         initialWidth,
         maxFocusDistance,
@@ -112,6 +143,7 @@ export function Chart<TDatum, TInput = undefined>(
         spatialIndex: props.spatialIndex,
         animate: props.animate,
         keyboard,
+        tabIndex: props.tabIndex,
         idPrefix,
         renderSvg,
         measureText: props.measureText,
@@ -128,13 +160,14 @@ export function Chart<TDatum, TInput = undefined>(
       props.ariaDescription,
       props.width,
       height,
-      props.aspectRatio,
+      aspectRatio,
       initialWidth,
       maxFocusDistance,
       props.focus,
       props.spatialIndex,
       props.animate,
       keyboard,
+      props.tabIndex,
       idPrefix,
       renderSvg,
       props.tooltip,
@@ -162,8 +195,8 @@ export function Chart<TDatum, TInput = undefined>(
       style={{
         position: 'relative',
         width: props.width === undefined ? '100%' : props.width,
-        height: height ?? (props.aspectRatio ? undefined : 320),
-        aspectRatio: height === undefined ? props.aspectRatio : undefined,
+        height: height ?? (aspectRatio ? undefined : 320),
+        aspectRatio: height === undefined ? aspectRatio : undefined,
         ...props.style,
       }}
     >
@@ -173,12 +206,12 @@ export function Chart<TDatum, TInput = undefined>(
         ariaLabel={props.ariaLabel}
         ariaDescription={props.ariaDescription}
         height={initialHeight}
-        width={props.width}
-        initialWidth={initialWidth}
+        width={initialSceneWidth}
         keyboard={keyboard}
+        tabIndex={props.tabIndex}
         idPrefix={idPrefix}
         renderSvg={renderSvg}
-        runtime={runtime as ChartRuntime<unknown, unknown>}
+        runtime={runtime as ChartRuntime<any, any, any, any>}
         measureText={props.measureText}
         containerRef={containerRef}
       />
@@ -186,10 +219,15 @@ export function Chart<TDatum, TInput = undefined>(
   )
 }
 
-function createHostOptions<TDatum, TInput>(
-  props: ChartProps<TDatum, TInput>,
-  common: ChartHostCommonOptions<TDatum>,
-): ChartHostOptions<TDatum, TInput> {
+function createHostOptions<
+  TDatum,
+  TInput,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
+  common: ChartHostCommonOptions<TDatum, TXValue, TYValue>,
+): ChartHostOptions<TDatum, TInput, TXValue, TYValue> {
   if (isDynamicProps(props)) {
     return {
       ...common,
@@ -203,8 +241,13 @@ function createHostOptions<TDatum, TInput>(
   }
 }
 
-function isDynamicProps<TDatum, TInput>(
-  props: ChartProps<TDatum, TInput>,
-): props is DynamicChartProps<TDatum, TInput> {
+function isDynamicProps<
+  TDatum,
+  TInput,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
+): props is DynamicChartProps<TDatum, TInput, TXValue, TYValue> {
   return 'chart' in props.definition
 }

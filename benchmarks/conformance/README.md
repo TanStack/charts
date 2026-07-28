@@ -56,8 +56,17 @@ Reports are written to
 light-mode side-by-side screenshot for each paired case is retained under
 `.benchmark-output/conformance/screenshots`.
 
-The historical `plot-catalog` report filename is retained for tooling
-compatibility even when a run includes Recharts references.
+The historical `plot-catalog` report filename is retained for unfiltered runs
+and tooling compatibility even when a run includes Recharts references.
+`--case` diagnostics use a deterministic
+`plot-catalog--cases-<selection>.{json,md}` filename so they cannot overwrite
+the complete catalog evidence. Long selections use a bounded digest; the JSON
+always records the resolved case filter.
+
+The [interaction UX audit](./INTERACTION-UX-AUDIT.md) preserves the before-state
+review of cases 80–92 and records the implementation follow-through for
+discoverability, rendered feedback, keyboard and touch operation, cancellation,
+accessibility, and edge behavior.
 
 ## Published catalog and documentation embeds
 
@@ -76,24 +85,61 @@ The build writes physical `index.html` files for every deep route, so direct
 links work on a static host without rewrite rules. `404.html` retains
 client-side route recovery. Set `CATALOG_BASE_PATH` when publishing below a
 subdirectory and `CATALOG_ORIGIN` to emit absolute canonical URLs and a
-sitemap.
+sitemap. The production command fixes those values at
+`https://tanstack.com/charts/catalog/`; local development keeps the Vite root
+at `http://localhost:5194/`. `catalog.json` publishes the effective origin,
+base path, embed protocol, query bounds, and per-case routes so documentation
+components do not reconstruct URLs or duplicate an example manifest.
 
 An embed accepts `theme=system|light|dark`, `height=120..1200`, and an optional
 numeric `revision`. Width always follows the iframe container:
 
 ```html
 <iframe
-  src="https://catalog.example/embed/01-line-gaps/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/01-line-gaps/?theme=system&height=360"
   title="Line chart with gaps"
+  width="640"
+  height="360"
   loading="lazy"
-  style="width: 100%; height: 360px; border: 0"
+  referrerpolicy="strict-origin-when-cross-origin"
+  style="display: block; width: 100%; height: 360px; border: 0"
 ></iframe>
 ```
 
-Embeds have no catalog chrome and are `noindex`. They post
-`tanstack-charts:embed:ready`, `:resize`, or `:error` messages containing the
-case ID and height. A documentation host that listens for them must validate
-`event.origin`.
+Embeds have no catalog chrome and are `noindex`. They send versioned status
+messages only to the exact HTTP(S) origin derived from `document.referrer`:
+
+```ts
+{
+  type: 'tanstack-charts:embed',
+  version: 1,
+  status: 'ready' | 'resize' | 'error',
+  caseId: '01-line-gaps',
+  height: 360,
+}
+```
+
+A parent may propagate its explicit theme without reloading an interactive
+chart:
+
+```ts
+iframe.contentWindow?.postMessage(
+  {
+    type: 'tanstack-charts:embed',
+    version: 1,
+    command: 'set-theme',
+    caseId: '01-line-gaps',
+    theme: 'light', // 'system' | 'light' | 'dark'
+  },
+  'https://tanstack.com',
+)
+```
+
+The child accepts that command only from `window.parent` at the exact referrer
+origin. A documentation host that listens for status must likewise validate
+both `event.origin` against the iframe URL and
+`event.source === iframe.contentWindow`. A missing or opaque referrer disables
+both directions of messaging rather than falling back to `*`.
 
 Adding or changing a case updates every catalog surface automatically.
 `catalog:check` uses the same strict metadata parser as the browser and rejects
@@ -132,13 +178,14 @@ Interaction cases additionally declare renderer-independent semantic
 scenarios. Each implementation exposes a benchmark-only driver that maps a
 named anchor to viewport coordinates and reports serializable state. The
 runner fresh-mounts every scenario, uses real Playwright pointer, click,
-keyboard, drag, and wheel input, then checks the same state assertions for the
-reference and TanStack implementation across sizes, themes, and revisions.
-Scenarios may update the existing handle to prove state preservation. Any
-uncaught browser error fails the active step. Assertions distinguish semantic
-state from rendered evidence where a false positive is otherwise possible.
-Generated SVG selectors and renderer-local datum indexes are not part of the
-cross-renderer case contract.
+keyboard, drag, wheel, CDP touch, cancellation, and bounded wait input, then
+checks the same state assertions for the reference and TanStack implementation
+across sizes, themes, and revisions. Scenarios may update the existing handle
+to prove state preservation, inspect rendered text, attributes, focus, scroll,
+dimensions, and containment, and retain named screenshots at meaningful
+checkpoints. Any uncaught browser error fails the active step. Generated SVG
+selectors and renderer-local datum indexes are not part of the cross-renderer
+case contract.
 
 The screenshot is the final visual review artifact. Paint equality and
 bounding-box similarity still cannot prove a line path, color interpolation,
@@ -181,14 +228,17 @@ zoom and pan, timeline scrubbing, and editable event ranges. Focus-plus-context
 uses Plot as its reference. Together with the original tooltip cases, 16 cases
 carry executable interaction scenarios.
 
-All interaction behavior and the full 79-case standard visual matrix pass
-across both renderers, initial/revised data, 320/640/960 px, and light/dark
-themes. The latest full run measures TanStack at 0.20× the selected-reference
-gzip, 0.66× mount time, 0.65× update time, and 97.8% mean diagnostic geometry
-similarity. The transitive authored-source ratio is 1.06×. Strict case sources
-have zero diagnostics, unsafe assertions, or suppressions. In the eight paired
-invalid-program probes, Observable Plot and Recharts each reject 1/8 while
-TanStack Charts rejects 8/8.
+All declared interaction scenarios and the full 79-case standard visual
+matrix pass across both renderers, initial/revised data, 320/640/960 px, and
+light/dark themes. That result proves the declared contracts, not production
+interaction quality; the interaction UX audit preserves the original gaps and
+their implementation follow-through. The full run covers all standard widths
+and themes. The final quick verification measures 0.21× the
+selected-reference gzip, 0.57× mount time, 0.66× update time, and 97.8% mean
+diagnostic geometry similarity. The transitive authored-source ratio is 1.07×.
+Strict case sources have zero diagnostics, unsafe assertions, or suppressions.
+In the eight paired invalid-program probes, Observable Plot and Recharts each
+reject 1/8 while TanStack Charts rejects 8/8.
 
 ## Expansion rule
 

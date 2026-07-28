@@ -1,4 +1,4 @@
-import { defineChart, mountChart, rect } from '@tanstack/charts'
+import { defineChart, mountChart, rect, text } from '@tanstack/charts'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
 import { scaleBand, scaleOrdinal, scaleUtc } from 'd3-scale'
 import {
@@ -38,12 +38,31 @@ interface EditableState {
   end: Date
   editing: boolean
   editCount: number
+  originEnd: Date | null
 }
 
-const margin = { top: 24, right: 26, bottom: 48, left: 82 }
+const margin = { top: 96, right: 26, bottom: 48, left: 82 }
+const millisecondsPerDay = 86_400_000
 
 const definition = defineChart<EditableChartInput>()(({ input }) => {
   const rows = editableEvents(input.revision, input.end)
+  const outsideLabels = rows
+    .filter((row) => row.id !== 'release')
+    .map((row) => ({
+      ...row,
+      labelDate: row.end,
+    }))
+  const releaseLabels = rows
+    .filter(
+      (row) =>
+        row.id === 'release' &&
+        eventBarCanFitLabel(row, input.width, 'Release'),
+    )
+    .map((row) => ({
+      ...row,
+      labelDate: row.start,
+      shortLabel: 'Release',
+    }))
   return {
     marks: [
       rect(rows, {
@@ -56,6 +75,30 @@ const definition = defineChart<EditableChartInput>()(({ input }) => {
         radius: 5,
         stroke: '#ffffff',
         strokeWidth: 1,
+      }),
+      text(outsideLabels, {
+        id: 'editable-event-labels',
+        x: 'labelDate',
+        y: 'lane',
+        text: 'label',
+        key: 'id',
+        anchor: 'start',
+        dx: 5,
+        fill: 'currentColor',
+        fontSize: 10,
+        fontWeight: 600,
+      }),
+      text(releaseLabels, {
+        id: 'editable-release-label',
+        x: 'labelDate',
+        y: 'lane',
+        text: 'shortLabel',
+        key: 'id',
+        anchor: 'start',
+        dx: 5,
+        fill: '#431407',
+        fontSize: 10,
+        fontWeight: 700,
       }),
     ],
     x: {
@@ -95,6 +138,7 @@ export const mount: ConformanceMount = (container, input) => {
     end: initialEditableEventEnd,
     editing: false,
     editCount: 0,
+    originEnd: null,
   }
   const view = container.ownerDocument.createElement('div')
   view.dataset.conformanceView = 'main'
@@ -117,7 +161,7 @@ export const mount: ConformanceMount = (container, input) => {
     },
     width: currentInput.width,
     height: currentInput.height,
-    ariaLabel: 'Editable keyed event ranges across resource lanes',
+    ariaLabel: editableAriaLabel(currentInput.revision, state.end),
     animate: false,
     keyboard: false,
     focus: focusDisabled,
@@ -157,50 +201,78 @@ function createEditableInteractions(
   host: ChartHost<EditableEvent, EditableChartInput>,
   options: () => DynamicChartHostOptions<EditableEvent, EditableChartInput>,
 ) {
-  const overlay = createEditableHandleOverlay(view)
-  const layout = () =>
-    editableLayout(chartSurface, view, host.getScene(), state.end)
-  const paint = () => {
-    const nextLayout = layout()
-    if (!nextLayout) return
-    overlay.paint(nextLayout, `Release ends ${editableDateKey(state.end)}`)
+  let paint = () => {}
+  const beginEdit = () => {
+    if (state.editing) return
+    state.originEnd = state.end
+    state.editing = true
   }
-  const updateAtPointer = (event: PointerEvent) => {
-    const date = dateAtPointer(chartSurface, host.getScene(), event)
-    if (!date) return
-    state.end = date
+  const setEnd = (date: Date) => {
+    state.end = clampEditableEventEnd(date)
     host.update(options())
     paint()
   }
-
-  const handlePointerDown = (event: PointerEvent) => {
+  const overlay = createEditableHandleOverlay(
+    view,
+    (value) => {
+      beginEdit()
+      setEnd(new Date(editableDomain[0].getTime() + value * millisecondsPerDay))
+    },
+    (value) => {
+      const date = editableDateFromAnchor(`date:${value}`)
+      if (!date) return false
+      beginEdit()
+      setEnd(date)
+      return true
+    },
+  )
+  const layout = () =>
+    editableLayout(chartSurface, view, host.getScene(), state.end)
+  paint = () => {
     const nextLayout = layout()
-    if (!nextLayout || !isHandleTarget(view, nextLayout, event)) return
-    event.preventDefault()
-    state.editing = true
-    view.setPointerCapture(event.pointerId)
-    updateAtPointer(event)
+    if (!nextLayout) return
+    overlay.paint(nextLayout, {
+      value: editableDayIndex(state.end),
+      min: editableDayIndex(
+        new Date(editableEventStart.getTime() + millisecondsPerDay),
+      ),
+      max: editableDayIndex(editableDomain[1]),
+      date: editableDateKey(state.end),
+      minDate: editableDateKey(
+        new Date(editableEventStart.getTime() + millisecondsPerDay),
+      ),
+      maxDate: editableDateKey(editableDomain[1]),
+      valueText: `Release: ${editableDateKey(editableEventStart)} → ${editableDateKey(state.end)} · ${editableDurationDays(editableEventStart, state.end)} days`,
+      summaryText: `Release · ${compactDate(editableEventStart)} → ${compactDate(state.end)} · ${editableDurationDays(editableEventStart, state.end)} days`,
+      eventDescriptions: editableEvents(getInput().revision, state.end).map(
+        (row) =>
+          `${row.label}: ${editableDateKey(row.start)} to ${editableDateKey(row.end)}`,
+      ),
+    })
   }
 
-  const handlePointerMove = (event: PointerEvent) => {
+  const commitEdit = () => {
     if (!state.editing) return
-    updateAtPointer(event)
-  }
-
-  const finishPointer = (event: PointerEvent) => {
-    if (!state.editing) return
-    updateAtPointer(event)
     state.editing = false
+    state.originEnd = null
     state.editCount += 1
-    if (view.hasPointerCapture(event.pointerId)) {
-      view.releasePointerCapture(event.pointerId)
-    }
+    paint()
   }
 
-  view.addEventListener('pointerdown', handlePointerDown, true)
-  view.addEventListener('pointermove', handlePointerMove, true)
-  view.addEventListener('pointerup', finishPointer, true)
-  view.addEventListener('pointercancel', finishPointer, true)
+  const cancelEdit = () => {
+    if (!state.editing) return
+    const originEnd = state.originEnd
+    state.editing = false
+    state.originEnd = null
+    if (originEnd) setEnd(originEnd)
+    else paint()
+  }
+
+  overlay.range.addEventListener('pointerdown', beginEdit)
+  overlay.range.addEventListener('change', commitEdit)
+  overlay.range.addEventListener('pointercancel', cancelEdit)
+  overlay.dateInput.addEventListener('change', commitEdit)
+  overlay.dateInput.addEventListener('pointercancel', cancelEdit)
 
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
@@ -223,6 +295,8 @@ function createEditableInteractions(
         getInput(),
         state.end,
         layout(),
+        overlay.handleGeometry(),
+        overlay.trackGeometry(),
         query,
       )
     },
@@ -238,10 +312,11 @@ function createEditableInteractions(
     driver,
     paint,
     destroy() {
-      view.removeEventListener('pointerdown', handlePointerDown, true)
-      view.removeEventListener('pointermove', handlePointerMove, true)
-      view.removeEventListener('pointerup', finishPointer, true)
-      view.removeEventListener('pointercancel', finishPointer, true)
+      overlay.range.removeEventListener('pointerdown', beginEdit)
+      overlay.range.removeEventListener('change', commitEdit)
+      overlay.range.removeEventListener('pointercancel', cancelEdit)
+      overlay.dateInput.removeEventListener('change', commitEdit)
+      overlay.dateInput.removeEventListener('pointercancel', cancelEdit)
       overlay.destroy()
     },
   }
@@ -255,6 +330,18 @@ function resolveTarget(
   target: ConformanceTarget,
 ) {
   if (target.view !== undefined && target.view !== 'main') return null
+  if (target.anchor === 'control:date') {
+    const dateInput = view.querySelector<HTMLInputElement>(
+      '.ts-conformance-event-date',
+    )
+    if (!dateInput) return null
+    const bounds = dateInput.getBoundingClientRect()
+    return {
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+      focusElement: dateInput,
+    }
+  }
   const date =
     target.anchor === 'event:release:end'
       ? end
@@ -272,7 +359,9 @@ function resolveTarget(
   return {
     x: bounds.left + point[0],
     y: bounds.top + point[1],
-    focusElement: view,
+    focusElement:
+      view.querySelector<HTMLInputElement>('.ts-conformance-event-range') ??
+      undefined,
   }
 }
 
@@ -305,24 +394,17 @@ function editableGeometry(
   input: ConformanceInput,
   end: Date,
   layout: EditableHandleLayout | null,
+  overlayHandle: ConformanceGeometrySample,
+  overlayTrack: ConformanceGeometrySample,
   query: ConformanceGeometryQuery,
 ): readonly ConformanceGeometrySample[] {
   if (!layout || (query.view !== undefined && query.view !== 'main')) {
     return []
   }
-  const viewBounds = view.getBoundingClientRect()
-  if (query.role === 'dot') {
-    return [
-      {
-        x: viewBounds.left + layout.x - 8,
-        y: viewBounds.top + layout.y - 8,
-        width: 16,
-        height: 16,
-        paint: editableEventColor('release'),
-      },
-    ]
-  }
+  if (query.role === 'dot') return [overlayHandle]
+  if (query.role === 'rule') return [overlayTrack]
   if (query.role !== 'rect') return []
+  const viewBounds = view.getBoundingClientRect()
   const height = scene.scales.y.bandwidth
   return editableEvents(input.revision, end).flatMap((row) => {
     const start = sceneLocalPoint(
@@ -379,25 +461,25 @@ function editableLayout(
     scene.scales.x.map(end),
     scene.scales.y.map('Engineering'),
   )
-  return point ? { x: point[0], y: point[1] } : null
-}
-
-function dateAtPointer(
-  chartSurface: HTMLDivElement,
-  scene: ChartScene<EditableEvent>,
-  event: PointerEvent,
-) {
-  const svg = chartSurface.querySelector<SVGSVGElement>('svg.ts-chart')
-  if (!svg) return null
-  const bounds = svg.getBoundingClientRect()
-  const sceneX = ((event.clientX - bounds.left) / bounds.width) * scene.width
-  if (sceneX < scene.chart.x || sceneX > scene.chart.x + scene.chart.width) {
-    return null
-  }
-  const inverseScale = scaleUtc()
-    .domain(editableDomain)
-    .range([scene.chart.x, scene.chart.x + scene.chart.width])
-  return clampEditableEventEnd(inverseScale.invert(sceneX))
+  const minimum = sceneLocalPoint(
+    chartSurface,
+    view,
+    scene,
+    scene.scales.x.map(
+      new Date(editableEventStart.getTime() + millisecondsPerDay),
+    ),
+    scene.scales.y.map('Engineering'),
+  )
+  const maximum = sceneLocalPoint(
+    chartSurface,
+    view,
+    scene,
+    scene.scales.x.map(editableDomain[1]),
+    scene.scales.y.map('Engineering'),
+  )
+  return point && minimum && maximum
+    ? { x: point[0], y: point[1], minX: minimum[0], maxX: maximum[0] }
+    : null
 }
 
 function sceneLocalPoint(
@@ -417,15 +499,10 @@ function sceneLocalPoint(
   ]
 }
 
-function isHandleTarget(
-  view: HTMLDivElement,
-  layout: EditableHandleLayout,
-  event: PointerEvent,
-) {
-  const bounds = view.getBoundingClientRect()
-  const x = event.clientX - bounds.left
-  const y = event.clientY - bounds.top
-  return Math.hypot(x - layout.x, y - layout.y) <= 18
+function editableDayIndex(date: Date) {
+  return Math.round(
+    (date.getTime() - editableDomain[0].getTime()) / millisecondsPerDay,
+  )
 }
 
 function clientBounds(element: HTMLElement): ConformanceGeometrySample {
@@ -441,4 +518,33 @@ function clientBounds(element: HTMLElement): ConformanceGeometrySample {
 function sizeView(view: HTMLDivElement, input: ConformanceInput) {
   view.style.width = `${input.width}px`
   view.style.height = `${input.height}px`
+}
+
+function compactDate(date: Date) {
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
+function editableAriaLabel(revision: number, end: Date) {
+  return `Editable schedule. ${editableEvents(revision, end)
+    .map(
+      (row) =>
+        `${row.label}, ${editableDateKey(row.start)} to ${editableDateKey(row.end)}`,
+    )
+    .join('. ')}.`
+}
+
+function eventBarCanFitLabel(
+  event: EditableEvent,
+  width: number,
+  label: string,
+) {
+  const plotWidth = Math.max(0, width - margin.left - margin.right)
+  const domainWidth = editableDomain[1].getTime() - editableDomain[0].getTime()
+  const eventWidth = event.end.getTime() - event.start.getTime()
+  const barWidth = domainWidth > 0 ? (eventWidth / domainWidth) * plotWidth : 0
+  return barWidth >= label.length * 6 + 10
 }

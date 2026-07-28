@@ -12,7 +12,10 @@
     "linked views",
     "semantic date state",
     "independent y domains",
-    "external overlays"
+    "external overlays",
+    "shared value summary",
+    "keyboard cursor navigation",
+    "tap-to-pin cursor"
   ],
   "geometry": [
     {
@@ -56,6 +59,9 @@
           "type": "assert",
           "assertions": [
             { "path": "shared.date", "equals": "2025-04-01" },
+            { "path": "shared.primaryValue", "equals": 72 },
+            { "path": "shared.secondaryValue", "equals": 3.6 },
+            { "path": "shared.pinned", "equals": false },
             { "path": "crosshairs.primary.visible", "equals": true },
             { "path": "crosshairs.secondary.visible", "equals": true },
             {
@@ -70,6 +76,68 @@
             }
           ]
         },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-synchronized-date]"
+              },
+              "property": "text",
+              "includes": "Apr 1"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-synchronized-primary]"
+              },
+              "property": "text",
+              "equals": "72"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-synchronized-secondary]"
+              },
+              "property": "text",
+              "equals": "3.6"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-synchronized-summary]"
+              },
+              "property": "text",
+              "includes": "Throughput"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-synchronized-summary]"
+              },
+              "property": "text",
+              "includes": "Error rate"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-synchronized-summary]"
+              },
+              "property": "attribute",
+              "attribute": "aria-live",
+              "equals": "polite"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-synchronized-summary]"
+              },
+              "property": "attribute",
+              "attribute": "aria-atomic",
+              "equals": "true"
+            },
+            {
+              "target": { "role": "status" },
+              "property": "count",
+              "equals": 1
+            }
+          ]
+        },
+        { "type": "screenshot", "name": "linked-cursor-values" },
         { "type": "update", "revision": 1 },
         { "type": "update", "revision": 0 },
         {
@@ -97,6 +165,95 @@
             { "path": "shared.date", "equals": null },
             { "path": "crosshairs.primary.visible", "equals": false },
             { "path": "crosshairs.secondary.visible", "equals": false }
+          ]
+        },
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "primary",
+            "anchor": "date:2025-04-15"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "shared.date", "equals": "2025-04-01" },
+            { "path": "crosshairs.primary.visible", "equals": true },
+            { "path": "crosshairs.secondary.visible", "equals": true }
+          ]
+        },
+        {
+          "type": "key",
+          "key": "ArrowRight",
+          "target": {
+            "view": "primary",
+            "anchor": "date:2025-04-15"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "shared.date", "equals": "2025-05-01" },
+            { "path": "shared.primaryValue", "equals": 79 },
+            { "path": "shared.secondaryValue", "equals": 3.2 }
+          ]
+        },
+        {
+          "type": "click",
+          "target": {
+            "view": "secondary",
+            "anchor": "date:2025-06-01"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "shared.date", "equals": "2025-06-01" },
+            { "path": "shared.pinned", "equals": true },
+            { "path": "crosshairs.primary.visible", "equals": true },
+            { "path": "crosshairs.secondary.visible", "equals": true }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-synchronized-date]"
+              },
+              "property": "text",
+              "includes": "pinned"
+            }
+          ]
+        },
+        { "type": "pointerLeave", "view": "secondary" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "shared.date", "equals": "2025-06-01" },
+            { "path": "shared.pinned", "equals": true }
+          ]
+        },
+        { "type": "key", "key": "Escape" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "shared.date", "equals": null },
+            { "path": "shared.pinned", "equals": false },
+            { "path": "crosshairs.primary.visible", "equals": false },
+            { "path": "crosshairs.secondary.visible", "equals": false }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-synchronized-date]"
+              },
+              "property": "text",
+              "includes": "Focus either chart"
+            }
           ]
         }
       ]

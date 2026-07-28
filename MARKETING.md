@@ -43,7 +43,7 @@ D3 primitives.
 **Product category:** TypeScript visualization grammar; application charting
 library.
 
-**Product type:** Open-source developer library, subject to final licensing and
+**Product type:** MIT-licensed open-source developer library, subject to final
 distribution decisions.
 
 **Core model:** Marks consume application data directly. Channels describe
@@ -52,6 +52,11 @@ a renderer-neutral keyed scene and owns the application runtime around it.
 
 **Framework position:** The core is framework-independent. React and Octane are
 thin adapters, not separate chart implementations.
+
+**Lineage:** Observable Plot is the primary conceptual inspiration for the
+marks-and-channels grammar. TanStack Charts is an independent implementation,
+not a Plot fork or compatibility layer. Credit this lineage plainly rather than
+presenting the compositional model as a TanStack invention.
 
 ## Target audience
 
@@ -176,14 +181,14 @@ side-effectful feature installation.
 
 ### Positioning map
 
-| Alternative                                                                                         | Best at                                                                   | TanStack Charts position                                                                                                                      |
-| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Recharts](https://recharts.github.io/en-US/) and [Nivo](https://nivo.rocks/)                       | Quickly producing standard React charts                                   | A framework-independent grammar that can continue into bespoke visualization                                                                  |
-| [visx](https://github.com/airbnb/visx) and raw D3                                                   | Maximum low-level visual control                                          | Native D3 power with responsive layout, guides, rendering, interaction, accessibility, SSR, and lifecycle supplied                            |
-| [Observable Plot](https://observablehq.com/plot/)                                                   | Concise exploratory visualization through marks and channels              | Similar compositional thinking, built around typed application code, explicit D3 ownership, framework lifecycle, and small capability imports |
-| [Chart.js](https://www.chartjs.org/) and [Apache ECharts](https://echarts.apache.org/en/index.html) | Broad catalogs and Canvas-oriented rendering                              | Smaller, SVG-native, composable, and designed for product-specific charts                                                                     |
-| [AG Charts](https://www.ag-grid.com/charts/)                                                        | Enterprise breadth, specialized charts, dense data, controls, and support | Open grammar, D3 interoperability, actual SVG SSR, heterogeneous layers, and no global registry                                               |
-| [Vega and Vega-Lite](https://vega.github.io/)                                                       | Portable declarative specifications and analysis tooling                  | Ordinary TypeScript and application integration instead of a JSON visualization runtime                                                       |
+| Alternative                                                                                         | Best at                                                                   | TanStack Charts position                                                                                                                                               |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Recharts](https://recharts.github.io/en-US/) and [Nivo](https://nivo.rocks/)                       | Quickly producing standard React charts                                   | A framework-independent grammar that can continue into bespoke visualization                                                                                           |
+| [visx](https://github.com/airbnb/visx) and raw D3                                                   | Maximum low-level visual control                                          | Native D3 power with responsive layout, guides, rendering, interaction, accessibility, SSR, and lifecycle supplied                                                     |
+| [Observable Plot](https://observablehq.com/plot/)                                                   | Concise exploratory visualization through composable marks and channels   | The primary conceptual inspiration; an independent implementation for typed application code, explicit D3 ownership, framework lifecycle, and small capability imports |
+| [Chart.js](https://www.chartjs.org/) and [Apache ECharts](https://echarts.apache.org/en/index.html) | Broad catalogs and Canvas-oriented rendering                              | Smaller, SVG-native, composable, and designed for product-specific charts                                                                                              |
+| [AG Charts](https://www.ag-grid.com/charts/)                                                        | Enterprise breadth, specialized charts, dense data, controls, and support | Open grammar, D3 interoperability, actual SVG SSR, heterogeneous layers, and no global registry                                                                        |
+| [Vega and Vega-Lite](https://vega.github.io/)                                                       | Portable declarative specifications and analysis tooling                  | Ordinary TypeScript and application integration instead of a JSON visualization runtime                                                                                |
 
 ### Primary comparisons
 
@@ -216,9 +221,9 @@ pretend to match. See the current
 **Headline:** D3's power. A chart library's ergonomics.
 
 **Body:** TanStack Charts is a tiny TypeScript visualization grammar for
-responsive, accessible, server-rendered charts. Compose marks over your
-existing data, bring native D3 scales and curves, and render the same
-definition in React, vanilla JavaScript, or Octane.
+responsive, accessible, server-rendered charts, deeply inspired by Observable
+Plot. Compose marks over your existing data, bring native D3 scales and curves,
+and render the same definition in React, vanilla JavaScript, or Octane.
 
 **Primary CTA today:** Explore the proof
 
@@ -365,21 +370,27 @@ Developer libraries are marketed through proof rather than adjectives.
 
 ### AI and agent positioning
 
-Agent-ready, task-oriented documentation is supporting proof, not the main
-wedge. The useful claim is that agents generate and maintain ordinary
-TypeScript using the same public API as humans. Avoid generic claims about
-being "AI-native."
+Disclose that TanStack Charts was implemented almost entirely with AI coding
+agents under Tanner Linsley's personal direction and review. Tanner defined the
+product, architecture, API, constraints, tradeoffs, and final decisions. Do not
+describe the library as designed by AI or autonomously built.
+
+This is a transparent account of how the implementation was produced, not the
+main marketing wedge. Agent-ready, task-oriented documentation remains
+supporting proof. The useful product claim is that agents generate and maintain
+ordinary TypeScript through the same public API as humans. Avoid generic claims
+about being "AI-native."
 
 ## Objections
 
-| Objection                                                             | Response                                                                                                                                                                                                                 |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Explicit domains and scales are more work than a chart-type component | Correct. TanStack Charts targets teams that want semantic control and a higher customization ceiling. Recipes and tooling should make the common policies obvious without hiding them behind runtime inference.          |
-| The chart catalog is smaller than AG Charts, ECharts, or Nivo         | Also correct. The product thesis is a composable grammar with direct D3 interoperability, not first-party ownership of every specialized chart type.                                                                     |
-| Why not use D3 or visx directly?                                      | They provide the algorithms or primitives. TanStack supplies the application runtime: responsive layout, guides, scene compilation, lifecycle, interaction, accessibility, SSR, hydration, animation, and export.        |
-| Why not use Observable Plot?                                          | Plot is the conceptual reference for expressive marks and channels. TanStack focuses on typed application integration, explicit D3 policy, small capability imports, framework lifecycle, and stable interactive scenes. |
-| Is it ready for production?                                           | Not yet. The current package is a private proof with documented release gates. Marketing must state that plainly until those gates close.                                                                                |
-| Can it handle millions of live points?                                | There is no such claim. Current evidence covers a local 10,000-point proof. Dense-data aggregation and production-browser benchmarks remain separate work.                                                               |
+| Objection                                                             | Response                                                                                                                                                                                                                                                                                                |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Explicit domains and scales are more work than a chart-type component | Correct. TanStack Charts targets teams that want semantic control and a higher customization ceiling. Recipes and tooling should make the common policies obvious without hiding them behind runtime inference.                                                                                         |
+| The chart catalog is smaller than AG Charts, ECharts, or Nivo         | Also correct. The product thesis is a composable grammar with direct D3 interoperability, not first-party ownership of every specialized chart type.                                                                                                                                                    |
+| Why not use D3 or visx directly?                                      | They provide the algorithms or primitives. TanStack supplies the application runtime: responsive layout, guides, scene compilation, lifecycle, interaction, accessibility, SSR, hydration, animation, and export.                                                                                       |
+| Why not use Observable Plot?                                          | Plot is the primary conceptual inspiration and remains an excellent choice for concise exploratory visualization. TanStack is an independent implementation focused on typed application integration, explicit D3 policy, small capability imports, framework lifecycle, and stable interactive scenes. |
+| Is it ready for production?                                           | Not yet. The current package is a private proof with documented release gates. Marketing must state that plainly until those gates close.                                                                                                                                                               |
+| Can it handle millions of live points?                                | There is no such claim. Current evidence covers a local 10,000-point proof. Dense-data aggregation and production-browser benchmarks remain separate work.                                                                                                                                              |
 
 ## Anti-personas
 
@@ -436,6 +447,9 @@ gates.
 - Pay only for what you import
 - Built for applications, not screenshots
 - No customization cliff
+- Deeply inspired by Observable Plot
+- Independent implementation, not a Plot fork
+- Implemented almost entirely with AI under Tanner Linsley's direction
 
 ### Phrases to avoid
 
@@ -450,6 +464,13 @@ gates.
 - Production-ready
 - Million-point performance
 - Zero configuration
+- Plot-compatible
+- A Plot replacement
+- An official Plot implementation
+- Based on Plot, without clarifying that the implementation is independent
+- Designed by AI
+- Autonomously built
+- Vibe-coded
 
 ### Brand voice
 
@@ -508,7 +529,7 @@ tracked in [`PLAN.md`](./PLAN.md):
 - Packed-consumer tests.
 - Remaining Plot-backed animated export migration.
 - Accessibility, locale, and RTL release gates.
-- Public package, versioning, licensing, and compatibility policy.
+- Public package, versioning, license packaging, and compatibility policy.
 
 ## Goals
 
@@ -532,7 +553,6 @@ the first chart.
 
 ## Open decisions
 
-- Final license and commercial model.
 - Public package names and release sequence.
 - Whether early access uses a waitlist, discussion thread, or prerelease npm
   channel.

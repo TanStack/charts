@@ -10,6 +10,15 @@ import type {
   ConformanceRenderer,
 } from '../../../benchmarks/conformance/types'
 import {
+  createChartEmbedStatusMessage,
+  parseChartEmbedHeight,
+  parseChartEmbedRevision,
+  parseChartEmbedTheme,
+  readTrustedChartEmbedThemeCommand,
+  resolveChartEmbedParentOrigin,
+  type ChartEmbedStatus,
+} from './embed-contract'
+import {
   catalogRouteHref,
   parseCatalogRoute,
   type CatalogRoute,
@@ -45,6 +54,8 @@ async function renderRoute() {
   destroyMountedCharts()
   destroyCleanup()
   document.body.classList.remove('embed-mode')
+  document.documentElement.classList.remove('embed-mode')
+  applyTheme()
 
   const route = parseCatalogRoute(window.location.pathname, basePath)
 
@@ -188,22 +199,38 @@ function renderCasePage(entry: ConformanceCaseMeta) {
 
 async function renderEmbed(entry: ConformanceCaseMeta, generation: number) {
   document.body.classList.add('embed-mode')
+  document.documentElement.classList.add('embed-mode')
 
   const params = new URLSearchParams(window.location.search)
-  const height = boundedNumber(params.get('height'), chartHeight, 120, 1_200)
-  const embedRevision = boundedNumber(params.get('revision'), 0, 0, 10_000)
-  const theme = params.get('theme') ?? 'system'
+  const height = parseChartEmbedHeight(params.get('height'))
+  const embedRevision = parseChartEmbedRevision(params.get('revision'))
+  let theme = parseChartEmbedTheme(params.get('theme'))
+  const parentOrigin = resolveChartEmbedParentOrigin(document.referrer)
   const media = window.matchMedia('(prefers-color-scheme: dark)')
   const applyEmbedTheme = () => {
     const embedDark = theme === 'dark' || (theme !== 'light' && media.matches)
     document.documentElement.dataset.theme = embedDark ? 'dark' : 'light'
   }
+  const handleMediaChange = () => {
+    if (theme === 'system') applyEmbedTheme()
+  }
+  const handleParentMessage = (event: MessageEvent) => {
+    const command = readTrustedChartEmbedThemeCommand(
+      event,
+      window.parent,
+      parentOrigin,
+      entry.id,
+    )
+    if (!command) return
+    theme = command.theme
+    applyEmbedTheme()
+  }
 
   applyEmbedTheme()
-  if (theme === 'system') {
-    media.addEventListener('change', applyEmbedTheme)
-    cleanup.add(() => media.removeEventListener('change', applyEmbedTheme))
-  }
+  media.addEventListener('change', handleMediaChange)
+  window.addEventListener('message', handleParentMessage)
+  cleanup.add(() => media.removeEventListener('change', handleMediaChange))
+  cleanup.add(() => window.removeEventListener('message', handleParentMessage))
 
   setDocumentMeta(`${entry.title} · TanStack Charts`, entry.intent, true)
 
@@ -249,7 +276,7 @@ async function renderEmbed(entry: ConformanceCaseMeta, generation: number) {
       if (nextWidth === width || nextWidth < 1) return
       width = nextWidth
       handle.update({ width, height, revision: embedRevision })
-      postEmbedMessage('resize', entry, height)
+      postEmbedMessage('resize', entry, height, parentOrigin)
     }
 
     const observer = new ResizeObserver(() => {
@@ -259,11 +286,11 @@ async function renderEmbed(entry: ConformanceCaseMeta, generation: number) {
     cleanup.add(() => observer.disconnect())
 
     requestAnimationFrame(() => {
-      postEmbedMessage('ready', entry, height)
+      postEmbedMessage('ready', entry, height, parentOrigin)
     })
   } catch (error) {
     renderFailure(container, error)
-    postEmbedMessage('error', entry, height)
+    postEmbedMessage('error', entry, height, parentOrigin)
   }
 }
 
@@ -343,7 +370,7 @@ function renderCaseCard(entry: ConformanceCaseMeta): string {
     routeHref({ view: 'embed', caseId: entry.id }),
     window.location.origin,
   ).href
-  const embedCode = `<iframe src="${embedUrl}?theme=system&height=${chartHeight}" title="${entry.title}" loading="lazy" style="width:100%;height:${chartHeight}px;border:0"></iframe>`
+  const embedCode = `<iframe src="${embedUrl}?theme=system&height=${chartHeight}" title="${entry.title}" width="640" height="${chartHeight}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="display:block;width:100%;height:${chartHeight}px;border:0"></iframe>`
 
   return `
     <article class="case" id="case-${escapeHtml(entry.id)}">
@@ -789,34 +816,20 @@ function applyTheme() {
 }
 
 function postEmbedMessage(
-  status: 'ready' | 'resize' | 'error',
+  status: ChartEmbedStatus,
   entry: ConformanceCaseMeta,
   height: number,
+  parentOrigin: string | null,
 ) {
-  if (window.parent === window) return
+  if (window.parent === window || !parentOrigin) return
   window.parent.postMessage(
-    {
-      type: `tanstack-charts:embed:${status}`,
-      caseId: entry.id,
-      height,
-    },
-    '*',
+    createChartEmbedStatusMessage(status, entry.id, height),
+    parentOrigin,
   )
 }
 
 function measureEmbedWidth(container: HTMLElement): number {
   return Math.max(1, Math.floor(container.getBoundingClientRect().width))
-}
-
-function boundedNumber(
-  value: string | null,
-  fallback: number,
-  minimum: number,
-  maximum: number,
-): number {
-  const number = Number(value)
-  if (!Number.isFinite(number)) return fallback
-  return Math.min(maximum, Math.max(minimum, Math.round(number)))
 }
 
 function formatBytes(bytes: number): string {

@@ -54,6 +54,20 @@ type RectYOutput<TDatum, TOptions> =
   | RectSideOutput<TDatum, TOptions, 'y1', 'y'>
   | RectSideOutput<TDatum, TOptions, 'y2', 'y'>
 
+type RectPointXOutput<TDatum, TOptions> = TOptions extends unknown
+  ? 'x' extends keyof TOptions
+    ? ChannelOutput<TDatum, TOptions['x'], number>
+    : number
+  : never
+
+type RectPointYOutput<TDatum, TOptions> = TOptions extends unknown
+  ? 'y' extends keyof TOptions
+    ? ChannelOutput<TDatum, TOptions['y'], number>
+    : 'y2' extends keyof TOptions
+      ? ChannelOutput<TDatum, TOptions['y2'], number>
+      : number
+  : never
+
 export function rect<
   TDatum,
   const TOptions extends RectOptions<NoInfer<TDatum>>,
@@ -62,6 +76,8 @@ export function rect<
   options: TOptions,
 ): ChartMark<
   TDatum,
+  RectPointXOutput<TDatum, TOptions>,
+  RectPointYOutput<TDatum, TOptions>,
   RectXOutput<TDatum, TOptions>,
   RectYOutput<TDatum, TOptions>
 >
@@ -211,6 +227,8 @@ export function cell<
   options: TOptions,
 ): ChartMark<
   TDatum,
+  RectPointXOutput<TDatum, TOptions>,
+  RectPointYOutput<TDatum, TOptions>,
   RectXOutput<TDatum, TOptions>,
   RectYOutput<TDatum, TOptions>
 >

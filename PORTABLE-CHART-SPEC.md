@@ -1,94 +1,104 @@
-# Portable chart specifications
+# Portable chart definitions
 
-Some users need to communicate an entire visualization as JSON. TanStack
-Charts is close to declarative already, but a chart definition still contains
-live functions: marks, accessors, scales, curves, formatters, legends, and
-dynamic builders. Those functions cannot be reliably recovered from a runtime
-object.
+Some users need to communicate a visualization as JSON. A chart definition
+currently contains live functions, so it cannot be serialized directly.
 
-## Proposal
-
-Introduce a versioned portable chart format that compiles into the existing
-`ChartDefinition` API. Function values are represented as typed calls resolved
-through an explicit registry.
+The portable format should contain only chart instructions. Data is supplied
+when the definition is rendered.
 
 ```json
 {
-  "$schema": "https://tanstack.com/charts/spec/v1",
-  "data": {
-    "main": [
-      { "date": { "$date": "2026-01-01T00:00:00Z" }, "value": 42 }
-    ]
-  },
-  "chart": {
+  "$schema": "https://tanstack.com/charts/schema/definition-v1.json",
+  "definition": {
     "marks": [
       {
-        "$call": "mark.lineY@1",
-        "args": {
-          "data": { "$ref": "data.main" },
-          "x": "date",
-          "y": "value",
-          "curve": { "$call": "curve.monotoneX@1" }
-        }
+        "$call": ["lineY", { "$data": "rows" }, { "x": "date", "y": "value" }]
       }
     ],
     "x": {
       "scale": {
-        "$call": "scale.utc@1",
-        "args": {
-          "domain": [
-            { "$date": "2026-01-01T00:00:00Z" },
-            { "$date": "2026-12-31T00:00:00Z" }
-          ]
-        }
+        "$call": [
+          "scaleUtc",
+          {
+            "domain": {
+              "$call": ["extent", { "$data": "rows" }, "date"]
+            }
+          }
+        ]
       }
     },
     "y": {
-      "scale": {
-        "$call": "scale.linear@1",
-        "args": { "domain": [0, 100], "nice": 5 }
+      "scale": { "$call": ["scaleLinear", { "domain": [0, 100] }] },
+      "format": {
+        "$call": ["formatCurrency", { "currency": "USD" }]
       }
     }
   }
 }
 ```
 
-The consumer supplies the implementations it permits:
+`defineChartDefinition` validates the spec and resolves calls through the core
+registry plus any application extensions:
 
-```ts
-const definition = hydrateChart(spec, {
-  registry: {
-    'mark.lineY@1': markLineYEntry,
-    'scale.utc@1': utcScaleEntry,
-    'scale.linear@1': linearScaleEntry,
-    'curve.monotoneX@1': monotoneXEntry,
-    'app.formatRevenue@1': revenueFormatterEntry,
-  },
+```tsx
+const definition = defineChartDefinition(spec, {
+  registry: { formatCurrency },
 })
+
+<Chart definition={definition} data={{ rows }} />
 ```
 
-Registry entries would own argument validation and hydration. They should be
-stable semantic adapters, not direct lookups of arbitrary JavaScript exports.
-For example, `scale.linear@1` could accept `{ domain, nice }` and perform the
-necessary D3 calls internally.
+The definition is created once. `$data` references are resolved from the
+current `data` prop, so changing time-series data does not reparse or recreate
+the definition.
 
-## Boundaries
+## Delivery
 
-- Portable JSON is the source of truth; arbitrary runtime closures are not
-  reverse-serialized.
-- Calls are allowlisted. There is no code evaluation or JSON-controlled dynamic
-  import.
-- Call IDs are namespaced and versioned.
-- Dates and other non-JSON values use explicit tagged representations.
-- Unknown calls, invalid arguments, and unresolved references fail with an
+A definition can travel alone, or a self-contained document can bundle the
+same definition and data:
+
+```json
+{
+  "$schema": "https://tanstack.com/charts/schema/document-v1.json",
+  "definition": {},
+  "data": {}
+}
+```
+
+The document is a transport convenience, not a different definition model.
+Dashboards—with sources, queries, refresh behavior, layout, and multiple
+panels—remain a separate layer.
+
+## Rules and remaining edges
+
+- `{ "$call": [name, ...args] }` and `{ "$data": name }` are reserved nodes.
+  Ordinary arrays remain literals, avoiding Mapbox-style literal ambiguity.
+- Calls may be nested. Static calls can resolve once; calls depending on data
+  resolve during chart construction.
+- Registry entries are synchronous, allowlisted contracts. Unknown calls,
+  missing data, invalid arguments, and conflicting registrations fail with an
   exact JSON path.
-- Host callbacks such as `onSelect` stay outside the chart spec, or use
-  semantic action IDs resolved by the host.
+- No code strings, evaluation, or JSON-controlled dynamic imports.
+- External data may contain runtime values such as `Date` or typed arrays.
+  Bundled document data must use JSON-compatible encodings.
+- Formatter and accessor factories can come from the registry. Host effects
+  such as navigation or application event handlers stay outside the definition.
+- Streaming and incremental data updates are renderer concerns, not definition
+  syntax.
 
-An initial package could cover static charts, field channels, inline and
-referenced data, core marks, common scales, standard curves, and formatters.
-Dynamic preparation and arbitrary expressions can remain registered
-application capabilities until there is evidence for a portable language.
+Before v1, we should decide whether registry names need namespaces or versions,
+and whether responsive definitions need a third reserved node for chart
+context such as width, height, or theme.
 
-The main correctness test is simple: a portable spec and its equivalent
-TypeScript definition should produce identical scenes at several sizes.
+## Prior art
+
+- [deck.gl JSON](https://deck.gl/docs/api-reference/json/overview) validates the
+  application-supplied registry model.
+- [Mapbox expressions](https://docs.mapbox.com/style-spec/reference/expressions/)
+  validate call-shaped JSON expressions and show why literal arrays must remain
+  distinguishable.
+- [Vega-Lite data](https://vega.github.io/vega-lite/docs/data.html) supports
+  both inline data and named runtime-bound data.
+- [Vega's View API](https://vega.github.io/vega/docs/api/view/) and
+  [Plotly streaming](https://plotly.com/javascript/streaming/) keep incremental
+  data updates separate from the original visualization description.

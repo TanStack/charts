@@ -127,6 +127,8 @@ export interface ChartLayoutOptions {
 }
 
 export interface ChartAxisGuideOptions<TValue extends ChartValue = any> {
+  /** Whether to render this axis, its ticks, title, and grid lines. */
+  guide?: boolean
   ticks?: number
   format?: (value: TValue) => string
   grid?: boolean
@@ -204,11 +206,31 @@ export interface ChartLinearGradient {
   stops: readonly ChartGradientStop[]
 }
 
-export type ChartMarkX<TMark> =
-  TMark extends ChartMark<any, infer TValue, any> ? TValue : never
+export type ChartMarkScaleX<TMark> =
+  TMark extends ChartMark<any, any, any, infer TValue, any> ? TValue : never
 
-export type ChartMarkY<TMark> =
-  TMark extends ChartMark<any, any, infer TValue> ? TValue : never
+export type ChartMarkScaleY<TMark> =
+  TMark extends ChartMark<any, any, any, any, infer TValue> ? TValue : never
+
+export type ChartMarkPointX<TMark> =
+  TMark extends ChartMark<infer TDatum, infer TXValue, any, any, any>
+    ? [TDatum] extends [never]
+      ? never
+      : TXValue
+    : never
+
+export type ChartMarkPointY<TMark> =
+  TMark extends ChartMark<infer TDatum, any, infer TYValue, any, any>
+    ? [TDatum] extends [never]
+      ? never
+      : TYValue
+    : never
+
+/** @deprecated Prefer ChartMarkPointX when distinguishing point and scale values. */
+export type ChartMarkX<TMark> = ChartMarkPointX<TMark>
+
+/** @deprecated Prefer ChartMarkPointY when distinguishing point and scale values. */
+export type ChartMarkY<TMark> = ChartMarkPointY<TMark>
 
 type IsAny<TValue> = 0 extends 1 & TValue ? true : false
 
@@ -231,19 +253,19 @@ type IsUnion<TValue, TWhole = TValue> = TValue extends TWhole
 
 type ChartXOptionsForMarks<TMarks extends AnyChartMarks> =
   IsUnion<TMarks> extends false
-    ? ChartAxisOptions<ChartAxisValue<ChartMarkX<TMarks[number]>>>
+    ? ChartAxisOptions<ChartAxisValue<ChartMarkScaleX<TMarks[number]>>>
     : TMarks extends AnyChartMarks
-      ? ChartAxisOptions<ChartAxisValue<ChartMarkX<TMarks[number]>>>
+      ? ChartAxisOptions<ChartAxisValue<ChartMarkScaleX<TMarks[number]>>>
       : never
 
 type ChartYOptionsForMarks<TMarks extends AnyChartMarks> =
   IsUnion<TMarks> extends false
-    ? ChartAxisOptions<ChartAxisValue<ChartMarkY<TMarks[number]>>>
+    ? ChartAxisOptions<ChartAxisValue<ChartMarkScaleY<TMarks[number]>>>
     : TMarks extends AnyChartMarks
-      ? ChartAxisOptions<ChartAxisValue<ChartMarkY<TMarks[number]>>>
+      ? ChartAxisOptions<ChartAxisValue<ChartMarkScaleY<TMarks[number]>>>
       : never
 
-export interface ChartSpec<TMarks extends AnyChartMarks = AnyChartMarks> {
+export interface ChartSpec<TMarks extends AnyChartMarks = any> {
   marks: TMarks
   guides?: boolean
   x: ChartXOptionsForMarks<TMarks> | null
@@ -255,12 +277,15 @@ export interface ChartSpec<TMarks extends AnyChartMarks = AnyChartMarks> {
   theme?: Partial<ChartTheme>
 }
 
-export interface StaticChartDefinition<TDatum = unknown> extends Omit<
-  ChartSpec,
-  'marks'
-> {
+export interface StaticChartDefinition<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends Omit<ChartSpec, 'marks'> {
   marks: readonly ChartMark<unknown, any, any>[]
   readonly __datum?: TDatum
+  readonly __xValue?: TXValue
+  readonly __yValue?: TYValue
 }
 
 export interface ChartBuildContext<TInput, TPrepared = TInput> {
@@ -296,28 +321,55 @@ export interface DynamicChartDefinition<
   TInput = unknown,
   TPrepared = TInput,
   TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
 > {
   chart: (context: ChartBuildContext<TInput, TPrepared>) => ChartSpec
   prepare?: (input: TInput, context: ChartPrepareContext) => TPrepared
   inputEqual?: (previous: TInput, next: TInput) => boolean
   prepareEqual?: (previous: TInput, next: TInput) => boolean
   readonly __datum?: TDatum
+  readonly __xValue?: TXValue
+  readonly __yValue?: TYValue
 }
 
 export type ChartDefinition<
   TDatum = unknown,
   TInput = undefined,
   TPrepared = TInput,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
 > =
-  | StaticChartDefinition<TDatum>
-  | DynamicChartDefinition<TInput, TPrepared, TDatum>
+  | StaticChartDefinition<TDatum, TXValue, TYValue>
+  | DynamicChartDefinition<TInput, TPrepared, TDatum, TXValue, TYValue>
 
 export type ChartMarkDatum<TMark> =
   TMark extends ChartMark<infer TDatum, any, any> ? TDatum : never
 
-export type ChartSpecDatum<TSpec extends ChartSpec> = ChartMarkDatum<
-  TSpec['marks'][number]
->
+export type ChartSpecDatum<TSpec extends ChartSpec> =
+  '__datum' extends keyof TSpec
+    ? TSpec extends { readonly __datum?: infer TDatum }
+      ? TDatum
+      : never
+    : ChartMarkDatum<TSpec['marks'][number]>
+
+export type ChartSpecXValue<TSpec extends ChartSpec> =
+  '__xValue' extends keyof TSpec
+    ? TSpec extends {
+        readonly __xValue?: infer TXValue extends ChartValue
+      }
+      ? TXValue
+      : never
+    : ChartMarkPointX<TSpec['marks'][number]>
+
+export type ChartSpecYValue<TSpec extends ChartSpec> =
+  '__yValue' extends keyof TSpec
+    ? TSpec extends {
+        readonly __yValue?: infer TYValue extends ChartValue
+      }
+      ? TYValue
+      : never
+    : ChartMarkPointY<TSpec['marks'][number]>
 
 export interface MaterializedChannel {
   scale?: string
@@ -356,34 +408,53 @@ export interface MarkRenderContext {
 
 export interface ChartMark<
   TDatum = unknown,
+  // Point values drive interaction callbacks; scale values cover every materialized channel.
+  TXPointValue extends ChartValue = ChartValue,
+  TYPointValue extends ChartValue = ChartValue,
+  TXScaleValue extends ChartValue = TXPointValue,
+  TYScaleValue extends ChartValue = TYPointValue,
+> {
+  initialize: (
+    context: MarkInitializeContext,
+  ) => InitializedMark<TDatum, TXPointValue, TYPointValue>
+  readonly __xValue?: TXPointValue
+  readonly __yValue?: TYPointValue
+  readonly __xScaleValue?: TXScaleValue
+  readonly __yScaleValue?: TYScaleValue
+}
+
+export interface InitializedMark<
+  TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
-  initialize: (context: MarkInitializeContext) => InitializedMark<TDatum>
-  readonly __xValue?: TXValue
-  readonly __yValue?: TYValue
-}
-
-export interface InitializedMark<TDatum = unknown> {
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
-  render: (context: MarkRenderContext) => MarkScene<TDatum>
+  render: (context: MarkRenderContext) => MarkScene<TDatum, TXValue, TYValue>
 }
 
-export interface MarkScene<TDatum = unknown> {
+export interface MarkScene<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
   nodes: readonly SceneNode[]
-  points?: readonly ChartPoint<TDatum>[]
+  points?: readonly ChartPoint<TDatum, TXValue, TYValue>[]
 }
 
-export interface ChartPoint<TDatum = unknown> {
+export interface ChartPoint<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
   key: string
   markId: string
   group: ChartKey | null
   groupLabel: string
   datum: TDatum
   datumIndex: number
-  xValue: ChartValue
-  yValue: ChartValue
+  xValue: TXValue
+  yValue: TYValue
   x: number
   y: number
   color: string
@@ -479,11 +550,15 @@ export type SceneNode =
   | SceneRect
   | SceneLabel
 
-export interface ChartScene<TDatum = unknown> extends ChartSize {
+export interface ChartScene<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartSize {
   margin: ChartMargin
   chart: ChartBounds
   nodes: readonly SceneNode[]
-  points: readonly ChartPoint<TDatum>[]
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
   scales: Readonly<Record<string, ResolvedScale>>
   colors: ResolvedColorScale
   gradients: readonly ChartLinearGradient[]
@@ -498,8 +573,12 @@ export interface RenderChartSvgOptions {
   idPrefix?: string
 }
 
-export type ChartSvgRenderer = (
-  scene: ChartScene,
+export type ChartSvgRenderer<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = (
+  scene: ChartScene<TDatum, TXValue, TYValue>,
   options: RenderChartSvgOptions,
 ) => string
 
@@ -515,99 +594,164 @@ export interface ChartAnimationOptions {
   respectReducedMotion?: boolean
 }
 
-export interface ChartTooltipOptions<TDatum = unknown> {
+export interface ChartTooltipOptions<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
   className?: string
-  format?: (point: ChartPoint<TDatum>) => string
-  formatGroup?: (points: readonly ChartPoint<TDatum>[]) => string
+  format?: (point: ChartPoint<TDatum, TXValue, TYValue>) => string
+  formatGroup?: (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  ) => string
   sticky?: boolean
 }
 
-export interface ChartFocusStrategy {
-  resolve: <TDatum>(
-    points: readonly ChartPoint<TDatum>[],
+export interface ChartFocusStrategy<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  resolve: (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
     x: number,
     y: number,
     maxDistance: number,
-  ) => readonly ChartPoint<TDatum>[]
-  group: <TDatum>(
-    points: readonly ChartPoint<TDatum>[],
-    point: ChartPoint<TDatum>,
-  ) => readonly ChartPoint<TDatum>[]
-  navigation: <TDatum>(
-    points: readonly ChartPoint<TDatum>[],
-  ) => readonly ChartPoint<TDatum>[]
+  ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  group: (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    point: ChartPoint<TDatum, TXValue, TYValue>,
+  ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  navigation: (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
 }
 
-export type ChartFocusMode = ChartFocusStrategy
+export type ChartFocusMode<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartFocusStrategy<TDatum, TXValue, TYValue>
 
-export interface ChartRenderContext<TDatum = unknown> {
+export interface ChartRenderContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
   container: HTMLElement
   svg: SVGSVGElement
-  scene: ChartScene<TDatum>
+  scene: ChartScene<TDatum, TXValue, TYValue>
 }
 
-export interface ChartSpatialIndex<TDatum = unknown> {
+export interface ChartSpatialIndex<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
   findNearest: (
     x: number,
     y: number,
     maxDistance?: number,
-  ) => ChartPoint<TDatum> | null
+  ) => ChartPoint<TDatum, TXValue, TYValue> | null
 }
 
-export type ChartSpatialIndexFactory<TDatum = unknown> = (
-  points: readonly ChartPoint<TDatum>[],
-) => ChartSpatialIndex<TDatum>
+export type ChartSpatialIndexFactory<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = (
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+) => ChartSpatialIndex<TDatum, TXValue, TYValue>
 
 export interface ChartHostCommonOptions<
   TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
 > extends RenderChartSvgOptions {
   height?: number
   aspectRatio?: number
   width?: number
   initialWidth?: number
   maxFocusDistance?: number
-  focus?: ChartFocusStrategy
-  spatialIndex?: ChartSpatialIndexFactory<TDatum>
+  focus?: ChartFocusStrategy<
+    NoInfer<TDatum>,
+    NoInfer<TXValue>,
+    NoInfer<TYValue>
+  >
+  spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
   animate?: boolean | ChartAnimationOptions
   keyboard?: boolean
-  tooltip?: boolean | ChartTooltipOptions<TDatum>
-  onFocusChange?: (point: ChartPoint<TDatum> | null) => void
-  onFocusGroupChange?: (points: readonly ChartPoint<TDatum>[]) => void
-  onSelect?: (point: ChartPoint<TDatum> | null) => void
-  onRender?: (context: ChartRenderContext<TDatum>) => void
-  renderSvg?: ChartSvgRenderer
+  tooltip?: boolean | ChartTooltipOptions<TDatum, TXValue, TYValue>
+  onFocusChange?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
+  onFocusGroupChange?: (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  ) => void
+  onSelect?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
+  onRender?: (context: ChartRenderContext<TDatum, TXValue, TYValue>) => void
+  renderSvg?: ChartSvgRenderer<
+    NoInfer<TDatum>,
+    NoInfer<TXValue>,
+    NoInfer<TYValue>
+  >
   measureText?: ChartTextMeasurer
 }
 
-export type StaticChartHostOptions<TDatum = unknown> =
-  ChartHostCommonOptions<TDatum> & {
-    definition: StaticChartDefinition<TDatum>
-    input?: never
-  }
+export type StaticChartHostOptions<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartHostCommonOptions<TDatum, TXValue, TYValue> & {
+  definition: StaticChartDefinition<TDatum, TXValue, TYValue>
+  input?: never
+}
 
 export type DynamicChartHostOptions<
   TDatum = unknown,
   TInput = unknown,
-> = ChartHostCommonOptions<TDatum> & {
-  definition: DynamicChartDefinition<TInput, any, TDatum>
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartHostCommonOptions<TDatum, TXValue, TYValue> & {
+  definition: DynamicChartDefinition<TInput, any, TDatum, TXValue, TYValue>
   input: TInput
 }
 
-export type ChartHostOptions<TDatum = unknown, TInput = undefined> =
-  StaticChartHostOptions<TDatum> | DynamicChartHostOptions<TDatum, TInput>
+export type ChartHostOptions<
+  TDatum = unknown,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | StaticChartHostOptions<TDatum, TXValue, TYValue>
+  | DynamicChartHostOptions<TDatum, TInput, TXValue, TYValue>
 
-export interface ChartHost<TDatum = unknown, TInput = undefined> {
-  update: (options: ChartHostOptions<TDatum, TInput>) => void
-  getScene: () => ChartScene<TDatum>
+export interface ChartHost<
+  TDatum = unknown,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  update: (options: ChartHostOptions<TDatum, TInput, TXValue, TYValue>) => void
+  getScene: () => ChartScene<TDatum, TXValue, TYValue>
   destroy: () => void
 }
 
-export interface ChartRuntime<TDatum = unknown, TInput = undefined> {
-  render: (
-    definition: ChartDefinition<TDatum, TInput, any>,
+export interface ChartRuntime<
+  TDatum = unknown,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  render: <TRenderXValue extends TXValue, TRenderYValue extends TYValue>(
+    definition: ChartDefinition<
+      TDatum,
+      TInput,
+      any,
+      TRenderXValue,
+      TRenderYValue
+    >,
     input: TInput,
     size: ChartSize,
     layout?: ChartLayoutOptions,
-  ) => ChartScene<TDatum>
+  ) => ChartScene<TDatum, TRenderXValue, TRenderYValue>
   destroy: () => void
 }

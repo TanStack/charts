@@ -1,6 +1,14 @@
 import { defineChart, mountChart, rect } from '@tanstack/charts'
 import { scaleBand, scaleOrdinal, scaleUtc } from 'd3-scale'
 import {
+  createResourceTimelineShell,
+  sizeResourceTimelineShell,
+  timelineBodyHeight,
+  timelineLaneRailWidth,
+  timelineMargin,
+  updateTimelineTaskDetails,
+} from './shell'
+import {
   resourceLanes,
   resourceTasks,
   resourceTimelineDomain,
@@ -12,6 +20,7 @@ import {
 } from './data'
 import type {
   ChartHost,
+  ChartPoint,
   ChartScene,
   DynamicChartHostOptions,
 } from '@tanstack/charts'
@@ -26,6 +35,13 @@ import type {
 } from '../../types'
 
 const taskInset = 5
+const focusScrollPadding = 32
+
+interface TimelineFocusState {
+  taskId: string | null
+  centerX: number | null
+  scrolled: boolean
+}
 
 const definition = defineChart<ConformanceInput>()(({ input }) => {
   const rows = resourceTasks(input.revision)
@@ -47,7 +63,14 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
     x: {
       scale: scaleUtc().domain(resourceTimelineDomain),
       grid: true,
-      ticks: 3,
+      ticks: Math.max(
+        6,
+        Math.floor(
+          timelineContentWidth(
+            input.width - timelineLaneRailWidth(input.width),
+          ) / 84,
+        ),
+      ),
     },
     y: {
       scale: scaleBand<string>()
@@ -55,54 +78,85 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
         .paddingInner(0.08)
         .paddingOuter(0.04),
       grid: false,
+      guide: false,
     },
     color: {
       scale: scaleOrdinal<TimelineStatus, string>()
         .domain(timelineStatuses)
         .range(timelineStatuses.map((status) => timelineStatusColors[status])),
     },
-    margin: { top: 18, right: 24, bottom: 50, left: 118 },
+    margin: timelineMargin,
   }
 })
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
-  const viewport = container.ownerDocument.createElement('div')
-  viewport.dataset.conformanceView = 'main'
-  viewport.dataset.conformanceScrollViewport = ''
-  viewport.setAttribute('role', 'region')
-  viewport.setAttribute('aria-label', 'Scrollable resource schedule')
-  viewport.tabIndex = 0
-  viewport.style.overflowX = 'auto'
-  viewport.style.overflowY = 'hidden'
-  viewport.style.overscrollBehaviorX = 'contain'
-  viewport.style.position = 'relative'
+  const shell = createResourceTimelineShell(
+    container.ownerDocument,
+    input,
+    resourceTasks(input.revision),
+  )
+  container.append(shell.root)
+  const { viewport, chartSurface } = shell
+  const focusState: TimelineFocusState = {
+    taskId: null,
+    centerX: null,
+    scrolled: false,
+  }
 
-  const chartSurface = container.ownerDocument.createElement('div')
-  viewport.append(chartSurface)
-  container.append(viewport)
-  sizeTimeline(viewport, chartSurface, input)
+  const updateFocusedTask = (points: readonly ChartPoint<ResourceTask>[]) => {
+    const point = points[0] ?? null
+    focusState.taskId = point?.datum.id ?? null
+    focusState.centerX = point?.x ?? null
+    focusState.scrolled = point
+      ? ensureTimelineFocusVisible(viewport, point.x)
+      : false
+    updateTimelineTaskDetails(shell, point?.datum ?? null)
+  }
 
   const chartOptions = (
     nextInput: ConformanceInput,
   ): DynamicChartHostOptions<ResourceTask, ConformanceInput> => ({
     definition,
     input: nextInput,
-    width: timelineContentWidth(nextInput.width),
-    height: timelineChartHeight(nextInput.height),
+    width: timelineContentWidth(
+      nextInput.width - timelineLaneRailWidth(nextInput.width),
+    ),
+    height: timelineChartHeight(timelineBodyHeight(nextInput.height)),
     ariaLabel: 'Tasks scheduled across five resource lanes',
+    ariaDescription:
+      'Focus the chart and use the arrow, Home, and End keys to inspect tasks. Offscreen tasks scroll into view.',
     animate: false,
-    keyboard: false,
+    keyboard: true,
+    onFocusGroupChange: updateFocusedTask,
+    tooltip: {
+      format: (point: ChartPoint<ResourceTask>) =>
+        `${point.datum.resource} · ${point.datum.label} · ${
+          point.datum.status
+        } · ${formatTaskDate(point.datum.start)}–${formatTaskDate(
+          point.datum.end,
+        )}`,
+    },
   })
   const host = mountChart(chartSurface, chartOptions(input))
-  const driver = createDriver(viewport, chartSurface, () => currentInput, host)
+  const driver = createDriver(
+    viewport,
+    chartSurface,
+    () => currentInput,
+    host,
+    focusState,
+  )
 
   return {
     driver,
     update(nextInput) {
       const scrollLeft = viewport.scrollLeft
       currentInput = nextInput
-      sizeTimeline(viewport, chartSurface, nextInput)
+      sizeResourceTimelineShell(
+        shell,
+        nextInput,
+        resourceTasks(nextInput.revision),
+      )
       host.update(chartOptions(nextInput))
       viewport.scrollLeft = Math.min(
         scrollLeft,
@@ -111,7 +165,7 @@ export const mount: ConformanceMount = (container, input) => {
     },
     destroy() {
       host.destroy()
-      viewport.remove()
+      shell.root.remove()
     },
   }
 }
@@ -121,13 +175,14 @@ function createDriver(
   chartSurface: HTMLDivElement,
   getInput: () => ConformanceInput,
   host: ChartHost<ResourceTask, ConformanceInput>,
+  focusState: TimelineFocusState,
 ): ConformanceTestDriver {
   return {
     resolveTarget(target) {
-      return viewportTarget(viewport, target)
+      return timelineTarget(viewport, chartSurface, host, target)
     },
     readState() {
-      return timelineState(viewport, getInput())
+      return timelineState(viewport, getInput(), focusState)
     },
     geometry(query) {
       return timelineGeometry(
@@ -141,13 +196,31 @@ function createDriver(
   }
 }
 
-function viewportTarget(viewport: HTMLDivElement, target: ConformanceTarget) {
-  if (
-    (target.view !== undefined && target.view !== 'main') ||
-    target.anchor !== 'viewport'
-  ) {
+function timelineTarget(
+  viewport: HTMLDivElement,
+  chartSurface: HTMLDivElement,
+  host: ChartHost<ResourceTask, ConformanceInput>,
+  target: ConformanceTarget,
+) {
+  if (target.view !== undefined && target.view !== 'main') {
     return null
   }
+  if (target.anchor.startsWith('task:')) {
+    const taskId = target.anchor.slice('task:'.length)
+    const scene = host.getScene()
+    const point = scene.points.find(
+      (candidate) => candidate.datum.id === taskId,
+    )
+    const svg = chartSurface.querySelector<SVGSVGElement>('svg.ts-chart')
+    if (!point || !svg) return null
+    const bounds = svg.getBoundingClientRect()
+    return {
+      x: bounds.left + (point.x / scene.width) * bounds.width,
+      y: bounds.top + (point.y / scene.height) * bounds.height,
+      focusElement: svg,
+    }
+  }
+  if (target.anchor !== 'viewport') return null
   const bounds = viewport.getBoundingClientRect()
   return {
     x: bounds.left + bounds.width / 2,
@@ -156,7 +229,11 @@ function viewportTarget(viewport: HTMLDivElement, target: ConformanceTarget) {
   }
 }
 
-function timelineState(viewport: HTMLDivElement, input: ConformanceInput) {
+function timelineState(
+  viewport: HTMLDivElement,
+  input: ConformanceInput,
+  focusState: TimelineFocusState,
+) {
   const rows = resourceTasks(input.revision)
   const apiBuild = rows.find((row) => row.id === 'api-build')
   const qualityRelease = rows.find((row) => row.id === 'quality-release')
@@ -182,7 +259,32 @@ function timelineState(viewport: HTMLDivElement, input: ConformanceInput) {
       start: timelineDateKey(resourceTimelineDomain[0]),
       end: timelineDateKey(resourceTimelineDomain[1]),
     },
+    focus: {
+      taskId: focusState.taskId,
+      visible:
+        focusState.centerX !== null &&
+        focusState.centerX >= viewport.scrollLeft &&
+        focusState.centerX <= viewport.scrollLeft + viewport.clientWidth,
+      scrolled: focusState.scrolled,
+    },
   }
+}
+
+function ensureTimelineFocusVisible(viewport: HTMLDivElement, centerX: number) {
+  const previous = viewport.scrollLeft
+  const visibleStart = previous + focusScrollPadding
+  const visibleEnd = previous + viewport.clientWidth - focusScrollPadding
+  let next = previous
+  if (centerX < visibleStart) {
+    next = centerX - focusScrollPadding
+  } else if (centerX > visibleEnd) {
+    next = centerX - viewport.clientWidth + focusScrollPadding
+  }
+  viewport.scrollLeft = Math.max(
+    0,
+    Math.min(next, viewport.scrollWidth - viewport.clientWidth),
+  )
+  return Math.abs(viewport.scrollLeft - previous) > 1
 }
 
 function timelineGeometry(
@@ -247,13 +349,10 @@ function clipClientSample(
   }
 }
 
-function sizeTimeline(
-  viewport: HTMLDivElement,
-  chartSurface: HTMLDivElement,
-  input: ConformanceInput,
-) {
-  viewport.style.width = `${input.width}px`
-  viewport.style.height = `${input.height}px`
-  chartSurface.style.width = `${timelineContentWidth(input.width)}px`
-  chartSurface.style.height = `${timelineChartHeight(input.height)}px`
+function formatTaskDate(date: Date) {
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
 }

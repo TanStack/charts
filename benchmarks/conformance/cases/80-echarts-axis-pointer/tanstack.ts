@@ -134,9 +134,12 @@ export function mount(
     width: nextInput.width,
     height: nextInput.height,
     ariaLabel: 'Snapped axis pointer with grouped tooltip',
+    ariaDescription:
+      'Move across the chart or use the arrow keys to compare all three series at the nearest month.',
     animate: false,
     keyboard: true,
     focus: focusX,
+    maxFocusDistance: Number.POSITIVE_INFINITY,
     onFocusGroupChange,
     onRender,
   })
@@ -209,10 +212,53 @@ function createInteractionElements(
     boxShadow: '0 6px 24px rgb(0 0 0 / 0.14)',
     font: '500 0.75rem/1.3 system-ui, sans-serif',
     pointerEvents: 'none',
-    transform: 'translate(-50%, 0)',
   })
   tooltip.hidden = true
-  surface.append(overlay, tooltip)
+
+  const legend = document.createElement('div')
+  legend.setAttribute('aria-label', 'Series')
+  Object.assign(legend.style, {
+    position: 'absolute',
+    top: '2px',
+    right: '24px',
+    zIndex: '1',
+    display: 'flex',
+    gap: '10px',
+    color: 'CanvasText',
+    font: '600 10px/1.4 system-ui, sans-serif',
+    pointerEvents: 'none',
+  })
+  for (const series of axisPointerSeries) {
+    const item = document.createElement('span')
+    Object.assign(item.style, {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+    })
+    const swatch = document.createElement('span')
+    Object.assign(swatch.style, {
+      width: '7px',
+      height: '7px',
+      borderRadius: '2px',
+      background: axisPointerColors[series],
+    })
+    item.append(swatch, series)
+    legend.append(item)
+  }
+
+  const instructions = document.createElement('div')
+  instructions.textContent = 'Hover or use ← → to compare months'
+  Object.assign(instructions.style, {
+    position: 'absolute',
+    right: '24px',
+    bottom: '2px',
+    zIndex: '1',
+    color: 'CanvasText',
+    opacity: '0.72',
+    font: '500 10px/1.4 system-ui, sans-serif',
+    pointerEvents: 'none',
+  })
+  surface.append(legend, instructions, overlay, tooltip)
   return { overlay, crosshair, tooltip }
 }
 
@@ -238,10 +284,27 @@ function paintInteraction(
     String(scene.chart.y + scene.chart.height),
   )
   elements.crosshair.setAttribute('visibility', 'visible')
-  elements.tooltip.style.left = `${(point.x / scene.width) * 100}%`
-  elements.tooltip.style.top = `${scene.chart.y + 8}px`
   renderTooltip(elements.tooltip, points)
   elements.tooltip.hidden = false
+  positionTooltip(elements.tooltip, scene, point.x)
+}
+
+function positionTooltip(
+  tooltip: HTMLDivElement,
+  scene: ChartScene<AxisPointerDatum>,
+  pointX: number,
+) {
+  const gap = 10
+  const edge = 8
+  const width = tooltip.offsetWidth || 160
+  const preferredRight = pointX + gap
+  const left =
+    preferredRight + width <= scene.width - edge
+      ? preferredRight
+      : pointX - gap - width
+  tooltip.style.left = `${Math.max(edge, Math.min(scene.width - width - edge, left))}px`
+  tooltip.style.top = `${scene.chart.y + 8}px`
+  tooltip.dataset.placement = left === preferredRight ? 'right' : 'left'
 }
 
 function renderTooltip(
@@ -335,13 +398,11 @@ function resolveTarget(
   if (!date) return null
   const rows = axisPointerRowsAtDate(axisPointerData(input.revision), date)
   if (!rows.length) return null
-  const average =
-    rows.reduce((total, row) => total + row.value, 0) / rows.length
   return scenePointToClient(
     surface,
     scene,
     scene.scales.x.map(date),
-    scene.scales.y.map(average),
+    scene.scales.y.map(2),
   )
 }
 

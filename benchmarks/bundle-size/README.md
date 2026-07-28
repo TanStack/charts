@@ -15,6 +15,14 @@ Every package entry in
 New marks and optional capabilities need an isolated budgeted entry. They must
 leave the locked entries byte-identical.
 
+The advanced custom-mark scale-value factory follows the same rule: its
+subpath has a dedicated budget, while ordinary chart entries must retain zero
+bytes from it.
+
+The optional interaction measurements include the practical granular imports:
+`d3-brush` or `d3-zoom` together with `d3-selection`. They are controller
+kernels, not dependencies of TanStack Charts or its ordinary DOM host.
+
 Update the universal baseline only after reviewing why a shared path changed:
 
 ```sh

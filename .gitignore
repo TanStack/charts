@@ -6,3 +6,4 @@ dist
 coverage
 *.log
 tanstack.com-parity/
+tanstack.com-charts-site/

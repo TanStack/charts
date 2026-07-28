@@ -1,4 +1,10 @@
-import { channelValues, createMark, isChartKey, isChartValue } from './mark'
+import {
+  channelValues,
+  createMark,
+  isChartKey,
+  isChartValue,
+  isNonnegativeFiniteNumber,
+} from './mark'
 import { valueKey } from './scales'
 import type {
   Channel,
@@ -60,7 +66,7 @@ export function dot<TDatum>(
     const radiusMapper = options.rScale
     const radii = radiusMapper
       ? rawRadii.map((value) =>
-          validRadius(value) ? radiusMapper(value) : Number.NaN,
+          isNonnegativeFiniteNumber(value) ? radiusMapper(value) : Number.NaN,
         )
       : rawRadii
 
@@ -85,7 +91,7 @@ export function dot<TDatum>(
           if (
             !isChartValue(xValue) ||
             !isChartValue(yValue) ||
-            !validRadius(radius)
+            !isNonnegativeFiniteNumber(radius)
           )
             return
           const group = zValues[datumIndex] ?? null
@@ -138,8 +144,4 @@ export function dot<TDatum>(
       },
     }
   })
-}
-
-function validRadius(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0
 }

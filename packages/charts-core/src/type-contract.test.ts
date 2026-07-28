@@ -2,10 +2,35 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleBand, scaleLinear, scaleUtc } from 'd3-scale'
 import { barX, barY } from './bar'
 import type { BarYOptions } from './bar'
+import { mountChart } from './dom'
+import { dot } from './dot'
+import { facet } from './facet'
+import { focusX } from './focus'
 import { lineY } from './line'
-import { rect } from './rect'
-import { defineChart } from './scene'
-import type { ChartMark, ChartSpec, ChartValue } from './types'
+import { createMark } from './mark'
+import { createMarkWithScaleValues } from './mark-with-scale-values'
+import { cell, rect } from './rect'
+import type { RectOptions } from './rect'
+import { createChartRuntime } from './runtime'
+import { createChartScene, defineChart } from './scene'
+import type {
+  ChartDefinition,
+  ChartFocusStrategy,
+  ChartMark,
+  ChartMarkPointX,
+  ChartMarkPointY,
+  ChartMarkScaleX,
+  ChartMarkScaleY,
+  ChartMarkX,
+  ChartMarkY,
+  ChartScale,
+  ChartSpec,
+  ChartSpecDatum,
+  ChartSpecXValue,
+  ChartSpecYValue,
+  ChartSvgRenderer,
+  ChartValue,
+} from './types'
 
 interface Row {
   id: string
@@ -25,6 +50,13 @@ const rows: readonly Row[] = [
   },
 ]
 
+interface LiteralRow {
+  category: 'Alpha'
+  value: 4
+}
+
+const literalRows: readonly LiteralRow[] = [{ category: 'Alpha', value: 4 }]
+
 const categoricalMark = barY(rows, {
   x: 'category',
   y: 'value',
@@ -33,6 +65,10 @@ const categoricalMark = barY(rows, {
 const optionalOptions: BarYOptions<Row> | undefined =
   rows.length > 0 ? { x: 'category', y: 'value' } : undefined
 const optionalOptionsMark = barY(rows, optionalOptions)
+const numericMark = dot(rows, { x: 'value', y: 'value' })
+const temporalMark = lineY(rows, { x: 'date', y: 'value' })
+const implicitIndexMark = lineY([3, 5, 8])
+const literalMark = barY(literalRows, { x: 'category', y: 'value' })
 
 const categoricalSpec: ChartSpec<readonly [typeof categoricalMark]> = {
   marks: [categoricalMark],
@@ -51,6 +87,59 @@ const categoricalSpec: ChartSpec<readonly [typeof categoricalMark]> = {
     },
   },
 }
+const staticDefinition = defineChart({
+  marks: [categoricalMark],
+  x: {
+    scale: scaleBand<string>().domain(['Alpha']),
+    format: (value) => {
+      expectTypeOf(value).toEqualTypeOf<string>()
+      return value
+    },
+  },
+  y: { scale: scaleLinear().domain([0, 4]) },
+})
+const numericDefinition = defineChart({
+  marks: [numericMark],
+  x: {
+    scale: scaleLinear().domain([0, 4]),
+    format: (value) => {
+      expectTypeOf(value).toEqualTypeOf<number>()
+      return value.toLocaleString()
+    },
+  },
+  y: { scale: scaleLinear().domain([0, 4]) },
+})
+const temporalDefinition = defineChart({
+  marks: [temporalMark],
+  x: {
+    scale: scaleUtc().domain(rows.map((row) => row.date)),
+    format: (value) => {
+      expectTypeOf(value).toEqualTypeOf<Date>()
+      return value.toISOString()
+    },
+  },
+  y: { scale: scaleLinear().domain([0, 4]) },
+})
+const implicitIndexDefinition = defineChart({
+  marks: [implicitIndexMark],
+  x: { scale: scaleLinear().domain([0, 2]) },
+  y: { scale: scaleLinear().domain([0, 8]) },
+})
+const literalDefinition = defineChart({
+  marks: [literalMark],
+  x: { scale: scaleBand<string>().domain(['Alpha']) },
+  y: { scale: scaleLinear().domain([0, 4]) },
+})
+const undefinedInputDefinition = defineChart<undefined>()(() => ({
+  ...categoricalSpec,
+  marks: [categoricalMark] as const,
+}))
+const voidInputDefinition = defineChart<void>()(() => ({
+  ...categoricalSpec,
+  marks: [categoricalMark] as const,
+}))
+const widenedDefinition: ChartDefinition<Row, undefined> =
+  rows.length > 0 ? staticDefinition : undefinedInputDefinition
 
 interface LineRow {
   kind: 'line'
@@ -88,7 +177,384 @@ const heterogeneousDefinition = defineChart<DynamicInput>()(({ input }) =>
       },
 )
 
+const categoricalRect = rect([{ x1: 'Alpha', x2: 'Beta', y1: 0, y2: 1 }], {
+  x1: 'x1',
+  x2: 'x2',
+  y1: 'y1',
+  y2: 'y2',
+})
+const categoricalCell = cell([{ x: 'Alpha', y: 1 }], {
+  x: 'x',
+  y: 'y',
+})
+const optionalEndpointRows: readonly {
+  x1?: string
+  x2?: string
+  y1?: number
+  y2?: number
+}[] = [{ x1: 'Alpha', x2: 'Beta', y1: 0 }]
+const widenedRectOptions: RectOptions<{
+  x1?: string
+  x2?: string
+  y1?: number
+  y2?: number
+}> = {
+  x1: 'x1',
+  x2: 'x2',
+  y1: 'y1',
+  y2: 'y2',
+}
+const widenedRect = rect(optionalEndpointRows, widenedRectOptions)
+const optionalEndpointRect = rect(optionalEndpointRows, {
+  x1: 'x1',
+  x2: 'x2',
+  y1: 'y1',
+  y2: 'y2',
+})
+const categoricalRectDefinition = defineChart({
+  marks: [categoricalRect],
+  x: { scale: scaleBand<string>().domain(['Alpha', 'Beta']) },
+  y: { scale: scaleLinear().domain([0, 1]) },
+})
+const facetedMark = facet(rows, {
+  by: 'category',
+  chart: () => categoricalSpec,
+})
+const customMark = createMark<Row>(() => ({
+  id: 'custom',
+  channels: {},
+  render: () => ({ nodes: [] }),
+}))
+const endpointCustomMark = createMarkWithScaleValues<
+  Row,
+  number,
+  number,
+  string,
+  number
+>(() => ({
+  id: 'custom-endpoint',
+  channels: {
+    x: { scale: 'x', values: rows.map((row) => row.category) },
+    y: { scale: 'y', values: rows.map((row) => row.value) },
+  },
+  render: () => ({
+    nodes: [],
+    points: rows.map((row, datumIndex) => ({
+      key: row.id,
+      markId: 'custom-endpoint',
+      group: null,
+      groupLabel: 'custom-endpoint',
+      datum: row,
+      datumIndex,
+      xValue: datumIndex,
+      yValue: row.value,
+      x: datumIndex,
+      y: row.value,
+      color: 'currentColor',
+    })),
+  }),
+}))
+const endpointCustomDefinition = defineChart({
+  marks: [endpointCustomMark],
+  x: { scale: scaleBand<string>().domain(rows.map((row) => row.category)) },
+  y: { scale: scaleLinear().domain([0, 4]) },
+})
+const customScale: ChartScale = {
+  id: 'custom',
+  resolve: () => ({
+    id: 'custom',
+    type: 'custom',
+    domain: [],
+    map: () => 0,
+    ticks: [],
+    bandwidth: 0,
+  }),
+}
+
 if (false) {
+  const container = document.createElement('div')
+  const categoricalFocus: ChartFocusStrategy<Row, string, number> = {
+    resolve(points) {
+      return points.filter(
+        (point) =>
+          point.datum.enabled &&
+          point.xValue.startsWith('A') &&
+          point.yValue > 0,
+      )
+    },
+    group(points, point) {
+      return points.filter(
+        (candidate) =>
+          candidate.datum.category === point.datum.category &&
+          candidate.xValue === point.xValue,
+      )
+    },
+    navigation(points) {
+      return [...points].sort(
+        (left, right) => left.datum.value - right.datum.value,
+      )
+    },
+  }
+  const numericFocus: ChartFocusStrategy<Row, number, number> = {
+    resolve: (points) => points,
+    group: (_points, point) => [point],
+    navigation: (points) => points,
+  }
+  const numericRenderer: ChartSvgRenderer<Row, number, number> = () => ''
+
+  const categoricalHost = mountChart(container, {
+    definition: staticDefinition,
+    ariaLabel: 'Categorical values',
+    focus: categoricalFocus,
+    tooltip: {
+      format(point) {
+        expectTypeOf(point.datum).toEqualTypeOf<Row>()
+        expectTypeOf(point.xValue).toEqualTypeOf<string>()
+        expectTypeOf(point.yValue).toEqualTypeOf<number>()
+        return point.xValue
+      },
+      formatGroup(points) {
+        expectTypeOf(points).items.toMatchTypeOf<{
+          datum: Row
+          xValue: string
+          yValue: number
+        }>()
+        return points.map((point) => point.xValue).join(', ')
+      },
+    },
+    onFocusChange(point) {
+      if (!point) return
+      expectTypeOf(point.datum).toEqualTypeOf<Row>()
+      expectTypeOf(point.xValue).toEqualTypeOf<string>()
+      expectTypeOf(point.yValue).toEqualTypeOf<number>()
+    },
+    onFocusGroupChange(points) {
+      expectTypeOf(points).items.toMatchTypeOf<{
+        datum: Row
+        xValue: string
+        yValue: number
+      }>()
+    },
+    onSelect(point) {
+      if (!point) return
+      expectTypeOf(point.xValue).toEqualTypeOf<string>()
+      expectTypeOf(point.yValue).toEqualTypeOf<number>()
+    },
+    onRender({ scene }) {
+      expectTypeOf(scene.points).items.toMatchTypeOf<{
+        datum: Row
+        xValue: string
+        yValue: number
+      }>()
+    },
+    renderSvg(scene) {
+      expectTypeOf(scene.points).items.toMatchTypeOf<{
+        datum: Row
+        xValue: string
+        yValue: number
+      }>()
+      return ''
+    },
+    spatialIndex(points) {
+      expectTypeOf(points).items.toMatchTypeOf<{
+        datum: Row
+        xValue: string
+        yValue: number
+      }>()
+      return {
+        findNearest: () => points[0] ?? null,
+      }
+    },
+  })
+  expectTypeOf(categoricalHost.getScene().points).items.toMatchTypeOf<{
+    datum: Row
+    xValue: string
+    yValue: number
+  }>()
+  mountChart(container, {
+    definition: staticDefinition,
+    ariaLabel: 'Built-in focus remains polymorphic',
+    focus: focusX,
+  })
+  mountChart<Row, undefined, string, number>(container, {
+    definition: staticDefinition,
+    ariaLabel: 'Incompatible focus coordinates',
+    // @ts-expect-error A numeric-x focus strategy cannot consume string-x points.
+    focus: numericFocus,
+  })
+  mountChart<Row, undefined, string, number>(container, {
+    definition: staticDefinition,
+    ariaLabel: 'Incompatible renderer coordinates',
+    // @ts-expect-error A numeric-x renderer cannot consume a string-x scene.
+    renderSvg: numericRenderer,
+  })
+
+  const numericScene = createChartScene(numericDefinition, {
+    width: 640,
+    height: 320,
+  })
+  expectTypeOf(numericScene.points).items.toMatchTypeOf<{
+    datum: Row
+    xValue: number
+    yValue: number
+  }>()
+
+  const staticRuntime = createChartRuntime<Row>()
+  const categoricalRuntimeScene = staticRuntime.render(
+    staticDefinition,
+    undefined,
+    { width: 640, height: 320 },
+  )
+  expectTypeOf(categoricalRuntimeScene.points).items.toMatchTypeOf<{
+    datum: Row
+    xValue: string
+    yValue: number
+  }>()
+  const temporalRuntimeScene = staticRuntime.render(
+    temporalDefinition,
+    undefined,
+    { width: 640, height: 320 },
+  )
+  expectTypeOf(temporalRuntimeScene.points).items.toMatchTypeOf<{
+    datum: Row
+    xValue: Date
+    yValue: number
+  }>()
+
+  const temporalHost = mountChart(container, {
+    definition: temporalDefinition,
+    ariaLabel: 'Temporal values',
+    onFocusChange(point) {
+      if (!point) return
+      expectTypeOf(point.xValue).toEqualTypeOf<Date>()
+      expectTypeOf(point.yValue).toEqualTypeOf<number>()
+    },
+  })
+  expectTypeOf(temporalHost.getScene().points).items.toMatchTypeOf<{
+    datum: Row
+    xValue: Date
+    yValue: number
+  }>()
+
+  const heterogeneousHost = mountChart(container, {
+    definition: heterogeneousDefinition,
+    input: { kind: 'line', rows: [] },
+    ariaLabel: 'Heterogeneous values',
+    focus: focusX,
+    onFocusChange(point) {
+      if (!point) return
+      expectTypeOf(point.datum).toEqualTypeOf<LineRow | BarRow>()
+      expectTypeOf(point.xValue).toEqualTypeOf<Date | number>()
+      expectTypeOf(point.yValue).toEqualTypeOf<number | string>()
+    },
+    onFocusGroupChange(points) {
+      expectTypeOf(points).items.toMatchTypeOf<{
+        datum: LineRow | BarRow
+        xValue: Date | number
+        yValue: number | string
+      }>()
+    },
+    onSelect(point) {
+      if (!point) return
+      expectTypeOf(point.xValue).toEqualTypeOf<Date | number>()
+      expectTypeOf(point.yValue).toEqualTypeOf<number | string>()
+    },
+  })
+  heterogeneousHost.update({
+    definition: heterogeneousDefinition,
+    input: { kind: 'bar', rows: [] },
+    ariaLabel: 'Updated heterogeneous values',
+  })
+  const dynamicRuntime = createChartRuntime<LineRow | BarRow, DynamicInput>()
+  const heterogeneousRuntimeScene = dynamicRuntime.render(
+    heterogeneousDefinition,
+    { kind: 'line', rows: [] },
+    { width: 640, height: 320 },
+  )
+  expectTypeOf(heterogeneousRuntimeScene.points).items.toMatchTypeOf<{
+    datum: LineRow | BarRow
+    xValue: Date | number
+    yValue: number | string
+  }>()
+
+  const undefinedInputHost = mountChart(container, {
+    definition: undefinedInputDefinition,
+    input: undefined,
+    ariaLabel: 'Undefined input',
+    onFocusChange(point) {
+      expectTypeOf(point?.datum).toEqualTypeOf<Row | undefined>()
+    },
+  })
+  undefinedInputHost.update({
+    definition: undefinedInputDefinition,
+    input: undefined,
+    ariaLabel: 'Undefined input update',
+  })
+
+  // @ts-expect-error Host updates retain the explicit undefined-input requirement.
+  undefinedInputHost.update({
+    definition: undefinedInputDefinition,
+    ariaLabel: 'Missing undefined input update',
+  })
+
+  undefinedInputHost.update({
+    definition: undefinedInputDefinition,
+    // @ts-expect-error Host updates reject a value outside the inferred input type.
+    input: { rows },
+    ariaLabel: 'Wrong undefined input update',
+  })
+
+  mountChart(container, {
+    definition: voidInputDefinition,
+    input: undefined,
+    ariaLabel: 'Void input',
+  })
+
+  // @ts-expect-error Dynamic definitions require an explicit input property even when its value is undefined.
+  mountChart(container, {
+    definition: undefinedInputDefinition,
+    ariaLabel: 'Missing undefined input',
+  })
+
+  // @ts-expect-error Dynamic definitions require an explicit input property even when its value is void.
+  mountChart(container, {
+    definition: voidInputDefinition,
+    ariaLabel: 'Missing void input',
+  })
+
+  mountChart(container, {
+    definition: undefinedInputDefinition,
+    // @ts-expect-error Dynamic definitions reject a value outside their inferred input type.
+    input: { rows },
+    ariaLabel: 'Wrong undefined input',
+  })
+
+  // @ts-expect-error Static definitions reject non-undefined input.
+  mountChart(container, {
+    definition: staticDefinition,
+    input: { rows },
+    ariaLabel: 'Static input',
+  })
+
+  mountChart(container, {
+    definition: staticDefinition,
+    input: undefined,
+    ariaLabel: 'Explicit static undefined',
+  })
+
+  // @ts-expect-error A widened static-or-dynamic definition must be narrowed before mounting.
+  mountChart(container, {
+    definition: widenedDefinition,
+    ariaLabel: 'Widened definition',
+  })
+
+  // @ts-expect-error Supplying input does not resolve a widened definition.
+  mountChart(container, {
+    definition: widenedDefinition,
+    input: undefined,
+    ariaLabel: 'Widened definition with input',
+  })
+
   // @ts-expect-error A boolean field cannot feed a numeric channel.
   lineY(rows, { x: 'date', y: 'enabled' })
 
@@ -103,6 +569,29 @@ if (false) {
   }
   void invalidCategoricalSpec
 
+  const invalidNumericSpec: ChartSpec<readonly [typeof numericMark]> = {
+    marks: [numericMark],
+    // @ts-expect-error Numeric x values cannot use a categorical scale.
+    x: { scale: scaleBand<string>().domain(['Alpha']) },
+    y: { scale: scaleLinear().domain([0, 4]) },
+  }
+  void invalidNumericSpec
+
+  const invalidTemporalSpec: ChartSpec<readonly [typeof temporalMark]> = {
+    marks: [temporalMark],
+    // @ts-expect-error Date x values cannot use a numeric scale.
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 4]) },
+  }
+  void invalidTemporalSpec
+
+  // @ts-expect-error Static definitions infer and enforce the mark-to-scale contract.
+  defineChart({
+    marks: [categoricalMark],
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 4]) },
+  })
+
   // @ts-expect-error Dynamic definitions retain the mark-to-scale contract.
   defineChart<{ rows: readonly Row[] }>()(({ input }) => ({
     marks: [barY(input.rows, { x: 'category', y: 'value' })],
@@ -110,19 +599,68 @@ if (false) {
     y: { scale: scaleLinear().domain([0, 4]) },
   }))
 
-  const categoricalRect = rect([{ x1: 'Alpha', x2: 'Beta', y1: 0, y2: 1 }], {
-    x1: 'x1',
-    x2: 'x2',
-    y1: 'y1',
-    y2: 'y2',
+  // @ts-expect-error Rect endpoint channels participate in the inferred scale contract.
+  defineChart({
+    marks: [categoricalRect],
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 1]) },
   })
+
+  const validRectSpec: ChartSpec<readonly [typeof categoricalRect]> = {
+    marks: [categoricalRect],
+    x: { scale: scaleBand<string>().domain(['Alpha', 'Beta']) },
+    y: { scale: scaleLinear().domain([0, 1]) },
+  }
+  const validCellSpec: ChartSpec<readonly [typeof categoricalCell]> = {
+    marks: [categoricalCell],
+    x: { scale: scaleBand<string>().domain(['Alpha']) },
+    y: { scale: scaleLinear().domain([0, 1]) },
+  }
   const invalidRectSpec: ChartSpec<readonly [typeof categoricalRect]> = {
     marks: [categoricalRect],
-    // @ts-expect-error Rect endpoint types participate in the scale contract.
+    // @ts-expect-error Rect endpoint channels emit strings, so a numeric scale is invalid.
     x: { scale: scaleLinear().domain([0, 1]) },
     y: { scale: scaleLinear().domain([0, 1]) },
   }
-  void invalidRectSpec
+  const invalidCellSpec: ChartSpec<readonly [typeof categoricalCell]> = {
+    marks: [categoricalCell],
+    x: { scale: scaleBand<string>().domain(['Alpha']) },
+    // @ts-expect-error Cell y channels emit numbers, so a categorical scale is invalid.
+    y: { scale: scaleBand<string>().domain(['row']) },
+  }
+  const uncheckedFacetSpec: ChartSpec<readonly [typeof facetedMark]> = {
+    marks: [facetedMark],
+    x: { scale: scaleLinear() },
+    y: { scale: scaleUtc() },
+  }
+  const uncheckedCustomMarkSpec: ChartSpec<readonly [typeof customMark]> = {
+    marks: [customMark],
+    x: { scale: scaleBand<string>() },
+    y: { scale: scaleUtc() },
+  }
+  const invalidEndpointCustomSpec: ChartSpec<
+    readonly [typeof endpointCustomMark]
+  > = {
+    marks: [endpointCustomMark],
+    // @ts-expect-error A custom mark's declared string scale values reject a linear scale.
+    x: { scale: scaleLinear() },
+    y: { scale: scaleLinear() },
+  }
+  const uncheckedScaleSpec: ChartSpec<readonly [typeof categoricalMark]> = {
+    marks: [categoricalMark],
+    x: { scale: customScale },
+    y: { scale: scaleLinear() },
+  }
+  void [
+    validRectSpec,
+    validCellSpec,
+    invalidRectSpec,
+    invalidCellSpec,
+    uncheckedFacetSpec,
+    uncheckedCustomMarkSpec,
+    invalidEndpointCustomSpec,
+    uncheckedScaleSpec,
+  ]
 }
 
 describe('public type contracts', () => {
@@ -133,6 +671,109 @@ describe('public type contracts', () => {
     expectTypeOf(optionalOptionsMark).toMatchTypeOf<
       ChartMark<Row, ChartValue, number>
     >()
+    expectTypeOf<ChartMarkX<typeof categoricalMark>>().toEqualTypeOf<string>()
+    expectTypeOf<ChartMarkY<typeof categoricalMark>>().toEqualTypeOf<number>()
+    expectTypeOf<ChartMarkX<typeof numericMark>>().toEqualTypeOf<number>()
+    expectTypeOf<ChartMarkY<typeof numericMark>>().toEqualTypeOf<number>()
+    expectTypeOf<ChartMarkX<typeof temporalMark>>().toEqualTypeOf<Date>()
+    expectTypeOf<ChartMarkY<typeof temporalMark>>().toEqualTypeOf<number>()
+    expectTypeOf<ChartMarkX<typeof implicitIndexMark>>().toEqualTypeOf<number>()
+    expectTypeOf<ChartMarkY<typeof implicitIndexMark>>().toEqualTypeOf<number>()
+    expectTypeOf<ChartMarkX<typeof literalMark>>().toEqualTypeOf<string>()
+    expectTypeOf<ChartMarkY<typeof literalMark>>().toEqualTypeOf<number>()
+    expectTypeOf<
+      ChartMarkScaleX<typeof categoricalRect>
+    >().toEqualTypeOf<string>()
+    expectTypeOf<
+      ChartMarkScaleY<typeof categoricalRect>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      ChartMarkPointX<typeof categoricalRect>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      ChartMarkPointY<typeof categoricalRect>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<ChartMarkX<typeof categoricalRect>>().toEqualTypeOf<number>()
+    expectTypeOf<ChartMarkY<typeof categoricalRect>>().toEqualTypeOf<number>()
+    expectTypeOf<
+      NonNullable<typeof categoricalRectDefinition.__xValue>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      NonNullable<typeof categoricalRectDefinition.__yValue>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      ChartMarkScaleX<typeof categoricalCell>
+    >().toEqualTypeOf<string>()
+    expectTypeOf<
+      ChartMarkScaleY<typeof categoricalCell>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      ChartMarkPointX<typeof categoricalCell>
+    >().toEqualTypeOf<string>()
+    expectTypeOf<
+      ChartMarkPointY<typeof categoricalCell>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      ChartMarkScaleX<typeof widenedRect>
+    >().toEqualTypeOf<ChartValue>()
+    expectTypeOf<
+      ChartMarkScaleY<typeof widenedRect>
+    >().toEqualTypeOf<ChartValue>()
+    expectTypeOf<
+      ChartMarkScaleX<typeof optionalEndpointRect>
+    >().toEqualTypeOf<string>()
+    expectTypeOf<
+      ChartMarkScaleY<typeof optionalEndpointRect>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      ChartMarkScaleX<typeof facetedMark>
+    >().toEqualTypeOf<ChartValue>()
+    expectTypeOf<ChartMarkY<typeof customMark>>().toEqualTypeOf<ChartValue>()
+    expectTypeOf<
+      ChartMarkScaleX<typeof endpointCustomMark>
+    >().toEqualTypeOf<string>()
+    expectTypeOf<
+      ChartMarkPointX<typeof endpointCustomMark>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      NonNullable<typeof endpointCustomDefinition.__xValue>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      ChartSpecDatum<typeof endpointCustomDefinition>
+    >().toEqualTypeOf<Row>()
+    expectTypeOf<
+      ChartSpecXValue<typeof endpointCustomDefinition>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      ChartSpecYValue<typeof endpointCustomDefinition>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      NonNullable<typeof numericDefinition.__datum>
+    >().toEqualTypeOf<Row>()
+    expectTypeOf<
+      NonNullable<typeof temporalDefinition.__datum>
+    >().toEqualTypeOf<Row>()
+    expectTypeOf<
+      NonNullable<typeof implicitIndexDefinition.__datum>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      NonNullable<typeof literalDefinition.__datum>
+    >().toEqualTypeOf<LiteralRow>()
+    expectTypeOf<
+      NonNullable<typeof staticDefinition.__xValue>
+    >().toEqualTypeOf<string>()
+    expectTypeOf<
+      NonNullable<typeof staticDefinition.__yValue>
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      NonNullable<typeof temporalDefinition.__xValue>
+    >().toEqualTypeOf<Date>()
+    expectTypeOf<
+      NonNullable<typeof heterogeneousDefinition.__xValue>
+    >().toEqualTypeOf<Date | number>()
+    expectTypeOf<
+      NonNullable<typeof heterogeneousDefinition.__yValue>
+    >().toEqualTypeOf<number | string>()
     expect(categoricalSpec.marks).toEqual([categoricalMark])
   })
 })

@@ -25,12 +25,18 @@ export function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
 }
 
+export function isNonnegativeFiniteNumber(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= 0
+}
+
 export function createMark<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(
-  initialize: (context: MarkInitializeContext) => InitializedMark<TDatum>,
+  initialize: (
+    context: MarkInitializeContext,
+  ) => InitializedMark<TDatum, TXValue, TYValue>,
 ): ChartMark<TDatum, TXValue, TYValue> {
   return { initialize }
 }

@@ -17,7 +17,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm docs:check
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm package:check
+      - run: pnpm bundle:check
+      - run: pnpm benchmark:check
+      - run: pnpm catalog:check
+      - run: pnpm catalog:build
+      - run: git diff --check
+
   compare:
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -31,8 +57,6 @@ jobs:
 
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm benchmark:check
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm benchmark -- --profile=ci
       - run: cat .benchmark-output/results/comparison.md >> "$GITHUB_STEP_SUMMARY"
@@ -43,4 +67,72 @@ jobs:
         with:
           name: chart-library-comparison-${{ github.run_id }}
           path: .benchmark-output/results
+          if-no-files-found: error
+
+  conformance:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm conformance:quick
+      - run: cat .benchmark-output/conformance/results/plot-catalog.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload conformance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chart-library-conformance-${{ github.run_id }}
+          path: |
+            .benchmark-output/conformance/results
+            .benchmark-output/conformance/screenshots
+          if-no-files-found: error
+
+  stress:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Validate stress workload invariants
+        run: pnpm exec vitest run benchmarks/comparison/stress
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run quick stress profile
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: pnpm benchmark:stress:quick
+
+      - name: Run standard stress profile
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: pnpm benchmark:stress:standard
+
+      - name: Publish stress summary
+        if: success()
+        run: cat .benchmark-output/stress/results/*.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload stress results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chart-library-stress-${{ github.run_id }}
+          path: .benchmark-output/stress/results
           if-no-files-found: error

@@ -7,12 +7,14 @@ import {
   freeCursorXDomain,
   freeCursorYDomain,
 } from './data'
+import { createFreeCursorControls, updateFreeCursorControls } from './controls'
 import type {
   ChartRenderContext,
   ChartScene,
   DynamicChartHostOptions,
 } from '@tanstack/charts'
 import type { FreeCursorDatum } from './data'
+import type { FreeCursorControls } from './controls'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -27,13 +29,22 @@ interface CursorState {
   visible: boolean
   xNormalized: number | null
   yNormalized: number | null
+  xValue: number | null
+  yValue: number | null
+  pinned: boolean
 }
 
 interface CursorElements {
   overlay: SVGSVGElement
   xLine: SVGLineElement
   yLine: SVGLineElement
+  marker: SVGCircleElement
+  xBadge: HTMLDivElement
+  yBadge: HTMLDivElement
 }
+
+const configuredXScale = scaleLinear().domain(freeCursorXDomain)
+const configuredYScale = scaleLinear().domain(freeCursorYDomain)
 
 const definition = defineChart<ConformanceInput>()(({ input }) => {
   const rows = freeCursorData(input.revision)
@@ -59,11 +70,11 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
       }),
     ],
     x: {
-      scale: scaleLinear().domain(freeCursorXDomain),
+      scale: configuredXScale,
       label: 'X',
     },
     y: {
-      scale: scaleLinear().domain(freeCursorYDomain),
+      scale: configuredYScale,
       grid: true,
       label: 'Y',
     },
@@ -88,12 +99,49 @@ export function mount(
     visible: false,
     xNormalized: null,
     yNormalized: null,
+    xValue: null,
+    yValue: null,
+    pinned: false,
   }
+  const shell = container.ownerDocument.createElement('div')
+  shell.style.display = 'grid'
+  shell.style.gridTemplateRows = '68px minmax(0, 1fr)'
   const surface = container.ownerDocument.createElement('div')
   surface.dataset.conformanceView = 'main'
   surface.style.position = 'relative'
   setSurfaceSize(surface, input)
-  container.append(surface)
+  let controls: FreeCursorControls
+
+  const updateInteraction = () => {
+    paintCursor()
+    updateFreeCursorControls(controls, {
+      visible: state.visible,
+      x: state.xValue,
+      y: state.yValue,
+      pinned: state.pinned,
+    })
+  }
+
+  controls = createFreeCursorControls(
+    container.ownerDocument,
+    (xValue, yValue) => {
+      state.visible = true
+      state.xNormalized =
+        (xValue - freeCursorXDomain[0]) /
+        (freeCursorXDomain[1] - freeCursorXDomain[0])
+      state.yNormalized =
+        1 -
+        (yValue - freeCursorYDomain[0]) /
+          (freeCursorYDomain[1] - freeCursorYDomain[0])
+      state.xValue = xValue
+      state.yValue = yValue
+      state.pinned = true
+      updateInteraction()
+    },
+  )
+  shell.append(controls.root, surface)
+  container.append(shell)
+  sizeShell(shell, input)
 
   const paintCursor = () => {
     if (!scene || !elements) return
@@ -108,6 +156,9 @@ export function mount(
     ) {
       elements.xLine.setAttribute('visibility', 'hidden')
       elements.yLine.setAttribute('visibility', 'hidden')
+      elements.marker.setAttribute('visibility', 'hidden')
+      elements.xBadge.hidden = true
+      elements.yBadge.hidden = true
       return
     }
     const x = scene.chart.x + scene.chart.width * state.xNormalized
@@ -125,6 +176,17 @@ export function mount(
     elements.yLine.setAttribute('y2', String(y))
     elements.xLine.setAttribute('visibility', 'visible')
     elements.yLine.setAttribute('visibility', 'visible')
+    elements.marker.setAttribute('cx', String(x))
+    elements.marker.setAttribute('cy', String(y))
+    elements.marker.setAttribute('visibility', 'visible')
+    elements.xBadge.textContent = formatCursorValue('X', state.xValue)
+    elements.yBadge.textContent = formatCursorValue('Y', state.yValue)
+    elements.xBadge.style.left = `${(x / scene.width) * 100}%`
+    elements.xBadge.style.top = `${((scene.chart.y + scene.chart.height + 4) / scene.height) * 100}%`
+    elements.yBadge.style.left = `${Math.max(2, scene.chart.x - 48)}px`
+    elements.yBadge.style.top = `${(y / scene.height) * 100}%`
+    elements.xBadge.hidden = false
+    elements.yBadge.hidden = false
   }
 
   const onRender = (context: ChartRenderContext<FreeCursorDatum>) => {
@@ -139,7 +201,7 @@ export function mount(
     definition,
     input: nextInput,
     width: nextInput.width,
-    height: nextInput.height,
+    height: freeCursorChartHeight(nextInput.height),
     ariaLabel: 'Line chart with a free two-dimensional cursor',
     animate: false,
     keyboard: false,
@@ -150,9 +212,10 @@ export function mount(
   const host = mountChart(surface, options(input))
   scene = host.getScene()
   elements = createCursorElements(surface)
-  paintCursor()
+  updateInteraction()
 
   const handlePointerMove = (event: PointerEvent) => {
+    if (state.pinned) return
     if (!scene) return
     const svg = surface.querySelector<SVGSVGElement>('svg.ts-chart')
     if (!svg) return
@@ -166,28 +229,69 @@ export function mount(
       sceneY > scene.chart.y + scene.chart.height
     ) {
       clearCursor(state)
-      paintCursor()
+      updateInteraction()
       return
     }
     state.visible = true
     state.xNormalized = (sceneX - scene.chart.x) / scene.chart.width
     state.yNormalized = (sceneY - scene.chart.y) / scene.chart.height
-    paintCursor()
+    state.xValue = roundCursorValue(
+      configuredXScale
+        .copy()
+        .range([scene.chart.x, scene.chart.x + scene.chart.width])
+        .invert(sceneX),
+    )
+    state.yValue = roundCursorValue(
+      configuredYScale
+        .copy()
+        .range([scene.chart.y + scene.chart.height, scene.chart.y])
+        .invert(sceneY),
+    )
+    updateInteraction()
   }
 
   const handlePointerLeave = () => {
+    if (state.pinned) return
     clearCursor(state)
-    paintCursor()
+    updateInteraction()
+  }
+
+  const handlePointerCancel = () => {
+    if (state.pinned) return
+    clearCursor(state)
+    updateInteraction()
+  }
+
+  const handleClick = () => {
+    if (!state.visible) return
+    if (state.pinned) {
+      clearCursor(state)
+    } else {
+      state.pinned = true
+    }
+    updateInteraction()
+  }
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || !state.visible) return
+    event.preventDefault()
+    clearCursor(state)
+    updateInteraction()
   }
 
   surface.addEventListener('pointermove', handlePointerMove)
+  surface.addEventListener('pointerdown', handlePointerMove)
   surface.addEventListener('mouseleave', handlePointerLeave)
+  surface.addEventListener('pointercancel', handlePointerCancel)
+  surface.addEventListener('click', handleClick)
+  shell.addEventListener('keydown', handleKeyDown)
 
   const driver = createDriver(
     surface,
     () => currentInput,
     () => scene,
     state,
+    controls,
     () => renderCount,
   )
 
@@ -195,15 +299,20 @@ export function mount(
     driver,
     update(nextInput) {
       currentInput = nextInput
+      sizeShell(shell, nextInput)
       setSurfaceSize(surface, nextInput)
       host.update(options(nextInput))
-      paintCursor()
+      updateInteraction()
     },
     destroy() {
       surface.removeEventListener('pointermove', handlePointerMove)
+      surface.removeEventListener('pointerdown', handlePointerMove)
       surface.removeEventListener('mouseleave', handlePointerLeave)
+      surface.removeEventListener('pointercancel', handlePointerCancel)
+      surface.removeEventListener('click', handleClick)
+      shell.removeEventListener('keydown', handleKeyDown)
       host.destroy()
-      surface.remove()
+      shell.remove()
     },
   }
 }
@@ -223,9 +332,21 @@ function createCursorElements(surface: HTMLDivElement): CursorElements {
   })
   const xLine = cursorLine(document, 'x')
   const yLine = cursorLine(document, 'y')
-  overlay.append(xLine, yLine)
-  surface.append(overlay)
-  return { overlay, xLine, yLine }
+  const marker = document.createElementNS(
+    'http://www.w3.org/2000/svg',
+    'circle',
+  )
+  marker.dataset.conformanceCrosshair = 'marker'
+  marker.setAttribute('r', '4')
+  marker.setAttribute('fill', '#ffffff')
+  marker.setAttribute('stroke', '#0f766e')
+  marker.setAttribute('stroke-width', '2')
+  marker.setAttribute('visibility', 'hidden')
+  const xBadge = cursorBadge(document, 'x')
+  const yBadge = cursorBadge(document, 'y')
+  overlay.append(xLine, yLine, marker)
+  surface.append(overlay, xBadge, yBadge)
+  return { overlay, xLine, yLine, marker, xBadge, yBadge }
 }
 
 function cursorLine(document: Document, axis: 'x' | 'y') {
@@ -242,6 +363,9 @@ function clearCursor(state: CursorState) {
   state.visible = false
   state.xNormalized = null
   state.yNormalized = null
+  state.xValue = null
+  state.yValue = null
+  state.pinned = false
 }
 
 function createDriver(
@@ -249,11 +373,12 @@ function createDriver(
   getInput: () => ConformanceInput,
   getScene: () => ChartScene<FreeCursorDatum> | null,
   state: CursorState,
+  controls: FreeCursorControls,
   getRenderCount: () => number,
 ): ConformanceTestDriver {
   return {
     resolveTarget(target) {
-      return resolveTarget(surface, getScene(), target)
+      return resolveTarget(surface, getScene(), controls, target)
     },
     readState() {
       return interactionState(state, getRenderCount())
@@ -267,9 +392,24 @@ function createDriver(
 function resolveTarget(
   surface: HTMLDivElement,
   scene: ChartScene<FreeCursorDatum> | null,
+  controls: FreeCursorControls,
   target: ConformanceTarget,
 ) {
   if (target.view !== undefined && target.view !== 'main') return null
+  const control =
+    target.anchor === 'control:x'
+      ? controls.x
+      : target.anchor === 'control:y'
+        ? controls.y
+        : null
+  if (control) {
+    const bounds = control.getBoundingClientRect()
+    return {
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+      focusElement: control,
+    }
+  }
   const fraction = freeCursorFractionFromAnchor(target.anchor)
   if (!scene || !fraction) return null
   return scenePointToClient(
@@ -364,6 +504,9 @@ function interactionState(
       visible: state.visible,
       xNormalized: state.xNormalized,
       yNormalized: state.yNormalized,
+      xValue: state.xValue,
+      yValue: state.yValue,
+      pinned: state.pinned,
       snapped: false,
       datum: null,
     },
@@ -375,5 +518,43 @@ function interactionState(
 
 function setSurfaceSize(surface: HTMLDivElement, input: ConformanceInput) {
   surface.style.width = `${input.width}px`
-  surface.style.height = `${input.height}px`
+  surface.style.height = `${freeCursorChartHeight(input.height)}px`
+}
+
+function sizeShell(shell: HTMLDivElement, input: ConformanceInput) {
+  shell.style.width = `${input.width}px`
+  shell.style.height = `${input.height}px`
+}
+
+function freeCursorChartHeight(height: number) {
+  return Math.max(180, height - 68)
+}
+
+function cursorBadge(document: Document, axis: 'x' | 'y') {
+  const badge = document.createElement('div')
+  badge.dataset.conformanceCursorBadge = axis
+  badge.hidden = true
+  Object.assign(badge.style, {
+    position: 'absolute',
+    zIndex: '2',
+    padding: '2px 5px',
+    borderRadius: '4px',
+    background: 'CanvasText',
+    color: 'Canvas',
+    font: '600 10px/1.2 system-ui, sans-serif',
+    pointerEvents: 'none',
+    transform: axis === 'x' ? 'translateX(-50%)' : 'translateY(-50%)',
+    whiteSpace: 'nowrap',
+  })
+  return badge
+}
+
+function formatCursorValue(axis: string, value: number | null) {
+  return `${axis} ${
+    value?.toLocaleString(undefined, { maximumFractionDigits: 1 }) ?? '—'
+  }`
+}
+
+function roundCursorValue(value: number) {
+  return Math.round(value * 10) / 10
 }

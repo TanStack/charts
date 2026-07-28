@@ -44,6 +44,11 @@ const entries = [
   ),
   budgeted('Frame + static SVG', 'benchmarks/entries/charts-frame-svg.ts', 5.3),
   budgeted(
+    'Custom mark scale-value factory',
+    'benchmarks/entries/charts-mark-scale-values.ts',
+    0.25,
+  ),
+  budgeted(
     'D3-scale hexagons + static SVG',
     'benchmarks/entries/charts-hexagon-svg.ts',
     13.9,
@@ -166,6 +171,16 @@ const entries = [
     'D3 Delaunay kernel',
     'benchmarks/entries/d3-delaunay-kernel.ts',
     7.3,
+  ),
+  budgeted(
+    'D3 brush controller kernel',
+    'benchmarks/entries/d3-brush-kernel.ts',
+    16.5,
+  ),
+  budgeted(
+    'D3 zoom controller kernel',
+    'benchmarks/entries/d3-zoom-kernel.ts',
+    16.5,
   ),
   measured(
     'TanStack easing helper',

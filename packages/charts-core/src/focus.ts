@@ -1,19 +1,24 @@
 import { valueKey } from './scales'
-import type { ChartFocusStrategy, ChartPoint, ChartValue } from './types'
+import type { ChartPoint, ChartValue } from './types'
 
 export const focusX = axisFocus('x', true)
 export const focusY = axisFocus('y', true)
 export const focusNearestX = axisFocus('x', false)
 export const focusNearestY = axisFocus('y', false)
 
-function axisFocus(axis: 'x' | 'y', grouped: boolean): ChartFocusStrategy {
+function axisFocus(axis: 'x' | 'y', grouped: boolean) {
   const coordinate = (point: ChartPoint) => (axis === 'x' ? point.x : point.y)
   const value = (point: ChartPoint) =>
     axis === 'x' ? point.xValue : point.yValue
   const secondary = (point: ChartPoint) => (axis === 'x' ? point.y : point.x)
 
   return {
-    resolve(points, x, y, maxDistance) {
+    resolve<TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
+      points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+      x: number,
+      y: number,
+      maxDistance: number,
+    ) {
       const target = axis === 'x' ? x : y
       let nearest: (typeof points)[number] | undefined
       let distance = maxDistance
@@ -38,10 +43,15 @@ function axisFocus(axis: 'x' | 'y', grouped: boolean): ChartFocusStrategy {
         ? [primary, ...candidates.filter((point) => point !== primary)]
         : [primary]
     },
-    group: grouped
-      ? (points, point) => groupPoints(points, point, value)
-      : (_points, point) => [point],
-    navigation(points) {
+    group<TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
+      points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+      point: ChartPoint<TDatum, TXValue, TYValue>,
+    ) {
+      return grouped ? groupPoints(points, point, value) : [point]
+    },
+    navigation<TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
+      points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    ) {
       const sorted = [...points].sort(
         (left, right) => left.x - right.x || left.y - right.y,
       )
@@ -53,16 +63,37 @@ function axisFocus(axis: 'x' | 'y', grouped: boolean): ChartFocusStrategy {
       }
       return [...unique.values()]
     },
-  }
+  } satisfies UniversalChartFocusStrategy
 }
 
-function groupPoints<TDatum>(
-  points: readonly ChartPoint<TDatum>[],
-  point: ChartPoint<TDatum>,
-  value: (point: ChartPoint<TDatum>) => ChartValue,
+interface UniversalChartFocusStrategy {
+  resolve: <TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    x: number,
+    y: number,
+    maxDistance: number,
+  ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  group: <TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    point: ChartPoint<TDatum, TXValue, TYValue>,
+  ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  navigation: <TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
+}
+
+function groupPoints<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  point: ChartPoint<TDatum, TXValue, TYValue>,
+  value: (point: ChartPoint<TDatum, TXValue, TYValue>) => ChartValue,
 ) {
   const key = valueKey(value(point))
-  const unique = new Map<string, ChartPoint<TDatum>>()
+  const unique = new Map<string, ChartPoint<TDatum, TXValue, TYValue>>()
+  unique.set(valueKey(point.group), point)
   for (const candidate of points) {
     if (valueKey(value(candidate)) !== key) continue
     const group = valueKey(candidate.group)

@@ -183,6 +183,43 @@ describe('native mark and channel scene', () => {
     expect(svg).toContain('data-ts-chart-focus')
   })
 
+  it('inherits shared grid presentation attributes from one group', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 3, 2])],
+        x: { ...linearAxes([0, 2], [0, 3]).x, grid: true },
+        y: { ...linearAxes([0, 2], [0, 3]).y, grid: true },
+      }),
+      { width: 480, height: 260 },
+    )
+    const grid = scene.nodes.find(
+      (node) => node.kind === 'group' && node.key === 'grid',
+    )
+    if (!grid || grid.kind !== 'group') throw new Error('Expected grid group')
+
+    expect(grid.style).toEqual({
+      stroke: 'currentColor',
+      strokeOpacity: 0.11,
+      strokeWidth: 1,
+    })
+    expect(grid.children.length).toBeGreaterThan(0)
+    expect(grid.children.every((node) => node.style === undefined)).toBe(true)
+
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvg(scene, { ariaLabel: 'Grid' })
+    const renderedGrid = container.querySelector('[data-ts-key="grid"]')
+    const renderedRules = renderedGrid?.querySelectorAll('line')
+    expect(renderedGrid?.getAttribute('stroke')).toBe('currentColor')
+    expect(renderedGrid?.getAttribute('stroke-opacity')).toBe('0.11')
+    expect(renderedGrid?.getAttribute('stroke-width')).toBe('1')
+    expect(renderedRules?.length).toBeGreaterThan(0)
+    for (const rule of renderedRules ?? []) {
+      expect(rule.hasAttribute('stroke')).toBe(false)
+      expect(rule.hasAttribute('stroke-opacity')).toBe(false)
+      expect(rule.hasAttribute('stroke-width')).toBe(false)
+    }
+  })
+
   it('mounts, updates, interacts, and destroys through vanilla TypeScript', () => {
     const firstDatum = { id: 'a', x: 0, y: 10 }
     const definition = defineChart({

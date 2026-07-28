@@ -42,6 +42,14 @@ export function brushDateKey(date: Date) {
   return date.toISOString().slice(0, 10)
 }
 
+export function brushShortDate(date: Date) {
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
 export function brushDateFromAnchor(anchor: string) {
   const key = anchor.startsWith('date:') ? anchor.slice(5) : ''
   return brushDates.find((date) => brushDateKey(date) === key) ?? null
@@ -50,7 +58,7 @@ export function brushDateFromAnchor(anchor: string) {
 export function clampBrushDate(date: Date) {
   const timestamp = Math.min(
     brushDomain[1].getTime(),
-    Math.max(brushDomain[0].getTime(), utcDay.round(date).getTime()),
+    Math.max(brushDomain[0].getTime(), utcMonth.round(date).getTime()),
   )
   return new Date(timestamp)
 }
@@ -72,4 +80,17 @@ export function brushRowsInRange(
     return timestamp >= start && timestamp <= end
   })
 }
-import { utcDay } from 'd3-time'
+
+export function brushRangeSummary(
+  rows: readonly BrushDatum[],
+  range: BrushRange,
+) {
+  const selected = brushRowsInRange(rows, range)
+  const total = selected.reduce((sum, row) => sum + row.value, 0)
+  return {
+    count: selected.length,
+    total,
+    average: selected.length ? total / selected.length : 0,
+  }
+}
+import { utcMonth } from 'd3-time'

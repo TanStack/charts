@@ -13,6 +13,9 @@ export const streamingViewportDomain: readonly [Date, Date] = [
   dateAt(11),
 ]
 
+const streamingViewportSpan =
+  streamingViewportDomain[1].getTime() - streamingViewportDomain[0].getTime()
+
 export function streamingData(
   revision = 0,
   appended = 0,
@@ -50,6 +53,30 @@ export function visibleStreamingData(
 
 export function streamingDateKey(date: Date) {
   return date.toISOString().slice(0, 10)
+}
+
+export function latestStreamingViewport(
+  rows: readonly StreamingDatum[],
+): readonly [Date, Date] {
+  const end = rows.at(-1)?.date ?? streamingViewportDomain[1]
+  return [new Date(end.getTime() - streamingViewportSpan), end]
+}
+
+export function fullStreamingViewport(
+  rows: readonly StreamingDatum[],
+): readonly [Date, Date] {
+  return [
+    rows[0]?.date ?? streamingViewportDomain[0],
+    rows.at(-1)?.date ?? streamingViewportDomain[1],
+  ]
+}
+
+export function formatStreamingDate(date: Date) {
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
 }
 
 function dateAt(index: number) {

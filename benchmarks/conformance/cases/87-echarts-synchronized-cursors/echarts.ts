@@ -24,9 +24,11 @@ import {
   synchronizedCursorDateKey,
   synchronizedCursorDates,
   synchronizedCursorDatumAtDate,
+  synchronizedCursorNearestDatum,
   synchronizedCursorViews,
   synchronizedCursorYDomains,
 } from './data'
+import { createSynchronizedSummary, updateSynchronizedSummary } from './summary'
 import type { SynchronizedCursorView } from './data'
 import type {
   ConformanceGeometryQuery,
@@ -57,6 +59,7 @@ type SynchronizedCursorOption = ComposeOption<
 
 interface CursorState {
   date: Date | null
+  pinned: boolean
 }
 
 interface GridLayout {
@@ -66,16 +69,44 @@ interface GridLayout {
 }
 
 export const mount: ConformanceMount = (container, input) => {
+  let currentInput = input
   const state: CursorState = {
     date: null,
+    pinned: false,
   }
+  const shell = container.ownerDocument.createElement('div')
+  const summary = createSynchronizedSummary(container.ownerDocument)
+  const chartFrame = container.ownerDocument.createElement('div')
+  shell.style.display = 'grid'
+  shell.style.gridTemplateRows = '56px minmax(0, 1fr)'
+  shell.append(summary.root, chartFrame)
+  container.append(shell)
+  sizeSynchronizedShell(shell, chartFrame, input)
+
+  const updateSummary = () =>
+    updateSynchronizedSummary(summary, state.date, currentInput, state.pinned)
   const mountCase = echartsMount(
     synchronizedCursorOption,
     'Throughput and error-rate views with linked date cursors',
     ({ chart, surface, getInput }) =>
-      createDriver(chart, surface, getInput, state),
+      createDriver(chart, surface, getInput, state, updateSummary),
   )
-  return mountCase(container, input)
+  const chartHandle = mountCase(chartFrame, synchronizedInput(input))
+  updateSummary()
+
+  return {
+    driver: chartHandle.driver,
+    update(nextInput) {
+      currentInput = nextInput
+      sizeSynchronizedShell(shell, chartFrame, nextInput)
+      chartHandle.update(synchronizedInput(nextInput))
+      updateSummary()
+    },
+    destroy() {
+      chartHandle.destroy()
+      shell.remove()
+    },
+  }
 }
 
 function synchronizedCursorOption(
@@ -208,24 +239,66 @@ function createDriver(
   surface: HTMLDivElement,
   getInput: () => ConformanceInput,
   state: CursorState,
+  updateSummary: () => void,
 ): ConformanceTestDriver {
   const handleAxisPointer = (...args: unknown[]) => {
     const date = dateFromAxisPointerEvent(args)
     if (!date) return
     state.date = date
+    updateSummary()
   }
   const clearCursor = () => {
+    if (state.pinned) return
     state.date = null
+    updateSummary()
+  }
+  const pinCursor = () => {
+    if (!state.date) return
+    state.pinned = !state.pinned
+    if (!state.pinned) state.date = null
+    updateSummary()
+  }
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && state.pinned) {
+      event.preventDefault()
+      state.pinned = false
+      state.date = null
+      chart.dispatchAction({ type: 'hideTip' })
+      updateSummary()
+      return
+    }
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    event.preventDefault()
+    const currentIndex = state.date
+      ? synchronizedCursorDates.findIndex(
+          (date) => date.getTime() === state.date?.getTime(),
+        )
+      : -1
+    const nextIndex =
+      event.key === 'ArrowRight'
+        ? Math.min(synchronizedCursorDates.length - 1, currentIndex + 1)
+        : Math.max(0, currentIndex < 0 ? 0 : currentIndex - 1)
+    const nextDate = synchronizedCursorDates[nextIndex]
+    if (!nextDate) return
+    state.date = nextDate
+    chart.dispatchAction({
+      type: 'showTip',
+      seriesIndex: 0,
+      dataIndex: nextIndex,
+    })
+    updateSummary()
   }
   chart.on('updateAxisPointer', handleAxisPointer)
   surface.addEventListener('mouseleave', clearCursor)
+  surface.addEventListener('click', pinCursor)
+  surface.addEventListener('keydown', handleKeyDown)
 
   return {
     resolveTarget(target) {
       return resolveTarget(chart, surface, getInput(), target)
     },
     readState() {
-      return interactionState(chart, surface, state)
+      return interactionState(chart, surface, getInput(), state)
     },
     geometry(query) {
       return geometry(chart, surface, getInput(), query)
@@ -277,7 +350,7 @@ function resolveTarget(
   const view = synchronizedView(target.view)
   const date = synchronizedCursorAnchorDate(target.anchor)
   if (!view || !date) return null
-  const datum = synchronizedCursorDatumAtDate(view, input.revision, date)
+  const datum = synchronizedCursorNearestDatum(view, input.revision, date)
   if (!datum) return null
   const point = pixelPoint(chart, view, date, datum.value)
   if (!point) return null
@@ -412,17 +485,48 @@ function pointsBounds(
 function interactionState(
   chart: EChartsType,
   surface: HTMLDivElement,
+  input: ConformanceInput,
   state: CursorState,
 ): ConformanceJsonObject {
   return {
     shared: {
       date: state.date ? synchronizedCursorDateKey(state.date) : null,
+      primaryValue: state.date
+        ? (synchronizedCursorDatumAtDate('primary', input.revision, state.date)
+            ?.value ?? null)
+        : null,
+      secondaryValue: state.date
+        ? (synchronizedCursorDatumAtDate(
+            'secondary',
+            input.revision,
+            state.date,
+          )?.value ?? null)
+        : null,
+      pinned: state.pinned,
     },
     crosshairs: {
       primary: renderedCrosshairState(chart, surface, 'primary'),
       secondary: renderedCrosshairState(chart, surface, 'secondary'),
     },
   }
+}
+
+function synchronizedInput(input: ConformanceInput): ConformanceInput {
+  return {
+    ...input,
+    height: Math.max(280, input.height - 56),
+  }
+}
+
+function sizeSynchronizedShell(
+  shell: HTMLDivElement,
+  chartFrame: HTMLDivElement,
+  input: ConformanceInput,
+) {
+  shell.style.width = `${input.width}px`
+  shell.style.height = `${input.height}px`
+  chartFrame.style.width = `${input.width}px`
+  chartFrame.style.height = `${Math.max(280, input.height - 56)}px`
 }
 
 function renderedCrosshairState(

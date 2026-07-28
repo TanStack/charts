@@ -1,11 +1,13 @@
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
 import { scaleLinear, scaleOrdinal } from 'd3-scale'
 import type { BenchmarkInput, BenchmarkMount } from '../../types'
-import { seriesColors, visibleRows } from '../tier'
+import { seriesColors, visibleRows, xMaximum, xMinimum } from '../tier'
 import { color, margin, mountDefinition } from './base'
 
 declare const BENCHMARK_INTERACTIVE: boolean
 declare const BENCHMARK_ADVANCED: boolean
+declare const BENCHMARK_STRESS: boolean
+declare const BENCHMARK_VARIABLE_SIZE: boolean
 const seriesDomain = BENCHMARK_ADVANCED
   ? ['Series A', 'Series B']
   : ['Series A']
@@ -18,11 +20,15 @@ const definition = defineChart<BenchmarkInput>()(({ input }) => ({
       key: 'id',
       z: BENCHMARK_INTERACTIVE ? 'series' : undefined,
       fill: BENCHMARK_INTERACTIVE ? undefined : color,
-      r: BENCHMARK_ADVANCED ? 'size' : 2,
+      r: BENCHMARK_ADVANCED || BENCHMARK_VARIABLE_SIZE ? 'size' : 2,
     }),
   ],
   x: {
-    scale: scaleLinear().domain([0, Math.max(1, input.rows.length - 1)]),
+    scale: scaleLinear().domain(
+      BENCHMARK_STRESS
+        ? [xMinimum(input), xMaximum(input)]
+        : [0, Math.max(1, input.rows.length - 1)],
+    ),
     ticks: 6,
     grid: true,
   },

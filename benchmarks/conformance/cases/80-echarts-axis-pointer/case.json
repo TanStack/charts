@@ -51,7 +51,80 @@
             { "path": "tooltip.visible", "equals": true }
           ]
         },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-tooltip=\"grouped\"]"
+              },
+              "property": "visible",
+              "equals": true
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-tooltip=\"grouped\"]"
+              },
+              "property": "text",
+              "includes": "Atlas"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-tooltip=\"grouped\"]"
+              },
+              "property": "contained",
+              "equals": true,
+              "tolerance": 1
+            }
+          ]
+        },
+        { "type": "screenshot", "name": "grouped-tooltip-open" },
         { "type": "pointerLeave", "view": "main" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "crosshair.visible", "equals": false },
+            { "path": "tooltip.visible", "equals": false }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "edge-tooltip-remains-contained",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "date:2025-08-01"
+          }
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-tooltip=\"grouped\"]"
+              },
+              "property": "contained",
+              "equals": true,
+              "tolerance": 1
+            }
+          ]
+        },
+        {
+          "type": "touchDrag",
+          "from": {
+            "view": "main",
+            "anchor": "date:2025-08-01"
+          },
+          "to": {
+            "view": "main",
+            "anchor": "date:2025-07-01"
+          },
+          "steps": 2,
+          "cancel": true
+        },
         {
           "type": "assert",
           "assertions": [

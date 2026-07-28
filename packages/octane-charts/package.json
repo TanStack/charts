@@ -2,8 +2,14 @@
   "name": "@tanstack/octane-charts",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "sideEffects": false,
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "exports": {
     ".": "./src/index.ts"
   },
@@ -16,5 +22,16 @@
   },
   "peerDependencies": {
     "octane": "^0.1.13"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "browser": "./dist/index.js",
+        "node": "./dist/server/index.js",
+        "import": "./dist/index.js"
+      }
+    }
   }
 }

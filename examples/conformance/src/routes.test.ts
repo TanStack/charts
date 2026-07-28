@@ -29,4 +29,18 @@ describe('catalog routes', () => {
       ),
     ).toBe('/catalog/charts/chart%20with%20spaces/')
   })
+
+  it('preserves the production catalog base for direct embed routes', () => {
+    const basePath = '/charts/catalog/'
+    const href = catalogRouteHref(
+      { view: 'embed', caseId: '01-line-gaps' },
+      basePath,
+    )
+
+    expect(href).toBe('/charts/catalog/embed/01-line-gaps/')
+    expect(parseCatalogRoute(href, basePath)).toEqual({
+      view: 'embed',
+      caseId: '01-line-gaps',
+    })
+  })
 })

@@ -22,6 +22,8 @@ import {
   freeCursorXDomain,
   freeCursorYDomain,
 } from './data'
+import { createFreeCursorControls, updateFreeCursorControls } from './controls'
+import type { FreeCursorControls } from './controls'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -53,6 +55,9 @@ interface CursorState {
   visible: boolean
   xNormalized: number | null
   yNormalized: number | null
+  xValue: number | null
+  yValue: number | null
+  pinned: boolean
 }
 
 interface PlotBounds {
@@ -67,7 +72,37 @@ export const mount: ConformanceMount = (container, input) => {
     visible: false,
     xNormalized: null,
     yNormalized: null,
+    xValue: null,
+    yValue: null,
+    pinned: false,
   }
+  const shell = container.ownerDocument.createElement('div')
+  shell.style.display = 'grid'
+  shell.style.gridTemplateRows = '68px minmax(0, 1fr)'
+  const chartFrame = container.ownerDocument.createElement('div')
+  let showCursor:
+    ((xNormalized: number, yNormalized: number) => void) | undefined
+  const controls = createFreeCursorControls(
+    container.ownerDocument,
+    (xValue, yValue) => {
+      state.visible = true
+      state.xNormalized =
+        (xValue - freeCursorXDomain[0]) /
+        (freeCursorXDomain[1] - freeCursorXDomain[0])
+      state.yNormalized =
+        1 -
+        (yValue - freeCursorYDomain[0]) /
+          (freeCursorYDomain[1] - freeCursorYDomain[0])
+      state.xValue = xValue
+      state.yValue = yValue
+      state.pinned = true
+      showCursor?.(state.xNormalized, state.yNormalized)
+      updateCursorControls(controls, state)
+    },
+  )
+  shell.append(controls.root, chartFrame)
+  container.append(shell)
+  sizeFreeCursorShell(shell, chartFrame, input)
   let renderCount = 0
   const mountCase = echartsMount(
     (nextInput) => {
@@ -76,9 +111,39 @@ export const mount: ConformanceMount = (container, input) => {
     },
     'Line chart with an unconstrained two-dimensional cursor',
     ({ chart, surface, getInput }) =>
-      createDriver(chart, surface, getInput, state, () => renderCount),
+      createDriver(
+        chart,
+        surface,
+        getInput,
+        state,
+        controls,
+        (paint) => {
+          showCursor = paint
+        },
+        () => renderCount,
+      ),
   )
-  return mountCase(container, input)
+  const chartHandle = mountCase(chartFrame, freeCursorInput(input))
+  updateCursorControls(controls, state)
+
+  return {
+    driver: chartHandle.driver,
+    update(nextInput) {
+      sizeFreeCursorShell(shell, chartFrame, nextInput)
+      chartHandle.update(freeCursorInput(nextInput))
+      if (
+        state.visible &&
+        state.xNormalized !== null &&
+        state.yNormalized !== null
+      ) {
+        showCursor?.(state.xNormalized, state.yNormalized)
+      }
+    },
+    destroy() {
+      chartHandle.destroy()
+      shell.remove()
+    },
+  }
 }
 
 function freeCursorOption(input: ConformanceInput): FreeCursorOption {
@@ -100,12 +165,11 @@ function freeCursorOption(input: ConformanceInput): FreeCursorOption {
       type: 'value',
       min: freeCursorXDomain[0],
       max: freeCursorXDomain[1],
-      name: 'X',
       axisPointer: {
         show: true,
         snap: false,
         type: 'line',
-        label: { show: false },
+        label: { show: true },
         lineStyle: {
           color: '#64748b',
           width: 1,
@@ -117,7 +181,6 @@ function freeCursorOption(input: ConformanceInput): FreeCursorOption {
       type: 'value',
       min: freeCursorYDomain[0],
       max: freeCursorYDomain[1],
-      name: 'Y',
       splitLine: {
         show: true,
         lineStyle: { color: '#e2e8f0' },
@@ -126,7 +189,7 @@ function freeCursorOption(input: ConformanceInput): FreeCursorOption {
         show: true,
         snap: false,
         type: 'line',
-        label: { show: false },
+        label: { show: true },
         lineStyle: {
           color: '#64748b',
           width: 1,
@@ -143,7 +206,7 @@ function freeCursorOption(input: ConformanceInput): FreeCursorOption {
       show: true,
       showContent: false,
       trigger: 'axis',
-      triggerOn: 'mousemove',
+      triggerOn: 'none',
       transitionDuration: 0,
       axisPointer: {
         type: 'cross',
@@ -180,9 +243,25 @@ function createDriver(
   surface: HTMLDivElement,
   getInput: () => ConformanceInput,
   state: CursorState,
+  controls: FreeCursorControls,
+  setShowCursor: (
+    paint: (xNormalized: number, yNormalized: number) => void,
+  ) => void,
   getRenderCount: () => number,
 ): ConformanceTestDriver {
+  const showCursor = (xNormalized: number, yNormalized: number) => {
+    const plot = plotBounds(chart)
+    if (!plot) return
+    chart.dispatchAction({
+      type: 'showTip',
+      x: plot.left + plot.width * xNormalized,
+      y: plot.top + plot.height * yNormalized,
+    })
+  }
+  setShowCursor(showCursor)
+
   const handlePointerMove = (event: PointerEvent) => {
+    if (state.pinned) return
     const plot = plotBounds(chart)
     if (!plot) return
     const surfaceBounds = surface.getBoundingClientRect()
@@ -195,19 +274,59 @@ function createDriver(
       y > plot.top + plot.height
     ) {
       clearCursor(state)
+      chart.dispatchAction({ type: 'hideTip' })
+      updateCursorControls(controls, state)
       return
     }
     state.visible = true
     state.xNormalized = (x - plot.left) / plot.width
     state.yNormalized = (y - plot.top) / plot.height
+    state.xValue = roundCursorValue(
+      freeCursorXDomain[0] +
+        (freeCursorXDomain[1] - freeCursorXDomain[0]) * state.xNormalized,
+    )
+    state.yValue = roundCursorValue(
+      freeCursorYDomain[1] -
+        (freeCursorYDomain[1] - freeCursorYDomain[0]) * state.yNormalized,
+    )
+    showCursor(state.xNormalized, state.yNormalized)
+    updateCursorControls(controls, state)
   }
-  const handlePointerLeave = () => clearCursor(state)
+  const handlePointerLeave = () => {
+    if (state.pinned) return
+    clearCursor(state)
+    chart.dispatchAction({ type: 'hideTip' })
+    updateCursorControls(controls, state)
+  }
+  const handlePointerCancel = () => handlePointerLeave()
+  const handleClick = () => {
+    if (!state.visible) return
+    if (state.pinned) {
+      clearCursor(state)
+      chart.dispatchAction({ type: 'hideTip' })
+    } else {
+      state.pinned = true
+    }
+    updateCursorControls(controls, state)
+  }
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || !state.visible) return
+    event.preventDefault()
+    clearCursor(state)
+    chart.dispatchAction({ type: 'hideTip' })
+    updateCursorControls(controls, state)
+  }
   surface.addEventListener('pointermove', handlePointerMove)
+  surface.addEventListener('pointerdown', handlePointerMove)
   surface.addEventListener('mouseleave', handlePointerLeave)
+  surface.addEventListener('pointercancel', handlePointerCancel)
+  surface.addEventListener('click', handleClick)
+  surface.addEventListener('keydown', handleKeyDown)
+  controls.root.addEventListener('keydown', handleKeyDown)
 
   return {
     resolveTarget(target) {
-      return resolveTarget(chart, surface, target)
+      return resolveTarget(chart, surface, controls, target)
     },
     readState() {
       return interactionState(state, getRenderCount())
@@ -222,14 +341,32 @@ function clearCursor(state: CursorState) {
   state.visible = false
   state.xNormalized = null
   state.yNormalized = null
+  state.xValue = null
+  state.yValue = null
+  state.pinned = false
 }
 
 function resolveTarget(
   chart: EChartsType,
   surface: HTMLDivElement,
+  controls: FreeCursorControls,
   target: ConformanceTarget,
 ) {
   if (target.view !== undefined && target.view !== 'main') return null
+  const control =
+    target.anchor === 'control:x'
+      ? controls.x
+      : target.anchor === 'control:y'
+        ? controls.y
+        : null
+  if (control) {
+    const bounds = control.getBoundingClientRect()
+    return {
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+      focusElement: control,
+    }
+  }
   const fraction = freeCursorFractionFromAnchor(target.anchor)
   const plot = plotBounds(chart)
   if (!fraction || !plot) return null
@@ -345,6 +482,9 @@ function interactionState(
       visible: state.visible,
       xNormalized: state.xNormalized,
       yNormalized: state.yNormalized,
+      xValue: state.xValue,
+      yValue: state.yValue,
+      pinned: state.pinned,
       snapped: false,
       datum: null,
     },
@@ -352,4 +492,42 @@ function interactionState(
       count: renderCount,
     },
   }
+}
+
+function updateCursorControls(
+  controls: FreeCursorControls,
+  state: CursorState,
+) {
+  updateFreeCursorControls(controls, {
+    visible: state.visible,
+    x: state.xValue,
+    y: state.yValue,
+    pinned: state.pinned,
+  })
+}
+
+function freeCursorInput(input: ConformanceInput): ConformanceInput {
+  return {
+    ...input,
+    height: freeCursorChartHeight(input.height),
+  }
+}
+
+function sizeFreeCursorShell(
+  shell: HTMLDivElement,
+  chartFrame: HTMLDivElement,
+  input: ConformanceInput,
+) {
+  shell.style.width = `${input.width}px`
+  shell.style.height = `${input.height}px`
+  chartFrame.style.width = `${input.width}px`
+  chartFrame.style.height = `${freeCursorChartHeight(input.height)}px`
+}
+
+function freeCursorChartHeight(height: number) {
+  return Math.max(180, height - 68)
+}
+
+function roundCursorValue(value: number) {
+  return Math.round(value * 10) / 10
 }

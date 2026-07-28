@@ -15,6 +15,7 @@ export interface RuleYOptions<TDatum> {
   stroke?: string
   strokeOpacity?: number
   strokeWidth?: number
+  strokeDasharray?: string
 }
 
 export interface RuleXOptions<TDatum> {
@@ -23,6 +24,7 @@ export interface RuleXOptions<TDatum> {
   stroke?: string
   strokeOpacity?: number
   strokeWidth?: number
+  strokeDasharray?: string
 }
 
 type RuleFallback<TDatum> = [
@@ -80,6 +82,7 @@ export function ruleY<TDatum>(
                         stroke: options.stroke ?? theme.foreground,
                         strokeOpacity: options.strokeOpacity ?? 0.5,
                         strokeWidth: options.strokeWidth,
+                        strokeDasharray: options.strokeDasharray,
                       },
                     },
                   ]
@@ -141,6 +144,7 @@ export function ruleX<TDatum>(
                         stroke: options.stroke ?? theme.foreground,
                         strokeOpacity: options.strokeOpacity ?? 0.5,
                         strokeWidth: options.strokeWidth,
+                        strokeDasharray: options.strokeDasharray,
                       },
                     },
                   ]

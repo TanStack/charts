@@ -47,6 +47,114 @@ describe('conformance metadata', () => {
     ).toBe('echarts')
   })
 
+  it('accepts direct rendered assertions and realistic input phases', () => {
+    const metadata = parseConformanceCaseMeta(
+      {
+        ...baseMetadata,
+        interactionScenarios: [
+          {
+            id: 'rendered-controller',
+            steps: [
+              {
+                type: 'pointerDown',
+                target: { view: 'detail', anchor: 'handle:start' },
+              },
+              {
+                type: 'pointerMove',
+                target: { view: 'detail', anchor: 'outside:end' },
+                steps: 4,
+              },
+              { type: 'pointerCancel' },
+              {
+                type: 'touchTap',
+                target: { view: 'detail', anchor: 'handle:start' },
+              },
+              {
+                type: 'touchDrag',
+                from: { view: 'detail', anchor: 'handle:start' },
+                to: { view: 'detail', anchor: 'handle:end' },
+                steps: 6,
+                cancel: true,
+              },
+              {
+                type: 'wheel',
+                target: { view: 'detail', anchor: 'plot' },
+                deltaY: 3,
+                steps: 2,
+                deltaMode: 'line',
+              },
+              {
+                type: 'wait',
+                durationMs: 250,
+              },
+              {
+                type: 'assertRendered',
+                assertions: [
+                  {
+                    target: {
+                      role: 'slider',
+                      name: 'Visible range',
+                      exact: true,
+                    },
+                    property: 'count',
+                    equals: 1,
+                  },
+                  {
+                    target: { selector: '[role="status"]' },
+                    property: 'text',
+                    includes: 'Selected',
+                  },
+                  {
+                    target: { selector: '[data-tooltip]' },
+                    property: 'attribute',
+                    attribute: 'aria-hidden',
+                    equals: 'false',
+                  },
+                  {
+                    target: { role: 'slider', name: 'Visible range' },
+                    property: 'focused',
+                    equals: true,
+                  },
+                  {
+                    target: { root: true },
+                    property: 'clientWidth',
+                    approx: 640,
+                    tolerance: 1,
+                  },
+                  {
+                    target: { role: 'slider', name: 'Visible range' },
+                    property: 'height',
+                    atLeast: 44,
+                  },
+                  {
+                    target: { selector: '[data-tooltip]' },
+                    property: 'contained',
+                    within: { root: true },
+                    tolerance: 1,
+                    equals: true,
+                  },
+                  {
+                    target: { page: true },
+                    property: 'scrollTop',
+                    equals: 0,
+                  },
+                ],
+              },
+              {
+                type: 'screenshot',
+                name: 'selected-range',
+                view: 'detail',
+              },
+            ],
+          },
+        ],
+      },
+      'case.json',
+    )
+
+    expect(metadata.interactionScenarios?.[0]?.steps).toHaveLength(9)
+  })
+
   it.each([
     { interactionScenarios: [{ id: 'empty', steps: [] }] },
     {
@@ -96,6 +204,115 @@ describe('conformance metadata', () => {
               target: { view: 'detail', anchor: 'plot' },
             },
           ],
+        },
+      ],
+    },
+    {
+      interactionScenarios: [
+        {
+          id: 'ambiguous-rendered-target',
+          steps: [
+            {
+              type: 'assertRendered',
+              assertions: [
+                {
+                  target: { selector: 'button', role: 'button' },
+                  property: 'count',
+                  equals: 1,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      interactionScenarios: [
+        {
+          id: 'invalid-rendered-index',
+          steps: [
+            {
+              type: 'assertRendered',
+              assertions: [
+                {
+                  target: { selector: 'button', index: -1 },
+                  property: 'visible',
+                  equals: true,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      interactionScenarios: [
+        {
+          id: 'missing-rendered-attribute',
+          steps: [
+            {
+              type: 'assertRendered',
+              assertions: [
+                {
+                  target: { selector: 'button' },
+                  property: 'attribute',
+                  equals: 'true',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      interactionScenarios: [
+        {
+          id: 'ambiguous-rendered-matcher',
+          steps: [
+            {
+              type: 'assertRendered',
+              assertions: [
+                {
+                  target: { root: true },
+                  property: 'clientWidth',
+                  equals: 640,
+                  approx: 640,
+                  tolerance: 1,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      interactionScenarios: [
+        {
+          id: 'invalid-touch-steps',
+          steps: [
+            {
+              type: 'touchDrag',
+              from: { anchor: 'start' },
+              to: { anchor: 'end' },
+              steps: 0,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      interactionScenarios: [
+        {
+          id: 'unsafe-screenshot-name',
+          steps: [{ type: 'screenshot', name: '../outside' }],
+        },
+      ],
+    },
+    {
+      interactionScenarios: [
+        {
+          id: 'unbounded-wait',
+          steps: [{ type: 'wait', durationMs: 5_001 }],
         },
       ],
     },

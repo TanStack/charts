@@ -91,6 +91,316 @@
           ]
         }
       ]
+    },
+    {
+      "id": "drag-brush-with-pointer",
+      "steps": [
+        {
+          "type": "pointerDown",
+          "target": {
+            "view": "overview",
+            "anchor": "date:2025-02-01"
+          }
+        },
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "overview",
+            "anchor": "date:2025-04-01"
+          },
+          "steps": 8
+        },
+        {
+          "type": "pointerUp",
+          "target": {
+            "view": "overview",
+            "anchor": "date:2025-04-01"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "window.selected", "equals": "2025-03-01" },
+            { "path": "window.start", "equals": "2025-02-01" },
+            { "path": "window.end", "equals": "2025-05-01" },
+            { "path": "detail.pointCount", "equals": 4 },
+            { "path": "brush.dragging", "equals": false },
+            { "path": "brush.outcome", "equals": "commit" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "selector": "[data-focus-window] .selection" },
+              "property": "visible",
+              "equals": true
+            },
+            {
+              "target": { "selector": "[data-focus-window] .selection" },
+              "property": "width",
+              "atLeast": 40
+            },
+            {
+              "target": { "selector": "[data-focus-window] .selection" },
+              "property": "contained",
+              "equals": true,
+              "within": {
+                "selector": "[data-conformance-view=\"overview\"]"
+              },
+              "tolerance": 1
+            },
+            {
+              "target": { "selector": "[data-focus-window] .handle" },
+              "property": "count",
+              "equals": 2
+            },
+            {
+              "target": { "selector": "[data-focus-range]" },
+              "property": "text",
+              "equals": "Feb 2025 – May 2025"
+            }
+          ]
+        },
+        { "type": "screenshot", "name": "pointer-brush-window" }
+      ]
+    },
+    {
+      "id": "drag-brush-with-touch",
+      "steps": [
+        {
+          "type": "touchDrag",
+          "from": {
+            "view": "overview",
+            "anchor": "date:2025-09-01"
+          },
+          "to": {
+            "view": "overview",
+            "anchor": "date:2025-11-01"
+          },
+          "steps": 8
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "window.selected", "equals": "2025-10-01" },
+            { "path": "window.start", "equals": "2025-09-01" },
+            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "detail.pointCount", "equals": 4 },
+            { "path": "brush.dragging", "equals": false },
+            { "path": "brush.outcome", "equals": "commit" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "selector": "[data-focus-window] .selection" },
+              "property": "visible",
+              "equals": true
+            },
+            {
+              "target": { "selector": "[data-focus-window] .selection" },
+              "property": "contained",
+              "equals": true,
+              "within": {
+                "selector": "[data-conformance-view=\"overview\"]"
+              },
+              "tolerance": 1
+            },
+            {
+              "target": { "selector": "[data-focus-range]" },
+              "property": "text",
+              "equals": "Sep 2025 – Dec 2025"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pointer-cancel-restores-window",
+      "steps": [
+        {
+          "type": "pointerDown",
+          "target": {
+            "view": "overview",
+            "anchor": "date:2025-02-01"
+          }
+        },
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "overview",
+            "anchor": "date:2025-11-01"
+          },
+          "steps": 8
+        },
+        { "type": "pointerCancel" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "window.selected", "equals": "2025-06-01" },
+            { "path": "window.start", "equals": "2025-05-01" },
+            { "path": "window.end", "equals": "2025-08-01" },
+            { "path": "detail.pointCount", "equals": 4 },
+            { "path": "brush.dragging", "equals": false },
+            { "path": "brush.outcome", "equals": "cancel" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "selector": "[data-focus-window] .selection" },
+              "property": "visible",
+              "equals": true
+            },
+            {
+              "target": { "selector": "[data-focus-window] .selection" },
+              "property": "contained",
+              "equals": true,
+              "within": {
+                "selector": "[data-conformance-view=\"overview\"]"
+              },
+              "tolerance": 1
+            },
+            {
+              "target": { "selector": "[data-focus-range]" },
+              "property": "text",
+              "equals": "May 2025 – Aug 2025"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "touch-cancel-restores-window",
+      "steps": [
+        {
+          "type": "touchDrag",
+          "from": {
+            "view": "overview",
+            "anchor": "date:2025-02-01"
+          },
+          "to": {
+            "view": "overview",
+            "anchor": "date:2025-11-01"
+          },
+          "steps": 8,
+          "cancel": true
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "window.selected", "equals": "2025-06-01" },
+            { "path": "window.start", "equals": "2025-05-01" },
+            { "path": "window.end", "equals": "2025-08-01" },
+            { "path": "detail.pointCount", "equals": 4 },
+            { "path": "brush.dragging", "equals": false },
+            { "path": "brush.outcome", "equals": "cancel" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "selector": "[data-focus-window] .selection" },
+              "property": "contained",
+              "equals": true,
+              "within": {
+                "selector": "[data-conformance-view=\"overview\"]"
+              },
+              "tolerance": 1
+            },
+            {
+              "target": { "selector": "[data-focus-range]" },
+              "property": "text",
+              "equals": "May 2025 – Aug 2025"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "move-window-with-semantic-control",
+      "steps": [
+        {
+          "type": "key",
+          "key": "End",
+          "target": {
+            "view": "overview",
+            "anchor": "control:selected-month"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "window.selected", "equals": "2025-12-01" },
+            { "path": "window.start", "equals": "2025-09-01" },
+            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "control.value", "equals": 11 },
+            {
+              "path": "control.label",
+              "equals": "Sep 2025 – Dec 2025"
+            }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "role": "slider",
+                "name": "Selected month",
+                "exact": true
+              },
+              "property": "focused",
+              "equals": true
+            },
+            {
+              "target": {
+                "role": "slider",
+                "name": "Selected month",
+                "exact": true
+              },
+              "property": "height",
+              "atLeast": 44
+            },
+            {
+              "target": {
+                "role": "slider",
+                "name": "Selected month",
+                "exact": true
+              },
+              "property": "contained",
+              "equals": true,
+              "within": {
+                "selector": "[data-focus-controls]"
+              }
+            },
+            {
+              "target": { "selector": "[data-focus-controls]" },
+              "property": "contained",
+              "equals": true
+            },
+            {
+              "target": { "selector": "[data-focus-controls]" },
+              "property": "height",
+              "atLeast": 52
+            },
+            {
+              "target": { "selector": "[data-focus-window]" },
+              "property": "contained",
+              "equals": true,
+              "within": {
+                "selector": "[data-conformance-view=\"overview\"]"
+              },
+              "tolerance": 1
+            }
+          ]
+        },
+        { "type": "screenshot", "name": "semantic-window-control" }
+      ]
     }
   ],
   "source": {

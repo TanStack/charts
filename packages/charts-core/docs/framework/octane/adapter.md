@@ -1,0 +1,128 @@
+---
+title: Octane Adapter
+description: Understand the native TSRX lifecycle, conditional SSR target, hydration, sizing, class, and style behavior around the shared chart host.
+---
+
+`@tanstack/octane-charts` is the native TSRX lifecycle and SSR adapter around
+`@tanstack/charts`. Definitions, scenes, responsive layout, SVG rendering,
+interaction, and animation remain framework-neutral.
+
+## Public exports
+
+```ts
+export { Chart } from '@tanstack/octane-charts'
+
+export type {
+  ChartCommonProps,
+  ChartProps,
+  DynamicChartProps,
+  StaticChartProps,
+  ChartDefinition,
+  ChartPoint,
+} from '@tanstack/octane-charts'
+```
+
+The package export map supplies a browser build for browser bundlers and a
+separate Node build for the `node` condition.
+
+## Render lifecycle
+
+The adapter creates one `ChartRuntime` for each component instance and renders
+the initial complete SVG in TSRX. After layout:
+
+1. `useLayoutEffect` mounts the shared DOM host into the existing chart surface
+2. the initial runtime is passed through, preserving prepared data
+3. a later layout effect forwards memoized host options
+4. subsequent Octane updates call `host.update`
+5. cleanup destroys the host and all browser-owned behavior
+
+The inner chart surface is memoized after its first output. The shared host
+reconciles later scenes directly in the SVG.
+
+## SSR and hydration
+
+The Node target renders the complete `.ts-chart-host`,
+`.ts-chart-surface`, and accessible SVG at `initialWidth`. The browser target
+hydrates the same structure before mounting the host.
+
+Keep data, definitions, scale domains, custom renderers, and dimensions
+deterministic between server and browser. The adapter generates a sanitized
+resource prefix from Octane's `useId()` when `idPrefix` is absent.
+
+`tabIndex` defaults to `0` on both targets. `keyboard: false` forces it to
+`-1`.
+
+Pass `renderChartSvgWithResources` on both targets for gradients and clipping;
+see [Rendering and export](../../reference/rendering-and-export.md#resource-aware-svg).
+
+## Sizing and layout
+
+The rendered structure is:
+
+```text
+.ts-chart-host
+  .ts-chart-surface
+    svg.ts-chart
+```
+
+The outer host uses `position: relative`.
+
+| Props                               | Outer host behavior             | Scene behavior                  |
+| ----------------------------------- | ------------------------------- | ------------------------------- |
+| no `width`, fixed `height`          | `width: 100%`; fixed height     | container width × fixed height  |
+| fixed `width` and `height`          | fixed CSS dimensions            | same fixed scene dimensions     |
+| fixed `width` and `aspectRatio`     | fixed width and CSS ratio       | fixed width divided by ratio    |
+| positive `aspectRatio`, no `height` | `width: 100%`; CSS aspect ratio | measured width divided by ratio |
+| neither `height` nor `aspectRatio`  | `width: 100%`; `height: 320px`  | measured width × 320            |
+
+`initialWidth` defaults to `640`. A fixed `height` takes precedence over
+`aspectRatio`; nonpositive and nonfinite ratios fall back to the default
+height. Responsive measurement and inherited font relayout are shared with the vanilla
+[DOM host](../../reference/dom-host.md#responsive-sizing).
+
+## `class` and `style`
+
+Octane-specific presentation props apply to the outer host:
+
+```tsx
+<Chart
+  definition={definition}
+  ariaLabel="Revenue"
+  class="dashboard-chart"
+  style={{
+    minHeight: 240,
+    color: 'var(--foreground)',
+  }}
+/>
+```
+
+- `class` is appended after `ts-chart-host`.
+- `style` is `Record<string, string | number | undefined>`.
+- styles are spread after adapter sizing, so they can override position,
+  width, height, or aspect ratio.
+
+Do not conflict a fixed `width` prop with `style.width`. The style changes the
+outer CSS box while the prop continues to lock scene measurement.
+
+The core renderer's `className` option applies to direct SVG rendering, not the
+Octane outer host.
+
+## Definition and option identity
+
+Keep fixed definitions outside component execution. Keep one dynamic
+definition stable and pass live values through `input`; changing definition
+identity resets prepared state.
+
+The adapter memoizes host options from semantic props. Callback functions are
+held in refs, so changing only a callback does not rebuild the option object
+and the live wrapper still calls the latest function.
+
+Input equality and preparation are core definition behavior; see
+[Chart Definition API](../../reference/chart-definitions.md).
+
+## Core boundary
+
+The adapter does not redefine chart grammar or data algorithms. Read
+[Scales and D3](../../concepts/scales-and-d3.md) for injected primitives and
+the [core API reference](../../reference/index.md) for marks, interaction,
+renderers, and extension contracts.

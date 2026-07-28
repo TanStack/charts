@@ -1,18 +1,23 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
+import { brushX } from 'd3-brush'
 import { scaleLinear, scaleUtc } from 'd3-scale'
+import { select } from 'd3-selection'
 import {
   brushData,
   brushDateFromAnchor,
   brushDateKey,
+  brushDates,
   brushDomain,
-  brushRowsInRange,
+  brushRangeSummary,
+  brushShortDate,
   clampBrushDate,
   initialBrushRange,
   normalizedBrushRange,
 } from './data'
 import { brushSelectionFill, normalizedElementFill } from './paint'
 import type { ChartScene, DynamicChartHostOptions } from '@tanstack/charts'
+import type { D3BrushEvent } from 'd3-brush'
 import type { BrushDatum, BrushRange } from './data'
 import type {
   ConformanceGeometryQuery,
@@ -26,8 +31,8 @@ import type {
 
 interface BrushState {
   range: BrushRange
-  origin: Date | null
   dragging: boolean
+  originRange: BrushRange | null
 }
 
 const color = '#2563eb'
@@ -72,7 +77,7 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
       grid: true,
       label: 'Value',
     },
-    margin: { top: 20, right: 24, bottom: 44, left: 58 },
+    margin: { top: 52, right: 24, bottom: 44, left: 58 },
   }
 })
 
@@ -83,12 +88,17 @@ export function mount(
   let currentInput = input
   const state: BrushState = {
     range: { ...initialBrushRange },
-    origin: null,
     dragging: false,
+    originRange: null,
   }
   const surface = container.ownerDocument.createElement('div')
   surface.dataset.conformanceView = 'main'
   surface.style.position = 'relative'
+  surface.setAttribute('role', 'application')
+  surface.setAttribute(
+    'aria-label',
+    'Monthly time range brush with two adjustable handles',
+  )
   setSurfaceSize(surface, input)
   container.append(surface)
 
@@ -105,57 +115,20 @@ export function mount(
     focus: focusDisabled,
   })
   const host = mountChart(surface, options(input))
-  const elements = createSelectionElements(surface)
-
-  const paint = () => {
-    paintSelection(elements, host.getScene(), state.range)
-  }
-
-  const handlePointerDown = (event: PointerEvent) => {
-    const date = dateAtPointer(surface, host.getScene(), event)
-    if (!date) return
-    event.preventDefault()
-    state.origin = date
-    state.range = { start: date, end: date }
-    state.dragging = true
-    surface.setPointerCapture(event.pointerId)
-    paint()
-  }
-
-  const handlePointerMove = (event: PointerEvent) => {
-    if (!state.dragging || !state.origin) return
-    const date = dateAtPointer(surface, host.getScene(), event)
-    if (!date) return
-    state.range = normalizedBrushRange(state.origin, date)
-    paint()
-  }
-
-  const finishPointer = (event: PointerEvent) => {
-    if (!state.dragging) return
-    const date = dateAtPointer(surface, host.getScene(), event)
-    if (date && state.origin) {
-      state.range = normalizedBrushRange(state.origin, date)
-    }
-    state.dragging = false
-    state.origin = null
-    if (surface.hasPointerCapture(event.pointerId)) {
-      surface.releasePointerCapture(event.pointerId)
-    }
-    paint()
-  }
-
-  surface.addEventListener('pointerdown', handlePointerDown)
-  surface.addEventListener('pointermove', handlePointerMove)
-  surface.addEventListener('pointerup', finishPointer)
-  surface.addEventListener('pointercancel', finishPointer)
-  paint()
+  const controller = createBrushController(
+    surface,
+    () => currentInput,
+    () => host.getScene(),
+    state,
+  )
+  controller.sync()
 
   const driver = createDriver(
     surface,
     () => currentInput,
     () => host.getScene(),
     state,
-    paint,
+    controller.sync,
   )
 
   return {
@@ -164,86 +137,286 @@ export function mount(
       currentInput = nextInput
       setSurfaceSize(surface, nextInput)
       host.update(options(nextInput))
-      paint()
+      controller.sync()
     },
     destroy() {
-      surface.removeEventListener('pointerdown', handlePointerDown)
-      surface.removeEventListener('pointermove', handlePointerMove)
-      surface.removeEventListener('pointerup', finishPointer)
-      surface.removeEventListener('pointercancel', finishPointer)
+      controller.destroy()
       host.destroy()
       surface.remove()
     },
   }
 }
 
-interface SelectionElements {
-  overlay: SVGSVGElement
-  band: SVGRectElement
-}
-
-function createSelectionElements(surface: HTMLDivElement): SelectionElements {
+function createBrushController(
+  surface: HTMLDivElement,
+  getInput: () => ConformanceInput,
+  getScene: () => ChartScene<BrushDatum>,
+  state: BrushState,
+) {
   const document = surface.ownerDocument
   const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   overlay.dataset.conformanceOverlay = 'brush'
-  overlay.setAttribute('aria-hidden', 'true')
+  overlay.setAttribute('role', 'group')
+  overlay.setAttribute(
+    'aria-label',
+    'Monthly range brush. Drag to select; focus either handle and use arrow keys, Home, or End to adjust.',
+  )
   Object.assign(overlay.style, {
     position: 'absolute',
     inset: '0',
     width: '100%',
     height: '100%',
-    overflow: 'visible',
+    overflow: 'hidden',
+    pointerEvents: 'auto',
+    touchAction: 'none',
+  })
+
+  const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+  overlay.append(group)
+
+  const status = document.createElement('output')
+  status.setAttribute('role', 'status')
+  status.setAttribute('aria-live', 'polite')
+  Object.assign(status.style, {
+    position: 'absolute',
+    right: '24px',
+    top: '10px',
+    zIndex: '4',
+    padding: '4px 8px',
+    border: '1px solid color-mix(in srgb, CanvasText 24%, transparent)',
+    borderRadius: '999px',
+    background: 'Canvas',
+    color: 'CanvasText',
+    font: '600 12px/1.2 system-ui, sans-serif',
     pointerEvents: 'none',
   })
-  const band = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-  band.dataset.conformanceSelection = 'range'
-  band.setAttribute('fill', brushSelectionFill)
-  band.setAttribute('stroke', color)
-  band.setAttribute('stroke-width', '1')
-  overlay.append(band)
-  surface.append(overlay)
-  return { overlay, band }
-}
 
-function paintSelection(
-  elements: SelectionElements,
-  scene: ChartScene<BrushDatum>,
-  range: BrushRange,
-) {
-  const start = scene.scales.x.map(range.start)
-  const end = scene.scales.x.map(range.end)
-  elements.overlay.setAttribute('viewBox', `0 0 ${scene.width} ${scene.height}`)
-  elements.band.setAttribute('x', String(Math.min(start, end)))
-  elements.band.setAttribute('y', String(scene.chart.y))
-  elements.band.setAttribute(
-    'width',
-    String(Math.max(1, Math.abs(end - start))),
-  )
-  elements.band.setAttribute('height', String(scene.chart.height))
-}
+  surface.append(overlay, status)
+  const groupSelection = select<SVGGElement, unknown>(group)
+  let syncing = false
 
-function dateAtPointer(
-  surface: HTMLDivElement,
-  scene: ChartScene<BrushDatum>,
-  event: PointerEvent,
-) {
-  const svg = surface.querySelector<SVGSVGElement>('svg.ts-chart')
-  if (!svg) return null
-  const bounds = svg.getBoundingClientRect()
-  const sceneX = ((event.clientX - bounds.left) / bounds.width) * scene.width
-  const sceneY = ((event.clientY - bounds.top) / bounds.height) * scene.height
-  if (
-    sceneX < scene.chart.x ||
-    sceneX > scene.chart.x + scene.chart.width ||
-    sceneY < scene.chart.y ||
-    sceneY > scene.chart.y + scene.chart.height
-  ) {
-    return null
+  const behavior = brushX<unknown>()
+    .touchable(true)
+    .keyModifiers(true)
+    .handleSize(16)
+    .on('start', (event: D3BrushEvent<unknown>) => {
+      if (syncing || !event.sourceEvent) return
+      state.originRange = { ...state.range }
+      state.dragging = true
+      updateStatus()
+    })
+    .on('brush', (event: D3BrushEvent<unknown>) => {
+      if (syncing || !event.sourceEvent) return
+      const range = rangeFromSelection(event.selection)
+      if (!range) return
+      state.range = range
+      updateStatus()
+      decorateBrush()
+    })
+    .on('end', (event: D3BrushEvent<unknown>) => {
+      if (syncing || !event.sourceEvent) return
+      const cancelled =
+        event.sourceEvent instanceof Event &&
+        event.sourceEvent.type === 'touchcancel'
+      if (cancelled && state.originRange) {
+        state.range = state.originRange
+      } else {
+        const range = rangeFromSelection(event.selection)
+        if (range) state.range = range
+      }
+      state.dragging = false
+      state.originRange = null
+      sync()
+    })
+
+  const rangeScale = () => {
+    const scene = getScene()
+    return brushScale
+      .copy()
+      .range([scene.chart.x, scene.chart.x + scene.chart.width])
   }
-  const inverseScale = brushScale
-    .copy()
-    .range([scene.chart.x, scene.chart.x + scene.chart.width])
-  return clampBrushDate(inverseScale.invert(sceneX))
+
+  const rangeFromSelection = (
+    selection: D3BrushEvent<unknown>['selection'],
+  ): BrushRange | null => {
+    if (
+      !selection ||
+      Array.isArray(selection[0]) ||
+      typeof selection[0] !== 'number' ||
+      typeof selection[1] !== 'number'
+    ) {
+      return null
+    }
+    const scale = rangeScale()
+    return normalizedBrushRange(
+      clampBrushDate(scale.invert(selection[0])),
+      clampBrushDate(scale.invert(selection[1])),
+    )
+  }
+
+  const updateStatus = () => {
+    const summary = brushRangeSummary(
+      brushData(getInput().revision),
+      state.range,
+    )
+    const label = `${brushShortDate(state.range.start)} → ${brushShortDate(state.range.end)} · ${summary.count} pts · avg ${summary.average.toFixed(1)}`
+    status.value = label
+    status.textContent = label
+    status.setAttribute(
+      'aria-label',
+      `${brushDateKey(state.range.start)} through ${brushDateKey(state.range.end)}, ${summary.count} points, average ${summary.average.toFixed(1)}`,
+    )
+  }
+
+  const decorateBrush = () => {
+    const selection = group.querySelector<SVGRectElement>('.selection')
+    if (selection) {
+      selection.dataset.conformanceSelection = 'range'
+      selection.setAttribute('fill', brushSelectionFill)
+      selection.setAttribute('fill-opacity', '1')
+      selection.setAttribute('stroke', color)
+      selection.setAttribute('stroke-width', '1')
+    }
+    group.querySelectorAll<SVGRectElement>('.handle').forEach((handle) => {
+      const isStart = handle.classList.contains('handle--w')
+      const index = brushDates.findIndex(
+        (date) =>
+          date.getTime() ===
+          (isStart ? state.range.start : state.range.end).getTime(),
+      )
+      handle.setAttribute('tabindex', '0')
+      handle.setAttribute('role', 'slider')
+      handle.setAttribute('aria-label', isStart ? 'Range start' : 'Range end')
+      handle.setAttribute(
+        'aria-valuemin',
+        String(isStart ? 0 : Math.max(0, rangeIndex(state.range.start))),
+      )
+      handle.setAttribute(
+        'aria-valuemax',
+        String(
+          isStart
+            ? Math.max(0, rangeIndex(state.range.end))
+            : Math.max(0, brushDates.length - 1),
+        ),
+      )
+      handle.setAttribute('aria-valuenow', String(Math.max(0, index)))
+      handle.setAttribute('aria-orientation', 'horizontal')
+      handle.setAttribute(
+        'aria-keyshortcuts',
+        'ArrowLeft ArrowRight ArrowUp ArrowDown Home End',
+      )
+      handle.setAttribute(
+        'aria-valuetext',
+        brushDateKey(isStart ? state.range.start : state.range.end),
+      )
+      handle.setAttribute('fill', 'Canvas')
+      handle.setAttribute('fill-opacity', '1')
+      handle.setAttribute('stroke', color)
+      handle.setAttribute('stroke-width', '2')
+      handle.style.outline = 'none'
+    })
+  }
+
+  const sync = () => {
+    const scene = getScene()
+    overlay.setAttribute('viewBox', `0 0 ${scene.width} ${scene.height}`)
+    behavior.extent([
+      [scene.chart.x, scene.chart.y],
+      [scene.chart.x + scene.chart.width, scene.chart.y + scene.chart.height],
+    ])
+    syncing = true
+    groupSelection.call(behavior)
+    groupSelection.call(behavior.move, [
+      scene.scales.x.map(state.range.start),
+      scene.scales.x.map(state.range.end),
+    ])
+    syncing = false
+    decorateBrush()
+    updateStatus()
+  }
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    const target = event.target
+    if (!(target instanceof SVGRectElement) || !target.matches('.handle')) {
+      return
+    }
+    const isStart = target.classList.contains('handle--w')
+    const current = isStart ? state.range.start : state.range.end
+    const currentIndex = rangeIndex(current)
+    if (currentIndex < 0) return
+    const boundary = isStart ? state.range.end : state.range.start
+    const boundaryIndex = rangeIndex(boundary)
+    const direction =
+      event.key === 'ArrowLeft' || event.key === 'ArrowDown'
+        ? -1
+        : event.key === 'ArrowRight' || event.key === 'ArrowUp'
+          ? 1
+          : 0
+    const requestedIndex =
+      event.key === 'Home'
+        ? isStart
+          ? 0
+          : boundaryIndex
+        : event.key === 'End'
+          ? isStart
+            ? boundaryIndex
+            : brushDates.length - 1
+          : currentIndex + direction
+    if (!direction && event.key !== 'Home' && event.key !== 'End') return
+    event.preventDefault()
+    const nextIndex = Math.max(
+      isStart ? 0 : boundaryIndex,
+      Math.min(isStart ? boundaryIndex : brushDates.length - 1, requestedIndex),
+    )
+    const nextDate = brushDates[nextIndex]
+    if (!nextDate) return
+    state.range = isStart
+      ? { start: nextDate, end: state.range.end }
+      : { start: state.range.start, end: nextDate }
+    sync()
+    const nextHandle = group.querySelector<SVGRectElement>(
+      isStart ? '.handle--w' : '.handle--e',
+    )
+    nextHandle?.focus()
+  }
+
+  const handleFocusChange = (event: FocusEvent) => {
+    const handle =
+      event.target instanceof SVGRectElement && event.target.matches('.handle')
+        ? event.target
+        : null
+    if (!handle) return
+    handle.setAttribute('stroke-width', event.type === 'focusin' ? '4' : '2')
+    handle.setAttribute('stroke', event.type === 'focusin' ? '#1d4ed8' : color)
+  }
+
+  const cancelActiveBrush = () => {
+    if (!state.dragging || !state.originRange) return
+    state.range = state.originRange
+    state.dragging = false
+    state.originRange = null
+    sync()
+  }
+
+  group.addEventListener('keydown', handleKeyDown)
+  group.addEventListener('focusin', handleFocusChange)
+  group.addEventListener('focusout', handleFocusChange)
+  overlay.addEventListener('pointercancel', cancelActiveBrush)
+  overlay.addEventListener('touchcancel', cancelActiveBrush)
+
+  return {
+    sync,
+    destroy() {
+      group.removeEventListener('keydown', handleKeyDown)
+      group.removeEventListener('focusin', handleFocusChange)
+      group.removeEventListener('focusout', handleFocusChange)
+      overlay.removeEventListener('pointercancel', cancelActiveBrush)
+      overlay.removeEventListener('touchcancel', cancelActiveBrush)
+      groupSelection.on('.brush', null)
+      overlay.remove()
+      status.remove()
+    },
+  }
 }
 
 function createDriver(
@@ -273,6 +446,18 @@ function resolveTarget(
   target: ConformanceTarget,
 ) {
   if (target.view !== undefined && target.view !== 'main') return null
+  if (target.anchor === 'handle:start' || target.anchor === 'handle:end') {
+    const handle = surface.querySelector<SVGRectElement>(
+      target.anchor === 'handle:start' ? '.handle--w' : '.handle--e',
+    )
+    if (!handle) return null
+    const bounds = handle.getBoundingClientRect()
+    return {
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+      focusElement: handle,
+    }
+  }
   const date = brushDateFromAnchor(target.anchor)
   if (!date) return null
   return scenePointToClient(
@@ -287,12 +472,14 @@ function interactionState(
   state: BrushState,
   input: ConformanceInput,
 ): ConformanceJsonObject {
+  const summary = brushRangeSummary(brushData(input.revision), state.range)
   return {
     selection: {
       start: brushDateKey(state.range.start),
       end: brushDateKey(state.range.end),
-      pointCount: brushRowsInRange(brushData(input.revision), state.range)
-        .length,
+      pointCount: summary.count,
+      valueTotal: summary.total,
+      valueAverage: summary.average,
       dragging: state.dragging,
     },
   }
@@ -405,4 +592,10 @@ function pointsBounds(
 function setSurfaceSize(surface: HTMLDivElement, input: ConformanceInput) {
   surface.style.width = `${input.width}px`
   surface.style.height = `${input.height}px`
+}
+
+function rangeIndex(date: Date) {
+  return brushDates.findIndex(
+    (candidate) => candidate.getTime() === date.getTime(),
+  )
 }

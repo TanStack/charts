@@ -5,6 +5,8 @@ import type {
   ConformanceInteractionStep,
   ConformanceJsonValue,
   ConformanceReferenceRenderer,
+  ConformanceRenderedAssertion,
+  ConformanceRenderedTarget,
   ConformanceRenderer,
   ConformanceStateAssertion,
   ConformanceTarget,
@@ -243,7 +245,22 @@ function isInteractionStep(
     return false
   }
 
-  if (value.type === 'pointerMove' || value.type === 'click') {
+  if (
+    value.type === 'pointerMove' ||
+    value.type === 'pointerDown' ||
+    value.type === 'pointerUp'
+  ) {
+    return (
+      'target' in value &&
+      isInteractionTarget(value.target) &&
+      (!('steps' in value) ||
+        (value.type === 'pointerMove' && isPositiveInteger(value.steps)))
+    )
+  }
+  if (value.type === 'pointerCancel') {
+    return true
+  }
+  if (value.type === 'click' || value.type === 'touchTap') {
     return 'target' in value && isInteractionTarget(value.target)
   }
   if (value.type === 'pointerLeave') {
@@ -269,10 +286,17 @@ function isInteractionStep(
       isInteractionTarget(value.from) &&
       'to' in value &&
       isInteractionTarget(value.to) &&
-      (!('steps' in value) ||
-        (typeof value.steps === 'number' &&
-          Number.isInteger(value.steps) &&
-          value.steps > 0))
+      (!('steps' in value) || isPositiveInteger(value.steps))
+    )
+  }
+  if (value.type === 'touchDrag') {
+    return (
+      'from' in value &&
+      isInteractionTarget(value.from) &&
+      'to' in value &&
+      isInteractionTarget(value.to) &&
+      (!('steps' in value) || isPositiveInteger(value.steps)) &&
+      (!('cancel' in value) || typeof value.cancel === 'boolean')
     )
   }
   if (value.type === 'wheel') {
@@ -283,7 +307,19 @@ function isInteractionStep(
       (!('deltaX' in value) ||
         (typeof value.deltaX === 'number' && Number.isFinite(value.deltaX))) &&
       (!('deltaY' in value) ||
-        (typeof value.deltaY === 'number' && Number.isFinite(value.deltaY)))
+        (typeof value.deltaY === 'number' && Number.isFinite(value.deltaY))) &&
+      (!('steps' in value) || isPositiveInteger(value.steps)) &&
+      (!('deltaMode' in value) ||
+        value.deltaMode === 'pixel' ||
+        value.deltaMode === 'line' ||
+        value.deltaMode === 'page')
+    )
+  }
+  if (value.type === 'wait') {
+    return (
+      'durationMs' in value &&
+      isPositiveInteger(value.durationMs) &&
+      value.durationMs <= 5_000
     )
   }
   if (value.type === 'assert') {
@@ -294,8 +330,28 @@ function isInteractionStep(
       value.assertions.every(isStateAssertion)
     )
   }
+  if (value.type === 'assertRendered') {
+    return (
+      'assertions' in value &&
+      Array.isArray(value.assertions) &&
+      value.assertions.length > 0 &&
+      value.assertions.every(isRenderedAssertion)
+    )
+  }
+  if (value.type === 'screenshot') {
+    return (
+      'name' in value &&
+      typeof value.name === 'string' &&
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.name) &&
+      (!('view' in value) || typeof value.view === 'string')
+    )
+  }
 
   return false
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0
 }
 
 function isInteractionTarget(value: unknown): value is ConformanceTarget {
@@ -305,6 +361,142 @@ function isInteractionTarget(value: unknown): value is ConformanceTarget {
     'anchor' in value &&
     typeof value.anchor === 'string' &&
     (!('view' in value) || typeof value.view === 'string')
+  )
+}
+
+function isRenderedTarget(value: unknown): value is ConformanceRenderedTarget {
+  if (typeof value !== 'object' || value === null) return false
+
+  const kinds = ['selector', 'role', 'root', 'page'].filter(
+    (key) => key in value,
+  )
+  if (kinds.length !== 1) return false
+
+  if ('root' in value) {
+    return value.root === true && !('index' in value)
+  }
+  if ('page' in value) {
+    return value.page === true && !('index' in value)
+  }
+
+  if (
+    'index' in value &&
+    (typeof value.index !== 'number' ||
+      !Number.isInteger(value.index) ||
+      value.index < 0)
+  ) {
+    return false
+  }
+
+  if ('selector' in value) {
+    return typeof value.selector === 'string' && value.selector.length > 0
+  }
+
+  return (
+    'role' in value &&
+    typeof value.role === 'string' &&
+    value.role.length > 0 &&
+    (!('name' in value) || typeof value.name === 'string') &&
+    (!('exact' in value) || typeof value.exact === 'boolean')
+  )
+}
+
+function isRenderedAssertion(
+  value: unknown,
+): value is ConformanceRenderedAssertion {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('target' in value) ||
+    !isRenderedTarget(value.target) ||
+    !('property' in value) ||
+    typeof value.property !== 'string'
+  ) {
+    return false
+  }
+
+  if (value.property === 'count') {
+    return !('index' in value.target) && isRenderedNumberMatcher(value)
+  }
+  if (value.property === 'text') {
+    return isRenderedStringMatcher(value)
+  }
+  if (value.property === 'attribute') {
+    return (
+      'attribute' in value &&
+      typeof value.attribute === 'string' &&
+      value.attribute.length > 0 &&
+      isRenderedStringMatcher(value)
+    )
+  }
+  if (value.property === 'visible' || value.property === 'focused') {
+    return (
+      'equals' in value &&
+      typeof value.equals === 'boolean' &&
+      !('includes' in value) &&
+      !('approx' in value)
+    )
+  }
+  if (
+    value.property === 'scrollLeft' ||
+    value.property === 'scrollTop' ||
+    value.property === 'scrollWidth' ||
+    value.property === 'scrollHeight' ||
+    value.property === 'clientWidth' ||
+    value.property === 'clientHeight' ||
+    value.property === 'width' ||
+    value.property === 'height'
+  ) {
+    return isRenderedNumberMatcher(value)
+  }
+  if (value.property === 'contained') {
+    return (
+      'equals' in value &&
+      value.equals === true &&
+      !('includes' in value) &&
+      !('approx' in value) &&
+      (!('within' in value) || isRenderedTarget(value.within)) &&
+      (!('tolerance' in value) ||
+        (typeof value.tolerance === 'number' &&
+          Number.isFinite(value.tolerance) &&
+          value.tolerance >= 0))
+    )
+  }
+
+  return false
+}
+
+function isRenderedStringMatcher(value: object): boolean {
+  const matchers = ['equals', 'includes'].filter((key) => key in value)
+  if (matchers.length !== 1) return false
+  if ('equals' in value) {
+    return value.equals === null || typeof value.equals === 'string'
+  }
+  return 'includes' in value && typeof value.includes === 'string'
+}
+
+function isRenderedNumberMatcher(value: object): boolean {
+  const matchers = ['equals', 'approx', 'atLeast', 'atMost'].filter(
+    (key) => key in value,
+  )
+  if (matchers.length !== 1) return false
+  if ('equals' in value) {
+    return typeof value.equals === 'number' && Number.isFinite(value.equals)
+  }
+  if ('atLeast' in value) {
+    return typeof value.atLeast === 'number' && Number.isFinite(value.atLeast)
+  }
+  if ('atMost' in value) {
+    return typeof value.atMost === 'number' && Number.isFinite(value.atMost)
+  }
+  return (
+    'approx' in value &&
+    typeof value.approx === 'number' &&
+    Number.isFinite(value.approx) &&
+    'tolerance' in value &&
+    typeof value.tolerance === 'number' &&
+    Number.isFinite(value.tolerance) &&
+    value.tolerance >= 0
   )
 }
 

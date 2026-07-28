@@ -617,7 +617,8 @@ dd {
   padding-block: 18vh;
 }
 
-.embed-mode {
+html.embed-mode,
+body.embed-mode {
   min-width: 0;
   overflow: hidden;
   background: transparent;

@@ -12,7 +12,12 @@
     "semantic playhead",
     "real pointer drag",
     "snapped time frames",
-    "controlled application overlay"
+    "controlled application overlay",
+    "native semantic range input",
+    "keyboard scrubbing",
+    "44 pixel hit target",
+    "play and pause control",
+    "live frame status"
   ],
   "geometry": [
     { "id": "playback-line", "view": "main", "role": "line", "count": 1 },
@@ -120,6 +125,271 @@
           ]
         }
       ]
+    },
+    {
+      "id": "keyboard-scrub",
+      "steps": [
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "role": "slider", "name": "Timeline frame" },
+              "property": "height",
+              "atLeast": 44
+            },
+            {
+              "target": { "role": "button", "name": "Play timeline" },
+              "property": "width",
+              "atLeast": 44
+            },
+            {
+              "target": { "role": "button", "name": "Play timeline" },
+              "property": "height",
+              "atLeast": 44
+            },
+            {
+              "target": { "selector": ".ts-conformance-playback-track" },
+              "property": "height",
+              "equals": 4
+            },
+            {
+              "target": { "selector": ".ts-conformance-playback-track" },
+              "property": "width",
+              "atLeast": 100
+            },
+            {
+              "target": { "selector": ".ts-conformance-playback-handle" },
+              "property": "width",
+              "equals": 20
+            },
+            {
+              "target": { "selector": ".ts-conformance-playback-handle" },
+              "property": "height",
+              "equals": 20
+            },
+            {
+              "target": { "selector": ".ts-conformance-playback-toolbar" },
+              "property": "contained",
+              "within": { "root": true },
+              "equals": true
+            },
+            {
+              "target": { "role": "status" },
+              "property": "count",
+              "equals": 1
+            }
+          ]
+        },
+        {
+          "type": "key",
+          "key": "ArrowLeft",
+          "target": { "view": "main", "anchor": "frame:2025-01-15" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "playhead.index", "equals": 1 },
+            { "path": "playhead.date", "equals": "2025-01-08" },
+            { "path": "playhead.value", "equals": 42 },
+            { "path": "interaction.scrubCount", "equals": 1 },
+            { "path": "interaction.playing", "equals": false }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "role": "slider", "name": "Timeline frame" },
+              "property": "focused",
+              "equals": true
+            },
+            {
+              "target": {
+                "selector": ".ts-conformance-playback-announcement"
+              },
+              "property": "text",
+              "includes": "2025-01-08"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cancel-scrub",
+      "steps": [
+        {
+          "type": "pointerDown",
+          "target": { "view": "main", "anchor": "frame:2025-01-15" }
+        },
+        {
+          "type": "pointerMove",
+          "target": { "view": "main", "anchor": "frame:2025-02-12" },
+          "steps": 8
+        },
+        { "type": "pointerCancel" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "playhead.index", "equals": 2 },
+            { "path": "playhead.date", "equals": "2025-01-15" },
+            { "path": "interaction.dragging", "equals": false },
+            { "path": "interaction.scrubCount", "equals": 0 }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": ".ts-conformance-playback-announcement"
+              },
+              "property": "text",
+              "includes": "2025-01-15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "playback-lifecycle",
+      "steps": [
+        {
+          "type": "key",
+          "key": "End",
+          "target": { "view": "main", "anchor": "frame:2025-01-15" }
+        },
+        {
+          "type": "key",
+          "key": "ArrowLeft",
+          "target": { "view": "main", "anchor": "frame:2025-02-19" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "playhead.index", "equals": 6 },
+            { "path": "playhead.date", "equals": "2025-02-12" },
+            { "path": "interaction.playing", "equals": false }
+          ]
+        },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "control:play" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "interaction.playing", "equals": true },
+            { "path": "playhead.index", "equals": 6 }
+          ]
+        },
+        { "type": "wait", "durationMs": 800 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "interaction.playing", "equals": true },
+            { "path": "playhead.index", "equals": 7 },
+            { "path": "playhead.date", "equals": "2025-02-19" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "selector": ".ts-conformance-playback-current" },
+              "property": "text",
+              "includes": "2025-02-19"
+            }
+          ]
+        },
+        { "type": "wait", "durationMs": 800 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "interaction.playing", "equals": false },
+            { "path": "playhead.index", "equals": 7 }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": ".ts-conformance-playback-announcement"
+              },
+              "property": "text",
+              "includes": "Playback ended"
+            },
+            {
+              "target": { "role": "button", "name": "Play timeline" },
+              "property": "attribute",
+              "attribute": "aria-pressed",
+              "equals": "false"
+            }
+          ]
+        },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "control:play" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "interaction.playing", "equals": true },
+            { "path": "playhead.index", "equals": 0 },
+            { "path": "playhead.date", "equals": "2025-01-01" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": ".ts-conformance-playback-announcement"
+              },
+              "property": "text",
+              "includes": "Playback restarted"
+            },
+            {
+              "target": { "role": "button", "name": "Pause timeline" },
+              "property": "attribute",
+              "attribute": "aria-pressed",
+              "equals": "true"
+            }
+          ]
+        },
+        { "type": "wait", "durationMs": 800 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "interaction.playing", "equals": true },
+            { "path": "playhead.index", "equals": 1 },
+            { "path": "playhead.date", "equals": "2025-01-08" }
+          ]
+        },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "control:play" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "interaction.playing", "equals": false },
+            { "path": "playhead.index", "equals": 1 }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": ".ts-conformance-playback-announcement"
+              },
+              "property": "text",
+              "includes": "Playback paused"
+            }
+          ]
+        }
+      ]
     }
   ],
   "source": {
@@ -127,7 +397,7 @@
     "url": "https://echarts.apache.org/examples/en/editor.html?c=dynamic-data2"
   },
   "ai": {
-    "create": "Create a controlled UTC line chart with a semantic playback index and a case-owned playhead and scrubber overlay that snaps a real pointer drag to stable frame IDs.",
-    "maintain": "Keep frame identity and playback state outside the renderer, derive overlay coordinates from the resolved chart scale, and preserve the same index across responsive and data revisions."
+    "create": "Create a controlled UTC line chart with a native range input for the playback index, a visible playhead, play and pause control, keyboard support, and live frame status.",
+    "maintain": "Keep frame identity and playback state outside the renderer, align the native range to resolved chart coordinates, cancel transient edits without committing them, and preserve the index across responsive and data revisions."
   }
 }

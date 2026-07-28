@@ -99,6 +99,8 @@ export type {
   ChartSpatialIndex,
   ChartSpatialIndexFactory,
   ChartSpecDatum,
+  ChartSpecXValue,
+  ChartSpecYValue,
   ChartSpec,
   ChartSvgRenderer,
   ChartTheme,

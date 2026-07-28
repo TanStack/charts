@@ -1,5 +1,7 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { brushX } from 'd3-brush'
 import { scaleLinear, scaleUtc } from 'd3-scale'
+import { select } from 'd3-selection'
 import {
   dateFromAnchor,
   dateKey,
@@ -11,6 +13,7 @@ import {
   windowForDate,
 } from './data'
 import type { ChartHost, DynamicChartHostOptions } from '@tanstack/charts'
+import type { BrushSelection, D3BrushEvent } from 'd3-brush'
 import type { FocusContextDatum, FocusContextWindow } from './data'
 import type {
   ConformanceHandle,
@@ -28,6 +31,9 @@ const gap = 8
 
 const detailDefinition = defineChart<DetailInput>()(({ input }) => {
   const rows = rowsInWindow(focusContextData(input.revision), input.window)
+  const selectedRows = rows.filter(
+    (row) => row.date.getTime() === input.window.selected.getTime(),
+  )
   return {
     marks: [
       lineY(rows, {
@@ -45,6 +51,16 @@ const detailDefinition = defineChart<DetailInput>()(({ input }) => {
         key: 'id',
         fill: '#2563eb',
         r: 3,
+      }),
+      dot(selectedRows, {
+        id: 'selected-point',
+        x: 'date',
+        y: 'value',
+        key: 'id',
+        fill: '#f97316',
+        stroke: '#ffffff',
+        strokeWidth: 2,
+        r: 6,
       }),
     ],
     x: {
@@ -73,18 +89,30 @@ const overviewDefinition = defineChart<ConformanceInput>()(({ input }) => {
         strokeWidth: 1.75,
       }),
     ],
-    x: { scale: scaleUtc().domain(focusContextDomain) },
-    y: { scale: scaleLinear().domain([30, 90]) },
-    guides: false,
+    x: {
+      scale: scaleUtc().domain(focusContextDomain),
+      ticks: 4,
+      format: (value) =>
+        value.toLocaleDateString(undefined, {
+          month: 'short',
+          timeZone: 'UTC',
+        }),
+    },
+    y: {
+      scale: scaleLinear().domain([30, 90]),
+      guide: false,
+    },
     margin: overviewMargin,
   }
 })
 
 function viewHeights(height: number) {
-  const overview = Math.max(88, Math.min(112, Math.round(height * 0.3)))
+  const controls = 52
+  const overview = Math.max(56, Math.min(100, Math.round(height * 0.24)))
   return {
-    detail: Math.max(180, height - overview - gap),
+    detail: Math.max(1, height - overview - controls - gap * 2),
     overview,
+    controls,
   }
 }
 
@@ -120,22 +148,55 @@ export function mount(
   const overviewView = document.createElement('div')
   const detailSurface = document.createElement('div')
   const overviewSurface = document.createElement('div')
-  const windowBand = document.createElement('div')
+  const brushOverlay = document.createElementNS(
+    'http://www.w3.org/2000/svg',
+    'svg',
+  )
+  const brushGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+  const controls = document.createElement('div')
+  const monthControl = document.createElement('input')
+  const rangeLabel = document.createElement('output')
   detailView.dataset.conformanceView = 'detail'
   overviewView.dataset.conformanceView = 'overview'
+  controls.dataset.focusControls = ''
   overviewView.style.position = 'relative'
-  windowBand.dataset.focusWindow = ''
-  Object.assign(windowBand.style, {
+  brushOverlay.dataset.focusWindow = ''
+  brushOverlay.setAttribute('aria-hidden', 'true')
+  brushOverlay.append(brushGroup)
+  Object.assign(brushOverlay.style, {
     position: 'absolute',
     zIndex: '1',
-    border: '1px solid #2563eb',
-    borderRadius: '3px',
-    background: 'rgb(37 99 235 / 0.12)',
-    pointerEvents: 'none',
+    inset: '0',
+    width: '100%',
+    height: '100%',
+    touchAction: 'none',
   })
+  controls.style.display = 'grid'
+  controls.style.gridTemplateColumns = 'minmax(9rem, 1fr) auto'
+  controls.style.alignItems = 'center'
+  controls.style.gap = '10px'
+  controls.style.padding = '4px 12px'
+  controls.style.boxSizing = 'border-box'
+  controls.style.font = '600 11px/1.25 system-ui, sans-serif'
+  monthControl.type = 'range'
+  monthControl.min = '0'
+  monthControl.max = String(focusContextDates.length - 1)
+  monthControl.step = '1'
+  monthControl.setAttribute('aria-label', 'Selected month')
+  monthControl.setAttribute(
+    'aria-description',
+    'Use arrow keys, Home, or End to move the four-month detail window.',
+  )
+  monthControl.style.width = '100%'
+  monthControl.style.minHeight = '44px'
+  monthControl.style.cursor = 'pointer'
+  rangeLabel.dataset.focusRange = ''
+  rangeLabel.setAttribute('aria-live', 'polite')
+  rangeLabel.style.whiteSpace = 'nowrap'
+  controls.append(monthControl, rangeLabel)
   detailView.append(detailSurface)
-  overviewView.append(overviewSurface, windowBand)
-  shell.append(detailView, overviewView)
+  overviewView.append(overviewSurface, brushOverlay)
+  shell.append(detailView, overviewView, controls)
   container.append(shell)
 
   let currentInput = input
@@ -146,7 +207,7 @@ export function mount(
     shell.style.width = `${currentInput.width}px`
     shell.style.height = `${currentInput.height}px`
     shell.style.display = 'grid'
-    shell.style.gridTemplateRows = `${heights.detail}px ${heights.overview}px`
+    shell.style.gridTemplateRows = `${heights.detail}px ${heights.overview}px ${heights.controls}px`
     shell.style.gap = `${gap}px`
     return heights
   }
@@ -177,7 +238,9 @@ export function mount(
       input: currentInput,
       width: currentInput.width,
       height: heights.overview,
-      ariaLabel: 'Overview time series; click to choose a detail window',
+      ariaLabel: 'Overview time series with draggable detail window',
+      ariaDescription:
+        'Drag the visible selection or use the range control below to reposition the four-month detail window.',
       animate: false,
       keyboard: false,
     }
@@ -186,15 +249,87 @@ export function mount(
   sizeShell()
   const detailHost = mountChart(detailSurface, detailOptions())
   const overviewHost = mountChart(overviewSurface, overviewOptions())
+  let movingBrush = false
+  let brushDragging = false
+  let brushOrigin: FocusContextWindow | null = null
+  let cancelRequested = false
+  let brushOutcome = 'idle'
+
+  const brush = brushX<unknown>()
+    .touchable(true)
+    .handleSize(16)
+    .on('start', (event: D3BrushEvent<unknown>) => {
+      if (movingBrush || !event.sourceEvent) return
+      brushOrigin = { ...window }
+      brushDragging = true
+      cancelRequested = false
+      brushOutcome = 'dragging'
+    })
+    .on('end', (event: D3BrushEvent<unknown>) => {
+      if (movingBrush || !event.sourceEvent) return
+      const touchCancelled =
+        event.sourceEvent instanceof Event &&
+        event.sourceEvent.type === 'touchcancel'
+      if (cancelRequested || touchCancelled) {
+        if (brushOrigin) window = brushOrigin
+        brushDragging = false
+        brushOrigin = null
+        cancelRequested = false
+        brushOutcome = 'cancel'
+        detailHost.update(detailOptions())
+        paintWindow()
+        return
+      }
+      brushDragging = false
+      brushOrigin = null
+      brushOutcome = 'commit'
+      const selection = event.selection
+      if (selection) {
+        const range = horizontalBrushRange(selection)
+        if (range) {
+          chooseDate(nearestDate((range[0] + range[1]) / 2))
+          return
+        }
+      }
+      if ('clientX' in event.sourceEvent) {
+        const bounds = brushOverlay.getBoundingClientRect()
+        const scene = overviewHost.getScene()
+        const sceneX =
+          ((Number(event.sourceEvent.clientX) - bounds.left) / bounds.width) *
+          scene.width
+        chooseDate(nearestDate(sceneX))
+      }
+    })
+
+  const configureBrush = () => {
+    const scene = overviewHost.getScene()
+    brush.extent([
+      [scene.chart.x, scene.chart.y],
+      [scene.chart.x + scene.chart.width, scene.chart.y + scene.chart.height],
+    ])
+    brushOverlay.setAttribute('viewBox', `0 0 ${scene.width} ${scene.height}`)
+    select(brushGroup).call(brush)
+    styleBrush(brushGroup)
+  }
 
   const paintWindow = () => {
     const scene = overviewHost.getScene()
     const left = scene.scales.x.map(window.start)
     const right = scene.scales.x.map(window.end)
-    windowBand.style.left = `${left}px`
-    windowBand.style.width = `${Math.max(1, right - left)}px`
-    windowBand.style.top = `${scene.chart.y}px`
-    windowBand.style.height = `${scene.chart.height}px`
+    movingBrush = true
+    select(brushGroup).call(brush.move, [left, right])
+    movingBrush = false
+    styleBrush(brushGroup)
+    monthControl.value = String(
+      Math.max(
+        0,
+        focusContextDates.findIndex(
+          (date) => date.getTime() === window.selected.getTime(),
+        ),
+      ),
+    )
+    rangeLabel.value = `${monthLabel(window.start)} – ${monthLabel(window.end)}`
+    rangeLabel.textContent = rangeLabel.value
   }
 
   const chooseDate = (date: Date) => {
@@ -203,22 +338,33 @@ export function mount(
     paintWindow()
   }
 
-  const handleOverviewClick = (event: MouseEvent) => {
-    const svg = overviewSurface.querySelector<SVGSVGElement>('svg.ts-chart')
-    if (!svg) return
+  const nearestDate = (sceneX: number) => {
     const scene = overviewHost.getScene()
-    const bounds = svg.getBoundingClientRect()
-    const sceneX = ((event.clientX - bounds.left) / bounds.width) * scene.width
-    const nearest = focusContextDates.reduce((candidate, date) =>
+    return focusContextDates.reduce((candidate, date) =>
       Math.abs(scene.scales.x.map(date) - sceneX) <
       Math.abs(scene.scales.x.map(candidate) - sceneX)
         ? date
         : candidate,
     )
-    chooseDate(nearest)
   }
 
-  overviewView.addEventListener('click', handleOverviewClick)
+  const handleMonthInput = () => {
+    const date = focusContextDates[Number(monthControl.value)]
+    if (date) chooseDate(date)
+  }
+  const cancelActiveBrush = () => {
+    if (!brushDragging || !brushOrigin) return
+    cancelRequested = true
+    window = brushOrigin
+    brushDragging = false
+    brushOutcome = 'cancel'
+    detailHost.update(detailOptions())
+    paintWindow()
+  }
+  monthControl.addEventListener('input', handleMonthInput)
+  brushOverlay.addEventListener('pointercancel', cancelActiveBrush)
+  brushOverlay.addEventListener('touchcancel', cancelActiveBrush)
+  configureBrush()
   paintWindow()
 
   return {
@@ -227,10 +373,17 @@ export function mount(
       sizeShell()
       overviewHost.update(overviewOptions())
       detailHost.update(detailOptions())
+      configureBrush()
       paintWindow()
     },
     driver: {
       resolveTarget(target) {
+        if (
+          target.view === 'overview' &&
+          target.anchor === 'control:selected-month'
+        ) {
+          return center(monthControl)
+        }
         const date = targetDate(target)
         if (!date) return null
         const scene = overviewHost.getScene()
@@ -259,14 +412,78 @@ export function mount(
             pointCount: detailRows.length,
             selectedValue: selectedRow?.value ?? null,
           },
+          control: {
+            value: Number(monthControl.value),
+            label: rangeLabel.value,
+          },
+          brush: brushSelectionState(brushGroup, brushDragging, brushOutcome),
         }
       },
     },
     destroy() {
-      overviewView.removeEventListener('click', handleOverviewClick)
+      monthControl.removeEventListener('input', handleMonthInput)
+      brushOverlay.removeEventListener('pointercancel', cancelActiveBrush)
+      brushOverlay.removeEventListener('touchcancel', cancelActiveBrush)
+      select(brushGroup).on('.brush', null)
       detailHost.destroy()
       overviewHost.destroy()
       shell.remove()
     },
+  }
+}
+
+function styleBrush(group: SVGGElement) {
+  const selection = group.querySelector<SVGRectElement>('.selection')
+  if (selection) {
+    selection.setAttribute('fill', '#2563eb')
+    selection.setAttribute('fill-opacity', '0.16')
+    selection.setAttribute('stroke', '#2563eb')
+    selection.setAttribute('stroke-width', '1.5')
+    selection.style.cursor = 'grab'
+  }
+  for (const handle of group.querySelectorAll<SVGRectElement>('.handle')) {
+    handle.setAttribute('fill', '#2563eb')
+    handle.setAttribute('fill-opacity', '0.9')
+    handle.setAttribute('width', '8')
+  }
+}
+
+function monthLabel(date: Date) {
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
+function brushSelectionState(
+  group: SVGGElement,
+  dragging: boolean,
+  outcome: string,
+) {
+  const selection = group.querySelector<SVGRectElement>('.selection')
+  return {
+    x: Number(selection?.getAttribute('x') ?? 0),
+    width: Number(selection?.getAttribute('width') ?? 0),
+    dragging,
+    outcome,
+  }
+}
+
+function horizontalBrushRange(
+  selection: BrushSelection,
+): readonly [number, number] | null {
+  const [left, right] = selection
+  return typeof left === 'number' && typeof right === 'number'
+    ? [left, right]
+    : null
+}
+
+function center(element: HTMLElement | SVGElement) {
+  const bounds = element.getBoundingClientRect()
+  return {
+    x: bounds.left + bounds.width / 2,
+    y: bounds.top + bounds.height / 2,
+    focusElement: element,
   }
 }

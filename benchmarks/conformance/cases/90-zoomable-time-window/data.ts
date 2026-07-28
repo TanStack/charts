@@ -94,6 +94,14 @@ export function panZoomWindow(
   return clampZoomWindow(window.start.getTime() + direction * span * 0.25, span)
 }
 
+export function shiftZoomWindow(
+  window: ZoomWindow,
+  deltaMilliseconds: number,
+): ZoomWindow {
+  const span = window.end.getTime() - window.start.getTime()
+  return clampZoomWindow(window.start.getTime() + deltaMilliseconds, span)
+}
+
 function clampZoomWindow(start: number, span: number): ZoomWindow {
   const domainStart = zoomFullDomain[0].getTime()
   const domainEnd = zoomFullDomain[1].getTime()

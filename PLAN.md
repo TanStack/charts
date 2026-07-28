@@ -6,16 +6,17 @@ Observed difficulty from using the API is tracked separately in
 [`API-FRICTION.md`](./API-FRICTION.md). Production migrations, examples, and
 agent evaluations must update that log when they expose a repeatable problem.
 
-Last updated: 2026-07-27
+Last updated: 2026-07-28
 
 ## Working thesis
 
 TanStack Charts should become a tiny, fast, framework-agnostic TypeScript
-visualization grammar inspired by Observable Plot. Observable Plot is the
-semantic and ergonomic reference; D3 is the authoritative algorithm layer.
-TanStack owns the grammar, compiler, scene, lifecycle, and integration
-contracts. It should not independently reimplement D3’s data, scale, mapping,
-shape, interpolation, color, spatial, or layout primitives.
+visualization grammar deeply inspired by Observable Plot. Observable Plot is
+the primary semantic and ergonomic reference; D3 is the authoritative
+algorithm layer. TanStack owns the grammar, compiler, scene, lifecycle, and
+integration contracts. It should not independently reimplement D3’s data,
+scale, mapping, shape, interpolation, color, spatial, or layout primitives.
+The lineage is recorded in [`ACKNOWLEDGEMENTS.md`](./ACKNOWLEDGEMENTS.md).
 
 Preserve Plot’s composable marks, channels, scales, transforms, facets, and
 extension ceiling. Do not replace that grammar with `<LineChart>`,
@@ -227,10 +228,11 @@ scale helpers and TanStack transform or spatial wrappers have been deleted.
 
 Current verification:
 
-- TypeScript passes.
-- Standard tests: 44 files, 168 tests.
-- Octane server tests: 2 files, 4 tests.
-- Octane client tests: 2 files, 4 tests.
+- Strict repository and packed-consumer type contracts pass.
+- The standard core, adapter, documentation, and benchmark-protocol test
+  matrices pass. Use current command output rather than embedding a test count
+  that drifts as the proof expands.
+- The Octane server and client matrices pass.
 - `bundle:check` passes every profile-specific ceiling.
 - The React demo has been browser-validated for responsive behavior, light and
   dark themes, keyed ranking updates, grouped tooltips, zoom clipping, unique
@@ -250,25 +252,30 @@ Type-safety checkpoint:
 - Mark sources infer field channels and original callback data.
 - Dynamic definitions introduce only `Input`; prepared data, heterogeneous mark
   unions, adapter input, and callbacks infer.
-- Built-in positional outputs constrain configured D3 scales and axis
-  formatters. Custom, faceted, and rect marks remain broad where their
-  positional semantics are not proven.
+- Built-in positional outputs, including rectangle endpoints and cell
+  positions, constrain configured D3 scales and axis formatters. Facets and
+  custom marks remain broad only where their positional semantics are not
+  declared; the advanced custom-mark factory can split interaction-point and
+  scale-value types explicitly.
 - Public core, React, Octane, examples, and the Stats migration require no cast
   or adapter generic.
-- `ChartPoint.xValue` and `yValue` remain broad pending a separate protocol-wide
-  change; semantic callbacks should use the exact `point.datum`.
+- `ChartPoint.xValue` and `yValue` infer from positional channels through core,
+  focus, spatial lookup, React, and Octane. Conditional definitions produce
+  honest coordinate unions that consumers narrow normally.
 - Memoized adapter surfaces contain private generic-erasure assertions. These
   are tracked in `API-FRICTION.md` and must never appear in consumer guidance.
 
-Current directional bundle measurements:
+Directional bundle checkpoint — 2026-07-27:
 
-These are the canonical post-strict-migration measurements from the current
-bundle fixtures. Later tables labeled historical preserve earlier checkpoints
-and should not be used as current budgets.
+This table records the post-strict-migration checkpoint retained with this
+architecture decision. Exact current measurements and budgets live in
+[`bundle-and-performance.md`](./packages/charts-core/docs/bundle-and-performance.md)
+and the checked-in bundle fixtures; do not use this historical table as a
+current budget.
 
 | Consumer                                    |  Minified |     Gzip |
 | ------------------------------------------- | --------: | -------: |
-| Core host                                   |   6.97 kB |  2.85 kB |
+| Legacy `@plot-poc` host core                |   6.97 kB |  2.85 kB |
 | D3-scale `lineY` scene                      |  30.73 kB | 12.22 kB |
 | D3-scale `lineY` plus static SVG            |  33.71 kB | 13.32 kB |
 | D3-scale UTC `lineY` plus static SVG        |  48.18 kB | 17.87 kB |
@@ -300,7 +307,7 @@ font measurement and its host lifecycle bring the total default-host increase
 to about 2.0 kB gzip. These are measured default-quality costs; the rebased
 ceilings remain tight and pass.
 
-Current directional rendering measurements:
+Directional rendering checkpoint — 2026-07-27:
 
 | Product render case                           | Median |    p95 |
 | --------------------------------------------- | -----: | -----: |
@@ -310,10 +317,21 @@ Current directional rendering measurements:
 | D3-scale line plus SVG, 10,000 points, 1024px | 2.99ms | 5.10ms |
 | D3-scale keyed host update, 78 points, 1024px | 1.34ms | 4.69ms |
 
-The next production-level gaps are a visual regression suite,
-production-browser benchmarks, packed-consumer tests, and porting the remaining
+The repository now has automated browser visual, interaction, update,
+large-data, and lifecycle evidence through the conformance and stress suites.
+Remaining production gaps are tracked by the open and monitoring entries in
+`API-FRICTION.md`, public release policy and budgets, and porting the remaining
 Plot-backed GIF/WebM frame generator after the TanStack.com default-renderer
 cutover.
+
+`pnpm package:check` now builds real package artifacts, packs all three public
+packages, installs their tarballs into a disposable offline fixture, and gates
+every ESM subpath, strict declaration inference, required dynamic input,
+React/Octane runtime loading, and minimal production bundles. Every TanStack
+resolution must come from the fixture's packed `dist`; already-installed
+third-party dependencies are linked only to keep the check deterministic. This
+is a packed exports, declarations, and runtime gate, not a registry
+installability claim.
 
 `pnpm bundle:check` byte-locks ordinary scene, SVG, DOM, React, custom-scale,
 and representative consumers to reviewed minified and gzip baselines. Optional
@@ -817,7 +835,6 @@ not browser performance claims.
 - A chart-level dynamic import example and chunk analysis
 - Production-browser render and interaction benchmarks
 - Accessibility audit beyond Plot’s semantic output and labeled hosts
-- A package build and packed-consumer test rather than source-only workspace exports
 - Export extension prototype
 
 ## Historical engine strategy evaluation
@@ -1885,6 +1902,10 @@ On an accepted update, the native stateful renderer:
 5. Interpolates compatible numeric geometry and paths with reduced-motion and
    interruption handling.
 
+The focused reconciler contract now interrupts a transition at painted
+geometry, starts the next transition from that exact value, preserves node
+identity, and proves a canceled frame cannot overwrite the final target.
+
 The sandbox’s keyed bar example copies current rectangle geometry into the next
 Plot and animates toward its target geometry. A rapid update samples the
 in-progress Plot, so motion continues from what the user can currently see.
@@ -2197,13 +2218,15 @@ The full 79-case standard matrix passes at 320/640/960 px in light and dark
 themes with initial/revised data: 25 native, 54 composed, zero gaps, and zero
 deferred. All 16 interaction cases pass both renderers, starting revisions,
 in-place update scenarios, and uncaught-error checks. The latest report
-measures TanStack's geometric-mean gzip ratio at 0.20× the selected references,
-mount at 0.66×, update at 0.65×, transitive authored source at 1.06×, and mean
+measures TanStack's geometric-mean gzip ratio at 0.21× the selected references,
+mount at 0.57×, update at 0.66×, transitive authored source at 1.07×, and mean
 diagnostic geometry similarity at 97.8%. Strict case sources produce zero
 diagnostics, unsafe assertions, or suppressions. Across the eight
 invalid-program probes, Observable Plot and Recharts each reject 1/8 while
 TanStack Charts rejects 8/8. Current metrics must still come from the generated
-report, and every new case must pass the same gates before it counts.
+report, and every new case must pass the same gates before it counts. Focused
+`--case` runs use filter-qualified artifacts rather than overwriting the
+complete report, and unknown case IDs fail before bundle or browser work.
 
 Catalog expansion follows a bundle boundary:
 
@@ -2388,11 +2411,142 @@ The third tranche pressures composition and performance:
 1. Multi-pane financial chart with synchronized crosshair, viewport, and
    logical-range navigation.
 2. Gantt/resource timeline with nested groups and dependencies.
-3. 100k/1m-point pan, zoom, cursor, and streaming tests with optional
-   decimation or spatial indexes.
+3. General 100k/1m-row render, update, streaming, decimation, and lifecycle
+   pressure is implemented; pan, zoom, and cursor-specific large-data pressure
+   remains pending.
 4. Zoomable hierarchy and map cases.
 5. Custom drawing tools and annotation persistence.
-6. Dense dashboard coordination across many independently mounted hosts.
+6. Multi-host mount, update, resize, and lifecycle pressure is implemented;
+   coordinated focus/selection propagation remains pending.
+
+##### Cross-library stress checkpoint — 2026-07-28
+
+[`benchmarks/comparison/stress`](./benchmarks/comparison/stress) and
+`scripts/stress-chart-libraries.mjs` now compare TanStack Charts, Chart.js,
+Apache ECharts, Recharts, and Observable Plot in production-minified Chromium
+consumers.
+
+- Raw line and scatter frontiers stay separate from product and encoded lanes.
+- The encoded lane covers fixed density cells, a screen-aware extrema-
+  preserving line envelope, a fixed-bin histogram, and top categories plus
+  `Other`. Every transform accounts for all source rows and has a prepared-row
+  ceiling.
+- Measurements retain preparation, synchronous commit, first-frame proxy,
+  two-frame settle proxy, update shape, trusted inactive-to-active tooltip
+  response, trusted active-to-active cursor sweeps, sustained cadence and
+  drain, output complexity, async renderer long tasks through settlement, and
+  fresh-page retained JS heap/DOM lifecycle deltas.
+- Update coverage includes a true no-op, same-key values, append, replacement,
+  reorder, and resize. Append preserves the original source prefix. The runner
+  verifies canonical digests, every update/stream input's source accounting,
+  extrema, rendered data items/path vertices, numeric endpoint visibility,
+  post-update dimensions, nonblank finite output, and visual change.
+- The canonical quick five-library matrix passes all 55 cells with zero
+  correctness failures. TanStack remains within the 16.7 ms synchronous and
+  33.4 ms settled investigation thresholds for every sane workload. It is
+  fastest to mount the Stats-shaped multi-series case and top-category
+  rollup, and is close to the fastest in small multiples, density, and the
+  line envelope; interactive scatter and density updates remain the clearest
+  measured optimization targets.
+- The canonical standard five-library matrix passes all 100 cells with zero
+  correctness failures and zero retries. Its production-minified browser run
+  covers raw frontiers, product cases, million-row bounded encodings, trusted
+  interaction, 48-revision bursts, and lifecycle soak under the final
+  infrastructure-only retry policy.
+- Pull requests run the quick correctness matrix. Scheduled/manual CI runs the
+  20-sample standard profile. Both run deterministic workload-invariant tests
+  first. Cross-library timing rank remains informational and comparable only
+  within one machine/browser run.
+- Density preparation now emits only occupied cells from its fixed grid. The
+  100,000-row fixture accounts for every source row in 1,909 shared marks
+  instead of asking renderers to interpret 139 empty marks differently.
+- A focused trusted cursor sweep changes rendered tooltip state at all 20
+  quick-profile targets in all five libraries. TanStack records 0.5 ms
+  active-to-active p95 separately from its 5.7 ms inactive activation p95.
+- A controlled viewport workload now separates renderer domain-update cost
+  from wheel, drag, brush, and application-state policy. All five libraries
+  pass exact domain probes over the same 2,999-row envelope; TanStack updates a
+  100,000-row source representation in 2.5 ms p95 in the focused quick run.
+- A Stats-shaped 24-series, 520-point standard workload now gates authored
+  series order, color ownership, explicit domains, and exact grouped tooltip
+  values through reorder, append, visibility, sustained-update, and resize
+  changes. In the canonical standard run TanStack mounts in 10.9 ms p95,
+  updates in 6.3–7.2 ms p95, sustains 119.6 updates per second, activates the
+  grouped tooltip in 1.2 ms p95, and
+  traverses 100 exact active states in 0.8 ms p95.
+- A rolling keyed-window workload advances immutable 1,000- and 5,000-point
+  windows by five percent and separately measures awaited streams and
+  synchronous latest-wins bursts. The integrated 15-cell standard run has
+  zero correctness failures. TanStack reuses all 950 and 4,750 surviving SVG
+  nodes, drains every 48-revision burst to one stable final digest, and retains
+  252.6 kB at 5,000 points with zero DOM-node or listener delta.
+- The raw 5,000-dot SVG window is an intentional crossover measurement:
+  TanStack's same-shape update is 17.4 ms p95, the five-percent roll is
+  16.2 ms p95, and the sustained stream reaches 19.2 ms p95. The 16-chart
+  dashboard mount similarly reaches 18.1 ms p95 while its updates stay below
+  9 ms. Those results direct applications toward bounded encodings,
+  progressive mounting, or fewer simultaneous hosts rather than universal
+  renderer weight for raw-node extremes.
+- A focused full-profile TanStack run passes all 10 largest product and encoded
+  cells with zero correctness failures. One-million-row density, envelope,
+  and viewport sources update below 7 ms p95 after bounded preparation; the
+  32-by-1,040 Stats history stays below 16 ms p95 across update shapes. The
+  10,000-dot rolling window reuses all 9,500 surviving nodes but reaches
+  31–35 ms p95, confirming the representation crossover instead of motivating
+  universal SVG machinery.
+- Filtered stress runs use filter-qualified artifact names and record their
+  filters, so focused diagnostics cannot overwrite the canonical quick,
+  standard, or full reports. Unknown library and workload IDs fail before
+  bundle or browser work instead of silently narrowing the matrix.
+
+Focused CPU profiles put 58–66% of TanStack's node-heavy update work in SVG
+template parsing, keyed reconciliation, and DOM attribute synchronization,
+with another 14–16% in SVG serialization. Two measured experiments kept the
+bundle gate in control:
+
+- A same-order keyed reconciliation fast path cost 106–123 bytes gzip and was
+  neutral-to-slower across interactive scatter, density, and histogram updates.
+  It was rejected and fully removed.
+- Replacing the reconciler's short-lived attribute-name `Set` with repeated DOM
+  `hasAttribute` calls saved one gzip byte but regressed same-shape updates by
+  15–27% and resize by 15–26% across 100 measured samples per cell. It was
+  rejected and fully removed.
+- Hoisting the grid's three safely inherited stroke attributes to its existing
+  group removed 30 repeated attributes and 610 SVG bytes from ordinary charts,
+  and 399 attributes and 8,113 bytes from the histogram. Every affected locked
+  bundle also shrank by 54 minified bytes and 0–5 gzip bytes. Focused scene,
+  serialization, core, and type gates pass, so the change was retained.
+- Broader dot/bar fill hoisting would save more output bytes but added 46 gzip
+  bytes to the representative bundle and complicates exit-animation color
+  semantics. It was rejected before implementation.
+- Removing deterministic fixed-size layout reads and dormant post-render
+  queries improved a 64-chart mount median by about 5%, resize by about 10%,
+  and same-shape updates by about 2% for 8 bytes gzip. That change was retained
+  and its exact locked baselines were reviewed.
+- Replacing the reconciler's short-lived next-attribute `Set` with
+  `Array.includes` improved 12-round medians by 0.1–0.7 ms across density,
+  5,000-point scatter, dashboard, and histogram updates, but regressed scatter
+  p95 from 16.2 to 16.7 ms and added one gzip byte to at least one locked
+  consumer depending on compressor level. `indexOf` was larger. Both variants
+  were rejected and removed.
+- An allocation-free SVG serializer added 18–35 gzip bytes without a stable
+  browser win; one-pass line grouping was end-to-end neutral and added one
+  gzip byte to the curved-line consumer; avoiding `AbortController` creation
+  for preparation-free definitions improved dashboard timing by only 1–2% and
+  added a gzip byte to locked React-line and Stats consumers. All three were
+  rejected and removed.
+
+Further presentation hoisting is closed unless a narrower proof is both
+bundle-negative and animation-safe. Measure each change in isolation against
+interactive scatter, density, histogram, and small multiples; do not trade
+universal bytes for a synthetic raw-data win, and do not replace inexpensive
+JavaScript work with extra DOM boundary calls.
+
+The next workload expansion should add repeated controller-level
+brush/zoom/pan workloads and multi-chart propagation latency; trusted cursor
+movement and isolated viewport rendering are now covered. Capture a
+standard/full baseline on stable hardware. Do not merge raw and encoded cases
+into one leaderboard.
 
 ##### Interaction conformance gates
 
@@ -2477,6 +2631,7 @@ generated skill. The initial matrix is:
 | Heterogeneous layers     | Different mark datum types remain an inferred union and are narrowed by a discriminant                         |
 | D3 distribution or stack | Named granular D3 imports, explicit empty-safe domains, typed transform output, compatible supplied scales     |
 | Custom mark              | Public `createMark<Datum, X, Y>()`, deterministic scene keys, original datum in points, no private import      |
+| Custom interaction       | Typed focus and SVG renderer inversion of control; exact datum/x/y values; rejects incompatible coordinates    |
 | Plot migration           | Uses Plot only as a conceptual reference and maps stale Plot options to supported TanStack APIs                |
 | Maintenance edit         | Evolves an existing data model and chart without assertions, definition recreation, or type erosion            |
 
@@ -2800,11 +2955,16 @@ profiling remains before removal sign-off.
   invalidation have focused tests. Automated visual baselines remain a release
   gate.
 
-## Expected capability coverage
+## Historical expected capability map
 
-Observable Plot currently supplies most low-level visualization capability. A
-native engine would own the validated subset above. TanStack Charts should
-make the following production concerns easy and documented:
+This is the initial prototype target retained for design history. The current
+implemented surface and remaining gaps are recorded in the product checkpoint,
+conformance catalog, stress checkpoint, and phased status sections above and
+below; do not infer current support from this list.
+
+At the start of the proof, Observable Plot supplied most low-level
+visualization capability. The proposed native engine was expected to make the
+following production concerns easy and documented:
 
 ### Common charts
 
@@ -2864,6 +3024,8 @@ These should not automatically become core features. Each must prove that a shar
 
 ### Phase 0: durable plan and evidence
 
+Status: complete and ongoing as maintenance.
+
 - Maintain this file as the source of truth.
 - Create the repository README when implementation begins.
 - Convert provisional decisions into explicit accepted decisions as prototypes validate them.
@@ -2900,9 +3062,10 @@ Exit criteria:
 
 ### Phase 2: minimal production core
 
-Status: in progress. Package names and capability boundaries are established;
-the remaining production gates are diagnostics, visual regression,
-production-browser benchmarks, packed-consumer tests, and published bundle
+Status: in progress. Package names, capability boundaries, packed-consumer
+artifacts, automated visual and interaction conformance, production-browser
+stress evidence, and bundle CI are established. Remaining productization gates
+include public diagnostics, release compatibility policy, and published bundle
 budgets.
 
 - Finalize public package and entry-point structure.
@@ -2994,8 +3157,6 @@ Each optional capability should have a real consumer, independent entry point, b
 
 ## Open decisions
 
-- Final package topology: separate packages versus consolidated packages with
-  subpath exports
 - Whether the core should render loading and empty UI or expose only state slots
 - Minimum React and Octane versions
 - CSS distribution strategy
@@ -3010,6 +3171,9 @@ Each optional capability should have a real consumer, independent entry point, b
 
 - The product and package family are named TanStack Charts. Observable Plot is
   an architectural influence and preserved comparison, not the shipped engine.
+- The package topology is `@tanstack/charts` plus thin React and Octane adapter
+  packages. Chart-owned optional capabilities use core subpaths; D3 algorithms
+  remain direct granular dependencies.
 - A D3-native, TanStack-rendered, Plot-inspired engine owns the product package
   names; Observable Plot remains preserved comparison research.
 - The React Charts revival spike is part of the TanStack Charts native-engine

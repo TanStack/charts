@@ -407,8 +407,8 @@ describe('core marks and categorical scales', () => {
             stroke: 'black',
             strokeOpacity: 0.28,
           }),
-          ruleY([0]),
-          ruleX([1]),
+          ruleY([0], { strokeDasharray: '4 2' }),
+          ruleX([1], { strokeDasharray: '2 3' }),
           text(data, {
             x: 'x',
             y: 'y',
@@ -438,9 +438,20 @@ describe('core marks and categorical scales', () => {
       { style: { stroke: 'black', strokeOpacity: 0.28 } },
     ])
     expect(
+      nodes.find(
+        (node) => node.kind === 'rule' && node.key.startsWith('rule-y-'),
+      ),
+    ).toMatchObject({ style: { strokeDasharray: '4 2' } })
+    expect(
+      nodes.find(
+        (node) => node.kind === 'rule' && node.key.startsWith('rule-x-'),
+      ),
+    ).toMatchObject({ style: { strokeDasharray: '2 3' } })
+    expect(
       nodes.filter((node) => node.kind === 'label').length,
     ).toBeGreaterThan(2)
     expect(svg).toContain('data-ts-key=')
+    expect(svg).toContain('stroke-dasharray="4 2"')
     expect(svg).toContain('Z"')
     expect(svg).toMatch(/d="M[^"]+L[^"]+Z"/)
     expect(scene.points.slice(-2).map((point) => point.color)).toEqual([

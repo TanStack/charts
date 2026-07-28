@@ -1,7 +1,8 @@
 # Archived TanStack Charts D3 backend experiment
 
-This private package is an API-compatible measurement fork of
-`@tanstack/charts`. It keeps the TanStack mark, scene, reconciliation,
+This private package was API-compatible with `@tanstack/charts` at its archived
+measurement checkpoint. It is not maintained against the current public
+exports. The experiment kept the TanStack mark, scene, reconciliation,
 interaction, animation, SVG, and DOM layers while replacing mathematical
 internals with direct imports from:
 

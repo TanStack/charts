@@ -42,6 +42,42 @@ describe('Octane Chart adapter', () => {
 		expect(html).toContain('<path');
 	});
 
+	it('derives proportional initial geometry from an explicit width', () => {
+		function ServerChart() {
+			return <Chart
+				definition={definition}
+				width={900}
+				initialWidth={480}
+				aspectRatio={3}
+				ariaLabel="Revenue"
+			/>;
+		}
+
+		const { html } = renderToString(ServerChart);
+		expect(html).toContain('viewBox="0 0 900 300"');
+		expect(html).toContain('width:900px');
+		expect(html).toContain('aspect-ratio:3');
+	});
+
+	it.each([0, -2, Number.NaN, Number.POSITIVE_INFINITY])(
+		'falls back consistently for an invalid aspect ratio (%s)',
+		aspectRatio => {
+			function ServerChart() {
+				return <Chart
+					definition={definition}
+					width={480}
+					aspectRatio={aspectRatio}
+					ariaLabel="Revenue"
+				/>;
+			}
+
+			const { html } = renderToString(ServerChart);
+			expect(html).toContain('viewBox="0 0 480 320"');
+			expect(html).toContain('height:320px');
+			expect(html).not.toContain('aspect-ratio');
+		},
+	);
+
 	it('server-renders scoped SVG resource IDs', () => {
 		const gradientDefinition = defineChart({
 			marks: [areaY([1, 3, 2], { fill: 'url(#fill)' })],

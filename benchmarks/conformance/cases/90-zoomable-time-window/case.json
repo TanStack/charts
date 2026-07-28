@@ -9,10 +9,14 @@
   "support": "composed",
   "features": [
     "wheel zoom",
-    "horizontal wheel pan",
+    "drag and horizontal wheel pan",
     "pointer-anchored domain",
     "clamped continuous viewport",
     "D3 scale inversion",
+    "optional d3-zoom controller",
+    "keyboard and touch navigation",
+    "intentional focus before wheel capture",
+    "semantic reset control",
     "ECharts data zoom"
   ],
   "geometry": [
@@ -29,6 +33,55 @@
   ],
   "interactionScenarios": [
     {
+      "id": "unfocused-wheel-is-not-captured",
+      "steps": [
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "equals": "Focus chart to zoom"
+            },
+            {
+              "target": {
+                "role": "application",
+                "name": "Zoomable time window. Focus the chart before wheel zoom; drag or use a horizontal wheel to pan; use plus, minus, arrow keys, or Home.",
+                "exact": true
+              },
+              "property": "focused",
+              "equals": false
+            }
+          ]
+        },
+        {
+          "type": "wheel",
+          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "deltaY": 240
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-01" },
+            { "path": "viewport.end", "equals": "2025-01-17" },
+            { "path": "interaction.active", "equals": false },
+            { "path": "interaction.wheelCaptured", "equals": false },
+            { "path": "interaction.last", "equals": "none" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "page": true },
+              "property": "scrollTop",
+              "atLeast": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "zoom-pan-and-restore",
       "steps": [
         {
@@ -38,6 +91,29 @@
             { "path": "viewport.end", "equals": "2025-01-17" },
             { "path": "viewport.spanDays", "approx": 16, "tolerance": 0.01 },
             { "path": "visible.count", "equals": 17 }
+          ]
+        },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "date:2025-01-09" }
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "role": "application",
+                "name": "Zoomable time window. Focus the chart before wheel zoom; drag or use a horizontal wheel to pan; use plus, minus, arrow keys, or Home.",
+                "exact": true
+              },
+              "property": "focused",
+              "equals": true
+            },
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "includes": "2025-01-01 → 2025-01-17"
+            }
           ]
         },
         {
@@ -52,7 +128,31 @@
             { "path": "viewport.end", "equals": "2025-01-13" },
             { "path": "viewport.spanDays", "approx": 8, "tolerance": 0.01 },
             { "path": "visible.count", "equals": 9 },
-            { "path": "interaction.last", "equals": "zoom" }
+            { "path": "interaction.last", "equals": "zoom" },
+            { "path": "interaction.active", "equals": true },
+            { "path": "interaction.wheelCaptured", "equals": true }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "page": true },
+              "property": "scrollTop",
+              "equals": 0
+            },
+            {
+              "target": { "role": "status" },
+              "property": "contained",
+              "equals": true,
+              "tolerance": 1
+            },
+            {
+              "target": { "role": "button", "name": "Reset zoom" },
+              "property": "contained",
+              "equals": true,
+              "tolerance": 1
+            }
           ]
         },
         {
@@ -66,9 +166,11 @@
             { "path": "viewport.start", "equals": "2025-01-07" },
             { "path": "viewport.end", "equals": "2025-01-15" },
             { "path": "visible.count", "equals": 9 },
-            { "path": "interaction.last", "equals": "pan" }
+            { "path": "interaction.last", "equals": "pan" },
+            { "path": "interaction.wheelCaptured", "equals": true }
           ]
         },
+        { "type": "screenshot", "name": "focused-zoom-window" },
         { "type": "update", "revision": 1 },
         {
           "type": "assert",
@@ -107,6 +209,186 @@
           ]
         }
       ]
+    },
+    {
+      "id": "line-wheel-normalization",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "date:2025-01-09" }
+        },
+        {
+          "type": "wheel",
+          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "deltaY": -15,
+          "deltaMode": "line"
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-05" },
+            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "viewport.spanDays", "approx": 8, "tolerance": 0.01 },
+            { "path": "interaction.wheelCaptured", "equals": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "page-wheel-normalization",
+      "steps": [
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "date:2025-01-09" }
+        },
+        {
+          "type": "wheel",
+          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "deltaY": -1,
+          "deltaMode": "page"
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-05" },
+            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "viewport.spanDays", "approx": 8, "tolerance": 0.01 },
+            { "path": "interaction.wheelCaptured", "equals": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "keyboard-pan-and-reset",
+      "steps": [
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "role": "button", "name": "Reset zoom" },
+              "property": "width",
+              "atLeast": 44
+            },
+            {
+              "target": { "role": "button", "name": "Reset zoom" },
+              "property": "height",
+              "atLeast": 44
+            }
+          ]
+        },
+        {
+          "type": "key",
+          "key": "+",
+          "target": { "view": "main", "anchor": "date:2025-01-09" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-05" },
+            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "interaction.active", "equals": true },
+            { "path": "interaction.last", "equals": "zoom" }
+          ]
+        },
+        {
+          "type": "key",
+          "key": "ArrowRight",
+          "target": { "view": "main", "anchor": "date:2025-01-09" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-06" },
+            { "path": "viewport.end", "equals": "2025-01-14" },
+            { "path": "interaction.last", "equals": "pan" }
+          ]
+        },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "control:reset" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-01" },
+            { "path": "viewport.end", "equals": "2025-01-17" },
+            { "path": "viewport.spanDays", "approx": 16, "tolerance": 0.01 },
+            { "path": "interaction.active", "equals": true },
+            { "path": "interaction.last", "equals": "reset" }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "includes": "2025-01-01 → 2025-01-17"
+            },
+            {
+              "target": { "role": "status" },
+              "property": "contained",
+              "equals": true,
+              "tolerance": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "focused-pointer-drag-pan",
+      "steps": [
+        {
+          "type": "key",
+          "key": "+",
+          "target": { "view": "main", "anchor": "date:2025-01-09" }
+        },
+        {
+          "type": "drag",
+          "from": { "view": "main", "anchor": "date:2025-01-09" },
+          "to": { "view": "main", "anchor": "date:2025-01-07" },
+          "steps": 8
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-07" },
+            { "path": "viewport.end", "equals": "2025-01-15" },
+            { "path": "interaction.last", "equals": "pan" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "touch-activation-and-pan",
+      "steps": [
+        {
+          "type": "touchTap",
+          "target": { "view": "main", "anchor": "date:2025-01-09" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "interaction.active", "equals": true },
+            { "path": "viewport.spanDays", "approx": 16, "tolerance": 0.01 }
+          ]
+        },
+        { "type": "key", "key": "+" },
+        {
+          "type": "touchDrag",
+          "from": { "view": "main", "anchor": "date:2025-01-09" },
+          "to": { "view": "main", "anchor": "date:2025-01-07" },
+          "steps": 8
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "viewport.start", "equals": "2025-01-07" },
+            { "path": "viewport.end", "equals": "2025-01-15" },
+            { "path": "interaction.last", "equals": "pan" }
+          ]
+        }
+      ]
     }
   ],
   "source": {
@@ -114,7 +396,7 @@
     "url": "https://echarts.apache.org/handbook/en/concepts/datazoom/"
   },
   "ai": {
-    "create": "Create a UTC time series whose wheel interaction zooms around the pointer and whose horizontal wheel interaction pans the cropped viewport without escaping the full data domain.",
-    "maintain": "Keep viewport state outside the renderer, derive pointer dates with the configured D3 scale copied onto resolved scene bounds, and preserve explicit clamping and minimum-span policy."
+    "create": "Create a UTC time series with an optional granular d3-zoom controller that zooms around the pointer, pans by drag or horizontal wheel, and exposes keyboard, touch, status, and reset affordances.",
+    "maintain": "Keep the D3 zoom transform and application viewport synchronized across responsive updates, leave wheel and vertical touch scrolling unconsumed until intentional plot focus, expose the same keyboard and reset contract, and preserve D3 constraints rather than recreating transform math."
   }
 }

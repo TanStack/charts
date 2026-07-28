@@ -10,6 +10,7 @@ import type {
   ChartRuntime,
   ChartScene,
   ChartSpatialIndex,
+  ChartValue,
 } from './types'
 
 /**
@@ -17,16 +18,25 @@ import type {
  * Pass a runtime that already rendered initial markup to preserve its prepared
  * data across adapter prerender and DOM mounting.
  */
-export function mountChart<TDatum, TInput = undefined>(
+export function mountChart<
+  TDatum,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
   container: HTMLElement,
-  initialOptions: ChartHostOptions<TDatum, TInput>,
-  runtime: ChartRuntime<TDatum, TInput> = createChartRuntime<TDatum, TInput>(),
-): ChartHost<TDatum, TInput> {
+  initialOptions: ChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+  runtime: ChartRuntime<TDatum, TInput, TXValue, TYValue> = createChartRuntime<
+    TDatum,
+    TInput,
+    TXValue,
+    TYValue
+  >(),
+): ChartHost<TDatum, TInput, TXValue, TYValue> {
   assertRequiredInput(initialOptions)
   let options = initialOptions
-  let scene!: ChartScene<TDatum>
+  let scene!: ChartScene<TDatum, TXValue, TYValue>
   let focusedKey: string | null = null
-  let focusedPoints: readonly ChartPoint<TDatum>[] = []
   let pinnedKey: string | null = null
   let observer: ResizeObserver | undefined
   let renderFrame: number | undefined
@@ -35,17 +45,18 @@ export function mountChart<TDatum, TInput = undefined>(
   let hasRendered = false
   let cancelAnimation = () => {}
   let tooltipElement: HTMLDivElement | undefined
-  let spatialIndex: ChartSpatialIndex<TDatum> | undefined
+  let spatialIndex: ChartSpatialIndex<TDatum, TXValue, TYValue> | undefined
   const previousPosition = container.style.position
-  const computedPosition =
-    container.ownerDocument.defaultView?.getComputedStyle(container).position
+  const view = container.ownerDocument.defaultView
+  const computedPosition = view?.getComputedStyle(container).position
   const ownsPosition = !computedPosition || computedPosition === 'static'
   const domText = createDomTextMeasurer(container)
   const fontSet = container.ownerDocument.fonts
   if (ownsPosition) container.style.position = 'relative'
 
-  const render = () => {
+  const render = (refreshText = false) => {
     if (destroyed) return
+    if (refreshText && !options.measureText) domText.refresh()
     const previousFocusedKey = focusedKey
     scene = createScene()
     cancelAnimation()
@@ -54,7 +65,7 @@ export function mountChart<TDatum, TInput = undefined>(
       container,
       renderSvg(scene, {
         ...options,
-        tabIndex: options.keyboard === false ? -1 : 0,
+        tabIndex: options.keyboard === false ? -1 : (options.tabIndex ?? 0),
       }),
       hasRendered ? resolveAnimation(options.animate, container) : undefined,
     )
@@ -65,28 +76,35 @@ export function mountChart<TDatum, TInput = undefined>(
       : null
     focusedKey = nextFocusedPoint?.key ?? null
     if (!nextFocusedPoint) pinnedKey = null
-    focusedPoints = nextFocusedPoint
-      ? focusPointsForPoint(nextFocusedPoint)
-      : []
-    paintFocus(nextFocusedPoint, focusedPoints)
     if (previousFocusedKey) {
+      const nextFocusedPoints = nextFocusedPoint
+        ? focusPointsForPoint(nextFocusedPoint)
+        : []
+      paintFocus(nextFocusedPoint, nextFocusedPoints)
       options.onFocusChange?.(nextFocusedPoint)
-      options.onFocusGroupChange?.(focusedPoints)
+      options.onFocusGroupChange?.(nextFocusedPoints)
     }
-    const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
-    if (svg) options.onRender?.({ container, scene, svg })
+    const onRender = options.onRender
+    if (onRender) {
+      const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
+      if (svg) onRender({ container, scene, svg })
+    }
+  }
+
+  const currentWidth = () => {
+    const width = options.width ?? container.getBoundingClientRect().width
+    return options.width !== undefined || width > 0 ? width : undefined
   }
 
   const configureObserver = () => {
     observer?.disconnect()
     observer = undefined
     if (options.width !== undefined) return
-    const ResizeObserverConstructor =
-      container.ownerDocument.defaultView?.ResizeObserver
+    const ResizeObserverConstructor = view?.ResizeObserver
     if (!ResizeObserverConstructor) return
     observer = new ResizeObserverConstructor(() => {
-      const width = container.getBoundingClientRect().width
-      if (width <= 0 || width === scene.width) return
+      const width = currentWidth()
+      if (width === undefined || width === scene.width) return
       scheduleRender()
     })
     observer.observe(container)
@@ -95,22 +113,23 @@ export function mountChart<TDatum, TInput = undefined>(
   const scheduleRender = (force = false) => {
     forceScheduledRender ||= force
     if (renderFrame !== undefined) return
-    const view = container.ownerDocument.defaultView
     if (!view?.requestAnimationFrame) {
+      const nextWidth = currentWidth()
       const shouldRender =
         forceScheduledRender ||
-        container.getBoundingClientRect().width !== scene.width
+        (nextWidth !== undefined && nextWidth !== scene.width)
       forceScheduledRender = false
-      if (shouldRender) render()
+      if (shouldRender) render(true)
       return
     }
     renderFrame = view.requestAnimationFrame(() => {
       renderFrame = undefined
-      const nextWidth = container.getBoundingClientRect().width
+      const nextWidth = currentWidth()
       const shouldRender =
-        forceScheduledRender || (nextWidth > 0 && nextWidth !== scene.width)
+        forceScheduledRender ||
+        (nextWidth !== undefined && nextWidth !== scene.width)
       forceScheduledRender = false
-      if (shouldRender) render()
+      if (shouldRender) render(true)
     })
   }
 
@@ -120,20 +139,21 @@ export function mountChart<TDatum, TInput = undefined>(
     scheduleRender(true)
   }
 
-  const updateFocus = (points: readonly ChartPoint<TDatum>[]) => {
+  const updateFocus = (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  ) => {
     const point = points[0] ?? null
     const nextKey = point?.key ?? null
     if (nextKey === focusedKey) return
     focusedKey = nextKey
-    focusedPoints = points
     paintFocus(point, points)
     options.onFocusChange?.(point)
     options.onFocusGroupChange?.(points)
   }
 
   const paintFocus = (
-    point: ChartPoint<TDatum> | null,
-    points: readonly ChartPoint<TDatum>[],
+    point: ChartPoint<TDatum, TXValue, TYValue> | null,
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) => {
     const focus = container.querySelector<SVGCircleElement>(
       '[data-ts-chart-focus]',
@@ -165,8 +185,16 @@ export function mountChart<TDatum, TInput = undefined>(
     if (pinnedKey) return
     updateFocus(pointsAtPointer(event.clientX, event.clientY))
   }
-  const handleMouseLeave = () => {
-    if (!pinnedKey) updateFocus([])
+  const clearTransientFocus = ({ relatedTarget }: MouseEvent | FocusEvent) => {
+    if (
+      !pinnedKey &&
+      !(
+        view &&
+        relatedTarget instanceof view.Node &&
+        container.contains(relatedTarget)
+      )
+    )
+      updateFocus([])
   }
   const handleClick = (event: MouseEvent) => {
     const points = pointsAtPointer(event.clientX, event.clientY)
@@ -235,12 +263,13 @@ export function mountChart<TDatum, TInput = undefined>(
       updateFocus(point ? focusPointsForPoint(point) : [])
     }
   }
-
   container.addEventListener('pointermove', handlePointerMove)
-  container.addEventListener('mouseleave', handleMouseLeave)
+  container.addEventListener('pointercancel', clearTransientFocus)
+  container.addEventListener('mouseleave', clearTransientFocus)
   container.addEventListener('click', handleClick)
   container.addEventListener('keydown', handleKeyDown)
   container.addEventListener('focusin', handleFocus)
+  container.addEventListener('focusout', clearTransientFocus)
   fontSet?.addEventListener?.('loadingdone', handleFontLoad)
   render()
   configureObserver()
@@ -265,6 +294,7 @@ export function mountChart<TDatum, TInput = undefined>(
         options.ariaLabel !== nextOptions.ariaLabel ||
         options.ariaDescription !== nextOptions.ariaDescription ||
         options.className !== nextOptions.className ||
+        options.tabIndex !== nextOptions.tabIndex ||
         options.idPrefix !== nextOptions.idPrefix ||
         options.renderSvg !== nextOptions.renderSvg ||
         options.keyboard !== nextOptions.keyboard ||
@@ -276,13 +306,16 @@ export function mountChart<TDatum, TInput = undefined>(
       options = nextOptions
       if (!tooltipIsSticky()) pinnedKey = null
       if (needsRender) render()
-      else if (spatialIndexChanged) {
-        spatialIndex = options.spatialIndex?.(scene.points)
-      } else if (focusedKey) {
-        const point =
-          scene.points.find((candidate) => candidate.key === focusedKey) ?? null
-        focusedPoints = point ? focusPointsForPoint(point) : []
-        paintFocus(point, focusedPoints)
+      else {
+        if (spatialIndexChanged) {
+          spatialIndex = options.spatialIndex?.(scene.points)
+        }
+        if (focusedKey) {
+          const point =
+            scene.points.find((candidate) => candidate.key === focusedKey) ??
+            null
+          paintFocus(point, point ? focusPointsForPoint(point) : [])
+        }
       }
       if (observerChanged) configureObserver()
     },
@@ -293,15 +326,17 @@ export function mountChart<TDatum, TInput = undefined>(
       observer?.disconnect()
       fontSet?.removeEventListener?.('loadingdone', handleFontLoad)
       if (renderFrame !== undefined) {
-        container.ownerDocument.defaultView?.cancelAnimationFrame?.(renderFrame)
+        view?.cancelAnimationFrame?.(renderFrame)
       }
       cancelAnimation()
       runtime.destroy()
       container.removeEventListener('pointermove', handlePointerMove)
-      container.removeEventListener('mouseleave', handleMouseLeave)
+      container.removeEventListener('pointercancel', clearTransientFocus)
+      container.removeEventListener('mouseleave', clearTransientFocus)
       container.removeEventListener('click', handleClick)
       container.removeEventListener('keydown', handleKeyDown)
       container.removeEventListener('focusin', handleFocus)
+      container.removeEventListener('focusout', clearTransientFocus)
       container.replaceChildren()
       if (ownsPosition && container.style.position === 'relative') {
         container.style.position = previousPosition
@@ -309,12 +344,8 @@ export function mountChart<TDatum, TInput = undefined>(
     },
   }
 
-  function createScene(): ChartScene<TDatum> {
-    if (!options.measureText) domText.refresh()
-    const measuredWidth = container.getBoundingClientRect().width
-    const width =
-      options.width ??
-      (measuredWidth > 0 ? measuredWidth : (options.initialWidth ?? 640))
+  function createScene(): ChartScene<TDatum, TXValue, TYValue> {
+    const width = currentWidth() ?? options.initialWidth ?? 640
     return runtime.render(
       options.definition,
       options.input as TInput,
@@ -322,7 +353,7 @@ export function mountChart<TDatum, TInput = undefined>(
         width,
         height:
           options.height ??
-          (options.aspectRatio && options.aspectRatio > 0
+          (isPositiveFiniteNumber(options.aspectRatio)
             ? width / options.aspectRatio
             : 320),
       },
@@ -334,7 +365,7 @@ export function mountChart<TDatum, TInput = undefined>(
     x: number,
     y: number,
     maxDistance: number,
-  ): readonly ChartPoint<TDatum>[] {
+  ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
     if (options.focus) {
       return options.focus.resolve(scene.points, x, y, maxDistance)
     }
@@ -345,14 +376,14 @@ export function mountChart<TDatum, TInput = undefined>(
   }
 
   function focusPointsForPoint(
-    point: ChartPoint<TDatum>,
-  ): readonly ChartPoint<TDatum>[] {
+    point: ChartPoint<TDatum, TXValue, TYValue>,
+  ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
     return options.focus?.group(scene.points, point) ?? [point]
   }
 
   function paintTooltip(
-    point: ChartPoint<TDatum> | null,
-    points: readonly ChartPoint<TDatum>[],
+    point: ChartPoint<TDatum, TXValue, TYValue> | null,
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) {
     if (!options.tooltip || !point) {
       tooltipElement?.setAttribute('hidden', '')
@@ -382,9 +413,16 @@ export function mountChart<TDatum, TInput = undefined>(
   }
 }
 
-function assertRequiredInput<TDatum, TInput>(
-  options: ChartHostOptions<TDatum, TInput>,
-) {
+function isPositiveFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+}
+
+function assertRequiredInput<
+  TDatum,
+  TInput,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(options: ChartHostOptions<TDatum, TInput, TXValue, TYValue>) {
   if ('chart' in options.definition && !Object.hasOwn(options, 'input')) {
     throw new TypeError('Dynamic chart definitions require an input value')
   }
@@ -407,7 +445,11 @@ function resolveAnimation(
   return resolved
 }
 
-function navigationPoints<TDatum>(points: readonly ChartPoint<TDatum>[]) {
+function navigationPoints<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(points: readonly ChartPoint<TDatum, TXValue, TYValue>[]) {
   return [...points].sort((left, right) => left.x - right.x || left.y - right.y)
 }
 

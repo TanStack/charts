@@ -8,9 +8,11 @@ import {
   synchronizedCursorDateDomain,
   synchronizedCursorDateKey,
   synchronizedCursorDatumAtDate,
+  synchronizedCursorNearestDatum,
   synchronizedCursorViews,
   synchronizedCursorYDomains,
 } from './data'
+import { createSynchronizedSummary, updateSynchronizedSummary } from './summary'
 import type {
   ChartPoint,
   ChartRenderContext,
@@ -35,6 +37,7 @@ interface SynchronizedViewInput extends ConformanceInput {
 interface CrosshairElements {
   overlay: SVGSVGElement
   line: SVGLineElement
+  marker: SVGCircleElement
 }
 
 const definition = defineChart<SynchronizedViewInput>()(({ input }) => {
@@ -89,6 +92,7 @@ export function mount(
 ): ConformanceHandle {
   let currentInput = input
   let focusedDate: Date | null = null
+  let pinnedDate: Date | null = null
   const scenes: Record<
     SynchronizedCursorView,
     ChartScene<SynchronizedCursorDatum> | null
@@ -98,6 +102,8 @@ export function mount(
   }
   const document = container.ownerDocument
   const shell = document.createElement('div')
+  const summary = createSynchronizedSummary(document)
+  const chartStack = document.createElement('div')
   const primarySurface = document.createElement('div')
   const secondarySurface = document.createElement('div')
   const surfaces: Record<SynchronizedCursorView, HTMLDivElement> = {
@@ -108,7 +114,8 @@ export function mount(
   secondarySurface.dataset.conformanceView = 'secondary'
   primarySurface.style.position = 'relative'
   secondarySurface.style.position = 'relative'
-  shell.append(primarySurface, secondarySurface)
+  chartStack.append(primarySurface, secondarySurface)
+  shell.append(summary.root, chartStack)
   container.append(shell)
 
   const elements: Record<SynchronizedCursorView, CrosshairElements | null> = {
@@ -117,15 +124,18 @@ export function mount(
   }
 
   const viewHeight = () =>
-    Math.max(140, Math.floor((currentInput.height - 8) / 2))
+    Math.max(140, Math.floor((currentInput.height - 56 - 8) / 2))
 
   const sizeShell = () => {
     const height = viewHeight()
     shell.style.display = 'grid'
-    shell.style.gridTemplateRows = `${height}px ${height}px`
-    shell.style.gap = '8px'
+    shell.style.gridTemplateRows = `56px minmax(0, 1fr)`
     shell.style.width = `${currentInput.width}px`
     shell.style.height = `${currentInput.height}px`
+    chartStack.style.display = 'grid'
+    chartStack.style.gridTemplateRows = `${height}px ${height}px`
+    chartStack.style.gap = '8px'
+    chartStack.style.minHeight = '0'
   }
 
   const paintView = (view: SynchronizedCursorView) => {
@@ -138,8 +148,14 @@ export function mount(
     )
     if (!focusedDate) {
       crosshair.line.setAttribute('visibility', 'hidden')
+      crosshair.marker.setAttribute('visibility', 'hidden')
       return
     }
+    const datum = synchronizedCursorDatumAtDate(
+      view,
+      currentInput.revision,
+      focusedDate,
+    )
     const x = scene.scales.x.map(focusedDate)
     crosshair.line.setAttribute('x1', String(x))
     crosshair.line.setAttribute('x2', String(x))
@@ -149,18 +165,56 @@ export function mount(
       String(scene.chart.y + scene.chart.height),
     )
     crosshair.line.setAttribute('visibility', 'visible')
+    if (datum) {
+      crosshair.marker.setAttribute('cx', String(x))
+      crosshair.marker.setAttribute(
+        'cy',
+        String(scene.scales.y.map(datum.value)),
+      )
+      crosshair.marker.setAttribute('visibility', 'visible')
+    } else {
+      crosshair.marker.setAttribute('visibility', 'hidden')
+    }
   }
 
   const paintAll = () => {
     for (const view of synchronizedCursorViews) paintView(view)
+    updateSynchronizedSummary(
+      summary,
+      focusedDate,
+      currentInput,
+      pinnedDate !== null,
+    )
   }
 
   const setFocusedDate = (
     points: readonly ChartPoint<SynchronizedCursorDatum>[],
   ) => {
+    if (!points.length && pinnedDate) return
     focusedDate = points[0]?.datum.date ?? null
     paintAll()
   }
+
+  const selectDate = (point: ChartPoint<SynchronizedCursorDatum> | null) => {
+    if (!point) return
+    if (pinnedDate?.getTime() === point.datum.date.getTime()) {
+      pinnedDate = null
+      focusedDate = null
+    } else {
+      pinnedDate = point.datum.date
+      focusedDate = point.datum.date
+    }
+    paintAll()
+  }
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || !pinnedDate) return
+    event.preventDefault()
+    pinnedDate = null
+    focusedDate = null
+    paintAll()
+  }
+  shell.addEventListener('keydown', handleKeyDown)
 
   const onRender =
     (view: SynchronizedCursorView) =>
@@ -184,12 +238,14 @@ export function mount(
     height: viewHeight(),
     ariaLabel:
       view === 'primary'
-        ? 'Primary throughput time series'
-        : 'Secondary error-rate time series',
+        ? 'Linked primary throughput time series'
+        : 'Linked secondary error-rate time series',
     animate: false,
-    keyboard: false,
+    keyboard: true,
     focus: focusX,
+    maxFocusDistance: Number.POSITIVE_INFINITY,
     onFocusGroupChange: setFocusedDate,
+    onSelect: selectDate,
     onRender: onRender(view),
   })
 
@@ -208,6 +264,7 @@ export function mount(
     elements,
     () => currentInput,
     () => focusedDate,
+    () => pinnedDate !== null,
   )
 
   return {
@@ -220,6 +277,7 @@ export function mount(
       paintAll()
     },
     destroy() {
+      shell.removeEventListener('keydown', handleKeyDown)
       primaryHost.destroy()
       secondaryHost.destroy()
       shell.remove()
@@ -246,9 +304,19 @@ function createCrosshair(surface: HTMLDivElement): CrosshairElements {
   line.setAttribute('stroke-width', '1')
   line.setAttribute('stroke-dasharray', '4 4')
   line.setAttribute('visibility', 'hidden')
-  overlay.append(line)
+  const marker = document.createElementNS(
+    'http://www.w3.org/2000/svg',
+    'circle',
+  )
+  marker.dataset.conformanceCrosshair = 'marker'
+  marker.setAttribute('r', '5')
+  marker.setAttribute('fill', '#ffffff')
+  marker.setAttribute('stroke', '#334155')
+  marker.setAttribute('stroke-width', '2')
+  marker.setAttribute('visibility', 'hidden')
+  overlay.append(line, marker)
   surface.append(overlay)
-  return { overlay, line }
+  return { overlay, line, marker }
 }
 
 function createDriver(
@@ -259,13 +327,20 @@ function createDriver(
   elements: Readonly<Record<SynchronizedCursorView, CrosshairElements | null>>,
   getInput: () => ConformanceInput,
   getFocusedDate: () => Date | null,
+  getPinned: () => boolean,
 ): ConformanceTestDriver {
   return {
     resolveTarget(target) {
       return resolveTarget(surfaces, scenes, getInput(), target)
     },
     readState() {
-      return interactionState(scenes, elements, getFocusedDate())
+      return interactionState(
+        scenes,
+        elements,
+        getInput(),
+        getFocusedDate(),
+        getPinned(),
+      )
     },
     geometry(query) {
       return geometry(surfaces, scenes, getInput(), query)
@@ -292,7 +367,7 @@ function resolveTarget(
   const date = synchronizedCursorAnchorDate(target.anchor)
   if (!view || !date) return null
   const scene = scenes[view]
-  const datum = synchronizedCursorDatumAtDate(view, input.revision, date)
+  const datum = synchronizedCursorNearestDatum(view, input.revision, date)
   if (!scene || !datum) return null
   return scenePointToClient(
     surfaces[view],
@@ -415,11 +490,22 @@ function interactionState(
     Record<SynchronizedCursorView, ChartScene<SynchronizedCursorDatum> | null>
   >,
   elements: Readonly<Record<SynchronizedCursorView, CrosshairElements | null>>,
+  input: ConformanceInput,
   date: Date | null,
+  pinned: boolean,
 ): ConformanceJsonObject {
   return {
     shared: {
       date: date ? synchronizedCursorDateKey(date) : null,
+      primaryValue: date
+        ? (synchronizedCursorDatumAtDate('primary', input.revision, date)
+            ?.value ?? null)
+        : null,
+      secondaryValue: date
+        ? (synchronizedCursorDatumAtDate('secondary', input.revision, date)
+            ?.value ?? null)
+        : null,
+      pinned,
     },
     crosshairs: {
       primary: renderedCrosshairState(scenes.primary, elements.primary),

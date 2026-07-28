@@ -7,7 +7,7 @@ import { defineChart } from './scene'
 import { renderChartSvgWithResources } from './svg-resources'
 import { focusX } from './focus'
 import { bandXAxes, linearAxes } from './test-scales'
-import type { ChartDefinition, ChartTextMeasurer } from './types'
+import type { ChartDefinition, ChartPoint, ChartTextMeasurer } from './types'
 
 interface Datum {
   id: string
@@ -221,6 +221,72 @@ describe('dynamic chart runtime', () => {
     host.destroy()
   })
 
+  it('honors an explicit SVG tab index when keyboard interaction is enabled', () => {
+    const definition = defineChart({
+      marks: [lineY([2, 4, 3])],
+      ...linearAxes([0, 2], [0, 4]),
+    })
+    const container = document.createElement('div')
+    const options = {
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Custom tab order chart',
+      tabIndex: 3,
+    }
+    const host = mountChart(container, options)
+    const svg = container.querySelector('svg')
+
+    expect(svg?.getAttribute('tabindex')).toBe('3')
+
+    host.update({ ...options, tabIndex: 5 })
+    expect(svg?.getAttribute('tabindex')).toBe('5')
+
+    host.update({ ...options, tabIndex: 5, keyboard: false })
+    expect(svg?.getAttribute('tabindex')).toBe('-1')
+    host.destroy()
+  })
+
+  it('repaints focused UI when the spatial index and tooltip change together', () => {
+    const data = [{ id: 'a', x: 0, y: 4 }]
+    const definition = defineChart({
+      marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
+      ...linearAxes([0, 1], [0, 4]),
+    })
+    const firstIndex = vi.fn((points: readonly ChartPoint<Datum>[]) => ({
+      findNearest: () => points[0] ?? null,
+    }))
+    const nextIndex = vi.fn((points: readonly ChartPoint<Datum>[]) => ({
+      findNearest: () => points[0] ?? null,
+    }))
+    const container = document.createElement('div')
+    const options = {
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Focused update chart',
+      tooltip: true,
+      spatialIndex: firstIndex,
+    }
+    const host = mountChart(container, options)
+    const svg = container.querySelector('svg')
+    if (!svg) throw new Error('Expected SVG')
+
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+    expect(tooltip?.hidden).toBe(false)
+
+    host.update({
+      ...options,
+      tooltip: false,
+      spatialIndex: nextIndex,
+    })
+
+    expect(nextIndex).toHaveBeenCalledOnce()
+    expect(tooltip?.hidden).toBe(true)
+    host.destroy()
+  })
+
   it('supports keyboard navigation and an automatic tooltip', () => {
     const data = [
       { id: 'a', x: 0, y: 4 },
@@ -338,6 +404,13 @@ describe('dynamic chart runtime', () => {
         clientY: first.y,
       }),
     )
+    svg.dispatchEvent(
+      new FocusEvent('focusout', {
+        bubbles: true,
+        relatedTarget: document.body,
+      }),
+    )
+    svg.dispatchEvent(new MouseEvent('pointercancel', { bubbles: true }))
     container.dispatchEvent(new MouseEvent('mouseleave'))
 
     const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
@@ -386,6 +459,88 @@ describe('dynamic chart runtime', () => {
     container.dispatchEvent(new MouseEvent('mouseleave'))
     expect(tooltip?.hidden).toBe(true)
     host.destroy()
+  })
+
+  it('clears transient focus when focus leaves the host or a pointer is canceled', () => {
+    const data = [
+      { id: 'a', x: 0, y: 4 },
+      { id: 'b', x: 1, y: 8 },
+    ]
+    const frame = document.createElement('iframe')
+    document.body.append(frame)
+    const chartDocument = frame.contentDocument
+    if (!chartDocument) throw new Error('Expected iframe realm')
+    const container = chartDocument.createElement('div')
+    const outside = chartDocument.createElement('button')
+    const onFocusChange = vi.fn()
+    const onSelect = vi.fn()
+    chartDocument.body.append(container, outside)
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
+        ...linearAxes([0, 1], [0, 8]),
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Transient focus chart',
+      onFocusChange,
+      onSelect,
+    })
+    const svg = container.querySelector('svg')
+    const first = host.getScene().points[0]
+    if (!svg || !first) throw new Error('Expected chart point')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    const internal = chartDocument.createElement('button')
+    container.append(internal)
+    expect(internal).not.toBeInstanceOf(Node)
+    svg.dispatchEvent(
+      new FocusEvent('focusout', {
+        bubbles: true,
+        relatedTarget: internal,
+      }),
+    )
+    expect(onFocusChange.mock.calls.at(-1)?.[0]).toEqual(first)
+
+    svg.dispatchEvent(
+      new FocusEvent('focusout', {
+        bubbles: true,
+        relatedTarget: outside,
+      }),
+    )
+    expect(onFocusChange.mock.calls.at(-1)?.[0]).toBeNull()
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: first.x,
+        clientY: first.y,
+      }),
+    )
+    svg.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: first.x,
+        clientY: first.y,
+      }),
+    )
+    container.dispatchEvent(new MouseEvent('pointercancel', { bubbles: true }))
+    expect(onFocusChange.mock.calls.at(-1)?.[0]).toBeNull()
+    expect(onSelect).toHaveBeenCalledOnce()
+
+    host.destroy()
+    frame.remove()
   })
 
   it('groups focus by channel value and exposes the rendered SVG', () => {
@@ -608,6 +763,54 @@ describe('dynamic chart runtime', () => {
     host.destroy()
   })
 
+  it.each([0, -2, Number.NaN, Number.POSITIVE_INFINITY])(
+    'falls back to the default height for invalid aspect ratio %s',
+    (aspectRatio) => {
+      const container = document.createElement('div')
+      const host = mountChart(container, {
+        definition: defineChart({
+          marks: [lineY([1, 2, 3])],
+          ...linearAxes([0, 2], [0, 3]),
+        }),
+        width: 480,
+        aspectRatio,
+        ariaLabel: 'Invalid proportional chart',
+      })
+
+      expect(host.getScene()).toMatchObject({ width: 480, height: 320 })
+      host.destroy()
+    },
+  )
+
+  it('skips fixed-size layout and dormant post-render work', () => {
+    const container = document.createElement('div')
+    const measureBounds = vi.spyOn(container, 'getBoundingClientRect')
+    const query = vi.spyOn(container, 'querySelector')
+    const readStyle = vi.spyOn(window, 'getComputedStyle')
+    const options = {
+      definition: defineChart({
+        marks: [lineY([1, 2, 3])],
+        ...linearAxes([0, 2], [0, 3]),
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Fixed-size chart',
+    }
+    const host = mountChart(container, options)
+
+    expect(measureBounds).not.toHaveBeenCalled()
+    expect(query).not.toHaveBeenCalledWith('svg.ts-chart')
+    expect(query).not.toHaveBeenCalledWith('[data-ts-chart-focus]')
+    expect(readStyle).toHaveBeenCalledTimes(2)
+
+    host.update({ ...options, width: 640 })
+
+    expect(measureBounds).not.toHaveBeenCalled()
+    expect(readStyle).toHaveBeenCalledTimes(3)
+    host.destroy()
+    readStyle.mockRestore()
+  })
+
   it('relayouts when an injected text measurer changes', () => {
     const compact = textMeasurer(0.4)
     const spacious = textMeasurer(1.2)
@@ -656,6 +859,7 @@ describe('dynamic chart runtime', () => {
       .mockImplementation(() => {})
     const onRender = vi.fn()
     const container = document.createElement('div')
+    const measureBounds = vi.spyOn(container, 'getBoundingClientRect')
     const host = mountChart(container, {
       definition: defineChart({
         marks: [lineY([1, 2, 3])],
@@ -673,6 +877,7 @@ describe('dynamic chart runtime', () => {
     expect(frames).toHaveLength(1)
     frames.shift()?.(0)
     expect(onRender).toHaveBeenCalledTimes(2)
+    expect(measureBounds).not.toHaveBeenCalled()
 
     host.destroy()
     fontSet.dispatchEvent(new Event('loadingdone'))

@@ -187,6 +187,56 @@ describe('automatic scene guide layout', () => {
     expect(scene.margin).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
     expect(scene.chart).toEqual({ x: 0, y: 0, width: 480, height: 260 })
   })
+
+  it('controls x and y guide visibility independently', () => {
+    const definition = defineChart({
+      marks: [lineY([1, 2, 3])],
+      x: {
+        scale: scaleLinear().domain([0, 2]),
+        label: 'Horizontal',
+      },
+      y: {
+        scale: scaleLinear().domain([0, 3]),
+        label: 'Vertical',
+        grid: true,
+      },
+    })
+    const sceneFor = (x: boolean, y: boolean) =>
+      createChartScene(
+        {
+          ...definition,
+          x: { ...definition.x, guide: x },
+          y: { ...definition.y, guide: y },
+        },
+        { width: 480, height: 260 },
+        { measureText },
+      )
+    const keysFor = (x: boolean, y: boolean) =>
+      flatten(sceneFor(x, y).nodes).map((node) => node.key)
+
+    expect(keysFor(true, true)).toEqual(
+      expect.arrayContaining(['x-axis', 'x-label', 'y-label']),
+    )
+    expect(keysFor(true, false)).toEqual(
+      expect.arrayContaining(['x-axis', 'x-label']),
+    )
+    expect(keysFor(true, false)).not.toEqual(
+      expect.arrayContaining(['y-label']),
+    )
+    expect(keysFor(false, true)).not.toEqual(
+      expect.arrayContaining(['x-axis', 'x-label']),
+    )
+    expect(keysFor(false, true)).toEqual(expect.arrayContaining(['y-label']))
+
+    const neither = sceneFor(false, false)
+    expect(neither.margin).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
+    expect(flatten(neither.nodes).some((node) => node.key === 'axes')).toBe(
+      false,
+    )
+    expect(flatten(neither.nodes).some((node) => node.key === 'grid')).toBe(
+      false,
+    )
+  })
 })
 
 function sceneWithYFormat(format: (value: unknown) => string) {

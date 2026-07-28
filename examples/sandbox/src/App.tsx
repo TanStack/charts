@@ -1,451 +1,564 @@
 import * as React from 'react'
 import { focusX } from '@tanstack/charts/focus'
-import type { ChartPoint, ChartRenderContext } from '@tanstack/charts'
+import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
+import type { ChartPoint } from '@tanstack/charts'
 import { Chart } from '@tanstack/react-charts'
-import { createBarData, createTrendData } from './data'
-import type { BarPoint, TrendPoint } from './data'
 import {
-  createBarsChart,
-  createTrendChart,
-  type BarInput,
-  type DefinitionCounters,
-  type TrendCurve,
-  type TrendDisplay,
-  type TrendInput,
+  createDashboardData,
+  severityColors,
+  severities,
+  type ErrorStackPoint,
+  type ImpactPoint,
+  type TimeRange,
+} from './data'
+import {
+  budgetChart,
+  errorVolumeChart,
+  heatmapChart,
+  impactChart,
+  servicesChart,
+  severityStackChart,
+  sparklineChart,
+  triageChart,
 } from './plots'
 
-interface Diagnostics {
-  points: number
-  prepares: number
-  renders: number
-  width: number
-}
-
-const dynamicCode = `import { d3Curve, defineChart, lineY } from "@tanstack/charts"
-import { extent } from "d3-array"
-import { scaleLinear, scaleUtc } from "d3-scale"
-import { curveCatmullRom, curveStep } from "d3-shape"
-
-const trendChart = defineChart<TrendInput>()({
-  prepare: input => ({
-    points: movingAverage(input.points, input.movingAverage),
-  }),
-  prepareEqual: (a, b) =>
-    a.points === b.points &&
-    a.movingAverage === b.movingAverage,
-  chart: ({ input, prepared, width, theme }) => ({
-    marks: [lineY(prepared.points, {
-      x: "date",
-      y: "value",
-      curve: resolveCurve(input.curve),
-      stroke: theme.palette[0],
-    })],
-    x: {
-      scale: scaleUtc().domain(dateDomain(prepared.points)),
-      ticks: width < 440 ? 4 : 8,
-    },
-    y: {
-      scale: scaleLinear()
-        .domain(zeroIncludingDomain(prepared.points))
-        .nice(5),
-    },
-  }),
-})
-
-<Chart
-  definition={trendChart}
-  input={{ points, display, curve, movingAverage, showDots }}
-  height={320}
-  focus={focusX}
-  tooltip
-/>`
-
-const transitionCode = `import { defineChart, barY } from "@tanstack/charts"
-import { scaleBand, scaleLinear, scaleOrdinal } from "d3-scale"
-
-const rankingChart = defineChart<BarInput>()({
-  prepare: ({ rows, order }) => ({
-    rows: sortRows(rows, order),
-  }),
-  chart: ({ prepared, theme }) => {
-    const names = prepared.rows.map(row => row.name)
-    return {
-      marks: [barY(prepared.rows, {
-        x: "name",
-        y: "value",
-        color: "name",
-        key: "name",
-      })],
-      x: {
-        scale: scaleBand()
-          .domain(names)
-          .paddingInner(0.1)
-          .paddingOuter(0.05),
-      },
-      y: { scale: scaleLinear().domain([0, 100]) },
-      color: {
-        scale: scaleOrdinal()
-          .domain(names)
-          .range(theme.palette),
-      },
-    }
-  },
-})
-
-<Chart
-  definition={rankingChart}
-  input={{ rows, order }}
-  height={340}
-  animate={animate
-    ? { duration: 520, easing: "ease-out" }
-    : false}
-  focus={focusX}
-  tooltip
-/>`
+const ranges: readonly TimeRange[] = ['24h', '7d', '30d']
+const metricColors = ['#ff625a', '#8579ff', '#45d49c', '#f2c66d']
 
 export function App() {
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('light')
-  const [unrelatedRenders, setUnrelatedRenders] = React.useState(0)
-  const [trendSeed, setTrendSeed] = React.useState(1)
-  const [trendPoints, setTrendPoints] = React.useState(() => createTrendData(1))
-  const [display, setDisplay] = React.useState<TrendDisplay>('area')
-  const [curve, setCurve] = React.useState<TrendCurve>('catmull-rom')
-  const [movingAverage, setMovingAverage] = React.useState(1)
-  const [showDots, setShowDots] = React.useState(true)
-  const [panelWidth, setPanelWidth] = React.useState(100)
-  const [barSeed, setBarSeed] = React.useState(1)
-  const [barRows, setBarRows] = React.useState(() => createBarData(1))
-  const [barOrder, setBarOrder] = React.useState<'name' | 'value'>('value')
-  const [animate, setAnimate] = React.useState(true)
-  const [trendFocus, setTrendFocus] =
-    React.useState<ChartPoint<TrendPoint> | null>(null)
-  const [barFocus, setBarFocus] = React.useState<ChartPoint<BarPoint> | null>(
+  const [range, setRange] = React.useState<TimeRange>('24h')
+  const [revision, setRevision] = React.useState(0)
+  const [live, setLive] = React.useState(true)
+  const [selectedIssue, setSelectedIssue] = React.useState<string | null>(null)
+  const [focusedIssue, setFocusedIssue] = React.useState<ImpactPoint | null>(
     null,
   )
-  const trendCounters = React.useRef<DefinitionCounters>({ prepares: 0 })
-  const barCounters = React.useRef<DefinitionCounters>({ prepares: 0 })
-  const trendRenders = React.useRef(0)
-  const barRenders = React.useRef(0)
-  const trendDefinition = React.useMemo(
-    () => createTrendChart(trendCounters.current),
-    [],
+  const data = React.useMemo(
+    () => createDashboardData(range, revision),
+    [range, revision],
   )
-  const barDefinition = React.useMemo(
-    () => createBarsChart(barCounters.current),
-    [],
-  )
-  const trendInput = React.useMemo<TrendInput>(
-    () => ({
-      points: trendPoints,
-      display,
-      curve,
-      movingAverage,
-      showDots,
-    }),
-    [curve, display, movingAverage, showDots, trendPoints],
-  )
-  const barInput = React.useMemo<BarInput>(
-    () => ({ rows: barRows, order: barOrder }),
-    [barOrder, barRows],
-  )
-  const [trendDiagnostics, setTrendDiagnostics] = React.useState<Diagnostics>()
-  const [barDiagnostics, setBarDiagnostics] = React.useState<Diagnostics>()
 
-  const captureTrendRender = React.useCallback(
-    (context: ChartRenderContext<TrendPoint>) => {
-      trendRenders.current += 1
-      setTrendDiagnostics({
-        points: context.scene.points.length,
-        prepares: trendCounters.current.prepares,
-        renders: trendRenders.current,
-        width: context.scene.width,
-      })
+  React.useEffect(() => {
+    if (!live) return
+    const interval = window.setInterval(
+      () => setRevision((current) => current + 1),
+      4_500,
+    )
+    return () => window.clearInterval(interval)
+  }, [live])
+
+  const metrics = [
+    {
+      label: 'Unhandled',
+      value: compact(data.totalErrors),
+      delta: '+12.4%',
+      direction: 'up',
     },
-    [],
-  )
-
-  const captureBarRender = React.useCallback(
-    (context: ChartRenderContext<BarPoint>) => {
-      barRenders.current += 1
-      setBarDiagnostics({
-        points: context.scene.points.length,
-        prepares: barCounters.current.prepares,
-        renders: barRenders.current,
-        width: context.scene.width,
-      })
+    {
+      label: 'Users',
+      value: compact(data.impactedUsers),
+      delta: '−8.1%',
+      direction: 'down',
     },
-    [],
-  )
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light'
-    document.documentElement.dataset.theme = nextTheme
-    setTheme(nextTheme)
-  }
-
-  const refreshTrend = () => {
-    const nextSeed = trendSeed + 1
-    setTrendSeed(nextSeed)
-    setTrendPoints(createTrendData(nextSeed))
-  }
-
-  const refreshBars = () => {
-    setBarSeed((currentSeed) => {
-      const nextSeed = currentSeed + 1
-      setBarRows(createBarData(nextSeed))
-      return nextSeed
-    })
-  }
-
-  const burstBars = () => {
-    for (let index = 0; index < 6; index++) {
-      window.setTimeout(refreshBars, index * 110)
-    }
-  }
+    {
+      label: 'Crash free',
+      value: `${data.crashFree.toFixed(2)}%`,
+      delta: '+0.06%',
+      direction: 'down',
+    },
+    {
+      label: 'p95',
+      value: `${data.p95}ms`,
+      delta: '+22ms',
+      direction: 'up',
+    },
+  ] as const
 
   return (
-    <main className="lab">
-      <header className="lab-header">
-        <div>
-          <p className="kicker">TanStack Charts · D3-native sandbox</p>
-          <h1>Change everything. Watch what actually rerenders.</h1>
-          <p className="lede">
-            Plot-style marks, explicit D3 scales and curves, cached preparation,
-            responsive ranges, and interruptible keyed motion.
-          </p>
-        </div>
-        <div className="header-actions">
-          <button type="button" onClick={toggleTheme}>
-            {theme === 'light' ? 'Dark' : 'Light'} mode
-          </button>
-          <button
-            type="button"
-            onClick={() => setUnrelatedRenders((count) => count + 1)}
-          >
-            Parent render · {unrelatedRenders}
-          </button>
-        </div>
-      </header>
+    <div className="app-shell">
+      <Sidebar />
 
-      <section className="explanation">
-        <div>
-          <strong>Parent render</strong>
-          <span>should not redraw or prepare either chart.</span>
-        </div>
-        <div>
-          <strong>Visual controls</strong>
-          <span>redraw without repeating unrelated preparation.</span>
-        </div>
-        <div>
-          <strong>Burst update</strong>
-          <span>interrupts motion from the currently visible geometry.</span>
-        </div>
-      </section>
-
-      <article className="workbench">
-        <div className="workbench-header">
+      <main className="workspace">
+        <header className="topbar">
+          <div className="mobile-brand">
+            <BrandMark />
+          </div>
           <div>
-            <p className="section-index">01 · arbitrary dynamic options</p>
-            <h2>Weekly adoption index</h2>
-            <p className="focus-readout">
-              {trendFocus
-                ? `${trendFocus.datum.date.toLocaleDateString()} · ${trendFocus.datum.value.toFixed(1)}`
-                : 'Move over the chart to inspect a week.'}
-            </p>
+            <p className="breadcrumb">acme / storefront</p>
+            <h1>Overview</h1>
           </div>
-          <DiagnosticsView diagnostics={trendDiagnostics} />
-        </div>
-
-        <div className="controls">
-          <Field label="Display">
-            <select
-              value={display}
-              onChange={(event) =>
-                setDisplay(event.target.value as TrendDisplay)
-              }
+          <div className="topbar-actions">
+            <button
+              type="button"
+              className={`live-button ${live ? 'is-live' : ''}`}
+              onClick={() => setLive((current) => !current)}
             >
-              <option value="area">Area</option>
-              <option value="line">Line</option>
-            </select>
-          </Field>
-          <Field label="Curve">
-            <select
-              value={curve}
-              onChange={(event) => setCurve(event.target.value as TrendCurve)}
+              <span className="live-dot" />
+              {live ? 'Live' : 'Paused'}
+            </button>
+            <button type="button" className="icon-button" aria-label="Search">
+              <Icon name="search" />
+            </button>
+            <button
+              type="button"
+              className="icon-button notification"
+              aria-label="Notifications"
             >
-              <option value="catmull-rom">Catmull–Rom</option>
-              <option value="linear">Linear</option>
-              <option value="step">Step</option>
-            </select>
-          </Field>
-          <Field label={`Average · ${movingAverage}`}>
-            <input
-              min="1"
-              max="8"
-              type="range"
-              value={movingAverage}
-              onChange={(event) => setMovingAverage(Number(event.target.value))}
-            />
-          </Field>
-          <Field label={`Container · ${panelWidth}%`}>
-            <input
-              min="42"
-              max="100"
-              type="range"
-              value={panelWidth}
-              onChange={(event) => setPanelWidth(Number(event.target.value))}
-            />
-          </Field>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={showDots}
-              onChange={(event) => setShowDots(event.target.checked)}
-            />
-            Dots
-          </label>
-          <button type="button" onClick={refreshTrend}>
-            New data
-          </button>
-        </div>
-
-        <div className="chart-stage">
-          <div className="responsive-frame" style={{ width: `${panelWidth}%` }}>
-            <Chart
-              definition={trendDefinition}
-              input={trendInput}
-              height={320}
-              initialWidth={920}
-              ariaLabel="Dynamic weekly adoption index"
-              focus={focusX}
-              tooltip={{
-                format: (point) =>
-                  `${point.datum.date.toLocaleDateString()}\nIndex ${point.datum.value.toFixed(1)}`,
-              }}
-              onFocusChange={setTrendFocus}
-              onRender={captureTrendRender}
-            />
+              <Icon name="bell" />
+            </button>
+            <div className="avatar" aria-label="Tanner Linsley">
+              TL
+            </div>
           </div>
-        </div>
+        </header>
 
-        <CodeSample code={dynamicCode} />
-      </article>
-
-      <article className="workbench">
-        <div className="workbench-header">
-          <div>
-            <p className="section-index">02 · state-to-state motion</p>
-            <h2>Package ranking</h2>
-            <p className="focus-readout">
-              {barFocus
-                ? `${barFocus.datum.name} · ${barFocus.datum.value}`
-                : 'Move over a bar to inspect its score.'}
-            </p>
+        <div className="dashboard">
+          <div className="dashboard-toolbar">
+            <div className="range-tabs" aria-label="Time range">
+              {ranges.map((item) => (
+                <button
+                  type="button"
+                  key={item}
+                  className={range === item ? 'active' : undefined}
+                  onClick={() => {
+                    setRange(item)
+                    setRevision((current) => current + 1)
+                  }}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+            <div className="toolbar-meta">
+              <span className="environment">
+                <span />
+                production
+              </span>
+              <button
+                type="button"
+                className="refresh-button"
+                onClick={() => setRevision((current) => current + 1)}
+                aria-label="Refresh dashboard"
+              >
+                <Icon name="refresh" />
+              </button>
+            </div>
           </div>
-          <DiagnosticsView diagnostics={barDiagnostics} />
-        </div>
 
-        <div className="controls">
-          <Field label="Order">
-            <select
-              value={barOrder}
-              onChange={(event) =>
-                setBarOrder(event.target.value as 'name' | 'value')
-              }
-            >
-              <option value="value">Score</option>
-              <option value="name">Name</option>
-            </select>
-          </Field>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={animate}
-              onChange={(event) => setAnimate(event.target.checked)}
-            />
-            Animate
-          </label>
-          <button type="button" onClick={refreshBars}>
-            Next state · {barSeed}
-          </button>
-          <button type="button" onClick={burstBars}>
-            Burst update
-          </button>
-        </div>
+          <section className="metric-grid" aria-label="Key metrics">
+            {metrics.map((metric, index) => (
+              <article className="metric-card" key={metric.label}>
+                <div className="metric-copy">
+                  <p>{metric.label}</p>
+                  <strong>{metric.value}</strong>
+                  <span className={metric.direction}>{metric.delta}</span>
+                </div>
+                <div className="sparkline">
+                  <Chart
+                    definition={sparklineChart}
+                    input={{
+                      rows: data.sparks[index] ?? [],
+                      color: metricColors[index] ?? '#ff625a',
+                    }}
+                    height={64}
+                    initialWidth={150}
+                    ariaLabel={`${metric.label} trend`}
+                    keyboard={false}
+                    animate={{ duration: 650, easing: 'ease-out' }}
+                    renderSvg={renderChartSvgWithResources}
+                  />
+                </div>
+              </article>
+            ))}
+          </section>
 
-        <div className="chart-stage">
-          <Chart
-            definition={barDefinition}
-            input={barInput}
-            height={340}
-            initialWidth={920}
-            ariaLabel="Animated package ranking"
-            animate={animate ? { duration: 520, easing: 'ease-out' } : false}
-            focus={focusX}
-            tooltip={{
-              format: (point) =>
-                `${point.datum.name}\nScore ${point.datum.value}`,
-            }}
-            onFocusChange={setBarFocus}
-            onRender={captureBarRender}
-          />
-        </div>
+          <section className="primary-grid">
+            <article className="card volume-card">
+              <CardHeader
+                eyebrow="Errors"
+                value={compact(data.totalErrors)}
+                suffix={
+                  <span className="trend-badge hot">
+                    <Icon name="trendUp" /> 12.4%
+                  </span>
+                }
+              >
+                <div className="legend">
+                  {severities.map((severity) => (
+                    <span key={severity}>
+                      <i style={{ background: severityColors[severity] }} />
+                      {severity}
+                    </span>
+                  ))}
+                </div>
+              </CardHeader>
+              <div className="chart-wrap hero-chart">
+                <Chart
+                  definition={errorVolumeChart}
+                  input={{
+                    stack: data.errorStack,
+                    totals: data.errorTotals,
+                    releases: data.releases,
+                    compactTime: range === '24h',
+                  }}
+                  height={318}
+                  initialWidth={820}
+                  ariaLabel="Error volume by severity"
+                  ariaDescription="Stacked error events with release markers and alert threshold."
+                  focus={focusX}
+                  tooltip={{
+                    className: 'obsidian-tooltip',
+                    sticky: true,
+                    formatGroup: formatErrorGroup,
+                  }}
+                  animate={{ duration: 720, easing: 'ease-out' }}
+                  renderSvg={renderChartSvgWithResources}
+                />
+              </div>
+            </article>
 
-        <CodeSample code={transitionCode} />
-      </article>
-    </main>
+            <article className="card budget-card">
+              <CardHeader eyebrow="Error budget" value="04d 18h">
+                <span className="status-pill">on track</span>
+              </CardHeader>
+              <div className="budget-chart">
+                <Chart
+                  definition={budgetChart}
+                  input={{ value: data.budget }}
+                  height={232}
+                  initialWidth={320}
+                  ariaLabel={`${Math.round(data.budget)} percent error budget remaining`}
+                  keyboard={false}
+                  animate={{ duration: 800, easing: 'ease-out' }}
+                />
+              </div>
+              <div className="budget-stats">
+                <div>
+                  <span>burn</span>
+                  <strong>0.72×</strong>
+                </div>
+                <div>
+                  <span>reset</span>
+                  <strong>Aug 01</strong>
+                </div>
+                <div>
+                  <span>slo</span>
+                  <strong>99.9%</strong>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section className="secondary-grid">
+            <article className="card heat-card">
+              <CardHeader eyebrow="Activity" value="7 × 24">
+                <span className="subtle-label">UTC</span>
+              </CardHeader>
+              <div className="chart-wrap">
+                <Chart
+                  definition={heatmapChart}
+                  input={{ rows: data.heatmap }}
+                  height={228}
+                  initialWidth={480}
+                  ariaLabel="Error activity by weekday and hour"
+                  tooltip={{
+                    className: 'obsidian-tooltip',
+                    format: (point) =>
+                      `${point.datum.day} ${point.datum.hour}:00\n${point.datum.value} events`,
+                  }}
+                  animate={{ duration: 520, easing: 'ease-out' }}
+                />
+              </div>
+            </article>
+
+            <article className="card impact-card">
+              <CardHeader
+                eyebrow="Impact map"
+                value={focusedIssue?.issue ?? '14 issues'}
+              >
+                <div className="quadrant-key">
+                  <span>events →</span>
+                  <span>users ↑</span>
+                </div>
+              </CardHeader>
+              <div className="chart-wrap">
+                <Chart
+                  definition={impactChart}
+                  input={{ rows: data.impact, selectedId: selectedIssue }}
+                  height={228}
+                  initialWidth={410}
+                  ariaLabel="Issue event volume and affected users"
+                  tooltip={{
+                    className: 'obsidian-tooltip',
+                    sticky: true,
+                    format: (point) =>
+                      `${point.datum.issue}\n${point.datum.events} events · ${point.datum.users} users`,
+                  }}
+                  onFocusChange={(point: ChartPoint<ImpactPoint> | null) =>
+                    setFocusedIssue(point?.datum ?? null)
+                  }
+                  onSelect={(point: ChartPoint<ImpactPoint> | null) =>
+                    setSelectedIssue((current) =>
+                      current === point?.datum.id
+                        ? null
+                        : (point?.datum.id ?? null),
+                    )
+                  }
+                  animate={{ duration: 620, easing: 'ease-out' }}
+                />
+              </div>
+            </article>
+
+            <article className="card services-card">
+              <CardHeader eyebrow="Services" value="5">
+                <span className="subtle-label">load / target</span>
+              </CardHeader>
+              <div className="chart-wrap">
+                <Chart
+                  definition={servicesChart}
+                  input={{ rows: data.services }}
+                  height={228}
+                  initialWidth={350}
+                  ariaLabel="Service error load compared with target"
+                  tooltip={{
+                    className: 'obsidian-tooltip',
+                    format: (point) =>
+                      `${point.datum.service}\n${point.datum.value} load · ${point.datum.target} target`,
+                  }}
+                  animate={{ duration: 680, easing: 'ease-out' }}
+                />
+              </div>
+            </article>
+          </section>
+
+          <section className="bottom-grid">
+            <article className="card severity-card">
+              <CardHeader eyebrow="Service mix" value="severity">
+                <div className="legend compact">
+                  {severities.map((severity) => (
+                    <span key={severity}>
+                      <i style={{ background: severityColors[severity] }} />
+                      {severity}
+                    </span>
+                  ))}
+                </div>
+              </CardHeader>
+              <div className="chart-wrap">
+                <Chart
+                  definition={severityStackChart}
+                  input={{ rows: data.severityStack }}
+                  height={248}
+                  initialWidth={720}
+                  ariaLabel="Severity mix by service"
+                  tooltip={{
+                    className: 'obsidian-tooltip',
+                    format: (point) =>
+                      `${point.datum.service} · ${point.datum.severity}\n${point.datum.value} issues`,
+                  }}
+                  animate={{ duration: 720, easing: 'ease-out' }}
+                />
+              </div>
+            </article>
+
+            <article className="card triage-card">
+              <CardHeader eyebrow="Triage" value="71%">
+                <span className="status-pill green">resolved</span>
+              </CardHeader>
+              <div className="triage-chart">
+                <Chart
+                  definition={triageChart}
+                  input={{ rows: data.triage }}
+                  height={138}
+                  initialWidth={500}
+                  ariaLabel="Triage outcome unit chart"
+                  tooltip={{
+                    className: 'obsidian-tooltip',
+                    format: (point) => point.datum.status,
+                  }}
+                  animate={{ duration: 560, easing: 'ease-out' }}
+                />
+              </div>
+              <div className="triage-legend">
+                <div>
+                  <i className="green" />
+                  <span>Resolved</span>
+                  <strong>71</strong>
+                </div>
+                <div>
+                  <i className="purple" />
+                  <span>Muted</span>
+                  <strong>13</strong>
+                </div>
+                <div>
+                  <i className="red" />
+                  <span>Open</span>
+                  <strong>16</strong>
+                </div>
+              </div>
+            </article>
+          </section>
+        </div>
+      </main>
+    </div>
   )
 }
 
-function Field({
+function CardHeader({
+  eyebrow,
+  value,
+  suffix,
   children,
-  label,
 }: {
-  children: React.ReactNode
-  label: string
+  eyebrow: string
+  value: string
+  suffix?: React.ReactNode
+  children?: React.ReactNode
 }) {
   return (
-    <label className="field">
-      <span>{label}</span>
+    <header className="card-header">
+      <div>
+        <p>{eyebrow}</p>
+        <div className="card-value">
+          <strong>{value}</strong>
+          {suffix}
+        </div>
+      </div>
       {children}
-    </label>
+    </header>
   )
 }
 
-function DiagnosticsView({
-  diagnostics,
-}: {
-  diagnostics: Diagnostics | undefined
-}) {
+function Sidebar() {
+  const navigation = [
+    ['overview', 'Overview'],
+    ['pulse', 'Issues'],
+    ['users', 'Users'],
+    ['releases', 'Releases'],
+  ] as const
   return (
-    <dl className="diagnostics">
-      <div>
-        <dt>renders</dt>
-        <dd>{diagnostics?.renders ?? '—'}</dd>
-      </div>
-      <div>
-        <dt>prepares</dt>
-        <dd>{diagnostics?.prepares ?? '—'}</dd>
-      </div>
-      <div>
-        <dt>points</dt>
-        <dd>{diagnostics?.points ?? '—'}</dd>
-      </div>
-      <div>
-        <dt>width</dt>
-        <dd>{diagnostics ? `${diagnostics.width}px` : '—'}</dd>
-      </div>
-    </dl>
+    <aside className="sidebar">
+      <a className="brand" href="#" aria-label="Trace home">
+        <BrandMark />
+      </a>
+      <nav aria-label="Primary">
+        {navigation.map(([icon, label], index) => (
+          <a
+            href="#"
+            key={label}
+            className={index === 0 ? 'active' : undefined}
+            aria-label={label}
+          >
+            <Icon name={icon} />
+          </a>
+        ))}
+      </nav>
+      <nav className="sidebar-bottom" aria-label="Secondary">
+        <a href="#" aria-label="Documentation">
+          <Icon name="help" />
+        </a>
+        <a href="#" aria-label="Settings">
+          <Icon name="settings" />
+        </a>
+      </nav>
+    </aside>
   )
 }
 
-function CodeSample({ code }: { code: string }) {
+function BrandMark() {
   return (
-    <details className="code-sample">
-      <summary>Show abbreviated source</summary>
-      <pre>
-        <code>{code}</code>
-      </pre>
-    </details>
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M6 8.5 15.8 3 26 8.5v5.2L15.8 8.2 6 13.7V8.5Z" />
+      <path d="m6 17.8 9.8-5.4L26 17.8V23l-10.2-5.5L6 23v-5.2Z" />
+      <path d="m6 27.1 9.8-5.4L26 27.1 15.8 32 6 27.1Z" />
+    </svg>
   )
+}
+
+function Icon({ name }: { name: string }) {
+  const paths: Record<string, React.ReactNode> = {
+    overview: (
+      <>
+        <rect x="3" y="3" width="7" height="7" rx="2" />
+        <rect x="14" y="3" width="7" height="7" rx="2" />
+        <rect x="3" y="14" width="7" height="7" rx="2" />
+        <rect x="14" y="14" width="7" height="7" rx="2" />
+      </>
+    ),
+    pulse: <path d="M2 13h4l2.5-7 4 13 3-9 2 3H22" />,
+    users: (
+      <>
+        <circle cx="9" cy="8" r="3" />
+        <circle cx="17" cy="9" r="2.5" />
+        <path d="M3.5 20c.5-4 2.4-6 5.5-6s5 2 5.5 6M14 15c3.8-.5 5.8 1.2 6.5 4.5" />
+      </>
+    ),
+    releases: (
+      <>
+        <path d="M4 5h16v14H4z" />
+        <path d="M8 3v4M16 3v4M4 9h16M8 13h3M8 16h6" />
+      </>
+    ),
+    search: (
+      <>
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="m16 16 5 5" />
+      </>
+    ),
+    bell: (
+      <>
+        <path d="M6 17h12l-1.5-2v-5a4.5 4.5 0 0 0-9 0v5L6 17Z" />
+        <path d="M10 20h4" />
+      </>
+    ),
+    refresh: (
+      <>
+        <path d="M20 8V3l-2 2a8 8 0 1 0 1.4 10" />
+        <path d="M20 3h-5" />
+      </>
+    ),
+    settings: (
+      <>
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" />
+      </>
+    ),
+    help: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.7 9a2.6 2.6 0 1 1 3.8 2.3c-1 .5-1.5 1.2-1.5 2.2M12 17.5v.2" />
+      </>
+    ),
+    trendUp: <path d="m3 16 6-6 4 4 7-8M15 6h5v5" />,
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      {paths[name]}
+    </svg>
+  )
+}
+
+function formatErrorGroup(
+  points: readonly ChartPoint<ErrorStackPoint>[],
+): string {
+  const stackPoints = points.filter((point) => point.markId === 'severity-area')
+  const first = stackPoints[0]
+  if (!first) return ''
+  const total = stackPoints.reduce((sum, point) => sum + point.datum.value, 0)
+  return [
+    first.datum.date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+    }),
+    `Total  ${total.toLocaleString()}`,
+    ...stackPoints.map(
+      (point) =>
+        `${point.datum.severity.padEnd(8)} ${point.datum.value.toLocaleString()}`,
+    ),
+  ].join('\n')
+}
+
+function compact(value: number): string {
+  if (value >= 10_000) return `${(value / 1_000).toFixed(1)}k`
+  return value.toLocaleString()
 }

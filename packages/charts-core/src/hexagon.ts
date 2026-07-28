@@ -3,7 +3,7 @@ import {
   createMark,
   isChartKey,
   isChartValue,
-  isFiniteNumber,
+  isNonnegativeFiniteNumber,
   visualValue,
 } from './mark'
 import { valueKey } from './scales'
@@ -70,7 +70,7 @@ export function hexagon<TDatum>(
     const radiusMapper = options.rScale
     const radii = radiusMapper
       ? rawRadii.map((radius) =>
-          isFiniteNumber(radius) ? radiusMapper(radius) : Number.NaN,
+          isNonnegativeFiniteNumber(radius) ? radiusMapper(radius) : Number.NaN,
         )
       : rawRadii
 
@@ -92,8 +92,7 @@ export function hexagon<TDatum>(
           if (
             !isChartValue(xValue) ||
             !isChartValue(yValue) ||
-            !isFiniteNumber(radius) ||
-            radius < 0
+            !isNonnegativeFiniteNumber(radius)
           ) {
             return
           }

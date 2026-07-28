@@ -3,16 +3,20 @@
   "referenceRenderer": "echarts",
   "order": 890,
   "id": "89-brush-range-selection",
-  "title": "Drag brush range selection",
+  "title": "Monthly-snapped brush selection",
   "family": "interaction",
-  "intent": "Select and revise an exact continuous time range with a direct horizontal drag.",
+  "intent": "Select and revise a UTC month range with a direct horizontal drag that snaps both boundaries to observed months.",
   "support": "composed",
   "features": [
-    "continuous time brush",
+    "monthly-snapped UTC brush",
     "real pointer drag",
     "normalized reverse selection",
     "persistent selection overlay",
-    "D3 scale inversion"
+    "D3 scale inversion",
+    "optional d3-brush controller",
+    "touch cancellation",
+    "keyboard-adjustable semantic handles",
+    "live range summary"
   ],
   "geometry": [
     { "id": "series-line", "view": "main", "role": "line", "count": 1 },
@@ -67,6 +71,212 @@
           ]
         }
       ]
+    },
+    {
+      "id": "semantic-handle-keyboard",
+      "steps": [
+        { "type": "update", "revision": 0 },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-view=\"main\"]"
+              },
+              "property": "attribute",
+              "attribute": "role",
+              "equals": "application"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-view=\"main\"][role=\"img\"]"
+              },
+              "property": "count",
+              "equals": 0
+            },
+            {
+              "target": { "role": "slider", "name": "Range start" },
+              "property": "attribute",
+              "attribute": "aria-orientation",
+              "equals": "horizontal"
+            },
+            {
+              "target": { "role": "slider", "name": "Range start" },
+              "property": "attribute",
+              "attribute": "aria-valuemin",
+              "equals": "0"
+            },
+            {
+              "target": { "role": "slider", "name": "Range start" },
+              "property": "attribute",
+              "attribute": "aria-valuemax",
+              "equals": "5"
+            },
+            {
+              "target": { "role": "slider", "name": "Range end" },
+              "property": "attribute",
+              "attribute": "aria-valuemin",
+              "equals": "3"
+            },
+            {
+              "target": { "role": "slider", "name": "Range end" },
+              "property": "attribute",
+              "attribute": "aria-valuemax",
+              "equals": "11"
+            },
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "includes": "avg 47.7"
+            }
+          ]
+        },
+        {
+          "type": "key",
+          "key": "ArrowRight",
+          "target": { "view": "main", "anchor": "handle:end" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selection.start", "equals": "2025-04-01" },
+            { "path": "selection.end", "equals": "2025-07-01" },
+            { "path": "selection.pointCount", "equals": 4 },
+            { "path": "selection.valueTotal", "equals": 204 },
+            { "path": "selection.dragging", "equals": false }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "role": "slider", "name": "Range end" },
+              "property": "focused",
+              "equals": true
+            },
+            {
+              "target": { "role": "slider", "name": "Range end" },
+              "property": "attribute",
+              "attribute": "aria-valuetext",
+              "equals": "2025-07-01"
+            },
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "includes": "avg 51.0"
+            }
+          ]
+        },
+        { "type": "screenshot", "name": "monthly-brush-handle-focus" },
+        {
+          "type": "key",
+          "key": "Home",
+          "target": { "view": "main", "anchor": "handle:end" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selection.start", "equals": "2025-04-01" },
+            { "path": "selection.end", "equals": "2025-04-01" },
+            { "path": "selection.pointCount", "equals": 1 }
+          ]
+        },
+        {
+          "type": "key",
+          "key": "End",
+          "target": { "view": "main", "anchor": "handle:end" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selection.start", "equals": "2025-04-01" },
+            { "path": "selection.end", "equals": "2025-12-01" },
+            { "path": "selection.pointCount", "equals": 9 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pointer-cancel-rolls-back",
+      "steps": [
+        {
+          "type": "pointerDown",
+          "target": { "view": "main", "anchor": "date:2025-03-01" }
+        },
+        {
+          "type": "pointerMove",
+          "target": { "view": "main", "anchor": "date:2025-08-01" },
+          "steps": 8
+        },
+        { "type": "pointerCancel" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selection.start", "equals": "2025-04-01" },
+            { "path": "selection.end", "equals": "2025-06-01" },
+            { "path": "selection.pointCount", "equals": 3 },
+            { "path": "selection.dragging", "equals": false }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "includes": "Apr 1 → Jun 1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "touch-cancel-rolls-back",
+      "steps": [
+        {
+          "type": "touchDrag",
+          "from": { "view": "main", "anchor": "date:2025-03-01" },
+          "to": { "view": "main", "anchor": "date:2025-08-01" },
+          "steps": 8,
+          "cancel": true
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selection.start", "equals": "2025-04-01" },
+            { "path": "selection.end", "equals": "2025-06-01" },
+            { "path": "selection.pointCount", "equals": 3 },
+            { "path": "selection.dragging", "equals": false }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "revision-updates-live-summary",
+      "steps": [
+        { "type": "update", "revision": 1 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "selection.valueTotal", "equals": 148 },
+            {
+              "path": "selection.valueAverage",
+              "approx": 49.3333333333,
+              "tolerance": 0.000001
+            }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": { "role": "status" },
+              "property": "text",
+              "includes": "avg 49.3"
+            }
+          ]
+        }
+      ]
     }
   ],
   "source": {
@@ -74,7 +284,7 @@
     "url": "https://echarts.apache.org/handbook/en/interaction/brush/"
   },
   "ai": {
-    "create": "Create a UTC line chart with a persistent horizontal brush whose range is derived from real drag coordinates and normalized when dragged in reverse.",
-    "maintain": "Keep the full semantic domain in an injected D3 UTC scale, copy it onto actual scene bounds for inversion, and keep selection state outside the renderer."
+    "create": "Create a UTC line chart with an optional granular d3-brush controller, monthly-snapped selection, two semantic slider handles, touch cancellation, and a live range summary.",
+    "maintain": "Keep the full semantic domain in an injected D3 UTC scale, snap committed bounds to observed UTC months, synchronize the D3 brush extent and selection to resolved scene bounds, and keep selection state outside the renderer."
   }
 }

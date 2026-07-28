@@ -1,11 +1,14 @@
-import { createServer } from 'node:http'
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { cpus } from 'node:os'
-import { extname, resolve, sep } from 'node:path'
+import { resolve } from 'node:path'
 import { brotliCompressSync, gzipSync } from 'node:zlib'
 import { execFileSync } from 'node:child_process'
 import { build } from 'esbuild'
-import { chromium } from 'playwright'
+import {
+  launchBenchmarkBrowser,
+  startBenchmarkServer,
+} from './benchmark/browser.mjs'
+import { chartLibraries } from './benchmark/chart-libraries.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const comparisonDirectory = resolve(root, 'benchmarks/comparison')
@@ -22,49 +25,7 @@ const tierDescriptions = {
   advanced:
     'Interactive chart plus two series and chart-specific composition: smoothing, stacking, or variable point size.',
 }
-const libraries = [
-  {
-    id: 'tanstack',
-    label: 'TanStack Charts',
-    packageName: '@tanstack/charts',
-    sources: {
-      line: './libraries/tanstack/line.ts',
-      bar: './libraries/tanstack/bar.ts',
-      area: './libraries/tanstack/area.ts',
-      scatter: './libraries/tanstack/scatter.ts',
-    },
-  },
-  {
-    id: 'chartjs',
-    label: 'Chart.js',
-    packageName: 'chart.js',
-    source: './libraries/chartjs.ts',
-  },
-  {
-    id: 'echarts',
-    label: 'Apache ECharts',
-    packageName: 'echarts',
-    source: './libraries/echarts.ts',
-  },
-  {
-    id: 'recharts',
-    label: 'Recharts',
-    packageName: 'recharts',
-    source: './libraries/recharts.tsx',
-    sharedExternals: [
-      'react',
-      'react-dom',
-      'react-dom/client',
-      'react/jsx-runtime',
-    ],
-  },
-  {
-    id: 'observable-plot',
-    label: 'Observable Plot',
-    packageName: '@observablehq/plot',
-    source: './libraries/observable-plot.ts',
-  },
-]
+const libraries = chartLibraries
 const capabilityCoverage = [
   {
     capability: 'Axes and grid',
@@ -253,9 +214,9 @@ let browser
 let performanceResults = []
 let browserVersion
 if (!sizeOnly) {
-  browser = await launchBrowser()
+  browser = await launchBenchmarkBrowser()
   browserVersion = browser.version()
-  const server = await startServer(outputDirectory)
+  const server = await startBenchmarkServer(outputDirectory)
   try {
     for (const benchmarkCase of cases) {
       const results = await runBrowserBenchmarks(
@@ -401,6 +362,21 @@ async function buildCases(benchmarkCases) {
           ).length,
         0,
       ),
+      stressSupportBytes: Object.values(buildResult.metafile.outputs).reduce(
+        (total, output) =>
+          total +
+          Object.entries(output.inputs)
+            .filter(
+              ([input]) =>
+                input.includes('/comparison/stress/') ||
+                input.includes('\\comparison\\stress\\'),
+            )
+            .reduce(
+              (outputTotal, [, input]) => outputTotal + input.bytesInOutput,
+              0,
+            ),
+        0,
+      ),
     })
   }
 
@@ -426,37 +402,16 @@ async function bundleCase(benchmarkCase, outfile, external = []) {
     define: {
       BENCHMARK_INTERACTIVE: String(benchmarkCase.tier !== 'basic'),
       BENCHMARK_ADVANCED: String(benchmarkCase.tier === 'advanced'),
+      BENCHMARK_STRESS: 'false',
+      BENCHMARK_VARIABLE_SIZE: 'false',
+      BENCHMARK_MULTI_SERIES: 'false',
+      BENCHMARK_GROUPED_X_FOCUS: 'false',
+      BENCHMARK_ROLLING_WINDOW: 'false',
     },
     legalComments: 'none',
     logLevel: 'silent',
     external,
   })
-}
-
-async function launchBrowser() {
-  const launchOptions = {
-    headless: true,
-    args: [
-      '--disable-background-timer-throttling',
-      '--disable-renderer-backgrounding',
-      '--force-device-scale-factor=1',
-      '--js-flags=--expose-gc',
-    ],
-  }
-
-  try {
-    await access(chromium.executablePath())
-    return await chromium.launch(launchOptions)
-  } catch (bundledBrowserError) {
-    try {
-      return await chromium.launch({ ...launchOptions, channel: 'chrome' })
-    } catch (chromeError) {
-      throw new AggregateError(
-        [bundledBrowserError, chromeError],
-        'No Chromium browser is available. Run "pnpm exec playwright install chromium" or install Chrome.',
-      )
-    }
-  }
 }
 
 async function runBrowserBenchmarks(
@@ -639,66 +594,6 @@ async function runBrowserBenchmarks(
     )
   } finally {
     await page.close()
-  }
-}
-
-async function startServer(directory) {
-  const absoluteDirectory = resolve(directory)
-  const server = createServer(async (request, response) => {
-    try {
-      const url = new URL(request.url ?? '/', 'http://127.0.0.1')
-      if (url.pathname === '/' || url.pathname === '/index.html') {
-        response.setHeader('content-type', 'text/html; charset=utf-8')
-        response.end(`<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <style>
-      html, body { margin: 0; font: 12px system-ui, sans-serif; }
-      body { width: 1100px; min-height: 600px; color: #18181b; background: white; }
-      * { box-sizing: border-box; }
-    </style>
-  </head>
-  <body></body>
-</html>`)
-        return
-      }
-
-      const path = resolve(absoluteDirectory, `.${url.pathname}`)
-      if (!path.startsWith(`${absoluteDirectory}${sep}`)) {
-        response.statusCode = 403
-        response.end('Forbidden')
-        return
-      }
-      const file = await readFile(path)
-      response.setHeader(
-        'content-type',
-        extname(path) === '.js'
-          ? 'text/javascript; charset=utf-8'
-          : 'application/octet-stream',
-      )
-      response.end(file)
-    } catch {
-      response.statusCode = 404
-      response.end('Not found')
-    }
-  })
-
-  await new Promise((resolveListen, reject) => {
-    server.once('error', reject)
-    server.listen(0, '127.0.0.1', resolveListen)
-  })
-  const address = server.address()
-  if (!address || typeof address === 'string') {
-    throw new Error('Benchmark server did not receive a TCP port.')
-  }
-
-  return {
-    url: `http://127.0.0.1:${address.port}/`,
-    close: () =>
-      new Promise((resolveClose, reject) => {
-        server.close((error) => (error ? reject(error) : resolveClose()))
-      }),
   }
 }
 
@@ -1267,6 +1162,11 @@ async function checkBundleBaseline(bundles) {
     if (!actualIds.has(id)) failures.push(`${id}: baseline case was not run`)
   }
   for (const bundle of bundles) {
+    if (bundle.stressSupportBytes !== 0) {
+      failures.push(
+        `${bundle.id}: normal comparison bundle retained ${bundle.stressSupportBytes} bytes of stress-only support`,
+      )
+    }
     const expected = baseline.bundles[bundle.id]
     if (!expected) {
       failures.push(`${bundle.id}: no baseline; update the bundle baseline`)

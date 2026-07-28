@@ -4,6 +4,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
+import type { ChartDefinition } from '@tanstack/charts'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import { scaleLinear } from 'd3-scale'
 import { Chart } from './Chart'
@@ -41,8 +42,28 @@ const typedDynamicDefinition = defineChart<{
   x: { scale: scaleLinear().domain([1, 2]) },
   y: { scale: scaleLinear().domain([8, 12]) },
 }))
+const undefinedInputDefinition = defineChart<undefined>()(() => definition)
+const voidInputDefinition = defineChart<void>()(() => definition)
+const widenedDefinition: ChartDefinition<(typeof data)[number], undefined> =
+  data.length > 0 ? definition : undefinedInputDefinition
 
 if (false) {
+  const legacyStaticArity = (
+    <Chart<(typeof data)[number]>
+      definition={definition}
+      ariaLabel="Explicit static datum"
+    />
+  )
+  const legacyDynamicArity = (
+    <Chart<(typeof data)[number], { data: typeof data; stroke: string }>
+      definition={typedDynamicDefinition}
+      input={{ data, stroke: 'red' }}
+      ariaLabel="Explicit dynamic datum and input"
+    />
+  )
+  void legacyStaticArity
+  void legacyDynamicArity
+
   const missingInput = (
     // @ts-expect-error Dynamic chart props require input.
     <Chart definition={typedDynamicDefinition} ariaLabel="Revenue" />
@@ -65,6 +86,67 @@ if (false) {
       definition={typedDynamicDefinition}
       input={{ data, stroke: 'red' }}
       ariaLabel="Revenue"
+      focus={{
+        resolve(points) {
+          expectTypeOf(points).items.toMatchTypeOf<{
+            datum: (typeof data)[number]
+            xValue: number
+            yValue: number
+          }>()
+          return points
+        },
+        group(_points, point) {
+          expectTypeOf(point.xValue).toEqualTypeOf<number>()
+          return [point]
+        },
+        navigation: (points) => points,
+      }}
+      renderSvg={(scene) => {
+        expectTypeOf(scene.points).items.toMatchTypeOf<{
+          datum: (typeof data)[number]
+          xValue: number
+          yValue: number
+        }>()
+        return ''
+      }}
+      onFocusChange={(point) => {
+        expectTypeOf(point?.datum).toEqualTypeOf<
+          (typeof data)[number] | undefined
+        >()
+        expectTypeOf(point?.xValue).toEqualTypeOf<number | undefined>()
+        expectTypeOf(point?.yValue).toEqualTypeOf<number | undefined>()
+      }}
+      onFocusGroupChange={(points) => {
+        const point = points[0]
+        if (!point) return
+        expectTypeOf(point.xValue).toEqualTypeOf<number>()
+        expectTypeOf(point.yValue).toEqualTypeOf<number>()
+      }}
+      onSelect={(point) => {
+        expectTypeOf(point?.xValue).toEqualTypeOf<number | undefined>()
+        expectTypeOf(point?.yValue).toEqualTypeOf<number | undefined>()
+      }}
+    />
+  )
+  const inferredStaticCallback = (
+    <Chart
+      definition={definition}
+      ariaLabel="Static revenue"
+      onFocusChange={(point) => {
+        expectTypeOf(point?.xValue).toEqualTypeOf<number | undefined>()
+        expectTypeOf(point?.yValue).toEqualTypeOf<number | undefined>()
+      }}
+      onSelect={(point) => {
+        expectTypeOf(point?.xValue).toEqualTypeOf<number | undefined>()
+        expectTypeOf(point?.yValue).toEqualTypeOf<number | undefined>()
+      }}
+    />
+  )
+  const explicitUndefinedInput = (
+    <Chart
+      definition={undefinedInputDefinition}
+      input={undefined}
+      ariaLabel="Undefined input"
       onFocusChange={(point) => {
         expectTypeOf(point?.datum).toEqualTypeOf<
           (typeof data)[number] | undefined
@@ -72,7 +154,50 @@ if (false) {
       }}
     />
   )
-  void [missingInput, staticInput, wrongInput, inferredCallback]
+  const explicitVoidInput = (
+    <Chart
+      definition={voidInputDefinition}
+      input={undefined}
+      ariaLabel="Void input"
+    />
+  )
+  const missingUndefinedInput = (
+    // @ts-expect-error Dynamic JSX props require an explicit input property even when its value is undefined.
+    <Chart definition={undefinedInputDefinition} ariaLabel="Undefined input" />
+  )
+  const missingVoidInput = (
+    // @ts-expect-error Dynamic JSX props require an explicit input property even when its value is void.
+    <Chart definition={voidInputDefinition} ariaLabel="Void input" />
+  )
+  const explicitStaticUndefined = (
+    <Chart definition={definition} input={undefined} ariaLabel="Revenue" />
+  )
+  const missingWidenedInput = (
+    // @ts-expect-error A widened static-or-dynamic definition must be narrowed before rendering.
+    <Chart definition={widenedDefinition} ariaLabel="Widened definition" />
+  )
+  const explicitWidenedInput = (
+    <Chart
+      // @ts-expect-error Supplying input does not resolve a widened definition.
+      definition={widenedDefinition}
+      input={undefined}
+      ariaLabel="Widened definition"
+    />
+  )
+  void [
+    missingInput,
+    staticInput,
+    wrongInput,
+    inferredCallback,
+    inferredStaticCallback,
+    explicitUndefinedInput,
+    explicitVoidInput,
+    missingUndefinedInput,
+    missingVoidInput,
+    explicitStaticUndefined,
+    missingWidenedInput,
+    explicitWidenedInput,
+  ]
 }
 
 describe('React adapter', () => {
@@ -106,6 +231,54 @@ describe('React adapter', () => {
 
     expect(html).toContain('viewBox="0 0 480 240"')
     expect(html).toContain('aspect-ratio:2')
+  })
+
+  it('derives proportional initial geometry from an explicit width', () => {
+    const html = renderToString(
+      <Chart
+        definition={definition}
+        width={900}
+        initialWidth={480}
+        aspectRatio={3}
+        ariaLabel="Revenue"
+      />,
+    )
+
+    expect(html).toContain('viewBox="0 0 900 300"')
+    expect(html).toContain('width:900px')
+    expect(html).toContain('aspect-ratio:3')
+  })
+
+  it.each([0, -2, Number.NaN, Number.POSITIVE_INFINITY])(
+    'falls back consistently for an invalid aspect ratio (%s)',
+    (aspectRatio) => {
+      const html = renderToString(
+        <Chart
+          definition={definition}
+          width={480}
+          aspectRatio={aspectRatio}
+          ariaLabel="Revenue"
+        />,
+      )
+
+      expect(html).toContain('viewBox="0 0 480 320"')
+      expect(html).toContain('height:320px')
+      expect(html).not.toContain('aspect-ratio')
+    },
+  )
+
+  it('server-renders an explicit SVG tab index', () => {
+    const html = renderToString(
+      <Chart
+        definition={definition}
+        width={480}
+        height={260}
+        ariaLabel="Revenue"
+        tabIndex={4}
+      />,
+    )
+
+    expect(html).toContain('tabindex="4"')
   })
 
   it('server-renders unique scoped resource IDs for sibling charts', () => {

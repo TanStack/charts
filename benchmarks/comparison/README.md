@@ -33,6 +33,23 @@ with a generated prose summary of the overall size, timing, output-complexity,
 and coverage findings. JSON stores the same paragraphs in `narrativeSummary`
 and remains the stable format for history, dashboards, and CI artifacts.
 
+## Stress matrix
+
+The separate [stress suite](./stress) compares the same five libraries under
+large-data, rapid-update, interaction, resize, dashboard, and lifecycle
+pressure:
+
+```sh
+pnpm benchmark:stress:quick
+pnpm benchmark:stress:standard
+pnpm benchmark:stress:full
+```
+
+It keeps direct-rendering frontiers separate from sensible large-data
+representations such as density bins, screen-aware line envelopes, histograms,
+and top-category rollups. Correctness is gated; cross-library timing rank is
+informational.
+
 Bundle output is checked against
 [`bundle-baseline.json`](./bundle-baseline.json):
 
@@ -43,7 +60,10 @@ pnpm benchmark:update-baseline
 
 Update the baseline only after reviewing the built files and confirming that a
 size change is intentional. The check permits 3% or 512 bytes, whichever is
-larger. It does not gate browser timings because those are hardware-sensitive.
+larger. It also requires normal comparison artifacts to contain zero bytes
+from the stress-probe modules; optional measurement machinery must disappear
+through direct build-time feature gates. It does not gate browser timings
+because those are hardware-sensitive.
 
 ## Protocol
 
@@ -100,5 +120,6 @@ runner, pin its version in the root package, implement all four chart exports,
 then regenerate and review the bundle baseline.
 
 The scheduled GitHub Actions workflow records all 60 tier/library/chart cases
-with the `ci` profile as JSON and Markdown artifacts. Pull requests also run
-the deterministic bundle check.
+with the `ci` profile and the `standard` stress profile as JSON and Markdown
+artifacts. Pull requests run the deterministic bundle check and the `quick`
+stress profile.

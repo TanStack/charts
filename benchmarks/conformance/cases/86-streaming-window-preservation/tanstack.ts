@@ -1,17 +1,23 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import {
+  formatStreamingDate,
+  fullStreamingViewport,
+  latestStreamingViewport,
   streamingData,
   streamingDateKey,
   streamingViewportDomain,
   visibleStreamingData,
 } from './data'
+import { createStreamingControls, updateStreamingControls } from './controls'
 import type {
   ChartHost,
+  ChartPoint,
   ChartScene,
   DynamicChartHostOptions,
 } from '@tanstack/charts'
 import type { StreamingDatum } from './data'
+import type { StreamingControls, StreamingViewportMode } from './controls'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -24,11 +30,15 @@ import type {
 interface StreamingChartInput extends ConformanceInput {
   rows: readonly StreamingDatum[]
   viewport: readonly [Date, Date]
+  viewportMode: StreamingViewportMode
 }
 
 interface StreamingState {
   rows: readonly StreamingDatum[]
   appended: number
+  viewport: readonly [Date, Date]
+  viewportMode: StreamingViewportMode
+  announcement: string
 }
 
 const color = '#2563eb'
@@ -58,7 +68,12 @@ const definition = defineChart<StreamingChartInput>()(({ input }) => {
     ],
     x: {
       scale: scaleUtc().domain(input.viewport),
-      label: 'Locked viewport',
+      label:
+        input.viewportMode === 'locked'
+          ? 'Locked viewport'
+          : input.viewportMode === 'latest'
+            ? 'Following latest'
+            : 'All samples',
       format: (value) =>
         value.toLocaleDateString(undefined, {
           month: 'short',
@@ -81,35 +96,59 @@ export const mount: ConformanceMount = (container, input) => {
   const state: StreamingState = {
     rows: streamingData(input.revision),
     appended: 0,
+    viewport: streamingViewportDomain,
+    viewportMode: 'locked',
+    announcement: '',
   }
   const view = container.ownerDocument.createElement('div')
   view.dataset.conformanceView = 'main'
   view.style.display = 'grid'
-  view.style.gridTemplateRows = '40px minmax(0, 1fr)'
-
-  const controls = container.ownerDocument.createElement('div')
-  controls.style.display = 'flex'
-  controls.style.alignItems = 'center'
-  controls.style.justifyContent = 'space-between'
-  controls.style.gap = '12px'
-  controls.style.padding = '0 12px'
-
-  const button = container.ownerDocument.createElement('button')
-  button.type = 'button'
-  button.textContent = 'Append sample'
-  button.dataset.streamingControl = 'append'
-
-  const status = container.ownerDocument.createElement('output')
-  status.setAttribute('aria-live', 'polite')
-  status.style.font = '500 12px/1.2 system-ui, sans-serif'
-  controls.append(button, status)
+  view.style.gridTemplateRows = '78px minmax(0, 1fr)'
 
   const chartSurface = container.ownerDocument.createElement('div')
   chartSurface.style.minHeight = '0'
-  view.append(controls, chartSurface)
+  const render = () => {
+    updateStreamingControls(controls, {
+      mode: state.viewportMode,
+      status: streamingStatus(state),
+    })
+    host?.update(chartOptions())
+  }
+  const controls = createStreamingControls(container.ownerDocument, {
+    append() {
+      state.appended += 1
+      state.rows = streamingData(currentInput.revision, state.appended)
+      if (state.viewportMode === 'latest') {
+        state.viewport = latestStreamingViewport(state.rows)
+      } else if (state.viewportMode === 'all') {
+        state.viewport = fullStreamingViewport(state.rows)
+      }
+      const added = state.rows.at(-1)
+      state.announcement = added
+        ? `Added ${formatStreamingDate(added.date)} (${added.value}). ${
+            visibleStreamingData([added], state.viewport).length
+              ? 'The new sample is visible.'
+              : `It is outside the locked viewport ending ${formatStreamingDate(state.viewport[1])}.`
+          }`
+        : ''
+      render()
+    },
+    follow() {
+      state.viewportMode = 'latest'
+      state.viewport = latestStreamingViewport(state.rows)
+      state.announcement = `Following the latest samples through ${formatStreamingDate(state.viewport[1])}.`
+      render()
+    },
+    showAll() {
+      state.viewportMode = 'all'
+      state.viewport = fullStreamingViewport(state.rows)
+      state.announcement = `Viewport unlocked. Showing all ${state.rows.length} samples.`
+      render()
+    },
+  })
+  view.append(controls.root, chartSurface)
   container.append(view)
   sizeStreamingView(view, chartSurface, input)
-  updateStatus(status, state)
 
   const chartOptions = (): DynamicChartHostOptions<
     StreamingDatum,
@@ -119,32 +158,43 @@ export const mount: ConformanceMount = (container, input) => {
     input: {
       ...currentInput,
       rows: state.rows,
-      viewport: streamingViewportDomain,
+      viewport: state.viewport,
+      viewportMode: state.viewportMode,
     },
     width: currentInput.width,
     height: streamingChartHeight(currentInput.height),
     ariaLabel: 'Streaming observations in a locked time viewport',
     animate: false,
-    keyboard: false,
+    keyboard: true,
+    tooltip: {
+      format: (point: ChartPoint<StreamingDatum>) =>
+        `${formatStreamingDate(point.datum.date)} · ${point.datum.value.toLocaleString()}`,
+    },
   })
-  const host = mountChart(chartSurface, chartOptions())
-
-  button.addEventListener('click', () => {
-    state.appended += 1
-    state.rows = streamingData(currentInput.revision, state.appended)
-    updateStatus(status, state)
-    host.update(chartOptions())
+  let host: ChartHost<StreamingDatum, StreamingChartInput> | undefined
+  host = mountChart(chartSurface, chartOptions())
+  updateStreamingControls(controls, {
+    mode: state.viewportMode,
+    status: streamingStatus(state),
   })
 
-  const driver = createDriver(chartSurface, button, state, host)
+  const driver = createDriver(chartSurface, controls, state, host)
 
   return {
     driver,
     update(nextInput) {
       currentInput = nextInput
       state.rows = streamingData(nextInput.revision, state.appended)
+      if (state.viewportMode === 'latest') {
+        state.viewport = latestStreamingViewport(state.rows)
+      } else if (state.viewportMode === 'all') {
+        state.viewport = fullStreamingViewport(state.rows)
+      }
       sizeStreamingView(view, chartSurface, nextInput)
-      updateStatus(status, state)
+      updateStreamingControls(controls, {
+        mode: state.viewportMode,
+        status: streamingStatus(state),
+      })
       host.update(chartOptions())
     },
     destroy() {
@@ -156,13 +206,13 @@ export const mount: ConformanceMount = (container, input) => {
 
 function createDriver(
   chartSurface: HTMLDivElement,
-  button: HTMLButtonElement,
+  controls: StreamingControls,
   state: StreamingState,
   host: ChartHost<StreamingDatum, StreamingChartInput>,
 ): ConformanceTestDriver {
   return {
     resolveTarget(target) {
-      return controlTarget(button, target)
+      return controlTarget(controls, target)
     },
     readState() {
       return streamingState(state)
@@ -173,13 +223,17 @@ function createDriver(
   }
 }
 
-function controlTarget(button: HTMLButtonElement, target: ConformanceTarget) {
-  if (
-    (target.view !== undefined && target.view !== 'main') ||
-    target.anchor !== 'control:append'
-  ) {
-    return null
-  }
+function controlTarget(controls: StreamingControls, target: ConformanceTarget) {
+  if (target.view !== undefined && target.view !== 'main') return null
+  const button =
+    target.anchor === 'control:append'
+      ? controls.append
+      : target.anchor === 'control:follow'
+        ? controls.follow
+        : target.anchor === 'control:all'
+          ? controls.showAll
+          : null
+  if (!button) return null
   const bounds = button.getBoundingClientRect()
   return {
     x: bounds.left + bounds.width / 2,
@@ -191,7 +245,7 @@ function controlTarget(button: HTMLButtonElement, target: ConformanceTarget) {
 function streamingState(state: StreamingState) {
   const first = state.rows[0]
   const last = state.rows[state.rows.length - 1]
-  const visibleRows = visibleStreamingData(state.rows)
+  const visibleRows = visibleStreamingData(state.rows, state.viewport)
   const revisionProbe = visibleRows.find((row) => row.id === 'sample-7')
   return {
     data: {
@@ -206,9 +260,10 @@ function streamingState(state: StreamingState) {
       revisionProbeValue: revisionProbe?.value ?? null,
     },
     viewport: {
-      start: streamingDateKey(streamingViewportDomain[0]),
-      end: streamingDateKey(streamingViewportDomain[1]),
-      locked: true,
+      start: streamingDateKey(state.viewport[0]),
+      end: streamingDateKey(state.viewport[1]),
+      locked: state.viewportMode === 'locked',
+      mode: state.viewportMode,
     },
     control: {
       appended: state.appended,
@@ -225,7 +280,7 @@ function streamingGeometry(
   if (query.view !== undefined && query.view !== 'main') return []
   const svg = chartSurface.querySelector<SVGSVGElement>('svg.ts-chart')
   if (!svg) return []
-  const rows = visibleStreamingData(state.rows)
+  const rows = visibleStreamingData(state.rows, state.viewport)
   const bounds = svg.getBoundingClientRect()
   const scaleX = bounds.width / scene.width
   const scaleY = bounds.height / scene.height
@@ -272,12 +327,15 @@ function pointsBounds(
   }
 }
 
-function updateStatus(status: HTMLOutputElement, state: StreamingState) {
-  status.textContent = `${state.rows.length} samples · viewport locked`
+function streamingStatus(state: StreamingState) {
+  if (state.announcement) return state.announcement
+  return `${state.rows.length} samples · ${formatStreamingDate(
+    state.viewport[0],
+  )}–${formatStreamingDate(state.viewport[1])} · viewport locked`
 }
 
 function streamingChartHeight(viewportHeight: number) {
-  return Math.max(180, viewportHeight - 40)
+  return Math.max(180, viewportHeight - 78)
 }
 
 function sizeStreamingView(

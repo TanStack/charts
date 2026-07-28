@@ -13,9 +13,9 @@ export const timelineStatuses = ['planned', 'active', 'review'] as const
 export type TimelineStatus = (typeof timelineStatuses)[number]
 
 export const timelineStatusColors: Readonly<Record<TimelineStatus, string>> = {
-  planned: '#94a3b8',
+  planned: '#64748b',
   active: '#2563eb',
-  review: '#f97316',
+  review: '#c2410c',
 }
 
 export interface ResourceTask {

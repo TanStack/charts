@@ -66,6 +66,34 @@ that changes data revision or interaction policy without discarding stable
 keys or controlled state. A passing hand-authored catalog case is prerequisite
 evidence, not an AI score.
 
+Include one inversion-of-control type probe in that cohort. A hoisted custom
+focus strategy and custom SVG renderer must receive the definition's exact
+datum, x-value, and y-value types; an otherwise identical strategy or renderer
+with an incompatible coordinate type must fail compilation. Using a cast,
+bare generic erasure, or adapter type argument is a hard failure.
+
+The first large-data decision cohort should not reward raw mark throughput.
+Give agents a dense point cloud, a high-rate ordered signal, and a
+high-cardinality categorical source at 100,000 and 1,000,000 rows. Ask for both
+the representation decision and the implementation. Hidden checks must require:
+
+- an explicit user question and declared representation budget;
+- source, represented, prepared, and output counts kept distinct;
+- exact row accounting for density, histogram, or remainder aggregation;
+- retained global extrema for an ordered-signal envelope;
+- separately measured preparation and rendering;
+- screen-space preparation recomputed after resize;
+- stable keys and correct append/update behavior;
+- a table, summary, or drill-down when aggregation removes datum inspection;
+- no undisclosed sampling, raw million-mark output, or renderer-specific input.
+
+Score a maintenance edit that changes width and appends source data without
+invalidating those invariants. Run both routed and discovery tracks against
+[`large-data-and-interaction.md`](../../packages/charts-core/docs/large-data-and-interaction.md),
+then repeat the discovery track against the generated skill. A skill is ready
+only when it improves task completion without increasing unsafe casts, private
+imports, invented APIs, or hidden data loss.
+
 ## Executable smoke cohort
 
 The checked-in harness starts with sorted bars and a fixed-boundary histogram,

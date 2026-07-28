@@ -29,13 +29,13 @@ interface PlaybackState {
   index: number
   dragging: boolean
   scrubCount: number
+  playing: boolean
+  originIndex: number | null
 }
 
 const linePaint = '#2563eb'
-const playheadPaint = '#f97316'
-const trackPaint = '#cbd5e1'
 const yDomain: readonly [number, number] = [20, 80]
-const margin = { top: 24, right: 24, bottom: 68, left: 56 }
+const margin = { top: 64, right: 24, bottom: 68, left: 56 }
 
 const definition = defineChart<ConformanceInput>()(({ input }) => {
   const rows = playbackData(input.revision)
@@ -84,6 +84,8 @@ export const mount: ConformanceMount = (container, input) => {
     index: initialPlaybackIndex,
     dragging: false,
     scrubCount: 0,
+    playing: false,
+    originIndex: null,
   }
   const view = container.ownerDocument.createElement('div')
   view.dataset.conformanceView = 'main'
@@ -141,56 +143,104 @@ function createPlaybackInteractions(
   state: PlaybackState,
   host: ChartHost<PlaybackDatum, ConformanceInput>,
 ) {
-  const overlay = createPlaybackOverlay(view)
+  let playbackTimer: ReturnType<typeof setInterval> | null = null
+  let paint = () => {}
+  let announce = (_message: string) => {}
+  const frameText = () => {
+    const row = playbackData(getInput().revision)[state.index]
+    return row ? `${playbackDateKey(row.date)} · ${row.value}` : 'No frame'
+  }
+  const stopPlayback = (message?: string) => {
+    if (playbackTimer !== null) {
+      clearInterval(playbackTimer)
+      playbackTimer = null
+    }
+    state.playing = false
+    paint()
+    if (message) announce(`${message}. ${frameText()}`)
+  }
+  const togglePlayback = () => {
+    if (state.playing) {
+      stopPlayback('Playback paused')
+      return
+    }
+    const lastIndex = playbackData(getInput().revision).length - 1
+    const restarting = state.index >= lastIndex
+    if (restarting) state.index = 0
+    state.playing = true
+    playbackTimer = setInterval(() => {
+      const nextLastIndex = playbackData(getInput().revision).length - 1
+      if (state.index >= nextLastIndex) {
+        stopPlayback('Playback ended')
+        return
+      }
+      state.index += 1
+      paint()
+    }, 700)
+    paint()
+    announce(
+      `${restarting ? 'Playback restarted' : 'Playback started'}. ${frameText()}`,
+    )
+  }
+  const beginChange = () => {
+    if (state.dragging) return
+    stopPlayback()
+    state.originIndex = state.index
+    state.dragging = true
+  }
+  const overlay = createPlaybackOverlay(
+    view,
+    (index) => {
+      beginChange()
+      state.index = Math.max(
+        0,
+        Math.min(playbackData(getInput().revision).length - 1, index),
+      )
+      paint()
+    },
+    togglePlayback,
+  )
+  announce = overlay.announce
   const layout = () =>
     playbackLayout(chartSurface, view, host.getScene(), state.index)
 
-  const paint = () => {
+  paint = () => {
     const nextLayout = layout()
     const row = playbackData(getInput().revision)[state.index]
     if (!nextLayout || !row) return
-    overlay.paint(nextLayout, `${playbackDateKey(row.date)} · ${row.value}`)
+    overlay.paint(nextLayout, {
+      index: state.index,
+      max: playbackData(getInput().revision).length - 1,
+      playing: state.playing,
+      valueText: `${playbackDateKey(row.date)} · ${row.value}`,
+    })
   }
 
-  const selectAtPointer = (event: PointerEvent) => {
-    const nextLayout = layout()
-    if (!nextLayout) return
-    const bounds = view.getBoundingClientRect()
-    state.index = nearestFrameIndex(
-      nextLayout.frameXs,
-      event.clientX - bounds.left,
-    )
-    paint()
+  const handlePointerDown = () => {
+    beginChange()
   }
 
-  const handlePointerDown = (event: PointerEvent) => {
-    const nextLayout = layout()
-    if (!nextLayout || !isScrubberTarget(view, nextLayout, event)) return
-    event.preventDefault()
-    state.dragging = true
-    view.setPointerCapture(event.pointerId)
-    selectAtPointer(event)
-  }
-
-  const handlePointerMove = (event: PointerEvent) => {
+  const commitChange = () => {
     if (!state.dragging) return
-    selectAtPointer(event)
-  }
-
-  const finishPointer = (event: PointerEvent) => {
-    if (!state.dragging) return
-    selectAtPointer(event)
     state.dragging = false
+    state.originIndex = null
     state.scrubCount += 1
-    if (view.hasPointerCapture(event.pointerId)) {
-      view.releasePointerCapture(event.pointerId)
-    }
+    paint()
+    announce(`Frame selected. ${frameText()}`)
   }
 
-  view.addEventListener('pointerdown', handlePointerDown, true)
-  view.addEventListener('pointermove', handlePointerMove, true)
-  view.addEventListener('pointerup', finishPointer, true)
-  view.addEventListener('pointercancel', finishPointer, true)
+  const cancelChange = () => {
+    if (!state.dragging) return
+    if (state.originIndex !== null) state.index = state.originIndex
+    state.dragging = false
+    state.originIndex = null
+    paint()
+    announce(`Scrub canceled. ${frameText()}`)
+  }
+
+  overlay.range.addEventListener('pointerdown', handlePointerDown)
+  overlay.range.addEventListener('change', commitChange)
+  overlay.range.addEventListener('pointercancel', cancelChange)
 
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
@@ -206,6 +256,7 @@ function createPlaybackInteractions(
         host.getScene(),
         getInput(),
         layout(),
+        overlay.ruleGeometry(),
         query,
       )
     },
@@ -221,10 +272,10 @@ function createPlaybackInteractions(
     driver,
     paint,
     destroy() {
-      view.removeEventListener('pointerdown', handlePointerDown, true)
-      view.removeEventListener('pointermove', handlePointerMove, true)
-      view.removeEventListener('pointerup', finishPointer, true)
-      view.removeEventListener('pointercancel', finishPointer, true)
+      if (playbackTimer !== null) clearInterval(playbackTimer)
+      overlay.range.removeEventListener('pointerdown', handlePointerDown)
+      overlay.range.removeEventListener('change', commitChange)
+      overlay.range.removeEventListener('pointercancel', cancelChange)
       overlay.destroy()
     },
   }
@@ -238,6 +289,18 @@ function resolveTarget(
   if (!layout || (target.view !== undefined && target.view !== 'main')) {
     return null
   }
+  if (target.anchor === 'control:play') {
+    const button = view.querySelector<HTMLButtonElement>(
+      'button[aria-label$="timeline"]',
+    )
+    if (!button) return null
+    const bounds = button.getBoundingClientRect()
+    return {
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+      focusElement: button,
+    }
+  }
   const index = playbackIndexFromAnchor(target.anchor)
   const x = index === null ? undefined : layout.frameXs[index]
   if (x === undefined) return null
@@ -245,7 +308,9 @@ function resolveTarget(
   return {
     x: bounds.left + x,
     y: bounds.top + layout.trackY,
-    focusElement: view,
+    focusElement:
+      view.querySelector<HTMLInputElement>('.ts-conformance-playback-range') ??
+      undefined,
   }
 }
 
@@ -267,6 +332,7 @@ function interactionState(state: PlaybackState, input: ConformanceInput) {
     interaction: {
       dragging: state.dragging,
       scrubCount: state.scrubCount,
+      playing: state.playing,
     },
   }
 }
@@ -277,6 +343,7 @@ function playbackGeometry(
   scene: ChartScene<PlaybackDatum>,
   input: ConformanceInput,
   layout: PlaybackOverlayLayout | null,
+  overlayRules: readonly ConformanceGeometrySample[],
   query: ConformanceGeometryQuery,
 ): readonly ConformanceGeometrySample[] {
   if (!layout || (query.view !== undefined && query.view !== 'main')) {
@@ -307,24 +374,7 @@ function playbackGeometry(
     const sample = pointsBounds(points, viewBounds, linePaint)
     return sample ? [sample] : []
   }
-  if (query.role === 'rule') {
-    return [
-      {
-        x: viewBounds.left + layout.left,
-        y: viewBounds.top + layout.trackY - 1,
-        width: Math.max(1, layout.right - layout.left),
-        height: 2,
-        paint: trackPaint,
-      },
-      {
-        x: viewBounds.left + layout.playheadX - 1,
-        y: viewBounds.top + layout.top,
-        width: 2,
-        height: Math.max(1, layout.trackY - layout.top),
-        paint: playheadPaint,
-      },
-    ]
-  }
+  if (query.role === 'rule') return overlayRules
   return []
 }
 
@@ -396,34 +446,6 @@ function sceneLocalPoint(
     svgBounds.left - viewBounds.left + (sceneX / scene.width) * svgBounds.width,
     svgBounds.top - viewBounds.top + (sceneY / scene.height) * svgBounds.height,
   ]
-}
-
-function isScrubberTarget(
-  view: HTMLDivElement,
-  layout: PlaybackOverlayLayout,
-  event: PointerEvent,
-) {
-  const bounds = view.getBoundingClientRect()
-  const x = event.clientX - bounds.left
-  const y = event.clientY - bounds.top
-  return (
-    x >= layout.left - 12 &&
-    x <= layout.right + 12 &&
-    Math.abs(y - layout.trackY) <= 18
-  )
-}
-
-function nearestFrameIndex(frameXs: readonly number[], x: number) {
-  let nearestIndex = 0
-  let nearestDistance = Number.POSITIVE_INFINITY
-  frameXs.forEach((frameX, index) => {
-    const distance = Math.abs(frameX - x)
-    if (distance < nearestDistance) {
-      nearestDistance = distance
-      nearestIndex = index
-    }
-  })
-  return nearestIndex
 }
 
 function pointsBounds(

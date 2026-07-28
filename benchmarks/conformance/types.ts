@@ -84,6 +84,44 @@ export interface ConformanceTarget {
   anchor: string
 }
 
+export type ConformanceRenderedTarget =
+  | {
+      selector: string
+      index?: number
+      role?: never
+      name?: never
+      exact?: never
+      root?: never
+      page?: never
+    }
+  | {
+      role: string
+      name?: string
+      exact?: boolean
+      index?: number
+      selector?: never
+      root?: never
+      page?: never
+    }
+  | {
+      root: true
+      selector?: never
+      role?: never
+      name?: never
+      exact?: never
+      index?: never
+      page?: never
+    }
+  | {
+      page: true
+      selector?: never
+      role?: never
+      name?: never
+      exact?: never
+      index?: never
+      root?: never
+    }
+
 export interface ConformanceResolvedTarget {
   /** Viewport-relative client coordinate used by Playwright mouse input. */
   x: number
@@ -140,10 +178,101 @@ export type ConformanceStateAssertion =
       tolerance: number
     }
 
+type ConformanceRenderedStringMatcher =
+  | {
+      equals: string | null
+      includes?: never
+    }
+  | {
+      includes: string
+      equals?: never
+    }
+
+type ConformanceRenderedNumberMatcher =
+  | {
+      equals: number
+      approx?: never
+      tolerance?: never
+      atLeast?: never
+      atMost?: never
+    }
+  | {
+      approx: number
+      tolerance: number
+      equals?: never
+      atLeast?: never
+      atMost?: never
+    }
+  | {
+      atLeast: number
+      equals?: never
+      approx?: never
+      tolerance?: never
+      atMost?: never
+    }
+  | {
+      atMost: number
+      equals?: never
+      approx?: never
+      tolerance?: never
+      atLeast?: never
+    }
+
+export type ConformanceRenderedAssertion =
+  | ({
+      target: ConformanceRenderedTarget
+      property: 'count'
+    } & ConformanceRenderedNumberMatcher)
+  | ({
+      target: ConformanceRenderedTarget
+      property: 'text'
+    } & ConformanceRenderedStringMatcher)
+  | ({
+      target: ConformanceRenderedTarget
+      property: 'attribute'
+      attribute: string
+    } & ConformanceRenderedStringMatcher)
+  | {
+      target: ConformanceRenderedTarget
+      property: 'visible' | 'focused'
+      equals: boolean
+    }
+  | ({
+      target: ConformanceRenderedTarget
+      property:
+        | 'scrollLeft'
+        | 'scrollTop'
+        | 'scrollWidth'
+        | 'scrollHeight'
+        | 'clientWidth'
+        | 'clientHeight'
+        | 'width'
+        | 'height'
+    } & ConformanceRenderedNumberMatcher)
+  | {
+      target: ConformanceRenderedTarget
+      property: 'contained'
+      within?: ConformanceRenderedTarget
+      tolerance?: number
+      equals: true
+    }
+
 export type ConformanceInteractionStep =
   | {
       type: 'pointerMove'
       target: ConformanceTarget
+      steps?: number
+    }
+  | {
+      type: 'pointerDown'
+      target: ConformanceTarget
+    }
+  | {
+      type: 'pointerUp'
+      target: ConformanceTarget
+    }
+  | {
+      type: 'pointerCancel'
     }
   | {
       type: 'pointerLeave'
@@ -173,10 +302,36 @@ export type ConformanceInteractionStep =
       target: ConformanceTarget
       deltaX?: number
       deltaY?: number
+      steps?: number
+      deltaMode?: 'pixel' | 'line' | 'page'
+    }
+  | {
+      type: 'touchTap'
+      target: ConformanceTarget
+    }
+  | {
+      type: 'touchDrag'
+      from: ConformanceTarget
+      to: ConformanceTarget
+      steps?: number
+      cancel?: boolean
+    }
+  | {
+      type: 'wait'
+      durationMs: number
     }
   | {
       type: 'assert'
       assertions: readonly ConformanceStateAssertion[]
+    }
+  | {
+      type: 'assertRendered'
+      assertions: readonly ConformanceRenderedAssertion[]
+    }
+  | {
+      type: 'screenshot'
+      name: string
+      view?: string
     }
 
 export interface ConformanceInteractionScenario {

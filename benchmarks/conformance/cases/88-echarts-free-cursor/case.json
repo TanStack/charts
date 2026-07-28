@@ -12,7 +12,10 @@
     "two-dimensional crosshair",
     "normalized plot state",
     "semantic fractional target",
-    "case-owned overlay"
+    "case-owned overlay",
+    "rendered coordinate labels",
+    "paired semantic sliders",
+    "tap-to-pin cursor"
   ],
   "geometry": [
     {
@@ -61,11 +64,42 @@
               "approx": 0.64,
               "tolerance": 0.015
             },
+            {
+              "path": "cursor.xValue",
+              "approx": 37,
+              "tolerance": 1.5
+            },
+            {
+              "path": "cursor.yValue",
+              "approx": 36,
+              "tolerance": 1.5
+            },
+            { "path": "cursor.pinned", "equals": false },
             { "path": "cursor.snapped", "equals": false },
             { "path": "cursor.datum", "equals": null },
             { "path": "render.count", "equals": 1 }
           ]
         },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-free-cursor-status]"
+              },
+              "property": "text",
+              "includes": "X 37"
+            },
+            {
+              "target": {
+                "selector": "[data-conformance-free-cursor-status]"
+              },
+              "property": "text",
+              "includes": "Y 36"
+            }
+          ]
+        },
+        { "type": "screenshot", "name": "free-cursor-values" },
         { "type": "pointerLeave", "view": "main" },
         {
           "type": "assert",
@@ -73,6 +107,71 @@
             { "path": "cursor.visible", "equals": false },
             { "path": "cursor.xNormalized", "equals": null },
             { "path": "cursor.yNormalized", "equals": null }
+          ]
+        },
+        {
+          "type": "key",
+          "key": "ArrowRight",
+          "target": { "view": "main", "anchor": "control:x" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "cursor.visible", "equals": true },
+            { "path": "cursor.xValue", "equals": 38 },
+            { "path": "cursor.yValue", "equals": 36 },
+            { "path": "cursor.pinned", "equals": true },
+            { "path": "render.count", "equals": 1 }
+          ]
+        },
+        {
+          "type": "assertRendered",
+          "assertions": [
+            {
+              "target": {
+                "selector": "[data-conformance-free-cursor-status]"
+              },
+              "property": "text",
+              "includes": "X 38"
+            },
+            {
+              "target": { "role": "slider", "name": "X coordinate" },
+              "property": "focused",
+              "equals": true
+            }
+          ]
+        },
+        { "type": "pointerLeave", "view": "main" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "cursor.visible", "equals": true },
+            { "path": "cursor.pinned", "equals": true }
+          ]
+        },
+        { "type": "key", "key": "Escape" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "cursor.visible", "equals": false },
+            { "path": "cursor.pinned", "equals": false }
+          ]
+        },
+        {
+          "type": "touchTap",
+          "target": {
+            "view": "main",
+            "anchor": "fraction:0.25,0.25"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "cursor.visible", "equals": true },
+            { "path": "cursor.xValue", "equals": 25 },
+            { "path": "cursor.yValue", "equals": 75 },
+            { "path": "cursor.pinned", "equals": true },
+            { "path": "render.count", "equals": 1 }
           ]
         }
       ]
