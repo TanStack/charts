@@ -1,185 +1,160 @@
-# TanStack Charts proof
+<h1 align="center">TanStack Charts</h1>
 
-This repository contains the working proof for TanStack Charts: a tiny,
-framework-agnostic TypeScript visualization grammar inspired by Observable
-Plot with D3 as its algorithm layer. TanStack owns marks, channels, scene
-compilation, rendering, and lifecycle. Named `d3-*` modules own scales, shape,
-transforms, color, and spatial math.
+<p align="center">
+  <strong>D3's power. A chart library's ergonomics.</strong>
+</p>
 
-The product packages are:
+<p align="center">
+  A tiny TypeScript visualization grammar for responsive, accessible,
+  server-rendered application charts.
+</p>
 
-- [`@tanstack/charts`](./packages/charts-core) — marks, channels, scales, guides,
-  scene calculation, static SVG, vanilla DOM host, and optional export
-- [`@tanstack/react-charts`](./packages/react-charts) — thin React adapter
-- [`@tanstack/octane-charts`](./packages/octane-charts) — thin Octane adapter
-- [`examples/sandbox`](./examples/sandbox) — dynamic React API workbench
-- [`examples/charts-react`](./examples/charts-react) — interactive React proof
-- [`examples/charts-octane`](./examples/charts-octane) — equivalent Octane proof
-- [`examples/conformance`](./examples/conformance) — side-by-side chart catalog
-  comparison
+<p align="center">
+  <a href="#quick-look">Quick look</a> ·
+  <a href="./packages/charts-core/README.md">Documentation</a> ·
+  <a href="./examples/charts-react">React example</a> ·
+  <a href="./benchmarks/conformance">Conformance catalog</a> ·
+  <a href="./PLAN.md">Roadmap</a>
+</p>
 
-The earlier Observable Plot host experiment remains under `@plot-poc/*` so its
-behavior, benchmarks, and migration evidence can be compared without occupying
-the product package names.
+> [!IMPORTANT]
+> TanStack Charts is currently a private `0.0.0` product proof. The packages
+> are not published or ready for production use yet.
 
-The private [`@tanstack/charts-d3`](./packages/charts-core-d3) package preserves
-the superseded all-at-once D3 backend experiment. Its parity and bundle
-findings remain as historical evidence in the plan.
+Most chart libraries are easy until the chart stops being standard. TanStack
+Charts gives you one typed grammar that can grow from a familiar line or bar
+chart into a product-specific visualization without replacing your data model
+or dropping down to a separate API.
 
-See [PLAN.md](./PLAN.md) for the architecture, scope, evidence, and decision
-gates. Observed authoring difficulty is tracked in
-[API-FRICTION.md](./API-FRICTION.md). Package-level, task-oriented
-documentation begins at
-[`packages/charts-core/llms.txt`](./packages/charts-core/llms.txt).
+- **Keep your data as it is.** Marks consume arrays, objects, tuples, and
+  iterables directly. Different layers can use different datum types.
+- **Bring native D3 primitives.** Use D3 scales, curves, transforms, and layout
+  output instead of relearning a parallel math API.
+- **Build from common to custom.** Layer built-in marks or implement a custom
+  mark against the same public scene protocol.
+- **Get the application runtime too.** Responsive layout, automatic guide
+  margins, themes, interaction, animation, accessibility, SVG SSR, hydration,
+  and export are part of the system.
+- **Pay for what you import.** Marks, renderers, interactions, and specialized
+  D3 capabilities have independent, tree-shakeable entry points.
 
-## D3-native API
+## Quick look
 
 ```tsx
-import { extent, max } from 'd3-array'
-import { scaleLinear, scaleUtc } from 'd3-scale'
-import { curveMonotoneX } from 'd3-shape'
-import {
-  d3Curve,
-  defineChart,
-  lineY,
-  ruleY,
-} from '@tanstack/charts'
+import { max } from 'd3-array'
+import { scaleBand, scaleLinear } from 'd3-scale'
+import { barY, defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/react-charts'
 
-const [firstDate, lastDate] = extent(rows, (row) => row.date)
-const dateDomain: [Date, Date] =
-  firstDate && lastDate
-    ? [firstDate, lastDate]
-    : [new Date(0), new Date(86_400_000)]
-const downloadMax = max(rows, (row) => row.downloads) ?? 0
+const revenue = [
+  { month: 'Jan', value: 42 },
+  { month: 'Feb', value: 58 },
+  { month: 'Mar', value: 76 },
+  { month: 'Apr', value: 64 },
+]
 
-const downloads = defineChart({
+const revenueChart = defineChart({
   marks: [
-    ruleY([0]),
-    lineY(rows, {
-      x: 'date',
-      y: 'downloads',
-      z: 'package',
-      key: 'id',
-      curve: d3Curve(curveMonotoneX),
+    barY(revenue, {
+      x: 'month',
+      y: 'value',
     }),
   ],
-  x: { scale: scaleUtc().domain(dateDomain).nice() },
+  x: {
+    scale: scaleBand()
+      .domain(revenue.map((row) => row.month))
+      .padding(0.2),
+  },
   y: {
-    scale: scaleLinear().domain([0, downloadMax]).nice(),
-    label: 'Weekly downloads',
+    scale: scaleLinear()
+      .domain([0, max(revenue, (row) => row.value) ?? 0])
+      .nice(),
+    label: 'Revenue',
     grid: true,
   },
 })
 
-<Chart
-  definition={downloads}
-  height={320}
-  ariaLabel="Weekly package downloads"
-  tooltip
-/>
-```
-
-Dynamic definitions keep application input, data preparation, and visual
-construction separate:
-
-```ts
-import { max } from 'd3-array'
-import { scaleBand, scaleLinear } from 'd3-scale'
-import { barX, defineChart } from '@tanstack/charts'
-
-interface Input {
-  rows: readonly Row[]
-  accent: string
+export function RevenueChart() {
+  return (
+    <Chart
+      definition={revenueChart}
+      height={320}
+      ariaLabel="Monthly revenue"
+      tooltip
+    />
+  )
 }
-
-const ranking = defineChart<Input>()({
-  prepare: (input) => [...input.rows].sort((a, b) => b.value - a.value),
-  prepareEqual: (a, b) => a.rows === b.rows,
-  chart: ({ input, prepared, width }) => ({
-    marks: [
-      barX(prepared, {
-        x: 'value',
-        y: 'name',
-        key: 'id',
-        fill: input.accent,
-      }),
-    ],
-    x: {
-      scale: scaleLinear()
-        .domain([0, max(prepared, (row) => row.value) ?? 0])
-        .nice(),
-      ticks: width < 420 ? 4 : 7,
-    },
-    y: {
-      scale: scaleBand()
-        .domain(prepared.map((row) => row.name))
-        .padding(0.1),
-    },
-  }),
-})
 ```
 
-The supplied band scale owns bar position, thickness, padding, alignment,
-rounding, and reversal. A bar fills that bandwidth unless `inset` is explicit.
-Side-by-side bars supply a second D3 band scale through `groupScale`; `z` alone
-only identifies the series.
+Marks consume the original rows, channels describe their visual encodings, and
+configured D3 scales own the domain and mapping. TanStack copies those scales,
+assigns their responsive pixel ranges, compiles a renderer-neutral keyed scene,
+and hands that scene to the selected host.
 
-Guide margins are automatic. The compiler measures formatted tick labels,
-rotations, endpoint overhang, and axis titles, then gives the remaining space
-to the plot. Omit `margin` for this default; a numeric side is a hard lock, and
-`margin: 0` disables automatic space on every side. Static rendering uses a
-deterministic estimator, while the DOM host refines the same layout with the
-container’s actual font metrics and corrects it after web fonts load.
+Definitions are framework-independent. The same `revenueChart` can render
+through React, Octane, the vanilla DOM host, or static SVG.
+
+## Packages
+
+| Package                                               | Role                                                                                               |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [`@tanstack/charts`](./packages/charts-core)          | Marks, channels, guides, scene compilation, static SVG, vanilla DOM lifecycle, and optional export |
+| [`@tanstack/react-charts`](./packages/react-charts)   | Thin React lifecycle adapter with SSR and hydration                                                |
+| [`@tanstack/octane-charts`](./packages/octane-charts) | Thin Octane lifecycle adapter with equivalent scene output                                         |
+
+The earlier Observable Plot host experiment remains under `@plot-poc/*` for
+migration evidence and benchmark comparison. The private
+[`@tanstack/charts-d3`](./packages/charts-core-d3) package preserves a
+superseded backend experiment.
+
+## Core model
+
+TanStack Charts deliberately splits ownership:
+
+| D3 owns                                                      | TanStack Charts owns                                                                          |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Scales, shapes, transforms, color, spatial math, and layouts | Marks, channels, responsive ranges, guide layout, scene compilation, rendering, and lifecycle |
+
+This boundary keeps D3 visible and replaceable at the algorithm level while
+giving applications a consistent runtime. There is no global registry,
+library-owned dataframe, or chart-type configuration model.
+
+For live application state, `defineChart<Input>()` keeps expensive preparation
+separate from visual construction and responsive layout. The definition drives
+host prop and callback inference, so normal authoring does not require adapter
+generics, mark-array annotations, or casts. See
+[`dynamic-charts.md`](./packages/charts-core/docs/dynamic-charts.md) for the
+complete pattern.
+
+## Documentation
+
+| Start here                                                                                                                     | Use it for                                      |
+| ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| [`packages/charts-core/README.md`](./packages/charts-core/README.md)                                                           | API overview and implemented grammar            |
+| [`packages/charts-core/docs/recipes.md`](./packages/charts-core/docs/recipes.md)                                               | Common charts and composition patterns          |
+| [`packages/charts-core/docs/dynamic-charts.md`](./packages/charts-core/docs/dynamic-charts.md)                                 | State, preparation, memoization, and animation  |
+| [`packages/charts-core/docs/responsive-theme-accessibility.md`](./packages/charts-core/docs/responsive-theme-accessibility.md) | Sizing, themes, guide layout, and accessibility |
+| [`packages/charts-core/docs/custom-marks.md`](./packages/charts-core/docs/custom-marks.md)                                     | Custom marks and scene protocol                 |
+| [`packages/charts-core/docs/bundle-and-performance.md`](./packages/charts-core/docs/bundle-and-performance.md)                 | Import boundaries and performance rules         |
+| [`packages/charts-core/docs/observable-plot-migration.md`](./packages/charts-core/docs/observable-plot-migration.md)           | Observable Plot concept mapping                 |
+| [`packages/charts-core/llms.txt`](./packages/charts-core/llms.txt)                                                             | Compact documentation map for humans and agents |
+
+Architecture decisions and open production gates live in
+[`PLAN.md`](./PLAN.md). Evidence from real authoring and migration work is
+tracked in [`API-FRICTION.md`](./API-FRICTION.md).
 
 ## Development
+
+The workspace requires Node.js 22 or newer and pnpm 11.
 
 ```sh
 pnpm install
 pnpm test
 pnpm typecheck
 pnpm build
-pnpm bundle:check
-pnpm performance
-pnpm benchmark:check
 ```
 
-The package bundle gate locks ordinary line, SVG, DOM, React, custom-scale,
-and representative-mark consumers to exact minified and gzip baselines.
-Optional features use isolated entries and budgets; see
-[`benchmarks/bundle-size`](./benchmarks/bundle-size).
-
-Cross-library bundle and browser comparisons are documented in
-[`benchmarks/comparison`](./benchmarks/comparison). Run `pnpm benchmark` for
-the standard basic, interactive, and advanced line, bar, area, and scatter
-matrix, or
-`pnpm benchmark -- --profile=quick` for a fast local pass.
-
-The chart-catalog conformance corpus is documented in
-[`benchmarks/conformance`](./benchmarks/conformance). It compares capability,
-semantic and visual output, runtime and bundle cost, type safety, and AI
-authoring experience from the same typed fixtures. The current 66-case suite
-pairs 60 useful Observable Plot recipes and six distinct Recharts/shadcn use
-cases with TanStack Charts. Expansion continues while recipes, granular D3, or
-optional marks leave byte-locked ordinary consumers unchanged.
-
-```sh
-pnpm conformance:quick
-pnpm conformance
-pnpm conformance:size
-```
-
-The paired AI-authoring smoke cohort is explicit and separate from the runtime
-corpus:
-
-```sh
-pnpm conformance:ai:prepare
-pnpm conformance:ai:score
-# Invokes an external agent only when deliberately configured:
-pnpm conformance:ai:run
-```
-
-Run a TanStack demo:
+Run a local example:
 
 ```sh
 pnpm dev:charts-react
@@ -188,6 +163,21 @@ pnpm dev:sandbox
 pnpm dev:conformance
 ```
 
-The dynamic sandbox is normally available at
-[`http://localhost:5183`](http://localhost:5183). The React demo uses port 5191;
-Octane uses port 5192. The conformance gallery uses port 5194.
+The repository includes three complementary benchmark suites:
+
+- [`benchmarks/bundle-size`](./benchmarks/bundle-size) locks ordinary consumer
+  bundles and isolates optional feature costs.
+- [`benchmarks/comparison`](./benchmarks/comparison) compares equivalent line,
+  bar, area, and scatter consumers across chart libraries.
+- [`benchmarks/conformance`](./benchmarks/conformance) exercises a broad,
+  typed catalog against Observable Plot, Recharts, and Apache ECharts.
+
+```sh
+pnpm bundle:check
+pnpm performance
+pnpm benchmark:check
+pnpm conformance:quick
+```
+
+These measurements are development evidence, not release claims. See each
+suite's README for its protocol, output, and limitations.
