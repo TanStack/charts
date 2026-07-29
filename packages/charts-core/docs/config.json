@@ -307,6 +307,14 @@
         {
           "label": "Text, Frame, and Facet",
           "to": "reference/marks/text-frame-and-facet"
+        },
+        {
+          "label": "Geo Shape Mark",
+          "to": "reference/marks/geo"
+        },
+        {
+          "label": "Polar Marks",
+          "to": "reference/marks/polar"
         }
       ]
     }

@@ -65,13 +65,20 @@ export async function renderChartImage(
   target: Element,
   options: RenderChartPngOptions = {},
 ): Promise<Blob> {
-  const svg = resolveSvg(target)
-  const document = svg.ownerDocument
+  const svg = findSvg(target)
+  const canvasSurface = svg ? null : findCanvasSurface(target)
+  if (!svg && !canvasSurface) {
+    throw new Error('Expected a TanStack Chart SVG or Canvas surface')
+  }
+  const source = svg ?? canvasSurface!
+  const document = source.ownerDocument
   const view = document.defaultView
   if (!view) throw new Error('Chart image export requires a browser document')
-  const dimensions = svgDimensions(svg)
-  const width = options.width ?? (dimensions.width || svg.clientWidth)
-  const height = options.height ?? (dimensions.height || svg.clientHeight)
+  const dimensions = svg
+    ? svgDimensions(svg)
+    : canvasSurfaceDimensions(canvasSurface!)
+  const width = options.width ?? dimensions.width
+  const height = options.height ?? dimensions.height
   if (!(width > 0 && height > 0)) {
     throw new Error('Chart image export requires non-zero dimensions')
   }
@@ -87,19 +94,33 @@ export async function renderChartImage(
     context.fillRect(0, 0, width, height)
   }
 
-  const source = serializeChartSvg(svg, {
-    ...options,
-    width,
-    height,
-  })
-  const url = view.URL.createObjectURL(
-    new view.Blob([source], { type: 'image/svg+xml;charset=utf-8' }),
-  )
-  try {
-    const image = await loadImage(view, url)
-    context.drawImage(image, 0, 0, width, height)
-  } finally {
-    view.URL.revokeObjectURL(url)
+  if (svg) {
+    const serialized = serializeChartSvg(svg, {
+      ...options,
+      width,
+      height,
+    })
+    const url = view.URL.createObjectURL(
+      new view.Blob([serialized], { type: 'image/svg+xml;charset=utf-8' }),
+    )
+    try {
+      const image = await loadImage(view, url)
+      context.drawImage(image, 0, 0, width, height)
+    } finally {
+      view.URL.revokeObjectURL(url)
+    }
+  } else {
+    const scene = canvasSurface!.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__scene',
+    )
+    if (!scene) throw new Error('Expected a Canvas chart scene layer')
+    context.drawImage(scene, 0, 0, width, height)
+    if (options.includeFocus) {
+      const focus = canvasSurface!.querySelector<HTMLCanvasElement>(
+        '.ts-chart-canvas__focus',
+      )
+      if (focus) context.drawImage(focus, 0, 0, width, height)
+    }
   }
 
   return new Promise((resolve, reject) => {
@@ -125,12 +146,21 @@ export async function downloadChartImage(
 }
 
 function resolveSvg(target: Element): SVGSVGElement {
-  const svg =
-    target.localName === 'svg'
-      ? (target as SVGSVGElement)
-      : target.querySelector<SVGSVGElement>('svg.ts-chart')
+  const svg = findSvg(target)
   if (!svg) throw new Error('Expected a TanStack Chart SVG')
   return svg
+}
+
+function findSvg(target: Element): SVGSVGElement | null {
+  return target.localName === 'svg'
+    ? (target as SVGSVGElement)
+    : target.querySelector<SVGSVGElement>('svg.ts-chart')
+}
+
+function findCanvasSurface(target: Element): HTMLElement | null {
+  return target.classList.contains('ts-chart-canvas')
+    ? (target as HTMLElement)
+    : target.querySelector<HTMLElement>('.ts-chart-canvas')
 }
 
 function svgDimensions(svg: SVGSVGElement) {
@@ -142,6 +172,29 @@ function svgDimensions(svg: SVGSVGElement) {
     width: Number.isFinite(values[2]) ? values[2] : 0,
     height: Number.isFinite(values[3]) ? values[3] : 0,
   }
+}
+
+function canvasSurfaceDimensions(surface: HTMLElement) {
+  const scene = surface.querySelector<HTMLCanvasElement>(
+    '.ts-chart-canvas__scene',
+  )
+  const bounds = surface.getBoundingClientRect()
+  const pixelRatio = positiveNumber(surface.dataset.tsChartPixelRatio) || 1
+  return {
+    width:
+      positiveNumber(surface.dataset.tsChartWidth) ||
+      bounds.width ||
+      (scene ? scene.width / pixelRatio : 0),
+    height:
+      positiveNumber(surface.dataset.tsChartHeight) ||
+      bounds.height ||
+      (scene ? scene.height / pixelRatio : 0),
+  }
+}
+
+function positiveNumber(value: string | undefined): number {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : 0
 }
 
 function inlinePresentation(source: Element, clone: Element) {

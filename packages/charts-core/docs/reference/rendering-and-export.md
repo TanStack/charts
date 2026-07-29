@@ -1,15 +1,35 @@
 ---
 title: Rendering and Export
-description: Render chart scenes to accessible SVG, reconcile keyed updates, enable resources, and export SVG or browser images.
+description: Render chart scenes through the default SVG renderer, the optional Canvas renderer, or a custom surface, then export supported output.
 ---
 
 TanStack Charts compiles a renderer-neutral scene. The default renderer turns
-that scene into accessible SVG markup; the DOM host reconciles the markup by
-stable keys. Optional subpaths add gradients, clipping, serialization,
-downloads, and raster export.
+that scene into accessible SVG markup; an optional Canvas renderer paints the
+same scene through Canvas 2D. Both use the shared responsive, interaction,
+tooltip, keyboard, and runtime host.
 
 Use the task-oriented [Exporting guide](../guides/exporting.md) to choose
 between static scene rendering, mounted SVG serialization, and raster output.
+
+## Choose a renderer
+
+Renderer code stays behind explicit entry points:
+
+| Use                              | Import                                                |
+| -------------------------------- | ----------------------------------------------------- |
+| Default vanilla SVG host         | `mountChart` from `@tanstack/charts/dom`              |
+| Vanilla Canvas host              | `mountCanvasChart` from `@tanstack/charts/canvas`     |
+| Renderer-neutral host            | `mountChartRenderer` from `@tanstack/charts/renderer` |
+| Default React SVG component      | `Chart` from `@tanstack/react-charts`                 |
+| React Canvas component           | `Chart` from `@tanstack/react-charts/canvas`          |
+| React custom-renderer component  | `Chart` from `@tanstack/react-charts/core`            |
+| Default Octane SVG component     | `Chart` from `@tanstack/octane-charts`                |
+| Octane Canvas component          | `Chart` from `@tanstack/octane-charts/canvas`         |
+| Octane custom-renderer component | `Chart` from `@tanstack/octane-charts/core`           |
+
+The default package and adapter entries do not import Canvas. Applications pay
+for it only when they import a Canvas entry. The `/core` adapter entries accept
+an explicit `renderer` without choosing one for the application.
 
 ## `renderChartSvg`
 
@@ -54,6 +74,53 @@ font.
 
 The renderer includes one hidden focus circle controlled by the DOM host.
 Scene keys become `data-ts-key` attributes for reconciliation.
+
+## Canvas renderer
+
+```ts
+import { mountCanvasChart } from '@tanstack/charts/canvas'
+
+const host = mountCanvasChart(container, {
+  definition,
+  ariaLabel: 'Weekly revenue',
+  tooltip: true,
+})
+```
+
+`mountCanvasChart` has the same definition, sizing, focus, spatial-index,
+keyboard, tooltip, selection, update, and destroy behavior as `mountChart`.
+The renderer paints the base scene and focus indicator on separate canvases,
+uses the browser device-pixel ratio by default, and maps pointer coordinates
+back into the scene.
+
+`@tanstack/charts/canvas` exports `createCanvasChartRenderer`,
+`canvasChartRenderer`, and `mountCanvasChart`, plus the
+`CanvasChartRendererOptions`, `CanvasChartRenderer`, `CanvasChartSurface`,
+`CanvasChartHostOptions`, and `CanvasChartHost` types. Supply
+`pixelRatio` to `createCanvasChartRenderer` only when the application needs a
+fixed backing-store ratio.
+
+The server-facing `prerender` step emits a deterministic, named chart shell
+with two `aria-hidden` canvases. It does not attempt server-side pixel
+painting. The browser adopts that shell, sizes the backing stores, paints the
+scene, and attaches the shared interaction host. See
+[SSR and Hydration](../guides/ssr-and-hydration.md).
+
+Canvas is an escape hatch for paint-heavy SVG output, not an unbounded-data
+mode. Scene compilation, channel arrays, scene nodes, and interaction points
+still exist. A default nearest-point lookup remains linear unless the chart
+supplies a `spatialIndex`; measure the complete pipeline and bound or aggregate
+output when pixels cannot distinguish the observations.
+
+Renderer-specific tradeoffs:
+
+- Canvas updates raster pixels instead of retaining one DOM element per scene
+  node.
+- Canvas animation crossfades complete frames; SVG animation reconciles and
+  interpolates keyed elements.
+- Curved, polar, and geographic `path` geometry requires browser `Path2D`.
+- Scene-node `className` values do not create styleable Canvas descendants.
+- Gradients require geometry with measurable bounds.
 
 ## Resource-aware SVG
 
@@ -233,36 +300,71 @@ to `image/png`.
 Raster export requires:
 
 - a browser document and window
-- nonzero SVG dimensions
+- nonzero chart dimensions
 - Canvas 2D
-- successful browser decoding of the serialized SVG
+- successful browser decoding when the source is SVG
 
-The promise rejects when any requirement fails or canvas encoding returns no
+The promise rejects when any requirement fails or Canvas encoding returns no
 blob. `downloadChartImage` defaults to `chart.png`; keep the filename extension
 consistent with the selected MIME type.
 
+The raster helpers accept a mounted SVG or Canvas chart root, or an ancestor
+containing one. SVG is serialized, decoded, and drawn into the export canvas.
+Canvas uses its base scene layer directly and composites the separate focus
+layer only when `includeFocus` is true. `serializeChartSvg` and
+`downloadChartSvg` remain SVG-only.
+
 ## Custom renderers
 
-`ChartSvgRenderer` is:
+The renderer-neutral boundary is `ChartRenderer`:
 
 ```ts
-type ChartSvgRenderer<
-  TDatum = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = (
-  scene: ChartScene<TDatum, TXValue, TYValue>,
-  options: RenderChartSvgOptions,
-) => string
+interface ChartRenderer<TDatum, TXValue, TYValue> {
+  readonly id: string
+  prerender(
+    scene: ChartScene<TDatum, TXValue, TYValue>,
+    options: RenderChartOptions,
+  ): string
+  mount(
+    container: HTMLElement,
+    requestRender: (force?: boolean) => void,
+  ): ChartSurface<TDatum, TXValue, TYValue>
+}
 ```
 
-Pass it as `renderSvg` to the DOM host or framework adapter. A replacement used
-with the built-in host should preserve:
+The returned `ChartSurface` owns its root `element`, scene painting,
+client-to-scene coordinate conversion, focus painting, and cleanup. The shared
+host continues to own runtime updates, responsive sizing, text measurement,
+focus resolution, keyboard behavior, native tooltips, selection, and
+callbacks. `ChartRendererRenderContext` reports the live `surface` instead of
+assuming an SVG element.
+
+Use `mountChartRenderer` from `@tanstack/charts/renderer`, or the React and
+Octane `/core` entries, to mount a custom renderer. `RenderChartOptions`,
+`ChartSurfaceRenderOptions`, `ChartSurface`, `ChartRenderer`,
+`ChartRendererRenderContext`, `ChartRendererHostCommonOptions`,
+`StaticChartRendererHostOptions`, `DynamicChartRendererHostOptions`,
+`ChartRendererHostOptions`, and `ChartRendererHost` describe the complete
+boundary.
+
+SVG remains available as a renderer implementation:
+
+```ts
+import {
+  createSvgChartRenderer,
+  svgChartRenderer,
+} from '@tanstack/charts/svg/renderer'
+```
+
+`createSvgChartRenderer` adapts a `ChartSvgRenderer` into a `ChartRenderer`.
+Pass a `ChartSvgRenderer` as `renderSvg` to the compatibility SVG host or
+default framework adapter when only SVG serialization needs to change. Such a
+renderer should preserve:
 
 - an SVG root discoverable by the host
 - stable `data-ts-key` identities for reconciliation
 - a `[data-ts-chart-focus]` element when native focus paint is desired
 - the scene coordinate system and accessible name
 
-See [Custom extensions](./custom-extensions.md#custom-svg-renderers) before
+See [Custom extensions](./custom-extensions.md#custom-renderers) before
 replacing the shared renderer.

@@ -1,13 +1,14 @@
 import { defineChart, facet, rect } from '@tanstack/charts'
 import { bin } from 'd3-array'
 import { scaleLinear } from 'd3-scale'
-import { facetedDistributionData } from './data'
-import type { FacetedDistributionPoint } from './data'
+import { distributionGroups, facetedDistributionData } from './data'
+import type { DistributionGroup, FacetedDistributionPoint } from './data'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 interface DistributionBin {
   id: string
+  group: DistributionGroup
   x1: number
   x2: number
   proportion: number
@@ -25,56 +26,57 @@ const percent = new Intl.NumberFormat('en-US', {
 
 const definition = defineChart<ConformanceInput>()(({ input }) => {
   const rows = facetedDistributionData(input.revision)
+  const bins: readonly DistributionBin[] = distributionGroups.flatMap(
+    (group) => {
+      const groupRows = rows.filter((row) => row.group === group)
+      return createBins(groupRows).flatMap((bucket, index) =>
+        bucket.x0 === undefined || bucket.x1 === undefined
+          ? []
+          : [
+              {
+                id: `${group}:${index}`,
+                group,
+                x1: bucket.x0,
+                x2: bucket.x1,
+                proportion: bucket.length / groupRows.length,
+              },
+            ],
+      )
+    },
+  )
 
   return {
     marks: [
-      facet(rows, {
+      facet(bins, {
         by: 'group',
         columns: 1,
         gap: 8,
         label: (group) => String(group),
-        chart: (facetRows, group) => {
-          const bins: readonly DistributionBin[] = createBins(
-            facetRows,
-          ).flatMap((bucket, index) =>
-            bucket.x0 === undefined || bucket.x1 === undefined
-              ? []
-              : [
-                  {
-                    id: `${String(group)}:${index}`,
-                    x1: bucket.x0,
-                    x2: bucket.x1,
-                    proportion: bucket.length / facetRows.length,
-                  },
-                ],
-          )
-
-          return {
-            marks: [
-              rect(bins, {
-                x1: 'x1',
-                x2: 'x2',
-                y1: () => 0,
-                y2: 'proportion',
-                key: 'id',
-                fill: '#8b5cf6',
-                inset: 0.75,
-              }),
-            ],
-            x: {
-              scale: scaleLinear().domain([0, 100]),
-              grid: true,
-              label: 'Observed value',
-            },
-            y: {
-              scale: scaleLinear().domain([0, 0.25]),
-              grid: true,
-              ticks: 3,
-              label: 'Proportion',
-              format: (value) => percent.format(value),
-            },
-          }
-        },
+        chart: (facetBins) => ({
+          marks: [
+            rect(facetBins, {
+              x1: 'x1',
+              x2: 'x2',
+              y1: () => 0,
+              y2: 'proportion',
+              key: 'id',
+              fill: '#8b5cf6',
+              inset: 0.75,
+            }),
+          ],
+          x: {
+            scale: scaleLinear().domain([0, 100]),
+            grid: true,
+            label: 'Observed value',
+          },
+          y: {
+            scale: scaleLinear().domain([0, 0.25]),
+            grid: true,
+            ticks: 3,
+            label: 'Proportion',
+            format: (value) => percent.format(value),
+          },
+        }),
       }),
     ],
     guides: false,
@@ -87,4 +89,8 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount = tanstackMount(
   definition,
   'Faceted distribution comparison',
+  {
+    format: (point) =>
+      `${point.datum.group} · Observed value: ${point.datum.x1}–${point.datum.x2} · Proportion: ${percent.format(point.datum.proportion)}`,
+  },
 )

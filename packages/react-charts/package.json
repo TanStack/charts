@@ -11,7 +11,9 @@
     "README.md"
   ],
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./canvas": "./src/canvas.ts",
+    "./core": "./src/core.ts"
   },
   "dependencies": {
     "@tanstack/charts": "workspace:*"
@@ -29,6 +31,14 @@
       ".": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
+      },
+      "./canvas": {
+        "types": "./dist/canvas.d.ts",
+        "import": "./dist/canvas.js"
+      },
+      "./core": {
+        "types": "./dist/core.d.ts",
+        "import": "./dist/core.js"
       }
     }
   }

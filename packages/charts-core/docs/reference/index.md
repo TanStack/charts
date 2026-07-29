@@ -19,7 +19,7 @@ application-owned interaction.
 | Vanilla DOM mounting and responsive sizing                  | [DOM host](./dom-host.md)                                 |
 | Dynamic preparation, scene compilation, and runtime caching | [Runtime and scene](./runtime-and-scene.md)               |
 | Pointer focus, keyboard navigation, tooltips, and selection | [Focus and interaction](./focus-and-interaction.md)       |
-| SVG rendering, reconciliation, and file export              | [Rendering and export](./rendering-and-export.md)         |
+| SVG, Canvas, custom rendering, reconciliation, and export   | [Rendering and export](./rendering-and-export.md)         |
 | Custom marks, renderers, scales, and indexes                | [Custom extensions](./custom-extensions.md)               |
 | Public generic and scene types                              | [Types](./types.md)                                       |
 
@@ -32,6 +32,8 @@ application-owned interaction.
 | `dot` and `hexagon`                                               | [Dot and hexagon](./marks/dot-and-hexagon.md)                                               |
 | `ruleX`, `ruleY`, `link`, `arrow`, `vector`, `tickX`, and `tickY` | [Rules, links, arrows, vectors, and ticks](./marks/rules-links-arrows-vectors-and-ticks.md) |
 | `text`, `frame`, `facet`, and `facetChart`                        | [Text, frame, and facet](./marks/text-frame-and-facet.md)                                   |
+| `geoShape`                                                        | [Geo shape](./marks/geo.md)                                                                 |
+| `polar`, radial marks, and polar guides                           | [Polar marks](./marks/polar.md)                                                             |
 
 ## Framework adapters
 
@@ -39,6 +41,10 @@ application-owned interaction.
 | --------- | ------------------------------------------------- | ----------------------------------------- | ------------------------------------------------- |
 | React     | [Quick start](../framework/react/quick-start.md)  | [Adapter](../framework/react/adapter.md)  | [`Chart`](../framework/react/reference/chart.md)  |
 | Octane    | [Quick start](../framework/octane/quick-start.md) | [Adapter](../framework/octane/adapter.md) | [`Chart`](../framework/octane/reference/chart.md) |
+
+Both adapters keep the default `Chart` SVG-based. Their `/canvas` entries
+select the optional Canvas renderer; their `/core` entries require an explicit
+`ChartRenderer`.
 
 ## Import map
 
@@ -53,6 +59,7 @@ capabilities and individual marks independently tree-shakeable.
 | `@tanstack/charts/area-x`            | `areaX`                                                                                                                                                                        |
 | `@tanstack/charts/arrow`             | `arrow`                                                                                                                                                                        |
 | `@tanstack/charts/bar`               | `barX`, `barY`                                                                                                                                                                 |
+| `@tanstack/charts/canvas`            | `mountCanvasChart`, `canvasChartRenderer`, `createCanvasChartRenderer`, and Canvas host/surface types                                                                          |
 | `@tanstack/charts/d3/area-x`         | `d3AreaXCurve`                                                                                                                                                                 |
 | `@tanstack/charts/d3/shape`          | `d3Curve`                                                                                                                                                                      |
 | `@tanstack/charts/dom`               | `mountChart`                                                                                                                                                                   |
@@ -62,17 +69,21 @@ capabilities and individual marks independently tree-shakeable.
 | `@tanstack/charts/focus`             | `focusX`, `focusY`, `focusNearestX`, `focusNearestY`                                                                                                                           |
 | `@tanstack/charts/focus/disabled`    | `focusDisabled`                                                                                                                                                                |
 | `@tanstack/charts/frame`             | `frame`                                                                                                                                                                        |
+| `@tanstack/charts/geo`               | `geoShape` and geographic projection types                                                                                                                                     |
 | `@tanstack/charts/hexagon`           | `hexagon`                                                                                                                                                                      |
 | `@tanstack/charts/legend`            | `colorLegend`, `colorGradientLegend`                                                                                                                                           |
 | `@tanstack/charts/line`              | `lineY`                                                                                                                                                                        |
 | `@tanstack/charts/link`              | `link`                                                                                                                                                                         |
 | `@tanstack/charts/mark/scale-values` | `createMarkWithScaleValues`                                                                                                                                                    |
+| `@tanstack/charts/polar`             | `polar`, radial arc/line/area/dot marks, and radial/angle guides                                                                                                               |
 | `@tanstack/charts/reconcile`         | `reconcileChartSvg`                                                                                                                                                            |
 | `@tanstack/charts/rect`              | `rect`, `cell`                                                                                                                                                                 |
+| `@tanstack/charts/renderer`          | `mountChartRenderer`                                                                                                                                                           |
 | `@tanstack/charts/rule`              | `ruleX`, `ruleY`                                                                                                                                                               |
 | `@tanstack/charts/runtime`           | `createChartRuntime`, definition and input comparison helpers                                                                                                                  |
 | `@tanstack/charts/scene`             | `defineChart`, `createChartScene`, `defaultChartTheme`, `findNearestPoint`                                                                                                     |
 | `@tanstack/charts/svg`               | `renderChartSvg`                                                                                                                                                               |
+| `@tanstack/charts/svg/renderer`      | `createSvgChartRenderer`, `svgChartRenderer`                                                                                                                                   |
 | `@tanstack/charts/svg/resources`     | `renderChartSvgWithResources`                                                                                                                                                  |
 | `@tanstack/charts/text`              | `text`                                                                                                                                                                         |
 | `@tanstack/charts/tick`              | `tickX`, `tickY`                                                                                                                                                               |

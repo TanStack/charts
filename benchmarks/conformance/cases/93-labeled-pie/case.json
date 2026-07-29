@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 930,
+  "id": "93-labeled-pie",
+  "title": "Pie with outside labels",
+  "family": "polar",
+  "intent": "Identify each contribution around a part-to-whole pie without relying on a separate legend.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "D3 pie layout",
+    "outside radial labels",
+    "leader lines",
+    "responsive label radius",
+    "data-driven text anchors"
+  ],
+  "geometry": [
+    { "role": "arc", "count": 4, "maxCount": 4 },
+    { "role": "rule", "count": 4, "maxCount": 4 },
+    { "role": "text", "count": 4, "maxCount": 4 }
+  ],
+  "minimumGeometrySimilarity": 0.995,
+  "source": {
+    "title": "Recharts Pie Chart With Customized Label",
+    "url": "https://recharts.github.io/en-US/examples/PieChartWithCustomizedLabel/"
+  },
+  "ai": {
+    "create": "Create a four-slice pie with stable categorical colors, radial leader lines, and one short outside label at each arc midpoint.",
+    "maintain": "Update totals while preserving source order, arc identity, responsive leader and label offsets, side-aware text anchors, and label-to-slice color."
+  }
+}

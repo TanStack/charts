@@ -3,10 +3,10 @@ title: SSR and Hydration
 description: Render deterministic chart markup on the server, preserve runtime work through hydration, and handle responsive dimensions without mismatches.
 ---
 
-TanStack Charts builds a platform-neutral scene before it renders SVG. React
-and Octane use the same runtime implementation and SVG path on the server and
-in the browser, so a chart does not need a browser-only substitute during
-server rendering.
+TanStack Charts builds a platform-neutral scene before the selected renderer
+produces output. React and Octane use the same runtime and renderer on the
+server and in the browser, so a chart does not need a browser-only substitute
+during server rendering.
 
 ## Give the server a real size
 
@@ -62,6 +62,18 @@ Do not conditionally replace a chart with a different component only because
 the code is executing on the server. That creates a different tree and gives
 up the shared render path.
 
+## Canvas server shell
+
+`@tanstack/react-charts/canvas` and `@tanstack/octane-charts/canvas` render a
+deterministic accessible shell on the server: a named chart root and two
+`aria-hidden` canvas elements with the initial scene dimensions. No server
+Canvas API or pixel painting is required.
+
+The client renders the same shell, adopts its existing root and canvases, sizes
+their backing stores for the device-pixel ratio, paints the scene, and attaches
+the shared interaction host. The first image appears after client mount; use
+the default SVG adapter when visible server-rendered geometry is required.
+
 ## Fonts and text measurement
 
 Automatic guide margins depend on text metrics. The server uses deterministic
@@ -96,9 +108,10 @@ const svg = renderChartSvg(scene, {
 runtime.destroy()
 ```
 
-`renderChartSvg` returns a string and does not require a DOM. Browser-only
-focus, tooltip, reconciliation, animation, and image export begin at
-`mountChart`.
+`renderChartSvg` returns a string and does not require a DOM. A custom
+`ChartRenderer.prerender` may produce another deterministic shell. Browser-only
+focus, tooltip, reconciliation or paint, animation, and export begin when its
+surface mounts.
 
 ## Hydration checklist
 

@@ -269,13 +269,19 @@ async function renderEmbed(entry: ConformanceCaseMeta, generation: number) {
       width,
       height,
       revision: embedRevision,
+      interactive: true,
     })
     mounted.set(`${entry.id}:tanstack`, handle)
 
     const updateWidth = (nextWidth: number) => {
       if (nextWidth === width || nextWidth < 1) return
       width = nextWidth
-      handle.update({ width, height, revision: embedRevision })
+      handle.update({
+        width,
+        height,
+        revision: embedRevision,
+        interactive: true,
+      })
       postEmbedMessage('resize', entry, height, parentOrigin)
     }
 
@@ -523,9 +529,20 @@ async function mountRenderer(
 function renderSiteHeader(active?: 'catalog' | 'all'): string {
   return `
     <header class="site-header">
-      <a class="wordmark" data-catalog-route href="${routeHref({ view: 'index' })}">
-        TanStack Charts <span>Catalog</span>
-      </a>
+      <div class="site-header-brand">
+        <a
+          class="back-link"
+          href="https://tanstack.com/"
+          aria-label="Back to TanStack"
+        >
+          <span aria-hidden="true">←</span>
+          <span class="back-link-label">TanStack</span>
+        </a>
+        <span class="site-header-separator" aria-hidden="true">/</span>
+        <a class="wordmark" data-catalog-route href="${routeHref({ view: 'index' })}">
+          Charts <span>Catalog</span>
+        </a>
+      </div>
       <nav aria-label="Catalog">
         <a
           data-catalog-route

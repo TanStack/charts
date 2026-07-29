@@ -28,6 +28,17 @@ import { Chart } from '@tanstack/octane-charts'
 />
 ```
 
+Switch only the import to opt into Canvas:
+
+```tsx
+import { Chart } from '@tanstack/octane-charts/canvas'
+```
+
+The default entry remains SVG-based.
+`@tanstack/octane-charts/core` accepts an explicit `renderer` for
+application-owned surfaces, and neither optional path pulls Canvas into the
+default bundle.
+
 Octane and React consume the same definitions, scene renderer, responsive host,
 SSR output, interaction values, and theme tokens.
 

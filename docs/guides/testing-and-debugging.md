@@ -3,7 +3,7 @@ title: Testing and Debugging
 description: Test chart semantics, geometry, interaction, updates, accessibility, and performance without relying on brittle screenshots alone.
 ---
 
-A useful chart test answers more than “did an SVG appear?” Test at the
+A useful chart test answers more than “did a surface appear?” Test at the
 narrowest layer that owns the behavior.
 
 ## Test the scene first
@@ -65,6 +65,17 @@ Mount into a real or sufficiently complete DOM when behavior depends on:
 Always call `destroy()` and verify observers, frames, tooltip nodes, and event
 listeners do not survive.
 
+Run the same focus, keyboard, tooltip, selection, responsive-update, and
+destroy sequences against SVG and Canvas when renderer parity matters. Those
+behaviors belong to the shared host; renderer tests should concentrate on
+surface adoption, coordinate conversion, paint, and cleanup.
+
+For Canvas, test deterministic server-shell markup without installing Canvas
+APIs. Use a Canvas 2D mock for draw-call and device-pixel-ratio assertions, then
+use browser screenshots for representative paths, clipping, gradients, text,
+themes, and focus-overlay composition. Do not use a raw pixel or data-URL
+snapshot as the only semantic assertion.
+
 ## Test interaction as a sequence
 
 Describe the user path and its semantic assertion:
@@ -98,7 +109,7 @@ semantically important error cannot hide in the diff threshold.
 
 At minimum verify:
 
-- the SVG has a meaningful accessible name;
+- the SVG or Canvas root has a meaningful accessible name;
 - descriptions summarize the current chart, not every point;
 - keyboard focus can enter and traverse the chart when enabled;
 - focus and selection callbacks expose the same data as pointer interaction;
@@ -116,12 +127,12 @@ When output is wrong, inspect in this order:
 3. Resolved scale domains, ranges, bandwidths, and ticks.
 4. `scene.chart` bounds and margins.
 5. Scene nodes and interaction points.
-6. Serialized SVG.
-7. Mounted DOM and application CSS.
+6. Renderer input and static output.
+7. Mounted surface and application styling.
 
-If the scene is correct but the DOM is wrong, the defect belongs to rendering,
-reconciliation, or CSS. If the channel values are wrong, changing the SVG
-renderer will not fix the cause.
+If the scene is correct but the surface is wrong, the defect belongs to
+rendering, reconciliation or paint, or styling. If the channel values are
+wrong, changing the renderer will not fix the cause.
 
 ## Performance tests need correctness gates
 

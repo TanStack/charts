@@ -16,6 +16,8 @@ interface TreeNodeRow {
 
 interface TreeLinkRow {
   id: string
+  sourceLabel: string
+  targetLabel: string
   x1: number
   y1: number
   x2: number
@@ -41,6 +43,8 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
     .links()
     .map(({ source, target }) => ({
       id: `${source.data.id}:${target.data.id}`,
+      sourceLabel: source.data.label,
+      targetLabel: target.data.label,
       x1: source.y,
       y1: -source.x,
       x2: target.y,
@@ -82,4 +86,9 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
   }
 })
 
-export const mount = tanstackMount(definition, 'Tidy product hierarchy')
+export const mount = tanstackMount(definition, 'Tidy product hierarchy', {
+  format: ({ datum }) =>
+    'label' in datum
+      ? `${datum.label} · ${datum.internal ? 'Group' : 'Leaf'}`
+      : `${datum.sourceLabel} → ${datum.targetLabel}`,
+})

@@ -13,8 +13,10 @@
     "llms.txt"
   ],
   "dependencies": {
+    "@types/d3-geo": "^3.1.0",
     "@types/d3-shape": "^3.1.8",
     "d3-array": "3.2.4",
+    "d3-geo": "3.1.1",
     "d3-scale": "4.0.2",
     "d3-shape": "3.2.0"
   },
@@ -28,6 +30,7 @@
     "./area-x": "./src/area-x.ts",
     "./arrow": "./src/arrow.ts",
     "./bar": "./src/bar.ts",
+    "./canvas": "./src/canvas.ts",
     "./d3/area-x": "./src/d3-area-x.ts",
     "./d3/shape": "./src/d3-shape.ts",
     "./dom": "./src/dom.ts",
@@ -37,17 +40,21 @@
     "./focus": "./src/focus.ts",
     "./focus/disabled": "./src/focus-disabled.ts",
     "./frame": "./src/frame.ts",
+    "./geo": "./src/geo.ts",
     "./hexagon": "./src/hexagon.ts",
     "./legend": "./src/legend.ts",
     "./line": "./src/line.ts",
     "./link": "./src/link.ts",
     "./mark/scale-values": "./src/mark-with-scale-values.ts",
+    "./polar": "./src/polar.ts",
     "./reconcile": "./src/reconcile.ts",
     "./rect": "./src/rect.ts",
+    "./renderer": "./src/renderer.ts",
     "./rule": "./src/rule.ts",
     "./runtime": "./src/runtime.ts",
     "./scene": "./src/scene.ts",
     "./svg": "./src/svg.ts",
+    "./svg/renderer": "./src/svg-surface.ts",
     "./svg/resources": "./src/svg-resources.ts",
     "./text": "./src/text.ts",
     "./tick": "./src/tick.ts",
@@ -75,6 +82,10 @@
       "./bar": {
         "types": "./dist/bar.d.ts",
         "import": "./dist/bar.js"
+      },
+      "./canvas": {
+        "types": "./dist/canvas.d.ts",
+        "import": "./dist/canvas.js"
       },
       "./d3/area-x": {
         "types": "./dist/d3-area-x.d.ts",
@@ -112,6 +123,10 @@
         "types": "./dist/frame.d.ts",
         "import": "./dist/frame.js"
       },
+      "./geo": {
+        "types": "./dist/geo.d.ts",
+        "import": "./dist/geo.js"
+      },
       "./hexagon": {
         "types": "./dist/hexagon.d.ts",
         "import": "./dist/hexagon.js"
@@ -132,6 +147,10 @@
         "types": "./dist/mark-with-scale-values.d.ts",
         "import": "./dist/mark-with-scale-values.js"
       },
+      "./polar": {
+        "types": "./dist/polar.d.ts",
+        "import": "./dist/polar.js"
+      },
       "./reconcile": {
         "types": "./dist/reconcile.d.ts",
         "import": "./dist/reconcile.js"
@@ -139,6 +158,10 @@
       "./rect": {
         "types": "./dist/rect.d.ts",
         "import": "./dist/rect.js"
+      },
+      "./renderer": {
+        "types": "./dist/renderer.d.ts",
+        "import": "./dist/renderer.js"
       },
       "./rule": {
         "types": "./dist/rule.d.ts",
@@ -155,6 +178,10 @@
       "./svg": {
         "types": "./dist/svg.d.ts",
         "import": "./dist/svg.js"
+      },
+      "./svg/renderer": {
+        "types": "./dist/svg-surface.d.ts",
+        "import": "./dist/svg-surface.js"
       },
       "./svg/resources": {
         "types": "./dist/svg-resources.d.ts",

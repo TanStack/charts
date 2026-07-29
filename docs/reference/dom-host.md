@@ -3,9 +3,9 @@ title: DOM Host
 description: Mount, update, size, interact with, and destroy a TanStack Chart in a browser DOM container.
 ---
 
-`mountChart` is the framework-neutral browser host. It owns responsive
-measurement, scene updates, keyed SVG reconciliation, animation, pointer and
-keyboard interaction, native tooltips, font relayout, and cleanup.
+`mountChart` is the framework-neutral default SVG browser host. It owns
+responsive measurement, scene updates, keyed SVG reconciliation, animation,
+pointer and keyboard interaction, native tooltips, font relayout, and cleanup.
 
 ```ts
 import { mountChart } from '@tanstack/charts/dom'
@@ -66,9 +66,35 @@ as well as failing the TypeScript contract. Static host option types accept no
 meaningful input: `input` may be omitted or `undefined`. An extra non-undefined
 static input supplied from untyped JavaScript is ignored.
 
+## Renderer-neutral and Canvas hosts
+
+Use the lower-level host when the surface is not necessarily SVG:
+
+```ts
+import { canvasChartRenderer } from '@tanstack/charts/canvas'
+import { mountChartRenderer } from '@tanstack/charts/renderer'
+
+const host = mountChartRenderer(container, {
+  definition,
+  renderer: canvasChartRenderer,
+  ariaLabel: 'Weekly revenue',
+  tooltip: true,
+})
+```
+
+`mountChartRenderer` accepts `ChartRendererHostOptions` and returns a
+`ChartRendererHost`. Its lifecycle and interaction options match `mountChart`,
+but `renderer` is required and `onRender` receives a
+`ChartRendererRenderContext` containing the live `ChartSurface`.
+
+For the built-in Canvas renderer, `mountCanvasChart` from
+`@tanstack/charts/canvas` removes the explicit `renderer` option and returns a
+`CanvasChartHost`. Both hosts preserve the same `update`, `getScene`, and
+`destroy` interaction model.
+
 ## Host options
 
-All hosts require `definition` and `ariaLabel`.
+The default SVG host requires `definition` and `ariaLabel`.
 
 | Option               | Default                          | Meaning                                                                                                |
 | -------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -172,8 +198,8 @@ tooltip formatting, focus strategy, animation settings, and the spatial index
 can update without rebuilding the scene.
 
 An interrupted animated render is canceled before the next reconciliation.
-When a focused key remains present after a scene rebuild, focus and grouped
-focus are repainted against the new point coordinates.
+When the focused observation can be restored after a scene rebuild, focus and
+grouped focus are repainted against its new coordinates.
 
 ### `getScene`
 

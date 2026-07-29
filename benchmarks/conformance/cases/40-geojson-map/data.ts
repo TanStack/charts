@@ -1,25 +1,20 @@
+import type {
+  ExtendedFeature,
+  ExtendedFeatureCollection,
+  GeoGeometryObjects,
+} from 'd3-geo'
+
 export interface RegionProperties {
   name: string
   value: number
   fill: string
 }
 
-export interface RegionPolygon {
-  type: 'Polygon'
-  coordinates: number[][][]
-}
-
-export interface RegionFeature {
-  type: 'Feature'
+export type RegionPolygon = Extract<GeoGeometryObjects, { type: 'Polygon' }>
+export type RegionFeature = ExtendedFeature<RegionPolygon, RegionProperties> & {
   id: string
-  properties: RegionProperties
-  geometry: RegionPolygon
 }
-
-export interface RegionFeatureCollection {
-  type: 'FeatureCollection'
-  features: RegionFeature[]
-}
+export type RegionFeatureCollection = ExtendedFeatureCollection<RegionFeature>
 
 const regionShapes: readonly {
   id: string

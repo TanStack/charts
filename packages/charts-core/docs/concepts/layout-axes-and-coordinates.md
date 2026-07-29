@@ -186,6 +186,31 @@ For a normal cartesian chart:
 
 See [Scales and D3](./scales-and-d3.md) for the complete ownership boundary and pixel-to-value inversion.
 
+## Non-cartesian coordinates
+
+Polar and geographic marks resolve geometry from the same final
+`scene.chart` bounds without materializing Cartesian x/y channels:
+
+```ts
+import { polar, radialArc } from '@tanstack/charts/polar'
+import { geoShape } from '@tanstack/charts/geo'
+```
+
+`polar` copies configured angle and radius scales, assigns responsive angular
+and radial ranges, and renders guide backgrounds, child marks, then guide
+foregrounds around one resolved center. `geoShape` calls an
+application-supplied D3 projection factory with the final plot bounds.
+
+Both paths emit the same keyed scene nodes and interaction points as ordinary
+marks. SVG rendering, DOM reconciliation, focus, export, and adapters do not
+need a coordinate-system branch. Their outer chart uses `x: null`, `y: null`,
+and `guides: false`.
+
+These capabilities stay behind separate package subpaths so their D3 geometry
+does not enter a Cartesian consumer. See
+[Polar and Radar Charts](../examples/polar-and-radar.md) and
+[Maps and Spatial Charts](../examples/maps-and-spatial.md).
+
 ## Band alignment
 
 A D3 band scale returns the start of a band. TanStack Charts centers the resolved positional value:

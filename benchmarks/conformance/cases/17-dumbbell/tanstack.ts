@@ -57,4 +57,10 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount = tanstackMount(
   definition,
   'Desktop and mobile dumbbell comparison',
+  {
+    format: ({ datum }) =>
+      `${datum.category} · Desktop ${datum.desktop.toLocaleString(
+        'en-US',
+      )} · Mobile ${datum.mobile.toLocaleString('en-US')}`,
+  },
 )

@@ -65,6 +65,17 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount: ConformanceMount = tanstackMount(
   definition,
   'Three-series streamgraph',
+  {
+    format: ({ datum }) =>
+      `${datum.series} · ${datum.date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      })} · ${datum.value.toLocaleString('en-US', {
+        maximumFractionDigits: 1,
+      })} index points`,
+  },
 )
 
 function streamIntervals(rows: readonly TimePoint[]): readonly StreamPoint[] {

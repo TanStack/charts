@@ -19,14 +19,14 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/concepts/layout-axes-and-coordinates.md — Layout, Axes, and Coordinates: Learn how responsive ranges, automatic margins, guides, band alignment, and scene coordinates work.
 - docs/guides/choosing-a-chart.md — Choosing a Chart: Choose a visual encoding from the question, data shape, and comparison task before composing TanStack Charts marks.
 - docs/guides/responsive-charts.md — Responsive Charts: Size charts from their containers while preserving readable guides, deterministic SSR, and application-controlled height.
-- docs/guides/themes-and-styling.md — Themes and Styling: Apply automatic light and dark color behavior, CSS palette tokens, mark styles, and scoped SVG resources.
+- docs/guides/themes-and-styling.md — Themes and Styling: Apply automatic light and dark color behavior, CSS palette tokens, mark styles, and renderer-aware resources.
 - docs/guides/accessibility.md — Accessibility: Give charts useful names, keyboard-equivalent interaction, reduced motion, redundant encodings, and exact-value alternatives.
 - docs/guides/dynamic-data-and-animation.md — Dynamic Data and Animation: Keep chart definitions stable, separate preparation from scene building, control update equality, and animate keyed geometry safely.
 - docs/guides/tooltips-and-focus.md — Tooltips and Focus: Configure nearest-point and grouped focus, automatic tooltip content, keyboard navigation, pinning, and application-owned rich surfaces.
 - docs/guides/interactions-and-selections.md — Interactions and Selections: Build controlled cursors, linked selections, brushes, zooming, scrolling, timelines, and editors around semantic chart state.
 - docs/guides/faceting-and-composition.md — Faceting and Composition: Layer marks, repeat a shared chart by group, and coordinate multiple views without introducing a fixed chart-type model.
 - docs/guides/legends-and-color.md — Legends and Color: Map categorical or quantitative values to color, render responsive legends, and preserve meaning across themes.
-- docs/guides/custom-marks-and-renderers.md — Custom Marks and Renderers: Extend the grammar with typed mark channels and keyed scene nodes, or replace SVG serialization without bypassing chart semantics.
+- docs/guides/custom-marks-and-renderers.md — Custom Marks and Renderers: Extend the grammar with typed mark channels and keyed scene nodes, or replace the mounted renderer without bypassing chart semantics.
 - docs/guides/large-data.md — Large Data: Choose bounded visual representations, measure preparation separately, preserve analytical invariants, and avoid rendering more detail than pixels can communicate.
 - docs/guides/ssr-and-hydration.md — SSR and Hydration: Render deterministic chart markup on the server, preserve runtime work through hydration, and handle responsive dimensions without mismatches.
 - docs/guides/exporting.md — Exporting: Export accessible chart SVG or browser-rendered raster images while preserving dimensions, styling, and resource identity.
@@ -45,8 +45,8 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/examples/stacked-and-composition.md — Stacked and Composed Charts: Choose stacked, normalized, streamgraph, and mosaic compositions for part-to-whole comparisons.
 - docs/examples/facets-and-multiple-views.md — Facets and Multiple Views: Choose shared-scale facets, marginal views, and focus-plus-context layouts for coordinated comparisons.
 - docs/examples/networks-and-hierarchies.md — Networks and Hierarchies: Choose tidy trees, spatial adjacency graphs, and force-directed networks for connected or nested data.
-- docs/examples/maps-and-spatial.md — Maps and Spatial Charts: Choose choropleths, point layers, and vector fields for geographic or projected spatial questions.
-- docs/examples/polar-and-radar.md — Polar and Radar Charts: Decide when cyclic, radial, radar, or parallel-coordinate layouts clarify multivariate data.
+- docs/examples/maps-and-spatial.md — Maps and Spatial Charts: Build choropleths, bubble maps, globes, routes, and vector fields for geographic or projected spatial questions.
+- docs/examples/polar-and-radar.md — Polar and Radar Charts: Build D3-backed pie, donut, gauge, radar, line, scatter, radial bar, rose, and sunburst charts through the opt-in polar coordinate entry.
 - docs/examples/annotations-and-overlays.md — Annotations and Overlays: Add direct labels, thresholds, change indicators, and explanatory layers without hiding chart semantics.
 - docs/examples/interactive-charts.md — Interactive Charts: Choose native focus or controlled application interactions for pinned detail, scrolling, zooming, and editing.
 - docs/reference/index.md — API Reference: Reference for TanStack Charts definitions, marks, scales, runtime, rendering, interaction, and framework adapters.
@@ -56,8 +56,8 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/reference/dom-host.md — DOM Host: Mount, update, size, interact with, and destroy a TanStack Chart in a browser DOM container.
 - docs/reference/runtime-and-scene.md — Runtime and Scene: Compile chart definitions into renderer-neutral scenes and cache dynamic preparation across renders.
 - docs/reference/focus-and-interaction.md — Focus and Interaction: Configure pointer focus, grouped focus, keyboard navigation, native tooltips, selection, and spatial indexes.
-- docs/reference/rendering-and-export.md — Rendering and Export: Render chart scenes to accessible SVG, reconcile keyed updates, enable resources, and export SVG or browser images.
-- docs/reference/custom-extensions.md — Custom Extensions: Extend TanStack Charts with custom marks, distinct scale values, curves, scales, color, legends, text measurement, spatial indexes, and SVG renderers.
+- docs/reference/rendering-and-export.md — Rendering and Export: Render chart scenes through the default SVG renderer, the optional Canvas renderer, or a custom surface, then export supported output.
+- docs/reference/custom-extensions.md — Custom Extensions: Extend TanStack Charts with custom marks, distinct scale values, curves, scales, color, legends, text measurement, spatial indexes, and renderers.
 - docs/reference/types.md — Types: Public TypeScript types, inference rules, channels, definitions, scenes, hosts, focus, rendering, and custom extension contracts.
 - docs/framework/react/reference/chart.md — React Chart: Complete prop and type reference for the @tanstack/react-charts Chart component.
 - docs/framework/octane/reference/chart.md — Octane Chart: Complete prop and type reference for the @tanstack/octane-charts Chart component.
@@ -66,6 +66,8 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/reference/marks/dot-and-hexagon.md — Dot and Hexagon Marks: Reference for dot and hexagon channels, pixel radius, injected radius scales, color, grouping, keys, and interaction points.
 - docs/reference/marks/rules-links-arrows-vectors-and-ticks.md — Rules, Links, Arrows, Vectors, and Ticks: Reference for ruleX, ruleY, link, arrow, vector, tickX, and tickY geometry, channels, defaults, curves, and focus anchors.
 - docs/reference/marks/text-frame-and-facet.md — Text, Frame, and Facet Marks: Reference for data labels, chart frames, responsive small multiples, shared or per-cell axes, labels, and facet constraints.
+- docs/reference/marks/geo.md — Geo Shape Mark: Reference for projecting GeoJSON with an opt-in D3-backed geoShape mark.
+- docs/reference/marks/polar.md — Polar Marks: Reference for the opt-in polar container, radial marks, guides, configured scales, and D3-backed geometry.
 
 Authoring rules:
 

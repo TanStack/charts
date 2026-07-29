@@ -13,9 +13,27 @@ import { tanstackMount } from '../../shared/mount'
 import type { ContourMultiPolygon } from 'd3-contour'
 import type { DensityPoint } from './data'
 import type { ConformanceInput } from '../../types'
-import type { SceneNode } from '@tanstack/charts'
+import type { ChartPoint, SceneNode } from '@tanstack/charts'
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
+export interface DensityContourDatum {
+  id: string
+  centroidX: number
+  centroidY: number
+  density: number
+}
+
+const densityPercent = new Intl.NumberFormat('en-US', {
+  style: 'percent',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+const densityCoordinate = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 1,
+})
+
+export const densityDefinition = defineChart<ConformanceInput>()(({
+  input,
+}) => {
   const points = densityPoints(input.revision)
 
   return {
@@ -32,7 +50,7 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 })
 
 function densityMark(data: DensityPoint[]) {
-  return createMark<DensityPoint, number, number>(({ markIndex }) => {
+  return createMark<DensityContourDatum, number, number>(({ markIndex }) => {
     const id = `density-${markIndex}`
 
     return {
@@ -52,14 +70,23 @@ function densityMark(data: DensityPoint[]) {
 
         const path = geoPath()
         const children: SceneNode[] = []
+        const points: ChartPoint<DensityContourDatum, number, number>[] = []
+        const centroidXScale = scaleLinear()
+          .domain(densityXDomain)
+          .range([0, chart.width])
+        const centroidYScale = scaleLinear()
+          .domain(densityYDomain)
+          .range([chart.height, 0])
+
         for (let index = 0; index < geometry.length; index++) {
           const contour = geometry[index]
           if (contour === undefined) continue
           const pathData = path(contour)
           if (pathData === null) continue
+          const key = `${id}:${index}`
           children.push({
             kind: 'area',
-            key: `${id}:${index}`,
+            key,
             points: [],
             path: pathData,
             style: {
@@ -68,6 +95,29 @@ function densityMark(data: DensityPoint[]) {
               stroke: '#1e3a8a',
               strokeWidth: 1,
             },
+          })
+
+          const [x, y] = path.centroid(contour)
+          if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+          const centroidX = centroidXScale.invert(x)
+          const centroidY = centroidYScale.invert(y)
+          points.push({
+            key,
+            markId: id,
+            group: contour.value,
+            groupLabel: 'Density contour',
+            datum: {
+              id: key,
+              centroidX,
+              centroidY,
+              density: contour.value,
+            },
+            datumIndex: index,
+            xValue: centroidX,
+            yValue: centroidY,
+            x,
+            y,
+            color: '#2563eb',
           })
         }
 
@@ -81,10 +131,18 @@ function densityMark(data: DensityPoint[]) {
               children,
             },
           ],
+          points,
         }
       },
     }
   })
 }
 
-export const mount = tanstackMount(definition, 'Point density contours')
+export const mount = tanstackMount(
+  densityDefinition,
+  'Point density contours',
+  {
+    format: (point) =>
+      `Density: ${densityPercent.format(point.datum.density)} · Centroid: (${densityCoordinate.format(point.datum.centroidX)}, ${densityCoordinate.format(point.datum.centroidY)})`,
+  },
+)

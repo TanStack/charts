@@ -40,7 +40,16 @@ jobs:
       - run: pnpm benchmark:check
       - run: pnpm catalog:check
       - run: pnpm catalog:build
+      - run: pnpm catalog:deploy:check
       - run: git diff --check
+
+      - name: Upload production catalog
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: charts-catalog-${{ github.sha }}
+          path: examples/conformance/dist
+          if-no-files-found: error
 
   compare:
     needs: validate
@@ -72,7 +81,7 @@ jobs:
   conformance:
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v4
@@ -85,7 +94,12 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm conformance:quick
+      - name: Run pull-request conformance
+        if: github.event_name == 'pull_request'
+        run: pnpm conformance:quick
+      - name: Run production conformance
+        if: github.event_name != 'pull_request'
+        run: pnpm conformance
       - run: cat .benchmark-output/conformance/results/plot-catalog.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload conformance
@@ -136,3 +150,40 @@ jobs:
           name: chart-library-stress-${{ github.run_id }}
           path: .benchmark-output/stress/results
           if-no-files-found: error
+
+  deploy-catalog:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - validate
+      - conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: charts-catalog-production
+      url: https://tanstack.com/charts/catalog/
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Download validated catalog
+        uses: actions/download-artifact@v4
+        with:
+          name: charts-catalog-${{ github.sha }}
+          path: examples/conformance/dist
+
+      - name: Stage catalog below its public path
+        run: node scripts/stage-conformance-deployment.mjs
+
+      - name: Deploy catalog Worker
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy --config wrangler.catalog.jsonc
+          wranglerVersion: 4.103.0
+
+      - name: Verify production routes
+        run: node scripts/check-catalog-deployment.mjs

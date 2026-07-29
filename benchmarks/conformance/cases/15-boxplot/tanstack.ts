@@ -95,4 +95,17 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
   }
 })
 
-export const mount = tanstackMount(definition, 'Grouped boxplots')
+export const mount = tanstackMount(definition, 'Grouped boxplots', {
+  format: ({ datum }) =>
+    'median' in datum
+      ? `${datum.group} · median ${datum.median.toLocaleString('en-US', {
+          maximumFractionDigits: 1,
+        })} · IQR ${datum.q1.toLocaleString('en-US', {
+          maximumFractionDigits: 1,
+        })}–${datum.q3.toLocaleString('en-US', {
+          maximumFractionDigits: 1,
+        })}`
+      : `${datum.group} outlier · ${datum.value.toLocaleString('en-US', {
+          maximumFractionDigits: 1,
+        })}`,
+})

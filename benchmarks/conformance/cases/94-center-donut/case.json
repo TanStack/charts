@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 940,
+  "id": "94-center-donut",
+  "title": "Donut with center total",
+  "family": "polar",
+  "intent": "Show a categorical composition while keeping its aggregate total visible in the center.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "D3 pie layout",
+    "annular arc sectors",
+    "center label",
+    "responsive radius"
+  ],
+  "geometry": [
+    { "role": "arc", "count": 3, "maxCount": 3 },
+    { "role": "text", "count": 1, "maxCount": 1 }
+  ],
+  "minimumGeometrySimilarity": 0.999,
+  "source": {
+    "title": "Recharts Pie API",
+    "url": "https://recharts.github.io/en-US/api/Pie/"
+  },
+  "ai": {
+    "create": "Create a three-slice donut with a derived total centered in the readable inner ring.",
+    "maintain": "Recompute both the arcs and center total from the same revision while preserving stable category identities and the inner-radius ratio."
+  }
+}

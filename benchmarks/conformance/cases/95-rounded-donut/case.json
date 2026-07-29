@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 950,
+  "id": "95-rounded-donut",
+  "title": "Rounded donut with gaps",
+  "family": "polar",
+  "intent": "Separate a compact categorical composition with deliberate angular gaps and rounded arc ends.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "D3 pie layout",
+    "angular padding",
+    "rounded arc corners",
+    "responsive annular radii"
+  ],
+  "geometry": [{ "role": "arc", "count": 5, "maxCount": 5 }],
+  "minimumGeometrySimilarity": 0.995,
+  "source": {
+    "title": "Recharts Pie Chart With Padding Angle",
+    "url": "https://recharts.github.io/en-US/examples/PieChartWithPaddingAngle/"
+  },
+  "ai": {
+    "create": "Create a five-slice donut with three-degree gaps, eight-pixel corners, and stable categorical fills.",
+    "maintain": "Update category totals while preserving explicit gap size, responsive radii, rounded corners, source order, and stable arc keys."
+  }
+}

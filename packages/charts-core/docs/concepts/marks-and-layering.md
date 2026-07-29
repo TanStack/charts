@@ -20,8 +20,13 @@ A mark turns data and channel values into renderer-neutral scene nodes. Marks ar
 | Compact distribution glyph                    | `tickX`, `tickY`          |
 | Plot frame                                    | `frame`                   |
 | Small-multiple composition                    | `facet`, `facetChart`     |
+| Pie, donut, gauge, or cyclic profile          | `polar` and radial marks  |
+| Projected GeoJSON                             | `geoShape`                |
 
-Start from the analytical question in [Choosing a Chart](../guides/choosing-a-chart.md). The [Mark Reference](../reference/marks/line-and-area.md) lists every channel and style option.
+Start from the analytical question in
+[Choosing a Chart](../guides/choosing-a-chart.md). The
+[Mark Reference](../reference/index.md#mark-reference) lists every channel and
+style option. Polar and geographic marks use explicit capability subpaths.
 
 ## Layer order is declaration order
 

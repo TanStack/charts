@@ -14,6 +14,9 @@ interface HexbinCell {
 }
 
 const margin = { top: 20, right: 20, bottom: 40, left: 48 } as const
+const coordinate = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 1,
+})
 
 const definition = defineChart<ConformanceInput>()(({ input }) => {
   const xScale = scaleLinear()
@@ -66,6 +69,10 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount = tanstackMount(
   definition,
   'Hexagonally binned point density',
+  {
+    format: (point) =>
+      `Bin center: (${coordinate.format(point.datum.x)}, ${coordinate.format(point.datum.y)}) · Points: ${point.datum.count}`,
+  },
 )
 
 function countColor(count: number): string {

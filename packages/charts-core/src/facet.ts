@@ -189,7 +189,15 @@ function renderCellAxes<TDatum>(options: CellRenderOptions<TDatum>) {
       layout,
     )
     const identity = valueKey(entry.key)
-    points.push(...offsetPoints(id, identity, scene.points, x, y + labelHeight))
+    for (const point of offsetPoints(
+      id,
+      identity,
+      scene.points,
+      x,
+      y + labelHeight,
+    )) {
+      points.push(point)
+    }
     return facetCell({
       id,
       identity,
@@ -268,7 +276,9 @@ function renderOuterAxes<TDatum>(options: OuterRenderOptions<TDatum>) {
     )
     const identity = valueKey(entry.key)
     deepestPlotBottom = Math.max(deepestPlotBottom, plotY + plotHeight)
-    points.push(...offsetPoints(id, identity, scene.points, x, plotY))
+    for (const point of offsetPoints(id, identity, scene.points, x, plotY)) {
+      points.push(point)
+    }
 
     if (axis && column === 0) {
       const yChildren = axis.children.filter(

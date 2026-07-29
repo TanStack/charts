@@ -5,6 +5,10 @@ import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 import type { NetworkGroup } from './data'
 
+function networkNodeLabel(id: string): string {
+  return `${id.slice(0, 1).toUpperCase()}${id.slice(1)}`
+}
+
 const definition = defineChart<ConformanceInput>()(({ input }) => {
   const graph = networkLayout(input.revision)
 
@@ -57,4 +61,12 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount = tanstackMount(
   definition,
   'Force-directed service dependency network',
+  {
+    format: ({ datum }) =>
+      'label' in datum
+        ? `${datum.label} · ${datum.group}`
+        : `${networkNodeLabel(datum.source)} → ${networkNodeLabel(
+            datum.target,
+          )} · Weight ${datum.weight}`,
+  },
 )

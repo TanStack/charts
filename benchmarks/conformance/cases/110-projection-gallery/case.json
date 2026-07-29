@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "order": 1100,
+  "id": "110-projection-gallery",
+  "title": "Standard world projection gallery",
+  "family": "geography",
+  "intent": "Compare how four standard projections reshape the same real country atlas.",
+  "support": "native",
+  "features": [
+    "four responsive projection panes",
+    "Equal Earth projection",
+    "Natural Earth projection",
+    "Mercator projection",
+    "equirectangular projection",
+    "world-atlas country collection",
+    "theme-aware sphere and country borders"
+  ],
+  "geometry": [{ "role": "geo", "count": 8, "maxCount": 8 }],
+  "minimumGeometrySimilarity": 0.998,
+  "source": {
+    "title": "Observable Plot projections",
+    "url": "https://observablehq.com/plot/features/projections"
+  },
+  "ai": {
+    "create": "Create a two-by-two projection gallery showing the same world-atlas country collection in Equal Earth, Natural Earth, Mercator, and equirectangular projections.",
+    "maintain": "Preserve pane order, shared atlas geometry, per-projection identity, responsive fitting, sphere outlines, and theme-aware borders while updating paint."
+  }
+}

@@ -20,6 +20,9 @@ const kinds: readonly WaterfallPoint['kind'][] = [
   'total',
 ]
 const colors = ['#10b981', '#ef4444', '#2563eb']
+const signedAmount = new Intl.NumberFormat('en-US', {
+  signDisplay: 'always',
+})
 
 const definition = defineChart<ConformanceInput>()(({ input, width }) => ({
   marks: [
@@ -50,4 +53,11 @@ const definition = defineChart<ConformanceInput>()(({ input, width }) => ({
   },
 }))
 
-export const mount = tanstackMount(definition, 'Contribution waterfall chart')
+export const mount = tanstackMount(definition, 'Contribution waterfall chart', {
+  format: ({ datum }) =>
+    datum.kind === 'total'
+      ? `${datum.label} · ${datum.end.toLocaleString('en-US')} total`
+      : `${datum.label} · ${signedAmount.format(
+          datum.end - datum.start,
+        )} · ${datum.end.toLocaleString('en-US')} running total`,
+})

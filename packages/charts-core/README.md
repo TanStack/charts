@@ -104,6 +104,18 @@ host.update({ ...options, height: 360 })
 host.destroy()
 ```
 
+Use the same host options with the opt-in Canvas surface:
+
+```ts
+import { mountCanvasChart } from '@tanstack/charts/canvas'
+
+const host = mountCanvasChart(element, options)
+```
+
+`@tanstack/charts/renderer` exposes the renderer-neutral host, and
+`@tanstack/charts/svg/renderer` exposes the default SVG surface. Canvas,
+renderer-neutral, and SVG implementations remain separate bundle boundaries.
+
 Or use a thin framework adapter:
 
 ```tsx

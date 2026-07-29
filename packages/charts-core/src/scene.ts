@@ -207,14 +207,14 @@ function createChartSceneWithScaleResolver<
       color: colors.map,
       layout,
     })
-    markNodes.push(...rendered.nodes)
-    points.push(
-      ...((rendered.points ?? []) as readonly ChartPoint<
-        TDatum,
-        TXValue,
-        TYValue
-      >[]),
-    )
+    for (const node of rendered.nodes) markNodes.push(node)
+    for (const point of (rendered.points ?? []) as readonly ChartPoint<
+      TDatum,
+      TXValue,
+      TYValue
+    >[]) {
+      points.push(point)
+    }
   })
   const nodes: SceneNode[] = [
     {
@@ -269,7 +269,7 @@ function collectScaleChannels(
     for (const channel of Object.values(mark.channels)) {
       if (channel.scale !== scaleId) continue
       materialized = true
-      values.push(...channel.values)
+      for (const value of channel.values) values.push(value)
       includeZero ||= channel.includeZero ?? false
     }
   }

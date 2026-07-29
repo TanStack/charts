@@ -1,5 +1,5 @@
 import { createServer } from 'node:http'
-import { access, readFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { extname, resolve, sep } from 'node:path'
 import { chromium } from 'playwright'
 
@@ -15,17 +15,12 @@ export async function launchBenchmarkBrowser() {
   }
 
   try {
-    await access(chromium.executablePath())
     return await chromium.launch(launchOptions)
-  } catch (bundledBrowserError) {
-    try {
-      return await chromium.launch({ ...launchOptions, channel: 'chrome' })
-    } catch (chromeError) {
-      throw new AggregateError(
-        [bundledBrowserError, chromeError],
-        'No Chromium browser is available. Run "pnpm exec playwright install chromium" or install Chrome.',
-      )
-    }
+  } catch (error) {
+    throw new Error(
+      'Playwright Chromium failed to launch. Install the matching headless browser with "pnpm browser:install".',
+      { cause: error },
+    )
   }
 }
 

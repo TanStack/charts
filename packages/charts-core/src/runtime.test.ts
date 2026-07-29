@@ -287,6 +287,105 @@ describe('dynamic chart runtime', () => {
     host.destroy()
   })
 
+  it('keeps duplicate-key line focus on the point nearest the pointer', () => {
+    const data = [
+      { id: 'a', series: 'requests', x: 0, y: 4 },
+      { id: 'b', series: 'requests', x: 1, y: 8 },
+      { id: 'c', series: 'requests', x: 2, y: 6 },
+    ]
+    const definition = defineChart({
+      marks: [
+        lineY(data, {
+          x: 'x',
+          y: 'y',
+          key: 'series',
+        }),
+      ],
+      ...linearAxes([0, 2], [0, 8]),
+    })
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const format = (point: ChartPoint<(typeof data)[number]>) => point.datum.id
+    const options = {
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Duplicate point key chart',
+      tooltip: { format },
+      onFocusChange,
+    }
+    const host = mountChart(container, options)
+    const svg = container.querySelector('svg')
+    const line = container.querySelector<SVGPathElement>('.ts-chart__line path')
+    const last = host.getScene().points.at(-1)
+    if (!svg || !line || !last) throw new Error('Expected line chart')
+    const bounds = vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    expect(new Set(host.getScene().points.map((point) => point.key)).size).toBe(
+      1,
+    )
+    line.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: last.x,
+        clientY: last.y,
+      }),
+    )
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[2])
+    expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe('c')
+
+    host.update({
+      ...options,
+      tooltip: { format },
+    })
+    expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe('c')
+
+    host.update({
+      ...options,
+      width: 600,
+    })
+    bounds.mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 600,
+      bottom: 260,
+      left: 0,
+      width: 600,
+      height: 260,
+      toJSON: () => ({}),
+    })
+    const first = host.getScene().points[0]
+    expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe('c')
+    expect(
+      container.querySelector('[data-ts-chart-focus]')?.getAttribute('cx'),
+    ).toBe(String(host.getScene().points.at(-1)?.x))
+
+    if (!first) throw new Error('Expected first point')
+    container
+      .querySelector<SVGPathElement>('.ts-chart__line path')
+      ?.dispatchEvent(
+        new MouseEvent('pointermove', {
+          bubbles: true,
+          clientX: first.x,
+          clientY: first.y,
+        }),
+      )
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[0])
+    expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe('a')
+    host.destroy()
+  })
+
   it('supports keyboard navigation and an automatic tooltip', () => {
     const data = [
       { id: 'a', x: 0, y: 4 },

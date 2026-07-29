@@ -59,6 +59,14 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount = tanstackMount(
   definition,
   'Indexed performance from first observation',
+  {
+    format: ({ datum }) =>
+      `${datum.series} · ${datum.date.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC',
+      })} · ${formatIndex(datum.indexed)} from start`,
+  },
 )
 
 function indexFromFirst(

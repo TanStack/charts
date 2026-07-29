@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 1070,
+  "id": "107-polar-scatter",
+  "title": "Numeric polar scatter",
+  "family": "polar",
+  "intent": "Compare independent observations by angular position and radial magnitude.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "continuous angle scale",
+    "continuous radius scale",
+    "radial dots",
+    "circular grid",
+    "responsive radius"
+  ],
+  "geometry": [{ "role": "dot", "count": 14, "maxCount": 14 }],
+  "minimumGeometrySimilarity": 0.999,
+  "source": {
+    "title": "Apache ECharts Polar Scatter Punch Card",
+    "url": "https://echarts.apache.org/examples/en/editor.html?c=scatter-polar-punchCard"
+  },
+  "ai": {
+    "create": "Create fourteen equally sized points over continuous zero-to-three-hundred-sixty-degree angle and zero-to-one-hundred radius domains.",
+    "maintain": "Update radial values while preserving angles, fixed domains, responsive layout, stable observation keys, and constant symbol size."
+  }
+}

@@ -43,8 +43,8 @@ Other capabilities remain equally granular:
 
 ```sh
 # Examples: install only what the application imports
-pnpm add d3-quadtree d3-delaunay d3-selection d3-zoom d3-brush d3-time d3-scale-chromatic
-pnpm add -D @types/d3-quadtree @types/d3-delaunay @types/d3-selection @types/d3-zoom @types/d3-brush @types/d3-time @types/d3-scale-chromatic
+pnpm add d3-geo d3-quadtree d3-delaunay d3-selection d3-zoom d3-brush d3-time d3-scale-chromatic
+pnpm add -D @types/d3-geo @types/d3-quadtree @types/d3-delaunay @types/d3-selection @types/d3-zoom @types/d3-brush @types/d3-time @types/d3-scale-chromatic
 ```
 
 Do not install the `d3` umbrella package just because a chart uses one D3 capability. Named modules keep ownership visible and make the measured consumer bundle reflect the chart that was actually authored. [Scales and D3](./concepts/scales-and-d3.md) is the single guide to this boundary and links to the corresponding official D3 documentation.
@@ -97,7 +97,27 @@ Optional capabilities have explicit entries:
 import { d3Curve } from '@tanstack/charts/d3/shape'
 import { renderChartImage } from '@tanstack/charts/export'
 import { focusX } from '@tanstack/charts/focus'
+import { mountCanvasChart } from '@tanstack/charts/canvas'
+import { mountChartRenderer } from '@tanstack/charts/renderer'
+import { polar, radialArc } from '@tanstack/charts/polar'
+import { geoShape } from '@tanstack/charts/geo'
 ```
+
+Canvas remains optional in framework code too:
+
+```tsx
+import { Chart as ReactCanvasChart } from '@tanstack/react-charts/canvas'
+import { Chart as ReactRendererChart } from '@tanstack/react-charts/core'
+import { Chart as OctaneCanvasChart } from '@tanstack/octane-charts/canvas'
+import { Chart as OctaneRendererChart } from '@tanstack/octane-charts/core'
+```
+
+The default React and Octane entries remain SVG-based. Import `/canvas` only
+for the built-in Canvas surface, or `/core` to supply a `ChartRenderer`.
+
+Polar and geographic marks are intentionally absent from the package root.
+Their subpaths keep `d3-shape` and `d3-geo` unreachable from ordinary
+Cartesian consumers.
 
 ## TypeScript
 
@@ -122,7 +142,12 @@ If a channel or scale does not type-check, correct the source type, field, acces
 
 ## Browser and server requirements
 
-Chart definitions, scene creation, and SVG string rendering do not require a browser. The vanilla DOM host requires normal DOM APIs and uses `ResizeObserver` when width is responsive. React and Octane use the same deterministic scene and SVG path for server output, then connect the DOM host on the client.
+Chart definitions, scene creation, and SVG string rendering do not require a
+browser. The vanilla hosts require normal DOM APIs and use `ResizeObserver`
+when width is responsive. Canvas rendering additionally requires Canvas 2D;
+curved, polar, and geographic path data requires `Path2D`. React and Octane
+Canvas entries emit an accessible shell on the server, then paint pixels and
+connect the shared host on the client.
 
 Use `initialWidth` for deterministic server and hidden-container output. See [SSR and Hydration](./guides/ssr-and-hydration.md) for adapter-specific setup.
 

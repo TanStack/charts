@@ -1,6 +1,6 @@
 ---
 title: Custom Extensions
-description: Extend TanStack Charts with custom marks, distinct scale values, curves, scales, color, legends, text measurement, spatial indexes, and SVG renderers.
+description: Extend TanStack Charts with custom marks, distinct scale values, curves, scales, color, legends, text measurement, spatial indexes, and renderers.
 ---
 
 TanStack Charts exposes narrow inversion-of-control boundaries around its
@@ -131,7 +131,7 @@ real; ordinary custom marks should use `createMark`.
 
 ## Curves
 
-`ChartCurve` supplies precomputed SVG paths for line and y-oriented area marks:
+`ChartCurve` supplies precomputed path data for line and y-oriented area marks:
 
 ```ts
 interface ChartCurve {
@@ -205,16 +205,22 @@ selection or viewport state in the application.
 
 See [Focus and interaction](./focus-and-interaction.md).
 
-## Custom SVG renderers
+## Custom renderers
 
-Pass a `ChartSvgRenderer` as `renderSvg` to a host or adapter. It receives the
-complete scene and static SVG render options and returns markup.
+A `ChartRenderer` owns both deterministic server markup and one mounted
+`ChartSurface`. The surface renders scenes, converts browser coordinates to
+scene coordinates, paints focus, and releases renderer-owned resources.
+`mountChartRenderer` keeps responsive sizing, runtime updates, focus,
+keyboard, tooltip, and selection behavior shared across renderers.
 
-The built-in DOM host expects an SVG root, uses stable DOM keys for updates,
-queries `svg.ts-chart` for `onRender`, and paints a
-`[data-ts-chart-focus]` element. Preserve those contracts for built-in host
-behavior. If the renderer uses its own DOM tree or canvas, own the lifecycle
-outside `mountChart` and consume `ChartScene` directly.
+Use `@tanstack/charts/renderer` directly or the framework `/core` entries.
+The optional built-in implementation at `@tanstack/charts/canvas` demonstrates
+the boundary without changing the default SVG imports.
+
+For an SVG-only serialization change, pass a `ChartSvgRenderer` as `renderSvg`
+to the compatibility host or adapt it with `createSvgChartRenderer` from
+`@tanstack/charts/svg/renderer`. Preserve the SVG root, stable DOM keys,
+accessible name, coordinate system, and focus marker expected by that adapter.
 
 Resource-aware SVG is already available through
 `renderChartSvgWithResources`; see

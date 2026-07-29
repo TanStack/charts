@@ -37,7 +37,10 @@ const definition = defineChart<ConformanceInput>()(({ input, width }) => {
   }
 })
 
-export const mount = tanstackMount(definition, 'Sorted vertical bars')
+export const mount = tanstackMount(definition, 'Sorted vertical bars', {
+  format: ({ datum }) =>
+    `${datum.category} · ${datum.value.toLocaleString('en-US')} total`,
+})
 
 function summarizeCategories(rows: readonly CategoryPoint[]) {
   return rollups(

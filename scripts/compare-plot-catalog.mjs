@@ -46,6 +46,7 @@ const rendererRegistry = {
 const targetRenderer = 'tanstack'
 const referenceRenderers = ['observable-plot', 'recharts', 'echarts']
 const geometryRoles = [
+  'arc',
   'area',
   'arrow',
   'bar',
@@ -1560,7 +1561,8 @@ async function compareVisuals(
             }),
           )
           const labels = [...container.querySelectorAll('svg text')].filter(
-            (element) => element.textContent?.trim(),
+            (element) =>
+              element.textContent?.trim() && isRenderedLabel(element),
           )
           const containerBounds = container.getBoundingClientRect()
           const labelInspections = labels.map((element) => ({
@@ -1749,6 +1751,15 @@ async function compareVisuals(
           }
         }
 
+        function isRenderedLabel(element) {
+          const style = getComputedStyle(element)
+          return (
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            Number.parseFloat(style.opacity || '1') > 0
+          )
+        }
+
         function isAnchorOutsideClippingBounds(
           bounds,
           ancestorBounds,
@@ -1779,6 +1790,7 @@ async function compareVisuals(
 
         function dataElements(container, renderer, role) {
           const plotSelectors = {
+            arc: '[aria-label="arc"] path',
             area: '[aria-label="area"] path, [aria-label="positive difference"] path, [aria-label="negative difference"] path',
             arrow: '[aria-label="arrow"] path',
             bar: '[aria-label="bar"] rect',
@@ -1804,6 +1816,7 @@ async function compareVisuals(
             waffle: '[aria-label="waffle"] path',
           }
           const tanstackSelectors = {
+            arc: '.ts-chart__arc path',
             area: '.ts-chart__area path',
             arrow: '.ts-chart__arrow-shaft',
             bar: '.ts-chart__bar rect',
@@ -1813,7 +1826,7 @@ async function compareVisuals(
             density: '.ts-chart__area path',
             dot: '.ts-chart__dot circle',
             frame: '.ts-chart__frame rect',
-            geo: '.ts-chart__area path',
+            geo: '.ts-chart__geo path, .ts-chart__area path',
             hexagon: '.ts-chart__hexagon path',
             line: '.ts-chart__line path',
             link: '.ts-chart__link line, .ts-chart__link path',
@@ -1828,6 +1841,7 @@ async function compareVisuals(
             waffle: '.ts-chart__rect rect',
           }
           const rechartsSelectors = {
+            arc: '.recharts-pie-sector path, .recharts-radial-bar-sector path, .recharts-sector',
             area: '.recharts-area-area',
             arrow:
               '.recharts-reference-line line, .recharts-reference-line path',
@@ -1846,7 +1860,7 @@ async function compareVisuals(
             rect: '.recharts-rectangle',
             radar: '.recharts-radar-polygon .recharts-polygon',
             regression: '.recharts-line-curve',
-            rule: '.recharts-reference-line-line',
+            rule: '.recharts-reference-line-line, .recharts-polar-radius-axis line, path.recharts-pie-label-line',
             text: '.recharts-text',
             tick: '.recharts-cartesian-axis-tick-line',
             vector: '.recharts-scatter-symbol',
@@ -1974,14 +1988,11 @@ async function compareVisuals(
 
         function paintsEquivalent(left, right) {
           if (left === right) return true
-          if (!left.startsWith('rgb') || !right.startsWith('rgb')) return false
-          const leftChannels = left.match(/\d+(?:\.\d+)?/g)?.map(Number)
-          const rightChannels = right.match(/\d+(?:\.\d+)?/g)?.map(Number)
+          const leftChannels = paintChannels(left)
+          const rightChannels = paintChannels(right)
           return (
             leftChannels !== undefined &&
             rightChannels !== undefined &&
-            leftChannels.length >= 3 &&
-            rightChannels.length >= 3 &&
             leftChannels
               .slice(0, 3)
               .every(
@@ -1990,6 +2001,39 @@ async function compareVisuals(
               ) &&
             Math.abs((leftChannels[3] ?? 1) - (rightChannels[3] ?? 1)) <= 0.005
           )
+        }
+
+        function paintChannels(value) {
+          const rgb = value
+            .trim()
+            .match(
+              /^rgba?\(\s*(\d+(?:\.\d+)?)\D+(\d+(?:\.\d+)?)\D+(\d+(?:\.\d+)?)(?:\D+(\d+(?:\.\d+)?))?\s*\)$/i,
+            )
+          if (rgb) {
+            return [
+              Number(rgb[1]),
+              Number(rgb[2]),
+              Number(rgb[3]),
+              rgb[4] === undefined ? 1 : Number(rgb[4]),
+            ]
+          }
+
+          const hex = value
+            .trim()
+            .match(/^#([\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i)
+          if (!hex) return undefined
+          const digits =
+            hex[1].length <= 4
+              ? [...hex[1]].map((digit) => `${digit}${digit}`).join('')
+              : hex[1]
+          return [
+            Number.parseInt(digits.slice(0, 2), 16),
+            Number.parseInt(digits.slice(2, 4), 16),
+            Number.parseInt(digits.slice(4, 6), 16),
+            digits.length === 8
+              ? Number.parseInt(digits.slice(6, 8), 16) / 255
+              : 1,
+          ]
         }
 
         function boxEnvelope(boxes) {
@@ -3513,17 +3557,12 @@ async function launchBrowser() {
     ],
   }
   try {
-    await access(chromium.executablePath())
     return await chromium.launch(launchOptions)
-  } catch (bundledBrowserError) {
-    try {
-      return await chromium.launch({ ...launchOptions, channel: 'chrome' })
-    } catch (chromeError) {
-      throw new AggregateError(
-        [bundledBrowserError, chromeError],
-        'No Chromium browser is available.',
-      )
-    }
+  } catch (error) {
+    throw new Error(
+      'Playwright Chromium failed to launch. Install the matching headless browser with "pnpm browser:install".',
+      { cause: error },
+    )
   }
 }
 

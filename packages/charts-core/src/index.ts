@@ -89,6 +89,11 @@ export type {
   ChartPrepareContext,
   ChartRuntime,
   ChartRenderContext,
+  ChartRenderer,
+  ChartRendererHost,
+  ChartRendererHostCommonOptions,
+  ChartRendererHostOptions,
+  ChartRendererRenderContext,
   ChartScene,
   ChartScale,
   ChartScaleResolveContext,
@@ -103,6 +108,8 @@ export type {
   ChartSpecYValue,
   ChartSpec,
   ChartSvgRenderer,
+  ChartSurface,
+  ChartSurfaceRenderOptions,
   ChartTheme,
   ChartTextMeasurer,
   ChartTextMeasureOptions,
@@ -113,6 +120,7 @@ export type {
   VisualChannel,
   WidenChartValue,
   RenderChartSvgOptions,
+  RenderChartOptions,
   ResolvedScale,
   ResolvedColorScale,
   SceneDot,
@@ -126,6 +134,8 @@ export type {
   SceneStyle,
   StaticChartDefinition,
   StaticChartHostOptions,
+  StaticChartRendererHostOptions,
+  DynamicChartRendererHostOptions,
 } from './types'
 export { areaX } from './area-x'
 export type { AreaXCurve, AreaXOptions } from './area-x'

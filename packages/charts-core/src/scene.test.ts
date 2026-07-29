@@ -6,7 +6,7 @@ import { createMark } from './mark'
 import { createChartScene, defineChart, findNearestPoint } from './scene'
 import { renderChartSvg } from './svg'
 import { linearAxes, utcXAxes } from './test-scales'
-import type { ChartDefinition, SceneNode } from './types'
+import type { ChartDefinition, ChartPoint, SceneNode } from './types'
 
 describe('native mark and channel scene', () => {
   it('groups one flat arbitrary dataset through a z channel', () => {
@@ -138,6 +138,43 @@ describe('native mark and channel scene', () => {
     expect(
       flatten(scene.nodes).some((node) => node.key === 'threshold:15'),
     ).toBe(true)
+  })
+
+  it('collects dense channels and interaction points without argument spreading', () => {
+    const count = 200_000
+    const values = Array<number>(count).fill(0)
+    const point: ChartPoint<number> = {
+      key: 'dense',
+      markId: 'dense',
+      group: null,
+      groupLabel: 'dense',
+      datum: 0,
+      datumIndex: 0,
+      xValue: 0,
+      yValue: 0,
+      x: 0,
+      y: 0,
+      color: '#2563eb',
+    }
+    const points = Array<ChartPoint<number>>(count).fill(point)
+    const dense = createMark<number>(() => ({
+      id: 'dense',
+      channels: {
+        x: { scale: 'x', values },
+      },
+      render: () => ({ nodes: [], points }),
+    }))
+
+    const scene = createChartScene(
+      defineChart({
+        marks: [dense],
+        ...linearAxes([0, 1], [0, 1]),
+        guides: false,
+      }),
+      { width: 100, height: 60 },
+    )
+
+    expect(scene.points).toHaveLength(count)
   })
 
   it('finds the nearest original datum', () => {

@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto'
 import {
-  access,
   cp,
   mkdir,
   readFile,
@@ -704,17 +703,12 @@ async function launchBrowser() {
     args: ['--force-device-scale-factor=1'],
   }
   try {
-    await access(chromium.executablePath())
     return await chromium.launch(options)
-  } catch (bundledBrowserError) {
-    try {
-      return await chromium.launch({ ...options, channel: 'chrome' })
-    } catch (chromeError) {
-      throw new AggregateError(
-        [bundledBrowserError, chromeError],
-        'No Chromium browser is available for AI smoke scoring.',
-      )
-    }
+  } catch (error) {
+    throw new Error(
+      'Playwright Chromium failed to launch. Install the matching headless browser with "pnpm browser:install".',
+      { cause: error },
+    )
   }
 }
 

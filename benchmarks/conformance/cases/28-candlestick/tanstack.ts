@@ -4,6 +4,17 @@ import { candleData, candleDomain } from './data'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
+const candleDate = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+const price = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 const definition = defineChart<ConformanceInput>()(({ input }) => {
   const rows = candleData(input.revision)
   const gains = rows.filter((row) => row.close >= row.open)
@@ -47,4 +58,7 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
   }
 })
 
-export const mount = tanstackMount(definition, 'Daily candlestick chart')
+export const mount = tanstackMount(definition, 'Daily candlestick chart', {
+  format: (point) =>
+    `${candleDate.format(point.datum.date)} · Open: ${price.format(point.datum.open)} · High: ${price.format(point.datum.high)} · Low: ${price.format(point.datum.low)} · Close: ${price.format(point.datum.close)}`,
+})

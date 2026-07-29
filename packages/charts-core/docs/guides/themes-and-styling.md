@@ -1,6 +1,6 @@
 ---
 title: Themes and Styling
-description: Apply automatic light and dark color behavior, CSS palette tokens, mark styles, and scoped SVG resources.
+description: Apply automatic light and dark color behavior, CSS palette tokens, mark styles, and renderer-aware resources.
 ---
 
 TanStack Charts inherits the surrounding application instead of installing a
@@ -76,7 +76,7 @@ time.
 
 ## Mark styling
 
-Built-in marks expose the SVG styles relevant to their geometry: fill, stroke,
+Built-in marks expose the paint styles relevant to their geometry: fill, stroke,
 opacity, widths, line caps, dashes, corner radius, and font properties. A style
 can be fixed or data-driven where the mark's option accepts a visual channel.
 
@@ -89,6 +89,18 @@ Keep these responsibilities separate:
 
 For categorical or quantitative color mapping, use the canonical
 [Legends and Color](./legends-and-color.md) guide.
+
+## Canvas styling
+
+The Canvas renderer resolves scene paints such as `currentColor` and CSS
+custom properties against the chart's computed environment. It inherits the
+root font and repaints after relevant ancestor class, style, `data-theme`,
+color-scheme, forced-colors, or viewport changes.
+
+Rasterized scene nodes are not DOM descendants. A node's `className` therefore
+cannot be targeted by a CSS selector after paint. Put data-dependent fill,
+stroke, opacity, and font choices in mark options or the chart theme; use
+container CSS for palette variables, inherited color, and typography.
 
 ## Gradients and clipping
 
@@ -124,6 +136,10 @@ scopes resource and clip IDs when several charts share a document.
 
 Set `clip: true` when marks should be clipped to the resolved plot rectangle.
 Clipping is a geometry policy, not a substitute for correct scale domains.
+
+Canvas consumes the same declared gradients and group clips without the
+resource-aware SVG serializer. A Canvas gradient needs measurable node bounds;
+path-only geometry with no point bounds should use an explicit paint instead.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/heatmap-labeled/?theme=system&height=360"

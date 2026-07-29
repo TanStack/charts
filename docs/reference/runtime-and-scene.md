@@ -9,7 +9,7 @@ TanStack Charts separates semantic chart construction from rendering:
 2. marks materialize channels
 3. scales and guide layout resolve against the current size
 4. marks emit a keyed `ChartScene`
-5. an SVG or custom renderer consumes that scene
+5. the selected SVG, Canvas, or custom renderer consumes that scene
 
 Use `createChartRuntime` for repeated renders of static or dynamic definitions.
 Use `createChartScene` for one static compilation.
@@ -194,8 +194,8 @@ Every scene node has a stable `key`, optional `className`, optional
 | ---------- | ---------------------------------------------------------- |
 | `group`    | `children`, optional translation and clip bounds           |
 | `rule`     | `x1`, `y1`, `x2`, `y2`                                     |
-| `polyline` | point pairs and optional precomputed SVG `path`            |
-| `area`     | closed point pairs and optional precomputed SVG `path`     |
+| `polyline` | point pairs and optional precomputed path data             |
+| `area`     | closed point pairs and optional precomputed path data      |
 | `dot`      | center and radius                                          |
 | `rect`     | origin, dimensions, and optional radius                    |
 | `label`    | origin, text, anchor, baseline, rotation, size, and weight |

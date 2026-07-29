@@ -62,4 +62,16 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount = tanstackMount(
   definition,
   'Scatterplot with linear regression',
+  {
+    format: ({ datum }) =>
+      'group' in datum
+        ? `${datum.group} · X ${datum.x.toLocaleString(
+            'en-US',
+          )} · Y ${datum.y.toLocaleString('en-US')}`
+        : `Regression · X ${datum.x.toLocaleString(
+            'en-US',
+          )} · predicted Y ${datum.y.toLocaleString('en-US', {
+            maximumFractionDigits: 1,
+          })}`,
+  },
 )

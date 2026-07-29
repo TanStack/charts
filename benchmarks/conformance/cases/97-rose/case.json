@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 970,
+  "id": "97-rose",
+  "title": "Nightingale rose chart",
+  "family": "polar",
+  "intent": "Compare six values through equal-angle sectors whose radii vary on one fixed scale.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "equal-angle D3 pie layout",
+    "data-driven outer radii",
+    "authored D3 arc generator",
+    "fixed radial domain"
+  ],
+  "geometry": [{ "role": "arc", "count": 6, "maxCount": 6 }],
+  "minimumGeometrySimilarity": 0.995,
+  "source": {
+    "title": "Recharts Pie API",
+    "url": "https://recharts.github.io/en-US/api/Pie/"
+  },
+  "ai": {
+    "create": "Create six equal-angle sectors whose outer radii encode values against a fixed zero-to-one-hundred domain.",
+    "maintain": "Update values without changing angle order or the radial domain; keep D3 arc accessors responsive and retain stable category keys."
+  }
+}

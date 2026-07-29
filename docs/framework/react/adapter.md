@@ -5,8 +5,7 @@ description: Understand the thin React lifecycle, SSR, hydration, update, sizing
 
 `@tanstack/react-charts` is a thin lifecycle and SSR adapter around
 `@tanstack/charts`. Chart definitions, scale resolution, guide layout, scenes,
-SVG rendering, reconciliation, animation, and interaction remain in the
-framework-neutral core.
+rendering, animation, and interaction remain in the framework-neutral core.
 
 ## Public exports
 
@@ -23,13 +22,25 @@ export type {
 } from '@tanstack/react-charts'
 ```
 
+Choose Canvas or an application-supplied renderer through an explicit
+subpath:
+
+```tsx
+import { Chart as CanvasChart } from '@tanstack/react-charts/canvas'
+import { Chart as RendererChart } from '@tanstack/react-charts/core'
+```
+
+`CanvasChart` selects the optional built-in renderer. `RendererChart` requires
+a `renderer` prop. The default `Chart` remains SVG-based, so importing the
+default adapter does not pull Canvas into its module graph.
+
 Use the re-exported definition and point types only when an application API
 needs an explicit annotation. Ordinary component use is inferred.
 
 ## Render lifecycle
 
-The adapter creates one `ChartRuntime` per mounted component and renders the
-initial complete SVG during React render. After commit:
+The adapter creates one `ChartRuntime` per mounted component and asks the
+selected renderer for its initial markup during React render. After commit:
 
 1. a layout effect mounts the shared DOM host into the existing chart surface
 2. the same runtime is passed to the host, preserving prepared data
@@ -38,15 +49,14 @@ initial complete SVG during React render. After commit:
 5. effect cleanup destroys the host and runtime-owned browser behavior
 
 The chart surface is memoized after its first render. Dynamic changes are
-reconciled by the shared host rather than by rebuilding the SVG element tree
-through React.
+painted by the shared host rather than by rebuilding the surface through React.
 
 React batching may omit intermediate application states. Every committed prop
 set forwarded to the host remains declarative and complete.
 
 ## SSR and hydration
 
-Server rendering emits:
+The default SVG entry emits:
 
 - the outer `.ts-chart-host` div
 - a `.ts-chart-surface` div
@@ -54,6 +64,11 @@ Server rendering emits:
 
 The client renders the same initial structure, then the layout effect adopts
 and reconciles that SVG. There is no placeholder-only server mode.
+
+The Canvas entry emits the same outer structure with a named Canvas root and
+two `aria-hidden` canvases. It does not paint pixels on the server. The client
+adopts those elements, paints after mount, and attaches the same focus,
+keyboard, tooltip, and selection host.
 
 Use deterministic data, scale domains, definitions, dimensions, and custom
 renderers on server and client. The adapter generates a sanitized `idPrefix`
@@ -74,7 +89,7 @@ The adapter renders two nested containers:
 ```text
 .ts-chart-host
   .ts-chart-surface
-    svg.ts-chart
+    svg.ts-chart | div.ts-chart-canvas
 ```
 
 The outer host has `position: relative`.
@@ -117,9 +132,8 @@ Do not give `style.width` a value that conflicts with a fixed `width` prop. The
 style controls the outer CSS box, while the prop continues to lock the scene
 width.
 
-Core `RenderChartSvgOptions.className` applies to an SVG when calling the
-renderer directly. The React adapter's `className` intentionally owns the
-outer element instead.
+Core renderer `className` options apply to a surface when calling it directly.
+The React adapter's `className` intentionally owns the outer element instead.
 
 ## Definition and input identity
 

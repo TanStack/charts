@@ -59,4 +59,19 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
   }
 })
 
-export const mount = tanstackMount(definition, 'Violin distribution comparison')
+export const mount = tanstackMount(
+  definition,
+  'Violin distribution comparison',
+  {
+    format: ({ datum }) =>
+      'median' in datum
+        ? `${datum.cohort} · median score ${datum.median.toLocaleString(
+            'en-US',
+            { maximumFractionDigits: 1 },
+          )}`
+        : `${datum.cohort} · distribution score ${datum.value.toLocaleString(
+            'en-US',
+            { maximumFractionDigits: 1 },
+          )}`,
+  },
+)

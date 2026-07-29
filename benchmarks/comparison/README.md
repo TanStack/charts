@@ -7,6 +7,9 @@ scatter charts.
 ## Commands
 
 ```sh
+# Install the Playwright version's pinned headless browser
+pnpm browser:install
+
 # Bundle size and the standard browser matrix
 pnpm benchmark
 

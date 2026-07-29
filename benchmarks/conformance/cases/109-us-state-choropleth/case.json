@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "order": 1090,
+  "id": "109-us-state-choropleth",
+  "title": "United States state choropleth",
+  "family": "geography",
+  "intent": "Compare values across actual United States state and district boundaries.",
+  "support": "native",
+  "features": [
+    "us-atlas 3.0.1",
+    "TopoJSON conversion",
+    "Albers USA composite projection",
+    "Alaska and Hawaii insets",
+    "51 state and district paths"
+  ],
+  "geometry": [{ "role": "geo", "count": 51, "maxCount": 51 }],
+  "minimumGeometrySimilarity": 0.999,
+  "source": {
+    "title": "Observable Plot projections",
+    "url": "https://observablehq.com/plot/features/projections"
+  },
+  "ai": {
+    "create": "Create a 51-feature United States choropleth from us-atlas TopoJSON using the same responsive Albers USA projection and literal state fills in Observable Plot and TanStack geoShape.",
+    "maintain": "Preserve actual atlas boundaries, stable FIPS keys, the 50 states plus District of Columbia, Alaska and Hawaii insets, revision-driven fills, and one projected path per feature."
+  }
+}

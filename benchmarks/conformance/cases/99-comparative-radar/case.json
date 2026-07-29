@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 990,
+  "id": "99-comparative-radar",
+  "title": "Comparative radar chart",
+  "family": "polar",
+  "intent": "Compare current and target profiles across six qualitative dimensions on one fixed radial scale.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "two grouped radial areas",
+    "polygon grid",
+    "radial tick labels",
+    "closed D3 curves",
+    "series visual channels"
+  ],
+  "geometry": [
+    { "role": "radar", "count": 2, "maxCount": 2 },
+    { "role": "text", "count": 11, "maxCount": 11 }
+  ],
+  "minimumGeometrySimilarity": 0.9999,
+  "source": {
+    "title": "Recharts Simple Radar Chart",
+    "url": "https://recharts.github.io/en-US/examples/SimpleRadarChart/"
+  },
+  "ai": {
+    "create": "Create a comparative radar chart with two keyed six-point profiles, a fixed zero-to-one-hundred radial scale, polygon grid rings, and sparse angle labels.",
+    "maintain": "Update either profile while preserving metric order, series identity, the fixed radial domain, closed D3 curves, and shared guide geometry."
+  }
+}

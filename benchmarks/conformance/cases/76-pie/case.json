@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 760,
+  "id": "76-pie",
+  "title": "Categorical pie chart",
+  "family": "polar",
+  "intent": "Compare four categories as parts of one whole with a full-circle angular layout.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "D3 pie layout",
+    "keyed arc sectors",
+    "categorical fills",
+    "responsive radius"
+  ],
+  "geometry": [{ "role": "arc", "count": 4, "maxCount": 4 }],
+  "minimumGeometrySimilarity": 0.9999,
+  "source": {
+    "title": "Recharts Straight Angle Pie Chart",
+    "url": "https://recharts.github.io/en-US/examples/StraightAnglePieChart/"
+  },
+  "ai": {
+    "create": "Create a four-slice pie chart from raw category totals using D3 pie layout and keyed TanStack arc geometry.",
+    "maintain": "Update category totals while preserving slice order, full-circle orientation, responsive radius, stable identities, and exact categorical fills."
+  }
+}

@@ -6,6 +6,7 @@ export type ConformanceRenderer = ConformanceReferenceRenderer | 'tanstack'
 export type ConformanceSupport = 'native' | 'composed' | 'gap' | 'deferred'
 
 export type ConformanceGeometryRole =
+  | 'arc'
   | 'area'
   | 'arrow'
   | 'bar'
@@ -33,6 +34,7 @@ export interface ConformanceInput {
   width: number
   height: number
   revision: number
+  interactive?: boolean
 }
 
 export interface ConformanceHandle {

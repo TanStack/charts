@@ -23,7 +23,8 @@ Track four quantities:
 - **source**: rows received by the application;
 - **represented**: source rows accounted for by the encoding;
 - **prepared**: rows or vertices passed to marks;
-- **rendered**: SVG nodes and path vertices.
+- **rendered**: scene nodes and path vertices, plus the selected renderer's DOM
+  or draw work.
 
 Do not describe a million-row chart as a million rendered points when the
 visible result is a few thousand aggregate cells. The bounded output is a
@@ -63,6 +64,24 @@ the same pixels.
 
 Switch representations before the raw update cost exceeds the product's frame
 budget or the output stops being readable.
+
+## When Canvas helps
+
+The optional Canvas renderer removes per-node SVG DOM and reconciliation cost.
+It can be useful when a measured bottleneck is SVG element creation or paint.
+It does not remove channel materialization, scale and guide work, scene
+compilation, path construction, or `ChartPoint` creation.
+
+A dot mark still produces one scene node and one interaction point per
+observation. Default nearest-point focus still scans those points linearly.
+Supply a measured `spatialIndex` when individual points are still the correct
+pointer target, and use a focus strategy with a bounded `navigation` order
+when every observation is not a useful keyboard stop.
+
+Do not treat Canvas as permission to promise a million independently
+interactive marks. Compare source, represented, prepared, and rendered counts;
+measure compilation, paint, interaction, and memory; then aggregate, sample,
+or bound the window when the representation exceeds the product budget.
 
 ## Preparation ownership
 
@@ -108,10 +127,12 @@ target.
 - Provide drill-down or a linked table when readers need original rows.
 - Use a spatial index only when individual points remain the correct
   representation.
+- Keep keyboard navigation bounded to useful targets instead of stepping
+  through every source observation.
 - Keep exact values outside hover-only UI.
 
-An index can accelerate nearest-point lookup. It does not reduce DOM count,
-path serialization, paint cost, or visual overplotting.
+An index can accelerate nearest-point lookup. It does not reduce scene size,
+DOM or draw count, path construction, paint cost, or visual overplotting.
 
 ## Streaming windows
 
@@ -136,6 +157,7 @@ Separate:
 - scene compilation;
 - SVG serialization;
 - DOM reconciliation;
+- Canvas painting;
 - pointer activation and sustained movement;
 - memory after repeated updates and destroy.
 

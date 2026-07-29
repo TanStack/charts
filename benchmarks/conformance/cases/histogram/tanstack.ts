@@ -60,4 +60,9 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
   }
 })
 
-export const mount = tanstackMount(definition, 'Histogram of values')
+export const mount = tanstackMount(definition, 'Histogram of values', {
+  format: ({ datum }) =>
+    `${datum.x0.toLocaleString('en-US')}–${datum.x1.toLocaleString(
+      'en-US',
+    )} · ${datum.count.toLocaleString('en-US')} observations`,
+})

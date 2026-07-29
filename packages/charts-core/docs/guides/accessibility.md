@@ -4,8 +4,9 @@ description: Give charts useful names, keyboard-equivalent interaction, reduced 
 ---
 
 Accessibility is part of the chart contract, not a final annotation pass.
-TanStack Charts provides accessible SVG and focus primitives; the application
-still owns the surrounding explanation, controls, and exact-value alternative.
+TanStack Charts provides named SVG and Canvas surfaces plus shared focus
+primitives; the application still owns the surrounding explanation, controls,
+and exact-value alternative.
 
 ## Name the chart
 
@@ -30,10 +31,12 @@ visible nearby:
 ```
 
 The SVG renderer emits an image role, a chart roledescription, and a `<desc>`
-when a description is supplied. Do not put instructions, conclusions, and all
+when a description is supplied. The Canvas renderer places the same image role,
+name, roledescription, description, and tab index on its root while keeping its
+two paint canvases `aria-hidden`. Do not put instructions, conclusions, and all
 underlying data into one enormous accessible name.
 
-## Preserve semantic context outside SVG
+## Preserve semantic context outside the surface
 
 A chart should usually be accompanied by:
 
@@ -120,7 +123,7 @@ semantically, rather than inferred from DOM nodes.
 
 ## Testing checklist
 
-Test the finished application, not only the SVG:
+Test the finished application, not only the SVG or Canvas element:
 
 1. Navigate the page and chart with a keyboard.
 2. Confirm visible focus and a logical navigation order.

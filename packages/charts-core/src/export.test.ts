@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { serializeChartSvg } from './export'
+import { renderChartImage, serializeChartSvg } from './export'
 import { lineY } from './line'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
@@ -83,5 +83,46 @@ describe('optional export', () => {
     expect(result).toContain('stop-color="rgb(37, 99, 235)"')
     expect(result).toContain('stop-opacity="0.35"')
     readStyle.mockRestore()
+  })
+
+  it('exports Canvas scene and optional focus layers through the raster API', async () => {
+    const container = document.createElement('div')
+    container.innerHTML =
+      '<div class="ts-chart ts-chart-canvas" data-ts-chart-width="400" data-ts-chart-height="200" data-ts-chart-pixel-ratio="2"><canvas class="ts-chart-canvas__scene" width="800" height="400"></canvas><canvas class="ts-chart-canvas__focus" width="800" height="400"></canvas></div>'
+    const drawImage = vi.fn()
+    let output: HTMLCanvasElement | undefined
+    const getContext = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockImplementation(function (this: HTMLCanvasElement) {
+        output = this
+        return {
+          scale: vi.fn(),
+          fillRect: vi.fn(),
+          drawImage,
+        } as unknown as CanvasRenderingContext2D
+      })
+    const toBlob = vi
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+      .mockImplementation(function (callback) {
+        callback(new Blob(['canvas'], { type: 'image/png' }))
+      })
+
+    const blob = await renderChartImage(container, {
+      scale: 1.5,
+      includeFocus: true,
+    })
+
+    expect(blob.type).toBe('image/png')
+    expect(output?.width).toBe(600)
+    expect(output?.height).toBe(300)
+    expect(drawImage).toHaveBeenCalledTimes(2)
+    expect(drawImage.mock.calls[0]?.[0]).toBe(
+      container.querySelector('.ts-chart-canvas__scene'),
+    )
+    expect(drawImage.mock.calls[1]?.[0]).toBe(
+      container.querySelector('.ts-chart-canvas__focus'),
+    )
+    getContext.mockRestore()
+    toBlob.mockRestore()
   })
 })

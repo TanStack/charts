@@ -30,6 +30,16 @@ import { Chart } from '@tanstack/react-charts'
 />
 ```
 
+Switch only the import to opt into Canvas:
+
+```tsx
+import { Chart } from '@tanstack/react-charts/canvas'
+```
+
+The default entry remains SVG-based. `@tanstack/react-charts/core` accepts an
+explicit `renderer` for application-owned surfaces, and neither optional path
+pulls Canvas into the default bundle.
+
 The adapter server-renders the complete shared SVG. On the client, React owns
 only the outer host; the framework-neutral chart host owns measurement,
 reconciliation, animation, and interaction. Shallow-equal inline plain-object

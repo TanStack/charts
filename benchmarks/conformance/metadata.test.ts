@@ -19,6 +19,18 @@ const baseMetadata = {
 } as const
 
 describe('conformance metadata', () => {
+  it('accepts arc geometry for polar sector comparisons', () => {
+    expect(
+      parseConformanceCaseMeta(
+        {
+          ...baseMetadata,
+          geometry: [{ role: 'arc', count: 4, maxCount: 4 }],
+        },
+        'case.json',
+      ).geometry,
+    ).toEqual([{ role: 'arc', count: 4, maxCount: 4 }])
+  })
+
   it('accepts ECharts and ordered semantic interaction scenarios', () => {
     expect(
       parseConformanceCaseMeta(

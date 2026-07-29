@@ -169,15 +169,21 @@ See [Scales, guides, and color](./scales-guides-and-color.md).
 
 ## Host and runtime types
 
-| Type                      | Purpose                                                             |
-| ------------------------- | ------------------------------------------------------------------- |
-| `ChartHostCommonOptions`  | Accessibility, sizing, interaction, animation, and renderer options |
-| `StaticChartHostOptions`  | Common options plus static definition; input omitted or `undefined` |
-| `DynamicChartHostOptions` | Common options plus dynamic definition and exact input              |
-| `ChartHostOptions`        | Static or dynamic host union                                        |
-| `ChartHost`               | `update`, `getScene`, and `destroy`                                 |
-| `ChartRuntime`            | Repeated scene rendering and preparation ownership                  |
-| `ChartRenderContext`      | Container, live SVG, and scene reported after DOM render            |
+| Type                              | Purpose                                                                 |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| `ChartHostCommonOptions`          | Accessibility, sizing, interaction, animation, and SVG renderer options |
+| `StaticChartHostOptions`          | Common options plus static definition; input omitted or `undefined`     |
+| `DynamicChartHostOptions`         | Common options plus dynamic definition and exact input                  |
+| `ChartHostOptions`                | Static or dynamic SVG host union                                        |
+| `ChartHost`                       | SVG host `update`, `getScene`, and `destroy`                            |
+| `ChartRendererHostCommonOptions`  | Renderer-neutral common options plus required renderer                  |
+| `StaticChartRendererHostOptions`  | Renderer-neutral static definition options                              |
+| `DynamicChartRendererHostOptions` | Renderer-neutral dynamic definition and exact input options             |
+| `ChartRendererHostOptions`        | Static or dynamic renderer-neutral host union                           |
+| `ChartRendererHost`               | Renderer-neutral `update`, `getScene`, and `destroy`                    |
+| `ChartRuntime`                    | Repeated scene rendering and preparation ownership                      |
+| `ChartRenderContext`              | Container, live SVG, and scene reported after DOM render                |
+| `ChartRendererRenderContext`      | Container, live renderer surface, and scene reported after render       |
 
 See [DOM host](./dom-host.md) and
 [Runtime and scene](./runtime-and-scene.md).
@@ -196,11 +202,15 @@ See [Focus and interaction](./focus-and-interaction.md).
 
 ## Rendering types
 
-| Type                    | Purpose                                                           |
-| ----------------------- | ----------------------------------------------------------------- |
-| `RenderChartSvgOptions` | Accessible name, description, SVG class, tab index, and ID prefix |
-| `ChartSvgRenderer`      | Scene-to-SVG string function                                      |
-| `ChartAnimationOptions` | Duration, easing, and reduced-motion policy                       |
+| Type                        | Purpose                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| `RenderChartOptions`        | Renderer-neutral accessible name, description, class, tab index, and ID prefix |
+| `RenderChartSvgOptions`     | SVG specialization of `RenderChartOptions`                                     |
+| `ChartSurfaceRenderOptions` | Render options plus optional animation                                         |
+| `ChartSurface`              | Mounted element, painting, coordinates, focus, and cleanup                     |
+| `ChartRenderer`             | Server shell and browser-surface renderer contract                             |
+| `ChartSvgRenderer`          | Scene-to-SVG string function                                                   |
+| `ChartAnimationOptions`     | Duration, easing, and reduced-motion policy                                    |
 
 See [Rendering and export](./rendering-and-export.md).
 

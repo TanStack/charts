@@ -206,17 +206,33 @@ async function buildRuntime(packageInfo) {
 
   if (packageInfo.kind !== 'octane') return
 
-  const sourcePath = resolve(sourceRoot, 'Chart.tsrx')
-  const source = await readFile(sourcePath, 'utf8')
-  await compileOctaneEntry(source, 'client', resolve(outputRoot, 'Chart.js'))
-  await compileOctaneEntry(
-    source,
-    'server',
-    resolve(outputRoot, 'server', 'Chart.js'),
-  )
+  for (const name of ['Chart', 'RendererChart', 'CanvasChart']) {
+    const filename = `${name}.tsrx`
+    const source = await readFile(resolve(sourceRoot, filename), 'utf8')
+    await compileOctaneEntry(
+      source,
+      filename,
+      'client',
+      resolve(outputRoot, `${name}.js`),
+    )
+    await compileOctaneEntry(
+      source,
+      filename,
+      'server',
+      resolve(outputRoot, 'server', `${name}.js`),
+    )
+  }
   await writeFile(
     resolve(outputRoot, 'server', 'index.js'),
     "export { Chart } from './Chart.js'\n",
+  )
+  await writeFile(
+    resolve(outputRoot, 'server', 'core.js'),
+    "export { RendererChart as Chart } from './RendererChart.js'\n",
+  )
+  await writeFile(
+    resolve(outputRoot, 'server', 'canvas.js'),
+    "export { CanvasChart as Chart } from './CanvasChart.js'\n",
   )
 }
 
@@ -227,10 +243,10 @@ function isRuntimeSource(file) {
   return !file.endsWith(`${sep}test-scales.ts`)
 }
 
-async function compileOctaneEntry(source, mode, outfile) {
+async function compileOctaneEntry(source, filename, mode, outfile) {
   const compiled = compileOctane(
     source,
-    `/@tanstack/octane-charts/Chart.tsrx`,
+    `/@tanstack/octane-charts/${filename}`,
     {
       mode,
       dev: false,
@@ -296,10 +312,12 @@ async function buildDeclarations(packageInfo) {
   }
 
   if (packageInfo.kind === 'octane') {
-    await cp(
-      resolve(sourceRoot, 'Chart.tsrx.d.ts'),
-      resolve(outputRoot, 'Chart.d.ts'),
-    )
+    for (const name of ['Chart', 'RendererChart', 'CanvasChart']) {
+      await cp(
+        resolve(sourceRoot, `${name}.tsrx.d.ts`),
+        resolve(outputRoot, `${name}.d.ts`),
+      )
+    }
   }
 }
 
@@ -403,10 +421,12 @@ async function installFixture(tarballs) {
       tarballs.get('@tanstack/react-charts'),
     ),
     '@types/d3-array': installedDependency('@types/d3-array'),
+    '@types/d3-geo': installedDependency('@types/d3-geo'),
     '@types/d3-scale': installedDependency('@types/d3-scale'),
     '@types/d3-shape': installedDependency('@types/d3-shape'),
     '@types/react': installedDependency('@types/react'),
     'd3-array': installedDependency('d3-array'),
+    'd3-geo': installedDependency('d3-geo'),
     'd3-scale': installedDependency('d3-scale'),
     'd3-shape': installedDependency('d3-shape'),
     octane: installedDependency('octane'),
@@ -429,12 +449,16 @@ async function installFixture(tarballs) {
       coreTarball,
     )}\n  'd3-array': ${JSON.stringify(
       installedDependency('d3-array'),
+    )}\n  'd3-geo': ${JSON.stringify(
+      installedDependency('d3-geo'),
     )}\n  'd3-scale': ${JSON.stringify(
       installedDependency('d3-scale'),
     )}\n  'd3-shape': ${JSON.stringify(
       installedDependency('d3-shape'),
     )}\n  '@types/d3-shape': ${JSON.stringify(
       installedDependency('@types/d3-shape'),
+    )}\n  '@types/d3-geo': ${JSON.stringify(
+      installedDependency('@types/d3-geo'),
     )}\n`,
   )
   await run(
@@ -455,6 +479,12 @@ function fileDependency(file) {
 
 function installedDependency(name) {
   return `link:${resolve(root, 'node_modules', ...name.split('/'))}`
+}
+
+function publishedSpecifiers(packageInfo) {
+  return Object.keys(packageInfo.manifest.publishConfig.exports)
+    .sort()
+    .map((key) => `${packageInfo.name}${key === '.' ? '' : key.slice(1)}`)
 }
 
 async function verifyInstalledManifests() {
@@ -488,9 +518,7 @@ async function verifyInstalledManifests() {
 }
 
 async function verifyEsmRuntime() {
-  const coreSubpaths = Object.keys(packages[0].manifest.publishConfig.exports)
-    .sort()
-    .map((key) => `@tanstack/charts${key === '.' ? '' : key.slice(1)}`)
+  const publishedSubpaths = packages.flatMap(publishedSpecifiers)
   const source = `
     import assert from 'node:assert/strict'
     import { realpathSync } from 'node:fs'
@@ -505,16 +533,17 @@ async function verifyEsmRuntime() {
       lineY,
       renderChartSvg,
     } from '@tanstack/charts'
+    import { canvasChartRenderer } from '@tanstack/charts/canvas'
     import { Chart as ReactChart } from '@tanstack/react-charts'
+    import { Chart as ReactCanvasChart } from '@tanstack/react-charts/canvas'
+    import { Chart as ReactRendererChart } from '@tanstack/react-charts/core'
     import { Chart as OctaneChart } from '@tanstack/octane-charts'
+    import { Chart as OctaneCanvasChart } from '@tanstack/octane-charts/canvas'
+    import { Chart as OctaneRendererChart } from '@tanstack/octane-charts/core'
 
     const canonicalRoot = pathToFileURL(${JSON.stringify(`${root}${sep}`)}).href
     const installedRoot = realpathSync('./node_modules')
-    for (const specifier of ${JSON.stringify([
-      ...coreSubpaths,
-      '@tanstack/react-charts',
-      '@tanstack/octane-charts',
-    ])}) {
+    for (const specifier of ${JSON.stringify(publishedSubpaths)}) {
       const resolved = import.meta.resolve(specifier)
       const resolvedPath = realpathSync(fileURLToPath(resolved))
       assert.ok(resolvedPath.startsWith(installedRoot), resolvedPath)
@@ -550,6 +579,29 @@ async function verifyEsmRuntime() {
     assert.match(reactHtml, /Packed React chart/)
     assert.match(reactHtml, /<path/)
 
+    const reactRendererHtml = renderToStaticMarkup(
+      createElement(ReactRendererChart, {
+        renderer: canvasChartRenderer,
+        definition,
+        ariaLabel: 'Packed React renderer chart',
+        width: 320,
+        height: 180,
+      }),
+    )
+    assert.match(reactRendererHtml, /Packed React renderer chart/)
+    assert.match(reactRendererHtml, /<canvas/)
+
+    const reactCanvasHtml = renderToStaticMarkup(
+      createElement(ReactCanvasChart, {
+        definition,
+        ariaLabel: 'Packed React Canvas chart',
+        width: 320,
+        height: 180,
+      }),
+    )
+    assert.match(reactCanvasHtml, /Packed React Canvas chart/)
+    assert.match(reactCanvasHtml, /<canvas/)
+
     const { html: octaneHtml } = renderToString(() =>
       OctaneChart({
         definition,
@@ -560,6 +612,29 @@ async function verifyEsmRuntime() {
     )
     assert.match(octaneHtml, /Packed Octane chart/)
     assert.match(octaneHtml, /<path/)
+
+    const { html: octaneRendererHtml } = renderToString(() =>
+      OctaneRendererChart({
+        renderer: canvasChartRenderer,
+        definition,
+        ariaLabel: 'Packed Octane renderer chart',
+        width: 320,
+        height: 180,
+      }),
+    )
+    assert.match(octaneRendererHtml, /Packed Octane renderer chart/)
+    assert.match(octaneRendererHtml, /<canvas/)
+
+    const { html: octaneCanvasHtml } = renderToString(() =>
+      OctaneCanvasChart({
+        definition,
+        ariaLabel: 'Packed Octane Canvas chart',
+        width: 320,
+        height: 180,
+      }),
+    )
+    assert.match(octaneCanvasHtml, /Packed Octane Canvas chart/)
+    assert.match(octaneCanvasHtml, /<canvas/)
   `
   const runtimeCheck = resolve(fixtureDirectory, 'runtime-check.mjs')
   await writeFile(runtimeCheck, source)
@@ -567,13 +642,11 @@ async function verifyEsmRuntime() {
 }
 
 async function verifyDeclarations() {
-  const coreSubpaths = Object.keys(packages[0].manifest.publishConfig.exports)
-    .sort()
-    .map((key) => `@tanstack/charts${key === '.' ? '' : key.slice(1)}`)
-  const namespaceImports = coreSubpaths
+  const namespaceImports = packages
+    .flatMap(publishedSpecifiers)
     .map(
       (specifier, index) =>
-        `import * as coreExport${index} from '${specifier}'\nvoid coreExport${index}`,
+        `import * as packedExport${index} from '${specifier}'\nvoid packedExport${index}`,
     )
     .join('\n')
   const source = `
@@ -584,11 +657,13 @@ async function verifyDeclarations() {
       type ChartFocusStrategy,
       type ChartSpec,
       type ChartPoint,
+      type ChartRenderer,
       type ChartSpecDatum,
       type ChartSpecXValue,
       type ChartSpecYValue,
       type ChartSvgRenderer,
     } from '@tanstack/charts'
+    import { canvasChartRenderer } from '@tanstack/charts/canvas'
     import { lineY } from '@tanstack/charts/line'
     import {
       createMarkWithScaleValues,
@@ -596,7 +671,11 @@ async function verifyDeclarations() {
       type ChartMarkScaleX,
     } from '@tanstack/charts/mark/scale-values'
     import { Chart as ReactChart } from '@tanstack/react-charts'
+    import { Chart as ReactCanvasChart } from '@tanstack/react-charts/canvas'
+    import { Chart as ReactRendererChart } from '@tanstack/react-charts/core'
     import { Chart as OctaneChart } from '@tanstack/octane-charts'
+    import { Chart as OctaneCanvasChart } from '@tanstack/octane-charts/canvas'
+    import { Chart as OctaneRendererChart } from '@tanstack/octane-charts/core'
     import { extent, max } from 'd3-array'
     import { scaleBand, scaleLinear } from 'd3-scale'
     import { curveMonotoneX } from 'd3-shape'
@@ -878,6 +957,51 @@ async function verifyDeclarations() {
       },
     })
 
+    const packedRenderer: ChartRenderer<Row, string, number> =
+      canvasChartRenderer
+    ReactRendererChart({
+      renderer: packedRenderer,
+      definition,
+      ariaLabel: 'React renderer chart',
+      onSelect(point) {
+        if (!point) return
+        point.datum.id.toUpperCase()
+        point.xValue.toUpperCase()
+        point.yValue.toFixed(0)
+      },
+    })
+    ReactCanvasChart({
+      definition,
+      ariaLabel: 'React Canvas chart',
+      onSelect(point) {
+        if (!point) return
+        point.datum.id.toUpperCase()
+        point.xValue.toUpperCase()
+        point.yValue.toFixed(0)
+      },
+    })
+    OctaneRendererChart({
+      renderer: packedRenderer,
+      definition,
+      ariaLabel: 'Octane renderer chart',
+      onSelect(point) {
+        if (!point) return
+        point.datum.id.toUpperCase()
+        point.xValue.toUpperCase()
+        point.yValue.toFixed(0)
+      },
+    })
+    OctaneCanvasChart({
+      definition,
+      ariaLabel: 'Octane Canvas chart',
+      onSelect(point) {
+        if (!point) return
+        point.datum.id.toUpperCase()
+        point.xValue.toUpperCase()
+        point.yValue.toFixed(0)
+      },
+    })
+
     mountChart(container, {
       definition: dynamicDefinition,
       input: { rows },
@@ -892,6 +1016,28 @@ async function verifyDeclarations() {
       definition: dynamicDefinition,
       input: { rows },
       ariaLabel: 'Dynamic Octane chart',
+    })
+    ReactRendererChart({
+      renderer: canvasChartRenderer,
+      definition: dynamicDefinition,
+      input: { rows },
+      ariaLabel: 'Dynamic React renderer chart',
+    })
+    ReactCanvasChart({
+      definition: dynamicDefinition,
+      input: { rows },
+      ariaLabel: 'Dynamic React Canvas chart',
+    })
+    OctaneRendererChart({
+      renderer: canvasChartRenderer,
+      definition: dynamicDefinition,
+      input: { rows },
+      ariaLabel: 'Dynamic Octane renderer chart',
+    })
+    OctaneCanvasChart({
+      definition: dynamicDefinition,
+      input: { rows },
+      ariaLabel: 'Dynamic Octane Canvas chart',
     })
     ReactChart({
       definition: undefinedInputDefinition,
@@ -949,6 +1095,16 @@ async function verifyDeclarations() {
       // @ts-expect-error Dynamic Octane definitions require input.
       definition: dynamicDefinition,
       ariaLabel: 'Missing Octane input',
+    })
+    ReactCanvasChart({
+      // @ts-expect-error Dynamic React Canvas definitions require input.
+      definition: dynamicDefinition,
+      ariaLabel: 'Missing React Canvas input',
+    })
+    OctaneCanvasChart({
+      // @ts-expect-error Dynamic Octane Canvas definitions require input.
+      definition: dynamicDefinition,
+      ariaLabel: 'Missing Octane Canvas input',
     })
     ReactChart({
       // @ts-expect-error Undefined-valued dynamic input is still required.
@@ -1017,11 +1173,30 @@ async function verifyDeclarations() {
 }
 
 async function verifyProductionBundles() {
+  const packedRendererModules = {
+    canvas: [
+      '/@tanstack/charts/dist/canvas.js',
+      '/@tanstack/react-charts/dist/CanvasChart.js',
+      '/@tanstack/react-charts/dist/canvas.js',
+      '/@tanstack/octane-charts/dist/CanvasChart.js',
+      '/@tanstack/octane-charts/dist/canvas.js',
+    ],
+    svg: [
+      '/@tanstack/charts/dist/reconcile.js',
+      '/@tanstack/charts/dist/svg-renderer.js',
+      '/@tanstack/charts/dist/svg-resources.js',
+      '/@tanstack/charts/dist/svg-surface.js',
+      '/@tanstack/charts/dist/svg.js',
+      '/@tanstack/react-charts/dist/Chart.js',
+      '/@tanstack/octane-charts/dist/Chart.js',
+    ],
+  }
   const entries = [
     {
       label: 'Core',
       filename: 'core.ts',
       external: [],
+      rendererBoundary: 'svg',
       source: `
         import {
           createChartScene,
@@ -1043,9 +1218,28 @@ async function verifyProductionBundles() {
       `,
     },
     {
+      label: 'Core renderer',
+      filename: 'core-renderer.ts',
+      external: [],
+      rendererBoundary: 'neutral',
+      source: `
+        export { mountChartRenderer } from '@tanstack/charts/renderer'
+      `,
+    },
+    {
+      label: 'Core Canvas',
+      filename: 'core-canvas.ts',
+      external: [],
+      rendererBoundary: 'canvas',
+      source: `
+        export { mountCanvasChart } from '@tanstack/charts/canvas'
+      `,
+    },
+    {
       label: 'React',
       filename: 'react.ts',
       external: ['react', 'react/jsx-runtime'],
+      rendererBoundary: 'svg',
       source: `
         import { createElement } from 'react'
         import { Chart } from '@tanstack/react-charts'
@@ -1064,11 +1258,48 @@ async function verifyProductionBundles() {
       `,
     },
     {
+      label: 'React core',
+      filename: 'react-core.ts',
+      external: ['react', 'react/jsx-runtime'],
+      rendererBoundary: 'neutral',
+      source: `
+        export { Chart } from '@tanstack/react-charts/core'
+      `,
+    },
+    {
+      label: 'React Canvas',
+      filename: 'react-canvas.ts',
+      external: ['react', 'react/jsx-runtime'],
+      rendererBoundary: 'canvas',
+      source: `
+        export { Chart } from '@tanstack/react-charts/canvas'
+      `,
+    },
+    {
       label: 'Octane',
       filename: 'octane.ts',
       external: ['octane'],
+      rendererBoundary: 'svg',
       source: `
         export { Chart } from '@tanstack/octane-charts'
+      `,
+    },
+    {
+      label: 'Octane core',
+      filename: 'octane-core.ts',
+      external: ['octane'],
+      rendererBoundary: 'neutral',
+      source: `
+        export { Chart } from '@tanstack/octane-charts/core'
+      `,
+    },
+    {
+      label: 'Octane Canvas',
+      filename: 'octane-canvas.ts',
+      external: ['octane'],
+      rendererBoundary: 'canvas',
+      source: `
+        export { Chart } from '@tanstack/octane-charts/canvas'
       `,
     },
   ]
@@ -1105,6 +1336,12 @@ async function verifyProductionBundles() {
       contents.byteLength < 500_000,
       `${entry.label} bundle unexpectedly exceeds 500 kB`,
     )
+    assertRendererBoundary(
+      entry.label,
+      Object.keys(result.metafile.inputs),
+      entry.rendererBoundary,
+      packedRendererModules,
+    )
     for (const input of Object.keys(result.metafile.inputs)) {
       const absoluteInput = resolve(fixtureDirectory, input)
       assert.equal(
@@ -1132,6 +1369,35 @@ async function verifyProductionBundles() {
   }
 
   return results
+}
+
+function assertRendererBoundary(label, inputs, boundary, modules) {
+  const paths = inputs.map((input) => input.replaceAll('\\', '/'))
+  const canvas = matchingModules(paths, modules.canvas)
+  const svg = matchingModules(paths, modules.svg)
+
+  if (boundary === 'neutral') {
+    assert.deepEqual(canvas, [], `${label} neutral bundle included Canvas`)
+    assert.deepEqual(svg, [], `${label} neutral bundle included SVG`)
+    return
+  }
+  if (boundary === 'canvas') {
+    assert.ok(canvas.length > 0, `${label} bundle omitted Canvas`)
+    assert.deepEqual(svg, [], `${label} Canvas bundle included SVG`)
+    return
+  }
+  if (boundary === 'svg') {
+    assert.ok(svg.length > 0, `${label} bundle omitted SVG`)
+    assert.deepEqual(canvas, [], `${label} SVG bundle included Canvas`)
+    return
+  }
+  assert.fail(`${label} uses unknown renderer boundary ${boundary}`)
+}
+
+function matchingModules(inputs, suffixes) {
+  return inputs.filter((input) =>
+    suffixes.some((suffix) => input.endsWith(suffix)),
+  )
 }
 
 async function walk(directory) {

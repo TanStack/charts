@@ -15,6 +15,13 @@ Every package entry in
 New marks and optional capabilities need an isolated budgeted entry. They must
 leave the locked entries byte-identical.
 
+Non-cartesian capability subpaths follow the same policy. Polar and geographic
+entries measure complete scenes through static SVG: a minimal arc, D3 pie,
+full scale-backed gauge composition, a scale-backed polar line and scatter
+composition, and projected GeoJSON. Atlas datasets remain application-owned
+inputs rather than chart-package dependencies. The locked Cartesian entries
+prove those D3 geometry modules remain opt-in.
+
 The advanced custom-mark scale-value factory follows the same rule: its
 subpath has a dedicated budget, while ordinary chart entries must retain zero
 bytes from it.

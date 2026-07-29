@@ -28,23 +28,23 @@ This rule applies when definitions live in React or Octane source as well. The f
 
 Use the official D3 pages as the API reference for each algorithm. TanStack Charts documentation only describes how its output crosses the chart boundary.
 
-| Need                                                               | D3 module                                                   | How it enters TanStack Charts                                                                        |
-| ------------------------------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Quantitative, temporal, categorical, log, radial, and color scales | [`d3-scale`](https://d3js.org/d3-scale)                     | Pass the configured scale to an axis, `color.scale`, `rScale`, or a custom mark                      |
-| Sequential, diverging, and categorical color schemes               | [`d3-scale-chromatic`](https://d3js.org/d3-scale-chromatic) | Pass an interpolator or scheme to a configured D3 color scale                                        |
-| Extents, grouping, aggregation, bins, sorting, and statistics      | [`d3-array`](https://d3js.org/d3-array)                     | Convert source data into rows, domains, or thresholds before creating marks                          |
-| Stacks, pies, arcs, curves, and shape generators                   | [`d3-shape`](https://d3js.org/d3-shape)                     | Feed generated interval rows to marks, use output in a custom mark, or bridge a curve with `d3Curve` |
-| Calendar intervals                                                 | [`d3-time`](https://d3js.org/d3-time)                       | Build bins, ticks, rounded selections, and date windows in application code                          |
-| Numeric formatting                                                 | [`d3-format`](https://d3js.org/d3-format)                   | Pass a formatter to an axis or tooltip option                                                        |
-| Time formatting                                                    | [`d3-time-format`](https://d3js.org/d3-time-format)         | Pass a formatter to an axis or tooltip option                                                        |
-| Quadtrees                                                          | [`d3-quadtree`](https://d3js.org/d3-quadtree)               | Implement an optional `ChartSpatialIndexFactory`                                                     |
-| Delaunay and Voronoi geometry                                      | [`d3-delaunay`](https://d3js.org/d3-delaunay)               | Implement a spatial index, overlay, or custom mark                                                   |
-| DOM selection for optional D3 gesture controllers                  | [`d3-selection`](https://d3js.org/d3-selection)             | Attach an application-owned brush or zoom behavior to an overlay                                     |
-| Brushes                                                            | [`d3-brush`](https://d3js.org/d3-brush)                     | Own the gesture in application code and map pixels through a copied chart scale                      |
-| Pan and zoom                                                       | [`d3-zoom`](https://d3js.org/d3-zoom)                       | Own the gesture and update chart input or a configured scale domain                                  |
-| Hierarchies and layouts                                            | [`d3-hierarchy`](https://d3js.org/d3-hierarchy)             | Convert layout output into ordinary rows or custom scene nodes                                       |
-| Force simulation                                                   | [`d3-force`](https://d3js.org/d3-force)                     | Prepare positioned nodes and links before rendering                                                  |
-| Geographic projections and paths                                   | [`d3-geo`](https://d3js.org/d3-geo)                         | Generate projected geometry for custom marks or renderers                                            |
+| Need                                                               | D3 module                                                   | How it enters TanStack Charts                                                                     |
+| ------------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Quantitative, temporal, categorical, log, radial, and color scales | [`d3-scale`](https://d3js.org/d3-scale)                     | Pass the configured scale to an axis, polar coordinate, `color.scale`, `rScale`, or custom mark   |
+| Sequential, diverging, and categorical color schemes               | [`d3-scale-chromatic`](https://d3js.org/d3-scale-chromatic) | Pass an interpolator or scheme to a configured D3 color scale                                     |
+| Extents, grouping, aggregation, bins, sorting, and statistics      | [`d3-array`](https://d3js.org/d3-array)                     | Convert source data into rows, domains, or thresholds before creating marks                       |
+| Stacks, pies, arcs, curves, and shape generators                   | [`d3-shape`](https://d3js.org/d3-shape)                     | Feed pie intervals and curve factories to polar marks, or bridge a Cartesian curve with `d3Curve` |
+| Calendar intervals                                                 | [`d3-time`](https://d3js.org/d3-time)                       | Build bins, ticks, rounded selections, and date windows in application code                       |
+| Numeric formatting                                                 | [`d3-format`](https://d3js.org/d3-format)                   | Pass a formatter to an axis or tooltip option                                                     |
+| Time formatting                                                    | [`d3-time-format`](https://d3js.org/d3-time-format)         | Pass a formatter to an axis or tooltip option                                                     |
+| Quadtrees                                                          | [`d3-quadtree`](https://d3js.org/d3-quadtree)               | Implement an optional `ChartSpatialIndexFactory`                                                  |
+| Delaunay and Voronoi geometry                                      | [`d3-delaunay`](https://d3js.org/d3-delaunay)               | Implement a spatial index, overlay, or custom mark                                                |
+| DOM selection for optional D3 gesture controllers                  | [`d3-selection`](https://d3js.org/d3-selection)             | Attach an application-owned brush or zoom behavior to an overlay                                  |
+| Brushes                                                            | [`d3-brush`](https://d3js.org/d3-brush)                     | Own the gesture in application code and map pixels through a copied chart scale                   |
+| Pan and zoom                                                       | [`d3-zoom`](https://d3js.org/d3-zoom)                       | Own the gesture and update chart input or a configured scale domain                               |
+| Hierarchies and layouts                                            | [`d3-hierarchy`](https://d3js.org/d3-hierarchy)             | Convert layout output into ordinary rows or custom scene nodes                                    |
+| Force simulation                                                   | [`d3-force`](https://d3js.org/d3-force)                     | Prepare positioned nodes and links before rendering                                               |
+| Geographic projections and paths                                   | [`d3-geo`](https://d3js.org/d3-geo)                         | Pass a responsive projection factory to `geoShape`                                                |
 
 ## Positional scales are required
 
@@ -246,7 +246,11 @@ const histogram = bin()
 
 Pass `histogram` to `rect`, `barY`, `lineY`, `dot`, or a custom mark according to the desired geometry. In a dynamic definition, put substantial synchronous transformation in `prepare` and define `prepareEqual` around the inputs that affect it.
 
-The same rule applies to stacks, pies, hierarchies, force layouts, geographic projections, and server-prepared intervals: preserve the useful output as typed rows, then map it through ordinary channels.
+The same rule applies to stacks, pies, hierarchies, force layouts, and
+server-prepared intervals: preserve the useful output as typed rows, then map
+it through mark channels. A responsive geographic projection instead belongs
+in `geoShape`'s projection factory because its pixel range depends on the final
+plot bounds.
 
 ## Pixel-to-value inversion
 

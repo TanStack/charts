@@ -4,6 +4,10 @@ import { errorData } from './data'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
+const estimate = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+})
 const categories = [
   'Query',
   'Router',
@@ -64,4 +68,8 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount = tanstackMount(
   definition,
   'Point estimates with error bars',
+  {
+    format: (point) =>
+      `${point.datum.category} · Estimate: ${estimate.format(point.datum.mean)} · Range: ${estimate.format(point.datum.low)}–${estimate.format(point.datum.high)}`,
+  },
 )

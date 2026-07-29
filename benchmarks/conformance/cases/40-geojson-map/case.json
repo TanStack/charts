@@ -5,13 +5,13 @@
   "title": "Regional GeoJSON choropleth",
   "family": "geography",
   "intent": "Compare regional values using a compact GeoJSON choropleth map.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "geo mark",
     "GeoJSON",
     "identity projection",
     "d3-geo",
-    "custom mark"
+    "geoShape"
   ],
   "geometry": [{ "role": "geo", "count": 6 }],
   "source": {
@@ -19,7 +19,7 @@
     "url": "https://observablehq.com/plot/marks/geo"
   },
   "ai": {
-    "create": "Create a six-region choropleth from a typed GeoJSON feature collection. Plot should use geo with an identity projection; TanStack should inject d3-geo and render one path per feature through a local custom mark.",
+    "create": "Create a six-region choropleth from a typed GeoJSON feature collection. Plot should use geo with an identity projection; TanStack should inject d3-geo and render one path per feature through geoShape.",
     "maintain": "Keep projection fitting responsive, preserve feature identity and literal fills, and leave geographic projection code outside the ordinary cartesian bundle."
   }
 }

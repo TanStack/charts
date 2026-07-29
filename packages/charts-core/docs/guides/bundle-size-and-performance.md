@@ -19,10 +19,32 @@ Capability subpaths make optional boundaries explicit:
 
 ```ts
 import { mountChart } from '@tanstack/charts/dom'
+import { mountCanvasChart } from '@tanstack/charts/canvas'
+import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { renderChartImage } from '@tanstack/charts/export'
 import { focusX } from '@tanstack/charts/focus'
 import { d3Curve } from '@tanstack/charts/d3/shape'
 ```
+
+Canvas is opt-in. The default core, React, and Octane entries remain SVG-based;
+Canvas enters the module graph only through `@tanstack/charts/canvas`,
+`@tanstack/react-charts/canvas`, or `@tanstack/octane-charts/canvas`. The
+framework `/core` entries accept an application-supplied renderer without
+importing Canvas.
+
+Non-cartesian geometry is subpath-only:
+
+```ts
+import { polar, radialArc } from '@tanstack/charts/polar'
+import { geoShape } from '@tanstack/charts/geo'
+```
+
+The root entry does not re-export those capabilities. Polar brings in its
+`d3-shape` geometry only when the polar subpath is imported; geography does
+the same for `d3-geo`. Import `pie`, configured scales, projections, and curve
+factories from their granular D3 modules as the chart requires them. Political
+boundary data and `topojson-client` remain application dependencies; importing
+`geoShape` does not bundle an atlas.
 
 Your bundler must honor ESM exports and tree shaking. Avoid namespace imports
 when a named or subpath import communicates the real dependency.
@@ -53,7 +75,10 @@ bundler, minifier, target, and entry source. A root package tarball size or an
 unminified source count is not a user bundle measurement.
 
 The repository's bundle gates use isolated entries so adding a complex mark
-cannot silently increase the smallest chart.
+cannot silently increase the smallest chart. Polar has separate arc-only and
+D3-pie consumer ceilings plus a complete scale-backed line/scatter ceiling;
+geography has its own projected-shape ceiling. The ordinary line,
+representative-mark, DOM, and framework entries remain exact byte locks.
 
 ## Separate preparation, scene, and paint
 
@@ -61,7 +86,8 @@ Measure three layers independently:
 
 1. Data preparation: sorting, grouping, binning, stacking, or layout.
 2. Scene build: channels, scales, guides, marks, and focus points.
-3. DOM paint: SVG serialization, keyed reconciliation, and optional animation.
+3. Surface paint: SVG serialization and keyed reconciliation, or Canvas draw
+   calls, plus optional animation.
 
 This separation reveals whether an expensive chart needs a better encoding, a
 cached transform, fewer scene nodes, or a different renderer.
@@ -81,8 +107,10 @@ The fastest way to render too much data is to avoid rendering it:
 - use facets only when each panel remains interpretable;
 - virtualize application chrome and lanes when only a subset is visible.
 
-Every visible SVG node carries paint, memory, hit-testing, and accessibility
-cost. More nodes are justified only when they communicate more information.
+Every visible SVG node carries DOM and paint cost. Canvas removes the
+per-element DOM cost, but not scene construction, draw work, interaction-point
+memory, or visual overplotting. More marks are justified only when they
+communicate more information.
 
 See [Large Data](./large-data.md) for representation thresholds and
 interaction policies.

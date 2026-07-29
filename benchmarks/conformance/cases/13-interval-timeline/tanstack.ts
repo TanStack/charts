@@ -46,4 +46,7 @@ const definition = defineChart<ConformanceInput>()(({ input }) => ({
   },
 }))
 
-export const mount = tanstackMount(definition, 'Project interval timeline')
+export const mount = tanstackMount(definition, 'Project interval timeline', {
+  format: (point) =>
+    `${point.datum.task} · ${point.datum.phase} phase · Project days ${point.datum.start}–${point.datum.end} · Duration: ${point.datum.end - point.datum.start} days`,
+})

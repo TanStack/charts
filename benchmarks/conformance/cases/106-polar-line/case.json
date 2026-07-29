@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "echarts",
+  "order": 1060,
+  "id": "106-polar-line",
+  "title": "Numeric polar line",
+  "family": "polar",
+  "intent": "Follow one cyclic quantitative profile through a continuous angular domain.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "continuous angle scale",
+    "continuous radius scale",
+    "D3 radial line",
+    "circular grid",
+    "responsive radius"
+  ],
+  "geometry": [{ "role": "line", "count": 1, "maxCount": 1 }],
+  "minimumGeometrySimilarity": 0.999,
+  "source": {
+    "title": "Apache ECharts Polar Line",
+    "url": "https://echarts.apache.org/examples/en/editor.html?c=line-polar"
+  },
+  "ai": {
+    "create": "Create one straight-segment polar line over a zero-to-three-hundred-sixty-degree angle domain and a fixed zero-to-one-hundred radius domain.",
+    "maintain": "Update radius values while preserving angular order, explicit domains, responsive center and radius, stable point identities, and the closing endpoint."
+  }
+}

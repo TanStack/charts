@@ -13,10 +13,27 @@ const args = new Set(process.argv.slice(2))
 if (args.has('--check') && args.has('--update-baseline')) {
   throw new Error('Choose either --check or --update-baseline, not both.')
 }
+const rendererBoundaryModules = {
+  canvas: [
+    'packages/charts-core/src/canvas.ts',
+    'packages/react-charts/src/CanvasChart.tsx',
+    'packages/react-charts/src/canvas.ts',
+  ],
+  svg: [
+    'packages/charts-core/src/reconcile.ts',
+    'packages/charts-core/src/svg-renderer.ts',
+    'packages/charts-core/src/svg-resources.ts',
+    'packages/charts-core/src/svg-surface.ts',
+    'packages/charts-core/src/svg.ts',
+    'packages/react-charts/src/Chart.tsx',
+  ],
+}
 const entries = [
   measured('Core host', 'benchmarks/entries/core.ts'),
   locked('D3-scale line scene', 'benchmarks/entries/charts-core.ts'),
-  locked('D3-scale line + static SVG', 'benchmarks/entries/charts-svg.ts'),
+  locked('D3-scale line + static SVG', 'benchmarks/entries/charts-svg.ts', {
+    rendererBoundary: 'svg',
+  }),
   budgeted(
     'D3-scale UTC line + static SVG',
     'benchmarks/entries/charts-time-svg.ts',
@@ -68,10 +85,62 @@ const entries = [
     'benchmarks/entries/charts-vector-svg.ts',
     14.2,
   ),
+  budgeted(
+    'D3 geo shape + static SVG',
+    'benchmarks/entries/charts-geo-svg.ts',
+    10.7,
+  ),
+  budgeted(
+    'Polar arc + static SVG',
+    'benchmarks/entries/charts-polar-arc-svg.ts',
+    9.1,
+  ),
+  budgeted(
+    'D3 pie + polar arc + static SVG',
+    'benchmarks/entries/charts-polar-pie-svg.ts',
+    9.55,
+  ),
+  budgeted(
+    'Polar gauge composition + static SVG',
+    'benchmarks/entries/charts-polar-gauge-svg.ts',
+    17.5,
+  ),
+  budgeted(
+    'Polar line + scatter composition + static SVG',
+    'benchmarks/entries/charts-polar-line-scatter-svg.ts',
+    18.75,
+  ),
   locked('Representative marks', 'benchmarks/entries/charts-representative.ts'),
-  locked('TanStack DOM host', 'benchmarks/entries/charts-dom.ts'),
+  measured(
+    'Renderer-neutral DOM host',
+    'benchmarks/entries/charts-renderer.ts',
+    { rendererBoundary: 'neutral' },
+  ),
+  measured('Canvas DOM host', 'benchmarks/entries/charts-canvas.ts', {
+    rendererBoundary: 'canvas',
+  }),
+  locked('TanStack DOM host', 'benchmarks/entries/charts-dom.ts', {
+    rendererBoundary: 'svg',
+  }),
+  measured(
+    'React renderer-neutral adapter',
+    'benchmarks/entries/charts-react-core.ts',
+    {
+      external: ['react', 'react/jsx-runtime'],
+      rendererBoundary: 'neutral',
+    },
+  ),
+  measured(
+    'React Canvas adapter',
+    'benchmarks/entries/charts-react-canvas.ts',
+    {
+      external: ['react', 'react/jsx-runtime'],
+      rendererBoundary: 'canvas',
+    },
+  ),
   locked('React adapter', 'benchmarks/entries/charts-react.ts', {
     external: ['react', 'react/jsx-runtime'],
+    rendererBoundary: 'svg',
   }),
   locked('React line consumer', 'benchmarks/entries/charts-react-line.ts', {
     external: ['react', 'react/jsx-runtime'],
@@ -79,7 +148,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    29.8,
+    30.9,
   ),
   locked(
     'Custom-scale line scene',
@@ -117,12 +186,12 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    19.9,
+    20.9,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    25.2,
+    26.1,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -200,7 +269,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    30.4,
+    31.7,
     { external: ['react', 'react/jsx-runtime'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),
@@ -218,12 +287,19 @@ const entries = [
 await mkdir(outputDirectory, { recursive: true })
 
 const rows = []
-for (const { label, entry, external, alias, policy } of entries) {
+for (const {
+  label,
+  entry,
+  external,
+  alias,
+  policy,
+  rendererBoundary,
+} of entries) {
   const outfile = resolve(
     outputDirectory,
     `${basename(entry, '.ts').replaceAll(/[^a-z0-9-]/gi, '-')}.js`,
   )
-  await build({
+  const result = await build({
     entryPoints: [resolve(root, entry)],
     outfile,
     bundle: true,
@@ -236,7 +312,9 @@ for (const { label, entry, external, alias, policy } of entries) {
     logLevel: 'silent',
     external,
     alias,
+    metafile: true,
   })
+  assertRendererBoundary(label, result.metafile.inputs, rendererBoundary)
   const contents = await readFile(outfile)
   rows.push({
     label,
@@ -326,7 +404,39 @@ function createEntry(label, entry, policy, options) {
     policy,
     external: options.external,
     alias: options.alias,
+    rendererBoundary: options.rendererBoundary,
   }
+}
+
+function assertRendererBoundary(label, inputs, boundary) {
+  if (!boundary) return
+  const paths = Object.keys(inputs).map((input) => input.replaceAll('\\', '/'))
+  const canvas = matchingModules(paths, rendererBoundaryModules.canvas)
+  const svg = matchingModules(paths, rendererBoundaryModules.svg)
+  const failures = []
+
+  if (boundary === 'neutral') {
+    if (canvas.length) failures.push(`included Canvas: ${canvas.join(', ')}`)
+    if (svg.length) failures.push(`included SVG: ${svg.join(', ')}`)
+  } else if (boundary === 'canvas') {
+    if (!canvas.length) failures.push('did not include the Canvas renderer')
+    if (svg.length) failures.push(`included SVG: ${svg.join(', ')}`)
+  } else if (boundary === 'svg') {
+    if (!svg.length) failures.push('did not include the SVG renderer')
+    if (canvas.length) failures.push(`included Canvas: ${canvas.join(', ')}`)
+  } else {
+    failures.push(`uses unknown renderer boundary ${boundary}`)
+  }
+
+  if (failures.length) {
+    throw new Error(`${label} renderer boundary failed: ${failures.join('; ')}`)
+  }
+}
+
+function matchingModules(inputs, suffixes) {
+  return inputs.filter((input) =>
+    suffixes.some((suffix) => input.endsWith(suffix)),
+  )
 }
 
 function checkBudgets(measuredRows) {

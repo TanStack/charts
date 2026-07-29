@@ -6,13 +6,13 @@
   "title": "Simple radar chart",
   "family": "polar",
   "intent": "Compare one profile across six equally spaced qualitative dimensions.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "polar coordinates",
     "radial scale",
     "polygon grid",
     "radial tick labels",
-    "filled profile"
+    "closed radial area"
   ],
   "geometry": [
     { "role": "radar", "count": 1 },

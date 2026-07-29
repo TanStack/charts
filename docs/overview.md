@@ -3,14 +3,16 @@ title: Overview
 description: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
 ---
 
-TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and JavaScript. Give each mark its natural data, map fields or accessors to visual channels, and supply the D3 scales that define the meaning of each axis. TanStack Charts compiles that declaration into a responsive, keyed scene and renders accessible SVG.
+TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and JavaScript. Give each mark its natural data, map fields or accessors to visual channels, and supply the D3 scales that define the meaning of each axis. TanStack Charts compiles that declaration into a responsive, keyed scene and renders accessible SVG by default, with Canvas available as an opt-in surface.
 
 The library is designed for two equally important authors:
 
 - People should get polished, responsive charts from a short declaration.
 - AI should be able to compose, inspect, and modify charts without learning an application-specific series model or guessing at hidden behavior.
 
-The same definition works with the vanilla DOM host, the React adapter, the Octane adapter, static SVG rendering, and server rendering.
+The same definition works with the vanilla DOM host, the React adapter, the
+Octane adapter, optional Canvas entries, static SVG rendering, and server
+rendering.
 
 ## A chart is a composition
 
@@ -80,7 +82,8 @@ TanStack Charts owns the parts that make a declarative chart reliable inside an 
 - A grammar of typed marks, channels, scales, guides, and layers
 - Container-responsive pixel ranges and automatic guide margins
 - A renderer-neutral scene with stable keys
-- SVG rendering, keyed DOM reconciliation, and interruptible animation
+- Default SVG rendering, keyed DOM reconciliation, optional Canvas painting,
+  and interruptible animation
 - Pointer and keyboard focus, selection callbacks, and native tooltips
 - Framework-agnostic runtime state with thin React and Octane adapters
 - Light and dark mode defaults based on inherited color and CSS variables
@@ -115,11 +118,11 @@ Every automatic behavior has an explicit escape hatch. The [Guides](./guides/res
 
 ## Packages
 
-| Package                   | Use it for                                                                               |
-| ------------------------- | ---------------------------------------------------------------------------------------- |
-| `@tanstack/charts`        | Definitions, marks, scenes, the DOM host, SVG rendering, and all framework-agnostic APIs |
-| `@tanstack/react-charts`  | The thin React `<Chart>` adapter                                                         |
-| `@tanstack/octane-charts` | The thin Octane `<Chart>` adapter                                                        |
+| Package                   | Use it for                                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `@tanstack/charts`        | Definitions, marks, scenes, SVG rendering, optional Canvas and renderer subpaths, and framework-agnostic APIs |
+| `@tanstack/react-charts`  | The thin React `<Chart>` adapter                                                                              |
+| `@tanstack/octane-charts` | The thin Octane `<Chart>` adapter                                                                             |
 
 All packages are ESM and tree-shakeable. Built-in marks and optional capabilities also have subpath exports when a library or design system needs tighter bundle boundaries.
 

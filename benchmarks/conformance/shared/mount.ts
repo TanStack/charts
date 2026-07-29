@@ -1,5 +1,8 @@
 import { mountChart } from '@tanstack/charts'
-import type { DynamicChartDefinition } from '@tanstack/charts'
+import type {
+  ChartTooltipOptions,
+  DynamicChartDefinition,
+} from '@tanstack/charts'
 import type {
   ConformanceHandle,
   ConformanceInput,
@@ -33,6 +36,7 @@ export function tanstackMount<TDatum>(
     TDatum
   >,
   ariaLabel: string,
+  interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
 ): ConformanceMount {
   return (container, input) => {
     const options = {
@@ -42,7 +46,8 @@ export function tanstackMount<TDatum>(
       height: input.height,
       ariaLabel,
       animate: false,
-      keyboard: false,
+      keyboard: input.interactive === true,
+      tooltip: input.interactive === true ? interactiveTooltip : false,
     } as const
     const host = mountChart(container, options)
 
@@ -53,6 +58,8 @@ export function tanstackMount<TDatum>(
           input: nextInput,
           width: nextInput.width,
           height: nextInput.height,
+          keyboard: nextInput.interactive === true,
+          tooltip: nextInput.interactive === true ? interactiveTooltip : false,
         })
       },
       destroy() {

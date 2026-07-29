@@ -558,6 +558,7 @@ function isGeometryRole(
   value: unknown,
 ): value is ConformanceCaseMeta['geometry'][number]['role'] {
   return (
+    value === 'arc' ||
     value === 'area' ||
     value === 'arrow' ||
     value === 'bar' ||

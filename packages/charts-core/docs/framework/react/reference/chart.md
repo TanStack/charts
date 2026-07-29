@@ -25,6 +25,33 @@ function Chart<
 >(props: DynamicChartProps<TDatum, TInput, TXValue, TYValue>): React.JSX.Element
 ```
 
+## Renderer entry points
+
+The default entry uses SVG. The optional entries keep other renderer code
+explicit:
+
+```tsx
+import { Chart as CanvasChart } from '@tanstack/react-charts/canvas'
+import { Chart as RendererChart } from '@tanstack/react-charts/core'
+
+const canvasChart = (
+  <CanvasChart definition={definition} ariaLabel="Weekly revenue" />
+)
+const rendererChart = (
+  <RendererChart
+    definition={definition}
+    renderer={myRenderer}
+    ariaLabel="Weekly revenue"
+  />
+)
+```
+
+The Canvas `Chart` accepts the same common interaction and sizing props except
+`renderSvg`. Its `onRender` receives `ChartRendererRenderContext`. The `/core`
+`Chart` also requires `renderer: ChartRenderer`; use it for application-owned
+surfaces. Both entries export `ChartCommonProps`, `ChartProps`,
+`StaticChartProps`, `DynamicChartProps`, `ChartDefinition`, and `ChartPoint`.
+
 ## Definition props
 
 | Prop         | Static                     | Dynamic                     | Meaning                                         |
@@ -38,9 +65,9 @@ See [Chart Definition API](../../../reference/chart-definitions.md).
 
 | Prop              | Type                  | Default                    | Meaning                                                |
 | ----------------- | --------------------- | -------------------------- | ------------------------------------------------------ |
-| `ariaLabel`       | `string`              | Required                   | Accessible SVG name                                    |
-| `ariaDescription` | `string`              | None                       | Optional SVG description                               |
-| `tabIndex`        | `number`              | `0`                        | SVG tab index while keyboard behavior is enabled       |
+| `ariaLabel`       | `string`              | Required                   | Accessible surface name                                |
+| `ariaDescription` | `string`              | None                       | Optional surface description                           |
+| `tabIndex`        | `number`              | `0`                        | Surface tab index while keyboard behavior is enabled   |
 | `height`          | `number`              | `320` without aspect ratio | Fixed CSS and scene height                             |
 | `aspectRatio`     | `number`              | None                       | Positive width-to-height ratio when height is absent   |
 | `width`           | `number`              | Responsive                 | Fixed CSS and scene width                              |

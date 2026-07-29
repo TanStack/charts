@@ -4,7 +4,7 @@ description: Understand the native TSRX lifecycle, conditional SSR target, hydra
 ---
 
 `@tanstack/octane-charts` is the native TSRX lifecycle and SSR adapter around
-`@tanstack/charts`. Definitions, scenes, responsive layout, SVG rendering,
+`@tanstack/charts`. Definitions, scenes, responsive layout, rendering,
 interaction, and animation remain framework-neutral.
 
 ## Public exports
@@ -22,13 +22,24 @@ export type {
 } from '@tanstack/octane-charts'
 ```
 
+Choose Canvas or an application-supplied renderer through an explicit
+subpath:
+
+```tsx
+import { Chart as CanvasChart } from '@tanstack/octane-charts/canvas'
+import { Chart as RendererChart } from '@tanstack/octane-charts/core'
+```
+
+The default `Chart` remains SVG-based. `CanvasChart` selects the optional
+built-in renderer; `RendererChart` requires a `renderer` prop.
+
 The package export map supplies a browser build for browser bundlers and a
 separate Node build for the `node` condition.
 
 ## Render lifecycle
 
-The adapter creates one `ChartRuntime` for each component instance and renders
-the initial complete SVG in TSRX. After layout:
+The adapter creates one `ChartRuntime` for each component instance and asks the
+selected renderer for initial markup in TSRX. After layout:
 
 1. `useLayoutEffect` mounts the shared DOM host into the existing chart surface
 2. the initial runtime is passed through, preserving prepared data
@@ -37,13 +48,18 @@ the initial complete SVG in TSRX. After layout:
 5. cleanup destroys the host and all browser-owned behavior
 
 The inner chart surface is memoized after its first output. The shared host
-reconciles later scenes directly in the SVG.
+paints later scenes directly into the selected surface.
 
 ## SSR and hydration
 
-The Node target renders the complete `.ts-chart-host`,
+The default Node target renders the complete `.ts-chart-host`,
 `.ts-chart-surface`, and accessible SVG at `initialWidth`. The browser target
 hydrates the same structure before mounting the host.
+
+The Canvas entry renders a deterministic named root and two `aria-hidden`
+canvases on the server. It paints no server pixels. The browser adopts the
+elements, paints after mount, and attaches the same focus, keyboard, tooltip,
+and selection host.
 
 Keep data, definitions, scale domains, custom renderers, and dimensions
 deterministic between server and browser. The adapter generates a sanitized
@@ -62,7 +78,7 @@ The rendered structure is:
 ```text
 .ts-chart-host
   .ts-chart-surface
-    svg.ts-chart
+    svg.ts-chart | div.ts-chart-canvas
 ```
 
 The outer host uses `position: relative`.
@@ -104,8 +120,8 @@ Octane-specific presentation props apply to the outer host:
 Do not conflict a fixed `width` prop with `style.width`. The style changes the
 outer CSS box while the prop continues to lock scene measurement.
 
-The core renderer's `className` option applies to direct SVG rendering, not the
-Octane outer host.
+The core renderer's `className` option applies to a directly rendered surface,
+not the Octane outer host.
 
 ## Definition and option identity
 

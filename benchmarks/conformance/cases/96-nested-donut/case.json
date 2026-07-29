@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 960,
+  "id": "96-nested-donut",
+  "title": "Nested donut rings",
+  "family": "polar",
+  "intent": "Compare a high-level split and its detailed composition in two concentric rings.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "two D3 pie layouts",
+    "concentric arc layers",
+    "independent ring radii",
+    "stable hierarchical keys"
+  ],
+  "geometry": [{ "role": "arc", "count": 6, "maxCount": 6 }],
+  "minimumGeometrySimilarity": 0.999,
+  "source": {
+    "title": "Recharts Two Level Pie Chart",
+    "url": "https://recharts.github.io/en-US/examples/TwoLevelPieChart/"
+  },
+  "ai": {
+    "create": "Create an inner two-slice summary ring and an outer four-slice detail ring with independent keyed D3 pie layouts.",
+    "maintain": "Update both levels together while preserving ring order, the gap between rings, stable identities, and responsive inner and outer radii."
+  }
+}

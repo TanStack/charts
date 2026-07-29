@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "order": 1080,
+  "id": "108-country-choropleth",
+  "title": "World country choropleth",
+  "family": "geography",
+  "intent": "Compare values across real country boundaries with an equal-area world projection.",
+  "support": "native",
+  "features": [
+    "world-atlas 110m countries",
+    "TopoJSON conversion",
+    "177 keyed GeoJSON features",
+    "Equal Earth projection",
+    "responsive projection fitting",
+    "theme-aware country borders"
+  ],
+  "geometry": [{ "role": "geo", "count": 177, "maxCount": 177 }],
+  "minimumGeometrySimilarity": 0.999,
+  "source": {
+    "title": "Observable Plot projections",
+    "url": "https://observablehq.com/plot/features/projections"
+  },
+  "ai": {
+    "create": "Create a country-level Equal Earth choropleth from world-atlas countries-110m, converting TopoJSON once and rendering all 177 countries as keyed native geo marks.",
+    "maintain": "Update country values without replacing boundary geometry; preserve atlas identity, responsive projection fitting, stable country keys, binned fills, and theme-aware borders."
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 780,
+  "id": "78-gauge",
+  "title": "Partial-circle gauge",
+  "family": "polar",
+  "intent": "Show one bounded proportion across a 270-degree annular sweep.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "D3 pie layout",
+    "partial angular range",
+    "annular arc sectors",
+    "bounded proportion",
+    "responsive radius"
+  ],
+  "geometry": [{ "role": "arc", "count": 2, "maxCount": 2 }],
+  "minimumGeometrySimilarity": 0.9999,
+  "source": {
+    "title": "Recharts Pie Chart With Needle",
+    "url": "https://recharts.github.io/en-US/examples/PieChartWithNeedle/"
+  },
+  "ai": {
+    "create": "Create a 270-degree gauge from a bounded value and its remainder using two keyed annular arcs.",
+    "maintain": "Update the bounded value while preserving the partial sweep, zero baseline, responsive radii, stable value and remainder identities, and exact fills."
+  }
+}

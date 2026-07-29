@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 980,
+  "id": "98-needle-gauge",
+  "title": "Threshold gauge with needle",
+  "family": "polar",
+  "intent": "Show one bounded reading against three threshold bands with a centered needle and value.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "D3 pie layout",
+    "threshold bands",
+    "native radial rule ticks and needle",
+    "native radial dot hub",
+    "native radial text"
+  ],
+  "geometry": [
+    { "role": "arc", "count": 3, "maxCount": 3 },
+    { "role": "rule", "count": 12, "maxCount": 12 },
+    { "role": "dot", "count": 1, "maxCount": 1 },
+    { "role": "text", "count": 1, "maxCount": 1 }
+  ],
+  "minimumGeometrySimilarity": 0.999,
+  "source": {
+    "title": "Recharts Pie Chart With Needle",
+    "url": "https://recharts.github.io/en-US/examples/PieChartWithNeedle/"
+  },
+  "ai": {
+    "create": "Create a semicircular threshold gauge with three D3 pie sectors, eleven radial tick rules, a scale-driven radial rule needle, a radial dot hub, and a centered radial value label.",
+    "maintain": "Update the reading without changing threshold or tick boundaries; preserve stable keys, the zero-to-one-hundred angle domain, the responsive radius, and native polar mark ownership."
+  }
+}

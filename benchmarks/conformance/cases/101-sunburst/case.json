@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 1010,
+  "id": "101-sunburst",
+  "title": "Sunburst hierarchy",
+  "family": "hierarchy",
+  "intent": "Show part-to-whole relationships across two visible hierarchy depths using nested annular sectors.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "d3-hierarchy partition",
+    "hierarchical angle allocation",
+    "authored D3 arc generator",
+    "data-driven per-depth radii",
+    "inherited branch color"
+  ],
+  "geometry": [{ "role": "arc", "count": 10, "maxCount": 10 }],
+  "minimumGeometrySimilarity": 0.995,
+  "source": {
+    "title": "Recharts Sunburst Chart Example",
+    "url": "https://recharts.github.io/en-US/examples/SunburstChartExample/"
+  },
+  "ai": {
+    "create": "Create a two-ring sunburst from a typed hierarchy using d3-hierarchy partition output and a responsive D3 arc generator with inherited branch colors.",
+    "maintain": "Update leaf values while preserving hierarchy order, stable ancestry-path keys, global angular allocation, responsive ring thickness, and branch color inheritance."
+  }
+}

@@ -1,88 +1,24 @@
 import * as React from 'react'
-import {
-  createChartRuntime,
-  mountChart,
-  renderChartSvg,
-  type ChartDefinition,
-  type ChartAnimationOptions,
-  type ChartHostCommonOptions,
-  type ChartHost,
-  type ChartHostOptions,
-  type ChartPoint,
-  type ChartFocusMode,
-  type ChartRenderContext,
-  type ChartRuntime,
-  type ChartSpatialIndexFactory,
-  type ChartSvgRenderer,
-  type ChartTextMeasurer,
-  type ChartTooltipOptions,
-  type ChartValue,
-  type DynamicChartDefinition,
-  type StaticChartDefinition,
+import { renderChartSvg } from '@tanstack/charts/svg'
+import { createSvgChartRenderer } from '@tanstack/charts/svg/renderer'
+import type {
+  ChartAnimationOptions,
+  ChartFocusMode,
+  ChartPoint,
+  ChartRenderContext,
+  ChartRendererRenderContext,
+  ChartSpatialIndexFactory,
+  ChartSvgRenderer,
+  ChartTextMeasurer,
+  ChartTooltipOptions,
+  ChartValue,
+  DynamicChartDefinition,
+  StaticChartDefinition,
 } from '@tanstack/charts'
-
-interface ChartSurfaceProps {
-  definition: ChartDefinition<unknown, unknown, any>
-  input: unknown
-  ariaLabel: string
-  ariaDescription?: string
-  height: number
-  width: number
-  keyboard: boolean
-  tabIndex?: number
-  idPrefix: string
-  renderSvg: ChartSvgRenderer<any, any, any>
-  runtime: ChartRuntime<any, any, any, any>
-  measureText?: ChartTextMeasurer
-}
-
-const ChartSurface = React.memo(
-  React.forwardRef<HTMLDivElement, ChartSurfaceProps>(function ChartSurface(
-    {
-      definition,
-      input,
-      ariaLabel,
-      ariaDescription,
-      height,
-      width,
-      keyboard,
-      tabIndex,
-      idPrefix,
-      renderSvg,
-      runtime,
-      measureText,
-    },
-    ref,
-  ) {
-    const scene = runtime.render(
-      definition,
-      input,
-      {
-        width,
-        height,
-      },
-      { measureText },
-    )
-    const markup = {
-      __html: renderSvg(scene, {
-        ariaLabel,
-        ariaDescription,
-        tabIndex: keyboard ? (tabIndex ?? 0) : -1,
-        idPrefix,
-      }),
-    }
-
-    return (
-      <div
-        ref={ref}
-        className="ts-chart-surface"
-        style={{ width: '100%', height: '100%' }}
-        dangerouslySetInnerHTML={markup}
-      />
-    )
-  }),
-  () => true,
-)
+import {
+  RendererChartImplementation,
+  type RendererChartProps,
+} from './RendererChart'
 
 export interface ChartCommonProps<
   TDatum = unknown,
@@ -164,158 +100,32 @@ export function Chart<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(props: ChartProps<TDatum, TInput, TXValue, TYValue>) {
-  const {
-    definition,
-    input,
-    ariaLabel,
-    ariaDescription,
-    height,
-    aspectRatio,
-    width,
-    initialWidth = 640,
-    className,
-    style,
-    maxFocusDistance = 48,
-    focus,
-    spatialIndex,
-    animate,
-    keyboard = true,
-    tabIndex,
-    idPrefix: idPrefixOption,
-    renderSvg = renderChartSvg,
-    measureText,
-    tooltip,
-    onFocusChange,
-    onFocusGroupChange,
-    onSelect,
-    onRender,
-  } = props
-  const generatedId = React.useId()
-  const idPrefix =
-    idPrefixOption ??
-    `ts-chart-${generatedId.replaceAll(/[^a-zA-Z0-9_-]/g, '')}`
-  const resolvedAspectRatio =
-    typeof aspectRatio === 'number' &&
-    Number.isFinite(aspectRatio) &&
-    aspectRatio > 0
-      ? aspectRatio
-      : undefined
-  const initialSceneWidth = width ?? initialWidth
-  const initialHeight =
-    height ??
-    (resolvedAspectRatio ? initialSceneWidth / resolvedAspectRatio : 320)
-  const containerRef = React.useRef<HTMLDivElement>(null)
-  const hostRef = React.useRef<ChartHost<
-    TDatum,
-    TInput,
-    TXValue,
-    TYValue
-  > | null>(null)
-  const runtimeRef = React.useRef<ChartRuntime<
-    TDatum,
-    TInput,
-    TXValue,
-    TYValue
-  > | null>(null)
-  runtimeRef.current ??= createChartRuntime<TDatum, TInput, TXValue, TYValue>()
-  const runtime = runtimeRef.current
-  const commonHostOptions: ChartHostCommonOptions<TDatum, TXValue, TYValue> = {
-    ariaLabel,
-    ariaDescription,
-    height,
-    aspectRatio: resolvedAspectRatio,
-    width,
-    initialWidth,
-    maxFocusDistance,
-    focus,
-    spatialIndex,
-    animate,
-    keyboard,
-    tabIndex,
-    idPrefix,
-    renderSvg,
-    measureText,
-    tooltip,
-    onFocusChange,
-    onFocusGroupChange,
-    onSelect,
-    onRender,
-  }
-  const hostOptions = createHostOptions(props, commonHostOptions)
-  React.useLayoutEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-    const host = mountChart(container, hostOptions, runtime)
-    hostRef.current = host
-    return () => {
-      hostRef.current = null
-      host.destroy()
-    }
-  }, [])
-
-  React.useLayoutEffect(() => {
-    hostRef.current?.update(hostOptions)
-  }, [hostOptions])
-
-  return (
-    <div
-      className={className ? `ts-chart-host ${className}` : 'ts-chart-host'}
-      style={{
-        position: 'relative',
-        width: width === undefined ? '100%' : width,
-        height: height ?? (resolvedAspectRatio ? undefined : 320),
-        aspectRatio: height === undefined ? resolvedAspectRatio : undefined,
-        ...style,
-      }}
-    >
-      <ChartSurface
-        ref={containerRef}
-        definition={definition as ChartDefinition<unknown, unknown, any>}
-        input={input}
-        ariaLabel={ariaLabel}
-        ariaDescription={ariaDescription}
-        height={initialHeight}
-        width={initialSceneWidth}
-        keyboard={keyboard}
-        tabIndex={tabIndex}
-        idPrefix={idPrefix}
-        renderSvg={renderSvg}
-        runtime={runtime as ChartRuntime<any, any, any, any>}
-        measureText={measureText}
-      />
-    </div>
+  const renderSvg = props.renderSvg ?? renderChartSvg
+  const renderer = React.useMemo(
+    () => createSvgChartRenderer<TDatum, TXValue, TYValue>(renderSvg),
+    [renderSvg],
   )
-}
-
-function createHostOptions<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
-  common: ChartHostCommonOptions<TDatum, TXValue, TYValue>,
-): ChartHostOptions<TDatum, TInput, TXValue, TYValue> {
-  if (isDynamicProps(props)) {
-    return {
-      ...common,
-      definition: props.definition,
-      input: props.input,
+  const onRender = React.useMemo(() => {
+    if (!props.onRender) return undefined
+    return (context: ChartRendererRenderContext<TDatum, TXValue, TYValue>) => {
+      const svg = context.surface.element
+      const SvgElement =
+        context.container.ownerDocument.defaultView?.SVGSVGElement
+      if (!SvgElement || !(svg instanceof SvgElement)) {
+        throw new TypeError('Expected the SVG chart surface.')
+      }
+      props.onRender?.({
+        container: context.container,
+        scene: context.scene,
+        svg,
+      })
     }
+  }, [props.onRender])
+  const rendererProps: RendererChartProps<TDatum, TInput, TXValue, TYValue> = {
+    ...props,
+    renderer,
+    onRender,
   }
-  return {
-    ...common,
-    definition: props.definition,
-  }
-}
 
-function isDynamicProps<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
-): props is DynamicChartProps<TDatum, TInput, TXValue, TYValue> {
-  return 'chart' in props.definition
+  return <RendererChartImplementation {...rendererProps} />
 }

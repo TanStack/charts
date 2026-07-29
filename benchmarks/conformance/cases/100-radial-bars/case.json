@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 1000,
+  "id": "100-radial-bars",
+  "title": "Concentric radial bars",
+  "family": "polar",
+  "intent": "Compare four bounded values through concentric rounded radial bars on one shared angular scale.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "concentric radial bars",
+    "authored D3 arc generator",
+    "data-driven per-datum radii",
+    "rounded arc caps",
+    "fixed angular domain"
+  ],
+  "geometry": [{ "role": "arc", "count": 4, "maxCount": 4 }],
+  "minimumGeometrySimilarity": 0.995,
+  "source": {
+    "title": "Recharts Simple Radial Bar Chart",
+    "url": "https://recharts.github.io/en-US/examples/SimpleRadialBarChart/"
+  },
+  "ai": {
+    "create": "Create four concentric radial bars with a fixed zero-to-one-hundred angular domain, responsive ring radii, stable category keys, and rounded D3 arc geometry.",
+    "maintain": "Update values without changing ring order or the shared angular domain; keep each D3 radius accessor responsive and preserve exact per-category fills."
+  }
+}

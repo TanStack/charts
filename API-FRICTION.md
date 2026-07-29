@@ -152,6 +152,12 @@ Each entry records:
 | F-114 | Gradient stop tokens disappeared from standalone exports | API             | resolved   |
 | F-115 | Documentation checks did not validate code snippets      | Tooling         | resolved   |
 | F-116 | Build context was mistaken for resolved plot geometry    | Documentation   | resolved   |
+| F-117 | Non-Cartesian examples duplicated coordinate engines     | API             | resolved   |
+| F-118 | Serialized SVG discarded interaction semantics           | API/Application | monitoring |
+| F-119 | Catalog hosting crossed repository ownership             | Tooling         | resolved   |
+| F-120 | Key-only focus collapsed duplicate observations          | API             | resolved   |
+| F-121 | SVG callback was not a rendering-pipeline boundary       | API             | resolved   |
+| F-122 | Dense scene aggregation overflowed the call stack        | API             | resolved   |
 
 ## Findings
 
@@ -614,10 +620,17 @@ Each entry records:
   non-interactively against the existing install.
 - Decision: pin the repository package manager and lockfile, then use the
   documented pnpm scripts against that install rather than bypassing package
-  management with ad hoc binary paths.
+  management with ad hoc binary paths. Keep CI mode consistent between install
+  and validation: pnpm 11 changes `enableGlobalVirtualStore` under CI, so
+  mixing a CI install with a non-CI `pnpm exec` correctly reports the install
+  as incompatible.
 - Verification: repeated `pnpm exec prettier`, TypeScript, Vitest, Vite,
   benchmark, bundle, catalog, and conformance commands now run
-  non-interactively without requesting a module purge.
+  non-interactively without requesting a module purge. The polar/geo task
+  reproduced the warning after a CI install followed by a non-CI exec;
+  `pnpm_config_verify_deps_before_run=warn` identified the changed global
+  virtual-store setting, and consistently using `CI=true` restored all
+  documented commands without another purge.
 
 ### F-028 — Field channels accepted incompatible value types
 
@@ -783,12 +796,15 @@ Each entry records:
   the complete renderer output without assuming either library emits one SVG.
 - Decision: choose the largest rendered SVG as the primary chart, sum the
   serialized bytes of every SVG, and test every SVG text element against the
-  chart container. Plot legends intentionally allow endpoint labels to
-  overflow their small owner SVG while remaining visible inside the container.
+  chart container. Exclude labels whose computed display, visibility, or
+  opacity makes them non-rendered; a hidden SVG text node has no containment
+  contract. Plot legends intentionally allow endpoint labels to overflow their
+  small owner SVG while remaining visible inside the container.
 - Verification: the runner and gallery now aggregate every emitted SVG, while
   primary geometry uses the chart-sized SVG and multi-SVG legend labels are
   checked against the same container-level visibility contract as chart
-  labels.
+  labels. The label-free Recharts sunburst can now use `display: none`
+  directly instead of zero-size transparent text.
 
 ### F-036 — Presence-only visual checks overstated parity
 
@@ -804,12 +820,17 @@ Each entry records:
 - Decision: enforce expected primitive counts as minima, normalize diagnostic
   geometry against the chart SVG, and allow cases to assert categorical guide
   sequences, maximum label repetition, and corresponding computed data-mark
-  paints. Equivalent RGB interpolation output may differ by one channel unit
-  because Plot and direct D3 scale paths round colors differently.
+  paints. Paint comparison canonicalizes computed `rgb()`/`rgba()` and
+  driver-reported three-, four-, six-, or eight-digit hex colors. Equivalent
+  interpolation output may differ by one channel unit because Plot and direct
+  D3 scale paths round colors differently.
 - Verification: the corrected histogram boundary contract renders all seven
   bins, explicit bar domains preserve category order, paired paints pass for
   all implemented cases, and the Anscombe case now fails specifically because
-  Charts repeats its shared y-axis four times.
+  Charts repeats its shared y-axis four times. The ECharts polar line and
+  scatter drivers report hex colors while TanStack inspection reads computed
+  RGB; both now pass the six-variant standard paint gate without case-specific
+  color rewriting.
 
 ### F-037 — Facets repeat shared axes in every panel
 
@@ -1232,16 +1253,17 @@ Each entry records:
   five radial tick labels and placed the six angle labels at a different
   offset. The case also used a smaller radius and margin than the official
   reference.
-- Decision: keep polar scaffolding in the case-local custom mark, but make the
-  reference use its documented 80% radius and 20 px margin. Mirror Recharts'
-  eight-pixel angle-label offset, rotated 30-degree radial axis, and distinct
-  angle/radius label colors. Assert all eleven labels as data-bearing visual
-  geometry so the omission cannot pass again.
+- Decision: the reference uses its documented 80% radius and 20 px margin.
+  The native polar composition uses `radialGrid`, `angleGrid`, and
+  `radialArea`; guide label callbacks preserve Recharts' eight-pixel
+  angle-label offset, rotated 30-degree radial axis, baselines, and distinct
+  angle/radius label colors. All eleven labels remain data-bearing visual
+  geometry so an omission cannot pass again.
 - Verification: focused responsive initial/update conformance passes at 320
   and 640 px with all eleven labels present, matching paints, no overflow,
-  100.0% diagnostic geometry similarity, clean strict types, and 0.07×
-  Recharts gzip. The fix changes only the comparison case; no library bundle
-  or universal renderer path changed.
+  100.0% diagnostic geometry similarity, clean strict types, and 0.16×
+  Recharts gzip. The standard matrix also passes at 320, 640, and 960 px in
+  light and dark themes without a case-local coordinate renderer.
 
 ### F-059 — Vite cached a newly added package subpath
 
@@ -2486,3 +2508,184 @@ Each entry records:
 - Verification: the responsive, dynamic-data, faceting, large-data, and custom
   extension pages use the same boundary, and responsive examples no longer
   claim that builder dimensions are final inner bounds.
+
+### F-117 — Non-Cartesian examples duplicated coordinate engines
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: native pie, donut, gauge, radar, polar line/scatter, radial
+  hierarchy, and atlas-backed GeoJSON catalog expansion
+- Friction: scene nodes could already carry arbitrary paths, but the public API
+  did not own a non-Cartesian coordinate system. The radar case duplicated
+  responsive centering, angular projection, polygon grids, spokes, and label
+  placement in a 211-line custom mark; the GeoJSON case separately rebuilt
+  responsive projection, paths, styling, and identity. Pie, donut, and gauge
+  examples were absent rather than forcing consumers through more local marks.
+  Expanding the five seed cases into the expected catalog then exposed two
+  narrower holes: polar labels and radial segments still required a custom
+  mark, while projected Point geometry could not pass a datum radius through
+  D3 `geoPath`. The first numeric polar-line comparison also exposed that the
+  specialized radial-line group lacked the generic line-role class shared by
+  catalog and inspection tooling.
+- Decision: add opt-in `@tanstack/charts/polar` and
+  `@tanstack/charts/geo` entry points. `polar` copies configured D3 angle and
+  radius scales into final responsive bounds and composes D3-backed arcs,
+  radial lines, radial areas, dots, text, rules, and guides. `geoShape` accepts
+  a responsive `d3-geo` projection factory, delegates path and centroid
+  geometry to D3, and maps `r`/`rScale` through `geoPath().pointRadius()`.
+  Radial line and dot groups also carry their generic geometry-role classes.
+  Neither capability is re-exported from the package root. Boundary datasets
+  and TopoJSON conversion stay application-owned inputs rather than package
+  dependencies.
+- Verification: focused core tests cover responsive scale copying, source-scale
+  immutability, D3 path equality, wrapped seams, advanced per-datum arc
+  generators, guide layering, semantic role classes, missing-scale errors,
+  projected GeoJSON paths, and interaction points. The polar expansion covers
+  labels, center content, rounded and nested rings, rose, needle gauge,
+  comparative radar, radial bars, sunburst, numeric line, and numeric scatter.
+  The geographic expansion covers regional and 177-country choropleths,
+  proportional symbols, a 51-feature Albers USA map, orthographic globe,
+  projected routes, and a four-projection atlas gallery. Isolated gzip gates
+  are 10.50 KiB for geo, 8.69 KiB for arcs, 9.12 KiB for D3 pie plus arcs, and
+  18.50 KiB for a complete polar line/scatter composition under an 18.75 KiB
+  ceiling, while atlas data and every locked Cartesian entry remain outside
+  those bundles. The full scale-backed gauge composition is independently
+  budgeted at 17.5 KiB gzip.
+  Numeric polar line/scatter pass the six-variant standard matrix at 100.0%
+  geometry similarity; country and state atlas cases pass at 99.9%, and the
+  four-pane projection gallery passes at 99.8%. All 328 tests, strict
+  typechecking, isolated bundle gates, 64-page documentation checks, packed
+  exports/declarations/runtime imports, 100 catalog pages and embeds, and all
+  example builds pass.
+
+### F-118 — Serialized SVG discarded interaction semantics
+
+- Status: monitoring
+- Severity: medium
+- Owner: API/Application
+- Observed in: adding tooltips to the TanStack Charts landing-page SVGs
+- Friction: `renderChartSvg` preserved mark geometry, axis keys, focus
+  affordances, and accessible chart text, but not the resolved `ChartPoint`
+  scene or tooltip runtime. Keeping the marketing assets as portable server
+  SVG therefore required one application adapter to recover points from
+  circles, bars, line paths, and axis coordinates. Rounded SVG coordinates
+  also placed interpolated dates seconds before midnight, so date tooltips
+  needed exact encoded mark keys when available and UTC-day snapping
+  otherwise.
+- Decision: keep this recovery logic isolated in the landing-page interaction
+  component and do not present serialized SVG as a generally hydratable chart
+  contract. Revisit supported interaction metadata or hydration only if
+  another static-SVG consumer encounters the same boundary.
+- Verification: all 14 landing SVG variants and the custom bundle chart expose
+  formatted pointer and keyboard tooltips; compact and wide revenue tooltips
+  retain exact dates and grouped series values. Site typechecking, targeted
+  type-aware lint, unit tests, production build, and desktop/mobile browser
+  checks pass.
+
+### F-119 — Catalog hosting crossed repository ownership
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Integration
+- Observed in: publishing the executable catalog at
+  `https://tanstack.com/charts/catalog/`
+- Friction: the catalog source, conformance contract, and production build
+  belong to the Charts repository, while the public hostname is served by the
+  separate `tanstack.com` Cloudflare Worker. Copying source or generated assets
+  into that repository would couple releases and rollbacks, duplicate build
+  ownership, and make the site bundle responsible for reference libraries it
+  does not use. Pointing Workers Static Assets directly at the Vite `dist`
+  directory also fails below a path prefix because asset lookup retains the
+  complete public request path.
+- Decision: deploy a separate assets-only `tanstack-charts-catalog` Worker from
+  this repository. Its `/charts/catalog*` route takes precedence over the main
+  Worker and covers query strings on the bare path. A generated, ignored
+  staging tree mirrors `dist` below `.catalog-deploy/charts/catalog/`; the
+  Worker version therefore owns its HTML, hashed assets, route manifest,
+  headers, and rollback atomically without a proxy or a `tanstack.com` source
+  dependency. Main-branch deployment waits for validation and the unfiltered
+  conformance matrix. Because Wrangler's deploy dry run does not boot workerd,
+  the gate also starts the pinned local runtime without persistent state and
+  applies the production smoke contract before upload.
+- Verification: staging rejects the wrong origin or base path, symlinks, more
+  than 20,000 files, or an asset above 25 MiB. A Wrangler dry run validates the
+  static deployment. The local runtime caught and corrected a compatibility
+  date newer than Wrangler 4.103.0's bundled workerd supported. Worker version
+  `7df8f6a9-103b-40f7-9b24-315908a92ac3` then deployed 945 static assets to the
+  TanStack account. The live production smoke passed the bare and queried
+  canonical redirects, root, 100-case metadata, detail, frameable embed,
+  immutable hashed asset, security headers, and nearest 404 page. Route
+  propagation exceeded the first 30-second smoke window, so the deploy check
+  now allows 90 seconds.
+- Follow-up: navigation and root-sitemap discovery may remain a small site
+  integration; neither should own catalog source or artifacts.
+
+### F-120 — Key-only focus collapsed duplicate observations
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: native line tooltip path-hover regression
+- Friction: the renderer host stored only the focused point's public `key`.
+  When multiple observations in one line shared that key, moving between them
+  was ignored, and an otherwise no-render host update repainted the first
+  matching observation instead of the point nearest the pointer.
+- Decision: retain the focused `ChartPoint` as the current-scene identity.
+  Compare its key, mark, and datum index during interaction; on a scene render,
+  restore an ambiguous key by datum reference, semantic point values, then
+  datum index. Stable unique datum keys remain the preferred authoring path.
+- Verification: the DOM-host regression dispatches pointer movement from the
+  actual SVG line path to a later duplicate-key point, updates tooltip options
+  without rendering, forces a responsive render, and moves back to the first
+  point. The callback, focus marker, and tooltip stay on the exact observation
+  throughout. All 25 focused runtime tests pass.
+
+### F-121 — SVG callback was not a rendering-pipeline boundary
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: adding an optional Canvas renderer without changing the default
+  SVG consumer path
+- Friction: `ChartSvgRenderer` replaced scene-to-string serialization, but the
+  host still owned SVG root discovery, coordinate mapping, focus painting,
+  keyed reconciliation, and SVG-shaped `onRender` callbacks. A Canvas consumer
+  could compile `ChartScene`, but preserving responsive sizing, runtime reuse,
+  pointer and keyboard focus, tooltips, selection, SSR, and framework
+  lifecycles required reimplementing the host. Adding Canvas to the existing
+  default adapter would also make an optional renderer reachable from
+  SVG-only bundles.
+- Decision: introduce `ChartRenderer` for deterministic prerendering and
+  mounted-surface creation, `ChartSurface` for paint, coordinate, focus, and
+  cleanup ownership, and `mountChartRenderer` for shared host behavior. Keep
+  `mountChart` and `ChartSvgRenderer` as SVG compatibility APIs. Publish Canvas
+  through `@tanstack/charts/canvas` and framework `/canvas` entries, while
+  framework `/core` entries accept an application-supplied renderer.
+- Verification: core, React, and Octane tests cover deterministic SSR,
+  hydration identity, renderer replacement, and shared
+  pointer/keyboard/tooltip/selection behavior. Native Chromium verification
+  covers device-pixel-ratio backing stores, `Path2D`, CSS color resolution,
+  gradients, focus isolation, resizing, and PNG export. Bundle metafiles and
+  packed-consumer checks enforce that renderer-neutral entries include neither
+  renderer and Canvas entries include no SVG reconciler.
+
+### F-122 — Dense scene aggregation overflowed the call stack
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: the one-million-point Canvas stress check
+- Friction: scene compilation aggregated channel values and interaction points
+  with `push(...values)`. Large valid arrays exceeded the JavaScript engine's
+  argument limit before the selected renderer could paint them. Facet and
+  polar aggregation used the same unsafe pattern.
+- Decision: append dense collections with bounded loops in the shared scene,
+  facet, and polar compilers. This keeps the public data contract intact and
+  fixes the failure before it reaches any renderer.
+- Verification: a 200,000-value scene regression completes without an
+  argument-limit error. Native Chromium also compiles and mounts one million
+  dots through the Canvas renderer with four surface descendants. That check
+  still retains roughly 427 MiB of JavaScript heap and spends most first-paint
+  time rasterizing the dense path, so Canvas removes per-mark DOM cost rather
+  than making unbounded data free.

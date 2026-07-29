@@ -54,8 +54,8 @@ or dropping down to a separate API.
 - **Build from common to custom.** Layer built-in marks or implement a custom
   mark against the same public scene protocol.
 - **Get the application runtime too.** Responsive layout, automatic guide
-  margins, themes, interaction, animation, accessibility, SVG SSR, hydration,
-  and export are part of the system.
+  margins, themes, interaction, animation, accessibility, SVG SSR, opt-in
+  Canvas painting, hydration, and export are part of the system.
 - **Pay for what you import.** Marks, renderers, and chart-owned interactions
   have independent TanStack subpaths; specialized algorithms come directly
   from granular, tree-shakeable `d3-*` packages.
@@ -116,15 +116,29 @@ assigns their responsive pixel ranges, compiles a renderer-neutral keyed scene,
 and hands that scene to the selected host.
 
 Definitions are framework-independent. The same `revenueChart` can render
-through React, Octane, the vanilla DOM host, or static SVG.
+through React, Octane, the vanilla DOM host, static SVG, or the optional Canvas
+renderer.
+
+When SVG element count becomes the bottleneck, switch the adapter import and
+keep the definition and interaction props:
+
+```tsx
+import { Chart } from '@tanstack/react-charts/canvas'
+```
+
+Canvas stays outside the default bundles. React and Octane also expose a
+renderer-neutral `/core` entry when an application owns the surface. Canvas
+removes per-mark DOM cost, not scene memory or dense nearest-point work, so
+large interactive charts should still use a measured spatial index or a
+bounded representation.
 
 ## Packages
 
-| Package                                               | Role                                                                                               |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| [`@tanstack/charts`](./packages/charts-core)          | Marks, channels, guides, scene compilation, static SVG, vanilla DOM lifecycle, and optional export |
-| [`@tanstack/react-charts`](./packages/react-charts)   | Thin React lifecycle adapter with SSR and hydration                                                |
-| [`@tanstack/octane-charts`](./packages/octane-charts) | Thin Octane lifecycle adapter with equivalent scene output                                         |
+| Package                                               | Role                                                                                                |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`@tanstack/charts`](./packages/charts-core)          | Marks, channels, guides, scene compilation, SVG, optional Canvas, vanilla DOM lifecycle, and export |
+| [`@tanstack/react-charts`](./packages/react-charts)   | Thin React lifecycle adapter with SSR and hydration                                                 |
+| [`@tanstack/octane-charts`](./packages/octane-charts) | Thin Octane lifecycle adapter with equivalent scene output                                          |
 
 The earlier host experiment remains under `@plot-poc/*` for migration evidence
 and benchmark comparison. The private

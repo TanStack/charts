@@ -51,4 +51,17 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount: ConformanceMount = tanstackMount(
   definition,
   'Weekly low-to-high temperature range',
+  {
+    format: ({ datum }) =>
+      `${datum.date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      })} · ${datum.low.toLocaleString('en-US', {
+        maximumFractionDigits: 1,
+      })}–${datum.high.toLocaleString('en-US', {
+        maximumFractionDigits: 1,
+      })} °F`,
+  },
 )

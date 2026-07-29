@@ -1,13 +1,14 @@
 # TanStack Charts Marketing Strategy
 
-Last updated: 2026-07-27
+Last updated: 2026-07-28
 
 ## Status
 
-TanStack Charts is currently a private `0.0.0` product proof. Until the
-production gates in [`PLAN.md`](./PLAN.md) are complete, marketing should invite
-people to explore the proof, follow development, or join early access. It
-should not imply that the packages are ready for production installation.
+TanStack Charts is currently an unpublished, private `0.0.0` package proof in a
+public repository. Until the production gates in [`PLAN.md`](./PLAN.md) are
+complete, marketing should invite people to explore the proof, follow
+development, or join early access. It should not imply that the packages are
+ready for production installation.
 
 ## Executive summary
 
@@ -30,13 +31,13 @@ an application charting system from D3 or low-level primitives.
 > library.
 
 TanStack Charts lets teams retain D3's algorithms and expressive ceiling while
-TanStack owns responsive layout, scene compilation, SVG rendering, SSR and
-hydration, themes, accessibility, interaction, animation, export, and
-framework lifecycle.
+TanStack owns responsive layout, scene compilation, default SVG and opt-in
+Canvas rendering, SSR and hydration, themes, accessibility, interaction,
+animation, export, and framework lifecycle.
 
 ## Product overview
 
-**One-line description:** A tiny TypeScript visualization grammar for
+**One-line description:** A lightweight TypeScript visualization grammar for
 responsive, accessible, server-rendered application charts, powered by native
 D3 primitives.
 
@@ -156,8 +157,8 @@ system or wait for a fixed chart catalog to expose an upstream D3 capability.
 
 TanStack owns the work that D3 deliberately leaves to an application:
 responsive ranges, automatic guide layout, scene compilation, DOM lifecycle,
-keyed reconciliation, interaction, accessibility, themes, SSR, hydration, and
-export.
+keyed SVG reconciliation, Canvas painting, interaction, accessibility, themes,
+SSR, hydration, and export.
 
 ### Existing data stays intact
 
@@ -167,9 +168,9 @@ identity survives interaction and callbacks.
 
 ### Framework-independent engine
 
-Definitions, scene calculation, static SVG, and the vanilla host do not depend
-on React. Framework adapters bind the same host and scene protocol to their
-lifecycle.
+Definitions, scene calculation, static SVG, the vanilla host, and the optional
+Canvas renderer do not depend on React. Framework adapters bind the same host
+and scene protocol to their lifecycle.
 
 ### Capability-level bundle ownership
 
@@ -181,14 +182,15 @@ side-effectful feature installation.
 
 ### Positioning map
 
-| Alternative                                                                                         | Best at                                                                   | TanStack Charts position                                                                                                                                               |
-| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Recharts](https://recharts.github.io/en-US/) and [Nivo](https://nivo.rocks/)                       | Quickly producing standard React charts                                   | A framework-independent grammar that can continue into bespoke visualization                                                                                           |
-| [visx](https://github.com/airbnb/visx) and raw D3                                                   | Maximum low-level visual control                                          | Native D3 power with responsive layout, guides, rendering, interaction, accessibility, SSR, and lifecycle supplied                                                     |
-| [Observable Plot](https://observablehq.com/plot/)                                                   | Concise exploratory visualization through composable marks and channels   | The primary conceptual inspiration; an independent implementation for typed application code, explicit D3 ownership, framework lifecycle, and small capability imports |
-| [Chart.js](https://www.chartjs.org/) and [Apache ECharts](https://echarts.apache.org/en/index.html) | Broad catalogs and Canvas-oriented rendering                              | Smaller, SVG-native, composable, and designed for product-specific charts                                                                                              |
-| [AG Charts](https://www.ag-grid.com/charts/)                                                        | Enterprise breadth, specialized charts, dense data, controls, and support | Open grammar, D3 interoperability, actual SVG SSR, heterogeneous layers, and no global registry                                                                        |
-| [Vega and Vega-Lite](https://vega.github.io/)                                                       | Portable declarative specifications and analysis tooling                  | Ordinary TypeScript and application integration instead of a JSON visualization runtime                                                                                |
+| Alternative                                                                                                                                                                                                   | Best at                                                                   | TanStack Charts position                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Recharts](https://recharts.github.io/en-US/) and [Nivo](https://nivo.rocks/)                                                                                                                                 | Quickly producing standard React charts                                   | A framework-independent grammar that can continue into bespoke visualization                                                                                           |
+| [visx](https://github.com/airbnb/visx) and raw D3                                                                                                                                                             | Maximum low-level visual control                                          | Native D3 power with responsive layout, guides, rendering, interaction, accessibility, SSR, and lifecycle supplied                                                     |
+| [Observable Plot](https://observablehq.com/plot/)                                                                                                                                                             | Concise exploratory visualization through composable marks and channels   | The primary conceptual inspiration; an independent implementation for typed application code, explicit D3 ownership, framework lifecycle, and capability-level imports |
+| [Chart.js](https://www.chartjs.org/) and [Apache ECharts](https://echarts.apache.org/en/index.html)                                                                                                           | Broad catalogs and Canvas-oriented rendering                              | Smaller in the current like-for-like consumer benchmark, SVG by default with opt-in Canvas, composable, and designed for product-specific charts                       |
+| [uPlot](https://github.com/leeoniya/uPlot), [Chartist](https://chartist.dev/), [Frappe Charts](https://github.com/frappe/charts), and [Lightweight Charts](https://github.com/tradingview/lightweight-charts) | Deliberately small or specialized charting surfaces                       | Competitive in the small-bundle class with a broader grammar; TanStack should claim capability-scaled size, not absolute size leadership                               |
+| [AG Charts](https://www.ag-grid.com/charts/)                                                                                                                                                                  | Enterprise breadth, specialized charts, dense data, controls, and support | Open grammar, D3 interoperability, actual SVG SSR, heterogeneous layers, and no global registry                                                                        |
+| [Vega and Vega-Lite](https://vega.github.io/)                                                                                                                                                                 | Portable declarative specifications and analysis tooling                  | Ordinary TypeScript and application integration instead of a JSON visualization runtime                                                                                |
 
 ### Primary comparisons
 
@@ -220,7 +222,7 @@ pretend to match. See the current
 
 **Headline:** D3's power. A chart library's ergonomics.
 
-**Body:** TanStack Charts is a tiny TypeScript visualization grammar for
+**Body:** TanStack Charts is a lightweight TypeScript visualization grammar for
 responsive, accessible, server-rendered charts, deeply inspired by Observable
 Plot. Compose marks over your existing data, bring native D3 scales and curves,
 and render the same definition in React, vanilla JavaScript, or Octane.
@@ -241,8 +243,8 @@ standard.
 **Body:** Catalog libraries get the first chart on screen quickly, but product
 requirements rarely stop there. D3 gives you complete control, but leaves your
 team responsible for layout, rendering, lifecycle, interaction,
-accessibility, and framework integration. TanStack Charts gives you one small
-grammar from the common case to the custom one.
+accessibility, and framework integration. TanStack Charts gives you one
+composable grammar from the common case to the custom one.
 
 ### Value section
 
@@ -264,8 +266,8 @@ application runtime, not a second implementation of visualization math.
 #### Built for applications, not screenshots.
 
 Container responsiveness, automatic guide margins, light and dark themes,
-keyboard interaction, tooltips, keyed updates, SVG SSR, hydration, and export
-are part of the runtime.
+keyboard interaction, tooltips, keyed SVG updates, opt-in Canvas painting, SVG
+SSR, hydration, and export are part of the runtime.
 
 #### Pay only for what you import.
 
@@ -282,7 +284,7 @@ The flagship demonstration should evolve one chart in place:
 2. Add an area, baseline, and event data from separate arrays.
 3. Add a product-specific custom mark.
 4. Make the definition responsive to its container.
-5. Render the same definition through React, server SVG, and export.
+5. Render the same definition through React, Canvas, server SVG, and export.
 6. Show the resulting bundle trace.
 
 This demonstration expresses the product thesis better than a gallery of
@@ -290,23 +292,104 @@ unrelated chart thumbnails.
 
 ### Proof section
 
-**Headline:** Small by construction, measured by consumer.
+**Headline:** Complete charts around 18–22 KiB gzip.
 
-The controlled common-chart bundle suite currently measures:
+The durable public claim is:
 
-| Library                  | Common consumer gzip range |
-| ------------------------ | -------------------------: |
-| TanStack Charts          |               18.5–19.2 kB |
-| Chart.js                 |               45.7–51.5 kB |
-| Observable Plot          |               85.2–94.1 kB |
-| Recharts, React external |               97.1–98.6 kB |
-| Apache ECharts           |             156.6–163.1 kB |
+> Complete tested charts are approximately 18–22 KiB gzip. A static SVG line
+> is 13.30 KiB gzip. Consumers pay for the capabilities they import.
+
+Do not lead with the 4.70 KiB custom-scale scene. It proves the scene compiler
+has a low isolated cost when an application supplies its own scale, but it is
+not a complete rendered chart.
+
+#### TanStack consumer boundaries
+
+| Consumer surface                              |       Gzip size | Evidence status                                         |
+| --------------------------------------------- | --------------: | ------------------------------------------------------- |
+| Custom-scale line scene, no renderer          |        4.70 KiB | Exact byte lock; not a complete chart                   |
+| D3-scale line with static SVG                 |       13.30 KiB | Exact byte lock                                         |
+| Mounted basic line, bar, area, or scatter     | 18.08–18.79 KiB | Checked four-chart comparison baseline                  |
+| Mounted chart with legend and pointer tooltip | 18.37–19.08 KiB | Checked four-chart comparison baseline                  |
+| Advanced two-series composition               | 18.38–21.26 KiB | Checked four-chart comparison baseline                  |
+| React line consumer, with React externalized  |       19.49 KiB | Exact byte lock                                         |
+| TanStack Stats parity surface                 |       30.68 KiB | Isolated measurement under a 30.9 KiB capability budget |
+
+The exact ordinary-consumer locks live in
+[`universal-baseline.json`](./benchmarks/bundle-size/universal-baseline.json).
+The isolated feature ceilings and their policy live in
+[`measure-bundles.mjs`](./scripts/measure-bundles.mjs).
+
+#### Popular general-purpose libraries
+
+The controlled suite covers five libraries, four chart families, and three
+capability tiers. Basic means one series with axes and grid. Interactive adds a
+legend and pointer tooltip. Advanced adds two-series smoothing, stacking, or
+variable point size.
+
+| Gzip comparison            |           Basic |     Interactive |        Advanced |
+| -------------------------- | --------------: | --------------: | --------------: |
+| TanStack Charts            | 18.08–18.79 KiB | 18.37–19.08 KiB | 18.38–21.26 KiB |
+| Chart.js                   |      2.47–2.76× |      2.85–3.13× |      2.68–2.85× |
+| Observable Plot            |      4.54–5.04× |      4.47–4.95× |      4.31–4.54× |
+| Recharts, React external   |      5.05–5.33× |      5.75–5.89× |      5.13–5.89× |
+| Recharts, full cold bundle |      8.14–8.55× |      8.81–9.06× |      7.88–9.07× |
+| Apache ECharts             |      8.37–8.74× |      8.96–9.33× |      8.15–9.08× |
+
+Competitor cells are competitor gzip divided by TanStack gzip, ranged across
+the matched line, bar, area, and scatter fixtures. Across every matched fixture
+in this controlled suite, TanStack shipped 60–89% less gzipped JavaScript.
+
+This supports “substantially smaller than the measured mainstream libraries.”
+It does not support “smaller than every popular charting library.” Highcharts,
+ApexCharts, Nivo, Victory, visx, and Plotly are not yet in the controlled
+matrix. Visx is the most important modular challenger to measure next.
+
+#### Small-library screen
+
+The following is a dated exploratory screen, not launch-proof evidence. It used
+the same minified, tree-shaken browser ESM build target, included required CSS
+for Chartist and uPlot, and produced identical output across five builds.
+
+| Library and fixture                   | Gzip size | Marketing interpretation                                   |
+| ------------------------------------- | --------: | ---------------------------------------------------------- |
+| Chartist 1.5.0 basic line             |  9.99 KiB | Smaller, with a deliberately narrower behavior surface     |
+| TanStack Charts basic line            | 18.26 KiB | Same complete basic fixture used by the controlled suite   |
+| Frappe Charts 1.6.2 line              | 18.41 KiB | Effectively the same size class                            |
+| TanStack Charts interactive line      | 18.55 KiB | Includes legend and pointer tooltip                        |
+| uPlot 1.6.32 time-series line and CSS | 23.46 KiB | TanStack interactive line is approximately 21% smaller     |
+| Lightweight Charts 5.2.0 line         | 52.29 KiB | Specialized financial surface; not a generic feature match |
+
+Environment: esbuild 0.27.7 from the locked workspace, browser ESM targeting
+ES2022, Node `gzipSync`, Node 24.15.0 on macOS arm64, measured 2026-07-28. Move
+these fixtures into the canonical harness before using the table in public
+copy.
+
+#### Evidence maturity
+
+Internal bundle control is strong: eight ordinary TanStack consumers are exact
+minified and gzip byte locks, optional capabilities have isolated ceilings, and
+the current local checks reproduce those locks. Comparative stability is not
+ready for an unqualified public superlative:
+
+- the small-library fixtures are not yet in the canonical matrix;
+- the comparison builds workspace source rather than packed production
+  packages;
+- the toolchain and compression environment are not pinned at full-version
+  granularity;
+- the GitHub workflow has not completed successfully because organization
+  policy requires third-party Actions to use full commit SHAs;
+- there is not yet longitudinal CI history.
+
+Before launch, pin the workflow Actions and exact toolchain, measure packed
+artifacts, add the small-library fixtures, exact-lock the named public claim
+consumers, and publish versioned JSON and Markdown results from CI.
 
 Every published number must link to the
-[`comparison protocol`](./benchmarks/comparison/README.md) and
-[`bundle baseline`](./benchmarks/comparison/bundle-baseline.json). Do not turn
-the measurements into an unqualified multiple or imply that bundle size alone
-represents product quality.
+[`comparison protocol`](./benchmarks/comparison/README.md),
+[`bundle baseline`](./benchmarks/comparison/bundle-baseline.json), and exact
+fixture source. Do not turn the measurements into an unqualified multiple or
+imply that bundle size alone represents product quality.
 
 Additional proof:
 
@@ -339,7 +422,8 @@ Developer libraries are marketed through proof rather than adjectives.
 2. **TanStack Stats migration case study.** Document parity, bundle impact,
    SSR, interaction behavior, API friction, and remaining limitations.
 3. **Reproducible comparison page.** Publish identical line, bar, area, and
-   scatter consumers with the benchmark methodology and output.
+   scatter consumers across mainstream libraries and small specialists with
+   the benchmark methodology and output.
 4. **SSR and hydration demo.** Show actual server SVG, hydration adoption, and
    export from one definition.
 5. **Data and composition demo.** Layer unrelated data types and preserve
@@ -383,14 +467,14 @@ about being "AI-native."
 
 ## Objections
 
-| Objection                                                             | Response                                                                                                                                                                                                                                                                                                |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Explicit domains and scales are more work than a chart-type component | Correct. TanStack Charts targets teams that want semantic control and a higher customization ceiling. Recipes and tooling should make the common policies obvious without hiding them behind runtime inference.                                                                                         |
-| The chart catalog is smaller than AG Charts, ECharts, or Nivo         | Also correct. The product thesis is a composable grammar with direct D3 interoperability, not first-party ownership of every specialized chart type.                                                                                                                                                    |
-| Why not use D3 or visx directly?                                      | They provide the algorithms or primitives. TanStack supplies the application runtime: responsive layout, guides, scene compilation, lifecycle, interaction, accessibility, SSR, hydration, animation, and export.                                                                                       |
-| Why not use Observable Plot?                                          | Plot is the primary conceptual inspiration and remains an excellent choice for concise exploratory visualization. TanStack is an independent implementation focused on typed application integration, explicit D3 policy, small capability imports, framework lifecycle, and stable interactive scenes. |
-| Is it ready for production?                                           | Not yet. The current package is a private proof with documented release gates. Marketing must state that plainly until those gates close.                                                                                                                                                               |
-| Can it handle millions of live points?                                | There is no such claim. Current evidence covers a local 10,000-point proof. Dense-data aggregation and production-browser benchmarks remain separate work.                                                                                                                                              |
+| Objection                                                             | Response                                                                                                                                                                                                                                                                                                                                                                                 |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Explicit domains and scales are more work than a chart-type component | Correct. TanStack Charts targets teams that want semantic control and a higher customization ceiling. Recipes and tooling should make the common policies obvious without hiding them behind runtime inference.                                                                                                                                                                          |
+| The chart catalog is smaller than AG Charts, ECharts, or Nivo         | Also correct. The product thesis is a composable grammar with direct D3 interoperability, not first-party ownership of every specialized chart type.                                                                                                                                                                                                                                     |
+| Why not use D3 or visx directly?                                      | They provide the algorithms or primitives. TanStack supplies the application runtime: responsive layout, guides, scene compilation, lifecycle, interaction, accessibility, SSR, hydration, animation, and export.                                                                                                                                                                        |
+| Why not use Observable Plot?                                          | Plot is the primary conceptual inspiration and remains an excellent choice for concise exploratory visualization. TanStack is an independent implementation focused on typed application integration, explicit D3 policy, capability-level imports, framework lifecycle, and stable interactive scenes.                                                                                  |
+| Is it ready for production?                                           | Not yet. The current package is a private proof with documented release gates. Marketing must state that plainly until those gates close.                                                                                                                                                                                                                                                |
+| Can it handle millions of live points?                                | Canvas is an explicit opt-in and keeps the same definition and interaction API while removing per-mark DOM cost. It still creates scene nodes and interaction points, default focus is linear without a spatial index, and overplotting does not become useful because the pixels are cheaper. Treat million-point streaming as a measured representation problem, not a renderer claim. |
 
 ## Anti-personas
 
@@ -398,7 +482,8 @@ TanStack Charts is not currently the best choice for teams that:
 
 - Need dozens of specialized finance, map, hierarchy, flow, polar, or gauge
   chart types immediately.
-- Need million-point streaming Canvas rendering and built-in downsampling.
+- Need proven million-point streaming throughput, built-in downsampling, or a
+  GPU rendering pipeline.
 - Want a no-code dashboard builder.
 - Need a portable JSON visualization specification.
 - Want a library to infer every domain, scale, and chart decision.
@@ -443,7 +528,8 @@ gates.
 - Native D3 scales and curves
 - Framework-independent engine
 - Thin framework adapters
-- Small by construction
+- Lightweight and capability-scaled
+- Complete chart consumers around 18–22 KiB gzip, with the benchmark link
 - Pay only for what you import
 - Built for applications, not screenshots
 - No customization cliff
@@ -456,6 +542,9 @@ gates.
 - The most powerful chart library
 - The fastest chart library
 - The smallest chart library
+- Tiny
+- Smaller than every chart library
+- A sub-5 KiB chart, when referring to a scene-only fixture
 - Every chart type
 - D3 without learning D3
 - Infinitely customizable
@@ -490,12 +579,21 @@ Do not claim:
 - Complete D3 capability coverage.
 - Renderer breadth beyond the renderers that actually ship.
 - Production readiness before the release gates close.
-- Bundle advantages without the benchmark protocol and compared consumer
-  scope.
-- Accessibility conformance beyond the tested keyboard and SVG behavior.
+- Bundle advantages without the benchmark protocol, committed baseline,
+  compression format, compared consumer scope, and React externalization
+  policy.
+- Comparisons against specialist libraries before they are in the canonical
+  harness and CI.
+- “Tiny” as a primary product descriptor before the comparison suite has
+  successful CI history.
+- A complete-chart size from a scene-only, host-only, or adapter-only fixture.
+- Accessibility conformance beyond the tested keyboard and aggregate
+  SVG/Canvas behavior.
 
-Every new proof claim should point to a reproducible example, benchmark, test,
-or production case study.
+Every bundle claim should name the capability tier, compression unit, library
+version, and whether framework runtimes and required CSS are included. Every
+new proof claim should point to a reproducible example, benchmark, test, or
+production case study.
 
 ## Launch sequence
 
@@ -527,6 +625,8 @@ tracked in [`PLAN.md`](./PLAN.md):
 - Visual regression suite.
 - Production-browser benchmark coverage.
 - Packed-consumer tests.
+- A green, fully pinned bundle-comparison workflow and published result
+  artifacts.
 - Remaining Plot-backed animated export migration.
 - Accessibility, locale, and RTL release gates.
 - Public package, versioning, license packaging, and compatibility policy.
@@ -559,5 +659,7 @@ the first chart.
 - Which TanStack product becomes the launch case study.
 - Compatibility and support policy.
 - The minimum chart and interaction profile required for stable release.
+- When CI-backed packed-artifact evidence is strong enough to use “tiny”
+  without weakening the evidence-led positioning.
 - Which customer phrases emerge from early-adopter interviews and should
   replace the proposed language in this document.

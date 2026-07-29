@@ -3,10 +3,11 @@ title: Exporting
 description: Export accessible chart SVG or browser-rendered raster images while preserving dimensions, styling, and resource identity.
 ---
 
-TanStack Charts has two export paths:
+TanStack Charts' built-in export helpers have three paths:
 
 - render a `ChartScene` directly to an SVG string;
-- serialize or rasterize an SVG that is already mounted in a browser.
+- serialize an SVG that is already mounted in a browser;
+- rasterize a mounted SVG or Canvas chart.
 
 Choose based on whether export needs computed browser styles.
 
@@ -85,6 +86,20 @@ await downloadChartImage(chartContainer, 'quarterly-revenue.png', {
 2 produces a 2400 × 1350 canvas while retaining the 1200 × 675 visual
 coordinate system.
 
+## Export a Canvas chart
+
+Pass the Canvas root or an ancestor containing it to the same
+`renderChartImage` or `downloadChartImage` functions. The exporter draws the
+base scene layer at the requested dimensions and scale. Set
+`includeFocus: true` to composite the focus overlay; it is excluded by
+default.
+
+Canvas focus is painted on a separate overlay so pointer movement does not
+repaint the base scene. Applications that need only the raw base bitmap may
+also call `toBlob()` or `toDataURL()` on
+`CanvasChartSurface.canvas`. Unlike SVG serialization, Canvas export does not
+retain vector geometry, accessible markup, or independently styleable nodes.
+
 ## Theme and resource policy
 
 Export the theme intended for the artifact. A chart following application dark
@@ -114,6 +129,7 @@ needs embedded or inlined assets.
 - Fonts and external resources are portable.
 - Focus decoration is included only when meaningful.
 - Raster scale is chosen for the target medium.
+- A Canvas export intentionally includes or excludes the focus overlay.
 
 See [Rendering and Export](../reference/rendering-and-export.md) for every
 function and option.

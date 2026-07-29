@@ -1,13 +1,14 @@
 ---
 title: Custom Marks and Renderers
-description: Extend the grammar with typed mark channels and keyed scene nodes, or replace SVG serialization without bypassing chart semantics.
+description: Extend the grammar with typed mark channels and keyed scene nodes, or replace the mounted renderer without bypassing chart semantics.
 ---
 
-Use a custom mark when a visualization fits the chart's cartesian scale and
-scene model but is not expressible as a useful composition of built-in marks.
+Use a custom mark when a visualization fits the shared scene model but is not
+expressible as a useful composition of built-in Cartesian, polar, or
+geographic marks.
 
-Use a custom renderer when the same chart scene needs different SVG
-serialization or resources.
+Use a custom renderer when the same chart scene needs a different mounted
+surface. Use a custom SVG serializer when only SVG markup or resources differ.
 
 Neither extension should reach into private scene compiler state.
 
@@ -21,6 +22,8 @@ Before creating a mark, check whether the result is a combination of:
 - rules, links, ticks, arrows, or vectors;
 - text or frames;
 - facets.
+- polar arcs, radial paths, dots, or guides;
+- projected GeoJSON.
 
 Composition retains built-in type inference, focus metadata, animation, and
 subpath bundle boundaries. The [chart examples](../examples/index.md) show
@@ -144,7 +147,30 @@ bundle must not pay for a custom scale registered elsewhere.
 See [Scales and D3](../concepts/scales-and-d3.md) and
 [Legends and Color](./legends-and-color.md).
 
-## Custom SVG renderer
+## Custom renderer
+
+A full renderer implements `ChartRenderer` and returns a `ChartSurface`:
+
+```ts
+import { mountChartRenderer } from '@tanstack/charts/renderer'
+
+const host = mountChartRenderer(container, {
+  definition,
+  renderer: myRenderer,
+  ariaLabel: 'Threshold history',
+})
+```
+
+The renderer owns server shell markup, its mounted element, scene painting,
+coordinate conversion, focus painting, and cleanup. The host retains sizing,
+runtime, keyboard, tooltip, selection, and focus-strategy behavior. Keep
+`prerender` deterministic and make `mount` adopt compatible server markup.
+
+Use `ChartRendererRenderContext.surface` instead of assuming `onRender` exposes
+an SVG element. Framework consumers pass `renderer` through
+`@tanstack/react-charts/core` or `@tanstack/octane-charts/core`.
+
+## Custom SVG serializer
 
 A `ChartSvgRenderer` accepts the complete `ChartScene` and accessible SVG
 options:

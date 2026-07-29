@@ -82,4 +82,8 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
 export const mount = tanstackMount(
   definition,
   'Quantitative two-dimensional binned heatmap',
+  {
+    format: (point) =>
+      `Latency: ${point.datum.x1}–${point.datum.x2} · Throughput: ${point.datum.y1}–${point.datum.y2} · Observations: ${point.datum.count}`,
+  },
 )

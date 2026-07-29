@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 770,
+  "id": "77-donut",
+  "title": "Categorical donut chart",
+  "family": "polar",
+  "intent": "Compare five categories as parts of one whole while preserving a readable center.",
+  "support": "native",
+  "features": [
+    "polar coordinates",
+    "D3 pie layout",
+    "annular arc sectors",
+    "inner and outer radii",
+    "responsive radius"
+  ],
+  "geometry": [{ "role": "arc", "count": 5, "maxCount": 5 }],
+  "minimumGeometrySimilarity": 0.9999,
+  "source": {
+    "title": "Recharts Pie Chart in Grid",
+    "url": "https://recharts.github.io/en-US/examples/PieChartInGrid/"
+  },
+  "ai": {
+    "create": "Create a five-slice donut chart from raw category totals using D3 pie layout and one responsive annular arc mark.",
+    "maintain": "Update category totals while preserving the inner-radius ratio, clockwise slice order, stable identities, and exact categorical fills."
+  }
+}

@@ -29,6 +29,9 @@ harness.
 ## Commands
 
 ```sh
+# Install the Playwright version's pinned headless browser
+pnpm browser:install
+
 # Fast bundle, timing, visual, and type audit
 pnpm conformance:quick
 
@@ -146,6 +149,42 @@ Adding or changing a case updates every catalog surface automatically.
 invalid schemas, duplicate IDs or orders, and case IDs that drift from their
 directory names.
 
+## Production hosting
+
+The catalog is deployed from this repository as the separate Cloudflare Static
+Assets Worker `tanstack-charts-catalog`. Its
+`tanstack.com/charts/catalog*` route takes precedence over the main
+`tanstack-com` Worker and includes query strings on the bare catalog path. No
+catalog source or generated asset is copied into the `tanstack.com`
+repository.
+
+Workers Static Assets matches the complete request path, so `catalog:stage`
+mirrors the production build below `.catalog-deploy/charts/catalog/` before
+deployment. The ignored staging directory is never committed. Fingerprinted
+assets receive immutable caching; HTML and metadata retain Cloudflare's
+revalidating default. Catalog pages deny framing, while the explicit embed
+routes remain frameable.
+
+```sh
+# Build, mirror the public path, and validate the Worker bundle locally
+pnpm catalog:build
+pnpm catalog:deploy:check
+
+# Deploy with an authenticated Wrangler session
+pnpm catalog:deploy
+
+# Verify root, detail, embed, asset, metadata, and 404 behavior
+pnpm catalog:smoke
+```
+
+Main-branch CI deploys only after validation and the unfiltered standard
+conformance matrix. The `charts-catalog-production` GitHub environment must
+provide a `CLOUDFLARE_API_TOKEN` scoped to the catalog Worker and the
+`tanstack.com` route; the non-secret account ID stays in the Wrangler config.
+Rollbacks use the prior
+`tanstack-charts-catalog` Worker version; the catalog has no mutable runtime
+state.
+
 ## What is and is not equivalent
 
 Both implementations must satisfy the same data and semantic contract. They do
@@ -197,8 +236,8 @@ comparison.
 
 ## Current scope
 
-The executable corpus contains 79 paired cases: 61 sourced from Observable
-Plot, nine from Recharts, and nine from Apache ECharts. It spans the common
+The executable corpus contains 100 paired cases: 68 sourced from Observable
+Plot, 21 from Recharts, and 11 from Apache ECharts. It spans the common
 cartesian vocabulary plus the high-value catalog beyond it:
 
 - lines, areas, bars, intervals, heatmaps, histograms, facets, and framed
@@ -209,7 +248,13 @@ cartesian vocabulary plus the high-value catalog beyond it:
   rankings, indexed lines, marginal distributions, ridgelines, violins,
   Marimekko layouts, and waffles;
 - pointer, grouped, and Voronoi-nearest tooltips;
+- pie, labeled pie, basic/centered/rounded/nested donuts, partial and needle
+  gauges, single/comparative radar, numeric polar line/scatter, rose, radial
+  bars, and sunburst layouts;
 - trees, Delaunay links, force networks, vector fields, and GeoJSON maps.
+- regional and world choropleths, proportional symbols, orthographic globe
+  and graticule layers, projected routes, 177 real country boundaries, 51 US
+  state/DC boundaries, and a four-projection atlas gallery.
 
 Shared facet guides, guide suppression, Plot-style tooltip mapping, exact
 difference crossings, and responsive fixed-pixel spatial preparation are
@@ -218,22 +263,29 @@ merely because it renders.
 
 The Recharts tranche adds mixed composition, population pyramids,
 adjacent-plus-stacked bars, a 1,000-point scatter pressure test, treemaps,
-radar, an accessible interactive legend, chart/table selection, and a pinned
-tooltip containing a real nested chart.
+pie and donut variants, partial and needle gauges, single and comparative
+radar, radial bars, rose, sunburst, an accessible interactive legend,
+chart/table selection, and a pinned tooltip containing a real nested chart.
 
-The ECharts tranche adds a snapped grouped axis pointer, native horizontal
-resource scrolling, streaming-window preservation, synchronized multi-view
-cursors, a free two-dimensional cursor, continuous brush selection, wheel
-zoom and pan, timeline scrubbing, and editable event ranges. Focus-plus-context
-uses Plot as its reference. Together with the original tooltip cases, 16 cases
-carry executable interaction scenarios.
+The ECharts tranche adds numeric polar line/scatter, a snapped grouped axis
+pointer, native horizontal resource scrolling, streaming-window preservation,
+synchronized multi-view cursors, a free two-dimensional cursor, continuous
+brush selection, wheel zoom and pan, timeline scrubbing, and editable event
+ranges. Focus-plus-context uses Plot as its reference. Together with the
+original tooltip cases, 16 cases carry executable interaction scenarios.
 
-All declared interaction scenarios and the full 79-case standard visual
+All declared interaction scenarios and the prior 79-case full-corpus visual
 matrix pass across both renderers, initial/revised data, 320/640/960 px, and
-light/dark themes. That result proves the declared contracts, not production
-interaction quality; the interaction UX audit preserves the original gaps and
-their implementation follow-through. The full run covers all standard widths
-and themes. The final quick verification measures 0.21× the
+light/dark themes. The nine added polar cases pass their focused standard
+matrix with 100.0% mean frame-relative geometry similarity; all four added
+geographic cases pass the same matrix at 99.9% each. Those results prove the
+declared contracts, not production interaction quality. The numeric polar
+line/scatter additions pass their focused standard matrix at 100.0%; the
+country and state atlas cases pass at 99.9%, and the four-pane projection
+gallery passes at 99.8%, for 99.9% across the five-case expansion. The
+interaction UX audit preserves the original gaps and their implementation
+follow-through.
+The prior full-corpus baseline measures 0.21× the
 selected-reference gzip, 0.57× mount time, 0.66× update time, and 97.8% mean
 diagnostic geometry similarity. The transitive authored-source ratio is 1.07×.
 Strict case sources have zero diagnostics, unsafe assertions, or suppressions.

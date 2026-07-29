@@ -38,4 +38,7 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
   }
 })
 
-export const mount = tanstackMount(definition, 'Ranked lollipop chart')
+export const mount = tanstackMount(definition, 'Ranked lollipop chart', {
+  format: ({ datum }) =>
+    `${datum.category} · ${datum.value.toLocaleString('en-US')} total`,
+})

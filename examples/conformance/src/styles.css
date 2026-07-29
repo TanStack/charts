@@ -90,6 +90,30 @@ select {
   text-decoration: none;
 }
 
+.site-header-brand {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+
+.site-header .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.site-header .back-link:hover {
+  color: var(--accent);
+}
+
+.site-header-separator {
+  color: var(--border-strong);
+}
+
 .wordmark {
   font-weight: 780;
   letter-spacing: -0.025em;
@@ -640,6 +664,23 @@ body.embed-mode {
 @media (max-width: 720px) {
   .site-header {
     min-height: 58px;
+  }
+
+  .site-header-brand {
+    gap: 8px;
+  }
+
+  .site-header .back-link {
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .back-link-label,
+  .site-header-separator {
+    display: none;
   }
 
   .hero {

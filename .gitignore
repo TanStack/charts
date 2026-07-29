@@ -3,6 +3,9 @@ node_modules
 dist
 .bundle-output
 .benchmark-output
+.catalog-deploy
+.catalog-worker
+.wrangler
 coverage
 *.log
 tanstack.com-parity/
