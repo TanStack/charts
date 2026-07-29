@@ -1,14 +1,22 @@
 import {
   conformanceCases,
   getConformanceReferenceRenderer,
-  loadConformanceImplementation,
-  loadConformanceSource,
 } from '../../../benchmarks/conformance/catalog'
+import {
+  loadTanStackImplementation,
+  loadTanStackSource,
+} from '../../../benchmarks/conformance/native-catalog'
 import type {
   ConformanceCaseMeta,
   ConformanceHandle,
+  ConformanceReferenceRenderer,
   ConformanceRenderer,
 } from '../../../benchmarks/conformance/types'
+import {
+  catalogRenderers,
+  isCatalogComparisonMode,
+  withCatalogComparisonMode,
+} from './catalog-mode'
 import {
   createChartEmbedStatusMessage,
   parseChartEmbedHeight,
@@ -34,6 +42,9 @@ const families = [
 ].sort((left, right) => left.localeCompare(right))
 const mounted = new Map<string, ConformanceHandle>()
 const cleanup = new Set<() => void>()
+let comparisonCatalogPromise:
+  | Promise<typeof import('../../../benchmarks/conformance/comparison-catalog')>
+  | undefined
 
 let chartWidth = 640
 let revision = 0
@@ -95,9 +106,12 @@ async function renderRoute() {
 }
 
 function renderCatalogIndex() {
+  const comparisonMode = comparisonModeEnabled()
   setDocumentMeta(
     'TanStack Charts Catalog',
-    'Browse executable chart examples, conformance comparisons, source, and embeddable TanStack Charts proofs.',
+    comparisonMode
+      ? 'Browse executable chart examples, conformance comparisons, source, and embeddable TanStack Charts proofs.'
+      : 'Browse executable TanStack Charts examples, source, and embeddable proofs.',
   )
 
   app.innerHTML = `
@@ -107,8 +121,11 @@ function renderCatalogIndex() {
         <p class="eyebrow">TanStack Charts · executable catalog</p>
         <h1>Proof, case by case.</h1>
         <p class="lede">
-          Browse typed examples, inspect source, compare established references,
-          and embed any TanStack chart directly into documentation.
+          ${
+            comparisonMode
+              ? 'Browse typed examples, inspect source, compare established references, and embed any TanStack chart directly into documentation.'
+              : 'Browse typed examples, inspect source, and embed any TanStack chart directly into documentation.'
+          }
         </p>
       </div>
       ${renderSummary()}
@@ -118,7 +135,7 @@ function renderCatalogIndex() {
       <div class="catalog-heading">
         <p id="result-count"></p>
         <a data-catalog-route href="${routeHref({ view: 'all' })}">
-          Render every comparison
+          ${comparisonMode ? 'Render every comparison' : 'Render every chart'}
         </a>
       </div>
       <div id="catalog-grid" class="catalog-grid"></div>
@@ -130,21 +147,28 @@ function renderCatalogIndex() {
 }
 
 function renderAllCases() {
+  const comparisonMode = comparisonModeEnabled()
   setDocumentMeta(
     'All charts · TanStack Charts Catalog',
-    'Render the complete TanStack Charts conformance catalog alongside its source-library references.',
+    comparisonMode
+      ? 'Render the complete TanStack Charts conformance catalog alongside its source-library references.'
+      : 'Render the complete TanStack Charts catalog with live source and controls.',
   )
 
   app.innerHTML = `
     ${renderSiteHeader('all')}
     <header class="hero hero-compact">
       <div>
-        <p class="eyebrow">Complete comparison surface</p>
+        <p class="eyebrow">${comparisonMode ? 'Complete comparison surface' : 'Complete catalog'}</p>
         <h1>Every chart, one page.</h1>
-        <p class="lede">
-          Same inputs and intent, with both renderers exposed for direct
-          geometry, source, performance, and output comparison.
-        </p>
+        ${
+          comparisonMode
+            ? `<p class="lede">
+                Same inputs and intent, with both renderers exposed for direct
+                geometry, source, performance, and output comparison.
+              </p>`
+            : ''
+        }
       </div>
       ${renderSummary()}
     </header>
@@ -160,10 +184,13 @@ function renderCasePage(entry: ConformanceCaseMeta) {
   const index = conformanceCases.indexOf(entry)
   const previous = conformanceCases[index - 1]
   const next = conformanceCases[index + 1]
+  const comparisonMode = comparisonModeEnabled()
 
   setDocumentMeta(
     `${entry.title} · TanStack Charts Catalog`,
-    `${entry.intent} Compare the reference implementation with TanStack Charts, inspect source, or embed the chart.`,
+    comparisonMode
+      ? `${entry.intent} Compare the reference implementation with TanStack Charts, inspect source, or embed the chart.`
+      : `${entry.intent} Inspect the source or embed the chart.`,
   )
 
   app.innerHTML = `
@@ -255,10 +282,7 @@ async function renderEmbed(entry: ConformanceCaseMeta, generation: number) {
   if (!container) return
 
   try {
-    const implementation = await loadConformanceImplementation(
-      entry.id,
-      'tanstack',
-    )
+    const implementation = await loadTanStackImplementation(entry.id)
     if (generation !== routeGeneration) return
     if (!implementation) {
       throw new Error('This catalog case has no TanStack implementation yet.')
@@ -339,7 +363,10 @@ async function renderComparisonCases(
 }
 
 function renderCatalogCard(entry: ConformanceCaseMeta): string {
-  const reference = getConformanceReferenceRenderer(entry)
+  const comparisonMode = comparisonModeEnabled()
+  const reference = comparisonMode
+    ? getConformanceReferenceRenderer(entry)
+    : undefined
   return `
     <article class="catalog-card">
       <header>
@@ -355,8 +382,12 @@ function renderCatalogCard(entry: ConformanceCaseMeta): string {
       <ul class="features">
         ${entry.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}
       </ul>
-      <footer>
-        <span>${escapeHtml(rendererLabel(reference))} reference</span>
+      <footer ${comparisonMode ? '' : 'class="catalog-card-footer-native"'}>
+        ${
+          reference
+            ? `<span>${escapeHtml(rendererLabel(reference))} reference</span>`
+            : ''
+        }
         <div>
           <a data-catalog-route href="${routeHref({ view: 'case', caseId: entry.id })}">
             View proof
@@ -371,6 +402,7 @@ function renderCatalogCard(entry: ConformanceCaseMeta): string {
 }
 
 function renderCaseCard(entry: ConformanceCaseMeta): string {
+  const comparisonMode = comparisonModeEnabled()
   const referenceRenderer = getConformanceReferenceRenderer(entry)
   const embedUrl = new URL(
     routeHref({ view: 'embed', caseId: entry.id }),
@@ -395,15 +427,30 @@ function renderCaseCard(entry: ConformanceCaseMeta): string {
       <ul class="features">
         ${entry.features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}
       </ul>
-      <div class="comparison" style="--chart-width: ${chartWidth}px">
-        ${renderRendererPanel(entry, referenceRenderer, rendererLabel(referenceRenderer))}
+      <div
+        class="comparison ${comparisonMode ? 'comparison-debug' : 'comparison-native'}"
+        style="--chart-width: ${chartWidth}px"
+      >
+        ${
+          comparisonMode
+            ? renderRendererPanel(
+                entry,
+                referenceRenderer,
+                rendererLabel(referenceRenderer),
+              )
+            : ''
+        }
         ${renderRendererPanel(entry, 'tanstack', 'TanStack Charts')}
       </div>
       <footer class="case-footer">
         <div class="case-links">
-          <a href="${escapeHtml(entry.source.url)}" target="_blank" rel="noreferrer">
-            Official reference · ${escapeHtml(entry.source.title)}
-          </a>
+          ${
+            comparisonMode
+              ? `<a href="${escapeHtml(entry.source.url)}" target="_blank" rel="noreferrer">
+                  Official reference · ${escapeHtml(entry.source.title)}
+                </a>`
+              : ''
+          }
           <a href="${routeHref({ view: 'embed', caseId: entry.id })}" target="_blank">
             Chrome-free embed
           </a>
@@ -457,8 +504,8 @@ async function mountCase(
 ) {
   const referenceRenderer = getConformanceReferenceRenderer(entry)
   await Promise.all(
-    ([referenceRenderer, 'tanstack'] as const).map((renderer) =>
-      mountRenderer(entry, renderer, route, comparison),
+    catalogRenderers(referenceRenderer, comparisonModeEnabled()).map(
+      (renderer) => mountRenderer(entry, renderer, route, comparison),
     ),
   )
 }
@@ -478,10 +525,13 @@ async function mountRenderer(
   if (!container) return
 
   try {
-    const [implementation, source] = await Promise.all([
-      loadConformanceImplementation(entry.id, renderer),
-      loadConformanceSource(entry.id, renderer),
-    ])
+    const [implementation, source] =
+      renderer === 'tanstack'
+        ? await Promise.all([
+            loadTanStackImplementation(entry.id),
+            loadTanStackSource(entry.id),
+          ])
+        : await loadComparisonRenderer(entry.id, renderer)
     if (
       route !== routeGeneration ||
       comparison !== comparisonGeneration ||
@@ -524,6 +574,26 @@ async function mountRenderer(
     if (metrics) metrics.textContent = 'error'
     console.error(`Failed to render ${entry.id} with ${renderer}`, error)
   }
+}
+
+async function loadComparisonRenderer(
+  id: string,
+  renderer: ConformanceReferenceRenderer,
+) {
+  const catalog = await loadComparisonCatalog()
+  return Promise.all([
+    catalog.loadComparisonImplementation(id, renderer),
+    catalog.loadComparisonSource(id, renderer),
+  ])
+}
+
+function loadComparisonCatalog() {
+  if (!comparisonModeEnabled()) {
+    throw new Error('Comparison renderers require ?compare=1.')
+  }
+  comparisonCatalogPromise ??=
+    import('../../../benchmarks/conformance/comparison-catalog')
+  return comparisonCatalogPromise
 }
 
 function renderSiteHeader(active?: 'catalog' | 'all'): string {
@@ -606,7 +676,10 @@ function renderBrowseToolbar(): string {
 
 function renderComparisonToolbar(includeFilters = true): string {
   return `
-    <section class="toolbar" aria-label="Comparison controls">
+    <section
+      class="toolbar"
+      aria-label="${comparisonModeEnabled() ? 'Comparison controls' : 'Chart controls'}"
+    >
       ${includeFilters ? renderToolbarFilters() : ''}
       <label>
         <span>Chart width</span>
@@ -765,7 +838,14 @@ function handleRouteLink(event: MouseEvent) {
 function routeHref(
   route: Exclude<CatalogRoute, { view: 'not-found' }>,
 ): string {
-  return catalogRouteHref(route, basePath)
+  return withCatalogComparisonMode(
+    catalogRouteHref(route, basePath),
+    comparisonModeEnabled() && route.view !== 'embed',
+  )
+}
+
+function comparisonModeEnabled(): boolean {
+  return isCatalogComparisonMode(window.location.search)
 }
 
 function rendererLabel(renderer: ConformanceRenderer): string {

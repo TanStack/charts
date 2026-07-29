@@ -546,7 +546,8 @@ Each entry records:
 - Status: resolved
 - Severity: high
 - Owner: Tooling
-- Observed in: cross-library bundle and browser comparison matrix
+- Observed in: cross-library bundle and browser comparison matrix; executable
+  catalog production loading
 - Friction: re-exporting one benchmark mount from a module containing four
   top-level chart definitions retained every TanStack mark. Line, bar, area,
   and scatter therefore produced the same 52.48 kB minified artifact even
@@ -556,13 +557,19 @@ Each entry records:
   calling the Recharts helper. It recurred a second time when cross-library
   adapters read exported stress-mode aliases: normal bundles retained 194
   bytes of probe scheduling in Chart.js, Recharts, and Plot, and 509 bytes in
-  ECharts.
+  ECharts. The production catalog later repeated the boundary failure through
+  two broad `import.meta.glob('./cases/*/*.ts')` registries. Its default entry
+  registered 584 implementation and raw-source imports, including every
+  comparison renderer, data/helper modules, and a `tanstack.test.ts` file.
 - Decision: give each chart type an isolated entry module and share only the
   renderer-free host setup. Renderer-specific helpers with runtime imports
   live in separate modules. Tier variants also use direct build-time globals;
   exported or locally aliased tier constants are not assumed to propagate
-  across modules. Do not rely on purity annotations or minifier-specific
-  interprocedural analysis for benchmark validity.
+  across modules. The catalog keeps metadata, exact TanStack loaders, and exact
+  comparison loaders in separate registries; only `?compare=1` dynamically
+  imports the comparison registry. Do not rely on purity annotations,
+  minifier-specific interprocedural analysis, or a render-time branch to
+  establish a bundle boundary.
 - Verification: emitted TanStack artifacts contain only the selected mark
   class, and the four minified and compressed measurements are distinct. The
   tiered line bundles also separate as expected: TanStack gzip is 18.12 kB
@@ -572,7 +579,13 @@ Each entry records:
   22.40 kB gzip versus Recharts at 168.56 kB and passed the quick visual gate.
   The comparison builder now rejects any normal artifact with nonzero bytes
   from `comparison/stress`; direct build-time globals reduce that contribution
-  to zero for all five libraries, and `pnpm benchmark:check` passes.
+  to zero for all five libraries, and `pnpm benchmark:check` passes. The
+  catalog graph gate now proves exactly 100 TanStack, 68 Plot, 21 Recharts, and
+  11 ECharts implementations plus their isolated raw-source entries, with no
+  test/data/helper dynamic entries. The default catalog entry fell from about
+  260 kB to 201 kB; fresh Chromium contexts request no comparison registry or
+  competitor package chunks for normal Plot, Recharts, ECharts, or embed
+  routes, while `?compare=1` requests the selected implementation and source.
 
 ### F-025 — Bundle maintenance clobbered the full comparison report
 

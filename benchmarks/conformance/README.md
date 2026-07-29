@@ -79,10 +79,16 @@ conformance:
 | Route           | Purpose                                                           |
 | --------------- | ----------------------------------------------------------------- |
 | `/`             | Searchable case catalog; charts load only after selection         |
-| `/all/`         | Full side-by-side comparison gallery                              |
-| `/charts/:id/`  | One reference/TanStack comparison with source and embed code      |
+| `/all/`         | Every TanStack implementation on one page                         |
+| `/charts/:id/`  | One TanStack implementation with source and embed code            |
 | `/embed/:id/`   | Chrome-free, responsive TanStack chart for an iframe              |
 | `/catalog.json` | Versioned metadata and page/embed paths for documentation tooling |
+
+Append the exact `?compare=1` debug flag to `/`, `/all/`, or `/charts/:id/`
+to expose the reference implementation and source. Internal catalog links
+preserve the flag; embed links intentionally omit it. The comparison registry
+and its Plot, Recharts, and ECharts chunks are dynamically loaded only in that
+mode.
 
 The build writes physical `index.html` files for every deep route, so direct
 links work on a static host without rewrite rules. `404.html` retains
@@ -169,6 +175,9 @@ routes remain frameable.
 # Build, mirror the public path, and validate the Worker bundle locally
 pnpm catalog:build
 pnpm catalog:deploy:check
+
+# Prove the default/debug module and network boundary in Chromium
+pnpm catalog:loading:check
 
 # Deploy with an authenticated Wrangler session
 pnpm catalog:deploy

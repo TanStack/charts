@@ -27,6 +27,7 @@
     "catalog:check": "pnpm --filter @charts-poc/conformance-example check:catalog",
     "catalog:deploy": "pnpm catalog:build && pnpm catalog:deploy:check && wrangler deploy --config wrangler.catalog.jsonc",
     "catalog:deploy:check": "pnpm catalog:stage && node scripts/check-local-catalog-worker.mjs && wrangler deploy --dry-run --outdir .catalog-worker --config wrangler.catalog.jsonc",
+    "catalog:loading:check": "pnpm catalog:stage && node scripts/check-catalog-loading.mjs",
     "catalog:smoke": "node scripts/check-catalog-deployment.mjs",
     "catalog:stage": "node scripts/stage-conformance-deployment.mjs",
     "dev:charts-react": "pnpm --filter @charts-poc/react-example dev",

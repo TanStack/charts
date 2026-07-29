@@ -94,6 +94,8 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm catalog:build
+      - run: pnpm catalog:loading:check
       - name: Run pull-request conformance
         if: github.event_name == 'pull_request'
         run: pnpm conformance:quick
@@ -169,6 +171,10 @@ jobs:
         with:
           node-version: 24
 
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+
       - name: Download validated catalog
         uses: actions/download-artifact@v4
         with:
@@ -187,3 +193,6 @@ jobs:
 
       - name: Verify production routes
         run: node scripts/check-catalog-deployment.mjs
+
+      - name: Verify production loading boundary
+        run: node scripts/check-catalog-loading.mjs --url https://tanstack.com/charts/catalog/

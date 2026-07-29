@@ -121,7 +121,7 @@ async function generateSite(entries) {
   const rootMetadata = {
     title: 'TanStack Charts Catalog',
     description:
-      'Browse executable TanStack Charts examples, conformance comparisons, source, and embeddable proofs.',
+      'Browse executable TanStack Charts examples, source, and embeddable proofs.',
     route: rootRoute,
     noIndex: false,
   }
@@ -134,7 +134,7 @@ async function generateSite(entries) {
   await writeRoute(shell, 'all', {
     title: 'All charts · TanStack Charts Catalog',
     description:
-      'Render the complete TanStack Charts conformance catalog alongside its source-library references.',
+      'Render the complete TanStack Charts catalog with live source and controls.',
     route: routePath('all'),
     noIndex: false,
   })

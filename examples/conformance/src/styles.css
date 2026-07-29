@@ -400,6 +400,10 @@ input {
   font-size: 0.72rem;
 }
 
+.catalog-card > footer.catalog-card-footer-native {
+  justify-content: flex-end;
+}
+
 .catalog-card > footer div {
   display: flex;
   gap: 12px;
@@ -505,6 +509,17 @@ input {
   grid-template-columns: repeat(2, minmax(var(--chart-width), 1fr));
   overflow-x: auto;
   border-block: 1px solid var(--border);
+}
+
+.comparison-native {
+  grid-template-columns: minmax(var(--chart-width), 1fr);
+}
+
+.comparison-native .renderer > header,
+.comparison-native .renderer > .chart,
+.comparison-native .renderer > .source {
+  width: min(100%, var(--chart-width));
+  margin-inline: auto;
 }
 
 .renderer {
@@ -709,6 +724,10 @@ body.embed-mode {
 
   .comparison {
     grid-template-columns: repeat(2, var(--chart-width));
+  }
+
+  .comparison-native {
+    grid-template-columns: var(--chart-width);
   }
 
   .site-header,
