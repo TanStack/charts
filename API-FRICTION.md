@@ -1128,11 +1128,15 @@ Each entry records:
   `proportion-facet`. Treating either output as a fraction produces incorrect
   domains or comparisons between panels.
 - Current decision: recipes must name the normalization scope and express
-  domains in post-transform units. Direct D3 preparation divides each facet bin
-  by that facet's own observation count, then multiplies by 100.
-- Verification: the paired faceted distributions pass responsive shared-guide,
-  geometry, paint, and strict-type checks with each panel independently
-  normalized.
+  domains in their own post-transform units. Plot's percentage axis consumes
+  values in `[0, 100]`; the direct D3 preparation keeps fractions in `[0, 1]`
+  and formats them with `Intl.NumberFormat`. In both cases, divide each facet
+  bin by that facet's own observation count.
+- Verification: focused preparation tests prove that every in-domain row is
+  counted once, each populated facet sums to one, the domain maximum remains
+  in the final bin, and absent groups produce no `NaN` values. The paired
+  faceted distributions pass responsive shared-guide, geometry, paint, and
+  strict-type checks with each panel independently normalized.
 
 ### F-051 — Beeswarm layout is responsive pixel-space preparation
 

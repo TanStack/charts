@@ -6,11 +6,12 @@ import type { DistributionGroup, FacetedDistributionPoint } from './data'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
-interface DistributionBin {
+export interface DistributionBin {
   id: string
   group: DistributionGroup
   x1: number
   x2: number
+  count: number
   proportion: number
 }
 
@@ -24,26 +25,33 @@ const percent = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,
 })
 
+export function prepareFacetedDistributionBins(
+  rows: readonly FacetedDistributionPoint[],
+): readonly DistributionBin[] {
+  return distributionGroups.flatMap((group) => {
+    const groupRows = rows.filter((row) => row.group === group)
+    if (groupRows.length === 0) return []
+
+    return createBins(groupRows).flatMap((bucket, index) =>
+      bucket.x0 === undefined || bucket.x1 === undefined
+        ? []
+        : [
+            {
+              id: `${group}:${index}`,
+              group,
+              x1: bucket.x0,
+              x2: bucket.x1,
+              count: bucket.length,
+              proportion: bucket.length / groupRows.length,
+            },
+          ],
+    )
+  })
+}
+
 const definition = defineChart<ConformanceInput>()(({ input }) => {
   const rows = facetedDistributionData(input.revision)
-  const bins: readonly DistributionBin[] = distributionGroups.flatMap(
-    (group) => {
-      const groupRows = rows.filter((row) => row.group === group)
-      return createBins(groupRows).flatMap((bucket, index) =>
-        bucket.x0 === undefined || bucket.x1 === undefined
-          ? []
-          : [
-              {
-                id: `${group}:${index}`,
-                group,
-                x1: bucket.x0,
-                x2: bucket.x1,
-                proportion: bucket.length / groupRows.length,
-              },
-            ],
-      )
-    },
-  )
+  const bins = prepareFacetedDistributionBins(rows)
 
   return {
     marks: [

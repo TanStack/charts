@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { scaleLinear } from 'd3-scale'
-import { facetChart } from './facet'
+import { facet, facetChart } from './facet'
 import { lineY } from './line'
 import { createMark } from './mark'
 import { createChartScene } from './scene'
@@ -147,6 +147,136 @@ describe('facets', () => {
     )
   })
 
+  it('places shared guides on every outer edge of a multi-row grid', () => {
+    const data = ['A', 'B', 'C', 'D'].flatMap((group, groupIndex) => [
+      { id: `${group}:0`, group, x: 0, y: groupIndex + 1 },
+      { id: `${group}:1`, group, x: 1, y: groupIndex + 2 },
+    ])
+    const scene = createChartScene(
+      facetChart(data, {
+        by: 'group',
+        columns: 2,
+        chart: (group) => ({
+          marks: [lineY(group, { x: 'x', y: 'y', key: 'id' })],
+          x: {
+            scale: scaleLinear().domain([0, 1]),
+            label: 'Horizontal',
+          },
+          y: {
+            scale: scaleLinear().domain([0, 6]),
+            label: 'Vertical',
+          },
+        }),
+      }),
+      { width: 720, height: 480 },
+    )
+    const nodes = flatten(scene.nodes)
+    const cells = nodes.filter(
+      (node) =>
+        node.kind === 'group' && node.className === 'ts-chart__facet-cell',
+    )
+    const yAxes = nodes.filter(
+      (node): node is Extract<SceneNode, { kind: 'group' }> =>
+        node.kind === 'group' &&
+        node.className?.includes('ts-chart__facet-axis--y') === true,
+    )
+    const xAxes = nodes.filter(
+      (node): node is Extract<SceneNode, { kind: 'group' }> =>
+        node.kind === 'group' &&
+        node.className?.includes('ts-chart__facet-axis--x') === true,
+    )
+    const pointSpans = ['A', 'B', 'C', 'D'].map((group) => {
+      const points = scene.points.filter((point) => point.datum.group === group)
+      return (points[1]?.x ?? 0) - (points[0]?.x ?? 0)
+    })
+
+    expect(cells).toHaveLength(4)
+    expect(yAxes).toHaveLength(2)
+    expect(xAxes).toHaveLength(2)
+    expect(new Set(yAxes.map((axis) => axis.translateY))).toHaveLength(2)
+    expect(new Set(xAxes.map((axis) => axis.translateX))).toHaveLength(2)
+    expect(nodes.filter((node) => node.key === 'facet-0:x-label')).toHaveLength(
+      1,
+    )
+    expect(nodes.filter((node) => node.key === 'facet-0:y-label')).toHaveLength(
+      1,
+    )
+    expect(pointSpans.every((span) => span === pointSpans[0])).toBe(true)
+  })
+
+  it('composes nested facets with unique points and responsive outer flow', () => {
+    const data = ['North', 'South'].flatMap((region) =>
+      ['A', 'B'].flatMap((series, seriesIndex) => [
+        {
+          id: `${region}:${series}:0`,
+          region,
+          series,
+          x: 0,
+          y: seriesIndex + 1,
+        },
+        {
+          id: `${region}:${series}:1`,
+          region,
+          series,
+          x: 1,
+          y: seriesIndex + 2,
+        },
+      ]),
+    )
+    const definition = facetChart(data, {
+      id: 'region',
+      by: 'region',
+      minWidth: 280,
+      axes: 'cell',
+      chart: (regionRows) => ({
+        marks: [
+          facet(regionRows, {
+            id: 'series',
+            by: 'series',
+            columns: 1,
+            axes: 'cell',
+            chart: (seriesRows) => ({
+              marks: [lineY(seriesRows, { x: 'x', y: 'y', key: 'id' })],
+              ...linearAxes([0, 1], [0, 3]),
+            }),
+          }),
+        ],
+        guides: false,
+        margin: 0,
+        x: null,
+        y: null,
+      }),
+    })
+    const wide = createChartScene(definition, { width: 720, height: 520 })
+    const narrow = createChartScene(definition, { width: 320, height: 520 })
+    const wideCells = directFacetCells(wide.nodes, 'region')
+    const narrowCells = directFacetCells(narrow.nodes, 'region')
+    const nestedLabels = flatten(wide.nodes)
+      .filter((node) => node.kind === 'label')
+      .map((node) => node.text)
+
+    expect(wide.points).toHaveLength(data.length)
+    expect(new Set(wide.points.map((point) => point.key))).toHaveLength(
+      data.length,
+    )
+    expect(new Set(narrow.points.map((point) => point.key))).toHaveLength(
+      data.length,
+    )
+    expect(wideCells).toHaveLength(2)
+    expect(narrowCells).toHaveLength(2)
+    expect(wideCells[1]?.translateX).toBeGreaterThan(
+      wideCells[0]?.translateX ?? 0,
+    )
+    expect(wideCells[1]?.translateY).toBe(wideCells[0]?.translateY)
+    expect(narrowCells[1]?.translateX).toBe(narrowCells[0]?.translateX)
+    expect(narrowCells[1]?.translateY).toBeGreaterThan(
+      narrowCells[0]?.translateY ?? 0,
+    )
+    expect(nestedLabels).toEqual(
+      expect.arrayContaining(['North', 'South', 'A', 'B']),
+    )
+  })
+
   it('retains complete cell axes when independent scales are explicit', () => {
     const data = [
       { group: 'A', value: 1 },
@@ -231,4 +361,29 @@ function flatten(nodes: readonly SceneNode[]): SceneNode[] {
   return nodes.flatMap((node) =>
     node.kind === 'group' ? [node, ...flatten(node.children)] : [node],
   )
+}
+
+function directFacetCells(
+  nodes: readonly SceneNode[],
+  facetId: string,
+): Extract<SceneNode, { kind: 'group' }>[] {
+  const root = findGroup(nodes, facetId)
+  if (!root) return []
+  return root.children.filter(
+    (node): node is Extract<SceneNode, { kind: 'group' }> =>
+      node.kind === 'group' && node.className === 'ts-chart__facet-cell',
+  )
+}
+
+function findGroup(
+  nodes: readonly SceneNode[],
+  key: string,
+): Extract<SceneNode, { kind: 'group' }> | undefined {
+  for (const node of nodes) {
+    if (node.kind !== 'group') continue
+    if (node.key === key) return node
+    const nested = findGroup(node.children, key)
+    if (nested) return nested
+  }
+  return undefined
 }
