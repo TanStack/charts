@@ -10,9 +10,8 @@ The library is designed for two equally important authors:
 - People should get polished, responsive charts from a short declaration.
 - AI should be able to compose, inspect, and modify charts without learning an application-specific series model or guessing at hidden behavior.
 
-The same definition works with the vanilla DOM host, the React adapter, the
-Octane adapter, optional Canvas entries, static SVG rendering, and server
-rendering.
+The same definition works with the vanilla DOM host and every framework
+adapter. React and Octane also provide optional Canvas entries.
 
 ## A chart is a composition
 
@@ -118,11 +117,18 @@ Every automatic behavior has an explicit escape hatch. The [Guides](./guides/res
 
 ## Packages
 
-| Package                   | Use it for                                                                                                    |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `@tanstack/charts`        | Definitions, marks, scenes, SVG rendering, optional Canvas and renderer subpaths, and framework-agnostic APIs |
-| `@tanstack/react-charts`  | The thin React `<Chart>` adapter                                                                              |
-| `@tanstack/octane-charts` | The thin Octane `<Chart>` adapter                                                                             |
+| Package                    | Use it for                                                       |
+| -------------------------- | ---------------------------------------------------------------- |
+| `@tanstack/charts`         | Definitions, marks, scenes, SVG, Canvas, export, and vanilla DOM |
+| `@tanstack/react-charts`   | React `<Chart>`                                                  |
+| `@tanstack/preact-charts`  | Preact `<Chart>`                                                 |
+| `@tanstack/vue-charts`     | Vue `<Chart>`                                                    |
+| `@tanstack/solid-charts`   | Solid `<Chart>`                                                  |
+| `@tanstack/svelte-charts`  | Svelte `<Chart>`                                                 |
+| `@tanstack/angular-charts` | Angular `<tanstack-chart>`                                       |
+| `@tanstack/lit-charts`     | Lit `<tanstack-chart>`                                           |
+| `@tanstack/alpine-charts`  | Alpine `x-chart`                                                 |
+| `@tanstack/octane-charts`  | Octane `<Chart>`                                                 |
 
 All packages are ESM and tree-shakeable. Built-in marks and optional capabilities also have subpath exports when a library or design system needs tighter bundle boundaries.
 

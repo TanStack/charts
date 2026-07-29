@@ -3,11 +3,11 @@ title: API Reference
 description: Reference for TanStack Charts definitions, marks, scales, runtime, rendering, interaction, and framework adapters.
 ---
 
-TanStack Charts has a small framework-neutral core and thin React and Octane
+TanStack Charts has a small framework-neutral core and thin framework
 adapters. Most applications use `defineChart`, one or more marks, configured
-scales, and a framework `Chart` component. Lower-level entry points are
-available for custom marks, vanilla DOM mounting, static rendering, export, and
-application-owned interaction.
+scales, and the selected framework's chart binding. Lower-level entry points
+are available for custom marks, vanilla DOM mounting, static rendering, export,
+and application-owned interaction.
 
 ## Core reference
 
@@ -37,14 +37,21 @@ application-owned interaction.
 
 ## Framework adapters
 
-| Framework | Start                                             | Adapter behavior                          | Component API                                     |
-| --------- | ------------------------------------------------- | ----------------------------------------- | ------------------------------------------------- |
-| React     | [Quick start](../framework/react/quick-start.md)  | [Adapter](../framework/react/adapter.md)  | [`Chart`](../framework/react/reference/chart.md)  |
-| Octane    | [Quick start](../framework/octane/quick-start.md) | [Adapter](../framework/octane/adapter.md) | [`Chart`](../framework/octane/reference/chart.md) |
+| Framework | Start                                             | Adapter behavior                           | Component API                                     |
+| --------- | ------------------------------------------------- | ------------------------------------------ | ------------------------------------------------- |
+| React     | [Quick start](../framework/react/quick-start.md)  | [Adapter](../framework/react/adapter.md)   | [`Chart`](../framework/react/reference/chart.md)  |
+| Preact    | —                                                 | [Adapter](../framework/preact/adapter.md)  | `Chart`                                           |
+| Vue       | —                                                 | [Adapter](../framework/vue/adapter.md)     | `Chart`                                           |
+| Solid     | —                                                 | [Adapter](../framework/solid/adapter.md)   | `Chart`                                           |
+| Svelte    | —                                                 | [Adapter](../framework/svelte/adapter.md)  | `Chart`                                           |
+| Angular   | —                                                 | [Adapter](../framework/angular/adapter.md) | `Chart`                                           |
+| Lit       | —                                                 | [Adapter](../framework/lit/adapter.md)     | `Chart`, `defineChartElement`                     |
+| Alpine    | —                                                 | [Adapter](../framework/alpine/adapter.md)  | `charts`                                          |
+| Octane    | [Quick start](../framework/octane/quick-start.md) | [Adapter](../framework/octane/adapter.md)  | [`Chart`](../framework/octane/reference/chart.md) |
 
-Both adapters keep the default `Chart` SVG-based. Their `/canvas` entries
+React and Octane keep the default `Chart` SVG-based. Their `/canvas` entries
 select the optional Canvas renderer; their `/core` entries require an explicit
-`ChartRenderer`.
+`ChartRenderer`. The other adapters currently expose the default SVG surface.
 
 ## Import map
 
@@ -55,6 +62,8 @@ capabilities and individual marks independently tree-shakeable.
 | Import                               | Public values                                                                                                                                                                  |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `@tanstack/charts`                   | Common marks, legends, D3 curve bridges, `createMark`, `defineChart`, `createChartScene`, `createChartRuntime`, `mountChart`, `renderChartSvg`, and runtime comparison helpers |
+| `@tanstack/charts/adapter`           | `createChartAdapter`, `resolveChartAdapterLayout`, `ChartAdapter`, `ChartAdapterLayout`, and `ChartAdapterLayoutOptions`                                                       |
+| `@tanstack/charts/adapter/renderer`  | `createChartRendererAdapter`                                                                                                                                                   |
 | `@tanstack/charts/area`              | `areaY`                                                                                                                                                                        |
 | `@tanstack/charts/area-x`            | `areaX`                                                                                                                                                                        |
 | `@tanstack/charts/arrow`             | `arrow`                                                                                                                                                                        |

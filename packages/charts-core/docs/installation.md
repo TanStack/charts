@@ -15,6 +15,27 @@ Then add one adapter if the application needs it:
 # React
 pnpm add @tanstack/react-charts react
 
+# Preact
+pnpm add @tanstack/preact-charts preact
+
+# Vue
+pnpm add @tanstack/vue-charts vue
+
+# Solid
+pnpm add @tanstack/solid-charts solid-js
+
+# Svelte
+pnpm add @tanstack/svelte-charts svelte
+
+# Angular
+pnpm add @tanstack/angular-charts @angular/core @angular/platform-browser
+
+# Lit
+pnpm add @tanstack/lit-charts lit
+
+# Alpine
+pnpm add @tanstack/alpine-charts alpinejs
+
 # Octane
 pnpm add @tanstack/octane-charts octane
 ```
@@ -71,7 +92,8 @@ bun add @tanstack/charts d3-array d3-scale
 bun add -D @types/d3-array @types/d3-scale
 ```
 
-For React, add `@tanstack/react-charts` and `react` to the same command. For Octane, add `@tanstack/octane-charts` and `octane`.
+Install exactly one adapter package and its framework peer. A shared definition
+can move between adapters without changing marks, channels, scales, or input.
 
 ## Import boundaries
 
@@ -112,8 +134,8 @@ import { Chart as OctaneCanvasChart } from '@tanstack/octane-charts/canvas'
 import { Chart as OctaneRendererChart } from '@tanstack/octane-charts/core'
 ```
 
-The default React and Octane entries remain SVG-based. Import `/canvas` only
-for the built-in Canvas surface, or `/core` to supply a `ChartRenderer`.
+The default entries are SVG-based. React and Octane currently provide the
+optional `/canvas` and `/core` entries.
 
 Polar and geographic marks are intentionally absent from the package root.
 Their subpaths keep `d3-shape` and `d3-geo` unreachable from ordinary
@@ -174,4 +196,5 @@ console.log(scene.chart, scene.points.length)
 
 Both positional scales are required. A missing scale is an authoring error rather than a hidden fallback.
 
-Continue with the [Quick Start](./quick-start.md), or choose the [React](./framework/react/quick-start.md) or [Octane](./framework/octane/quick-start.md) adapter path.
+Continue with the [Quick Start](./quick-start.md), then open the adapter page
+for the framework that owns the chart component.

@@ -1,17 +1,14 @@
 import * as React from 'react'
-import { createChartRuntime } from '@tanstack/charts/runtime'
-import { mountChartRenderer } from '@tanstack/charts/renderer'
+import { createChartRendererAdapter } from '@tanstack/charts/adapter/renderer'
 import type {
-  ChartDefinition,
+  ChartAdapter,
   ChartAnimationOptions,
   ChartRenderer,
   ChartRendererHostCommonOptions,
-  ChartRendererHost,
   ChartRendererHostOptions,
   ChartRendererRenderContext,
   ChartPoint,
   ChartFocusMode,
-  ChartRuntime,
   ChartSpatialIndexFactory,
   ChartTextMeasurer,
   ChartTooltipOptions,
@@ -21,62 +18,20 @@ import type {
 } from '@tanstack/charts'
 
 interface ChartSurfaceProps {
-  definition: ChartDefinition<unknown, unknown, any>
-  input: unknown
-  ariaLabel: string
-  ariaDescription?: string
-  height: number
-  width: number
-  keyboard: boolean
-  tabIndex?: number
-  idPrefix: string
-  renderer: ChartRenderer<any, any, any>
-  runtime: ChartRuntime<any, any, any, any>
-  measureText?: ChartTextMeasurer
+  markup: string
 }
 
 const ChartSurface = React.memo(
   React.forwardRef<HTMLDivElement, ChartSurfaceProps>(function ChartSurface(
-    {
-      definition,
-      input,
-      ariaLabel,
-      ariaDescription,
-      height,
-      width,
-      keyboard,
-      tabIndex,
-      idPrefix,
-      renderer,
-      runtime,
-      measureText,
-    },
+    { markup },
     ref,
   ) {
-    const scene = runtime.render(
-      definition,
-      input,
-      {
-        width,
-        height,
-      },
-      { measureText },
-    )
-    const markup = {
-      __html: renderer.prerender(scene, {
-        ariaLabel,
-        ariaDescription,
-        tabIndex: keyboard ? (tabIndex ?? 0) : -1,
-        idPrefix,
-      }),
-    }
-
     return (
       <div
         ref={ref}
         className="ts-chart-surface"
         style={{ width: '100%', height: '100%' }}
-        dangerouslySetInnerHTML={markup}
+        dangerouslySetInnerHTML={{ __html: markup }}
       />
     )
   }),
@@ -173,8 +128,6 @@ export function RendererChartImplementation<
   TYValue extends ChartValue = ChartValue,
 >(props: RendererChartProps<TDatum, TInput, TXValue, TYValue>) {
   const {
-    definition,
-    input,
     ariaLabel,
     ariaDescription,
     height,
@@ -208,25 +161,13 @@ export function RendererChartImplementation<
     aspectRatio > 0
       ? aspectRatio
       : undefined
-  const initialSceneWidth = width ?? initialWidth
-  const initialHeight =
-    height ??
-    (resolvedAspectRatio ? initialSceneWidth / resolvedAspectRatio : 320)
   const containerRef = React.useRef<HTMLDivElement>(null)
-  const hostRef = React.useRef<ChartRendererHost<
+  const adapterRef = React.useRef<ChartAdapter<
+    ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
     TDatum,
-    TInput,
     TXValue,
     TYValue
   > | null>(null)
-  const runtimeRef = React.useRef<ChartRuntime<
-    TDatum,
-    TInput,
-    TXValue,
-    TYValue
-  > | null>(null)
-  runtimeRef.current ??= createChartRuntime<TDatum, TInput, TXValue, TYValue>()
-  const runtime = runtimeRef.current
   const commonHostOptions: ChartRendererHostCommonOptions<
     TDatum,
     TXValue,
@@ -254,20 +195,22 @@ export function RendererChartImplementation<
     onRender,
   }
   const hostOptions = createHostOptions(props, commonHostOptions)
+  adapterRef.current ??= createChartRendererAdapter(hostOptions)
+  const adapter = adapterRef.current
+  const initialMarkupRef = React.useRef<string | null>(null)
+  initialMarkupRef.current ??= adapter.prerender()
+
   React.useLayoutEffect(() => {
     const container = containerRef.current
     if (!container) return
-    const host = mountChartRenderer(container, hostOptions, runtime)
-    hostRef.current = host
-    return () => {
-      hostRef.current = null
-      host.destroy()
-    }
+    adapter.update(hostOptions)
+    adapter.mount(container)
+    return () => adapter.destroy()
   }, [])
 
   React.useLayoutEffect(() => {
-    hostRef.current?.update(hostOptions)
-  }, [hostOptions])
+    adapter.update(hostOptions)
+  }, [adapter, hostOptions])
 
   return (
     <div
@@ -280,21 +223,7 @@ export function RendererChartImplementation<
         ...style,
       }}
     >
-      <ChartSurface
-        ref={containerRef}
-        definition={definition as ChartDefinition<unknown, unknown, any>}
-        input={input}
-        ariaLabel={ariaLabel}
-        ariaDescription={ariaDescription}
-        height={initialHeight}
-        width={initialSceneWidth}
-        keyboard={keyboard}
-        tabIndex={tabIndex}
-        idPrefix={idPrefix}
-        renderer={renderer}
-        runtime={runtime as ChartRuntime<any, any, any, any>}
-        measureText={measureText}
-      />
+      <ChartSurface ref={containerRef} markup={initialMarkupRef.current} />
     </div>
   )
 }

@@ -1,14 +1,9 @@
 import { memo, useId, useLayoutEffect, useMemo, useRef } from 'octane'
-import { createChartRuntime } from '@tanstack/charts/runtime'
-import { mountChartRenderer } from '@tanstack/charts/renderer'
+import { createChartRendererAdapter } from '@tanstack/charts/adapter/renderer'
 import type {
-  ChartDefinition,
-  ChartRenderer,
-  ChartRendererHost,
+  ChartAdapter,
   ChartRendererHostCommonOptions,
   ChartRendererHostOptions,
-  ChartRuntime,
-  ChartTextMeasurer,
   ChartValue,
 } from '@tanstack/charts'
 import type {
@@ -18,47 +13,18 @@ import type {
 } from './renderer-types'
 
 interface ChartSurfaceProps {
-  definition: ChartDefinition<unknown, unknown, any>
-  input: unknown
-  ariaLabel: string
-  ariaDescription?: string
-  height: number
-  width: number
-  keyboard: boolean
-  tabIndex?: number
-  idPrefix: string
-  renderer: ChartRenderer<any, any, any>
-  runtime: ChartRuntime<any, any, any, any>
-  measureText?: ChartTextMeasurer
+  markup: string
   containerRef: { current: HTMLDivElement | null }
 }
 
 const ChartSurface = memo(
   function ChartSurface(props: ChartSurfaceProps) {
-    const scene = props.runtime.render(
-      props.definition,
-      props.input,
-      {
-        width: props.width,
-        height: props.height,
-      },
-      { measureText: props.measureText },
-    )
-    const markup = {
-      __html: props.renderer.prerender(scene, {
-        ariaLabel: props.ariaLabel,
-        ariaDescription: props.ariaDescription,
-        tabIndex: props.keyboard ? (props.tabIndex ?? 0) : -1,
-        idPrefix: props.idPrefix,
-      }),
-    }
-
     return (
       <div
         ref={props.containerRef}
         class="ts-chart-surface"
         style={{ width: '100%', height: '100%' }}
-        dangerouslySetInnerHTML={markup}
+        dangerouslySetInnerHTML={{ __html: props.markup }}
       />
     )
   },
@@ -83,20 +49,12 @@ export function RendererChart<
   TYValue extends ChartValue = ChartValue,
 >(props: RendererChartProps<TDatum, TInput, TXValue, TYValue>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const hostRef = useRef<ChartRendererHost<
+  const adapterRef = useRef<ChartAdapter<
+    ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
     TDatum,
-    TInput,
     TXValue,
     TYValue
   > | null>(null)
-  const runtimeRef = useRef<ChartRuntime<
-    TDatum,
-    TInput,
-    TXValue,
-    TYValue
-  > | null>(null)
-  runtimeRef.current ??= createChartRuntime<TDatum, TInput, TXValue, TYValue>()
-  const runtime = runtimeRef.current
   const onFocusChangeRef = useRef(props.onFocusChange)
   onFocusChangeRef.current = props.onFocusChange
   const onSelectRef = useRef(props.onSelect)
@@ -113,9 +71,6 @@ export function RendererChart<
     props.aspectRatio > 0
       ? props.aspectRatio
       : undefined
-  const initialSceneWidth = props.width ?? initialWidth
-  const initialHeight =
-    height ?? (aspectRatio ? initialSceneWidth / aspectRatio : 320)
   const maxFocusDistance = props.maxFocusDistance ?? 48
   const keyboard = props.keyboard ?? true
   const generatedId = useId()
@@ -169,20 +124,22 @@ export function RendererChart<
       props.measureText,
     ],
   )
+  adapterRef.current ??= createChartRendererAdapter(hostOptions)
+  const adapter = adapterRef.current
+  const initialMarkupRef = useRef<string | null>(null)
+  initialMarkupRef.current ??= adapter.prerender()
+
   useLayoutEffect(() => {
     const container = containerRef.current
     if (!container) return
-    const host = mountChartRenderer(container, hostOptions, runtime)
-    hostRef.current = host
-    return () => {
-      hostRef.current = null
-      host.destroy()
-    }
+    adapter.update(hostOptions)
+    adapter.mount(container)
+    return () => adapter.destroy()
   }, [])
 
   useLayoutEffect(() => {
-    hostRef.current?.update(hostOptions)
-  }, [hostOptions])
+    adapter.update(hostOptions)
+  }, [adapter, hostOptions])
 
   return (
     <div
@@ -196,18 +153,7 @@ export function RendererChart<
       }}
     >
       <ChartSurface
-        definition={props.definition as ChartDefinition<unknown, unknown, any>}
-        input={props.input}
-        ariaLabel={props.ariaLabel}
-        ariaDescription={props.ariaDescription}
-        height={initialHeight}
-        width={initialSceneWidth}
-        keyboard={keyboard}
-        tabIndex={props.tabIndex}
-        idPrefix={idPrefix}
-        renderer={props.renderer}
-        runtime={runtime as ChartRuntime<any, any, any, any>}
-        measureText={props.measureText}
+        markup={initialMarkupRef.current}
         containerRef={containerRef}
       />
     </div>

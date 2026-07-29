@@ -26,6 +26,8 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./adapter": "./src/adapter.ts",
+    "./adapter/renderer": "./src/adapter-renderer.ts",
     "./area": "./src/area.ts",
     "./area-x": "./src/area-x.ts",
     "./arrow": "./src/arrow.ts",
@@ -66,6 +68,14 @@
       ".": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
+      },
+      "./adapter": {
+        "types": "./dist/adapter.d.ts",
+        "import": "./dist/adapter.js"
+      },
+      "./adapter/renderer": {
+        "types": "./dist/adapter-renderer.d.ts",
+        "import": "./dist/adapter-renderer.js"
       },
       "./area": {
         "types": "./dist/area.d.ts",

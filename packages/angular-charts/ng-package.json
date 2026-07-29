@@ -1,0 +1,8 @@
+{
+  "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "dist",
+  "allowedNonPeerDependencies": ["@tanstack/charts"],
+  "lib": {
+    "entryFile": "src/index.ts"
+  }
+}

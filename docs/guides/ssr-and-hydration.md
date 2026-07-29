@@ -4,9 +4,8 @@ description: Render deterministic chart markup on the server, preserve runtime w
 ---
 
 TanStack Charts builds a platform-neutral scene before the selected renderer
-produces output. React and Octane use the same runtime and renderer on the
-server and in the browser, so a chart does not need a browser-only substitute
-during server rendering.
+produces output. React, Preact, Vue, Solid, Svelte, Angular, and Octane use the
+same runtime and renderer on the server and in the browser.
 
 ## Give the server a real size
 
@@ -123,6 +122,5 @@ surface mounts.
 - Browser-only work lives in host callbacks or application effects.
 - Font-driven relayout is expected or a text measurer is supplied.
 
-See [React Adapter](../framework/react/adapter.md),
-[Octane Adapter](../framework/octane/adapter.md), and
+See the selected framework adapter page and
 [Runtime and Scene](../reference/runtime-and-scene.md) for the exact contracts.

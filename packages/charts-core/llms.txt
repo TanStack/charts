@@ -9,6 +9,13 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/quick-start.md — Quick Start: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 - docs/framework/react/quick-start.md — React Quick Start: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
 - docs/framework/react/adapter.md — React Adapter: Understand the thin React lifecycle, SSR, hydration, update, sizing, class, and style behavior around the shared chart host.
+- docs/framework/preact/adapter.md — Preact Adapter: Render and hydrate TanStack Charts with Preact.
+- docs/framework/vue/adapter.md — Vue Adapter: Render and hydrate TanStack Charts with Vue 3.
+- docs/framework/solid/adapter.md — Solid Adapter: Render and hydrate TanStack Charts with Solid.
+- docs/framework/svelte/adapter.md — Svelte Adapter: Render and hydrate TanStack Charts with Svelte 5.
+- docs/framework/angular/adapter.md — Angular Adapter: Render TanStack Charts with an Angular standalone component.
+- docs/framework/lit/adapter.md — Lit Adapter: Render TanStack Charts with a light-DOM Lit custom element.
+- docs/framework/alpine/adapter.md — Alpine Adapter: Mount TanStack Charts with an Alpine directive.
 - docs/framework/octane/quick-start.md — Octane Quick Start: Install the Octane adapter, define a typed chart, render responsive SSR-safe SVG, and add native interaction.
 - docs/framework/octane/adapter.md — Octane Adapter: Understand the native TSRX lifecycle, conditional SSR target, hydration, sizing, class, and style behavior around the shared chart host.
 - docs/concepts/grammar-of-graphics.md — Grammar of Graphics: Understand TanStack Charts as a composition of data, marks, channels, scales, guides, and layers.

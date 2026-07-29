@@ -2,6 +2,13 @@ export { areaY } from './area'
 export type { AreaYOptions } from './area'
 export { arrow } from './arrow'
 export type { ArrowOptions } from './arrow'
+export { createChartAdapter, resolveChartAdapterLayout } from './adapter'
+export { createChartRendererAdapter } from './adapter-renderer'
+export type {
+  ChartAdapter,
+  ChartAdapterLayout,
+  ChartAdapterLayoutOptions,
+} from './adapter'
 export { barX, barY } from './bar'
 export type { BarXOptions, BarYOptions } from './bar'
 export { d3Curve } from './d3-shape'

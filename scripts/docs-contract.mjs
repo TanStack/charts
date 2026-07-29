@@ -333,7 +333,14 @@ async function validatePublicEntryLinks(repositoryRoot, failures) {
   const paths = [
     'README.md',
     'packages/charts-core/README.md',
+    'packages/preact-charts/README.md',
     'packages/react-charts/README.md',
+    'packages/vue-charts/README.md',
+    'packages/solid-charts/README.md',
+    'packages/svelte-charts/README.md',
+    'packages/angular-charts/README.md',
+    'packages/lit-charts/README.md',
+    'packages/alpine-charts/README.md',
     'packages/octane-charts/README.md',
   ]
 
@@ -353,7 +360,14 @@ async function validateDocumentedTanStackImports(
 ) {
   const packages = [
     ['packages/charts-core', '@tanstack/charts'],
+    ['packages/preact-charts', '@tanstack/preact-charts'],
     ['packages/react-charts', '@tanstack/react-charts'],
+    ['packages/vue-charts', '@tanstack/vue-charts'],
+    ['packages/solid-charts', '@tanstack/solid-charts'],
+    ['packages/svelte-charts', '@tanstack/svelte-charts'],
+    ['packages/angular-charts', '@tanstack/angular-charts'],
+    ['packages/lit-charts', '@tanstack/lit-charts'],
+    ['packages/alpine-charts', '@tanstack/alpine-charts'],
     ['packages/octane-charts', '@tanstack/octane-charts'],
   ]
   const exportsBySpecifier = new Map()
@@ -366,10 +380,14 @@ async function validateDocumentedTanStackImports(
     for (const [subpath, sourcePath] of Object.entries(manifest.exports)) {
       const specifier =
         subpath === '.' ? packageName : `${packageName}/${subpath.slice(2)}`
-      const source = await readFile(resolve(packageRoot, sourcePath), 'utf8')
+      const resolvedSourcePath = resolveExportSource(sourcePath)
+      const source = await readFile(
+        resolve(packageRoot, resolvedSourcePath),
+        'utf8',
+      )
       exportsBySpecifier.set(
         specifier,
-        new Set(exportedNames(source, sourcePath)),
+        new Set(exportedNames(source, resolvedSourcePath)),
       )
     }
   }
@@ -378,7 +396,14 @@ async function validateDocumentedTanStackImports(
   for (const path of [
     'README.md',
     'packages/charts-core/README.md',
+    'packages/preact-charts/README.md',
     'packages/react-charts/README.md',
+    'packages/vue-charts/README.md',
+    'packages/solid-charts/README.md',
+    'packages/svelte-charts/README.md',
+    'packages/angular-charts/README.md',
+    'packages/lit-charts/README.md',
+    'packages/alpine-charts/README.md',
     'packages/octane-charts/README.md',
   ]) {
     sources.set(path, await readFile(resolve(repositoryRoot, path), 'utf8'))
@@ -411,28 +436,27 @@ async function validateDocumentedTanStackImports(
 }
 
 async function validateApiCoverage(repositoryRoot, markdownSources, failures) {
-  const coreReference = joinSources(markdownSources, 'reference/')
-  const reactReference = joinSources(markdownSources, 'framework/react/')
-  const octaneReference = joinSources(markdownSources, 'framework/octane/')
+  const packages = [
+    ['charts-core', '@tanstack/charts', 'reference/'],
+    ['react-charts', '@tanstack/react-charts', 'framework/react/'],
+    ['preact-charts', '@tanstack/preact-charts', 'framework/preact/'],
+    ['vue-charts', '@tanstack/vue-charts', 'framework/vue/'],
+    ['solid-charts', '@tanstack/solid-charts', 'framework/solid/'],
+    ['svelte-charts', '@tanstack/svelte-charts', 'framework/svelte/'],
+    ['angular-charts', '@tanstack/angular-charts', 'framework/angular/'],
+    ['lit-charts', '@tanstack/lit-charts', 'framework/lit/'],
+    ['alpine-charts', '@tanstack/alpine-charts', 'framework/alpine/'],
+    ['octane-charts', '@tanstack/octane-charts', 'framework/octane/'],
+  ]
 
-  await validatePackageCoverage(
-    resolve(repositoryRoot, 'packages/charts-core'),
-    '@tanstack/charts',
-    coreReference,
-    failures,
-  )
-  await validatePackageCoverage(
-    resolve(repositoryRoot, 'packages/react-charts'),
-    '@tanstack/react-charts',
-    reactReference,
-    failures,
-  )
-  await validatePackageCoverage(
-    resolve(repositoryRoot, 'packages/octane-charts'),
-    '@tanstack/octane-charts',
-    octaneReference,
-    failures,
-  )
+  for (const [directory, packageName, referencePath] of packages) {
+    await validatePackageCoverage(
+      resolve(repositoryRoot, 'packages', directory),
+      packageName,
+      joinSources(markdownSources, referencePath),
+      failures,
+    )
+  }
 }
 
 async function validatePackageCoverage(
@@ -452,8 +476,13 @@ async function validatePackageCoverage(
     if (!reference.includes(specifier)) {
       failures.push(`API reference does not name package export ${specifier}`)
     }
-    const source = await readFile(resolve(packageRoot, sourcePath), 'utf8')
-    for (const name of exportedNames(source, sourcePath)) names.add(name)
+    const resolvedSourcePath = resolveExportSource(sourcePath)
+    const source = await readFile(
+      resolve(packageRoot, resolvedSourcePath),
+      'utf8',
+    )
+    for (const name of exportedNames(source, resolvedSourcePath))
+      names.add(name)
   }
 
   for (const name of [...names].sort()) {
@@ -463,6 +492,14 @@ async function validatePackageCoverage(
       )
     }
   }
+}
+
+function resolveExportSource(source) {
+  if (typeof source === 'string') return source
+  for (const condition of ['svelte', 'solid', 'import', 'default']) {
+    if (typeof source?.[condition] === 'string') return source[condition]
+  }
+  throw new TypeError('Package export does not identify a source file')
 }
 
 export function exportedNames(source, filename = 'source.ts') {

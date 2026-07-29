@@ -3,6 +3,7 @@ packages:
   - examples/*
 
 allowBuilds:
+  '@parcel/watcher': false
   esbuild: true
   sharp: false
   workerd: true

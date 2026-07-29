@@ -67,7 +67,7 @@ Each entry records:
 | F-029 | Dynamic hosts allowed omitted input                      | API             | resolved   |
 | F-030 | Heterogeneous dynamic marks erased datum types           | API             | resolved   |
 | F-031 | Positional scales were disconnected from channels        | API             | resolved   |
-| F-032 | Memoized adapter internals erase generic types           | API             | monitoring |
+| F-032 | Memoized adapter internals erase generic types           | API             | resolved   |
 | F-033 | Point coordinate values remain broad                     | API/Docs        | resolved   |
 | F-034 | Text color and offset required mark duplication          | API             | resolved   |
 | F-035 | Plot legends confused the primary SVG measurement        | Tooling         | resolved   |
@@ -158,6 +158,7 @@ Each entry records:
 | F-120 | Key-only focus collapsed duplicate observations          | API             | resolved   |
 | F-121 | SVG callback was not a rendering-pipeline boundary       | API             | resolved   |
 | F-122 | Dense scene aggregation overflowed the call stack        | API             | resolved   |
+| F-123 | Framework adapters repeated runtime ownership            | API             | resolved   |
 
 ## Findings
 
@@ -738,7 +739,7 @@ Each entry records:
 
 ### F-032 — Memoized adapter internals erase generic types
 
-- Status: monitoring
+- Status: resolved
 - Severity: low
 - Owner: API
 - Observed in: React and Octane adapter type audit
@@ -746,10 +747,11 @@ Each entry records:
   a non-generic component boundary, requiring two contained internal
   assertions per adapter. Public definitions, props, callbacks, and input
   remain inferred.
-- Current decision: keep erasure private to the adapter render boundary; never
-  teach or expose these assertions as consumer patterns.
-- Follow-up: remove them if the framework memo APIs can preserve a correlated
-  generic component without adding adapter complexity or runtime work.
+- Decision: move generic runtime ownership into the shared
+  `@tanstack/charts/adapter` controller. The memoized framework surfaces now
+  receive only prerendered markup and retain no definitions or runtimes.
+- Verification: React and Octane compile without the private definition or
+  runtime assertions, preserve public inference, and pass their adapter tests.
 
 ### F-033 — Point coordinate values remain broad
 
@@ -2585,16 +2587,22 @@ Each entry records:
   circles, bars, line paths, and axis coordinates. Rounded SVG coordinates
   also placed interpolated dates seconds before midnight, so date tooltips
   needed exact encoded mark keys when available and UTC-day snapping
-  otherwise.
+  otherwise. The activation hero also retained only its serialized SVGs; a
+  landing-page source comparison had no checked-in definition that could prove
+  which marks and scales generated them.
 - Decision: keep this recovery logic isolated in the landing-page interaction
   component and do not present serialized SVG as a generally hydratable chart
-  contract. Revisit supported interaction metadata or hydration only if
+  contract. Keep the activation definition as generator input and import that
+  same file as the highlighted landing-page source so the evidence and SVG
+  cannot drift. Revisit supported interaction metadata or hydration only if
   another static-SVG consumer encounters the same boundary.
 - Verification: all 14 landing SVG variants and the custom bundle chart expose
   formatted pointer and keyboard tooltips; compact and wide revenue tooltips
-  retain exact dates and grouped series values. Site typechecking, targeted
-  type-aware lint, unit tests, production build, and desktop/mobile browser
-  checks pass.
+  retain exact dates and grouped series values. Regenerating the activation
+  asset from the retained definition reproduces both prior SVGs byte for byte,
+  and the generator check covers the displayed definition. Site typechecking,
+  targeted type-aware lint, unit tests, production build, and desktop/mobile
+  browser checks pass.
 
 ### F-119 — Catalog hosting crossed repository ownership
 
@@ -2702,3 +2710,27 @@ Each entry records:
   still retains roughly 427 MiB of JavaScript heap and spends most first-paint
   time rasterizing the dense path, so Canvas removes per-mark DOM cost rather
   than making unbounded data free.
+
+### F-123 — Framework adapters repeated runtime ownership
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: launching Preact, Vue, Solid, Svelte, Angular, Lit, and Alpine
+  adapters beside React and Octane
+- Friction: every component needed the same runtime creation, deterministic
+  initial geometry, renderer prerender, prerender-to-mount cache handoff,
+  update, scene access, and cleanup rules. Reimplementing those rules in each
+  framework would repeat the preparation bug from F-011 and allow SSR,
+  `aspectRatio`, keyboard, or teardown behavior to drift.
+- Decision: publish `createChartAdapter` and `resolveChartAdapterLayout` from
+  `@tanstack/charts/adapter`, with the renderer-neutral
+  `createChartRendererAdapter` isolated at
+  `@tanstack/charts/adapter/renderer`. Framework packages own only their native
+  prop, lifecycle, reactivity, and presentation boundary.
+- Verification: the controller regression proves dynamic preparation runs
+  once across prerender and mount, pre-mount updates are retained, and invalid
+  ratios resolve consistently. Preact, Vue, Solid, and Svelte cover server and
+  browser paths; Angular, Lit, and Alpine cover update and teardown; Angular
+  partial compilation and Svelte package compilation pass. Packed React
+  consumers retain their renderer boundary without pulling SVG modules.

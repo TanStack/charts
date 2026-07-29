@@ -116,8 +116,8 @@ assigns their responsive pixel ranges, compiles a renderer-neutral keyed scene,
 and hands that scene to the selected host.
 
 Definitions are framework-independent. The same `revenueChart` can render
-through React, Octane, the vanilla DOM host, static SVG, or the optional Canvas
-renderer.
+through React, Preact, Vue, Solid, Svelte, Angular, Lit, Alpine, Octane, the
+vanilla DOM host, static SVG, or the optional Canvas renderer.
 
 When SVG element count becomes the bottleneck, switch the adapter import and
 keep the definition and interaction props:
@@ -134,11 +134,18 @@ bounded representation.
 
 ## Packages
 
-| Package                                               | Role                                                                                                |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [`@tanstack/charts`](./packages/charts-core)          | Marks, channels, guides, scene compilation, SVG, optional Canvas, vanilla DOM lifecycle, and export |
-| [`@tanstack/react-charts`](./packages/react-charts)   | Thin React lifecycle adapter with SSR and hydration                                                 |
-| [`@tanstack/octane-charts`](./packages/octane-charts) | Thin Octane lifecycle adapter with equivalent scene output                                          |
+| Package                                                 | Role                                  |
+| ------------------------------------------------------- | ------------------------------------- |
+| [`@tanstack/charts`](./packages/charts-core)            | Framework-neutral grammar and runtime |
+| [`@tanstack/react-charts`](./packages/react-charts)     | React adapter                         |
+| [`@tanstack/preact-charts`](./packages/preact-charts)   | Preact adapter                        |
+| [`@tanstack/vue-charts`](./packages/vue-charts)         | Vue adapter                           |
+| [`@tanstack/solid-charts`](./packages/solid-charts)     | Solid adapter                         |
+| [`@tanstack/svelte-charts`](./packages/svelte-charts)   | Svelte adapter                        |
+| [`@tanstack/angular-charts`](./packages/angular-charts) | Angular standalone-component adapter  |
+| [`@tanstack/lit-charts`](./packages/lit-charts)         | Lit custom-element adapter            |
+| [`@tanstack/alpine-charts`](./packages/alpine-charts)   | Alpine directive adapter              |
+| [`@tanstack/octane-charts`](./packages/octane-charts)   | Octane adapter                        |
 
 The earlier host experiment remains under `@plot-poc/*` for migration evidence
 and benchmark comparison. The private

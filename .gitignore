@@ -1,6 +1,7 @@
 node_modules
 .pnpm-store
 dist
+.svelte-kit
 .bundle-output
 .benchmark-output
 .catalog-deploy

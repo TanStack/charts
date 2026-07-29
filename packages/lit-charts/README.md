@@ -1,0 +1,26 @@
+# `@tanstack/lit-charts`
+
+Lit custom-element adapter for `@tanstack/charts`.
+
+```sh
+pnpm add @tanstack/charts @tanstack/lit-charts lit d3-scale
+```
+
+```ts
+import { defineChartElement } from '@tanstack/lit-charts'
+
+defineChartElement()
+```
+
+```ts
+html`<tanstack-chart
+  .options=${{
+    definition,
+    ariaLabel: 'Revenue by month',
+    tooltip: true,
+  }}
+></tanstack-chart>`
+```
+
+The element renders in light DOM so inherited typography, responsive
+measurement, and chart styles behave like the framework-neutral host.

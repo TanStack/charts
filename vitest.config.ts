@@ -12,6 +12,10 @@ export default defineConfig({
       'examples/sandbox/**/*.test.ts',
       'scripts/**/*.test.mjs',
     ],
+    exclude: [
+      'packages/solid-charts/**/*.test.tsx',
+      'packages/svelte-charts/**/*.test.ts',
+    ],
     restoreMocks: true,
   },
 })

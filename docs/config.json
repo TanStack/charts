@@ -37,6 +37,69 @@
           ]
         },
         {
+          "label": "preact",
+          "children": [
+            {
+              "label": "Preact Adapter",
+              "to": "framework/preact/adapter"
+            }
+          ]
+        },
+        {
+          "label": "vue",
+          "children": [
+            {
+              "label": "Vue Adapter",
+              "to": "framework/vue/adapter"
+            }
+          ]
+        },
+        {
+          "label": "solid",
+          "children": [
+            {
+              "label": "Solid Adapter",
+              "to": "framework/solid/adapter"
+            }
+          ]
+        },
+        {
+          "label": "svelte",
+          "children": [
+            {
+              "label": "Svelte Adapter",
+              "to": "framework/svelte/adapter"
+            }
+          ]
+        },
+        {
+          "label": "angular",
+          "children": [
+            {
+              "label": "Angular Adapter",
+              "to": "framework/angular/adapter"
+            }
+          ]
+        },
+        {
+          "label": "lit",
+          "children": [
+            {
+              "label": "Lit Adapter",
+              "to": "framework/lit/adapter"
+            }
+          ]
+        },
+        {
+          "label": "alpine",
+          "children": [
+            {
+              "label": "Alpine Adapter",
+              "to": "framework/alpine/adapter"
+            }
+          ]
+        },
+        {
           "label": "octane",
           "children": [
             {
