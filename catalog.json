@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "revision": "1fcf2d17a77673eb724e0a92149f0082adac5b3d",
+  "revision": "58ee1e28e469f8ab28f99877a6e0abc3958977a4",
   "source": {
     "repo": "tanstack/charts",
-    "ref": "1fcf2d17a77673eb724e0a92149f0082adac5b3d"
+    "ref": "58ee1e28e469f8ab28f99877a6e0abc3958977a4"
   },
   "runtime": {
     "contractVersion": 1,
@@ -3981,6 +3981,20 @@
       ],
       "dynamicImports": []
     },
+    "assets/tanstack-ClWUuuCY.js": {
+      "bytes": 1298,
+      "sha256": "1d81b70938e683a5755bb45a2eb5be985b071e7302ed4107f828f2796c292596",
+      "imports": [
+        "assets/bin-DGgd1gWr.js",
+        "assets/data-B3CBP_AQ.js",
+        "assets/dom-GN8_qeh9.js",
+        "assets/facet-fdlrAjiO.js",
+        "assets/linear-1zH-yESH.js",
+        "assets/mount-C8820Uf8.js",
+        "assets/rect-BKdkYOos.js"
+      ],
+      "dynamicImports": []
+    },
     "assets/tanstack-ClvMyWEt.js": {
       "bytes": 1024,
       "sha256": "39924e2d14fae5b9bda6e8a2fd13049796ed1bcb57c8f2f65ce11fd96ad13f78",
@@ -4383,20 +4397,6 @@
         "assets/rule-C-6Q-Is8.js",
         "assets/text-o1xX7d8v.js",
         "assets/utcTime-DFPnpijR.js"
-      ],
-      "dynamicImports": []
-    },
-    "assets/tanstack-KnhgQCEE.js": {
-      "bytes": 1215,
-      "sha256": "13dc04188450753afdf45d1e2f84958c108f4f8df4ee3ce3076aa530a0e5965f",
-      "imports": [
-        "assets/bin-DGgd1gWr.js",
-        "assets/data-B3CBP_AQ.js",
-        "assets/dom-GN8_qeh9.js",
-        "assets/facet-fdlrAjiO.js",
-        "assets/linear-1zH-yESH.js",
-        "assets/mount-C8820Uf8.js",
-        "assets/rect-BKdkYOos.js"
       ],
       "dynamicImports": []
     },
@@ -10792,7 +10792,7 @@
       },
       "modules": {
         "tanstack": {
-          "path": "assets/tanstack-KnhgQCEE.js",
+          "path": "assets/tanstack-ClWUuuCY.js",
           "preload": [
             "assets/ascending-T0YRA00y.js",
             "assets/bin-DGgd1gWr.js",
