@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: normalizeBasePath(process.env.CATALOG_BASE_PATH ?? '/'),
   build: {
+    manifest: true,
     target: 'es2022',
   },
 })

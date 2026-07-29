@@ -40,7 +40,6 @@ jobs:
       - run: pnpm benchmark:check
       - run: pnpm catalog:check
       - run: pnpm catalog:build
-      - run: pnpm catalog:deploy:check
       - run: git diff --check
 
       - name: Upload production catalog
@@ -48,8 +47,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: charts-catalog-${{ github.sha }}
-          path: examples/conformance/dist
+          path: .catalog-artifact
           if-no-files-found: error
+          include-hidden-files: true
 
   compare:
     needs: validate
@@ -153,46 +153,49 @@ jobs:
           path: .benchmark-output/stress/results
           if-no-files-found: error
 
-  deploy-catalog:
+  publish-catalog:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
       - validate
       - conformance
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment:
-      name: charts-catalog-production
-      url: https://tanstack.com/charts/catalog/
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: 24
-
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+          fetch-depth: 0
 
       - name: Download validated catalog
         uses: actions/download-artifact@v4
         with:
           name: charts-catalog-${{ github.sha }}
-          path: examples/conformance/dist
+          path: .catalog-artifact
 
-      - name: Stage catalog below its public path
-        run: node scripts/stage-conformance-deployment.mjs
+      - name: Publish generated catalog
+        env:
+          CATALOG_BRANCH: catalog-dist
+        run: |
+          publication_dir="$(mktemp -d)"
+          if git ls-remote --exit-code --heads origin "$CATALOG_BRANCH" >/dev/null 2>&1; then
+            git fetch origin "$CATALOG_BRANCH"
+            git worktree add -B "$CATALOG_BRANCH" "$publication_dir" "origin/$CATALOG_BRANCH"
+          else
+            git worktree add --detach "$publication_dir"
+            git -C "$publication_dir" switch --orphan "$CATALOG_BRANCH"
+          fi
 
-      - name: Deploy catalog Worker
-        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: deploy --config wrangler.catalog.jsonc
-          wranglerVersion: 4.103.0
+          git -C "$publication_dir" rm -rf --ignore-unmatch .
+          cp -R "$GITHUB_WORKSPACE/.catalog-artifact/." "$publication_dir/"
+          git -C "$publication_dir" add --all
 
-      - name: Verify production routes
-        run: node scripts/check-catalog-deployment.mjs
+          if git -C "$publication_dir" diff --cached --quiet; then
+            exit 0
+          fi
 
-      - name: Verify production loading boundary
-        run: node scripts/check-catalog-loading.mjs --url https://tanstack.com/charts/catalog/
+          git -C "$publication_dir" config user.name "github-actions[bot]"
+          git -C "$publication_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$publication_dir" commit -m "Publish catalog $GITHUB_SHA"
+          git -C "$publication_dir" push origin "HEAD:$CATALOG_BRANCH"

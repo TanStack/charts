@@ -154,7 +154,7 @@ Each entry records:
 | F-116 | Build context was mistaken for resolved plot geometry    | Documentation   | resolved   |
 | F-117 | Non-Cartesian examples duplicated coordinate engines     | API             | resolved   |
 | F-118 | Serialized SVG discarded interaction semantics           | API/Application | monitoring |
-| F-119 | Catalog hosting crossed repository ownership             | Tooling         | resolved   |
+| F-119 | Catalog hosting crossed repository ownership             | Tooling         | monitoring |
 | F-120 | Key-only focus collapsed duplicate observations          | API             | resolved   |
 | F-121 | SVG callback was not a rendering-pipeline boundary       | API             | resolved   |
 | F-122 | Dense scene aggregation overflowed the call stack        | API             | resolved   |
@@ -567,7 +567,10 @@ Each entry records:
   exported or locally aliased tier constants are not assumed to propagate
   across modules. The catalog keeps metadata, exact TanStack loaders, and exact
   comparison loaders in separate registries; only `?compare=1` dynamically
-  imports the comparison registry. Do not rely on purity annotations,
+  imports the comparison registry. Production publication goes further: it
+  copies only the recursive ESM closure rooted at each exact implementation
+  entry. Raw-source wrappers, the standalone application, and the comparison
+  registry are not part of the artifact. Do not rely on purity annotations,
   minifier-specific interprocedural analysis, or a render-time branch to
   establish a bundle boundary.
 - Verification: emitted TanStack artifacts contain only the selected mark
@@ -582,10 +585,10 @@ Each entry records:
   to zero for all five libraries, and `pnpm benchmark:check` passes. The
   catalog graph gate now proves exactly 100 TanStack, 68 Plot, 21 Recharts, and
   11 ECharts implementations plus their isolated raw-source entries, with no
-  test/data/helper dynamic entries. The default catalog entry fell from about
-  260 kB to 201 kB; fresh Chromium contexts request no comparison registry or
-  competitor package chunks for normal Plot, Recharts, ECharts, or embed
-  routes, while `?compare=1` requests the selected implementation and source.
+  test/data/helper dynamic entries. Every published TanStack root now receives
+  the same static-closure comparison-package check. The schema-v2 artifact
+  validator rejects unreferenced files, unsafe paths, missing imports, invalid
+  preloads, and a comparison module not marked debug-only.
 
 ### F-025 — Bundle maintenance clobbered the full comparison report
 
@@ -1325,18 +1328,20 @@ Each entry records:
 - Status: resolved
 - Severity: medium
 - Owner: Tooling
-- Observed in: publishing the conformance gallery as deep case and embed routes
+- Observed in: publishing the conformance gallery as native case and embed
+  routes
 - Friction: the only strict case metadata parser lived beside
   `import.meta.glob`, so Node publication tooling either had to duplicate the
   schema or trust raw JSON. A duplicate validator would drift as interaction
   scenarios and additional reference renderers were added.
 - Decision: move metadata parsing into an environment-neutral TypeScript
-  module. The Vite catalog and Node static publisher now consume the same
-  parser; the publisher adds only publication invariants such as unique
-  IDs/orders and directory-name agreement.
+  module. The Vite catalog and Node artifact publisher consume the same parser;
+  the publisher adds only publication invariants such as unique IDs/orders,
+  directory-name agreement, safe routes, and a closed module allowlist.
 - Verification: strict typecheck passes, `catalog:check` validates all current
-  cases, and `catalog:build` generates matching detail pages, embeds, and
-  `catalog.json` from the same parsed metadata.
+  cases, and `catalog:build` generates schema-v2 `catalog.json` plus the exact
+  implementation closure from the same parsed metadata. TanStack.com renders
+  detail and embed routes from that structure rather than generated HTML.
 
 ### F-062 — Interaction checks were selector-bound
 
@@ -2286,20 +2291,20 @@ Each entry records:
   and a documentation theme controlled by site state could not update an
   already interactive iframe. The intended production origin and base path
   were described but not exercised by the build gate.
-- Decision: publish one versioned embed contract in `catalog.json`; fix the
-  production route at `https://tanstack.com/charts/catalog/`; parse explicit
-  query defaults and bounds; remove root and body width/background constraints
-  in embed mode; derive the exact parent origin from the HTTP(S) referrer; and
-  accept a versioned `set-theme` command only from that origin and
-  `window.parent`. A missing or opaque referrer disables messaging instead of
-  falling back to `*`.
+- Decision: publish one versioned embed contract in the schema-v2
+  `catalog.json`; fix the production route at
+  `https://tanstack.com/charts/catalog/`; parse explicit query defaults and
+  bounds; remove root and body width/background constraints in local embed
+  mode; derive the exact parent origin from the HTTP(S) referrer; and accept a
+  versioned `set-theme` command only from that origin and `window.parent`. A
+  missing or opaque referrer disables messaging instead of falling back to
+  `*`. TanStack.com owns the production embed route and response headers.
 - Verification: focused contract and route tests cover missing, invalid,
   bounded, and production-base inputs plus source/origin/case/version
-  rejection. The production catalog build emits and verifies 79 physical
-  detail routes, 79 direct embeds, canonical/noindex metadata, base-aware
-  assets, and the shared JSON contract. A real 280-pixel production-preview
-  iframe renders without horizontal overflow or catalog chrome, defaults to
-  360 pixels when height is omitted, reports one exact-origin/source versioned
+  rejection. The generated artifact carries the shared contract and canonical
+  page/embed paths for every case. A real 280-pixel production-preview iframe
+  renders without horizontal overflow or catalog chrome, defaults to 360
+  pixels when height is omitted, reports one exact-origin/source versioned
   ready event, accepts the trusted theme command, and ignores a wrong-case
   command. Typecheck and catalog metadata validation pass.
 - Follow-up: TanStack.com currently sends `X-Frame-Options: DENY` outside its
@@ -2598,41 +2603,35 @@ Each entry records:
 
 ### F-119 — Catalog hosting crossed repository ownership
 
-- Status: resolved
+- Status: monitoring
 - Severity: high
 - Owner: Tooling/Integration
 - Observed in: publishing the executable catalog at
   `https://tanstack.com/charts/catalog/`
 - Friction: the catalog source, conformance contract, and production build
   belong to the Charts repository, while the public hostname is served by the
-  separate `tanstack.com` Cloudflare Worker. Copying source or generated assets
-  into that repository would couple releases and rollbacks, duplicate build
-  ownership, and make the site bundle responsible for reference libraries it
-  does not use. Pointing Workers Static Assets directly at the Vite `dist`
-  directory also fails below a path prefix because asset lookup retains the
-  complete public request path.
-- Decision: deploy a separate assets-only `tanstack-charts-catalog` Worker from
-  this repository. Its `/charts/catalog*` route takes precedence over the main
-  Worker and covers query strings on the bare path. A generated, ignored
-  staging tree mirrors `dist` below `.catalog-deploy/charts/catalog/`; the
-  Worker version therefore owns its HTML, hashed assets, route manifest,
-  headers, and rollback atomically without a proxy or a `tanstack.com` source
-  dependency. Main-branch deployment waits for validation and the unfiltered
-  conformance matrix. Because Wrangler's deploy dry run does not boot workerd,
-  the gate also starts the pinned local runtime without persistent state and
-  applies the production smoke contract before upload.
-- Verification: staging rejects the wrong origin or base path, symlinks, more
-  than 20,000 files, or an asset above 25 MiB. A Wrangler dry run validates the
-  static deployment. The local runtime caught and corrected a compatibility
-  date newer than Wrangler 4.103.0's bundled workerd supported. Worker version
-  `7df8f6a9-103b-40f7-9b24-315908a92ac3` then deployed 945 static assets to the
-  TanStack account. The live production smoke passed the bare and queried
-  canonical redirects, root, 100-case metadata, detail, frameable embed,
-  immutable hashed asset, security headers, and nearest 404 page. Route
-  propagation exceeded the first 30-second smoke window, so the deploy check
-  now allows 90 seconds.
-- Follow-up: navigation and root-sitemap discovery may remain a small site
-  integration; neither should own catalog source or artifacts.
+  separate `tanstack.com` repository. Copying source into that repository would
+  couple releases and duplicate build ownership. A separate catalog Worker
+  preserved ownership but necessarily replaced the site's chrome, routing,
+  headers, cache policy, and content delivery behavior.
+- Decision: treat the catalog as generated structured content. Charts CI builds
+  schema-v2 `catalog.json` plus only the recursively allowlisted implementation
+  modules, then replaces the generated `catalog-dist` branch after validation
+  and the unfiltered conformance matrix. TanStack.com's existing content
+  pipeline reads that branch, verifies hashes and limits, renders native routes
+  and embeds, and serves modules below an artifact-commit namespace. Charts
+  source and dependencies remain out of the site repository and default site
+  bundle. The previous Worker, staging tree, deployment scripts, credentials,
+  and route ownership are removed from the Charts workflow.
+- Verification: the artifact generator records an exact Charts revision,
+  deterministic SHA-256 allowlist, safe repository source paths, recursive
+  imports, and debug-only comparison roots. Focused tests reject unsafe paths,
+  unreferenced assets, and public comparison modules. The loading gate checks
+  every TanStack root's static closure for reference cases or competitor
+  packages. Main-branch CI uploads the validated artifact and publishes only
+  `catalog.json` and `assets/*.js` to `catalog-dist`.
+- Follow-up: keep monitoring through the TanStack.com cutover, production route
+  verification, and retirement of the previously deployed catalog Worker.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 
