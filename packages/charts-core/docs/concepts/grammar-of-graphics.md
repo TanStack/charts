@@ -3,7 +3,16 @@ title: Grammar of Graphics
 description: Understand TanStack Charts as a composition of data, marks, channels, scales, guides, and layers.
 ---
 
-TanStack Charts describes **what visual encodings mean** and lets the runtime decide how to lay them out and render them. A chart is not a special-purpose component with a fixed series model. It is a composition of:
+TanStack Charts follows the grammar-of-graphics tradition established by
+[Leland Wilkinson](https://doi.org/10.1007/0-387-28695-0) and developed through
+projects such as [ggplot2](https://ggplot2.tidyverse.org/),
+[Vega-Lite](https://vega.github.io/vega-lite/), and Observable Plot. Observable
+Plot is the closest API influence for mark-local data, channels, and layered
+composition.
+
+The grammar describes **what visual encodings mean** and lets the runtime decide
+how to lay them out and render them. A chart is not a special-purpose component
+with a fixed series model. It is a composition of:
 
 1. **Data** — the observations or derived rows a mark consumes.
 2. **Marks** — geometric forms such as lines, bars, dots, areas, rules, or text.

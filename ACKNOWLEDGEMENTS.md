@@ -1,12 +1,21 @@
 # Acknowledgements
 
+## Grammar of Graphics
+
+TanStack Charts builds on the grammar-of-graphics tradition established by
+[Leland Wilkinson](https://doi.org/10.1007/0-387-28695-0) and developed through
+projects such as [ggplot2](https://ggplot2.tidyverse.org/) and
+[Vega-Lite](https://vega.github.io/vega-lite/). Their work made composable
+visualization grammars practical across statistical computing, declarative
+specifications, and the web.
+
 ## Observable Plot
 
 TanStack Charts would not exist in its current form without
 [Observable Plot](https://observablehq.com/plot/). Plot demonstrated how a
 small grammar of composable marks and channels can turn arbitrary data into
 clear, layered visualizations without a fixed catalog of chart types. That
-model is the primary conceptual inspiration for TanStack Charts.
+model is the closest API inspiration for TanStack Charts.
 
 TanStack Charts is an independent implementation, not a Plot fork or
 compatibility layer. It applies those ideas to typed application

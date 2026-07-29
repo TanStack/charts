@@ -5,12 +5,14 @@ description: Learn what TanStack Charts provides, how its grammar works, and whe
 
 TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and JavaScript. Give each mark its natural data, map fields or accessors to visual channels, and supply the D3 scales that define the meaning of each axis. TanStack Charts compiles that declaration into a responsive, keyed scene and renders accessible SVG by default, with Canvas available as an opt-in surface.
 
-[Observable Plot](https://observablehq.com/plot/) is the primary conceptual
-inspiration for TanStack Charts. Its composable marks-and-channels grammar
-showed how arbitrary data can become clear, layered visualizations without a
-fixed catalog of chart types. TanStack Charts brings those ideas to typed
-application infrastructure with explicit D3 primitives, responsive scene
-compilation, and framework lifecycle.
+TanStack Charts builds on the grammar-of-graphics tradition established by
+[Leland Wilkinson](https://doi.org/10.1007/0-387-28695-0) and developed through
+projects such as [ggplot2](https://ggplot2.tidyverse.org/),
+[Vega-Lite](https://vega.github.io/vega-lite/), and
+[Observable Plot](https://observablehq.com/plot/). Observable Plot is the
+closest API influence for mark-local data, channels, and layered composition.
+TanStack Charts applies those ideas to typed application infrastructure with
+explicit D3 primitives, responsive scene compilation, and framework lifecycle.
 
 The library is designed for two equally important authors:
 
