@@ -938,7 +938,11 @@ Each entry records:
   locked minified entry by 133–250 bytes; gzip fell by 14–29 bytes for static
   scenes and rose by 43 bytes for the DOM host, 35 bytes for the React
   adapter, and 21 bytes for the React line consumer. Those exact results are
-  now locked rather than hidden inside unused ceiling headroom.
+  now locked rather than hidden inside unused ceiling headroom. The canonical
+  byte lock runs on pinned Ubuntu 24.04 and Node 24.18.0; this prevents runner
+  and compressor upgrades from masquerading as library-size changes. The
+  current canonical baseline records the unchanged source tree under that
+  environment.
 
 ### F-041 — Bounded segments and caps required custom marks
 
