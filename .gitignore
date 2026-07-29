@@ -4,9 +4,7 @@ dist
 .svelte-kit
 .bundle-output
 .benchmark-output
-.catalog-deploy
-.catalog-worker
-.wrangler
+.catalog-artifact
 coverage
 *.log
 tanstack.com-parity/

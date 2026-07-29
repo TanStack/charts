@@ -8,28 +8,37 @@ on:
   schedule:
     - cron: '17 7 * * 1'
   workflow_dispatch:
+    inputs:
+      upload_bundle_baseline_candidate:
+        description: Upload exact comparison bundle measurements
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: chart-library-benchmarks-${{ github.ref }}
+  group: chart-library-benchmarks-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          node-version: 24
-          cache: pnpm
+          persist-credentials: false
 
       - run: corepack enable
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+          cache: pnpm
+
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm docs:check
@@ -37,34 +46,49 @@ jobs:
       - run: pnpm test
       - run: pnpm package:check
       - run: pnpm bundle:check
-      - run: pnpm benchmark:check
+      - name: Check comparison bundle baseline
+        id: benchmark-check
+        run: pnpm benchmark:check
+
+      - name: Upload comparison bundle baseline candidate
+        if: ${{ always() && steps.benchmark-check.outcome != 'skipped' && (steps.benchmark-check.outcome == 'failure' || inputs.upload_bundle_baseline_candidate) }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: comparison-bundle-baseline-${{ github.sha }}
+          path: .benchmark-output/results/bundle-baseline.candidate.json
+          if-no-files-found: error
+
       - run: pnpm catalog:check
       - run: pnpm catalog:build
-      - run: pnpm catalog:deploy:check
+      - run: pnpm catalog:loading:check
       - run: git diff --check
 
       - name: Upload production catalog
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: charts-catalog-${{ github.sha }}
-          path: examples/conformance/dist
+          path: .catalog-artifact
           if-no-files-found: error
+          include-hidden-files: true
 
   compare:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          node-version: 24
-          cache: pnpm
+          persist-credentials: false
 
       - run: corepack enable
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+          cache: pnpm
+
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm benchmark -- --profile=ci
@@ -72,7 +96,7 @@ jobs:
 
       - name: Upload comparison
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: chart-library-comparison-${{ github.run_id }}
           path: .benchmark-output/results
@@ -80,22 +104,23 @@ jobs:
 
   conformance:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          node-version: 24
-          cache: pnpm
+          persist-credentials: false
 
       - run: corepack enable
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+          cache: pnpm
+
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm catalog:build
-      - run: pnpm catalog:loading:check
       - name: Run pull-request conformance
         if: github.event_name == 'pull_request'
         run: pnpm conformance:quick
@@ -106,7 +131,7 @@ jobs:
 
       - name: Upload conformance
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: chart-library-conformance-${{ github.run_id }}
           path: |
@@ -116,18 +141,21 @@ jobs:
 
   stress:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          node-version: 24
-          cache: pnpm
+          persist-credentials: false
 
       - run: corepack enable
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+          cache: pnpm
+
       - run: pnpm install --frozen-lockfile
       - name: Validate stress workload invariants
         run: pnpm exec vitest run benchmarks/comparison/stress
@@ -147,52 +175,89 @@ jobs:
 
       - name: Upload stress results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: chart-library-stress-${{ github.run_id }}
           path: .benchmark-output/stress/results
           if-no-files-found: error
 
-  deploy-catalog:
+  publish-catalog:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
       - validate
       - conformance
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
-    environment:
-      name: charts-catalog-production
-      url: https://tanstack.com/charts/catalog/
+    concurrency:
+      group: catalog-dist-publication
+      cancel-in-progress: false
+    permissions:
+      contents: write
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          node-version: 24
-
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+          fetch-depth: 0
 
       - name: Download validated catalog
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: charts-catalog-${{ github.sha }}
-          path: examples/conformance/dist
+          path: .catalog-artifact
 
-      - name: Stage catalog below its public path
-        run: node scripts/stage-conformance-deployment.mjs
+      - name: Publish generated catalog
+        env:
+          CATALOG_BRANCH: catalog-dist
+        run: |
+          source_revision="$(jq -er '.revision | select(test("^[0-9a-f]{40}$"))' .catalog-artifact/catalog.json)"
+          if [ "$source_revision" != "$GITHUB_SHA" ]; then
+            echo "Catalog revision $source_revision does not match workflow revision $GITHUB_SHA." >&2
+            exit 1
+          fi
 
-      - name: Deploy catalog Worker
-        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: deploy --config wrangler.catalog.jsonc
-          wranglerVersion: 4.103.0
+          git fetch origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$source_revision" origin/main; then
+            echo "Catalog revision $source_revision is not on the current main branch." >&2
+            exit 1
+          fi
 
-      - name: Verify production routes
-        run: node scripts/check-catalog-deployment.mjs
+          publication_dir="$(mktemp -d)"
+          if git ls-remote --exit-code --heads origin "$CATALOG_BRANCH" >/dev/null 2>&1; then
+            git fetch origin "$CATALOG_BRANCH"
+            git worktree add -B "$CATALOG_BRANCH" "$publication_dir" "origin/$CATALOG_BRANCH"
+          else
+            git worktree add --detach "$publication_dir"
+            git -C "$publication_dir" switch --orphan "$CATALOG_BRANCH"
+          fi
 
-      - name: Verify production loading boundary
-        run: node scripts/check-catalog-loading.mjs --url https://tanstack.com/charts/catalog/
+          if [ -f "$publication_dir/catalog.json" ]; then
+            published_revision="$(jq -er '.revision | select(test("^[0-9a-f]{40}$"))' "$publication_dir/catalog.json")"
+            if [ "$published_revision" = "$source_revision" ]; then
+              exit 0
+            fi
+            if git merge-base --is-ancestor "$published_revision" origin/main 2>/dev/null; then
+              if git merge-base --is-ancestor "$source_revision" "$published_revision"; then
+                echo "Skipping stale catalog revision $source_revision; $published_revision is already published."
+                exit 0
+              fi
+              if ! git merge-base --is-ancestor "$published_revision" "$source_revision"; then
+                echo "Catalog revision $source_revision diverges from published revision $published_revision." >&2
+                exit 1
+              fi
+            else
+              echo "Replacing legacy catalog revision $published_revision with canonical main revision $source_revision."
+            fi
+          fi
+
+          git -C "$publication_dir" rm -rf --ignore-unmatch .
+          cp -R "$GITHUB_WORKSPACE/.catalog-artifact/." "$publication_dir/"
+          git -C "$publication_dir" add --all
+
+          if git -C "$publication_dir" diff --cached --quiet; then
+            exit 0
+          fi
+
+          git -C "$publication_dir" config user.name "github-actions[bot]"
+          git -C "$publication_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$publication_dir" commit -m "Publish catalog $GITHUB_SHA"
+          git -C "$publication_dir" push origin "HEAD:$CATALOG_BRANCH"

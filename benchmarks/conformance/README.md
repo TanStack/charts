@@ -50,7 +50,7 @@ pnpm dev:conformance
 # Validate publishable case metadata and route uniqueness
 pnpm catalog:check
 
-# Build the static catalog, deep routes, embeds, and catalog.json
+# Build the standalone authoring app and schema-v2 publication artifact
 pnpm catalog:build
 ```
 
@@ -73,32 +73,40 @@ accessibility, and edge behavior.
 
 ## Published catalog and documentation embeds
 
-The catalog is one application driven by the same `case.json` files used by
-conformance:
+The Vite application remains the local authoring surface at
+`http://localhost:5194/`. Production pages are native `tanstack.com` routes
+rendered from the generated artifact:
 
-| Route           | Purpose                                                           |
-| --------------- | ----------------------------------------------------------------- |
-| `/`             | Searchable case catalog; charts load only after selection         |
-| `/all/`         | Every TanStack implementation on one page                         |
-| `/charts/:id/`  | One TanStack implementation with source and embed code            |
-| `/embed/:id/`   | Chrome-free, responsive TanStack chart for an iframe              |
-| `/catalog.json` | Versioned metadata and page/embed paths for documentation tooling |
+| Route                                                      | Purpose                                    |
+| ---------------------------------------------------------- | ------------------------------------------ |
+| `/charts/catalog/`                                         | Searchable case catalog                    |
+| `/charts/catalog/all/`                                     | Every TanStack implementation              |
+| `/charts/catalog/charts/:id/`                              | One implementation, source, and embed code |
+| `/charts/catalog/embed/:id/`                               | Chrome-free responsive chart               |
+| `/charts/catalog/catalog.json`                             | Versioned content and runtime contract     |
+| `/charts/catalog/assets/<artifact-sha>/assets/<module>.js` | Allowlisted module from the exact revision |
 
-Append the exact `?compare=1` debug flag to `/`, `/all/`, or `/charts/:id/`
-to expose the reference implementation and source. Internal catalog links
-preserve the flag; embed links intentionally omit it. The comparison registry
-and its Plot, Recharts, and ECharts chunks are dynamically loaded only in that
-mode.
+Append the exact `?compare=1` debug flag to the catalog, all-cases, or detail
+route to expose the reference implementation. Comparison modules remain
+separate roots and are marked `visibility: "debug"` in the artifact; the site
+must not serialize, preload, or import them without that flag.
 
-The build writes physical `index.html` files for every deep route, so direct
-links work on a static host without rewrite rules. `404.html` retains
-client-side route recovery. Set `CATALOG_BASE_PATH` when publishing below a
-subdirectory and `CATALOG_ORIGIN` to emit absolute canonical URLs and a
-sitemap. The production command fixes those values at
-`https://tanstack.com/charts/catalog/`; local development keeps the Vite root
-at `http://localhost:5194/`. `catalog.json` publishes the effective origin,
-base path, embed protocol, query bounds, and per-case routes so documentation
-components do not reconstruct URLs or duplicate an example manifest.
+`catalog.json` schema version 2 contains:
+
+- the exact 40-character Charts revision and repository;
+- the runtime `mount` export contract;
+- the production origin, route base, and asset base;
+- the versioned embed protocol;
+- parsed case metadata and canonical page/embed routes;
+- immutable repository source paths;
+- one TanStack module and one debug-only comparison module per case;
+- a byte count, SHA-256 digest, static imports, and dynamic imports for every
+  allowlisted module.
+
+Only the recursive ESM closure of the 200 case implementations is published.
+The standalone application entry, route code, raw-source wrappers, tests, CSS,
+and unrelated Vite output are excluded. The site resolves code from the
+recorded Charts revision rather than shipping raw-source JavaScript wrappers.
 
 An embed accepts `theme=system|light|dark`, `height=120..1200`, and an optional
 numeric `revision`. Width always follows the iframe container:
@@ -155,44 +163,28 @@ Adding or changing a case updates every catalog surface automatically.
 invalid schemas, duplicate IDs or orders, and case IDs that drift from their
 directory names.
 
-## Production hosting
+## Generated content publication
 
-The catalog is deployed from this repository as the separate Cloudflare Static
-Assets Worker `tanstack-charts-catalog`. Its
-`tanstack.com/charts/catalog*` route takes precedence over the main
-`tanstack-com` Worker and includes query strings on the bare catalog path. No
-catalog source or generated asset is copied into the `tanstack.com`
-repository.
-
-Workers Static Assets matches the complete request path, so `catalog:stage`
-mirrors the production build below `.catalog-deploy/charts/catalog/` before
-deployment. The ignored staging directory is never committed. Fingerprinted
-assets receive immutable caching; HTML and metadata retain Cloudflare's
-revalidating default. Catalog pages deny framing, while the explicit embed
-routes remain frameable.
+Charts owns the examples and build. TanStack.com owns the page routes, chrome,
+SEO, security headers, and embed response. The repositories meet through a
+generated `catalog-dist` branch containing only `catalog.json` and its
+allowlisted `assets/*.js` closure.
 
 ```sh
-# Build, mirror the public path, and validate the Worker bundle locally
+# Build and validate the exact publication artifact
 pnpm catalog:build
-pnpm catalog:deploy:check
 
-# Prove the default/debug module and network boundary in Chromium
+# Prove local authoring isolation and the published module graph
 pnpm catalog:loading:check
-
-# Deploy with an authenticated Wrangler session
-pnpm catalog:deploy
-
-# Verify root, detail, embed, asset, metadata, and 404 behavior
-pnpm catalog:smoke
 ```
 
-Main-branch CI deploys only after validation and the unfiltered standard
-conformance matrix. The `charts-catalog-production` GitHub environment must
-provide a `CLOUDFLARE_API_TOKEN` scoped to the catalog Worker and the
-`tanstack.com` route; the non-secret account ID stays in the Wrangler config.
-Rollbacks use the prior
-`tanstack-charts-catalog` Worker version; the catalog has no mutable runtime
-state.
+Main-branch CI publishes a new generated commit only after validation and the
+unfiltered standard conformance matrix pass. TanStack.com's existing content
+pipeline reads that branch and verifies the schema, revision, module allowlist,
+sizes, and hashes before serving it. It composes `site.assetBasePath`, the
+resolved `catalog-dist` commit SHA, and each relative module path into the
+immutable asset URL. A rollback points `catalog-dist` back to a prior generated
+commit; the catalog has no mutable runtime state.
 
 ## What is and is not equivalent
 
