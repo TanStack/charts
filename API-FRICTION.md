@@ -2589,20 +2589,27 @@ Each entry records:
   needed exact encoded mark keys when available and UTC-day snapping
   otherwise. The activation hero also retained only its serialized SVGs; a
   landing-page source comparison had no checked-in definition that could prove
-  which marks and scales generated them.
+  which marks and scales generated them. A later kinetic hero exposed the same
+  boundary for motion: serialized states retained `data-ts-key` identity but
+  had no live reconciler, so a crossfade was the only automatic transition.
 - Decision: keep this recovery logic isolated in the landing-page interaction
   component and do not present serialized SVG as a generally hydratable chart
   contract. Keep the activation definition as generator input and import that
   same file as the highlighted landing-page source so the evidence and SVG
-  cannot drift. Revisit supported interaction metadata or hydration only if
-  another static-SVG consumer encounters the same boundary.
+  cannot drift. The kinetic definitions share rows, mark IDs, datum keys, and
+  one view box; the landing adapter interpolates compatible path data and SVG
+  attributes, with a crossfade only for unmatched geometry. Revisit supported
+  interaction metadata or hydration only if another static-SVG consumer
+  encounters the same boundary.
 - Verification: all 14 landing SVG variants and the custom bundle chart expose
   formatted pointer and keyboard tooltips; compact and wide revenue tooltips
   retain exact dates and grouped series values. Regenerating the activation
   asset from the retained definition reproduces both prior SVGs byte for byte,
-  and the generator check covers the displayed definition. Site typechecking,
-  targeted type-aware lint, unit tests, production build, and desktop/mobile
-  browser checks pass.
+  and the generator check covers the displayed definition. All six kinetic
+  states emit the same eight keyed product points; compatible lines, areas, and
+  stems retain mark identity while the browser interpolates their geometry.
+  Site typechecking, targeted type-aware lint, unit tests, production build,
+  and desktop/mobile browser checks pass.
 
 ### F-119 — Catalog hosting crossed repository ownership
 
