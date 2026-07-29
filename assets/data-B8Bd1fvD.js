@@ -1,0 +1,1 @@
+var e=[`Search`,`Direct`,`Social`,`Email`,`Partners`,`Other`],t={Search:[48,42,39,46],Direct:[34,31,36,30],Social:[27,24,30,26],Email:[18,22,20,19],Partners:[25,19,24,21],Other:[11,13,9,12]},n=[0,200];function r(n=0){let r=n%2==1;return e.flatMap((e,n)=>t[e].map((t,i)=>({id:`${e}:${i}`,category:e,amount:t+(r?((n+i)%3-1)*2:0)})))}export{r as n,n as r,e as t};

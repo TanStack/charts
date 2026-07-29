@@ -1,0 +1,1 @@
+function e(e,t){return e==null||t==null?NaN:e<t?-1:e>t?1:e>=t?0:NaN}export{e as t};

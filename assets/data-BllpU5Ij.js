@@ -1,0 +1,1 @@
+function e(e=0){return Array.from({length:60},(t,n)=>{let r=n%20,i=Math.floor(n/20),a=r/19*4;return{id:n,x:10**a,y:12+a*16+i*7+Math.sin(n*1.37+e*.4)*5}})}export{e as t};

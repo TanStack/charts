@@ -1,0 +1,1 @@
+var e=[20,90];function t(e=0){let t=e%2==1;return Array.from({length:36},(e,n)=>{let r=53+Math.sin(n*.48)*17+Math.sin(n*.13+.8)*8+(t?(n%7-3)*.65:0);return{id:`observation:${n}`,index:n,value:Math.round(r*100)/100}})}export{e as n,t};

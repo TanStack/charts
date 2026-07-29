@@ -1,0 +1,1 @@
+import{t as e}from"./data-CRXbHq-n.js";function t(t=0){let n=e(t);return[...new Set(n.map(e=>e.category))].flatMap(e=>{let t=n.find(t=>t.category===e&&t.series===`Desktop`)?.value??0,r=n.find(t=>t.category===e&&t.series===`Mobile`)?.value??0;return[{id:`${e}:before`,category:e,period:`Before`,value:t},{id:`${e}:after`,category:e,period:`After`,value:r}]})}export{t};

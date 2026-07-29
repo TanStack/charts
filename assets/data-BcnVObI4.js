@@ -1,0 +1,1 @@
+var e=[{id:`ingest`,label:`Ingest`,value:42,fill:`#2563eb`},{id:`query`,label:`Query`,value:28,fill:`#7c3aed`},{id:`alerts`,label:`Alerts`,value:18,fill:`#db2777`},{id:`other`,label:`Other`,value:12,fill:`#f59e0b`}];function t(t=0){return t%2==0?e:e.map(e=>e.id===`ingest`?{...e,value:35}:e.id===`query`?{...e,value:31}:e.id===`alerts`?{...e,value:22}:e)}export{t};

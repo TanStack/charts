@@ -1,0 +1,1 @@
+var e=Date.UTC(2025,0,5),t=10080*60*1e3,n=[48,52,46,60,55,65,72,68,75,63,58,54,49,44,38,33,29,36,42,50,61,70,79,74],r=[new Date(e),new Date(e+(n.length-1)*t)],i=[20,90];function a(r=0){let i=r%2==1;return n.map((n,r)=>({id:`week:${r}`,date:new Date(e+r*t),value:i&&r===6?85:i&&r===12?25:n}))}export{r as n,i as r,a as t};

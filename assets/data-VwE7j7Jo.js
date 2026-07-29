@@ -1,0 +1,1 @@
+import{i as e}from"./data-CRXbHq-n.js";function t(t=0){return e(t).slice(0,72).map(e=>({id:e.id,value:Math.round(e.value/2)*2}))}export{t};

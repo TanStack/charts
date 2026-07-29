@@ -1,0 +1,1 @@
+var e=[{id:`safe`,label:`Safe`,value:55,fill:`#22c55e`},{id:`watch`,label:`Watch`,value:25,fill:`#f59e0b`},{id:`critical`,label:`Critical`,value:20,fill:`#ef4444`}],t=Array.from({length:11},(e,t)=>({id:`tick-${t}`,value:t*10}));function n(e=0){let t=e%2==0?68:86;return{id:`reading`,value:t,label:`${t}%`}}export{n,t as r,e as t};

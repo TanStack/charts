@@ -1,0 +1,1 @@
+import{l as e}from"./data-CRXbHq-n.js";var t=[20,55];function n(t=0){return e(t).filter(e=>e.series===`Atlas`).map((e,t)=>({id:e.id,date:e.date,value:t===10||t===23?null:e.value}))}export{t as n,n as t};

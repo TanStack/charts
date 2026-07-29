@@ -1,0 +1,1 @@
+function e(e=0){return Array.from({length:12},(t,n)=>{let r=10+n*17%73,i=15+n*23%61,a=Math.min(98,r+5+n%4*2),o=(n*11+e*3)%21-10;return{id:`change:${n}`,x1:r,y1:i,x2:a,y2:Math.max(2,Math.min(98,i+o)),direction:o>=0?`up`:`down`}})}export{e as t};

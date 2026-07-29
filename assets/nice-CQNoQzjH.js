@@ -1,0 +1,1 @@
+import{t as e}from"./ticks-lLNOwKwX.js";function t(t,n,r){let i;for(;;){let a=e(t,n,r);if(a===i||a===0||!isFinite(a))return[t,n];a>0?(t=Math.floor(t/a)*a,n=Math.ceil(n/a)*a):a<0&&(t=Math.ceil(t*a)/a,n=Math.floor(n*a)/a),i=a}}export{t};

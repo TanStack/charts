@@ -1,0 +1,1 @@
+function e(e,t){let n=0,r,i=0,a=0;if(t===void 0)for(let t of e)t!=null&&(t=+t)>=t&&(r=t-i,i+=r/++n,a+=r*(t-i));else{let o=-1;for(let s of e)(s=t(s,++o,e))!=null&&(s=+s)>=s&&(r=s-i,i+=r/++n,a+=r*(s-i))}if(n>1)return a/(n-1)}function t(t,n){let r=e(t,n);return r&&Math.sqrt(r)}export{e as n,t};

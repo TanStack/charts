@@ -1,0 +1,1 @@
+import{t as e}from"./data-CRXbHq-n.js";function t(t=0){let n=new Map;for(let r of e(t)){let e=n.get(r.category);e?e.push(r.value):n.set(r.category,[r.value])}return[...n].map(([e,t])=>{let n=t.reduce((e,t)=>e+t,0)/t.length,r=Math.max(...t)-Math.min(...t);return{id:e,category:e,mean:n,low:Math.max(0,n-r*.55),high:Math.min(70,n+r*.55)}})}export{t};

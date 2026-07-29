@@ -1,0 +1,1 @@
+import{a as e}from"./geo-data-QNLZu7HR.js";function t(t=0){let n=t%2==0?`tokyo`:`singapore`,r=new Set([`san-francisco`,`new-york`,`london`,`lagos`,`dubai`,n]);return e(t).filter(e=>r.has(e.properties.id))}export{t};

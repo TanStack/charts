@@ -1,0 +1,1 @@
+import{t as e}from"./count-C0C7E1st.js";function t(t){return Math.max(1,Math.ceil(Math.log(e(t))/Math.LN2)+1)}export{t};

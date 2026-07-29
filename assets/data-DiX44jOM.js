@@ -1,0 +1,1 @@
+import{l as e}from"./data-CRXbHq-n.js";var t=[10,60];function n(t=0){return e(t).filter(e=>e.series===`Atlas`).map((e,n)=>{let i=4.5+Math.sin((n+t)/4)*1.4;return{id:e.id,date:e.date,low:r(e.value-i),high:r(e.value+i)}})}function r(e){return Math.round(e*100)/100}export{t as n,n as t};

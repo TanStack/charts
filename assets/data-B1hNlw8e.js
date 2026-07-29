@@ -1,0 +1,1 @@
+function e(e=0){return Array.from({length:30},(t,n)=>{let r=n%6,i=Math.floor(n/6);return{id:`${r}:${i}`,x:r,y:i,speed:9+(r*3+i*5+e)%10,direction:(r*31+i*47+e*11)%360}})}export{e as t};

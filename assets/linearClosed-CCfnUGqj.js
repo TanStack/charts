@@ -1,0 +1,1 @@
+function e(){}function t(e){this._context=e}t.prototype={areaStart:e,areaEnd:e,lineStart:function(){this._point=0},lineEnd:function(){this._point&&this._context.closePath()},point:function(e,t){e=+e,t=+t,this._point?this._context.lineTo(e,t):(this._point=1,this._context.moveTo(e,t))}};function n(e){return new t(e)}export{e as n,n as t};

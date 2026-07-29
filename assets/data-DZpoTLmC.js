@@ -1,0 +1,1 @@
+var e=[`Alpha`,`Beta`,`Gamma`];function t(t=0){return e.flatMap((e,n)=>Array.from({length:31},(r,i)=>{let a=i-15,o=42+n*13+a*(.72+n*.08)+Math.sin(i*1.7+t)*4+(i===0?-18:0)+(i===30?19:0);return{id:`${e}:${i}`,group:e,value:Math.round(o*100)/100}}))}export{t};

@@ -1,0 +1,1 @@
+import{r as e,y as t}from"./echarts-mount-BJmDDHbw.js";import{t as n}from"./installSimple-Cz1uF6_O.js";function r(r){t(n),t(e)}export{r as t};

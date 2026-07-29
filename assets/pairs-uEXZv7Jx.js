@@ -1,0 +1,1 @@
+function e(e,n=t){let r=[],i,a=!1;for(let t of e)a&&r.push(n(i,t)),i=t,a=!0;return r}function t(e,t){return[e,t]}export{e as t};

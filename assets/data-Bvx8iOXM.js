@@ -1,0 +1,1 @@
+var e=[`Research`,`Schema`,`Prototype`,`Core API`,`Adapters`,`Documentation`,`Hardening`,`Release`],t=[`Plan`,`Build`,`Ship`];function n(n=0){return e.map((e,r)=>{let i=r*4+(r>3?2:0);return{id:e,task:e,start:i,end:i+5+(r+n)%4,phase:t[Math.min(2,Math.floor(r/3))]??`Ship`}})}export{n as t};
