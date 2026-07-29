@@ -2629,7 +2629,9 @@ Each entry records:
   unreferenced assets, and public comparison modules. The loading gate checks
   every TanStack root's static closure for reference cases or competitor
   packages. Main-branch CI uploads the validated artifact and publishes only
-  `catalog.json` and `assets/*.js` to `catalog-dist`.
+  `catalog.json` and `assets/*.js` to `catalog-dist`. The publication workflow
+  pins every third-party action to a full commit SHA, as required by the
+  repository's Actions policy.
 - Follow-up: keep monitoring through the TanStack.com cutover, production route
   verification, and retirement of the previously deployed catalog Worker.
 
