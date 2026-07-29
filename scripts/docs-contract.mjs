@@ -18,6 +18,10 @@ const bannedChartLibraryHosts = new Set([
   'recharts.org',
 ])
 
+const allowedChartLibraryLinks = new Map([
+  ['overview.md', new Set(['https://observablehq.com/plot/'])],
+])
+
 export async function validateDocsContract(repositoryRoot) {
   const docsRoot = resolve(repositoryRoot, 'docs')
   const configPath = resolve(docsRoot, 'config.json')
@@ -175,7 +179,10 @@ function validatePublicLinks(path, source, failures) {
       continue
     }
     const host = url.hostname.replace(/^www\./, '')
-    if (bannedChartLibraryHosts.has(host)) {
+    if (
+      bannedChartLibraryHosts.has(host) &&
+      !allowedChartLibraryLinks.get(path)?.has(url.href)
+    ) {
       failures.push(`${path} links to another charting library: ${url.href}`)
     }
     if (host === 'd3js.org' && path !== 'concepts/scales-and-d3.md') {
