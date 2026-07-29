@@ -15,3 +15,8 @@ pnpm add @tanstack/charts @tanstack/svelte-charts svelte d3-scale
 ```
 
 The adapter renders SVG during SSR and adopts it after mount.
+
+Read the published
+[Svelte adapter guide](https://tanstack.com/charts/latest/docs/framework/svelte/adapter)
+and
+[`Chart` reference](https://tanstack.com/charts/latest/docs/framework/svelte/reference/chart).

@@ -266,6 +266,7 @@ The grammar does not contain DOM or framework lifecycle code. It compiles to a k
 - Interaction points that retain original data
 - Theme and gradient resources
 
-The built-in SVG renderer, DOM host, React adapter, Octane adapter, static exporter, and custom renderers all consume that same result.
+The built-in SVG renderer, DOM and framework hosts, static exporter, and custom
+renderers all consume that same result.
 
 Continue with [Chart Definitions](./chart-definitions.md), or start from a task in [Choosing a Chart](../guides/choosing-a-chart.md).

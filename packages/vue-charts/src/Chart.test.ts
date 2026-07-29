@@ -24,6 +24,7 @@ describe('Vue adapter', () => {
           width: 480,
           height: 260,
           ariaLabel: 'Revenue',
+          className: 'revenue-surface',
         }),
     })
     const html = await renderToString(app)
@@ -31,6 +32,7 @@ describe('Vue adapter', () => {
     expect(html).toContain('class="ts-chart-host"')
     expect(html).toContain('<svg')
     expect(html).toContain('aria-label="Revenue"')
+    expect(html).toContain('class="ts-chart revenue-surface"')
   })
 
   it('mounts and cleans up the shared host', async () => {
@@ -43,6 +45,7 @@ describe('Vue adapter', () => {
           width: 480,
           height: 260,
           ariaLabel: label.value,
+          className: 'revenue-surface',
         }),
     })
 
@@ -50,6 +53,7 @@ describe('Vue adapter', () => {
     await nextTick()
     const svg = target.querySelector('svg')
     expect(svg).not.toBeNull()
+    expect(svg?.classList.contains('revenue-surface')).toBe(true)
     label.value = 'Updated revenue'
     await nextTick()
     expect(target.querySelector('svg')).toBe(svg)

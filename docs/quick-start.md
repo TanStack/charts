@@ -3,7 +3,9 @@ title: Quick Start
 description: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 ---
 
-This walkthrough uses the framework-agnostic DOM host. The same chart definition can be passed unchanged to the [React](./framework/react/quick-start.md) or [Octane](./framework/octane/quick-start.md) adapter.
+This walkthrough uses the framework-agnostic DOM host. The same chart
+definition passes unchanged to any supported
+[framework adapter](./installation.md#framework-compatibility).
 
 ## 1. Add a chart container
 

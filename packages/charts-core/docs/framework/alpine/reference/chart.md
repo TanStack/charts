@@ -1,0 +1,56 @@
+---
+title: Alpine Chart
+description: Complete option and type reference for the @tanstack/alpine-charts x-chart directive.
+---
+
+```ts
+import { charts } from '@tanstack/alpine-charts'
+```
+
+Register `charts` with `Alpine.plugin`, then make `x-chart` evaluate to a
+complete `ChartOptions` value. Static definitions reject `input`; dynamic
+definitions require the exact `input` type declared by
+`defineChart<Input>()`.
+
+## Directive options
+
+| Option               | Type                                                       | Default                                  | Meaning                                              |
+| -------------------- | ---------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------- |
+| `definition`         | `StaticChartDefinition \| DynamicChartDefinition`          | Required                                 | Framework-neutral chart definition                   |
+| `input`              | Inferred `TInput`                                          | Required only when dynamic               | Input accepted by a dynamic definition               |
+| `ariaLabel`          | `string`                                                   | Required                                 | Accessible chart name                                |
+| `ariaDescription`    | `string`                                                   | None                                     | Optional accessible description                      |
+| `height`             | `number`                                                   | Existing height or `320` without a ratio | Fixed CSS and scene height                           |
+| `aspectRatio`        | `number`                                                   | None                                     | Positive width-to-height ratio when height is absent |
+| `width`              | `number`                                                   | Existing width or `100%`                 | Fixed CSS and scene width                            |
+| `initialWidth`       | `number`                                                   | `640`                                    | Initial width before responsive measurement          |
+| `maxFocusDistance`   | `number`                                                   | `48`                                     | Maximum default pointer-focus distance               |
+| `focus`              | `ChartFocusStrategy<TDatum, TXValue, TYValue>`             | Nearest point                            | Pointer grouping and keyboard navigation strategy    |
+| `spatialIndex`       | `ChartSpatialIndexFactory<TDatum, TXValue, TYValue>`       | Linear scan                              | Optional nearest-point index                         |
+| `animate`            | `boolean \| ChartAnimationOptions`                         | `false`                                  | Keyed update animation                               |
+| `keyboard`           | `boolean`                                                  | `true`                                   | Enables keyboard focus and navigation                |
+| `tabIndex`           | `number`                                                   | `0`                                      | Surface tab index; `keyboard: false` forces `-1`     |
+| `tooltip`            | `boolean \| ChartTooltipOptions<TDatum, TXValue, TYValue>` | `false`                                  | Native text tooltip                                  |
+| `idPrefix`           | `string`                                                   | Generated                                | Prefix for renderer-owned document IDs               |
+| `className`          | `string`                                                   | None                                     | Extra class on the rendered SVG surface              |
+| `renderSvg`          | `ChartSvgRenderer<TDatum, TXValue, TYValue>`               | `renderChartSvg`                         | Scene-to-SVG renderer                                |
+| `measureText`        | `ChartTextMeasurer`                                        | Host measurer                            | Guide text measurement                               |
+| `onFocusChange`      | `(point: ChartPoint \| null) => void`                      | None                                     | Primary focus callback                               |
+| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`                  | None                                     | Grouped focus callback                               |
+| `onSelect`           | `(point: ChartPoint \| null) => void`                      | None                                     | Pointer or keyboard activation callback              |
+| `onRender`           | `(context: ChartRenderContext) => void`                    | None                                     | Live SVG, container, and scene after rendering       |
+
+The directive element becomes `.ts-chart-host`; use its normal HTML class and
+style attributes for outer presentation. Directive cleanup removes the chart
+surface and restores the element's prior inline layout and host class.
+
+## Exported types
+
+`StaticChartOptions` rejects `input`; `DynamicChartOptions` requires it;
+`ChartOptions` is their union. The package also re-exports `ChartDefinition`
+and `ChartPoint`.
+
+See the [Alpine adapter](../adapter.md) for lifecycle and browser requirements,
+[Focus and interaction](../../../reference/focus-and-interaction.md) for
+callback semantics, and [Rendering and export](../../../reference/rendering-and-export.md)
+for custom SVG renderers.

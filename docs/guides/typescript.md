@@ -65,8 +65,8 @@ const dynamicDefinition = defineChart<TrafficInput>()({
 })
 ```
 
-React, Octane, and `mountChart` require `input` for this definition and reject
-it for a static definition.
+`mountChart` and every framework adapter require `input` for this definition
+and reject it for a static definition.
 
 ## Keep literal information
 

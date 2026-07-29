@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-07-28
+Last updated: 2026-07-29
 
 ## Triage rule
 
@@ -159,6 +159,9 @@ Each entry records:
 | F-121 | SVG callback was not a rendering-pipeline boundary       | API             | resolved   |
 | F-122 | Dense scene aggregation overflowed the call stack        | API             | resolved   |
 | F-123 | Framework adapters repeated runtime ownership            | API             | resolved   |
+| F-124 | Name-only inventories masked undocumented contracts      | Docs/Tooling    | resolved   |
+| F-125 | Adapter surface classes disappeared across lifecycles    | API             | resolved   |
+| F-126 | Executable comparisons had no public documentation       | Docs/Tooling    | resolved   |
 
 ## Findings
 
@@ -2061,7 +2064,9 @@ Each entry records:
   nested-parenthesis, fragment, query, absolute URL, code-span, fenced-code,
   missing-file, traversal, root-relative, and malformed destinations.
   `pnpm package:check` validates the staged core, React, and Octane tarballs,
-  and the friction-log structural tests pass.
+  while `pnpm adapters:check` applies the same packed Markdown-link contract
+  to Preact, Vue, Solid, Svelte, Angular, Lit, and Alpine. The friction-log
+  structural tests pass.
 
 ### F-093 — Filtered stress runs overwrote canonical reports
 
@@ -2347,7 +2352,7 @@ Each entry records:
   content introductory and route detailed behavior to one canonical page.
   Validate navigation completeness, frontmatter, local links, public exports,
   D3 ownership, and catalog embeds in CI.
-- Verification: the canonical contract covers 62 configured pages and 63
+- Verification: the canonical contract covers 79 configured pages and 83
   unique catalog embeds. `docs:sync` reproduces the package mirror byte for
   byte, and `docs:check` rejects stale generated files or a second direct D3
   reference owner.
@@ -2522,8 +2527,8 @@ Each entry records:
   quick start in both client and server modes.
 - Verification: the contract rejects invalid typed syntax, unknown subpaths,
   unknown symbols, and missing headings; helper tests cover syntax,
-  named-import extraction, heading slugs, and example discovery; ten
-  executable examples, all 62 canonical pages, and the public READMEs pass
+  named-import extraction, heading slugs, and example discovery; 16
+  executable examples, all 79 canonical pages, and the public READMEs pass
   against the current package manifests.
 
 ### F-116 — Build context was mistaken for resolved plot geometry
@@ -2757,3 +2762,73 @@ Each entry records:
   browser paths; Angular, Lit, and Alpine cover update and teardown; Angular
   partial compilation and Svelte package compilation pass. Packed React
   consumers retain their renderer boundary without pulling SVG modules.
+
+### F-124 — Name-only inventories masked undocumented contracts
+
+- Status: resolved
+- Severity: high
+- Owner: Documentation/Tooling
+- Observed in: full public documentation audit
+- Friction: every exported name passed the documentation contract even when
+  it appeared only in the API overview's import map or an adapter page's
+  `Exports:` inventory. Six adapter-controller exports had no behavioral
+  reference, and the Preact, Vue, Solid, Svelte, Angular, Lit, and Alpine
+  adapters named their public symbols without documenting their complete
+  option, lifecycle, presentation, or server contracts.
+- Decision: add a controller lifecycle reference and a complete API reference
+  for every framework adapter, route capability-specific types to their owner
+  pages, and document the renderer, Canvas host and surface, scale resolver,
+  color scale, and polar contracts found by the same audit. Exclude import
+  maps, routing lists, and name-only export paragraphs from substantive symbol
+  coverage.
+- Verification: focused coverage tests prove inventories no longer satisfy an
+  export while signatures, tables, code, and explanatory prose do. The
+  documentation contract passes all 79 canonical pages, 83 catalog embeds, 16
+  executable examples, public package entry points, and exported symbols.
+
+### F-125 — Adapter surface classes disappeared across lifecycles
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: documenting framework adapter presentation contracts
+- Friction: `className` was part of the shared typed host options, but both
+  `createChartAdapter().prerender()` and
+  `createChartRendererAdapter().prerender()` omitted it. Server output
+  therefore disagreed with the mounted surface for every adapter that
+  forwarded the option. Vue additionally disabled attribute inheritance
+  without declaring `className`, so its client and server paths both dropped
+  the value.
+- Decision: forward `className` through both shared prerender boundaries and
+  declare it as a Vue component prop so initial and mounted surfaces honor the
+  published option.
+- Verification: the SVG and renderer-neutral adapter regressions cover
+  prerendered surface classes; Vue server and browser regressions cover the
+  same class before and after mount. Focused tests, repository typechecking,
+  and all seven adapter package gates pass.
+
+### F-126 — Executable comparisons had no public documentation
+
+- Status: resolved
+- Severity: high
+- Owner: Documentation/Tooling
+- Observed in: full public documentation audit follow-up
+- Friction: the repository exercised five chart libraries across 60
+  deterministic bundle fixtures, shared browser and stress protocols, and a
+  100-pair conformance corpus, but the public documentation exposed none of
+  that evidence or the usual TanStack capability matrix. Readers could not
+  distinguish a first-party feature, application composition, verified
+  absence, or an untested claim.
+- Decision: publish one canonical comparison page for the four alternatives
+  in the executable matrix. Extract the capability data from the benchmark
+  runner into a shared source, reserve red cells for verified missing
+  first-party paths, cite exact official competitor pages, and report only the
+  durable tracked bundle baseline rather than machine-sensitive browser
+  rankings. Record package versions and the complete chart/tier matrix in that
+  baseline so dependency or protocol changes require a refresh.
+- Verification: the documentation contract checks every matrix cell against
+  the shared benchmark source, every displayed package version against the
+  repository manifests, all 60 expected bundle cases and displayed gzip
+  ranges against the tracked baseline, and exact competitor-link
+  allowlisting. The canonical and package documentation contain 80 pages, and
+  the generated indexes route readers to the comparison.

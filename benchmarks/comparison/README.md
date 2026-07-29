@@ -4,6 +4,10 @@ This suite compares TanStack Charts, Chart.js, Apache ECharts, Recharts, and
 Observable Plot with the same deterministic data across line, bar, area, and
 scatter charts.
 
+The public [library comparison](../../docs/comparison.md) uses the same
+capability source and tracked bundle baseline. Documentation checks reject
+stale matrix cells, package versions, bundle ranges, or competitor links.
+
 ## Commands
 
 ```sh
@@ -63,8 +67,9 @@ pnpm benchmark:update-baseline
 
 Update the baseline only after reviewing the built files and confirming that a
 size change is intentional. The check permits 3% or 512 bytes, whichever is
-larger. It also requires normal comparison artifacts to contain zero bytes
-from the stress-probe modules; optional measurement machinery must disappear
+larger. It rejects package-version or chart/tier matrix drift before comparing
+bytes. It also requires normal comparison artifacts to contain zero bytes from
+the stress-probe modules; optional measurement machinery must disappear
 through direct build-time feature gates. It does not gate browser timings
 because those are hardware-sensitive. Every check writes
 `.benchmark-output/results/bundle-baseline.candidate.json` with all measured
@@ -92,7 +97,8 @@ Every case uses:
 Selection, animation frame completion, and responsive resize are listed in the
 report's capability coverage table but are not timed. They need event-driven
 protocols with explicit completion conditions. Animations are disabled for all
-timed fixtures.
+timed fixtures. Renderer and framework rows describe documented package
+boundaries rather than timed behavior.
 
 The chart-specific point counts are defined by profiles in
 [`compare-chart-libraries.mjs`](../../scripts/compare-chart-libraries.mjs).

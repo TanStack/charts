@@ -29,5 +29,30 @@ export function RevenueChart() {
 shared runtime owns the SVG, measurement, interaction, and cleanup. The
 adapter emits the initial SVG during SSR and adopts it after mount.
 
+## Lifecycle
+
+The component creates one shared adapter controller, prerenders its initial
+SVG, mounts it from a layout effect, forwards complete prop updates, and
+destroys it on unmount. Keep a fixed definition outside component render; pass
+live values through a dynamic definition's `input`.
+
+## SSR and hydration
+
+Preact server rendering emits the complete `.ts-chart-host`,
+`.ts-chart-surface`, and accessible SVG. `initialWidth` controls responsive
+server geometry. The generated `useId()` prefix remains stable when the server
+and browser render the same tree. Keep definitions, inputs, formatters, and
+dimensions deterministic.
+
+## Presentation and rendering
+
+`className` and `style: JSX.CSSProperties` apply to the outer host and are not
+forwarded to the SVG. Custom styles are applied after adapter sizing. The
+package exposes the SVG component only; use `renderSvg` to replace SVG
+serialization without replacing the shared host.
+
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
 `DynamicChartProps`, `StaticChartProps`, `ChartDefinition`, and `ChartPoint`.
+
+See the [`Chart` reference](./reference/chart.md), [SSR and hydration](../../guides/ssr-and-hydration.md),
+and [Chart Definition API](../../reference/chart-definitions.md).

@@ -60,7 +60,7 @@ export async function createLlmsIndex(root) {
   const lines = [
     '# TanStack Charts documentation',
     '',
-    'TanStack Charts is a framework-agnostic, type-safe visualization grammar with thin React and Octane adapters.',
+    'TanStack Charts is a framework-agnostic, type-safe visualization grammar with thin framework adapters.',
     '',
     'Read the canonical pages below. Each concept is documented once; guides and examples link back to its owner page.',
     '',

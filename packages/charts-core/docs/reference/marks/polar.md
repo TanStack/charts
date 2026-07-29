@@ -19,10 +19,12 @@ import {
 } from '@tanstack/charts/polar'
 ```
 
-`polar` resolves the responsive coordinate system. Its `PolarMark` children
-and `PolarGuide` guides emit ordinary scene nodes and interaction points.
-Guide backgrounds paint first, marks paint second, and guide foregrounds
-paint last.
+`polar` resolves the responsive coordinate system. The exported `PolarMark`
+and `PolarGuide` types are opaque composition contracts returned by the
+built-in radial mark and guide constructors. Use them to type collections
+passed to `polar`; do not implement their internal initialize or render
+lifecycle. Guide backgrounds paint first, marks paint second, and guide
+foregrounds paint last.
 
 ## `polar`
 
@@ -68,7 +70,7 @@ internal polar scales.
 ```ts
 function radialArc<TDatum>(
   source: Iterable<TDatum>,
-  options: RadialArcOptions<TDatum>,
+  options?: RadialArcOptions<TDatum>,
 ): PolarMark<TDatum>
 ```
 
@@ -122,12 +124,12 @@ Keep the D3 generator context `null` so it returns SVG path data.
 ```ts
 function radialLine<TDatum>(
   source: Iterable<TDatum>,
-  options: RadialLineOptions<TDatum>,
+  options?: RadialLineOptions<TDatum>,
 ): PolarMark<TDatum>
 
 function radialArea<TDatum>(
   source: Iterable<TDatum>,
-  options: RadialAreaOptions<TDatum>,
+  options?: RadialAreaOptions<TDatum>,
 ): PolarMark<TDatum>
 ```
 
@@ -147,7 +149,7 @@ only when the outline needs independent styling.
 ```ts
 function radialDot<TDatum>(
   source: Iterable<TDatum>,
-  options: RadialDotOptions<TDatum>,
+  options?: RadialDotOptions<TDatum>,
 ): PolarMark<TDatum>
 ```
 
@@ -161,7 +163,7 @@ with its original angle/radius values and projected screen position.
 ```ts
 function radialText<TDatum>(
   source: Iterable<TDatum>,
-  options: RadialTextOptions<TDatum>,
+  options?: RadialTextOptions<TDatum>,
 ): PolarMark<TDatum>
 ```
 
@@ -176,7 +178,7 @@ gauge readouts without leaving the polar coordinate system.
 ```ts
 function radialRule<TDatum>(
   source: Iterable<TDatum>,
-  options: RadialRuleOptions<TDatum>,
+  options?: RadialRuleOptions<TDatum>,
 ): PolarMark
 ```
 
@@ -231,7 +233,9 @@ The exported option contracts are `PolarOptions`, `RadialArcOptions`,
 `AngleGridOptions`. The coordinate contracts are `PolarAngleOptions`,
 `PolarRadiusOptions`, `PolarResolvedScale`, `PolarLayoutContext`,
 `PolarLength`, `PolarGuideLabelContext`, `PolarGuideLabelOption`, `PolarMark`,
-`PolarGuide`, and `PolarGuideScene`.
+`PolarGuide`, and `PolarGuideScene`. `PolarMark` and `PolarGuide` annotate
+built-in constructor results rather than a supported custom-extension
+boundary.
 
 See [Polar and Radar Charts](../../examples/polar-and-radar.md) for pie,
 donut, gauge, radar, numeric line, and numeric scatter compositions.

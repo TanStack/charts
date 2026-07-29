@@ -24,3 +24,8 @@ export class RevenueChart {
 
 The component accepts one typed `options` input so Angular can track it as a
 single signal or immutable value.
+
+Read the published
+[Angular adapter guide](https://tanstack.com/charts/latest/docs/framework/angular/adapter)
+and
+[`Chart` reference](https://tanstack.com/charts/latest/docs/framework/angular/reference/chart).

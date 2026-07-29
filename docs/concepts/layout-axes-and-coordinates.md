@@ -115,7 +115,9 @@ Use that combination for sparklines and intentionally chrome-free embedded graph
 
 ## Text measurement
 
-Static scenes use deterministic text estimates. The DOM host, React adapter, and Octane adapter measure painted glyph bounds with the chart container’s inherited font and relayout after web fonts load.
+Static scenes use deterministic text estimates. The DOM host and browser
+framework adapters measure painted glyph bounds with the chart container's
+inherited font and relayout after web fonts load.
 
 Advanced renderers can supply `measureText`. Its metrics include painted x and y offsets relative to the requested anchor and baseline, not only width and height. This is necessary for correct containment of rotated and anchored labels.
 

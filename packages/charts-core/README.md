@@ -141,7 +141,7 @@ endpoints independently from their interaction anchors, and cells retain their
 categorical point values. Facets and custom marks remain unchecked only where
 their positional semantics are intentionally opaque. A dynamic
 `defineChart<Input>()` also makes `input` required with that exact shape in the
-vanilla, React, and Octane hosts.
+vanilla host and every framework adapter.
 
 Normal authoring needs no cast, mark-array annotation, or adapter generic. If
 TypeScript rejects a chart, correct the data type, channel, scale, or
@@ -225,12 +225,12 @@ const chart = defineChart({
   should be thinned or rotated; margins guarantee containment, not legibility
   between overlapping labels.
 
-Static scenes use deterministic text estimates. The DOM host, React, and
-Octane measure the painted glyph bounds with the inherited container font and
-relayout after web fonts load. Advanced renderers can supply `measureText` on
-the host, adapter, runtime, or `createChartScene` layout options. Its returned
-`x` and `y` are the painted box offsets relative to the requested anchor and
-baseline.
+Static scenes use deterministic text estimates. The DOM host and browser
+framework adapters measure the painted glyph bounds with the inherited
+container font and relayout after web fonts load. Advanced renderers can
+supply `measureText` on the host, adapter, runtime, or `createChartScene`
+layout options. Its returned `x` and `y` are the painted box offsets relative
+to the requested anchor and baseline.
 
 Definitions accept configured D3 scales directly, and `createChartScene`
 rejects missing positional scales. TanStack copies each caller scale, applies
@@ -258,6 +258,7 @@ Start with [`llms.txt`](./llms.txt), [Overview](./docs/overview.md), or the
 [Quick Start](./docs/quick-start.md). The installed package includes the same
 canonical documentation published on the TanStack website:
 
+- [Compare Libraries](./docs/comparison.md)
 - [Grammar of Graphics](./docs/concepts/grammar-of-graphics.md)
 - [Scales and D3](./docs/concepts/scales-and-d3.md)
 - [Guides](./docs/guides/choosing-a-chart.md)

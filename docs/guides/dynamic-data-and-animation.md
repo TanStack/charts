@@ -135,7 +135,7 @@ Static definitions reject `input`. Dynamic definitions require it:
 />
 ```
 
-React and Octane forward every committed option change to the shared host.
+Framework adapters forward every committed option change to the shared host.
 Framework scheduling may batch application states before a commit. Each call
 that reaches `host.update` applies synchronously.
 

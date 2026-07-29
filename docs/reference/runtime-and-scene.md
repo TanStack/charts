@@ -55,7 +55,8 @@ preparation rules documented in
 [Chart Definition API](./chart-definitions.md#equality-and-memoization).
 Because a standalone runtime is created before its first `render` call, direct
 dynamic use supplies the datum, input, x-value, and y-value generics at the
-factory. DOM, React, and Octane hosts infer them from the definition instead.
+factory. DOM and framework adapter hosts infer them from the definition
+instead.
 
 A direct `runtime.render` call always builds a scene. `inputEqual` lets a DOM or
 framework host avoid calling render for an equal update; inside the runtime it

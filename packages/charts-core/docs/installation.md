@@ -42,6 +42,24 @@ pnpm add @tanstack/octane-charts octane
 
 The adapters intentionally do not replace the core package. Definitions and marks still come from `@tanstack/charts`; an adapter only connects the shared runtime to its framework lifecycle.
 
+## Framework compatibility
+
+| Adapter package            | Framework peer                           |
+| -------------------------- | ---------------------------------------- |
+| `@tanstack/react-charts`   | React `^19.0.0`                          |
+| `@tanstack/preact-charts`  | Preact `>=10`                            |
+| `@tanstack/vue-charts`     | Vue `>=3.5`                              |
+| `@tanstack/solid-charts`   | Solid `>=1.8`                            |
+| `@tanstack/svelte-charts`  | Svelte `^5.20.0`                         |
+| `@tanstack/angular-charts` | Angular core and platform browser `>=19` |
+| `@tanstack/lit-charts`     | Lit `>=3.1.3`                            |
+| `@tanstack/alpine-charts`  | Alpine `>=3.15`                          |
+| `@tanstack/octane-charts`  | Octane `^0.1.13`                         |
+
+These ranges are the package peer contracts. Use the selected framework's
+normal renderer or application package beside the adapter when the application
+needs browser mounting or server rendering.
+
 ## Install the D3 modules you import
 
 TanStack Charts accepts configured D3 scales and the output of D3 transforms directly. Your application must declare every `d3-*` module that its source imports. Strict package managers do not expose transitive dependencies as an application import contract.

@@ -46,6 +46,7 @@ const ChartImplementation = defineComponent({
     keyboard: { type: Boolean, default: undefined },
     tabIndex: Number,
     idPrefix: String,
+    className: String,
     renderSvg: Function,
     measureText: Function,
     tooltip: { type: [Boolean, Object], default: undefined },

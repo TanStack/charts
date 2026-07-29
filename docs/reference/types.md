@@ -214,6 +214,32 @@ See [Focus and interaction](./focus-and-interaction.md).
 
 See [Rendering and export](./rendering-and-export.md).
 
+## Capability-specific types
+
+Types tied to optional capabilities are documented with the API that owns
+their behavior:
+
+- `@tanstack/charts/adapter`: `ChartAdapter`, `ChartAdapterLayout`, and
+  `ChartAdapterLayoutOptions`. See
+  [Adapter controller](./adapter-controller.md).
+- `@tanstack/charts/canvas`: `CanvasChartRendererOptions`,
+  `CanvasChartRenderer`, `CanvasChartSurface`, `CanvasChartHostOptions`, and
+  `CanvasChartHost`. See
+  [Canvas renderer](./rendering-and-export.md#canvas-renderer).
+- `@tanstack/charts/export`: `SerializeChartSvgOptions` and
+  `RenderChartPngOptions`. See [SVG
+  serialization](./rendering-and-export.md#svg-serialization) and [browser
+  image export](./rendering-and-export.md#browser-image-export).
+- `@tanstack/charts/geo`: `GeoProjectionContext` and `GeoShapeOptions`. See
+  [Geo shape](./marks/geo.md).
+- `@tanstack/charts/polar`: `PolarOptions`, `PolarMark`, `PolarGuide`,
+  `PolarGuideScene`, `PolarAngleOptions`, `PolarRadiusOptions`,
+  `PolarResolvedScale`, `PolarLayoutContext`, `PolarLength`,
+  `PolarGuideLabelContext`, `PolarGuideLabelOption`, `RadialArcOptions`,
+  `RadialLineOptions`, `RadialAreaOptions`, `RadialDotOptions`,
+  `RadialTextOptions`, `RadialRuleOptions`, `RadialGridOptions`, and
+  `AngleGridOptions`. See [Polar marks](./marks/polar.md).
+
 ## Mark option types
 
 Every built-in mark exports its options type from the root and its granular

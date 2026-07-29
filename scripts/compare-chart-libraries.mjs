@@ -9,6 +9,12 @@ import {
   startBenchmarkServer,
 } from './benchmark/browser.mjs'
 import { chartLibraries } from './benchmark/chart-libraries.mjs'
+import {
+  comparisonCapabilityCoverage,
+  comparisonChartTypes,
+  comparisonTiers,
+  formatComparisonImplementationDetail,
+} from './benchmark/comparison-capabilities.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const comparisonDirectory = resolve(root, 'benchmarks/comparison')
@@ -21,8 +27,8 @@ const baselineCandidatePath = resolve(
   'bundle-baseline.candidate.json',
 )
 
-const chartTypes = ['line', 'bar', 'area', 'scatter']
-const tiers = ['basic', 'interactive', 'advanced']
+const chartTypes = comparisonChartTypes
+const tiers = comparisonTiers
 const tierDescriptions = {
   basic: 'One series, axes, and grid.',
   interactive: 'Basic chart plus a legend and pointer-driven tooltip.',
@@ -30,85 +36,7 @@ const tierDescriptions = {
     'Interactive chart plus two series and chart-specific composition: smoothing, stacking, or variable point size.',
 }
 const libraries = chartLibraries
-const capabilityCoverage = [
-  {
-    capability: 'Axes and grid',
-    measured: 'basic and above',
-    implementations: {
-      tanstack: 'built in',
-      chartjs: 'built in',
-      echarts: 'components',
-      recharts: 'components',
-      'observable-plot': 'marks and scales',
-    },
-  },
-  {
-    capability: 'Legend',
-    measured: 'interactive and above',
-    implementations: {
-      tanstack: 'built in',
-      chartjs: 'plugin',
-      echarts: 'component',
-      recharts: 'component',
-      'observable-plot': 'legend API',
-    },
-  },
-  {
-    capability: 'Pointer tooltip',
-    measured: 'interactive and above',
-    implementations: {
-      tanstack: 'built in',
-      chartjs: 'plugin',
-      echarts: 'component',
-      recharts: 'component',
-      'observable-plot': 'tip mark',
-    },
-  },
-  {
-    capability: 'Multi-series composition',
-    measured: 'advanced',
-    implementations: {
-      tanstack: 'built in',
-      chartjs: 'datasets',
-      echarts: 'series',
-      recharts: 'components',
-      'observable-plot': 'marks and transforms',
-    },
-  },
-  {
-    capability: 'Selection',
-    measured: 'not timed',
-    implementations: {
-      tanstack: 'onSelect',
-      chartjs: 'event API',
-      echarts: 'event API',
-      recharts: 'event props',
-      'observable-plot': 'host composition',
-    },
-  },
-  {
-    capability: 'Animation',
-    measured: 'not timed',
-    implementations: {
-      tanstack: 'built in',
-      chartjs: 'built in',
-      echarts: 'built in',
-      recharts: 'built in',
-      'observable-plot': 'host-owned',
-    },
-  },
-  {
-    capability: 'Responsive resize',
-    measured: 'not timed',
-    implementations: {
-      tanstack: 'observed',
-      chartjs: 'observed',
-      echarts: 'explicit resize()',
-      recharts: 'ResponsiveContainer',
-      'observable-plot': 'host rerender',
-    },
-  },
-]
+const capabilityCoverage = comparisonCapabilityCoverage
 
 const profiles = {
   quick: {
@@ -177,6 +105,12 @@ if (args.has('--check') && args.has('--update-baseline')) {
 const libraryFilter = csvOption('--library')
 const chartFilter = csvOption('--chart')
 const tierFilter = csvOption('--tier')
+if (
+  args.has('--update-baseline') &&
+  (libraryFilter || chartFilter || tierFilter)
+) {
+  throw new Error('Update the bundle baseline only with the complete matrix.')
+}
 const selectedLibraries = libraries.filter(
   (library) => !libraryFilter || libraryFilter.has(library.id),
 )
@@ -271,7 +205,7 @@ const result = {
       implementations: Object.fromEntries(
         selectedLibraries.map((library) => [
           library.id,
-          implementations[library.id],
+          formatComparisonImplementationDetail(implementations[library.id]),
         ]),
       ),
     }),
@@ -310,15 +244,27 @@ if (!maintainsBaseline) {
 }
 
 if (args.has('--update-baseline')) {
-  await writeBundleBaseline(bundles, baselinePath)
+  await writeBundleBaseline(
+    bundles,
+    baselinePath,
+    versions,
+    selectedChartTypes,
+    selectedTiers,
+  )
   console.log(
     `Updated ${baselinePath.slice(root.length + 1)} with ${bundles.length} cases.`,
   )
 }
 
 if (args.has('--check')) {
-  await writeBundleBaseline(bundles, baselineCandidatePath)
-  const failures = await checkBundleBaseline(bundles)
+  await writeBundleBaseline(
+    bundles,
+    baselineCandidatePath,
+    versions,
+    selectedChartTypes,
+    selectedTiers,
+  )
+  const failures = await checkBundleBaseline(bundles, versions)
   if (failures.length) {
     console.error(`Bundle comparison failed:\n${failures.join('\n')}`)
     process.exitCode = 1
@@ -1126,10 +1072,21 @@ function selectedLibraryLabels(result) {
   )
 }
 
-async function writeBundleBaseline(bundles, targetPath) {
+async function writeBundleBaseline(
+  bundles,
+  targetPath,
+  baselineVersions,
+  baselineChartTypes,
+  baselineTiers,
+) {
   const baseline = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
+    versions: baselineVersions,
+    matrix: {
+      chartTypes: baselineChartTypes,
+      tiers: baselineTiers,
+    },
     tolerance: {
       relative: 0.03,
       minimumBytes: 512,
@@ -1150,7 +1107,7 @@ async function writeBundleBaseline(bundles, targetPath) {
   await writeFile(targetPath, `${JSON.stringify(baseline, null, 2)}\n`)
 }
 
-async function checkBundleBaseline(bundles) {
+async function checkBundleBaseline(bundles, actualVersions) {
   let baseline
   try {
     baseline = JSON.parse(await readFile(baselinePath, 'utf8'))
@@ -1161,6 +1118,35 @@ async function checkBundleBaseline(bundles) {
   }
 
   const failures = []
+  if (baseline.schemaVersion !== 2) {
+    failures.push(
+      'bundle baseline schema is stale; run pnpm benchmark:update-baseline',
+    )
+  }
+  if (
+    JSON.stringify(baseline.matrix?.chartTypes) !==
+      JSON.stringify(chartTypes) ||
+    JSON.stringify(baseline.matrix?.tiers) !== JSON.stringify(tiers)
+  ) {
+    failures.push(
+      'bundle baseline matrix does not match the configured chart types and tiers',
+    )
+  }
+  for (const library of libraries) {
+    const expectedVersion = baseline.versions?.[library.id]
+    if (!expectedVersion) {
+      failures.push(
+        `${library.label}: bundle baseline is missing its package version`,
+      )
+      continue
+    }
+    const actualVersion = actualVersions[library.id]
+    if (actualVersion && actualVersion !== expectedVersion) {
+      failures.push(
+        `${library.label}: installed version ${actualVersion} does not match baseline ${expectedVersion}`,
+      )
+    }
+  }
   const actualIds = new Set(bundles.map((bundle) => bundle.id))
   const expectedIds = new Set(Object.keys(baseline.bundles))
   for (const id of expectedIds) {

@@ -15,9 +15,9 @@ card, a split pane, and a full-width report.
 
 ## Container-responsive width
 
-Omit `width` from `mountChart`, React `<Chart>`, or Octane `<Chart>` to follow
-the container. The DOM host observes the container and updates only when its
-measured width changes.
+Omit `width` from `mountChart` or framework adapter options to follow the
+container. The shared DOM host observes the container and updates only when
+its measured width changes.
 
 ```ts
 const host = mountChart(element, {
@@ -101,9 +101,9 @@ the same axis space.
 
 ## Text measurement
 
-Static scenes use deterministic text estimates. DOM, React, and Octane hosts
-measure painted SVG text with the inherited container font and relayout after
-web fonts finish loading.
+Static scenes use deterministic text estimates. DOM and framework SVG hosts
+measure painted text with the inherited container font and relayout after web
+fonts finish loading.
 
 Use `measureText` only when another renderer or layout system owns text
 measurement. It receives the text, font size, weight, anchor, and baseline and

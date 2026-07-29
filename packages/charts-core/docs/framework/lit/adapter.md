@@ -31,6 +31,31 @@ html`<tanstack-chart
 The element uses light DOM so it inherits application fonts and chart theme
 variables. Use a custom tag name with `defineChartElement('revenue-chart')`.
 
+## Lifecycle
+
+The element prerenders through one shared adapter controller, mounts after its
+first update, forwards replacement `options` values, and destroys the mounted
+host when disconnected. Reconnecting the same element mounts the controller
+again. Assign options as a property; chart configuration is not reflected to
+HTML attributes.
+
+## Browser and server status
+
+The verified package contract covers browser registration, update,
+disconnect, and reconnect behavior. Lit SSR and hydration are not yet part of
+the adapter's tested public contract. Call `defineChartElement` only where
+`customElements` is available.
+
+## Presentation and rendering
+
+`options.class` and the string `options.style` apply to the inner
+`.ts-chart-host`; `options.className` applies to the rendered SVG surface. The
+package exposes the SVG custom element only. Use `renderSvg` to replace SVG
+serialization without replacing the shared host.
+
 Exports: `Chart`, `defineChartElement`, `ChartCommonProps`,
 `ChartPresentationProps`, `ChartProps`, `DynamicChartProps`,
 `StaticChartProps`, `ChartDefinition`, and `ChartPoint`.
+
+See the [`Chart` reference](./reference/chart.md) and
+[Chart Definition API](../../reference/chart-definitions.md).

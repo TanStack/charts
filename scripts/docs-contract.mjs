@@ -3,6 +3,14 @@ import { readFile, readdir } from 'node:fs/promises'
 import { dirname, extname, join, relative, resolve, sep } from 'node:path'
 import { compile as compileOctane } from 'octane/compiler'
 import ts from 'typescript'
+import { chartLibraries } from './benchmark/chart-libraries.mjs'
+import {
+  comparisonCapabilityCoverage,
+  comparisonChartTypes,
+  comparisonOfficialSources,
+  comparisonTiers,
+  formatComparisonImplementation,
+} from './benchmark/comparison-capabilities.mjs'
 import { extractMarkdownLinks } from './packed-markdown-links.mjs'
 
 export const catalogOrigin = 'https://tanstack.com'
@@ -15,11 +23,13 @@ const bannedChartLibraryHosts = new Set([
   'nivo.rocks',
   'observablehq.com',
   'plotly.com',
+  'recharts.github.io',
   'recharts.org',
 ])
 
 const allowedChartLibraryLinks = new Map([
   ['overview.md', new Set(['https://observablehq.com/plot/'])],
+  ['comparison.md', new Set(Object.values(comparisonOfficialSources))],
 ])
 
 export async function validateDocsContract(repositoryRoot) {
@@ -47,6 +57,7 @@ export async function validateDocsContract(repositoryRoot) {
 
   await validatePublicEntryLinks(repositoryRoot, failures)
   await validateApiCoverage(repositoryRoot, markdownSources, failures)
+  await validateComparisonEvidence(repositoryRoot, markdownSources, failures)
   await validateDocumentedTanStackImports(
     repositoryRoot,
     markdownSources,
@@ -114,6 +125,74 @@ export function parseHtmlAttributes(source) {
   return attributes
 }
 
+export function markdownTableRows(source) {
+  return source
+    .split(/\r?\n/)
+    .filter((line) => /^\s*\|.*\|\s*$/.test(line))
+    .map((line) =>
+      line
+        .trim()
+        .slice(1, -1)
+        .split('|')
+        .map((cell) => cell.trim()),
+    )
+}
+
+export function formatComparisonRange(byteValues) {
+  const minimum = Math.min(...byteValues) / 1024
+  const maximum = Math.max(...byteValues) / 1024
+  return `${minimum.toFixed(2)}–${maximum.toFixed(2)} KiB`
+}
+
+export function isPublicChartLibraryLinkAllowed(path, href) {
+  const url = new URL(href)
+  const host = url.hostname.replace(/^www\./, '')
+  return (
+    !bannedChartLibraryHosts.has(host) ||
+    allowedChartLibraryLinks.get(path)?.has(url.href) === true
+  )
+}
+
+export function comparisonBaselineContractFailures(baseline, expectedVersions) {
+  const failures = []
+  if (baseline.schemaVersion !== 2) {
+    failures.push('comparison bundle baseline must use schema version 2')
+  }
+  if (
+    !sameStrings(baseline.matrix?.chartTypes ?? [], comparisonChartTypes) ||
+    !sameStrings(baseline.matrix?.tiers ?? [], comparisonTiers)
+  ) {
+    failures.push('comparison bundle baseline matrix metadata is stale')
+  }
+  for (const library of chartLibraries) {
+    const manifestVersion = expectedVersions[library.id]
+    if (baseline.versions?.[library.id] !== manifestVersion) {
+      failures.push(
+        `comparison bundle baseline version is stale for ${library.label}: expected ${manifestVersion}`,
+      )
+    }
+  }
+
+  const expectedBundleIds = new Set(
+    chartLibraries.flatMap((library) =>
+      comparisonChartTypes.flatMap((chartType) =>
+        comparisonTiers.map((tier) => `${library.id}-${chartType}-${tier}`),
+      ),
+    ),
+  )
+  const actualBundleIds = new Set(Object.keys(baseline.bundles ?? {}))
+  if (
+    expectedBundleIds.size !== actualBundleIds.size ||
+    [...expectedBundleIds].some((id) => !actualBundleIds.has(id))
+  ) {
+    failures.push(
+      `comparison bundle baseline must contain the complete ${expectedBundleIds.size}-case matrix`,
+    )
+  }
+
+  return failures
+}
+
 function validateConfig(config, markdownFiles, docsRoot, failures) {
   if (
     config.$schema !==
@@ -179,10 +258,7 @@ function validatePublicLinks(path, source, failures) {
       continue
     }
     const host = url.hostname.replace(/^www\./, '')
-    if (
-      bannedChartLibraryHosts.has(host) &&
-      !allowedChartLibraryLinks.get(path)?.has(url.href)
-    ) {
+    if (!isPublicChartLibraryLinkAllowed(path, url.href)) {
       failures.push(`${path} links to another charting library: ${url.href}`)
     }
     if (host === 'd3js.org' && path !== 'concepts/scales-and-d3.md') {
@@ -457,12 +533,128 @@ async function validateApiCoverage(repositoryRoot, markdownSources, failures) {
   ]
 
   for (const [directory, packageName, referencePath] of packages) {
+    const referenceSources = [...markdownSources].filter(([path]) =>
+      path.startsWith(referencePath),
+    )
     await validatePackageCoverage(
       resolve(repositoryRoot, 'packages', directory),
       packageName,
       joinSources(markdownSources, referencePath),
+      referenceSources
+        .map(([path, source]) => stripNameOnlyApiInventories(path, source))
+        .join('\n'),
       failures,
     )
+  }
+}
+
+async function validateComparisonEvidence(
+  repositoryRoot,
+  markdownSources,
+  failures,
+) {
+  const source = markdownSources.get('comparison.md')
+  if (!source) return
+
+  const rows = markdownTableRows(source)
+  const rootManifest = JSON.parse(
+    await readFile(resolve(repositoryRoot, 'package.json'), 'utf8'),
+  )
+  const manifestVersions = new Map()
+
+  for (const library of chartLibraries) {
+    const version = library.packagePath
+      ? JSON.parse(
+          await readFile(resolve(repositoryRoot, library.packagePath), 'utf8'),
+        ).version
+      : (rootManifest.dependencies?.[library.packageName] ??
+        rootManifest.devDependencies?.[library.packageName])
+    manifestVersions.set(library.id, version)
+    const packageCell = `\`${library.packageName}\``
+    const versionCell = `\`${version}\``
+    if (
+      !rows.some(
+        (row) => row.includes(packageCell) && row.includes(versionCell),
+      )
+    ) {
+      failures.push(
+        `comparison.md must pair ${packageCell} with pinned version ${versionCell}`,
+      )
+    }
+  }
+
+  for (const sourceUrl of Object.values(comparisonOfficialSources)) {
+    if (!source.includes(`](${sourceUrl})`)) {
+      failures.push(
+        `comparison.md is missing reviewed official source ${sourceUrl}`,
+      )
+    }
+  }
+
+  for (const capability of comparisonCapabilityCoverage) {
+    const expected = [
+      capability.capability,
+      ...chartLibraries.map((library) => {
+        const implementation = capability.implementations[library.id]
+        return formatComparisonImplementation(implementation)
+      }),
+    ]
+    if (!rows.some((row) => sameStrings(row, expected))) {
+      failures.push(
+        `comparison.md capability row is stale: ${capability.capability}`,
+      )
+    }
+  }
+
+  const baseline = JSON.parse(
+    await readFile(
+      resolve(repositoryRoot, 'benchmarks/comparison/bundle-baseline.json'),
+      'utf8',
+    ),
+  )
+  failures.push(
+    ...comparisonBaselineContractFailures(
+      baseline,
+      Object.fromEntries(manifestVersions),
+    ),
+  )
+
+  const baselineDate = baseline.generatedAt?.slice(0, 10)
+  if (
+    !baselineDate ||
+    !source.includes(`Baseline date: \`${baselineDate}\`.`)
+  ) {
+    failures.push(
+      'comparison.md baseline date does not match the tracked bundle baseline',
+    )
+  }
+
+  for (const library of chartLibraries) {
+    const bundles = Object.entries(baseline.bundles ?? {})
+      .filter(([id]) => id.startsWith(`${library.id}-`))
+      .map(([, bundle]) => bundle)
+    if (!bundles.length) continue
+
+    const fullRange = formatComparisonRange(
+      bundles.map((bundle) => bundle.gzipBytes),
+    )
+    const incrementalRange = formatComparisonRange(
+      bundles.map((bundle) => bundle.incrementalGzipBytes),
+    )
+    const expectedIncremental =
+      fullRange === incrementalRange ? '—' : incrementalRange
+    if (
+      !rows.some(
+        (row) =>
+          row[0] === library.label &&
+          row[1] === fullRange &&
+          row[2] === expectedIncremental,
+      )
+    ) {
+      failures.push(
+        `comparison.md bundle row is stale for ${library.label}: ${fullRange}`,
+      )
+    }
   }
 }
 
@@ -470,6 +662,7 @@ async function validatePackageCoverage(
   packageRoot,
   packageName,
   reference,
+  symbolReference,
   failures,
 ) {
   const manifest = JSON.parse(
@@ -493,12 +686,78 @@ async function validatePackageCoverage(
   }
 
   for (const name of [...names].sort()) {
-    if (!reference.includes(`\`${name}\``)) {
+    if (!apiReferenceCoversExport(symbolReference, name)) {
       failures.push(
         `${packageName} API reference does not cover exported symbol ${name}`,
       )
     }
   }
+}
+
+function sameStrings(left, right) {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  )
+}
+
+export function stripNameOnlyApiInventories(path, source) {
+  const lines = source.split('\n')
+  const output = []
+  let fence = null
+  let strippedSectionLevel = null
+  let stripExportsParagraph = false
+
+  for (const line of lines) {
+    const marker = markdownFenceMarker(line)
+    const outsideFence = fence === null
+    const heading = outsideFence ? markdownHeading(line) : null
+
+    if (
+      strippedSectionLevel !== null &&
+      heading &&
+      heading.level <= strippedSectionLevel
+    ) {
+      strippedSectionLevel = null
+    }
+    if (
+      stripExportsParagraph &&
+      outsideFence &&
+      (/^[ \t]*$/.test(line) || heading || marker)
+    ) {
+      stripExportsParagraph = false
+    }
+
+    if (
+      strippedSectionLevel === null &&
+      outsideFence &&
+      heading &&
+      isNameOnlyApiSection(path, heading)
+    ) {
+      strippedSectionLevel = heading.level
+      continue
+    }
+    if (
+      strippedSectionLevel === null &&
+      !stripExportsParagraph &&
+      outsideFence &&
+      /^[ \t]*Exports:\s*/.test(line)
+    ) {
+      stripExportsParagraph = true
+      continue
+    }
+
+    if (strippedSectionLevel === null && !stripExportsParagraph)
+      output.push(line)
+    fence = updateMarkdownFence(fence, marker)
+  }
+
+  return output.join('\n')
+}
+
+export function apiReferenceCoversExport(reference, name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(^|[^\\w$])${escaped}(?=$|[^\\w$])`, 'm').test(reference)
 }
 
 function resolveExportSource(source) {
@@ -799,6 +1058,52 @@ function hasExportModifier(statement) {
 
 function maskCode(source) {
   return source.replace(/```[\s\S]*?```/g, '')
+}
+
+function markdownFenceMarker(line) {
+  const match = line.match(/^[ \t]{0,3}(`{3,}|~{3,})/)
+  if (!match) return null
+  return {
+    character: match[1][0],
+    length: match[1].length,
+    suffix: line.slice(match[0].length),
+  }
+}
+
+function markdownHeading(line) {
+  const match = line.match(/^[ \t]{0,3}(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$/)
+  if (!match) return null
+  return {
+    level: match[1].length,
+    text: match[2].trim(),
+  }
+}
+
+function isNameOnlyApiSection(path, heading) {
+  return (
+    heading.level === 2 &&
+    ((path === 'reference/index.md' && heading.text === 'Import map') ||
+      (path === 'reference/types.md' &&
+        heading.text === 'Capability-specific types'))
+  )
+}
+
+function updateMarkdownFence(fence, marker) {
+  if (!marker) return fence
+  if (fence === null) {
+    return {
+      character: marker.character,
+      length: marker.length,
+    }
+  }
+  if (
+    marker.character === fence.character &&
+    marker.length >= fence.length &&
+    marker.suffix.trim() === ''
+  ) {
+    return null
+  }
+  return fence
 }
 
 function typedCodeFences(source) {

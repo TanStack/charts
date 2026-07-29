@@ -259,7 +259,9 @@ host.update({
 })
 ```
 
-Each call that reaches `host.update` commits synchronously. React and Octane forward each chart option set their framework commits; framework scheduling may omit intermediate application states before they reach the chart.
+Each call that reaches `host.update` commits synchronously. Framework adapters
+forward each committed chart option set; framework scheduling may omit
+intermediate application states before they reach the chart.
 
 ## Keys, reconciliation, and animation
 

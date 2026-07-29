@@ -189,6 +189,7 @@ pattern.
 | Start here                                                                       | Use it for                                               |
 | -------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | [`docs/overview.md`](./docs/overview.md)                                         | Product model, responsibilities, and defaults            |
+| [`docs/comparison.md`](./docs/comparison.md)                                     | Pinned capability and bundle comparison                  |
 | [`docs/quick-start.md`](./docs/quick-start.md)                                   | First complete framework-agnostic chart                  |
 | [`docs/concepts/grammar-of-graphics.md`](./docs/concepts/grammar-of-graphics.md) | Marks, channels, scales, and composition                 |
 | [`docs/concepts/scales-and-d3.md`](./docs/concepts/scales-and-d3.md)             | The D3 dependency and ownership boundary                 |
@@ -316,7 +317,7 @@ suite's README for its protocol, output, and limitations.
 
 Pull requests first gate formatting, types, tests, packed exports and
 declarations, locked bundles, comparison bundles, and catalog metadata.
-Browser comparison, all 79 conformance cases, and the quick five-library stress
+Browser comparison, all 100 conformance cases, and the quick five-library stress
 matrix then run as separate artifact-producing jobs.
 
 ## License

@@ -4,8 +4,27 @@ description: Render deterministic chart markup on the server, preserve runtime w
 ---
 
 TanStack Charts builds a platform-neutral scene before the selected renderer
-produces output. React, Preact, Vue, Solid, Svelte, Angular, and Octane use the
-same runtime and renderer on the server and in the browser.
+produces output. React, Preact, Vue, Solid, Svelte, and Octane use the same
+runtime and renderer on the server and in the browser.
+
+## Adapter support
+
+| Adapter                                    | Server output                       | Browser contract                                    |
+| ------------------------------------------ | ----------------------------------- | --------------------------------------------------- |
+| [React](../framework/react/adapter.md)     | Complete SVG; Canvas shell          | Hydrates and adopts the existing surface            |
+| [Preact](../framework/preact/adapter.md)   | Complete SVG                        | Hydrates before the shared host mounts              |
+| [Vue](../framework/vue/adapter.md)         | Complete SVG                        | Hydrates before the shared host mounts              |
+| [Solid](../framework/solid/adapter.md)     | Complete SVG                        | Hydrates before the shared host mounts              |
+| [Svelte](../framework/svelte/adapter.md)   | Complete SVG                        | Hydrates before the shared host mounts              |
+| [Octane](../framework/octane/adapter.md)   | Complete SVG; Canvas shell          | Hydrates and adopts the existing surface            |
+| [Angular](../framework/angular/adapter.md) | Not yet a verified adapter contract | Browser mount, immutable update, and teardown       |
+| [Lit](../framework/lit/adapter.md)         | Not yet a verified adapter contract | Browser registration, update, disconnect, reconnect |
+| [Alpine](../framework/alpine/adapter.md)   | None                                | Browser-only directive                              |
+
+For adapters with server output, the browser must render the same definition,
+input, dimensions, formatters, and component tree. Angular and Lit may run
+inside applications with their own server infrastructure, but this library
+does not yet promise or test adapter hydration for them.
 
 ## Give the server a real size
 

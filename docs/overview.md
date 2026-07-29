@@ -93,7 +93,7 @@ TanStack Charts owns the parts that make a declarative chart reliable inside an 
 - Default SVG rendering, keyed DOM reconciliation, optional Canvas painting,
   and interruptible animation
 - Pointer and keyboard focus, selection callbacks, and native tooltips
-- Framework-agnostic runtime state with thin React and Octane adapters
+- Framework-agnostic runtime state with thin framework adapters
 - Light and dark mode defaults based on inherited color and CSS variables
 - Public extension points for custom marks, focus strategies, spatial indexes, and renderers
 
@@ -143,6 +143,7 @@ All packages are ESM and tree-shakeable. Built-in marks and optional capabilitie
 
 ## Where to go next
 
+- [Compare Libraries](./comparison.md) — evaluate Chart.js, Apache ECharts, Recharts, Observable Plot, and TanStack Charts against the pinned evidence.
 - [Installation](./installation.md) — install the core, an adapter, and only the D3 modules your charts import.
 - [Quick Start](./quick-start.md) — define, mount, update, and destroy a responsive chart.
 - [Grammar of Graphics](./concepts/grammar-of-graphics.md) — understand how data, marks, channels, scales, and layers fit together.

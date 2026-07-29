@@ -1,6 +1,17 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generatedAt": "2026-07-29T05:42:29.634Z",
+  "versions": {
+    "tanstack": "0.0.0",
+    "chartjs": "4.5.1",
+    "echarts": "6.1.0",
+    "recharts": "3.10.1",
+    "observable-plot": "0.6.17"
+  },
+  "matrix": {
+    "chartTypes": ["line", "bar", "area", "scatter"],
+    "tiers": ["basic", "interactive", "advanced"]
+  },
   "tolerance": {
     "relative": 0.03,
     "minimumBytes": 512

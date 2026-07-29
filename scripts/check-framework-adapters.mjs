@@ -15,6 +15,7 @@ import { build as esbuild } from 'esbuild'
 import ts from 'typescript'
 import { build as viteBuild } from 'vite'
 import solid from 'vite-plugin-solid'
+import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
 
 const execFileAsync = promisify(execFile)
 const root = resolve(import.meta.dirname, '..')
@@ -234,6 +235,7 @@ async function verifyPackage(directory) {
       )
     }
   }
+  await verifyPackedMarkdownLinks(packageRoot, manifest.name, files)
 
   if (directory === 'svelte-charts' || directory === 'angular-charts') return
   const entry = manifest.publishConfig.exports['.'].import
@@ -245,6 +247,27 @@ async function verifyPackage(directory) {
     target: 'es2022',
     write: false,
     logLevel: 'silent',
+  })
+}
+
+async function verifyPackedMarkdownLinks(
+  packageRoot,
+  packageName,
+  packedFiles,
+) {
+  const markdownSources = new Map()
+  for (const file of [...packedFiles]
+    .filter((path) => path.endsWith('.md'))
+    .sort()) {
+    markdownSources.set(
+      file,
+      await readFile(resolve(packageRoot, ...file.split('/')), 'utf8'),
+    )
+  }
+  validatePackedMarkdownLinks({
+    packageName,
+    packedFiles,
+    markdownSources,
   })
 }
 

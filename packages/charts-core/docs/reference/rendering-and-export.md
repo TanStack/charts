@@ -21,6 +21,13 @@ Renderer code stays behind explicit entry points:
 | Vanilla Canvas host              | `mountCanvasChart` from `@tanstack/charts/canvas`     |
 | Renderer-neutral host            | `mountChartRenderer` from `@tanstack/charts/renderer` |
 | Default React SVG component      | `Chart` from `@tanstack/react-charts`                 |
+| Default Preact SVG component     | `Chart` from `@tanstack/preact-charts`                |
+| Default Vue SVG component        | `Chart` from `@tanstack/vue-charts`                   |
+| Default Solid SVG component      | `Chart` from `@tanstack/solid-charts`                 |
+| Default Svelte SVG component     | `Chart` from `@tanstack/svelte-charts`                |
+| Default Angular SVG component    | `Chart` from `@tanstack/angular-charts`               |
+| Default Lit SVG element          | `Chart` from `@tanstack/lit-charts`                   |
+| Default Alpine SVG directive     | `charts` from `@tanstack/alpine-charts`               |
 | React Canvas component           | `Chart` from `@tanstack/react-charts/canvas`          |
 | React custom-renderer component  | `Chart` from `@tanstack/react-charts/core`            |
 | Default Octane SVG component     | `Chart` from `@tanstack/octane-charts`                |
@@ -93,12 +100,95 @@ The renderer paints the base scene and focus indicator on separate canvases,
 uses the browser device-pixel ratio by default, and maps pointer coordinates
 back into the scene.
 
-`@tanstack/charts/canvas` exports `createCanvasChartRenderer`,
-`canvasChartRenderer`, and `mountCanvasChart`, plus the
-`CanvasChartRendererOptions`, `CanvasChartRenderer`, `CanvasChartSurface`,
-`CanvasChartHostOptions`, and `CanvasChartHost` types. Supply
-`pixelRatio` to `createCanvasChartRenderer` only when the application needs a
-fixed backing-store ratio.
+```ts
+interface CanvasChartRendererOptions {
+  pixelRatio?: number
+}
+
+interface CanvasChartSurface<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartSurface<TDatum, TXValue, TYValue> {
+  readonly element: HTMLDivElement
+  readonly canvas: HTMLCanvasElement
+  readonly focusCanvas: HTMLCanvasElement
+}
+
+interface CanvasChartRenderer<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartRenderer<TDatum, TXValue, TYValue> {
+  mount: (
+    container: HTMLElement,
+    requestRender: (force?: boolean) => void,
+  ) => CanvasChartSurface<TDatum, TXValue, TYValue>
+}
+
+type CanvasChartHostOptions<
+  TDatum = unknown,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | Omit<StaticChartRendererHostOptions<TDatum, TXValue, TYValue>, 'renderer'>
+  | Omit<
+      DynamicChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
+      'renderer'
+    >
+
+interface CanvasChartHost<
+  TDatum = unknown,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  update: (
+    options: CanvasChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+  ) => void
+  getScene: () => ChartScene<TDatum, TXValue, TYValue>
+  destroy: () => void
+}
+
+function createCanvasChartRenderer<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  options?: CanvasChartRendererOptions,
+): CanvasChartRenderer<TDatum, TXValue, TYValue>
+
+const canvasChartRenderer: CanvasChartRenderer
+
+function mountCanvasChart<
+  TDatum,
+  TInput = undefined,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  container: HTMLElement,
+  initialOptions: CanvasChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+  runtime?: ChartRuntime<TDatum, TInput, TXValue, TYValue>,
+): CanvasChartHost<TDatum, TInput, TXValue, TYValue>
+```
+
+The surface's `element` is its accessible chart root. `canvas` holds the base
+scene; `focusCanvas` is a separate overlay, so focus changes do not repaint the
+base scene. A finite, positive `pixelRatio` fixes both backing stores at that
+ratio. An omitted value uses `devicePixelRatio`, then `1`; an invalid value
+uses `1`.
+
+`CanvasChartHostOptions` preserves the static-versus-dynamic definition and
+input relationship from the renderer-neutral host while removing its required
+`renderer`. The returned `CanvasChartHost` owns update, scene access, and
+cleanup. Its optional runtime parameter has the same advanced prerender-reuse
+contract as [`mountChart`](./dom-host.md#signature), including runtime
+ownership on destroy.
+
+Use `canvasChartRenderer` for the shared default instance. Call
+`createCanvasChartRenderer` when the application needs a fixed `pixelRatio` or
+an independently typed renderer instance.
 
 The server-facing `prerender` step emits a deterministic, named chart shell
 with two `aria-hidden` canvases. It does not attempt server-side pixel
@@ -316,28 +406,76 @@ layer only when `includeFocus` is true. `serializeChartSvg` and
 
 ## Custom renderers
 
-The renderer-neutral boundary is `ChartRenderer`:
+The renderer-neutral boundary consists of a renderer instance contract and
+the mounted surface it returns:
 
 ```ts
-interface ChartRenderer<TDatum, TXValue, TYValue> {
+interface ChartSurfaceRenderOptions extends RenderChartOptions {
+  animation?: ChartAnimationOptions
+}
+
+interface ChartSurface<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  readonly renderer: ChartRenderer<TDatum, TXValue, TYValue>
+  readonly element: Element
+  render: (
+    scene: ChartScene<TDatum, TXValue, TYValue>,
+    options: ChartSurfaceRenderOptions,
+  ) => void
+  clientToScene: (
+    scene: ChartScene<TDatum, TXValue, TYValue>,
+    clientX: number,
+    clientY: number,
+  ) => { x: number; y: number } | null
+  paintFocus: (
+    point: ChartPoint<TDatum, TXValue, TYValue> | null,
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  ) => void
+  destroy: () => void
+}
+
+interface ChartRenderer<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
   readonly id: string
-  prerender(
+  prerender: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: RenderChartOptions,
-  ): string
-  mount(
+  ) => string
+  mount: (
     container: HTMLElement,
     requestRender: (force?: boolean) => void,
-  ): ChartSurface<TDatum, TXValue, TYValue>
+  ) => ChartSurface<TDatum, TXValue, TYValue>
 }
 ```
 
-The returned `ChartSurface` owns its root `element`, scene painting,
-client-to-scene coordinate conversion, focus painting, and cleanup. The shared
-host continues to own runtime updates, responsive sizing, text measurement,
-focus resolution, keyboard behavior, native tooltips, selection, and
-callbacks. `ChartRendererRenderContext` reports the live `surface` instead of
-assuming an SVG element.
+| Member                  | Responsibility                                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `ChartRenderer.id`      | Stable renderer identifier                                                                                 |
+| `prerender()`           | Return deterministic accessible markup for the supplied scene and render options                           |
+| `mount()`               | Adopt or create a surface in the container and connect renderer-owned environment observers                |
+| `ChartSurface.renderer` | Refer to the renderer that created the surface; a different renderer object on update replaces the surface |
+| `ChartSurface.element`  | Expose the accessible, focusable root used by shared keyboard and focus handling                           |
+| `render()`              | Paint the complete scene and apply accessible name, class, tab index, ID prefix, and optional animation    |
+| `clientToScene()`       | Convert viewport client coordinates to scene coordinates, or return `null` when conversion is unavailable  |
+| `paintFocus()`          | Paint or clear focus for the primary point; the full point array contains its resolved focus group         |
+| `destroy()`             | Release renderer-owned animation, observers, listeners, and resources                                      |
+
+`requestRender()` asks the shared host to rebuild and repaint on its next
+animation frame; ordinary requests proceed only when responsive width changed.
+`requestRender(true)` forces the work when renderer state changed without a
+width or chart-option change, such as device-pixel ratio or resolved theme
+colors. Requests made before the same frame are coalesced.
+
+The shared host continues to own runtime updates, responsive sizing, text
+measurement, focus resolution, keyboard behavior, native tooltips, selection,
+and callbacks. `ChartRendererRenderContext` reports the live `surface` instead
+of assuming an SVG element.
 
 Use `mountChartRenderer` from `@tanstack/charts/renderer`, or the React and
 Octane `/core` entries, to mount a custom renderer. `RenderChartOptions`,
@@ -356,7 +494,22 @@ import {
 } from '@tanstack/charts/svg/renderer'
 ```
 
+```ts
+function createSvgChartRenderer<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  renderSvg?: ChartSvgRenderer<TDatum, TXValue, TYValue>,
+): ChartRenderer<TDatum, TXValue, TYValue>
+
+const svgChartRenderer: ChartRenderer
+```
+
 `createSvgChartRenderer` adapts a `ChartSvgRenderer` into a `ChartRenderer`.
+Omitting the argument uses `renderChartSvg`. `svgChartRenderer` is the shared
+preconfigured instance for renderer-neutral hosts that want the built-in SVG
+surface.
 Pass a `ChartSvgRenderer` as `renderSvg` to the compatibility SVG host or
 default framework adapter when only SVG serialization needs to change. Such a
 renderer should preserve:

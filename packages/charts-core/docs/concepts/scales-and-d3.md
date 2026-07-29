@@ -22,7 +22,9 @@ pnpm add -D @types/d3-array @types/d3-scale @types/d3-shape
 
 Omit any module the application does not import. A bar chart that only imports `d3-scale` should not install or bundle shape, force, geo, zoom, or hierarchy code.
 
-This rule applies when definitions live in React or Octane source as well. The framework adapter mounts a definition; it does not own the D3 imports used to author it.
+This rule also applies when definitions live in framework component source.
+The adapter mounts a definition; it does not own the D3 imports used to author
+it.
 
 ## Capability map
 

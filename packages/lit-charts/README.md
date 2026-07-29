@@ -24,3 +24,8 @@ html`<tanstack-chart
 
 The element renders in light DOM so inherited typography, responsive
 measurement, and chart styles behave like the framework-neutral host.
+
+Read the published
+[Lit adapter guide](https://tanstack.com/charts/latest/docs/framework/lit/adapter)
+and
+[`Chart` reference](https://tanstack.com/charts/latest/docs/framework/lit/reference/chart).

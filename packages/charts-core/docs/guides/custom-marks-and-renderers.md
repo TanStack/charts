@@ -181,7 +181,8 @@ const renderSvg: ChartSvgRenderer<Row, Date, number> = (scene, options) => {
 }
 ```
 
-Pass it through `renderSvg` on the vanilla, React, or Octane host. Preserve:
+Pass it through `renderSvg` on the vanilla host or any default SVG framework
+adapter. Preserve:
 
 - the accessible label and description;
 - stable `data-ts-key` identity when DOM reconciliation should reuse nodes;

@@ -296,11 +296,11 @@ unrelated chart thumbnails.
 
 ### Proof section
 
-**Headline:** Complete charts around 18–22 KiB gzip.
+**Headline:** Complete charts around 19–23 KiB gzip.
 
 The durable public claim is:
 
-> Complete tested charts are approximately 18–22 KiB gzip. A static SVG line
+> Complete tested charts are approximately 19–23 KiB gzip. A static SVG line
 > is 13.30 KiB gzip. Consumers pay for the capabilities they import.
 
 Do not lead with the 4.70 KiB custom-scale scene. It proves the scene compiler
@@ -313,10 +313,10 @@ not a complete rendered chart.
 | --------------------------------------------- | --------------: | ------------------------------------------------------- |
 | Custom-scale line scene, no renderer          |        4.70 KiB | Exact byte lock; not a complete chart                   |
 | D3-scale line with static SVG                 |       13.30 KiB | Exact byte lock                                         |
-| Mounted basic line, bar, area, or scatter     | 18.08–18.79 KiB | Checked four-chart comparison baseline                  |
-| Mounted chart with legend and pointer tooltip | 18.37–19.08 KiB | Checked four-chart comparison baseline                  |
-| Advanced two-series composition               | 18.38–21.26 KiB | Checked four-chart comparison baseline                  |
-| React line consumer, with React externalized  |       19.49 KiB | Exact byte lock                                         |
+| Mounted basic line, bar, area, or scatter     | 19.02–19.74 KiB | Checked four-chart comparison baseline                  |
+| Mounted chart with legend and pointer tooltip | 19.33–20.05 KiB | Checked four-chart comparison baseline                  |
+| Advanced two-series composition               | 19.33–22.23 KiB | Checked four-chart comparison baseline                  |
+| React line consumer, with React externalized  |       19.63 KiB | Exact byte lock                                         |
 | TanStack Stats parity surface                 |       30.68 KiB | Isolated measurement under a 30.9 KiB capability budget |
 
 The exact ordinary-consumer locks live in
@@ -333,16 +333,16 @@ variable point size.
 
 | Gzip comparison            |           Basic |     Interactive |        Advanced |
 | -------------------------- | --------------: | --------------: | --------------: |
-| TanStack Charts            | 18.08–18.79 KiB | 18.37–19.08 KiB | 18.38–21.26 KiB |
-| Chart.js                   |      2.47–2.76× |      2.85–3.13× |      2.68–2.85× |
-| Observable Plot            |      4.54–5.04× |      4.47–4.95× |      4.31–4.54× |
-| Recharts, React external   |      5.05–5.33× |      5.75–5.89× |      5.13–5.89× |
-| Recharts, full cold bundle |      8.14–8.55× |      8.81–9.06× |      7.88–9.07× |
-| Apache ECharts             |      8.37–8.74× |      8.96–9.33× |      8.15–9.08× |
+| TanStack Charts            | 19.02–19.74 KiB | 19.33–20.05 KiB | 19.33–22.23 KiB |
+| Chart.js                   |      2.35–2.63× |      2.71–2.98× |      2.56–2.71× |
+| Observable Plot            |      4.32–4.79× |      4.25–4.72× |      4.12–4.31× |
+| Recharts, React external   |      4.81–5.06× |      5.48–5.59× |      4.91–5.60× |
+| Recharts, full cold bundle |      7.75–8.13× |      8.39–8.61× |      7.53–8.62× |
+| Apache ECharts             |      7.97–8.30× |      8.53–8.88× |      7.79–8.63× |
 
 Competitor cells are competitor gzip divided by TanStack gzip, ranged across
 the matched line, bar, area, and scatter fixtures. Across every matched fixture
-in this controlled suite, TanStack shipped 60–89% less gzipped JavaScript.
+in this controlled suite, TanStack shipped 57–89% less gzipped JavaScript.
 
 This supports “substantially smaller than the measured mainstream libraries.”
 It does not support “smaller than every popular charting library.” Highcharts,
@@ -533,7 +533,7 @@ gates.
 - Framework-independent engine
 - Thin framework adapters
 - Lightweight and capability-scaled
-- Complete chart consumers around 18–22 KiB gzip, with the benchmark link
+- Complete chart consumers around 19–23 KiB gzip, with the benchmark link
 - Pay only for what you import
 - Built for applications, not screenshots
 - No customization cliff

@@ -145,6 +145,8 @@ interface ChartScale {
   id: string
   resolve(context: ChartScaleResolveContext): ResolvedScale
 }
+
+type ChartScaleResolver = (context: ChartScaleResolveContext) => ResolvedScale
 ```
 
 The resolver context contains `id`, all materialized `values`, the responsive
@@ -172,6 +174,13 @@ Marks with a `z` or `color` channel contribute values to one chart-level color
 scale.
 
 ```ts
+interface ConfiguredColorScaleLike<TValue extends ChartKey, TOutput> {
+  (value: TValue): TOutput
+  copy: () => ConfiguredColorScaleLike<TValue, TOutput>
+  domain?: () => readonly TValue[]
+  range?: () => readonly TOutput[]
+}
+
 interface ChartColorOptions {
   scale?: ConfiguredColorScaleLike<any, any>
   type?: ChartColorScale

@@ -20,3 +20,8 @@ Alpine.start()
 
 The `x-chart` element owns its chart contents. Reactive option changes update
 the shared host without rebuilding the SVG.
+
+Read the published
+[Alpine adapter guide](https://tanstack.com/charts/latest/docs/framework/alpine/adapter)
+and
+[`x-chart` reference](https://tanstack.com/charts/latest/docs/framework/alpine/reference/chart).

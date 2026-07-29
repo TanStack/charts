@@ -26,11 +26,11 @@ import { focusX } from '@tanstack/charts/focus'
 import { d3Curve } from '@tanstack/charts/d3/shape'
 ```
 
-Canvas is opt-in. The default core, React, and Octane entries remain SVG-based;
-Canvas enters the module graph only through `@tanstack/charts/canvas`,
-`@tanstack/react-charts/canvas`, or `@tanstack/octane-charts/canvas`. The
-framework `/core` entries accept an application-supplied renderer without
-importing Canvas.
+Canvas is opt-in. The default core and every default framework entry remain
+SVG-based. Canvas enters the module graph only through
+`@tanstack/charts/canvas`, `@tanstack/react-charts/canvas`, or
+`@tanstack/octane-charts/canvas`. The React and Octane `/core` entries accept
+an application-supplied renderer without importing Canvas.
 
 Non-cartesian geometry is subpath-only:
 
@@ -73,6 +73,9 @@ Compare production bundles that render the same behavior:
 Report raw, gzip, and Brotli sizes. Record the package manager lockfile,
 bundler, minifier, target, and entry source. A root package tarball size or an
 unminified source count is not a user bundle measurement.
+
+The [library comparison](../comparison.md) publishes the current pinned
+four-chart, three-tier bundle snapshot and its limits.
 
 The repository's bundle gates use isolated entries so adding a complex mark
 cannot silently increase the smallest chart. Polar has separate arc-only and

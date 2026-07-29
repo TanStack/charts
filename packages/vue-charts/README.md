@@ -17,3 +17,8 @@ import { Chart } from '@tanstack/vue-charts'
 ```
 
 The adapter renders SVG during Vue SSR and adopts it after mount.
+
+Read the published
+[Vue adapter guide](https://tanstack.com/charts/latest/docs/framework/vue/adapter)
+and
+[`Chart` reference](https://tanstack.com/charts/latest/docs/framework/vue/reference/chart).

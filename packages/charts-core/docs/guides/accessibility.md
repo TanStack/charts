@@ -10,7 +10,7 @@ and exact-value alternative.
 
 ## Name the chart
 
-Every DOM, React, and Octane chart requires `ariaLabel`:
+Every DOM host and framework adapter requires `ariaLabel`:
 
 ```tsx
 <Chart

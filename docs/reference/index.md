@@ -17,6 +17,7 @@ and application-owned interaction.
 | The `ChartSpec` object                                      | [Chart spec](./chart-spec.md)                             |
 | Positional scales, axes, color, legends, and gradients      | [Scales, guides, and color](./scales-guides-and-color.md) |
 | Vanilla DOM mounting and responsive sizing                  | [DOM host](./dom-host.md)                                 |
+| Framework prerender, mount, update, and layout lifecycle    | [Adapter controller](./adapter-controller.md)             |
 | Dynamic preparation, scene compilation, and runtime caching | [Runtime and scene](./runtime-and-scene.md)               |
 | Pointer focus, keyboard navigation, tooltips, and selection | [Focus and interaction](./focus-and-interaction.md)       |
 | SVG, Canvas, custom rendering, reconciliation, and export   | [Rendering and export](./rendering-and-export.md)         |
@@ -37,17 +38,17 @@ and application-owned interaction.
 
 ## Framework adapters
 
-| Framework | Start                                             | Adapter behavior                           | Component API                                     |
-| --------- | ------------------------------------------------- | ------------------------------------------ | ------------------------------------------------- |
-| React     | [Quick start](../framework/react/quick-start.md)  | [Adapter](../framework/react/adapter.md)   | [`Chart`](../framework/react/reference/chart.md)  |
-| Preact    | —                                                 | [Adapter](../framework/preact/adapter.md)  | `Chart`                                           |
-| Vue       | —                                                 | [Adapter](../framework/vue/adapter.md)     | `Chart`                                           |
-| Solid     | —                                                 | [Adapter](../framework/solid/adapter.md)   | `Chart`                                           |
-| Svelte    | —                                                 | [Adapter](../framework/svelte/adapter.md)  | `Chart`                                           |
-| Angular   | —                                                 | [Adapter](../framework/angular/adapter.md) | `Chart`                                           |
-| Lit       | —                                                 | [Adapter](../framework/lit/adapter.md)     | `Chart`, `defineChartElement`                     |
-| Alpine    | —                                                 | [Adapter](../framework/alpine/adapter.md)  | `charts`                                          |
-| Octane    | [Quick start](../framework/octane/quick-start.md) | [Adapter](../framework/octane/adapter.md)  | [`Chart`](../framework/octane/reference/chart.md) |
+| Framework | Start                                             | Adapter behavior                           | Component API                                                        |
+| --------- | ------------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
+| React     | [Quick start](../framework/react/quick-start.md)  | [Adapter](../framework/react/adapter.md)   | [`Chart`](../framework/react/reference/chart.md)                     |
+| Preact    | —                                                 | [Adapter](../framework/preact/adapter.md)  | [`Chart`](../framework/preact/reference/chart.md)                    |
+| Vue       | —                                                 | [Adapter](../framework/vue/adapter.md)     | [`Chart`](../framework/vue/reference/chart.md)                       |
+| Solid     | —                                                 | [Adapter](../framework/solid/adapter.md)   | [`Chart`](../framework/solid/reference/chart.md)                     |
+| Svelte    | —                                                 | [Adapter](../framework/svelte/adapter.md)  | [`Chart`](../framework/svelte/reference/chart.md)                    |
+| Angular   | —                                                 | [Adapter](../framework/angular/adapter.md) | [`Chart`](../framework/angular/reference/chart.md)                   |
+| Lit       | —                                                 | [Adapter](../framework/lit/adapter.md)     | [`Chart`, `defineChartElement`](../framework/lit/reference/chart.md) |
+| Alpine    | —                                                 | [Adapter](../framework/alpine/adapter.md)  | [`charts`](../framework/alpine/reference/chart.md)                   |
+| Octane    | [Quick start](../framework/octane/quick-start.md) | [Adapter](../framework/octane/adapter.md)  | [`Chart`](../framework/octane/reference/chart.md)                    |
 
 React and Octane keep the default `Chart` SVG-based. Their `/canvas` entries
 select the optional Canvas renderer; their `/core` entries require an explicit

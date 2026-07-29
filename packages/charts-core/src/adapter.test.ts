@@ -76,6 +76,23 @@ describe('chart adapter controller', () => {
     adapter.destroy()
   })
 
+  it('forwards the surface class during prerender', () => {
+    const adapter = createChartAdapter({
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Revenue',
+      className: 'revenue-surface',
+    })
+    const container = document.createElement('div')
+    container.innerHTML = adapter.prerender()
+
+    expect(
+      container.querySelector('svg')?.classList.contains('revenue-surface'),
+    ).toBe(true)
+    adapter.destroy()
+  })
+
   it('supports renderer-neutral framework adapters', () => {
     const adapter = createChartRendererAdapter({
       definition,
@@ -83,10 +100,14 @@ describe('chart adapter controller', () => {
       width: 480,
       height: 260,
       ariaLabel: 'Revenue',
+      className: 'revenue-surface',
     })
     const container = document.createElement('div')
     container.innerHTML = adapter.prerender()
 
+    expect(
+      container.querySelector('svg')?.classList.contains('revenue-surface'),
+    ).toBe(true)
     adapter.mount(container)
 
     expect(adapter.getScene()?.points).toHaveLength(2)

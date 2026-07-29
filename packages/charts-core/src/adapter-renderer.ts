@@ -44,6 +44,7 @@ export function createChartRendererAdapter<
       return options.renderer.prerender(scene, {
         ariaLabel: options.ariaLabel,
         ariaDescription: options.ariaDescription,
+        className: options.className,
         tabIndex: options.keyboard === false ? -1 : (options.tabIndex ?? 0),
         idPrefix: options.idPrefix,
       })

@@ -14,6 +14,10 @@
           "to": "overview"
         },
         {
+          "label": "Compare Libraries",
+          "to": "comparison"
+        },
+        {
           "label": "Installation",
           "to": "installation"
         },
@@ -305,6 +309,10 @@
           "to": "reference/dom-host"
         },
         {
+          "label": "Adapter Controller",
+          "to": "reference/adapter-controller"
+        },
+        {
           "label": "Runtime and Scene",
           "to": "reference/runtime-and-scene"
         },
@@ -332,6 +340,69 @@
             {
               "label": "React Chart Reference",
               "to": "framework/react/reference/chart"
+            }
+          ]
+        },
+        {
+          "label": "preact",
+          "children": [
+            {
+              "label": "Preact Chart Reference",
+              "to": "framework/preact/reference/chart"
+            }
+          ]
+        },
+        {
+          "label": "vue",
+          "children": [
+            {
+              "label": "Vue Chart Reference",
+              "to": "framework/vue/reference/chart"
+            }
+          ]
+        },
+        {
+          "label": "solid",
+          "children": [
+            {
+              "label": "Solid Chart Reference",
+              "to": "framework/solid/reference/chart"
+            }
+          ]
+        },
+        {
+          "label": "svelte",
+          "children": [
+            {
+              "label": "Svelte Chart Reference",
+              "to": "framework/svelte/reference/chart"
+            }
+          ]
+        },
+        {
+          "label": "angular",
+          "children": [
+            {
+              "label": "Angular Chart Reference",
+              "to": "framework/angular/reference/chart"
+            }
+          ]
+        },
+        {
+          "label": "lit",
+          "children": [
+            {
+              "label": "Lit Chart Reference",
+              "to": "framework/lit/reference/chart"
+            }
+          ]
+        },
+        {
+          "label": "alpine",
+          "children": [
+            {
+              "label": "Alpine Chart Reference",
+              "to": "framework/alpine/reference/chart"
             }
           ]
         },

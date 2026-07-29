@@ -23,5 +23,29 @@ Reactive props update the shared host without replacing its SVG. `class` and
 `style` target the outer host. The component renders the initial SVG during
 Solid SSR.
 
+## Lifecycle
+
+The component creates one shared adapter controller, forwards reactive props
+from `createEffect`, mounts it in `onMount`, and destroys it in `onCleanup`.
+Keep a fixed definition outside the component; pass live values through a
+dynamic definition's `input`.
+
+## SSR and hydration
+
+Solid SSR emits the complete `.ts-chart-host`, `.ts-chart-surface`, and
+accessible SVG. `initialWidth` controls responsive server geometry.
+`createUniqueId()` supplies the generated resource prefix. Keep server and
+browser definitions, inputs, formatters, and dimensions deterministic.
+
+## Presentation and rendering
+
+`class` and `style: JSX.CSSProperties` apply to the outer host. `className`
+applies to the rendered SVG surface. Custom outer styles are spread after
+adapter sizing. The package exposes the SVG component only; use `renderSvg` to
+replace SVG serialization without replacing the shared host.
+
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
 `DynamicChartProps`, `StaticChartProps`, `ChartDefinition`, and `ChartPoint`.
+
+See the [`Chart` reference](./reference/chart.md), [SSR and hydration](../../guides/ssr-and-hydration.md),
+and [Chart Definition API](../../reference/chart-definitions.md).
