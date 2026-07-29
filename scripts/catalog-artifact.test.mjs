@@ -168,7 +168,7 @@ describe('catalog artifact', () => {
     ).rejects.toThrow('invalid catalog asset path')
   })
 
-  it('rejects unreferenced files and non-debug comparisons', async () => {
+  it('rejects assets outside the implementation closure', async () => {
     const artifact = await createArtifact()
     const catalog = attachEmbedContract(artifact.catalog, {
       protocol: { version: 1 },
@@ -179,6 +179,17 @@ describe('catalog artifact', () => {
       imports: [],
       dynamicImports: [],
     }
+
+    expect(() => validateCatalogArtifactManifest(catalog)).toThrow(
+      'assets outside the implementation closure',
+    )
+  })
+
+  it('rejects non-debug comparisons', async () => {
+    const artifact = await createArtifact()
+    const catalog = attachEmbedContract(artifact.catalog, {
+      protocol: { version: 1 },
+    })
     catalog.cases[0].modules.comparison.visibility = 'public'
 
     expect(() => validateCatalogArtifactManifest(catalog)).toThrow(

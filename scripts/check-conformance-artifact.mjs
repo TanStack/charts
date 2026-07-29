@@ -4,6 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   catalogArtifactFileSizeLimit,
+  expectedCatalogImplementationCounts,
   validateCatalogArtifactManifest,
 } from './catalog-artifact.mjs'
 
@@ -22,13 +23,16 @@ if (Buffer.byteLength(catalogSource) > catalogArtifactFileSizeLimit) {
 const catalog = JSON.parse(catalogSource)
 const summary = validateCatalogArtifactManifest(catalog)
 assert(
-  summary.caseCount === 100,
-  `expected 100 cases, got ${summary.caseCount}`,
+  summary.caseCount === expectedCatalogImplementationCounts.tanstack,
+  `expected ${expectedCatalogImplementationCounts.tanstack} cases, got ${summary.caseCount}`,
 )
 assert(
-  summary.referenceCounts['observable-plot'] === 68 &&
-    summary.referenceCounts.recharts === 21 &&
-    summary.referenceCounts.echarts === 11,
+  summary.referenceCounts['observable-plot'] ===
+    expectedCatalogImplementationCounts['observable-plot'] &&
+    summary.referenceCounts.recharts ===
+      expectedCatalogImplementationCounts.recharts &&
+    summary.referenceCounts.echarts ===
+      expectedCatalogImplementationCounts.echarts,
   `unexpected comparison counts ${JSON.stringify(summary.referenceCounts)}`,
 )
 

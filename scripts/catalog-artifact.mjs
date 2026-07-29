@@ -9,6 +9,14 @@ export const catalogOrigin = 'https://tanstack.com'
 export const catalogArtifactFileLimit = 1_000
 export const catalogArtifactFileSizeLimit = 1024 * 1024
 export const catalogArtifactTotalSizeLimit = 5 * 1024 * 1024
+export const catalogBuildGraphPath = '.vite/catalog-graph.json'
+export const catalogBuildGraphSchemaVersion = 1
+export const expectedCatalogImplementationCounts = Object.freeze({
+  tanstack: 100,
+  'observable-plot': 68,
+  recharts: 21,
+  echarts: 11,
+})
 
 const revisionPattern = /^[a-f0-9]{40}$/
 const caseIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -370,7 +378,7 @@ function staticAssetClosure(root, assets) {
   return [...visited].sort(compareStrings)
 }
 
-function validateCaseEntries(entries) {
+export function validateCaseEntries(entries) {
   const ids = new Set()
   const orders = new Set()
 

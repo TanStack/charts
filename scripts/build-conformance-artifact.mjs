@@ -9,6 +9,7 @@ import {
   attachEmbedContract,
   createCatalogArtifact,
   serializeCatalogManifest,
+  validateCaseEntries,
   validateCatalogArtifactManifest,
 } from './catalog-artifact.mjs'
 
@@ -35,7 +36,7 @@ const checkOnly = process.argv.includes('--check')
 const cases = await readCases()
 
 if (checkOnly) {
-  validateCaseIdentities(cases)
+  validateCaseEntries(cases)
   console.log(`Validated ${cases.length} publishable catalog cases.`)
   process.exit(0)
 }
@@ -110,32 +111,6 @@ async function readCases() {
       }
     }),
   )
-}
-
-function validateCaseIdentities(entries) {
-  const ids = new Set()
-  const orders = new Set()
-
-  for (const { directory, metadata } of entries) {
-    if (metadata.id !== directory) {
-      throw new Error(
-        `Catalog id "${metadata.id}" must match directory "${directory}"`,
-      )
-    }
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(metadata.id)) {
-      throw new Error(
-        `Catalog id "${metadata.id}" must use lowercase URL-safe words separated by hyphens`,
-      )
-    }
-    if (ids.has(metadata.id)) {
-      throw new Error(`Duplicate catalog id "${metadata.id}"`)
-    }
-    if (orders.has(metadata.order)) {
-      throw new Error(`Duplicate catalog order ${metadata.order}`)
-    }
-    ids.add(metadata.id)
-    orders.add(metadata.order)
-  }
 }
 
 async function readRevision() {

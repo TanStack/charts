@@ -16,6 +16,10 @@ const outputDirectory = resolve(root, '.benchmark-output')
 const caseOutputDirectory = resolve(outputDirectory, 'cases')
 const resultDirectory = resolve(outputDirectory, 'results')
 const baselinePath = resolve(comparisonDirectory, 'bundle-baseline.json')
+const baselineCandidatePath = resolve(
+  resultDirectory,
+  'bundle-baseline.candidate.json',
+)
 
 const chartTypes = ['line', 'bar', 'area', 'scatter']
 const tiers = ['basic', 'interactive', 'advanced']
@@ -306,13 +310,14 @@ if (!maintainsBaseline) {
 }
 
 if (args.has('--update-baseline')) {
-  await writeBundleBaseline(bundles)
+  await writeBundleBaseline(bundles, baselinePath)
   console.log(
     `Updated ${baselinePath.slice(root.length + 1)} with ${bundles.length} cases.`,
   )
 }
 
 if (args.has('--check')) {
+  await writeBundleBaseline(bundles, baselineCandidatePath)
   const failures = await checkBundleBaseline(bundles)
   if (failures.length) {
     console.error(`Bundle comparison failed:\n${failures.join('\n')}`)
@@ -1121,7 +1126,7 @@ function selectedLibraryLabels(result) {
   )
 }
 
-async function writeBundleBaseline(bundles) {
+async function writeBundleBaseline(bundles, targetPath) {
   const baseline = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -1142,7 +1147,7 @@ async function writeBundleBaseline(bundles) {
       ]),
     ),
   }
-  await writeFile(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`)
+  await writeFile(targetPath, `${JSON.stringify(baseline, null, 2)}\n`)
 }
 
 async function checkBundleBaseline(bundles) {

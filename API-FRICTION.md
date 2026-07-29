@@ -602,9 +602,16 @@ Each entry records:
   update, and output-complexity measurements.
 - Decision: baseline maintenance commands report their own result without
   writing the canonical comparison files. Explicit size and browser benchmark
-  commands still write the selected facets.
+  commands still write the selected facets. Baseline checks write a separate
+  complete candidate file; pinned CI uploads it on failure or explicit manual
+  request so an intentional change can use the canonical runner measurements.
 - Verification: the bundle baseline passes without changing the restored
-  standard comparison report.
+  standard comparison report, and its candidate artifact includes passing
+  references as well as failures that appear in the concise console output.
+  Linux x64/Node 24.18.0 measurements confirmed that the renderer-neutral SVG
+  host added 2,811–2,849 minified bytes across the 12 TanStack fixtures while
+  polar, geo, and canvas modules retained zero bytes. The reviewed values now
+  form the canonical baseline without widening its 3%/512-byte tolerance.
 
 ### F-026 — Facet rollup tables did not explain the overall result
 

@@ -2,22 +2,30 @@ import { promises as fs } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { build } from 'vite'
-import { validateCatalogArtifactManifest } from './catalog-artifact.mjs'
+import {
+  catalogBuildGraphPath,
+  catalogBuildGraphSchemaVersion,
+  expectedCatalogImplementationCounts,
+  validateCatalogArtifactManifest,
+} from './catalog-artifact.mjs'
 
 const rootDirectory = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
 )
-const catalogDirectory = path.join(rootDirectory, 'examples', 'conformance')
-const artifactDirectory = path.join(rootDirectory, '.catalog-artifact')
-const catalogBasePath = '/charts/catalog/'
-
-const graph = await inspectCatalogGraph()
-const artifact = JSON.parse(
-  await fs.readFile(path.join(artifactDirectory, 'catalog.json'), 'utf8'),
+const buildDirectory = path.join(
+  rootDirectory,
+  'examples',
+  'conformance',
+  'dist',
 )
+const artifactDirectory = path.join(rootDirectory, '.catalog-artifact')
+const catalogPath = path.join(artifactDirectory, 'catalog.json')
+const graphPath = path.join(buildDirectory, ...catalogBuildGraphPath.split('/'))
+
+const artifact = await readRequiredJson(catalogPath)
 const artifactSummary = validateCatalogArtifactManifest(artifact)
+const graph = await inspectCatalogGraph()
 verifyPublishedGraph(graph, artifact)
 
 console.log(
@@ -25,20 +33,16 @@ console.log(
 )
 
 async function inspectCatalogGraph() {
-  const result = await build({
-    root: catalogDirectory,
-    base: catalogBasePath,
-    logLevel: 'silent',
-    build: {
-      manifest: true,
-      target: 'es2022',
-      write: false,
-    },
-  })
-  const outputs = Array.isArray(result) ? result : [result]
-  const chunks = outputs
-    .flatMap((output) => output.output)
-    .filter((output) => output.type === 'chunk')
+  const buildGraph = await readRequiredJson(graphPath)
+  assert(
+    isRecord(buildGraph) &&
+      buildGraph.schemaVersion === catalogBuildGraphSchemaVersion &&
+      Array.isArray(buildGraph.chunks),
+    'catalog build graph has an invalid schema',
+  )
+  const chunks = buildGraph.chunks
+  for (const chunk of chunks) validateBuildChunk(chunk)
+
   const chunksByFile = new Map(chunks.map((chunk) => [chunk.fileName, chunk]))
   const entry = onlyChunk(
     chunks.filter((chunk) => chunk.isEntry),
@@ -55,9 +59,7 @@ async function inspectCatalogGraph() {
   )
 
   const initialChunks = staticClosure(entry.fileName, chunksByFile)
-  const initialModules = initialChunks.flatMap((chunk) =>
-    Object.keys(chunk.modules),
-  )
+  const initialModules = initialChunks.flatMap((chunk) => chunk.modules)
   assert(
     !initialModules.some(
       (module) =>
@@ -70,7 +72,9 @@ async function inspectCatalogGraph() {
     'the local authoring entry static graph includes comparison code',
   )
   assert(
-    !entry.code.includes('tanstack.test.ts'),
+    !initialModules.some((module) =>
+      normalizePath(module).endsWith('/tanstack.test.ts'),
+    ),
     'the local authoring entry registers a test module',
   )
 
@@ -88,12 +92,26 @@ async function inspectCatalogGraph() {
     echarts: countCaseEntries(caseEntries, 'echarts.ts'),
   }
   assert(
-    counts.tanstack.implementation === 100 && counts.tanstack.source === 100,
-    `expected 100 TanStack implementation/source entries, received ${JSON.stringify(counts.tanstack)}`,
+    counts.tanstack.implementation ===
+      expectedCatalogImplementationCounts.tanstack &&
+      counts.tanstack.source === expectedCatalogImplementationCounts.tanstack,
+    `expected ${expectedCatalogImplementationCounts.tanstack} TanStack implementation/source entries, received ${JSON.stringify(counts.tanstack)}`,
   )
-  assertReferenceCount(counts.plot, 68, 'Plot')
-  assertReferenceCount(counts.recharts, 21, 'Recharts')
-  assertReferenceCount(counts.echarts, 11, 'ECharts')
+  assertReferenceCount(
+    counts.plot,
+    expectedCatalogImplementationCounts['observable-plot'],
+    'Plot',
+  )
+  assertReferenceCount(
+    counts.recharts,
+    expectedCatalogImplementationCounts.recharts,
+    'Recharts',
+  )
+  assertReferenceCount(
+    counts.echarts,
+    expectedCatalogImplementationCounts.echarts,
+    'ECharts',
+  )
 
   const unexpectedEntries = caseEntries.filter((chunk) => {
     const facade = normalizePath(chunk.facadeModuleId ?? '').replace(
@@ -109,13 +127,16 @@ async function inspectCatalogGraph() {
       .join(', ')}`,
   )
 
+  const entryContent = await readRequiredFile(
+    path.join(buildDirectory, ...entry.fileName.split('/')),
+  )
   return {
     chunks,
     chunksByFile,
     comparisonCatalog,
     entry,
-    entryBytes: Buffer.byteLength(entry.code),
-    entryGzipBytes: gzipSync(entry.code).byteLength,
+    entryBytes: entryContent.byteLength,
+    entryGzipBytes: gzipSync(entryContent).byteLength,
   }
 }
 
@@ -143,7 +164,7 @@ function verifyPublishedGraph(graph, artifact) {
     const tanstackClosureModules = staticClosure(
       entry.modules.tanstack.path,
       graph.chunksByFile,
-    ).flatMap((chunk) => Object.keys(chunk.modules))
+    ).flatMap((chunk) => chunk.modules)
     assert(
       !tanstackClosureModules.some(
         (module) =>
@@ -261,6 +282,57 @@ function isRendererPackage(module, renderer) {
 
 function normalizePath(value) {
   return value.replaceAll('\\', '/')
+}
+
+async function readRequiredJson(filePath) {
+  const source = await readRequiredFile(filePath, 'utf8')
+  try {
+    return JSON.parse(source)
+  } catch (error) {
+    throw new Error(
+      `Invalid JSON in ${path.relative(rootDirectory, filePath)}.`,
+      { cause: error },
+    )
+  }
+}
+
+async function readRequiredFile(filePath, encoding) {
+  try {
+    return await fs.readFile(filePath, encoding)
+  } catch (error) {
+    if (isRecord(error) && error.code === 'ENOENT') {
+      throw new Error(
+        `Missing ${path.relative(rootDirectory, filePath)}; run \`pnpm catalog:build\` first.`,
+        { cause: error },
+      )
+    }
+    throw error
+  }
+}
+
+function validateBuildChunk(chunk) {
+  assert(
+    isRecord(chunk) &&
+      typeof chunk.fileName === 'string' &&
+      (typeof chunk.facadeModuleId === 'string' ||
+        chunk.facadeModuleId === null) &&
+      typeof chunk.isEntry === 'boolean' &&
+      typeof chunk.isDynamicEntry === 'boolean' &&
+      isStringArray(chunk.imports) &&
+      isStringArray(chunk.dynamicImports) &&
+      isStringArray(chunk.modules),
+    'catalog build graph contains an invalid chunk',
+  )
+}
+
+function isStringArray(value) {
+  return (
+    Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+  )
+}
+
+function isRecord(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function formatBytes(bytes) {
