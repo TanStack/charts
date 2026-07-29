@@ -14,7 +14,7 @@ Add or omit granular `d3-*` modules and their matching type packages with the
 chart's actual imports.
 
 ```tsx
-import { Chart } from '@tanstack/react-charts';
+import { Chart } from '@tanstack/react-charts'
 
 <Chart
   definition={definition}
@@ -33,7 +33,7 @@ import { Chart } from '@tanstack/react-charts';
 Switch only the import to opt into Canvas:
 
 ```tsx
-import { Chart } from '@tanstack/react-charts/canvas';
+import { Chart } from '@tanstack/react-charts/canvas'
 ```
 
 The default entry remains SVG-based. `@tanstack/react-charts/core` accepts an
