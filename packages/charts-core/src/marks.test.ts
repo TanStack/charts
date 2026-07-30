@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { scaleBand, scaleOrdinal, scaleRadial } from 'd3-scale'
 import { curveMonotoneX, curveStep } from 'd3-shape'
 import { areaY } from './area'
@@ -80,6 +80,63 @@ describe('core marks and categorical scales', () => {
     expect(
       flatten(scene.nodes).filter((node) => node.kind === 'rect'),
     ).toHaveLength(2)
+  })
+
+  it('infers bar identity from the unique categorical channel', () => {
+    const first = [
+      { package: 'router', downloads: 24 },
+      { package: 'query', downloads: 31 },
+    ]
+    const next = [
+      { package: 'query', downloads: 35 },
+      { package: 'router', downloads: 28 },
+    ]
+    const createScene = (rows: typeof first) =>
+      createChartScene(
+        defineChart({
+          marks: [barX(rows, { x: 'downloads', y: 'package' })],
+          ...bandYAxes(
+            [0, 40],
+            rows.map((row) => row.package),
+          ),
+        }),
+        { width: 480, height: 260 },
+      )
+    const initialKeys = new Map(
+      createScene(first).points.map((point) => [
+        point.datum.package,
+        point.key,
+      ]),
+    )
+
+    expect(
+      createScene(next).points.map((point) => [point.datum.package, point.key]),
+    ).toEqual([
+      ['query', initialKeys.get('query')],
+      ['router', initialKeys.get('router')],
+    ])
+  })
+
+  it('falls back to position when an inferred channel is not unique', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const rows = [
+      { category: 'Same', value: 4 },
+      { category: 'Same', value: 8 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [barY(rows, { x: 'category', y: 'value' })],
+        ...bandXAxes(['Same'], [0, 8]),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(scene.points.map((point) => point.key)).toEqual([
+      expect.stringContaining('number:0'),
+      expect.stringContaining('number:1'),
+    ])
+    expect(warn).toHaveBeenCalledOnce()
+    warn.mockRestore()
   })
 
   it('encodes bar color independently from layout grouping', () => {

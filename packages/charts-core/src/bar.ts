@@ -1,6 +1,7 @@
 import {
   channelValues,
   createMark,
+  inferredKeyValues,
   isChartKey,
   isChartValue,
   isFiniteNumber,
@@ -87,7 +88,11 @@ export function barY<TDatum>(
       options.color ?? options.z,
       () => null,
     )
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, {
+      groups: zValues,
+      candidates: [xValues],
+      markId: id,
+    })
 
     return {
       id,
@@ -221,7 +226,11 @@ export function barX<TDatum>(
       options.color ?? options.z,
       () => null,
     )
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, {
+      groups: zValues,
+      candidates: [yValues],
+      markId: id,
+    })
 
     return {
       id,

@@ -57,19 +57,26 @@ host.update({
 
 ## Stable keys
 
-Keys identify the same visual entity across definitions:
+Built-in marks first use an explicit `key`, then a unique `datum.id`. Bars,
+lines, areas, and cells can also infer identity from their semantic positional
+channels:
 
 ```ts
 barX(rows, {
   x: 'value',
   y: 'label',
-  key: 'id',
 })
 ```
 
-Do not use array position for reorderable, filtered, or rolling data. Stable
-keys preserve surviving SVG elements, focused points, and transition
-continuity.
+Here `barX` uses the unique `y` value when rows have no `id`. `barY` uses `x`;
+`lineY` and `areaY` use `x`; `areaX` uses `y`; rects and cells use their x/y
+interval tuple. Inference is scoped to each group and falls back to array
+position when a candidate is incomplete or duplicated. Development builds
+warn once for each affected mark.
+
+Supply `key` when the inferred value is not the entity's identity or can
+change independently of it. Stable identity preserves surviving SVG elements,
+focused points, and transition continuity.
 
 ## Animation
 

@@ -35,19 +35,19 @@ function lineY<TDatum>(
 
 ### Options
 
-| Option            | Type                            | Default              | Meaning                                           |
-| ----------------- | ------------------------------- | -------------------- | ------------------------------------------------- |
-| `id`              | `string`                        | Layer-derived        | Stable mark ID                                    |
-| `x`               | `Channel<TDatum, ChartValue?>`  | Row index            | Horizontal value                                  |
-| `y`               | `Channel<TDatum, number?>`      | Numeric datum        | Vertical value                                    |
-| `z`               | `Channel<TDatum, ChartKey?>`    | One group            | Path grouping and default stroke color            |
-| `key`             | `Channel<TDatum, ChartKey>`     | Row index            | Stable interaction and scene identity             |
-| `stroke`          | `VisualChannel<TDatum, string>` | Resolved group color | Path stroke; evaluated from the group's first row |
-| `strokeOpacity`   | `number`                        | SVG default          | Stroke opacity                                    |
-| `strokeWidth`     | `number`                        | `2.25`               | Stroke width                                      |
-| `strokeDasharray` | `string`                        | None                 | SVG dash array                                    |
-| `points`          | `boolean`                       | `false`              | Draws a radius-`2.5` dot at each valid point      |
-| `curve`           | `ChartCurve`                    | Straight segments    | Optional path generator                           |
+| Option            | Type                            | Default                         | Meaning                                           |
+| ----------------- | ------------------------------- | ------------------------------- | ------------------------------------------------- |
+| `id`              | `string`                        | Layer-derived                   | Stable mark ID                                    |
+| `x`               | `Channel<TDatum, ChartValue?>`  | Row index                       | Horizontal value                                  |
+| `y`               | `Channel<TDatum, number?>`      | Numeric datum                   | Vertical value                                    |
+| `z`               | `Channel<TDatum, ChartKey?>`    | One group                       | Path grouping and default stroke color            |
+| `key`             | `Channel<TDatum, ChartKey>`     | Unique `id`, then x, then index | Stable interaction and scene identity             |
+| `stroke`          | `VisualChannel<TDatum, string>` | Resolved group color            | Path stroke; evaluated from the group's first row |
+| `strokeOpacity`   | `number`                        | SVG default                     | Stroke opacity                                    |
+| `strokeWidth`     | `number`                        | `2.25`                          | Stroke width                                      |
+| `strokeDasharray` | `string`                        | None                            | SVG dash array                                    |
+| `points`          | `boolean`                       | `false`                         | Draws a radius-`2.5` dot at each valid point      |
+| `curve`           | `ChartCurve`                    | Straight segments               | Optional path generator                           |
 
 Input order is path order. Sort rows before creating the mark when semantic x
 order differs from input order. A null row flushes the current segment; later
@@ -79,20 +79,20 @@ function areaY<TDatum>(
 
 ### Options
 
-| Option        | Type                                 | Default              | Meaning                                                        |
-| ------------- | ------------------------------------ | -------------------- | -------------------------------------------------------------- |
-| `id`          | `string`                             | Layer-derived        | Stable mark ID                                                 |
-| `x`           | `Channel<TDatum, ChartValue?>`       | Row index            | Shared horizontal position                                     |
-| `y`           | `Channel<TDatum, number?>`           | Numeric datum        | Upper value when `y2` is absent                                |
-| `y1`          | `number \| Channel<TDatum, number?>` | `0`                  | Lower baseline                                                 |
-| `y2`          | `number \| Channel<TDatum, number?>` | `y`                  | Upper value; takes precedence over `y`                         |
-| `z`           | `Channel<TDatum, ChartKey?>`         | One group            | Area grouping and default color                                |
-| `key`         | `Channel<TDatum, ChartKey>`          | Row index            | Stable interaction identity                                    |
-| `fill`        | `VisualChannel<TDatum, string>`      | Resolved group color | Area fill; evaluated from the group's first row                |
-| `fillOpacity` | `number`                             | `0.2`                | Fill opacity                                                   |
-| `stroke`      | `VisualChannel<TDatum, string>`      | None                 | Optional boundary stroke, evaluated from the group's first row |
-| `strokeWidth` | `number`                             | SVG default          | Boundary stroke width                                          |
-| `curve`       | `ChartCurve`                         | Straight segments    | Optional path generator                                        |
+| Option        | Type                                 | Default                         | Meaning                                                        |
+| ------------- | ------------------------------------ | ------------------------------- | -------------------------------------------------------------- |
+| `id`          | `string`                             | Layer-derived                   | Stable mark ID                                                 |
+| `x`           | `Channel<TDatum, ChartValue?>`       | Row index                       | Shared horizontal position                                     |
+| `y`           | `Channel<TDatum, number?>`           | Numeric datum                   | Upper value when `y2` is absent                                |
+| `y1`          | `number \| Channel<TDatum, number?>` | `0`                             | Lower baseline                                                 |
+| `y2`          | `number \| Channel<TDatum, number?>` | `y`                             | Upper value; takes precedence over `y`                         |
+| `z`           | `Channel<TDatum, ChartKey?>`         | One group                       | Area grouping and default color                                |
+| `key`         | `Channel<TDatum, ChartKey>`          | Unique `id`, then x, then index | Stable interaction identity                                    |
+| `fill`        | `VisualChannel<TDatum, string>`      | Resolved group color            | Area fill; evaluated from the group's first row                |
+| `fillOpacity` | `number`                             | `0.2`                           | Fill opacity                                                   |
+| `stroke`      | `VisualChannel<TDatum, string>`      | None                            | Optional boundary stroke, evaluated from the group's first row |
+| `strokeWidth` | `number`                             | SVG default                     | Boundary stroke width                                          |
+| `curve`       | `ChartCurve`                         | Straight segments               | Optional path generator                                        |
 
 When `y1` is omitted, the y channel materialization carries an `includeZero`
 hint. The caller still owns the scale domain. Explicit `y1`, including a
@@ -124,20 +124,20 @@ function areaX<TDatum>(
 
 ### Options
 
-| Option        | Type                                 | Default              | Meaning                                         |
-| ------------- | ------------------------------------ | -------------------- | ----------------------------------------------- |
-| `id`          | `string`                             | Layer-derived        | Stable mark ID                                  |
-| `x`           | `Channel<TDatum, number?>`           | Numeric datum        | Right value when `x2` is absent                 |
-| `x1`          | `number \| Channel<TDatum, number?>` | `0`                  | Left baseline                                   |
-| `x2`          | `number \| Channel<TDatum, number?>` | `x`                  | Right value; takes precedence over `x`          |
-| `y`           | `Channel<TDatum, ChartValue?>`       | Row index            | Shared vertical position                        |
-| `z`           | `Channel<TDatum, ChartKey?>`         | One group            | Area grouping and default color                 |
-| `key`         | `Channel<TDatum, ChartKey>`          | Row index            | Stable interaction identity                     |
-| `fill`        | `VisualChannel<TDatum, string>`      | Resolved group color | Area fill, evaluated from the group's first row |
-| `fillOpacity` | `number`                             | `0.2`                | Fill opacity                                    |
-| `stroke`      | `VisualChannel<TDatum, string>`      | None                 | Optional boundary stroke                        |
-| `strokeWidth` | `number`                             | SVG default          | Boundary stroke width                           |
-| `curve`       | `AreaXCurve`                         | Straight segments    | Optional transposed path generator              |
+| Option        | Type                                 | Default                         | Meaning                                         |
+| ------------- | ------------------------------------ | ------------------------------- | ----------------------------------------------- |
+| `id`          | `string`                             | Layer-derived                   | Stable mark ID                                  |
+| `x`           | `Channel<TDatum, number?>`           | Numeric datum                   | Right value when `x2` is absent                 |
+| `x1`          | `number \| Channel<TDatum, number?>` | `0`                             | Left baseline                                   |
+| `x2`          | `number \| Channel<TDatum, number?>` | `x`                             | Right value; takes precedence over `x`          |
+| `y`           | `Channel<TDatum, ChartValue?>`       | Row index                       | Shared vertical position                        |
+| `z`           | `Channel<TDatum, ChartKey?>`         | One group                       | Area grouping and default color                 |
+| `key`         | `Channel<TDatum, ChartKey>`          | Unique `id`, then y, then index | Stable interaction identity                     |
+| `fill`        | `VisualChannel<TDatum, string>`      | Resolved group color            | Area fill, evaluated from the group's first row |
+| `fillOpacity` | `number`                             | `0.2`                           | Fill opacity                                    |
+| `stroke`      | `VisualChannel<TDatum, string>`      | None                            | Optional boundary stroke                        |
+| `strokeWidth` | `number`                             | SVG default                     | Boundary stroke width                           |
+| `curve`       | `AreaXCurve`                         | Straight segments               | Optional transposed path generator              |
 
 When `x1` is omitted, the x channel carries the `includeZero` hint. Each valid
 row emits one point at its right `x2`/`x` value.

@@ -34,20 +34,20 @@ function dot<TDatum>(
 
 ### Options
 
-| Option          | Type                                 | Default            | Meaning                                  |
-| --------------- | ------------------------------------ | ------------------ | ---------------------------------------- |
-| `id`            | `string`                             | Layer-derived      | Stable mark ID                           |
-| `x`             | `Channel<TDatum, ChartValue?>`       | Row index          | Horizontal value                         |
-| `y`             | `Channel<TDatum, ChartValue?>`       | Numeric datum      | Vertical value                           |
-| `z`             | `Channel<TDatum, ChartKey?>`         | No group           | Interaction group and default fill color |
-| `key`           | `Channel<TDatum, ChartKey>`          | Row index          | Stable scene and interaction identity    |
-| `r`             | `number \| Channel<TDatum, number?>` | `3.5`              | Raw radius value                         |
-| `rScale`        | `(value: number) => number`          | Identity           | Maps each valid raw radius to pixels     |
-| `fill`          | `string`                             | Resolved `z` color | Constant fill                            |
-| `fillOpacity`   | `number`                             | SVG default        | Fill opacity                             |
-| `stroke`        | `string`                             | None               | Constant stroke                          |
-| `strokeOpacity` | `number`                             | SVG default        | Stroke opacity                           |
-| `strokeWidth`   | `number`                             | SVG default        | Stroke width                             |
+| Option          | Type                                 | Default                 | Meaning                                  |
+| --------------- | ------------------------------------ | ----------------------- | ---------------------------------------- |
+| `id`            | `string`                             | Layer-derived           | Stable mark ID                           |
+| `x`             | `Channel<TDatum, ChartValue?>`       | Row index               | Horizontal value                         |
+| `y`             | `Channel<TDatum, ChartValue?>`       | Numeric datum           | Vertical value                           |
+| `z`             | `Channel<TDatum, ChartKey?>`         | No group                | Interaction group and default fill color |
+| `key`           | `Channel<TDatum, ChartKey>`          | Unique `id`, then index | Stable scene and interaction identity    |
+| `r`             | `number \| Channel<TDatum, number?>` | `3.5`                   | Raw radius value                         |
+| `rScale`        | `(value: number) => number`          | Identity                | Maps each valid raw radius to pixels     |
+| `fill`          | `string`                             | Resolved `z` color      | Constant fill                            |
+| `fillOpacity`   | `number`                             | SVG default             | Fill opacity                             |
+| `stroke`        | `string`                             | None                    | Constant stroke                          |
+| `strokeOpacity` | `number`                             | SVG default             | Stroke opacity                           |
+| `strokeWidth`   | `number`                             | SVG default             | Stroke width                             |
 
 `rScale` is called only for finite, nonnegative raw radii. The mapped result
 must also be finite and nonnegative or the row is skipped.
@@ -81,20 +81,20 @@ function hexagon<TDatum>(
 
 ### Options
 
-| Option          | Type                                 | Default            | Meaning                             |
-| --------------- | ------------------------------------ | ------------------ | ----------------------------------- |
-| `id`            | `string`                             | Layer-derived      | Stable mark ID                      |
-| `x`             | `Channel<TDatum, ChartValue?>`       | Row index          | Horizontal center                   |
-| `y`             | `Channel<TDatum, ChartValue?>`       | Numeric datum      | Vertical center                     |
-| `z`             | `Channel<TDatum, ChartKey?>`         | No group           | Interaction group and default paint |
-| `key`           | `Channel<TDatum, ChartKey>`          | Row index          | Stable identity                     |
-| `r`             | `number \| Channel<TDatum, number?>` | `6`                | Raw circumradius                    |
-| `rScale`        | `(value: number) => number`          | Identity           | Maps radius values to pixels        |
-| `fill`          | `VisualChannel<TDatum, string>`      | Resolved `z` color | Fill per mark or row                |
-| `fillOpacity`   | `number`                             | SVG default        | Fill opacity                        |
-| `stroke`        | `VisualChannel<TDatum, string>`      | None               | Optional stroke per mark or row     |
-| `strokeOpacity` | `number`                             | SVG default        | Stroke opacity                      |
-| `strokeWidth`   | `number`                             | SVG default        | Stroke width                        |
+| Option          | Type                                 | Default                 | Meaning                             |
+| --------------- | ------------------------------------ | ----------------------- | ----------------------------------- |
+| `id`            | `string`                             | Layer-derived           | Stable mark ID                      |
+| `x`             | `Channel<TDatum, ChartValue?>`       | Row index               | Horizontal center                   |
+| `y`             | `Channel<TDatum, ChartValue?>`       | Numeric datum           | Vertical center                     |
+| `z`             | `Channel<TDatum, ChartKey?>`         | No group                | Interaction group and default paint |
+| `key`           | `Channel<TDatum, ChartKey>`          | Unique `id`, then index | Stable identity                     |
+| `r`             | `number \| Channel<TDatum, number?>` | `6`                     | Raw circumradius                    |
+| `rScale`        | `(value: number) => number`          | Identity                | Maps radius values to pixels        |
+| `fill`          | `VisualChannel<TDatum, string>`      | Resolved `z` color      | Fill per mark or row                |
+| `fillOpacity`   | `number`                             | SVG default             | Fill opacity                        |
+| `stroke`        | `VisualChannel<TDatum, string>`      | None                    | Optional stroke per mark or row     |
+| `strokeOpacity` | `number`                             | SVG default             | Stroke opacity                      |
+| `strokeWidth`   | `number`                             | SVG default             | Stroke width                        |
 
 The generated vertices begin at the top and proceed in 60-degree increments.
 The interaction point remains at the scaled center, and its `color` is the

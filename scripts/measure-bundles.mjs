@@ -37,17 +37,17 @@ const entries = [
   budgeted(
     'D3-scale UTC line + static SVG',
     'benchmarks/entries/charts-time-svg.ts',
-    18.05,
+    18.15,
   ),
   budgeted(
     'D3-scale histogram + static SVG',
     'benchmarks/entries/charts-histogram-svg.ts',
-    14.65,
+    14.85,
   ),
   budgeted(
     'D3-scale facets + static SVG',
     'benchmarks/entries/charts-facet-svg.ts',
-    15.4,
+    15.5,
   ),
   budgeted(
     'D3-scale arrows + static SVG',
@@ -73,12 +73,12 @@ const entries = [
   budgeted(
     'D3-scale link + static SVG',
     'benchmarks/entries/charts-link-svg.ts',
-    13.4,
+    13.55,
   ),
   budgeted(
     'D3-scale ticks + static SVG',
     'benchmarks/entries/charts-tick-svg.ts',
-    13.8,
+    13.9,
   ),
   budgeted(
     'D3-scale vectors + static SVG',
@@ -88,7 +88,7 @@ const entries = [
   budgeted(
     'D3 geo shape + static SVG',
     'benchmarks/entries/charts-geo-svg.ts',
-    10.7,
+    10.8,
   ),
   budgeted(
     'Polar arc + static SVG',
@@ -103,7 +103,7 @@ const entries = [
   budgeted(
     'Polar gauge composition + static SVG',
     'benchmarks/entries/charts-polar-gauge-svg.ts',
-    17.5,
+    17.55,
   ),
   budgeted(
     'Polar line + scatter composition + static SVG',
@@ -148,7 +148,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    32.5,
+    32.8,
   ),
   locked(
     'Custom-scale line scene',
@@ -161,37 +161,37 @@ const entries = [
   budgeted(
     'D3 curved line scene',
     'benchmarks/entries/charts-d3-curved-line-scene.ts',
-    14.55,
+    14.7,
   ),
   budgeted(
     'D3 time-scale line scene',
     'benchmarks/entries/charts-d3-time-scene.ts',
-    16.9,
+    16.95,
   ),
   budgeted(
     'Direct D3 monotone + TanStack SVG',
     'benchmarks/entries/charts-d3-curve-svg.ts',
-    15.7,
+    15.8,
   ),
   budgeted(
     'Direct D3 transforms + TanStack histogram',
     'benchmarks/entries/charts-d3-transform-histogram.ts',
-    14.65,
+    14.85,
   ),
   budgeted(
     'Direct D3 time + TanStack UTC line',
     'benchmarks/entries/charts-d3-time-svg.ts',
-    18.05,
+    18.15,
   ),
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    22.8,
+    23,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    27.9,
+    28.15,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -269,7 +269,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    33.4,
+    33.6,
     { external: ['react', 'react/jsx-runtime'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),

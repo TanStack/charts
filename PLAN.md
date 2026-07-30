@@ -53,8 +53,8 @@ These are governing constraints, not optional aspirations.
   dataset, or dataframe model.
 - Original datum identity survives materialization, interaction, selection,
   reconciliation, and callbacks.
-- Stable keys are explicit when data can reorder. Index identity is only a
-  documented static-data fallback.
+- Stable keys prefer an explicit channel, then a unique datum `id`, then a
+  mark-specific semantic channel. Index identity is the final fallback.
 
 ### One grammar from common to custom
 

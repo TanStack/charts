@@ -1,4 +1,11 @@
-import { channelValues, createMark, isChartKey, isChartValue } from './mark'
+import {
+  channelValues,
+  compositeKeyValues,
+  createMark,
+  inferredKeyValues,
+  isChartKey,
+  isChartValue,
+} from './mark'
 import { valueKey } from './scales'
 import type {
   Channel,
@@ -112,7 +119,11 @@ export function rect<TDatum>(
       (_datum, index) => yValues[index],
     )
     const zValues = channelValues(data, options.z, () => null)
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, {
+      groups: zValues,
+      candidates: [compositeKeyValues(x1Values, x2Values, y1Values, y2Values)],
+      markId: id,
+    })
 
     return {
       id,

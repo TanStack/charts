@@ -1,6 +1,7 @@
 import {
   channelValues,
   createMark,
+  inferredKeyValues,
   isChartKey,
   isChartValue,
   visualValue,
@@ -71,7 +72,7 @@ export function link<TDatum>(
     const x2Values = channelValues(data, options.x2, () => undefined)
     const y2Values = channelValues(data, options.y2, () => undefined)
     const zValues = channelValues(data, options.z, () => null)
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, { groups: zValues })
 
     return {
       id,

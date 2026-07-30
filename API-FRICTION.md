@@ -166,6 +166,7 @@ Each entry records:
 | F-128 | Chart-owned data reactivity duplicated application state | API             | resolved   |
 | F-129 | Responsive relayout restarted chart animation            | API             | resolved   |
 | F-130 | Adapter options duplicated chart behavior                | API             | resolved   |
+| F-131 | Stable identity repeated inferable key channels          | API             | resolved   |
 
 ## Findings
 
@@ -2958,3 +2959,30 @@ Each entry records:
   documentation contracts, formatting, and bundle policy pass. Catalog case
   35 passes visual and interaction checks in Chromium at both quick-profile
   widths.
+
+### F-131 — Stable identity repeated inferable key channels
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: review of the dynamic-data stable-key guidance
+- Friction: every built-in mark defaulted datum identity to row position even
+  when rows carried a unique `id` or the mark already had a unique semantic
+  position. Reorderable bars therefore repeated `key: "id"` or
+  `key: "category"` solely to prevent avoidable DOM replacement and focus
+  drift.
+- Decision: built-in marks prefer an explicit key, then a unique primitive
+  datum `id`, then a mark-owned positional candidate, and finally row index.
+  Bars use their categorical channel; lines and areas use their independent
+  axis; rects and cells use the complete x/y interval tuple. Polar lines,
+  areas, and rules use angle. Every inferred candidate must be complete and
+  unique within its interaction group. Explicit keys retain their authored
+  behavior.
+- Verification: focused resolver, Cartesian, polar, geo, and DOM-host tests
+  pass 66 tests. The DOM regression proves surviving bars retain their exact
+  SVG elements through reorder, filter, value, and membership changes without
+  an authored key. The complete 2,154-test suite, root typecheck, 81-page
+  documentation contract, and bundle policy pass. The exact line-scene lock
+  records the shared resolver and development warning at +654 minified/+261
+  gzip bytes; renderer hosts and adapters that materialize no keyed mark remain
+  byte-identical.

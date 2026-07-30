@@ -2,6 +2,7 @@ import { arrowGeometry } from './arrow-geometry'
 import {
   channelValues,
   createMark,
+  inferredKeyValues,
   isChartKey,
   isChartValue,
   isFiniteNumber,
@@ -73,7 +74,7 @@ export function vector<TDatum>(
         ? data.map(() => rotateOption)
         : channelValues(data, rotateOption, () => 0)
     const zValues = channelValues(data, options.z, () => null)
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, { groups: zValues })
 
     return {
       id,

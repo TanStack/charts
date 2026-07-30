@@ -1,6 +1,7 @@
 import {
   channelValues,
   createMark,
+  inferredKeyValues,
   isChartKey,
   isChartValue,
   isFiniteNumber,
@@ -65,7 +66,11 @@ export function lineY<TDatum>(
       typeof datum === 'number' ? datum : undefined,
     )
     const zValues = channelValues(data, options.z, () => null)
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, {
+      groups: zValues,
+      candidates: [xValues],
+      markId: id,
+    })
     const rows = data.map((datum, datumIndex): LineRow<TDatum> => ({
       datum,
       datumIndex,

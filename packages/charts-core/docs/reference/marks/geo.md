@@ -43,23 +43,23 @@ geoShape(features, {
 
 ### `GeoShapeOptions`
 
-| Option            | Type                                   | Default         | Meaning                                               |
-| ----------------- | -------------------------------------- | --------------- | ----------------------------------------------------- |
-| `id`              | `string`                               | Layer-derived   | Stable mark ID                                        |
-| `className`       | `string`                               | None            | Class added beside `ts-chart__geo`                    |
-| `projection`      | `(GeoProjectionContext) => projection` | Required        | Builds the D3 projection from final plot bounds       |
-| `key`             | `Channel<TDatum, ChartKey>`            | Row index       | Stable feature identity                               |
-| `color`           | `Channel<TDatum, ChartKey?>`           | No group        | Color-scale input and interaction group               |
-| `r`               | `number \| Channel<TDatum, number?>`   | `4.5`           | Point and MultiPoint radius in pixels                 |
-| `rScale`          | `(value: number) => number`            | Identity        | Maps a quantitative value to a pixel radius           |
-| `fill`            | `VisualChannel<TDatum, string>`        | Resolved color  | Feature fill                                          |
-| `fillOpacity`     | `number`                               | SVG default     | Fill opacity                                          |
-| `stroke`          | `VisualChannel<TDatum, string>`        | `'none'`        | Boundary stroke                                       |
-| `strokeOpacity`   | `number`                               | SVG default     | Boundary opacity                                      |
-| `strokeWidth`     | `number`                               | SVG default     | Boundary width                                        |
-| `strokeDasharray` | `string`                               | SVG default     | Boundary dash pattern                                 |
-| `opacity`         | `number`                               | SVG default     | Whole-feature opacity                                 |
-| `anchor`          | `(datum, index, data) => [lon, lat]`   | `geoCentroid()` | Semantic longitude/latitude for the interaction point |
+| Option            | Type                                   | Default                 | Meaning                                               |
+| ----------------- | -------------------------------------- | ----------------------- | ----------------------------------------------------- |
+| `id`              | `string`                               | Layer-derived           | Stable mark ID                                        |
+| `className`       | `string`                               | None                    | Class added beside `ts-chart__geo`                    |
+| `projection`      | `(GeoProjectionContext) => projection` | Required                | Builds the D3 projection from final plot bounds       |
+| `key`             | `Channel<TDatum, ChartKey>`            | Unique `id`, then index | Stable feature identity                               |
+| `color`           | `Channel<TDatum, ChartKey?>`           | No group                | Color-scale input and interaction group               |
+| `r`               | `number \| Channel<TDatum, number?>`   | `4.5`                   | Point and MultiPoint radius in pixels                 |
+| `rScale`          | `(value: number) => number`            | Identity                | Maps a quantitative value to a pixel radius           |
+| `fill`            | `VisualChannel<TDatum, string>`        | Resolved color          | Feature fill                                          |
+| `fillOpacity`     | `number`                               | SVG default             | Fill opacity                                          |
+| `stroke`          | `VisualChannel<TDatum, string>`        | `'none'`                | Boundary stroke                                       |
+| `strokeOpacity`   | `number`                               | SVG default             | Boundary opacity                                      |
+| `strokeWidth`     | `number`                               | SVG default             | Boundary width                                        |
+| `strokeDasharray` | `string`                               | SVG default             | Boundary dash pattern                                 |
+| `opacity`         | `number`                               | SVG default             | Whole-feature opacity                                 |
+| `anchor`          | `(datum, index, data) => [lon, lat]`   | `geoCentroid()`         | Semantic longitude/latitude for the interaction point |
 
 Each drawable feature becomes one SVG path. `geoPath(projection).centroid()`
 sets the point's screen position. `anchor`, or `geoCentroid()` when omitted,

@@ -145,26 +145,44 @@ This direct `scaleSqrt` import belongs to `d3-scale` and requires the matching d
 
 Keeping the scale visible makes the perceptual encoding reviewable. It also avoids silently treating a business measure as pixels.
 
-## Stable identity with `key`
+## Stable identity
 
-Use `key` whenever observations can:
+Built-in marks infer identity in this order:
 
-- Reorder
-- Enter or leave
-- Move between groups
-- Animate between values
-- Remain focused across updates
+1. An explicit `key`
+2. A unique string or number `datum.id`
+3. A unique mark-specific positional identity
+4. Row index
+
+Bars use their categorical channel. Lines and areas use their independent
+axis. Rects and cells use their x/y interval tuple. These candidates are
+checked within each `z` group; a collision rejects the candidate and continues
+to the next fallback.
+
+For common rows with a unique `id`, no key option is required:
 
 ```ts
 barX(rows, {
   id: 'product-ranking',
   x: 'value',
   y: 'product',
+})
+```
+
+Use an explicit key when identity lives in another field, the inferred
+positional value can change, or the automatic candidates are not unique:
+
+```ts
+barX(rows, {
+  x: 'value',
+  y: 'product',
   key: 'productId',
 })
 ```
 
-Keys are string or number values. They need to be unique within the mark and group. Do not use an array index for dynamic rows unless array position is the true semantic identity.
+Explicit keys are string or number values and need to be unique within the
+mark and group. Marks without a unique automatic candidate fall back to array
+position and warn once per mark in development.
 
 The mark `id` identifies the layer. Give conditionally rendered or reordered marks an explicit, stable `id` as well.
 

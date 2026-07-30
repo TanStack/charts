@@ -1,6 +1,7 @@
 import {
   channelValues,
   createMark,
+  inferredKeyValues,
   isChartKey,
   isChartValue,
   visualValue,
@@ -65,7 +66,7 @@ export function text<TDatum>(
       datum == null ? '' : String(datum),
     )
     const zValues = channelValues(data, options.z, () => null)
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, { groups: zValues })
 
     return {
       id,

@@ -1,6 +1,7 @@
 import {
   channelValues,
   createMark,
+  inferredKeyValues,
   isChartKey,
   isChartValue,
   isFiniteNumber,
@@ -71,7 +72,11 @@ export function areaX<TDatum>(
         : channelValues(data, options.x1, () => 0)
     const yValues = channelValues(data, options.y, (_datum, index) => index)
     const zValues = channelValues(data, options.z, () => null)
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, {
+      groups: zValues,
+      candidates: [yValues],
+      markId: id,
+    })
     const groups = new Map<string, number[]>()
     zValues.forEach((value, index) => {
       const key = valueKey(value ?? null)

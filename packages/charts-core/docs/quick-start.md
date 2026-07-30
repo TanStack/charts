@@ -51,7 +51,6 @@ const revenueChart = defineChart({
       id: 'monthly-revenue',
       x: 'date',
       y: 'revenue',
-      key: 'id',
       stroke: '#2563eb',
       points: true,
     }),
@@ -139,7 +138,7 @@ Destroying the host removes observers, event listeners, animations, tooltips, an
 
 - `lineY(rows, ...)` chooses a line mark and keeps the original row as the interaction datum.
 - `x: 'date'` and `y: 'revenue'` map typed fields to positional channels.
-- `key: 'id'` gives each observation stable identity across updates.
+- The unique row `id` gives each observation stable identity across updates.
 - The configured D3 scales own semantic domains, ticks, and mapping behavior.
 - TanStack Charts copies those scales and assigns responsive pixel ranges.
 - `label`, `format`, and `grid` configure the axis guide without changing the scale.

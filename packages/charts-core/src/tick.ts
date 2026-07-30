@@ -1,6 +1,7 @@
 import {
   channelValues,
   createMark,
+  inferredKeyValues,
   isChartKey,
   isChartValue,
   visualValue,
@@ -91,7 +92,7 @@ function tick<TDatum>(
     const xValues = channelValues(data, options.x, () => undefined)
     const yValues = channelValues(data, options.y, () => undefined)
     const zValues = channelValues(data, options.z, () => null)
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, { groups: zValues })
 
     return {
       id,

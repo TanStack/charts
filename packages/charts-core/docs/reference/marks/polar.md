@@ -76,26 +76,26 @@ function radialArc<TDatum>(
 
 `radialArc` renders one D3 arc per valid interval.
 
-| Option            | Meaning                                                        |
-| ----------------- | -------------------------------------------------------------- |
-| `id`, `className` | Stable layer ID and optional class                             |
-| `startAngle`      | Start-angle channel; defaults to datum `startAngle`            |
-| `endAngle`        | End-angle channel; defaults to datum `endAngle`                |
-| `padAngle`        | Padding-angle channel; defaults to datum `padAngle`, then zero |
-| `innerRadius`     | `PolarLength`; defaults to zero                                |
-| `outerRadius`     | `PolarLength`; defaults to the layout radius                   |
-| `cornerRadius`    | D3 arc corner radius as a `PolarLength`                        |
-| `padRadius`       | Explicit D3 arc padding radius as a `PolarLength`              |
-| `generator`       | Responsive D3 arc factory for advanced per-datum geometry      |
-| `key`             | Stable arc identity                                            |
-| `z`               | Color group and interaction group                              |
-| `fill`            | Constant or datum-derived fill                                 |
-| `fillOpacity`     | Fill opacity                                                   |
-| `stroke`          | Constant or datum-derived boundary stroke                      |
-| `strokeOpacity`   | Boundary opacity                                               |
-| `strokeWidth`     | Boundary width                                                 |
-| `strokeDasharray` | Boundary dash array                                            |
-| `opacity`         | Whole-arc opacity                                              |
+| Option            | Meaning                                                          |
+| ----------------- | ---------------------------------------------------------------- |
+| `id`, `className` | Stable layer ID and optional class                               |
+| `startAngle`      | Start-angle channel; defaults to datum `startAngle`              |
+| `endAngle`        | End-angle channel; defaults to datum `endAngle`                  |
+| `padAngle`        | Padding-angle channel; defaults to datum `padAngle`, then zero   |
+| `innerRadius`     | `PolarLength`; defaults to zero                                  |
+| `outerRadius`     | `PolarLength`; defaults to the layout radius                     |
+| `cornerRadius`    | D3 arc corner radius as a `PolarLength`                          |
+| `padRadius`       | Explicit D3 arc padding radius as a `PolarLength`                |
+| `generator`       | Responsive D3 arc factory for advanced per-datum geometry        |
+| `key`             | Stable arc identity; defaults to a unique datum `id`, then index |
+| `z`               | Color group and interaction group                                |
+| `fill`            | Constant or datum-derived fill                                   |
+| `fillOpacity`     | Fill opacity                                                     |
+| `stroke`          | Constant or datum-derived boundary stroke                        |
+| `strokeOpacity`   | Boundary opacity                                                 |
+| `strokeWidth`     | Boundary width                                                   |
+| `strokeDasharray` | Boundary dash array                                              |
+| `opacity`         | Whole-arc opacity                                                |
 
 Use `d3-shape`'s `pie` output directly: its `startAngle`, `endAngle`, and
 `padAngle` fields are already the channels this mark needs. A pie, donut, and
@@ -139,6 +139,9 @@ numeric datum. `radialLine` accepts stroke, dash, opacity, and optional
 `points` styling. `radialArea` accepts fill and stroke styling plus `radius1`
 for an explicit inner scale value; `radius1` defaults to zero.
 
+Their datum key defaults to a unique datum `id`, then a unique angle within
+each `z` group, then row index.
+
 Input order is path order. Use a closed D3 curve such as
 `curveLinearClosed` for radar polygons. Grouping through `z` creates one path
 per group. `radialArea` can carry its own stroke; layer a closed `radialLine`
@@ -156,7 +159,8 @@ function radialDot<TDatum>(
 `radialDot` uses the same angle/radius channel defaults. It also accepts `id`,
 `className`, `key`, `z`, `r`, `rScale`, fill, stroke, and opacity styling.
 Radius defaults to 3.5 pixels. Each valid datum emits one interaction point
-with its original angle/radius values and projected screen position.
+with its original angle/radius values and projected screen position. Its key
+defaults to a unique datum `id`, then row index.
 
 ## `radialText`
 
@@ -171,7 +175,8 @@ function radialText<TDatum>(
 polar scales, then positions labels with D3's radial point projection. It
 accepts `text`, `key`, `z`, fill, font size and weight, anchor, baseline,
 rotation, and pixel `dx`/`dy`. Use it for arc labels, donut-center values, and
-gauge readouts without leaving the polar coordinate system.
+gauge readouts without leaving the polar coordinate system. Its key defaults
+to a unique datum `id`, then row index.
 
 ## `radialRule`
 
@@ -186,7 +191,8 @@ function radialRule<TDatum>(
 `radius2` are scale values; `radius1` defaults to zero. The mark also accepts
 `key`, `z`, stroke, opacity, width, and dash styling. It covers gauge needles,
 ticks, and pie-label leaders without expanding one logical segment into two
-path rows.
+path rows. Its key defaults to a unique datum `id`, then a unique angle within
+each `z` group, then row index.
 
 ## `radialGrid` and `angleGrid`
 

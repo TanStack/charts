@@ -1,6 +1,7 @@
 import {
   channelValues,
   createMark,
+  inferredKeyValues,
   isChartKey,
   isChartValue,
   isNonnegativeFiniteNumber,
@@ -58,7 +59,7 @@ export function dot<TDatum>(
       typeof datum === 'number' ? datum : undefined,
     )
     const zValues = channelValues(data, options.z, () => null)
-    const keys = channelValues(data, options.key, (_datum, index) => index)
+    const keys = inferredKeyValues(data, options.key, { groups: zValues })
     const rawRadii =
       typeof options.r === 'number'
         ? data.map(() => options.r as number)

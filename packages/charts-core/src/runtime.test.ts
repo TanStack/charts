@@ -113,6 +113,55 @@ describe('dynamic chart runtime', () => {
     host.destroy()
   })
 
+  it('reuses bars keyed by an inferred datum id across reorder updates', () => {
+    const first = [
+      { id: 'a', category: 'Alpha', value: 4 },
+      { id: 'b', category: 'Beta', value: 8 },
+      { id: 'c', category: 'Gamma', value: 6 },
+    ]
+    const next = [
+      { id: 'c', category: 'Gamma', value: 9 },
+      { id: 'a', category: 'Alpha', value: 5 },
+      { id: 'd', category: 'Delta', value: 7 },
+    ]
+    const createDefinition = (rows: typeof first) =>
+      defineChart({
+        marks: [barY(rows, { x: 'category', y: 'value' })],
+        ...bandXAxes(
+          rows.map((row) => row.category),
+          [0, 10],
+        ),
+      })
+    const container = document.createElement('div')
+    const options = {
+      definition: createDefinition(first),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Reordered bars',
+    }
+    const host = mountChart(container, options)
+    const initialNodes = new Map(
+      host
+        .getScene()
+        .points.map((point) => [
+          point.datum.id,
+          container.querySelector(`[data-ts-key="${point.key}"]`),
+        ]),
+    )
+
+    host.update({ ...options, definition: createDefinition(next) })
+
+    for (const point of host.getScene().points) {
+      const node = container.querySelector(`[data-ts-key="${point.key}"]`)
+      if (point.datum.id === 'a' || point.datum.id === 'c') {
+        expect(node).toBe(initialNodes.get(point.datum.id))
+      } else {
+        expect(node).not.toBeNull()
+      }
+    }
+    host.destroy()
+  })
+
   it('honors an explicit SVG tab index when keyboard interaction is enabled', () => {
     const definition = defineChart({
       marks: [lineY([2, 4, 3])],

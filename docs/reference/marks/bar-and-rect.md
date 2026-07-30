@@ -33,21 +33,21 @@ function barY<TDatum>(
 
 ### Options
 
-| Option        | Type                                 | Default          | Meaning                                          |
-| ------------- | ------------------------------------ | ---------------- | ------------------------------------------------ |
-| `id`          | `string`                             | Layer-derived    | Stable mark ID                                   |
-| `x`           | `Channel<TDatum, ChartValue?>`       | Row index        | Bar category or center                           |
-| `y`           | `Channel<TDatum, number?>`           | Numeric datum    | Value endpoint when `y2` is absent               |
-| `y1`          | `number \| Channel<TDatum, number?>` | `0`              | Baseline endpoint                                |
-| `y2`          | `number \| Channel<TDatum, number?>` | `y`              | Value endpoint; takes precedence over `y`        |
-| `z`           | `Channel<TDatum, ChartKey?>`         | No group         | Group identity and default color channel         |
-| `color`       | `Channel<TDatum, ChartKey?>`         | `z`              | Independent value sent to the chart color scale  |
-| `key`         | `Channel<TDatum, ChartKey>`          | Row index        | Stable scene and interaction identity            |
-| `fill`        | `VisualChannel<TDatum, string>`      | Resolved `color` | Bar paint                                        |
-| `fillOpacity` | `number`                             | SVG default      | Fill opacity                                     |
-| `groupScale`  | `ConfiguredScaleLike`                | None             | Band scale that positions `z` within each x band |
-| `inset`       | `number`                             | `0`              | Pixels removed from both categorical edges       |
-| `radius`      | `number`                             | None             | SVG rectangle corner radius                      |
+| Option        | Type                                 | Default                         | Meaning                                          |
+| ------------- | ------------------------------------ | ------------------------------- | ------------------------------------------------ |
+| `id`          | `string`                             | Layer-derived                   | Stable mark ID                                   |
+| `x`           | `Channel<TDatum, ChartValue?>`       | Row index                       | Bar category or center                           |
+| `y`           | `Channel<TDatum, number?>`           | Numeric datum                   | Value endpoint when `y2` is absent               |
+| `y1`          | `number \| Channel<TDatum, number?>` | `0`                             | Baseline endpoint                                |
+| `y2`          | `number \| Channel<TDatum, number?>` | `y`                             | Value endpoint; takes precedence over `y`        |
+| `z`           | `Channel<TDatum, ChartKey?>`         | No group                        | Group identity and default color channel         |
+| `color`       | `Channel<TDatum, ChartKey?>`         | `z`                             | Independent value sent to the chart color scale  |
+| `key`         | `Channel<TDatum, ChartKey>`          | Unique `id`, then x, then index | Stable scene and interaction identity            |
+| `fill`        | `VisualChannel<TDatum, string>`      | Resolved `color`                | Bar paint                                        |
+| `fillOpacity` | `number`                             | SVG default                     | Fill opacity                                     |
+| `groupScale`  | `ConfiguredScaleLike`                | None                            | Band scale that positions `z` within each x band |
+| `inset`       | `number`                             | `0`                             | Pixels removed from both categorical edges       |
+| `radius`      | `number`                             | None                            | SVG rectangle corner radius                      |
 
 The interaction point is at the group-band center and the `y2`/`y` endpoint.
 Its semantic `xValue` is x and its `yValue` is the value endpoint.
@@ -73,21 +73,21 @@ function barX<TDatum>(
 
 Its options transpose `barY`:
 
-| Option        | Type                                 | Default          | Meaning                                          |
-| ------------- | ------------------------------------ | ---------------- | ------------------------------------------------ |
-| `id`          | `string`                             | Layer-derived    | Stable mark ID                                   |
-| `x`           | `Channel<TDatum, number?>`           | Numeric datum    | Value endpoint when `x2` is absent               |
-| `x1`          | `number \| Channel<TDatum, number?>` | `0`              | Baseline endpoint                                |
-| `x2`          | `number \| Channel<TDatum, number?>` | `x`              | Value endpoint; takes precedence over `x`        |
-| `y`           | `Channel<TDatum, ChartValue?>`       | Row index        | Bar category or center                           |
-| `z`           | `Channel<TDatum, ChartKey?>`         | No group         | Group identity and default color channel         |
-| `color`       | `Channel<TDatum, ChartKey?>`         | `z`              | Independent color-scale value                    |
-| `key`         | `Channel<TDatum, ChartKey>`          | Row index        | Stable identity                                  |
-| `fill`        | `VisualChannel<TDatum, string>`      | Resolved `color` | Bar paint                                        |
-| `fillOpacity` | `number`                             | SVG default      | Fill opacity                                     |
-| `groupScale`  | `ConfiguredScaleLike`                | None             | Band scale that positions `z` within each y band |
-| `inset`       | `number`                             | `0`              | Pixels removed from both categorical edges       |
-| `radius`      | `number`                             | None             | Corner radius                                    |
+| Option        | Type                                 | Default                         | Meaning                                          |
+| ------------- | ------------------------------------ | ------------------------------- | ------------------------------------------------ |
+| `id`          | `string`                             | Layer-derived                   | Stable mark ID                                   |
+| `x`           | `Channel<TDatum, number?>`           | Numeric datum                   | Value endpoint when `x2` is absent               |
+| `x1`          | `number \| Channel<TDatum, number?>` | `0`                             | Baseline endpoint                                |
+| `x2`          | `number \| Channel<TDatum, number?>` | `x`                             | Value endpoint; takes precedence over `x`        |
+| `y`           | `Channel<TDatum, ChartValue?>`       | Row index                       | Bar category or center                           |
+| `z`           | `Channel<TDatum, ChartKey?>`         | No group                        | Group identity and default color channel         |
+| `color`       | `Channel<TDatum, ChartKey?>`         | `z`                             | Independent color-scale value                    |
+| `key`         | `Channel<TDatum, ChartKey>`          | Unique `id`, then y, then index | Stable identity                                  |
+| `fill`        | `VisualChannel<TDatum, string>`      | Resolved `color`                | Bar paint                                        |
+| `fillOpacity` | `number`                             | SVG default                     | Fill opacity                                     |
+| `groupScale`  | `ConfiguredScaleLike`                | None                            | Band scale that positions `z` within each y band |
+| `inset`       | `number`                             | `0`                             | Pixels removed from both categorical edges       |
+| `radius`      | `number`                             | None                            | Corner radius                                    |
 
 The interaction point is at the `x2`/`x` endpoint and group-band center.
 
@@ -171,23 +171,23 @@ function rect<TDatum>(
 
 ### Options
 
-| Option        | Type                           | Default                            | Meaning                                              |
-| ------------- | ------------------------------ | ---------------------------------- | ---------------------------------------------------- |
-| `id`          | `string`                       | Layer-derived                      | Stable mark ID                                       |
-| `x`           | `Channel<TDatum, ChartValue?>` | Row index                          | X center/category and preferred semantic focus value |
-| `x1`          | `Channel<TDatum, ChartValue?>` | `x`, or row index when x is absent | First x endpoint                                     |
-| `x2`          | `Channel<TDatum, ChartValue?>` | `x`                                | Second x endpoint                                    |
-| `y`           | `Channel<TDatum, ChartValue?>` | Numeric datum                      | Y center/category and preferred semantic focus value |
-| `y1`          | `Channel<TDatum, ChartValue?>` | `y`                                | First y endpoint                                     |
-| `y2`          | `Channel<TDatum, ChartValue?>` | `y`                                | Second y endpoint                                    |
-| `z`           | `Channel<TDatum, ChartKey?>`   | No group                           | Interaction group and default color                  |
-| `key`         | `Channel<TDatum, ChartKey>`    | Row index                          | Stable identity                                      |
-| `fill`        | `string`                       | Resolved `z` color                 | Constant fill                                        |
-| `fillOpacity` | `number`                       | SVG default                        | Fill opacity                                         |
-| `stroke`      | `string`                       | None                               | Constant stroke                                      |
-| `strokeWidth` | `number`                       | SVG default                        | Stroke width                                         |
-| `inset`       | `number`                       | `0.75`                             | Pixels removed from all four edges                   |
-| `radius`      | `number`                       | None                               | Corner radius                                        |
+| Option        | Type                           | Default                                 | Meaning                                              |
+| ------------- | ------------------------------ | --------------------------------------- | ---------------------------------------------------- |
+| `id`          | `string`                       | Layer-derived                           | Stable mark ID                                       |
+| `x`           | `Channel<TDatum, ChartValue?>` | Row index                               | X center/category and preferred semantic focus value |
+| `x1`          | `Channel<TDatum, ChartValue?>` | `x`, or row index when x is absent      | First x endpoint                                     |
+| `x2`          | `Channel<TDatum, ChartValue?>` | `x`                                     | Second x endpoint                                    |
+| `y`           | `Channel<TDatum, ChartValue?>` | Numeric datum                           | Y center/category and preferred semantic focus value |
+| `y1`          | `Channel<TDatum, ChartValue?>` | `y`                                     | First y endpoint                                     |
+| `y2`          | `Channel<TDatum, ChartValue?>` | `y`                                     | Second y endpoint                                    |
+| `z`           | `Channel<TDatum, ChartKey?>`   | No group                                | Interaction group and default color                  |
+| `key`         | `Channel<TDatum, ChartKey>`    | Unique `id`, then x/y tuple, then index | Stable identity                                      |
+| `fill`        | `string`                       | Resolved `z` color                      | Constant fill                                        |
+| `fillOpacity` | `number`                       | SVG default                             | Fill opacity                                         |
+| `stroke`      | `string`                       | None                                    | Constant stroke                                      |
+| `strokeWidth` | `number`                       | SVG default                             | Stroke width                                         |
+| `inset`       | `number`                       | `0.75`                                  | Pixels removed from all four edges                   |
+| `radius`      | `number`                       | None                                    | Corner radius                                        |
 
 Both endpoints must be valid chart values. Endpoint order may be reversed.
 

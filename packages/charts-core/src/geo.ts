@@ -7,6 +7,7 @@ import type {
 import {
   channelValues,
   createMark,
+  inferredKeyValues,
   isChartKey,
   isNonnegativeFiniteNumber,
   visualValue,
@@ -68,8 +69,8 @@ export function geoShape<TDatum extends GeoPermissibleObjects>(
 
   return createMark<TDatum, number, number>(({ markIndex }) => {
     const id = options.id ?? `geo-shape-${markIndex}`
-    const keys = channelValues(data, options.key, (_datum, index) => index)
     const colorValues = channelValues(data, options.color, () => null)
+    const keys = inferredKeyValues(data, options.key, { groups: colorValues })
     const rawRadii =
       typeof options.r === 'number'
         ? data.map(() => options.r as number)

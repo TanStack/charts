@@ -7,6 +7,7 @@ import {
 } from 'd3-shape'
 import {
   channelValues,
+  inferredKeyValues,
   isChartKey,
   isChartValue,
   isFiniteNumber,
@@ -280,8 +281,8 @@ export function radialArc<TDatum>(
       options.padAngle,
       (datum) => numberProperty(datum, 'padAngle') ?? 0,
     )
-    const keys = channelValues(data, options.key, (_datum, index) => index)
     const groups = channelValues(data, options.z, () => null)
+    const keys = inferredKeyValues(data, options.key, { groups })
 
     return {
       id,
@@ -451,8 +452,12 @@ export function radialLine<TDatum>(
         : channelValues(data, options.radius, (datum) =>
             typeof datum === 'number' ? datum : undefined,
           )
-    const keys = channelValues(data, options.key, (_datum, index) => index)
     const groups = channelValues(data, options.z, () => null)
+    const keys = inferredKeyValues(data, options.key, {
+      groups,
+      candidates: [angleValues],
+      markId: id,
+    })
 
     return {
       id,
@@ -611,8 +616,12 @@ export function radialArea<TDatum>(
       typeof options.radius1 === 'number'
         ? data.map(() => options.radius1 as number)
         : channelValues(data, options.radius1, () => 0)
-    const keys = channelValues(data, options.key, (_datum, index) => index)
     const groups = channelValues(data, options.z, () => null)
+    const keys = inferredKeyValues(data, options.key, {
+      groups,
+      candidates: [angleValues],
+      markId: id,
+    })
 
     return {
       id,
@@ -779,8 +788,8 @@ export function radialText<TDatum>(
     const textValues = channelValues(data, options.text, (datum) =>
       datum == null ? '' : String(datum),
     )
-    const keys = channelValues(data, options.key, (_datum, index) => index)
     const groups = channelValues(data, options.z, () => null)
+    const keys = inferredKeyValues(data, options.key, { groups })
 
     return {
       id,
@@ -933,8 +942,12 @@ export function radialRule<TDatum>(
               ? datum
               : numberProperty(datum, 'radius2'),
           )
-    const keys = channelValues(data, options.key, (_datum, index) => index)
     const groups = channelValues(data, options.z, () => null)
+    const keys = inferredKeyValues(data, options.key, {
+      groups,
+      candidates: [angleValues],
+      markId: id,
+    })
 
     return {
       id,
@@ -1039,8 +1052,8 @@ export function radialDot<TDatum>(
         : channelValues(data, options.radius, (datum) =>
             typeof datum === 'number' ? datum : undefined,
           )
-    const keys = channelValues(data, options.key, (_datum, index) => index)
     const groups = channelValues(data, options.z, () => null)
+    const keys = inferredKeyValues(data, options.key, { groups })
     const rawRadii =
       typeof options.r === 'number'
         ? data.map(() => options.r as number)

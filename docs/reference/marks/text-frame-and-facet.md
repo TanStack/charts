@@ -39,7 +39,7 @@ function text<TDatum>(
 | `y`          | `Channel<TDatum, ChartValue?>`       | Numeric datum                                     | Vertical anchor                                   |
 | `text`       | `Channel<TDatum, string \| number?>` | String form of datum                              | Label content                                     |
 | `z`          | `Channel<TDatum, ChartKey?>`         | No group                                          | Interaction group and default fill                |
-| `key`        | `Channel<TDatum, ChartKey>`          | Row index                                         | Stable identity                                   |
+| `key`        | `Channel<TDatum, ChartKey>`          | Unique `id`, then index                           | Stable identity                                   |
 | `fill`       | `VisualChannel<TDatum, string>`      | Theme foreground without z; resolved color with z | Label fill                                        |
 | `fontSize`   | `number`                             | Inherited SVG font size                           | Font size                                         |
 | `fontWeight` | `number`                             | Inherited weight                                  | Numeric font weight                               |
