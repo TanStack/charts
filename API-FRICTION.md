@@ -173,6 +173,7 @@ Each entry records:
 | F-135 | Published release lacked a repository baseline marker    | Tooling/Release | monitoring |
 | F-136 | Comparison conflated workspace and published source      | Tooling/Docs    | resolved   |
 | F-137 | Latest docs installed an incompatible published API      | Docs/Release    | monitoring |
+| F-138 | Publisher pin predated explicit trust permissions        | Tooling/Release | resolved   |
 
 ## Findings
 
@@ -3295,3 +3296,19 @@ Each entry records:
 - Follow-up: after publication, install every `0.0.1` package from npm, verify
   the documented entry points and peers, then resolve this finding. Keep future
   public documentation deployments coupled to the npm release they describe.
+
+### F-138 — The publisher pin predated explicit trust permissions
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: configuring npm trusted publishing for `0.0.1`
+- Friction: the release workflow pinned npm `11.12.1`, whose `npm trust`
+  interface predated required per-action permissions. The initial publisher
+  request completed two-factor authentication but returned an opaque HTTP 400
+  instead of identifying the missing `--allow-publish` permission.
+- Decision: pin npm `11.18.0` in the release workflow and configure each public
+  package with an explicit publish permission.
+- Verification: `npm trust list` reports the exact `TanStack/charts`
+  repository, `release.yml` workflow, and `createPackage` permission for core
+  and all nine public framework adapters.

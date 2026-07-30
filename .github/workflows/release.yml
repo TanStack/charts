@@ -44,7 +44,7 @@ jobs:
           node-version: 24.18.0
           registry-url: https://registry.npmjs.org
 
-      - run: npm install --global npm@11.12.1
+      - run: npm install --global npm@11.18.0
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
