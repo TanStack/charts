@@ -26,6 +26,7 @@ export interface HexagonOptions<TDatum> {
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, ChartValue | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   r?: number | Channel<TDatum, number | null | undefined>
   rScale?: ChartNumericScale
@@ -64,6 +65,10 @@ export function hexagon<TDatum>(
       typeof datum === 'number' ? datum : undefined,
     )
     const zValues = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
     const keys = inferredKeyValues(data, options.key, { groups: zValues })
     const radiusOption = options.r
     const rawRadii =
@@ -82,7 +87,7 @@ export function hexagon<TDatum>(
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
         y: { scale: 'y', values: yValues.filter(isChartValue) },
-        color: { scale: 'color', values: zValues.filter(isChartKey) },
+        color: { scale: 'color', values: colorValues.filter(isChartKey) },
       },
       render: ({ scales, color: resolveColor }) => {
         const nodes: SceneNode[] = []
@@ -102,7 +107,7 @@ export function hexagon<TDatum>(
           const x = scales.x.map(xValue)
           const y = scales.y.map(yValue)
           const group = zValues[datumIndex] ?? null
-          const fallback = resolveColor(group)
+          const fallback = resolveColor(colorValues[datumIndex] ?? null)
           const fill = visualValue(
             options.fill,
             datum,

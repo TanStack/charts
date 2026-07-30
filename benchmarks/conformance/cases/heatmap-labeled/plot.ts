@@ -1,63 +1,61 @@
+import { simpsons } from '@charts-poc/demo-data/simpsons'
 import * as Plot from '@observablehq/plot'
-import { heatmapData } from '../../shared/data'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
-const hours = ['00', '04', '08', '12', '16', '20']
-const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const contrastThreshold = 48
+const episodeDomain = [
+  ...new Set(simpsons.map((row) => row.number_in_season)),
+].sort((left, right) => left - right)
+const seasonDomain = [...new Set(simpsons.map((row) => row.season))].sort(
+  (left, right) => left - right,
+)
+const ratingColors = ['#8e0152', '#f7f7f7', '#276419']
 
 export const mount: ConformanceMount = (container, input) =>
-  mountObservablePlot(container, input, (nextInput) => {
-    const rows = heatmapData(nextInput.revision)
-    const darkLabels = rows.filter((row) => row.value < contrastThreshold)
-    const lightLabels = rows.filter((row) => row.value >= contrastThreshold)
-
-    return Plot.plot({
+  mountObservablePlot(container, input, (nextInput) =>
+    Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Labeled day and hour heatmap',
+      ariaLabel: 'The Simpsons episode ratings',
       marginTop: 24,
       marginRight: 24,
       marginBottom: 40,
       marginLeft: 48,
       x: {
-        domain: hours,
-        label: 'Hour',
+        domain: episodeDomain,
+        label: 'Episode',
       },
       y: {
-        domain: days,
-        label: 'Day',
+        domain: seasonDomain,
+        label: 'Season',
       },
       color: {
         type: 'linear',
-        domain: [8, 80],
-        range: ['#eff6ff', '#1d4ed8'],
+        range: ratingColors,
+        unknown: '#d1d5db',
         legend: true,
       },
       marks: [
-        Plot.cell(rows, {
-          x: 'hour',
-          y: 'day',
-          fill: 'value',
+        Plot.cell(simpsons, {
+          x: 'number_in_season',
+          y: 'season',
+          fill: 'imdb_rating',
+          title: 'title',
           inset: 1,
         }),
-        Plot.text(darkLabels, {
-          x: 'hour',
-          y: 'day',
-          text: 'value',
-          fill: '#0f172a',
-          fontSize: 10,
-          fontWeight: 600,
-        }),
-        Plot.text(lightLabels, {
-          x: 'hour',
-          y: 'day',
-          text: 'value',
-          fill: '#f8fafc',
+        Plot.text(simpsons, {
+          x: 'number_in_season',
+          y: 'season',
+          text: (row) =>
+            row.imdb_rating === null ? '–' : row.imdb_rating.toFixed(1),
+          fill: (row) =>
+            row.imdb_rating !== null &&
+            (row.imdb_rating < 5.5 || row.imdb_rating > 8.6)
+              ? '#f8fafc'
+              : '#0f172a',
           fontSize: 10,
           fontWeight: 600,
         }),
       ],
-    })
-  })
+    }),
+  )

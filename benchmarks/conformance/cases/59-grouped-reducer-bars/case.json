@@ -2,28 +2,28 @@
   "schemaVersion": 1,
   "order": 590,
   "id": "59-grouped-reducer-bars",
-  "title": "Grouped reducer bars",
+  "title": "Mean penguin mass reducer bars",
   "family": "bar",
-  "intent": "Aggregate raw event rows into category totals and label each resulting bar.",
+  "intent": "Aggregate raw penguin observations into mean body mass by species and label each resulting bar.",
   "support": "composed",
   "features": [
     "vertical bars",
     "group transform",
-    "sum reducer",
+    "mean reducer",
     "raw tidy rows",
     "direct value labels",
     "d3-array rollups"
   ],
   "geometry": [
-    { "role": "bar", "count": 6 },
-    { "role": "text", "count": 6 }
+    { "role": "bar", "count": 3 },
+    { "role": "text", "count": 3 }
   ],
   "source": {
     "title": "Observable Plot group transform",
     "url": "https://observablehq.com/plot/transforms/group"
   },
   "ai": {
-    "create": "Create a vertical bar chart that sums raw event amounts by category and labels each aggregate without pre-aggregating the Plot input.",
-    "maintain": "Add another reducer or change the category order while preserving one raw tidy table, explicit band order, zero baseline, and inferred aggregate rows."
+    "create": "Create a vertical bar chart that averages raw penguin body mass by species and labels each aggregate without pre-aggregating the Plot input.",
+    "maintain": "Add another reducer or change the species order while preserving the original source fields, source category order, zero baseline, and inferred aggregate rows."
   }
 }

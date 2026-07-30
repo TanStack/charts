@@ -1,14 +1,17 @@
 import { createHash } from 'node:crypto'
 import path from 'node:path'
+import { loadCatalogSourceClosure } from '../benchmarks/conformance/catalog-loader.ts'
+import { catalogSourceClosureMetadata } from './catalog-source-files.mjs'
 
-export const catalogArtifactSchemaVersion = 2
+export const catalogArtifactSchemaVersion = 4
 export const catalogModuleContractVersion = 1
 export const catalogSourceRepository = 'tanstack/charts'
+export const catalogSourcePathRoot = 'benchmarks/conformance/'
 export const catalogBasePath = '/charts/catalog/'
 export const catalogOrigin = 'https://tanstack.com'
 export const catalogArtifactFileLimit = 1_000
 export const catalogArtifactFileSizeLimit = 1024 * 1024
-export const catalogArtifactTotalSizeLimit = 5 * 1024 * 1024
+export const catalogArtifactTotalSizeLimit = 6 * 1024 * 1024
 export const catalogBuildGraphPath = '.vite/catalog-graph.json'
 export const catalogBuildGraphSchemaVersion = 1
 export const expectedCatalogImplementationCounts = Object.freeze({
@@ -28,6 +31,7 @@ export async function createCatalogArtifact({
   revision,
   viteManifest,
   readAsset,
+  sourceModules,
 }) {
   assertRevision(revision)
   validateCaseEntries(cases)
@@ -35,6 +39,7 @@ export async function createCatalogArtifact({
   const manifestEntries = new Map(Object.entries(viteManifest))
   const rootKeys = new Set()
   const publishedCases = []
+  const publishedDatasets = new Map()
 
   for (const { metadata } of [...cases].sort(
     (left, right) => left.metadata.order - right.metadata.order,
@@ -43,6 +48,8 @@ export async function createCatalogArtifact({
     const referenceFile = rendererFileName(referenceRenderer)
     const tanstackSource = caseSourcePath(metadata.id, 'tanstack')
     const referenceSource = caseSourcePath(metadata.id, referenceFile)
+    const tanstackEntryPath = `./cases/${metadata.id}/tanstack.ts`
+    const referenceEntryPath = `./cases/${metadata.id}/${referenceFile}.ts`
     const tanstackKey = findManifestKey(manifestEntries, tanstackSource)
     const referenceKey = findManifestKey(manifestEntries, referenceSource)
     rootKeys.add(tanstackKey)
@@ -50,6 +57,30 @@ export async function createCatalogArtifact({
 
     const tanstackEntry = requiredManifestEntry(manifestEntries, tanstackKey)
     const referenceEntry = requiredManifestEntry(manifestEntries, referenceKey)
+    const tanstackClosure = await loadCatalogSourceClosure(
+      sourceModules,
+      tanstackEntryPath,
+    )
+    const referenceClosure = await loadCatalogSourceClosure(
+      sourceModules,
+      referenceEntryPath,
+    )
+    for (const dataset of [
+      ...tanstackClosure.datasets,
+      ...referenceClosure.datasets,
+    ]) {
+      publishedDatasets.set(dataset.id, dataset)
+    }
+    const authoredSource = {
+      tanstack: catalogSourceClosureMetadata(
+        tanstackClosure,
+        tanstackEntryPath,
+      ),
+      reference: catalogSourceClosureMetadata(
+        referenceClosure,
+        referenceEntryPath,
+      ),
+    }
 
     publishedCases.push({
       ...metadata,
@@ -61,6 +92,7 @@ export async function createCatalogArtifact({
         tanstack: tanstackSource,
         reference: referenceSource,
       },
+      authoredSource,
       modules: {
         tanstack: {
           path: normalizeAssetPath(tanstackEntry.file),
@@ -142,6 +174,7 @@ export async function createCatalogArtifact({
     source: {
       repo: catalogSourceRepository,
       ref: revision,
+      pathRoot: catalogSourcePathRoot,
     },
     runtime: {
       contractVersion: catalogModuleContractVersion,
@@ -153,6 +186,11 @@ export async function createCatalogArtifact({
       assetBasePath: `${catalogBasePath}assets/`,
     },
     embed: undefined,
+    datasets: Object.fromEntries(
+      [...publishedDatasets]
+        .sort(([left], [right]) => compareStrings(left, right))
+        .map(([id, metadata]) => [id, metadata]),
+    ),
     assets: Object.fromEntries(assetRecords),
     cases: publishedCases,
   }
@@ -177,7 +215,8 @@ export function validateCatalogArtifactManifest(catalog) {
   assert(
     isRecord(catalog.source) &&
       catalog.source.repo === catalogSourceRepository &&
-      catalog.source.ref === catalog.revision,
+      catalog.source.ref === catalog.revision &&
+      catalog.source.pathRoot === catalogSourcePathRoot,
     'catalog.json source must identify the exact Charts revision',
   )
   assert(
@@ -194,6 +233,14 @@ export function validateCatalogArtifactManifest(catalog) {
     'catalog.json site contract is invalid',
   )
   assert(isRecord(catalog.embed), 'catalog.json embed contract is missing')
+  assert(isRecord(catalog.datasets), 'catalog.json datasets must be an object')
+  validateCatalogDatasets(
+    Object.values(catalog.datasets),
+    'catalog.json datasets',
+  )
+  for (const [id, dataset] of Object.entries(catalog.datasets)) {
+    assert(dataset.id === id, `catalog dataset key ${id} does not match its id`)
+  }
   assert(isRecord(catalog.assets), 'catalog.json assets must be an object')
   assert(Array.isArray(catalog.cases), 'catalog.json cases must be an array')
   assert(catalog.cases.length > 0, 'catalog.json must contain cases')
@@ -286,6 +333,22 @@ export function validateCatalogArtifactManifest(catalog) {
         isRecord(entry.modules.comparison),
       `catalog case ${entry.id} has invalid modules`,
     )
+    assert(
+      isRecord(entry.authoredSource),
+      `catalog case ${entry.id} has invalid authored source`,
+    )
+    validateCatalogSourceClosure(
+      entry.authoredSource.tanstack,
+      `catalog case ${entry.id} TanStack authored source`,
+      entry.code.tanstack.slice(catalogSourcePathRoot.length),
+      catalog.datasets,
+    )
+    validateCatalogSourceClosure(
+      entry.authoredSource.reference,
+      `catalog case ${entry.id} reference authored source`,
+      entry.code.reference.slice(catalogSourcePathRoot.length),
+      catalog.datasets,
+    )
     validateModuleReference(
       entry.modules.tanstack,
       catalog.assets,
@@ -361,6 +424,209 @@ function validateModuleReference(module, assets, label) {
   assert(
     JSON.stringify(module.preload) === JSON.stringify(expected),
     `${label} preload closure is invalid`,
+  )
+}
+
+function validateCatalogSourceClosure(closure, label, entryPath, datasets) {
+  assert(isRecord(closure), `${label} must be an object`)
+  assertExactKeys(
+    closure,
+    ['totalFiles', 'totalLines', 'totalBytes', 'datasetIds', 'roles'],
+    label,
+  )
+  assert(
+    Array.isArray(closure.datasetIds) &&
+      closure.datasetIds.every(
+        (id) => typeof id === 'string' && isRecord(datasets[id]),
+      ) &&
+      JSON.stringify(closure.datasetIds) ===
+        JSON.stringify([...new Set(closure.datasetIds)].sort(compareStrings)),
+    `${label} dataset ids are invalid`,
+  )
+  assert(isRecord(closure.roles), `${label} roles must be an object`)
+  validateSourceMetrics(closure, label, [
+    'totalFiles',
+    'totalLines',
+    'totalBytes',
+  ])
+
+  const expectedRoles = ['entry', 'support', 'fixture', 'harness']
+  assert(
+    JSON.stringify(Object.keys(closure.roles).sort(compareStrings)) ===
+      JSON.stringify([...expectedRoles].sort(compareStrings)),
+    `${label} roles are invalid`,
+  )
+  const paths = new Set()
+  for (const role of expectedRoles) {
+    validateSourceRole(
+      closure.roles[role],
+      role,
+      `${label} ${role} role`,
+      paths,
+    )
+  }
+
+  assert(
+    closure.roles.entry.files === 1 &&
+      closure.roles.entry.paths[0] === entryPath,
+    `${label} must contain one entry file`,
+  )
+
+  const visibleTotals = ['entry', 'support', 'fixture'].reduce(
+    (totals, role) => ({
+      files: totals.files + closure.roles[role].files,
+      lines: totals.lines + closure.roles[role].lines,
+      bytes: totals.bytes + closure.roles[role].bytes,
+    }),
+    { files: 0, lines: 0, bytes: 0 },
+  )
+  assert(
+    visibleTotals.files === closure.totalFiles &&
+      visibleTotals.lines === closure.totalLines &&
+      visibleTotals.bytes === closure.totalBytes,
+    `${label} totals include excluded or missing files`,
+  )
+}
+
+function validateCatalogDatasets(datasets, label) {
+  assert(Array.isArray(datasets), `${label} must be an array`)
+  const ids = new Set()
+  for (const dataset of datasets) {
+    assert(isRecord(dataset), `${label} contains an invalid dataset`)
+    assertExactKeys(
+      dataset,
+      [
+        'id',
+        'title',
+        'specifier',
+        'format',
+        'records',
+        'fields',
+        'schema',
+        'bytes',
+        'sha256',
+        'selection',
+        'source',
+        'sourceUrl',
+        'observablePackage',
+        'observableRevision',
+        'observableFile',
+        'observableUrl',
+        'license',
+      ],
+      `${label} ${String(dataset.id)}`,
+    )
+    assert(
+      typeof dataset.id === 'string' &&
+        !ids.has(dataset.id) &&
+        typeof dataset.title === 'string' &&
+        dataset.specifier === `@charts-poc/demo-data/${dataset.id}` &&
+        (dataset.format === 'CSV' || dataset.format === 'JSON') &&
+        Number.isSafeInteger(dataset.records) &&
+        dataset.records >= 0 &&
+        Number.isSafeInteger(dataset.bytes) &&
+        dataset.bytes >= 0 &&
+        /^[a-f0-9]{64}$/u.test(dataset.sha256) &&
+        Array.isArray(dataset.fields) &&
+        dataset.fields.every((field) => typeof field === 'string') &&
+        Array.isArray(dataset.schema) &&
+        dataset.schema.every(
+          (field) =>
+            isRecord(field) &&
+            typeof field.name === 'string' &&
+            Array.isArray(field.types) &&
+            field.types.every((type) => typeof type === 'string'),
+        ) &&
+        [
+          'selection',
+          'source',
+          'sourceUrl',
+          'observablePackage',
+          'observableRevision',
+          'observableFile',
+          'observableUrl',
+          'license',
+        ].every((field) => typeof dataset[field] === 'string'),
+      `${label} contains invalid metadata`,
+    )
+    ids.add(dataset.id)
+  }
+}
+
+function validateSourceRole(role, roleName, label, seenPaths) {
+  assert(isRecord(role), `${label} must be an object`)
+  assertExactKeys(role, ['files', 'lines', 'bytes', 'paths'], label)
+  validateSourceMetrics(role, label, ['files', 'lines', 'bytes'])
+  assert(
+    Array.isArray(role.paths) &&
+      role.paths.every((sourcePath) => typeof sourcePath === 'string'),
+    `${label} paths are invalid`,
+  )
+  assert(
+    role.files === role.paths.length,
+    `${label} file count does not match paths`,
+  )
+  assert(
+    role.files > 0 || (role.lines === 0 && role.bytes === 0),
+    `${label} has metrics without files`,
+  )
+  assert(
+    JSON.stringify(role.paths) ===
+      JSON.stringify([...role.paths].sort(compareStrings)),
+    `${label} paths must be sorted`,
+  )
+  for (const sourcePath of role.paths) {
+    assertCatalogSourcePath(sourcePath, label)
+    assert(
+      !seenPaths.has(sourcePath),
+      `${label} has duplicate path ${sourcePath}`,
+    )
+    seenPaths.add(sourcePath)
+    if (roleName === 'harness') {
+      assert(
+        isCatalogHarnessSourcePath(sourcePath),
+        `${label} has invalid harness path`,
+      )
+    } else {
+      assert(
+        !isCatalogHarnessSourcePath(sourcePath),
+        `${label} assigns a harness path to ${roleName}`,
+      )
+    }
+  }
+}
+
+function validateSourceMetrics(metrics, label, fields) {
+  assert(
+    fields.every(
+      (field) => Number.isSafeInteger(metrics[field]) && metrics[field] >= 0,
+    ),
+    `${label} is invalid`,
+  )
+}
+
+function assertCatalogSourcePath(sourcePath, label) {
+  assert(
+    isSafeRepositoryPath(sourcePath) &&
+      (sourcePath.startsWith('cases/') || sourcePath.startsWith('shared/')) &&
+      sourcePath.endsWith('.ts') &&
+      !sourcePath.endsWith('.test.ts') &&
+      !sourcePath.includes('\\') &&
+      !sourcePath.includes('?') &&
+      !sourcePath.includes('#'),
+    `${label} has invalid source path`,
+  )
+}
+
+function isCatalogHarnessSourcePath(sourcePath) {
+  return /^shared\/(?:mount|recharts-mount|echarts-mount)\.ts$/.test(sourcePath)
+}
+
+function assertExactKeys(value, expectedKeys, label) {
+  assert(
+    JSON.stringify(Object.keys(value).sort(compareStrings)) ===
+      JSON.stringify([...expectedKeys].sort(compareStrings)),
+    `${label} fields are invalid`,
   )
 }
 

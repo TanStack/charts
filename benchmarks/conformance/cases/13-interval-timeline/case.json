@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "order": 140,
   "id": "13-interval-timeline",
-  "title": "Interval timeline",
+  "title": "Open-to-close price intervals",
   "family": "interval",
-  "intent": "Show task durations as horizontal ranged bars without converting intervals into a proprietary series model.",
+  "intent": "Show real Apple daily open-to-close price intervals as horizontal ranged bars without converting observations into a proprietary series model.",
   "support": "native",
   "features": [
     "ranged horizontal bars",
     "x1-x2 interval",
     "categorical y scale",
     "categorical color",
-    "long labels"
+    "date labels"
   ],
   "geometry": [{ "role": "bar", "count": 8 }],
   "source": {
@@ -19,7 +19,7 @@
     "url": "https://observablehq.com/plot/marks/bar"
   },
   "ai": {
-    "create": "Create a responsive project timeline from typed {task, start, end, phase} rows using one ranged horizontal bar per task and phase colors.",
-    "maintain": "Update task durations and reverse the task order without changing the interval data model, clipping labels, or introducing casts."
+    "create": "Create a responsive interval chart directly from AAPL Date, Open, and Close fields using one horizontal ranged bar per trading day and gain/loss colors.",
+    "maintain": "Change the selected trading window without changing the source data model, clipping date labels, or introducing casts."
   }
 }

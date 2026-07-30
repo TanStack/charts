@@ -1,5 +1,6 @@
 import {
   channelValues,
+  compositeKeyValues,
   createMark,
   inferredKeyValues,
   isChartKey,
@@ -11,9 +12,11 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  MarkRenderContext,
   ChartPoint,
   ChartValue,
   OptionChannelOutput,
+  SceneLabel,
   SceneNode,
   VisualChannel,
 } from './types'
@@ -26,6 +29,7 @@ export interface TextOptions<TDatum> {
   y?: Channel<TDatum, ChartValue | null | undefined>
   text?: Channel<TDatum, string | number | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fontSize?: number
@@ -66,7 +70,55 @@ export function text<TDatum>(
       datum == null ? '' : String(datum),
     )
     const zValues = channelValues(data, options.z, () => null)
-    const keys = inferredKeyValues(data, options.key, { groups: zValues })
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
+    const keys = inferredKeyValues(data, options.key, {
+      groups: zValues,
+      candidates: [xValues, yValues, compositeKeyValues(xValues, yValues)],
+      markId: id,
+      warningIdentity: options,
+    })
+    const anchors = data.map((datum, datumIndex) =>
+      visualValue(options.anchor, datum, datumIndex, data, 'middle'),
+    )
+    const dxValues = data.map((datum, datumIndex) =>
+      visualValue(options.dx, datum, datumIndex, data, 0),
+    )
+    const dyValues = data.map((datum, datumIndex) =>
+      visualValue(options.dy, datum, datumIndex, data, 0),
+    )
+    const rotateValues =
+      options.rotate === undefined
+        ? undefined
+        : data.map((datum, datumIndex) =>
+            visualValue(options.rotate, datum, datumIndex, data, 0),
+          )
+
+    const resolveLabel = (context: MarkRenderContext, datumIndex: number) => {
+      const xValue = xValues[datumIndex]
+      const yValue = yValues[datumIndex]
+      const textValue = textValues[datumIndex]
+      if (!isChartValue(xValue) || !isChartValue(yValue) || textValue == null) {
+        return undefined
+      }
+      const group = zValues[datumIndex] ?? null
+      const colorValue = colorValues[datumIndex] ?? null
+      const node: SceneLabel = {
+        kind: 'label',
+        key: `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`,
+        x: context.scales.x.map(xValue) + (dxValues[datumIndex] ?? 0),
+        y: context.scales.y.map(yValue) + (dyValues[datumIndex] ?? 0),
+        text: String(textValue),
+        anchor: anchors[datumIndex],
+        baseline: 'middle',
+        rotate: rotateValues?.[datumIndex],
+        fontSize: options.fontSize,
+        fontWeight: options.fontWeight,
+      }
+      return { node, xValue, yValue, group, colorValue }
+    }
 
     return {
       id,
@@ -75,60 +127,35 @@ export function text<TDatum>(
         y: { scale: 'y', values: yValues.filter(isChartValue) },
         color: {
           scale: 'color',
-          values: zValues.filter(isChartKey),
+          values: colorValues.filter(isChartKey),
         },
       },
-      render: ({ scales, theme, color: resolveColor }) => {
+      layoutLabels: (context) =>
+        data.flatMap((_datum, datumIndex) => {
+          const resolved = resolveLabel(context, datumIndex)
+          return resolved ? [resolved.node] : []
+        }),
+      render: (context) => {
+        const { theme, color: resolveColor } = context
         const nodes: SceneNode[] = []
         const points: ChartPoint<TDatum>[] = []
         data.forEach((datum, datumIndex) => {
-          const xValue = xValues[datumIndex]
-          const yValue = yValues[datumIndex]
-          const textValue = textValues[datumIndex]
-          if (
-            !isChartValue(xValue) ||
-            !isChartValue(yValue) ||
-            textValue == null
-          )
-            return
-          const dx = visualValue(options.dx, datum, datumIndex, data, 0)
-          const dy = visualValue(options.dy, datum, datumIndex, data, 0)
-          const rotate =
-            options.rotate === undefined
-              ? undefined
-              : visualValue(options.rotate, datum, datumIndex, data, 0)
-          const x = scales.x.map(xValue) + dx
-          const y = scales.y.map(yValue) + dy
-          const group = zValues[datumIndex] ?? null
+          const resolved = resolveLabel(context, datumIndex)
+          if (!resolved) return
+          const { node, xValue, yValue, group, colorValue } = resolved
           const color = visualValue(
             options.fill,
             datum,
             datumIndex,
             data,
-            group == null ? theme.foreground : resolveColor(group),
+            colorValue == null ? theme.foreground : resolveColor(colorValue),
           )
-          const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           nodes.push({
-            kind: 'label',
-            key,
-            x,
-            y,
-            text: String(textValue),
-            anchor: visualValue(
-              options.anchor,
-              datum,
-              datumIndex,
-              data,
-              'middle',
-            ),
-            baseline: 'middle',
-            rotate,
-            fontSize: options.fontSize,
-            fontWeight: options.fontWeight,
+            ...node,
             style: { fill: color },
           })
           points.push({
-            key,
+            key: node.key,
             markId: id,
             group,
             groupLabel: group == null ? id : String(group),
@@ -136,8 +163,8 @@ export function text<TDatum>(
             datumIndex,
             xValue,
             yValue,
-            x,
-            y,
+            x: node.x,
+            y: node.y,
             color,
           })
         })

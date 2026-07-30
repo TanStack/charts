@@ -30,6 +30,7 @@ export interface VectorOptions<TDatum> {
   rotate?: number | Channel<TDatum, number | null | undefined>
   anchor?: VectorAnchor
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   stroke?: VisualChannel<TDatum, string>
   strokeOpacity?: number
@@ -74,6 +75,10 @@ export function vector<TDatum>(
         ? data.map(() => rotateOption)
         : channelValues(data, rotateOption, () => 0)
     const zValues = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
     const keys = inferredKeyValues(data, options.key, { groups: zValues })
 
     return {
@@ -81,7 +86,7 @@ export function vector<TDatum>(
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
         y: { scale: 'y', values: yValues.filter(isChartValue) },
-        color: { scale: 'color', values: zValues.filter(isChartKey) },
+        color: { scale: 'color', values: colorValues.filter(isChartKey) },
       },
       render: ({ scales, color: resolveColor }) => {
         const nodes: SceneNode[] = []
@@ -121,7 +126,7 @@ export function vector<TDatum>(
             datum,
             datumIndex,
             data,
-            resolveColor(group),
+            resolveColor(colorValues[datumIndex] ?? null),
           )
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           const style = {

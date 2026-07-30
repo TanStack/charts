@@ -8,32 +8,35 @@ The spec owns chart composition, scale factories or fixed scale instances, and
 presentation.
 
 ```ts
-interface ChartSpec<TMarks extends readonly ChartMark[]> {
+type ChartSpec<TMarks extends readonly ChartMark[]> = {
   marks: TMarks
-  x: ChartAxisOptions | null
-  y: ChartAxisOptions | null
   guides?: boolean
   color?: ChartColorOptions
   gradients?: readonly ChartLinearGradient[]
   clip?: boolean
   margin?: number | Partial<ChartMargin>
   theme?: Partial<ChartTheme>
-}
+} & ([ChartMarkScaleX<TMarks[number]>] extends [never]
+  ? { x?: null }
+  : { x: ChartAxisOptions }) &
+  ([ChartMarkScaleY<TMarks[number]>] extends [never]
+    ? { y?: null }
+    : { y: ChartAxisOptions })
 ```
 
 ## Properties
 
-| Property    | Required | Meaning                                                                                                            |
-| ----------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| `marks`     | Yes      | Ordered mark layers. Later scene nodes paint after earlier ones.                                                   |
-| `x`         | Yes      | X scale and guide options, or `null` when no mark uses an x scale.                                                 |
-| `y`         | Yes      | Y scale and guide options, or `null` when no mark uses a y scale.                                                  |
-| `guides`    | No       | Set to `false` to suppress both axes, grid lines, titles, and their implicit margins.                              |
-| `color`     | No       | Shared categorical or custom color scale and optional legend.                                                      |
-| `gradients` | No       | Linear-gradient resources consumed by the resource-aware SVG renderer.                                             |
-| `clip`      | No       | Clips the marks group to the resolved inner chart bounds when the selected renderer supports resources.            |
-| `margin`    | No       | Locks all margins with a number or selected sides with a partial object. Omitted sides are measured automatically. |
-| `theme`     | No       | Overrides default foreground, muted, grid, background, or palette tokens.                                          |
+| Property    | Required    | Meaning                                                                                                            |
+| ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
+| `marks`     | Yes         | Ordered mark layers. Later scene nodes paint after earlier ones.                                                   |
+| `x`         | Conditional | Required when a mark materializes x; omitted otherwise.                                                            |
+| `y`         | Conditional | Required when a mark materializes y; omitted otherwise.                                                            |
+| `guides`    | No          | Set to `false` to suppress both axes, grid lines, titles, and their implicit margins.                              |
+| `color`     | No          | Shared categorical or quantitative color scale and optional legend.                                                |
+| `gradients` | No          | Linear-gradient resources consumed by the resource-aware SVG renderer.                                             |
+| `clip`      | No          | Clips the marks group to the resolved inner chart bounds when the selected renderer supports resources.            |
+| `margin`    | No          | Locks all margins with a number or selected sides with a partial object. Omitted sides are measured automatically. |
+| `theme`     | No          | Overrides default foreground, muted, grid, background, or palette tokens.                                          |
 
 The detailed option contracts live in
 [Scales, guides, and color](./scales-guides-and-color.md). Mark-specific
@@ -57,8 +60,8 @@ const definition = defineChart({
     }),
     lineY(rows, { x: 'date', y: 'value', points: true }),
   ],
-  x: { scale: xScale },
-  y: { scale: yScale, grid: true },
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear, grid: true },
 })
 ```
 
@@ -67,13 +70,14 @@ neutral scene nodes and optional interaction points. Marks may use different
 datum types in the same spec. Their inferred datum types become a union in
 interaction callbacks.
 
-Use stable `key` channels for data that reorders, enters, or exits. Mark IDs
-default from layer order; set `id` explicitly when a mark must retain identity
-while its order changes.
+Built-in marks infer stable keys from a unique primitive top-level `id`, nested
+`data.id`, or mark-owned positional candidate. Supply `key` when none is
+unique. Mark IDs default from layer order; set `id` explicitly when a mark
+must retain identity while its order changes.
 
-## Required positional axes
+## Conditional positional axes
 
-`x` and `y` are intentionally required. Supply a D3 factory for an inferred
+Each axis used by the marks is required. Supply a D3 factory for an inferred
 domain or a configured instance for a fixed domain:
 
 ```ts
@@ -83,19 +87,17 @@ const axes = {
 }
 ```
 
-Use `null` only when that dimension has no materialized channel:
+Omit an unused dimension:
 
 ```ts
 const horizontalThresholds = defineChart({
   marks: [ruleY([25, 50, 75])],
-  x: null,
   y: { scale: scaleLinear().domain([0, 100]) },
 })
 ```
 
-`guide: false` hides an axis but does not remove its scale. `x: null` or
-`y: null` declares that no scale exists. Scene compilation throws when a mark
-materializes values for a missing positional scale.
+`guide: false` hides an axis but does not remove its scale. Scene compilation
+still guards untyped consumers that omit or null an axis used by a mark.
 
 ## Guides and margins
 
@@ -103,13 +105,14 @@ Guide visibility and geometry are separate:
 
 - `x.guide: false` or `y.guide: false` hides one guide.
 - `guides: false` hides all guides and removes their implicit margin.
-- Omitted `margin` sides are measured from ticks, rotation, titles, and edge
-  overhang.
+- Omitted `margin` sides are measured from ticks, rotation, titles, edge
+  overhang, color legends, and Cartesian `text` marks.
 - `margin: 0` locks every side to zero.
 - `margin: { left: 80 }` locks only the left side.
 
-Automatic margins contain labels; they do not choose a collision policy.
-Control dense labels with the scale's tick behavior, `ticks`, `format`, or
+Automatic margins contain guide and text-mark labels unless the side is locked
+or the plot is clipped; they do not choose a collision policy. Control dense
+guide labels with the scale's tick behavior, `ticks`, `format`, or
 `tickRotate`.
 
 ## Clip and gradient resources

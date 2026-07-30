@@ -4,22 +4,22 @@
   "id": "18-cumulative-histogram",
   "title": "Cumulative histogram",
   "family": "distribution",
-  "intent": "Show how the cumulative count grows across fixed quantitative bins.",
+  "intent": "Show how 2016 Olympic athlete counts accumulate across inferred weight bins.",
   "support": "composed",
   "features": [
     "bin transform",
     "cumulative reduction",
     "rect mark",
     "d3-array bin",
-    "fixed thresholds"
+    "Scott threshold inference"
   ],
-  "geometry": [{ "role": "rect", "count": 7 }],
+  "geometry": [{ "role": "rect", "count": 71 }],
   "source": {
     "title": "Observable Plot cumulative bin",
-    "url": "https://github.com/observablehq/plot/blob/main/test/plots/athletes-weight-cumulative.ts"
+    "url": "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/plots/athletes-weight-cumulative.ts"
   },
   "ai": {
-    "create": "Create a cumulative histogram from raw numeric observations using fixed boundaries from 20 through 90.",
-    "maintain": "Convert the cumulative count to cumulative proportion without changing the raw rows or mixing Plot threshold semantics with D3 threshold semantics."
+    "create": "Create a cumulative histogram directly from the imported Olympians weight field, allowing the bin transform to infer Scott thresholds.",
+    "maintain": "Convert the cumulative count to cumulative proportion without reshaping the imported observations or replacing data-driven bin inference with authored boundaries."
   }
 }

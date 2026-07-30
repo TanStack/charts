@@ -306,7 +306,8 @@ render do not start an animation; the current animation options apply to the
 next reconciliation. Responsive and explicit size changes commit immediately
 unless `resize: true`.
 
-Stable mark IDs and datum keys are essential for meaningful transitions.
+Stable mark IDs and resolved datum identities are essential for meaningful
+transitions.
 
 ## SVG serialization
 

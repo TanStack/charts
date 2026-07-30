@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-07-29
+Last updated: 2026-07-30
 
 ## Triage rule
 
@@ -38,13 +38,13 @@ Each entry records:
 | ----- | -------------------------------------------------------- | --------------- | ---------- |
 | F-001 | Configured D3 scales required a TanStack wrapper         | API             | resolved   |
 | F-002 | Responsive range ownership was unclear                   | Documentation   | resolved   |
-| F-003 | Scale requirements were absent from chart types          | API             | resolved   |
+| F-003 | Scale requirements ignored mark dimensionality           | API             | resolved   |
 | F-004 | A radius channel silently imported continuous D3         | API             | resolved   |
 | F-005 | Curved area topology was implemented independently       | API             | resolved   |
 | F-006 | Explicit domain construction is repetitive               | API/Skill       | resolved   |
 | F-007 | Runtime and adapters bypassed strict scales              | API             | resolved   |
 | F-008 | D3 motion would currently burden every DOM host          | API             | resolved   |
-| F-009 | Automatic ordinal color is an implicit exception         | Documentation   | resolved   |
+| F-009 | Color semantics were overloaded onto grouping and paint  | API             | resolved   |
 | F-010 | D3 curves require one TanStack grammar bridge            | API             | monitoring |
 | F-011 | Adapters performed dynamic preparation twice             | API             | resolved   |
 | F-012 | Render callbacks omit diagnostic metrics                 | API             | monitoring |
@@ -88,7 +88,7 @@ Each entry records:
 | F-050 | Plot proportion units depend on transform scope          | Documentation   | monitoring |
 | F-051 | Beeswarm layout needs responsive pixel preparation       | Documentation   | monitoring |
 | F-052 | D3 rank overloads lose callback context                  | Documentation   | monitoring |
-| F-053 | Data-bound annotations can escape auto margins           | Documentation   | monitoring |
+| F-053 | Data-bound annotations can escape auto margins           | API/Docs        | resolved   |
 | F-054 | D3 reducer output needs empty-safe narrowing             | Documentation   | monitoring |
 | F-055 | Horizontal areas required renderer internals             | API             | resolved   |
 | F-056 | Conformance tooling assumed Plot was the reference       | Tooling         | resolved   |
@@ -169,6 +169,7 @@ Each entry records:
 | F-131 | Stable identity repeated inferable key channels          | API             | resolved   |
 | F-132 | Factory unions disrupt D3's generic inference            | API             | monitoring |
 | F-133 | Clipped ancestors trapped native tooltips                | API             | resolved   |
+| F-134 | Demo fixtures modeled charts instead of source data      | Docs/Tooling    | resolved   |
 
 ## Findings
 
@@ -202,20 +203,26 @@ Each entry records:
   intentional color/radius mappings, screen-space preparation, or interaction
   copies using `scene.chart`; the recipes distinguish all three.
 
-### F-003 — Scale requirements were absent from chart types
+### F-003 — Scale requirements ignored mark dimensionality
 
 - Status: resolved
 - Severity: high
-- Observed in: strict compiler and runtime integration
-- Friction: definitions did not require an author to decide how both
-  positional dimensions map, so omitted scales could reach scene creation.
-- Decision: `ChartSpec` requires `x` and `y`. Each dimension supplies a scale
-  factory, a configured scale, or explicitly uses `null` when no mark
-  materializes that dimension. `createChartScene` retains guards for untyped
-  consumers.
-- Verification: TypeScript rejects an omitted axis; scene tests reject missing
-  scales and `null` on materialized dimensions while accepting positionless
-  charts with two explicit null axes.
+- Observed in: strict compiler integration, positionless charts, and
+  one-dimensional rules
+- Friction: requiring both `x` and `y` correctly rejected incomplete
+  Cartesian definitions, but also forced `x: null` and `y: null` onto geo,
+  polar, and other positionless charts. A horizontal or vertical rule likewise
+  had to describe an axis it could never materialize.
+- Decision: derive each axis requirement from the marks' scale phantoms. A
+  materialized dimension requires a configured scale. A dimension whose marks
+  all expose `never` may be omitted or explicitly set to `null`, and rejects a
+  configured phantom axis. Mixed charts require every dimension materialized
+  by any constituent mark. The runtime mirrors the type contract and renders
+  guides only for configured axes.
+- Verification: focused type-contract and configured-scale tests cover
+  required Cartesian axes, mixed charts, omitted positionless axes, rejected
+  phantom axes, one-dimensional rules, runtime guards, and guide suppression.
+  Root typecheck passes.
 
 ### F-004 — A radius channel silently imported continuous D3
 
@@ -256,11 +263,18 @@ Each entry records:
   first-seen order; quantitative and temporal domains use finite extents; bar,
   area, and interval baselines participate in zero inclusion. `nice` runs
   after domain inference. Empty channels retain the D3 factory's native
-  domain.
-- Sandbox evidence: the main time series and service ranking could remove
-  date, numeric, and categorical domain preparation. The sparkline keeps an
-  explicit padded domain because that padding is a visual policy, not an
-  extent.
+  domain. Color factories follow their D3 semantics: continuous and quantize
+  scales infer finite extents, quantile and sequential-quantile scales receive
+  the observed numeric population, and threshold scales require authored cut
+  points. An authored range is applied before continuous multi-stop inference
+  so the inferred domain has one stop per palette color.
+- Sandbox evidence: the real-data dashboard passes the original AAPL, TSA,
+  San Francisco temperature, and Seattle weather rows through one accessor-
+  driven sparkline definition. Its positional factories infer both axes; the
+  authored area baseline carries visual padding into the materialized y
+  channels. The industry stack, Simpsons heatmap, penguin scatter, car summary,
+  and survey views likewise keep only semantic ordering or authored cuts
+  explicit.
 - Stats evidence: unzoomed UTC, zero-inclusive numeric, stacked, and stream
   domains now come from materialized channels. Zoom viewports, categorical
   ordering, and semantic color assignments remain configured instances.
@@ -268,17 +282,32 @@ Each entry records:
   `extent` and `max` setup when the result only repeated mark channels. Recipes
   still configure normalized ranges, thresholds, shared facet domains, and
   transform boundaries explicitly.
+- Catalog evidence: every explicit domain in the 100-case authored catalog was
+  classified by intent. Inferred extents and first-seen order replaced
+  benchmark-only padding, complete observed-date ranges, totals, and category
+  restatements in both TanStack and reference sources. Twenty-one exported
+  domain helpers disappeared, including the shared `timeDomain` and the
+  first-case `gapValueDomain`. Normalized coordinates, thresholds, fixed
+  interaction viewports, transform coordinate spaces, shared comparison
+  domains, and ordering that must survive subsets remain explicit. Guide
+  assertions no longer justify otherwise redundant domains. Reference defaults
+  are not assumed equivalent: the slopegraph uses Plot's mark-domain
+  `sort: { x: null, color: null }` to request the same first-seen period and
+  color order as TanStack without restoring categorical arrays.
 - Scope: the same lifecycle applies to Cartesian, color, polar, grouped-bar,
   and mark-local radius scales. Explicit instances remain necessary for
   thresholds, fixed comparison windows, shared facet domains, stable semantic
   color assignments, and interaction viewports.
-- Verification: focused tests cover numeric, temporal, band, ordinal,
-  continuous-color, polar, grouped-bar, and radius inference; zero baselines;
-  nicening; empty data; factory configuration; and fixed instance domains.
-  Root recipes, fixtures, Stats parity definitions, and the sandbox no longer
-  calculate domains that are direct extents of their mark channels. The locked
-  D3-scale line-scene bundle records the shared lifecycle cost at 2,879
-  minified and 861 gzip bytes.
+- Verification: focused core tests cover numeric, temporal, band, ordinal,
+  continuous, quantize, quantile, sequential-quantile, threshold, polar,
+  grouped-bar, and radius inference; zero baselines; nicening; empty data;
+  explicit empty domains; factory configuration; palette stop alignment;
+  fixed instance domains; rejection of mixed-type quantitative and temporal
+  channels; strictly positive and strictly negative inferred log domains with
+  zero and mixed-sign rejection; and clear failures when quantitative color
+  scales receive nonnumeric values. The slopegraph passes responsive initial/update
+  conformance with identical `Before`, `After` guides and category paints at
+  both widths. Root typecheck passes.
 
 ### F-007 — Runtime and adapters bypassed strict scales
 
@@ -305,23 +334,56 @@ Each entry records:
 - Decision: define an injectable motion driver or separate animated host
   boundary before replacing native interpolation and easing.
 
-### F-009 — Automatic ordinal color is an implicit exception
+### F-009 — Color semantics were overloaded onto grouping and paint
 
 - Status: resolved
-- Severity: low
-- Observed in: strict-scale product policy
-- Friction: positional and continuous color scales are explicit, while grouped
-  marks receive an automatic D3 ordinal theme scale.
-- Decision: retain this documented exception because it costs about 0.62 kB
-  gzip and materially improves the default chart.
-- Extension: a color-scale factory now infers its domain from materialized
-  color channels while preserving configured range and interpolator options.
-  A configured color-scale instance remains the fixed semantic mapping.
-- Verification: the first grouped-series recipe now states the automatic
-  theme-palette default and routes fixed semantic ownership to a supplied D3
-  ordinal scale, palette-only changes to `color.range`, and theme-wide changes
-  to CSS variables. Catalog cases use explicit ordinal scales where reference
-  colors are semantic while ordinary grouped examples need no extra setup.
+- Severity: medium
+- Observed in: catalog comparison with Observable Plot and the color/fill API
+  audit
+- Friction: `z` simultaneously meant geometric grouping, interaction identity,
+  and color-scale input. Authors either supplied a grouping channel that did
+  not actually group the geometry or bypassed the color scale and legend with
+  `fill` or `stroke`.
+- Decision: color-capable built-in marks expose a semantic `color` channel.
+  It supplies the color scale and legend, while `z` remains responsible for
+  geometric grouping and interaction/key scope. For compatibility, omitting
+  `color` reuses the existing `z` values as color input without allocating
+  another channel array. Authored `fill` and `stroke` remain final paint
+  overrides. The automatic theme ordinal scale remains the no-configuration
+  default; configured instances retain fixed semantic mappings and factories
+  infer as described in F-006. The theme palette applies only to the built-in
+  ordinal scale. A D3 color factory must receive `color.range` or return a
+  scale with an authored string range/interpolator; bare D3 defaults are
+  numeric or empty and fail instead of becoming invalid CSS paint.
+- Group inference: when `z` is omitted, connected line and area marks use
+  `color` to partition paths because one row-level color channel necessarily
+  identifies those paths. A grouped bar does the same only when `groupScale`
+  requests subgroup geometry. Explicit `z` remains authoritative and can
+  differ from `color`; point marks never change geometry merely because they
+  have a color channel.
+- Legend behavior: `colorLegend` uses swatches for categorical scales, a
+  gradient for continuous and sequential scales, and exact stepped bins and
+  boundaries for quantize, quantile, and threshold scales.
+- Catalog evidence: examples use `color` when a field describes paint
+  semantics, retain `z` when it actually groups geometry, and keep literal
+  `fill` or `stroke` when the reference color is direct paint. Raw fixture and
+  transform modules no longer own palettes or final paint. The remaining
+  datum-driven final paint accessor is the labeled heatmap's foreground
+  contrast rule. Fifty-one redundant color-domain declarations were removed;
+  30 semantic mappings, thresholds, and stable envelopes remain. Twenty-four
+  legacy `z` paint fallbacks became `color`, and the only remaining z-only
+  catalog options define grouped-bar slot geometry.
+- Verification: focused color-scale, Cartesian mark-color, radial mark-color,
+  geo mark-color, line-group sentinel, and legend tests pass with root
+  typecheck. Null and empty-string path groups remain distinct. All 100 catalog
+  cases pass artifact and static loading checks, and the focused catalog and
+  core guards pass. The full repository matrix passes 2,848 tests. Across the
+  complete catalog-inference branch, including the later key and text-layout
+  work and strict inference guards, the locked D3 line scene grows by 1,609
+  minified bytes and 509 gzip bytes, and the representative-mark entry grows
+  by 2,740 minified bytes and 797 gzip bytes. The optional geo entry's isolated
+  color work grows by 978
+  minified bytes and 335 gzip bytes.
 
 ### F-010 — D3 curves require one TanStack grammar bridge
 
@@ -627,11 +689,13 @@ Each entry records:
   from `comparison/stress`; direct build-time globals reduce that contribution
   to zero for all five libraries, and `pnpm benchmark:check` passes. The
   catalog graph gate now proves exactly 100 TanStack, 68 Plot, 21 Recharts, and
-  11 ECharts implementations plus their isolated raw-source entries, with no
-  test/data/helper dynamic entries. Every published TanStack root now receives
-  the same static-closure comparison-package check. The schema-v2 artifact
-  validator rejects unreferenced files, unsafe paths, missing imports, invalid
-  preloads, and a comparison module not marked debug-only.
+  11 ECharts implementations plus their isolated raw-source entries. Source
+  entries for case support, fixtures, and harnesses remain lazy, tests stay
+  excluded, and no raw-source wrapper enters the initial or published graph.
+  Every published TanStack root receives the same static-closure
+  comparison-package check. The schema-v3 artifact validator rejects
+  unreferenced files, unsafe paths, missing imports, invalid preloads, invalid
+  authored-source roles, and a comparison module not marked debug-only.
 
 ### F-025 — Bundle maintenance clobbered the full comparison report
 
@@ -1224,19 +1288,26 @@ Each entry records:
 
 ### F-053 — Data-bound annotations can escape automatic guide margins
 
-- Status: monitoring
+- Status: resolved
 - Severity: low
-- Owner: Documentation/Skills
-- Observed in: annotated minimum/maximum time-series catalog case
-- Friction: automatic layout measures axes and guide labels, but it cannot
-  reserve space for arbitrary data-bound text near a domain edge. The maximum
-  label overflowed the 320 px container when centered over its point.
-- Current decision: keep data annotation placement explicit. Use an edge-aware
-  anchor and pixel offset for extrema or other labels that may land on a chart
-  boundary; do not increase every chart's margins for optional marks.
-- Verification: `anchor: "end"` with a negative `dx` keeps both extrema labels
-  contained across the responsive initial/update matrix. The paired case passes
-  with 98.3% diagnostic geometry similarity and no core bundle change.
+- Owner: API/Documentation
+- Observed in: multi-line end labels, slopegraph, indexed lines, connected
+  scatter, extrema annotations, and grouped reducer bars
+- Friction: removing redundant numeric domains exposed that automatic layout
+  measured guides but not data-bound text. Labels at an inferred maximum
+  escaped the top of the surface even though that margin side was unlocked.
+- Decision: built-in text marks expose their positioned labels to the existing
+  monotonic margin solver. It measures anchors, `dx`/`dy`, rotation, font
+  metrics, and responsive scale positions without calling mark render.
+  Explicit margin sides and `margin: 0` remain locks; `clip: true` keeps clipped
+  plots authoritative. Custom marks can opt in with `layoutLabels`.
+- Verification: focused core layout/text tests pass, mark render remains
+  single-pass, and all six affected cases pass containment at 320 and 640 px
+  across initial and updated data. The grouped/stacked ordering checks in the
+  same scoped Chromium run also pass. Reusing the axis label-bound arithmetic
+  keeps the isolated automatic text-margin cost to 219 minified bytes / 85 gzip
+  bytes for the locked line scene and 524 minified bytes / 178 gzip bytes for
+  the representative-mark entry, with no new dependency.
 
 ### F-054 — D3 reducer output needs empty-safe narrowing
 
@@ -1404,9 +1475,10 @@ Each entry records:
   the publisher adds only publication invariants such as unique IDs/orders,
   directory-name agreement, safe routes, and a closed module allowlist.
 - Verification: strict typecheck passes, `catalog:check` validates all current
-  cases, and `catalog:build` generates schema-v2 `catalog.json` plus the exact
-  implementation closure from the same parsed metadata. TanStack.com renders
-  detail and embed routes from that structure rather than generated HTML.
+  cases, and `catalog:build` generates schema-v3 `catalog.json` plus the exact
+  implementation closure and authored-source role metadata from the same
+  parsed metadata. TanStack.com renders detail and embed routes from that
+  structure rather than generated HTML.
 
 ### F-062 — Interaction checks were selector-bound
 
@@ -1554,12 +1626,18 @@ Each entry records:
 - Friction: bundle bytes included the shared ECharts mount, but “authored
   implementation surface” counted only each renderer entry file. The report
   therefore favored any reference that moved setup into a local shared module.
-- Decision: use the esbuild metafile to count every transitive authored source
-  under `benchmarks/conformance` once per implementation. Keep dependency and
-  TanStack package internals out of this case-authoring metric.
-- Verification: focused audited cases report a 0.79× transitive authored-line
-  ratio instead of the direct-entry-only value while bundle contents remain
-  unchanged.
+- Decision: use one canonical source-closure loader for the catalog viewer,
+  comparison report, and published artifact. Count each transitive authored
+  file under `benchmarks/conformance` once and classify it as entry, case
+  support, fixture, or harness. Expose harness metrics separately but exclude
+  them from authored totals and ratios so shared mounting infrastructure does
+  not become case-authoring surface.
+- Verification: focused loader tests cover static and dynamic local imports,
+  nested shared fixtures, cross-case fixtures, renderer-entry exclusion,
+  harness separation, UTF-8 bytes, and newline-aware LF, CRLF, and CR counts.
+  The comparison report emits the same role totals and paths, and the
+  schema-v3 artifact checker recomputes and deep-compares both implementation
+  closures for every case.
 
 ### F-069 — Strict containment exposed a clipped Plot guide
 
@@ -2358,7 +2436,7 @@ Each entry records:
   and a documentation theme controlled by site state could not update an
   already interactive iframe. The intended production origin and base path
   were described but not exercised by the build gate.
-- Decision: publish one versioned embed contract in the schema-v2
+- Decision: publish one versioned embed contract in the schema-v3
   `catalog.json`; fix the production route at
   `https://tanstack.com/charts/catalog/`; parse explicit query defaults and
   bounds; remove root and body width/background constraints in local embed
@@ -2617,32 +2695,23 @@ Each entry records:
   `@tanstack/charts/geo` entry points. `polar` copies configured D3 angle and
   radius scales into final responsive bounds and composes D3-backed arcs,
   radial lines, radial areas, dots, text, rules, and guides. `geoShape` accepts
-  a responsive `d3-geo` projection factory, delegates path and centroid
-  geometry to D3, and maps `r`/`rScale` through `geoPath().pointRadius()`.
-  Radial line and dot groups also carry their generic geometry-role classes.
-  Neither capability is re-exported from the package root. Boundary datasets
-  and TopoJSON conversion stay application-owned inputs rather than package
-  dependencies.
-- Verification: focused core tests cover responsive scale copying, source-scale
-  immutability, D3 path equality, wrapped seams, advanced per-datum arc
-  generators, guide layering, semantic role classes, missing-scale errors,
-  projected GeoJSON paths, and interaction points. The polar expansion covers
-  labels, center content, rounded and nested rings, rose, needle gauge,
-  comparative radar, radial bars, sunburst, numeric line, and numeric scatter.
-  The geographic expansion covers regional and 177-country choropleths,
-  proportional symbols, a 51-feature Albers USA map, orthographic globe,
-  projected routes, and a four-projection atlas gallery. Isolated gzip gates
-  are 10.50 KiB for geo, 8.69 KiB for arcs, 9.12 KiB for D3 pie plus arcs, and
-  18.50 KiB for a complete polar line/scatter composition under an 18.75 KiB
-  ceiling, while atlas data and every locked Cartesian entry remain outside
-  those bundles. The full scale-backed gauge composition is independently
-  budgeted at 17.5 KiB gzip.
-  Numeric polar line/scatter pass the six-variant standard matrix at 100.0%
-  geometry similarity; country and state atlas cases pass at 99.9%, and the
-  four-pane projection gallery passes at 99.8%. All 328 tests, strict
-  typechecking, isolated bundle gates, 64-page documentation checks, packed
-  exports/declarations/runtime imports, 100 catalog pages and embeds, and all
-  example builds pass.
+  either a responsive projection callback or an explicit descriptor containing
+  a projection `type`, `fit`, and optional pixel `inset`. Descriptors refit on
+  every render to the final plot bounds. `fit: "data"` collects source
+  geometries, `fit: "sphere"` preserves a complete world frame, and an
+  explicit GeoJSON geometry or collection fixes the fit independently of the
+  rendered rows. Path, centroid, and point-radius geometry remain delegated to
+  D3. Geo and polar marks expose positionless scale phantoms, so definitions
+  omit Cartesian axes and guides without repeating `x: null`, `y: null`, or
+  `guides: false`. Neither capability is re-exported from the package root.
+  Boundary datasets and TopoJSON conversion stay application-owned inputs
+  rather than package dependencies.
+- Verification: focused polar, geo, configured-scale, and type-contract tests
+  cover responsive scale copying, source-scale immutability, D3 path equality,
+  data/sphere/explicit-geometry fitting, resize refits, inset clamping,
+  omitted positionless axes, projected paths, interaction points, Feature
+  identity independent of color values, and polygon, line, and mixed-geometry
+  semantic paint defaults. Root typecheck passes.
 
 ### F-118 — Serialized SVG discarded interaction semantics
 
@@ -2695,7 +2764,7 @@ Each entry records:
   preserved ownership but necessarily replaced the site's chrome, routing,
   headers, cache policy, and content delivery behavior.
 - Decision: treat the catalog as generated structured content. Charts CI builds
-  schema-v2 `catalog.json` plus only the recursively allowlisted implementation
+  schema-v3 `catalog.json` plus only the recursively allowlisted implementation
   modules, then replaces the generated `catalog-dist` branch after validation
   and the unfiltered conformance matrix. TanStack.com's existing content
   pipeline reads that branch, verifies hashes and limits, renders native routes
@@ -2705,10 +2774,12 @@ Each entry records:
   and route ownership are removed from the Charts workflow.
 - Verification: the artifact generator records an exact Charts revision,
   deterministic SHA-256 allowlist, safe repository source paths, recursive
-  imports, and debug-only comparison roots. Focused tests reject unsafe paths,
-  unreferenced assets, and public comparison modules. The loading gate checks
-  every TanStack root's static closure for reference cases or competitor
-  packages. Main-branch CI uploads the validated artifact and publishes only
+  imports, debug-only comparison roots, and role-aware authored-source
+  closures. Focused tests reject unsafe paths, unreferenced assets, public
+  comparison modules, and inconsistent source totals, roles, or paths. The
+  loading gate checks every TanStack root's static closure for reference cases
+  or competitor packages and proves raw source remains lazy and unpublished.
+  Main-branch CI uploads the validated artifact and publishes only
   `catalog.json` and `assets/*.js` to `catalog-dist`. The publication workflow
   pins every third-party action to a full commit SHA, as required by the
   repository's Actions policy.
@@ -2892,7 +2963,8 @@ Each entry records:
   Transform-heavy dynamic cases also obscured whether transformation or cache
   invalidation belonged to Charts.
 - Decision: treat the raw-data boundary as part of the authoring contract.
-  Catalog source follows and displays every case-local source dependency.
+  Catalog source follows and displays every case-local source dependency and
+  transitive shared fixture.
   Raw fixture modules may load, parse, or generate observations; bins, stacks,
   ranks, cumulative endpoints, summaries, and layouts remain visible in
   renderer or transform source. The conformance report exposes transitive
@@ -2900,15 +2972,27 @@ Each entry records:
   transforms use ordinary adjacent functions; application or framework
   reactivity owns memoization. Surface-responsive transforms remain in the
   chart callback.
-- Verification: recursive source-loader coverage proves that the entry,
-  `data.ts`, and local transform modules render while shared harness modules
-  stay excluded. Histogram, moving-average, stacked-area, boxplot, lollipop,
-  and waterfall show their transforms beside `defineChart`. Waterfall data
-  exports signed contributions rather than cumulative endpoints; force and
-  Marimekko show their local layout modules; the responsive waffle source
-  visibly expands category totals into cells. The nine-case browser run passes
-  with zero diagnostics or unsafe assertions and reports a 1.19× geometric-mean
-  authored-source ratio to Observable Plot.
+- Verification: recursive source-loader coverage proves that entry and support
+  files open by default, fixture files remain visible in a collapsed group,
+  shared fixture dependencies are included transitively, and shared harness
+  modules stay excluded from authored totals. The comparison report and
+  schema-v4 artifact use the same closure and expose entry, support, fixture,
+  and harness metrics and paths. Histogram, moving-average, stacked-area,
+  boxplot, lollipop, and waterfall show their transforms beside `defineChart`.
+  Waterfall data exports signed contributions rather than cumulative endpoints;
+  force and Marimekko show their local layout modules; the responsive waffle
+  source visibly expands category totals into cells. A second role audit moved
+  formatters, selection guards, cursor parsing, viewport math, and interaction
+  state helpers for case 33 and cases 80–92 out of fixture-classified
+  `data.ts` files and into open-by-default `model.ts` support modules. Focused
+  loader and source-view tests prove the transitive models stay visible while
+  observation fixtures remain collapsed. A final geographic and polar audit
+  moved exact atlas joins, centroid and route construction, wind and calendar
+  channel derivation, county projection filtering, and projection-gallery
+  configuration into open-by-default case or shared transform modules.
+  The full 100-case browser matrix passes with a 1.15× geometric-mean
+  authored-source ratio, 97.7% geometry similarity, 16/16 interaction cases,
+  zero diagnostics, and zero unsafe assertions.
 
 ### F-128 — Chart-owned data reactivity duplicated application state
 
@@ -2929,6 +3013,12 @@ Each entry records:
   changes still rebuild responsive definitions. Place transforms in ordinary
   functions beside `defineChart`; memoize the complete definition when its
   captured values change.
+- Catalog evidence: a complete definition audit found 97 parameterless
+  responsive builders. Ninety-two now return static definitions and perform
+  input-owned setup only when the definition changes. Five size-dependent
+  cases now read the actual chart build context instead of captured harness
+  dimensions. Together with the five pre-existing responsive layouts, the
+  catalog now has 92 static and 10 genuinely responsive definitions.
 - Verification: strict typecheck, 1,966 core and framework tests, the
   seven-adapter package gate, and the 81-page documentation contract pass with
   definitions built only from captured application values plus current size
@@ -3001,20 +3091,23 @@ Each entry records:
   `key: "category"` solely to prevent avoidable DOM replacement and focus
   drift.
 - Decision: built-in marks prefer an explicit key, then a unique primitive
-  datum `id`, then a mark-owned positional candidate, and finally row index.
-  Bars use their categorical channel; lines and areas use their independent
-  axis; rects and cells use the complete x/y interval tuple. Polar lines,
+  datum `id`, a unique primitive nested `data.id`, then a mark-owned positional
+  candidate, and finally row index. Bars use their categorical channel; lines
+  and areas use their independent axis; rects and cells use the complete x/y
+  interval tuple. Dots and text try x, then y, then the x/y tuple. Polar lines,
   areas, and rules use angle. Every inferred candidate must be complete and
   unique within its interaction group. Explicit keys retain their authored
   behavior.
+- Catalog evidence: 175 explicit mark keys were reviewed; 164 repeated identity
+  already inferable by the mark and were removed. Nested D3-pie identity now
+  removes the ten remaining `data.id` accessors, and positional point identity
+  removes the final categorical dot key. No built-in catalog mark now repeats
+  an inferable key channel.
 - Verification: focused resolver, Cartesian, polar, geo, and DOM-host tests
-  pass 66 tests. The DOM regression proves surviving bars retain their exact
-  SVG elements through reorder, filter, value, and membership changes without
-  an authored key. The complete 2,154-test suite, root typecheck, 81-page
-  documentation contract, and bundle policy pass. The exact line-scene lock
-  records the shared resolver and development warning at +654 minified/+261
-  gzip bytes; renderer hosts and adapters that materialize no keyed mark remain
-  byte-identical.
+  cover explicit-key precedence, top-level and nested primitive `id`,
+  single-axis and composite point candidates, group-local uniqueness, index
+  fallback, per-mark development warnings, and stable rendered identity. Root
+  typecheck passes.
 
 ### F-132 — Factory unions disrupt D3's generic inference
 
@@ -3067,3 +3160,58 @@ Each entry records:
   packed-consumer, seven-adapter, formatting, and bundle gates pass. The
   reviewed bundle change is 1,486 gzip bytes for the DOM host and 1,947 for the
   React adapter; it adds no bundled dependency.
+
+### F-134 — Demo fixtures modeled charts instead of source data
+
+- Status: resolved
+- Severity: high
+- Owner: Documentation/Tooling
+- Observed in: catalog data-transparency audit after the source-closure work
+- Friction: none of the 100 catalog cases imported Observable Plot's published
+  demo datasets. Seventy-eight cases had local `data.ts` modules, 76 accepted a
+  revision, 59 exposed generic chart-shaped fields such as `value`, `label`,
+  `x`, or `y`, and seven of eight shared fixtures generated synthetic
+  observations. The source viewer disclosed those modules after F-127, but
+  disclosure did not make invented Atlas/Beacon/Comet series or hashed
+  choropleth values representative source data. Several cases named an
+  Observable example while demonstrating different semantics.
+- Decision: add a private, renderer-neutral demo-data package generated from
+  exact, pinned Observable snapshots. Dataset modules preserve source field
+  names, use exact subpath exports, and carry source URL, upstream revision,
+  row count, schema, byte size, license note, and SHA-256 metadata. Small
+  snapshots are emitted as typed rows. Large CSV snapshots stay compact and
+  parse only when their exact subpath is imported. Catalog source discovery
+  recognizes package imports and renders provenance without treating raw rows
+  as authored chart code. Case-local selection and the transform being
+  demonstrated remain visible; fixtures must not perturb measurements or
+  rename source columns to chart channels.
+- Catalog-fixture evidence: a final role audit removed every case-local
+  `data.ts` module. Renderer entries now import exact demo-data subpaths
+  directly; revision windows, representative-row choices, sampling, and
+  subtree filters live in open-by-default `selection.ts` support. Layout and
+  normalization helpers accept the imported source rows instead of reaching
+  through a hidden fixture. Cases 85 and 92 retain authored interaction state
+  as explicitly named `scenario.ts`, not observation data.
+- Framework-example evidence: the React and Octane showcases no longer import
+  the synthetic Stats parity fixture. They import pinned industries, penguins,
+  cars, and downloads subpaths directly; their time-window selection, D3 stack
+  offsets, penguin count aggregation, histogram bins, and ranking selection
+  are visible in adjacent example-owned source.
+- Bundle policy: demo data is not a production Charts dependency. Conformance
+  executes with the selected snapshot but measures renderer bundles with
+  `@charts-poc/demo-data/*` externalized. Exact-subpath tests prevent sibling
+  datasets from entering a chart chunk; small dataset chunks do not include a
+  CSV parser, while the parser cost for a large snapshot is confined to that
+  snapshot's subpath.
+- Verification: the package contains 27 pinned datasets. All 100 catalog cases
+  have been audited: there are no case-local `data.ts` modules or `./data`
+  imports, 25 explicit `selection.ts` modules, and only the two authored
+  interaction-state exceptions named `scenario.ts`. The React, Octane, and
+  sandbox showcases import source-shaped demo rows. Demo-data sync, metadata,
+  schema, hash, exact-subpath, and compact-large-CSV tests pass. The catalog
+  source-view and schema-v4 artifact checks pass at 100 cases and 5.45 MiB.
+  The full 100-case Chromium matrix renders without gaps, all 16 interaction
+  cases pass, strict sources produce zero diagnostics or unsafe assertions,
+  and mean frame-relative geometry similarity is 96.7%. Root unit tests,
+  typecheck, docs sync, production builds, packed consumers, bundle budgets,
+  and all seven framework adapter package gates pass.

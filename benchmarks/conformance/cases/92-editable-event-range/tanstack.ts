@@ -1,21 +1,23 @@
 import { defineChart, mountChart, rect, text } from '@tanstack/charts'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
-import { scaleBand, scaleOrdinal, scaleUtc } from 'd3-scale'
+import { scaleBand, scaleUtc } from 'd3-scale'
+import { editableEventColor } from './colors'
 import {
-  clampEditableEventEnd,
-  editableDateFromAnchor,
-  editableDateKey,
   editableDomain,
-  editableDurationDays,
-  editableEventColor,
   editableEvents,
   editableEventStart,
   editableLanes,
   initialEditableEventEnd,
-} from './data'
+} from './scenario'
+import {
+  clampEditableEventEnd,
+  editableDateFromAnchor,
+  editableDateKey,
+  editableDurationDays,
+} from './model'
 import { createEditableHandleOverlay } from './overlay'
 import type { ChartHost, ChartScene, ChartHostOptions } from '@tanstack/charts'
-import type { EditableEvent, EditableEventId } from './data'
+import type { EditableEvent } from './scenario'
 import type { EditableHandleLayout } from './overlay'
 import type {
   ConformanceGeometryQuery,
@@ -40,20 +42,20 @@ interface EditableState {
 const margin = { top: 96, right: 26, bottom: 48, left: 82 }
 const millisecondsPerDay = 86_400_000
 
-const definition = (input: EditableChartInput) =>
-  defineChart(() => {
-    const rows = editableEvents(input.revision, input.end)
-    const outsideLabels = rows
-      .filter((row) => row.id !== 'release')
-      .map((row) => ({
-        ...row,
-        labelDate: row.end,
-      }))
+const definition = (input: EditableChartInput) => {
+  const rows = editableEvents(input.revision, input.end)
+  const outsideLabels = rows
+    .filter((row) => row.id !== 'release')
+    .map((row) => ({
+      ...row,
+      labelDate: row.end,
+    }))
+
+  return defineChart(({ width }) => {
     const releaseLabels = rows
       .filter(
         (row) =>
-          row.id === 'release' &&
-          eventBarCanFitLabel(row, input.width, 'Release'),
+          row.id === 'release' && eventBarCanFitLabel(row, width, 'Release'),
       )
       .map((row) => ({
         ...row,
@@ -63,22 +65,18 @@ const definition = (input: EditableChartInput) =>
     return {
       marks: [
         rect(rows, {
-          id: 'editable-events',
           x1: 'start',
           x2: 'end',
           y: 'lane',
-          z: 'id',
-          key: 'id',
+          color: 'id',
           radius: 5,
           stroke: '#ffffff',
           strokeWidth: 1,
         }),
         text(outsideLabels, {
-          id: 'editable-event-labels',
           x: 'labelDate',
           y: 'lane',
           text: 'label',
-          key: 'id',
           anchor: 'start',
           dx: 5,
           fill: 'currentColor',
@@ -86,11 +84,9 @@ const definition = (input: EditableChartInput) =>
           fontWeight: 600,
         }),
         text(releaseLabels, {
-          id: 'editable-release-label',
           x: 'labelDate',
           y: 'lane',
           text: 'shortLabel',
-          key: 'id',
           anchor: 'start',
           dx: 5,
           fill: '#431407',
@@ -116,18 +112,18 @@ const definition = (input: EditableChartInput) =>
         grid: false,
       },
       color: {
-        scale: scaleOrdinal<EditableEventId, string>()
-          .domain(['discovery', 'design', 'campaign', 'release'])
-          .range([
-            editableEventColor('discovery'),
-            editableEventColor('design'),
-            editableEventColor('campaign'),
-            editableEventColor('release'),
-          ]),
+        domain: ['discovery', 'design', 'campaign', 'release'],
+        range: [
+          editableEventColor('discovery'),
+          editableEventColor('design'),
+          editableEventColor('campaign'),
+          editableEventColor('release'),
+        ],
       },
       margin,
     }
   })
+}
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

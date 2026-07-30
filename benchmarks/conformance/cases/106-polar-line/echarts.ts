@@ -3,9 +3,9 @@ import { AriaComponent, PolarComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { echartsMount } from '../../shared/echarts-mount'
-import { polarLineData } from './data'
+import { dayOfYearAngle, seattleWeatherYear } from './transform'
+import type { WeatherRow } from '@charts-poc/demo-data/weather'
 import type { EChartsCoreOption, EChartsType } from 'echarts/core'
-import type { PolarLineDatum } from './data'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -20,19 +20,19 @@ const gridColor = '#94a3b8'
 
 export const mount = echartsMount(
   polarLineOption,
-  'Numeric polar line',
+  'Seattle daily high-temperature polar line',
   ({ chart, surface, getInput }) => staticLineDriver(chart, surface, getInput),
 )
 
 function polarLineOption(input: ConformanceInput): EChartsCoreOption {
-  const rows = polarLineData(input.revision)
+  const rows = seattleWeatherYear(input.revision)
 
   return {
     animation: false,
     aria: {
       enabled: true,
       description:
-        'One cyclic line over a continuous angle and radius coordinate system.',
+        'Seattle daily high temperatures arranged around one calendar year.',
     },
     polar: {
       center: ['50%', '50%'],
@@ -59,9 +59,9 @@ function polarLineOption(input: ConformanceInput): EChartsCoreOption {
     },
     radiusAxis: {
       type: 'value',
-      min: 0,
-      max: 100,
-      interval: 25,
+      min: -10,
+      max: 40,
+      interval: 10,
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: { show: false },
@@ -78,7 +78,7 @@ function polarLineOption(input: ConformanceInput): EChartsCoreOption {
       id: 'polar-line',
       type: 'line',
       coordinateSystem: 'polar',
-      data: rows.map((row) => [row.radius, row.angle]),
+      data: rows.map((row) => [row.temp_max, dayOfYearAngle(row)]),
       showSymbol: false,
       smooth: false,
       clip: true,
@@ -126,7 +126,7 @@ function lineGeometry(
   ) {
     return []
   }
-  const points = polarLineData(input.revision).flatMap((row) => {
+  const points = seattleWeatherYear(input.revision).flatMap((row) => {
     const point = polarPoint(chart, row)
     return point ? [point] : []
   })
@@ -140,11 +140,11 @@ function lineGeometry(
 
 function polarPoint(
   chart: EChartsType,
-  row: PolarLineDatum,
+  row: WeatherRow,
 ): readonly [number, number] | null {
   const point = chart.convertToPixel({ seriesIndex: 0 }, [
-    row.radius,
-    row.angle,
+    row.temp_max,
+    dayOfYearAngle(row),
   ])
   if (
     !Array.isArray(point) ||

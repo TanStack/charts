@@ -4,7 +4,7 @@
   "id": "17-dumbbell",
   "title": "Dumbbell comparison",
   "family": "comparison",
-  "intent": "Compare two values per category with explicit endpoints and a connecting segment.",
+  "intent": "Compare metropolitan wage inequality in 1980 and 2015 with explicit endpoints and a connecting segment.",
   "support": "native",
   "features": [
     "link mark",
@@ -21,7 +21,7 @@
     "url": "https://observablehq.com/plot/marks/link"
   },
   "ai": {
-    "create": "Create a horizontal dumbbell chart comparing desktop and mobile values for each category with one connecting link and two colored endpoints.",
-    "maintain": "Swap one endpoint to tablet while preserving category order, the paired row model, and endpoint colors."
+    "create": "Create a horizontal dumbbell chart directly from citywages rows, comparing R90_10_1980 and R90_10_2015 for each nyt_display metro.",
+    "maintain": "Change the metro selection while preserving the imported wide row model, chronological endpoint colors, and source field names."
   }
 }

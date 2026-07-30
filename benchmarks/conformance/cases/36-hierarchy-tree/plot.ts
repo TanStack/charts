@@ -1,31 +1,41 @@
 import * as Plot from '@observablehq/plot'
-import { hierarchyData } from './data'
+import { flare } from '@charts-poc/demo-data/flare'
+import { selectHierarchyData } from './selection'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
+function hierarchyPath(name: string): string {
+  return name.slice('flare.'.length).replaceAll('.', '/')
+}
+
+function hierarchyLabel(name: string): string {
+  return name.slice(name.lastIndexOf('.') + 1)
+}
+
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = hierarchyData(nextInput.revision)
+    const rows = selectHierarchyData(flare, nextInput.revision)
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Tidy product hierarchy',
+      ariaLabel: 'Tidy Flare analytics hierarchy',
       marginTop: 22,
-      marginRight: 76,
+      marginRight: 140,
       marginBottom: 22,
-      marginLeft: 76,
-      x: { domain: [0, 2], axis: null },
-      y: { domain: [-3.5, 3.5], axis: null },
+      marginLeft: 50,
+      x: { axis: null },
+      y: { axis: null },
       marks: [
         Plot.tree(rows, {
-          path: 'path',
-          text: 'label',
+          path: (row) => hierarchyPath(row.name),
+          text: (row) => hierarchyLabel(row.name),
           curve: 'linear',
           fill: '#2563eb',
           stroke: '#94a3b8',
           strokeOpacity: 0.55,
           strokeWidth: 1.5,
           r: 3.5,
+          fontSize: 10,
         }),
       ],
     })

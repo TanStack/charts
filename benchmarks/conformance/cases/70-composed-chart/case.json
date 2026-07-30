@@ -3,13 +3,13 @@
   "referenceRenderer": "recharts",
   "order": 700,
   "id": "70-composed-chart",
-  "title": "Layered area, bar, line, and scatter chart",
+  "title": "Layered Seattle weather chart",
   "family": "composition",
-  "intent": "Compare four measures over the same categorical domain using an area, bars, a line, and points.",
+  "intent": "Compare daily maximum temperature, precipitation, minimum temperature, and wind using an area, bars, a line, and points.",
   "support": "composed",
   "features": [
     "mixed marks",
-    "categorical domain",
+    "daily observations",
     "monotone curves",
     "shared numeric scale"
   ],
@@ -24,7 +24,7 @@
     "url": "https://recharts.github.io/en-US/examples/LineBarAreaComposedChart/"
   },
   "ai": {
-    "create": "Create one categorical chart that layers an area, bars, a monotone line, and red points on a shared numeric scale.",
-    "maintain": "Update any measure while preserving stable category keys, explicit domains, mark order, colors, and cast-free channel inference."
+    "create": "Create one chart from Seattle weather observations that layers maximum temperature as an area, precipitation as bars, minimum temperature as a monotone line, and wind as red points.",
+    "maintain": "Select a different weather window while preserving source dates and measures, mark order, colors, and cast-free channel inference."
   }
 }

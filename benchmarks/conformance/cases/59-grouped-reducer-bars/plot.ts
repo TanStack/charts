@@ -1,51 +1,41 @@
 import * as Plot from '@observablehq/plot'
+import { penguins } from '@charts-poc/demo-data/penguins'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
-import {
-  aggregateCategories,
-  aggregateData,
-  aggregateValueDomain,
-} from './data'
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = aggregateData(nextInput.revision)
-
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Category totals aggregated from raw events',
-      x: {
-        domain: aggregateCategories,
-        label: null,
-      },
+      ariaLabel: 'Mean penguin body mass by species',
+      x: { label: null },
       y: {
-        domain: aggregateValueDomain,
-        nice: false,
         grid: true,
-        label: 'Total amount',
+        label: 'Mean body mass (g)',
       },
       marks: [
         Plot.barY(
-          rows,
+          penguins,
           Plot.groupX(
-            { y: 'sum' },
+            { y: 'mean' },
             {
-              x: 'category',
-              y: 'amount',
+              x: 'species',
+              y: 'body_mass_g',
               fill: '#0ea5e9',
               inset: 1,
+              sort: { x: null },
             },
           ),
         ),
         Plot.text(
-          rows,
+          penguins,
           Plot.groupX(
-            { y: 'sum', text: 'sum' },
+            { y: 'mean', text: 'mean' },
             {
-              x: 'category',
-              y: 'amount',
-              text: 'amount',
+              x: 'species',
+              y: 'body_mass_g',
+              text: 'body_mass_g',
               fill: '#0c4a6e',
               dy: -8,
             },

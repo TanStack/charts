@@ -2,26 +2,28 @@
   "schemaVersion": 1,
   "order": 1080,
   "id": "108-country-choropleth",
-  "title": "World country choropleth",
+  "title": "World population-density choropleth",
   "family": "geography",
-  "intent": "Compare values across real country boundaries with an equal-area world projection.",
+  "intent": "Compare published population density across real country boundaries.",
   "support": "native",
   "features": [
     "world-atlas 110m countries",
     "TopoJSON conversion",
-    "177 keyed GeoJSON features",
+    "World Bank population density",
+    "country-name join",
+    "95 matched country features",
     "Equal Earth projection",
     "responsive projection fitting",
     "theme-aware country borders"
   ],
-  "geometry": [{ "role": "geo", "count": 177, "maxCount": 177 }],
+  "geometry": [{ "role": "geo", "count": 97, "maxCount": 97 }],
   "minimumGeometrySimilarity": 0.999,
   "source": {
-    "title": "Observable Plot projections",
-    "url": "https://observablehq.com/plot/features/projections"
+    "title": "Observable Plot geo mark",
+    "url": "https://observablehq.com/plot/marks/geo"
   },
   "ai": {
-    "create": "Create a country-level Equal Earth choropleth from world-atlas countries-110m, converting TopoJSON once and rendering all 177 countries as keyed native geo marks.",
-    "maintain": "Update country values without replacing boundary geometry; preserve atlas identity, responsive projection fitting, stable country keys, binned fills, and theme-aware borders."
+    "create": "Join Observable Plot's learning-poverty snapshot to world-atlas countries and map its published density field through an inferred quantize scale.",
+    "maintain": "Preserve source field names, explicit name aliases, atlas identity, responsive projection fitting, stable country keys, quantized colors, and theme-aware borders."
   }
 }

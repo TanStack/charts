@@ -4,7 +4,7 @@
   "id": "57-scatter-marginal-histograms",
   "title": "Scatterplot with marginal histograms",
   "family": "distribution",
-  "intent": "Compare a bivariate relationship while retaining the one-dimensional distribution of each measure.",
+  "intent": "Compare penguin flipper length and body mass while retaining the one-dimensional distribution of each measurement.",
   "support": "composed",
   "features": [
     "joint scatterplot",
@@ -14,8 +14,8 @@
     "categorical color"
   ],
   "geometry": [
-    { "role": "dot", "count": 60 },
-    { "role": "rect", "count": 16 },
+    { "role": "dot", "count": 320 },
+    { "role": "rect", "count": 15 },
     { "role": "rule", "count": 2 }
   ],
   "source": {
@@ -23,7 +23,7 @@
     "url": "https://observablehq.com/plot/transforms/bin"
   },
   "ai": {
-    "create": "Create a joint scatterplot with a top histogram for x and a right histogram for y, using explicit embedded regions and the same raw observations for all three views.",
+    "create": "Create a joint scatterplot of Palmer Penguins flipper length and body mass with a top histogram for flipper length and a right histogram for body mass, using the same raw observations for all three views.",
     "maintain": "Change the bin boundaries while retaining complete boundary semantics, responsive shared scales, inferred fields, and separate scatter and marginal regions."
   }
 }

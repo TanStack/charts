@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 640,
   "id": "64-marimekko-mosaic",
-  "title": "Marimekko market composition",
+  "title": "Marimekko survey composition",
   "family": "part-to-whole",
-  "intent": "Encode one categorical total as column width and its internal composition as stacked height.",
+  "intent": "Encode each survey question's response count as column width and its Likert composition as stacked height.",
   "support": "composed",
   "features": [
     "Marimekko chart",
@@ -14,15 +14,15 @@
     "categorical legend"
   ],
   "geometry": [
-    { "role": "rect", "count": 12 },
-    { "role": "text", "count": 4 }
+    { "role": "rect", "count": 25 },
+    { "role": "text", "count": 5 }
   ],
   "source": {
     "title": "Observable Plot Marimekko stack example",
     "url": "https://observablehq.com/plot/transforms/stack"
   },
   "ai": {
-    "create": "Create a Marimekko chart where market totals determine column widths and each market's segment mix determines normalized vertical cells, using granular d3-array preparation and typed rectangle endpoints.",
-    "maintain": "Add a market or segment while preserving the two independent normalization denominators, explicit ordering, stable cell identity, labels, colors, and complete zero-to-one bounds."
+    "create": "Create a Marimekko chart from raw survey rows where question totals determine column widths and each question's response mix determines normalized vertical cells, using granular d3-array preparation and typed rectangle endpoints.",
+    "maintain": "Add a question or response while preserving the original Question and Response fields through counting, the two independent normalization denominators, explicit Likert ordering, stable cell identity, labels, colors, and complete zero-to-one bounds."
   }
 }

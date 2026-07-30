@@ -1,20 +1,20 @@
 import * as React from 'react'
 import {
-  activityChart,
-  createRankingChart,
-  createStatsHistoryInput,
-  createStatsHistoryChart,
-  createStatsLatestInput,
-  createStatsLatestChart,
-  createRankingData,
+  downloadAreaChart,
   downloadsChart,
-  latencyChart,
-  type BinDatum,
-  type DownloadPoint,
-  type StatsBarOrientation,
-  type StatsHistoryMode,
-} from '@charts-poc/fixtures'
-import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
+  createIndustryHistoryChart,
+  createPenguinChart,
+  createRankingChart,
+  horsepowerChart,
+  industryWindowCount,
+  industryWindowLabel,
+  type BarOrientation,
+  type DownloadsRow,
+  type HorsepowerBin,
+  type IndustryHistoryMode,
+  type IndustriesRow,
+  type PenguinCount,
+} from './charts'
 import { defineChart } from '@tanstack/charts'
 import { Chart, type ChartPoint } from '@tanstack/react-charts'
 
@@ -31,38 +31,38 @@ const interactiveDownloadsChart = defineChart(downloadsChart, {
     ],
   },
 })
-const interactiveLatencyChart = defineChart(latencyChart, {
+const interactiveHorsepowerChart = defineChart(horsepowerChart, {
   tooltip: {
     format: (point) =>
-      `${point.datum.x1.toFixed(0)}–${point.datum.x2.toFixed(0)} ms · ${point.yValue} requests`,
+      `${point.datum.x0?.toFixed(0)}–${point.datum.x1?.toFixed(0)} hp · ${point.datum.length} cars`,
   },
 })
-const interactiveActivityChart = defineChart(activityChart, { tooltip: true })
+const interactiveDownloadAreaChart = defineChart(downloadAreaChart, {
+  tooltip: true,
+})
 
 export function App() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light')
   const [download, setDownload] =
-    React.useState<ChartPoint<DownloadPoint> | null>(null)
-  const [activity, setActivity] = React.useState<ChartPoint<number> | null>(
-    null,
-  )
-  const [latency, setLatency] = React.useState<ChartPoint<
-    BinDatum<number>
-  > | null>(null)
+    React.useState<ChartPoint<DownloadsRow> | null>(null)
+  const [areaDownload, setAreaDownload] =
+    React.useState<ChartPoint<DownloadsRow> | null>(null)
+  const [horsepower, setHorsepower] =
+    React.useState<ChartPoint<HorsepowerBin> | null>(null)
   const [rankingRound, setRankingRound] = React.useState(0)
-  const [statsRound, setStatsRound] = React.useState(0)
-  const [historyMode, setHistoryMode] = React.useState<StatsHistoryMode>('line')
+  const [industryWindow, setIndustryWindow] = React.useState(0)
+  const [historyMode, setHistoryMode] =
+    React.useState<IndustryHistoryMode>('line')
   const [historyZoomed, setHistoryZoomed] = React.useState(false)
   const [barOrientation, setBarOrientation] =
-    React.useState<StatsBarOrientation>('vertical')
+    React.useState<BarOrientation>('vertical')
   const [barsStacked, setBarsStacked] = React.useState(false)
+  const rankingMetric: 'power (hp)' | 'economy (mpg)' =
+    rankingRound % 2 === 0 ? 'power (hp)' : 'economy (mpg)'
   const rankingDefinition = React.useMemo(
     () =>
       defineChart(
-        createRankingChart({
-          data: createRankingData(rankingRound),
-          accent: 'var(--ts-chart-4, #8b5cf6)',
-        }),
+        createRankingChart(rankingMetric, 'var(--ts-chart-4, #8b5cf6)'),
         {
           animate: { duration: 420, easing: 'ease-in-out' },
           tooltip: {
@@ -71,35 +71,28 @@ export function App() {
           },
         },
       ),
-    [rankingRound],
+    [rankingMetric],
   )
-  const statsHistoryDefinition = React.useMemo(
+  const industryHistoryDefinition = React.useMemo(
     () =>
       defineChart(
-        createStatsHistoryChart(
-          createStatsHistoryInput(historyMode, statsRound, historyZoomed),
-        ),
+        createIndustryHistoryChart(historyMode, industryWindow, historyZoomed),
         {
           animate: { duration: 500, easing: 'ease-out' },
           focus: 'group-x',
-          tooltip: { formatGroup: formatStatsGroup },
+          tooltip: { formatGroup: formatIndustryGroup },
         },
       ),
-    [historyMode, historyZoomed, statsRound],
+    [historyMode, historyZoomed, industryWindow],
   )
-  const statsLatestDefinition = React.useMemo(
+  const penguinDefinition = React.useMemo(
     () =>
-      defineChart(
-        createStatsLatestChart(
-          createStatsLatestInput(barOrientation, barsStacked, statsRound),
-        ),
-        {
-          animate: { duration: 500, easing: 'ease-out' },
-          focus: barOrientation === 'vertical' ? 'group-x' : 'group-y',
-          tooltip: { format: formatStatsPoint },
-        },
-      ),
-    [barOrientation, barsStacked, statsRound],
+      defineChart(createPenguinChart(barOrientation, barsStacked), {
+        animate: { duration: 500, easing: 'ease-out' },
+        focus: barOrientation === 'vertical' ? 'group-x' : 'group-y',
+        tooltip: { format: formatPenguinPoint },
+      }),
+    [barOrientation, barsStacked],
   )
 
   const toggleTheme = () => {
@@ -112,11 +105,10 @@ export function App() {
     <main className="demo">
       <header className="demo__header">
         <div>
-          <p className="demo__eyebrow">TanStack Charts native spike</p>
-          <h1>Arbitrary data. One tiny grammar.</h1>
+          <h1>TanStack Charts with React</h1>
           <p className="demo__lede">
-            Plot-style marks and channels compile into a renderer-neutral scene.
-            React only owns the host lifecycle.
+            React owns state and lifecycle. The charts read pinned Observable
+            datasets with their original fields.
           </p>
         </div>
         <button className="theme-toggle" type="button" onClick={toggleTheme}>
@@ -125,24 +117,30 @@ export function App() {
       </header>
 
       <div className="demo__grid">
-        <section className="chart-card chart-card--parity">
+        <section className="chart-card chart-card--feature">
           <div className="chart-card__header">
             <div>
-              <h2>TanStack Stats · history parity</h2>
+              <h2>Unemployment by industry</h2>
               <p className="chart-card__meta">
-                Partial periods, interval areas, stream baselines, grouped
-                pointer focus, gradients, and clipped zoom.
+                {industryWindowLabel(industryWindow)} · BLS monthly estimates
               </p>
             </div>
             <button
               className="chart-action"
               type="button"
-              onClick={() => setStatsRound((round) => round + 1)}
+              onClick={() =>
+                setIndustryWindow(
+                  (windowIndex) => (windowIndex + 1) % industryWindowCount,
+                )
+              }
             >
-              Update data
+              Next period
             </button>
           </div>
-          <div className="chart-controls" aria-label="History chart options">
+          <div
+            className="chart-controls"
+            aria-label="Industry history chart options"
+          >
             {(['line', 'stacked', 'share', 'stream'] as const).map((mode) => (
               <button
                 className="chart-control"
@@ -163,41 +161,25 @@ export function App() {
               zoom
             </button>
           </div>
-          <div className="stats-legend" aria-label="Series">
-            <span>
-              <i style={{ background: '#ef4444' }} />
-              Query
-            </span>
-            <span>
-              <i style={{ background: '#22c55e' }} />
-              Router
-            </span>
-            <span>
-              <i style={{ background: '#3b82f6' }} />
-              Table
-            </span>
-          </div>
           <Chart
-            definition={statsHistoryDefinition}
+            definition={industryHistoryDefinition}
             height={410}
             initialWidth={1040}
-            ariaLabel={`TanStack Stats ${historyMode} history parity chart`}
-            renderSvg={renderChartSvgWithResources}
+            ariaLabel={`Monthly unemployment for three industries shown as a ${historyMode} chart`}
           />
         </section>
 
-        <section className="chart-card chart-card--parity">
+        <section className="chart-card chart-card--feature">
           <div className="chart-card__header">
             <div>
-              <h2>TanStack Stats · latest parity</h2>
+              <h2>Palmer penguins by species and sex</h2>
               <p className="chart-card__meta">
-                Grouped and interval-stacked bars retain identity through
-                sorting, orientation, and value updates.
+                Counts are aggregated from the original penguin observations.
               </p>
             </div>
-            <span className="chart-card__badge">real migration gate</span>
+            <span className="chart-card__badge">344 observations</span>
           </div>
-          <div className="chart-controls" aria-label="Latest chart options">
+          <div className="chart-controls" aria-label="Penguin chart options">
             <button
               className="chart-control"
               data-active={!barsStacked || undefined}
@@ -232,31 +214,30 @@ export function App() {
             </button>
           </div>
           <Chart
-            definition={statsLatestDefinition}
+            definition={penguinDefinition}
             height={430}
             initialWidth={1040}
-            ariaLabel={`TanStack Stats ${barsStacked ? 'stacked' : 'grouped'} ${barOrientation} latest chart`}
-            renderSvg={renderChartSvgWithResources}
+            ariaLabel={`${barsStacked ? 'Stacked' : 'Grouped'} ${barOrientation} penguin counts by species and sex`}
           />
         </section>
 
         <section className="chart-card">
           <div className="chart-card__header">
             <div>
-              <h2>Package momentum</h2>
+              <h2>@observablehq/cars downloads</h2>
               <p className="chart-card__meta">
                 {download
-                  ? `${download.groupLabel}: ${download.yValue.toLocaleString()}`
+                  ? `${formatDate(download.xValue)}: ${download.yValue.toLocaleString()}`
                   : 'Move over a point to inspect it.'}
               </p>
             </div>
-            <span className="chart-card__badge">one mark · three groups</span>
+            <span className="chart-card__badge">npm download snapshot</span>
           </div>
           <Chart
             definition={interactiveDownloadsChart}
             height={330}
             initialWidth={760}
-            ariaLabel="TanStack package download trends"
+            ariaLabel="Daily @observablehq/cars downloads"
             onFocusChange={setDownload}
           />
         </section>
@@ -264,53 +245,55 @@ export function App() {
         <section className="chart-card">
           <div className="chart-card__header">
             <div>
-              <h2>Request latency</h2>
+              <h2>Automobile horsepower</h2>
               <p className="chart-card__meta">
-                {latency
-                  ? `${latency.datum.x1.toFixed(0)}–${latency.datum.x2.toFixed(0)} ms: ${latency.yValue} requests`
-                  : 'A pure bin transform feeds an ordinary rect mark.'}
+                {horsepower
+                  ? `${horsepower.datum.x0?.toFixed(0)}–${horsepower.datum.x1?.toFixed(0)} hp: ${horsepower.datum.length} cars`
+                  : 'D3 bins the 1983 ASA automobile rows.'}
               </p>
             </div>
             <span className="chart-card__badge">bin · rect</span>
           </div>
           <Chart
-            definition={interactiveLatencyChart}
+            definition={interactiveHorsepowerChart}
             height={320}
             initialWidth={760}
-            ariaLabel="Request latency distribution"
-            onFocusChange={setLatency}
+            ariaLabel="Automobile horsepower distribution"
+            onFocusChange={setHorsepower}
           />
         </section>
 
         <section className="chart-card">
           <div className="chart-card__header">
             <div>
-              <h2>Release activity</h2>
+              <h2>Downloads area</h2>
               <p className="chart-card__meta">
-                {activity
-                  ? `Release ${activity.xValue}: ${activity.yValue}`
-                  : 'A raw number array needs no data model.'}
+                {areaDownload
+                  ? `${formatDate(areaDownload.xValue)}: ${areaDownload.yValue.toLocaleString()}`
+                  : 'The same raw download rows feed an area and line.'}
               </p>
             </div>
-            <span className="chart-card__badge">
-              number[] · implicit channels
-            </span>
+            <span className="chart-card__badge">area · line</span>
           </div>
           <Chart
-            definition={interactiveActivityChart}
+            definition={interactiveDownloadAreaChart}
             height={320}
             initialWidth={760}
-            ariaLabel="Release activity trend"
-            onFocusChange={setActivity}
+            ariaLabel="Daily @observablehq/cars downloads area"
+            onFocusChange={setAreaDownload}
           />
         </section>
 
         <section className="chart-card">
           <div className="chart-card__header">
             <div>
-              <h2>Package ranking</h2>
+              <h2>Automobile ranking</h2>
               <p className="chart-card__meta">
-                Stable keys reconcile and animate every reordered bar.
+                Ranked by{' '}
+                {rankingMetric === 'power (hp)'
+                  ? 'power (hp)'
+                  : 'fuel economy (mpg)'}
+                .
               </p>
             </div>
             <button
@@ -318,15 +301,15 @@ export function App() {
               type="button"
               onClick={() => setRankingRound((round) => round + 1)}
             >
-              Update data
+              Change metric
             </button>
           </div>
           <Chart
             definition={rankingDefinition}
             height={360}
             initialWidth={760}
-            ariaLabel="TanStack package momentum ranking"
-            ariaDescription="A horizontal ranking that reorders when its data changes."
+            ariaLabel="Automobiles ranked by power or fuel economy"
+            ariaDescription="A horizontal ranking that reorders the same automobile rows when its metric changes."
           />
         </section>
       </div>
@@ -334,14 +317,18 @@ export function App() {
   )
 }
 
-function formatStatsGroup(
-  points: readonly {
-    groupLabel: string
-    xValue: string | number | Date
-    yValue: string | number | Date
-    datum: unknown
-  }[],
-) {
+function formatDate(value: string | number | Date) {
+  return value instanceof Date
+    ? value.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      })
+    : String(value)
+}
+
+function formatIndustryGroup(points: readonly ChartPoint<IndustriesRow>[]) {
   const first = points[0]
   if (!first) return ''
   const heading =
@@ -350,22 +337,17 @@ function formatStatsGroup(
           month: 'short',
           day: 'numeric',
           year: 'numeric',
+          timeZone: 'UTC',
         })
       : String(first.xValue)
-  return `${heading}\n${points.map(formatStatsPoint).join('\n')}`
+  return `${heading}\n${points
+    .map(
+      (point) =>
+        `${point.datum.industry}: ${point.datum.unemployed.toLocaleString()} thousand`,
+    )
+    .join('\n')}`
 }
 
-function formatStatsPoint(point: {
-  groupLabel: string
-  yValue: string | number | Date
-  datum: unknown
-}) {
-  const datum = point.datum
-  if (datum != null && typeof datum === 'object') {
-    if ('label' in datum && typeof datum.label === 'string') return datum.label
-    if ('downloads' in datum && typeof datum.downloads === 'number') {
-      return `${point.groupLabel}: ${datum.downloads.toLocaleString()}`
-    }
-  }
-  return `${point.groupLabel}: ${String(point.yValue)}`
+function formatPenguinPoint(point: ChartPoint<PenguinCount>) {
+  return `${point.datum.species} · ${point.datum.sex.toLowerCase()}: ${point.datum.penguins} penguins`
 }

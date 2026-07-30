@@ -15,16 +15,16 @@
   ],
   "geometry": [
     { "role": "line", "count": 1 },
-    { "role": "dot", "count": 15 },
+    { "role": "dot", "count": 54 },
     { "role": "arrow", "count": 3 },
-    { "role": "text", "count": 5 }
+    { "role": "text", "count": 11 }
   ],
   "source": {
     "title": "Observable Plot connected scatterplot",
     "url": "https://observablehq.com/plot/marks/line#connected-scatterplots"
   },
   "ai": {
-    "create": "Create a connected scatterplot from chronological x-y observations with a smooth path, one dot per observation, selected year labels, and arrows that make direction clear.",
+    "create": "Create a connected scatterplot from the raw driving {side, year, miles, gas} observations with a smooth path, one dot per observation, five-year labels, and sampled arrows that make direction clear.",
     "maintain": "Change label cadence and arrow sampling while retaining chronological order, responsive quantitative scales, and a single inferred row type."
   }
 }

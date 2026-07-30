@@ -4,163 +4,216 @@ import { defineChart, type ChartPoint } from '@tanstack/charts'
 import { Chart } from '@tanstack/react-charts'
 import {
   createDashboardData,
-  severityColors,
-  severities,
-  type ErrorStackPoint,
-  type ImpactPoint,
+  industryColors,
+  industryNames,
+  responseColors,
+  surveyResponses,
+  type DashboardData,
+  type IndustryStackPoint,
   type TimeRange,
-} from './data'
+} from './transforms'
+import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
 import {
-  createBudgetChart,
-  createErrorVolumeChart,
-  createHeatmapChart,
-  createImpactChart,
-  createServicesChart,
-  createSeverityStackChart,
+  createAgreementChart,
+  createCarEconomyChart,
+  createIndustryChart,
+  createPenguinChart,
+  createRatingsHeatmap,
   createSparklineChart,
-  createTriageChart,
+  createSurveyStackChart,
+  createSurveyWaffleChart,
+  penguinKey,
 } from './plots'
 
-const ranges: readonly TimeRange[] = ['24h', '7d', '30d']
+const ranges: readonly TimeRange[] = ['1y', '3y', 'all']
 const metricColors = ['#ff625a', '#8579ff', '#45d49c', '#f2c66d']
 
 export function App() {
-  const [range, setRange] = React.useState<TimeRange>('24h')
-  const [revision, setRevision] = React.useState(0)
-  const [live, setLive] = React.useState(true)
-  const [selectedIssue, setSelectedIssue] = React.useState<string | null>(null)
-  const [focusedIssue, setFocusedIssue] = React.useState<ImpactPoint | null>(
+  const [range, setRange] = React.useState<TimeRange>('3y')
+  const [selectedPenguin, setSelectedPenguin] = React.useState<string | null>(
     null,
   )
-  const data = React.useMemo(
-    () => createDashboardData(range, revision),
-    [range, revision],
-  )
+  const [focusedPenguin, setFocusedPenguin] =
+    React.useState<PenguinsRow | null>(null)
+  const data = React.useMemo(() => createDashboardData(range), [range])
   const definitions = React.useMemo(
     () => ({
-      budget: defineChart(createBudgetChart({ value: data.budget }), {
-        keyboard: false,
-        animate: { duration: 800, easing: 'ease-out' },
-      }),
-      errorVolume: defineChart(
-        createErrorVolumeChart({
-          stack: data.errorStack,
-          totals: data.errorTotals,
-          releases: data.releases,
-          compactTime: range === '24h',
+      agreement: defineChart(
+        createAgreementChart({ value: data.agreementPercent }),
+        {
+          keyboard: false,
+          animate: { duration: 800, easing: 'ease-out' },
+        },
+      ),
+      industries: defineChart(
+        createIndustryChart({
+          rows: data.industries,
+          compactTime: range === '1y',
         }),
         {
           focus: 'group-x',
           tooltip: {
             className: 'obsidian-tooltip',
             sticky: true,
-            formatGroup: formatErrorGroup,
+            formatGroup: formatIndustryGroup,
           },
           animate: { duration: 720, easing: 'ease-out' },
         },
       ),
-      heatmap: defineChart(createHeatmapChart({ rows: data.heatmap }), {
+      ratings: defineChart(createRatingsHeatmap({ rows: data.simpsons }), {
         tooltip: {
           className: 'obsidian-tooltip',
           format: (point) =>
-            `${point.datum.day} ${point.datum.hour}:00\n${point.datum.value} events`,
+            `S${point.datum.season} E${point.datum.number_in_season} · ${point.datum.title}\nIMDb ${point.datum.imdb_rating?.toFixed(1)}`,
         },
         animate: { duration: 520, easing: 'ease-out' },
       }),
-      services: defineChart(createServicesChart({ rows: data.services }), {
+      cars: defineChart(createCarEconomyChart({ rows: data.carEconomy }), {
         tooltip: {
           className: 'obsidian-tooltip',
           format: (point) =>
-            `${point.datum.service}\n${point.datum.value} load · ${point.datum.target} target`,
+            `${point.datum.cylinders} cylinders\n${point.datum.economy.toFixed(1)} mpg mean`,
         },
         animate: { duration: 680, easing: 'ease-out' },
       }),
-      severityStack: defineChart(
-        createSeverityStackChart({ rows: data.severityStack }),
+      surveyStack: defineChart(
+        createSurveyStackChart({ rows: data.surveyStack }),
         {
           tooltip: {
             className: 'obsidian-tooltip',
             format: (point) =>
-              `${point.datum.service} · ${point.datum.severity}\n${point.datum.value} issues`,
+              `${point.datum.Question} · ${point.datum.Response}\n${point.datum.count} responses`,
           },
           animate: { duration: 720, easing: 'ease-out' },
         },
       ),
-      sparks: data.sparks.map((rows, index) =>
-        defineChart(
+      surveyWaffle: defineChart(
+        createSurveyWaffleChart({ rows: data.surveyCells }),
+        {
+          tooltip: {
+            className: 'obsidian-tooltip',
+            format: (point) =>
+              `${point.datum.Question} · ${point.datum.Response}`,
+          },
+          animate: { duration: 560, easing: 'ease-out' },
+        },
+      ),
+      sparks: {
+        aapl: defineChart(
           createSparklineChart({
-            rows,
-            color: metricColors[index] ?? '#ff625a',
+            rows: data.aapl,
+            date: (row) => row.Date,
+            value: (row) => row.Close,
+            color: metricColors[0]!,
           }),
           {
             keyboard: false,
             animate: { duration: 650, easing: 'ease-out' },
           },
         ),
-      ),
-      triage: defineChart(createTriageChart({ rows: data.triage }), {
-        tooltip: {
-          className: 'obsidian-tooltip',
-          format: (point) => point.datum.status,
-        },
-        animate: { duration: 560, easing: 'ease-out' },
-      }),
+        travelers: defineChart(
+          createSparklineChart({
+            rows: data.travelers,
+            date: (row) => row.date,
+            value: (row) => row.current,
+            color: metricColors[1]!,
+          }),
+          {
+            keyboard: false,
+            animate: { duration: 650, easing: 'ease-out' },
+          },
+        ),
+        temperature: defineChart(
+          createSparklineChart({
+            rows: data.sfTemperatures,
+            date: (row) => row.date,
+            value: (row) => row.high,
+            color: metricColors[2]!,
+          }),
+          {
+            keyboard: false,
+            animate: { duration: 650, easing: 'ease-out' },
+          },
+        ),
+        wind: defineChart(
+          createSparklineChart({
+            rows: data.weather,
+            date: (row) => row.date,
+            value: (row) => row.wind,
+            color: metricColors[3]!,
+          }),
+          {
+            keyboard: false,
+            animate: { duration: 650, easing: 'ease-out' },
+          },
+        ),
+      },
     }),
     [data, range],
   )
-  const impactDefinition = React.useMemo(
+  const penguinDefinition = React.useMemo(
     () =>
       defineChart(
-        createImpactChart({
-          rows: data.impact,
-          selectedId: selectedIssue,
+        createPenguinChart({
+          rows: data.penguins,
+          selectedKey: selectedPenguin,
         }),
         {
           tooltip: {
             className: 'obsidian-tooltip',
             sticky: true,
             format: (point) =>
-              `${point.datum.issue}\n${point.datum.events} events · ${point.datum.users} users`,
+              `${point.datum.species} · ${point.datum.island}\n${point.datum.culmen_length_mm} × ${point.datum.culmen_depth_mm} mm · ${point.datum.body_mass_g} g`,
           },
           animate: { duration: 620, easing: 'ease-out' },
         },
       ),
-    [data.impact, selectedIssue],
+    [data.penguins, selectedPenguin],
   )
 
-  React.useEffect(() => {
-    if (!live) return
-    const interval = window.setInterval(
-      () => setRevision((current) => current + 1),
-      4_500,
-    )
-    return () => window.clearInterval(interval)
-  }, [live])
-
+  const latestApple = data.aapl.at(-1)
+  const previousApple = data.aapl.at(-2)
+  const latestTravelers = data.travelers.at(-1)
+  const latestTemperature = data.sfTemperatures.at(-1)
+  const previousTemperature = data.sfTemperatures.at(-2)
+  const latestWeather = data.weather.at(-1)
+  const previousWeather = data.weather.at(-2)
   const metrics = [
     {
-      label: 'Unhandled',
-      value: compact(data.totalErrors),
-      delta: '+12.4%',
-      direction: 'up',
+      label: 'AAPL close',
+      value: latestApple ? `$${latestApple.Close.toFixed(2)}` : '—',
+      delta: percentChange(latestApple?.Close, previousApple?.Close),
+      definition: definitions.sparks.aapl,
+      ariaLabel: 'Apple daily closing price',
     },
     {
-      label: 'Users',
-      value: compact(data.impactedUsers),
-      delta: '−8.1%',
-      direction: 'down',
+      label: 'TSA travelers',
+      value: compact(latestTravelers?.current ?? 0),
+      delta: percentChange(
+        latestTravelers?.current,
+        latestTravelers?.previous,
+        'year over year',
+      ),
+      definition: definitions.sparks.travelers,
+      ariaLabel: 'TSA traveler throughput',
     },
     {
-      label: 'Crash free',
-      value: `${data.crashFree.toFixed(2)}%`,
-      delta: '+0.06%',
-      direction: 'down',
+      label: 'SF high',
+      value: latestTemperature ? `${latestTemperature.high.toFixed(1)}°` : '—',
+      delta: numericChange(
+        latestTemperature?.high,
+        previousTemperature?.high,
+        '°',
+      ),
+      definition: definitions.sparks.temperature,
+      ariaLabel: 'San Francisco daily high temperature',
     },
     {
-      label: 'p95',
-      value: `${data.p95}ms`,
-      delta: '+22ms',
-      direction: 'up',
+      label: 'Seattle wind',
+      value: latestWeather ? `${latestWeather.wind.toFixed(1)} mph` : '—',
+      delta: numericChange(latestWeather?.wind, previousWeather?.wind, ' mph'),
+      definition: definitions.sparks.wind,
+      ariaLabel: 'Seattle daily wind speed',
     },
   ] as const
 
@@ -174,31 +227,13 @@ export function App() {
             <BrandMark />
           </div>
           <div>
-            <p className="breadcrumb">acme / storefront</p>
-            <h1>Overview</h1>
+            <p className="breadcrumb">Observable datasets / pinned snapshots</p>
+            <h1>Data overview</h1>
           </div>
           <div className="topbar-actions">
-            <button
-              type="button"
-              className={`live-button ${live ? 'is-live' : ''}`}
-              onClick={() => setLive((current) => !current)}
-            >
-              <span className="live-dot" />
-              {live ? 'Live' : 'Paused'}
-            </button>
-            <button type="button" className="icon-button" aria-label="Search">
-              <Icon name="search" />
-            </button>
-            <button
-              type="button"
-              className="icon-button notification"
-              aria-label="Notifications"
-            >
-              <Icon name="bell" />
-            </button>
-            <div className="avatar" aria-label="Tanner Linsley">
-              TL
-            </div>
+            <span className="environment">
+              <span />9 source datasets
+            </span>
           </div>
         </header>
 
@@ -210,10 +245,7 @@ export function App() {
                   type="button"
                   key={item}
                   className={range === item ? 'active' : undefined}
-                  onClick={() => {
-                    setRange(item)
-                    setRevision((current) => current + 1)
-                  }}
+                  onClick={() => setRange(item)}
                 >
                   {item}
                 </button>
@@ -222,33 +254,27 @@ export function App() {
             <div className="toolbar-meta">
               <span className="environment">
                 <span />
-                production
+                latest {range === 'all' ? 'available history' : range}
               </span>
-              <button
-                type="button"
-                className="refresh-button"
-                onClick={() => setRevision((current) => current + 1)}
-                aria-label="Refresh dashboard"
-              >
-                <Icon name="refresh" />
-              </button>
             </div>
           </div>
 
-          <section className="metric-grid" aria-label="Key metrics">
-            {metrics.map((metric, index) => (
+          <section className="metric-grid" aria-label="Source metrics">
+            {metrics.map((metric) => (
               <article className="metric-card" key={metric.label}>
                 <div className="metric-copy">
                   <p>{metric.label}</p>
                   <strong>{metric.value}</strong>
-                  <span className={metric.direction}>{metric.delta}</span>
+                  <span className={metric.delta.direction}>
+                    {metric.delta.text}
+                  </span>
                 </div>
                 <div className="sparkline">
                   <Chart
-                    definition={definitions.sparks[index]!}
+                    definition={metric.definition}
                     height={64}
                     initialWidth={150}
-                    ariaLabel={`${metric.label} trend`}
+                    ariaLabel={metric.ariaLabel}
                     renderSvg={renderChartSvgWithResources}
                   />
                 </div>
@@ -259,59 +285,57 @@ export function App() {
           <section className="primary-grid">
             <article className="card volume-card">
               <CardHeader
-                eyebrow="Errors"
-                value={compact(data.totalErrors)}
-                suffix={
-                  <span className="trend-badge hot">
-                    <Icon name="trendUp" /> 12.4%
-                  </span>
-                }
+                eyebrow="Industry unemployment"
+                value={`${data.latestUnemployment.toLocaleString()}k`}
               >
                 <div className="legend">
-                  {severities.map((severity) => (
-                    <span key={severity}>
-                      <i style={{ background: severityColors[severity] }} />
-                      {severity}
+                  {industryNames.map((industry) => (
+                    <span key={industry}>
+                      <i style={{ background: industryColors[industry] }} />
+                      {industry}
                     </span>
                   ))}
                 </div>
               </CardHeader>
               <div className="chart-wrap hero-chart">
                 <Chart
-                  definition={definitions.errorVolume}
+                  definition={definitions.industries}
                   height={318}
                   initialWidth={820}
-                  ariaLabel="Error volume by severity"
-                  ariaDescription="Stacked error events with release markers and alert threshold."
+                  ariaLabel="U.S. unemployment by industry"
+                  ariaDescription="Bureau of Labor Statistics unemployment counts for manufacturing, construction, and finance."
                   renderSvg={renderChartSvgWithResources}
                 />
               </div>
             </article>
 
             <article className="card budget-card">
-              <CardHeader eyebrow="Error budget" value="04d 18h">
-                <span className="status-pill">on track</span>
+              <CardHeader
+                eyebrow="Survey Q1 agreement"
+                value={`${Math.round(data.agreementPercent)}%`}
+              >
+                <span className="subtle-label">Eitan Lees</span>
               </CardHeader>
               <div className="budget-chart">
                 <Chart
-                  definition={definitions.budget}
+                  definition={definitions.agreement}
                   height={232}
                   initialWidth={320}
-                  ariaLabel={`${Math.round(data.budget)} percent error budget remaining`}
+                  ariaLabel={`${Math.round(data.agreementPercent)} percent agree or strongly agree with survey question one`}
                 />
               </div>
               <div className="budget-stats">
                 <div>
-                  <span>burn</span>
-                  <strong>0.72×</strong>
+                  <span>agree</span>
+                  <strong>{responseCount(data, 'Agree')}</strong>
                 </div>
                 <div>
-                  <span>reset</span>
-                  <strong>Aug 01</strong>
+                  <span>strongly</span>
+                  <strong>{responseCount(data, 'Strongly Agree')}</strong>
                 </div>
                 <div>
-                  <span>slo</span>
-                  <strong>99.9%</strong>
+                  <span>neutral</span>
+                  <strong>{responseCount(data, 'Neutral')}</strong>
                 </div>
               </div>
             </article>
@@ -319,43 +343,48 @@ export function App() {
 
           <section className="secondary-grid">
             <article className="card heat-card">
-              <CardHeader eyebrow="Activity" value="7 × 24">
-                <span className="subtle-label">UTC</span>
+              <CardHeader eyebrow="Simpsons IMDb ratings" value="25 seasons">
+                <span className="subtle-label">IMDb</span>
               </CardHeader>
               <div className="chart-wrap">
                 <Chart
-                  definition={definitions.heatmap}
+                  definition={definitions.ratings}
                   height={228}
                   initialWidth={480}
-                  ariaLabel="Error activity by weekday and hour"
+                  ariaLabel="The Simpsons episode IMDb ratings by season"
                 />
               </div>
             </article>
 
             <article className="card impact-card">
               <CardHeader
-                eyebrow="Impact map"
-                value={focusedIssue?.issue ?? '14 issues'}
+                eyebrow="Palmer penguin bills"
+                value={
+                  focusedPenguin?.species ?? `${data.penguins.length} birds`
+                }
               >
                 <div className="quadrant-key">
-                  <span>events →</span>
-                  <span>users ↑</span>
+                  <span>length →</span>
+                  <span>depth ↑</span>
                 </div>
               </CardHeader>
               <div className="chart-wrap">
                 <Chart
-                  definition={impactDefinition}
+                  definition={penguinDefinition}
                   height={228}
                   initialWidth={410}
-                  ariaLabel="Issue event volume and affected users"
-                  onFocusChange={(point: ChartPoint<ImpactPoint> | null) =>
-                    setFocusedIssue(point?.datum ?? null)
+                  ariaLabel="Penguin bill length and depth by species and body mass"
+                  onFocusChange={(point: ChartPoint<PenguinsRow> | null) =>
+                    setFocusedPenguin(point?.datum ?? null)
                   }
-                  onSelect={(point: ChartPoint<ImpactPoint> | null) =>
-                    setSelectedIssue((current) =>
-                      current === point?.datum.id
+                  onSelect={(point: ChartPoint<PenguinsRow> | null) =>
+                    setSelectedPenguin((current) =>
+                      current ===
+                      (point?.datum ? penguinKey(point.datum) : null)
                         ? null
-                        : (point?.datum.id ?? null),
+                        : point?.datum
+                          ? penguinKey(point.datum)
+                          : null,
                     )
                   }
                 />
@@ -363,15 +392,15 @@ export function App() {
             </article>
 
             <article className="card services-card">
-              <CardHeader eyebrow="Services" value="5">
-                <span className="subtle-label">load / target</span>
+              <CardHeader eyebrow="Fuel economy" value="3 cylinder groups">
+                <span className="subtle-label">ASA 1983</span>
               </CardHeader>
               <div className="chart-wrap">
                 <Chart
-                  definition={definitions.services}
+                  definition={definitions.cars}
                   height={228}
                   initialWidth={350}
-                  ariaLabel="Service error load compared with target"
+                  ariaLabel="Mean car fuel economy by cylinder count"
                 />
               </div>
             </article>
@@ -379,54 +408,58 @@ export function App() {
 
           <section className="bottom-grid">
             <article className="card severity-card">
-              <CardHeader eyebrow="Service mix" value="severity">
+              <CardHeader eyebrow="Survey responses" value="5 questions">
                 <div className="legend compact">
-                  {severities.map((severity) => (
-                    <span key={severity}>
-                      <i style={{ background: severityColors[severity] }} />
-                      {severity}
+                  {surveyResponses.map((response) => (
+                    <span key={response}>
+                      <i style={{ background: responseColors[response] }} />
+                      {response}
                     </span>
                   ))}
                 </div>
               </CardHeader>
               <div className="chart-wrap">
                 <Chart
-                  definition={definitions.severityStack}
+                  definition={definitions.surveyStack}
                   height={248}
                   initialWidth={720}
-                  ariaLabel="Severity mix by service"
+                  ariaLabel="Likert response distribution for five survey questions"
                 />
               </div>
             </article>
 
             <article className="card triage-card">
-              <CardHeader eyebrow="Triage" value="71%">
-                <span className="status-pill green">resolved</span>
+              <CardHeader
+                eyebrow="Survey question 1"
+                value={`${Math.round(data.agreementPercent)}% agree`}
+              >
+                <span className="subtle-label">
+                  {data.surveyCells.length} responses
+                </span>
               </CardHeader>
               <div className="triage-chart">
                 <Chart
-                  definition={definitions.triage}
+                  definition={definitions.surveyWaffle}
                   height={138}
                   initialWidth={500}
-                  ariaLabel="Triage outcome unit chart"
+                  ariaLabel={`${data.surveyCells.length} responses to survey question one`}
                 />
               </div>
               <div className="triage-legend">
-                <div>
-                  <i className="green" />
-                  <span>Resolved</span>
-                  <strong>71</strong>
-                </div>
-                <div>
-                  <i className="purple" />
-                  <span>Muted</span>
-                  <strong>13</strong>
-                </div>
-                <div>
-                  <i className="red" />
-                  <span>Open</span>
-                  <strong>16</strong>
-                </div>
+                {data.surveyResponseCounts.map((row) => (
+                  <div key={row.Response}>
+                    <i
+                      style={{
+                        background:
+                          responseColors[
+                            row.Response as keyof typeof responseColors
+                          ],
+                      }}
+                    />
+                    <span>{row.Response}</span>
+                    <strong>{row.count}</strong>
+                  </div>
+                ))}
               </div>
             </article>
           </section>
@@ -464,13 +497,13 @@ function CardHeader({
 function Sidebar() {
   const navigation = [
     ['overview', 'Overview'],
-    ['pulse', 'Issues'],
-    ['users', 'Users'],
-    ['releases', 'Releases'],
+    ['pulse', 'Time series'],
+    ['users', 'Distributions'],
+    ['releases', 'Survey'],
   ] as const
   return (
     <aside className="sidebar">
-      <a className="brand" href="#" aria-label="Trace home">
+      <a className="brand" href="#" aria-label="Data overview">
         <BrandMark />
       </a>
       <nav aria-label="Primary">
@@ -570,25 +603,64 @@ function Icon({ name }: { name: string }) {
   )
 }
 
-function formatErrorGroup(
-  points: readonly ChartPoint<ErrorStackPoint>[],
+function formatIndustryGroup(
+  points: readonly ChartPoint<IndustryStackPoint>[],
 ): string {
-  const stackPoints = points.filter((point) => point.markId === 'severity-area')
+  const stackPoints = points.filter((point) => point.markId === 'industry-area')
   const first = stackPoints[0]
   if (!first) return ''
-  const total = stackPoints.reduce((sum, point) => sum + point.datum.value, 0)
+  const total = stackPoints.reduce(
+    (sum, point) => sum + point.datum.unemployed,
+    0,
+  )
   return [
-    first.datum.date.toLocaleString('en-US', {
+    first.datum.date.toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
+      year: 'numeric',
     }),
-    `Total  ${total.toLocaleString()}`,
+    `Total  ${total.toLocaleString()} thousand`,
     ...stackPoints.map(
       (point) =>
-        `${point.datum.severity.padEnd(8)} ${point.datum.value.toLocaleString()}`,
+        `${point.datum.industry.padEnd(14)} ${point.datum.unemployed.toLocaleString()}`,
     ),
   ].join('\n')
+}
+
+function percentChange(
+  current: number | undefined,
+  previous: number | undefined,
+  label = 'previous observation',
+): { readonly text: string; readonly direction: 'up' | 'down' } {
+  if (current === undefined || previous === undefined || previous === 0) {
+    return { text: 'No comparison', direction: 'down' }
+  }
+  const change = ((current - previous) / previous) * 100
+  return {
+    text: `${change >= 0 ? '+' : '−'}${Math.abs(change).toFixed(1)}% ${label}`,
+    direction: change >= 0 ? 'up' : 'down',
+  }
+}
+
+function numericChange(
+  current: number | undefined,
+  previous: number | undefined,
+  suffix: string,
+): { readonly text: string; readonly direction: 'up' | 'down' } {
+  if (current === undefined || previous === undefined) {
+    return { text: 'No comparison', direction: 'down' }
+  }
+  const change = current - previous
+  return {
+    text: `${change >= 0 ? '+' : '−'}${Math.abs(change).toFixed(1)}${suffix} previous`,
+    direction: change >= 0 ? 'up' : 'down',
+  }
+}
+
+function responseCount(data: DashboardData, response: string): number {
+  return (
+    data.surveyResponseCounts.find((row) => row.Response === response)?.count ??
+    0
+  )
 }
 
 function compact(value: number): string {

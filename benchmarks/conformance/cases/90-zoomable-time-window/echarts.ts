@@ -2,6 +2,7 @@ import { LineChart } from 'echarts/charts'
 import { DataZoomInsideComponent, GridComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import type { LineSeriesOption } from 'echarts/charts'
 import type {
   DataZoomComponentOption,
@@ -12,16 +13,16 @@ import { echartsMount } from '../../shared/echarts-mount'
 import {
   initialZoomWindow,
   millisecondsPerDay,
+  selectZoomRows,
   shiftZoomWindow,
   visibleZoomData,
-  zoomData,
   zoomDateFromAnchor,
   zoomDateKey,
   zoomFullDomain,
   zoomSpanDays,
   zoomWindowAt,
-} from './data'
-import type { ZoomWindow } from './data'
+} from './model'
+import type { ZoomWindow } from './model'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -46,7 +47,8 @@ interface ZoomState {
 }
 
 const color = '#0f766e'
-const yDomain = [20, 85] as const
+const grid = { top: 56, right: 24, bottom: 44, left: 58 } as const
+const zoomRows = selectZoomRows(aapl)
 
 export const mount: ConformanceMount = (container, input) => {
   const state: ZoomState = {
@@ -85,13 +87,14 @@ export const mount: ConformanceMount = (container, input) => {
 }
 
 function zoomOption(input: ConformanceInput, window: ZoomWindow): ZoomOption {
-  const rows = zoomData(input.revision)
+  const rows = zoomRows
   const percent = zoomPercent(window)
   return {
     animation: false,
-    grid: { top: 56, right: 24, bottom: 44, left: 58 },
+    grid,
     xAxis: {
       type: 'time',
+      boundaryGap: [0, 0],
       min: zoomFullDomain[0].getTime(),
       max: zoomFullDomain[1].getTime(),
       name: 'Date',
@@ -100,10 +103,9 @@ function zoomOption(input: ConformanceInput, window: ZoomWindow): ZoomOption {
     },
     yAxis: {
       type: 'value',
-      min: yDomain[0],
-      max: yDomain[1],
-      interval: 20,
-      name: 'Value',
+      min: 'dataMin',
+      max: 'dataMax',
+      name: 'AAPL close ($)',
       splitLine: {
         show: true,
         lineStyle: { color: '#e2e8f0' },
@@ -126,9 +128,9 @@ function zoomOption(input: ConformanceInput, window: ZoomWindow): ZoomOption {
       id: 'zoom-series',
       type: 'line',
       data: rows.map((row) => ({
-        id: row.id,
-        name: row.id,
-        value: [row.date.getTime(), row.value],
+        id: zoomDateKey(row.Date),
+        name: zoomDateKey(row.Date),
+        value: [row.Date.getTime(), row.Close],
       })),
       color,
       lineStyle: { color, width: 2.5 },
@@ -164,7 +166,7 @@ function createZoomInteractions(
   interaction.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight + - Home')
   Object.assign(interaction.style, {
     position: 'absolute',
-    inset: '56px 24px 44px 58px',
+    inset: `${grid.top}px ${grid.right}px ${grid.bottom}px ${grid.left}px`,
     zIndex: '3',
     boxSizing: 'border-box',
     border: '3px dashed transparent',
@@ -217,6 +219,7 @@ function createZoomInteractions(
     | {
         pointerId: number
         originX: number
+        millisecondsPerPixel: number
         originWindow: ZoomWindow
       }
     | undefined
@@ -320,10 +323,17 @@ function createZoomInteractions(
     const wasActive = state.active
     interaction.focus()
     if (!wasActive || event.button !== 0) return
+    const millisecondsPerPixel = horizontalTimePerPixel(
+      chart,
+      surface,
+      event.clientY,
+    )
+    if (millisecondsPerPixel === null) return
     event.preventDefault()
     drag = {
       pointerId: event.pointerId,
       originX: event.clientX,
+      millisecondsPerPixel,
       originWindow: { ...state.window },
     }
     interaction.setPointerCapture(event.pointerId)
@@ -331,13 +341,13 @@ function createZoomInteractions(
 
   const handlePointerMove = (event: PointerEvent) => {
     if (!drag || drag.pointerId !== event.pointerId) return
-    const span =
-      drag.originWindow.end.getTime() - drag.originWindow.start.getTime()
-    const delta =
-      ((drag.originX - event.clientX) /
-        Math.max(1, interaction.getBoundingClientRect().width)) *
-      span
-    applyWindow(shiftZoomWindow(drag.originWindow, delta), 'pan')
+    applyWindow(
+      shiftZoomWindow(
+        drag.originWindow,
+        (drag.originX - event.clientX) * drag.millisecondsPerPixel,
+      ),
+      'pan',
+    )
   }
 
   const finishPointer = (event: PointerEvent) => {
@@ -421,7 +431,7 @@ function zoomPercent(window: ZoomWindow) {
 function dateAtPointer(
   chart: EChartsType,
   surface: HTMLDivElement,
-  event: WheelEvent,
+  event: Pick<MouseEvent, 'clientX' | 'clientY'>,
 ) {
   const bounds = surface.getBoundingClientRect()
   const value = chart.convertFromPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [
@@ -436,6 +446,34 @@ function dateAtPointer(
       ? roundedDay
       : value[0],
   )
+}
+
+function horizontalTimePerPixel(
+  chart: EChartsType,
+  surface: HTMLDivElement,
+  clientY: number,
+) {
+  const bounds = surface.getBoundingClientRect()
+  const y = clientY - bounds.top
+  const left = chart.convertFromPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [
+    grid.left,
+    y,
+  ])
+  const right = chart.convertFromPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [
+    chart.getWidth() - grid.right,
+    y,
+  ])
+  if (
+    !Array.isArray(left) ||
+    !Array.isArray(right) ||
+    typeof left[0] !== 'number' ||
+    typeof right[0] !== 'number' ||
+    !Number.isFinite(left[0]) ||
+    !Number.isFinite(right[0])
+  ) {
+    return null
+  }
+  return (right[0] - left[0]) / (chart.getWidth() - grid.left - grid.right)
 }
 
 function resolveTarget(
@@ -456,9 +494,11 @@ function resolveTarget(
       focusElement: reset,
     }
   }
-  const date = zoomDateFromAnchor(target.anchor)
+  const date = zoomDateFromAnchor(zoomRows, target.anchor)
   if (!date) return null
-  const point = pixelPoint(chart, date, 52)
+  const row = zoomRows.find((datum) => datum.Date.getTime() === date.getTime())
+  if (!row) return null
+  const point = pixelPoint(chart, date, row.Close)
   if (!point) return null
   const bounds = surface.getBoundingClientRect()
   return {
@@ -474,9 +514,9 @@ function interactionState(
   state: ZoomState,
   input: ConformanceInput,
 ): ConformanceJsonObject {
-  const visibleRows = visibleZoomData(zoomData(input.revision), state.window)
-  const revisionProbe = visibleRows.find(
-    (row) => zoomDateKey(row.date) === '2025-01-08',
+  const visibleRows = visibleZoomData(zoomRows, state.window)
+  const jan9Row = visibleRows.find(
+    (row) => zoomDateKey(row.Date) === '2018-01-09',
   )
   return {
     viewport: {
@@ -486,8 +526,8 @@ function interactionState(
     },
     visible: {
       count: visibleRows.length,
-      ids: visibleRows.map((row) => row.id),
-      revisionProbeValue: revisionProbe?.value ?? null,
+      ids: visibleRows.map((row) => zoomDateKey(row.Date)),
+      jan9Close: jan9Row?.Close ?? null,
     },
     interaction: {
       last: state.lastAction,
@@ -519,9 +559,9 @@ function zoomGeometry(
 ): readonly ConformanceGeometrySample[] {
   if (query.view !== undefined && query.view !== 'main') return []
   const bounds = surface.getBoundingClientRect()
-  const rows = visibleZoomData(zoomData(input.revision), window)
+  const rows = visibleZoomData(zoomRows, window)
   const points = rows.flatMap((row) => {
-    const point = pixelPoint(chart, row.date, row.value)
+    const point = pixelPoint(chart, row.Date, row.Close)
     return point ? [point] : []
   })
 

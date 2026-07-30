@@ -1,11 +1,19 @@
+import { flare } from '@charts-poc/demo-data/flare'
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
-import { nestedDonutData } from './data'
+import { nestedFlareDonut } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
+const innerColors = ['#38bdf8', '#8b5cf6']
+const outerColors = ['#0284c7', '#0ea5e9', '#7c3aed', '#a855f7']
+
 function chart(input: ConformanceInput) {
-  const data = nestedDonutData(input.revision)
+  const sourceRows =
+    input.revision % 2 === 0
+      ? flare
+      : flare.filter((row) => row.size === null || row.size >= 1_000)
+  const data = nestedFlareDonut(sourceRows)
   const radius = Math.min(input.width, input.height) * 0.4
 
   return createElement(
@@ -22,8 +30,8 @@ function chart(input: ConformanceInput) {
         {
           key: 'inner',
           data: data.inner,
-          dataKey: 'value',
-          nameKey: 'label',
+          dataKey: 'size',
+          nameKey: 'name',
           cx: input.width / 2,
           cy: input.height / 2,
           innerRadius: radius * 0.12,
@@ -33,10 +41,10 @@ function chart(input: ConformanceInput) {
           stroke: 'none',
           isAnimationActive: false,
         },
-        data.inner.map((row) =>
+        data.inner.map((row, index) =>
           createElement(Cell, {
-            key: row.id,
-            fill: row.fill,
+            key: row.name,
+            fill: innerColors[index],
             stroke: 'none',
           }),
         ),
@@ -46,8 +54,8 @@ function chart(input: ConformanceInput) {
         {
           key: 'outer',
           data: data.outer,
-          dataKey: 'value',
-          nameKey: 'label',
+          dataKey: 'size',
+          nameKey: 'name',
           cx: input.width / 2,
           cy: input.height / 2,
           innerRadius: radius * 0.56,
@@ -57,10 +65,10 @@ function chart(input: ConformanceInput) {
           stroke: 'none',
           isAnimationActive: false,
         },
-        data.outer.map((row) =>
+        data.outer.map((row, index) =>
           createElement(Cell, {
-            key: row.id,
-            fill: row.fill,
+            key: row.name,
+            fill: outerColors[index],
             stroke: 'none',
           }),
         ),
@@ -69,4 +77,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Nested donut rings')
+export const mount = rechartsMount(chart, 'Nested Flare package sizes')

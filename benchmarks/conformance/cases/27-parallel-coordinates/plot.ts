@@ -1,5 +1,7 @@
 import * as Plot from '@observablehq/plot'
-import { parallelData, parallelMetrics, parallelModels } from './data'
+import { decathlon } from '@charts-poc/demo-data/decathlon'
+import { decathlonEvents, selectRepresentativeDecathletes } from './selection'
+import { normalizeDecathlonResults } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
@@ -10,44 +12,44 @@ const colors = [
   '#7c3aed',
   '#db2777',
   '#0891b2',
+  '#ca8a04',
 ]
+const representativeDecathletes = selectRepresentativeDecathletes(decathlon)
+const rows = normalizeDecathlonResults(decathlon, representativeDecathletes)
 
 export const mount: ConformanceMount = (container, input) =>
-  mountObservablePlot(container, input, (nextInput) => {
-    const rows = parallelData(nextInput.revision)
-
-    return Plot.plot({
+  mountObservablePlot(container, input, (nextInput) =>
+    Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
       ariaLabel: 'Parallel coordinates model comparison',
       x: {
-        domain: parallelMetrics,
+        domain: decathlonEvents,
         label: null,
       },
       y: {
         domain: [0, 100],
         grid: true,
-        label: 'Normalized score',
+        label: 'Relative performance within sample',
       },
       color: {
-        domain: parallelModels,
         range: colors,
         legend: true,
       },
       marks: [
         Plot.line(rows, {
-          x: 'metric',
-          y: 'score',
-          z: 'model',
-          stroke: 'model',
+          x: 'event',
+          y: 'relativePerformance',
+          z: 'Country',
+          stroke: 'Country',
           strokeWidth: 1.75,
         }),
         Plot.dot(rows, {
-          x: 'metric',
-          y: 'score',
-          fill: 'model',
+          x: 'event',
+          y: 'relativePerformance',
+          fill: 'Country',
           r: 2.75,
         }),
       ],
-    })
-  })
+    }),
+  )

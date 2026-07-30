@@ -19,6 +19,40 @@ describe('inferred datum keys', () => {
     ).toEqual(['Alpha', 'Beta'])
   })
 
+  it('tries top-level ids, then nested data ids, before mark candidates', () => {
+    const topLevel = [
+      { id: 'top-a', data: { id: 'nested-a' } },
+      { id: 'top-b', data: { id: 'nested-b' } },
+    ]
+    const nested = [
+      { id: 'duplicate', data: { id: 'nested-a' }, position: 'Alpha' },
+      { id: 'duplicate', data: { id: 'nested-b' }, position: 'Beta' },
+    ]
+    const incomplete = [
+      { data: { id: 'nested-a' }, position: 'Alpha' },
+      { data: {}, position: 'Beta' },
+    ]
+
+    expect(inferredKeyValues(topLevel, undefined)).toEqual(['top-a', 'top-b'])
+    expect(
+      inferredKeyValues(nested, undefined, {
+        candidates: [nested.map((row) => row.position)],
+      }),
+    ).toEqual(['nested-a', 'nested-b'])
+    expect(
+      inferredKeyValues(incomplete, undefined, {
+        candidates: [incomplete.map((row) => row.position)],
+      }),
+    ).toEqual(['Alpha', 'Beta'])
+    expect(
+      inferredKeyValues(
+        [{ data: { id: 'same' } }, { data: { id: 'same' } }],
+        undefined,
+        { groups: ['left', 'right'] },
+      ),
+    ).toEqual(['same', 'same'])
+  })
+
   it('accepts candidate values that are unique within each group', () => {
     const rows = [{ value: 'A' }, { value: 'A' }]
 
@@ -42,6 +76,7 @@ describe('inferred datum keys', () => {
     const options = {
       candidates: [rows.map((row) => row.value)],
       markId: 'duplicate-test',
+      warningIdentity: {},
     }
 
     expect(inferredKeyValues(rows, undefined, options)).toEqual([0, 1])
@@ -50,6 +85,11 @@ describe('inferred datum keys', () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('supply key for stable identity'),
     )
+    inferredKeyValues(rows, undefined, {
+      ...options,
+      warningIdentity: {},
+    })
+    expect(warn).toHaveBeenCalledTimes(2)
     warn.mockRestore()
   })
 

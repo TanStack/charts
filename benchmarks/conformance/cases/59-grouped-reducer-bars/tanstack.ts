@@ -1,70 +1,64 @@
 import { barY, defineChart, text } from '@tanstack/charts'
-import { rollups, sum } from 'd3-array'
+import { mean, rollups } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { penguins } from '@charts-poc/demo-data/penguins'
+import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput } from '../../types'
-import {
-  aggregateCategories,
-  aggregateData,
-  aggregateValueDomain,
-} from './data'
-import type { AggregateEvent } from './data'
 
-interface AggregateTotal {
-  id: string
-  category: AggregateEvent['category']
-  value: number
+type PenguinWithMass = PenguinsRow & { body_mass_g: number }
+
+interface SpeciesMean {
+  species: string
+  meanBodyMass: number
 }
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = summarize(aggregateData(input.revision))
+const observations = penguins.filter(
+  (row): row is PenguinWithMass => row.body_mass_g !== null,
+)
+const formatMass = (value: number) =>
+  value.toLocaleString('en-US', { maximumFractionDigits: 3 })
 
-    return {
-      marks: [
-        barY(rows, {
-          x: 'category',
-          y: 'value',
-          key: 'id',
-          fill: '#0ea5e9',
-          inset: 1,
-        }),
-        text(rows, {
-          x: 'category',
-          y: 'value',
-          text: 'value',
-          key: 'id',
-          fill: '#0c4a6e',
-          dy: -8,
-        }),
-      ],
-      x: {
-        scale: scaleBand<string>()
-          .domain(aggregateCategories)
-          .paddingInner(0.1)
-          .paddingOuter(0.05),
-      },
-      y: {
-        scale: scaleLinear().domain(aggregateValueDomain),
-        grid: true,
-        label: 'Total amount',
-      },
-    }
+const definition = () => {
+  const rows = summarize(observations)
+
+  return defineChart({
+    marks: [
+      barY(rows, {
+        x: 'species',
+        y: 'meanBodyMass',
+        fill: '#0ea5e9',
+        inset: 1,
+      }),
+      text(rows, {
+        x: 'species',
+        y: 'meanBodyMass',
+        text: (row) => formatMass(row.meanBodyMass),
+        fill: '#0c4a6e',
+        dy: -8,
+      }),
+    ],
+    x: {
+      scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Mean body mass (g)',
+    },
   })
+}
 
 export const mount = tanstackMount(
   definition,
-  'Category totals aggregated from raw events',
+  'Mean penguin body mass by species',
 )
 
-function summarize(rows: readonly AggregateEvent[]): readonly AggregateTotal[] {
+function summarize(rows: readonly PenguinWithMass[]): readonly SpeciesMean[] {
   return rollups(
     rows,
-    (values) => sum(values, (row) => row.amount),
-    (row) => row.category,
-  ).map(([category, value]) => ({
-    id: category,
-    category,
-    value,
-  }))
+    (values) => mean(values, (row) => row.body_mass_g),
+    (row) => row.species,
+  ).flatMap(([species, meanBodyMass]) =>
+    meanBodyMass === undefined ? [] : [{ species, meanBodyMass }],
+  )
 }

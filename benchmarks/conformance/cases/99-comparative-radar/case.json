@@ -5,7 +5,7 @@
   "id": "99-comparative-radar",
   "title": "Comparative radar chart",
   "family": "polar",
-  "intent": "Compare current and target profiles across six qualitative dimensions on one fixed radial scale.",
+  "intent": "Compare representative USA and GBR decathlon results across four normalized events.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -17,7 +17,7 @@
   ],
   "geometry": [
     { "role": "radar", "count": 2, "maxCount": 2 },
-    { "role": "text", "count": 11, "maxCount": 11 }
+    { "role": "text", "count": 9, "maxCount": 9 }
   ],
   "minimumGeometrySimilarity": 0.9999,
   "source": {
@@ -25,7 +25,7 @@
     "url": "https://recharts.github.io/en-US/examples/SimpleRadarChart/"
   },
   "ai": {
-    "create": "Create a comparative radar chart with two keyed six-point profiles, a fixed zero-to-one-hundred radial scale, polygon grid rings, and sparse angle labels.",
+    "create": "Create a comparative radar chart from representative raw USA and GBR decathlon rows, visibly normalizing four differently scaled events to a shared zero-to-one-hundred radial scale.",
     "maintain": "Update either profile while preserving metric order, series identity, the fixed radial domain, closed D3 curves, and shared guide geometry."
   }
 }

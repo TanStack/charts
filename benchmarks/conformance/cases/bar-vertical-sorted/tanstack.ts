@@ -1,56 +1,40 @@
+import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { barY, defineChart } from '@tanstack/charts'
-import { rollups, sum } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import type { CategoryPoint } from '../../shared/data'
-import { categoryData, categoryTotalDomain } from '../../shared/data'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
-const definition = (input: ConformanceInput) =>
-  defineChart(({ width }) => {
-    const rows = summarizeCategories(categoryData(input.revision)).sort(
-      (left, right) => right.value - left.value,
-    )
+const percent = new Intl.NumberFormat('en-US', {
+  style: 'percent',
+  maximumFractionDigits: 1,
+})
 
+const definition = (_input: ConformanceInput) =>
+  defineChart(({ width }) => {
     return {
       marks: [
-        barY(rows, {
-          x: 'category',
-          y: 'value',
-          key: 'id',
+        barY(alphabet, {
+          x: 'letter',
+          y: 'frequency',
           fill: '#2563eb',
           inset: 1,
         }),
       ],
       x: {
-        scale: scaleBand<string>()
-          .domain(rows.map((row) => row.category))
-          .paddingInner(0.1)
-          .paddingOuter(0.05),
+        scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
         tickRotate: width < 560 ? -32 : 0,
       },
       y: {
-        scale: scaleLinear().domain(categoryTotalDomain),
-        label: 'Total value',
+        scale: scaleLinear,
+        label: 'Frequency',
         ticks: 5,
         grid: true,
+        format: (value) => percent.format(value),
       },
     }
   })
 
 export const mount = tanstackMount(definition, 'Sorted vertical bars', {
   format: ({ datum }) =>
-    `${datum.category} · ${datum.value.toLocaleString('en-US')} total`,
+    `${datum.letter} · ${percent.format(datum.frequency)} frequency`,
 })
-
-function summarizeCategories(rows: readonly CategoryPoint[]) {
-  return rollups(
-    rows,
-    (values) => sum(values, (row) => row.value),
-    (row) => row.category,
-  ).map(([category, value]) => ({
-    id: category,
-    category,
-    value,
-  }))
-}

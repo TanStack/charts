@@ -1,9 +1,12 @@
 import { defineChart, mountChart, rect } from '@tanstack/charts'
-import { scaleBand, scaleOrdinal, scaleUtc } from 'd3-scale'
+import { scaleBand, scaleUtc } from 'd3-scale'
+import { timelineStatusColors } from './colors'
 import {
   createResourceTimelineShell,
   sizeResourceTimelineShell,
   timelineBodyHeight,
+  timelineChartHeight,
+  timelineContentWidth,
   timelineLaneRailWidth,
   timelineMargin,
   updateTimelineTaskDetails,
@@ -12,19 +15,16 @@ import {
   resourceLanes,
   resourceTasks,
   resourceTimelineDomain,
-  timelineChartHeight,
-  timelineContentWidth,
-  timelineDateKey,
-  timelineStatusColors,
   timelineStatuses,
-} from './data'
+} from './scenario'
+import { timelineDateKey } from './model'
 import type {
   ChartHost,
   ChartPoint,
   ChartScene,
   ChartHostOptions,
 } from '@tanstack/charts'
-import type { ResourceTask, TimelineStatus } from './data'
+import type { ResourceTask } from './scenario'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -43,18 +43,17 @@ interface TimelineFocusState {
   scrolled: boolean
 }
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = resourceTasks(input.revision)
+const definition = (input: ConformanceInput) => {
+  const rows = resourceTasks(input.revision)
+
+  return defineChart(({ width }) => {
     return {
       marks: [
         rect(rows, {
-          id: 'resource-tasks',
           x1: 'start',
           x2: 'end',
           y: 'resource',
-          z: 'status',
-          key: 'id',
+          color: 'status',
           inset: taskInset,
           radius: 4,
           stroke: '#ffffff',
@@ -64,14 +63,7 @@ const definition = (input: ConformanceInput) =>
       x: {
         scale: scaleUtc().domain(resourceTimelineDomain),
         grid: true,
-        ticks: Math.max(
-          6,
-          Math.floor(
-            timelineContentWidth(
-              input.width - timelineLaneRailWidth(input.width),
-            ) / 84,
-          ),
-        ),
+        ticks: Math.max(6, Math.floor(width / 84)),
       },
       y: {
         scale: scaleBand<string>()
@@ -82,15 +74,13 @@ const definition = (input: ConformanceInput) =>
         guide: false,
       },
       color: {
-        scale: scaleOrdinal<TimelineStatus, string>()
-          .domain(timelineStatuses)
-          .range(
-            timelineStatuses.map((status) => timelineStatusColors[status]),
-          ),
+        domain: timelineStatuses,
+        range: timelineStatuses.map((status) => timelineStatusColors[status]),
       },
       margin: timelineMargin,
     }
   })
+}
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

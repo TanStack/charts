@@ -16,18 +16,21 @@
   "geometry": [{ "role": "dot", "count": 5 }],
   "interactionScenarios": [
     {
-      "id": "select-central-observation",
+      "id": "select-adelie-dream-observation",
       "steps": [
         {
           "type": "click",
-          "target": { "view": "main", "anchor": "point:central" }
+          "target": {
+            "view": "main",
+            "anchor": "point:adelie-dream-female"
+          }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "selectedId", "equals": "central" },
-            { "path": "selectedRow", "equals": "central" },
-            { "path": "selectedValue", "equals": 45 },
+            { "path": "selectedId", "equals": "adelie-dream-female" },
+            { "path": "selectedRow", "equals": "adelie-dream-female" },
+            { "path": "selectedValue", "equals": 3250 },
             { "path": "selectedOverlayCount", "equals": 1 }
           ]
         },
@@ -67,18 +70,24 @@
       "steps": [
         {
           "type": "click",
-          "target": { "view": "main", "anchor": "point:north" }
+          "target": {
+            "view": "main",
+            "anchor": "point:adelie-torgersen-male"
+          }
         },
         {
           "type": "click",
-          "target": { "view": "main", "anchor": "point:east" }
+          "target": {
+            "view": "main",
+            "anchor": "point:chinstrap-dream-male"
+          }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "selectedId", "equals": "east" },
-            { "path": "selectedRow", "equals": "east" },
-            { "path": "selectedValue", "equals": 72 }
+            { "path": "selectedId", "equals": "chinstrap-dream-male" },
+            { "path": "selectedRow", "equals": "chinstrap-dream-male" },
+            { "path": "selectedValue", "equals": 3900 }
           ]
         }
       ]
@@ -89,17 +98,20 @@
         {
           "type": "key",
           "key": "Enter",
-          "target": { "view": "main", "anchor": "row:south" }
+          "target": {
+            "view": "main",
+            "anchor": "row:adelie-biscoe-female"
+          }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "selectedId", "equals": "south" },
-            { "path": "selectedRow", "equals": "south" },
-            { "path": "focusedRow", "equals": "south" },
+            { "path": "selectedId", "equals": "adelie-biscoe-female" },
+            { "path": "selectedRow", "equals": "adelie-biscoe-female" },
+            { "path": "focusedRow", "equals": "adelie-biscoe-female" },
             {
               "path": "announcement",
-              "includes": "Selected south: Feb"
+              "includes": "Selected Adelie female on Biscoe"
             }
           ]
         },
@@ -109,7 +121,7 @@
             {
               "target": {
                 "role": "button",
-                "name": "south",
+                "name": "Adelie female on Biscoe",
                 "exact": true
               },
               "property": "focused",
@@ -118,14 +130,16 @@
             {
               "target": {
                 "role": "button",
-                "name": "south",
+                "name": "Adelie female on Biscoe",
                 "exact": true
               },
               "property": "height",
               "atLeast": 44
             },
             {
-              "target": { "selector": "[data-row-id=\"south\"]" },
+              "target": {
+                "selector": "[data-row-id=\"adelie-biscoe-female\"]"
+              },
               "property": "attribute",
               "attribute": "aria-selected",
               "equals": "true"
@@ -136,11 +150,11 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "selectedId", "equals": "south" },
-            { "path": "selectedValue", "equals": 64 },
+            { "path": "selectedId", "equals": "adelie-biscoe-female" },
+            { "path": "selectedValue", "equals": 3400 },
             {
               "path": "announcement",
-              "equals": "Selected south: Feb, 64"
+              "equals": "Selected Adelie female on Biscoe: 3,400 g"
             }
           ]
         }
@@ -151,7 +165,10 @@
       "steps": [
         {
           "type": "click",
-          "target": { "view": "main", "anchor": "point:north" }
+          "target": {
+            "view": "main",
+            "anchor": "point:adelie-torgersen-male"
+          }
         },
         {
           "type": "click",
@@ -210,7 +227,7 @@
     "url": "https://recharts.github.io/en-US/api/Scatter/"
   },
   "ai": {
-    "create": "Create a point chart linked to an accessible table so selecting a point highlights the corresponding row.",
-    "maintain": "Use stable observation IDs as the shared selection key, keep the table semantic, and render selection as a separate visual overlay."
+    "create": "Create a penguin measurement chart linked to an accessible table so selecting a point highlights the corresponding row.",
+    "maintain": "Use the displayed species, island, and sex cohorts as shared selection keys, keep the source measurements unchanged, keep the table semantic, and render selection as a separate visual overlay."
   }
 }

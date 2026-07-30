@@ -1,4 +1,5 @@
-import { channelValues, createMark } from './mark'
+import { channelValues } from './mark'
+import { createMarkWithScaleValues } from './mark-with-scale-values'
 import { valueKey } from './scales'
 import { createChartScene } from './scene'
 import type {
@@ -11,6 +12,7 @@ import type {
   ChartScene,
   ChartSpec,
   ChartTheme,
+  ChartValue,
   ResolvedScale,
   SceneGroup,
   SceneLabel,
@@ -39,10 +41,16 @@ interface FacetEntry<TDatum> {
 export function facet<TDatum>(
   source: Iterable<TDatum>,
   options: FacetOptions<NoInfer<TDatum>>,
-): ChartMark<TDatum> {
+): ChartMark<TDatum, ChartValue, ChartValue, never, never> {
   const data = Array.isArray(source) ? source : Array.from(source)
 
-  return createMark(({ markIndex }) => {
+  return createMarkWithScaleValues<
+    TDatum,
+    ChartValue,
+    ChartValue,
+    never,
+    never
+  >(({ markIndex }) => {
     const id = options.id ?? `facet-${markIndex}`
     const keys = channelValues(data, options.by, () => '')
     const groups = new Map<string, FacetEntry<TDatum>>()

@@ -27,52 +27,64 @@ adapter. React and Octane also provide optional Canvas entries.
 <!-- docs-example: overview typecheck -->
 
 ```ts
+import { aapl } from '@charts-poc/demo-data/aapl'
+import { mean } from 'd3-array'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import { areaY, defineChart, lineY, ruleY } from '@tanstack/charts'
+import { areaY, defineChart, lineY } from '@tanstack/charts'
 
-const rows = [
-  { id: 'jan', date: new Date('2026-01-01T00:00:00Z'), actual: 42, target: 38 },
-  { id: 'feb', date: new Date('2026-02-01T00:00:00Z'), actual: 31, target: 35 },
-  { id: 'mar', date: new Date('2026-03-01T00:00:00Z'), actual: 48, target: 44 },
-  { id: 'apr', date: new Date('2026-04-01T00:00:00Z'), actual: 39, target: 46 },
-]
+const observations = aapl.slice(0, 120)
+const rows = observations.flatMap((row, index) => {
+  if (index < 19) return []
+  const average = mean(
+    observations.slice(index - 19, index + 1),
+    (observation) => observation.Close,
+  )
+  return average === undefined ? [] : [{ ...row, average }]
+})
 
-const performanceChart = defineChart({
+const closingPriceChart = defineChart({
   marks: [
-    ruleY([40], { stroke: '#94a3b8', strokeOpacity: 0.7 }),
     areaY(rows, {
-      x: 'date',
-      y1: 'target',
-      y2: 'actual',
-      key: 'id',
+      x: 'Date',
+      y1: 'average',
+      y2: 'Close',
       fill: '#2563eb',
       fillOpacity: 0.18,
     }),
     lineY(rows, {
-      x: 'date',
-      y: 'actual',
-      key: 'id',
+      x: 'Date',
+      y: 'Close',
       stroke: '#2563eb',
+    }),
+    lineY(rows, {
+      x: 'Date',
+      y: 'average',
+      stroke: '#64748b',
     }),
   ],
   x: {
     scale: scaleUtc,
     nice: true,
-    label: 'Month',
+    label: 'Date',
   },
   y: {
-    scale: scaleLinear().domain([0, 50]).nice(),
-    label: 'Score',
+    scale: scaleLinear,
+    nice: true,
+    label: 'Close (USD)',
     grid: true,
   },
 })
 ```
 
-The direct `d3-scale` imports in this example are application dependencies. Install `d3-scale` and `@types/d3-scale` alongside TanStack Charts. [Installation](./installation.md) lists the exact packages, and [Scales and D3](./concepts/scales-and-d3.md) explains the ownership boundary.
+The rolling average is an ordinary, visible data transform. The direct
+`d3-array` and `d3-scale` imports are application dependencies. Install those
+modules and their matching `@types` packages alongside TanStack Charts.
+[Installation](./installation.md) lists the exact packages, and
+[Scales and D3](./concepts/scales-and-d3.md) explains the ownership boundary.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/33-difference-chart/?theme=system&height=380"
-  title="Actual versus forecast difference chart built with TanStack Charts"
+  title="Apple close versus moving-average difference chart built with TanStack Charts"
   loading="lazy"
   width="100%"
   height="380"

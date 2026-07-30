@@ -1,43 +1,53 @@
 import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
+import { geoEqualEarth } from 'd3-geo'
 import {
-  equalEarthProjection,
-  worldCollection,
-} from '../102-world-choropleth/geo-data'
-import { routePlaces, worldRoutes } from './data'
+  detailedWorldLand,
+  worldGraticule,
+  worldSphere,
+} from '../../shared/fixtures/country-atlas'
+import { beagleRoute } from './transform'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
+const routeColors = ['#dc2626', '#2563eb']
+const projection = {
+  type: () => geoEqualEarth().rotate([-10, 0]),
+  fit: 'sphere' as const,
+}
+
 const definition = (input: ConformanceInput) =>
-  defineChart(() => ({
+  defineChart({
     marks: [
-      geoShape([worldCollection(input.revision)], {
-        projection: ({ chart }) => equalEarthProjection(chart),
+      geoShape([detailedWorldLand], {
+        projection,
         fill: '#e2e8f0',
         stroke: '#ffffff',
-        strokeWidth: 0.75,
+        strokeWidth: 0.5,
       }),
-      geoShape(worldRoutes(input.revision), {
-        key: (feature) => feature.properties.id,
-        projection: ({ chart }) => equalEarthProjection(chart),
+      geoShape([worldGraticule], {
+        projection,
         fill: 'none',
-        stroke: (feature) => feature.properties.stroke,
+        stroke: 'currentColor',
+        strokeOpacity: 0.2,
+        strokeWidth: 0.5,
+      }),
+      geoShape([beagleRoute], {
+        projection,
+        fill: 'none',
+        stroke: routeColors[input.revision % 2] ?? routeColors[0],
         strokeWidth: 2,
         strokeOpacity: 0.9,
       }),
-      geoShape(routePlaces(input.revision), {
-        key: (feature) => feature.properties.id,
-        projection: ({ chart }) => equalEarthProjection(chart),
-        r: 3.5,
-        fill: (feature) => feature.properties.fill,
-        stroke: '#ffffff',
-        strokeWidth: 1,
+      geoShape([worldSphere], {
+        projection,
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeOpacity: 0.4,
+        strokeWidth: 0.75,
       }),
     ],
-    x: null,
-    y: null,
-    guides: false,
     margin: 10,
-  }))
+  })
 
-export const mount = tanstackMount(definition, 'Great-circle route map')
+export const mount = tanstackMount(definition, 'HMS Beagle voyage')

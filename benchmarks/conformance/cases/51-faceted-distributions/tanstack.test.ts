@@ -1,47 +1,42 @@
+import { penguins } from '@charts-poc/demo-data/penguins'
 import { describe, expect, it } from 'vitest'
-import type { FacetedDistributionPoint } from './data'
-import { prepareFacetedDistributionBins } from './tanstack'
+import {
+  prepareFacetedDistributionBins,
+  species,
+  type PenguinMass,
+  type PenguinSpecies,
+} from './tanstack'
+
+const rows = penguins.filter((row): row is PenguinMass => {
+  return (
+    row.body_mass_g !== null && species.includes(row.species as PenguinSpecies)
+  )
+})
 
 describe('faceted distribution preparation', () => {
-  it('accounts for every row within its facet and retains the domain maximum', () => {
-    const rows: readonly FacetedDistributionPoint[] = [
-      { id: 'baseline:0', group: 'Baseline', value: 0 },
-      { id: 'baseline:1', group: 'Baseline', value: 10 },
-      { id: 'baseline:2', group: 'Baseline', value: 100 },
-      { id: 'variant:0', group: 'Variant', value: 25 },
-      { id: 'variant:1', group: 'Variant', value: 35 },
-      { id: 'experimental:0', group: 'Experimental', value: 75 },
-    ]
+  it('accounts for every observed body mass within its species facet', () => {
     const bins = prepareFacetedDistributionBins(rows)
 
-    for (const group of ['Baseline', 'Variant', 'Experimental'] as const) {
-      const groupRows = rows.filter((row) => row.group === group)
-      const groupBins = bins.filter((entry) => entry.group === group)
+    for (const speciesName of species) {
+      const speciesRows = rows.filter((row) => row.species === speciesName)
+      const speciesBins = bins.filter((entry) => entry.species === speciesName)
 
-      expect(groupBins).toHaveLength(10)
-      expect(groupBins.reduce((total, entry) => total + entry.count, 0)).toBe(
-        groupRows.length,
+      expect(speciesBins.length).toBeGreaterThan(0)
+      expect(speciesBins.every((entry) => entry.count > 0)).toBe(true)
+      expect(speciesBins.reduce((total, entry) => total + entry.count, 0)).toBe(
+        speciesRows.length,
       )
       expect(
-        groupBins.reduce((total, entry) => total + entry.proportion, 0),
+        speciesBins.reduce((total, entry) => total + entry.proportion, 0),
       ).toBeCloseTo(1)
     }
-
-    expect(
-      bins.find(
-        (entry) =>
-          entry.group === 'Baseline' && entry.x1 === 90 && entry.x2 === 100,
-      ),
-    ).toMatchObject({ count: 1, proportion: 1 / 3 })
   })
 
   it('omits facets that have no source rows instead of producing NaN values', () => {
-    const bins = prepareFacetedDistributionBins([
-      { id: 'baseline:0', group: 'Baseline', value: 50 },
-    ])
+    const bins = prepareFacetedDistributionBins(rows.slice(0, 1))
 
-    expect(new Set(bins.map((entry) => entry.group))).toEqual(
-      new Set(['Baseline']),
+    expect(new Set(bins.map((entry) => entry.species))).toEqual(
+      new Set(['Adelie']),
     )
     expect(bins.every((entry) => Number.isFinite(entry.proportion))).toBe(true)
   })

@@ -16,7 +16,6 @@ lineY(rows, {
   x: 'date',
   y: 'revenue',
   z: 'region',
-  key: 'id',
 })
 ```
 
@@ -37,7 +36,6 @@ Use an accessor for derived values:
 dot(rows, {
   x: (row) => row.revenue / row.accounts,
   y: (row) => row.retained / row.accounts,
-  key: 'id',
 })
 ```
 
@@ -82,20 +80,28 @@ lineY(rows, {
   x: 'date',
   y: 'value',
   z: 'region',
-  key: 'id',
 })
 ```
 
-For line and area marks, `z` partitions observations into independent geometry. For built-in marks, it also supplies a categorical value to the color resolver unless a separate color channel is available.
+For connected line and area marks, an explicit `z` partitions observations
+into independent geometry. If `z` is omitted and `color` is authored, `color`
+also supplies that path grouping. When both are present, `z` wins for geometry
+and interaction grouping while `color` remains an independent color-scale
+value. Omitting `color` reuses `z` for color.
 
-On bars, `z` does not implicitly invent grouped-bar geometry. Supply an explicit D3 `groupScale` when multiple bars must occupy sub-bands within the same category. See [Bars and Rankings](../examples/bars-and-rankings.md).
+On bars, neither channel implicitly invents grouped-bar geometry. Supply a D3
+`groupScale` when multiple bars must occupy sub-bands within one category.
+The scale uses `z` when present, otherwise `color`. See
+[Bars and Rankings](../examples/bars-and-rankings.md).
 
 ## Color channels and constants
 
 There are two common paths:
 
-- A fixed `fill` or `stroke` is a constant style.
-- A categorical `z` or `color` channel is a semantic mapping resolved by the chart color scale.
+- `color` is a semantic mapping resolved by the chart color scale.
+- `z` falls back into that mapping when no separate `color` channel is set.
+- `fill` and `stroke` are final paint overrides and bypass scale mapping for
+  that paint.
 
 The default categorical palette is useful for quick distinctions. Use an explicit D3 ordinal scale when a category must always map to the same color across charts, filters, and sessions.
 
@@ -111,7 +117,6 @@ const chart = defineChart({
       x: 'revenue',
       y: 'retention',
       z: 'segment',
-      key: 'id',
     }),
   ],
   x: { scale: revenueScale },
@@ -137,7 +142,6 @@ dot(rows, {
   rScale: {
     scale: () => scaleSqrt().range([3, 22]),
   },
-  key: 'id',
 })
 ```
 
@@ -151,13 +155,16 @@ Built-in marks infer identity in this order:
 
 1. An explicit `key`
 2. A unique string or number `datum.id`
-3. A unique mark-specific positional identity
-4. Row index
+3. A unique string or number `datum.data.id`
+4. A unique mark-specific positional identity
+5. Row index
 
 Bars use their categorical channel. Lines and areas use their independent
-axis. Rects and cells use their x/y interval tuple. These candidates are
-checked within each `z` group; a collision rejects the candidate and continues
-to the next fallback.
+axis. Dots and text try x, then y, then the x/y tuple. Rects and cells use
+their x/y interval tuple. These candidates are checked within each interaction
+group; a collision rejects the candidate and continues to the next fallback.
+The nested ID convention covers rows emitted by wrappers such as D3 pie
+without requiring an accessor solely to unwrap `data.id`.
 
 For common rows with a unique `id`, no key option is required:
 
@@ -181,8 +188,11 @@ barX(rows, {
 ```
 
 Explicit keys are string or number values and need to be unique within the
-mark and group. Marks without a unique automatic candidate fall back to array
-position and warn once per mark in development.
+mark and group. When a mark-owned positional candidate is present but
+incomplete or duplicated, the mark falls back to array position and warns once
+per mark instance in development. Marks with no positional candidate also use
+row position after checking IDs, without adding a warning for ordinary static
+data.
 
 The mark `id` identifies the layer. Give conditionally rendered or reordered marks an explicit, stable `id` as well.
 
@@ -209,7 +219,6 @@ interface Reading {
 lineY(readings, {
   x: 'time',
   y: 'temperature',
-  key: 'id',
 })
 ```
 
@@ -224,18 +233,15 @@ const marks = [
     x2: 'end',
     y1: 'minimum',
     y2: 'maximum',
-    key: 'id',
   }),
   lineY(readings, {
     x: 'time',
     y: 'temperature',
-    key: 'id',
   }),
   text(annotations, {
     x: 'time',
     y: 'value',
     text: 'label',
-    key: 'id',
   }),
 ]
 ```
@@ -272,71 +278,60 @@ responsive layout work.
 ## Complete bubble-scatter example
 
 ```ts
+import { penguins, type PenguinsRow } from '@charts-poc/demo-data/penguins'
 import { scaleLinear, scaleOrdinal, scaleSqrt } from 'd3-scale'
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
 
-interface AccountSegment {
-  id: string
-  revenue: number
-  retention: number
-  accounts: number
-  segment: 'Consumer' | 'Enterprise' | 'Public'
+type CompletePenguin = PenguinsRow & {
+  culmen_length_mm: number
+  culmen_depth_mm: number
+  body_mass_g: number
 }
 
-const rows: readonly AccountSegment[] = [
-  { id: 'a', revenue: 28, retention: 0.74, accounts: 180, segment: 'Consumer' },
-  {
-    id: 'b',
-    revenue: 62,
-    retention: 0.91,
-    accounts: 75,
-    segment: 'Enterprise',
-  },
-  { id: 'c', revenue: 44, retention: 0.83, accounts: 120, segment: 'Public' },
-  { id: 'd', revenue: 35, retention: 0.79, accounts: 240, segment: 'Consumer' },
-]
-
-const segments: readonly AccountSegment['segment'][] = [
-  'Consumer',
-  'Enterprise',
-  'Public',
-]
+const rows = penguins.filter(
+  (row): row is CompletePenguin =>
+    row.culmen_length_mm !== null &&
+    row.culmen_depth_mm !== null &&
+    row.body_mass_g !== null,
+)
+const species = ['Adelie', 'Chinstrap', 'Gentoo']
 
 const bubbleChart = defineChart({
   marks: [
     dot(rows, {
-      x: 'revenue',
-      y: 'retention',
-      z: 'segment',
-      r: 'accounts',
+      x: 'culmen_length_mm',
+      y: 'culmen_depth_mm',
+      color: 'species',
+      r: 'body_mass_g',
       rScale: {
-        scale: () => scaleSqrt().range([4, 24]),
+        scale: () => scaleSqrt().range([3, 11]),
       },
-      key: 'id',
-      fillOpacity: 0.72,
-      stroke: 'Canvas',
-      strokeWidth: 1,
+      fillOpacity: 0.78,
+      stroke: 'currentColor',
+      strokeOpacity: 0.28,
+      strokeWidth: 0.75,
     }),
   ],
   x: {
-    scale: scaleLinear().domain([0, 70]).nice(),
-    label: 'Revenue',
+    scale: scaleLinear,
+    label: 'Bill length (mm)',
     grid: true,
   },
   y: {
-    scale: scaleLinear().domain([0.65, 1]).nice(),
-    label: 'Retention',
-    format: (value) => `${Math.round(value * 100)}%`,
+    scale: scaleLinear,
+    label: 'Bill depth (mm)',
     grid: true,
   },
   color: {
-    scale: scaleOrdinal(segments, ['#2563eb', '#f97316', '#10b981']),
-    legend: colorLegend({ label: 'Segment' }),
+    scale: scaleOrdinal(species, ['#2563eb', '#f97316', '#10b981']),
+    legend: colorLegend({ label: 'Species' }),
   },
 })
 ```
 
-This example imports `d3-array` and `d3-scale` directly. Install both modules and their matching `@types` packages.
+The filter only removes observations missing a plotted measurement; the marks
+still use the source dataset's field names. This example imports `d3-scale`
+directly. Install it and `@types/d3-scale`.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/scatter-bubble/?theme=system&height=400"

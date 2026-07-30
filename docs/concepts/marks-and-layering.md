@@ -68,28 +68,35 @@ lineY(rows, {
   id: 'actual-revenue',
   x: 'date',
   y: 'actual',
-  key: 'id',
 })
 ```
 
-The datum `key` identifies observations within the layer. Use both stable mark IDs and datum keys for dynamic compositions.
+Built-in marks infer datum identity from a unique top-level `id`, nested
+`data.id`, or mark-specific position. Supply `key` when that inferred value is
+not the entity's stable identity.
 
 ## Grouped geometry
 
-`z` partitions geometry that should not connect:
+An explicit `z` partitions geometry that should not connect:
 
 ```ts
 lineY(rows, {
   x: 'date',
   y: 'value',
   z: 'region',
-  key: 'id',
 })
 ```
 
-Each region becomes an independent line. Area marks use the same grouping rule.
+Each region becomes an independent line. Area marks use the same grouping
+rule. When `z` is omitted on a connected line or area, an authored `color`
+channel supplies the path groups as well as color semantics. Explicit `z`
+always wins when the two fields differ.
 
-Bars use the primary band by default. When `z` values should form side-by-side bars, supply a configured D3 `groupScale`. When rows should stack, prepare explicit `y1` and `y2` or `x1` and `x2` intervals before the mark. TanStack Charts does not guess whether a group means color, dodge, stack, or overlap.
+Bars use the primary band by default. Supply a configured D3 `groupScale` for
+side-by-side bars; it groups by `z` when present and otherwise by `color`.
+When rows should stack, prepare explicit `y1` and `y2` or `x1` and `x2`
+intervals before the mark. TanStack Charts does not guess whether bars should
+dodge, stack, or overlap.
 
 ## Line and area gaps
 
@@ -107,7 +114,6 @@ areaY(readings, {
   x: 'time',
   y1: 'low',
   y2: 'high',
-  key: 'id',
 })
 ```
 
@@ -141,7 +147,6 @@ rect(windows, {
   x2: 'end',
   y1: 'minimum',
   y2: 'maximum',
-  key: 'id',
 })
 ```
 
@@ -189,90 +194,33 @@ Clipping applies to the chart’s mark group, not axes or legends. Leave it off 
 ## Complete range-band composition
 
 ```ts
+import { sfTemperatures } from '@charts-poc/demo-data/sf-temperatures'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
 
-interface TemperatureRow {
-  id: string
-  date: Date
-  low: number
-  high: number
-  average: number
-}
-
-const rows: readonly TemperatureRow[] = [
-  {
-    id: 'mon',
-    date: new Date('2026-07-20T00:00:00Z'),
-    low: 16,
-    high: 27,
-    average: 21,
-  },
-  {
-    id: 'tue',
-    date: new Date('2026-07-21T00:00:00Z'),
-    low: 17,
-    high: 30,
-    average: 24,
-  },
-  {
-    id: 'wed',
-    date: new Date('2026-07-22T00:00:00Z'),
-    low: 15,
-    high: 26,
-    average: 20,
-  },
-  {
-    id: 'thu',
-    date: new Date('2026-07-23T00:00:00Z'),
-    low: 18,
-    high: 32,
-    average: 25,
-  },
-  {
-    id: 'fri',
-    date: new Date('2026-07-24T00:00:00Z'),
-    low: 19,
-    high: 34,
-    average: 27,
-  },
-]
-
 const temperatureChart = defineChart({
   marks: [
-    areaY(rows, {
+    areaY(sfTemperatures, {
       id: 'daily-range',
       x: 'date',
       y1: 'low',
       y2: 'high',
-      key: 'id',
       fill: '#60a5fa',
       fillOpacity: 0.24,
     }),
-    lineY(rows, {
+    lineY(sfTemperatures, {
       id: 'daily-low',
       x: 'date',
       y: 'low',
-      key: 'id',
       stroke: '#2563eb',
       strokeWidth: 1.5,
     }),
-    lineY(rows, {
+    lineY(sfTemperatures, {
       id: 'daily-high',
       x: 'date',
       y: 'high',
-      key: 'id',
-      stroke: '#2563eb',
+      stroke: '#dc2626',
       strokeWidth: 1.5,
-    }),
-    lineY(rows, {
-      id: 'daily-average',
-      x: 'date',
-      y: 'average',
-      key: 'id',
-      stroke: '#f97316',
-      strokeWidth: 2.5,
-      points: true,
     }),
   ],
   x: {
@@ -282,7 +230,7 @@ const temperatureChart = defineChart({
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Temperature (°C)',
+    label: 'Temperature (°F)',
     grid: true,
   },
 })

@@ -41,6 +41,7 @@ interface InitializedMark<
 > {
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
+  layoutLabels?(context: MarkRenderContext): readonly SceneLabel[]
   render(context: MarkRenderContext): MarkScene<TDatum, TXValue, TYValue>
 }
 ```
@@ -71,6 +72,12 @@ interface MarkRenderContext {
   layout: ChartLayoutOptions
 }
 ```
+
+If a custom mark emits labels that should participate in automatic margins,
+return the same positioned labels from `layoutLabels`. The solver may call it
+more than once with different responsive ranges; keep it pure. `render` still
+runs once with the final layout. The built-in Cartesian `text` mark provides
+this hook.
 
 Return keyed scene nodes and, when the mark participates in native
 interaction, typed points:

@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 610,
   "id": "61-quantile-ribbon",
-  "title": "Percentile ribbon",
+  "title": "Industry unemployment percentile ribbon",
   "family": "uncertainty",
-  "intent": "Show the median trajectory and the central eighty percent of repeated observations over time.",
+  "intent": "Show the monthly median and central eighty percent of unemployment counts across U.S. industries.",
   "support": "composed",
   "features": [
     "quantile ribbon",
@@ -23,7 +23,7 @@
     "url": "https://observablehq.com/plot/transforms/group"
   },
   "ai": {
-    "create": "Create a time-series ribbon from raw repeated observations using the tenth and ninetieth percentiles with a median center line.",
-    "maintain": "Change the percentile interval while preserving one raw tidy table, UTC grouping, explicit domains, stable keys, and matching D3 quantile semantics."
+    "create": "Create a time-series ribbon from raw industries observations using the tenth and ninetieth percentiles of unemployment with a median center line.",
+    "maintain": "Change the percentile interval while preserving the original date, industry, and unemployed fields through the reducer, UTC grouping, inferred extents, stable keys, and matching D3 quantile semantics."
   }
 }

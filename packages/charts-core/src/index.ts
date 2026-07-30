@@ -68,6 +68,7 @@ export type {
   ConfiguredColorScaleLike,
   ChartColorScale,
   ChartColorScaleContext,
+  ResolvedColorScaleKind,
   InferableColorScaleLike,
   ChartColorLegend,
   ChartColorLegendContext,

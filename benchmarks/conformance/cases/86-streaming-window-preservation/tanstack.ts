@@ -1,22 +1,18 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { downloads } from '@charts-poc/demo-data/downloads'
 import { scaleLinear, scaleUtc } from 'd3-scale'
+import { streamingData } from './selection'
 import {
   formatStreamingDate,
   fullStreamingViewport,
   latestStreamingViewport,
-  streamingData,
   streamingDateKey,
   streamingViewportDomain,
   visibleStreamingData,
-} from './data'
+} from './model'
 import { createStreamingControls, updateStreamingControls } from './controls'
-import type {
-  ChartHost,
-  ChartPoint,
-  ChartScene,
-  ChartHostOptions,
-} from '@tanstack/charts'
-import type { StreamingDatum } from './data'
+import type { ChartHost, ChartScene, ChartHostOptions } from '@tanstack/charts'
+import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
 import type { StreamingControls, StreamingViewportMode } from './controls'
 import type {
   ConformanceGeometryQuery,
@@ -28,13 +24,13 @@ import type {
 } from '../../types'
 
 interface StreamingChartInput extends ConformanceInput {
-  rows: readonly StreamingDatum[]
+  rows: readonly DownloadsRow[]
   viewport: readonly [Date, Date]
   viewportMode: StreamingViewportMode
 }
 
 interface StreamingState {
-  rows: readonly StreamingDatum[]
+  rows: readonly DownloadsRow[]
   appended: number
   viewport: readonly [Date, Date]
   viewportMode: StreamingViewportMode
@@ -43,59 +39,54 @@ interface StreamingState {
 
 const color = '#2563eb'
 
-const definition = (input: StreamingChartInput) =>
-  defineChart(() => {
-    const visibleRows = visibleStreamingData(input.rows, input.viewport)
-    return {
-      marks: [
-        lineY(visibleRows, {
-          id: 'stream-line',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          stroke: color,
-          strokeWidth: 2.5,
+const definition = (input: StreamingChartInput) => {
+  const visibleRows = visibleStreamingData(input.rows, input.viewport)
+  return defineChart({
+    marks: [
+      lineY(visibleRows, {
+        x: 'date',
+        y: 'downloads',
+        stroke: color,
+        strokeWidth: 2.5,
+      }),
+      dot(visibleRows, {
+        x: 'date',
+        y: 'downloads',
+        fill: color,
+        r: 3.5,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+    ],
+    x: {
+      scale: scaleUtc().domain(input.viewport),
+      label:
+        input.viewportMode === 'locked'
+          ? 'Locked viewport'
+          : input.viewportMode === 'latest'
+            ? 'Following latest'
+            : 'All samples',
+      format: (value) =>
+        value.toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          timeZone: 'UTC',
         }),
-        dot(visibleRows, {
-          id: 'stream-points',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          fill: color,
-          r: 3.5,
-          stroke: '#ffffff',
-          strokeWidth: 1,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain(input.viewport),
-        label:
-          input.viewportMode === 'locked'
-            ? 'Locked viewport'
-            : input.viewportMode === 'latest'
-              ? 'Following latest'
-              : 'All samples',
-        format: (value) =>
-          value.toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            timeZone: 'UTC',
-          }),
-      },
-      y: {
-        scale: scaleLinear().domain([0, 80]),
-        ticks: 5,
-        grid: true,
-        label: 'Value',
-      },
-      margin: { top: 18, right: 24, bottom: 44, left: 58 },
-    }
+    },
+    y: {
+      scale: scaleLinear,
+      ticks: 5,
+      grid: true,
+      label: 'Downloads',
+    },
+    margin: { top: 18, right: 24, bottom: 44, left: 58 },
   })
+}
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
   const state: StreamingState = {
-    rows: streamingData(input.revision),
+    rows: streamingData(downloads, input.revision),
     appended: 0,
     viewport: streamingViewportDomain,
     viewportMode: 'locked',
@@ -118,7 +109,11 @@ export const mount: ConformanceMount = (container, input) => {
   const controls = createStreamingControls(container.ownerDocument, {
     append() {
       state.appended += 1
-      state.rows = streamingData(currentInput.revision, state.appended)
+      state.rows = streamingData(
+        downloads,
+        currentInput.revision,
+        state.appended,
+      )
       if (state.viewportMode === 'latest') {
         state.viewport = latestStreamingViewport(state.rows)
       } else if (state.viewportMode === 'all') {
@@ -126,7 +121,7 @@ export const mount: ConformanceMount = (container, input) => {
       }
       const added = state.rows.at(-1)
       state.announcement = added
-        ? `Added ${formatStreamingDate(added.date)} (${added.value}). ${
+        ? `Added ${formatStreamingDate(added.date)} (${added.downloads.toLocaleString()} downloads). ${
             visibleStreamingData([added], state.viewport).length
               ? 'The new sample is visible.'
               : `It is outside the locked viewport ending ${formatStreamingDate(state.viewport[1])}.`
@@ -151,7 +146,7 @@ export const mount: ConformanceMount = (container, input) => {
   container.append(view)
   sizeStreamingView(view, chartSurface, input)
 
-  const chartOptions = (): ChartHostOptions<StreamingDatum> => ({
+  const chartOptions = (): ChartHostOptions<DownloadsRow> => ({
     definition: defineChart(
       definition({
         ...currentInput,
@@ -164,15 +159,15 @@ export const mount: ConformanceMount = (container, input) => {
         keyboard: true,
         tooltip: {
           format: (point) =>
-            `${formatStreamingDate(point.datum.date)} · ${point.datum.value.toLocaleString()}`,
+            `${formatStreamingDate(point.datum.date)} · ${point.datum.downloads.toLocaleString()} downloads`,
         },
       },
     ),
     width: currentInput.width,
     height: streamingChartHeight(currentInput.height),
-    ariaLabel: 'Streaming observations in a locked time viewport',
+    ariaLabel: 'Package downloads in a locked time viewport',
   })
-  let host: ChartHost<StreamingDatum> | undefined
+  let host: ChartHost<DownloadsRow> | undefined
   host = mountChart(chartSurface, chartOptions())
   updateStreamingControls(controls, {
     mode: state.viewportMode,
@@ -185,7 +180,7 @@ export const mount: ConformanceMount = (container, input) => {
     driver,
     update(nextInput) {
       currentInput = nextInput
-      state.rows = streamingData(nextInput.revision, state.appended)
+      state.rows = streamingData(downloads, nextInput.revision, state.appended)
       if (state.viewportMode === 'latest') {
         state.viewport = latestStreamingViewport(state.rows)
       } else if (state.viewportMode === 'all') {
@@ -209,7 +204,7 @@ function createDriver(
   chartSurface: HTMLDivElement,
   controls: StreamingControls,
   state: StreamingState,
-  host: ChartHost<StreamingDatum>,
+  host: ChartHost<DownloadsRow>,
 ): ConformanceTestDriver {
   return {
     resolveTarget(target) {
@@ -247,18 +242,16 @@ function streamingState(state: StreamingState) {
   const first = state.rows[0]
   const last = state.rows[state.rows.length - 1]
   const visibleRows = visibleStreamingData(state.rows, state.viewport)
-  const revisionProbe = visibleRows.find((row) => row.id === 'sample-7')
   return {
     data: {
       count: state.rows.length,
-      ids: state.rows.map((row) => row.id),
+      ids: state.rows.map((row) => streamingDateKey(row.date)),
       domainStart: first ? streamingDateKey(first.date) : null,
       domainEnd: last ? streamingDateKey(last.date) : null,
     },
     visible: {
       count: visibleRows.length,
-      ids: visibleRows.map((row) => row.id),
-      revisionProbeValue: revisionProbe?.value ?? null,
+      ids: visibleRows.map((row) => streamingDateKey(row.date)),
     },
     viewport: {
       start: streamingDateKey(state.viewport[0]),
@@ -275,7 +268,7 @@ function streamingState(state: StreamingState) {
 function streamingGeometry(
   chartSurface: HTMLDivElement,
   state: StreamingState,
-  scene: ChartScene<StreamingDatum>,
+  scene: ChartScene<DownloadsRow>,
   query: ConformanceGeometryQuery,
 ): readonly ConformanceGeometrySample[] {
   if (query.view !== undefined && query.view !== 'main') return []
@@ -287,7 +280,7 @@ function streamingGeometry(
   const scaleY = bounds.height / scene.height
   const points = rows.map((row): readonly [number, number] => [
     scene.scales.x.map(row.date),
-    scene.scales.y.map(row.value),
+    scene.scales.y.map(row.downloads),
   ])
 
   if (query.role === 'dot') {

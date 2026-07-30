@@ -1,37 +1,38 @@
 import * as Plot from '@observablehq/plot'
-import { candleData, candleDomain } from './data'
+import { aapl } from '@charts-poc/demo-data/aapl'
+import { selectCandleData } from './selection'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = candleData(nextInput.revision)
-    const gains = rows.filter((row) => row.close >= row.open)
-    const losses = rows.filter((row) => row.close < row.open)
+    const rows = selectCandleData(aapl, nextInput.revision)
+    const gains = rows.filter((row) => row.Close >= row.Open)
+    const losses = rows.filter((row) => row.Close < row.Open)
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Daily candlestick chart',
-      x: { domain: candleDomain, label: null },
-      y: { domain: [75, 130], grid: true, label: 'Price' },
+      ariaLabel: 'Apple daily candlestick chart',
+      x: { label: null },
+      y: { grid: true, label: 'Price' },
       marks: [
         Plot.ruleX(rows, {
-          x: 'date',
-          y1: 'low',
-          y2: 'high',
+          x: 'Date',
+          y1: 'Low',
+          y2: 'High',
           stroke: '#64748b',
         }),
         Plot.ruleX(gains, {
-          x: 'date',
-          y1: 'open',
-          y2: 'close',
+          x: 'Date',
+          y1: 'Open',
+          y2: 'Close',
           stroke: '#10b981',
           strokeWidth: 5,
         }),
         Plot.ruleX(losses, {
-          x: 'date',
-          y1: 'open',
-          y2: 'close',
+          x: 'Date',
+          y1: 'Open',
+          y2: 'Close',
           stroke: '#ef4444',
           strokeWidth: 5,
         }),

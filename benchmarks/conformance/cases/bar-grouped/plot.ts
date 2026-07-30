@@ -1,23 +1,22 @@
+import { penguins } from '@charts-poc/demo-data/penguins'
 import * as Plot from '@observablehq/plot'
 import type { ConformanceMount } from '../../types'
-import { categoryData, categoryValueDomain } from '../../shared/data'
 import { mountObservablePlot } from '../../shared/mount'
 
-const seriesDomain = ['Desktop', 'Mobile', 'Tablet']
-const seriesColors = ['#2563eb', '#f97316', '#10b981']
+const sexColors = ['#2563eb', '#f97316']
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = categoryData(nextInput.revision)
-    const categoryDomain = [...new Set(rows.map((row) => row.category))]
+    const rows = penguins
+      .slice(0, penguins.length - nextInput.revision * 12)
+      .filter((row) => row.sex !== null)
 
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Grouped bars',
+      ariaLabel: 'Penguins grouped by species',
       marginBottom: nextInput.width < 640 ? 72 : 48,
       fx: {
-        domain: categoryDomain,
         label: null,
         padding: 0.08,
         tickRotate: nextInput.width < 640 ? -32 : 0,
@@ -27,24 +26,27 @@ export const mount: ConformanceMount = (container, input) =>
         paddingOuter: 0.16,
       },
       y: {
-        domain: categoryValueDomain,
-        nice: false,
         grid: true,
-        label: 'Value',
+        label: 'Penguins',
       },
       color: {
-        domain: seriesDomain,
-        range: seriesColors,
+        range: sexColors,
         legend: true,
       },
       marks: [
-        Plot.barY(rows, {
-          fx: 'category',
-          x: 'series',
-          y: 'value',
-          fill: 'series',
-          inset: 1,
-        }),
+        Plot.barY(
+          rows,
+          Plot.groupX(
+            { y: 'count' },
+            {
+              fx: 'species',
+              x: 'sex',
+              fill: 'sex',
+              sort: { fx: null },
+              inset: 1,
+            },
+          ),
+        ),
       ],
     })
   })

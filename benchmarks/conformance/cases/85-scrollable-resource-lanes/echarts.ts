@@ -14,10 +14,13 @@ import type {
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
 import { echartsMount } from '../../shared/echarts-mount'
+import { timelineStatusColors } from './colors'
 import {
   createResourceTimelineShell,
   sizeResourceTimelineShell,
   timelineBodyHeight,
+  timelineChartHeight,
+  timelineContentWidth,
   timelineLaneRailWidth,
   timelineMargin,
   updateTimelineTaskDetails,
@@ -26,13 +29,10 @@ import {
   resourceLanes,
   resourceTasks,
   resourceTimelineDomain,
-  timelineChartHeight,
-  timelineContentWidth,
-  timelineDateKey,
-  timelineStatusColors,
   timelineStatuses,
-} from './data'
-import type { ResourceLane, ResourceTask } from './data'
+} from './scenario'
+import { timelineDateKey } from './model'
+import type { ResourceLane, ResourceTask } from './scenario'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,

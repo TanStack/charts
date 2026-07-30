@@ -32,27 +32,30 @@ function text<TDatum>(
 
 ### Options
 
-| Option       | Type                                 | Default                                           | Meaning                                           |
-| ------------ | ------------------------------------ | ------------------------------------------------- | ------------------------------------------------- |
-| `id`         | `string`                             | Layer-derived                                     | Stable mark ID                                    |
-| `x`          | `Channel<TDatum, ChartValue?>`       | Row index                                         | Horizontal anchor                                 |
-| `y`          | `Channel<TDatum, ChartValue?>`       | Numeric datum                                     | Vertical anchor                                   |
-| `text`       | `Channel<TDatum, string \| number?>` | String form of datum                              | Label content                                     |
-| `z`          | `Channel<TDatum, ChartKey?>`         | No group                                          | Interaction group and default fill                |
-| `key`        | `Channel<TDatum, ChartKey>`          | Unique `id`, then index                           | Stable identity                                   |
-| `fill`       | `VisualChannel<TDatum, string>`      | Theme foreground without z; resolved color with z | Label fill                                        |
-| `fontSize`   | `number`                             | Inherited SVG font size                           | Font size                                         |
-| `fontWeight` | `number`                             | Inherited weight                                  | Numeric font weight                               |
-| `anchor`     | `VisualChannel<TDatum, TextAnchor>`  | `'middle'`                                        | `'start'`, `'middle'`, or `'end'`                 |
-| `rotate`     | `VisualChannel<TDatum, number>`      | No transform                                      | Rotation in degrees around the final label origin |
-| `dx`         | `VisualChannel<TDatum, number>`      | `0`                                               | Horizontal pixel offset                           |
-| `dy`         | `VisualChannel<TDatum, number>`      | `0`                                               | Vertical pixel offset                             |
+| Option       | Type                                 | Default                            | Meaning                                           |
+| ------------ | ------------------------------------ | ---------------------------------- | ------------------------------------------------- |
+| `id`         | `string`                             | Layer-derived                      | Stable mark ID                                    |
+| `x`          | `Channel<TDatum, ChartValue?>`       | Row index                          | Horizontal anchor                                 |
+| `y`          | `Channel<TDatum, ChartValue?>`       | Numeric datum                      | Vertical anchor                                   |
+| `text`       | `Channel<TDatum, string \| number?>` | String form of datum               | Label content                                     |
+| `z`          | `Channel<TDatum, ChartKey?>`         | No group                           | Interaction group                                 |
+| `color`      | `Channel<TDatum, ChartKey?>`         | `z`                                | Value sent to the chart color scale               |
+| `key`        | `Channel<TDatum, ChartKey>`          | ID, x, y, x/y, index               | Stable identity                                   |
+| `fill`       | `VisualChannel<TDatum, string>`      | Theme foreground or resolved color | Final label paint override                        |
+| `fontSize`   | `number`                             | Inherited SVG font size            | Font size                                         |
+| `fontWeight` | `number`                             | Inherited weight                   | Numeric font weight                               |
+| `anchor`     | `VisualChannel<TDatum, TextAnchor>`  | `'middle'`                         | `'start'`, `'middle'`, or `'end'`                 |
+| `rotate`     | `VisualChannel<TDatum, number>`      | No transform                       | Rotation in degrees around the final label origin |
+| `dx`         | `VisualChannel<TDatum, number>`      | `0`                                | Horizontal pixel offset                           |
+| `dy`         | `VisualChannel<TDatum, number>`      | `0`                                | Vertical pixel offset                             |
 
 Labels use a middle baseline. Null or undefined text skips the row; the default
 for a null datum is an empty string. Invalid x/y values also skip the row.
 
 The interaction point is at the offset label origin. Its semantic values remain
-the original x/y channels. Use a stable key when labels enter, exit, or reorder.
+the original x/y channels. Without an explicit key, `text` tries a unique
+top-level or nested `data.id`, then x, y, and the x/y tuple. Supply `key` when
+positions can change while the same label should reconcile across updates.
 
 ## `frame`
 
@@ -211,10 +214,7 @@ The wrapper sets:
 ```ts
 const specification = {
   marks: [facet(source, options)],
-  guides: false,
   margin: 0,
-  x: null,
-  y: null,
 }
 ```
 

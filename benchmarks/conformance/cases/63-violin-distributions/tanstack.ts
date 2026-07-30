@@ -1,78 +1,79 @@
+import { penguins } from '@charts-poc/demo-data/penguins'
 import { areaX, d3AreaXCurve, defineChart, dot, link } from '@tanstack/charts'
-import { scaleLinear, scaleOrdinal } from 'd3-scale'
+import { scaleLinear } from 'd3-scale'
 import { curveBasis } from 'd3-shape'
-import { violinCohorts, violinColors, violinData, violinMedians } from './data'
+import {
+  isPenguinMass,
+  violinDensity,
+  violinMedians,
+  violinSpecies,
+} from './transform'
 import { tanstackMount } from '../../shared/mount'
-import type { ViolinCohort } from './data'
 import type { ConformanceInput } from '../../types'
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = violinData(input.revision)
-    const summaries = violinMedians(input.revision)
+const colors = ['#64748b', '#0d9488', '#7c3aed']
 
-    return {
-      marks: [
-        areaX(rows, {
-          x1: 'x1',
-          x2: 'x2',
-          y: 'value',
-          z: 'cohort',
-          key: 'id',
-          fillOpacity: 0.58,
-          stroke: (row) => violinColors[row.cohort],
-          curve: d3AreaXCurve(curveBasis),
-        }),
-        link(summaries, {
-          x1: 'x1',
-          x2: 'x2',
-          y1: 'median',
-          y2: 'median',
-          key: 'id',
-          stroke: '#0f172a',
-          strokeWidth: 2,
-        }),
-        dot(summaries, {
-          x: 'center',
-          y: 'median',
-          z: 'cohort',
-          key: 'id',
-          stroke: '#ffffff',
-          strokeWidth: 1,
-          r: 3.5,
-        }),
-      ],
-      x: {
-        scale: scaleLinear().domain([0.5, 3.5]),
-        ticks: violinCohorts.length,
-        format: (value) => violinCohorts[Math.round(value) - 1] ?? '',
-      },
-      y: {
-        scale: scaleLinear().domain([40, 100]),
-        grid: true,
-        label: 'Score',
-      },
-      color: {
-        scale: scaleOrdinal<ViolinCohort, string>()
-          .domain(violinCohorts)
-          .range(violinCohorts.map((cohort) => violinColors[cohort])),
-      },
-    }
+const definition = (input: ConformanceInput) => {
+  const observations = penguins
+    .filter(isPenguinMass)
+    .slice(input.revision * 8, input.revision * 8 + 320)
+  const rows = violinDensity(observations)
+  const summaries = violinMedians(observations)
+
+  return defineChart({
+    marks: [
+      areaX(rows, {
+        x1: 'x1',
+        x2: 'x2',
+        y: 'body_mass_g',
+        color: 'species',
+        fillOpacity: 0.58,
+        curve: d3AreaXCurve(curveBasis),
+      }),
+      link(summaries, {
+        x1: 'x1',
+        x2: 'x2',
+        y1: 'body_mass_g',
+        y2: 'body_mass_g',
+        stroke: '#0f172a',
+        strokeWidth: 2,
+      }),
+      dot(summaries, {
+        x: 'center',
+        y: 'body_mass_g',
+        color: 'species',
+        stroke: '#ffffff',
+        strokeWidth: 1,
+        r: 3.5,
+      }),
+    ],
+    x: {
+      scale: scaleLinear().domain([0.5, 3.5]),
+      ticks: violinSpecies.length,
+      format: (value) => violinSpecies[Math.round(value) - 1] ?? '',
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Body mass (g)',
+    },
+    color: {
+      range: colors,
+    },
   })
+}
 
 export const mount = tanstackMount(
   definition,
   'Violin distribution comparison',
   {
     format: ({ datum }) =>
-      'median' in datum
-        ? `${datum.cohort} · median score ${datum.median.toLocaleString(
+      'center' in datum
+        ? `${datum.species} · median body mass ${datum.body_mass_g.toLocaleString(
             'en-US',
-            { maximumFractionDigits: 1 },
-          )}`
-        : `${datum.cohort} · distribution score ${datum.value.toLocaleString(
+          )} g`
+        : `${datum.species} · distribution at ${datum.body_mass_g.toLocaleString(
             'en-US',
-            { maximumFractionDigits: 1 },
-          )}`,
+          )} g`,
   },
 )

@@ -1,16 +1,15 @@
 import { barY, defineChart, dot, mountChart } from '@tanstack/charts'
+import { penguins } from '@charts-poc/demo-data/penguins'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import {
   isNestedTooltipId,
-  nestedTooltipData,
-  nestedTooltipServices,
-} from './data'
+  nestedTooltipRows,
+  penguinCohort,
+  penguinTooltipId,
+  penguinTooltipLabel,
+} from './model'
 import type { ChartHost, ChartPoint, ChartHostOptions } from '@tanstack/charts'
-import type {
-  NestedTooltipDatum,
-  NestedTooltipId,
-  NestedTooltipMiniDatum,
-} from './data'
+import type { CompletePenguin, NestedTooltipId } from './model'
 import type {
   ConformanceHandle,
   ConformanceInput,
@@ -18,7 +17,7 @@ import type {
 } from '../../types'
 
 interface MiniChartInput {
-  rows: readonly NestedTooltipMiniDatum[]
+  rows: readonly CompletePenguin[]
 }
 
 interface MainChartInput extends ConformanceInput {
@@ -27,76 +26,69 @@ interface MainChartInput extends ConformanceInput {
 
 let tooltipIdSequence = 0
 
-const mainDefinition = (input: MainChartInput) =>
-  defineChart(() => {
-    const rows = nestedTooltipData(input.revision)
-    const selectedRows = rows.filter((row) => row.id === input.pinnedId)
-    return {
-      marks: [
-        dot(rows, {
-          id: 'services',
-          x: 'service',
-          y: 'latency',
-          key: 'id',
-          r: 5,
-          fill: '#2563eb',
-          stroke: '#ffffff',
-          strokeWidth: 1,
-        }),
-        ...(selectedRows.length
-          ? [
-              dot(selectedRows, {
-                id: 'pinned-service',
-                x: 'service',
-                y: 'latency',
-                key: 'id',
-                r: 9,
-                fill: '#f97316',
-                stroke: '#ffffff',
-                strokeWidth: 3,
-              }),
-            ]
-          : []),
-      ],
-      x: {
-        scale: scaleBand<string>()
-          .domain(nestedTooltipServices)
-          .paddingInner(0.1)
-          .paddingOuter(0.05),
-      },
-      y: {
-        scale: scaleLinear().domain([0, 100]),
-        ticks: 5,
-        grid: true,
-      },
-      margin: { top: 18, right: 24, bottom: 42, left: 68 },
-    }
+const mainDefinition = (input: MainChartInput) => {
+  const rows = nestedTooltipRows(penguins, input.revision)
+  const selectedRows = rows.filter(
+    (row) => penguinTooltipId(row) === input.pinnedId,
+  )
+  return defineChart({
+    marks: [
+      dot(rows, {
+        id: 'penguins',
+        x: 'flipper_length_mm',
+        y: 'body_mass_g',
+        r: 5,
+        fill: '#2563eb',
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+      ...(selectedRows.length
+        ? [
+            dot(selectedRows, {
+              id: 'pinned-penguin',
+              x: 'flipper_length_mm',
+              y: 'body_mass_g',
+              r: 9,
+              fill: '#f97316',
+              stroke: '#ffffff',
+              strokeWidth: 3,
+            }),
+          ]
+        : []),
+    ],
+    x: {
+      scale: scaleLinear().domain([170, 235]),
+      label: 'Flipper length (mm)',
+    },
+    y: {
+      scale: scaleLinear().domain([3000, 6000]),
+      ticks: 5,
+      grid: true,
+      label: 'Body mass (g)',
+    },
+    margin: { top: 18, right: 24, bottom: 42, left: 68 },
   })
+}
 
 const miniDefinition = (input: MiniChartInput) =>
-  defineChart(() => ({
+  defineChart({
     marks: [
       barY(input.rows, {
-        id: 'history-bars',
-        x: 'period',
-        y: 'value',
-        key: 'id',
+        x: (row) => String(row.flipper_length_mm),
+        y: 'body_mass_g',
         fill: '#8b5cf6',
         inset: 1,
       }),
     ],
     x: {
-      scale: scaleBand<string>()
-        .domain(input.rows.map((row) => row.period))
-        .paddingInner(0.18)
-        .paddingOuter(0.08),
+      scale: () => scaleBand<string>().paddingInner(0.18).paddingOuter(0.08),
     },
     y: {
-      scale: scaleLinear().domain([0, 100]),
+      scale: scaleLinear,
       guide: false,
     },
     margin: { top: 6, right: 6, bottom: 24, left: 6 },
-  }))
+  })
 
 function pointFromTarget(target: ConformanceTarget) {
   if (target.view !== undefined && target.view !== 'main') return null
@@ -122,7 +114,7 @@ export function mount(
   view.setAttribute('role', 'region')
   view.setAttribute(
     'aria-label',
-    'Service latency with a pinned nested-chart tooltip',
+    'Penguin measurements with a pinned nested-chart tooltip',
   )
   Object.assign(view.style, {
     position: 'relative',
@@ -158,10 +150,12 @@ export function mount(
   })
   closeButton.type = 'button'
   closeButton.textContent = '×'
-  closeButton.setAttribute('aria-label', 'Close pinned service details')
+  closeButton.setAttribute('aria-label', 'Close pinned penguin details')
   Object.assign(closeButton.style, {
     width: '44px',
+    minWidth: '44px',
     height: '44px',
+    flex: '0 0 44px',
     padding: '0',
     border: '1px solid color-mix(in srgb, CanvasText 24%, transparent)',
     borderRadius: '6px',
@@ -186,7 +180,7 @@ export function mount(
   let currentInput = input
   let hoveredId: NestedTooltipId | null = null
   let pinnedId: NestedTooltipId | null = null
-  let miniHost: ChartHost<NestedTooltipMiniDatum> | undefined
+  let miniHost: ChartHost<CompletePenguin> | undefined
 
   const narrowLayout = () => currentInput.width < 520
   const panelHeight = () =>
@@ -201,22 +195,25 @@ export function mount(
   })
 
   const miniOptions = (
-    rows: readonly NestedTooltipMiniDatum[],
-  ): ChartHostOptions<NestedTooltipMiniDatum> => ({
+    rows: readonly CompletePenguin[],
+  ): ChartHostOptions<CompletePenguin> => ({
     definition: defineChart(miniDefinition({ rows }), {
       animate: false,
       keyboard: false,
     }),
     ...miniDimensions(),
-    ariaLabel: 'Recent latency for the pinned service',
+    ariaLabel: 'Body mass for nearby penguins of the same species',
     ariaDescription: rows
-      .map((row) => `${row.period}: ${row.value} milliseconds`)
+      .map(
+        (row) =>
+          `${row.flipper_length_mm} millimeter flipper: ${row.body_mass_g} grams`,
+      )
       .join('. '),
   })
 
   const renderTooltip = () => {
-    const datum = nestedTooltipData(currentInput.revision).find(
-      (row) => row.id === pinnedId,
+    const datum = nestedTooltipRows(penguins, currentInput.revision).find(
+      (row) => penguinTooltipId(row) === pinnedId,
     )
     if (!datum) {
       miniHost?.destroy()
@@ -226,35 +223,40 @@ export function mount(
       return
     }
 
-    tooltipTitle.textContent = `${datum.service}: ${datum.latency} ms`
-    historyDescription.textContent = datum.history
-      .map((row) => `${row.period}: ${row.value} milliseconds`)
+    const cohort = penguinCohort(penguins, datum)
+    tooltipTitle.textContent = `${penguinTooltipLabel(datum)}: ${datum.body_mass_g.toLocaleString()} g`
+    historyDescription.textContent = cohort
+      .map(
+        (row) =>
+          `${row.flipper_length_mm} millimeter flipper: ${row.body_mass_g} grams`,
+      )
       .join('. ')
     tooltip.hidden = false
     const dimensions = miniDimensions()
     miniSurface.style.width = `${dimensions.width}px`
     miniSurface.style.height = `${dimensions.height}px`
-    if (miniHost) miniHost.update(miniOptions(datum.history))
-    else miniHost = mountChart(miniSurface, miniOptions(datum.history))
-    placeTooltip(datum.id)
+    if (miniHost) miniHost.update(miniOptions(cohort))
+    else miniHost = mountChart(miniSurface, miniOptions(cohort))
+    const id = penguinTooltipId(datum)
+    if (id) placeTooltip(id)
   }
 
-  let mainHost: ChartHost<NestedTooltipDatum>
-  const mainOptions = (): ChartHostOptions<NestedTooltipDatum> => ({
+  let mainHost: ChartHost<CompletePenguin>
+  const mainOptions = (): ChartHostOptions<CompletePenguin> => ({
     definition: defineChart(mainDefinition({ ...currentInput, pinnedId }), {
       animate: false,
       keyboard: true,
     }),
     width: currentInput.width,
     height: mainHeight(),
-    ariaLabel: 'Selectable service latency chart',
+    ariaLabel: 'Selectable penguin measurement chart',
     ariaDescription:
-      'Use arrow keys to choose a service and Enter or Space to pin its recent history.',
-    onFocusChange(point: ChartPoint<NestedTooltipDatum> | null) {
-      hoveredId = point?.datum.id ?? null
+      'Use arrow keys to choose a penguin and Enter or Space to pin a same-species comparison.',
+    onFocusChange(point: ChartPoint<CompletePenguin> | null) {
+      hoveredId = point ? penguinTooltipId(point.datum) : null
     },
-    onSelect(point: ChartPoint<NestedTooltipDatum> | null) {
-      const selectedId = point?.datum.id ?? null
+    onSelect(point: ChartPoint<CompletePenguin> | null) {
+      const selectedId = point ? penguinTooltipId(point.datum) : null
       const svg = chartSurface.querySelector<SVGSVGElement>('svg.ts-chart')
       if (svg) delete svg.dataset.restoredPoint
       pinnedId = pinnedId === selectedId ? null : selectedId
@@ -305,7 +307,8 @@ export function mount(
         const scene = mainHost.getScene()
         const point = scene.points.find(
           (candidate) =>
-            candidate.markId === 'services' && candidate.datum.id === pointId,
+            candidate.markId === 'penguins' &&
+            penguinTooltipId(candidate.datum) === pointId,
         )
         const svg = chartSurface.querySelector<SVGSVGElement>('svg.ts-chart')
         if (!point || !svg) return null
@@ -334,9 +337,9 @@ export function mount(
               ? 0
               : miniSurface.querySelectorAll('svg.ts-chart').length,
             selectedOverlayCount: chartSurface.querySelectorAll(
-              '.ts-chart__dot[data-ts-key="pinned-service"] circle',
+              '.ts-chart__dot[data-ts-key="pinned-penguin"] circle',
             ).length,
-            periodLabelCount: tooltip.hidden
+            flipperLabelCount: tooltip.hidden
               ? 0
               : miniSurface.querySelectorAll('[data-ts-key^="x-tick-label:"]')
                   .length,
@@ -369,7 +372,8 @@ export function mount(
     const scene = mainHost.getScene()
     const point = scene.points.find(
       (candidate) =>
-        candidate.markId === 'services' && candidate.datum.id === id,
+        candidate.markId === 'penguins' &&
+        penguinTooltipId(candidate.datum) === id,
     )
     if (!point) return
     const edge = 8

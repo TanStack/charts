@@ -188,6 +188,9 @@ export interface ChartColorOptions {
   legend?: ChartColorLegend
 }
 
+export type ResolvedColorScaleKind =
+  'categorical' | 'continuous' | 'quantile' | 'quantize' | 'threshold'
+
 export interface ConfiguredColorScaleLike<TValue extends ChartKey, TOutput> {
   (value: TValue): TOutput
   copy: () => ConfiguredColorScaleLike<TValue, TOutput>
@@ -209,6 +212,11 @@ export interface InferableColorScaleLike<
   }
   ticks?: (count: number) => readonly TValue[]
   nice?: (count?: number) => InferableColorScaleLike<TValue, TOutput>
+  thresholds?: () => readonly number[]
+  quantiles?: (count?: number) => readonly number[]
+  invertExtent?: (
+    value: TOutput,
+  ) => readonly [TValue | undefined, TValue | undefined]
 }
 
 export type ChartColorScaleFactory<
@@ -240,7 +248,11 @@ export interface ChartColorLegendContext {
 }
 
 export interface ChartColorLegend {
-  height: (itemCount: number, width: number) => number
+  height: (
+    itemCount: number,
+    width: number,
+    colors?: ResolvedColorScale,
+  ) => number
   render: (context: ChartColorLegendContext) => SceneNode
 }
 
@@ -326,17 +338,46 @@ type ChartYOptionsForMarks<TMarks extends AnyChartMarks> =
       ? ChartAxisOptions<ChartAxisValue<ChartMarkScaleY<TMarks[number]>>>
       : never
 
-export interface ChartSpec<TMarks extends AnyChartMarks = any> {
-  marks: TMarks
+interface ChartSpecBase {
   guides?: boolean
-  x: ChartXOptionsForMarks<TMarks> | null
-  y: ChartYOptionsForMarks<TMarks> | null
   color?: ChartColorOptions
   gradients?: readonly ChartLinearGradient[]
   clip?: boolean
   margin?: number | Partial<ChartMargin>
   theme?: Partial<ChartTheme>
 }
+
+interface StoredChartSpec extends ChartSpecBase {
+  marks: readonly ChartMark<unknown, any, any>[]
+  x?: ChartAxisOptions<any> | null
+  y?: ChartAxisOptions<any> | null
+}
+
+type ChartXSpec<TMarks extends AnyChartMarks> =
+  IsAny<ChartMarkScaleX<TMarks[number]>> extends true
+    ? { x: ChartXOptionsForMarks<TMarks> | null }
+    : [ChartMarkScaleX<TMarks[number]>] extends [never]
+      ? { x?: null }
+      : { x: ChartXOptionsForMarks<TMarks> }
+
+type ChartYSpec<TMarks extends AnyChartMarks> =
+  IsAny<ChartMarkScaleY<TMarks[number]>> extends true
+    ? { y: ChartYOptionsForMarks<TMarks> | null }
+    : [ChartMarkScaleY<TMarks[number]>] extends [never]
+      ? { y?: null }
+      : { y: ChartYOptionsForMarks<TMarks> }
+
+type ChartSpecForMarks<TMarks extends AnyChartMarks> = {
+  marks: TMarks
+} & ChartSpecBase &
+  ChartXSpec<TMarks> &
+  ChartYSpec<TMarks>
+
+export type ChartSpec<TMarks extends AnyChartMarks | undefined = undefined> = [
+  TMarks,
+] extends [AnyChartMarks]
+  ? ChartSpecForMarks<Extract<TMarks, AnyChartMarks>>
+  : StoredChartSpec
 
 export interface ChartDefinitionOptions<
   TDatum = unknown,
@@ -367,7 +408,7 @@ export interface StaticChartDefinition<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >
-  extends Omit<ChartSpec, 'marks'>, StoredChartDefinitionOptions {
+  extends StoredChartSpec, StoredChartDefinitionOptions {
   marks: readonly ChartMark<unknown, any, any>[]
   readonly __datum?: TDatum
   readonly __xValue?: TXValue
@@ -380,12 +421,11 @@ export interface ChartBuildContext {
   theme: ChartTheme
 }
 
-export type CheckedChartSpec<TSpec extends ChartSpec> = TSpec extends ChartSpec
-  ? TSpec & ChartSpec<TSpec['marks']>
-  : never
+export type CheckedChartSpec<TSpec extends StoredChartSpec> = TSpec &
+  ChartSpec<TSpec['marks']>
 
 export interface DynamicChartConfig<
-  TSpec extends ChartSpec = ChartSpec,
+  TSpec extends StoredChartSpec = StoredChartSpec,
 > extends ChartDefinitionOptions<
   ChartSpecDatum<TSpec>,
   ChartSpecXValue<TSpec>,
@@ -399,7 +439,7 @@ export interface DynamicChartDefinition<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > extends StoredChartDefinitionOptions {
-  chart: (context: ChartBuildContext) => ChartSpec
+  chart: (context: ChartBuildContext) => StoredChartSpec
   readonly __datum?: TDatum
   readonly __xValue?: TXValue
   readonly __yValue?: TYValue
@@ -416,14 +456,14 @@ export type ChartDefinition<
 export type ChartMarkDatum<TMark> =
   TMark extends ChartMark<infer TDatum, any, any> ? TDatum : never
 
-export type ChartSpecDatum<TSpec extends ChartSpec> =
+export type ChartSpecDatum<TSpec extends StoredChartSpec> =
   '__datum' extends keyof TSpec
     ? TSpec extends { readonly __datum?: infer TDatum }
       ? TDatum
       : never
     : ChartMarkDatum<TSpec['marks'][number]>
 
-export type ChartSpecXValue<TSpec extends ChartSpec> =
+export type ChartSpecXValue<TSpec extends StoredChartSpec> =
   '__xValue' extends keyof TSpec
     ? TSpec extends {
         readonly __xValue?: infer TXValue extends ChartValue
@@ -432,7 +472,7 @@ export type ChartSpecXValue<TSpec extends ChartSpec> =
       : never
     : ChartMarkPointX<TSpec['marks'][number]>
 
-export type ChartSpecYValue<TSpec extends ChartSpec> =
+export type ChartSpecYValue<TSpec extends StoredChartSpec> =
   '__yValue' extends keyof TSpec
     ? TSpec extends {
         readonly __yValue?: infer TYValue extends ChartValue
@@ -462,8 +502,11 @@ export interface ResolvedScale {
 
 export interface ResolvedColorScale {
   type: string
+  kind?: ResolvedColorScaleKind
   domain: readonly ChartKey[]
   range: readonly string[]
+  /** Exact interior legend boundaries for a custom stepped scale. */
+  thresholds?: readonly number[]
   map: (value: ChartKey | null | undefined) => string
 }
 
@@ -500,6 +543,7 @@ export interface InitializedMark<
 > {
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
+  layoutLabels?: (context: MarkRenderContext) => readonly SceneLabel[]
   render: (context: MarkRenderContext) => MarkScene<TDatum, TXValue, TYValue>
 }
 

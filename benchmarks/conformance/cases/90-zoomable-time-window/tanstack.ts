@@ -1,20 +1,22 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { select } from 'd3-selection'
 import { zoom, zoomIdentity } from 'd3-zoom'
 import {
   initialZoomWindow,
+  selectZoomRows,
   visibleZoomData,
-  zoomData,
   zoomDateFromAnchor,
   zoomDateKey,
   zoomFullDomain,
   zoomSpanDays,
-} from './data'
+} from './model'
 import type { ChartScene, ChartHostOptions } from '@tanstack/charts'
+import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import type { D3ZoomEvent, ZoomTransform } from 'd3-zoom'
-import type { ZoomDatum, ZoomWindow } from './data'
+import type { ZoomWindow } from './model'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -37,52 +39,47 @@ interface ZoomState {
 }
 
 const color = '#0f766e'
-const yDomain = [20, 85] as const
 const zoomScale = scaleUtc().domain(zoomFullDomain)
+const zoomRows = selectZoomRows(aapl)
 
-const definition = (input: ZoomChartInput) =>
-  defineChart(() => {
-    const rows = visibleZoomData(zoomData(input.revision), input.window)
-    return {
-      marks: [
-        lineY(rows, {
-          id: 'zoom-series',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          stroke: color,
-          strokeWidth: 2.5,
+const definition = (input: ZoomChartInput) => {
+  const rows = visibleZoomData(zoomRows, input.window)
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'Date',
+        y: 'Close',
+        stroke: color,
+        strokeWidth: 2.5,
+      }),
+      dot(rows, {
+        x: 'Date',
+        y: 'Close',
+        fill: color,
+        r: 3.5,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+    ],
+    x: {
+      scale: scaleForWindow(input.window),
+      label: 'Date',
+      format: (value) =>
+        value.toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          timeZone: 'UTC',
         }),
-        dot(rows, {
-          id: 'zoom-points',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          fill: color,
-          r: 3.5,
-          stroke: '#ffffff',
-          strokeWidth: 1,
-        }),
-      ],
-      x: {
-        scale: scaleForWindow(input.window),
-        label: 'Date',
-        format: (value) =>
-          value.toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            timeZone: 'UTC',
-          }),
-      },
-      y: {
-        scale: scaleLinear().domain(yDomain),
-        ticks: 4,
-        grid: true,
-        label: 'Value',
-      },
-      margin: { top: 56, right: 24, bottom: 44, left: 58 },
-    }
+    },
+    y: {
+      scale: scaleLinear,
+      ticks: 4,
+      grid: true,
+      label: 'AAPL close ($)',
+    },
+    margin: { top: 56, right: 24, bottom: 44, left: 58 },
   })
+}
 
 export function mount(
   container: HTMLElement,
@@ -101,7 +98,7 @@ export function mount(
   setSurfaceSize(surface, input)
   container.append(surface)
 
-  const options = (): ChartHostOptions<ZoomDatum> => ({
+  const options = (): ChartHostOptions<AaplRow> => ({
     definition: defineChart(
       definition({
         ...currentInput,
@@ -151,7 +148,7 @@ function scaleForWindow(window: ZoomWindow) {
 
 function createZoomController(
   surface: HTMLDivElement,
-  getScene: () => ChartScene<ZoomDatum>,
+  getScene: () => ChartScene<AaplRow>,
   state: ZoomState,
   render: () => void,
 ) {
@@ -411,7 +408,7 @@ function createZoomController(
 }
 
 function transformForWindow(
-  scene: ChartScene<ZoomDatum>,
+  scene: ChartScene<AaplRow>,
   window: ZoomWindow,
 ): ZoomTransform {
   const fullSpan = zoomSpanDays(initialZoomWindow)
@@ -425,7 +422,7 @@ function transformForWindow(
 }
 
 function windowFromTransform(
-  scene: ChartScene<ZoomDatum>,
+  scene: ChartScene<AaplRow>,
   transform: ZoomTransform,
 ): ZoomWindow {
   const baseScale = zoomScale
@@ -454,7 +451,7 @@ function formatSpan(days: number) {
 function createDriver(
   surface: HTMLDivElement,
   getInput: () => ConformanceInput,
-  getScene: () => ChartScene<ZoomDatum>,
+  getScene: () => ChartScene<AaplRow>,
   state: ZoomState,
 ): ConformanceTestDriver {
   return {
@@ -472,7 +469,7 @@ function createDriver(
 
 function resolveTarget(
   surface: HTMLDivElement,
-  scene: ChartScene<ZoomDatum>,
+  scene: ChartScene<AaplRow>,
   target: ConformanceTarget,
 ) {
   if (target.view !== undefined && target.view !== 'main') return null
@@ -488,13 +485,15 @@ function resolveTarget(
       focusElement: reset,
     }
   }
-  const date = zoomDateFromAnchor(target.anchor)
+  const date = zoomDateFromAnchor(zoomRows, target.anchor)
   if (!date) return null
+  const row = zoomRows.find((datum) => datum.Date.getTime() === date.getTime())
+  if (!row) return null
   return scenePointToClient(
     surface,
     scene,
     scene.scales.x.map(date),
-    scene.scales.y.map(52),
+    scene.scales.y.map(row.Close),
     surface.querySelector<SVGRectElement>('[data-conformance-zoom-surface]') ??
       undefined,
   )
@@ -504,9 +503,9 @@ function interactionState(
   state: ZoomState,
   input: ConformanceInput,
 ): ConformanceJsonObject {
-  const visibleRows = visibleZoomData(zoomData(input.revision), state.window)
-  const revisionProbe = visibleRows.find(
-    (row) => zoomDateKey(row.date) === '2025-01-08',
+  const visibleRows = visibleZoomData(zoomRows, state.window)
+  const jan9Row = visibleRows.find(
+    (row) => zoomDateKey(row.Date) === '2018-01-09',
   )
   return {
     viewport: {
@@ -516,8 +515,8 @@ function interactionState(
     },
     visible: {
       count: visibleRows.length,
-      ids: visibleRows.map((row) => row.id),
-      revisionProbeValue: revisionProbe?.value ?? null,
+      ids: visibleRows.map((row) => zoomDateKey(row.Date)),
+      jan9Close: jan9Row?.Close ?? null,
     },
     interaction: {
       last: state.lastAction,
@@ -529,7 +528,7 @@ function interactionState(
 
 function zoomGeometry(
   surface: HTMLDivElement,
-  scene: ChartScene<ZoomDatum>,
+  scene: ChartScene<AaplRow>,
   input: ConformanceInput,
   window: ZoomWindow,
   query: ConformanceGeometryQuery,
@@ -540,10 +539,10 @@ function zoomGeometry(
   const bounds = svg.getBoundingClientRect()
   const scaleX = bounds.width / scene.width
   const scaleY = bounds.height / scene.height
-  const points = visibleZoomData(zoomData(input.revision), window).map(
+  const points = visibleZoomData(zoomRows, window).map(
     (row): readonly [number, number] => [
-      scene.scales.x.map(row.date),
-      scene.scales.y.map(row.value),
+      scene.scales.x.map(row.Date),
+      scene.scales.y.map(row.Close),
     ],
   )
 
@@ -565,7 +564,7 @@ function zoomGeometry(
 
 function scenePointToClient(
   surface: HTMLDivElement,
-  scene: ChartScene<ZoomDatum>,
+  scene: ChartScene<AaplRow>,
   x: number,
   y: number,
   focusElement?: HTMLElement | SVGElement,

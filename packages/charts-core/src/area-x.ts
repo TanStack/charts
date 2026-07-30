@@ -33,6 +33,7 @@ export interface AreaXOptions<TDatum> {
   x2?: number | Channel<TDatum, number | null | undefined>
   y?: Channel<TDatum, ChartValue | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
@@ -72,13 +73,22 @@ export function areaX<TDatum>(
         : channelValues(data, options.x1, () => 0)
     const yValues = channelValues(data, options.y, (_datum, index) => index)
     const zValues = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
+    const groupValues =
+      options.z === undefined && options.color !== undefined
+        ? colorValues
+        : zValues
     const keys = inferredKeyValues(data, options.key, {
-      groups: zValues,
+      groups: groupValues,
       candidates: [yValues],
       markId: id,
+      warningIdentity: options,
     })
     const groups = new Map<string, number[]>()
-    zValues.forEach((value, index) => {
+    groupValues.forEach((value, index) => {
       const key = valueKey(value ?? null)
       const group = groups.get(key)
       if (group) group.push(index)
@@ -99,7 +109,7 @@ export function areaX<TDatum>(
         y: { scale: 'y', values: yValues.filter(isChartValue) },
         color: {
           scale: 'color',
-          values: zValues.filter(isChartKey),
+          values: colorValues.filter(isChartKey),
         },
       },
       render: ({ scales, color: resolveColor }) => {
@@ -107,11 +117,11 @@ export function areaX<TDatum>(
         const points: ChartPoint<TDatum>[] = []
 
         for (const [groupKey, indices] of groups) {
-          const group = zValues[indices[0]] ?? null
           const firstIndex = indices[0]
           if (firstIndex === undefined) continue
+          const group = groupValues[firstIndex] ?? null
           const datum = data[firstIndex]
-          const resolvedColor = resolveColor(group)
+          const resolvedColor = resolveColor(colorValues[firstIndex] ?? null)
           const fill = visualValue(
             options.fill,
             datum,

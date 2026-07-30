@@ -1,53 +1,51 @@
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { barX, colorLegend, defineChart } from '@tanstack/charts'
-import { scaleBand, scaleLinear, scaleOrdinal } from 'd3-scale'
-import { timelineData } from './data'
-import type { TimelinePoint } from './data'
+import { scaleBand, scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
-const tasks = [
-  'Research',
-  'Schema',
-  'Prototype',
-  'Core API',
-  'Adapters',
-  'Documentation',
-  'Hardening',
-  'Release',
-]
-const phases: readonly TimelinePoint['phase'][] = ['Plan', 'Build', 'Ship']
-const colors = ['#2563eb', '#f97316', '#10b981']
+const colors = ['#10b981', '#ef4444']
+const date = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+})
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => ({
+const definition = (input: ConformanceInput) => {
+  const rows = aapl.slice(input.revision * 3, input.revision * 3 + 8)
+
+  return defineChart({
     marks: [
-      barX(timelineData(input.revision), {
-        x1: 'start',
-        x2: 'end',
-        y: 'task',
-        color: 'phase',
-        key: 'id',
+      barX(rows, {
+        x1: 'Open',
+        x2: 'Close',
+        y: 'Date',
+        color: (row) => (row.Close >= row.Open ? 'Gain' : 'Loss'),
         inset: 1,
         radius: 3,
       }),
     ],
     x: {
-      scale: scaleLinear().domain([0, 40]),
+      scale: scaleLinear,
       grid: true,
-      label: 'Project day',
+      label: 'Share price ($)',
     },
     y: {
-      scale: scaleBand<string>().domain(tasks).paddingInner(0.16),
+      scale: () => scaleBand<Date>().paddingInner(0.16),
+      format: (value) => date.format(value),
     },
     color: {
-      scale: scaleOrdinal<TimelinePoint['phase'], string>()
-        .domain(phases)
-        .range(colors),
-      legend: colorLegend({ label: 'Phase' }),
+      range: colors,
+      legend: colorLegend({ label: 'Session' }),
     },
-  }))
+  })
+}
 
-export const mount = tanstackMount(definition, 'Project interval timeline', {
-  format: (point) =>
-    `${point.datum.task} · ${point.datum.phase} phase · Project days ${point.datum.start}–${point.datum.end} · Duration: ${point.datum.end - point.datum.start} days`,
-})
+export const mount = tanstackMount(
+  definition,
+  'Apple daily open-to-close price ranges',
+  {
+    format: (point) =>
+      `${date.format(point.datum.Date)} · Open $${point.datum.Open.toFixed(2)} · Close $${point.datum.Close.toFixed(2)}`,
+  },
+)

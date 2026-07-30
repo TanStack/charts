@@ -4,7 +4,7 @@
   "id": "16-lollipop",
   "title": "Ranked lollipop chart",
   "family": "comparison",
-  "intent": "Rank category totals with a thin baseline-to-value stem and a precise endpoint dot.",
+  "intent": "Rank English letter frequencies with a thin baseline-to-frequency stem and a precise endpoint dot.",
   "support": "native",
   "features": [
     "link mark",
@@ -16,17 +16,17 @@
   "geometry": [
     {
       "role": "link",
-      "count": 8,
+      "count": 26,
       "rendererRoles": { "observable-plot": "rule", "tanstack": "link" }
     },
-    { "role": "dot", "count": 8 }
+    { "role": "dot", "count": 26 }
   ],
   "source": {
     "title": "Observable Plot letter-frequency lollipop",
-    "url": "https://github.com/observablehq/plot/blob/main/test/plots/letter-frequency-lollipop.ts"
+    "url": "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/plots/letter-frequency-lollipop.ts"
   },
   "ai": {
-    "create": "Create a ranked lollipop chart from category totals using a zero-to-value link and endpoint dot for each category.",
-    "maintain": "Switch between horizontal and vertical orientation while retaining the sorted domain, typed endpoints, and zero baseline."
+    "create": "Create the Observable letter-frequency lollipop from the imported alphabet rows using a zero-to-frequency link and one endpoint dot per letter.",
+    "maintain": "Switch between horizontal and vertical orientation while retaining the source letter and frequency fields, sorted order, and zero baseline."
   }
 }

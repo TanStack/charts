@@ -48,9 +48,9 @@ Use the official D3 pages as the API reference for each algorithm. TanStack Char
 | Force simulation                                                   | [`d3-force`](https://d3js.org/d3-force)                     | Prepare positioned nodes and links before rendering                                               |
 | Geographic projections and paths                                   | [`d3-geo`](https://d3js.org/d3-geo)                         | Pass a responsive projection factory to `geoShape`                                                |
 
-## Positional scales are required
+## Positional scales follow materialized dimensions
 
-Every `ChartSpec` declares `x` and `y`:
+Every materialized positional dimension declares its scale:
 
 ```ts
 import { scaleLinear, scaleUtc } from 'd3-scale'
@@ -62,21 +62,19 @@ const spec = {
 }
 ```
 
-Use `null` only when no mark materializes that dimension:
+Positionless marks omit both axes:
 
 ```ts
 import { defineChart, frame } from '@tanstack/charts'
 
 const borderOnlyChart = defineChart({
   marks: [frame()],
-  x: null,
-  y: null,
 })
 ```
 
-A mark with x values needs an x scale. A mark with y values needs a y scale.
-The scale factory chooses the mapping; materialized mark channels supply its
-domain.
+A mark with x values requires an x scale. A mark with y values requires a y
+scale. One-dimensional marks omit only the unused axis. The scale factory
+chooses the mapping; materialized mark channels supply its domain.
 
 ## Factory domains come from marks
 
@@ -315,41 +313,34 @@ When the application owns the gesture, disable the native nearest-point focus st
 <!-- docs-example: log-scale typecheck -->
 
 ```ts
+import { flare, type FlareRow } from '@charts-poc/demo-data/flare'
 import { scaleLinear, scaleLog } from 'd3-scale'
 import { defineChart, dot } from '@tanstack/charts'
 
-interface Measurement {
-  id: string
-  input: number
-  output: number
-}
+type SizedFlareRow = FlareRow & { size: number }
 
-const rows: readonly Measurement[] = [
-  { id: 'a', input: 1, output: 12 },
-  { id: 'b', input: 10, output: 31 },
-  { id: 'c', input: 100, output: 49 },
-  { id: 'd', input: 1_000, output: 72 },
-  { id: 'e', input: 10_000, output: 88 },
-]
+const rows = flare
+  .filter((row): row is SizedFlareRow => row.size !== null)
+  .slice(0, 200)
 
 const logChart = defineChart({
   marks: [
     dot(rows, {
-      x: 'input',
-      y: 'output',
-      key: 'id',
+      x: 'size',
+      y: (row) => row.name.split('.').length - 1,
+      key: 'name',
       r: 4,
       fill: '#2563eb',
     }),
   ],
   x: {
-    scale: scaleLog().domain([1, 10_000]),
-    label: 'Input',
+    scale: scaleLog().domain([200, 30_000]),
+    label: 'Class size',
     grid: true,
   },
   y: {
-    scale: scaleLinear().domain([0, 100]),
-    label: 'Output',
+    scale: scaleLinear,
+    label: 'Hierarchy depth',
     grid: true,
   },
 })
@@ -359,7 +350,7 @@ This source imports `d3-scale` directly, so install `d3-scale` and `@types/d3-sc
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/53-log-scale-scatter/?theme=system&height=400"
-  title="Scatterplot using an explicit D3 logarithmic x scale"
+  title="Flare class sizes and hierarchy depth using an explicit D3 logarithmic x scale"
   loading="lazy"
   width="100%"
   height="400"

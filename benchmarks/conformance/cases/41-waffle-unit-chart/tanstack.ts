@@ -1,81 +1,88 @@
 import { cell, colorLegend, defineChart } from '@tanstack/charts'
-import { scaleBand, scaleOrdinal } from 'd3-scale'
-import { waffleCategories, waffleColors, waffleData } from './data'
+import { scaleBand } from 'd3-scale'
+import { alphabet } from '@charts-poc/demo-data/alphabet'
+import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput } from '../../types'
-import type { WaffleCategory, WaffleSegment } from './data'
 
-interface WaffleCell {
-  id: string
-  category: WaffleCategory
+interface WaffleCell extends AlphabetRow {
+  unit: number
   column: number
   row: number
 }
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const segments = waffleData(input.revision)
-    const total = segments.reduce((sum, segment) => sum + segment.value, 0)
+const unitFrequency = 0.01
+const colors = [
+  '#8b5cf6',
+  '#10b981',
+  '#ec4899',
+  '#f97316',
+  '#2563eb',
+  '#06b6d4',
+]
+const letters = alphabet.map((row) => row.letter)
+const total = Math.round(
+  alphabet.reduce((sum, row) => sum + row.frequency, 0) / unitFrequency,
+)
+
+const definition = () => {
+  return defineChart(({ width, height }) => {
     const columns = Math.max(
       1,
-      Math.floor(Math.sqrt((total * input.width) / Math.max(1, input.height))),
+      Math.floor(Math.sqrt((total * width) / Math.max(1, height))),
     )
-    const rowCount = Math.ceil(total / columns)
-    const columnDomain = Array.from({ length: columns }, (_, index) => index)
-    const rowDomain = Array.from(
-      { length: rowCount },
-      (_, index) => rowCount - index - 1,
-    )
-    const cells = layoutWaffleCells(segments, columns)
+    const cells = layoutWaffleCells(alphabet, columns)
 
     return {
       marks: [
         cell(cells, {
           x: 'column',
           y: 'row',
-          z: 'category',
-          key: 'id',
+          color: 'letter',
           inset: 1,
           radius: 2,
         }),
       ],
       x: {
-        scale: scaleBand<number>().domain(columnDomain),
+        scale: () => scaleBand<number>(),
       },
       y: {
-        scale: scaleBand<number>().domain(rowDomain),
+        scale: () => scaleBand<number>(),
+        reverse: true,
       },
       guides: false,
       color: {
-        scale: scaleOrdinal<WaffleCategory, string>()
-          .domain(waffleCategories)
-          .range(waffleColors),
-        legend: colorLegend({ label: 'Response' }),
+        domain: letters,
+        range: colors,
+        legend: colorLegend({ label: 'Letter' }),
       },
     }
   })
+}
 
 export const mount = tanstackMount(
   definition,
-  'One-hundred-unit adoption waffle chart',
+  'English letter frequency waffle chart',
 )
 
 function layoutWaffleCells(
-  segments: readonly WaffleSegment[],
+  rows: readonly AlphabetRow[],
   columns: number,
 ): readonly WaffleCell[] {
   const cells: WaffleCell[] = []
-  let unit = 0
+  let cumulativeFrequency = 0
 
-  for (const segment of segments) {
-    for (let offset = 0; offset < segment.value; offset += 1) {
+  for (const row of rows) {
+    const start = Math.round(cumulativeFrequency / unitFrequency)
+    cumulativeFrequency += row.frequency
+    const end = Math.round(cumulativeFrequency / unitFrequency)
+
+    for (let unit = start; unit < end; unit += 1) {
       cells.push({
-        id: `unit-${unit}`,
-        category: segment.category,
+        ...row,
+        unit,
         column: unit % columns,
         row: Math.floor(unit / columns),
       })
-      unit += 1
     }
   }
 

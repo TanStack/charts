@@ -1,5 +1,5 @@
 import * as Plot from '@observablehq/plot'
-import { boxData } from './data'
+import { morley } from '@charts-poc/demo-data/morley'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
@@ -9,12 +9,12 @@ export const mount: ConformanceMount = (container, input) =>
       width: nextInput.width,
       height: nextInput.height,
       ariaLabel: 'Grouped boxplots',
-      x: { domain: ['Alpha', 'Beta', 'Gamma'], label: null },
-      y: { domain: [10, 100], grid: true, label: 'Value' },
+      x: { label: 'Experiment' },
+      y: { grid: true, label: 'Speed of light (km/s minus 299,000)' },
       marks: [
-        Plot.boxY(boxData(nextInput.revision), {
-          x: 'group',
-          y: 'value',
+        Plot.boxY(morley, {
+          x: 'Expt',
+          y: 'Speed',
           fill: '#bfdbfe',
           stroke: '#2563eb',
         }),

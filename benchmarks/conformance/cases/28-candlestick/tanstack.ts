@@ -1,6 +1,7 @@
 import { defineChart, link } from '@tanstack/charts'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import { candleData, candleDomain } from './data'
+import { selectCandleData } from './selection'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
@@ -15,51 +16,51 @@ const price = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 })
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = candleData(input.revision)
-    const gains = rows.filter((row) => row.close >= row.open)
-    const losses = rows.filter((row) => row.close < row.open)
-    return {
-      marks: [
-        link(rows, {
-          x1: 'date',
-          y1: 'low',
-          x2: 'date',
-          y2: 'high',
-          key: 'id',
-          stroke: '#64748b',
-          strokeWidth: 1,
-        }),
-        link(gains, {
-          x1: 'date',
-          y1: 'open',
-          x2: 'date',
-          y2: 'close',
-          key: 'id',
-          stroke: '#10b981',
-          strokeWidth: 5,
-        }),
-        link(losses, {
-          x1: 'date',
-          y1: 'open',
-          x2: 'date',
-          y2: 'close',
-          key: 'id',
-          stroke: '#ef4444',
-          strokeWidth: 5,
-        }),
-      ],
-      x: { scale: scaleUtc().domain(candleDomain) },
-      y: {
-        scale: scaleLinear().domain([75, 130]),
-        grid: true,
-        label: 'Price',
-      },
-    }
+const definition = (input: ConformanceInput) => {
+  const rows = selectCandleData(aapl, input.revision)
+  const gains = rows.filter((row) => row.Close >= row.Open)
+  const losses = rows.filter((row) => row.Close < row.Open)
+  return defineChart({
+    marks: [
+      link(rows, {
+        x1: 'Date',
+        y1: 'Low',
+        x2: 'Date',
+        y2: 'High',
+        stroke: '#64748b',
+        strokeWidth: 1,
+      }),
+      link(gains, {
+        x1: 'Date',
+        y1: 'Open',
+        x2: 'Date',
+        y2: 'Close',
+        stroke: '#10b981',
+        strokeWidth: 5,
+      }),
+      link(losses, {
+        x1: 'Date',
+        y1: 'Open',
+        x2: 'Date',
+        y2: 'Close',
+        stroke: '#ef4444',
+        strokeWidth: 5,
+      }),
+    ],
+    x: { scale: scaleUtc },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Price',
+    },
   })
+}
 
-export const mount = tanstackMount(definition, 'Daily candlestick chart', {
-  format: (point) =>
-    `${candleDate.format(point.datum.date)} · Open: ${price.format(point.datum.open)} · High: ${price.format(point.datum.high)} · Low: ${price.format(point.datum.low)} · Close: ${price.format(point.datum.close)}`,
-})
+export const mount = tanstackMount(
+  definition,
+  'Apple daily candlestick chart',
+  {
+    format: (point) =>
+      `${candleDate.format(point.datum.Date)} · Open: ${price.format(point.datum.Open)} · High: ${price.format(point.datum.High)} · Low: ${price.format(point.datum.Low)} · Close: ${price.format(point.datum.Close)}`,
+  },
+)

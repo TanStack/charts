@@ -20,12 +20,12 @@ import {
   type StaticChartDefinition as D3StaticChartDefinition,
 } from '../packages/charts-core-d3/src/index'
 import {
+  bodyMassDistributionRenderer,
   downloadData,
   downloadsPlot,
   downloadsRenderer,
-  latencyData,
-  latencyDistributionRenderer,
-  type DownloadPoint,
+  penguinData,
+  type DownloadsRow,
 } from '../packages/fixtures/src/index'
 import type {
   ChartRenderer,
@@ -67,30 +67,30 @@ const theme: ResolvedChartTheme = {
 
 const cases = [
   {
-    label: 'Trend · 78 points · 320px',
+    label: 'Trend · 1,566 points · 320px',
     renderer: downloadsRenderer,
     data: downloadData,
     width: 320,
     height: 330,
   },
   {
-    label: 'Trend · 78 points · 1024px',
+    label: 'Trend · 1,566 points · 1024px',
     renderer: downloadsRenderer,
     data: downloadData,
     width: 1024,
     height: 330,
   },
   {
-    label: 'Faceted histogram · 288 points · 320px',
-    renderer: latencyDistributionRenderer,
-    data: latencyData,
+    label: 'Faceted histogram · 342 points · 320px',
+    renderer: bodyMassDistributionRenderer,
+    data: penguinData,
     width: 320,
     height: 360,
   },
   {
-    label: 'Faceted histogram · 288 points · 1024px',
-    renderer: latencyDistributionRenderer,
-    data: latencyData,
+    label: 'Faceted histogram · 342 points · 1024px',
+    renderer: bodyMassDistributionRenderer,
+    data: penguinData,
     width: 1024,
     height: 360,
   },
@@ -117,8 +117,6 @@ const nativeDownloads = defineChart({
       id: 'downloads',
       x: 'date',
       y: 'downloads',
-      z: 'package',
-      key: (point) => `${point.package}:${point.date.toISOString()}`,
     }),
   ],
   x: {
@@ -158,8 +156,6 @@ const d3Downloads = defineD3Chart({
       id: 'downloads',
       x: 'date',
       y: 'downloads',
-      z: 'package',
-      key: (point) => `${point.package}:${point.date.toISOString()}`,
     }),
   ],
   x: { type: d3ScaleUtc(), ticks: 6 },
@@ -177,14 +173,14 @@ const d3Large = defineD3Chart({
 
 for (const benchmark of [
   {
-    label: 'Product D3-scale line + SVG · 78 points · 320px',
+    label: 'Product D3-scale line + SVG · 1,566 points · 320px',
     definition: nativeDownloads,
     width: 320,
     height: 330,
     svg: true,
   },
   {
-    label: 'Product D3-scale line + SVG · 78 points · 1024px',
+    label: 'Product D3-scale line + SVG · 1,566 points · 1024px',
     definition: nativeDownloads,
     width: 1024,
     height: 330,
@@ -218,14 +214,14 @@ for (const benchmark of [
 
 for (const benchmark of [
   {
-    label: 'Historical D3 fork line + SVG · 78 points · 320px',
+    label: 'Historical D3 fork line + SVG · 1,566 points · 320px',
     definition: d3Downloads,
     width: 320,
     height: 330,
     svg: true,
   },
   {
-    label: 'Historical D3 fork line + SVG · 78 points · 1024px',
+    label: 'Historical D3 fork line + SVG · 1,566 points · 1024px',
     definition: d3Downloads,
     width: 1024,
     height: 330,
@@ -263,15 +259,15 @@ const alternateDownloadData = downloadData.map((point, index) => ({
 }))
 const statefulTrendRenderer = createPlotRenderer(
   definePlot<
-    { points: readonly DownloadPoint[] },
+    { points: readonly DownloadsRow[] },
     unknown,
-    readonly DownloadPoint[]
+    readonly DownloadsRow[]
   >({
     prepare: (input) => input.points,
     plot: (context) =>
       downloadsPlot({
         ...context,
-        data: context.prepared as DownloadPoint[],
+        data: context.prepared,
       }),
   }),
 )
@@ -282,11 +278,11 @@ const updateSamples = measureStatefulUpdates(
   330,
 )
 console.log(
-  `| Stateful trend update · 78 points · 1024px | ${formatDuration(percentile(updateSamples, 0.5))} | ${formatDuration(percentile(updateSamples, 0.95))} |`,
+  `| Stateful trend update · 1,566 points · 1024px | ${formatDuration(percentile(updateSamples, 0.5))} | ${formatDuration(percentile(updateSamples, 0.95))} |`,
 )
 
 const createNativeDynamicDefinition = (input: {
-  points: readonly DownloadPoint[]
+  points: readonly DownloadsRow[]
 }) =>
   defineChart(() => {
     const maximum = max(input.points, (point) => point.downloads) ?? 1
@@ -296,8 +292,6 @@ const createNativeDynamicDefinition = (input: {
           id: 'downloads',
           x: 'date',
           y: 'downloads',
-          z: 'package',
-          key: (point) => `${point.package}:${point.date.toISOString()}`,
         }),
       ],
       x: {
@@ -317,18 +311,16 @@ const nativeUpdateSamples = measureNativeHostUpdates(
   330,
 )
 console.log(
-  `| Product D3-scale keyed host update · 78 points · 1024px | ${formatDuration(percentile(nativeUpdateSamples, 0.5))} | ${formatDuration(percentile(nativeUpdateSamples, 0.95))} |`,
+  `| Product D3-scale keyed host update · 1,566 points · 1024px | ${formatDuration(percentile(nativeUpdateSamples, 0.5))} | ${formatDuration(percentile(nativeUpdateSamples, 0.95))} |`,
 )
 const d3DynamicDefinition = defineD3Chart<{
-  points: readonly DownloadPoint[]
+  points: readonly DownloadsRow[]
 }>()(({ input }) => ({
   marks: [
     d3LineY(input.points, {
       id: 'downloads',
       x: 'date',
       y: 'downloads',
-      z: 'package',
-      key: (point) => `${point.package}:${point.date.toISOString()}`,
     }),
   ],
   x: { type: d3ScaleUtc(), ticks: 6 },
@@ -341,7 +333,7 @@ const d3UpdateSamples = measureD3HostUpdates(
   330,
 )
 console.log(
-  `| Historical D3 fork keyed host update · 78 points · 1024px | ${formatDuration(percentile(d3UpdateSamples, 0.5))} | ${formatDuration(percentile(d3UpdateSamples, 0.95))} |`,
+  `| Historical D3 fork keyed host update · 1,566 points · 1024px | ${formatDuration(percentile(d3UpdateSamples, 0.5))} | ${formatDuration(percentile(d3UpdateSamples, 0.95))} |`,
 )
 
 function measureRenderer(

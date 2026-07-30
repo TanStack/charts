@@ -1,30 +1,30 @@
+import { olympians } from '@charts-poc/demo-data/olympians'
 import * as Plot from '@observablehq/plot'
-import { distributionData } from '../../shared/data'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
-const boundaries = [20, 30, 40, 50, 60, 70, 80, 90]
-
 export const mount: ConformanceMount = (container, input) =>
-  mountObservablePlot(container, input, (nextInput) =>
-    Plot.plot({
+  mountObservablePlot(container, input, (nextInput) => {
+    const rows = olympians.slice(nextInput.revision * 8)
+
+    return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
       ariaLabel: 'Cumulative histogram',
-      x: { domain: [20, 90], grid: true, label: 'Value' },
-      y: { domain: [0, 240], grid: true, label: 'Cumulative count' },
+      marginLeft: 44,
+      x: { grid: true, label: 'Weight (kg)' },
+      y: { grid: true, label: 'Cumulative count' },
       marks: [
-        Plot.rectY(distributionData(nextInput.revision), {
+        Plot.rectY(rows, {
           ...Plot.binX(
             { y: 'count' },
             {
-              x: 'value',
-              thresholds: boundaries,
+              x: 'weight',
               cumulative: true,
             },
           ),
           fill: '#2563eb',
         }),
       ],
-    }),
-  )
+    })
+  })

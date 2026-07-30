@@ -1,14 +1,17 @@
 import { createElement } from 'react'
 import { Cell, PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
-import { radialBarData } from './data'
+import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { selectRadialBarData } from './selection'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
 const innerRadiusRatio = 0.2
 const barRatio = 0.62
+const colors = ['#7c3aed', '#0ea5e9', '#14b8a6', '#f59e0b']
+const maximumFrequency = alphabet[0]?.frequency ?? 1
 
 function chart(input: ConformanceInput) {
-  const data = radialBarData(input.revision)
+  const data = selectRadialBarData(alphabet, input.revision)
   const radius = Math.min(input.width, input.height) * 0.42
   const innerRadius = radius * innerRadiusRatio
   const band = (radius - innerRadius) / data.length
@@ -34,22 +37,24 @@ function chart(input: ConformanceInput) {
       createElement(PolarAngleAxis, {
         key: 'angle',
         type: 'number',
-        domain: [0, 100],
+        domain: [0, maximumFrequency],
         hide: true,
+        tick: false,
+        axisLine: false,
       }),
       createElement(
         RadialBar,
         {
           key: 'bars',
-          dataKey: 'value',
+          dataKey: 'frequency',
           cornerRadius: barSize / 2,
           background: false,
           isAnimationActive: false,
         },
-        data.map((row) =>
+        data.map((row, index) =>
           createElement(Cell, {
-            key: row.id,
-            fill: row.fill,
+            key: row.letter,
+            fill: colors[index],
           }),
         ),
       ),
@@ -57,4 +62,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Concentric radial bars')
+export const mount = rechartsMount(chart, 'Concentric letter frequency bars')

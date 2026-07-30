@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { scaleBand, scaleLinear, scalePoint } from 'd3-scale'
+import { scaleBand, scaleLinear, scaleOrdinal, scalePoint } from 'd3-scale'
 import { arc, areaRadial, curveLinearClosed, lineRadial, pie } from 'd3-shape'
 import * as rootExports from './index'
 import {
@@ -38,7 +38,6 @@ describe('polar marks', () => {
           radiusRatio: 0.8,
           marks: [
             radialArc(arcs, {
-              key: (slice) => slice.data.id,
               z: (slice) => slice.data.label,
               innerRadius: ({ radius }) => radius * 0.55,
               outerRadius: ({ radius }) => radius,
@@ -88,6 +87,128 @@ describe('polar marks', () => {
       y: 80 + centroid[1],
       datum: arcs[0],
     })
+  })
+
+  it('colors radial paths independently from their z groups', () => {
+    const data = [
+      { id: 'a:0', series: 'Alpha', color: 'Warm', angle: 0, radius: 1 },
+      { id: 'a:1', series: 'Alpha', color: 'Warm', angle: 1, radius: 2 },
+      { id: 'b:0', series: 'Beta', color: 'Cool', angle: 0, radius: 2 },
+      { id: 'b:1', series: 'Beta', color: 'Cool', angle: 1, radius: 1 },
+    ]
+    const colors = scaleOrdinal<string, string>()
+      .domain(['Warm', 'Cool'])
+      .range(['#dc2626', '#2563eb'])
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            angle: { scale: scaleLinear().domain([0, 1]) },
+            radius: { scale: scaleLinear().domain([0, 2]) },
+            marks: [
+              radialLine(data, {
+                angle: 'angle',
+                radius: 'radius',
+                z: 'series',
+                color: 'color',
+                key: 'id',
+              }),
+            ],
+          }),
+        ],
+        x: null,
+        y: null,
+        guides: false,
+        color: { scale: colors },
+      }),
+      { width: 200, height: 200 },
+    )
+    const paths = flatten(scene.nodes).filter(
+      (node) => node.kind === 'polyline',
+    )
+
+    expect(scene.colors.domain).toEqual(['Warm', 'Cool'])
+    expect(scene.points.map((point) => point.group)).toEqual([
+      'Alpha',
+      'Alpha',
+      'Beta',
+      'Beta',
+    ])
+    expect(scene.points.map((point) => point.color)).toEqual([
+      '#dc2626',
+      '#dc2626',
+      '#2563eb',
+      '#2563eb',
+    ])
+    expect(
+      paths.map((node) =>
+        node.kind === 'polyline' ? node.style?.stroke : undefined,
+      ),
+    ).toEqual(['#dc2626', '#2563eb'])
+  })
+
+  it('uses color as the radial path group when z is omitted', () => {
+    const data = [
+      { id: 'a:0', series: 'Alpha', angle: 0, radius: 1 },
+      { id: 'b:0', series: 'Beta', angle: 0, radius: 2 },
+      { id: 'a:1', series: 'Alpha', angle: 1, radius: 2 },
+      { id: 'b:1', series: 'Beta', angle: 1, radius: 1 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            angle: { scale: scaleLinear().domain([0, 1]) },
+            radius: { scale: scaleLinear().domain([0, 2]) },
+            marks: [
+              radialLine(data, {
+                angle: 'angle',
+                radius: 'radius',
+                color: 'series',
+              }),
+              radialArea(data, {
+                angle: 'angle',
+                radius: 'radius',
+                color: 'series',
+              }),
+            ],
+          }),
+        ],
+        x: null,
+        y: null,
+        guides: false,
+        color: {
+          scale: scaleOrdinal<string, string>()
+            .domain(['Alpha', 'Beta'])
+            .range(['#dc2626', '#2563eb']),
+        },
+      }),
+      { width: 200, height: 200 },
+    )
+    const nodes = flatten(scene.nodes)
+
+    expect(nodes.filter((node) => node.kind === 'polyline')).toHaveLength(2)
+    expect(nodes.filter((node) => node.kind === 'area')).toHaveLength(2)
+    expect(scene.points.map((point) => point.group)).toEqual([
+      'Alpha',
+      'Alpha',
+      'Beta',
+      'Beta',
+      'Alpha',
+      'Alpha',
+      'Beta',
+      'Beta',
+    ])
+    expect(scene.points.map((point) => point.color)).toEqual([
+      '#dc2626',
+      '#dc2626',
+      '#2563eb',
+      '#2563eb',
+      '#dc2626',
+      '#dc2626',
+      '#2563eb',
+      '#2563eb',
+    ])
   })
 
   it('copies D3 scales into final bounds for radial paths, dots, and guides', () => {

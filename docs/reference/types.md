@@ -41,12 +41,14 @@ interface Row {
   date: Date
   value: number
   label: string
+  series: 'actual' | 'forecast'
 }
 
 lineY(rows, {
   x: 'date', // Date
   y: 'value', // number
-  stroke: (_row, index) => (index === 0 ? '#2563eb' : '#60a5fa'),
+  z: 'series',
+  stroke: (row) => (row.series === 'actual' ? '#2563eb' : '#60a5fa'),
 })
 ```
 
@@ -61,7 +63,7 @@ not produce an unusably narrow scale or callback type.
 source datum
   → mark channel outputs
   → ChartMark point and scale value types
-  → ChartSpec / definition datum and x/y unions
+  → ChartSpec axis requirements and definition datum/x/y unions
   → axis scale and formatter types
   → host and adapter callback types
 ```
@@ -69,6 +71,11 @@ source datum
 Marks in one chart may have different datum types. The definition exposes their
 union. TypeScript narrowing is therefore required when a callback handles
 heterogeneous layers.
+
+`ChartMarkScaleX` and `ChartMarkScaleY` also control the chart shape. A
+materialized scale value makes that axis required. `never` makes it optional
+and null-only, so positionless and one-dimensional charts do not carry phantom
+scale configuration.
 
 Rect and custom interval marks can distinguish materialized scale values from
 interaction point values. The exported extractors are:
@@ -96,7 +103,7 @@ point extractors. New code should use the explicit names.
 
 | Type                     | Purpose                                                                       |
 | ------------------------ | ----------------------------------------------------------------------------- |
-| `ChartSpec`              | Complete marks, axes, guide, color, resource, margin, and theme spec          |
+| `ChartSpec`              | Marks plus conditionally required axes, guides, color, resources, and layout  |
 | `StaticChartDefinition`  | A directly compilable spec with inferred datum and semantic x/y phantom types |
 | `DynamicChartDefinition` | Responsive chart builder                                                      |
 | `ChartDefinition`        | Static or dynamic union                                                       |
@@ -107,19 +114,19 @@ The complete overloads and runtime rules are in
 
 ## Marks and scenes
 
-| Type                    | Purpose                                                             |
-| ----------------------- | ------------------------------------------------------------------- |
-| `ChartMark`             | Public initialized-mark factory plus inferred point and scale types |
-| `MarkInitializeContext` | Mark layer index                                                    |
-| `InitializedMark`       | Stable ID, materialized channels, and render function               |
-| `MaterializedChannel`   | Values contributed to an optional named scale                       |
-| `MarkRenderContext`     | Final chart bounds, scales, theme, color resolver, and layout       |
-| `MarkScene`             | Mark-owned scene nodes and optional interaction points              |
-| `ChartScene`            | Complete renderer-neutral output                                    |
-| `ChartPoint`            | Typed interaction target                                            |
-| `ChartTick`             | Semantic value, formatted label, and pixel position                 |
-| `ResolvedScale`         | Final positional scale                                              |
-| `ResolvedColorScale`    | Final color scale                                                   |
+| Type                    | Purpose                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| `ChartMark`             | Public initialized-mark factory plus inferred point and scale types           |
+| `MarkInitializeContext` | Mark layer index                                                              |
+| `InitializedMark`       | Stable ID, materialized channels, optional layout labels, and render function |
+| `MaterializedChannel`   | Values contributed to an optional named scale                                 |
+| `MarkRenderContext`     | Final chart bounds, scales, theme, color resolver, and layout                 |
+| `MarkScene`             | Mark-owned scene nodes and optional interaction points                        |
+| `ChartScene`            | Complete renderer-neutral output                                              |
+| `ChartPoint`            | Typed interaction target                                                      |
+| `ChartTick`             | Semantic value, formatted label, and pixel position                           |
+| `ResolvedScale`         | Final positional scale                                                        |
+| `ResolvedColorScale`    | Final color scale                                                             |
 
 Scene geometry and interaction point fields are documented in
 [Runtime and scene](./runtime-and-scene.md).
@@ -163,6 +170,8 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `InferableColorScaleLike`  | Domain-configurable color scale returned by a factory        |
 | `ChartColorScale`          | Custom color scale extension                                 |
 | `ChartColorScaleContext`   | Observed values, hints, and theme                            |
+| `ResolvedColorScale`       | Resolved mapping and optional stepped legend boundaries      |
+| `ResolvedColorScaleKind`   | Categorical, continuous, quantile, quantize, or threshold    |
 | `ChartColorLegend`         | Legend layout and scene rendering                            |
 | `ChartColorLegendContext`  | Resolved colors, chart bounds, theme, and width              |
 | `ChartTheme`               | Foreground, muted, grid, background, and palette             |
@@ -249,7 +258,8 @@ their behavior:
   `RenderChartPngOptions`. See [SVG
   serialization](./rendering-and-export.md#svg-serialization) and [browser
   image export](./rendering-and-export.md#browser-image-export).
-- `@tanstack/charts/geo`: `GeoProjectionContext` and `GeoShapeOptions`. See
+- `@tanstack/charts/geo`: `GeoProjectionContext`, `GeoProjectionDescriptor`,
+  `GeoProjectionInput`, and `GeoShapeOptions`. See
   [Geo shape](./marks/geo.md).
 - `@tanstack/charts/polar`: `PolarOptions`, `PolarMark`, `PolarGuide`,
   `PolarGuideScene`, `PolarAngleOptions`, `PolarRadiusOptions`,
@@ -278,7 +288,7 @@ subpath:
 
 Their public fields and defaults are owned by the
 [mark reference](./index.md#mark-reference) and
-[legend reference](./scales-guides-and-color.md#categorical-legend).
+[legend reference](./scales-guides-and-color.md#automatic-color-legend).
 
 ## Correcting a type error
 

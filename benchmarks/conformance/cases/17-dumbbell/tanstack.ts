@@ -1,67 +1,52 @@
+import { citywages } from '@charts-poc/demo-data/citywages'
 import { defineChart, dot, link } from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { dumbbellData } from './data'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
-const categories = [
-  'Query',
-  'Router',
-  'Table',
-  'Form',
-  'Start',
-  'Virtual',
-  'Store',
-  'DB',
-]
-
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = dumbbellData(input.revision)
-    return {
-      marks: [
-        link(rows, {
-          x1: 'desktop',
-          y1: 'category',
-          x2: 'mobile',
-          y2: 'category',
-          key: 'id',
-          stroke: '#94a3b8',
-          strokeWidth: 2,
-        }),
-        dot(rows, {
-          x: 'desktop',
-          y: 'category',
-          key: 'id',
-          fill: '#2563eb',
-          r: 4,
-        }),
-        dot(rows, {
-          x: 'mobile',
-          y: 'category',
-          key: 'id',
-          fill: '#f97316',
-          r: 4,
-        }),
-      ],
-      x: {
-        scale: scaleLinear().domain([0, 70]),
-        grid: true,
-        label: 'Value',
-      },
-      y: {
-        scale: scaleBand<string>().domain(categories).padding(0.22),
-      },
-    }
+const definition = (input: ConformanceInput) => {
+  const rows = citywages.slice(input.revision * 4, input.revision * 4 + 8)
+  return defineChart({
+    marks: [
+      link(rows, {
+        x1: 'R90_10_1980',
+        y1: 'nyt_display',
+        x2: 'R90_10_2015',
+        y2: 'nyt_display',
+        stroke: '#94a3b8',
+        strokeWidth: 2,
+      }),
+      dot(rows, {
+        x: 'R90_10_1980',
+        y: 'nyt_display',
+        fill: '#2563eb',
+        r: 4,
+      }),
+      dot(rows, {
+        x: 'R90_10_2015',
+        y: 'nyt_display',
+        fill: '#f97316',
+        r: 4,
+      }),
+    ],
+    x: {
+      scale: scaleLinear,
+      grid: true,
+      label: '90th/10th percentile wage ratio',
+    },
+    y: {
+      scale: () => scaleBand<string>().padding(0.22),
+    },
   })
+}
 
 export const mount = tanstackMount(
   definition,
-  'Desktop and mobile dumbbell comparison',
+  'Metropolitan wage inequality in 1980 and 2015',
   {
     format: ({ datum }) =>
-      `${datum.category} · Desktop ${datum.desktop.toLocaleString(
+      `${datum.nyt_display} · 1980 ${datum.R90_10_1980.toLocaleString(
         'en-US',
-      )} · Mobile ${datum.mobile.toLocaleString('en-US')}`,
+      )} · 2015 ${datum.R90_10_2015.toLocaleString('en-US')}`,
   },
 )

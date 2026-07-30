@@ -1,49 +1,45 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
-import type { ChartPoint, ChartHostOptions } from '@tanstack/charts'
-import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
-import { timeDomain, timeSeries } from '../../shared/data'
-import type { TimePoint } from '../../shared/data'
+import type { ChartHostOptions } from '@tanstack/charts'
+import { scaleLinear, scaleUtc } from 'd3-scale'
+import { industries } from '@charts-poc/demo-data/industries'
 import type {
   ConformanceHandle,
   ConformanceInput,
   ConformanceTestDriver,
 } from '../../types'
+import { industryNames, selectGroupedTooltipData } from './selection'
+import type { GroupedTooltipDatum } from './selection'
 
-const series: readonly TimePoint['series'][] = ['Atlas', 'Beacon', 'Comet']
 const colors = ['#2563eb', '#f97316', '#10b981']
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = timeSeries(input.revision)
-    return {
-      marks: [
-        lineY(rows, {
-          x: 'date',
-          y: 'value',
-          z: 'series',
-          key: 'id',
-        }),
-        dot(rows, {
-          x: 'date',
-          y: 'value',
-          z: 'series',
-          key: 'id',
-          r: 2.5,
-        }),
-      ],
-      x: { scale: scaleUtc().domain(timeDomain) },
-      y: {
-        scale: scaleLinear().domain([10, 85]),
-        grid: true,
-        label: 'Value',
-      },
-      color: {
-        scale: scaleOrdinal<TimePoint['series'], string>()
-          .domain(series)
-          .range(colors),
-      },
-    }
+const definition = (input: ConformanceInput) => {
+  const rows = selectGroupedTooltipData(industries, input.revision)
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'date',
+        y: 'unemployed',
+        color: 'industry',
+      }),
+      dot(rows, {
+        x: 'date',
+        y: 'unemployed',
+        color: 'industry',
+        r: 2.5,
+      }),
+    ],
+    x: { scale: scaleUtc },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Unemployed (thousands)',
+    },
+    color: {
+      domain: industryNames,
+      range: colors,
+    },
   })
+}
 
 const configuredDefinition = (input: ConformanceInput) =>
   defineChart(definition(input), {
@@ -62,26 +58,32 @@ export function mount(
   container: HTMLElement,
   input: ConformanceInput,
 ): ConformanceHandle {
-  let focusedIds: string[] = []
-  const options: ChartHostOptions<TimePoint> = {
+  let focusedRows: string[] = []
+  const options: ChartHostOptions<GroupedTooltipDatum> = {
     definition: configuredDefinition(input),
     width: input.width,
     height: input.height,
-    ariaLabel: 'Grouped series tooltip',
+    ariaLabel: 'Grouped industry unemployment tooltip',
     onFocusGroupChange(points) {
-      focusedIds = points.map((point) => point.datum.id)
+      focusedRows = points.map(
+        (point) => `${dateKey(point.datum.date)}:${point.datum.industry}`,
+      )
     },
   }
   const host = mountChart(container, options)
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
       if (target.view && target.view !== 'main') return null
-      const id = target.anchor.startsWith('point:')
-        ? target.anchor.slice('point:'.length)
+      const date = target.anchor.startsWith('date:')
+        ? target.anchor.slice('date:'.length)
         : null
       const point = host
         .getScene()
-        .points.find((candidate) => candidate.datum.id === id)
+        .points.find(
+          (candidate) =>
+            dateKey(candidate.datum.date) === date &&
+            candidate.datum.industry === industryNames[0],
+        )
       const svg = container.querySelector('svg')
       if (!point || !svg) return null
       const scene = host.getScene()
@@ -95,7 +97,7 @@ export function mount(
     readState() {
       const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
       return {
-        focus: { ids: [...focusedIds] },
+        focus: { rows: [...focusedRows] },
         tooltip: {
           visible: Boolean(tooltip && !tooltip.hidden),
           text: tooltip?.textContent?.trim() ?? '',
@@ -118,4 +120,8 @@ export function mount(
       host.destroy()
     },
   }
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10)
 }

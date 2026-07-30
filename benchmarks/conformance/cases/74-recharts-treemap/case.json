@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 740,
   "id": "74-recharts-treemap",
-  "title": "Bundle size treemap",
+  "title": "Flare analytics treemap",
   "family": "hierarchy",
-  "intent": "Show the relative contribution of bundle modules as nested, area-proportional rectangles.",
+  "intent": "Show the relative sizes of Flare analytics classes as nested, area-proportional rectangles.",
   "support": "composed",
   "features": [
     "hierarchical data",
@@ -14,15 +14,15 @@
     "in-cell labels"
   ],
   "geometry": [
-    { "role": "rect", "count": 12 },
-    { "role": "text", "count": 12 }
+    { "role": "rect", "count": 10 },
+    { "role": "text", "count": 6, "maxCount": 10 }
   ],
   "source": {
     "title": "Recharts Bundle Size Treemap",
     "url": "https://recharts.github.io/en-US/examples/BundleSizeTreemap/"
   },
   "ai": {
-    "create": "Create a bundle-size treemap with hierarchical module groups, leaf areas proportional to bytes, family colors, and in-cell labels.",
-    "maintain": "Revise leaf sizes while preserving hierarchy, deterministic squarification, stable leaf keys, colors, and label placement."
+    "create": "Create a treemap from Observable's flat Flare name and size fields with leaf area proportional to size, package colors, and in-cell class labels.",
+    "maintain": "Change the selected Flare subtree while preserving the raw name and size fields, deterministic squarification, stable leaf identity, colors, and label placement."
   }
 }

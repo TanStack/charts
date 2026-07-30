@@ -29,17 +29,8 @@ A choropleth joins one value to each named geographic feature and maps that
 value through a color scale.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/40-geojson-map/?theme=system&height=460"
-  title="Regional GeoJSON choropleth with a quantitative color scale built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
-></iframe>
-
-<iframe
   src="https://tanstack.com/charts/catalog/embed/102-world-choropleth/?theme=system&height=460"
-  title="Equal Earth regional world choropleth built with native projected GeoJSON"
+  title="World learning-poverty choropleth over Natural Earth land"
   loading="lazy"
   width="100%"
   height="460"
@@ -48,7 +39,7 @@ value through a color scale.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/108-country-choropleth/?theme=system&height=460"
-  title="Equal Earth choropleth using 177 real country boundaries"
+  title="World population-density choropleth for 95 matched countries"
   loading="lazy"
   width="100%"
   height="460"
@@ -57,7 +48,7 @@ value through a color scale.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/109-us-state-choropleth/?theme=system&height=460"
-  title="Albers USA choropleth using 50 states and the District of Columbia"
+  title="Albers USA choropleth of 3,141 county unemployment rates"
   loading="lazy"
   width="100%"
   height="460"
@@ -113,84 +104,49 @@ Cartesian or geo-only consumer bundles.
 
 ## Project GeoJSON responsively
 
-Create the D3 projection inside `projection`. Its context contains the final
-plot bounds, so `fitExtent` reruns correctly when the chart resizes.
+Give `geoShape` a projection factory and an explicit fit target. This example
+uses Observable Plot's published Westport House floor plan and preserves its
+planar coordinates. The mark fits the projection to the final plot bounds
+again whenever the chart resizes.
 
 <!-- docs-example: geo-shape-responsive typecheck -->
 
 ```ts
+import { westportHouse } from '@charts-poc/demo-data/westport-house'
 import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
-import { geoEqualEarth } from 'd3-geo'
-
-const regions = [
-  {
-    type: 'Feature' as const,
-    properties: { id: 'west', errorRate: 3.2 },
-    geometry: {
-      type: 'Polygon' as const,
-      coordinates: [
-        [
-          [-120, 30],
-          [-100, 30],
-          [-100, 46],
-          [-120, 46],
-          [-120, 30],
-        ],
-      ],
-    },
-  },
-  {
-    type: 'Feature' as const,
-    properties: { id: 'east', errorRate: 8.7 },
-    geometry: {
-      type: 'Polygon' as const,
-      coordinates: [
-        [
-          [-98, 30],
-          [-72, 30],
-          [-72, 46],
-          [-98, 46],
-          [-98, 30],
-        ],
-      ],
-    },
-  },
-]
-
-const collection = {
-  type: 'FeatureCollection' as const,
-  features: regions,
-}
+import { geoIdentity } from 'd3-geo'
 
 const map = defineChart({
   marks: [
-    geoShape(regions, {
-      key: (region) => region.properties.id,
-      projection: ({ chart }) =>
-        geoEqualEarth().fitExtent(
-          [
-            [chart.x, chart.y],
-            [chart.x + chart.width, chart.y + chart.height],
-          ],
-          collection,
-        ),
-      fill: (region) =>
-        region.properties.errorRate >= 5 ? '#ef4444' : '#fbbf24',
-      stroke: '#ffffff',
-      strokeWidth: 0.75,
+    geoShape(westportHouse.features, {
+      key: (feature) => feature.properties.id,
+      projection: {
+        type: geoIdentity,
+        fit: westportHouse,
+      },
+      fill: 'none',
+      stroke: '#2563eb',
+      strokeWidth: 1,
     }),
   ],
-  guides: false,
-  x: null,
-  y: null,
 })
 ```
 
-`geoShape` uses `geoPath` for each feature and D3 centroids for focus. Supply
-`anchor` only when a feature needs a different semantic longitude/latitude
+`geoShape` uses `geoPath` for each feature and D3 centroids for focus. The
+floor plan's source `properties.id` supplies stable identity. Supply `anchor`
+only when a geographic feature needs a different semantic longitude/latitude
 than its spherical centroid. The complete option contract is in
 [Geo Shape Mark](../reference/marks/geo.md).
+
+<iframe
+  src="https://tanstack.com/charts/catalog/embed/40-geojson-map/?theme=system&height=460"
+  title="Westport House floor plan from 121 published GeoJSON polygons"
+  loading="lazy"
+  width="100%"
+  height="460"
+  style="width:100%;height:460px;border:0;"
+></iframe>
 
 ## Project points by magnitude
 
@@ -199,7 +155,7 @@ channel can carry pixels directly; `rScale` maps a quantitative value first.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/103-bubble-map/?theme=system&height=440"
-  title="Projected proportional-symbol map with data-driven D3 point radii"
+  title="World population bubbles for 95 atlas-matched countries"
   loading="lazy"
   width="100%"
   height="440"
@@ -235,7 +191,7 @@ Polygon, LineString, and Point features can share one responsive projection.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/105-route-map/?theme=system&height=440"
-  title="Projected route lines and endpoints layered over geography"
+  title="Recorded HMS Beagle voyage projected over 50m world land"
   loading="lazy"
   width="100%"
   height="440"
@@ -249,7 +205,7 @@ magnitude can use length, color, or both.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/42-vector-field/?theme=system&height=440"
-  title="Two-dimensional sampled vector field built with TanStack Charts"
+  title="Surface-wind vectors derived from longitude, latitude, u, and v"
   loading="lazy"
   width="100%"
   height="440"

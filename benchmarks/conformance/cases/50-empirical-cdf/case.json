@@ -4,7 +4,7 @@
   "id": "50-empirical-cdf",
   "title": "Empirical cumulative distribution",
   "family": "distribution",
-  "intent": "Compare every observed value with the proportion of observations at or below it.",
+  "intent": "Compare each observed automobile fuel economy with the proportion of cars at or below it.",
   "support": "composed",
   "features": [
     "empirical CDF",
@@ -19,7 +19,7 @@
     "url": "https://observablehq.com/plot/transforms/map"
   },
   "ai": {
-    "create": "Create an empirical cumulative distribution from raw numeric observations, preserving tied ranks and step-after interpolation.",
-    "maintain": "Split the distribution by group while computing ranks within each group and retaining explicit zero-to-one probability domains."
+    "create": "Create an empirical cumulative distribution directly from the cars economy (mpg) field, preserving tied ranks and step-after interpolation.",
+    "maintain": "Split the distribution by cylinders while computing ranks within each group and retaining the imported rows and explicit zero-to-one probability domains."
   }
 }

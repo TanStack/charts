@@ -32,7 +32,6 @@ function LatencyChart({ observations }: Props) {
           x2: 'x2',
           y1: () => 0,
           y2: 'count',
-          key: 'id',
           inset: 1,
         }),
       ],

@@ -11,6 +11,7 @@
     "Sphere geometry",
     "D3 graticule",
     "projection clipping",
+    "world-atlas land geometry",
     "layered geographic paths"
   ],
   "geometry": [{ "role": "geo", "count": 3, "maxCount": 3 }],
@@ -20,7 +21,7 @@
     "url": "https://observablehq.com/plot/features/projections"
   },
   "ai": {
-    "create": "Create an orthographic globe from a Sphere, a D3 graticule, and one GeoJSON land collection using the same rotated projection in Observable Plot and TanStack.",
-    "maintain": "Keep the sphere, graticule, land, rotation, clipping, responsive fit, and paint order aligned without drawing projection geometry manually."
+    "create": "Reproduce Observable Plot's orthographic sphere-and-graticule example and layer world-atlas land through the same rotated projection.",
+    "maintain": "Keep the real land topology conversion, sphere, D3 graticule, rotation, clipping, responsive fit, and paint order aligned."
   }
 }

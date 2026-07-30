@@ -4,7 +4,7 @@
   "id": "30-slopegraph",
   "title": "Two-period slopegraph",
   "family": "change",
-  "intent": "Compare before and after values across categories with direct endpoint labels.",
+  "intent": "Compare metropolitan wage inequality in 1980 and 2015 with direct endpoint labels.",
   "support": "native",
   "features": [
     "slopegraph",
@@ -19,11 +19,11 @@
     { "role": "text", "count": 8 }
   ],
   "source": {
-    "title": "Observable Plot unemployment slope",
-    "url": "https://github.com/observablehq/plot/blob/main/test/plots/metro-unemployment-slope.ts"
+    "title": "Observable sample citywages slope",
+    "url": "https://github.com/observablehq/sample-datasets/blob/732c0148de741469b2bcc03f53d93b0ad0b93f0a/citywages.csv"
   },
   "ai": {
-    "create": "Create a two-period slopegraph for eight categories with one line per category, endpoint dots, and direct labels on the after values.",
-    "maintain": "Move labels to the larger endpoint while retaining category colors, stable series identity, and a categorical period axis."
+    "create": "Create a two-period slopegraph from eight imported citywages rows, pivoting R90_10_1980 and R90_10_2015 into one line per metro.",
+    "maintain": "Move labels to the larger endpoint while retaining nyt_display colors, stable metro identity, and the visible wide-to-long transform."
   }
 }

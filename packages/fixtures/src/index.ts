@@ -1,12 +1,13 @@
 export {
   downloadData,
-  latencyData,
-  type DownloadPoint,
-  type LatencyPoint,
+  penguinData,
+  type DownloadsRow,
+  type PenguinBodyMassRow,
+  type PenguinsRow,
 } from './data'
 export {
+  bodyMassDistributionPlot,
+  bodyMassDistributionRenderer,
   downloadsPlot,
   downloadsRenderer,
-  latencyDistributionPlot,
-  latencyDistributionRenderer,
 } from './charts'

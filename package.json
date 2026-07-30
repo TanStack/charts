@@ -33,6 +33,8 @@
     "dev:react": "pnpm --filter @plot-poc/react-example dev",
     "dev:octane": "pnpm --filter @plot-poc/octane-example dev",
     "dev:sandbox": "pnpm --filter @charts-poc/sandbox dev",
+    "demo-data:check": "node scripts/sync-demo-data.mjs --check",
+    "demo-data:sync": "node scripts/sync-demo-data.mjs",
     "docs:check": "node scripts/check-docs.mjs",
     "docs:sync": "node scripts/sync-package-docs.mjs",
     "format": "prettier --write .",
@@ -49,7 +51,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
+    "@charts-poc/demo-data": "workspace:*",
     "@observablehq/plot": "0.6.17",
+    "@observablehq/sample-datasets": "1.0.1",
     "@plot-poc/host-core": "workspace:*",
     "@plot-poc/observable": "workspace:*",
     "@plot-poc/octane-host": "workspace:*",
@@ -89,6 +93,7 @@
     "d3-brush": "3.0.0",
     "d3-contour": "4.0.2",
     "d3-delaunay": "6.0.4",
+    "d3-dsv": "3.0.1",
     "d3-ease": "3.0.1",
     "d3-force": "3.0.0",
     "d3-format": "3.1.2",

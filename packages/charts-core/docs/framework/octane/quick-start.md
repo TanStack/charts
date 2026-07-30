@@ -21,22 +21,21 @@ Definitions are framework-independent and can be shared with any adapter:
 <!-- docs-example: octane-quick-start octane -->
 
 ```tsx
+import { alphabet, type AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/octane-charts'
 
-const revenue = [
-  { month: 'Jan', value: 42 },
-  { month: 'Feb', value: 58 },
-  { month: 'Mar', value: 76 },
-  { month: 'Apr', value: 64 },
-]
+const percent = new Intl.NumberFormat('en-US', {
+  style: 'percent',
+  maximumFractionDigits: 1,
+})
 
-const revenueChart = defineChart({
+const letterFrequencyChart = defineChart({
   marks: [
-    barY(revenue, {
-      x: 'month',
-      y: 'value',
+    barY(alphabet, {
+      x: 'letter',
+      y: 'frequency',
     }),
   ],
   x: {
@@ -45,15 +44,20 @@ const revenueChart = defineChart({
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Revenue',
+    label: 'Frequency',
+    format: (value) => percent.format(value),
     grid: true,
   },
   tooltip: true,
 })
 
-export function RevenueChart() {
+export function LetterFrequencyChart() {
   return (
-    <Chart definition={revenueChart} height={320} ariaLabel="Monthly revenue" />
+    <Chart
+      definition={letterFrequencyChart}
+      height={320}
+      ariaLabel="English letter frequencies"
+    />
   )
 }
 ```
@@ -66,17 +70,21 @@ does not need `Chart` generics or casts.
 Use `height` for a fixed-height responsive chart:
 
 ```tsx
-<Chart definition={revenueChart} height={320} ariaLabel="Monthly revenue" />
+<Chart
+  definition={letterFrequencyChart}
+  height={320}
+  ariaLabel="English letter frequencies"
+/>
 ```
 
 Use `aspectRatio` when height should follow width:
 
 ```tsx
 <Chart
-  definition={revenueChart}
+  definition={letterFrequencyChart}
   aspectRatio={16 / 9}
   initialWidth={720}
-  ariaLabel="Monthly revenue"
+  ariaLabel="English letter frequencies"
 />
 ```
 
@@ -89,18 +97,18 @@ container after hydration. See
 ```tsx
 import { useMemo } from 'octane'
 
-interface RevenueInput {
-  rows: readonly { month: string; value: number }[]
+interface LetterFrequencyInput {
+  rows: readonly AlphabetRow[]
   accent: string
 }
 
-export function LiveRevenue({ rows, accent }: RevenueInput) {
+export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
   const definition = useMemo(() => {
     return defineChart({
       marks: [
         barY(rows, {
-          x: 'month',
-          y: 'value',
+          x: 'letter',
+          y: 'frequency',
           fill: accent,
         }),
       ],
@@ -120,7 +128,7 @@ export function LiveRevenue({ rows, accent }: RevenueInput) {
     <Chart
       definition={definition}
       height={320}
-      ariaLabel="Live monthly revenue"
+      ariaLabel="Filtered English letter frequencies"
     />
   )
 }
@@ -134,16 +142,16 @@ host when captured values changed. See
 
 ```tsx
 <Chart
-  definition={revenueChart}
+  definition={letterFrequencyChart}
   height={320}
-  ariaLabel="Monthly revenue"
+  ariaLabel="English letter frequencies"
   onFocusChange={(point) => {
     if (point) {
-      console.log(point.datum.month, point.yValue)
+      console.log(point.datum.letter, point.yValue)
     }
   }}
   onSelect={(point) => {
-    if (point) openMonth(point.datum.month)
+    if (point) openLetter(point.datum.letter)
   }}
 />
 ```

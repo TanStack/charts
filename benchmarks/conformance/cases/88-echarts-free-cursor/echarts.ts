@@ -7,6 +7,7 @@ import {
 } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
+import { cars } from '@charts-poc/demo-data/cars'
 import type { LineSeriesOption } from 'echarts/charts'
 import type {
   AriaComponentOption,
@@ -17,11 +18,11 @@ import type {
 import type { ComposeOption, EChartsType } from 'echarts/core'
 import { echartsMount } from '../../shared/echarts-mount'
 import {
-  freeCursorData,
   freeCursorFractionFromAnchor,
+  freeCursorRows,
   freeCursorXDomain,
   freeCursorYDomain,
-} from './data'
+} from './model'
 import { createFreeCursorControls, updateFreeCursorControls } from './controls'
 import type { FreeCursorControls } from './controls'
 import type {
@@ -99,6 +100,14 @@ export const mount: ConformanceMount = (container, input) => {
       showCursor?.(state.xNormalized, state.yNormalized)
       updateCursorControls(controls, state)
     },
+    {
+      xDomain: freeCursorXDomain,
+      yDomain: freeCursorYDomain,
+      xLabel: 'Horsepower',
+      yLabel: 'Fuel economy',
+      xStep: 0.1,
+      yStep: 0.1,
+    },
   )
   shell.append(controls.root, chartFrame)
   container.append(shell)
@@ -146,14 +155,14 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
-function freeCursorOption(input: ConformanceInput): FreeCursorOption {
-  const rows = freeCursorData(input.revision)
+function freeCursorOption(_input: ConformanceInput): FreeCursorOption {
+  const rows = freeCursorRows(cars)
   return {
     animation: false,
     aria: {
       enabled: true,
       description:
-        'A line chart with a free two-dimensional crosshair that does not snap to data.',
+        'Selected car observations with a free horsepower and fuel-economy crosshair that does not snap to data.',
     },
     grid: {
       top: 22,
@@ -165,6 +174,9 @@ function freeCursorOption(input: ConformanceInput): FreeCursorOption {
       type: 'value',
       min: freeCursorXDomain[0],
       max: freeCursorXDomain[1],
+      name: 'Horsepower',
+      nameLocation: 'middle',
+      nameGap: 28,
       axisPointer: {
         show: true,
         snap: false,
@@ -181,6 +193,7 @@ function freeCursorOption(input: ConformanceInput): FreeCursorOption {
       type: 'value',
       min: freeCursorYDomain[0],
       max: freeCursorYDomain[1],
+      name: 'Fuel economy (mpg)',
       splitLine: {
         show: true,
         lineStyle: { color: '#e2e8f0' },
@@ -217,7 +230,10 @@ function freeCursorOption(input: ConformanceInput): FreeCursorOption {
       {
         id: 'free-cursor-line',
         type: 'line',
-        data: rows.map((datum) => [datum.x, datum.y]),
+        data: rows.map((datum) => [
+          datum['power (hp)'],
+          datum['economy (mpg)'],
+        ]),
         color: '#0f766e',
         lineStyle: {
           color: '#0f766e',
@@ -386,11 +402,15 @@ function geometry(
 ): readonly ConformanceGeometrySample[] {
   if (query.view !== undefined && query.view !== 'main') return []
   const surfaceBounds = surface.getBoundingClientRect()
-  const rows = freeCursorData(input.revision)
+  const rows = freeCursorRows(cars)
 
   if (query.role === 'dot') {
     return rows.flatMap((datum) => {
-      const point = pixelPoint(chart, datum.x, datum.y)
+      const point = pixelPoint(
+        chart,
+        datum['power (hp)'],
+        datum['economy (mpg)'],
+      )
       return point
         ? [
             {
@@ -407,7 +427,11 @@ function geometry(
 
   if (query.role === 'line') {
     const points = rows.flatMap((datum) => {
-      const point = pixelPoint(chart, datum.x, datum.y)
+      const point = pixelPoint(
+        chart,
+        datum['power (hp)'],
+        datum['economy (mpg)'],
+      )
       return point ? [point] : []
     })
     const sample = pointsBounds(points, surfaceBounds, '#0f766e')

@@ -2,25 +2,26 @@
   "schemaVersion": 1,
   "order": 1050,
   "id": "105-route-map",
-  "title": "Great-circle route map",
+  "title": "HMS Beagle voyage",
   "family": "geography",
-  "intent": "Trace long-distance routes and endpoints over a projected world.",
+  "intent": "Trace Charles Darwin's recorded HMS Beagle voyage across the antimeridian.",
   "support": "native",
   "features": [
-    "GeoJSON LineString routes",
+    "Observable Plot Beagle coordinates",
+    "world-atlas 50m land",
+    "GeoJSON LineString construction",
     "great-circle resampling",
-    "projected Point endpoints",
     "Equal Earth projection",
-    "layered geographic paths"
+    "antimeridian clipping"
   ],
-  "geometry": [{ "role": "geo", "count": 11, "maxCount": 11 }],
+  "geometry": [{ "role": "geo", "count": 4, "maxCount": 4 }],
   "minimumGeometrySimilarity": 0.999,
   "source": {
-    "title": "Observable Plot geo mark",
-    "url": "https://observablehq.com/plot/marks/geo"
+    "title": "Observable Plot Beagle projection test",
+    "url": "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/plots/beagle.ts"
   },
   "ai": {
-    "create": "Create four great-circle routes with six projected endpoints over one world land path, using GeoJSON and the same Equal Earth projection in both renderers.",
-    "maintain": "Preserve route keys, endpoint coordinates, D3 geographic resampling, responsive projection fitting, and explicit stroke and point styles."
+    "create": "Import Observable Plot's pinned Beagle coordinate rows, construct one GeoJSON LineString, and project it over world-atlas land as in Plot's reference test.",
+    "maintain": "Preserve the published coordinate order, visible route construction, ten-degree rotation, antimeridian clipping, D3 geographic resampling, and responsive sphere fitting."
   }
 }

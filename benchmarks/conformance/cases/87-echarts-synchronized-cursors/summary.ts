@@ -1,15 +1,17 @@
 import {
-  synchronizedCursorColors,
   synchronizedCursorDateKey,
   synchronizedCursorDatumAtDate,
-} from './data'
+} from './model'
+import { travelers } from '@charts-poc/demo-data/travelers'
+import { selectSynchronizedCursorData } from './selection'
+import { synchronizedCursorColors } from './colors'
 import type { ConformanceInput } from '../../types'
 
 export interface SynchronizedSummary {
   root: HTMLDivElement
   date: HTMLSpanElement
-  primary: HTMLSpanElement
-  secondary: HTMLSpanElement
+  current: HTMLSpanElement
+  previous: HTMLSpanElement
 }
 
 export function createSynchronizedSummary(
@@ -36,24 +38,24 @@ export function createSynchronizedSummary(
 
   const date = summaryOutput(document, 'Linked date', 'currentColor')
   date.dataset.conformanceSynchronizedDate = ''
-  const primary = summaryOutput(
+  const current = summaryOutput(
     document,
-    'Throughput',
-    synchronizedCursorColors.primary,
+    '2020 travelers',
+    synchronizedCursorColors.current,
   )
-  primary.dataset.conformanceSynchronizedPrimary = ''
-  const secondary = summaryOutput(
+  current.dataset.conformanceSynchronizedCurrent = ''
+  const previous = summaryOutput(
     document,
-    'Error rate',
-    synchronizedCursorColors.secondary,
+    '2019 travelers',
+    synchronizedCursorColors.previous,
   )
-  secondary.dataset.conformanceSynchronizedSecondary = ''
+  previous.dataset.conformanceSynchronizedPrevious = ''
   root.append(
     date.parentElement!,
-    primary.parentElement!,
-    secondary.parentElement!,
+    current.parentElement!,
+    previous.parentElement!,
   )
-  return { root, date, primary, secondary }
+  return { root, date, current, previous }
 }
 
 export function updateSynchronizedSummary(
@@ -64,24 +66,17 @@ export function updateSynchronizedSummary(
 ) {
   if (!date) {
     summary.date.textContent = 'Focus either chart'
-    summary.primary.textContent = '—'
-    summary.secondary.textContent = '—'
+    summary.current.textContent = '—'
+    summary.previous.textContent = '—'
     summary.root.dataset.pinned = 'false'
     return
   }
 
-  const primary = synchronizedCursorDatumAtDate('primary', input.revision, date)
-  const secondary = synchronizedCursorDatumAtDate(
-    'secondary',
-    input.revision,
-    date,
-  )
+  const rows = selectSynchronizedCursorData(travelers, input.revision)
+  const row = synchronizedCursorDatumAtDate(rows, date)
   summary.date.textContent = `${formatDate(date)}${pinned ? ' · pinned' : ''}`
-  summary.primary.textContent = primary?.value.toLocaleString() ?? '—'
-  summary.secondary.textContent =
-    secondary?.value.toLocaleString(undefined, {
-      maximumFractionDigits: 1,
-    }) ?? '—'
+  summary.current.textContent = row?.current.toLocaleString() ?? '—'
+  summary.previous.textContent = row?.previous.toLocaleString() ?? '—'
   summary.root.dataset.date = synchronizedCursorDateKey(date)
   summary.root.dataset.pinned = String(pinned)
 }

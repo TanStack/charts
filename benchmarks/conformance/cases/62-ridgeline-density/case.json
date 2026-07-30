@@ -4,7 +4,7 @@
   "id": "62-ridgeline-density",
   "title": "Ridgeline density comparison",
   "family": "distribution",
-  "intent": "Compare the shape and location of several distributions in compact vertically offset layers.",
+  "intent": "Compare the distribution of real Simpsons episode IMDb ratings across three seasons in compact vertically offset layers.",
   "support": "native",
   "features": [
     "ridgeline chart",
@@ -23,7 +23,7 @@
     "url": "https://observablehq.com/plot/marks/area"
   },
   "ai": {
-    "create": "Create a three-series ridgeline chart from typed density rows using explicit baselines, grouped range areas, matching top lines, and a granular D3 basis curve.",
-    "maintain": "Add another distribution while keeping offsets, scale domains, labels, identity, colors, and responsive curve geometry aligned without introducing a facet or renderer dependency."
+    "create": "Create a three-season ridgeline chart by binning the Simpsons dataset's imdb_rating field, using explicit baselines, grouped range areas, matching top lines, and a granular D3 basis curve.",
+    "maintain": "Change the selected seasons while keeping observed rating bins, offsets, scale domains, labels, identity, colors, and responsive curve geometry aligned."
   }
 }

@@ -10,7 +10,7 @@ definition passes unchanged to any supported
 ## 1. Add a chart container
 
 ```html
-<div id="revenue-chart"></div>
+<div id="closing-price-chart"></div>
 ```
 
 The host follows the container width when `width` is omitted.
@@ -20,49 +20,28 @@ The host follows the container width when `width` is omitted.
 <!-- docs-example: core-quick-start typecheck -->
 
 ```ts
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { defineChart, lineY, mountChart } from '@tanstack/charts'
 
-interface RevenueRow {
-  id: string
-  date: Date
-  revenue: number | null
-}
-
-const rows: readonly RevenueRow[] = [
-  { id: '2026-01', date: new Date('2026-01-01T00:00:00Z'), revenue: 38_000 },
-  { id: '2026-02', date: new Date('2026-02-01T00:00:00Z'), revenue: 44_500 },
-  { id: '2026-03', date: new Date('2026-03-01T00:00:00Z'), revenue: null },
-  { id: '2026-04', date: new Date('2026-04-01T00:00:00Z'), revenue: 51_200 },
-  { id: '2026-05', date: new Date('2026-05-01T00:00:00Z'), revenue: 57_800 },
-]
-
-const revenueChart = defineChart({
+const closingPriceChart = defineChart({
   marks: [
-    lineY(rows, {
-      id: 'monthly-revenue',
-      x: 'date',
-      y: 'revenue',
+    lineY(aapl, {
+      id: 'apple-close',
+      x: 'Date',
+      y: (row) => (row.Date.getUTCMonth() < 3 ? null : row.Close),
       stroke: '#2563eb',
-      points: true,
     }),
   ],
   x: {
     scale: scaleUtc,
     nice: true,
-    label: 'Month',
+    label: 'Date',
   },
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Revenue',
-    format: (value) =>
-      new Intl.NumberFormat(undefined, {
-        style: 'currency',
-        currency: 'USD',
-        notation: 'compact',
-        maximumFractionDigits: 1,
-      }).format(value),
+    label: 'Close (USD)',
     grid: true,
   },
   tooltip: true,
@@ -72,23 +51,25 @@ const revenueChart = defineChart({
 Because this source imports `d3-scale` directly, add it and `@types/d3-scale`
 as direct dependencies. See [Installation](./installation.md).
 
-The missing March value creates a break instead of a misleading segment. The datum type flows through the mark and into interaction callbacks; no cast or manual chart generic is needed.
+The accessor deliberately omits first-quarter observations, creating visible
+breaks instead of misleading segments. The original AAPL row flows through the
+mark and into interaction callbacks; no cast or manual chart generic is needed.
 
 ## 3. Mount it
 
 ```ts
-const container = document.querySelector<HTMLElement>('#revenue-chart')
+const container = document.querySelector<HTMLElement>('#closing-price-chart')
 
 if (!container) {
-  throw new Error('Missing #revenue-chart container')
+  throw new Error('Missing #closing-price-chart container')
 }
 
 const options = {
-  definition: revenueChart,
+  definition: closingPriceChart,
   height: 360,
   initialWidth: 640,
-  ariaLabel: 'Monthly revenue from January through May 2026',
-  ariaDescription: 'March has no reported value.',
+  ariaLabel: 'Apple closing price with first-quarter gaps',
+  ariaDescription: 'First-quarter observations are intentionally omitted.',
 }
 
 const host = mountChart(container, options)
@@ -131,9 +112,9 @@ Destroying the host removes observers, event listeners, animations, tooltips, an
 
 ## What the declaration means
 
-- `lineY(rows, ...)` chooses a line mark and keeps the original row as the interaction datum.
-- `x: 'date'` and `y: 'revenue'` map typed fields to positional channels.
-- The unique row `id` gives each observation stable identity across updates.
+- `lineY(aapl, ...)` chooses a line mark and keeps each original AAPL row as the interaction datum.
+- `x: 'Date'` maps the source date field; the y accessor returns `Close` or an intentional gap.
+- The unique date gives each observation stable positional identity across updates.
 - D3 scale factories infer domains from mark channels and own mapping behavior.
 - TanStack Charts copies those scales and assigns responsive pixel ranges.
 - `label`, `format`, and `grid` configure the axis guide without changing the scale.

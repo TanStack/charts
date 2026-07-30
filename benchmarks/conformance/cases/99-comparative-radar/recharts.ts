@@ -6,19 +6,30 @@ import {
   Radar,
   RadarChart,
 } from 'recharts'
-import { comparativeRadarData } from './data'
+import { decathlon } from '@charts-poc/demo-data/decathlon'
+import { selectRadarProfiles } from './selection'
+import { comparativeRadarData } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
+const radarProfiles = selectRadarProfiles(decathlon)
+
 function chart(input: ConformanceInput) {
+  const compact = input.width < 480
+  const margin = compact
+    ? { top: 20, right: 55, bottom: 20, left: 105 }
+    : { top: 20, right: 20, bottom: 20, left: 20 }
+  const centerX = input.width / 2 + (margin.left - margin.right) / 2
+
   return createElement(
     RadarChart,
     {
       width: input.width,
       height: input.height,
-      data: comparativeRadarData(input.revision),
+      data: comparativeRadarData(decathlon, radarProfiles),
       outerRadius: '78%',
-      margin: { top: 20, right: 20, bottom: 20, left: 20 },
+      cx: centerX,
+      margin,
       accessibilityLayer: true,
     },
     [
@@ -29,7 +40,7 @@ function chart(input: ConformanceInput) {
       }),
       createElement(PolarAngleAxis, {
         key: 'angle',
-        dataKey: 'metric',
+        dataKey: 'event',
       }),
       createElement(PolarRadiusAxis, {
         key: 'radius',
@@ -38,9 +49,9 @@ function chart(input: ConformanceInput) {
         angle: 30,
       }),
       createElement(Radar, {
-        key: 'current',
-        name: 'Current',
-        dataKey: 'current',
+        key: 'usa',
+        name: 'USA',
+        dataKey: 'USA',
         stroke: '#7c3aed',
         strokeWidth: 2,
         fill: '#7c3aed',
@@ -48,9 +59,9 @@ function chart(input: ConformanceInput) {
         isAnimationActive: false,
       }),
       createElement(Radar, {
-        key: 'target',
-        name: 'Target',
-        dataKey: 'target',
+        key: 'gbr',
+        name: 'GBR',
+        dataKey: 'GBR',
         stroke: '#0ea5e9',
         strokeWidth: 2,
         fill: '#0ea5e9',

@@ -1,45 +1,36 @@
+import { crimeanWar } from '@charts-poc/demo-data/crimean-war'
 import * as Plot from '@observablehq/plot'
 import type { ConformanceMount } from '../../types'
-import { categoryData, categoryTotalDomain } from '../../shared/data'
 import { mountObservablePlot } from '../../shared/mount'
 
-const seriesDomain = ['Desktop', 'Mobile', 'Tablet']
-const seriesColors = ['#2563eb', '#f97316', '#10b981']
+const causes = ['disease', 'wounds', 'other'] as const
+const causeColors = ['#4269d0', '#ff725c', '#efb118']
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = categoryData(nextInput.revision)
-    const categoryDomain = [...new Set(rows.map((row) => row.category))]
+    const rows = crimeanWar.slice(nextInput.revision)
+    const deathsByCause = causes.flatMap((cause) =>
+      rows.map(({ date, [cause]: deaths }) => ({ date, cause, deaths })),
+    )
 
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Stacked bars',
+      ariaLabel: 'Crimean War deaths by cause',
       x: {
-        domain: categoryDomain,
+        tickFormat: '%b',
         label: null,
       },
-      y: {
-        domain: categoryTotalDomain,
-        nice: false,
-        grid: true,
-        label: 'Total value',
-      },
-      color: {
-        domain: seriesDomain,
-        range: seriesColors,
-        legend: true,
-      },
+      y: { grid: true, label: 'Deaths' },
+      color: { domain: causes, range: causeColors },
       marks: [
-        Plot.barY(
-          rows,
-          Plot.stackY({
-            x: 'category',
-            y: 'value',
-            fill: 'series',
-            inset: 1,
-          }),
-        ),
+        Plot.rectY(deathsByCause, {
+          x: 'date',
+          interval: 'month',
+          y: 'deaths',
+          fill: 'cause',
+          reverse: true,
+        }),
         Plot.ruleY([0]),
       ],
     })

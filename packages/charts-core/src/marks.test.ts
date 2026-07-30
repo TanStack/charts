@@ -117,6 +117,56 @@ describe('core marks and categorical scales', () => {
     ])
   })
 
+  it('infers dot and text identity from stable positional candidates', () => {
+    const firstDots = [
+      { name: 'Page A', count: 10 },
+      { name: 'Page B', count: 20 },
+    ]
+    const nextDots = [
+      { name: 'Page B', count: 24 },
+      { name: 'Page A', count: 12 },
+    ]
+    const dotKeys = (rows: typeof firstDots) =>
+      new Map(
+        createChartScene(
+          defineChart({
+            marks: [dot(rows, { x: 'name', y: 'count' })],
+            ...bandXAxes(
+              rows.map((row) => row.name),
+              [0, 30],
+            ),
+          }),
+          { width: 480, height: 260 },
+        ).points.map((point) => [point.datum.name, point.key]),
+      )
+    const initialDotKeys = dotKeys(firstDots)
+
+    expect(dotKeys(nextDots)).toEqual(initialDotKeys)
+
+    const firstLabels = [
+      { label: 'A', x: 1, y: 1 },
+      { label: 'B', x: 1, y: 2 },
+      { label: 'C', x: 2, y: 1 },
+    ]
+    const nextLabels = [
+      { label: 'C', x: 2, y: 1 },
+      { label: 'A', x: 1, y: 1 },
+      { label: 'B', x: 1, y: 2 },
+    ]
+    const textKeys = (rows: typeof firstLabels) =>
+      new Map(
+        createChartScene(
+          defineChart({
+            marks: [text(rows, { x: 'x', y: 'y', text: 'label' })],
+            ...linearAxes([0, 3], [0, 3]),
+          }),
+          { width: 480, height: 260 },
+        ).points.map((point) => [point.datum.label, point.key]),
+      )
+
+    expect(textKeys(nextLabels)).toEqual(textKeys(firstLabels))
+  })
+
   it('falls back to position when an inferred channel is not unique', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const rows = [
@@ -284,6 +334,111 @@ describe('core marks and categorical scales', () => {
     expect(bars[1]?.kind === 'rect' ? bars[1].x : 0).toBeGreaterThan(
       bars[0]?.kind === 'rect' ? bars[0].x : 0,
     )
+  })
+
+  it('uses color as the subgroup channel when groupScale is explicit and z is omitted', () => {
+    const data = [
+      { id: 'a:query', category: 'A', series: 'Query', value: 12 },
+      { id: 'a:router', category: 'A', series: 'Router', value: 8 },
+    ]
+    const colors = () =>
+      scaleOrdinal<string, string>()
+        .domain(['Query', 'Router'])
+        .range(['red', 'blue'])
+    const vertical = createChartScene(
+      defineChart({
+        marks: [
+          barY(data, {
+            x: 'category',
+            y: 'value',
+            color: 'series',
+            groupScale: () => scaleBand<string>().padding(0.2),
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 12]),
+        color: { scale: colors() },
+      }),
+      { width: 480, height: 260 },
+    )
+    const horizontal = createChartScene(
+      defineChart({
+        marks: [
+          barX(data, {
+            x: 'value',
+            y: 'category',
+            color: 'series',
+            groupScale: () => scaleBand<string>().padding(0.2),
+          }),
+        ],
+        ...bandYAxes([0, 12], ['A']),
+        color: { scale: colors() },
+      }),
+      { width: 480, height: 260 },
+    )
+    const verticalBars = flatten(vertical.nodes).filter(
+      (node) => node.kind === 'rect',
+    )
+    const horizontalBars = flatten(horizontal.nodes).filter(
+      (node) => node.kind === 'rect',
+    )
+
+    for (const scene of [vertical, horizontal]) {
+      expect(scene.points.map((point) => point.group)).toEqual([
+        'Query',
+        'Router',
+      ])
+      expect(scene.points.map((point) => point.color)).toEqual(['red', 'blue'])
+    }
+    expect(
+      verticalBars[1]?.kind === 'rect' ? verticalBars[1].x : 0,
+    ).toBeGreaterThan(verticalBars[0]?.kind === 'rect' ? verticalBars[0].x : 0)
+    expect(
+      horizontalBars[1]?.kind === 'rect' ? horizontalBars[1].y : 0,
+    ).toBeGreaterThan(
+      horizontalBars[0]?.kind === 'rect' ? horizontalBars[0].y : 0,
+    )
+  })
+
+  it('keeps explicit z authoritative over color for grouped bars', () => {
+    const data = [
+      {
+        id: 'a:left',
+        category: 'A',
+        series: 'Left',
+        status: 'Warm',
+        value: 12,
+      },
+      {
+        id: 'a:right',
+        category: 'A',
+        series: 'Right',
+        status: 'Cool',
+        value: 8,
+      },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barY(data, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            color: 'status',
+            groupScale: scaleBand<string>().domain(['Left', 'Right']),
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 12]),
+        color: {
+          scale: scaleOrdinal<string, string>()
+            .domain(['Warm', 'Cool'])
+            .range(['red', 'blue']),
+        },
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(scene.points.map((point) => point.group)).toEqual(['Left', 'Right'])
+    expect(scene.points.map((point) => point.color)).toEqual(['red', 'blue'])
   })
 
   it('does not turn the z channel into implicit subgroup geometry', () => {

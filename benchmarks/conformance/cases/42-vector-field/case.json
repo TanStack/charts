@@ -19,7 +19,7 @@
     "url": "https://observablehq.com/plot/marks/vector"
   },
   "ai": {
-    "create": "Create a vector field from typed x, y, speed, and clockwise direction fields using fixed-pixel vector lengths.",
+    "create": "Create a vector field from a regular sample of the raw wind {longitude, latitude, u, v} observations, deriving fixed-pixel length and clockwise rotation directly in the mark channels.",
     "maintain": "Change the field density and vector anchor while retaining typed channels, responsive scales, and one semantic vector per sample."
   }
 }

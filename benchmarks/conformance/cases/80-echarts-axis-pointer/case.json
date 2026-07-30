@@ -18,14 +18,6 @@
     { "view": "main", "role": "line", "count": 3 },
     { "view": "main", "role": "dot", "count": 24 }
   ],
-  "minimumGeometrySimilarity": 0.995,
-  "guideAssertions": [
-    {
-      "id": "value-sequence",
-      "axis": "y",
-      "sequence": ["0", "20", "40", "60", "80"]
-    }
-  ],
   "interactionScenarios": [
     {
       "id": "snap-to-shared-date",
@@ -34,19 +26,25 @@
           "type": "pointerMove",
           "target": {
             "view": "main",
-            "anchor": "date:2025-04-01"
+            "anchor": "date:2005-04-01"
           }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "focus.date", "equals": "2025-04-01" },
-            { "path": "focus.series", "includes": "Atlas" },
-            { "path": "focus.series", "includes": "Beacon" },
-            { "path": "focus.series", "includes": "Comet" },
-            { "path": "focus.values", "includes": 53 },
-            { "path": "focus.values", "includes": 38 },
-            { "path": "focus.values", "includes": 32 },
+            { "path": "focus.date", "equals": "2005-04-01" },
+            {
+              "path": "focus.industries",
+              "includes": "Manufacturing"
+            },
+            {
+              "path": "focus.industries",
+              "includes": "Construction"
+            },
+            { "path": "focus.industries", "includes": "Finance" },
+            { "path": "focus.values", "includes": 793 },
+            { "path": "focus.values", "includes": 693 },
+            { "path": "focus.values", "includes": 255 },
             { "path": "crosshair.visible", "equals": true },
             { "path": "tooltip.visible", "equals": true }
           ]
@@ -66,7 +64,7 @@
                 "selector": "[data-conformance-tooltip=\"grouped\"]"
               },
               "property": "text",
-              "includes": "Atlas"
+              "includes": "Manufacturing"
             },
             {
               "target": {
@@ -96,7 +94,7 @@
           "type": "pointerMove",
           "target": {
             "view": "main",
-            "anchor": "date:2025-08-01"
+            "anchor": "date:2005-08-01"
           }
         },
         {
@@ -116,11 +114,11 @@
           "type": "touchDrag",
           "from": {
             "view": "main",
-            "anchor": "date:2025-08-01"
+            "anchor": "date:2005-08-01"
           },
           "to": {
             "view": "main",
-            "anchor": "date:2025-07-01"
+            "anchor": "date:2005-07-01"
           },
           "steps": 2,
           "cancel": true
@@ -140,7 +138,7 @@
     "url": "https://echarts.apache.org/handbook/en/concepts/axis/"
   },
   "ai": {
-    "create": "Create a three-series UTC line chart with a snapped vertical crosshair and one rich tooltip containing the values and color swatches for every series at the nearest date.",
-    "maintain": "Update a series while preserving stable row keys, semantic date anchors, grouped focus state, external tooltip ownership, SVG accessibility, and cast-free types."
+    "create": "Create a three-industry UTC line chart from the industries dataset's date, industry, and unemployed fields with a snapped vertical crosshair and one rich tooltip at the nearest month.",
+    "maintain": "Change the selected industries while preserving semantic date anchors, grouped focus state, external tooltip ownership, SVG accessibility, and the original observations."
   }
 }

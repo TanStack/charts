@@ -4,11 +4,12 @@
   "id": "bar-grouped",
   "title": "Grouped bars",
   "family": "bar",
-  "intent": "Compare three device series side by side within each category.",
+  "intent": "Compare female and male penguin counts side by side within each species.",
   "support": "native",
   "features": [
     "grouped bars",
     "nested band scales",
+    "group transform",
     "categorical color",
     "legend",
     "responsive categorical labels"
@@ -16,7 +17,7 @@
   "geometry": [
     {
       "role": "bar",
-      "count": 24
+      "count": 6
     }
   ],
   "guideAssertions": [
@@ -26,16 +27,7 @@
         "observable-plot": "fx",
         "tanstack": "x"
       },
-      "sequence": [
-        "Query",
-        "Router",
-        "Table",
-        "Form",
-        "Start",
-        "Virtual",
-        "Store",
-        "DB"
-      ]
+      "sequence": ["Adelie", "Chinstrap", "Gentoo"]
     }
   ],
   "source": {
@@ -43,7 +35,7 @@
     "url": "https://observablehq.com/plot/transforms/group"
   },
   "ai": {
-    "create": "Create grouped vertical bars for every category and device series, with side-by-side geometry and a categorical color legend.",
-    "maintain": "Update the data revision and width without stacking or overlapping the three series in each category."
+    "create": "Create grouped vertical bars directly from the penguins observations, counting rows by species and sex with a categorical legend.",
+    "maintain": "Change the selected observations or width without stacking or overlapping the two sex groups within each species."
   }
 }

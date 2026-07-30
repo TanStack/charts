@@ -13,13 +13,13 @@
     "categorical color",
     "d3-shape stackOffsetDiverging"
   ],
-  "geometry": [{ "role": "bar", "count": 20 }],
+  "geometry": [{ "role": "bar", "count": 25 }],
   "source": {
     "title": "Observable Plot stack transform",
     "url": "https://observablehq.com/plot/transforms/stack"
   },
   "ai": {
-    "create": "Create a diverging Likert chart from typed {question, response, signedValue} rows, stacking disagreement left of zero and neutral or agreement right of zero.",
+    "create": "Create a diverging Likert chart from the raw {Question, ID, Response} survey observations, counting responses and centering the neutral category on zero.",
     "maintain": "Reorder response categories while preserving Plot stack semantics, granular d3-shape diverging offsets, stable colors, and inferred categorical keys."
   }
 }

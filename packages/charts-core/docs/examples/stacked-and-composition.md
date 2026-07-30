@@ -104,17 +104,18 @@ horizontal and vertical interval endpoints.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/64-marimekko-mosaic/?theme=system&height=440"
-  title="Marimekko market-composition mosaic built with TanStack Charts"
+  title="Marimekko survey-response composition built with TanStack Charts"
   loading="lazy"
   width="100%"
   height="440"
   style="width:100%;height:440px;border:0;"
 ></iframe>
 
-The two dimensions have independent denominators: market totals determine
-column widths, while segment shares determine height within each market. Keep
-those calculations separate and label both meanings. Small cells may need a
-tooltip or adjacent table rather than unreadable direct text.
+The two dimensions have independent denominators: response totals determine
+each question's column width, while response-category shares determine height
+within that question. Keep those calculations separate and label both meanings.
+Small cells may need a tooltip or adjacent table rather than unreadable direct
+text.
 
 Rectangle endpoint semantics are defined in
 [Bar and Rect Marks](../reference/marks/bar-and-rect.md).

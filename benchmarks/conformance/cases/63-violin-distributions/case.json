@@ -4,7 +4,7 @@
   "id": "63-violin-distributions",
   "title": "Violin distribution comparison",
   "family": "distribution",
-  "intent": "Compare mirrored distribution shapes and medians across categorical cohorts.",
+  "intent": "Compare mirrored body-mass distributions and medians across Palmer Penguins species.",
   "support": "composed",
   "features": [
     "violin plot",
@@ -23,7 +23,7 @@
     "url": "https://observablehq.com/plot/marks/area"
   },
   "ai": {
-    "create": "Create three mirrored violin distributions with typed x1/x2 density envelopes, smooth curves, explicit medians, and a shared quantitative score scale.",
-    "maintain": "Change the density resolution or add a cohort while preserving symmetric widths, summary identity, categorical labels, color mapping, and strict scale-channel inference."
+    "create": "Create three mirrored violin distributions by binning Palmer Penguins body-mass observations, with typed x1/x2 envelopes, smooth curves, explicit medians, and a shared quantitative scale.",
+    "maintain": "Change the body-mass bin resolution while preserving symmetric widths, source species identity, categorical labels, color mapping, and strict scale-channel inference."
   }
 }

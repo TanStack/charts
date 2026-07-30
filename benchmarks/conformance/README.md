@@ -57,7 +57,7 @@ pnpm dev:conformance
 # Validate publishable case metadata and route uniqueness
 pnpm catalog:check
 
-# Build the standalone authoring app and schema-v2 publication artifact
+# Build the standalone authoring app and schema-v3 publication artifact
 pnpm catalog:build
 ```
 
@@ -98,14 +98,16 @@ route to expose the reference implementation. Comparison modules remain
 separate roots and are marked `visibility: "debug"` in the artifact; the site
 must not serialize, preload, or import them without that flag.
 
-`catalog.json` schema version 2 contains:
+`catalog.json` schema version 3 contains:
 
-- the exact 40-character Charts revision and repository;
+- the exact 40-character Charts revision, repository, and source path root;
 - the runtime `mount` export contract;
 - the production origin, route base, and asset base;
 - the versioned embed protocol;
 - parsed case metadata and canonical page/embed routes;
 - immutable repository source paths;
+- per-implementation authored-source totals and entry, support, fixture, and
+  excluded-harness role paths;
 - one TanStack module and one debug-only comparison module per case;
 - a byte count, SHA-256 digest, static imports, and dynamic imports for every
   allowlisted module.

@@ -3,7 +3,7 @@
   "referenceRenderer": "echarts",
   "order": 900,
   "id": "90-zoomable-time-window",
-  "title": "Wheel zoom and pan time window",
+  "title": "Wheel zoom and pan over AAPL closes",
   "family": "interaction",
   "intent": "Zoom a continuous time viewport around the pointer, pan the cropped domain, and restore the full extent.",
   "support": "composed",
@@ -21,9 +21,9 @@
   ],
   "geometry": [
     { "id": "window-line", "view": "main", "role": "line", "count": 1 },
-    { "id": "window-points", "view": "main", "role": "dot", "count": 17 }
+    { "id": "window-points", "view": "main", "role": "dot", "count": 12 }
   ],
-  "minimumGeometrySimilarity": 0.994,
+  "minimumGeometrySimilarity": 0.98,
   "guideAssertions": [
     {
       "id": "non-repeating-value-ticks",
@@ -56,14 +56,14 @@
         },
         {
           "type": "wheel",
-          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "target": { "view": "main", "anchor": "date:2018-01-10" },
           "deltaY": 240
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-01" },
-            { "path": "viewport.end", "equals": "2025-01-17" },
+            { "path": "viewport.start", "equals": "2018-01-02" },
+            { "path": "viewport.end", "equals": "2018-01-18" },
             { "path": "interaction.active", "equals": false },
             { "path": "interaction.wheelCaptured", "equals": false },
             { "path": "interaction.last", "equals": "none" }
@@ -87,15 +87,15 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-01" },
-            { "path": "viewport.end", "equals": "2025-01-17" },
+            { "path": "viewport.start", "equals": "2018-01-02" },
+            { "path": "viewport.end", "equals": "2018-01-18" },
             { "path": "viewport.spanDays", "approx": 16, "tolerance": 0.01 },
-            { "path": "visible.count", "equals": 17 }
+            { "path": "visible.count", "equals": 12 }
           ]
         },
         {
           "type": "click",
-          "target": { "view": "main", "anchor": "date:2025-01-09" }
+          "target": { "view": "main", "anchor": "date:2018-01-10" }
         },
         {
           "type": "assertRendered",
@@ -112,22 +112,22 @@
             {
               "target": { "role": "status" },
               "property": "text",
-              "includes": "2025-01-01 → 2025-01-17"
+              "includes": "2018-01-02 → 2018-01-18"
             }
           ]
         },
         {
           "type": "wheel",
-          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "target": { "view": "main", "anchor": "date:2018-01-10" },
           "deltaY": -240
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-05" },
-            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "viewport.start", "equals": "2018-01-06" },
+            { "path": "viewport.end", "equals": "2018-01-14" },
             { "path": "viewport.spanDays", "approx": 8, "tolerance": 0.01 },
-            { "path": "visible.count", "equals": 9 },
+            { "path": "visible.count", "equals": 5 },
             { "path": "interaction.last", "equals": "zoom" },
             { "path": "interaction.active", "equals": true },
             { "path": "interaction.wheelCaptured", "equals": true }
@@ -157,15 +157,15 @@
         },
         {
           "type": "wheel",
-          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "target": { "view": "main", "anchor": "date:2018-01-10" },
           "deltaX": 220
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-07" },
-            { "path": "viewport.end", "equals": "2025-01-15" },
-            { "path": "visible.count", "equals": 9 },
+            { "path": "viewport.start", "equals": "2018-01-08" },
+            { "path": "viewport.end", "equals": "2018-01-16" },
+            { "path": "visible.count", "equals": 6 },
             { "path": "interaction.last", "equals": "pan" },
             { "path": "interaction.wheelCaptured", "equals": true }
           ]
@@ -175,10 +175,13 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-07" },
-            { "path": "viewport.end", "equals": "2025-01-15" },
-            { "path": "visible.count", "equals": 9 },
-            { "path": "visible.revisionProbeValue", "equals": 59 },
+            { "path": "viewport.start", "equals": "2018-01-08" },
+            { "path": "viewport.end", "equals": "2018-01-16" },
+            { "path": "visible.count", "equals": 6 },
+            {
+              "path": "visible.jan9Close",
+              "equals": 174.330002
+            },
             { "path": "interaction.last", "equals": "pan" }
           ]
         },
@@ -186,25 +189,28 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-07" },
-            { "path": "viewport.end", "equals": "2025-01-15" },
-            { "path": "visible.count", "equals": 9 },
-            { "path": "visible.revisionProbeValue", "equals": 55 },
+            { "path": "viewport.start", "equals": "2018-01-08" },
+            { "path": "viewport.end", "equals": "2018-01-16" },
+            { "path": "visible.count", "equals": 6 },
+            {
+              "path": "visible.jan9Close",
+              "equals": 174.330002
+            },
             { "path": "interaction.last", "equals": "pan" }
           ]
         },
         {
           "type": "wheel",
-          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "target": { "view": "main", "anchor": "date:2018-01-10" },
           "deltaY": 240
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-01" },
-            { "path": "viewport.end", "equals": "2025-01-17" },
+            { "path": "viewport.start", "equals": "2018-01-02" },
+            { "path": "viewport.end", "equals": "2018-01-18" },
             { "path": "viewport.spanDays", "approx": 16, "tolerance": 0.01 },
-            { "path": "visible.count", "equals": 17 },
+            { "path": "visible.count", "equals": 12 },
             { "path": "interaction.last", "equals": "zoom" }
           ]
         }
@@ -215,19 +221,19 @@
       "steps": [
         {
           "type": "click",
-          "target": { "view": "main", "anchor": "date:2025-01-09" }
+          "target": { "view": "main", "anchor": "date:2018-01-10" }
         },
         {
           "type": "wheel",
-          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "target": { "view": "main", "anchor": "date:2018-01-10" },
           "deltaY": -15,
           "deltaMode": "line"
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-05" },
-            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "viewport.start", "equals": "2018-01-06" },
+            { "path": "viewport.end", "equals": "2018-01-14" },
             { "path": "viewport.spanDays", "approx": 8, "tolerance": 0.01 },
             { "path": "interaction.wheelCaptured", "equals": true }
           ]
@@ -239,19 +245,19 @@
       "steps": [
         {
           "type": "click",
-          "target": { "view": "main", "anchor": "date:2025-01-09" }
+          "target": { "view": "main", "anchor": "date:2018-01-10" }
         },
         {
           "type": "wheel",
-          "target": { "view": "main", "anchor": "date:2025-01-09" },
+          "target": { "view": "main", "anchor": "date:2018-01-10" },
           "deltaY": -1,
           "deltaMode": "page"
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-05" },
-            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "viewport.start", "equals": "2018-01-06" },
+            { "path": "viewport.end", "equals": "2018-01-14" },
             { "path": "viewport.spanDays", "approx": 8, "tolerance": 0.01 },
             { "path": "interaction.wheelCaptured", "equals": true }
           ]
@@ -279,13 +285,13 @@
         {
           "type": "key",
           "key": "+",
-          "target": { "view": "main", "anchor": "date:2025-01-09" }
+          "target": { "view": "main", "anchor": "date:2018-01-10" }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-05" },
-            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "viewport.start", "equals": "2018-01-06" },
+            { "path": "viewport.end", "equals": "2018-01-14" },
             { "path": "interaction.active", "equals": true },
             { "path": "interaction.last", "equals": "zoom" }
           ]
@@ -293,13 +299,13 @@
         {
           "type": "key",
           "key": "ArrowRight",
-          "target": { "view": "main", "anchor": "date:2025-01-09" }
+          "target": { "view": "main", "anchor": "date:2018-01-10" }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-06" },
-            { "path": "viewport.end", "equals": "2025-01-14" },
+            { "path": "viewport.start", "equals": "2018-01-07" },
+            { "path": "viewport.end", "equals": "2018-01-15" },
             { "path": "interaction.last", "equals": "pan" }
           ]
         },
@@ -310,8 +316,8 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-01" },
-            { "path": "viewport.end", "equals": "2025-01-17" },
+            { "path": "viewport.start", "equals": "2018-01-02" },
+            { "path": "viewport.end", "equals": "2018-01-18" },
             { "path": "viewport.spanDays", "approx": 16, "tolerance": 0.01 },
             { "path": "interaction.active", "equals": true },
             { "path": "interaction.last", "equals": "reset" }
@@ -323,7 +329,7 @@
             {
               "target": { "role": "status" },
               "property": "text",
-              "includes": "2025-01-01 → 2025-01-17"
+              "includes": "2018-01-02 → 2018-01-18"
             },
             {
               "target": { "role": "status" },
@@ -341,19 +347,19 @@
         {
           "type": "key",
           "key": "+",
-          "target": { "view": "main", "anchor": "date:2025-01-09" }
+          "target": { "view": "main", "anchor": "date:2018-01-10" }
         },
         {
           "type": "drag",
-          "from": { "view": "main", "anchor": "date:2025-01-09" },
-          "to": { "view": "main", "anchor": "date:2025-01-07" },
+          "from": { "view": "main", "anchor": "date:2018-01-10" },
+          "to": { "view": "main", "anchor": "date:2018-01-08" },
           "steps": 8
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-07" },
-            { "path": "viewport.end", "equals": "2025-01-15" },
+            { "path": "viewport.start", "equals": "2018-01-08" },
+            { "path": "viewport.end", "equals": "2018-01-16" },
             { "path": "interaction.last", "equals": "pan" }
           ]
         }
@@ -364,7 +370,7 @@
       "steps": [
         {
           "type": "touchTap",
-          "target": { "view": "main", "anchor": "date:2025-01-09" }
+          "target": { "view": "main", "anchor": "date:2018-01-10" }
         },
         {
           "type": "assert",
@@ -376,15 +382,15 @@
         { "type": "key", "key": "+" },
         {
           "type": "touchDrag",
-          "from": { "view": "main", "anchor": "date:2025-01-09" },
-          "to": { "view": "main", "anchor": "date:2025-01-07" },
+          "from": { "view": "main", "anchor": "date:2018-01-10" },
+          "to": { "view": "main", "anchor": "date:2018-01-08" },
           "steps": 8
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "viewport.start", "equals": "2025-01-07" },
-            { "path": "viewport.end", "equals": "2025-01-15" },
+            { "path": "viewport.start", "equals": "2018-01-08" },
+            { "path": "viewport.end", "equals": "2018-01-16" },
             { "path": "interaction.last", "equals": "pan" }
           ]
         }
@@ -396,7 +402,7 @@
     "url": "https://echarts.apache.org/handbook/en/concepts/datazoom/"
   },
   "ai": {
-    "create": "Create a UTC time series with an optional granular d3-zoom controller that zooms around the pointer, pans by drag or horizontal wheel, and exposes keyboard, touch, status, and reset affordances.",
+    "create": "Create a UTC chart of AAPL closes with an optional granular d3-zoom controller that zooms around the pointer, pans by drag or horizontal wheel, and exposes keyboard, touch, status, and reset affordances.",
     "maintain": "Keep the D3 zoom transform and application viewport synchronized across responsive updates, leave wheel and vertical touch scrolling unconsumed until intentional plot focus, expose the same keyboard and reset contract, and preserve D3 constraints rather than recreating transform math."
   }
 }

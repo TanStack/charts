@@ -1,28 +1,26 @@
 import * as Plot from '@observablehq/plot'
-import { timeDomain } from '../../shared/data'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceInput, ConformanceMount } from '../../types'
-import { bollingerData, bollingerValueDomain } from './data'
+import { selectBollingerData } from './selection'
 
-const windowSize = 8
+const windowSize = 20
 const deviationMultiplier = 2
 
 function render(input: ConformanceInput) {
   return Plot.plot({
     width: input.width,
     height: input.height,
-    ariaLabel: 'Eight-week Bollinger band',
-    x: { type: 'utc', domain: timeDomain, label: 'Week' },
+    ariaLabel: 'Twenty-day Apple Bollinger band',
+    x: { type: 'utc', label: 'Date' },
     y: {
-      domain: bollingerValueDomain,
-      nice: false,
       grid: true,
-      label: 'Index',
+      label: 'Apple close (USD)',
     },
     marks: [
-      Plot.bollingerY(bollingerData(input.revision), {
-        x: 'date',
-        y: 'value',
+      Plot.bollingerY(selectBollingerData(aapl, input.revision), {
+        x: 'Date',
+        y: 'Close',
         n: windowSize,
         k: deviationMultiplier,
         anchor: 'end',

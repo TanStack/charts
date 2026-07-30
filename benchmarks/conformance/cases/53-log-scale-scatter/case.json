@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 530,
   "id": "53-log-scale-scatter",
-  "title": "Log-scale scatterplot",
+  "title": "Log-scale Flare class sizes",
   "family": "relationship",
-  "intent": "Compare values spanning several orders of magnitude without compressing the smallest observations.",
+  "intent": "Compare real Flare class sizes spanning two orders of magnitude without compressing the smallest observations.",
   "support": "native",
   "features": [
     "scatterplot",
@@ -13,13 +13,13 @@
     "d3-scale log",
     "multi-order domain"
   ],
-  "geometry": [{ "role": "dot", "count": 60 }],
+  "geometry": [{ "role": "dot", "count": 200 }],
   "source": {
     "title": "Observable Plot logarithmic scales",
     "url": "https://observablehq.com/plot/features/scales#log-scales"
   },
   "ai": {
-    "create": "Create a scatterplot whose positive x values span four orders of magnitude using a logarithmic x scale.",
-    "maintain": "Change the log base or domain while rejecting non-positive x values and preserving the linear y encoding."
+    "create": "Create a scatterplot of Flare class size versus hierarchy depth using the original name and size fields and a logarithmic x scale.",
+    "maintain": "Change the selected Flare rows, log base, or domain while rejecting non-positive sizes and preserving the linear hierarchy-depth encoding."
   }
 }

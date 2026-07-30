@@ -1,11 +1,15 @@
+import { survey } from '@charts-poc/demo-data/survey'
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
-import { gaugeData } from './data'
+import { agreementPercent, gaugeSegments } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
+const colors = ['#ef4444', '#e2e8f0']
+
 function chart(input: ConformanceInput) {
-  const data = gaugeData(input.revision)
+  const question = `Q${(input.revision % 2) + 1}`
+  const data = gaugeSegments(agreementPercent(survey, question))
   const outerRadius = Math.min(input.width, input.height) * 0.4
 
   return createElement(
@@ -31,10 +35,10 @@ function chart(input: ConformanceInput) {
         stroke: 'none',
         isAnimationActive: false,
       },
-      data.map((row) =>
+      data.map((row, index) =>
         createElement(Cell, {
           key: row.id,
-          fill: row.fill,
+          fill: colors[index],
           stroke: 'none',
         }),
       ),
@@ -42,4 +46,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Partial-circle gauge')
+export const mount = rechartsMount(chart, 'Survey agreement share gauge')

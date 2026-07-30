@@ -21,7 +21,6 @@ const mark = dot(rows, {
   z: 'series',
   r: 'population',
   rScale: radiusScale,
-  key: 'id',
 })
 ```
 
@@ -34,27 +33,31 @@ function dot<TDatum>(
 
 ### Options
 
-| Option          | Type                                 | Default                 | Meaning                                  |
-| --------------- | ------------------------------------ | ----------------------- | ---------------------------------------- |
-| `id`            | `string`                             | Layer-derived           | Stable mark ID                           |
-| `x`             | `Channel<TDatum, ChartValue?>`       | Row index               | Horizontal value                         |
-| `y`             | `Channel<TDatum, ChartValue?>`       | Numeric datum           | Vertical value                           |
-| `z`             | `Channel<TDatum, ChartKey?>`         | No group                | Interaction group and default fill color |
-| `key`           | `Channel<TDatum, ChartKey>`          | Unique `id`, then index | Stable scene and interaction identity    |
-| `r`             | `number \| Channel<TDatum, number?>` | `3.5`                   | Raw radius value                         |
-| `rScale`        | `(value: number) => number`          | Identity                | Maps each valid raw radius to pixels     |
-| `fill`          | `string`                             | Resolved `z` color      | Constant fill                            |
-| `fillOpacity`   | `number`                             | SVG default             | Fill opacity                             |
-| `stroke`        | `string`                             | None                    | Constant stroke                          |
-| `strokeOpacity` | `number`                             | SVG default             | Stroke opacity                           |
-| `strokeWidth`   | `number`                             | SVG default             | Stroke width                             |
+| Option          | Type                                 | Default              | Meaning                               |
+| --------------- | ------------------------------------ | -------------------- | ------------------------------------- |
+| `id`            | `string`                             | Layer-derived        | Stable mark ID                        |
+| `x`             | `Channel<TDatum, ChartValue?>`       | Row index            | Horizontal value                      |
+| `y`             | `Channel<TDatum, ChartValue?>`       | Numeric datum        | Vertical value                        |
+| `z`             | `Channel<TDatum, ChartKey?>`         | No group             | Interaction group                     |
+| `color`         | `Channel<TDatum, ChartKey?>`         | `z`                  | Value sent to the chart color scale   |
+| `key`           | `Channel<TDatum, ChartKey>`          | ID, x, y, x/y, index | Stable scene and interaction identity |
+| `r`             | `number \| Channel<TDatum, number?>` | `3.5`                | Raw radius value                      |
+| `rScale`        | `(value: number) => number`          | Identity             | Maps each valid raw radius to pixels  |
+| `fill`          | `string`                             | Resolved color       | Final constant fill override          |
+| `fillOpacity`   | `number`                             | SVG default          | Fill opacity                          |
+| `stroke`        | `string`                             | None                 | Constant stroke                       |
+| `strokeOpacity` | `number`                             | SVG default          | Stroke opacity                        |
+| `strokeWidth`   | `number`                             | SVG default          | Stroke width                          |
 
 `rScale` is called only for finite, nonnegative raw radii. The mapped result
 must also be finite and nonnegative or the row is skipped.
 
-Unlike `hexagon`, `dot.fill` and `dot.stroke` are constants. Use `z` and the
-chart color scale for data-driven dot color, or split data into multiple marks
-for independently styled layers.
+Unlike `hexagon`, `dot.fill` and `dot.stroke` are constants. Use `color` and
+the chart color scale for data-driven dot color.
+
+Without an explicit key, `dot` tries a unique top-level or nested `data.id`,
+then x, y, and the x/y tuple. Supply `key` when positions can change while the
+same entity should reconcile across updates.
 
 ## `hexagon`
 
@@ -64,11 +67,9 @@ for independently styled layers.
 const mark = hexagon(bins, {
   x: 'x',
   y: 'y',
-  z: 'densityBand',
+  color: 'count',
   r: 'count',
   rScale: radiusScale,
-  fill: (bin) => densityColor(bin.count),
-  key: 'id',
 })
 ```
 
@@ -81,20 +82,21 @@ function hexagon<TDatum>(
 
 ### Options
 
-| Option          | Type                                 | Default                 | Meaning                             |
-| --------------- | ------------------------------------ | ----------------------- | ----------------------------------- |
-| `id`            | `string`                             | Layer-derived           | Stable mark ID                      |
-| `x`             | `Channel<TDatum, ChartValue?>`       | Row index               | Horizontal center                   |
-| `y`             | `Channel<TDatum, ChartValue?>`       | Numeric datum           | Vertical center                     |
-| `z`             | `Channel<TDatum, ChartKey?>`         | No group                | Interaction group and default paint |
-| `key`           | `Channel<TDatum, ChartKey>`          | Unique `id`, then index | Stable identity                     |
-| `r`             | `number \| Channel<TDatum, number?>` | `6`                     | Raw circumradius                    |
-| `rScale`        | `(value: number) => number`          | Identity                | Maps radius values to pixels        |
-| `fill`          | `VisualChannel<TDatum, string>`      | Resolved `z` color      | Fill per mark or row                |
-| `fillOpacity`   | `number`                             | SVG default             | Fill opacity                        |
-| `stroke`        | `VisualChannel<TDatum, string>`      | None                    | Optional stroke per mark or row     |
-| `strokeOpacity` | `number`                             | SVG default             | Stroke opacity                      |
-| `strokeWidth`   | `number`                             | SVG default             | Stroke width                        |
+| Option          | Type                                 | Default                | Meaning                             |
+| --------------- | ------------------------------------ | ---------------------- | ----------------------------------- |
+| `id`            | `string`                             | Layer-derived          | Stable mark ID                      |
+| `x`             | `Channel<TDatum, ChartValue?>`       | Row index              | Horizontal center                   |
+| `y`             | `Channel<TDatum, ChartValue?>`       | Numeric datum          | Vertical center                     |
+| `z`             | `Channel<TDatum, ChartKey?>`         | No group               | Interaction group                   |
+| `color`         | `Channel<TDatum, ChartKey?>`         | `z`                    | Value sent to the chart color scale |
+| `key`           | `Channel<TDatum, ChartKey>`          | Top/nested `id`, index | Stable identity                     |
+| `r`             | `number \| Channel<TDatum, number?>` | `6`                    | Raw circumradius                    |
+| `rScale`        | `(value: number) => number`          | Identity               | Maps radius values to pixels        |
+| `fill`          | `VisualChannel<TDatum, string>`      | Resolved color         | Final fill override                 |
+| `fillOpacity`   | `number`                             | SVG default            | Fill opacity                        |
+| `stroke`        | `VisualChannel<TDatum, string>`      | None                   | Optional stroke per mark or row     |
+| `strokeOpacity` | `number`                             | SVG default            | Stroke opacity                      |
+| `strokeWidth`   | `number`                             | SVG default            | Stroke width                        |
 
 The generated vertices begin at the top and proceed in 60-degree increments.
 The interaction point remains at the scaled center, and its `color` is the

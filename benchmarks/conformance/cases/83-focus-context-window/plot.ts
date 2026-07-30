@@ -1,17 +1,17 @@
 import * as Plot from '@observablehq/plot'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { brushX } from 'd3-brush'
 import { select } from 'd3-selection'
 import {
   dateFromAnchor,
   dateKey,
-  focusContextData,
-  focusContextDates,
   focusContextDomain,
   initialFocusContextWindow,
+  monthlyAaplRows,
   rowsInWindow,
   windowForDate,
-} from './data'
-import type { FocusContextWindow } from './data'
+} from './model'
+import type { FocusContextWindow } from './model'
 import type { BrushSelection, D3BrushEvent } from 'd3-brush'
 import type {
   ConformanceInput,
@@ -22,6 +22,9 @@ import type {
 const detailMargin = { top: 16, right: 24, bottom: 38, left: 52 }
 const overviewMargin = { top: 8, right: 24, bottom: 22, left: 52 }
 const gap = 8
+const focusContextRows = monthlyAaplRows(aapl)
+const focusContextDates = focusContextRows.map((row) => row.Date)
+const fullDomain = focusContextDomain(focusContextRows)
 
 function viewHeights(height: number) {
   const controls = 52
@@ -38,7 +41,7 @@ function linePlot(
   height: number,
   window: FocusContextWindow,
 ) {
-  const rows = rowsInWindow(focusContextData(input.revision), window)
+  const rows = rowsInWindow(focusContextRows, window)
   return Plot.plot({
     width: input.width,
     height,
@@ -52,25 +55,25 @@ function linePlot(
       domain: [window.start, window.end],
       label: 'Selected time window',
     },
-    y: { domain: [30, 90], grid: true, label: 'Value' },
+    y: { grid: true, label: 'Close ($)' },
     marks: [
       Plot.lineY(rows, {
-        x: 'date',
-        y: 'value',
+        x: 'Date',
+        y: 'Close',
         stroke: '#2563eb',
         strokeWidth: 2.5,
       }),
       Plot.dot(rows, {
-        x: 'date',
-        y: 'value',
+        x: 'Date',
+        y: 'Close',
         fill: '#2563eb',
         r: 3,
       }),
       Plot.dot(
-        rows.filter((row) => row.date.getTime() === window.selected.getTime()),
+        rows.filter((row) => row.Date.getTime() === window.selected.getTime()),
         {
-          x: 'date',
-          y: 'value',
+          x: 'Date',
+          y: 'Close',
           fill: '#f97316',
           stroke: '#ffffff',
           strokeWidth: 2,
@@ -82,7 +85,7 @@ function linePlot(
 }
 
 function overviewPlot(input: ConformanceInput, height: number) {
-  const rows = focusContextData(input.revision)
+  const rows = focusContextRows
   return Plot.plot({
     width: input.width,
     height,
@@ -93,15 +96,15 @@ function overviewPlot(input: ConformanceInput, height: number) {
     ariaLabel: 'Overview time series with draggable detail window',
     x: {
       type: 'utc',
-      domain: focusContextDomain,
+      domain: fullDomain,
       ticks: 4,
       tickFormat: '%b',
     },
-    y: { domain: [30, 90], axis: null },
+    y: { axis: null },
     marks: [
       Plot.lineY(rows, {
-        x: 'date',
-        y: 'value',
+        x: 'Date',
+        y: 'Close',
         stroke: '#2563eb',
         strokeWidth: 1.75,
       }),
@@ -114,8 +117,8 @@ function datePosition(
   width: number,
   margin: { left: number; right: number },
 ) {
-  const domainStart = focusContextDomain[0].getTime()
-  const domainSpan = focusContextDomain[1].getTime() - domainStart
+  const domainStart = fullDomain[0].getTime()
+  const domainSpan = fullDomain[1].getTime() - domainStart
   const innerWidth = Math.max(1, width - margin.left - margin.right)
   return (
     margin.left + ((date.getTime() - domainStart) / domainSpan) * innerWidth
@@ -124,7 +127,7 @@ function datePosition(
 
 function targetDate(target: ConformanceTarget) {
   if (target.view !== 'overview') return null
-  return dateFromAnchor(target.anchor)
+  return dateFromAnchor(focusContextDates, target.anchor)
 }
 
 export const mount: ConformanceMount = (container, input) => {
@@ -183,7 +186,7 @@ export const mount: ConformanceMount = (container, input) => {
   container.append(shell)
 
   let currentInput = input
-  let window = initialFocusContextWindow()
+  let window = initialFocusContextWindow(focusContextDates)
   let detailChart: HTMLElement | SVGSVGElement | undefined
   let overviewChart: HTMLElement | SVGSVGElement | undefined
 
@@ -300,7 +303,7 @@ export const mount: ConformanceMount = (container, input) => {
   }
 
   const chooseDate = (date: Date) => {
-    window = windowForDate(date)
+    window = windowForDate(focusContextDates, date)
     renderDetail()
     paintWindow()
   }
@@ -377,12 +380,9 @@ export const mount: ConformanceMount = (container, input) => {
         }
       },
       readState() {
-        const detailRows = rowsInWindow(
-          focusContextData(currentInput.revision),
-          window,
-        )
+        const detailRows = rowsInWindow(focusContextRows, window)
         const selectedRow = detailRows.find(
-          (row) => row.date.getTime() === window.selected.getTime(),
+          (row) => row.Date.getTime() === window.selected.getTime(),
         )
         return {
           window: {
@@ -392,7 +392,7 @@ export const mount: ConformanceMount = (container, input) => {
           },
           detail: {
             pointCount: detailRows.length,
-            selectedValue: selectedRow?.value ?? null,
+            selectedValue: selectedRow?.Close ?? null,
           },
           control: {
             value: Number(monthControl.value),

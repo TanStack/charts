@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 780,
   "id": "78-gauge",
-  "title": "Partial-circle gauge",
+  "title": "Survey agreement share gauge",
   "family": "polar",
-  "intent": "Show one bounded proportion across a 270-degree annular sweep.",
+  "intent": "Show the observed agreement share for one question in Observable Plot's Likert survey across a 270-degree annular sweep.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -22,7 +22,7 @@
     "url": "https://recharts.github.io/en-US/examples/PieChartWithNeedle/"
   },
   "ai": {
-    "create": "Create a 270-degree gauge from a bounded value and its remainder using two keyed annular arcs.",
-    "maintain": "Update the bounded value while preserving the partial sweep, zero baseline, responsive radii, stable value and remainder identities, and exact fills."
+    "create": "Reduce the survey's raw Question and Response rows to an agreement percentage, then create a 270-degree gauge from that observed share and its remainder using two keyed annular arcs.",
+    "maintain": "Change the selected question while preserving the visible reducer, partial sweep, zero baseline, responsive radii, stable agreement and remainder identities, and exact fills."
   }
 }

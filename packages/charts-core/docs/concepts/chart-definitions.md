@@ -14,24 +14,19 @@ Pass a complete spec when the chart does not need its resolved surface size:
 <!-- docs-example: static-definition typecheck -->
 
 ```ts
+import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
 
-const rows = [
-  { id: 'north', region: 'North', revenue: 48 },
-  { id: 'south', region: 'South', revenue: 35 },
-  { id: 'west', region: 'West', revenue: 57 },
-]
-
-const revenueByRegion = defineChart({
-  marks: [barY(rows, { x: 'region', y: 'revenue', key: 'id' })],
+const letterFrequencies = defineChart({
+  marks: [barY(alphabet, { x: 'letter', y: 'frequency' })],
   x: {
     scale: () => scaleBand<string>().padding(0.12),
   },
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Revenue',
+    label: 'Frequency',
     grid: true,
   },
 })
@@ -46,7 +41,7 @@ the chart surface:
 const productRanking = defineChart({
   tooltip: true,
   chart: ({ width }) => ({
-    marks: [barX(ranked, { x: 'value', y: 'product', key: 'id' })],
+    marks: [barX(ranked, { x: 'value', y: 'product' })],
     x: {
       scale: scaleLinear,
       nice: true,
@@ -95,7 +90,7 @@ function ProductRanking({ rows, metric }: Props) {
     return defineChart({
       tooltip: true,
       chart: ({ width }) => ({
-        marks: [barX(ranked, { x: 'value', y: 'product', key: 'id' })],
+        marks: [barX(ranked, { x: 'value', y: 'product' })],
         x: {
           scale: scaleLinear,
           nice: true,

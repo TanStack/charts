@@ -1,16 +1,17 @@
 import * as Plot from '@observablehq/plot'
-import {
-  countryCollection,
-  countrySphere,
-} from '../108-country-choropleth/atlas-data'
+import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
 import {
   fitGalleryProjection,
   projectionGalleryData,
   projectionPane,
-} from './projection-data'
+} from './projection'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 
 const svgNamespace = 'http://www.w3.org/2000/svg'
+const projectionColors = [
+  ['#2563eb', '#7c3aed', '#0891b2', '#ea580c'],
+  ['#1d4ed8', '#6d28d9', '#0e7490', '#c2410c'],
+]
 
 function render(input: ConformanceInput): SVGSVGElement {
   const root = document.createElementNS(svgNamespace, 'svg')
@@ -21,8 +22,10 @@ function render(input: ConformanceInput): SVGSVGElement {
   root.setAttribute('aria-label', 'Standard world projection gallery')
   root.style.color = 'inherit'
 
-  const countries = countryCollection(input.revision)
-  projectionGalleryData(input.revision).forEach((entry, index) => {
+  const projections = projectionGalleryData()
+  const projectionColorDomain = projections.map(({ id }) => id)
+
+  projections.forEach((entry, index) => {
     const pane = projectionPane(
       { x: 0, y: 0, width: input.width, height: input.height },
       index,
@@ -36,15 +39,19 @@ function render(input: ConformanceInput): SVGSVGElement {
           fitGalleryProjection(entry.create(), { x: 0, y: 0, width, height }),
         clip: false,
       },
+      color: {
+        domain: projectionColorDomain,
+        range: projectionColors[input.revision % 2] ?? projectionColors[0],
+      },
       marks: [
-        Plot.geo([countrySphere], {
+        Plot.geo([worldSphere], {
           fill: 'none',
           stroke: 'currentColor',
           strokeOpacity: 0.5,
           strokeWidth: 0.8,
         }),
-        Plot.geo([countries], {
-          fill: entry.fill,
+        Plot.geo([worldLand], {
+          fill: () => entry.id,
           fillOpacity: 0.78,
           stroke: 'currentColor',
           strokeOpacity: 0.28,

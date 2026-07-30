@@ -1,10 +1,13 @@
 import * as Plot from '@observablehq/plot'
-import { waterfallData } from './data'
-import type { WaterfallContribution } from './data'
+import { pairs } from 'd3-array'
+import { driving } from '@charts-poc/demo-data/driving'
+import type { DrivingRow } from '@charts-poc/demo-data/driving'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
-interface WaterfallPoint extends WaterfallContribution {
+interface WaterfallPoint extends DrivingRow {
+  label: string
+  change: number
   start: number
   end: number
   kind: 'increase' | 'decrease' | 'total'
@@ -12,16 +15,17 @@ interface WaterfallPoint extends WaterfallContribution {
 
 const kinds = ['increase', 'decrease', 'total']
 const colors = ['#10b981', '#ef4444', '#2563eb']
+const observations = driving.filter((row) => row.year >= 2004)
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = buildWaterfall(waterfallData(nextInput.revision))
+    const rows = buildWaterfall(observations)
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Contribution waterfall chart',
-      x: { domain: rows.map((row) => row.label), label: null },
-      y: { domain: [0, 130], grid: true, label: 'Amount' },
+      ariaLabel: 'Annual changes in U.S. gasoline prices',
+      x: { type: 'band', label: null },
+      y: { grid: true, label: 'Change in gasoline price (USD per gallon)' },
       color: { domain: kinds, range: colors, legend: true },
       marks: [
         Plot.barY(rows, {
@@ -30,6 +34,7 @@ export const mount: ConformanceMount = (container, input) =>
           y2: 'end',
           fill: 'kind',
           inset: 1,
+          sort: { x: null },
         }),
         Plot.ruleY([0]),
       ],
@@ -37,25 +42,33 @@ export const mount: ConformanceMount = (container, input) =>
   })
 
 function buildWaterfall(
-  contributions: readonly WaterfallContribution[],
+  rows: readonly DrivingRow[],
 ): readonly WaterfallPoint[] {
   let total = 0
-  const rows = contributions.map((row): WaterfallPoint => {
+  const changes = pairs(rows, (previous, current): WaterfallPoint => {
+    const change = current.gas - previous.gas
     const start = total
-    total += row.value
+    total += change
     return {
-      ...row,
+      ...current,
+      label: `${current.year}`,
+      change,
       start,
       end: total,
-      kind: row.value >= 0 ? 'increase' : 'decrease',
+      kind: change >= 0 ? 'increase' : 'decrease',
     }
   })
+
+  const first = rows[0]
+  const last = rows.at(-1)
+  if (!first || !last) return changes
+
   return [
-    ...rows,
+    ...changes,
     {
-      id: 'net',
-      label: 'Net',
-      value: total,
+      ...last,
+      label: `${first.year}–${String(last.year).slice(-2)}`,
+      change: total,
       start: 0,
       end: total,
       kind: 'total',

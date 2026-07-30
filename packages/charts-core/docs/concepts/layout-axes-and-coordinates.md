@@ -60,7 +60,7 @@ Dynamic definitions receive the current `width` and `height`, so presentation ca
 
 ```ts
 const chart = defineChart(({ width }) => ({
-  marks: [lineY(rows, { x: 'date', y: 'value', key: 'id' })],
+  marks: [lineY(rows, { x: 'date', y: 'value' })],
   x: {
     scale: xScale,
     ticks: width < 420 ? 4 : 8,
@@ -81,10 +81,13 @@ Leave `margin` undefined for normal charts. The layout solver accounts for:
 - Rotated tick-label bounds
 - First and last tick overhang
 - Axis titles and their offsets
+- Text-mark bounds, including anchors, pixel offsets, and rotation
 - Current container font metrics
 - Optional color legends
 
-The solver may resolve guide scales more than once, but marks render once against the final plot rectangle.
+The solver may resolve scales and text-mark positions more than once, but marks
+render once against the final plot rectangle. `clip: true` keeps the plot
+boundary authoritative, so clipped text does not expand automatic margins.
 
 Explicit margins lock only the sides you provide:
 
@@ -121,7 +124,10 @@ inherited font and relayout after web fonts load.
 
 Advanced renderers can supply `measureText`. Its metrics include painted x and y offsets relative to the requested anchor and baseline, not only width and height. This is necessary for correct containment of rotated and anchored labels.
 
-Automatic margins guarantee containment, not collision avoidance between adjacent tick labels. Use `ticks` to reduce density and `tickRotate` when labels still overlap.
+Automatic margins contain chart-owned guides and Cartesian `text` marks; they do
+not avoid collisions between adjacent labels. Use `ticks` to reduce density,
+`tickRotate` when guide labels overlap, and explicit text placement when data
+labels overlap one another.
 
 ## Axis guide options
 
@@ -172,7 +178,9 @@ const chart = defineChart({
 })
 ```
 
-Set an axis to `null` only when no mark needs that dimension.
+Marks encode whether they materialize each positional dimension. Omit an unused
+axis; for example, a `ruleY`-only chart needs `y` but no `x`. Explicit `null`
+is accepted only for an unused dimension.
 
 ## Scale ranges and coordinate direction
 
@@ -202,12 +210,13 @@ import { geoShape } from '@tanstack/charts/geo'
 `polar` copies configured angle and radius scales, assigns responsive angular
 and radial ranges, and renders guide backgrounds, child marks, then guide
 foregrounds around one resolved center. `geoShape` calls an
-application-supplied D3 projection factory with the final plot bounds.
+application-supplied D3 projection callback or fits a projection descriptor to
+data, a sphere, or explicit geometry.
 
 Both paths emit the same keyed scene nodes and interaction points as ordinary
 marks. SVG rendering, DOM reconciliation, focus, export, and adapters do not
-need a coordinate-system branch. Their outer chart uses `x: null`, `y: null`,
-and `guides: false`.
+need a coordinate-system branch. Their outer chart omits `x` and `y`; no
+Cartesian guides are created.
 
 These capabilities stay behind separate package subpaths so their D3 geometry
 does not enter a Cartesian consumer. See
@@ -276,21 +285,13 @@ Automatic margins only reserve space for chart-owned guides and legends. Applica
 ## Complete horizontal ranking
 
 ```ts
+import { citywages } from '@charts-poc/demo-data/citywages'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barX, defineChart, ruleX } from '@tanstack/charts'
 
-interface PackageRow {
-  id: string
-  package: string
-  downloads: number
-}
-
-const rows: readonly PackageRow[] = [
-  { id: 'router', package: '@tanstack/router', downloads: 4_820_000 },
-  { id: 'query', package: '@tanstack/query', downloads: 8_650_000 },
-  { id: 'table', package: '@tanstack/table', downloads: 3_470_000 },
-  { id: 'virtual', package: '@tanstack/virtual', downloads: 1_940_000 },
-]
+const rows = [...citywages]
+  .sort((left, right) => right.POP_2015 - left.POP_2015)
+  .slice(0, 8)
 
 const compact = new Intl.NumberFormat(undefined, {
   notation: 'compact',
@@ -301,9 +302,8 @@ const rankingChart = defineChart({
   marks: [
     ruleX([0], { stroke: '#94a3b8', strokeOpacity: 0.6 }),
     barX(rows, {
-      x: 'downloads',
-      y: 'package',
-      key: 'id',
+      x: 'POP_2015',
+      y: 'Metro',
       fill: '#2563eb',
       inset: 2,
       radius: 3,
@@ -312,7 +312,7 @@ const rankingChart = defineChart({
   x: {
     scale: scaleLinear,
     nice: true,
-    label: 'Weekly downloads',
+    label: '2015 population',
     format: (value) => compact.format(value),
     grid: true,
   },
@@ -326,7 +326,7 @@ This source imports `d3-scale` directly, so install `d3-scale` and `@types/d3-sc
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/bar-horizontal-ranking/?theme=system&height=400"
-  title="Responsive horizontal package ranking with automatic axis margins"
+  title="Metropolitan population ranking with long source labels and automatic axis margins"
   loading="lazy"
   width="100%"
   height="400"

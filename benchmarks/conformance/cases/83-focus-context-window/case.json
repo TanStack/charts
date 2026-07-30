@@ -35,15 +35,15 @@
           "type": "click",
           "target": {
             "view": "overview",
-            "anchor": "date:2025-10-01"
+            "anchor": "date:2017-10-31"
           }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "window.selected", "equals": "2025-10-01" },
-            { "path": "window.start", "equals": "2025-09-01" },
-            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "window.selected", "equals": "2017-10-31" },
+            { "path": "window.start", "equals": "2017-09-29" },
+            { "path": "window.end", "equals": "2017-12-29" },
             { "path": "detail.pointCount", "equals": 4 }
           ]
         },
@@ -51,22 +51,22 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "window.selected", "equals": "2025-10-01" },
-            { "path": "window.start", "equals": "2025-09-01" },
-            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "window.selected", "equals": "2017-10-31" },
+            { "path": "window.start", "equals": "2017-09-29" },
+            { "path": "window.end", "equals": "2017-12-29" },
             { "path": "detail.pointCount", "equals": 4 },
-            { "path": "detail.selectedValue", "equals": 71 }
+            { "path": "detail.selectedValue", "equals": 169.039993 }
           ]
         },
         { "type": "update", "revision": 0 },
         {
           "type": "assert",
           "assertions": [
-            { "path": "window.selected", "equals": "2025-10-01" },
-            { "path": "window.start", "equals": "2025-09-01" },
-            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "window.selected", "equals": "2017-10-31" },
+            { "path": "window.start", "equals": "2017-09-29" },
+            { "path": "window.end", "equals": "2017-12-29" },
             { "path": "detail.pointCount", "equals": 4 },
-            { "path": "detail.selectedValue", "equals": 75 }
+            { "path": "detail.selectedValue", "equals": 169.039993 }
           ]
         }
       ]
@@ -78,15 +78,15 @@
           "type": "click",
           "target": {
             "view": "overview",
-            "anchor": "date:2025-03-01"
+            "anchor": "date:2017-03-31"
           }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "window.selected", "equals": "2025-03-01" },
-            { "path": "window.start", "equals": "2025-02-01" },
-            { "path": "window.end", "equals": "2025-05-01" },
+            { "path": "window.selected", "equals": "2017-03-31" },
+            { "path": "window.start", "equals": "2017-02-28" },
+            { "path": "window.end", "equals": "2017-05-31" },
             { "path": "detail.pointCount", "equals": 4 }
           ]
         }
@@ -99,14 +99,14 @@
           "type": "pointerDown",
           "target": {
             "view": "overview",
-            "anchor": "date:2025-02-01"
+            "anchor": "date:2017-02-28"
           }
         },
         {
           "type": "pointerMove",
           "target": {
             "view": "overview",
-            "anchor": "date:2025-04-01"
+            "anchor": "date:2017-04-28"
           },
           "steps": 8
         },
@@ -114,15 +114,15 @@
           "type": "pointerUp",
           "target": {
             "view": "overview",
-            "anchor": "date:2025-04-01"
+            "anchor": "date:2017-04-28"
           }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "window.selected", "equals": "2025-03-01" },
-            { "path": "window.start", "equals": "2025-02-01" },
-            { "path": "window.end", "equals": "2025-05-01" },
+            { "path": "window.selected", "equals": "2017-03-31" },
+            { "path": "window.start", "equals": "2017-02-28" },
+            { "path": "window.end", "equals": "2017-05-31" },
             { "path": "detail.pointCount", "equals": 4 },
             { "path": "brush.dragging", "equals": false },
             { "path": "brush.outcome", "equals": "commit" }
@@ -158,7 +158,7 @@
             {
               "target": { "selector": "[data-focus-range]" },
               "property": "text",
-              "equals": "Feb 2025 – May 2025"
+              "equals": "Feb 2017 – May 2017"
             }
           ]
         },
@@ -172,20 +172,20 @@
           "type": "touchDrag",
           "from": {
             "view": "overview",
-            "anchor": "date:2025-09-01"
+            "anchor": "date:2017-09-29"
           },
           "to": {
             "view": "overview",
-            "anchor": "date:2025-11-01"
+            "anchor": "date:2017-11-30"
           },
           "steps": 8
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "window.selected", "equals": "2025-10-01" },
-            { "path": "window.start", "equals": "2025-09-01" },
-            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "window.selected", "equals": "2017-10-31" },
+            { "path": "window.start", "equals": "2017-09-29" },
+            { "path": "window.end", "equals": "2017-12-29" },
             { "path": "detail.pointCount", "equals": 4 },
             { "path": "brush.dragging", "equals": false },
             { "path": "brush.outcome", "equals": "commit" }
@@ -211,7 +211,7 @@
             {
               "target": { "selector": "[data-focus-range]" },
               "property": "text",
-              "equals": "Sep 2025 – Dec 2025"
+              "equals": "Sep 2017 – Dec 2017"
             }
           ]
         }
@@ -224,14 +224,14 @@
           "type": "pointerDown",
           "target": {
             "view": "overview",
-            "anchor": "date:2025-02-01"
+            "anchor": "date:2017-02-28"
           }
         },
         {
           "type": "pointerMove",
           "target": {
             "view": "overview",
-            "anchor": "date:2025-11-01"
+            "anchor": "date:2017-11-30"
           },
           "steps": 8
         },
@@ -239,9 +239,9 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "window.selected", "equals": "2025-06-01" },
-            { "path": "window.start", "equals": "2025-05-01" },
-            { "path": "window.end", "equals": "2025-08-01" },
+            { "path": "window.selected", "equals": "2017-06-30" },
+            { "path": "window.start", "equals": "2017-05-31" },
+            { "path": "window.end", "equals": "2017-08-31" },
             { "path": "detail.pointCount", "equals": 4 },
             { "path": "brush.dragging", "equals": false },
             { "path": "brush.outcome", "equals": "cancel" }
@@ -267,7 +267,7 @@
             {
               "target": { "selector": "[data-focus-range]" },
               "property": "text",
-              "equals": "May 2025 – Aug 2025"
+              "equals": "May 2017 – Aug 2017"
             }
           ]
         }
@@ -280,11 +280,11 @@
           "type": "touchDrag",
           "from": {
             "view": "overview",
-            "anchor": "date:2025-02-01"
+            "anchor": "date:2017-02-28"
           },
           "to": {
             "view": "overview",
-            "anchor": "date:2025-11-01"
+            "anchor": "date:2017-11-30"
           },
           "steps": 8,
           "cancel": true
@@ -292,9 +292,9 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "window.selected", "equals": "2025-06-01" },
-            { "path": "window.start", "equals": "2025-05-01" },
-            { "path": "window.end", "equals": "2025-08-01" },
+            { "path": "window.selected", "equals": "2017-06-30" },
+            { "path": "window.start", "equals": "2017-05-31" },
+            { "path": "window.end", "equals": "2017-08-31" },
             { "path": "detail.pointCount", "equals": 4 },
             { "path": "brush.dragging", "equals": false },
             { "path": "brush.outcome", "equals": "cancel" }
@@ -315,7 +315,7 @@
             {
               "target": { "selector": "[data-focus-range]" },
               "property": "text",
-              "equals": "May 2025 – Aug 2025"
+              "equals": "May 2017 – Aug 2017"
             }
           ]
         }
@@ -335,13 +335,13 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "window.selected", "equals": "2025-12-01" },
-            { "path": "window.start", "equals": "2025-09-01" },
-            { "path": "window.end", "equals": "2025-12-01" },
+            { "path": "window.selected", "equals": "2017-12-29" },
+            { "path": "window.start", "equals": "2017-09-29" },
+            { "path": "window.end", "equals": "2017-12-29" },
             { "path": "control.value", "equals": 11 },
             {
               "path": "control.label",
-              "equals": "Sep 2025 – Dec 2025"
+              "equals": "Sep 2017 – Dec 2017"
             }
           ]
         },
@@ -408,7 +408,7 @@
     "url": "https://observablehq.com/plot/features/scales"
   },
   "ai": {
-    "create": "Create linked detail and overview time-series views where a real overview click selects a stable semantic date and updates an explicit four-month detail domain.",
-    "maintain": "Keep the selected date and window as application state, preserve them across data revisions and resizes, and resolve test targets through chart coordinates rather than DOM order."
+    "create": "Create linked detail and overview views of monthly AAPL closes where an overview click selects a stable observed date and updates an explicit four-month detail domain.",
+    "maintain": "Keep the selected date and window as application state, preserve them across catalog updates and resizes, and resolve test targets through chart coordinates rather than DOM order."
   }
 }

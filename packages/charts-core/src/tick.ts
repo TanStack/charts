@@ -23,6 +23,7 @@ export interface TickXOptions<TDatum> {
   x: Channel<TDatum, ChartValue | null | undefined>
   y: Channel<TDatum, ChartValue | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   stroke?: VisualChannel<TDatum, string>
   strokeOpacity?: number
@@ -36,6 +37,7 @@ export interface TickYOptions<TDatum> {
   x: Channel<TDatum, ChartValue | null | undefined>
   y: Channel<TDatum, ChartValue | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   stroke?: VisualChannel<TDatum, string>
   strokeOpacity?: number
@@ -92,6 +94,10 @@ function tick<TDatum>(
     const xValues = channelValues(data, options.x, () => undefined)
     const yValues = channelValues(data, options.y, () => undefined)
     const zValues = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
     const keys = inferredKeyValues(data, options.key, { groups: zValues })
 
     return {
@@ -101,7 +107,7 @@ function tick<TDatum>(
         y: { scale: 'y', values: yValues.filter(isChartValue) },
         color: {
           scale: 'color',
-          values: zValues.filter(isChartKey),
+          values: colorValues.filter(isChartKey),
         },
       },
       render: ({ scales, color: resolveColor }) => {
@@ -127,7 +133,7 @@ function tick<TDatum>(
             datum,
             datumIndex,
             data,
-            resolveColor(group),
+            resolveColor(colorValues[datumIndex] ?? null),
           )
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           nodes.push({

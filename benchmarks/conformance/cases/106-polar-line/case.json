@@ -3,11 +3,15 @@
   "referenceRenderer": "echarts",
   "order": 1060,
   "id": "106-polar-line",
-  "title": "Numeric polar line",
+  "title": "Seattle daily high-temperature polar line",
   "family": "polar",
-  "intent": "Follow one cyclic quantitative profile through a continuous angular domain.",
+  "intent": "Follow Seattle's observed daily high temperatures through one calendar year.",
   "support": "native",
   "features": [
+    "NOAA Seattle weather",
+    "visible year selection",
+    "day-of-year angle transform",
+    "original temp_max field",
     "polar coordinates",
     "continuous angle scale",
     "continuous radius scale",
@@ -18,11 +22,11 @@
   "geometry": [{ "role": "line", "count": 1, "maxCount": 1 }],
   "minimumGeometrySimilarity": 0.999,
   "source": {
-    "title": "Apache ECharts Polar Line",
-    "url": "https://echarts.apache.org/examples/en/editor.html?c=line-polar"
+    "title": "Observable Plot Seattle weather snapshot",
+    "url": "https://github.com/observablehq/sample-datasets/blob/732c0148de741469b2bcc03f53d93b0ad0b93f0a/weather.csv"
   },
   "ai": {
-    "create": "Create one straight-segment polar line over a zero-to-three-hundred-sixty-degree angle domain and a fixed zero-to-one-hundred radius domain.",
-    "maintain": "Update radius values while preserving angular order, explicit domains, responsive center and radius, stable point identities, and the closing endpoint."
+    "create": "Import the published Seattle weather observations, select one real year, map date to day-of-year angle, and use the source temp_max field as radius.",
+    "maintain": "Keep source rows and field names intact, preserve chronological order, explicit calendar and temperature domains, responsive center and radius, and visible year selection."
   }
 }

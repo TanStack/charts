@@ -1,17 +1,18 @@
 import * as Plot from '@observablehq/plot'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
-import { autocorrelationData, autocorrelationDomain } from './data'
 
 interface ReferencePoint {
-  id: string
-  lag: number
-  current: number
+  PreviousClose: number
+  Close: number
 }
 
+const observations = aapl.slice(-120)
+const closeDomain: readonly [number, number] = [150, 195]
 const identity: readonly ReferencePoint[] = [
-  { id: 'start', lag: 20, current: 20 },
-  { id: 'end', lag: 90, current: 90 },
+  { PreviousClose: closeDomain[0], Close: closeDomain[0] },
+  { PreviousClose: closeDomain[1], Close: closeDomain[1] },
 ]
 
 function previous(values: number[]): number[] {
@@ -20,36 +21,34 @@ function previous(values: number[]): number[] {
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = autocorrelationData(nextInput.revision)
-
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Lag-one autocorrelation scatterplot',
+      ariaLabel: 'Lag-one autocorrelation of Apple closing prices',
       x: {
-        domain: autocorrelationDomain,
+        domain: closeDomain,
         nice: false,
         grid: true,
-        label: 'Previous observation',
+        label: 'Previous close (USD)',
       },
       y: {
-        domain: autocorrelationDomain,
+        domain: closeDomain,
         nice: false,
         grid: true,
-        label: 'Current observation',
+        label: 'Current close (USD)',
       },
       marks: [
         Plot.lineY(identity, {
-          x: 'lag',
-          y: 'current',
+          x: 'PreviousClose',
+          y: 'Close',
           stroke: '#94a3b8',
           strokeDasharray: '5,4',
         }),
         Plot.dot(
-          rows,
+          observations,
           Plot.mapX(previous, {
-            x: 'value',
-            y: 'value',
+            x: 'Close',
+            y: 'Close',
             fill: '#7c3aed',
             fillOpacity: 0.78,
             r: 4,

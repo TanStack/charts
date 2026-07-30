@@ -10,14 +10,17 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { penguins } from '@charts-poc/demo-data/penguins'
 import {
   isNestedTooltipId,
-  nestedTooltipData,
-  nestedTooltipServices,
-} from './data'
+  nestedTooltipRows,
+  penguinCohort,
+  penguinTooltipId,
+  penguinTooltipLabel,
+} from './model'
 import type { ReactNode } from 'react'
 import type { ScatterPointItem, ScatterShapeProps } from 'recharts'
-import type { NestedTooltipDatum, NestedTooltipId } from './data'
+import type { CompletePenguin, NestedTooltipId } from './model'
 import type {
   ConformanceInput,
   ConformanceMount,
@@ -42,8 +45,8 @@ function NestedTooltipChart({
   const pointElements = useRef(new Map<NestedTooltipId, SVGCircleElement>())
   const [hoveredId, setHoveredId] = useState<NestedTooltipId | null>(null)
   const [pinnedId, setPinnedId] = useState<NestedTooltipId | null>(null)
-  const rows = nestedTooltipData(input.revision)
-  const pinnedDatum = rows.find((row) => row.id === pinnedId)
+  const rows = nestedTooltipRows(penguins, input.revision)
+  const pinnedDatum = rows.find((row) => penguinTooltipId(row) === pinnedId)
   const narrow = input.width < 520
   const panelHeight = Math.max(
     96,
@@ -82,7 +85,9 @@ function NestedTooltipChart({
   const renderPoint = (props: ScatterShapeProps): ReactNode => {
     const datum = rows.find((row) => row === props.payload)
     if (!datum || props.cx === undefined || props.cy === undefined) return null
-    const pinned = datum.id === pinnedId
+    const id = penguinTooltipId(datum)
+    if (!id) return null
+    const pinned = id === pinnedId
     return createElement('circle', {
       className: 'recharts-dot',
       cx: props.cx,
@@ -91,23 +96,23 @@ function NestedTooltipChart({
       fill: pinned ? '#f97316' : '#2563eb',
       stroke: '#ffffff',
       strokeWidth: pinned ? 2 : 1,
-      'data-point-id': datum.id,
+      'data-point-id': id,
       ref: (element: SVGCircleElement | null) => {
-        if (element) pointElements.current.set(datum.id, element)
-        else pointElements.current.delete(datum.id)
+        if (element) pointElements.current.set(id, element)
+        else pointElements.current.delete(id)
       },
       role: 'button',
       tabIndex: 0,
       focusable: true,
-      'aria-label': `${datum.service}, ${datum.latency} milliseconds`,
+      'aria-label': `${penguinTooltipLabel(datum)}, ${datum.body_mass_g} grams`,
       'aria-pressed': pinned,
-      onPointerEnter: () => updateHovered(datum.id),
+      onPointerEnter: () => updateHovered(id),
       onPointerLeave: () => updateHovered(null),
-      onClick: () => togglePinned(datum.id),
+      onClick: () => togglePinned(id),
       onKeyDown: (event: KeyboardEvent) => {
         if (event.key !== 'Enter' && event.key !== ' ') return
         event.preventDefault()
-        togglePinned(datum.id)
+        togglePinned(id)
       },
     })
   }
@@ -117,7 +122,7 @@ function NestedTooltipChart({
     {
       'data-conformance-view': 'main',
       role: 'region',
-      'aria-label': 'Service latency with a pinned nested-chart tooltip',
+      'aria-label': 'Penguin measurements with a pinned nested-chart tooltip',
       onKeyDown: (event: KeyboardEvent) => {
         if (event.key !== 'Escape') return
         event.stopPropagation()
@@ -146,23 +151,23 @@ function NestedTooltipChart({
           }),
           createElement(XAxis, {
             key: 'x',
-            type: 'category',
-            dataKey: 'service',
-            domain: nestedTooltipServices,
-            allowDuplicatedCategory: false,
+            type: 'number',
+            dataKey: 'flipper_length_mm',
+            domain: [170, 235],
+            name: 'Flipper length (mm)',
           }),
           createElement(YAxis, {
             key: 'y',
             type: 'number',
-            dataKey: 'latency',
-            domain: [0, 100],
-            ticks: [0, 25, 50, 75, 100],
+            dataKey: 'body_mass_g',
+            domain: [3000, 6000],
+            name: 'Body mass (g)',
             width: 52,
           }),
-          createElement(Scatter<NestedTooltipDatum, number>, {
+          createElement(Scatter<CompletePenguin, number>, {
             key: 'points',
             data: rows,
-            dataKey: 'latency',
+            dataKey: 'body_mass_g',
             fill: '#2563eb',
             shape: renderPoint,
             isAnimationActive: false,
@@ -185,7 +190,7 @@ function NestedTooltipChart({
 }
 
 interface PinnedTooltipProps {
-  datum: NestedTooltipDatum
+  datum: CompletePenguin
   input: ConformanceInput
   chartHeight: number
   panelHeight: number
@@ -205,6 +210,7 @@ function PinnedTooltip({
   const width = narrow ? Math.max(1, input.width - 16) : 224
   const miniWidth = narrow ? Math.max(1, input.width - 32) : 208
   const miniHeight = narrow ? Math.max(48, panelHeight - 60) : 106
+  const cohort = penguinCohort(penguins, datum)
   const position = tooltipPosition(
     datum,
     input,
@@ -239,19 +245,21 @@ function PinnedTooltip({
           createElement(
             'strong',
             { key: 'title', id: titleId },
-            `${datum.service}: ${datum.latency} ms`,
+            `${penguinTooltipLabel(datum)}: ${datum.body_mass_g.toLocaleString()} g`,
           ),
           createElement(
             'button',
             {
               key: 'close',
               type: 'button',
-              'aria-label': 'Close pinned service details',
+              'aria-label': 'Close pinned penguin details',
               onPointerDown: (event: PointerEvent) => event.stopPropagation(),
               onClick: onClose,
               style: {
                 width: '44px',
+                minWidth: '44px',
                 height: '44px',
+                flex: '0 0 44px',
                 padding: 0,
                 border:
                   '1px solid color-mix(in srgb, CanvasText 24%, transparent)',
@@ -272,26 +280,25 @@ function PinnedTooltip({
           key: 'mini-chart',
           width: miniWidth,
           height: miniHeight,
-          data: datum.history,
+          data: cohort,
           margin: { top: 6, right: 6, bottom: 12, left: 6 },
           accessibilityLayer: true,
         },
         [
           createElement(XAxis, {
             key: 'x',
-            dataKey: 'period',
+            dataKey: 'flipper_length_mm',
             tick: { fontSize: 9 },
             tickLine: false,
             axisLine: false,
           }),
           createElement(YAxis, {
             key: 'y',
-            domain: [0, 100],
             hide: true,
           }),
           createElement(Bar, {
             key: 'bars',
-            dataKey: 'value',
+            dataKey: 'body_mass_g',
             fill: '#8b5cf6',
             radius: [2, 2, 0, 0],
             isAnimationActive: false,
@@ -310,8 +317,11 @@ function PinnedTooltip({
             clipPath: 'inset(50%)',
           },
         },
-        datum.history
-          .map((row) => `${row.period}: ${row.value} milliseconds`)
+        cohort
+          .map(
+            (row) =>
+              `${row.flipper_length_mm} millimeter flipper: ${row.body_mass_g} grams`,
+          )
           .join('. '),
       ),
     ],
@@ -333,7 +343,7 @@ const tooltipStyle = {
 } as const
 
 function tooltipPosition(
-  datum: NestedTooltipDatum,
+  datum: CompletePenguin,
   input: ConformanceInput,
   chartHeight: number,
   panelHeight: number,
@@ -349,17 +359,14 @@ function tooltipPosition(
       },
     }
   }
-  const index = Math.max(
-    0,
-    nestedTooltipServices.findIndex((service) => service === datum.service),
-  )
   const chartLeft = 68
   const chartRight = input.width - 24
   const pointX =
     chartLeft +
-    ((index + 0.5) / nestedTooltipServices.length) * (chartRight - chartLeft)
+    ((datum.flipper_length_mm - 170) / (235 - 170)) * (chartRight - chartLeft)
   const pointY =
-    18 + ((100 - datum.latency) / 100) * Math.max(1, chartHeight - 60)
+    18 +
+    ((6000 - datum.body_mass_g) / (6000 - 3000)) * Math.max(1, chartHeight - 60)
   const gap = 14
   const edge = 8
   const estimatedHeight = 168
@@ -430,7 +437,7 @@ export const mount: ConformanceMount = (container, input) => {
       resolveTarget(target) {
         if (target.anchor === 'tooltip:close') {
           const close = surface.querySelector<HTMLButtonElement>(
-            'button[aria-label="Close pinned service details"]',
+            'button[aria-label="Close pinned penguin details"]',
           )
           return close ? center(close) : null
         }
@@ -460,14 +467,14 @@ export const mount: ConformanceMount = (container, input) => {
             selectedOverlayCount: surface.querySelectorAll(
               '[data-point-id][aria-pressed="true"]',
             ).length,
-            periodLabelCount:
+            flipperLabelCount:
               tooltip?.querySelectorAll(
                 '.recharts-xAxis .recharts-cartesian-axis-tick',
               ).length ?? 0,
             placement: tooltip?.dataset.placement ?? null,
             closeVisible: Boolean(
               tooltip?.querySelector(
-                'button[aria-label="Close pinned service details"]',
+                'button[aria-label="Close pinned penguin details"]',
               ),
             ),
           },

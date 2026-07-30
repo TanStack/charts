@@ -1,21 +1,21 @@
 import { useState } from 'octane';
 import {
+	bodyMassDistributionRenderer,
 	downloadData,
 	downloadsRenderer,
-	latencyData,
-	latencyDistributionRenderer,
+	penguinData,
 } from '@plot-poc/fixtures';
-import type { DownloadPoint } from '@plot-poc/fixtures';
+import type { DownloadsRow } from '@plot-poc/fixtures';
 import { Chart } from '@plot-poc/octane-host';
 import type { ChartRenderMetrics } from '@plot-poc/host-core';
 
 export function App() {
 	const [theme, setTheme] = useState<'light' | 'dark'>('light');
-	const [selected, setSelected] = useState<DownloadPoint | undefined>(undefined);
+	const [selected, setSelected] = useState<DownloadsRow | undefined>(undefined);
 	const [trendRender, setTrendRender] = useState<ChartRenderMetrics | undefined>(undefined);
 	const selectedLabel = selected
-		? `${selected.package}: ${selected.downloads.toLocaleString()}`
-		: 'Point at a series to inspect its value.';
+		? `${selected.date.toLocaleDateString()}: ${selected.downloads.toLocaleString()}`
+		: 'Point at the line to inspect a day.';
 	const renderLabel = trendRender
 		? `${trendRender.duration.toFixed(1)}ms render`
 		: 'Measuring';
@@ -45,7 +45,7 @@ export function App() {
 			<section class="chart-card">
 				<div class="chart-card__header">
 					<div>
-						<h2>Package momentum</h2>
+						<h2>@observablehq/cars downloads</h2>
 						<p class="chart-card__meta">{selectedLabel}</p>
 					</div>
 					<span class="chart-card__badge">{renderLabel}</span>
@@ -55,7 +55,7 @@ export function App() {
 					renderer={downloadsRenderer}
 					sizing={{ height: 330 }}
 					initialSize={{ width: 760, height: 330 }}
-					ariaLabel="TanStack package download trends"
+					ariaLabel="Daily @observablehq/cars downloads"
 					onValueChange={setSelected}
 					onRender={setTrendRender}
 				/>
@@ -64,7 +64,7 @@ export function App() {
 			<section class="chart-card">
 				<div class="chart-card__header">
 					<div>
-						<h2>Latency shape by plan</h2>
+						<h2>Penguin body mass</h2>
 						<p class="chart-card__meta">
 							Facets reflow vertically when their container becomes narrow.
 						</p>
@@ -72,14 +72,13 @@ export function App() {
 					<span class="chart-card__badge">Plot transform + facets</span>
 				</div>
 				<Chart
-					data={latencyData}
-					renderer={latencyDistributionRenderer}
+					data={penguinData}
+					renderer={bodyMassDistributionRenderer}
 					sizing={{ height: 360 }}
 					initialSize={{ width: 760, height: 360 }}
-					ariaLabel="Request latency distributions by plan"
+					ariaLabel="Penguin body-mass distributions by species"
 				/>
 			</section>
 		</div>
 	</main>;
 }
-

@@ -1,2 +1,4 @@
 tanstack.com-parity/
 tanstack.com-charts-site/
+packages/charts-demo-data/raw/**
+packages/charts-demo-data/src/**

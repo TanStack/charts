@@ -2,7 +2,13 @@ import { createElement, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { CartesianGrid, Scatter, ScatterChart, XAxis, YAxis } from 'recharts'
-import { chartTableData, isSelectionId, selectionPeriods } from './data'
+import { penguins } from '@charts-poc/demo-data/penguins'
+import {
+  isSelectionId,
+  penguinSelectionId,
+  penguinSelectionLabel,
+  selectionRows,
+} from './model'
 import type { ReactNode } from 'react'
 import type { ScatterPointItem, ScatterShapeProps } from 'recharts'
 import type {
@@ -10,7 +16,7 @@ import type {
   ConformanceMount,
   ConformanceTarget,
 } from '../../types'
-import type { SelectionDatum, SelectionId } from './data'
+import type { CompletePenguin, SelectionId } from './model'
 
 interface ChartTableProps {
   input: ConformanceInput
@@ -19,7 +25,7 @@ interface ChartTableProps {
 
 function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
   const [selectedId, setSelectedId] = useState<SelectionId | null>(null)
-  const rows = chartTableData(input.revision)
+  const rows = selectionRows(penguins, input.revision)
   const statusHeight = 52
   const chartHeight = Math.max(96, input.height - 204)
   const tableHeight = Math.max(44, input.height - chartHeight - statusHeight)
@@ -32,12 +38,14 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
   const selectPoint = (point: ScatterPointItem) => {
     const datum = rows.find((row) => row === point.payload)
     if (!datum) return
-    selectId(datum.id)
+    selectId(penguinSelectionId(datum))
   }
 
   const renderPoint = (props: ScatterShapeProps): ReactNode => {
     const datum = rows.find((row) => row === props.payload)
     if (!datum || props.cx === undefined || props.cy === undefined) return null
+    const id = penguinSelectionId(datum)
+    if (!id) return null
     return createElement('g', null, [
       createElement('circle', {
         key: 'point',
@@ -46,9 +54,9 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
         cy: props.cy,
         r: 4.5,
         fill: '#2563eb',
-        'data-point-id': datum.id,
+        'data-point-id': id,
       }),
-      datum.id === selectedId
+      id === selectedId
         ? createElement('circle', {
             key: 'selection',
             cx: props.cx,
@@ -94,23 +102,21 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
           }),
           createElement(XAxis, {
             key: 'x',
-            type: 'category',
-            dataKey: 'period',
-            domain: selectionPeriods,
-            allowDuplicatedCategory: false,
+            type: 'number',
+            dataKey: 'flipper_length_mm',
+            name: 'Flipper length (mm)',
           }),
           createElement(YAxis, {
             key: 'y',
             type: 'number',
-            dataKey: 'value',
-            domain: [0, 100],
-            ticks: [0, 25, 50, 75, 100],
+            dataKey: 'body_mass_g',
+            name: 'Body mass (g)',
             width: 52,
           }),
-          createElement(Scatter<SelectionDatum, number>, {
+          createElement(Scatter<CompletePenguin, number>, {
             key: 'points',
             data: rows,
-            dataKey: 'value',
+            dataKey: 'body_mass_g',
             fill: '#2563eb',
             shape: renderPoint,
             onClick: selectPoint,
@@ -144,9 +150,11 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
             },
             selectedId
               ? (() => {
-                  const selected = rows.find((row) => row.id === selectedId)
+                  const selected = rows.find(
+                    (row) => penguinSelectionId(row) === selectedId,
+                  )
                   return selected
-                    ? `Selected ${selected.id}: ${selected.period}, ${selected.value.toLocaleString()}`
+                    ? `Selected ${penguinSelectionLabel(selected)}: ${selected.body_mass_g.toLocaleString()} g`
                     : 'No observation selected'
                 })()
               : 'No observation selected',
@@ -207,7 +215,7 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
                     scope: 'col',
                     style: { padding: '4px 8px', textAlign: 'left' },
                   },
-                  'Period',
+                  'Island',
                 ),
                 createElement(
                   'th',
@@ -216,7 +224,7 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
                     scope: 'col',
                     style: { padding: '4px 8px', textAlign: 'left' },
                   },
-                  'Region',
+                  'Penguin',
                 ),
                 createElement(
                   'th',
@@ -225,7 +233,7 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
                     scope: 'col',
                     style: { padding: '4px 8px', textAlign: 'right' },
                   },
-                  'Value',
+                  'Body mass (g)',
                 ),
               ]),
             ),
@@ -233,12 +241,14 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
               'tbody',
               { key: 'body' },
               rows.map((row) => {
-                const selected = row.id === selectedId
+                const id = penguinSelectionId(row)
+                if (!id) return null
+                const selected = id === selectedId
                 return createElement(
                   'tr',
                   {
-                    key: row.id,
-                    'data-row-id': row.id,
+                    key: id,
+                    'data-row-id': id,
                     'aria-selected': selected,
                     style: {
                       borderTop:
@@ -253,7 +263,7 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
                     createElement(
                       'td',
                       { key: 'period', style: { padding: '4px 8px' } },
-                      row.period,
+                      row.island,
                     ),
                     createElement(
                       'th',
@@ -262,9 +272,9 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
                         'button',
                         {
                           type: 'button',
-                          'data-row-select': row.id,
+                          'data-row-select': id,
                           'aria-pressed': selected,
-                          onClick: () => selectId(row.id),
+                          onClick: () => selectId(id),
                           style: {
                             width: '100%',
                             minHeight: '44px',
@@ -279,7 +289,7 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
                             fontWeight: selected ? 750 : 600,
                           },
                         },
-                        row.id,
+                        penguinSelectionLabel(row),
                       ),
                     ),
                     createElement(
@@ -292,7 +302,7 @@ function ChartTable({ input, onSelectedIdChange }: ChartTableProps) {
                           fontVariantNumeric: 'tabular-nums',
                         },
                       },
-                      row.value,
+                      row.body_mass_g,
                     ),
                   ],
                 )
@@ -379,13 +389,14 @@ export const mount: ConformanceMount = (container, input) => {
         const selectedRow = surface.querySelector(
           '[data-row-id][aria-selected="true"]',
         )
-        const selectedDatum = chartTableData(currentInput.revision).find(
-          (row) => row.id === selectedId,
-        )
+        const selectedDatum = selectionRows(
+          penguins,
+          currentInput.revision,
+        ).find((row) => penguinSelectionId(row) === selectedId)
         return {
           selectedId,
           selectedRow: selectedRow?.getAttribute('data-row-id') ?? null,
-          selectedValue: selectedDatum?.value ?? null,
+          selectedValue: selectedDatum?.body_mass_g ?? null,
           announcement:
             surface.querySelector('[data-selection-status]')?.textContent ??
             null,

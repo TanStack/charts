@@ -1,14 +1,18 @@
-import { cumsum, group, sum } from 'd3-array'
-import {
-  mosaicData,
-  mosaicMarkets,
-  mosaicSegments,
-  type MosaicMarket,
-  type MosaicSource,
-} from './data'
+import { cumsum, group, rollup, sum } from 'd3-array'
+import type { SurveyRow } from '@charts-poc/demo-data/survey'
 
-export interface MosaicCell extends MosaicSource {
-  id: string
+export const mosaicResponses = [
+  'Strongly Disagree',
+  'Disagree',
+  'Neutral',
+  'Agree',
+  'Strongly Agree',
+] as const
+
+export interface MosaicCell {
+  Question: string
+  Response: string
+  count: number
   x1: number
   x2: number
   y1: number
@@ -16,52 +20,57 @@ export interface MosaicCell extends MosaicSource {
 }
 
 export interface MosaicLabel {
-  market: MosaicMarket
+  Question: string
   x: number
   y: number
 }
 
-export function mosaicLayout(revision: number): {
+export function mosaicLayout(rows: readonly SurveyRow[]): {
   cells: readonly MosaicCell[]
   labels: readonly MosaicLabel[]
 } {
-  const rows = mosaicData(revision)
-  const byMarket = group(rows, (row) => row.market)
-  const totals = mosaicMarkets.map((market) =>
-    sum(byMarket.get(market) ?? [], (row) => row.value),
+  const byQuestion = group(rows, (row) => row.Question)
+  const questions = Array.from(byQuestion.keys())
+  const totals = questions.map(
+    (question) => byQuestion.get(question)?.length ?? 0,
   )
   const grandTotal = sum(totals)
-  const xEnds = cumsum(totals, (value) => value / grandTotal)
+  if (grandTotal === 0) return { cells: [], labels: [] }
+
+  const xEnds = cumsum(totals, (count) => count / grandTotal)
   const cells: MosaicCell[] = []
   const labels: MosaicLabel[] = []
 
-  mosaicMarkets.forEach((market, marketIndex) => {
-    const marketRows = byMarket.get(market) ?? []
-    const marketTotal = totals[marketIndex] ?? 1
-    const x1 = marketIndex === 0 ? 0 : (xEnds[marketIndex - 1] ?? 0)
-    const x2 = xEnds[marketIndex] ?? x1
-    const ordered = mosaicSegments.map(
-      (segment) =>
-        marketRows.find((row) => row.segment === segment) ?? {
-          market,
-          segment,
-          value: 0,
-        },
-    )
-    const yEnds = cumsum(ordered, (row) => row.value / marketTotal)
+  questions.forEach((Question, questionIndex) => {
+    const questionRows = byQuestion.get(Question) ?? []
+    const questionTotal = totals[questionIndex] ?? 0
+    if (questionTotal === 0) return
 
-    ordered.forEach((row, segmentIndex) => {
+    const responseCounts = rollup(
+      questionRows,
+      (values) => values.length,
+      (row) => row.Response,
+    )
+    const x1 = questionIndex === 0 ? 0 : (xEnds[questionIndex - 1] ?? 0)
+    const x2 = xEnds[questionIndex] ?? x1
+    const ordered = mosaicResponses.map((Response) => ({
+      Question,
+      Response,
+      count: responseCounts.get(Response) ?? 0,
+    }))
+    const yEnds = cumsum(ordered, (row) => row.count / questionTotal)
+
+    ordered.forEach((row, responseIndex) => {
       cells.push({
         ...row,
-        id: `${market}:${row.segment}`,
         x1,
         x2,
-        y1: segmentIndex === 0 ? 0 : (yEnds[segmentIndex - 1] ?? 0),
-        y2: yEnds[segmentIndex] ?? 0,
+        y1: responseIndex === 0 ? 0 : (yEnds[responseIndex - 1] ?? 0),
+        y2: yEnds[responseIndex] ?? 0,
       })
     })
     labels.push({
-      market,
+      Question,
       x: (x1 + x2) / 2,
       y: 1.055,
     })

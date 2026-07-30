@@ -1,16 +1,12 @@
 import { useMemo, useState } from 'octane'
 import {
-  createRankingData,
+  createIndustryHistoryChart,
   createRankingChart,
-  createStatsHistoryInput,
-  createStatsHistoryChart,
-} from '@charts-poc/fixtures'
-import type {
-  StatsHistoryMode,
-  StatsHistoryPoint,
-} from '@charts-poc/fixtures'
+  industryWindowCount,
+  industryWindowLabel,
+} from './charts'
+import type { IndustriesRow, IndustryHistoryMode } from './charts'
 import { defineChart } from '@tanstack/charts'
-import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import { Chart } from '@tanstack/octane-charts'
 import type { ChartPoint } from '@tanstack/octane-charts'
 
@@ -18,19 +14,20 @@ const historyModes = ['line', 'stacked', 'share', 'stream'] as const
 
 export function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
-  const [historyMode, setHistoryMode] = useState<StatsHistoryMode>('line')
+  const [historyMode, setHistoryMode] = useState<IndustryHistoryMode>('line')
   const [historyZoomed, setHistoryZoomed] = useState(false)
-  const [revision, setRevision] = useState(0)
+  const [industryWindow, setIndustryWindow] = useState(0)
+  const [rankingMetric, setRankingMetric] = useState<
+    'power (hp)' | 'economy (mpg)'
+  >('power (hp)')
   const [focusedPoints, setFocusedPoints] = useState<
-    readonly ChartPoint<StatsHistoryPoint>[]
+    readonly ChartPoint<IndustriesRow>[]
   >([])
 
   // Octane's compiler derives these memo dependencies from the closure.
   const historyDefinition = useMemo(() =>
     defineChart(
-      createStatsHistoryChart(
-        createStatsHistoryInput(historyMode, revision, historyZoomed),
-      ),
+      createIndustryHistoryChart(historyMode, industryWindow, historyZoomed),
       {
         animate: { duration: 500, easing: 'ease-out' },
         focus: 'group-x',
@@ -40,10 +37,7 @@ export function App() {
   )
   const rankingDefinition = useMemo(() =>
     defineChart(
-      createRankingChart({
-        data: createRankingData(revision),
-        accent: 'var(--demo-accent, #ff6a3d)',
-      }),
+      createRankingChart(rankingMetric, 'var(--demo-accent, #ff6a3d)'),
       {
         animate: { duration: 500, easing: 'ease-in-out' },
         tooltip: {
@@ -75,7 +69,10 @@ export function App() {
         <span class="topbar__join" aria-hidden="true">
           ×
         </span>
-        <a class="brand brand--octane" href="https://github.com/octanejs/octane">
+        <a
+          class="brand brand--octane"
+          href="https://github.com/octanejs/octane"
+        >
           <span class="brand__mark" aria-hidden="true">
             O
           </span>
@@ -106,8 +103,8 @@ export function App() {
             <span>× Octane</span>
           </h1>
           <p class="hero__lede">
-            Responsive, interactive, server-rendered charts in native Octane.
-            No React compatibility layer. No second chart implementation.
+            Responsive, interactive, server-rendered charts in native Octane. No
+            React compatibility layer. No second chart implementation.
           </p>
         </div>
         <dl class="hero__proof">
@@ -132,19 +129,26 @@ export function App() {
             <i aria-hidden="true" />
             Live Octane state
           </span>
-          <span>26 weeks · 3 series · pointer + keyboard</span>
+          <span>30 months · 3 industries · pointer + keyboard</span>
         </div>
         <div class="chart-stage__heading">
           <div>
-            <p class="section-number">01 / production-shaped proof</p>
-            <h2 id="history-title">Package velocity</h2>
+            <p class="section-number">BLS monthly estimates</p>
+            <h2 id="history-title">Unemployment by industry</h2>
+            <p class="chart-stage__period">
+              {industryWindowLabel(industryWindow)}
+            </p>
           </div>
           <button
             class="text-action"
             type="button"
-            onClick={() => setRevision((value) => value + 1)}
+            onClick={() =>
+              setIndustryWindow(
+                (windowIndex) => (windowIndex + 1) % industryWindowCount,
+              )
+            }
           >
-            Shuffle live data <span aria-hidden="true">↗</span>
+            Next period <span aria-hidden="true">↗</span>
           </button>
         </div>
         <div class="chart-stage__controls" aria-label="History chart options">
@@ -167,7 +171,7 @@ export function App() {
             aria-pressed={historyZoomed}
             onClick={() => setHistoryZoomed((value) => !value)}
           >
-            {historyZoomed ? 'Show all' : 'Zoom 8w'}
+            {historyZoomed ? 'Show all' : 'Zoom 10m'}
           </button>
         </div>
 
@@ -176,9 +180,8 @@ export function App() {
             definition={historyDefinition}
             height={410}
             initialWidth={1080}
-            ariaLabel={`TanStack package velocity shown as a ${historyMode} chart`}
-            ariaDescription="A live chart rendered by the native Octane adapter. Use the pointer or keyboard to inspect values."
-            renderSvg={renderChartSvgWithResources}
+            ariaLabel={`Monthly unemployment for three industries shown as a ${historyMode} chart`}
+            ariaDescription="Bureau of Labor Statistics estimates from the Observable industries dataset. Use the pointer or keyboard to compare industries."
             onFocusGroupChange={(points) => setFocusedPoints(points)}
           />
         </div>
@@ -231,19 +234,13 @@ export function App() {
               <span class="code-keyword">const</span> definition ={' '}
               <span class="code-call">useMemo</span>(() ={`>`}
               {'\n  '}
-              <span class="code-call">createStatsHistoryChart</span>(
-              {'\n    '}
-              <span class="code-call">createStatsHistoryInput</span>(
-              {'\n      '}mode, revision, zoomed
-              {'\n    '})
-              {'\n  '})
-              {'\n'})
-              {'\n'}
+              <span class="code-call">createIndustryHistoryChart</span>(
+              {'\n    '}mode, windowIndex, zoomed
+              {'\n  '}){'\n'}){'\n'}
               {`<`}
               <span class="code-component">Chart</span>
               {'\n  '}definition={'{definition}'}
-              {'\n  '}animate
-              {'\n  '}focus={'{focusX}'}
+              {'\n  '}onFocusGroupChange={'{setFocusedPoints}'}
               {'\n'}/{`>`}
             </code>
           </pre>
@@ -253,13 +250,20 @@ export function App() {
           <div class="ranking-panel__heading">
             <div>
               <span>Keyed reconciliation</span>
-              <h3>Every update keeps its identity.</h3>
+              <h3>
+                Cars ranked by{' '}
+                {rankingMetric === 'power (hp)' ? 'power' : 'fuel economy'}.
+              </h3>
             </div>
             <button
               class="icon-action"
               type="button"
-              onClick={() => setRevision((value) => value + 1)}
-              aria-label="Update package ranking"
+              onClick={() =>
+                setRankingMetric((metric) =>
+                  metric === 'power (hp)' ? 'economy (mpg)' : 'power (hp)',
+                )
+              }
+              aria-label="Change automobile ranking metric"
             >
               ↻
             </button>
@@ -268,7 +272,7 @@ export function App() {
             definition={rankingDefinition}
             height={320}
             initialWidth={600}
-            ariaLabel="Animated TanStack package ranking"
+            ariaLabel="Animated automobile ranking"
           />
         </div>
       </section>
@@ -281,9 +285,7 @@ export function App() {
   )
 }
 
-function formatHistoryGroup(
-  points: readonly ChartPoint<StatsHistoryPoint>[],
-) {
+function formatHistoryGroup(points: readonly ChartPoint<IndustriesRow>[]) {
   const first = points[0]
   if (!first) return ''
   const heading =
@@ -292,19 +294,18 @@ function formatHistoryGroup(
           month: 'short',
           day: 'numeric',
           year: 'numeric',
+          timeZone: 'UTC',
         })
       : String(first.xValue)
   return `${heading}\n${points
     .map(
       (point) =>
-        `${point.groupLabel}: ${point.datum.downloads.toLocaleString()}`,
+        `${point.datum.industry}: ${point.datum.unemployed.toLocaleString()} thousand`,
     )
     .join('\n')}`
 }
 
-function formatFocusReadout(
-  points: readonly ChartPoint<StatsHistoryPoint>[],
-) {
+function formatFocusReadout(points: readonly ChartPoint<IndustriesRow>[]) {
   const first = points[0]
   if (!first) return 'Move across the chart to inspect the live state bridge.'
   const date =
@@ -312,12 +313,13 @@ function formatFocusReadout(
       ? first.xValue.toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
+          timeZone: 'UTC',
         })
       : String(first.xValue)
   const values = points
     .map(
       (point) =>
-        `${point.groupLabel} ${compactNumber.format(point.datum.downloads)}`,
+        `${point.datum.industry} ${compactNumber.format(point.datum.unemployed * 1_000)}`,
     )
     .join(' · ')
   return `${date} — ${values}`

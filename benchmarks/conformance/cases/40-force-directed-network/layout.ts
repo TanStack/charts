@@ -8,19 +8,22 @@ import {
   forceX,
   forceY,
 } from 'd3-force'
-import { networkEdges, networkNodes, type NetworkNode } from './data'
+import type {
+  MiserablesGraph,
+  MiserablesLink,
+  MiserablesNode,
+} from '@charts-poc/demo-data/miserables'
 import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force'
 
-export interface PositionedNetworkNode extends NetworkNode {
+export interface PositionedNetworkNode extends MiserablesNode {
   x: number
   y: number
 }
 
 export interface PositionedNetworkLink {
-  id: string
   source: string
   target: string
-  weight: number
+  value: number
   x1: number
   y1: number
   x2: number
@@ -34,16 +37,24 @@ export interface PositionedNetwork {
   yDomain: readonly [number, number]
 }
 
-interface LayoutNode extends NetworkNode, SimulationNodeDatum {}
+interface LayoutNode extends MiserablesNode, SimulationNodeDatum {}
 
-interface LayoutLink extends SimulationLinkDatum<LayoutNode> {
-  id: string
-  source: string | LayoutNode
-  target: string | LayoutNode
-  weight: number
-}
+type LayoutLink = Omit<MiserablesLink, 'source' | 'target'> &
+  SimulationLinkDatum<LayoutNode> & {
+    source: string | LayoutNode
+    target: string | LayoutNode
+  }
 
-export function networkLayout(revision = 0): PositionedNetwork {
+export function networkLayout(
+  source: MiserablesGraph,
+  revision = 0,
+): PositionedNetwork {
+  const networkNodes = source.nodes.slice(0, 13)
+  const networkNodeIds = new Set(networkNodes.map((node) => node.id))
+  const networkEdges = source.links.filter(
+    (link) =>
+      networkNodeIds.has(link.source) && networkNodeIds.has(link.target),
+  )
   const layoutNodes: LayoutNode[] = networkNodes.map((node) => ({ ...node }))
   const layoutLinks: LayoutLink[] = networkEdges.map((edge) => ({ ...edge }))
   const distanceDelta = Math.abs(revision % 2) * 3
@@ -53,8 +64,8 @@ export function networkLayout(revision = 0): PositionedNetwork {
       'link',
       forceLink<LayoutNode, LayoutLink>(layoutLinks)
         .id((node) => node.id)
-        .distance((edge) => 38 + (3 - edge.weight) * 8 + distanceDelta)
-        .strength((edge) => 0.24 + edge.weight * 0.08),
+        .distance((edge) => 54 - Math.min(edge.value, 10) * 1.8 + distanceDelta)
+        .strength((edge) => 0.2 + Math.min(edge.value, 10) * 0.045),
     )
     .force('charge', forceManyBody<LayoutNode>().strength(-165))
     .force('center', forceCenter(0, 0))
@@ -67,19 +78,17 @@ export function networkLayout(revision = 0): PositionedNetwork {
 
   const positionedNodes = layoutNodes.map((node) => ({
     id: node.id,
-    label: node.label,
     group: node.group,
     x: coordinate(node.x, node.id, 'x'),
     y: coordinate(node.y, node.id, 'y'),
   }))
   const positionedLinks = layoutLinks.map((edge) => {
-    const source = resolvedNode(edge.source, edge.id, 'source')
-    const target = resolvedNode(edge.target, edge.id, 'target')
+    const source = resolvedNode(edge.source, 'source')
+    const target = resolvedNode(edge.target, 'target')
     return {
-      id: edge.id,
       source: source.id,
       target: target.id,
-      weight: edge.weight,
+      value: edge.value,
       x1: coordinate(source.x, source.id, 'x'),
       y1: coordinate(source.y, source.id, 'y'),
       x2: coordinate(target.x, target.id, 'x'),
@@ -97,11 +106,10 @@ export function networkLayout(revision = 0): PositionedNetwork {
 
 function resolvedNode(
   value: string | LayoutNode,
-  edgeId: string,
   endpoint: 'source' | 'target',
 ): LayoutNode {
   if (typeof value !== 'string') return value
-  throw new TypeError(`Force layout did not resolve ${endpoint} for ${edgeId}`)
+  throw new TypeError(`Force layout did not resolve ${endpoint} ${value}`)
 }
 
 function coordinate(

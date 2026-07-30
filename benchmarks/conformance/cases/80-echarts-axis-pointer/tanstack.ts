@@ -1,16 +1,16 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { industries } from '@charts-poc/demo-data/industries'
 import { focusX } from '@tanstack/charts/focus'
-import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
+import { scaleLinear, scaleUtc } from 'd3-scale'
+import { axisPointerColors } from './colors'
+import { axisPointerData, axisPointerIndustries } from './selection'
 import {
   axisPointerAnchorDate,
-  axisPointerColors,
-  axisPointerData,
   axisPointerDateKey,
-  axisPointerDomain,
   axisPointerRowsAtDate,
-  axisPointerSeries,
-} from './data'
-import type { AxisPointerDatum, AxisPointerSeries } from './data'
+  axisPointerTargetValue,
+} from './model'
+import type { AxisPointerDatum } from './selection'
 import type {
   ChartPoint,
   ChartRenderContext,
@@ -27,59 +27,58 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = axisPointerData(input.revision)
-    return {
-      marks: [
-        lineY(rows, {
-          x: 'date',
-          y: 'value',
-          z: 'series',
-          key: 'id',
-          strokeWidth: 2,
+const definition = (input: ConformanceInput) => {
+  const rows = axisPointerData(industries, input.revision)
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'date',
+        y: 'unemployed',
+        color: 'industry',
+        strokeWidth: 2,
+      }),
+      dot(rows, {
+        x: 'date',
+        y: 'unemployed',
+        z: 'industry',
+        color: 'industry',
+        r: 3,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+    ],
+    x: {
+      scale: scaleUtc,
+      format: (value) =>
+        value.toLocaleDateString(undefined, {
+          month: 'short',
+          timeZone: 'UTC',
         }),
-        dot(rows, {
-          x: 'date',
-          y: 'value',
-          z: 'series',
-          key: 'id',
-          r: 3,
-          stroke: '#ffffff',
-          strokeWidth: 1,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain(axisPointerDomain),
-        format: (value) =>
-          value.toLocaleDateString(undefined, {
-            month: 'short',
-            timeZone: 'UTC',
-          }),
-      },
-      y: {
-        scale: scaleLinear().domain([0, 80]),
-        ticks: 5,
-        grid: true,
-        label: 'Value',
-      },
-      color: {
-        scale: scaleOrdinal<AxisPointerSeries, string>()
-          .domain(axisPointerSeries)
-          .range(axisPointerSeries.map((series) => axisPointerColors[series])),
-      },
-      margin: {
-        top: 20,
-        right: 24,
-        bottom: 45,
-        left: 60,
-      },
-    }
+    },
+    y: {
+      scale: scaleLinear,
+      ticks: 5,
+      grid: true,
+      label: 'Unemployed (thousands)',
+    },
+    color: {
+      domain: axisPointerIndustries,
+      range: axisPointerIndustries.map(
+        (industry) => axisPointerColors[industry],
+      ),
+    },
+    margin: {
+      top: 20,
+      right: 24,
+      bottom: 45,
+      left: 60,
+    },
   })
+}
 
 interface InteractionState {
   date: string | null
-  series: readonly string[]
+  industries: readonly string[]
   values: readonly number[]
   visible: boolean
 }
@@ -100,7 +99,7 @@ export function mount(
   let latestScene: ChartScene<AxisPointerDatum> | undefined
   const state: InteractionState = {
     date: null,
-    series: [],
+    industries: [],
     values: [],
     visible: false,
   }
@@ -140,7 +139,7 @@ export function mount(
     height: nextInput.height,
     ariaLabel: 'Snapped axis pointer with grouped tooltip',
     ariaDescription:
-      'Move across the chart or use the arrow keys to compare all three series at the nearest month.',
+      'Move across the chart or use the arrow keys to compare all three industries at the nearest month.',
     onFocusGroupChange,
     onRender,
   })
@@ -217,7 +216,7 @@ function createInteractionElements(
   tooltip.hidden = true
 
   const legend = document.createElement('div')
-  legend.setAttribute('aria-label', 'Series')
+  legend.setAttribute('aria-label', 'Industries')
   Object.assign(legend.style, {
     position: 'absolute',
     top: '2px',
@@ -229,7 +228,7 @@ function createInteractionElements(
     font: '600 10px/1.4 system-ui, sans-serif',
     pointerEvents: 'none',
   })
-  for (const series of axisPointerSeries) {
+  for (const industry of axisPointerIndustries) {
     const item = document.createElement('span')
     Object.assign(item.style, {
       display: 'inline-flex',
@@ -241,9 +240,9 @@ function createInteractionElements(
       width: '7px',
       height: '7px',
       borderRadius: '2px',
-      background: axisPointerColors[series],
+      background: axisPointerColors[industry],
     })
-    item.append(swatch, series)
+    item.append(swatch, industry)
     legend.append(item)
   }
 
@@ -313,8 +312,10 @@ function renderTooltip(
   points: readonly ChartPoint<AxisPointerDatum>[],
 ) {
   const document = tooltip.ownerDocument
-  const ordered = axisPointerSeries.flatMap((series) => {
-    const point = points.find((candidate) => candidate.datum.series === series)
+  const ordered = axisPointerIndustries.flatMap((industry) => {
+    const point = points.find(
+      (candidate) => candidate.datum.industry === industry,
+    )
     return point ? [point] : []
   })
   const date = ordered[0]?.datum.date
@@ -342,13 +343,13 @@ function renderTooltip(
       width: '0.5rem',
       height: '0.5rem',
       borderRadius: '0.125rem',
-      background: axisPointerColors[point.datum.series],
+      background: axisPointerColors[point.datum.industry],
     })
     const label = document.createElement('span')
-    label.textContent = point.datum.series
+    label.textContent = point.datum.industry
     const value = document.createElement('strong')
     value.style.marginLeft = 'auto'
-    value.textContent = point.datum.value.toLocaleString()
+    value.textContent = point.datum.unemployed.toLocaleString()
     row.append(swatch, label, value)
     tooltip.append(row)
   }
@@ -358,14 +359,16 @@ function updateInteractionState(
   state: InteractionState,
   points: readonly ChartPoint<AxisPointerDatum>[],
 ) {
-  const ordered = axisPointerSeries.flatMap((series) => {
-    const point = points.find((candidate) => candidate.datum.series === series)
+  const ordered = axisPointerIndustries.flatMap((industry) => {
+    const point = points.find(
+      (candidate) => candidate.datum.industry === industry,
+    )
     return point ? [point] : []
   })
   const date = ordered[0]?.datum.date
   state.date = date ? axisPointerDateKey(date) : null
-  state.series = ordered.map((point) => point.datum.series)
-  state.values = ordered.map((point) => point.datum.value)
+  state.industries = ordered.map((point) => point.datum.industry)
+  state.values = ordered.map((point) => point.datum.unemployed)
   state.visible = ordered.length > 0
 }
 
@@ -395,15 +398,17 @@ function resolveTarget(
   target: ConformanceTarget,
 ) {
   if (target.view && target.view !== 'main') return null
-  const date = axisPointerAnchorDate(target.anchor)
+  const rows = axisPointerData(industries, input.revision)
+  const date = axisPointerAnchorDate(target.anchor, rows)
   if (!date) return null
-  const rows = axisPointerRowsAtDate(axisPointerData(input.revision), date)
-  if (!rows.length) return null
+  const focusedRows = axisPointerRowsAtDate(rows, date)
+  const targetValue = axisPointerTargetValue(focusedRows)
+  if (targetValue === null) return null
   return scenePointToClient(
     surface,
     scene,
     scene.scales.x.map(date),
-    scene.scales.y.map(2),
+    scene.scales.y.map(targetValue),
   )
 }
 
@@ -419,32 +424,35 @@ function geometry(
   const svgBounds = svg.getBoundingClientRect()
   const scaleX = svgBounds.width / scene.width
   const scaleY = svgBounds.height / scene.height
-  const rows = axisPointerData(input.revision)
+  const rows = axisPointerData(industries, input.revision)
 
   if (query.role === 'dot') {
     return rows.map((row) => ({
       x: svgBounds.left + scene.scales.x.map(row.date) * scaleX - 3 * scaleX,
-      y: svgBounds.top + scene.scales.y.map(row.value) * scaleY - 3 * scaleY,
+      y:
+        svgBounds.top +
+        scene.scales.y.map(row.unemployed) * scaleY -
+        3 * scaleY,
       width: 6 * scaleX,
       height: 6 * scaleY,
-      paint: axisPointerColors[row.series],
+      paint: axisPointerColors[row.industry],
     }))
   }
 
   if (query.role === 'line') {
-    return axisPointerSeries.flatMap((series) => {
+    return axisPointerIndustries.flatMap((industry) => {
       const points = rows
-        .filter((row) => row.series === series)
+        .filter((row) => row.industry === industry)
         .map((row): readonly [number, number] => [
           scene.scales.x.map(row.date),
-          scene.scales.y.map(row.value),
+          scene.scales.y.map(row.unemployed),
         ])
       const sample = pointsBounds(
         points,
         svgBounds,
         scaleX,
         scaleY,
-        axisPointerColors[series],
+        axisPointerColors[industry],
       )
       return sample ? [sample] : []
     })
@@ -496,7 +504,7 @@ function interactionState(state: InteractionState): ConformanceJsonObject {
   return {
     focus: {
       date: state.date,
-      series: state.series,
+      industries: state.industries,
       values: state.values,
     },
     crosshair: {

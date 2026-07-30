@@ -1,46 +1,55 @@
 import { arrow, defineChart } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
-import { changeData } from './data'
+import { citywages } from '@charts-poc/demo-data/citywages'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput } from '../../types'
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = changeData(input.revision)
-    const gains = rows.filter((row) => row.direction === 'up')
-    const losses = rows.filter((row) => row.direction === 'down')
-    return {
-      marks: [
-        arrow(gains, {
-          x1: 'x1',
-          y1: 'y1',
-          x2: 'x2',
-          y2: 'y2',
-          key: 'id',
-          stroke: '#10b981',
-          headLength: 8,
-        }),
-        arrow(losses, {
-          x1: 'x1',
-          y1: 'y1',
-          x2: 'x2',
-          y2: 'y2',
-          key: 'id',
-          stroke: '#ef4444',
-          headLength: 8,
-        }),
-      ],
-      x: {
-        scale: scaleLinear().domain([0, 100]),
-        grid: true,
-        label: 'State X',
-      },
-      y: {
-        scale: scaleLinear().domain([0, 100]),
-        grid: true,
-        label: 'State Y',
-      },
-    }
+const metroChanges = citywages.filter(
+  (row) =>
+    row.highlight === 1 ||
+    row.R90_10_2015 < row.R90_10_1980 ||
+    row.nyt_display === 'Los Angeles',
+)
+
+const definition = () => {
+  const increases = metroChanges.filter(
+    (row) => row.R90_10_2015 >= row.R90_10_1980,
+  )
+  const decreases = metroChanges.filter(
+    (row) => row.R90_10_2015 < row.R90_10_1980,
+  )
+  return defineChart({
+    marks: [
+      arrow(increases, {
+        x1: 'LPOP_1980',
+        y1: 'R90_10_1980',
+        x2: 'LPOP_2015',
+        y2: 'R90_10_2015',
+        stroke: '#ef4444',
+        headLength: 8,
+      }),
+      arrow(decreases, {
+        x1: 'LPOP_1980',
+        y1: 'R90_10_1980',
+        x2: 'LPOP_2015',
+        y2: 'R90_10_2015',
+        stroke: '#10b981',
+        headLength: 8,
+      }),
+    ],
+    x: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Log₁₀ population',
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      label: '90th-to-10th-percentile wage ratio',
+    },
   })
+}
 
-export const mount = tanstackMount(definition, 'Directed quantitative changes')
+export const mount = tanstackMount(
+  definition,
+  'Metro population and wage inequality, 1980–2015',
+)

@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 770,
   "id": "77-donut",
-  "title": "Categorical donut chart",
+  "title": "English letter frequency donut",
   "family": "polar",
-  "intent": "Compare five categories as parts of one whole while preserving a readable center.",
+  "intent": "Compare the frequencies of five English letters while preserving a readable center.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -21,7 +21,7 @@
     "url": "https://recharts.github.io/en-US/examples/PieChartInGrid/"
   },
   "ai": {
-    "create": "Create a five-slice donut chart from raw category totals using D3 pie layout and one responsive annular arc mark.",
-    "maintain": "Update category totals while preserving the inner-radius ratio, clockwise slice order, stable identities, and exact categorical fills."
+    "create": "Create a five-slice donut chart from Observable's alphabet rows using letter and frequency directly with D3 pie layout.",
+    "maintain": "Change the selected letters while preserving raw field names, the inner-radius ratio, clockwise source order, stable identities, and exact categorical fills."
   }
 }

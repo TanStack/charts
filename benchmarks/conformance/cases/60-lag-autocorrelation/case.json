@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 600,
   "id": "60-lag-autocorrelation",
-  "title": "Lag-one autocorrelation",
+  "title": "AAPL lag-one autocorrelation",
   "family": "relationship",
-  "intent": "Compare each observation with the immediately preceding value to reveal serial dependence.",
+  "intent": "Compare each Apple closing price with the preceding trading day's close to reveal serial dependence.",
   "support": "composed",
   "features": [
     "lag plot",
@@ -16,14 +16,14 @@
   ],
   "geometry": [
     { "role": "line", "count": 1 },
-    { "role": "dot", "count": 35 }
+    { "role": "dot", "count": 119 }
   ],
   "source": {
     "title": "Observable Plot map transform",
     "url": "https://observablehq.com/plot/transforms/map"
   },
   "ai": {
-    "create": "Create a lag-one scatterplot by mapping the x channel to the previous observation while retaining the current observation on y.",
-    "maintain": "Change the lag interval while preserving input order, dropping incomplete pairs, stable keys, explicit equal domains, and the identity reference."
+    "create": "Create a lag-one scatterplot from AAPL by mapping the x channel to the previous Close while retaining the current Close on y.",
+    "maintain": "Change the date window or lag interval while preserving the original Date and Close fields through the pair transform, input order, incomplete-pair removal, stable keys, explicit equal domains, and the identity reference."
   }
 }

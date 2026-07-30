@@ -2,6 +2,8 @@ import { LineChart } from 'echarts/charts'
 import { AriaComponent, GridComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
+import { aapl } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import type { LineSeriesOption } from 'echarts/charts'
 import type {
   AriaComponentOption,
@@ -11,13 +13,12 @@ import type { ComposeOption, EChartsType } from 'echarts/core'
 import { echartsMount } from '../../shared/echarts-mount'
 import {
   initialPlaybackIndex,
-  playbackData,
-  playbackDateKey,
   playbackDomain,
+  playbackDateKey,
   playbackIndexFromAnchor,
-} from './data'
+  selectPlaybackRows,
+} from './model'
 import { createPlaybackOverlay } from './overlay'
-import type { PlaybackDatum } from './data'
 import type { PlaybackOverlayLayout } from './overlay'
 import type {
   ConformanceGeometryQuery,
@@ -43,8 +44,9 @@ interface PlaybackState {
 }
 
 const linePaint = '#2563eb'
-const yDomain: readonly [number, number] = [20, 80]
 const margin = { top: 64, right: 24, bottom: 68, left: 56 }
+const playbackRows = selectPlaybackRows(aapl)
+const [playbackStart, playbackEnd] = playbackDomain(playbackRows)
 
 export const mount: ConformanceMount = (container, input) => {
   const state: PlaybackState = {
@@ -65,7 +67,7 @@ export const mount: ConformanceMount = (container, input) => {
   let destroyInteractions = () => {}
   const mountCase = echartsMount(
     playbackOption,
-    'Weekly values with a draggable timeline playback scrubber',
+    'AAPL closes with a draggable timeline playback scrubber',
     ({ chart, surface, getInput }) => {
       surface.removeAttribute('data-conformance-view')
       const interactions = createPlaybackInteractions(
@@ -98,19 +100,20 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
-function playbackOption(input: ConformanceInput): PlaybackOption {
+function playbackOption(_input: ConformanceInput): PlaybackOption {
   return {
     animation: false,
     aria: {
       enabled: true,
       description:
-        'Eight weekly values controlled by a draggable semantic playhead.',
+        'Eight observed AAPL closes controlled by a draggable semantic playhead.',
     },
     grid: margin,
     xAxis: {
       type: 'time',
-      min: playbackDomain[0].getTime(),
-      max: playbackDomain[1].getTime(),
+      boundaryGap: [0, 0],
+      min: playbackStart.getTime(),
+      max: playbackEnd.getTime(),
       axisLabel: {
         formatter(value: number) {
           return new Date(value).toLocaleDateString(undefined, {
@@ -123,9 +126,9 @@ function playbackOption(input: ConformanceInput): PlaybackOption {
     },
     yAxis: {
       type: 'value',
-      min: yDomain[0],
-      max: yDomain[1],
-      interval: 20,
+      min: 'dataMin',
+      max: 'dataMax',
+      name: 'AAPL close ($)',
       splitLine: {
         show: true,
         lineStyle: { color: '#e2e8f0' },
@@ -134,10 +137,10 @@ function playbackOption(input: ConformanceInput): PlaybackOption {
     series: {
       id: 'playback-series',
       type: 'line',
-      data: playbackData(input.revision).map((row) => ({
-        id: row.id,
-        name: row.id,
-        value: [row.date.getTime(), row.value],
+      data: playbackRows.map((row) => ({
+        id: playbackDateKey(row.Date),
+        name: playbackDateKey(row.Date),
+        value: [row.Date.getTime(), row.Close],
       })),
       color: linePaint,
       lineStyle: { color: linePaint, width: 2.5 },
@@ -166,8 +169,8 @@ function createPlaybackInteractions(
   let paint = () => {}
   let announce = (_message: string) => {}
   const frameText = () => {
-    const row = playbackData(getInput().revision)[state.index]
-    return row ? `${playbackDateKey(row.date)} · ${row.value}` : 'No frame'
+    const row = playbackRows[state.index]
+    return row ? playbackValueText(row) : 'No frame'
   }
   const stopPlayback = (message?: string) => {
     if (playbackTimer !== null) {
@@ -183,12 +186,12 @@ function createPlaybackInteractions(
       stopPlayback('Playback paused')
       return
     }
-    const lastIndex = playbackData(getInput().revision).length - 1
+    const lastIndex = playbackRows.length - 1
     const restarting = state.index >= lastIndex
     if (restarting) state.index = 0
     state.playing = true
     playbackTimer = setInterval(() => {
-      const nextLastIndex = playbackData(getInput().revision).length - 1
+      const nextLastIndex = playbackRows.length - 1
       if (state.index >= nextLastIndex) {
         stopPlayback('Playback ended')
         return
@@ -211,10 +214,7 @@ function createPlaybackInteractions(
     view,
     (index) => {
       beginChange()
-      state.index = Math.max(
-        0,
-        Math.min(playbackData(getInput().revision).length - 1, index),
-      )
+      state.index = Math.max(0, Math.min(playbackRows.length - 1, index))
       paint()
     },
     togglePlayback,
@@ -224,18 +224,49 @@ function createPlaybackInteractions(
   const layout = () => playbackLayout(chart, surface, view, state.index)
   paint = () => {
     const nextLayout = layout()
-    const row = playbackData(getInput().revision)[state.index]
+    const row = playbackRows[state.index]
     if (!nextLayout || !row) return
     overlay.paint(nextLayout, {
       index: state.index,
-      max: playbackData(getInput().revision).length - 1,
+      max: playbackRows.length - 1,
       playing: state.playing,
-      valueText: `${playbackDateKey(row.date)} · ${row.value}`,
+      valueText: playbackValueText(row),
     })
   }
 
-  const handlePointerDown = () => {
+  let scrubPointerId: number | null = null
+  const updateFromPointer = (event: PointerEvent) => {
+    const currentLayout = layout()
+    if (!currentLayout || !isScrubberTarget(view, currentLayout, event)) return
+    const bounds = view.getBoundingClientRect()
+    state.index = nearestFrameIndex(
+      currentLayout.frameXs,
+      event.clientX - bounds.left,
+    )
+    paint()
+  }
+  const handlePointerDown = (event: PointerEvent) => {
+    if (event.button !== 0) return
+    event.preventDefault()
+    overlay.range.focus()
     beginChange()
+    scrubPointerId = event.pointerId
+    overlay.range.setPointerCapture(event.pointerId)
+    updateFromPointer(event)
+  }
+  const handlePointerMove = (event: PointerEvent) => {
+    if (scrubPointerId !== event.pointerId) return
+    event.preventDefault()
+    updateFromPointer(event)
+  }
+  const handlePointerUp = (event: PointerEvent) => {
+    if (scrubPointerId !== event.pointerId) return
+    updateFromPointer(event)
+    if (overlay.range.hasPointerCapture(event.pointerId)) {
+      overlay.range.releasePointerCapture(event.pointerId)
+    }
+    scrubPointerId = null
+    commitChange()
   }
 
   const commitChange = () => {
@@ -247,8 +278,12 @@ function createPlaybackInteractions(
     announce(`Frame selected. ${frameText()}`)
   }
 
-  const cancelChange = () => {
+  const cancelChange = (event?: PointerEvent) => {
     if (!state.dragging) return
+    if (event && overlay.range.hasPointerCapture(event.pointerId)) {
+      overlay.range.releasePointerCapture(event.pointerId)
+    }
+    scrubPointerId = null
     if (state.originIndex !== null) state.index = state.originIndex
     state.dragging = false
     state.originIndex = null
@@ -257,6 +292,8 @@ function createPlaybackInteractions(
   }
 
   overlay.range.addEventListener('pointerdown', handlePointerDown)
+  overlay.range.addEventListener('pointermove', handlePointerMove)
+  overlay.range.addEventListener('pointerup', handlePointerUp)
   overlay.range.addEventListener('change', commitChange)
   overlay.range.addEventListener('pointercancel', cancelChange)
 
@@ -295,6 +332,8 @@ function createPlaybackInteractions(
     destroy() {
       if (playbackTimer !== null) clearInterval(playbackTimer)
       overlay.range.removeEventListener('pointerdown', handlePointerDown)
+      overlay.range.removeEventListener('pointermove', handlePointerMove)
+      overlay.range.removeEventListener('pointerup', handlePointerUp)
       overlay.range.removeEventListener('change', commitChange)
       overlay.range.removeEventListener('pointercancel', cancelChange)
       overlay.destroy()
@@ -322,7 +361,7 @@ function resolveTarget(
       focusElement: button,
     }
   }
-  const index = playbackIndexFromAnchor(target.anchor)
+  const index = playbackIndexFromAnchor(playbackRows, target.anchor)
   const x = index === null ? undefined : layout.frameXs[index]
   if (x === undefined) return null
   const bounds = view.getBoundingClientRect()
@@ -336,19 +375,19 @@ function resolveTarget(
 }
 
 function interactionState(state: PlaybackState, input: ConformanceInput) {
-  const rows = playbackData(input.revision)
+  const rows = playbackRows
   const row = rows[state.index]
   return {
     playhead: {
       index: state.index,
-      date: row ? playbackDateKey(row.date) : null,
-      value: row?.value ?? null,
+      date: row ? playbackDateKey(row.Date) : null,
+      value: row?.Close ?? null,
       progress: rows.length > 1 ? state.index / (rows.length - 1) : 0,
     },
     frames: {
       count: rows.length,
-      ids: rows.map((datum) => datum.id),
-      revisionProbeValue: rows[3]?.value ?? null,
+      ids: rows.map((datum) => playbackDateKey(datum.Date)),
+      jan5Close: rows[3]?.Close ?? null,
     },
     interaction: {
       dragging: state.dragging,
@@ -371,8 +410,8 @@ function playbackGeometry(
     return []
   }
   const viewBounds = view.getBoundingClientRect()
-  const points = playbackData(input.revision).flatMap((row) => {
-    const point = localPoint(chart, surface, view, row.date, row.value)
+  const points = playbackRows.flatMap((row) => {
+    const point = localPoint(chart, surface, view, row.Date, row.Close)
     return point ? [point] : []
   })
 
@@ -399,31 +438,35 @@ function playbackLayout(
   view: HTMLDivElement,
   index: number,
 ): PlaybackOverlayLayout | null {
-  const first = localPoint(chart, surface, view, playbackDomain[0], yDomain[0])
-  const last = localPoint(chart, surface, view, playbackDomain[1], yDomain[0])
-  const top = localPoint(chart, surface, view, playbackDomain[0], yDomain[1])
-  if (!first || !last || !top) return null
-  const frameXs = playbackData().flatMap((row) => {
-    const point = localPoint(chart, surface, view, row.date, yDomain[0])
+  const frameXs = playbackRows.flatMap((row) => {
+    const point = localPoint(chart, surface, view, row.Date, row.Close)
     return point ? [point[0]] : []
   })
   const playheadX = frameXs[index]
   if (playheadX === undefined || frameXs.length !== playbackDatesLength()) {
     return null
   }
+  const surfaceBounds = surface.getBoundingClientRect()
+  const viewBounds = view.getBoundingClientRect()
+  const surfaceLeft = surfaceBounds.left - viewBounds.left
+  const surfaceTop = surfaceBounds.top - viewBounds.top
+  const left = surfaceLeft + margin.left
+  const right = surfaceLeft + chart.getWidth() - margin.right
+  const top = surfaceTop + margin.top
+  const bottom = surfaceTop + chart.getHeight() - margin.bottom
   return {
-    left: first[0],
-    right: last[0],
-    top: top[1],
-    bottom: first[1],
-    trackY: first[1] + 34,
+    left,
+    right,
+    top,
+    bottom,
+    trackY: bottom + 34,
     playheadX,
     frameXs,
   }
 }
 
 function playbackDatesLength() {
-  return playbackData().length
+  return playbackRows.length
 }
 
 function localPoint(
@@ -518,4 +561,8 @@ function clientBounds(element: HTMLElement): ConformanceGeometrySample {
 function sizeView(view: HTMLDivElement, input: ConformanceInput) {
   view.style.width = `${input.width}px`
   view.style.height = `${input.height}px`
+}
+
+function playbackValueText(row: AaplRow) {
+  return `${playbackDateKey(row.Date)} · AAPL close $${row.Close.toFixed(2)}`
 }

@@ -17,19 +17,19 @@
   "minimumGeometrySimilarity": 0.97,
   "interactionScenarios": [
     {
-      "id": "toggle-revenue-without-rescaling",
+      "id": "toggle-manufacturing-without-rescaling",
       "steps": [
         {
           "type": "click",
-          "target": { "view": "main", "anchor": "legend:revenue" }
+          "target": { "view": "main", "anchor": "legend:Manufacturing" }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "visibleSeries", "equals": ["profit"] },
-            { "path": "hiddenSeries", "equals": ["revenue"] },
-            { "path": "renderedSeries", "equals": ["profit"] },
-            { "path": "yDomain", "equals": [0, 120] }
+            { "path": "visibleSeries", "equals": ["Construction"] },
+            { "path": "hiddenSeries", "equals": ["Manufacturing"] },
+            { "path": "renderedSeries", "equals": ["Construction"] },
+            { "path": "yDomain", "equals": [0, 900] }
           ]
         },
         {
@@ -38,7 +38,7 @@
             {
               "target": {
                 "role": "button",
-                "name": "Toggle Revenue series",
+                "name": "Toggle Manufacturing series",
                 "exact": true
               },
               "property": "attribute",
@@ -48,7 +48,7 @@
             {
               "target": {
                 "role": "button",
-                "name": "Toggle Revenue series",
+                "name": "Toggle Manufacturing series",
                 "exact": true
               },
               "property": "height",
@@ -57,7 +57,7 @@
             {
               "target": {
                 "role": "region",
-                "name": "Interactive revenue and profit series",
+                "name": "Interactive unemployment series",
                 "exact": true
               },
               "property": "count",
@@ -70,43 +70,46 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "visibleSeries", "equals": ["profit"] },
-            { "path": "renderedSeries", "equals": ["profit"] },
-            { "path": "yDomain", "equals": [0, 120] }
+            { "path": "visibleSeries", "equals": ["Construction"] },
+            { "path": "renderedSeries", "equals": ["Construction"] },
+            { "path": "yDomain", "equals": [0, 900] }
           ]
         },
         {
           "type": "click",
-          "target": { "view": "main", "anchor": "legend:revenue" }
+          "target": { "view": "main", "anchor": "legend:Manufacturing" }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "visibleSeries", "equals": ["revenue", "profit"] },
+            {
+              "path": "visibleSeries",
+              "equals": ["Manufacturing", "Construction"]
+            },
             { "path": "hiddenSeries", "equals": [] },
             {
               "path": "renderedSeries",
-              "equals": ["revenue", "profit"]
+              "equals": ["Manufacturing", "Construction"]
             },
-            { "path": "yDomain", "equals": [0, 120] }
+            { "path": "yDomain", "equals": [0, 900] }
           ]
         }
       ]
     },
     {
-      "id": "toggle-profit-with-keyboard",
+      "id": "toggle-construction-with-keyboard",
       "steps": [
         {
           "type": "key",
           "key": "Enter",
-          "target": { "view": "main", "anchor": "legend:profit" }
+          "target": { "view": "main", "anchor": "legend:Construction" }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "visibleSeries", "equals": ["revenue"] },
-            { "path": "renderedSeries", "equals": ["revenue"] },
-            { "path": "yDomain", "equals": [0, 120] }
+            { "path": "visibleSeries", "equals": ["Manufacturing"] },
+            { "path": "renderedSeries", "equals": ["Manufacturing"] },
+            { "path": "yDomain", "equals": [0, 900] }
           ]
         },
         {
@@ -115,7 +118,7 @@
             {
               "target": {
                 "role": "button",
-                "name": "Toggle Profit series",
+                "name": "Toggle Construction series",
                 "exact": true
               },
               "property": "focused",
@@ -124,7 +127,7 @@
             {
               "target": {
                 "role": "button",
-                "name": "Toggle Profit series",
+                "name": "Toggle Construction series",
                 "exact": true
               },
               "property": "height",
@@ -140,13 +143,13 @@
         {
           "type": "key",
           "key": " ",
-          "target": { "view": "main", "anchor": "legend:revenue" }
+          "target": { "view": "main", "anchor": "legend:Manufacturing" }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "visibleSeries", "equals": ["profit"] },
-            { "path": "focusedSeries", "equals": "revenue" }
+            { "path": "visibleSeries", "equals": ["Construction"] },
+            { "path": "focusedSeries", "equals": "Manufacturing" }
           ]
         },
         {
@@ -155,7 +158,7 @@
             {
               "target": {
                 "role": "button",
-                "name": "Toggle Revenue series",
+                "name": "Toggle Manufacturing series",
                 "exact": true
               },
               "property": "focused",
@@ -171,7 +174,7 @@
     "url": "https://recharts.github.io/en-US/api/Legend/"
   },
   "ai": {
-    "create": "Create a two-series line chart with an accessible legend that toggles each series while retaining an explicit y domain.",
+    "create": "Create a two-industry unemployment chart with an accessible legend that toggles each series while retaining an explicit y domain.",
     "maintain": "Keep series IDs stable, preserve the quantitative domain when a series is hidden, and expose visibility as controlled application state."
   }
 }

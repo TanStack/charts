@@ -1,4 +1,5 @@
 import { scaleOrdinal } from 'd3-scale'
+import { validateInferredLogDomain } from './scale-input'
 import type {
   ChartColorScaleFactory,
   ChartColorOptions,
@@ -6,6 +7,7 @@ import type {
   ChartTheme,
   ConfiguredColorScaleLike,
   InferableColorScaleLike,
+  ResolvedColorScaleKind,
   ResolvedColorScale,
 } from './types'
 
@@ -32,14 +34,19 @@ export function createColorScale(
       )
     }
     const scale = (source as ConfiguredColorScaleLike<any, any>).copy()
+    const kind = colorScaleKind(scale as InferableColorScaleLike<any, any>)
     if (infer) {
       const inferable = scale as InferableColorScaleLike<any, any>
-      const domain = options.domain ?? inferColorDomain(inferable, values)
-      if (domain.length) {
-        inferable.domain(domain)
-      }
       if (options.range?.length) {
         inferable.range(options.range)
+      }
+      const domain = options.domain ?? inferColorDomain(inferable, values)
+      if (options.domain !== undefined || domain.length) {
+        inferable.domain(domain)
+      }
+      const range = inferable.range()
+      if (!range.length || range.some((value) => typeof value !== 'string')) {
+        throw new TypeError('A color-scale factory requires a string range')
       }
     }
     if (options.nice) {
@@ -55,6 +62,7 @@ export function createColorScale(
     )
     return {
       type: 'configured',
+      kind,
       domain,
       range,
       map: (value) =>
@@ -83,7 +91,7 @@ export function createColorScale(
     if (value == null) return range[0] ?? 'currentColor'
     return ordinal(value)
   }
-  return { type: 'ordinal', domain, range, map }
+  return { type: 'ordinal', kind: 'categorical', domain, range, map }
 }
 
 function isColorScaleFactory(
@@ -98,18 +106,32 @@ function inferColorDomain(
 ): ChartKey[] {
   const observed = values.filter(
     (value): value is ChartKey =>
-      typeof value === 'string' ||
-      (typeof value === 'number' && Number.isFinite(value)),
+      typeof value === 'string' || typeof value === 'number',
   )
-  if (typeof scale.ticks === 'function') {
+  const quantiles = scale.quantiles
+  const thresholds = scale.thresholds
+  if (quantiles) {
+    return quantitativeColorValues(observed)
+  }
+
+  if (scale.invertExtent && !thresholds) {
+    throw new TypeError(
+      'Threshold color-scale factory requires an explicit domain',
+    )
+  }
+
+  if (scale.ticks || thresholds) {
+    const numeric = quantitativeColorValues(observed)
     let minimum = Infinity
     let maximum = -Infinity
-    for (const value of observed) {
-      if (typeof value !== 'number') continue
+    for (const value of numeric) {
       minimum = Math.min(minimum, value)
       maximum = Math.max(maximum, value)
     }
-    if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) return []
+    if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) {
+      return []
+    }
+    validateInferredLogDomain(scale, minimum, maximum)
     if (minimum === maximum) {
       if (minimum === 0) {
         maximum = 1
@@ -119,6 +141,7 @@ function inferColorDomain(
         maximum += offset
       }
     }
+    if (thresholds) return [minimum, maximum]
     const stopCount = Math.max(2, scale.domain().length, scale.range().length)
     return Array.from(
       { length: stopCount },
@@ -136,6 +159,32 @@ function inferColorDomain(
     domain.push(value)
   }
   return domain
+}
+
+function quantitativeColorValues(values: readonly ChartKey[]): number[] {
+  const numeric = values.filter(
+    (value): value is number =>
+      typeof value === 'number' && Number.isFinite(value),
+  )
+  if (numeric.length !== values.length) colorScaleTypeMismatch()
+  return numeric
+}
+
+function colorScaleTypeMismatch(): never {
+  throw new TypeError(
+    'A quantitative color-scale factory requires numeric values',
+  )
+}
+
+function colorScaleKind(
+  scale: InferableColorScaleLike<any, any>,
+): ResolvedColorScaleKind {
+  if (scale.quantiles) {
+    return scale.invertExtent ? 'quantile' : 'continuous'
+  }
+  if (scale.thresholds) return 'quantize'
+  if (scale.invertExtent) return 'threshold'
+  return scale.ticks ? 'continuous' : 'categorical'
 }
 
 export function valueKey(value: unknown): string {

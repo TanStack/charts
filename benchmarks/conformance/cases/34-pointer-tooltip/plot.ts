@@ -1,38 +1,40 @@
 import * as Plot from '@observablehq/plot'
-import { timeDomain, timeSeries } from '../../shared/data'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount, ConformanceTestDriver } from '../../types'
+import { selectPointerTooltipData } from './selection'
 
 export const mount: ConformanceMount = (container, input) => {
-  let rows = timeSeries(input.revision).filter((row) => row.series === 'Atlas')
+  let rows = selectPointerTooltipData(aapl, input.revision)
   const handle = mountObservablePlot(container, input, (nextInput) => {
-    rows = timeSeries(nextInput.revision).filter(
-      (row) => row.series === 'Atlas',
-    )
+    rows = selectPointerTooltipData(aapl, nextInput.revision)
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Interactive Atlas trend',
-      x: { type: 'utc', domain: timeDomain, label: null },
-      y: { domain: [10, 60], grid: true, label: 'Value' },
+      ariaLabel: 'Interactive Apple closing price',
+      x: { type: 'utc', label: null },
+      y: { grid: true, label: 'Apple close (USD)' },
       marks: [
         Plot.line(rows, {
-          x: 'date',
-          y: 'value',
+          x: 'Date',
+          y: 'Close',
           stroke: '#2563eb',
         }),
         Plot.dot(rows, {
-          x: 'date',
-          y: 'value',
+          x: 'Date',
+          y: 'Close',
           fill: '#2563eb',
           r: 3,
         }),
         Plot.tip(
           rows,
           Plot.pointerX({
-            x: 'date',
-            y: 'value',
-            title: (row) => `Atlas: ${row.value.toLocaleString()}`,
+            x: 'Date',
+            y: 'Close',
+            title: (row) =>
+              `Apple: ${row.Close.toLocaleString(undefined, {
+                maximumFractionDigits: 2,
+              })}`,
           }),
         ),
       ],
@@ -42,10 +44,10 @@ export const mount: ConformanceMount = (container, input) => {
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
       if (target.view && target.view !== 'main') return null
-      const id = target.anchor.startsWith('point:')
-        ? target.anchor.slice('point:'.length)
+      const date = target.anchor.startsWith('date:')
+        ? target.anchor.slice('date:'.length)
         : null
-      const index = rows.findIndex((row) => row.id === id)
+      const index = rows.findIndex((row) => dateKey(row.Date) === date)
       const circle =
         index < 0
           ? undefined
@@ -85,4 +87,8 @@ export const mount: ConformanceMount = (container, input) => {
   }
 
   return { ...handle, driver }
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10)
 }

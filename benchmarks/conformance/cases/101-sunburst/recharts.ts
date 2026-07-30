@@ -1,8 +1,24 @@
 import { createElement } from 'react'
 import { SunburstChart } from 'recharts'
-import { sunburstData } from './data'
+import { flare } from '@charts-poc/demo-data/flare'
+import { selectSunburstData } from './selection'
+import { sunburstTree } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
+import type { SunburstTreeNode } from './transform'
+
+const colors = ['#7c3aed', '#0ea5e9', '#14b8a6']
+
+function coloredSunburstData(revision: number): SunburstTreeNode {
+  const root = sunburstTree(selectSunburstData(flare, revision))
+  return {
+    ...root,
+    children: root.children?.map((child, index) => ({
+      ...child,
+      fill: colors[index],
+    })),
+  }
+}
 
 function chart(input: ConformanceInput) {
   const radius = Math.min(input.width, input.height) * 0.44
@@ -10,7 +26,7 @@ function chart(input: ConformanceInput) {
   return createElement(SunburstChart, {
     width: input.width,
     height: input.height,
-    data: sunburstData(input.revision),
+    data: coloredSunburstData(input.revision),
     cx: input.width / 2,
     cy: input.height / 2,
     innerRadius: radius * 0.14,
@@ -24,4 +40,4 @@ function chart(input: ConformanceInput) {
   })
 }
 
-export const mount = rechartsMount(chart, 'Sunburst hierarchy')
+export const mount = rechartsMount(chart, 'Flare analytics sunburst')

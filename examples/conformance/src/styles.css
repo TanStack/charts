@@ -592,6 +592,74 @@ input {
   margin-top: 8px;
 }
 
+.source-accounting {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0;
+  color: var(--muted);
+  font:
+    0.7rem ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+
+.source-exclusion {
+  opacity: 0.8;
+}
+
+.source-dataset {
+  display: grid;
+  gap: 7px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 4%, var(--panel));
+}
+
+.source-dataset p {
+  margin: 0;
+}
+
+.source-dataset-heading,
+.source-dataset-provenance {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.source-dataset-heading {
+  font-size: 0.76rem;
+}
+
+.source-dataset-heading > span,
+.source-dataset-provenance,
+.source-dataset-schema {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.source-dataset-schema {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  line-height: 1.55;
+}
+
+.source-dataset-schema span {
+  opacity: 0.72;
+}
+
+.source-dataset-provenance a {
+  color: var(--accent);
+}
+
+.source-dataset-provenance > span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 .source-file {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -599,8 +667,17 @@ input {
 }
 
 .source-file > summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
   padding: 9px 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.source-file-meta {
+  opacity: 0.72;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .source-file pre {

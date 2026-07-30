@@ -32,40 +32,31 @@ nonzero inner radius is a donut.
 <!-- docs-example: polar-pie-donut typecheck -->
 
 ```ts
+import { alphabet, type AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import { defineChart } from '@tanstack/charts'
 import { polar, radialArc } from '@tanstack/charts/polar'
 import { pie } from 'd3-shape'
 
-interface Part {
-  id: string
-  value: number
-  fill: string
-}
-
-const parts: Part[] = [
-  { id: 'ingest', value: 42, fill: '#2563eb' },
-  { id: 'query', value: 28, fill: '#7c3aed' },
-  { id: 'alerts', value: 18, fill: '#db2777' },
-  { id: 'other', value: 12, fill: '#f59e0b' },
-]
-
-const slices = pie<Part>()
+const partColors = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316']
+const letters = alphabet.slice(0, 5)
+const pieLayout = pie<AlphabetRow>()
   .sort(null)
-  .value((part) => part.value)(parts)
+  .value((row) => row.frequency)
 
 function ring(innerRatio: number) {
+  const slices = pieLayout(letters)
   return polar({
     inset: 8,
     radiusRatio: 0.82,
     marks: [
       radialArc(slices, {
-        key: (slice) => slice.data.id,
         startAngle: 'startAngle',
         endAngle: 'endAngle',
         padAngle: 'padAngle',
         innerRadius: ({ radius }) => radius * innerRatio,
         cornerRadius: 4,
-        fill: (slice) => slice.data.fill,
+        color: (slice) => slice.data.letter,
+        key: (slice) => slice.data.letter,
       }),
     ],
   })
@@ -73,22 +64,18 @@ function ring(innerRatio: number) {
 
 const pieChart = defineChart({
   marks: [ring(0)],
-  guides: false,
-  x: null,
-  y: null,
+  color: { domain: letters.map((row) => row.letter), range: partColors },
 })
 
 const donutChart = defineChart({
   marks: [ring(0.58)],
-  guides: false,
-  x: null,
-  y: null,
+  color: { domain: letters.map((row) => row.letter), range: partColors },
 })
 ```
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/76-pie/?theme=system&height=420"
-  title="Categorical pie chart built from D3 pie intervals and TanStack radial arcs"
+  title="English letter-frequency pie chart built from D3 pie intervals and TanStack radial arcs"
   loading="lazy"
   width="100%"
   height="420"
@@ -97,7 +84,7 @@ const donutChart = defineChart({
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/77-donut/?theme=system&height=420"
-  title="Responsive donut chart built from D3 pie intervals and TanStack radial arcs"
+  title="English letter-frequency donut chart built from D3 pie intervals and TanStack radial arcs"
   loading="lazy"
   width="100%"
   height="420"
@@ -109,7 +96,7 @@ and concentric rings:
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/93-labeled-pie/?theme=system&height=380"
-  title="Pie chart with native radial labels and leader rules"
+  title="English letter-frequency pie chart with native radial labels and leader rules"
   loading="lazy"
   width="100%"
   height="380"
@@ -118,7 +105,7 @@ and concentric rings:
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/94-center-donut/?theme=system&height=380"
-  title="Donut chart with native center value"
+  title="English letter-frequency donut chart with native center value"
   loading="lazy"
   width="100%"
   height="380"
@@ -127,7 +114,7 @@ and concentric rings:
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/95-rounded-donut/?theme=system&height=380"
-  title="Rounded donut chart with padded arcs"
+  title="Rounded English letter-frequency donut chart with padded arcs"
   loading="lazy"
   width="100%"
   height="380"
@@ -136,7 +123,7 @@ and concentric rings:
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/96-nested-donut/?theme=system&height=400"
-  title="Nested concentric donut chart"
+  title="Nested Flare package-size donut chart"
   loading="lazy"
   width="100%"
   height="400"
@@ -154,16 +141,32 @@ a separate geometry implementation.
 <!-- docs-example: polar-partial-gauge typecheck -->
 
 ```ts
+import { survey, type SurveyRow } from '@charts-poc/demo-data/survey'
 import { defineChart } from '@tanstack/charts'
 import { polar, radialArc } from '@tanstack/charts/polar'
 import { pie } from 'd3-shape'
 
-const value = 72
-const gaugeParts = [
-  { id: 'value', value, fill: '#ef4444' },
-  { id: 'remainder', value: 100 - value, fill: '#e2e8f0' },
+interface GaugePart {
+  id: 'agreement' | 'other'
+  value: number
+}
+
+function agreementPercent(rows: readonly SurveyRow[], question: string) {
+  const responses = rows.filter((row) => row.Question === question)
+  const agreements = responses.filter(
+    (row) => row.Response === 'Agree' || row.Response === 'Strongly Agree',
+  )
+  return responses.length === 0
+    ? 0
+    : Math.round((agreements.length / responses.length) * 100)
+}
+
+const agreement = agreementPercent(survey, 'Q1')
+const gaugeParts: GaugePart[] = [
+  { id: 'agreement', value: agreement },
+  { id: 'other', value: 100 - agreement },
 ]
-const gaugeSlices = pie<(typeof gaugeParts)[number]>()
+const gaugeSlices = pie<GaugePart>()
   .sort(null)
   .value((part) => part.value)
   .startAngle(-Math.PI * 0.75)
@@ -175,25 +178,25 @@ const gauge = defineChart({
       radiusRatio: 0.84,
       marks: [
         radialArc(gaugeSlices, {
-          key: (slice) => slice.data.id,
           startAngle: 'startAngle',
           endAngle: 'endAngle',
           innerRadius: ({ radius }) => radius * 0.72,
           cornerRadius: 999,
-          fill: (slice) => slice.data.fill,
+          color: (slice) => slice.data.id,
         }),
       ],
     }),
   ],
-  guides: false,
-  x: null,
-  y: null,
+  color: {
+    domain: ['agreement', 'other'],
+    range: ['#ef4444', '#e2e8f0'],
+  },
 })
 ```
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/78-gauge/?theme=system&height=420"
-  title="Partial-circle gauge composed from D3 pie intervals and TanStack radial arcs"
+  title="Survey agreement gauge composed from D3 pie intervals and TanStack radial arcs"
   loading="lazy"
   width="100%"
   height="420"
@@ -202,7 +205,7 @@ const gauge = defineChart({
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/98-needle-gauge/?theme=system&height=420"
-  title="Threshold gauge with radial ticks, needle, hub, and value label"
+  title="County unemployment gauge with radial ticks, needle, hub, and value label"
   loading="lazy"
   width="100%"
   height="420"
@@ -220,6 +223,7 @@ polar guides and radial marks. TanStack supplies both responsive ranges.
 <!-- docs-example: polar-radar typecheck -->
 
 ```ts
+import { decathlon, type DecathlonRow } from '@charts-poc/demo-data/decathlon'
 import { defineChart } from '@tanstack/charts'
 import {
   angleGrid,
@@ -229,26 +233,45 @@ import {
   radialGrid,
   radialLine,
 } from '@tanstack/charts/polar'
-import { scaleBand, scaleLinear } from 'd3-scale'
+import { extent } from 'd3-array'
+import { scaleLinear, scalePoint } from 'd3-scale'
 import { curveLinearClosed } from 'd3-shape'
 
-const metrics = [
-  'Latency',
-  'Errors',
-  'Traffic',
-  'Saturation',
-  'Availability',
+const events = [
+  '100 Meters',
+  'Long Jump',
+  'High Jump',
+  '100 Meter Hurdles',
 ] as const
-const profile = metrics.map((metric, index) => ({
-  metric,
-  score: [74, 46, 88, 61, 93][index] ?? 0,
-}))
+type RadarEvent = (typeof events)[number]
+
+const timedEvents = new Set<RadarEvent>(['100 Meters', '100 Meter Hurdles'])
+const eventExtents = new Map(
+  events.map((event) => [event, extent(decathlon, (row) => row[event])]),
+)
+
+function radarProfile(row: DecathlonRow) {
+  return events.map((event) => {
+    const [minimum = 0, maximum = 1] = eventExtents.get(event) ?? []
+    const proportion = (row[event] - minimum) / (maximum - minimum || 1)
+    return {
+      Country: row.Country,
+      event,
+      relativePerformance:
+        (timedEvents.has(event) ? 1 - proportion : proportion) * 100,
+    }
+  })
+}
+
+const athlete = decathlon[0]
+if (!athlete) throw new Error('The decathlon snapshot is empty')
+const profile = radarProfile(athlete)
 
 const radar = defineChart({
   marks: [
     polar({
       radiusRatio: 0.72,
-      angle: { scale: scaleBand<string> },
+      angle: { scale: scalePoint<string>().domain(events), wrap: true },
       radius: { scale: scaleLinear().domain([0, 100]).nice(4) },
       guides: [
         radialGrid({ ticks: 4, shape: 'polygon', labels: false }),
@@ -260,38 +283,35 @@ const radar = defineChart({
       ],
       marks: [
         radialArea(profile, {
-          angle: 'metric',
-          radius: 'score',
+          angle: 'event',
+          radius: 'relativePerformance',
           curve: curveLinearClosed,
           fill: '#7c3aed',
           fillOpacity: 0.22,
         }),
         radialLine(profile, {
-          angle: 'metric',
-          radius: 'score',
+          angle: 'event',
+          radius: 'relativePerformance',
           curve: curveLinearClosed,
           stroke: '#8b5cf6',
           strokeWidth: 2,
         }),
         radialDot(profile, {
-          angle: 'metric',
-          radius: 'score',
-          key: 'metric',
+          angle: 'event',
+          radius: 'relativePerformance',
+          key: 'event',
           r: 3,
           fill: '#8b5cf6',
         }),
       ],
     }),
   ],
-  guides: false,
-  x: null,
-  y: null,
 })
 ```
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/75-radar/?theme=system&height=440"
-  title="Radar profile with polygon rings, spokes, labels, area, line, and points built with TanStack Charts"
+  title="Normalized decathlon radar profile with polygon guides built with TanStack Charts"
   loading="lazy"
   width="100%"
   height="440"
@@ -300,7 +320,7 @@ const radar = defineChart({
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/99-comparative-radar/?theme=system&height=440"
-  title="Comparative radar chart with two native radial series"
+  title="Normalized USA and Great Britain decathlon radar profiles"
   loading="lazy"
   width="100%"
   height="440"
@@ -313,12 +333,14 @@ and direction explicit, and do not rank profiles by apparent filled area.
 ## Numeric polar line and scatter
 
 Continuous D3 scales map numeric angle and radius values without changing the
-mark API. Repeat the first row at the angular endpoint when a line should close;
-independent scatter observations need no seam row.
+mark API. A visible transform can derive angle and radius from existing source
+measurements without renaming those measurements into chart fields.
 
 <!-- docs-example: polar-line-scatter typecheck -->
 
 ```ts
+import { weather, type WeatherRow } from '@charts-poc/demo-data/weather'
+import { wind, type WindRow } from '@charts-poc/demo-data/wind'
 import { defineChart } from '@tanstack/charts'
 import {
   angleGrid,
@@ -329,54 +351,71 @@ import {
 } from '@tanstack/charts/polar'
 import { scaleLinear } from 'd3-scale'
 
-const trajectory = [
-  { id: '0', angle: 0, radius: 52 },
-  { id: '90', angle: 90, radius: 76 },
-  { id: '180', angle: 180, radius: 43 },
-  { id: '270', angle: 270, radius: 68 },
-  { id: '360', angle: 360, radius: 52 },
-]
-const observations = [
-  { id: 'a', angle: 34, radius: 61 },
-  { id: 'b', angle: 142, radius: 82 },
-  { id: 'c', angle: 248, radius: 47 },
-]
+const seattle2012 = weather.filter(
+  (row) => row.location === 'Seattle' && row.date.getUTCFullYear() === 2012,
+)
+const latitudeBand = wind.filter((row) => row.latitude === 48.125)
 
-const numericPolar = defineChart({
+function dayOfYearAngle(row: WeatherRow) {
+  const year = row.date.getUTCFullYear()
+  const start = Date.UTC(year, 0, 1)
+  const end = Date.UTC(year + 1, 0, 1)
+  return ((row.date.getTime() - start) / (end - start)) * 360
+}
+
+function windDirection(row: WindRow) {
+  return (Math.atan2(row.v, row.u) * (180 / Math.PI) + 360) % 360
+}
+
+function windSpeed(row: WindRow) {
+  return Math.hypot(row.u, row.v)
+}
+
+const polarLineChart = defineChart({
   marks: [
     polar({
       angle: { scale: scaleLinear().domain([0, 360]) },
-      radius: { scale: scaleLinear().domain([0, 100]) },
+      radius: { scale: scaleLinear().domain([-10, 40]) },
       guides: [
-        radialGrid({ values: [25, 50, 75, 100] }),
+        radialGrid({ values: [0, 10, 20, 30, 40] }),
         angleGrid({ values: [0, 90, 180, 270], labels: false }),
       ],
       marks: [
-        radialLine(trajectory, {
-          angle: 'angle',
-          radius: 'radius',
-          key: 'id',
+        radialLine(seattle2012, {
+          angle: dayOfYearAngle,
+          radius: 'temp_max',
           stroke: '#0f766e',
         }),
-        radialDot(observations, {
-          angle: 'angle',
-          radius: 'radius',
-          key: 'id',
+      ],
+    }),
+  ],
+})
+
+const polarScatterChart = defineChart({
+  marks: [
+    polar({
+      angle: { scale: scaleLinear().domain([0, 360]) },
+      radius: { scale: scaleLinear().domain([0, 13]) },
+      guides: [
+        radialGrid({ values: [3, 6, 9, 12] }),
+        angleGrid({ values: [0, 90, 180, 270], labels: false }),
+      ],
+      marks: [
+        radialDot(latitudeBand, {
+          angle: windDirection,
+          radius: windSpeed,
           r: 4.5,
           fill: '#e11d48',
         }),
       ],
     }),
   ],
-  guides: false,
-  x: null,
-  y: null,
 })
 ```
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/106-polar-line/?theme=system&height=420"
-  title="Continuous numeric polar line chart"
+  title="Seattle daily high temperatures through 2012 on a polar line"
   loading="lazy"
   width="100%"
   height="420"
@@ -385,7 +424,7 @@ const numericPolar = defineChart({
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/107-polar-scatter/?theme=system&height=420"
-  title="Continuous numeric polar scatter chart"
+  title="Surface wind observations by derived direction and speed"
   loading="lazy"
   width="100%"
   height="420"
@@ -399,7 +438,7 @@ sectors, concentric radial bars, and hierarchy rings remain one primitive.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/97-rose/?theme=system&height=420"
-  title="Polar area rose chart with equal angles and variable radii"
+  title="English letter-frequency rose with equal angles and variable radii"
   loading="lazy"
   width="100%"
   height="420"
@@ -408,7 +447,7 @@ sectors, concentric radial bars, and hierarchy rings remain one primitive.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/100-radial-bars/?theme=system&height=420"
-  title="Concentric radial bar chart"
+  title="Concentric English letter-frequency radial bars"
   loading="lazy"
   width="100%"
   height="420"
@@ -417,7 +456,7 @@ sectors, concentric radial bars, and hierarchy rings remain one primitive.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/101-sunburst/?theme=system&height=440"
-  title="D3 hierarchy sunburst rendered with native radial arcs"
+  title="Flare analytics hierarchy sunburst rendered with native radial arcs"
   loading="lazy"
   width="100%"
   height="440"
@@ -429,7 +468,7 @@ sectors, concentric radial bars, and hierarchy rings remain one primitive.
 `polar()` is a positionless container mark. It resolves one center and radius,
 copies configured angle/radius scales, paints guide backgrounds, child marks,
 then guide foreground labels, and emits ordinary scene nodes and focus points.
-The outer chart therefore uses `x: null`, `y: null`, and `guides: false`.
+The outer chart therefore omits both Cartesian axes.
 
 The polar entry uses D3 arc and radial path generators internally. Application
 source imports `pie`, configured scales, and curve factories directly from

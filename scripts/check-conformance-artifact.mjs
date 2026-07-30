@@ -2,11 +2,16 @@ import { createHash } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { loadCatalogSourceClosure } from '../benchmarks/conformance/catalog-loader.ts'
 import {
   catalogArtifactFileSizeLimit,
   expectedCatalogImplementationCounts,
   validateCatalogArtifactManifest,
 } from './catalog-artifact.mjs'
+import {
+  catalogSourceClosureMetadata,
+  createCatalogSourceModules,
+} from './catalog-source-files.mjs'
 
 const rootDirectory = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -22,6 +27,9 @@ if (Buffer.byteLength(catalogSource) > catalogArtifactFileSizeLimit) {
 
 const catalog = JSON.parse(catalogSource)
 const summary = validateCatalogArtifactManifest(catalog)
+const sourceModules = await createCatalogSourceModules(
+  path.join(rootDirectory, 'benchmarks', 'conformance'),
+)
 assert(
   summary.caseCount === expectedCatalogImplementationCounts.tanstack,
   `expected ${expectedCatalogImplementationCounts.tanstack} cases, got ${summary.caseCount}`,
@@ -57,13 +65,49 @@ for (const [assetPath, expected] of Object.entries(catalog.assets)) {
 for (const entry of catalog.cases) {
   for (const sourcePath of Object.values(entry.code)) {
     const sourceFile = path.join(rootDirectory, ...sourcePath.split('/'))
-    const stats = await fs.stat(sourceFile)
-    assert(stats.isFile(), `${sourcePath} is not a source file`)
+    const stats = await fs.lstat(sourceFile)
+    assert(
+      stats.isFile() && !stats.isSymbolicLink(),
+      `${sourcePath} is not a regular source file`,
+    )
   }
+  for (const authoredSource of Object.values(entry.authoredSource)) {
+    for (const role of Object.values(authoredSource.roles)) {
+      for (const sourcePath of role.paths) {
+        const sourceFile = path.join(
+          rootDirectory,
+          'benchmarks',
+          'conformance',
+          ...sourcePath.split('/'),
+        )
+        const stats = await fs.lstat(sourceFile)
+        assert(
+          stats.isFile() && !stats.isSymbolicLink(),
+          `${sourcePath} is not a regular authored source file`,
+        )
+      }
+    }
+  }
+  const expectedTanStackSource = await sourceMetadataForRepositoryPath(
+    entry.code.tanstack,
+  )
+  const expectedReferenceSource = await sourceMetadataForRepositoryPath(
+    entry.code.reference,
+  )
+  assert(
+    JSON.stringify(entry.authoredSource.tanstack) ===
+      JSON.stringify(expectedTanStackSource),
+    `${entry.id} TanStack authored source does not match the repository`,
+  )
+  assert(
+    JSON.stringify(entry.authoredSource.reference) ===
+      JSON.stringify(expectedReferenceSource),
+    `${entry.id} reference authored source does not match the repository`,
+  )
 }
 
 console.log(
-  `Verified schema v2 catalog artifact: ${summary.caseCount} cases, ${summary.assetCount} allowlisted modules, ${formatBytes(summary.assetBytes)}, revision ${catalog.revision}.`,
+  `Verified schema v${catalog.schemaVersion} catalog artifact: ${summary.caseCount} cases, ${summary.assetCount} allowlisted modules, ${formatBytes(summary.assetBytes)}, revision ${catalog.revision}.`,
 )
 
 async function listArtifactFiles(directory) {
@@ -108,6 +152,19 @@ function assertSetEqual(actual, expected, label) {
 
 function formatBytes(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(2)} MiB`
+}
+
+async function sourceMetadataForRepositoryPath(repositoryPath) {
+  const prefix = 'benchmarks/conformance/'
+  assert(
+    repositoryPath.startsWith(prefix),
+    `${repositoryPath} is outside conformance source`,
+  )
+  const entryPath = `./${repositoryPath.slice(prefix.length)}`
+  return catalogSourceClosureMetadata(
+    await loadCatalogSourceClosure(sourceModules, entryPath),
+    entryPath,
+  )
 }
 
 function assert(condition, message) {

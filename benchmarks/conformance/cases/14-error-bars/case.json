@@ -4,7 +4,7 @@
   "id": "14-error-bars",
   "title": "Point estimates with error bars",
   "family": "uncertainty",
-  "intent": "Compare categorical point estimates while preserving explicit low and high uncertainty bounds.",
+  "intent": "Compare mean penguin body mass by species with one-standard-deviation uncertainty bounds.",
   "support": "native",
   "features": [
     "link mark",
@@ -16,18 +16,18 @@
   "geometry": [
     {
       "role": "link",
-      "count": 8,
+      "count": 3,
       "rendererRoles": { "observable-plot": "rule", "tanstack": "link" }
     },
-    { "role": "tick", "count": 16 },
-    { "role": "dot", "count": 8 }
+    { "role": "tick", "count": 6 },
+    { "role": "dot", "count": 3 }
   ],
   "source": {
     "title": "Observable Plot rule and tick marks",
     "url": "https://observablehq.com/plot/features/marks"
   },
   "ai": {
-    "create": "Create a responsive point-estimate chart from {category, mean, low, high} rows with a vertical interval, two horizontal caps, and a mean dot.",
-    "maintain": "Change the uncertainty calculation while retaining typed endpoint channels, one interval per category, and automatic categorical spacing."
+    "create": "Create a responsive point-estimate chart from the penguins sample data, grouping body_mass_g by species and showing the mean plus or minus one standard deviation.",
+    "maintain": "Change the uncertainty calculation while retaining the imported observations, typed endpoint channels, and automatic species spacing."
   }
 }

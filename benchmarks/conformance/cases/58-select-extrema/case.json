@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 580,
   "id": "58-select-extrema",
-  "title": "Annotated time-series extrema",
+  "title": "Annotated AAPL extrema",
   "family": "trend",
-  "intent": "Show a temporal trend while calling out the exact minimum and maximum observations.",
+  "intent": "Show Apple closing prices while calling out the exact minimum and maximum observations.",
   "support": "composed",
   "features": [
     "time-series line",
@@ -24,7 +24,7 @@
     "url": "https://observablehq.com/plot/transforms/select"
   },
   "ai": {
-    "create": "Create a UTC time-series line and annotate its minimum and maximum observations without preselecting the Plot data.",
-    "maintain": "Change the observations while preserving unique extrema selection, stable point keys, explicit domains, and labels that stay inside the plot."
+    "create": "Create a UTC time-series line from the AAPL dataset and annotate its minimum and maximum closing prices without preselecting the Plot data.",
+    "maintain": "Change the selected date window while preserving the original Date and Close fields, unique extrema selection, stable point keys, inferred extents, and labels that stay inside the plot."
   }
 }

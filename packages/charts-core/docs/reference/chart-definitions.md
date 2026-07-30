@@ -37,7 +37,7 @@ Use a static definition when its data and visual options are already known:
 
 ```ts
 const definition = defineChart({
-  marks: [lineY(rows, { x: 'date', y: 'value', key: 'id' })],
+  marks: [lineY(rows, { x: 'date', y: 'value' })],
   x: { scale: scaleUtc },
   y: { scale: scaleLinear, nice: true, grid: true },
   focus: 'group-x',
@@ -57,7 +57,7 @@ surface:
 const definition = defineChart({
   animate: true,
   chart: ({ width }) => ({
-    marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
+    marks: [barY(rows, { x: 'category', y: 'value' })],
     x: { scale: scaleBand },
     y: {
       scale: scaleLinear,
@@ -105,7 +105,7 @@ const definition = useMemo(() => {
   const ranked = rankRows(rows, metric)
 
   return defineChart(({ width }) => ({
-    marks: [barX(ranked, { x: 'value', y: 'label', key: 'id' })],
+    marks: [barX(ranked, { x: 'value', y: 'label' })],
     x: {
       scale: scaleLinear,
       nice: true,

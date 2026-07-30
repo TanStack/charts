@@ -251,6 +251,7 @@ export interface RadialArcOptions<TDatum> {
   padAngle?: Channel<TDatum, number | null | undefined>
   key?: Channel<TDatum, ChartKey>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   innerRadius?: PolarLength
   outerRadius?: PolarLength
   cornerRadius?: PolarLength
@@ -289,11 +290,15 @@ export function radialArc<TDatum>(
       (datum) => numberProperty(datum, 'padAngle') ?? 0,
     )
     const groups = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? groups
+        : channelValues(data, options.color, () => null)
     const keys = inferredKeyValues(data, options.key, { groups })
 
     return {
       id,
-      colorValues: groups.filter(isChartKey),
+      colorValues: colorValues.filter(isChartKey),
       angleValues: [],
       radiusValues: [],
       includeZeroRadius: false,
@@ -336,7 +341,7 @@ export function radialArc<TDatum>(
           const path = generator(datum, datumIndex, data)
           if (typeof path !== 'string' || !path) return
           const group = groups[datumIndex] ?? null
-          const fallback = resolveColor(group)
+          const fallback = resolveColor(colorValues[datumIndex] ?? null)
           const fill = visualValue(
             options.fill,
             datum,
@@ -419,6 +424,7 @@ interface RadialPathOptions<TDatum> {
   radius?: number | Channel<TDatum, number | null | undefined>
   key?: Channel<TDatum, ChartKey>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
 }
 
 export interface RadialLineOptions<TDatum> extends RadialPathOptions<TDatum> {
@@ -462,16 +468,25 @@ export function radialLine<TDatum>(
         : channelValues(data, options.radius, (datum) =>
             typeof datum === 'number' ? datum : undefined,
           )
-    const groups = channelValues(data, options.z, () => null)
+    const zValues = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
+    const groups =
+      options.z === undefined && options.color !== undefined
+        ? colorValues
+        : zValues
     const keys = inferredKeyValues(data, options.key, {
       groups,
       candidates: [angleValues],
       markId: id,
+      warningIdentity: options,
     })
 
     return {
       id,
-      colorValues: groups.filter(isChartKey),
+      colorValues: colorValues.filter(isChartKey),
       angleValues: angleValues.filter(isChartValue),
       radiusValues: radiusValues.filter(isChartValue),
       includeZeroRadius: false,
@@ -491,7 +506,7 @@ export function radialLine<TDatum>(
             data[firstIndex],
             firstIndex,
             data,
-            resolveColor(group),
+            resolveColor(colorValues[firstIndex] ?? null),
           )
           const rows = indices.map((datumIndex) => ({
             datumIndex,
@@ -629,16 +644,25 @@ export function radialArea<TDatum>(
       typeof options.radius1 === 'number'
         ? data.map(() => options.radius1 as number)
         : channelValues(data, options.radius1, () => 0)
-    const groups = channelValues(data, options.z, () => null)
+    const zValues = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
+    const groups =
+      options.z === undefined && options.color !== undefined
+        ? colorValues
+        : zValues
     const keys = inferredKeyValues(data, options.key, {
       groups,
       candidates: [angleValues],
       markId: id,
+      warningIdentity: options,
     })
 
     return {
       id,
-      colorValues: groups.filter(isChartKey),
+      colorValues: colorValues.filter(isChartKey),
       angleValues: angleValues.filter(isChartValue),
       radiusValues: [
         ...radiusValues.filter(isChartValue),
@@ -657,7 +681,7 @@ export function radialArea<TDatum>(
           if (firstIndex === undefined) continue
           const datum = data[firstIndex]
           const group = groups[firstIndex] ?? null
-          const fallback = resolveColor(group)
+          const fallback = resolveColor(colorValues[firstIndex] ?? null)
           const fill = visualValue(
             options.fill,
             datum,
@@ -808,11 +832,15 @@ export function radialText<TDatum>(
       datum == null ? '' : String(datum),
     )
     const groups = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? groups
+        : channelValues(data, options.color, () => null)
     const keys = inferredKeyValues(data, options.key, { groups })
 
     return {
       id,
-      colorValues: groups.filter(isChartKey),
+      colorValues: colorValues.filter(isChartKey),
       angleValues: angleValues.filter(isChartValue),
       radiusValues: radiusValues.filter(isChartValue),
       includeZeroRadius: false,
@@ -842,12 +870,13 @@ export function radialText<TDatum>(
           const x = baseX + visualValue(options.dx, datum, datumIndex, data, 0)
           const y = baseY + visualValue(options.dy, datum, datumIndex, data, 0)
           const group = groups[datumIndex] ?? null
+          const colorValue = colorValues[datumIndex] ?? null
           const fill = visualValue(
             options.fill,
             datum,
             datumIndex,
             data,
-            group == null ? theme.foreground : resolveColor(group),
+            colorValue == null ? theme.foreground : resolveColor(colorValue),
           )
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           nodes.push({
@@ -920,6 +949,7 @@ export interface RadialRuleOptions<TDatum> {
   radius2?: number | Channel<TDatum, number | null | undefined>
   key?: Channel<TDatum, ChartKey>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   stroke?: VisualChannel<TDatum, string>
   strokeOpacity?: number
   strokeWidth?: number
@@ -965,15 +995,20 @@ export function radialRule<TDatum>(
               : numberProperty(datum, 'radius2'),
           )
     const groups = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? groups
+        : channelValues(data, options.color, () => null)
     const keys = inferredKeyValues(data, options.key, {
       groups,
       candidates: [angleValues],
       markId: id,
+      warningIdentity: options,
     })
 
     return {
       id,
-      colorValues: groups.filter(isChartKey),
+      colorValues: colorValues.filter(isChartKey),
       angleValues: angleValues.filter(isChartValue),
       radiusValues: [
         ...radius1Values.filter(isChartValue),
@@ -1006,12 +1041,13 @@ export function radialRule<TDatum>(
           const [x1, y1] = pointRadial(anglePosition, radius1Position)
           const [x2, y2] = pointRadial(anglePosition, radius2Position)
           const group = groups[datumIndex] ?? null
+          const colorValue = colorValues[datumIndex] ?? null
           const stroke = visualValue(
             options.stroke,
             datum,
             datumIndex,
             data,
-            group == null ? theme.foreground : resolveColor(group),
+            colorValue == null ? theme.foreground : resolveColor(colorValue),
           )
           nodes.push({
             kind: 'rule',
@@ -1081,6 +1117,10 @@ export function radialDot<TDatum>(
             typeof datum === 'number' ? datum : undefined,
           )
     const groups = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? groups
+        : channelValues(data, options.color, () => null)
     const keys = inferredKeyValues(data, options.key, { groups })
     const rawRadii =
       typeof options.r === 'number'
@@ -1095,7 +1135,7 @@ export function radialDot<TDatum>(
 
     return {
       id,
-      colorValues: groups.filter(isChartKey),
+      colorValues: colorValues.filter(isChartKey),
       angleValues: angleValues.filter(isChartValue),
       radiusValues: radiusValues.filter(isChartValue),
       includeZeroRadius: false,
@@ -1128,7 +1168,7 @@ export function radialDot<TDatum>(
             datum,
             datumIndex,
             data,
-            resolveColor(group),
+            resolveColor(colorValues[datumIndex] ?? null),
           )
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           nodes.push({

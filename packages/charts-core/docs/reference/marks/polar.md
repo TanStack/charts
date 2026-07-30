@@ -62,8 +62,7 @@ and `bandwidth`. A `PolarLength` is either a pixel length or a callback of the
 layout context. Use a callback for radii that must remain proportional during
 resize.
 
-The outer chart uses `x: null` and `y: null`; `guides: false` makes the
-coordinate boundary explicit. Cartesian axes do not participate in the
+The outer chart omits `x` and `y`. Cartesian axes do not participate in the
 internal polar scales.
 
 ## `radialArc`
@@ -77,26 +76,27 @@ function radialArc<TDatum>(
 
 `radialArc` renders one D3 arc per valid interval.
 
-| Option            | Meaning                                                          |
-| ----------------- | ---------------------------------------------------------------- |
-| `id`, `className` | Stable layer ID and optional class                               |
-| `startAngle`      | Start-angle channel; defaults to datum `startAngle`              |
-| `endAngle`        | End-angle channel; defaults to datum `endAngle`                  |
-| `padAngle`        | Padding-angle channel; defaults to datum `padAngle`, then zero   |
-| `innerRadius`     | `PolarLength`; defaults to zero                                  |
-| `outerRadius`     | `PolarLength`; defaults to the layout radius                     |
-| `cornerRadius`    | D3 arc corner radius as a `PolarLength`                          |
-| `padRadius`       | Explicit D3 arc padding radius as a `PolarLength`                |
-| `generator`       | Responsive D3 arc factory for advanced per-datum geometry        |
-| `key`             | Stable arc identity; defaults to a unique datum `id`, then index |
-| `z`               | Color group and interaction group                                |
-| `fill`            | Constant or datum-derived fill                                   |
-| `fillOpacity`     | Fill opacity                                                     |
-| `stroke`          | Constant or datum-derived boundary stroke                        |
-| `strokeOpacity`   | Boundary opacity                                                 |
-| `strokeWidth`     | Boundary width                                                   |
-| `strokeDasharray` | Boundary dash array                                              |
-| `opacity`         | Whole-arc opacity                                                |
+| Option            | Meaning                                                        |
+| ----------------- | -------------------------------------------------------------- |
+| `id`, `className` | Stable layer ID and optional class                             |
+| `startAngle`      | Start-angle channel; defaults to datum `startAngle`            |
+| `endAngle`        | End-angle channel; defaults to datum `endAngle`                |
+| `padAngle`        | Padding-angle channel; defaults to datum `padAngle`, then zero |
+| `innerRadius`     | `PolarLength`; defaults to zero                                |
+| `outerRadius`     | `PolarLength`; defaults to the layout radius                   |
+| `cornerRadius`    | D3 arc corner radius as a `PolarLength`                        |
+| `padRadius`       | Explicit D3 arc padding radius as a `PolarLength`              |
+| `generator`       | Responsive D3 arc factory for advanced per-datum geometry      |
+| `key`             | Stable arc identity; defaults to top/nested `id`, then index   |
+| `z`               | Geometry and interaction group                                 |
+| `color`           | Color-scale value; defaults to `z`                             |
+| `fill`            | Final constant or datum-derived paint override                 |
+| `fillOpacity`     | Fill opacity                                                   |
+| `stroke`          | Constant or datum-derived boundary stroke                      |
+| `strokeOpacity`   | Boundary opacity                                               |
+| `strokeWidth`     | Boundary width                                                 |
+| `strokeDasharray` | Boundary dash array                                            |
+| `opacity`         | Whole-arc opacity                                              |
 
 Use `d3-shape`'s `pie` output directly: its `startAngle`, `endAngle`, and
 `padAngle` fields are already the channels this mark needs. A pie, donut, and
@@ -108,7 +108,6 @@ original datum. Use it for per-datum rings such as a sunburst:
 
 ```ts
 radialArc(nodes, {
-  key: (node) => node.id,
   generator: ({ radius }) =>
     arc<SunburstNode>()
       .startAngle((node) => node.x0)
@@ -135,18 +134,21 @@ function radialArea<TDatum>(
 ```
 
 Both marks use `angle` and `radius` channels and accept `id`, `className`,
-`key`, `z`, and a D3 curve factory. The channels default to row index and a
-numeric datum. `radialLine` accepts stroke, dash, opacity, and optional
-`points` styling. `radialArea` accepts fill and stroke styling plus `radius1`
-for an explicit inner scale value; `radius1` defaults to zero.
+`key`, `z`, `color`, and a D3 curve factory. The channels default to row index
+and a numeric datum. `color` contributes to the chart color scale and defaults
+to `z`. When `z` is omitted, an authored `color` also partitions the paths.
+When both are present, `z` remains the explicit geometry and interaction
+group. `radialLine` accepts final stroke, dash, opacity, and optional `points`
+styling. `radialArea` accepts final fill and stroke styling plus `radius1` for
+an explicit inner scale value; `radius1` defaults to zero.
 
-Their datum key defaults to a unique datum `id`, then a unique angle within
-each `z` group, then row index.
+Their datum key defaults to a unique top-level or nested `data.id`, then a
+unique angle within each effective path group, then row index.
 
 Input order is path order. Use a closed D3 curve such as
-`curveLinearClosed` for radar polygons. Grouping through `z` creates one path
-per group. `radialArea` can carry its own stroke; layer a closed `radialLine`
-only when the outline needs independent styling.
+`curveLinearClosed` for radar polygons. An explicit `z`, or `color` when `z`
+is absent, creates one path per group. `radialArea` can carry its own stroke;
+layer a closed `radialLine` only when the outline needs independent styling.
 
 ## `radialDot`
 
@@ -158,10 +160,10 @@ function radialDot<TDatum>(
 ```
 
 `radialDot` uses the same angle/radius channel defaults. It also accepts `id`,
-`className`, `key`, `z`, `r`, `rScale`, fill, stroke, and opacity styling.
+`className`, `key`, `z`, `color`, `r`, `rScale`, fill, stroke, and opacity styling.
 Radius defaults to 3.5 pixels. Each valid datum emits one interaction point
 with its original angle/radius values and projected screen position. Its key
-defaults to a unique datum `id`, then row index.
+defaults to a unique top-level or nested `data.id`, then row index.
 
 ## `radialText`
 
@@ -174,10 +176,10 @@ function radialText<TDatum>(
 
 `radialText` maps `angle` and `radius` channels through the container's copied
 polar scales, then positions labels with D3's radial point projection. It
-accepts `text`, `key`, `z`, fill, font size and weight, anchor, baseline,
+accepts `text`, `key`, `z`, `color`, fill, font size and weight, anchor, baseline,
 rotation, and pixel `dx`/`dy`. Use it for arc labels, donut-center values, and
 gauge readouts without leaving the polar coordinate system. Its key defaults
-to a unique datum `id`, then row index.
+to a unique top-level or nested `data.id`, then row index.
 
 ## `radialRule`
 
@@ -190,10 +192,10 @@ function radialRule<TDatum>(
 
 `radialRule` emits one radial segment per datum. `angle`, `radius1`, and
 `radius2` are scale values; `radius1` defaults to zero. The mark also accepts
-`key`, `z`, stroke, opacity, width, and dash styling. It covers gauge needles,
+`key`, `z`, `color`, stroke, opacity, width, and dash styling. It covers gauge needles,
 ticks, and pie-label leaders without expanding one logical segment into two
-path rows. Its key defaults to a unique datum `id`, then a unique angle within
-each `z` group, then row index.
+path rows. Its key defaults to a unique top-level or nested `data.id`, then a
+unique angle within each `z` group, then row index.
 
 ## `radialGrid` and `angleGrid`
 

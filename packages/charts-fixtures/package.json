@@ -11,6 +11,7 @@
     "./styles.css": "./src/styles.css"
   },
   "dependencies": {
+    "@charts-poc/demo-data": "workspace:*",
     "@tanstack/charts": "workspace:*",
     "d3-array": "3.2.4",
     "d3-scale": "4.0.2",

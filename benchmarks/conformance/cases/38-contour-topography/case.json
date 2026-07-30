@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 380,
   "id": "38-contour-topography",
-  "title": "Filled topographic contours",
+  "title": "Filled wind-speed contours",
   "family": "spatial",
-  "intent": "Show nested level sets from a regularly sampled scalar field.",
+  "intent": "Show nested wind-speed level sets from Observable Plot's real gridded u and v observations.",
   "support": "composed",
   "features": [
     "contour mark",
@@ -19,7 +19,7 @@
     "url": "https://observablehq.com/plot/marks/contour"
   },
   "ai": {
-    "create": "Create five filled topographic contours from a typed regular grid. Plot should use contour; TanStack should inject d3-contour and render the returned GeoJSON paths through a local custom mark.",
-    "maintain": "Keep the threshold sequence, grid dimensions, vertical orientation, and literal contour palette aligned across both implementations without importing spatial code into the chart core."
+    "create": "Create five filled contours from the magnitude of Observable Plot's gridded u and v wind observations. Plot should use contour; TanStack should inject d3-contour and render the returned GeoJSON paths through a local custom mark.",
+    "maintain": "Change the selected longitude window while keeping the threshold sequence, source grid dimensions, vertical orientation, and literal contour palette aligned across both implementations."
   }
 }

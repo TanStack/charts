@@ -43,15 +43,16 @@ function ruleY<TDatum>(
 
 Options are orientation-specific:
 
-| Option            | Type                           | Default                               | Meaning          |
-| ----------------- | ------------------------------ | ------------------------------------- | ---------------- |
-| `id`              | `string`                       | Layer-derived                         | Stable mark ID   |
-| `x`               | `Channel<TDatum, ChartValue?>` | Datum itself when it is a chart value | `ruleX` position |
-| `y`               | `Channel<TDatum, ChartValue?>` | Datum itself when it is a chart value | `ruleY` position |
-| `stroke`          | `string`                       | Theme foreground                      | Constant stroke  |
-| `strokeOpacity`   | `number`                       | `0.5`                                 | Stroke opacity   |
-| `strokeWidth`     | `number`                       | SVG default                           | Stroke width     |
-| `strokeDasharray` | `string`                       | None                                  | SVG dash array   |
+| Option            | Type                            | Default                               | Meaning                             |
+| ----------------- | ------------------------------- | ------------------------------------- | ----------------------------------- |
+| `id`              | `string`                        | Layer-derived                         | Stable mark ID                      |
+| `x`               | `Channel<TDatum, ChartValue?>`  | Datum itself when it is a chart value | `ruleX` position                    |
+| `y`               | `Channel<TDatum, ChartValue?>`  | Datum itself when it is a chart value | `ruleY` position                    |
+| `color`           | `Channel<TDatum, ChartKey?>`    | No value                              | Value sent to the chart color scale |
+| `stroke`          | `VisualChannel<TDatum, string>` | Resolved color or theme foreground    | Final rule paint override           |
+| `strokeOpacity`   | `number`                        | `0.5`                                 | Stroke opacity                      |
+| `strokeWidth`     | `number`                        | SVG default                           | Stroke width                        |
+| `strokeDasharray` | `string`                        | None                                  | SVG dash array                      |
 
 Rules emit no interaction points and therefore do not participate in native
 focus or tooltips. Their datum type is intentionally absent from the chart's
@@ -70,7 +71,6 @@ link(edges, {
   x2: 'targetX',
   y2: 'targetY',
   z: 'kind',
-  key: 'id',
 })
 ```
 
@@ -81,18 +81,19 @@ function link<TDatum>(
 ): ChartMark<TDatum, InferredEndpointX, InferredEndpointY>
 ```
 
-| Option            | Type                            | Default                 | Meaning                                    |
-| ----------------- | ------------------------------- | ----------------------- | ------------------------------------------ |
-| `id`              | `string`                        | Layer-derived           | Stable mark ID                             |
-| `x1`, `y1`        | required channels               | —                       | First endpoint                             |
-| `x2`, `y2`        | required channels               | —                       | Second endpoint                            |
-| `z`               | `Channel<TDatum, ChartKey?>`    | No group                | Interaction group and default stroke color |
-| `key`             | `Channel<TDatum, ChartKey>`     | Unique `id`, then index | Stable identity                            |
-| `stroke`          | `VisualChannel<TDatum, string>` | Resolved `z` color      | Segment stroke                             |
-| `strokeOpacity`   | `number`                        | SVG default             | Stroke opacity                             |
-| `strokeWidth`     | `number`                        | `1.5`                   | Stroke width                               |
-| `strokeDasharray` | `string`                        | None                    | SVG dash array                             |
-| `curve`           | `ChartCurve`                    | Straight rule           | Optional path generator                    |
+| Option            | Type                            | Default                | Meaning                             |
+| ----------------- | ------------------------------- | ---------------------- | ----------------------------------- |
+| `id`              | `string`                        | Layer-derived          | Stable mark ID                      |
+| `x1`, `y1`        | required channels               | —                      | First endpoint                      |
+| `x2`, `y2`        | required channels               | —                      | Second endpoint                     |
+| `z`               | `Channel<TDatum, ChartKey?>`    | No group               | Interaction group                   |
+| `color`           | `Channel<TDatum, ChartKey?>`    | `z`                    | Value sent to the chart color scale |
+| `key`             | `Channel<TDatum, ChartKey>`     | Top/nested `id`, index | Stable identity                     |
+| `stroke`          | `VisualChannel<TDatum, string>` | Resolved color         | Final segment paint override        |
+| `strokeOpacity`   | `number`                        | SVG default            | Stroke opacity                      |
+| `strokeWidth`     | `number`                        | `1.5`                  | Stroke width                        |
+| `strokeDasharray` | `string`                        | None                   | SVG dash array                      |
+| `curve`           | `ChartCurve`                    | Straight rule          | Optional path generator             |
 
 With no curve, the scene contains a rule. With a curve, it contains a
 two-point polyline with the generated path. The interaction coordinate is the
@@ -124,18 +125,19 @@ function arrow<TDatum>(
 ): ChartMark<TDatum, InferredEndpointX, InferredEndpointY>
 ```
 
-| Option          | Type                            | Default                 | Meaning                                         |
-| --------------- | ------------------------------- | ----------------------- | ----------------------------------------------- |
-| `id`            | `string`                        | Layer-derived           | Stable mark ID                                  |
-| `x1`, `y1`      | required channels               | —                       | Tail endpoint                                   |
-| `x2`, `y2`      | required channels               | —                       | Head endpoint                                   |
-| `z`             | `Channel<TDatum, ChartKey?>`    | No group                | Interaction group and default stroke            |
-| `key`           | `Channel<TDatum, ChartKey>`     | Unique `id`, then index | Stable identity                                 |
-| `stroke`        | `VisualChannel<TDatum, string>` | Resolved `z` color      | Arrow stroke                                    |
-| `strokeOpacity` | `number`                        | SVG default             | Stroke opacity                                  |
-| `strokeWidth`   | `number`                        | `1.5`                   | Stroke width                                    |
-| `headLength`    | `number`                        | `8`                     | Head length in pixels, clamped to at least zero |
-| `headAngle`     | `number`                        | `30`                    | Half-angle in degrees                           |
+| Option          | Type                            | Default                | Meaning                                         |
+| --------------- | ------------------------------- | ---------------------- | ----------------------------------------------- |
+| `id`            | `string`                        | Layer-derived          | Stable mark ID                                  |
+| `x1`, `y1`      | required channels               | —                      | Tail endpoint                                   |
+| `x2`, `y2`      | required channels               | —                      | Head endpoint                                   |
+| `z`             | `Channel<TDatum, ChartKey?>`    | No group               | Interaction group                               |
+| `color`         | `Channel<TDatum, ChartKey?>`    | `z`                    | Value sent to the chart color scale             |
+| `key`           | `Channel<TDatum, ChartKey>`     | Top/nested `id`, index | Stable identity                                 |
+| `stroke`        | `VisualChannel<TDatum, string>` | Resolved color         | Final arrow paint override                      |
+| `strokeOpacity` | `number`                        | SVG default            | Stroke opacity                                  |
+| `strokeWidth`   | `number`                        | `1.5`                  | Stroke width                                    |
+| `headLength`    | `number`                        | `8`                    | Head length in pixels, clamped to at least zero |
+| `headAngle`     | `number`                        | `30`                   | Half-angle in degrees                           |
 
 The arrowhead stays the same pixel size as scales and container dimensions
 change. The interaction coordinate and semantic x/y values are the head
@@ -163,20 +165,21 @@ function vector<TDatum>(
 ): ChartMark<TDatum, InferredX, InferredY>
 ```
 
-| Option          | Type                                 | Default                 | Meaning                                         |
-| --------------- | ------------------------------------ | ----------------------- | ----------------------------------------------- |
-| `id`            | `string`                             | Layer-derived           | Stable mark ID                                  |
-| `x`, `y`        | required channels                    | —                       | Scaled anchor                                   |
-| `length`        | `number \| Channel<TDatum, number?>` | `12`                    | Vector length in pixels                         |
-| `rotate`        | `number \| Channel<TDatum, number?>` | `0`                     | Clockwise degrees; zero points up               |
-| `anchor`        | `'start' \| 'middle' \| 'end'`       | `'middle'`              | Which vector position stays at x/y              |
-| `z`             | `Channel<TDatum, ChartKey?>`         | No group                | Interaction group and default stroke            |
-| `key`           | `Channel<TDatum, ChartKey>`          | Unique `id`, then index | Stable identity                                 |
-| `stroke`        | `VisualChannel<TDatum, string>`      | Resolved `z` color      | Stroke                                          |
-| `strokeOpacity` | `number`                             | SVG default             | Stroke opacity                                  |
-| `strokeWidth`   | `number`                             | `1.5`                   | Stroke width                                    |
-| `headLength`    | `number`                             | `5`                     | Head length in pixels, clamped to at least zero |
-| `headAngle`     | `number`                             | `30`                    | Head half-angle in degrees                      |
+| Option          | Type                                 | Default                | Meaning                                         |
+| --------------- | ------------------------------------ | ---------------------- | ----------------------------------------------- |
+| `id`            | `string`                             | Layer-derived          | Stable mark ID                                  |
+| `x`, `y`        | required channels                    | —                      | Scaled anchor                                   |
+| `length`        | `number \| Channel<TDatum, number?>` | `12`                   | Vector length in pixels                         |
+| `rotate`        | `number \| Channel<TDatum, number?>` | `0`                    | Clockwise degrees; zero points up               |
+| `anchor`        | `'start' \| 'middle' \| 'end'`       | `'middle'`             | Which vector position stays at x/y              |
+| `z`             | `Channel<TDatum, ChartKey?>`         | No group               | Interaction group                               |
+| `color`         | `Channel<TDatum, ChartKey?>`         | `z`                    | Value sent to the chart color scale             |
+| `key`           | `Channel<TDatum, ChartKey>`          | Top/nested `id`, index | Stable identity                                 |
+| `stroke`        | `VisualChannel<TDatum, string>`      | Resolved color         | Final stroke override                           |
+| `strokeOpacity` | `number`                             | SVG default            | Stroke opacity                                  |
+| `strokeWidth`   | `number`                             | `1.5`                  | Stroke width                                    |
+| `headLength`    | `number`                             | `5`                    | Head length in pixels, clamped to at least zero |
+| `headAngle`     | `number`                             | `30`                   | Head half-angle in degrees                      |
 
 Length and rotation must be finite. Negative length reverses the body direction
 while preserving the rotation convention. The interaction point remains the
@@ -208,17 +211,18 @@ function tickY<TDatum>(
 
 Both share:
 
-| Option          | Type                            | Default                                      | Meaning                              |
-| --------------- | ------------------------------- | -------------------------------------------- | ------------------------------------ |
-| `id`            | `string`                        | Layer-derived                                | Stable mark ID                       |
-| `x`, `y`        | required channels               | —                                            | Tick center                          |
-| `z`             | `Channel<TDatum, ChartKey?>`    | No group                                     | Interaction group and default stroke |
-| `key`           | `Channel<TDatum, ChartKey>`     | Unique `id`, then index                      | Stable identity                      |
-| `stroke`        | `VisualChannel<TDatum, string>` | Resolved `z` color                           | Tick stroke                          |
-| `strokeOpacity` | `number`                        | SVG default                                  | Stroke opacity                       |
-| `strokeWidth`   | `number`                        | `1.5`                                        | Stroke width                         |
-| `length`        | `number`                        | Perpendicular scale bandwidth, otherwise `6` | Total length before inset            |
-| `inset`         | `number`                        | `0`                                          | Pixels removed from both ends        |
+| Option          | Type                            | Default                                      | Meaning                             |
+| --------------- | ------------------------------- | -------------------------------------------- | ----------------------------------- |
+| `id`            | `string`                        | Layer-derived                                | Stable mark ID                      |
+| `x`, `y`        | required channels               | —                                            | Tick center                         |
+| `z`             | `Channel<TDatum, ChartKey?>`    | No group                                     | Interaction group                   |
+| `color`         | `Channel<TDatum, ChartKey?>`    | `z`                                          | Value sent to the chart color scale |
+| `key`           | `Channel<TDatum, ChartKey>`     | Top/nested `id`, then index                  | Stable identity                     |
+| `stroke`        | `VisualChannel<TDatum, string>` | Resolved color                               | Final tick paint override           |
+| `strokeOpacity` | `number`                        | SVG default                                  | Stroke opacity                      |
+| `strokeWidth`   | `number`                        | `1.5`                                        | Stroke width                        |
+| `length`        | `number`                        | Perpendicular scale bandwidth, otherwise `6` | Total length before inset           |
+| `inset`         | `number`                        | `0`                                          | Pixels removed from both ends       |
 
 Available length is clamped to at least zero after subtracting twice the inset.
 Each valid row emits one interaction point at the tick center.

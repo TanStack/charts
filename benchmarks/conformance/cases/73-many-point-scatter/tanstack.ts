@@ -1,45 +1,46 @@
 import { defineChart, dot } from '@tanstack/charts'
-import { scaleLinear, scaleOrdinal, scaleSqrt } from 'd3-scale'
-import { flatManyPoints } from './data'
+import { cars } from '@charts-poc/demo-data/cars'
+import { scaleLinear, scaleSqrt } from 'd3-scale'
+import { selectManyPointData } from './selection'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
-import type { ScatterStatus } from './data'
 
-const statusDomain: readonly ScatterStatus[] = ['passed', 'failed']
+const colors = ['#2563eb', '#7c3aed', '#db2777', '#f97316', '#0f766e']
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const points = flatManyPoints(input.revision)
+const definition = (input: ConformanceInput) => {
+  const points = selectManyPointData(cars, input.revision)
 
-    return {
-      marks: [
-        dot(points, {
-          x: 'x',
-          y: 'y',
-          z: 'status',
-          key: 'id',
-          r: 'z',
-          rScale: scaleSqrt().domain([0, 100]).range([2.25, 4.5]),
-          fillOpacity: 0.72,
-        }),
-      ],
-      x: {
-        scale: scaleLinear().domain([0, 100]),
-        ticks: 6,
-        grid: true,
-      },
-      y: {
-        scale: scaleLinear().domain([0, 100]),
-        ticks: 6,
-        grid: true,
-      },
-      color: {
-        scale: scaleOrdinal<ScatterStatus, string>()
-          .domain(statusDomain)
-          .range(['#22c55e', '#ef4444']),
-      },
-      margin: { top: 20, right: 20, bottom: 50, left: 80 },
-    }
+  return defineChart({
+    marks: [
+      dot(points, {
+        x: 'weight (lb)',
+        y: '0-60 mph (s)',
+        color: 'cylinders',
+        r: 'displacement (cc)',
+        rScale: {
+          scale: () => scaleSqrt().range([2.25, 4.5]),
+        },
+        fillOpacity: 0.72,
+      }),
+    ],
+    x: {
+      scale: scaleLinear,
+      ticks: 6,
+      grid: true,
+    },
+    y: {
+      scale: scaleLinear,
+      ticks: 6,
+      grid: true,
+    },
+    color: {
+      range: colors,
+    },
+    margin: { top: 20, right: 20, bottom: 50, left: 80 },
   })
+}
 
-export const mount = tanstackMount(definition, 'Many-point scatter performance')
+export const mount = tanstackMount(
+  definition,
+  'Automobile specifications scatter',
+)

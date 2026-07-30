@@ -1,42 +1,39 @@
 import { defineChart } from '@tanstack/charts'
 import { polar, radialArc } from '@tanstack/charts/polar'
+import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { pie } from 'd3-shape'
-import { donutData } from './data'
+import { selectDonutData } from './selection'
 import { tanstackMount } from '../../shared/mount'
-import type { DonutDatum } from './data'
+import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import type { ConformanceInput } from '../../types'
-import type { PieArcDatum } from 'd3-shape'
 
-const pieLayout = pie<DonutDatum>()
+const pieLayout = pie<AlphabetRow>()
   .sort(null)
-  .value(({ value }) => value)
+  .value(({ frequency }) => frequency)
+const colors = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316']
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const arcs = pieLayout([...donutData(input.revision)])
+const definition = (input: ConformanceInput) => {
+  const arcs = pieLayout([...selectDonutData(alphabet, input.revision)])
 
-    return {
-      marks: [
-        polar({
-          inset: 0,
-          radiusRatio: 0.8,
-          marks: [
-            radialArc(arcs, {
-              startAngle: 'startAngle',
-              endAngle: 'endAngle',
-              padAngle: 'padAngle',
-              innerRadius: ({ radius }: { radius: number }) => radius * 0.58,
-              key: ({ data }: PieArcDatum<DonutDatum>) => data.id,
-              fill: ({ data }: PieArcDatum<DonutDatum>) => data.fill,
-            }),
-          ],
-        }),
-      ],
-      x: null,
-      y: null,
-      guides: false,
-      margin: 0,
-    }
+  return defineChart({
+    marks: [
+      polar({
+        inset: 0,
+        radiusRatio: 0.8,
+        marks: [
+          radialArc(arcs, {
+            startAngle: 'startAngle',
+            endAngle: 'endAngle',
+            padAngle: 'padAngle',
+            innerRadius: ({ radius }: { radius: number }) => radius * 0.58,
+            color: ({ data }) => data.letter,
+          }),
+        ],
+      }),
+    ],
+    color: { range: colors },
+    margin: 0,
   })
+}
 
-export const mount = tanstackMount(definition, 'Categorical donut chart')
+export const mount = tanstackMount(definition, 'English letter frequency donut')

@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 940,
   "id": "94-center-donut",
-  "title": "Donut with center total",
+  "title": "Letter frequency donut with total",
   "family": "polar",
-  "intent": "Show a categorical composition while keeping its aggregate total visible in the center.",
+  "intent": "Show three English letter frequencies while keeping their aggregate frequency visible in the center.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -24,7 +24,7 @@
     "url": "https://recharts.github.io/en-US/api/Pie/"
   },
   "ai": {
-    "create": "Create a three-slice donut with a derived total centered in the readable inner ring.",
-    "maintain": "Recompute both the arcs and center total from the same revision while preserving stable category identities and the inner-radius ratio."
+    "create": "Create a three-slice donut from Observable's alphabet rows with their derived frequency total centered in the inner ring.",
+    "maintain": "Change the selected letters and recompute arcs and center total from the same raw frequency field while preserving letter identity and the inner-radius ratio."
   }
 }

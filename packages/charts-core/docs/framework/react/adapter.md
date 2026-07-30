@@ -160,8 +160,6 @@ import { defineChart } from '@tanstack/charts'
 
 const definition = defineChart({
   marks: [],
-  x: null,
-  y: null,
 })
 ```
 

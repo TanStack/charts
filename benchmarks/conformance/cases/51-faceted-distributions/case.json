@@ -4,7 +4,7 @@
   "id": "51-faceted-distributions",
   "title": "Faceted distributions",
   "family": "small multiples",
-  "intent": "Compare the complete shape of several distributions on shared quantitative scales.",
+  "intent": "Compare Palmer Penguins body-mass distributions by species on shared quantitative scales.",
   "support": "composed",
   "features": [
     "small multiples",
@@ -13,13 +13,13 @@
     "proportion reduction",
     "d3-array bin"
   ],
-  "geometry": [{ "role": "rect", "count": 30 }],
+  "geometry": [{ "role": "rect", "count": 16 }],
   "source": {
     "title": "Observable Plot facets",
     "url": "https://observablehq.com/plot/features/facets"
   },
   "ai": {
-    "create": "Create vertically faceted proportional histograms for three named cohorts with shared x and y domains.",
+    "create": "Create vertically faceted proportional histograms of body mass for the three Palmer Penguins species with shared x and y domains.",
     "maintain": "Change the fixed bin boundaries while preserving one independent proportion calculation per facet and shared outer scale semantics."
   }
 }

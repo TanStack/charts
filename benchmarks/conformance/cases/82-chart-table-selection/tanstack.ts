@@ -1,62 +1,66 @@
 import { defineChart, dot, mountChart } from '@tanstack/charts'
-import { scaleBand, scaleLinear } from 'd3-scale'
-import { chartTableData, isSelectionId, selectionPeriods } from './data'
+import { penguins } from '@charts-poc/demo-data/penguins'
+import { scaleLinear } from 'd3-scale'
+import {
+  isSelectionId,
+  penguinSelectionId,
+  penguinSelectionLabel,
+  selectionRows,
+} from './model'
 import type { ChartHost, ChartHostOptions } from '@tanstack/charts'
 import type {
   ConformanceInput,
   ConformanceMount,
   ConformanceTarget,
 } from '../../types'
-import type { SelectionDatum, SelectionId } from './data'
+import type { CompletePenguin, SelectionId } from './model'
 
 interface ChartTableInput extends ConformanceInput {
   selectedId: SelectionId | null
 }
 
-const definition = (input: ChartTableInput) =>
-  defineChart(() => {
-    const rows = chartTableData(input.revision)
-    const selectedRows = rows.filter((row) => row.id === input.selectedId)
+const definition = (input: ChartTableInput) => {
+  const rows = selectionRows(penguins, input.revision)
+  const selectedRows = rows.filter(
+    (row) => penguinSelectionId(row) === input.selectedId,
+  )
 
-    return {
-      marks: [
-        dot(rows, {
-          id: 'observations',
-          x: 'period',
-          y: 'value',
-          key: 'id',
-          r: 4.5,
-          fill: '#2563eb',
-        }),
-        ...(selectedRows.length
-          ? [
-              dot(selectedRows, {
-                id: 'selected-observation',
-                x: 'period',
-                y: 'value',
-                key: 'id',
-                r: 7,
-                fill: '#f97316',
-                stroke: '#ffffff',
-                strokeWidth: 2,
-              }),
-            ]
-          : []),
-      ],
-      x: {
-        scale: scaleBand<string>()
-          .domain(selectionPeriods)
-          .paddingInner(0.1)
-          .paddingOuter(0.05),
-      },
-      y: {
-        scale: scaleLinear().domain([0, 100]),
-        ticks: 5,
-        grid: true,
-      },
-      margin: { top: 16, right: 24, bottom: 42, left: 62 },
-    }
+  return defineChart({
+    marks: [
+      dot(rows, {
+        id: 'observations',
+        x: 'flipper_length_mm',
+        y: 'body_mass_g',
+        r: 4.5,
+        fill: '#2563eb',
+      }),
+      ...(selectedRows.length
+        ? [
+            dot(selectedRows, {
+              id: 'selected-observation',
+              x: 'flipper_length_mm',
+              y: 'body_mass_g',
+              r: 7,
+              fill: '#f97316',
+              stroke: '#ffffff',
+              strokeWidth: 2,
+            }),
+          ]
+        : []),
+    ],
+    x: {
+      scale: scaleLinear,
+      label: 'Flipper length (mm)',
+    },
+    y: {
+      scale: scaleLinear,
+      ticks: 5,
+      grid: true,
+      label: 'Body mass (g)',
+    },
+    margin: { top: 16, right: 24, bottom: 42, left: 62 },
   })
+}
 
 function selectionFromTarget(target: ConformanceTarget) {
   if (target.view !== undefined && target.view !== 'main') return null
@@ -68,13 +72,14 @@ function selectionFromTarget(target: ConformanceTarget) {
 
 function pointCoordinate(
   chartSurface: HTMLElement,
-  host: ChartHost<SelectionDatum>,
+  host: ChartHost<CompletePenguin>,
   pointId: SelectionId,
 ) {
   const scene = host.getScene()
   const point = scene.points.find(
     (candidate) =>
-      candidate.markId === 'observations' && candidate.datum.id === pointId,
+      candidate.markId === 'observations' &&
+      penguinSelectionId(candidate.datum) === pointId,
   )
   const svg = chartSurface.querySelector<SVGSVGElement>('svg')
   if (!point || !svg) return null
@@ -139,7 +144,7 @@ export const mount: ConformanceMount = (container, input) => {
 
   let currentInput = input
   let selectedId: SelectionId | null = null
-  let host: ChartHost<SelectionDatum>
+  let host: ChartHost<CompletePenguin>
   const rowElements = new Map<
     SelectionId,
     {
@@ -157,7 +162,7 @@ export const mount: ConformanceMount = (container, input) => {
     view.style.gridTemplateRows = `${chart}px 52px ${tableHeight}px`
   }
 
-  const options = (): ChartHostOptions<SelectionDatum> => ({
+  const options = (): ChartHostOptions<CompletePenguin> => ({
     definition: defineChart(
       definition({
         ...currentInput,
@@ -171,18 +176,20 @@ export const mount: ConformanceMount = (container, input) => {
     ariaDescription:
       'Use arrow keys to move between observations and Enter or Space to select one. The table below offers the same selections.',
     onSelect(point) {
-      select(point?.datum.id ?? null)
+      select(point ? penguinSelectionId(point.datum) : null)
     },
   })
 
   const updateTable = () => {
-    const rows = chartTableData(currentInput.revision)
+    const rows = selectionRows(penguins, currentInput.revision)
     for (const datum of rows) {
-      const elements = rowElements.get(datum.id)
+      const id = penguinSelectionId(datum)
+      if (!id) continue
+      const elements = rowElements.get(id)
       if (!elements) continue
-      const selected = datum.id === selectedId
-      elements.period.textContent = datum.period
-      elements.value.textContent = datum.value.toLocaleString()
+      const selected = id === selectedId
+      elements.period.textContent = datum.island
+      elements.value.textContent = datum.body_mass_g.toLocaleString()
       elements.row.setAttribute('aria-selected', String(selected))
       elements.row.style.background = selected
         ? 'color-mix(in srgb, #f97316 16%, Canvas)'
@@ -191,9 +198,11 @@ export const mount: ConformanceMount = (container, input) => {
       elements.button.setAttribute('aria-pressed', String(selected))
       elements.button.style.fontWeight = selected ? '750' : '600'
     }
-    const selectedDatum = rows.find((row) => row.id === selectedId)
+    const selectedDatum = rows.find(
+      (row) => penguinSelectionId(row) === selectedId,
+    )
     selectionText.textContent = selectedDatum
-      ? `Selected ${selectedDatum.id}: ${selectedDatum.period}, ${selectedDatum.value.toLocaleString()}`
+      ? `Selected ${penguinSelectionLabel(selectedDatum)}: ${selectedDatum.body_mass_g.toLocaleString()} g`
       : 'No observation selected'
     const clearDisabled = selectedId === null
     clearButton.setAttribute('aria-disabled', String(clearDisabled))
@@ -209,31 +218,33 @@ export const mount: ConformanceMount = (container, input) => {
 
   const head = container.ownerDocument.createElement('thead')
   const headerRow = container.ownerDocument.createElement('tr')
-  for (const label of ['Period', 'Region', 'Value']) {
+  for (const label of ['Island', 'Penguin', 'Body mass (g)']) {
     const cell = container.ownerDocument.createElement('th')
     cell.scope = 'col'
     cell.textContent = label
     cell.style.padding = '4px 8px'
-    cell.style.textAlign = label === 'Value' ? 'right' : 'left'
+    cell.style.textAlign = label === 'Body mass (g)' ? 'right' : 'left'
     headerRow.append(cell)
   }
   head.append(headerRow)
   const body = container.ownerDocument.createElement('tbody')
-  for (const datum of chartTableData(currentInput.revision)) {
+  for (const datum of selectionRows(penguins, currentInput.revision)) {
+    const id = penguinSelectionId(datum)
+    if (!id) continue
     const tableRow = container.ownerDocument.createElement('tr')
     const period = container.ownerDocument.createElement('td')
     const region = container.ownerDocument.createElement('th')
     const button = container.ownerDocument.createElement('button')
     const value = container.ownerDocument.createElement('td')
-    tableRow.dataset.rowId = datum.id
+    tableRow.dataset.rowId = id
     tableRow.style.borderTop =
       '1px solid color-mix(in srgb, CanvasText 12%, transparent)'
     period.style.padding = '4px 8px'
     region.scope = 'row'
     region.style.padding = '0'
     button.type = 'button'
-    button.dataset.rowSelect = datum.id
-    button.textContent = datum.id
+    button.dataset.rowSelect = id
+    button.textContent = penguinSelectionLabel(datum)
     Object.assign(button.style, {
       width: '100%',
       minHeight: '44px',
@@ -246,14 +257,14 @@ export const mount: ConformanceMount = (container, input) => {
       textAlign: 'left',
       outlineOffset: '-3px',
     })
-    button.addEventListener('click', () => select(datum.id))
+    button.addEventListener('click', () => select(id))
     region.append(button)
     value.style.padding = '4px 8px'
     value.style.textAlign = 'right'
     value.style.fontVariantNumeric = 'tabular-nums'
     tableRow.append(period, region, value)
     body.append(tableRow)
-    rowElements.set(datum.id, { row: tableRow, button, period, value })
+    rowElements.set(id, { row: tableRow, button, period, value })
   }
   table.replaceChildren(head, body)
   clearButton.addEventListener('click', () => select(null))
@@ -290,13 +301,14 @@ export const mount: ConformanceMount = (container, input) => {
         const selectedRow = table.querySelector(
           '[data-row-id][aria-selected="true"]',
         )
-        const selectedDatum = chartTableData(currentInput.revision).find(
-          (row) => row.id === selectedId,
-        )
+        const selectedDatum = selectionRows(
+          penguins,
+          currentInput.revision,
+        ).find((row) => penguinSelectionId(row) === selectedId)
         return {
           selectedId,
           selectedRow: selectedRow?.getAttribute('data-row-id') ?? null,
-          selectedValue: selectedDatum?.value ?? null,
+          selectedValue: selectedDatum?.body_mass_g ?? null,
           announcement: selectionText.textContent,
           focusedRow:
             container.ownerDocument.activeElement instanceof HTMLElement

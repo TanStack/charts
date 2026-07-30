@@ -15,21 +15,22 @@ import type {
   TooltipComponentOption,
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
+import { travelers } from '@charts-poc/demo-data/travelers'
 import { echartsMount } from '../../shared/echarts-mount'
 import {
+  selectSynchronizedCursorData,
+  synchronizedCursorDates as datesForRows,
+} from './selection'
+import { synchronizedCursorViews, synchronizedCursorYDomains } from './model'
+import { synchronizedCursorColors } from './colors'
+import {
   synchronizedCursorAnchorDate,
-  synchronizedCursorColors,
-  synchronizedCursorData,
-  synchronizedCursorDateDomain,
   synchronizedCursorDateKey,
-  synchronizedCursorDates,
   synchronizedCursorDatumAtDate,
   synchronizedCursorNearestDatum,
-  synchronizedCursorViews,
-  synchronizedCursorYDomains,
-} from './data'
+} from './model'
 import { createSynchronizedSummary, updateSynchronizedSummary } from './summary'
-import type { SynchronizedCursorView } from './data'
+import type { SynchronizedCursorView } from './model'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -60,19 +61,35 @@ type SynchronizedCursorOption = ComposeOption<
 interface CursorState {
   date: Date | null
   pinned: boolean
+  preservedDate: Date | null
 }
 
 interface GridLayout {
-  primaryTop: number
-  secondaryTop: number
+  currentTop: number
+  previousTop: number
   height: number
+}
+
+const travelerCountFormat = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+})
+
+function synchronizedCursorData(revision = 0) {
+  return selectSynchronizedCursorData(travelers, revision)
+}
+
+function synchronizedCursorDates(revision = 0) {
+  return datesForRows(synchronizedCursorData(revision))
 }
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
+  let restoreCursor: ((date: Date) => void) | undefined
   const state: CursorState = {
     date: null,
     pinned: false,
+    preservedDate: null,
   }
   const shell = container.ownerDocument.createElement('div')
   const summary = createSynchronizedSummary(container.ownerDocument)
@@ -87,9 +104,11 @@ export const mount: ConformanceMount = (container, input) => {
     updateSynchronizedSummary(summary, state.date, currentInput, state.pinned)
   const mountCase = echartsMount(
     synchronizedCursorOption,
-    'Throughput and error-rate views with linked date cursors',
-    ({ chart, surface, getInput }) =>
-      createDriver(chart, surface, getInput, state, updateSummary),
+    '2020 and 2019 airport traveler views with linked date cursors',
+    ({ chart, surface, getInput }) => {
+      restoreCursor = (date) => showCursorDate(chart, getInput(), date)
+      return createDriver(chart, surface, getInput, state, updateSummary)
+    },
   )
   const chartHandle = mountCase(chartFrame, synchronizedInput(input))
   updateSummary()
@@ -97,9 +116,16 @@ export const mount: ConformanceMount = (container, input) => {
   return {
     driver: chartHandle.driver,
     update(nextInput) {
+      const semanticDate = state.date
+      state.preservedDate = semanticDate
       currentInput = nextInput
       sizeSynchronizedShell(shell, chartFrame, nextInput)
       chartHandle.update(synchronizedInput(nextInput))
+      if (semanticDate) {
+        state.date = semanticDate
+        restoreCursor?.(semanticDate)
+        state.date = semanticDate
+      }
       updateSummary()
     },
     destroy() {
@@ -109,21 +135,35 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
+function showCursorDate(
+  chart: EChartsType,
+  input: ConformanceInput,
+  date: Date,
+) {
+  const dataIndex = synchronizedCursorData(input.revision).findIndex(
+    (row) => row.date.getTime() === date.getTime(),
+  )
+  if (dataIndex < 0) return
+  chart.dispatchAction({
+    type: 'showTip',
+    seriesIndex: 0,
+    dataIndex,
+  })
+}
+
 function synchronizedCursorOption(
   input: ConformanceInput,
 ): SynchronizedCursorOption {
   const layout = gridLayout(input.height)
+  const rows = synchronizedCursorData(input.revision)
   const series: LineSeriesOption[] = synchronizedCursorViews.map(
     (view, viewIndex) => ({
       id: `${view}-line`,
-      name: synchronizedCursorData(view, input.revision)[0]?.series ?? view,
+      name: view === 'current' ? '2020 travelers' : '2019 travelers',
       type: 'line',
       xAxisIndex: viewIndex,
       yAxisIndex: viewIndex,
-      data: synchronizedCursorData(view, input.revision).map((datum) => [
-        datum.date.getTime(),
-        datum.value,
-      ]),
+      data: rows.map((datum) => [datum.date.getTime(), datum[view]]),
       color: synchronizedCursorColors[view],
       lineStyle: {
         color: synchronizedCursorColors[view],
@@ -147,32 +187,34 @@ function synchronizedCursorOption(
     aria: {
       enabled: true,
       description:
-        'Two time-series views with independent y domains and a linked date cursor.',
+        'Daily U.S. airport traveler counts for 2020 and 2019 with independent y domains and a linked date cursor.',
     },
     grid: [
       {
-        id: 'primary',
-        top: layout.primaryTop,
+        id: 'current',
+        top: layout.currentTop,
         right: 24,
         bottom: undefined,
         left: 62,
         height: layout.height,
+        outerBoundsMode: 'none',
       },
       {
-        id: 'secondary',
-        top: layout.secondaryTop,
+        id: 'previous',
+        top: layout.previousTop,
         right: 24,
         bottom: undefined,
         left: 62,
         height: layout.height,
+        outerBoundsMode: 'none',
       },
     ],
     xAxis: synchronizedCursorViews.map((view, viewIndex) => ({
       id: `${view}-x`,
       gridIndex: viewIndex,
       type: 'time',
-      min: synchronizedCursorDateDomain[0].getTime(),
-      max: synchronizedCursorDateDomain[1].getTime(),
+      min: 'dataMin',
+      max: 'dataMax',
       axisLabel: { show: true },
       axisTick: { show: true },
       axisLine: { show: true },
@@ -195,7 +237,13 @@ function synchronizedCursorOption(
       type: 'value',
       min: synchronizedCursorYDomains[view][0],
       max: synchronizedCursorYDomains[view][1],
-      name: view === 'primary' ? 'Throughput' : 'Error rate',
+      name: view === 'current' ? '2020 travelers' : '2019 travelers',
+      nameLocation: 'middle',
+      nameGap: 48,
+      nameRotate: 90,
+      axisLabel: {
+        formatter: (value: number) => travelerCountFormat.format(value),
+      },
       splitLine: {
         show: true,
         lineStyle: { color: '#e2e8f0' },
@@ -222,14 +270,14 @@ function synchronizedCursorOption(
 }
 
 function gridLayout(height: number): GridLayout {
-  const primaryTop = 20
-  const gap = 30
-  const bottom = 38
-  const available = Math.max(180, height - primaryTop - gap - bottom)
-  const gridHeight = Math.floor(available / 2)
+  const viewGap = 8
+  const viewTop = 16
+  const viewBottom = 34
+  const viewHeight = Math.max(140, Math.floor((height - viewGap) / 2))
+  const gridHeight = Math.max(1, viewHeight - viewTop - viewBottom)
   return {
-    primaryTop,
-    secondaryTop: primaryTop + gridHeight + gap,
+    currentTop: viewTop,
+    previousTop: viewHeight + viewGap + viewTop,
     height: gridHeight,
   }
 }
@@ -242,13 +290,17 @@ function createDriver(
   updateSummary: () => void,
 ): ConformanceTestDriver {
   const handleAxisPointer = (...args: unknown[]) => {
-    const date = dateFromAxisPointerEvent(args)
+    const date = dateFromAxisPointerEvent(args, getInput().revision)
     if (!date) return
-    state.date = date
+    state.date = state.preservedDate ?? date
     updateSummary()
+  }
+  const releasePreservedDate = () => {
+    state.preservedDate = null
   }
   const clearCursor = () => {
     if (state.pinned) return
+    state.preservedDate = null
     state.date = null
     updateSummary()
   }
@@ -259,6 +311,7 @@ function createDriver(
     updateSummary()
   }
   const handleKeyDown = (event: KeyboardEvent) => {
+    state.preservedDate = null
     if (event.key === 'Escape' && state.pinned) {
       event.preventDefault()
       state.pinned = false
@@ -269,16 +322,15 @@ function createDriver(
     }
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
     event.preventDefault()
+    const dates = synchronizedCursorDates(getInput().revision)
     const currentIndex = state.date
-      ? synchronizedCursorDates.findIndex(
-          (date) => date.getTime() === state.date?.getTime(),
-        )
+      ? dates.findIndex((date) => date.getTime() === state.date?.getTime())
       : -1
     const nextIndex =
       event.key === 'ArrowRight'
-        ? Math.min(synchronizedCursorDates.length - 1, currentIndex + 1)
+        ? Math.min(dates.length - 1, currentIndex + 1)
         : Math.max(0, currentIndex < 0 ? 0 : currentIndex - 1)
-    const nextDate = synchronizedCursorDates[nextIndex]
+    const nextDate = dates[nextIndex]
     if (!nextDate) return
     state.date = nextDate
     chart.dispatchAction({
@@ -289,6 +341,7 @@ function createDriver(
     updateSummary()
   }
   chart.on('updateAxisPointer', handleAxisPointer)
+  surface.addEventListener('pointermove', releasePreservedDate, true)
   surface.addEventListener('mouseleave', clearCursor)
   surface.addEventListener('click', pinCursor)
   surface.addEventListener('keydown', handleKeyDown)
@@ -312,7 +365,7 @@ function createDriver(
   }
 }
 
-function dateFromAxisPointerEvent(args: readonly unknown[]) {
+function dateFromAxisPointerEvent(args: readonly unknown[], revision: number) {
   const event = args[0]
   if (!isRecord(event) || !Array.isArray(event.axesInfo)) return null
   for (const axisInfo of event.axesInfo) {
@@ -322,7 +375,7 @@ function dateFromAxisPointerEvent(args: readonly unknown[]) {
       axisInfo.axisIndex === 0 &&
       typeof axisInfo.value === 'number'
     ) {
-      return nearestDate(axisInfo.value)
+      return nearestDate(axisInfo.value, revision)
     }
   }
   return null
@@ -332,8 +385,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-function nearestDate(timestamp: number) {
-  return synchronizedCursorDates.reduce((nearest, date) =>
+function nearestDate(timestamp: number, revision: number) {
+  return synchronizedCursorDates(revision).reduce((nearest, date) =>
     Math.abs(date.getTime() - timestamp) <
     Math.abs(nearest.getTime() - timestamp)
       ? date
@@ -350,13 +403,21 @@ function resolveTarget(
   const view = synchronizedView(target.view)
   const date = synchronizedCursorAnchorDate(target.anchor)
   if (!view || !date) return null
-  const datum = synchronizedCursorNearestDatum(view, input.revision, date)
+  const rows = synchronizedCursorData(input.revision)
+  const datum = synchronizedCursorNearestDatum(rows, date)
   if (!datum) return null
-  const point = pixelPoint(chart, view, date, datum.value)
-  if (!point) return null
+  const point = pixelPoint(chart, view, date, datum[view])
+  const viewBounds = logicalViewBounds(chart, surface, view)
+  const firstDate = rows[0]?.date
+  const lastDate = rows.at(-1)?.date
+  if (!point || !viewBounds || !firstDate || !lastDate) return null
+  const span = lastDate.getTime() - firstDate.getTime()
+  const x =
+    viewBounds.x +
+    ((date.getTime() - firstDate.getTime()) / span) * viewBounds.width
   const bounds = surface.getBoundingClientRect()
   return {
-    x: bounds.left + point[0],
+    x,
     y: bounds.top + point[1],
     focusElement: surface,
   }
@@ -371,11 +432,11 @@ function geometry(
   const view = synchronizedView(query.view)
   if (!view) return []
   const bounds = surface.getBoundingClientRect()
-  const rows = synchronizedCursorData(view, input.revision)
+  const rows = synchronizedCursorData(input.revision)
 
   if (query.role === 'dot') {
     return rows.flatMap((datum) => {
-      const point = pixelPoint(chart, view, datum.date, datum.value)
+      const point = pixelPoint(chart, view, datum.date, datum[view])
       return point
         ? [
             {
@@ -392,7 +453,7 @@ function geometry(
 
   if (query.role === 'line') {
     const points = rows.flatMap((datum) => {
-      const point = pixelPoint(chart, view, datum.date, datum.value)
+      const point = pixelPoint(chart, view, datum.date, datum[view])
       return point ? [point] : []
     })
     const sample = pointsBounds(points, bounds, synchronizedCursorColors[view])
@@ -405,7 +466,7 @@ function geometry(
 function synchronizedView(
   view: string | undefined,
 ): SynchronizedCursorView | null {
-  return view === 'primary' || view === 'secondary' ? view : null
+  return view === 'current' || view === 'previous' ? view : null
 }
 
 function pixelPoint(
@@ -414,7 +475,7 @@ function pixelPoint(
   date: Date,
   value: number,
 ): readonly [number, number] | null {
-  const axisIndex = view === 'primary' ? 0 : 1
+  const axisIndex = view === 'current' ? 0 : 1
   const point = chart.convertToPixel(
     { xAxisIndex: axisIndex, yAxisIndex: axisIndex },
     [date.getTime(), value],
@@ -437,27 +498,16 @@ function logicalViewBounds(
   surface: HTMLDivElement,
   view: SynchronizedCursorView,
 ): ConformanceGeometrySample | null {
-  const domain = synchronizedCursorYDomains[view]
-  const corners = [
-    pixelPoint(chart, view, synchronizedCursorDateDomain[0], domain[0]),
-    pixelPoint(chart, view, synchronizedCursorDateDomain[1], domain[0]),
-    pixelPoint(chart, view, synchronizedCursorDateDomain[0], domain[1]),
-    pixelPoint(chart, view, synchronizedCursorDateDomain[1], domain[1]),
-  ].filter((point): point is readonly [number, number] => point !== null)
-  if (corners.length !== 4) return null
-
   const bounds = surface.getBoundingClientRect()
-  const xs = corners.map((point) => point[0])
-  const ys = corners.map((point) => point[1])
-  const left = Math.min(...xs)
-  const right = Math.max(...xs)
-  const top = Math.min(...ys)
-  const bottom = Math.max(...ys)
+  const layout = gridLayout(chart.getHeight())
+  const left = 62
+  const right = chart.getWidth() - 24
+  const top = view === 'current' ? layout.currentTop : layout.previousTop
   return {
     x: bounds.left + left,
     y: bounds.top + top,
     width: right - left,
-    height: bottom - top,
+    height: layout.height,
   }
 }
 
@@ -488,25 +538,24 @@ function interactionState(
   input: ConformanceInput,
   state: CursorState,
 ): ConformanceJsonObject {
+  const rows = synchronizedCursorData(input.revision)
+  const currentCrosshair = renderedCrosshairState(chart, surface, 'current')
+  const previousCrosshair = renderedCrosshairState(chart, surface, 'previous')
   return {
     shared: {
       date: state.date ? synchronizedCursorDateKey(state.date) : null,
-      primaryValue: state.date
-        ? (synchronizedCursorDatumAtDate('primary', input.revision, state.date)
-            ?.value ?? null)
+      currentValue: state.date
+        ? (synchronizedCursorDatumAtDate(rows, state.date)?.current ?? null)
         : null,
-      secondaryValue: state.date
-        ? (synchronizedCursorDatumAtDate(
-            'secondary',
-            input.revision,
-            state.date,
-          )?.value ?? null)
+      previousValue: state.date
+        ? (synchronizedCursorDatumAtDate(rows, state.date)?.previous ?? null)
         : null,
       pinned: state.pinned,
     },
     crosshairs: {
-      primary: renderedCrosshairState(chart, surface, 'primary'),
-      secondary: renderedCrosshairState(chart, surface, 'secondary'),
+      aligned: crosshairsAligned(currentCrosshair, previousCrosshair),
+      current: currentCrosshair,
+      previous: previousCrosshair,
     },
   }
 }
@@ -533,7 +582,7 @@ function renderedCrosshairState(
   chart: EChartsType,
   surface: HTMLDivElement,
   view: SynchronizedCursorView,
-): ConformanceJsonObject {
+) {
   const viewBounds = logicalViewBounds(chart, surface, view)
   if (!viewBounds) return { visible: false, xNormalized: null }
 
@@ -558,4 +607,15 @@ function renderedCrosshairState(
     visible: true,
     xNormalized: (x - viewBounds.x) / viewBounds.width,
   }
+}
+
+function crosshairsAligned(
+  current: ReturnType<typeof renderedCrosshairState>,
+  previous: ReturnType<typeof renderedCrosshairState>,
+) {
+  return (
+    current.xNormalized !== null &&
+    previous.xNormalized !== null &&
+    Math.abs(current.xNormalized - previous.xNormalized) < 0.005
+  )
 }

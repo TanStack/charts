@@ -1,24 +1,26 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { brushX } from 'd3-brush'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { select } from 'd3-selection'
 import {
-  brushData,
+  brushDomain,
   brushDateFromAnchor,
   brushDateKey,
-  brushDates,
-  brushDomain,
   brushRangeSummary,
   brushShortDate,
   clampBrushDate,
   initialBrushRange,
+  monthlyAaplRows,
   normalizedBrushRange,
-} from './data'
+  observedBrushDates,
+} from './model'
 import { brushSelectionFill, normalizedElementFill } from './paint'
 import type { ChartScene, ChartHostOptions } from '@tanstack/charts'
 import type { D3BrushEvent } from 'd3-brush'
-import type { BrushDatum, BrushRange } from './data'
+import type { AaplRow } from '@charts-poc/demo-data/aapl'
+import type { BrushRange } from './model'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -36,51 +38,48 @@ interface BrushState {
 }
 
 const color = '#2563eb'
-const yDomain = [20, 80] as const
-const brushScale = scaleUtc().domain(brushDomain)
+const brushRows = monthlyAaplRows(aapl)
+const brushDates = observedBrushDates(brushRows)
+const fullDomain = brushDomain(brushDates)
+const brushScale = scaleUtc().domain(fullDomain)
 const brushMonthFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   timeZone: 'UTC',
 })
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = brushData(input.revision)
-    return {
-      marks: [
-        lineY(rows, {
-          id: 'brush-series',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          stroke: color,
-          strokeWidth: 2.5,
-        }),
-        dot(rows, {
-          id: 'brush-points',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          fill: color,
-          r: 3.5,
-          stroke: '#ffffff',
-          strokeWidth: 1,
-        }),
-      ],
-      x: {
-        scale: brushScale,
-        format: (value) => brushMonthFormatter.format(value),
-        label: 'Month',
-      },
-      y: {
-        scale: scaleLinear().domain(yDomain),
-        ticks: 4,
-        grid: true,
-        label: 'Value',
-      },
-      margin: { top: 52, right: 24, bottom: 44, left: 58 },
-    }
+const definition = (input: ConformanceInput) => {
+  const rows = brushRows
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'Date',
+        y: 'Close',
+        stroke: color,
+        strokeWidth: 2.5,
+      }),
+      dot(rows, {
+        x: 'Date',
+        y: 'Close',
+        fill: color,
+        r: 3.5,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+    ],
+    x: {
+      scale: brushScale,
+      format: (value) => brushMonthFormatter.format(value),
+      label: 'Month',
+    },
+    y: {
+      scale: scaleLinear,
+      ticks: 4,
+      grid: true,
+      label: 'AAPL close ($)',
+    },
+    margin: { top: 52, right: 24, bottom: 44, left: 58 },
   })
+}
 
 export function mount(
   container: HTMLElement,
@@ -88,7 +87,7 @@ export function mount(
 ): ConformanceHandle {
   let currentInput = input
   const state: BrushState = {
-    range: { ...initialBrushRange },
+    range: { ...initialBrushRange(brushDates) },
     dragging: false,
     originRange: null,
   }
@@ -103,9 +102,7 @@ export function mount(
   setSurfaceSize(surface, input)
   container.append(surface)
 
-  const options = (
-    nextInput: ConformanceInput,
-  ): ChartHostOptions<BrushDatum> => ({
+  const options = (nextInput: ConformanceInput): ChartHostOptions<AaplRow> => ({
     definition: defineChart(definition(nextInput), {
       animate: false,
       keyboard: false,
@@ -151,7 +148,7 @@ export function mount(
 function createBrushController(
   surface: HTMLDivElement,
   getInput: () => ConformanceInput,
-  getScene: () => ChartScene<BrushDatum>,
+  getScene: () => ChartScene<AaplRow>,
   state: BrushState,
 ) {
   const document = surface.ownerDocument
@@ -250,22 +247,19 @@ function createBrushController(
     }
     const scale = rangeScale()
     return normalizedBrushRange(
-      clampBrushDate(scale.invert(selection[0])),
-      clampBrushDate(scale.invert(selection[1])),
+      clampBrushDate(brushDates, scale.invert(selection[0])),
+      clampBrushDate(brushDates, scale.invert(selection[1])),
     )
   }
 
   const updateStatus = () => {
-    const summary = brushRangeSummary(
-      brushData(getInput().revision),
-      state.range,
-    )
-    const label = `${brushShortDate(state.range.start)} → ${brushShortDate(state.range.end)} · ${summary.count} pts · avg ${summary.average.toFixed(1)}`
+    const summary = brushRangeSummary(brushRows, state.range)
+    const label = `${brushShortDate(state.range.start)} → ${brushShortDate(state.range.end)} · ${summary.count} AAPL closes · avg $${summary.average.toFixed(1)}`
     status.value = label
     status.textContent = label
     status.setAttribute(
       'aria-label',
-      `${brushDateKey(state.range.start)} through ${brushDateKey(state.range.end)}, ${summary.count} points, average ${summary.average.toFixed(1)}`,
+      `${brushDateKey(state.range.start)} through ${brushDateKey(state.range.end)}, ${summary.count} AAPL closing prices, average $${summary.average.toFixed(1)}`,
     )
   }
 
@@ -423,7 +417,7 @@ function createBrushController(
 function createDriver(
   surface: HTMLDivElement,
   getInput: () => ConformanceInput,
-  getScene: () => ChartScene<BrushDatum>,
+  getScene: () => ChartScene<AaplRow>,
   state: BrushState,
   settle: () => void,
 ): ConformanceTestDriver {
@@ -443,7 +437,7 @@ function createDriver(
 
 function resolveTarget(
   surface: HTMLDivElement,
-  scene: ChartScene<BrushDatum>,
+  scene: ChartScene<AaplRow>,
   target: ConformanceTarget,
 ) {
   if (target.view !== undefined && target.view !== 'main') return null
@@ -459,13 +453,15 @@ function resolveTarget(
       focusElement: handle,
     }
   }
-  const date = brushDateFromAnchor(target.anchor)
+  const date = brushDateFromAnchor(brushDates, target.anchor)
   if (!date) return null
+  const row = brushRows.find((datum) => datum.Date.getTime() === date.getTime())
+  if (!row) return null
   return scenePointToClient(
     surface,
     scene,
     scene.scales.x.map(date),
-    scene.scales.y.map(50),
+    scene.scales.y.map(row.Close),
   )
 }
 
@@ -473,14 +469,14 @@ function interactionState(
   state: BrushState,
   input: ConformanceInput,
 ): ConformanceJsonObject {
-  const summary = brushRangeSummary(brushData(input.revision), state.range)
+  const summary = brushRangeSummary(brushRows, state.range)
   return {
     selection: {
       start: brushDateKey(state.range.start),
       end: brushDateKey(state.range.end),
       pointCount: summary.count,
-      valueTotal: summary.total,
-      valueAverage: summary.average,
+      closeAverage: summary.average,
+      closeChange: summary.change,
       dragging: state.dragging,
     },
   }
@@ -488,7 +484,7 @@ function interactionState(
 
 function brushGeometry(
   surface: HTMLDivElement,
-  scene: ChartScene<BrushDatum>,
+  scene: ChartScene<AaplRow>,
   input: ConformanceInput,
   range: BrushRange,
   query: ConformanceGeometryQuery,
@@ -499,12 +495,10 @@ function brushGeometry(
   const bounds = svg.getBoundingClientRect()
   const scaleX = bounds.width / scene.width
   const scaleY = bounds.height / scene.height
-  const points = brushData(input.revision).map(
-    (row): readonly [number, number] => [
-      scene.scales.x.map(row.date),
-      scene.scales.y.map(row.value),
-    ],
-  )
+  const points = brushRows.map((row): readonly [number, number] => [
+    scene.scales.x.map(row.Date),
+    scene.scales.y.map(row.Close),
+  ])
 
   if (query.role === 'dot') {
     return points.map((point) => ({
@@ -553,7 +547,7 @@ function brushGeometry(
 
 function scenePointToClient(
   surface: HTMLDivElement,
-  scene: ChartScene<BrushDatum>,
+  scene: ChartScene<AaplRow>,
   x: number,
   y: number,
 ) {

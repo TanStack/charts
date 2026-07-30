@@ -1,29 +1,28 @@
 import * as Plot from '@observablehq/plot'
-import { regionCollection } from './data'
+import { westportHouse } from '@charts-poc/demo-data/westport-house'
 import { mountObservablePlot } from '../../shared/mount'
-import type { RegionFeature } from './data'
 import type { ConformanceMount } from '../../types'
 
-export const mount: ConformanceMount = (container, input) =>
-  mountObservablePlot(container, input, (nextInput) => {
-    const collection = regionCollection(nextInput.revision)
+const strokes = ['#1e293b', '#2563eb']
 
-    return Plot.plot({
+export const mount: ConformanceMount = (container, input) =>
+  mountObservablePlot(container, input, (nextInput) =>
+    Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
       margin: 10,
-      ariaLabel: 'Regional GeoJSON choropleth',
+      ariaLabel: 'Westport House floor plan',
       projection: {
         type: 'identity',
-        domain: collection,
+        domain: westportHouse,
         clip: false,
       },
       marks: [
-        Plot.geo(collection, {
-          fill: (feature: RegionFeature) => feature.properties.fill,
-          stroke: '#f8fafc',
-          strokeWidth: 1.5,
+        Plot.geo(westportHouse, {
+          fill: 'none',
+          stroke: strokes[nextInput.revision % 2] ?? strokes[0],
+          strokeWidth: 1,
         }),
       ],
-    })
-  })
+    }),
+  )

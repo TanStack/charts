@@ -3,7 +3,7 @@
   "referenceRenderer": "echarts",
   "order": 880,
   "id": "88-echarts-free-cursor",
-  "title": "Free two-dimensional cursor",
+  "title": "Free cursor over car measurements",
   "family": "interaction",
   "intent": "Track an unconstrained x and y plot position without snapping to the nearest datum.",
   "support": "composed",
@@ -36,7 +36,7 @@
     {
       "id": "value-sequence",
       "axis": "y",
-      "sequence": ["0", "20", "40", "60", "80", "100"]
+      "sequence": ["10", "15", "20", "25", "30", "35", "40"]
     }
   ],
   "interactionScenarios": [
@@ -66,12 +66,12 @@
             },
             {
               "path": "cursor.xValue",
-              "approx": 37,
+              "approx": 101.8,
               "tolerance": 1.5
             },
             {
               "path": "cursor.yValue",
-              "approx": 36,
+              "approx": 20.8,
               "tolerance": 1.5
             },
             { "path": "cursor.pinned", "equals": false },
@@ -88,14 +88,14 @@
                 "selector": "[data-conformance-free-cursor-status]"
               },
               "property": "text",
-              "includes": "X 37"
+              "includes": "HP 101.8"
             },
             {
               "target": {
                 "selector": "[data-conformance-free-cursor-status]"
               },
               "property": "text",
-              "includes": "Y 36"
+              "includes": "MPG 20.8"
             }
           ]
         },
@@ -118,8 +118,8 @@
           "type": "assert",
           "assertions": [
             { "path": "cursor.visible", "equals": true },
-            { "path": "cursor.xValue", "equals": 38 },
-            { "path": "cursor.yValue", "equals": 36 },
+            { "path": "cursor.xValue", "equals": 101.9 },
+            { "path": "cursor.yValue", "equals": 20.8 },
             { "path": "cursor.pinned", "equals": true },
             { "path": "render.count", "equals": 1 }
           ]
@@ -132,10 +132,10 @@
                 "selector": "[data-conformance-free-cursor-status]"
               },
               "property": "text",
-              "includes": "X 38"
+              "includes": "HP 101.9"
             },
             {
-              "target": { "role": "slider", "name": "X coordinate" },
+              "target": { "role": "slider", "name": "Horsepower" },
               "property": "focused",
               "equals": true
             }
@@ -168,8 +168,8 @@
           "type": "assert",
           "assertions": [
             { "path": "cursor.visible", "equals": true },
-            { "path": "cursor.xValue", "equals": 25 },
-            { "path": "cursor.yValue", "equals": 75 },
+            { "path": "cursor.xValue", "equals": 85 },
+            { "path": "cursor.yValue", "equals": 32.5 },
             { "path": "cursor.pinned", "equals": true },
             { "path": "render.count", "equals": 1 }
           ]
@@ -182,7 +182,7 @@
     "url": "https://echarts.apache.org/handbook/en/concepts/axis/"
   },
   "ai": {
-    "create": "Create a free two-dimensional crosshair that reports normalized plot coordinates at arbitrary pointer positions without selecting a datum.",
+    "create": "Create a free crosshair over selected car horsepower and fuel-economy observations that reports arbitrary plot coordinates without selecting a datum.",
     "maintain": "Keep cursor movement DOM-only, constrain it to resolved chart bounds, hide it on leave, and preserve one chart render while pointer state changes."
   }
 }

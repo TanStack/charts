@@ -9,20 +9,22 @@ import type {
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
 import { echartsMount } from '../../shared/echarts-mount'
+import { editableEventColor } from './colors'
 import {
-  clampEditableEventEnd,
-  editableDateFromAnchor,
-  editableDateKey,
   editableDomain,
-  editableDurationDays,
-  editableEventColor,
   editableEvents,
   editableEventStart,
   editableLanes,
   initialEditableEventEnd,
-} from './data'
+} from './scenario'
+import {
+  clampEditableEventEnd,
+  editableDateFromAnchor,
+  editableDateKey,
+  editableDurationDays,
+} from './model'
 import { createEditableHandleOverlay } from './overlay'
-import type { EditableEvent, EditableLane } from './data'
+import type { EditableEvent, EditableLane } from './scenario'
 import type { EditableHandleLayout } from './overlay'
 import type {
   ConformanceGeometryQuery,

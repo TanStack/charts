@@ -4,7 +4,7 @@
   "id": "scatter-bubble",
   "title": "Bubble scatterplot",
   "family": "relationship",
-  "intent": "Compare two quantitative variables while encoding magnitude by area and group by color.",
+  "intent": "Compare penguin bill length and depth while encoding body mass by area and species by color.",
   "support": "native",
   "features": [
     "dot mark",
@@ -12,13 +12,13 @@
     "radial size scale",
     "ordinal color scale"
   ],
-  "geometry": [{ "role": "dot", "count": 72 }],
+  "geometry": [{ "role": "dot", "count": 320 }],
   "source": {
-    "title": "Observable Plot: athletes height and weight",
-    "url": "https://github.com/observablehq/plot/blob/main/test/plots/athletes-height-weight.ts"
+    "title": "Observable sample penguins",
+    "url": "https://github.com/observablehq/sample-datasets/blob/732c0148de741469b2bcc03f53d93b0ad0b93f0a/penguins.csv"
   },
   "ai": {
-    "create": "Create a bubble scatterplot from rows with numeric x, y, and size fields and a categorical group field.",
-    "maintain": "Change the group palette and radius range without changing the data model or positional domains."
+    "create": "Create a bubble scatterplot directly from penguins culmen_length_mm, culmen_depth_mm, body_mass_g, and species fields.",
+    "maintain": "Change the species palette and radius range without renaming or reshaping the imported observations."
   }
 }

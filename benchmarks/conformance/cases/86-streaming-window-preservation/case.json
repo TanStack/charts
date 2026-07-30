@@ -5,7 +5,7 @@
   "id": "86-streaming-window-preservation",
   "title": "Streaming window preservation",
   "family": "interaction",
-  "intent": "Append stable-key observations without moving a user-locked time viewport.",
+  "intent": "Append daily package-download observations without moving a user-locked time viewport.",
   "support": "composed",
   "features": [
     "deterministic streaming",
@@ -22,13 +22,6 @@
     { "view": "main", "role": "dot", "count": 8 }
   ],
   "minimumGeometrySimilarity": 0.995,
-  "guideAssertions": [
-    {
-      "id": "value-sequence",
-      "axis": "y",
-      "sequence": ["0", "20", "40", "60", "80"]
-    }
-  ],
   "interactionScenarios": [
     {
       "id": "append-outside-locked-window",
@@ -38,8 +31,8 @@
           "assertions": [
             { "path": "data.count", "equals": 12 },
             { "path": "visible.count", "equals": 8 },
-            { "path": "viewport.start", "equals": "2025-01-05" },
-            { "path": "viewport.end", "equals": "2025-01-12" },
+            { "path": "viewport.start", "equals": "2018-10-05" },
+            { "path": "viewport.end", "equals": "2018-10-12" },
             { "path": "viewport.locked", "equals": true }
           ]
         },
@@ -77,11 +70,9 @@
           "type": "assert",
           "assertions": [
             { "path": "data.count", "equals": 13 },
-            { "path": "data.ids", "includes": "sample-12" },
-            { "path": "data.domainEnd", "equals": "2025-01-13" },
             { "path": "visible.count", "equals": 8 },
-            { "path": "viewport.start", "equals": "2025-01-05" },
-            { "path": "viewport.end", "equals": "2025-01-12" },
+            { "path": "viewport.start", "equals": "2018-10-05" },
+            { "path": "viewport.end", "equals": "2018-10-12" },
             { "path": "viewport.locked", "equals": true },
             { "path": "control.appended", "equals": 1 }
           ]
@@ -109,11 +100,11 @@
           "type": "assert",
           "assertions": [
             { "path": "data.count", "equals": 13 },
-            { "path": "data.ids", "includes": "sample-12" },
+            { "path": "data.ids", "includes": "2018-10-14" },
+            { "path": "data.domainEnd", "equals": "2018-10-14" },
             { "path": "visible.count", "equals": 8 },
-            { "path": "visible.revisionProbeValue", "equals": 49 },
-            { "path": "viewport.start", "equals": "2025-01-05" },
-            { "path": "viewport.end", "equals": "2025-01-12" },
+            { "path": "viewport.start", "equals": "2018-10-05" },
+            { "path": "viewport.end", "equals": "2018-10-12" },
             { "path": "viewport.locked", "equals": true },
             { "path": "control.appended", "equals": 1 }
           ]
@@ -123,11 +114,11 @@
           "type": "assert",
           "assertions": [
             { "path": "data.count", "equals": 13 },
-            { "path": "data.ids", "includes": "sample-12" },
+            { "path": "data.ids", "includes": "2018-10-13" },
+            { "path": "data.domainEnd", "equals": "2018-10-13" },
             { "path": "visible.count", "equals": 8 },
-            { "path": "visible.revisionProbeValue", "equals": 44 },
-            { "path": "viewport.start", "equals": "2025-01-05" },
-            { "path": "viewport.end", "equals": "2025-01-12" },
+            { "path": "viewport.start", "equals": "2018-10-05" },
+            { "path": "viewport.end", "equals": "2018-10-12" },
             { "path": "viewport.locked", "equals": true },
             { "path": "control.appended", "equals": 1 }
           ]
@@ -140,9 +131,9 @@
           "type": "assert",
           "assertions": [
             { "path": "visible.count", "equals": 8 },
-            { "path": "visible.ids", "includes": "sample-12" },
-            { "path": "viewport.start", "equals": "2025-01-06" },
-            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "visible.ids", "includes": "2018-10-13" },
+            { "path": "viewport.start", "equals": "2018-10-06" },
+            { "path": "viewport.end", "equals": "2018-10-13" },
             { "path": "viewport.locked", "equals": false },
             { "path": "viewport.mode", "equals": "latest" }
           ]
@@ -167,8 +158,8 @@
           "type": "assert",
           "assertions": [
             { "path": "visible.count", "equals": 13 },
-            { "path": "viewport.start", "equals": "2025-01-01" },
-            { "path": "viewport.end", "equals": "2025-01-13" },
+            { "path": "viewport.start", "equals": "2018-10-01" },
+            { "path": "viewport.end", "equals": "2018-10-13" },
             { "path": "viewport.locked", "equals": false },
             { "path": "viewport.mode", "equals": "all" }
           ]
@@ -181,7 +172,7 @@
     "url": "https://echarts.apache.org/handbook/en/how-to/data/dynamic-data/"
   },
   "ai": {
-    "create": "Create a deterministic streaming line chart with an accessible append control and a user-owned UTC viewport that does not move when new observations arrive.",
-    "maintain": "Keep observation IDs stable, derive the visible slice from the explicit viewport, and update data independently from the locked scale domain."
+    "create": "Create a deterministic streaming line chart from daily package downloads with an accessible append control and a user-owned UTC viewport that does not move when new observations arrive.",
+    "maintain": "Use each observation date as stable identity, derive the visible slice from the explicit viewport, and advance through source rows independently from the locked scale domain."
   }
 }

@@ -4,7 +4,7 @@
   "id": "36-hierarchy-tree",
   "title": "Tidy hierarchy tree",
   "family": "hierarchy",
-  "intent": "Show a small product hierarchy with a tidy node-link layout and direct labels.",
+  "intent": "Show part of the Flare analytics hierarchy with a tidy node-link layout and direct class labels.",
   "support": "composed",
   "features": [
     "hierarchy",
@@ -24,7 +24,7 @@
     "url": "https://observablehq.com/plot/marks/tree"
   },
   "ai": {
-    "create": "Create a left-to-right tidy hierarchy from typed slash-delimited paths with one link per parent-child relationship, one dot per node, and direct node labels. Plot should use its native tree mark; TanStack should pass granular d3-hierarchy layout output to ordinary link, dot, and text marks.",
-    "maintain": "Change the hierarchy depth and labels while preserving stable path identity, the raw flat path rows, mirrored branch and leaf labels, granular d3-hierarchy imports, and cast-free channels."
+    "create": "Create a left-to-right tidy hierarchy from Observable's flat Flare name paths with one link per parent-child relationship, one dot per node, and direct class labels.",
+    "maintain": "Change the selected Flare rows while preserving the raw name field, stable path identity, mirrored branch and leaf labels, granular d3-hierarchy imports, and cast-free channels."
   }
 }

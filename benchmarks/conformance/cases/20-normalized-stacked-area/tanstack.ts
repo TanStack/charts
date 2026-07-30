@@ -1,114 +1,97 @@
 import { areaY, colorLegend, defineChart, ruleY } from '@tanstack/charts'
 import { format } from 'd3-format'
 import { group } from 'd3-array'
-import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
+import { scaleLinear, scaleUtc } from 'd3-scale'
 import { stack, stackOffsetExpand } from 'd3-shape'
-import { timeDomain } from '../../shared/data'
-import type { TimePoint } from '../../shared/data'
+import { industries } from '@charts-poc/demo-data/industries'
+import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput, ConformanceMount } from '../../types'
-import {
-  normalizedStackData,
-  normalizedValueDomain,
-  seriesColors,
-  seriesNames,
-} from './data'
 
 interface WideTimePoint {
   date: Date
-  Atlas: number
-  Beacon: number
-  Comet: number
+  byIndustry: ReadonlyMap<string, IndustriesRow>
 }
 
-interface NormalizedStackPoint {
-  id: string
-  date: Date
-  value: number
-  series: TimePoint['series']
+interface NormalizedIndustryPoint extends IndustriesRow {
   y1: number
   y2: number
 }
 
 const percent = format('.0%')
+const colors = [
+  '#4e79a7',
+  '#f28e2c',
+  '#e15759',
+  '#76b7b2',
+  '#59a14f',
+  '#edc949',
+  '#af7aa1',
+  '#ff9da7',
+  '#9c755f',
+  '#bab0ab',
+]
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = normalizedIntervals(normalizedStackData(input.revision))
+const definition = (_input: ConformanceInput) => {
+  const rows = normalizedIntervals(industries)
 
-    return {
-      marks: [
-        areaY(rows, {
-          id: 'normalized-areas',
-          x: 'date',
-          y1: 'y1',
-          y2: 'y2',
-          z: 'series',
-          key: 'id',
-          fillOpacity: 0.82,
-        }),
-        ruleY([0]),
-      ],
-      x: {
-        scale: scaleUtc().domain(timeDomain),
-        label: 'Week',
-      },
-      y: {
-        scale: scaleLinear().domain(normalizedValueDomain),
-        grid: true,
-        label: 'Share',
-        format: percent,
-      },
-      color: {
-        scale: scaleOrdinal<TimePoint['series'], string>()
-          .domain(seriesNames)
-          .range(seriesNames.map((series) => seriesColors[series])),
-        legend: colorLegend({ label: 'Series' }),
-      },
-    }
+  return defineChart({
+    marks: [
+      areaY(rows, {
+        x: 'date',
+        y1: 'y1',
+        y2: 'y2',
+        color: 'industry',
+        fillOpacity: 0.82,
+      }),
+      ruleY([0]),
+    ],
+    x: {
+      scale: scaleUtc,
+      label: 'Month',
+    },
+    y: {
+      scale: scaleLinear().domain([0, 1]),
+      grid: true,
+      label: 'Share of unemployment',
+      format: percent,
+    },
+    color: {
+      range: colors,
+      legend: colorLegend({ label: 'Industry' }),
+    },
   })
+}
 
 export const mount: ConformanceMount = tanstackMount(
   definition,
-  'Normalized stacked area composition',
+  'Industry share of unemployment',
 )
 
 function normalizedIntervals(
-  rows: readonly TimePoint[],
-): readonly NormalizedStackPoint[] {
+  rows: readonly IndustriesRow[],
+): readonly NormalizedIndustryPoint[] {
+  const industryNames = Array.from(new Set(rows.map((row) => row.industry)))
   const wideRows = Array.from(
     group(rows, (row) => row.date.getTime()).values(),
     toWideRow,
   )
 
-  return stack<WideTimePoint, TimePoint['series']>()
-    .keys(seriesNames)
-    .value((row, key) => row[key])
+  return stack<WideTimePoint, string>()
+    .keys(industryNames)
+    .value((row, industry) => row.byIndustry.get(industry)?.unemployed ?? 0)
     .offset(stackOffsetExpand)(wideRows)
     .flatMap((series) =>
-      series.map((point): NormalizedStackPoint => ({
-        id: `${series.key}:${point.data.date.toISOString()}`,
-        date: point.data.date,
-        value: point.data[series.key],
-        series: series.key,
-        y1: point[0],
-        y2: point[1],
-      })),
+      series.flatMap((point): readonly NormalizedIndustryPoint[] => {
+        const source = point.data.byIndustry.get(series.key)
+        return source ? [{ ...source, y1: point[0], y2: point[1] }] : []
+      }),
     )
 }
 
-function toWideRow(rows: TimePoint[]): WideTimePoint {
+function toWideRow(rows: IndustriesRow[]): WideTimePoint {
   return {
     date: rows[0]?.date ?? new Date(0),
-    Atlas: valueForSeries(rows, 'Atlas'),
-    Beacon: valueForSeries(rows, 'Beacon'),
-    Comet: valueForSeries(rows, 'Comet'),
+    byIndustry: new Map(rows.map((row) => [row.industry, row] as const)),
   }
-}
-
-function valueForSeries(
-  rows: readonly TimePoint[],
-  series: TimePoint['series'],
-): number {
-  return rows.find((row) => row.series === series)?.value ?? 0
 }

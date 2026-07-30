@@ -1,18 +1,9 @@
+import { citywages } from '@charts-poc/demo-data/citywages'
 import * as Plot from '@observablehq/plot'
-import { slopeData } from './data'
+import { toSlopePoints } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
-const categories = [
-  'Query',
-  'Router',
-  'Table',
-  'Form',
-  'Start',
-  'Virtual',
-  'Store',
-  'DB',
-]
 const colors = [
   '#2563eb',
   '#f97316',
@@ -26,35 +17,38 @@ const colors = [
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = slopeData(nextInput.revision)
+    const rows = toSlopePoints(
+      citywages.slice(nextInput.revision * 4, nextInput.revision * 4 + 8),
+    )
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Two-period slopegraph',
+      ariaLabel: 'Metropolitan wage inequality, 1980 to 2015',
       marginRight: 76,
-      x: { domain: ['Before', 'After'], label: null },
-      y: { domain: [0, 70], grid: true, label: 'Value' },
-      color: { domain: categories, range: colors },
+      x: { label: null },
+      y: { grid: true, label: '90th/10th percentile wage ratio' },
+      color: { range: colors },
       marks: [
         Plot.line(rows, {
-          x: 'period',
-          y: 'value',
-          z: 'category',
-          stroke: 'category',
+          x: 'year',
+          y: 'inequality',
+          z: 'nyt_display',
+          stroke: 'nyt_display',
+          sort: { x: null, color: null },
         }),
         Plot.dot(rows, {
-          x: 'period',
-          y: 'value',
-          fill: 'category',
+          x: 'year',
+          y: 'inequality',
+          fill: 'nyt_display',
           r: 3,
         }),
         Plot.text(
-          rows.filter((row) => row.period === 'After'),
+          rows.filter((row) => row.year === '2015'),
           {
-            x: 'period',
-            y: 'value',
-            text: 'category',
-            fill: 'category',
+            x: 'year',
+            y: 'inequality',
+            text: 'nyt_display',
+            fill: 'nyt_display',
             dx: 6,
             textAnchor: 'start',
           },

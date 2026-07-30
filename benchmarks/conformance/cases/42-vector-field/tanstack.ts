@@ -1,31 +1,33 @@
 import { defineChart, vector } from '@tanstack/charts'
-import { scaleLinear } from 'd3-scale'
-import { vectorData } from './data'
+import { wind } from '@charts-poc/demo-data/wind'
+import { scaleLinear, scaleSqrt } from 'd3-scale'
+import { sampleWind } from './selection'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput } from '../../types'
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => ({
+const speed = scaleSqrt().domain([0, 14]).range([0, 22])
+const sampledWind = sampleWind(wind)
+
+const definition = () =>
+  defineChart({
     marks: [
-      vector(vectorData(input.revision), {
-        x: 'x',
-        y: 'y',
-        length: 'speed',
-        rotate: 'direction',
-        key: 'id',
+      vector(sampledWind, {
+        x: 'longitude',
+        y: 'latitude',
+        length: (row) => speed(Math.hypot(row.u, row.v)),
+        rotate: (row) => (Math.atan2(row.u, row.v) * 180) / Math.PI,
         stroke: '#2563eb',
       }),
     ],
     x: {
-      scale: scaleLinear().domain([-0.75, 5.75]),
+      scale: scaleLinear,
       grid: true,
-      label: 'X',
+      label: 'Longitude',
     },
     y: {
-      scale: scaleLinear().domain([-0.75, 4.75]),
+      scale: scaleLinear,
       grid: true,
-      label: 'Y',
+      label: 'Latitude',
     },
-  }))
+  })
 
 export const mount = tanstackMount(definition, 'Two-dimensional vector field')

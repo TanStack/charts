@@ -4,7 +4,7 @@
   "id": "24-quantitative-binned-heatmap",
   "title": "Quantitative binned heatmap",
   "family": "distribution",
-  "intent": "Reveal the density of two quantitative variables with a fixed two-dimensional bin grid.",
+  "intent": "Reveal the joint distribution of penguin bill length and depth with a fixed two-dimensional bin grid.",
   "support": "composed",
   "features": [
     "two-dimensional bin transform",
@@ -13,13 +13,13 @@
     "d3-array bin",
     "continuous color legend"
   ],
-  "geometry": [{ "role": "rect", "count": 64 }],
+  "geometry": [{ "role": "rect", "count": 42 }],
   "source": {
     "title": "Observable Plot two-dimensional bin transform",
     "url": "https://observablehq.com/plot/transforms/bin"
   },
   "ai": {
-    "create": "Create a responsive two-dimensional heatmap from typed {x, y} observations using fixed ten-unit bins on both axes and cell color for count.",
+    "create": "Create a responsive two-dimensional heatmap from the Palmer Penguins bill measurements using fixed quantitative bins on both axes and cell color for count.",
     "maintain": "Change the bin interval while preserving equivalent Plot and granular d3-array boundaries, continuous color semantics, and inferred endpoint types."
   }
 }

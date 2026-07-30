@@ -6,6 +6,15 @@ import { brotliCompressSync, gzipSync } from 'node:zlib'
 import { build } from 'esbuild'
 import { chromium } from 'playwright'
 import ts from 'typescript'
+import {
+  countCatalogSourceBytes,
+  countCatalogSourceLines,
+  loadCatalogSourceClosure,
+} from '../benchmarks/conformance/catalog-loader.ts'
+import {
+  catalogSourceClosureMetadata,
+  createCatalogSourceModules,
+} from './catalog-source-files.mjs'
 import { conformanceArtifactStem } from './benchmark/conformance-artifacts.mjs'
 import { assertKnownFilterValues } from './benchmark/filters.mjs'
 
@@ -110,6 +119,7 @@ await Promise.all([
   mkdir(typeProbeDirectory, { recursive: true }),
 ])
 
+const sourceModules = await createCatalogSourceModules(conformanceDirectory)
 const allCases = await readCases()
 assertKnownFilterValues(
   caseFilter,
@@ -635,8 +645,8 @@ async function auditTypes(cases) {
     const source = details.source
     audit.set(`${details.caseId}:${details.renderer}`, {
       diagnostics: sourceDiagnostics,
-      lines: source.split(/\r?\n/).length,
-      sourceBytes: Buffer.byteLength(source),
+      lines: countCatalogSourceLines(source),
+      sourceBytes: countCatalogSourceBytes(source),
       unsafeAssertions: countMatches(
         source,
         /\bas\s+(?:any|unknown)(?:\s+as\s+\w+)?/g,
@@ -1114,7 +1124,7 @@ async function buildImplementations(cases, typeAudit) {
       }
       const id = `${entry.id}-${renderer}`
       const outputPath = resolve(bundleDirectory, `${id}.js`)
-      const buildResult = await build({
+      await build({
         entryPoints: [sourcePath],
         outfile: outputPath,
         bundle: true,
@@ -1127,9 +1137,39 @@ async function buildImplementations(cases, typeAudit) {
         legalComments: 'none',
         logLevel: 'silent',
       })
-      const contents = await readFile(outputPath)
-      const inputPaths = Object.keys(buildResult.metafile.inputs)
-      const authoredSource = await authoredSourceMetrics(inputPaths)
+      const measurementResult = await build({
+        entryPoints: [sourcePath],
+        outfile: outputPath,
+        bundle: true,
+        minify: true,
+        treeShaking: true,
+        metafile: true,
+        platform: 'browser',
+        format: 'esm',
+        target: 'es2022',
+        legalComments: 'none',
+        logLevel: 'silent',
+        write: false,
+        external: ['@charts-poc/demo-data/*'],
+      })
+      const contents = measurementResult.outputFiles[0]?.contents
+      if (!contents) {
+        throw new Error(`No measurement bundle emitted for ${id}`)
+      }
+      const inputPaths = Object.keys(measurementResult.metafile.inputs)
+      const sourceEntryPath = `./cases/${entry.id}/${rendererFileName(renderer)}`
+      const authoredSource = catalogSourceClosureMetadata(
+        await loadCatalogSourceClosure(sourceModules, sourceEntryPath),
+        sourceEntryPath,
+      )
+      const chartSource = ['entry', 'support'].reduce(
+        (total, role) => ({
+          files: total.files + authoredSource.roles[role].files,
+          lines: total.lines + authoredSource.roles[role].lines,
+          bytes: total.bytes + authoredSource.roles[role].bytes,
+        }),
+        { files: 0, lines: 0, bytes: 0 },
+      )
       const entryTypeAudit =
         typeAudit.get(`${entry.id}:${renderer}`) ?? missingTypeAudit()
       bundles.push({
@@ -1145,42 +1185,21 @@ async function buildImplementations(cases, typeAudit) {
           ...entryTypeAudit,
           entryLines: entryTypeAudit.lines,
           entrySourceBytes: entryTypeAudit.sourceBytes,
-          lines: authoredSource.lines,
-          sourceBytes: authoredSource.bytes,
-          sourceFiles: authoredSource.files,
+          lines: chartSource.lines,
+          sourceBytes: chartSource.bytes,
+          sourceFiles: chartSource.files,
+          fixtureLines: authoredSource.roles.fixture.lines,
+          fixtureSourceBytes: authoredSource.roles.fixture.bytes,
+          fixtureSourceFiles: authoredSource.roles.fixture.files,
+          totalSourceLines: authoredSource.totalLines,
+          totalSourceBytes: authoredSource.totalBytes,
+          totalSourceFiles: authoredSource.totalFiles,
+          sourceRoles: authoredSource.roles,
         },
       })
     }
   }
   return bundles
-}
-
-async function authoredSourceMetrics(inputPaths) {
-  let lines = 0
-  let bytes = 0
-  let files = 0
-
-  for (const inputPath of inputPaths) {
-    const absolutePath = resolve(root, inputPath)
-    const localPath = relative(conformanceDirectory, absolutePath)
-    if (
-      localPath === '..' ||
-      localPath.startsWith(`..${sep}`) ||
-      localPath === ''
-    ) {
-      continue
-    }
-    try {
-      const source = await readFile(absolutePath, 'utf8')
-      files += 1
-      lines += source.split(/\r?\n/).length
-      bytes += Buffer.byteLength(source)
-    } catch {
-      // Virtual and generated esbuild inputs do not contribute authored source.
-    }
-  }
-
-  return { lines, bytes, files }
 }
 
 async function measureImplementation(
@@ -1539,10 +1558,18 @@ async function compareVisuals(
                 : elements.map((element) => element.getBoundingClientRect())
               const paints = driverSamples
                 ? driverSamples
+                    .filter((sample) => sample.width > 0 && sample.height > 0)
                     .map((sample) => sample.paint)
                     .filter(Boolean)
                     .sort()
-                : elements.map(elementPaint).sort()
+                : elements
+                    .filter(
+                      (_element, index) =>
+                        (boxes[index]?.width ?? 0) > 0 &&
+                        (boxes[index]?.height ?? 0) > 0,
+                    )
+                    .map(elementPaint)
+                    .sort()
               const actual = driverSamples?.length ?? elements.length
               return [
                 expectation.id ?? role,

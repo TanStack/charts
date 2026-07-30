@@ -3,17 +3,17 @@ title: Legends and Color
 description: Map categorical or quantitative values to color, render responsive legends, and preserve meaning across themes.
 ---
 
-Color is a channel. The chart's `color` configuration defines its semantic
-mapping, while most marks emit categorical values through `z`. `fill` and
-`stroke` are literal or data-driven paint overrides; they are not field-name
-lookups. Bars also expose a separate `color` channel when subgroup geometry and
-paint need different fields.
+Color has one semantic path. A mark's `color` channel contributes values to the
+chart-level `color` scale and legend. `z` partitions series or interaction
+groups and supplies the color value only when `color` is omitted. `fill` and
+`stroke` are final paint overrides; using either bypasses scale mapping for
+that paint.
 
 ## Automatic categorical color
 
-When marks emit group values and no color scale is supplied, TanStack Charts
-uses the chart theme palette. This is the convenient default for a small,
-stable set of categories.
+When marks emit categorical color values and no color scale is supplied,
+TanStack Charts uses the chart theme palette. This is the convenient default
+for a small, stable set of categories.
 
 For persistent product semantics, supply an explicit configured D3 ordinal
 scale:
@@ -33,7 +33,6 @@ const definition = defineChart({
       x: 'date',
       y: 'value',
       z: 'series',
-      key: 'id',
     }),
   ],
   x,
@@ -50,17 +49,17 @@ category from changing color when data is filtered or reordered.
 
 ## Quantitative color
 
-Supply a continuous D3 color scale for numeric values and use
-`colorGradientLegend`:
+Supply a D3 color-scale factory and put the numeric field on the mark's
+`color` channel:
 
 ```ts
 import { scaleSequential } from 'd3-scale'
 import { interpolateBlues } from 'd3-scale-chromatic'
-import { colorGradientLegend } from '@tanstack/charts'
+import { colorLegend } from '@tanstack/charts'
 
 const color = {
   scale: () => scaleSequential(interpolateBlues),
-  legend: colorGradientLegend({
+  legend: colorLegend({
     label: 'Requests per minute',
     format: (value) => value.toLocaleString(),
   }),
@@ -68,20 +67,43 @@ const color = {
 ```
 
 The factory keeps the interpolator and lets the chart infer the numeric domain
-from color-channel values. Pass a configured scale instance when the color
-domain is a product threshold or must remain stable across filtered data.
+from color-channel values. Continuous and quantize factories infer a finite
+extent. Quantile factories receive the complete observed numeric population,
+including duplicates. Threshold factories require an explicit domain because
+their cuts are policy, not an extent:
+
+```ts
+import { scaleThreshold } from 'd3-scale'
+
+const colors = ['#eff6ff', '#bfdbfe', '#60a5fa', '#1d4ed8']
+
+const color = {
+  scale: scaleThreshold<number, string>,
+  domain: [5, 12, 24],
+  range: colors,
+  legend: colorLegend({ label: 'Incidents' }),
+}
+```
 
 `d3-scale-chromatic` and its matching type package are optional direct
 application dependencies. They are never pulled into charts that do not import
 them. The [D3 integration page](../concepts/scales-and-d3.md) owns the install
 and API-reference links.
 
-## Categorical legend
+## Automatic color legend
 
-`colorLegend` renders responsive swatches and labels. Options:
+`colorLegend` reads the resolved scale:
+
+- categorical scales render labeled swatches;
+- continuous scales render a sampled ramp;
+- quantize, quantile, and threshold scales render exact bins and boundaries.
+
+Options:
 
 - `label`: optional legend title;
-- `itemWidth`: minimum width used to decide column count.
+- `itemWidth`: minimum categorical item width;
+- `width`: preferred quantitative legend width;
+- `format`: numeric boundary formatter.
 
 The legend reserves its own layout height. It is visual guidance and is hidden
 from the SVG accessibility tree; essential category meaning should also be
@@ -94,7 +116,7 @@ available through direct labels, surrounding HTML, or a table.
   style="width: 100%; height: 380px; border: 0;"
 ></iframe>
 
-## Gradient legend
+## Explicit gradient legend
 
 `colorGradientLegend` requires a numeric color-scale domain. Options:
 
@@ -103,8 +125,9 @@ available through direct labels, surrounding HTML, or a table.
 - `width`: preferred width capped by the chart;
 - `format`: formatter for the domain endpoints.
 
-The legend communicates the supplied scale. It does not infer thresholds,
-units, or a meaningful domain from data.
+Use `colorGradientLegend` only when a discrete scale should intentionally be
+shown as a sampled ramp. It requires a numeric domain and does not invent
+units or semantic thresholds.
 
 ## Direct labels versus legends
 

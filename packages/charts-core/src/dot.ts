@@ -1,5 +1,6 @@
 import {
   channelValues,
+  compositeKeyValues,
   createMark,
   inferredKeyValues,
   isChartKey,
@@ -24,6 +25,7 @@ export interface DotOptions<TDatum> {
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, ChartValue | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   r?: number | Channel<TDatum, number | null | undefined>
   rScale?: ChartNumericScale
@@ -61,7 +63,16 @@ export function dot<TDatum>(
       typeof datum === 'number' ? datum : undefined,
     )
     const zValues = channelValues(data, options.z, () => null)
-    const keys = inferredKeyValues(data, options.key, { groups: zValues })
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
+    const keys = inferredKeyValues(data, options.key, {
+      groups: zValues,
+      candidates: [xValues, yValues, compositeKeyValues(xValues, yValues)],
+      markId: id,
+      warningIdentity: options,
+    })
     const rawRadii =
       typeof options.r === 'number'
         ? data.map(() => options.r as number)
@@ -80,7 +91,7 @@ export function dot<TDatum>(
         y: { scale: 'y', values: yValues.filter(isChartValue) },
         color: {
           scale: 'color',
-          values: zValues.filter(isChartKey),
+          values: colorValues.filter(isChartKey),
         },
       },
       render: ({ scales, color: resolveColor }) => {
@@ -99,7 +110,8 @@ export function dot<TDatum>(
             return
           const group = zValues[datumIndex] ?? null
           const groupKey = valueKey(group)
-          const color = options.fill ?? resolveColor(group)
+          const color =
+            options.fill ?? resolveColor(colorValues[datumIndex] ?? null)
           const x = scales.x.map(xValue)
           const y = scales.y.map(yValue)
           const key = `${id}:${groupKey}:${valueKey(keys[datumIndex])}`

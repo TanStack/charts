@@ -12,7 +12,7 @@ force intervals through a point-value channel.
 
 | Reader question                                               | Start with                                            |
 | ------------------------------------------------------------- | ----------------------------------------------------- |
-| When does each task or event start and finish?                | Horizontal interval timeline                          |
+| How did each trading day move from open to close?             | Horizontal price interval                             |
 | How uncertain is each point estimate?                         | Point plus low-high error bar                         |
 | What were open, high, low, and close for each period?         | Candlestick                                           |
 | How does a percentile range evolve over time?                 | Quantile ribbon plus median line                      |
@@ -22,23 +22,23 @@ The chart should receive prepared endpoint fields with units that match the
 scale. [Data and Channels](../concepts/data-and-channels.md) defines these
 interval channel shapes.
 
-## Show scheduled spans
+## Compare open-to-close spans
 
-A timeline maps each task to a categorical lane and each start-end pair to a
-horizontal rectangle. The interval carries duration directly; its position
-does not depend on array order.
+This view maps each AAPL trading date to a categorical lane and its `Open` and
+`Close` fields to a horizontal rectangle. Color distinguishes gains from
+losses, while the endpoints carry the price movement directly.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/13-interval-timeline/?theme=system&height=420"
-  title="Task interval timeline with categorical lanes built with TanStack Charts"
+  title="Apple daily open-to-close price intervals with gain and loss colors"
   loading="lazy"
   width="100%"
   height="420"
   style="width:100%;height:420px;border:0;"
 ></iframe>
 
-Use stable task keys and keep lane order explicit. Long lane labels rely on
-automatic guide measurement; verify them at the smallest supported width with
+Keep trading dates stable and lane order explicit. Date labels rely on automatic
+guide measurement; verify them at the smallest supported width with
 [Responsive Charts](../guides/responsive-charts.md).
 
 ## Preserve uncertainty bounds

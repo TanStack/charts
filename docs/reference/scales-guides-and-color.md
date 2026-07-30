@@ -122,11 +122,13 @@ When a margin side is omitted, the scene compiler measures:
 - tick rotation
 - first and last label overhang
 - axis title bounds and offset
+- Cartesian `text`-mark anchors, pixel offsets, and rotation
 - color legend height
 
 The DOM host measures the inherited container font and relayouts after web
 fonts load. Static compilation uses deterministic estimates unless
-`measureText` is supplied.
+`measureText` is supplied. Explicit margin sides remain locked, and
+`clip: true` prevents clipped mark labels from expanding the plot.
 
 ```ts
 interface ChartTextMeasurer {
@@ -186,8 +188,10 @@ the supplied range.
 
 ## Color
 
-Marks with a `z` or `color` channel contribute values to one chart-level color
-scale.
+Data-paint marks accept a semantic `color` channel. On marks that also expose
+`z`, grouping remains independent and supplies the color value only when
+`color` is omitted. `fill` and `stroke` are final paint overrides, so they do
+not contribute to the scale or legend.
 
 ```ts
 interface ConfiguredColorScaleLike<TValue extends ChartKey, TOutput> {
@@ -212,7 +216,7 @@ interface ChartColorOptions {
 | `scale`  | None                    | D3 factory with inference or configured instance with a fixed domain |
 | `type`   | None                    | Custom color-scale resolver                                          |
 | `domain` | Observed channel values | Domain hint for factory, built-in, or custom resolution              |
-| `range`  | Resolved theme palette  | Range hint for the built-in or custom resolver                       |
+| `range`  | See below               | Range for a factory, the built-in scale, or a custom resolver        |
 | `nice`   | `false`                 | Nice a factory or configured continuous color scale                  |
 | `legend` | None                    | Legend layout and scene renderer shown above the inner chart         |
 
@@ -223,29 +227,41 @@ Resolution order:
 3. the built-in ordinal scale using `domain` or observed channel values and
    `range` or the theme palette
 
-A color-scale factory infers a continuous extent or distinct categorical
-domain from color channels. Multi-stop continuous ranges receive evenly spaced
-domain stops across that extent. A supplied scale instance retains its domain.
-Outputs are converted to strings. Optional `domain()` and `range()` methods
-provide legend metadata; when either method is absent, supply the corresponding
-`domain` or `range` option if a legend needs it. A custom `ChartColorScale`
-receives observed values, optional domain and range, and the resolved theme,
-then returns:
+A color-scale factory is classified by D3 capabilities:
+
+- ordinal factories infer first-seen distinct values;
+- continuous and quantize factories infer the finite extent;
+- quantile factories receive the complete numeric population;
+- threshold factories require an explicit domain of authored cuts.
+
+The theme palette is the range default only for the built-in ordinal scale.
+A D3 factory must receive `color.range` or return a scale already configured
+with a non-empty string range or interpolator; bare D3 factories retain
+numeric or empty defaults that are not valid paint. Multi-stop continuous
+ranges receive evenly spaced domain stops across the extent. A supplied scale
+instance retains its domain and range. Outputs are converted to strings. A
+custom `ChartColorScale` receives observed values, optional domain and range,
+and the resolved theme, then returns:
 
 ```ts
 interface ResolvedColorScale {
   type: string
+  kind?: 'categorical' | 'continuous' | 'quantile' | 'quantize' | 'threshold'
   domain: readonly ChartKey[]
   range: readonly string[]
+  thresholds?: readonly number[]
   map(value: ChartKey | null | undefined): string
 }
 ```
 
 `ChartKey` is `string | number`. On the built-in and configured-scale paths, a
-null group maps to the first range color or `currentColor`. A custom
-`ChartColorScale` owns its null mapping through `ResolvedColorScale.map`.
+null color value maps to the first range color or `currentColor`. A custom
+`ChartColorScale` owns its null mapping through `ResolvedColorScale.map`. A
+custom stepped scale supplies exact interior legend boundaries with
+`thresholds`; D3 quantile, quantize, and threshold scales derive them
+automatically.
 
-## Categorical legend
+## Automatic color legend
 
 ```ts
 import { colorLegend } from '@tanstack/charts/legend'
@@ -253,6 +269,8 @@ import { colorLegend } from '@tanstack/charts/legend'
 colorLegend({
   label: 'Package',
   itemWidth: 120,
+  width: 240,
+  format: (value) => value.toFixed(0),
 })
 ```
 
@@ -260,12 +278,16 @@ colorLegend({
 interface ColorLegendOptions {
   label?: string
   itemWidth?: number
+  width?: number
+  format?: (value: number) => string
 }
 ```
 
 `itemWidth` defaults to `110` and is clamped to a minimum of `64`. Items wrap
-to responsive columns above the chart. Labels are derived from the color-scale
-domain.
+to responsive columns for categorical scales. Continuous scales render a
+sampled ramp. Quantize, quantile, and threshold scales render exact range bins
+at their resolved thresholds. `width` and `format` configure the quantitative
+forms.
 
 ## Gradient legend
 
@@ -300,7 +322,7 @@ value and throws for a nonnumeric domain.
 
 ```ts
 interface ChartColorLegend {
-  height(itemCount: number, width: number): number
+  height(itemCount: number, width: number, colors?: ResolvedColorScale): number
   render(context: ChartColorLegendContext): SceneNode
 }
 ```

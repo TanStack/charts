@@ -1,80 +1,37 @@
+import { citywages } from '@charts-poc/demo-data/citywages'
 import { barX, defineChart, ruleX } from '@tanstack/charts'
-import { rollups, sum } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import type { CategoryPoint } from '../../shared/data'
-import { categoryData, categoryTotalDomain } from '../../shared/data'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = summarizeCategories(categoryData(input.revision)).sort(
-      (left, right) => right.value - left.value,
-    )
+const definition = (input: ConformanceInput) => {
+  const rows = citywages
+    .slice(input.revision * 4, input.revision * 4 + 8)
+    .sort((left, right) => right.POP_2015 - left.POP_2015)
 
-    return {
-      marks: [
-        barX(rows, {
-          x: 'value',
-          y: 'category',
-          key: 'id',
-          fill: '#7c3aed',
-          inset: 1,
-        }),
-        ruleX([0]),
-      ],
-      x: {
-        scale: scaleLinear().domain(categoryTotalDomain),
-        label: 'Total value',
-        ticks: 5,
-        grid: true,
-      },
-      y: {
-        scale: scaleBand<string>()
-          .domain(rows.map((row) => row.category))
-          .paddingInner(0.1)
-          .paddingOuter(0.05),
-        format: formatCategory,
-      },
-    }
+  return defineChart({
+    marks: [
+      barX(rows, {
+        x: 'POP_2015',
+        y: 'Metro',
+        fill: '#7c3aed',
+        inset: 1,
+      }),
+      ruleX([0]),
+    ],
+    x: {
+      scale: scaleLinear,
+      label: '2015 population',
+      ticks: 5,
+      grid: true,
+    },
+    y: {
+      scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
+    },
   })
+}
 
 export const mount = tanstackMount(
   definition,
   'Horizontal ranking with long labels',
 )
-
-function summarizeCategories(rows: readonly CategoryPoint[]) {
-  return rollups(
-    rows,
-    (values) => sum(values, (row) => row.value),
-    (row) => row.category,
-  ).map(([category, value]) => ({
-    id: category,
-    category,
-    value,
-  }))
-}
-
-function formatCategory(value: unknown): string {
-  switch (String(value)) {
-    case 'Query':
-      return 'TanStack Query — async data'
-    case 'Router':
-      return 'TanStack Router — routing'
-    case 'Table':
-      return 'TanStack Table — data grids'
-    case 'Form':
-      return 'TanStack Form — form state'
-    case 'Start':
-      return 'TanStack Start — full stack'
-    case 'Virtual':
-      return 'TanStack Virtual — large lists'
-    case 'Store':
-      return 'TanStack Store — client state'
-    case 'DB':
-      return 'TanStack DB — reactive data'
-    default:
-      return String(value)
-  }
-}

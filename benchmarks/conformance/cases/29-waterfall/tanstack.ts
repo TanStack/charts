@@ -1,11 +1,13 @@
 import { barY, colorLegend, defineChart, ruleY } from '@tanstack/charts'
-import { scaleBand, scaleLinear, scaleOrdinal } from 'd3-scale'
-import { waterfallData } from './data'
-import type { WaterfallContribution } from './data'
+import { pairs } from 'd3-array'
+import { scaleBand, scaleLinear } from 'd3-scale'
+import { driving } from '@charts-poc/demo-data/driving'
+import type { DrivingRow } from '@charts-poc/demo-data/driving'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput } from '../../types'
 
-interface WaterfallPoint extends WaterfallContribution {
+interface WaterfallPoint extends DrivingRow {
+  label: string
+  change: number
   start: number
   end: number
   kind: 'increase' | 'decrease' | 'total'
@@ -19,11 +21,16 @@ const kinds: readonly WaterfallPoint['kind'][] = [
 const colors = ['#10b981', '#ef4444', '#2563eb']
 const signedAmount = new Intl.NumberFormat('en-US', {
   signDisplay: 'always',
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 2,
 })
 
-const definition = (input: ConformanceInput) =>
+const observations = driving.filter((row) => row.year >= 2004)
+
+const definition = () =>
   defineChart(({ width }) => {
-    const rows = buildWaterfall(waterfallData(input.revision))
+    const rows = buildWaterfall(observations)
 
     return {
       marks: [
@@ -32,51 +39,55 @@ const definition = (input: ConformanceInput) =>
           y1: 'start',
           y2: 'end',
           color: 'kind',
-          key: 'id',
           inset: 1,
         }),
         ruleY([0], { stroke: '#64748b', strokeOpacity: 0.6 }),
       ],
       x: {
-        scale: scaleBand<string>()
-          .domain(rows.map((row) => row.label))
-          .padding(0.14),
+        scale: () => scaleBand<string>().padding(0.14),
         tickRotate: width < 560 ? -32 : 0,
       },
       y: {
-        scale: scaleLinear().domain([0, 130]),
+        scale: scaleLinear,
         grid: true,
-        label: 'Amount',
+        label: 'Change in gasoline price (USD per gallon)',
       },
       color: {
-        scale: scaleOrdinal<WaterfallPoint['kind'], string>()
-          .domain(kinds)
-          .range(colors),
-        legend: colorLegend({ label: 'Contribution' }),
+        domain: kinds,
+        range: colors,
+        legend: colorLegend({ label: 'Change' }),
       },
     }
   })
 
 function buildWaterfall(
-  contributions: readonly WaterfallContribution[],
+  rows: readonly DrivingRow[],
 ): readonly WaterfallPoint[] {
   let total = 0
-  const rows = contributions.map((row): WaterfallPoint => {
+  const changes = pairs(rows, (previous, current): WaterfallPoint => {
+    const change = current.gas - previous.gas
     const start = total
-    total += row.value
+    total += change
     return {
-      ...row,
+      ...current,
+      label: `${current.year}`,
+      change,
       start,
       end: total,
-      kind: row.value >= 0 ? 'increase' : 'decrease',
+      kind: change >= 0 ? 'increase' : 'decrease',
     }
   })
+
+  const first = rows[0]
+  const last = rows.at(-1)
+  if (!first || !last) return changes
+
   return [
-    ...rows,
+    ...changes,
     {
-      id: 'net',
-      label: 'Net',
-      value: total,
+      ...last,
+      label: `${first.year}–${String(last.year).slice(-2)}`,
+      change: total,
       start: 0,
       end: total,
       kind: 'total',
@@ -84,11 +95,15 @@ function buildWaterfall(
   ]
 }
 
-export const mount = tanstackMount(definition, 'Contribution waterfall chart', {
-  format: ({ datum }) =>
-    datum.kind === 'total'
-      ? `${datum.label} · ${datum.end.toLocaleString('en-US')} total`
-      : `${datum.label} · ${signedAmount.format(
-          datum.end - datum.start,
-        )} · ${datum.end.toLocaleString('en-US')} running total`,
-})
+export const mount = tanstackMount(
+  definition,
+  'Annual changes in U.S. gasoline prices',
+  {
+    format: ({ datum }) =>
+      datum.kind === 'total'
+        ? `${datum.label} · ${signedAmount.format(datum.end)} net change`
+        : `${datum.label} · ${signedAmount.format(
+            datum.end - datum.start,
+          )} · ${signedAmount.format(datum.end)} running change`,
+  },
+)

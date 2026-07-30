@@ -1,10 +1,9 @@
 import * as Plot from '@observablehq/plot'
 import {
-  orthographicProjection,
-  worldCollection,
   worldGraticule,
+  worldLand,
   worldSphere,
-} from '../102-world-choropleth/geo-data'
+} from '../../shared/fixtures/country-atlas'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
@@ -18,8 +17,9 @@ export const mount: ConformanceMount = (container, input) =>
       margin,
       ariaLabel: 'Orthographic globe with graticule',
       projection: {
-        type: ({ width, height }: { width: number; height: number }) =>
-          orthographicProjection({ x: 0, y: 0, width, height }),
+        type: 'orthographic',
+        rotate: [0, -30, 20],
+        domain: worldSphere,
         clip: false,
       },
       marks: [
@@ -34,7 +34,7 @@ export const mount: ConformanceMount = (container, input) =>
           strokeOpacity: 0.5,
           strokeWidth: 0.75,
         }),
-        Plot.geo([worldCollection(nextInput.revision)], {
+        Plot.geo([worldLand], {
           fill: nextInput.revision % 2 === 0 ? '#22c55e' : '#0d9488',
           fillOpacity: 0.82,
           stroke: '#f8fafc',

@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 970,
   "id": "97-rose",
-  "title": "Nightingale rose chart",
+  "title": "English letter frequency rose",
   "family": "polar",
-  "intent": "Compare six values through equal-angle sectors whose radii vary on one fixed scale.",
+  "intent": "Compare six English letter frequencies through equal-angle sectors whose radii vary on one fixed scale.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -21,7 +21,7 @@
     "url": "https://recharts.github.io/en-US/api/Pie/"
   },
   "ai": {
-    "create": "Create six equal-angle sectors whose outer radii encode values against a fixed zero-to-one-hundred domain.",
-    "maintain": "Update values without changing angle order or the radial domain; keep D3 arc accessors responsive and retain stable category keys."
+    "create": "Create six equal-angle sectors from Observable's alphabet rows whose outer radii encode the raw frequency field against the dataset maximum.",
+    "maintain": "Change the selected letters without changing angle order or the radial domain; preserve raw field names, responsive D3 accessors, and stable letter identity."
   }
 }

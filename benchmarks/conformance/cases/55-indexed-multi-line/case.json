@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 550,
   "id": "55-indexed-multi-line",
-  "title": "Indexed multi-series performance",
+  "title": "Indexed industry unemployment",
   "family": "trend",
-  "intent": "Compare four series as relative change from each series' first observation.",
+  "intent": "Compare four U.S. industries as relative unemployment change from January 2008.",
   "support": "composed",
   "features": [
     "indexed line chart",
@@ -23,7 +23,7 @@
     "url": "https://observablehq.com/plot/transforms/normalize"
   },
   "ai": {
-    "create": "Create a multi-series time chart that indexes each series to its first value, draws a 100% reference rule, and directly labels each final value.",
-    "maintain": "Change the index basis from the first row to a selected date while retaining one tidy input table, stable colors, inferred date and numeric channels, and percentage labels."
+    "create": "Create a multi-series time chart from the industries dataset that indexes each industry to its January 2008 unemployment, draws a 100% reference rule, and directly labels each final value.",
+    "maintain": "Change the industry selection or index date while retaining the original date, industry, and unemployed fields through normalization, stable colors, inferred channels, and percentage labels."
   }
 }

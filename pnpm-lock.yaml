@@ -7,9 +7,15 @@ settings:
 importers:
   .:
     devDependencies:
+      '@charts-poc/demo-data':
+        specifier: workspace:*
+        version: link:packages/charts-demo-data
       '@observablehq/plot':
         specifier: 0.6.17
         version: 0.6.17
+      '@observablehq/sample-datasets':
+        specifier: 1.0.1
+        version: 1.0.1
       '@plot-poc/host-core':
         specifier: workspace:*
         version: link:packages/core
@@ -127,6 +133,9 @@ importers:
       d3-delaunay:
         specifier: 6.0.4
         version: 6.0.4
+      d3-dsv:
+        specifier: 3.0.1
+        version: 3.0.1
       d3-ease:
         specifier: 3.0.1
         version: 3.0.1
@@ -229,34 +238,61 @@ importers:
 
   examples/charts-octane:
     dependencies:
-      '@charts-poc/fixtures':
+      '@charts-poc/demo-data':
         specifier: workspace:*
-        version: link:../../packages/charts-fixtures
+        version: link:../../packages/charts-demo-data
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../../packages/charts-core
       '@tanstack/octane-charts':
         specifier: workspace:*
         version: link:../../packages/octane-charts
+      d3-array:
+        specifier: 3.2.4
+        version: 3.2.4
+      d3-scale:
+        specifier: 4.0.2
+        version: 4.0.2
+      d3-shape:
+        specifier: 3.2.0
+        version: 3.2.0
       octane:
         specifier: 0.1.13
         version: 0.1.13(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0))
     devDependencies:
+      '@types/d3-array':
+        specifier: ^3.2.2
+        version: 3.2.2
+      '@types/d3-scale':
+        specifier: ^4.0.9
+        version: 4.0.9
+      '@types/d3-shape':
+        specifier: ^3.1.8
+        version: 3.1.8
       vite:
         specifier: ^8.0.16
         version: 8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)
 
   examples/charts-react:
     dependencies:
-      '@charts-poc/fixtures':
+      '@charts-poc/demo-data':
         specifier: workspace:*
-        version: link:../../packages/charts-fixtures
+        version: link:../../packages/charts-demo-data
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../../packages/charts-core
       '@tanstack/react-charts':
         specifier: workspace:*
         version: link:../../packages/react-charts
+      d3-array:
+        specifier: 3.2.4
+        version: 3.2.4
+      d3-scale:
+        specifier: 4.0.2
+        version: 4.0.2
+      d3-shape:
+        specifier: 3.2.0
+        version: 3.2.0
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -264,6 +300,15 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
     devDependencies:
+      '@types/d3-array':
+        specifier: ^3.2.2
+        version: 3.2.2
+      '@types/d3-scale':
+        specifier: ^4.0.9
+        version: 4.0.9
+      '@types/d3-shape':
+        specifier: ^3.1.8
+        version: 3.1.8
       '@vitejs/plugin-react':
         specifier: ^6.0.1
         version: 6.0.4(vite@8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0))
@@ -273,6 +318,9 @@ importers:
 
   examples/conformance:
     dependencies:
+      '@charts-poc/demo-data':
+        specifier: workspace:*
+        version: link:../../packages/charts-demo-data
       '@observablehq/plot':
         specifier: 0.6.17
         version: 0.6.17
@@ -348,6 +396,9 @@ importers:
 
   examples/sandbox:
     dependencies:
+      '@charts-poc/demo-data':
+        specifier: workspace:*
+        version: link:../../packages/charts-demo-data
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../../packages/charts-core
@@ -477,8 +528,17 @@ importers:
         specifier: ^3.1.8
         version: 3.1.8
 
+  packages/charts-demo-data:
+    dependencies:
+      d3-dsv:
+        specifier: 3.0.1
+        version: 3.0.1
+
   packages/charts-fixtures:
     dependencies:
+      '@charts-poc/demo-data':
+        specifier: workspace:*
+        version: link:../charts-demo-data
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../charts-core
@@ -506,6 +566,9 @@ importers:
 
   packages/fixtures:
     dependencies:
+      '@charts-poc/demo-data':
+        specifier: workspace:*
+        version: link:../charts-demo-data
       '@observablehq/plot':
         specifier: 0.6.17
         version: 0.6.17
@@ -1998,6 +2061,12 @@ packages:
         integrity: sha512-/qaXP/7mc4MUS0s4cPPFASDRjtsWp85/TbfsciqDgU1HwYixbSbbytNuInD8AcTYC3xaxACgVX06agdfQy9W+g==,
       }
     engines: { node: '>=12' }
+
+  '@observablehq/sample-datasets@1.0.1':
+    resolution:
+      {
+        integrity: sha512-2gc2wteMytPgDalqUPdLHEFInNb8J3vI17oniIYS89B1iwuO4EPXNWgzpfryyB4CH35CpXL0BgHfVeI+qICWwA==,
+      }
 
   '@oxc-project/types@0.139.0':
     resolution:
@@ -5788,6 +5857,8 @@ snapshots:
       d3: 7.9.0
       interval-tree-1d: 1.0.4
       isoformat: 0.2.1
+
+  '@observablehq/sample-datasets@1.0.1': {}
 
   '@oxc-project/types@0.139.0': {}
 

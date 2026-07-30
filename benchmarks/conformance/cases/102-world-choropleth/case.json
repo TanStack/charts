@@ -2,25 +2,26 @@
   "schemaVersion": 1,
   "order": 1020,
   "id": "102-world-choropleth",
-  "title": "Equal Earth world choropleth",
+  "title": "World learning-poverty choropleth",
   "family": "geography",
-  "intent": "Compare values across recognizable world regions with an equal-area projection.",
+  "intent": "Compare measured learning poverty across countries with an equal-area projection.",
   "support": "native",
   "features": [
-    "GeoJSON polygons",
+    "World Bank learning-poverty observations",
+    "world-atlas land geometry",
+    "country-name join",
     "Equal Earth projection",
     "responsive projection fitting",
-    "quantitative region fills",
-    "d3-geo"
+    "explicit threshold color scale"
   ],
-  "geometry": [{ "role": "geo", "count": 7, "maxCount": 7 }],
+  "geometry": [{ "role": "geo", "count": 97, "maxCount": 97 }],
   "minimumGeometrySimilarity": 0.999,
   "source": {
-    "title": "Observable Plot projections",
-    "url": "https://observablehq.com/plot/features/projections"
+    "title": "Observable Plot geo choropleth",
+    "url": "https://observablehq.com/plot/marks/geo"
   },
   "ai": {
-    "create": "Create a seven-region world choropleth using the same GeoJSON and Equal Earth projection for Observable Plot and TanStack geoShape.",
-    "maintain": "Preserve geographic coordinates, responsive projection fitting, stable region keys, literal fills, and one projected path per region."
+    "create": "Join Observable Plot's learning-poverty snapshot to world-atlas countries and map the published Learning Poverty field with an Equal Earth projection.",
+    "maintain": "Preserve source field names, the explicit country-name aliases, missing-atlas behavior for tiny states, threshold color semantics, and one shared topology conversion."
   }
 }

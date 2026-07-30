@@ -34,7 +34,7 @@ hover.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/36-hierarchy-tree/?theme=system&height=460"
-  title="Directly labeled tidy product hierarchy built with TanStack Charts"
+  title="Directly labeled tidy Flare toolkit hierarchy built with TanStack Charts"
   loading="lazy"
   width="100%"
   height="460"
@@ -78,7 +78,7 @@ When Delaunay is used only for nearest-point lookup, keep the triangulation in
 a `ChartSpatialIndexFactory` instead of painting its edges. See
 [Tooltips and Focus](../guides/tooltips-and-focus.md).
 
-## Explore an unconstrained dependency graph
+## Explore an unconstrained character network
 
 A force-directed layout can reveal clusters and bridges when positions are not
 already meaningful. It also introduces motion, stochastic initialization, and
@@ -86,7 +86,7 @@ collision policy that can make comparison unstable.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/40-force-directed-network/?theme=system&height=460"
-  title="Force-directed service dependency network built with TanStack Charts"
+  title="Force-directed Les Misérables character network built with TanStack Charts"
   loading="lazy"
   width="100%"
   height="460"

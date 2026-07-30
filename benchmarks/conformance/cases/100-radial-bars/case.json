@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 1000,
   "id": "100-radial-bars",
-  "title": "Concentric radial bars",
+  "title": "Concentric letter frequency bars",
   "family": "polar",
-  "intent": "Compare four bounded values through concentric rounded radial bars on one shared angular scale.",
+  "intent": "Compare four English letter frequencies through concentric rounded radial bars on one shared angular scale.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -22,7 +22,7 @@
     "url": "https://recharts.github.io/en-US/examples/SimpleRadialBarChart/"
   },
   "ai": {
-    "create": "Create four concentric radial bars with a fixed zero-to-one-hundred angular domain, responsive ring radii, stable category keys, and rounded D3 arc geometry.",
-    "maintain": "Update values without changing ring order or the shared angular domain; keep each D3 radius accessor responsive and preserve exact per-category fills."
+    "create": "Create four concentric radial bars from Observable's alphabet rows using letter and frequency directly against the dataset maximum.",
+    "maintain": "Change the selected letters without changing ring order or the shared angular domain; preserve raw field names, responsive D3 accessors, and exact per-letter fills."
   }
 }

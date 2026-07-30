@@ -1,7 +1,12 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { densityDefinition, type DensityContourDatum } from './tanstack'
-import { densityThresholds, densityXDomain, densityYDomain } from './data'
+import {
+  densityDefinition,
+  densityThresholds,
+  densityXDomain,
+  densityYDomain,
+  type DensityContourDatum,
+} from './tanstack'
 import type { ConformanceInput } from '../../types'
 
 describe('density contour interaction points', () => {

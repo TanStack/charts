@@ -1,19 +1,20 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
+import { cars } from '@charts-poc/demo-data/cars'
 import { scaleLinear } from 'd3-scale'
 import {
-  freeCursorData,
   freeCursorFractionFromAnchor,
+  freeCursorRows,
   freeCursorXDomain,
   freeCursorYDomain,
-} from './data'
+} from './model'
 import { createFreeCursorControls, updateFreeCursorControls } from './controls'
 import type {
   ChartRenderContext,
   ChartScene,
   ChartHostOptions,
 } from '@tanstack/charts'
-import type { FreeCursorDatum } from './data'
+import type { CompleteCar } from './model'
 import type { FreeCursorControls } from './controls'
 import type {
   ConformanceGeometryQuery,
@@ -46,54 +47,50 @@ interface CursorElements {
 const configuredXScale = scaleLinear().domain(freeCursorXDomain)
 const configuredYScale = scaleLinear().domain(freeCursorYDomain)
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = freeCursorData(input.revision)
-    return {
-      marks: [
-        lineY(rows, {
-          id: 'free-cursor-line',
-          x: 'x',
-          y: 'y',
-          key: 'id',
-          stroke: '#0f766e',
-          strokeWidth: 2,
-        }),
-        dot(rows, {
-          id: 'free-cursor-dots',
-          x: 'x',
-          y: 'y',
-          key: 'id',
-          fill: '#0f766e',
-          r: 3.5,
-          stroke: '#ffffff',
-          strokeWidth: 1,
-        }),
-      ],
-      x: {
-        scale: configuredXScale,
-        label: 'X',
-      },
-      y: {
-        scale: configuredYScale,
-        grid: true,
-        label: 'Y',
-      },
-      margin: {
-        top: 22,
-        right: 24,
-        bottom: 44,
-        left: 58,
-      },
-    }
+const definition = (input: ConformanceInput) => {
+  const rows = freeCursorRows(cars)
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'power (hp)',
+        y: 'economy (mpg)',
+        stroke: '#0f766e',
+        strokeWidth: 2,
+      }),
+      dot(rows, {
+        x: 'power (hp)',
+        y: 'economy (mpg)',
+        fill: '#0f766e',
+        r: 3.5,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+    ],
+    x: {
+      scale: configuredXScale,
+      label: 'Horsepower',
+    },
+    y: {
+      scale: configuredYScale,
+      ticks: 7,
+      grid: true,
+      label: 'Fuel economy (mpg)',
+    },
+    margin: {
+      top: 22,
+      right: 24,
+      bottom: 44,
+      left: 58,
+    },
   })
+}
 
 export function mount(
   container: HTMLElement,
   input: ConformanceInput,
 ): ConformanceHandle {
   let currentInput = input
-  let scene: ChartScene<FreeCursorDatum> | null = null
+  let scene: ChartScene<CompleteCar> | null = null
   let elements: CursorElements | null = null
   let renderCount = 0
   const state: CursorState = {
@@ -139,6 +136,14 @@ export function mount(
       state.pinned = true
       updateInteraction()
     },
+    {
+      xDomain: freeCursorXDomain,
+      yDomain: freeCursorYDomain,
+      xLabel: 'Horsepower',
+      yLabel: 'Fuel economy',
+      xStep: 0.1,
+      yStep: 0.1,
+    },
   )
   shell.append(controls.root, surface)
   container.append(shell)
@@ -180,8 +185,8 @@ export function mount(
     elements.marker.setAttribute('cx', String(x))
     elements.marker.setAttribute('cy', String(y))
     elements.marker.setAttribute('visibility', 'visible')
-    elements.xBadge.textContent = formatCursorValue('X', state.xValue)
-    elements.yBadge.textContent = formatCursorValue('Y', state.yValue)
+    elements.xBadge.textContent = formatCursorValue('HP', state.xValue)
+    elements.yBadge.textContent = formatCursorValue('MPG', state.yValue)
     elements.xBadge.style.left = `${(x / scene.width) * 100}%`
     elements.xBadge.style.top = `${((scene.chart.y + scene.chart.height + 4) / scene.height) * 100}%`
     elements.yBadge.style.left = `${Math.max(2, scene.chart.x - 48)}px`
@@ -190,7 +195,7 @@ export function mount(
     elements.yBadge.hidden = false
   }
 
-  const onRender = (context: ChartRenderContext<FreeCursorDatum>) => {
+  const onRender = (context: ChartRenderContext<CompleteCar>) => {
     renderCount += 1
     scene = context.scene
     paintCursor()
@@ -198,7 +203,7 @@ export function mount(
 
   const options = (
     nextInput: ConformanceInput,
-  ): ChartHostOptions<FreeCursorDatum> => ({
+  ): ChartHostOptions<CompleteCar> => ({
     definition: defineChart(definition(nextInput), {
       animate: false,
       keyboard: false,
@@ -372,7 +377,7 @@ function clearCursor(state: CursorState) {
 function createDriver(
   surface: HTMLDivElement,
   getInput: () => ConformanceInput,
-  getScene: () => ChartScene<FreeCursorDatum> | null,
+  getScene: () => ChartScene<CompleteCar> | null,
   state: CursorState,
   controls: FreeCursorControls,
   getRenderCount: () => number,
@@ -392,7 +397,7 @@ function createDriver(
 
 function resolveTarget(
   surface: HTMLDivElement,
-  scene: ChartScene<FreeCursorDatum> | null,
+  scene: ChartScene<CompleteCar> | null,
   controls: FreeCursorControls,
   target: ConformanceTarget,
 ) {
@@ -423,7 +428,7 @@ function resolveTarget(
 
 function geometry(
   surface: HTMLDivElement,
-  scene: ChartScene<FreeCursorDatum> | null,
+  scene: ChartScene<CompleteCar> | null,
   input: ConformanceInput,
   query: ConformanceGeometryQuery,
 ): readonly ConformanceGeometrySample[] {
@@ -433,12 +438,18 @@ function geometry(
   const svgBounds = svg.getBoundingClientRect()
   const scaleX = svgBounds.width / scene.width
   const scaleY = svgBounds.height / scene.height
-  const rows = freeCursorData(input.revision)
+  const rows = freeCursorRows(cars)
 
   if (query.role === 'dot') {
     return rows.map((datum) => ({
-      x: svgBounds.left + scene.scales.x.map(datum.x) * scaleX - 3.5 * scaleX,
-      y: svgBounds.top + scene.scales.y.map(datum.y) * scaleY - 3.5 * scaleY,
+      x:
+        svgBounds.left +
+        scene.scales.x.map(datum['power (hp)']) * scaleX -
+        3.5 * scaleX,
+      y:
+        svgBounds.top +
+        scene.scales.y.map(datum['economy (mpg)']) * scaleY -
+        3.5 * scaleY,
       width: 7 * scaleX,
       height: 7 * scaleY,
       paint: '#0f766e',
@@ -447,8 +458,8 @@ function geometry(
 
   if (query.role === 'line') {
     const points = rows.map((datum): readonly [number, number] => [
-      scene.scales.x.map(datum.x),
-      scene.scales.y.map(datum.y),
+      scene.scales.x.map(datum['power (hp)']),
+      scene.scales.y.map(datum['economy (mpg)']),
     ])
     const sample = pointsBounds(points, svgBounds, scaleX, scaleY, '#0f766e')
     return sample ? [sample] : []
@@ -459,7 +470,7 @@ function geometry(
 
 function scenePointToClient(
   surface: HTMLDivElement,
-  scene: ChartScene<FreeCursorDatum>,
+  scene: ChartScene<CompleteCar>,
   x: number,
   y: number,
 ) {

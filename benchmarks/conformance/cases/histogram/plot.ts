@@ -1,13 +1,15 @@
+import { cars } from '@charts-poc/demo-data/cars'
 import * as Plot from '@observablehq/plot'
-import { distributionData } from '../../shared/data'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
-const boundaries = [20, 30, 40, 50, 60, 70, 80, 90]
+const boundaries = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = distributionData(nextInput.revision)
+    const rows = cars
+      .filter((row) => row['economy (mpg)'] !== null)
+      .slice(nextInput.revision * 8)
 
     return Plot.plot({
       width: nextInput.width,
@@ -18,12 +20,11 @@ export const mount: ConformanceMount = (container, input) =>
       marginBottom: 40,
       marginLeft: 48,
       x: {
-        domain: [20, 90],
+        domain: [5, 50],
         grid: true,
-        label: 'Value',
+        label: 'Fuel economy (mpg)',
       },
       y: {
-        domain: [0, 80],
         grid: true,
         label: 'Count',
       },
@@ -32,7 +33,7 @@ export const mount: ConformanceMount = (container, input) =>
           ...Plot.binX(
             { y: 'count' },
             {
-              x: 'value',
+              x: 'economy (mpg)',
               thresholds: boundaries,
             },
           ),

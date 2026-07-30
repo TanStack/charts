@@ -3,9 +3,9 @@ import { AriaComponent, PolarComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { echartsMount } from '../../shared/echarts-mount'
-import { polarScatterData } from './data'
+import { windDirection, windLatitudeBand, windSpeed } from './transform'
+import type { WindRow } from '@charts-poc/demo-data/wind'
 import type { EChartsCoreOption, EChartsType } from 'echarts/core'
-import type { PolarScatterDatum } from './data'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -21,20 +21,20 @@ const symbolRadius = 4.5
 
 export const mount = echartsMount(
   polarScatterOption,
-  'Numeric polar scatter',
+  'Surface wind polar scatter',
   ({ chart, surface, getInput }) =>
     staticScatterDriver(chart, surface, getInput),
 )
 
 function polarScatterOption(input: ConformanceInput): EChartsCoreOption {
-  const rows = polarScatterData(input.revision)
+  const rows = windLatitudeBand(input.revision)
 
   return {
     animation: false,
     aria: {
       enabled: true,
       description:
-        'Fourteen observations positioned by continuous angle and radial magnitude.',
+        'Surface wind observations positioned by direction and speed.',
     },
     polar: {
       center: ['50%', '50%'],
@@ -62,8 +62,8 @@ function polarScatterOption(input: ConformanceInput): EChartsCoreOption {
     radiusAxis: {
       type: 'value',
       min: 0,
-      max: 100,
-      interval: 25,
+      max: 13,
+      interval: 3,
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: { show: false },
@@ -80,7 +80,7 @@ function polarScatterOption(input: ConformanceInput): EChartsCoreOption {
       id: 'polar-scatter',
       type: 'scatter',
       coordinateSystem: 'polar',
-      data: rows.map((row) => [row.radius, row.angle]),
+      data: rows.map((row) => [windSpeed(row), windDirection(row)]),
       symbol: 'circle',
       symbolSize: symbolRadius * 2,
       itemStyle: {
@@ -128,7 +128,7 @@ function scatterGeometry(
     return []
   }
   const surfaceBounds = surface.getBoundingClientRect()
-  return polarScatterData(input.revision).flatMap((row) => {
+  return windLatitudeBand(input.revision).flatMap((row) => {
     const point = polarPoint(chart, row)
     return point
       ? [
@@ -146,11 +146,11 @@ function scatterGeometry(
 
 function polarPoint(
   chart: EChartsType,
-  row: PolarScatterDatum,
+  row: WindRow,
 ): readonly [number, number] | null {
   const point = chart.convertToPixel({ seriesIndex: 0 }, [
-    row.radius,
-    row.angle,
+    windSpeed(row),
+    windDirection(row),
   ])
   if (
     !Array.isArray(point) ||

@@ -1,15 +1,21 @@
+import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployment'
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
-import { gaugeBands, gaugeReading, gaugeTicks } from './data'
+import { gaugeBands, gaugeMaximum, gaugeTicks } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
+const bandColors = ['#22c55e', '#f59e0b', '#ef4444']
+
 function chart(input: ConformanceInput) {
-  const reading = gaugeReading(input.revision)
+  const reading = usCountyUnemployment[(input.revision % 2) * 2]
+  if (!reading) {
+    throw new Error('County unemployment data is incomplete.')
+  }
   const radius = Math.min(input.width, input.height) * 0.41
   const cx = input.width / 2
   const cy = input.height / 2
-  const angle = -Math.PI / 2 + (reading.value / 100) * Math.PI
+  const angle = -Math.PI / 2 + (reading.rate / gaugeMaximum) * Math.PI
   const needleRadius = radius * 0.64
   const x2 = cx + Math.sin(angle) * needleRadius
   const y2 = cy - Math.cos(angle) * needleRadius
@@ -39,16 +45,16 @@ function chart(input: ConformanceInput) {
           stroke: 'none',
           isAnimationActive: false,
         },
-        gaugeBands.map((band) =>
+        gaugeBands.map((band, index) =>
           createElement(Cell, {
             key: band.id,
-            fill: band.fill,
+            fill: bandColors[index],
             stroke: 'none',
           }),
         ),
       ),
       ...gaugeTicks.map((tick) => {
-        const tickAngle = -Math.PI / 2 + (tick.value / 100) * Math.PI
+        const tickAngle = -Math.PI / 2 + (tick.value / gaugeMaximum) * Math.PI
 
         return createElement('line', {
           key: tick.id,
@@ -93,10 +99,10 @@ function chart(input: ConformanceInput) {
           textAnchor: 'middle',
           dominantBaseline: 'middle',
         },
-        reading.label,
+        `${reading.rate}%`,
       ),
     ],
   )
 }
 
-export const mount = rechartsMount(chart, 'Threshold gauge with needle')
+export const mount = rechartsMount(chart, 'County unemployment gauge')

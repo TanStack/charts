@@ -1,18 +1,20 @@
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
-import { labeledPieData } from './data'
+import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { selectLabeledPieData } from './selection'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 import type { PieLabelRenderProps } from 'recharts'
 
 const radiusRatio = 0.56
+const colors = ['#2563eb', '#7c3aed', '#db2777', '#f59e0b']
 
 function renderLabel({ name }: PieLabelRenderProps): string {
   return String(name ?? '')
 }
 
 function chart(input: ConformanceInput) {
-  const data = labeledPieData(input.revision)
+  const data = selectLabeledPieData(alphabet, input.revision)
   const radius = (Math.min(input.width, input.height) / 2) * radiusRatio
 
   return createElement(
@@ -27,8 +29,8 @@ function chart(input: ConformanceInput) {
       Pie,
       {
         data,
-        dataKey: 'value',
-        nameKey: 'label',
+        dataKey: 'frequency',
+        nameKey: 'letter',
         cx: input.width / 2,
         cy: input.height / 2,
         innerRadius: 0,
@@ -45,10 +47,10 @@ function chart(input: ConformanceInput) {
         stroke: 'none',
         isAnimationActive: false,
       },
-      data.map((row) =>
+      data.map((row, index) =>
         createElement(Cell, {
-          key: row.id,
-          fill: row.fill,
+          key: row.letter,
+          fill: colors[index],
           stroke: 'none',
         }),
       ),
@@ -56,4 +58,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Pie with outside labels')
+export const mount = rechartsMount(chart, 'Letter frequency pie with labels')

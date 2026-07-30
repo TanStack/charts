@@ -1,10 +1,15 @@
+import { penguins } from '@charts-poc/demo-data/penguins'
 import { colorGradientLegend, defineChart, rect } from '@tanstack/charts'
 import { bin } from 'd3-array'
 import { scaleLinear, scaleSequential } from 'd3-scale'
-import { quantitativeHeatData } from './data'
-import type { QuantitativeHeatPoint } from './data'
 import { tanstackMount } from '../../shared/mount'
+import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
 import type { ConformanceInput } from '../../types'
+
+type PenguinBill = PenguinsRow & {
+  readonly culmen_length_mm: number
+  readonly culmen_depth_mm: number
+}
 
 interface QuantitativeHeatCell {
   id: string
@@ -15,76 +20,79 @@ interface QuantitativeHeatCell {
   count: number
 }
 
-const boundaries = [0, 10, 20, 30, 40, 50, 60, 70, 80]
-const createXBins = bin<QuantitativeHeatPoint, number>()
-  .value((row) => row.x)
-  .domain([0, 80])
-  .thresholds(boundaries.slice(1, -1))
-const createYBins = bin<QuantitativeHeatPoint, number>()
-  .value((row) => row.y)
-  .domain([0, 80])
-  .thresholds(boundaries.slice(1, -1))
+const xBoundaries = [30, 34, 38, 42, 46, 50, 54, 58, 62]
+const yBoundaries = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+const createXBins = bin<PenguinBill, number>()
+  .value((row) => row.culmen_length_mm)
+  .domain([30, 62])
+  .thresholds(xBoundaries.slice(1, -1))
+const createYBins = bin<PenguinBill, number>()
+  .value((row) => row.culmen_depth_mm)
+  .domain([12, 23])
+  .thresholds(yBoundaries.slice(1, -1))
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const cells: QuantitativeHeatCell[] = []
+const definition = (input: ConformanceInput) => {
+  const cells: QuantitativeHeatCell[] = []
+  const rows = penguins
+    .filter((row): row is PenguinBill => {
+      return row.culmen_length_mm !== null && row.culmen_depth_mm !== null
+    })
+    .slice(input.revision * 8, input.revision * 8 + 320)
 
-    for (const xBucket of createXBins(quantitativeHeatData(input.revision))) {
-      if (xBucket.x0 === undefined || xBucket.x1 === undefined) continue
-      for (const yBucket of createYBins(xBucket)) {
-        if (
-          yBucket.x0 === undefined ||
-          yBucket.x1 === undefined ||
-          yBucket.length === 0
-        )
-          continue
-        cells.push({
-          id: `${xBucket.x0}:${yBucket.x0}`,
-          x1: xBucket.x0,
-          x2: xBucket.x1,
-          y1: yBucket.x0,
-          y2: yBucket.x1,
-          count: yBucket.length,
-        })
-      }
+  for (const xBucket of createXBins(rows)) {
+    if (xBucket.x0 === undefined || xBucket.x1 === undefined) continue
+    for (const yBucket of createYBins(xBucket)) {
+      if (
+        yBucket.x0 === undefined ||
+        yBucket.x1 === undefined ||
+        yBucket.length === 0
+      )
+        continue
+      cells.push({
+        id: `${xBucket.x0}:${yBucket.x0}`,
+        x1: xBucket.x0,
+        x2: xBucket.x1,
+        y1: yBucket.x0,
+        y2: yBucket.x1,
+        count: yBucket.length,
+      })
     }
+  }
 
-    return {
-      marks: [
-        rect(cells, {
-          x1: 'x1',
-          x2: 'x2',
-          y1: 'y1',
-          y2: 'y2',
-          z: 'count',
-          key: 'id',
-          inset: 0.75,
-        }),
-      ],
-      x: {
-        scale: scaleLinear().domain([0, 80]),
-        grid: true,
-        label: 'Latency',
-      },
-      y: {
-        scale: scaleLinear().domain([0, 80]),
-        grid: true,
-        label: 'Throughput',
-      },
-      color: {
-        scale: scaleSequential<string>()
-          .domain([1, 5])
-          .range(['#eff6ff', '#1d4ed8']),
-        legend: colorGradientLegend({ label: 'Count', steps: 5 }),
-      },
-    }
+  return defineChart({
+    marks: [
+      rect(cells, {
+        x1: 'x1',
+        x2: 'x2',
+        y1: 'y1',
+        y2: 'y2',
+        color: 'count',
+        inset: 0.75,
+      }),
+    ],
+    x: {
+      scale: scaleLinear().domain([30, 62]),
+      grid: true,
+      label: 'Bill length (mm)',
+    },
+    y: {
+      scale: scaleLinear().domain([12, 23]),
+      grid: true,
+      label: 'Bill depth (mm)',
+    },
+    color: {
+      scale: scaleSequential,
+      range: ['#eff6ff', '#1d4ed8'],
+      legend: colorGradientLegend({ label: 'Count', steps: 5 }),
+    },
   })
+}
 
 export const mount = tanstackMount(
   definition,
   'Quantitative two-dimensional binned heatmap',
   {
     format: (point) =>
-      `Latency: ${point.datum.x1}–${point.datum.x2} · Throughput: ${point.datum.y1}–${point.datum.y2} · Observations: ${point.datum.count}`,
+      `Bill length: ${point.datum.x1}–${point.datum.x2} mm · Bill depth: ${point.datum.y1}–${point.datum.y2} mm · Penguins: ${point.datum.count}`,
   },
 )

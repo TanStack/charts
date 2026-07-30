@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 840,
   "id": "84-pinned-nested-chart-tooltip",
-  "title": "Pinned tooltip with a nested chart",
+  "title": "Pinned penguin tooltip with a nested chart",
   "family": "interaction",
-  "intent": "Pin an external rich tooltip on click and render a real secondary chart inside it without making hover destructive.",
+  "intent": "Pin a penguin observation on click and compare four nearby same-species observations in a real secondary chart without making hover destructive.",
   "support": "composed",
   "features": [
     "external rich tooltip",
@@ -29,13 +29,13 @@
           "type": "pointerMove",
           "target": {
             "view": "main",
-            "anchor": "point:api"
+            "anchor": "point:adelie-biscoe-female"
           }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "hoveredId", "equals": "api" },
+            { "path": "hoveredId", "equals": "adelie-biscoe-female" },
             { "path": "tooltip.visible", "equals": false },
             { "path": "tooltip.pinnedId", "equals": null },
             { "path": "tooltip.miniBarCount", "equals": 0 }
@@ -58,14 +58,14 @@
           "type": "click",
           "target": {
             "view": "main",
-            "anchor": "point:search"
+            "anchor": "point:gentoo-biscoe-male"
           }
         },
         {
           "type": "assert",
           "assertions": [
             { "path": "tooltip.visible", "equals": true },
-            { "path": "tooltip.pinnedId", "equals": "search" },
+            { "path": "tooltip.pinnedId", "equals": "gentoo-biscoe-male" },
             { "path": "tooltip.miniBarCount", "equals": 4 },
             { "path": "tooltip.chartCount", "equals": 1 }
           ]
@@ -74,7 +74,7 @@
           "type": "assert",
           "assertions": [
             { "path": "tooltip.selectedOverlayCount", "equals": 1 },
-            { "path": "tooltip.periodLabelCount", "equals": 4 },
+            { "path": "tooltip.flipperLabelCount", "equals": 4 },
             { "path": "tooltip.closeVisible", "equals": true }
           ]
         },
@@ -92,7 +92,7 @@
             {
               "target": {
                 "role": "button",
-                "name": "Close pinned service details",
+                "name": "Close pinned penguin details",
                 "exact": true
               },
               "property": "visible",
@@ -101,7 +101,7 @@
             {
               "target": {
                 "role": "button",
-                "name": "Close pinned service details",
+                "name": "Close pinned penguin details",
                 "exact": true
               },
               "property": "height",
@@ -110,7 +110,7 @@
             {
               "target": {
                 "role": "button",
-                "name": "Close pinned service details",
+                "name": "Close pinned penguin details",
                 "exact": true
               },
               "property": "width",
@@ -127,7 +127,7 @@
             {
               "target": {
                 "role": "region",
-                "name": "Service latency with a pinned nested-chart tooltip",
+                "name": "Penguin measurements with a pinned nested-chart tooltip",
                 "exact": true
               },
               "property": "count",
@@ -141,7 +141,7 @@
           "key": "Escape",
           "target": {
             "view": "main",
-            "anchor": "point:search"
+            "anchor": "point:gentoo-biscoe-male"
           }
         },
         {
@@ -150,7 +150,7 @@
             { "path": "tooltip.visible", "equals": false },
             { "path": "tooltip.pinnedId", "equals": null },
             { "path": "tooltip.miniBarCount", "equals": 0 },
-            { "path": "focusedPoint", "equals": "search" }
+            { "path": "focusedPoint", "equals": "gentoo-biscoe-male" }
           ]
         }
       ]
@@ -162,7 +162,7 @@
           "type": "click",
           "target": {
             "view": "main",
-            "anchor": "point:jobs"
+            "anchor": "point:chinstrap-dream-male"
           }
         },
         {
@@ -178,7 +178,7 @@
             { "path": "tooltip.visible", "equals": false },
             { "path": "tooltip.pinnedId", "equals": null },
             { "path": "tooltip.selectedOverlayCount", "equals": 0 },
-            { "path": "focusedPoint", "equals": "jobs" }
+            { "path": "focusedPoint", "equals": "chinstrap-dream-male" }
           ]
         }
       ]
@@ -190,14 +190,14 @@
           "type": "click",
           "target": {
             "view": "main",
-            "anchor": "point:api"
+            "anchor": "point:adelie-biscoe-female"
           }
         },
         {
           "type": "click",
           "target": {
             "view": "main",
-            "anchor": "point:api"
+            "anchor": "point:adelie-biscoe-female"
           }
         },
         {
@@ -216,7 +216,7 @@
     "url": "https://recharts.github.io/en-US/examples/CustomContentOfTooltip/"
   },
   "ai": {
-    "create": "Create a selectable service chart where hover only exposes focus state, clicking pins an external tooltip, and the tooltip mounts a real four-bar history chart.",
-    "maintain": "Keep hover and pinned selection separate, key all state by stable service ID, destroy nested chart hosts when hidden, and preserve Escape plus second-click dismissal."
+    "create": "Create a selectable penguin chart where hover only exposes focus state, clicking pins an external tooltip, and the tooltip mounts a four-bar same-species comparison.",
+    "maintain": "Keep hover and pinned selection separate, key the five displayed cohort representatives by species, island, and sex, destroy nested chart hosts when hidden, and preserve Escape plus second-click dismissal."
   }
 }

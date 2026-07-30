@@ -4,21 +4,19 @@ import {
   lineY,
   pointerX,
   rectY,
-  ruleX,
   ruleY,
   tip,
 } from '@observablehq/plot'
 import { createPlotRenderer, definePlot } from '@plot-poc/observable'
-import type { DownloadPoint, LatencyPoint } from './data'
+import type { DownloadsRow, PenguinBodyMassRow } from './data'
 
-const PACKAGE_DOMAIN = ['Query', 'Router', 'Table'] as const
-const PLAN_DOMAIN = ['Free', 'Pro', 'Enterprise'] as const
+const SPECIES_DOMAIN = ['Adelie', 'Chinstrap', 'Gentoo'] as const
 
-export const downloadsPlot = definePlot<DownloadPoint[], DownloadPoint>(
+export const downloadsPlot = definePlot<readonly DownloadsRow[], DownloadsRow>(
   ({ data, width, theme }) => ({
-    ariaLabel: 'Weekly package downloads',
+    ariaLabel: 'Daily @observablehq/cars downloads',
     ariaDescription:
-      'Weekly downloads for TanStack Query, Router, and Table over six months.',
+      'Daily npm downloads for the Observable Cars package from November 2017 through February 2022.',
     marginTop: 18,
     marginRight: width < 480 ? 12 : 24,
     marginBottom: 42,
@@ -29,28 +27,22 @@ export const downloadsPlot = definePlot<DownloadPoint[], DownloadPoint>(
       ticks: width < 420 ? 4 : width < 720 ? 6 : 10,
     },
     y: {
-      label: width < 480 ? null : 'Weekly downloads',
+      label: width < 480 ? null : 'Daily downloads',
       grid: true,
-      tickFormat: '~s',
-    },
-    color: {
-      domain: PACKAGE_DOMAIN,
-      range: theme.categorical.slice(0, PACKAGE_DOMAIN.length),
-      legend: width >= 420,
     },
     marks: [
       ruleY([0], { stroke: theme.axis }),
       lineY(data, {
         x: 'date',
         y: 'downloads',
-        stroke: 'package',
+        stroke: theme.categorical[0],
         strokeWidth: 2.25,
         curve: 'monotone-x',
       }),
       dot(data, {
         x: 'date',
         y: 'downloads',
-        stroke: 'package',
+        stroke: theme.categorical[0],
         fill: theme.tooltipBackground,
         r: width < 420 ? 1.75 : 2.5,
       }),
@@ -59,11 +51,12 @@ export const downloadsPlot = definePlot<DownloadPoint[], DownloadPoint>(
         pointerX({
           x: 'date',
           y: 'downloads',
-          stroke: 'package',
+          stroke: theme.categorical[0],
           title: (datum) =>
-            `${datum.package}\n${datum.date.toLocaleDateString('en-US', {
+            `${datum.date.toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
+              year: 'numeric',
             })}\n${datum.downloads.toLocaleString()} downloads`,
         }),
       ),
@@ -71,63 +64,59 @@ export const downloadsPlot = definePlot<DownloadPoint[], DownloadPoint>(
   }),
 )
 
-export const latencyDistributionPlot = definePlot<LatencyPoint[], LatencyPoint>(
-  ({ data, width, theme }) => {
-    const vertical = width < 680
+export const bodyMassDistributionPlot = definePlot<
+  readonly PenguinBodyMassRow[],
+  PenguinBodyMassRow
+>(({ data, width, theme }) => {
+  const vertical = width < 680
 
-    return {
-      ariaLabel: 'Request latency distributions by plan',
-      ariaDescription:
-        'Faceted histograms compare request latency for Free, Pro, and Enterprise plans.',
-      marginTop: 30,
-      marginRight: 18,
-      marginBottom: 42,
-      marginLeft: width < 480 ? 42 : 54,
-      facet: {
-        data,
-        ...(vertical ? { y: 'plan' } : { x: 'plan' }),
-      },
-      fx: { label: null },
-      fy: { label: null },
-      x: {
-        label: 'Request latency (ms)',
-        grid: true,
-        domain: [0, 500],
-      },
-      y: {
-        label: vertical && width >= 480 ? 'Requests' : null,
-        grid: true,
-      },
-      color: {
-        domain: PLAN_DOMAIN,
-        range: theme.categorical.slice(1, PLAN_DOMAIN.length + 1),
-        legend: false,
-      },
-      marks: [
-        rectY(data, {
-          ...binX(
-            { y: 'count' },
-            {
-              x: 'latency',
-              thresholds: 18,
-            },
-          ),
-          fill: 'plan',
-          insetLeft: 0.75,
-          insetRight: 0.75,
-          tip: true,
-        }),
-        ruleX([200], {
-          stroke: theme.warning,
-          strokeWidth: 1.5,
-          strokeDasharray: '4,4',
-        }),
-      ],
-    }
-  },
-)
+  return {
+    ariaLabel: 'Penguin body-mass distributions by species',
+    ariaDescription:
+      'Faceted histograms compare body mass for Adelie, Chinstrap, and Gentoo penguins.',
+    marginTop: 30,
+    marginRight: 18,
+    marginBottom: 42,
+    marginLeft: width < 480 ? 42 : 54,
+    facet: {
+      data,
+      ...(vertical ? { y: 'species' } : { x: 'species' }),
+    },
+    fx: { label: null },
+    fy: { label: null },
+    x: {
+      label: 'Body mass (g)',
+      grid: true,
+      domain: [2500, 6500],
+    },
+    y: {
+      label: vertical && width >= 480 ? 'Penguins' : null,
+      grid: true,
+    },
+    color: {
+      domain: SPECIES_DOMAIN,
+      range: theme.categorical.slice(1, SPECIES_DOMAIN.length + 1),
+      legend: false,
+    },
+    marks: [
+      rectY(data, {
+        ...binX(
+          { y: 'count' },
+          {
+            x: 'body_mass_g',
+            thresholds: 18,
+          },
+        ),
+        fill: 'species',
+        insetLeft: 0.75,
+        insetRight: 0.75,
+        tip: true,
+      }),
+    ],
+  }
+})
 
 export const downloadsRenderer = createPlotRenderer(downloadsPlot)
-export const latencyDistributionRenderer = createPlotRenderer(
-  latencyDistributionPlot,
+export const bodyMassDistributionRenderer = createPlotRenderer(
+  bodyMassDistributionPlot,
 )

@@ -2,25 +2,26 @@
   "schemaVersion": 1,
   "order": 1030,
   "id": "103-bubble-map",
-  "title": "Projected proportional-symbol map",
+  "title": "World population bubble map",
   "family": "geography",
-  "intent": "Compare place magnitudes with area-scaled circles over a projected world map.",
+  "intent": "Compare published country populations with area-scaled circles at geographic centroids.",
   "support": "native",
   "features": [
-    "GeoJSON Point features",
+    "World Bank country populations",
+    "world-atlas country centroids",
     "data-driven point radius",
     "D3 square-root radius scale",
     "Equal Earth projection",
     "layered geographic marks"
   ],
-  "geometry": [{ "role": "geo", "count": 16, "maxCount": 16 }],
+  "geometry": [{ "role": "geo", "count": 97, "maxCount": 97 }],
   "minimumGeometrySimilarity": 0.999,
   "source": {
-    "title": "Observable Plot geo mark",
-    "url": "https://observablehq.com/plot/marks/geo"
+    "title": "Observable Plot proportional-symbol maps",
+    "url": "https://observablehq.com/plot/marks/dot"
   },
   "ai": {
-    "create": "Create a proportional-symbol world map from seven region polygons and nine GeoJSON places, using the same Equal Earth projection and square-root radius scale in both renderers.",
-    "maintain": "Keep longitude and latitude semantic, sort-independent, and projection-backed; preserve stable place keys and area-scaled D3 point radii."
+    "create": "Join Observable Plot's learning-poverty snapshot to world-atlas countries, derive geographic centroids, and size symbols by the published population field.",
+    "maintain": "Keep the join and centroid transform visible, preserve source population values, draw larger symbols first, and use the same square-root radius range in both renderers."
   }
 }

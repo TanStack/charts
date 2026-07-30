@@ -1,11 +1,14 @@
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
-import { roundedDonutData } from './data'
+import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { selectRoundedDonutData } from './selection'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
+const colors = ['#0284c7', '#4f46e5', '#9333ea', '#db2777', '#ea580c']
+
 function chart(input: ConformanceInput) {
-  const data = roundedDonutData(input.revision)
+  const data = selectRoundedDonutData(alphabet, input.revision)
   const outerRadius = Math.min(input.width, input.height) * 0.4
 
   return createElement(
@@ -20,8 +23,8 @@ function chart(input: ConformanceInput) {
       Pie,
       {
         data,
-        dataKey: 'value',
-        nameKey: 'label',
+        dataKey: 'frequency',
+        nameKey: 'letter',
         cx: input.width / 2,
         cy: input.height / 2,
         innerRadius: outerRadius * 0.58,
@@ -33,10 +36,10 @@ function chart(input: ConformanceInput) {
         stroke: 'none',
         isAnimationActive: false,
       },
-      data.map((row) =>
+      data.map((row, index) =>
         createElement(Cell, {
-          key: row.id,
-          fill: row.fill,
+          key: row.letter,
+          fill: colors[index],
           stroke: 'none',
         }),
       ),
@@ -44,4 +47,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Rounded donut with gaps')
+export const mount = rechartsMount(chart, 'Rounded letter frequency donut')

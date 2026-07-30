@@ -15,18 +15,21 @@ import type {
   TooltipComponentOption,
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
+import { industries } from '@charts-poc/demo-data/industries'
 import { echartsMount } from '../../shared/echarts-mount'
+import { axisPointerColors } from './colors'
+import {
+  axisPointerData,
+  axisPointerDates,
+  axisPointerIndustries,
+} from './selection'
 import {
   axisPointerAnchorDate,
-  axisPointerColors,
-  axisPointerData,
   axisPointerDateKey,
-  axisPointerDates,
-  axisPointerDomain,
   axisPointerRowsAtDate,
-  axisPointerSeries,
-} from './data'
-import type { AxisPointerDatum, AxisPointerSeries } from './data'
+  axisPointerTargetValue,
+} from './model'
+import type { AxisPointerDatum } from './selection'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -56,7 +59,7 @@ type AxisPointerOption = ComposeOption<
 
 interface InteractionState {
   date: string | null
-  series: readonly string[]
+  industries: readonly string[]
   values: readonly number[]
   visible: boolean
 }
@@ -64,14 +67,14 @@ interface InteractionState {
 export const mount: ConformanceMount = (container, input) => {
   const state: InteractionState = {
     date: null,
-    series: [],
+    industries: [],
     values: [],
     visible: false,
   }
 
   const clearState = () => {
     state.date = null
-    state.series = []
+    state.industries = []
     state.values = []
     state.visible = false
   }
@@ -94,21 +97,21 @@ function option(
   input: ConformanceInput,
   state: InteractionState,
 ): AxisPointerOption {
-  const rows = axisPointerData(input.revision)
-  const series: LineSeriesOption[] = axisPointerSeries.map((seriesName) => ({
-    id: seriesName,
-    name: seriesName,
+  const rows = axisPointerData(industries, input.revision)
+  const series: LineSeriesOption[] = axisPointerIndustries.map((industry) => ({
+    id: industry,
+    name: industry,
     type: 'line',
     data: rows
-      .filter((row) => row.series === seriesName)
-      .map((row) => [row.date.getTime(), row.value]),
-    color: axisPointerColors[seriesName],
+      .filter((row) => row.industry === industry)
+      .map((row) => [row.date.getTime(), row.unemployed]),
+    color: axisPointerColors[industry],
     lineStyle: {
-      color: axisPointerColors[seriesName],
+      color: axisPointerColors[industry],
       width: 2,
     },
     itemStyle: {
-      color: axisPointerColors[seriesName],
+      color: axisPointerColors[industry],
       borderColor: '#ffffff',
       borderWidth: 1,
     },
@@ -124,7 +127,7 @@ function option(
     aria: {
       enabled: true,
       description:
-        'Three time series with a snapped vertical crosshair and grouped tooltip.',
+        'Unemployment for three industries with a snapped vertical crosshair and grouped tooltip.',
     },
     grid: {
       top: 20,
@@ -134,8 +137,8 @@ function option(
     },
     xAxis: {
       type: 'time',
-      min: axisPointerDomain[0].getTime(),
-      max: axisPointerDomain[1].getTime(),
+      min: 'dataMin',
+      max: 'dataMax',
       axisPointer: {
         show: true,
         snap: true,
@@ -150,10 +153,9 @@ function option(
     },
     yAxis: {
       type: 'value',
-      min: 0,
-      max: 80,
-      interval: 20,
-      name: 'Value',
+      min: 'dataMin',
+      max: 'dataMax',
+      name: 'Unemployed (thousands)',
       splitLine: {
         show: true,
         lineStyle: { color: '#e2e8f0' },
@@ -181,15 +183,15 @@ function option(
           clearInteractionState(state)
           return ''
         }
-        const date = axisPointerDates[first.dataIndex]
+        const date = axisPointerDates(rows)[first.dataIndex]
         if (!date) {
           clearInteractionState(state)
           return ''
         }
         const focusedRows = axisPointerRowsAtDate(rows, date)
         state.date = axisPointerDateKey(date)
-        state.series = focusedRows.map((row) => row.series)
-        state.values = focusedRows.map((row) => row.value)
+        state.industries = focusedRows.map((row) => row.industry)
+        state.values = focusedRows.map((row) => row.unemployed)
         state.visible = true
         return tooltipHtml(date, focusedRows)
       },
@@ -200,7 +202,7 @@ function option(
 
 function clearInteractionState(state: InteractionState) {
   state.date = null
-  state.series = []
+  state.industries = []
   state.values = []
   state.visible = false
 }
@@ -214,7 +216,7 @@ function tooltipHtml(date: Date, rows: readonly AxisPointerDatum[]) {
   const body = rows
     .map(
       (row) =>
-        `<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="width:8px;height:8px;border-radius:2px;background:${axisPointerColors[row.series]}"></span><span>${row.series}</span><strong style="margin-left:auto">${row.value.toLocaleString()}</strong></div>`,
+        `<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="width:8px;height:8px;border-radius:2px;background:${axisPointerColors[row.industry]}"></span><span>${row.industry}</span><strong style="margin-left:auto">${row.unemployed.toLocaleString()}</strong></div>`,
     )
     .join('')
   return `<div data-conformance-tooltip="grouped"><strong>${title}</strong>${body}</div>`
@@ -246,11 +248,13 @@ function resolveTarget(
   target: ConformanceTarget,
 ) {
   if (target.view && target.view !== 'main') return null
-  const date = axisPointerAnchorDate(target.anchor)
+  const rows = axisPointerData(industries, input.revision)
+  const date = axisPointerAnchorDate(target.anchor, rows)
   if (!date) return null
-  const rows = axisPointerRowsAtDate(axisPointerData(input.revision), date)
-  if (!rows.length) return null
-  const point = pixelPoint(chart, date, 2)
+  const focusedRows = axisPointerRowsAtDate(rows, date)
+  const targetValue = axisPointerTargetValue(focusedRows)
+  if (targetValue === null) return null
+  const point = pixelPoint(chart, date, targetValue)
   if (!point) return null
   const bounds = surface.getBoundingClientRect()
   return {
@@ -268,11 +272,11 @@ function geometry(
 ): readonly ConformanceGeometrySample[] {
   if (query.view && query.view !== 'main') return []
   const bounds = surface.getBoundingClientRect()
-  const rows = axisPointerData(input.revision)
+  const rows = axisPointerData(industries, input.revision)
 
   if (query.role === 'dot') {
     return rows.flatMap((row) => {
-      const point = pixelPoint(chart, row.date, row.value)
+      const point = pixelPoint(chart, row.date, row.unemployed)
       return point
         ? [
             {
@@ -280,7 +284,7 @@ function geometry(
               y: bounds.top + point[1] - 3,
               width: 6,
               height: 6,
-              paint: axisPointerColors[row.series],
+              paint: axisPointerColors[row.industry],
             },
           ]
         : []
@@ -288,14 +292,14 @@ function geometry(
   }
 
   if (query.role === 'line') {
-    return axisPointerSeries.flatMap((series) => {
+    return axisPointerIndustries.flatMap((industry) => {
       const points = rows
-        .filter((row) => row.series === series)
+        .filter((row) => row.industry === industry)
         .flatMap((row) => {
-          const point = pixelPoint(chart, row.date, row.value)
+          const point = pixelPoint(chart, row.date, row.unemployed)
           return point ? [point] : []
         })
-      const sample = pointsBounds(points, bounds, axisPointerColors[series])
+      const sample = pointsBounds(points, bounds, axisPointerColors[industry])
       return sample ? [sample] : []
     })
   }
@@ -350,7 +354,7 @@ function interactionState(state: InteractionState): ConformanceJsonObject {
   return {
     focus: {
       date: state.date,
-      series: state.series,
+      industries: state.industries,
       values: state.values,
     },
     crosshair: {

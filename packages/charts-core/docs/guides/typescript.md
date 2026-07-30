@@ -28,7 +28,6 @@ const definition = defineChart({
     lineY(readings, {
       x: 'recordedAt',
       y: 'temperature',
-      key: 'id',
     }),
   ],
   x: { scale: scaleTime() },
@@ -49,7 +48,6 @@ function createTrafficDefinition(rows: readonly Reading[]) {
       lineY(rows, {
         x: 'recordedAt',
         y: 'temperature',
-        key: 'id',
       }),
     ],
     x: { scale: scaleTime() },
@@ -77,7 +75,6 @@ function createTrafficDefinition(rows: readonly Reading[]) {
       lineY(rows, {
         x: 'recordedAt',
         y: 'temperature',
-        key: 'id',
       }),
     ],
     x: { scale: scaleTime() },
@@ -93,12 +90,17 @@ Prefer:
 
 - field-name channels such as `x: 'recordedAt'`;
 - typed accessors when a value is derived;
-- `defineChart({...})` or `defineChart({...})`;
+- `defineChart({...})` or a responsive `defineChart(() => ({...}))`;
 - `satisfies` when naming a configuration object separately.
 
 Avoid annotating an intermediate object as broad `ChartSpec` before passing it
 to `defineChart`. That discards the literal mark tuple used for axis and
 callback inference.
+
+The mark tuple also determines which positional scales are required. Cartesian
+marks require every dimension they materialize. Positionless geo, polar, and
+facet marks omit both axes; one-dimensional marks such as `ruleY` require only
+`y`.
 
 ## Callback types
 
@@ -146,8 +148,9 @@ union manually. The exact utility contracts are listed in
 ## Custom marks
 
 `createMark<TDatum, TXValue, TYValue>` keeps interaction points and scale
-values aligned for the common case. Use the advanced scale-value factory only
-when the materialized axis domain intentionally differs from the point anchor.
+values aligned for the common case. Use the advanced scale-value factory when
+the materialized axis domain differs from the point anchor or when a custom
+mark is positionless and declares both scale value types as `never`.
 
 See [Custom Marks and Renderers](./custom-marks-and-renderers.md). A custom
 extension that requires `as unknown as`, a private import, or suppressed type

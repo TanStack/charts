@@ -1,9 +1,9 @@
+import { olympians } from '@charts-poc/demo-data/olympians'
 import { defineChart, rect } from '@tanstack/charts'
-import { bin } from 'd3-array'
+import { bin, thresholdScott } from 'd3-array'
 import { scaleLinear } from 'd3-scale'
-import { distributionData } from '../../shared/data'
-import type { DistributionPoint } from '../../shared/data'
 import { tanstackMount } from '../../shared/mount'
+import type { OlympiansRow } from '@charts-poc/demo-data/olympians'
 import type { ConformanceInput } from '../../types'
 
 interface CumulativeBin {
@@ -13,54 +13,55 @@ interface CumulativeBin {
   count: number
 }
 
-const boundaries = [20, 30, 40, 50, 60, 70, 80, 90]
-const createBins = bin<DistributionPoint, number>()
-  .value((row) => row.value)
-  .domain([20, 90])
-  .thresholds(boundaries.slice(1, -1))
+type OlympianWithWeight = OlympiansRow & { weight: number }
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    let cumulative = 0
-    const bins: CumulativeBin[] = createBins(
-      distributionData(input.revision),
-    ).flatMap((bucket, index) => {
-      cumulative += bucket.length
-      return bucket.x0 === undefined || bucket.x1 === undefined
-        ? []
-        : [
-            {
-              id: `bin:${index}`,
-              x0: bucket.x0,
-              x1: bucket.x1,
-              count: cumulative,
-            },
-          ]
-    })
+const completeOlympians = olympians.filter(
+  (row): row is OlympianWithWeight => row.weight !== null,
+)
+const createBins = bin<OlympianWithWeight, number>()
+  .value((row) => row.weight)
+  .thresholds(thresholdScott)
 
-    return {
-      marks: [
-        rect(bins, {
-          x1: 'x0',
-          x2: 'x1',
-          y1: () => 0,
-          y2: 'count',
-          key: 'id',
-          fill: '#2563eb',
-          inset: 1,
-        }),
-      ],
-      x: {
-        scale: scaleLinear().domain([20, 90]),
-        grid: true,
-        label: 'Value',
-      },
-      y: {
-        scale: scaleLinear().domain([0, 240]),
-        grid: true,
-        label: 'Cumulative count',
-      },
-    }
+const definition = (input: ConformanceInput) => {
+  let cumulative = 0
+  const bins: CumulativeBin[] = createBins(
+    completeOlympians.slice(input.revision * 8),
+  ).flatMap((bucket, index) => {
+    cumulative += bucket.length
+    return bucket.x0 === undefined || bucket.x1 === undefined
+      ? []
+      : [
+          {
+            id: `bin:${index}`,
+            x0: bucket.x0,
+            x1: bucket.x1,
+            count: cumulative,
+          },
+        ]
   })
+
+  return defineChart({
+    marks: [
+      rect(bins, {
+        x1: 'x0',
+        x2: 'x1',
+        y1: () => 0,
+        y2: 'count',
+        fill: '#2563eb',
+        inset: 1,
+      }),
+    ],
+    x: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Weight (kg)',
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Cumulative count',
+    },
+  })
+}
 
 export const mount = tanstackMount(definition, 'Cumulative histogram')

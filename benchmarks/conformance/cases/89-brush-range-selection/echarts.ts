@@ -6,6 +6,7 @@ import {
 } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import type { LineSeriesOption } from 'echarts/charts'
 import type {
   BrushComponentOption,
@@ -15,19 +16,19 @@ import type {
 import type { ComposeOption, EChartsType } from 'echarts/core'
 import { echartsMount } from '../../shared/echarts-mount'
 import {
-  brushData,
+  brushDomain,
   brushDateFromAnchor,
   brushDateKey,
-  brushDates,
-  brushDomain,
   brushRangeSummary,
   brushShortDate,
   clampBrushDate,
   initialBrushRange,
+  monthlyAaplRows,
   normalizedBrushRange,
-} from './data'
+  observedBrushDates,
+} from './model'
 import { brushSelectionFill, normalizedElementFill } from './paint'
-import type { BrushRange } from './data'
+import type { BrushRange } from './model'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -55,11 +56,14 @@ interface BrushState {
 }
 
 const color = '#2563eb'
-const yDomain = [20, 80] as const
+const grid = { top: 52, right: 24, bottom: 44, left: 58 } as const
+const brushRows = monthlyAaplRows(aapl)
+const brushDates = observedBrushDates(brushRows)
+const fullDomain = brushDomain(brushDates)
 
 export const mount: ConformanceMount = (container, input) => {
   const state: BrushState = {
-    range: { ...initialBrushRange },
+    range: { ...initialBrushRange(brushDates) },
     origin: null,
     dragging: false,
     originRange: null,
@@ -97,25 +101,25 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
-function brushOption(input: ConformanceInput): BrushOption {
-  const rows = brushData(input.revision)
+function brushOption(_input: ConformanceInput): BrushOption {
+  const rows = brushRows
   return {
     animation: false,
-    grid: { top: 52, right: 24, bottom: 44, left: 58 },
+    grid,
     xAxis: {
       type: 'time',
-      min: brushDomain[0].getTime(),
-      max: brushDomain[1].getTime(),
+      boundaryGap: [0, 0],
+      min: fullDomain[0].getTime(),
+      max: fullDomain[1].getTime(),
       name: 'Month',
       nameLocation: 'middle',
       nameGap: 30,
     },
     yAxis: {
       type: 'value',
-      min: yDomain[0],
-      max: yDomain[1],
-      interval: 20,
-      name: 'Value',
+      min: 'dataMin',
+      max: 'dataMax',
+      name: 'AAPL close ($)',
       splitLine: {
         show: true,
         lineStyle: { color: '#e2e8f0' },
@@ -138,9 +142,9 @@ function brushOption(input: ConformanceInput): BrushOption {
       id: 'brush-series',
       type: 'line',
       data: rows.map((row) => ({
-        id: row.id,
-        name: row.id,
-        value: [row.date.getTime(), row.value],
+        id: brushDateKey(row.Date),
+        name: brushDateKey(row.Date),
+        value: [row.Date.getTime(), row.Close],
       })),
       color,
       lineStyle: { color, width: 2.5 },
@@ -194,16 +198,13 @@ function createBrushInteractions(
   ] as const
 
   const updateStatus = () => {
-    const summary = brushRangeSummary(
-      brushData(getInput().revision),
-      state.range,
-    )
-    const label = `${brushShortDate(state.range.start)} → ${brushShortDate(state.range.end)} · ${summary.count} pts · avg ${summary.average.toFixed(1)}`
+    const summary = brushRangeSummary(brushRows, state.range)
+    const label = `${brushShortDate(state.range.start)} → ${brushShortDate(state.range.end)} · ${summary.count} AAPL closes · avg $${summary.average.toFixed(1)}`
     status.value = label
     status.textContent = label
     status.setAttribute(
       'aria-label',
-      `${brushDateKey(state.range.start)} through ${brushDateKey(state.range.end)}, ${summary.count} points, average ${summary.average.toFixed(1)}`,
+      `${brushDateKey(state.range.start)} through ${brushDateKey(state.range.end)}, ${summary.count} AAPL closing prices, average $${summary.average.toFixed(1)}`,
     )
   }
 
@@ -364,7 +365,7 @@ function dateAtPointer(
     event.clientY - bounds.top,
   ])
   if (!Array.isArray(value) || typeof value[0] !== 'number') return null
-  return clampBrushDate(new Date(value[0]))
+  return clampBrushDate(brushDates, new Date(value[0]))
 }
 
 function resolveTarget(
@@ -385,9 +386,9 @@ function resolveTarget(
       focusElement: handle,
     }
   }
-  const date = brushDateFromAnchor(target.anchor)
+  const date = brushDateFromAnchor(brushDates, target.anchor)
   if (!date) return null
-  const point = pixelPoint(chart, date, 50)
+  const point = brushPixelPoint(chart, date)
   if (!point) return null
   const bounds = surface.getBoundingClientRect()
   return {
@@ -401,14 +402,14 @@ function interactionState(
   state: BrushState,
   input: ConformanceInput,
 ): ConformanceJsonObject {
-  const summary = brushRangeSummary(brushData(input.revision), state.range)
+  const summary = brushRangeSummary(brushRows, state.range)
   return {
     selection: {
       start: brushDateKey(state.range.start),
       end: brushDateKey(state.range.end),
       pointCount: summary.count,
-      valueTotal: summary.total,
-      valueAverage: summary.average,
+      closeAverage: summary.average,
+      closeChange: summary.change,
       dragging: state.dragging,
     },
   }
@@ -423,9 +424,9 @@ function brushGeometry(
 ): readonly ConformanceGeometrySample[] {
   if (query.view !== undefined && query.view !== 'main') return []
   const bounds = surface.getBoundingClientRect()
-  const rows = brushData(input.revision)
+  const rows = brushRows
   const points = rows.flatMap((row) => {
-    const point = pixelPoint(chart, row.date, row.value)
+    const point = pixelPoint(chart, row.Date, row.Close)
     return point ? [point] : []
   })
 
@@ -443,14 +444,14 @@ function brushGeometry(
     return sample ? [sample] : []
   }
   if (query.role === 'rect') {
-    const start = pixelPoint(chart, range.start, yDomain[1])
-    const end = pixelPoint(chart, range.end, yDomain[0])
+    const start = brushPixelPoint(chart, range.start)
+    const end = brushPixelPoint(chart, range.end)
     if (!start || !end) return []
     const expected = {
       x: bounds.left + Math.min(start[0], end[0]),
-      y: bounds.top + Math.min(start[1], end[1]),
+      y: bounds.top + grid.top,
       width: Math.max(1, Math.abs(end[0] - start[0])),
-      height: Math.abs(end[1] - start[1]),
+      height: chart.getHeight() - grid.top - grid.bottom,
     }
     const rendered = renderedBrushSample(surface, expected)
     return [
@@ -522,6 +523,11 @@ function pixelPoint(
   return [point[0], point[1]]
 }
 
+function brushPixelPoint(chart: EChartsType, date: Date) {
+  const row = brushRows.find((datum) => datum.Date.getTime() === date.getTime())
+  return row ? pixelPoint(chart, date, row.Close) : null
+}
+
 function pointsBounds(
   points: readonly (readonly [number, number])[],
   surfaceBounds: DOMRect,
@@ -577,9 +583,6 @@ function positionSemanticHandles(
   handles: readonly [HTMLButtonElement, HTMLButtonElement],
   range: BrushRange,
 ) {
-  const top = pixelPoint(chart, range.start, yDomain[1])
-  const bottom = pixelPoint(chart, range.end, yDomain[0])
-  if (!top || !bottom) return
   const startIndex = rangeIndex(range.start)
   const endIndex = rangeIndex(range.end)
   const positions = [
@@ -593,11 +596,11 @@ function positionSemanticHandles(
   ] as const
   handles.forEach((handle, index) => {
     const position = positions[index]
-    const point = position ? pixelPoint(chart, position.date, 50) : null
+    const point = position ? brushPixelPoint(chart, position.date) : null
     if (!position || !point) return
     handle.style.left = `${point[0]}px`
-    handle.style.top = `${Math.min(top[1], bottom[1])}px`
-    handle.style.height = `${Math.abs(bottom[1] - top[1])}px`
+    handle.style.top = `${grid.top}px`
+    handle.style.height = `${chart.getHeight() - grid.top - grid.bottom}px`
     handle.setAttribute('aria-valuemin', String(position.min))
     handle.setAttribute('aria-valuemax', String(position.max))
     handle.setAttribute('aria-valuenow', String(position.now))

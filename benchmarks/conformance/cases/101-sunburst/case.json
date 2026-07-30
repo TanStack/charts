@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 1010,
   "id": "101-sunburst",
-  "title": "Sunburst hierarchy",
+  "title": "Flare analytics sunburst",
   "family": "hierarchy",
-  "intent": "Show part-to-whole relationships across two visible hierarchy depths using nested annular sectors.",
+  "intent": "Show Flare analytics class sizes across two visible hierarchy depths using nested annular sectors.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -22,7 +22,7 @@
     "url": "https://recharts.github.io/en-US/examples/SunburstChartExample/"
   },
   "ai": {
-    "create": "Create a two-ring sunburst from a typed hierarchy using d3-hierarchy partition output and a responsive D3 arc generator with inherited branch colors.",
-    "maintain": "Update leaf values while preserving hierarchy order, stable ancestry-path keys, global angular allocation, responsive ring thickness, and branch color inheritance."
+    "create": "Create a two-ring sunburst from Observable's flat Flare name and size rows using d3-hierarchy partition output and inherited branch colors.",
+    "maintain": "Change the selected Flare rows while preserving raw name and size fields, hierarchy order, global angular allocation, responsive ring thickness, and branch color inheritance."
   }
 }

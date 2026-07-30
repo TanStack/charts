@@ -1,58 +1,73 @@
+import { simpsons } from '@charts-poc/demo-data/simpsons'
 import { cell, colorGradientLegend, defineChart, text } from '@tanstack/charts'
-import { scaleBand, scaleSequential } from 'd3-scale'
-import { heatmapData } from '../../shared/data'
+import { scaleBand, scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
-const hours = ['00', '04', '08', '12', '16', '20']
-const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const contrastThreshold = 48
+const episodeDomain = [
+  ...new Set(simpsons.map((row) => row.number_in_season)),
+].sort((left, right) => left - right)
+const seasonDomain = [...new Set(simpsons.map((row) => row.season))].sort(
+  (left, right) => left - right,
+)
+const ratedEpisodes = simpsons.filter((row) => row.imdb_rating !== null)
+const unratedEpisodes = simpsons.filter((row) => row.imdb_rating === null)
+const ratingColors = ['#8e0152', '#f7f7f7', '#276419']
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = heatmapData(input.revision)
-
-    return {
-      marks: [
-        cell(rows, {
-          x: 'hour',
-          y: 'day',
-          z: 'value',
-          key: 'id',
-          inset: 1,
-        }),
-        text(rows, {
-          x: 'hour',
-          y: 'day',
-          text: 'value',
-          key: 'id',
-          fill: (row) =>
-            row.value < contrastThreshold ? '#0f172a' : '#f8fafc',
-          fontSize: 10,
-          fontWeight: 600,
-        }),
-      ],
-      x: {
-        scale: scaleBand<string>()
-          .domain(hours)
-          .paddingInner(0.04)
-          .paddingOuter(0.02),
-        label: 'Hour',
-      },
-      y: {
-        scale: scaleBand<string>()
-          .domain(days)
-          .paddingInner(0.04)
-          .paddingOuter(0.02),
-        label: 'Day',
-      },
-      color: {
-        scale: scaleSequential<string>()
-          .domain([8, 80])
-          .range(['#eff6ff', '#1d4ed8']),
-        legend: colorGradientLegend({ label: 'Value', steps: 6 }),
-      },
-    }
+const definition = (_input: ConformanceInput) =>
+  defineChart({
+    marks: [
+      cell(ratedEpisodes, {
+        x: 'number_in_season',
+        y: 'season',
+        color: 'imdb_rating',
+        inset: 1,
+      }),
+      cell(unratedEpisodes, {
+        x: 'number_in_season',
+        y: 'season',
+        fill: '#d1d5db',
+        inset: 1,
+      }),
+      text(simpsons, {
+        x: 'number_in_season',
+        y: 'season',
+        text: (row) =>
+          row.imdb_rating === null ? '–' : row.imdb_rating.toFixed(1),
+        fill: (row) =>
+          row.imdb_rating !== null &&
+          (row.imdb_rating < 5.5 || row.imdb_rating > 8.6)
+            ? '#f8fafc'
+            : '#0f172a',
+        fontSize: 10,
+        fontWeight: 600,
+      }),
+    ],
+    x: {
+      scale: scaleBand<number>()
+        .domain(episodeDomain)
+        .paddingInner(0.04)
+        .paddingOuter(0.02),
+      label: 'Episode',
+    },
+    y: {
+      scale: scaleBand<number>()
+        .domain(seasonDomain)
+        .paddingInner(0.04)
+        .paddingOuter(0.02),
+      label: 'Season',
+    },
+    color: {
+      scale: () => scaleLinear<string>().range(ratingColors),
+      legend: colorGradientLegend({ label: 'IMDb rating', steps: 6 }),
+    },
   })
 
-export const mount = tanstackMount(definition, 'Labeled day and hour heatmap')
+export const mount = tanstackMount(definition, 'The Simpsons episode ratings', {
+  format: ({ datum }) =>
+    `${datum.title} · Season ${datum.season}, episode ${datum.number_in_season} · ${
+      datum.imdb_rating === null
+        ? 'No IMDb rating'
+        : `${datum.imdb_rating.toFixed(1)} IMDb`
+    }`,
+})

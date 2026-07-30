@@ -1,72 +1,67 @@
 import * as Plot from '@observablehq/plot'
+import { aapl } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
-import { extremumData, extremumDateDomain, extremumValueDomain } from './data'
-import type { ExtremumPoint } from './data'
 
 const annotationColor = '#dc2626'
-const label = (prefix: string) => (point: ExtremumPoint) =>
-  `${prefix} ${point.value}`
+const label = (prefix: string) => (point: AaplRow) =>
+  `${prefix} $${point.Close.toFixed(2)}`
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = extremumData(nextInput.revision)
-
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Time series with minimum and maximum annotations',
+      ariaLabel: 'Apple closing price with minimum and maximum annotations',
       x: {
         type: 'utc',
-        domain: extremumDateDomain,
-        label: 'Week',
+        label: 'Date',
       },
       y: {
-        domain: extremumValueDomain,
-        nice: false,
         grid: true,
-        label: 'Index',
+        label: 'Apple close (USD)',
       },
       marks: [
-        Plot.lineY(rows, {
-          x: 'date',
-          y: 'value',
+        Plot.lineY(aapl, {
+          x: 'Date',
+          y: 'Close',
           stroke: '#2563eb',
           strokeWidth: 2.25,
         }),
         Plot.dot(
-          rows,
+          aapl,
           Plot.selectMinY({
-            x: 'date',
-            y: 'value',
+            x: 'Date',
+            y: 'Close',
             fill: annotationColor,
             r: 5,
           }),
         ),
         Plot.dot(
-          rows,
+          aapl,
           Plot.selectMaxY({
-            x: 'date',
-            y: 'value',
+            x: 'Date',
+            y: 'Close',
             fill: annotationColor,
             r: 5,
           }),
         ),
         Plot.text(
-          rows,
+          aapl,
           Plot.selectMinY({
-            x: 'date',
-            y: 'value',
+            x: 'Date',
+            y: 'Close',
             text: label('Low'),
             fill: annotationColor,
             dy: 13,
           }),
         ),
         Plot.text(
-          rows,
+          aapl,
           Plot.selectMaxY({
-            x: 'date',
-            y: 'value',
+            x: 'Date',
+            y: 'Close',
             text: label('High'),
             fill: annotationColor,
             textAnchor: 'end',

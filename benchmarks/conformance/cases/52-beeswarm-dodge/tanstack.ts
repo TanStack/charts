@@ -1,22 +1,29 @@
+import { cars } from '@charts-poc/demo-data/cars'
 import { defineChart, dot } from '@tanstack/charts'
 import { forceCollide, forceSimulation, forceY } from 'd3-force'
 import { scaleLinear } from 'd3-scale'
-import { beeswarmData } from './data'
 import { tanstackMount } from '../../shared/mount'
+import type { CarsRow } from '@charts-poc/demo-data/cars'
 import type { ConformanceInput } from '../../types'
 import type { SimulationNodeDatum } from 'd3-force'
 
 interface BeeswarmNode extends SimulationNodeDatum {
-  id: number
-  value: number
+  name: string
+  'economy (mpg)': number
   targetX: number
 }
 
 interface PositionedBeeswarmPoint {
-  id: number
-  x: number
-  y: number
+  name: string
+  'economy (mpg)': number
+  offset: number
 }
+
+type CarWithEconomy = CarsRow & { 'economy (mpg)': number }
+
+const completeCars = cars.filter(
+  (row): row is CarWithEconomy => row['economy (mpg)'] !== null,
+)
 
 const margin = {
   top: 20,
@@ -31,18 +38,20 @@ const definition = (input: ConformanceInput) =>
     const innerWidth = Math.max(1, width - margin.left - margin.right)
     const innerHeight = Math.max(1, height - margin.top - margin.bottom)
     const centerY = innerHeight / 2
-    const valuePosition = scaleLinear().domain([20, 90]).range([0, innerWidth])
-    const nodes: BeeswarmNode[] = beeswarmData(input.revision).map((row) => {
-      const targetX = valuePosition(row.value)
-      return {
-        id: row.id,
-        value: row.value,
-        targetX,
-        x: targetX,
-        fx: targetX,
-        y: centerY,
-      }
-    })
+    const valuePosition = scaleLinear().domain([5, 50]).range([0, innerWidth])
+    const nodes: BeeswarmNode[] = completeCars
+      .slice(input.revision * 8, input.revision * 8 + 72)
+      .map((row) => {
+        const targetX = valuePosition(row['economy (mpg)'])
+        return {
+          name: row.name,
+          'economy (mpg)': row['economy (mpg)'],
+          targetX,
+          x: targetX,
+          fx: targetX,
+          y: centerY,
+        }
+      })
     const simulation = forceSimulation(nodes)
       .alphaDecay(1 - Math.pow(0.001, 1 / layoutTicks))
       .force('y', forceY<BeeswarmNode>(centerY).strength(0.06))
@@ -52,17 +61,16 @@ const definition = (input: ConformanceInput) =>
     simulation.tick(layoutTicks)
 
     const rows: readonly PositionedBeeswarmPoint[] = nodes.map((node) => ({
-      id: node.id,
-      x: valuePosition.invert(node.x ?? node.targetX),
-      y: node.y ?? centerY,
+      name: node.name,
+      'economy (mpg)': valuePosition.invert(node.x ?? node.targetX),
+      offset: node.y ?? centerY,
     }))
 
     return {
       marks: [
         dot(rows, {
-          x: 'x',
-          y: 'y',
-          key: 'id',
+          x: 'economy (mpg)',
+          y: 'offset',
           r: 4,
           fill: '#0d9488',
           stroke: '#ffffff',
@@ -72,7 +80,7 @@ const definition = (input: ConformanceInput) =>
       guides: false,
       margin,
       x: {
-        scale: scaleLinear().domain([20, 90]),
+        scale: scaleLinear().domain([5, 50]),
       },
       y: {
         scale: scaleLinear().domain([0, innerHeight]),

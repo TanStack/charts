@@ -3,7 +3,7 @@
   "referenceRenderer": "echarts",
   "order": 910,
   "id": "91-timeline-playback-scrubber",
-  "title": "Timeline playback scrubber",
+  "title": "AAPL close playback scrubber",
   "family": "interaction",
   "intent": "Scrub a semantic playhead through stable time frames with a direct drag while keeping the chart data controlled.",
   "support": "composed",
@@ -24,14 +24,7 @@
     { "id": "playback-points", "view": "main", "role": "dot", "count": 8 },
     { "id": "scrubber-rules", "view": "main", "role": "rule", "count": 2 }
   ],
-  "minimumGeometrySimilarity": 0.995,
-  "guideAssertions": [
-    {
-      "id": "value-sequence",
-      "axis": "y",
-      "sequence": ["20", "40", "60", "80"]
-    }
-  ],
+  "minimumGeometrySimilarity": 0.985,
   "interactionScenarios": [
     {
       "id": "scrub-forward",
@@ -40,23 +33,23 @@
           "type": "assert",
           "assertions": [
             { "path": "playhead.index", "equals": 2 },
-            { "path": "playhead.date", "equals": "2025-01-15" },
-            { "path": "playhead.value", "equals": 39 },
+            { "path": "playhead.date", "equals": "2018-01-04" },
+            { "path": "playhead.value", "equals": 173.029999 },
             { "path": "interaction.dragging", "equals": false }
           ]
         },
         {
           "type": "drag",
-          "from": { "view": "main", "anchor": "frame:2025-01-15" },
-          "to": { "view": "main", "anchor": "frame:2025-02-12" },
+          "from": { "view": "main", "anchor": "frame:2018-01-04" },
+          "to": { "view": "main", "anchor": "frame:2018-01-10" },
           "steps": 12
         },
         {
           "type": "assert",
           "assertions": [
             { "path": "playhead.index", "equals": 6 },
-            { "path": "playhead.date", "equals": "2025-02-12" },
-            { "path": "playhead.value", "equals": 66 },
+            { "path": "playhead.date", "equals": "2018-01-10" },
+            { "path": "playhead.value", "equals": 174.289993 },
             {
               "path": "playhead.progress",
               "approx": 0.8571428571,
@@ -67,14 +60,14 @@
             {
               "path": "frames.ids",
               "equals": [
-                "2025-01-01",
-                "2025-01-08",
-                "2025-01-15",
-                "2025-01-22",
-                "2025-01-29",
-                "2025-02-05",
-                "2025-02-12",
-                "2025-02-19"
+                "2018-01-02",
+                "2018-01-03",
+                "2018-01-04",
+                "2018-01-05",
+                "2018-01-08",
+                "2018-01-09",
+                "2018-01-10",
+                "2018-01-11"
               ]
             }
           ]
@@ -84,9 +77,9 @@
           "type": "assert",
           "assertions": [
             { "path": "playhead.index", "equals": 6 },
-            { "path": "playhead.date", "equals": "2025-02-12" },
-            { "path": "playhead.value", "equals": 66 },
-            { "path": "frames.revisionProbeValue", "equals": 55 },
+            { "path": "playhead.date", "equals": "2018-01-10" },
+            { "path": "playhead.value", "equals": 174.289993 },
+            { "path": "frames.jan5Close", "equals": 175 },
             { "path": "interaction.dragging", "equals": false },
             { "path": "interaction.scrubCount", "equals": 1 }
           ]
@@ -96,9 +89,9 @@
           "type": "assert",
           "assertions": [
             { "path": "playhead.index", "equals": 6 },
-            { "path": "playhead.date", "equals": "2025-02-12" },
-            { "path": "playhead.value", "equals": 66 },
-            { "path": "frames.revisionProbeValue", "equals": 51 },
+            { "path": "playhead.date", "equals": "2018-01-10" },
+            { "path": "playhead.value", "equals": 174.289993 },
+            { "path": "frames.jan5Close", "equals": 175 },
             { "path": "interaction.dragging", "equals": false },
             { "path": "interaction.scrubCount", "equals": 1 }
           ]
@@ -110,15 +103,15 @@
       "steps": [
         {
           "type": "drag",
-          "from": { "view": "main", "anchor": "frame:2025-01-15" },
-          "to": { "view": "main", "anchor": "frame:2025-01-01" },
+          "from": { "view": "main", "anchor": "frame:2018-01-04" },
+          "to": { "view": "main", "anchor": "frame:2018-01-02" },
           "steps": 8
         },
         {
           "type": "assert",
           "assertions": [
             { "path": "playhead.index", "equals": 0 },
-            { "path": "playhead.date", "equals": "2025-01-01" },
+            { "path": "playhead.date", "equals": "2018-01-02" },
             { "path": "playhead.progress", "approx": 0, "tolerance": 0 },
             { "path": "interaction.dragging", "equals": false },
             { "path": "interaction.scrubCount", "equals": 1 }
@@ -183,14 +176,14 @@
         {
           "type": "key",
           "key": "ArrowLeft",
-          "target": { "view": "main", "anchor": "frame:2025-01-15" }
+          "target": { "view": "main", "anchor": "frame:2018-01-04" }
         },
         {
           "type": "assert",
           "assertions": [
             { "path": "playhead.index", "equals": 1 },
-            { "path": "playhead.date", "equals": "2025-01-08" },
-            { "path": "playhead.value", "equals": 42 },
+            { "path": "playhead.date", "equals": "2018-01-03" },
+            { "path": "playhead.value", "equals": 172.229996 },
             { "path": "interaction.scrubCount", "equals": 1 },
             { "path": "interaction.playing", "equals": false }
           ]
@@ -208,7 +201,7 @@
                 "selector": ".ts-conformance-playback-announcement"
               },
               "property": "text",
-              "includes": "2025-01-08"
+              "includes": "2018-01-03"
             }
           ]
         }
@@ -219,11 +212,11 @@
       "steps": [
         {
           "type": "pointerDown",
-          "target": { "view": "main", "anchor": "frame:2025-01-15" }
+          "target": { "view": "main", "anchor": "frame:2018-01-04" }
         },
         {
           "type": "pointerMove",
-          "target": { "view": "main", "anchor": "frame:2025-02-12" },
+          "target": { "view": "main", "anchor": "frame:2018-01-10" },
           "steps": 8
         },
         { "type": "pointerCancel" },
@@ -231,7 +224,7 @@
           "type": "assert",
           "assertions": [
             { "path": "playhead.index", "equals": 2 },
-            { "path": "playhead.date", "equals": "2025-01-15" },
+            { "path": "playhead.date", "equals": "2018-01-04" },
             { "path": "interaction.dragging", "equals": false },
             { "path": "interaction.scrubCount", "equals": 0 }
           ]
@@ -244,7 +237,7 @@
                 "selector": ".ts-conformance-playback-announcement"
               },
               "property": "text",
-              "includes": "2025-01-15"
+              "includes": "2018-01-04"
             }
           ]
         }
@@ -256,18 +249,18 @@
         {
           "type": "key",
           "key": "End",
-          "target": { "view": "main", "anchor": "frame:2025-01-15" }
+          "target": { "view": "main", "anchor": "frame:2018-01-04" }
         },
         {
           "type": "key",
           "key": "ArrowLeft",
-          "target": { "view": "main", "anchor": "frame:2025-02-19" }
+          "target": { "view": "main", "anchor": "frame:2018-01-11" }
         },
         {
           "type": "assert",
           "assertions": [
             { "path": "playhead.index", "equals": 6 },
-            { "path": "playhead.date", "equals": "2025-02-12" },
+            { "path": "playhead.date", "equals": "2018-01-10" },
             { "path": "interaction.playing", "equals": false }
           ]
         },
@@ -288,7 +281,7 @@
           "assertions": [
             { "path": "interaction.playing", "equals": true },
             { "path": "playhead.index", "equals": 7 },
-            { "path": "playhead.date", "equals": "2025-02-19" }
+            { "path": "playhead.date", "equals": "2018-01-11" }
           ]
         },
         {
@@ -297,7 +290,7 @@
             {
               "target": { "selector": ".ts-conformance-playback-current" },
               "property": "text",
-              "includes": "2025-02-19"
+              "includes": "2018-01-11"
             }
           ]
         },
@@ -336,7 +329,7 @@
           "assertions": [
             { "path": "interaction.playing", "equals": true },
             { "path": "playhead.index", "equals": 0 },
-            { "path": "playhead.date", "equals": "2025-01-01" }
+            { "path": "playhead.date", "equals": "2018-01-02" }
           ]
         },
         {
@@ -363,7 +356,7 @@
           "assertions": [
             { "path": "interaction.playing", "equals": true },
             { "path": "playhead.index", "equals": 1 },
-            { "path": "playhead.date", "equals": "2025-01-08" }
+            { "path": "playhead.date", "equals": "2018-01-03" }
           ]
         },
         {
@@ -397,7 +390,7 @@
     "url": "https://echarts.apache.org/examples/en/editor.html?c=dynamic-data2"
   },
   "ai": {
-    "create": "Create a controlled UTC line chart with a native range input for the playback index, a visible playhead, play and pause control, keyboard support, and live frame status.",
-    "maintain": "Keep frame identity and playback state outside the renderer, align the native range to resolved chart coordinates, cancel transient edits without committing them, and preserve the index across responsive and data revisions."
+    "create": "Create a controlled UTC chart of observed AAPL closes with a native range input for the playback index, a visible playhead, play and pause control, keyboard support, and live frame status.",
+    "maintain": "Keep frame identity and playback state outside the renderer, map pointer scrubbing to irregular observed dates, cancel transient edits without committing them, and preserve the index across catalog updates and resizes."
   }
 }

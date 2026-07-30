@@ -1,31 +1,47 @@
+import { cars } from '@charts-poc/demo-data/cars'
 import { createMark, defineChart, dot, mountChart } from '@tanstack/charts'
 import { Delaunay } from 'd3-delaunay'
-import { scaleLinear, scaleOrdinal } from 'd3-scale'
-import { voronoiColors, voronoiData, voronoiGroups } from './data'
-import type { ChartPoint, ChartHostOptions, SceneNode } from '@tanstack/charts'
+import { scaleLinear } from 'd3-scale'
+import type { CarsRow } from '@charts-poc/demo-data/cars'
+import type { ChartHostOptions, SceneNode } from '@tanstack/charts'
 import type {
   ConformanceHandle,
   ConformanceInput,
   ConformanceMount,
   ConformanceTestDriver,
 } from '../../types'
-import type { VoronoiGroup, VoronoiPoint } from './data'
 
-function voronoiCells(rows: readonly VoronoiPoint[]) {
-  return createMark<VoronoiPoint, number, number>(({ markIndex }) => {
+type CompleteCar = CarsRow & {
+  readonly 'economy (mpg)': number
+}
+
+const colors = ['#2563eb', '#0d9488', '#d97706']
+
+function voronoiCells(rows: readonly CompleteCar[]) {
+  return createMark<CompleteCar, number, number>(({ markIndex }) => {
     const id = `voronoi-cells-${markIndex}`
 
     return {
       id,
       channels: {
-        x: { scale: 'x', values: rows.map((row) => row.x) },
-        y: { scale: 'y', values: rows.map((row) => row.y) },
+        x: {
+          scale: 'x',
+          values: rows.map((row) => row['weight (lb)']),
+        },
+        y: {
+          scale: 'y',
+          values: rows.map((row) => row['economy (mpg)']),
+        },
+        color: {
+          scale: 'color',
+          values: rows.map(cylinderLabel),
+        },
       },
-      render: ({ chart, scales }) => {
+      render: ({ chart, scales, color }) => {
         const delaunay = Delaunay.from(
           rows,
-          (row) => scales.x.map(row.x),
-          (row) => scales.y.map(row.y),
+          (row) => scales.x.map(row['weight (lb)']),
+          (row) => scales.y.map(row['economy (mpg)']),
         )
         const cells = delaunay.voronoi([
           chart.x,
@@ -40,11 +56,11 @@ function voronoiCells(rows: readonly VoronoiPoint[]) {
           if (path === null) return
           children.push({
             kind: 'area',
-            key: `${id}:${row.id}`,
+            key: `${id}:${carKey(row)}`,
             points: [],
             path,
             style: {
-              fill: voronoiColors[row.group],
+              fill: color(cylinderLabel(row)),
               fillOpacity: 0.14,
               stroke: '#ffffff',
               strokeWidth: 1,
@@ -68,52 +84,46 @@ function voronoiCells(rows: readonly VoronoiPoint[]) {
   })
 }
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = voronoiData(input.revision)
-
-    return {
-      marks: [
-        voronoiCells(rows),
-        dot(rows, {
-          x: 'x',
-          y: 'y',
-          z: 'group',
-          key: 'id',
-          stroke: '#ffffff',
-          strokeWidth: 1,
-          r: 4,
-        }),
-      ],
-      x: {
-        scale: scaleLinear().domain([0, 100]),
-        grid: true,
-        label: 'X',
-      },
-      y: {
-        scale: scaleLinear().domain([0, 100]),
-        grid: true,
-        label: 'Y',
-      },
-      color: {
-        scale: scaleOrdinal<VoronoiGroup, string>()
-          .domain(voronoiGroups)
-          .range(voronoiGroups.map((group) => voronoiColors[group])),
-      },
-    }
+const definition = (rows: readonly CompleteCar[]) =>
+  defineChart({
+    marks: [
+      voronoiCells(rows),
+      dot(rows, {
+        x: 'weight (lb)',
+        y: 'economy (mpg)',
+        color: cylinderLabel,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+        r: 4,
+      }),
+    ],
+    x: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Weight (lb)',
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Fuel economy (mpg)',
+    },
+    color: {
+      range: colors,
+    },
   })
 
-const configuredDefinition = (input: ConformanceInput) =>
-  defineChart(definition(input), {
+const configuredDefinition = (rows: readonly CompleteCar[]) =>
+  defineChart(definition(rows), {
     animate: false,
     keyboard: true,
     tooltip: {
       anchor: 'pointer',
       items: [
         {
-          id: 'point',
-          label: 'Point',
-          text: (point) => `${point.datum.label} · ${point.datum.group}`,
+          id: 'car',
+          label: 'Car',
+          text: (point) =>
+            `${point.datum.name} · ${cylinderLabel(point.datum)}`,
         },
       ],
     },
@@ -123,26 +133,28 @@ export const mount: ConformanceMount = (
   container,
   input,
 ): ConformanceHandle => {
+  let rows = selectedCars(input.revision)
   let focusedIds: string[] = []
-  const options: ChartHostOptions<VoronoiPoint> = {
-    definition: configuredDefinition(input),
+  const options: ChartHostOptions<CompleteCar> = {
+    definition: configuredDefinition(rows),
     width: input.width,
     height: input.height,
     ariaLabel: 'Voronoi nearest-point interaction',
     onFocusGroupChange(points) {
-      focusedIds = points.map((point) => point.datum.id)
+      focusedIds = points.map((point) => carKey(point.datum))
     },
   }
   const host = mountChart(container, options)
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
       if (target.view && target.view !== 'main') return null
-      const id = target.anchor.startsWith('point:')
-        ? target.anchor.slice('point:'.length)
-        : null
+      const key = target.anchor.startsWith('car:')
+        ? target.anchor.slice('car:'.length)
+        : ''
+      const row = rows.find((candidate) => carKey(candidate) === key)
       const point = host
         .getScene()
-        .points.find((candidate) => candidate.datum.id === id)
+        .points.find((candidate) => candidate.datum === row)
       const svg = container.querySelector('svg')
       if (!point || !svg) return null
       const scene = host.getScene()
@@ -168,9 +180,10 @@ export const mount: ConformanceMount = (
   return {
     driver,
     update(nextInput) {
+      rows = selectedCars(nextInput.revision)
       host.update({
         ...options,
-        definition: configuredDefinition(nextInput),
+        definition: configuredDefinition(rows),
         width: nextInput.width,
         height: nextInput.height,
       })
@@ -179,4 +192,18 @@ export const mount: ConformanceMount = (
       host.destroy()
     },
   }
+}
+
+function selectedCars(revision: number): CompleteCar[] {
+  return cars
+    .filter((row): row is CompleteCar => row['economy (mpg)'] !== null)
+    .slice(revision * 3, revision * 3 + 18)
+}
+
+function cylinderLabel(row: CarsRow): string {
+  return `${row.cylinders} cylinders`
+}
+
+function carKey(row: CarsRow): string {
+  return `${row.name}:${row.year}:${row['weight (lb)']}`
 }

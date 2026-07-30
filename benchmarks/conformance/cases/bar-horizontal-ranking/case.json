@@ -4,11 +4,10 @@
   "id": "bar-horizontal-ranking",
   "title": "Horizontal ranking with long labels",
   "family": "bar",
-  "intent": "Rank category totals while keeping deliberately long category labels visible.",
+  "intent": "Rank metropolitan populations while keeping the source's long Metro labels visible.",
   "support": "composed",
   "features": [
     "horizontal bars",
-    "grouped sum",
     "descending categorical domain",
     "long tick labels",
     "automatic guide bounds"
@@ -24,11 +23,11 @@
     }
   ],
   "source": {
-    "title": "Observable Plot letter-frequency-bar fixture",
-    "url": "https://github.com/observablehq/plot/blob/main/test/plots/letter-frequency-bar.ts"
+    "title": "Observable sample citywages",
+    "url": "https://github.com/observablehq/sample-datasets/blob/732c0148de741469b2bcc03f53d93b0ad0b93f0a/citywages.csv"
   },
   "ai": {
-    "create": "Create a horizontal ranking chart that totals the raw rows by category, sorts descending, and displays the supplied long category labels without clipping.",
-    "maintain": "Update the data revision and container width while keeping the rank order correct and every formatted category label visible."
+    "create": "Create a horizontal ranking chart directly from eight citywages rows using POP_2015 and Metro, sorted by descending population.",
+    "maintain": "Change the selected metros or container width while keeping the population rank correct and every source label visible."
   }
 }

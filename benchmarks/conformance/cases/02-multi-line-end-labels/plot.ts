@@ -1,49 +1,43 @@
 import * as Plot from '@observablehq/plot'
+import { industries } from '@charts-poc/demo-data/industries'
 import type { ConformanceInput, ConformanceMount } from '../../types'
-import { timeDomain } from '../../shared/data'
 import { mountObservablePlot } from '../../shared/mount'
-import {
-  multiLineData,
-  multiLineValueDomain,
-  seriesColors,
-  seriesNames,
-} from './data'
+import { selectMultiLineData } from './selection'
+
+const colors = ['#2563eb', '#ea580c', '#059669']
 
 function render(input: ConformanceInput) {
-  const rows = multiLineData(input.revision)
+  const rows = selectMultiLineData(industries, input.revision)
 
   return Plot.plot({
     width: input.width,
     height: input.height,
-    marginRight: 72,
-    ariaLabel: 'Three time series with direct end labels',
-    x: { type: 'utc', domain: timeDomain, label: 'Week' },
+    marginRight: 112,
+    ariaLabel: 'Unemployment by industry with direct end labels',
+    x: { type: 'utc', label: 'Week' },
     y: {
-      domain: multiLineValueDomain,
-      nice: false,
       grid: true,
-      label: 'Index',
+      label: 'Unemployed (thousands)',
     },
     color: {
-      domain: seriesNames,
-      range: seriesNames.map((series) => seriesColors[series]),
+      range: colors,
     },
     marks: [
       Plot.lineY(rows, {
         x: 'date',
-        y: 'value',
-        z: 'series',
-        stroke: 'series',
+        y: 'unemployed',
+        z: 'industry',
+        stroke: 'industry',
         strokeWidth: 2.25,
       }),
       Plot.text(
         rows,
         Plot.selectLast({
           x: 'date',
-          y: 'value',
-          z: 'series',
-          text: 'series',
-          fill: 'series',
+          y: 'unemployed',
+          z: 'industry',
+          text: 'industry',
+          fill: 'industry',
           textAnchor: 'start',
           dx: 5,
         }),

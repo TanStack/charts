@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 950,
   "id": "95-rounded-donut",
-  "title": "Rounded donut with gaps",
+  "title": "Rounded letter frequency donut",
   "family": "polar",
-  "intent": "Separate a compact categorical composition with deliberate angular gaps and rounded arc ends.",
+  "intent": "Separate five English letter frequencies with deliberate angular gaps and rounded arc ends.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -21,7 +21,7 @@
     "url": "https://recharts.github.io/en-US/examples/PieChartWithPaddingAngle/"
   },
   "ai": {
-    "create": "Create a five-slice donut with three-degree gaps, eight-pixel corners, and stable categorical fills.",
-    "maintain": "Update category totals while preserving explicit gap size, responsive radii, rounded corners, source order, and stable arc keys."
+    "create": "Create a five-slice donut from Observable's alphabet rows with three-degree gaps, eight-pixel corners, and stable letter fills.",
+    "maintain": "Change the selected letters while preserving raw letter and frequency fields, explicit gap size, responsive radii, rounded corners, source order, and stable arc identity."
   }
 }

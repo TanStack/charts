@@ -12,6 +12,7 @@ import {
   validateCaseEntries,
   validateCatalogArtifactManifest,
 } from './catalog-artifact.mjs'
+import { createCatalogSourceModules } from './catalog-source-files.mjs'
 
 const execFileAsync = promisify(execFile)
 const rootDirectory = path.resolve(
@@ -48,10 +49,14 @@ const viteManifest = JSON.parse(
   ),
 )
 const revision = await readRevision()
+const sourceModules = await createCatalogSourceModules(
+  path.join(rootDirectory, 'benchmarks', 'conformance'),
+)
 const artifact = await createCatalogArtifact({
   cases,
   revision,
   viteManifest,
+  sourceModules,
   readAsset: (assetPath) =>
     fs.readFile(path.join(buildDirectory, ...assetPath.split('/'))),
 })
@@ -75,7 +80,7 @@ await fs.writeFile(
 )
 
 console.log(
-  `Generated schema v2 catalog artifact for ${summary.caseCount} cases in ${summary.assetCount} modules (${formatBytes(summary.assetBytes)}) at ${revision}.`,
+  `Generated schema v${catalog.schemaVersion} catalog artifact for ${summary.caseCount} cases in ${summary.assetCount} modules (${formatBytes(summary.assetBytes)}) at ${revision}.`,
 )
 
 async function readCases() {

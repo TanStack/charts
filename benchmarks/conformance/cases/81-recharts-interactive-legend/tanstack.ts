@@ -1,72 +1,78 @@
 import { defineChart, lineY, mountChart } from '@tanstack/charts'
-import { scaleBand, scaleLinear } from 'd3-scale'
+import { industries } from '@charts-poc/demo-data/industries'
+import { scaleLinear, scaleUtc } from 'd3-scale'
 import {
-  interactiveLegendData,
   isLegendSeriesId,
-  legendPeriods,
+  legendRows,
   legendSeries,
   toggleLegendSeries,
-} from './data'
+} from './model'
 import type { ChartHost, ChartHostOptions } from '@tanstack/charts'
+import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import type {
   ConformanceInput,
   ConformanceMount,
   ConformanceTarget,
 } from '../../types'
-import type { LegendDatum, LegendSeriesId } from './data'
+import type { LegendSeriesId } from './model'
 
 interface InteractiveLegendInput extends ConformanceInput {
   visibleSeries: readonly LegendSeriesId[]
 }
 
-const yDomain = [0, 120] as const
-const initialVisibleSeries: readonly LegendSeriesId[] = ['revenue', 'profit']
+const yDomain = [0, 900] as const
+const initialVisibleSeries: readonly LegendSeriesId[] = [
+  'Manufacturing',
+  'Construction',
+]
+const seriesColors: Readonly<Record<LegendSeriesId, string>> = {
+  Manufacturing: '#2563eb',
+  Construction: '#f97316',
+}
 
-const definition = (input: InteractiveLegendInput) =>
-  defineChart(() => {
-    const rows = interactiveLegendData(input.revision)
+const definition = (input: InteractiveLegendInput) => {
+  const rows = legendRows(industries, input.revision)
 
-    return {
-      marks: [
-        ...(input.visibleSeries.includes('revenue')
+  return defineChart({
+    marks: [
+      ...legendSeries.flatMap((series) =>
+        input.visibleSeries.includes(series.id)
           ? [
-              lineY(rows, {
-                id: 'revenue',
-                x: 'period',
-                y: 'revenue',
-                key: 'period',
-                stroke: '#2563eb',
-                strokeWidth: 2.5,
-              }),
+              lineY(
+                rows.filter((row) => row.industry === series.id),
+                {
+                  id: series.id,
+                  x: 'date',
+                  y: 'unemployed',
+                  color: 'industry',
+                  strokeWidth: 2.5,
+                },
+              ),
             ]
-          : []),
-        ...(input.visibleSeries.includes('profit')
-          ? [
-              lineY(rows, {
-                id: 'profit',
-                x: 'period',
-                y: 'profit',
-                key: 'period',
-                stroke: '#f97316',
-                strokeWidth: 2.5,
-              }),
-            ]
-          : []),
-      ],
-      x: {
-        scale: scaleBand<string>()
-          .domain(legendPeriods)
-          .paddingInner(0.1)
-          .paddingOuter(0.05),
-      },
-      y: {
-        scale: scaleLinear().domain(yDomain),
-        ticks: 5,
-        grid: true,
-      },
-      margin: { top: 20, right: 24, bottom: 44, left: 62 },
-    }
+          : [],
+      ),
+    ],
+    x: {
+      scale: scaleUtc,
+      format: (date) =>
+        date.toLocaleDateString('en-US', {
+          month: 'short',
+          timeZone: 'UTC',
+        }),
+    },
+    y: {
+      scale: scaleLinear().domain(yDomain),
+      ticks: 5,
+      grid: true,
+      label: 'Unemployed (thousands)',
+    },
+    color: {
+      domain: legendSeries.map((series) => series.id),
+      range: legendSeries.map((series) => seriesColors[series.id]),
+    },
+    margin: { top: 20, right: 24, bottom: 44, left: 62 },
   })
+}
 
 function center(element: HTMLElement | SVGElement) {
   const bounds = element.getBoundingClientRect()
@@ -87,7 +93,7 @@ export const mount: ConformanceMount = (container, input) => {
   const view = container.ownerDocument.createElement('div')
   view.dataset.conformanceView = 'main'
   view.setAttribute('role', 'region')
-  view.setAttribute('aria-label', 'Interactive revenue and profit series')
+  view.setAttribute('aria-label', 'Interactive unemployment series')
   view.style.width = `${input.width}px`
   view.style.height = `${input.height}px`
   view.style.display = 'grid'
@@ -111,7 +117,7 @@ export const mount: ConformanceMount = (container, input) => {
 
   let currentInput = input
   let visibleSeries = initialVisibleSeries
-  let host: ChartHost<LegendDatum>
+  let host: ChartHost<IndustriesRow>
   const buttons = new Map<LegendSeriesId, HTMLButtonElement>()
   const emptyState = container.ownerDocument.createElement('span')
   emptyState.setAttribute('role', 'status')
@@ -119,7 +125,7 @@ export const mount: ConformanceMount = (container, input) => {
   emptyState.style.color = 'CanvasText'
   emptyState.style.font = '500 12px/1.3 system-ui, sans-serif'
 
-  const options = (): ChartHostOptions<LegendDatum> => ({
+  const options = (): ChartHostOptions<IndustriesRow> => ({
     definition: defineChart(
       definition({
         ...currentInput,
@@ -129,7 +135,7 @@ export const mount: ConformanceMount = (container, input) => {
     ),
     width: currentInput.width,
     height: Math.max(96, currentInput.height - 62),
-    ariaLabel: 'Revenue and profit chart',
+    ariaLabel: 'Manufacturing and construction unemployment chart',
   })
 
   const updateLegend = () => {
@@ -145,7 +151,9 @@ export const mount: ConformanceMount = (container, input) => {
       button.style.textDecoration = visible ? 'none' : 'line-through'
       const swatch = button.querySelector<HTMLElement>('[data-series-swatch]')
       if (swatch) {
-        swatch.style.background = visible ? series.color : 'transparent'
+        swatch.style.background = visible
+          ? seriesColors[series.id]
+          : 'transparent'
       }
     }
     emptyState.textContent = visibleSeries.length === 0 ? 'No series shown' : ''
@@ -178,9 +186,9 @@ export const mount: ConformanceMount = (container, input) => {
     Object.assign(swatch.style, {
       width: '11px',
       height: '11px',
-      border: `2px solid ${series.color}`,
+      border: `2px solid ${seriesColors[series.id]}`,
       borderRadius: '3px',
-      background: series.color,
+      background: seriesColors[series.id],
     })
     label.textContent = series.label
     button.append(swatch, label)
@@ -239,6 +247,6 @@ function renderedSeries(surface: HTMLElement) {
     ...surface.querySelectorAll<SVGPathElement>('.ts-chart__line path'),
   ].map((path) => path.getAttribute('stroke')?.toLowerCase())
   return legendSeries
-    .filter((series) => strokes.includes(series.color.toLowerCase()))
+    .filter((series) => strokes.includes(seriesColors[series.id].toLowerCase()))
     .map((series) => series.id)
 }

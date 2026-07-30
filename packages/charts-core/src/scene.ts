@@ -19,6 +19,7 @@ import type {
   ChartMarkPointX,
   ChartMarkPointY,
   ChartPoint,
+  ResolvedColorScale,
   ChartScene,
   ChartScaleResolver,
   ChartSize,
@@ -65,14 +66,26 @@ export function defineChart<
   ChartMarkPointY<TMarks[number]>
 > &
   Omit<TSpec, keyof ChartDefinitionOptions>
-export function defineChart<const TSpec extends ChartSpec>(
+export function defineChart<
+  const TSpec extends {
+    marks: readonly ChartMark<unknown, any, any>[]
+    x?: ChartAxisOptions<any> | null
+    y?: ChartAxisOptions<any> | null
+  },
+>(
   config: DynamicChartConfig<TSpec>,
 ): DynamicChartDefinition<
   ChartSpecDatum<TSpec>,
   ChartSpecXValue<TSpec>,
   ChartSpecYValue<TSpec>
 >
-export function defineChart<const TSpec extends ChartSpec>(
+export function defineChart<
+  const TSpec extends {
+    marks: readonly ChartMark<unknown, any, any>[]
+    x?: ChartAxisOptions<any> | null
+    y?: ChartAxisOptions<any> | null
+  },
+>(
   chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>,
 ): DynamicChartDefinition<
   ChartSpecDatum<TSpec>,
@@ -163,20 +176,21 @@ function createChartSceneWithScaleResolver<
   const guides =
     definition.guides === false
       ? 0
-      : +(definition.x?.guide ?? definition.x !== null) |
-        (+(definition.y?.guide ?? definition.y !== null) << 1)
+      : +(definition.x?.guide ?? definition.x != null) |
+        (+(definition.y?.guide ?? definition.y != null) << 1)
   const resolvedLayout = resolveSceneLayout(
     definition,
+    initialized,
     width,
     height,
     theme,
     xChannels,
     yChannels,
-    colors.domain.length,
+    colors,
     legend,
     guides,
     resolveScale,
-    layout.measureText,
+    layout,
   )
   const { margin, chart, scales, axes } = resolvedLayout
   const markNodes: SceneNode[] = []
@@ -285,16 +299,17 @@ const layoutTolerance = 0.25
 
 function resolveSceneLayout(
   definition: StaticChartDefinition,
+  marks: readonly InitializedMark<unknown>[],
   width: number,
   height: number,
   theme: ChartTheme,
   xChannels: CollectedScaleChannels,
   yChannels: CollectedScaleChannels,
-  colorCount: number,
+  colors: ResolvedColorScale,
   legend: ChartColorLegend | undefined,
   guides: number,
   resolveScale: ChartScaleResolver,
-  measureText: ChartTextMeasurer | undefined,
+  layout: ChartLayoutOptions,
 ): ResolvedSceneLayout {
   const locks = resolveMarginLocks(definition.margin)
   const inset = guides ? automaticGuideInset : 0
@@ -335,8 +350,8 @@ function resolveSceneLayout(
       Math.max(2, Math.min(7, Math.floor(chart.height / 48)))
     const scales = {
       x:
-        definition.x === null
-          ? createUnusedScale('x', xChannels.materialized)
+        definition.x == null
+          ? createUnusedScale('x', xChannels.materialized, definition.x)
           : resolveScale({
               id: 'x',
               values: xChannels.values,
@@ -346,8 +361,8 @@ function resolveSceneLayout(
               includeZero: xChannels.includeZero,
             }),
       y:
-        definition.y === null
-          ? createUnusedScale('y', yChannels.materialized)
+        definition.y == null
+          ? createUnusedScale('y', yChannels.materialized, definition.y)
           : resolveScale({
               id: 'y',
               values: yChannels.values,
@@ -364,7 +379,7 @@ function resolveSceneLayout(
       theme,
       width,
       guides,
-      measureText,
+      layout.measureText,
     )
     return {
       margin,
@@ -380,11 +395,52 @@ function resolveSceneLayout(
     if (legend && locks.top === undefined) {
       automatic.top = Math.max(
         automatic.top,
-        legend.height(colorCount, resolved.chart.width),
+        legend.height(colors.domain.length, resolved.chart.width, colors),
       )
+    }
+    if (!definition.clip) {
+      marks.forEach((mark, markIndex) => {
+        const labels = mark.layoutLabels?.({
+          markIndex,
+          chart: resolved.chart,
+          scales: resolved.scales,
+          theme,
+          color: colors.map,
+          layout,
+        })
+        for (const label of labels ?? []) {
+          includeLabelMargin(
+            automatic,
+            resolved.chart,
+            label,
+            layout.measureText,
+          )
+        }
+      })
     }
     return mergeMarginLocks(automatic, locks)
   }
+}
+
+function includeLabelMargin(
+  margin: ChartMargin,
+  chart: ChartBounds,
+  label: SceneLabel,
+  measureText: ChartTextMeasurer | undefined,
+) {
+  const bounds = measureSceneLabelBounds(label, measureText)
+  if (!label.text) return bounds
+  margin.top = Math.max(margin.top, chart.y - bounds.y + automaticGuideInset)
+  margin.right = Math.max(
+    margin.right,
+    bounds.x + bounds.width - chart.x - chart.width + automaticGuideInset,
+  )
+  margin.bottom = Math.max(
+    margin.bottom,
+    bounds.y + bounds.height - chart.y - chart.height + automaticGuideInset,
+  )
+  margin.left = Math.max(margin.left, chart.x - bounds.x + automaticGuideInset)
+  return bounds
 }
 
 function resolveMarginLocks(
@@ -434,10 +490,13 @@ function uniformMargin(value: number): ChartMargin {
 function createUnusedScale(
   id: string,
   materialized: boolean,
+  axis: null | undefined,
 ): ChartScene['scales'][string] {
   if (materialized) {
     throw new TypeError(
-      `Chart scale "${id}" cannot be null when a mark materializes its channel`,
+      axis === null
+        ? `Chart scale "${id}" cannot be null when a mark materializes its channel`
+        : `Chart scale "${id}" requires a configured scale when a mark materializes its channel`,
     )
   }
   return {
@@ -536,23 +595,8 @@ function createAxes(
   const inset = guides ? automaticGuideInset : 0
   const margin = uniformMargin(inset)
 
-  const addLabel = (label: SceneLabel) => {
-    const bounds = measureSceneLabelBounds(label, measureText)
-    margin.top = Math.max(margin.top, chart.y - bounds.y + automaticGuideInset)
-    margin.right = Math.max(
-      margin.right,
-      bounds.x + bounds.width - chart.x - chart.width + automaticGuideInset,
-    )
-    margin.bottom = Math.max(
-      margin.bottom,
-      bounds.y + bounds.height - chart.y - chart.height + automaticGuideInset,
-    )
-    margin.left = Math.max(
-      margin.left,
-      chart.x - bounds.x + automaticGuideInset,
-    )
-    return bounds
-  }
+  const addLabel = (label: SceneLabel) =>
+    includeLabelMargin(margin, chart, label, measureText)
 
   for (const tick of showX ? scales.x.ticks : []) {
     const key = valueKey(tick.value)

@@ -1,20 +1,21 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { brushX } from 'd3-brush'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { select } from 'd3-selection'
 import {
   dateFromAnchor,
   dateKey,
-  focusContextData,
-  focusContextDates,
   focusContextDomain,
   initialFocusContextWindow,
+  monthlyAaplRows,
   rowsInWindow,
   windowForDate,
-} from './data'
+} from './model'
 import type { ChartHost, ChartHostOptions } from '@tanstack/charts'
+import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import type { BrushSelection, D3BrushEvent } from 'd3-brush'
-import type { FocusContextDatum, FocusContextWindow } from './data'
+import type { FocusContextWindow } from './model'
 import type {
   ConformanceHandle,
   ConformanceInput,
@@ -28,85 +29,78 @@ interface DetailInput extends ConformanceInput {
 const detailMargin = { top: 16, right: 24, bottom: 38, left: 52 }
 const overviewMargin = { top: 8, right: 24, bottom: 22, left: 52 }
 const gap = 8
+const focusContextRows = monthlyAaplRows(aapl)
+const focusContextDates = focusContextRows.map((row) => row.Date)
+const fullDomain = focusContextDomain(focusContextRows)
 
-const detailDefinition = (input: DetailInput) =>
-  defineChart(() => {
-    const rows = rowsInWindow(focusContextData(input.revision), input.window)
-    const selectedRows = rows.filter(
-      (row) => row.date.getTime() === input.window.selected.getTime(),
-    )
-    return {
-      marks: [
-        lineY(rows, {
-          id: 'detail-line',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          stroke: '#2563eb',
-          strokeWidth: 2.5,
-        }),
-        dot(rows, {
-          id: 'detail-points',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          fill: '#2563eb',
-          r: 3,
-        }),
-        dot(selectedRows, {
-          id: 'selected-point',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          fill: '#f97316',
-          stroke: '#ffffff',
-          strokeWidth: 2,
-          r: 6,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain([input.window.start, input.window.end]),
-        label: 'Selected time window',
-      },
-      y: {
-        scale: scaleLinear().domain([30, 90]),
-        grid: true,
-        label: 'Value',
-      },
-      margin: detailMargin,
-    }
+const detailDefinition = (input: DetailInput) => {
+  const rows = rowsInWindow(focusContextRows, input.window)
+  const selectedRows = rows.filter(
+    (row) => row.Date.getTime() === input.window.selected.getTime(),
+  )
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'Date',
+        y: 'Close',
+        stroke: '#2563eb',
+        strokeWidth: 2.5,
+      }),
+      dot(rows, {
+        x: 'Date',
+        y: 'Close',
+        fill: '#2563eb',
+        r: 3,
+      }),
+      dot(selectedRows, {
+        x: 'Date',
+        y: 'Close',
+        fill: '#f97316',
+        stroke: '#ffffff',
+        strokeWidth: 2,
+        r: 6,
+      }),
+    ],
+    x: {
+      scale: scaleUtc().domain([input.window.start, input.window.end]),
+      label: 'Selected time window',
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      label: 'Close ($)',
+    },
+    margin: detailMargin,
   })
+}
 
-const overviewDefinition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = focusContextData(input.revision)
-    return {
-      marks: [
-        lineY(rows, {
-          id: 'overview-line',
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          stroke: '#2563eb',
-          strokeWidth: 1.75,
+const overviewDefinition = (input: ConformanceInput) => {
+  const rows = focusContextRows
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'Date',
+        y: 'Close',
+        stroke: '#2563eb',
+        strokeWidth: 1.75,
+      }),
+    ],
+    x: {
+      scale: scaleUtc().domain(fullDomain),
+      ticks: 4,
+      format: (value) =>
+        value.toLocaleDateString(undefined, {
+          month: 'short',
+          timeZone: 'UTC',
         }),
-      ],
-      x: {
-        scale: scaleUtc().domain(focusContextDomain),
-        ticks: 4,
-        format: (value) =>
-          value.toLocaleDateString(undefined, {
-            month: 'short',
-            timeZone: 'UTC',
-          }),
-      },
-      y: {
-        scale: scaleLinear().domain([30, 90]),
-        guide: false,
-      },
-      margin: overviewMargin,
-    }
+    },
+    y: {
+      scale: scaleLinear,
+      guide: false,
+    },
+    margin: overviewMargin,
   })
+}
 
 function viewHeights(height: number) {
   const controls = 52
@@ -120,12 +114,12 @@ function viewHeights(height: number) {
 
 function targetDate(target: ConformanceTarget) {
   if (target.view !== 'overview') return null
-  return dateFromAnchor(target.anchor)
+  return dateFromAnchor(focusContextDates, target.anchor)
 }
 
 function scenePointToClient(
   surface: HTMLElement,
-  host: ChartHost<FocusContextDatum>,
+  host: ChartHost<AaplRow>,
   x: number,
   y: number,
 ) {
@@ -202,7 +196,7 @@ export function mount(
   container.append(shell)
 
   let currentInput = input
-  let window = initialFocusContextWindow()
+  let window = initialFocusContextWindow(focusContextDates)
 
   const sizeShell = () => {
     const heights = viewHeights(currentInput.height)
@@ -214,7 +208,7 @@ export function mount(
     return heights
   }
 
-  const detailOptions = (): ChartHostOptions<FocusContextDatum> => {
+  const detailOptions = (): ChartHostOptions<AaplRow> => {
     const heights = viewHeights(currentInput.height)
     return {
       definition: defineChart(detailDefinition({ ...currentInput, window }), {
@@ -227,7 +221,7 @@ export function mount(
     }
   }
 
-  const overviewOptions = (): ChartHostOptions<FocusContextDatum> => {
+  const overviewOptions = (): ChartHostOptions<AaplRow> => {
     const heights = viewHeights(currentInput.height)
     return {
       definition: defineChart(overviewDefinition(currentInput), {
@@ -329,7 +323,7 @@ export function mount(
   }
 
   const chooseDate = (date: Date) => {
-    window = windowForDate(date)
+    window = windowForDate(focusContextDates, date)
     detailHost.update(detailOptions())
     paintWindow()
   }
@@ -391,12 +385,9 @@ export function mount(
         )
       },
       readState() {
-        const detailRows = rowsInWindow(
-          focusContextData(currentInput.revision),
-          window,
-        )
+        const detailRows = rowsInWindow(focusContextRows, window)
         const selectedRow = detailRows.find(
-          (row) => row.date.getTime() === window.selected.getTime(),
+          (row) => row.Date.getTime() === window.selected.getTime(),
         )
         return {
           window: {
@@ -406,7 +397,7 @@ export function mount(
           },
           detail: {
             pointCount: detailRows.length,
-            selectedValue: selectedRow?.value ?? null,
+            selectedValue: selectedRow?.Close ?? null,
           },
           control: {
             value: Number(monthControl.value),

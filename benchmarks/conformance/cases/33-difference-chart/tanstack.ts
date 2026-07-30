@@ -1,63 +1,69 @@
+import { aapl } from '@charts-poc/demo-data/aapl'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import { differenceData, differenceDomain, formatDifferenceMonth } from './data'
-import type { DifferencePoint } from './data'
+import { formatDifferenceMonth } from './model'
+import { rollingCloseAverage } from './transform'
+import type { DifferencePoint } from './transform'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 interface DifferenceAreaPoint extends DifferencePoint {
+  id: string
   segment: string
   sign: 'positive' | 'negative'
 }
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = differenceData(input.revision)
-    const areaRows = differenceAreas(rows)
+const definition = (input: ConformanceInput) => {
+  const rows = rollingCloseAverage(
+    aapl.slice(input.revision * 10, input.revision * 10 + 120),
+    20,
+  )
+  const areaRows = differenceAreas(rows)
 
-    return {
-      marks: [
-        areaY(areaRows, {
-          x: 'date',
-          y1: 'forecast',
-          y2: 'actual',
-          z: 'segment',
-          key: 'id',
-          fill: (row) => (row.sign === 'positive' ? '#16a34a' : '#dc2626'),
-          fillOpacity: 0.35,
-        }),
-        lineY(rows, {
-          x: 'date',
-          y: 'actual',
-          key: 'id',
-          stroke: '#166534',
-          strokeWidth: 2,
-        }),
-        lineY(rows, {
-          x: 'date',
-          y: 'forecast',
-          key: 'id',
-          stroke: '#475569',
-          strokeWidth: 2,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain(differenceDomain),
-        ticks: 9,
-        format: formatDifferenceMonth,
-      },
-      y: {
-        scale: scaleLinear().domain([10, 60]),
-        ticks: 6,
-        grid: true,
-      },
-      margin: { top: 20, right: 20, bottom: 30, left: 40 },
-    }
+  return defineChart({
+    marks: [
+      areaY(areaRows, {
+        x: 'Date',
+        y1: 'average',
+        y2: 'Close',
+        z: 'segment',
+        color: 'sign',
+        fillOpacity: 0.35,
+      }),
+      lineY(rows, {
+        x: 'Date',
+        y: 'Close',
+        stroke: '#166534',
+        strokeWidth: 2,
+      }),
+      lineY(rows, {
+        x: 'Date',
+        y: 'average',
+        stroke: '#475569',
+        strokeWidth: 2,
+      }),
+    ],
+    x: {
+      scale: scaleUtc,
+      ticks: 9,
+      format: formatDifferenceMonth,
+    },
+    y: {
+      scale: scaleLinear,
+      ticks: 6,
+      grid: true,
+    },
+    color: {
+      domain: ['positive', 'negative'],
+      range: ['#16a34a', '#dc2626'],
+    },
+    margin: { top: 20, right: 20, bottom: 30, left: 80 },
   })
+}
 
 export const mount = tanstackMount(
   definition,
-  'Actual versus forecast difference chart',
+  'Apple closing price versus its twenty-day average',
 )
 
 function differenceAreas(
@@ -120,30 +126,30 @@ function firstNonZeroSign(
 }
 
 function signOf(row: DifferencePoint): DifferenceAreaPoint['sign'] | undefined {
-  const difference = row.actual - row.forecast
+  const difference = row.Close - row.average
   if (difference === 0) return undefined
   return difference > 0 ? 'positive' : 'negative'
 }
 
 function crosses(left: DifferencePoint, right: DifferencePoint): boolean {
-  return (left.actual - left.forecast) * (right.actual - right.forecast) < 0
+  return (left.Close - left.average) * (right.Close - right.average) < 0
 }
 
 function crossing(
   left: DifferencePoint,
   right: DifferencePoint,
 ): DifferencePoint {
-  const leftDifference = left.actual - left.forecast
-  const rightDifference = right.actual - right.forecast
+  const leftDifference = left.Close - left.average
+  const rightDifference = right.Close - right.average
   const t = -leftDifference / (rightDifference - leftDifference)
   const time =
-    left.date.getTime() + (right.date.getTime() - left.date.getTime()) * t
-  const value = left.actual + (right.actual - left.actual) * t
+    left.Date.getTime() + (right.Date.getTime() - left.Date.getTime()) * t
+  const value = left.Close + (right.Close - left.Close) * t
 
   return {
-    id: `crossing-${time}`,
-    date: new Date(time),
-    actual: value,
-    forecast: value,
+    ...left,
+    Date: new Date(time),
+    Close: value,
+    average: value,
   }
 }

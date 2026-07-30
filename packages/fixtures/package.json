@@ -9,6 +9,7 @@
     "./styles.css": "./src/styles.css"
   },
   "dependencies": {
+    "@charts-poc/demo-data": "workspace:*",
     "@observablehq/plot": "0.6.17",
     "@plot-poc/observable": "workspace:*"
   }

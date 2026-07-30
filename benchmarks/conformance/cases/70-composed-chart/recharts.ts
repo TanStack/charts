@@ -1,3 +1,4 @@
+import { weather } from '@charts-poc/demo-data/weather'
 import { createElement } from 'react'
 import {
   Area,
@@ -10,20 +11,28 @@ import {
   YAxis,
 } from 'recharts'
 import { rechartsMount } from '../../shared/recharts-mount'
-import { composedData } from './data'
 import type { ConformanceInput } from '../../types'
 
+const dateFormat = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+})
+
 function chart(input: ConformanceInput) {
+  const start = input.revision % 2 === 0 ? 37 : 68
+  const rows = weather.slice(start, start + 6)
+
   return createElement(
     ComposedChart,
     {
       width: input.width,
       height: input.height,
-      data: composedData(input.revision),
+      data: rows,
       margin: { top: 20, right: 20, bottom: 20, left: 20 },
       accessibilityLayer: true,
       role: 'img',
-      title: 'Layered categorical measures',
+      title: 'Layered Seattle weather',
     },
     [
       createElement(CartesianGrid, {
@@ -32,19 +41,20 @@ function chart(input: ConformanceInput) {
       }),
       createElement(XAxis, {
         key: 'x',
-        dataKey: 'name',
+        dataKey: 'date',
         scale: 'band',
+        tickFormatter: (value: unknown) =>
+          value instanceof Date ? dateFormat.format(value) : String(value),
       }),
       createElement(YAxis, {
         key: 'y',
-        domain: [0, 1_800],
-        ticks: [0, 450, 900, 1_350, 1_800],
+        tickCount: 5,
         width: 60,
       }),
       createElement(Area, {
         key: 'area',
         type: 'monotone',
-        dataKey: 'amt',
+        dataKey: 'temp_max',
         fill: '#8884d8',
         fillOpacity: 0.2,
         stroke: '#8884d8',
@@ -52,7 +62,7 @@ function chart(input: ConformanceInput) {
       }),
       createElement(Bar, {
         key: 'bar',
-        dataKey: 'pv',
+        dataKey: 'precipitation',
         barSize: 20,
         fill: '#413ea0',
         isAnimationActive: false,
@@ -60,7 +70,7 @@ function chart(input: ConformanceInput) {
       createElement(Line, {
         key: 'line',
         type: 'monotone',
-        dataKey: 'uv',
+        dataKey: 'temp_min',
         stroke: '#ff7300',
         strokeWidth: 2,
         dot: false,
@@ -68,7 +78,7 @@ function chart(input: ConformanceInput) {
       }),
       createElement(Scatter, {
         key: 'scatter',
-        dataKey: 'cnt',
+        dataKey: 'wind',
         fill: '#ef4444',
         isAnimationActive: false,
       }),
@@ -76,4 +86,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Layered categorical measures')
+export const mount = rechartsMount(chart, 'Layered Seattle weather')

@@ -2,21 +2,30 @@ import { createElement, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
+import { industries } from '@charts-poc/demo-data/industries'
 import {
-  interactiveLegendData,
   isLegendSeriesId,
+  legendRows,
   legendSeries,
   toggleLegendSeries,
-} from './data'
+  wideLegendRows,
+} from './model'
 import type {
   ConformanceInput,
   ConformanceMount,
   ConformanceTarget,
 } from '../../types'
-import type { LegendSeriesId } from './data'
+import type { LegendSeriesId } from './model'
 
-const yDomain = [0, 120] as const
-const initialVisibleSeries: readonly LegendSeriesId[] = ['revenue', 'profit']
+const yDomain = [0, 900] as const
+const initialVisibleSeries: readonly LegendSeriesId[] = [
+  'Manufacturing',
+  'Construction',
+]
+const seriesColors: Readonly<Record<LegendSeriesId, string>> = {
+  Manufacturing: '#2563eb',
+  Construction: '#f97316',
+}
 
 interface InteractiveLegendChartProps {
   input: ConformanceInput
@@ -94,9 +103,9 @@ function InteractiveLegendChart({
                 style: {
                   width: '11px',
                   height: '11px',
-                  border: `2px solid ${series.color}`,
+                  border: `2px solid ${seriesColors[series.id]}`,
                   borderRadius: '3px',
-                  background: visible ? series.color : 'transparent',
+                  background: visible ? seriesColors[series.id] : 'transparent',
                 },
               }),
               createElement('span', { key: 'label' }, series.label),
@@ -125,7 +134,7 @@ function InteractiveLegendChart({
     {
       'data-conformance-view': 'main',
       role: 'region',
-      'aria-label': 'Interactive revenue and profit series',
+      'aria-label': 'Interactive unemployment series',
       style: {
         width: `${input.width}px`,
         height: `${input.height}px`,
@@ -140,7 +149,7 @@ function InteractiveLegendChart({
           key: 'chart',
           width: input.width,
           height: Math.max(96, input.height - 62),
-          data: interactiveLegendData(input.revision),
+          data: wideLegendRows(legendRows(industries, input.revision)),
           margin: { top: 20, right: 24, bottom: 16, left: 16 },
           accessibilityLayer: true,
         },
@@ -151,22 +160,35 @@ function InteractiveLegendChart({
           }),
           createElement(XAxis, {
             key: 'x',
-            dataKey: 'period',
-            scale: 'band',
+            dataKey: 'date',
+            scale: 'time',
+            type: 'number',
+            domain: ['dataMin', 'dataMax'],
+            tickFormatter: (value: number) =>
+              new Date(value).toLocaleDateString('en-US', {
+                month: 'short',
+                timeZone: 'UTC',
+              }),
           }),
           createElement(YAxis, {
             key: 'y',
             domain: yDomain,
-            ticks: [0, 30, 60, 90, 120],
+            ticks: [0, 225, 450, 675, 900],
             includeHidden: true,
             width: 52,
+            label: {
+              value: 'Unemployed (thousands)',
+              angle: 0,
+              position: 'insideTopLeft',
+              offset: 8,
+            },
           }),
           ...legendSeries.map((series) =>
             createElement(Line, {
               key: series.id,
               dataKey: series.id,
               name: series.label,
-              stroke: series.color,
+              stroke: seriesColors[series.id],
               strokeWidth: 2.5,
               dot: false,
               hide: !visibleSeries.includes(series.id),
@@ -260,6 +282,6 @@ function renderedSeries(surface: HTMLElement, selector: string) {
     (path) => path.getAttribute('stroke')?.toLowerCase(),
   )
   return legendSeries
-    .filter((series) => strokes.includes(series.color.toLowerCase()))
+    .filter((series) => strokes.includes(seriesColors[series.id].toLowerCase()))
     .map((series) => series.id)
 }

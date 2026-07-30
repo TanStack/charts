@@ -1,44 +1,51 @@
 import * as Plot from '@observablehq/plot'
 import {
-  equalEarthProjection,
-  worldCollection,
-} from '../102-world-choropleth/geo-data'
-import { routePlaces, worldRoutes } from './data'
+  detailedWorldLand,
+  worldGraticule,
+  worldSphere,
+} from '../../shared/fixtures/country-atlas'
+import { beagleRoute } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
-import type { WorldPlace, WorldRoute } from '../102-world-choropleth/geo-data'
 import type { ConformanceMount } from '../../types'
 
-const margin = 10
+const routeColors = ['#dc2626', '#2563eb']
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) =>
     Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      margin,
-      ariaLabel: 'Great-circle route map',
+      margin: 10,
+      ariaLabel: 'HMS Beagle voyage',
       projection: {
-        type: ({ width, height }: { width: number; height: number }) =>
-          equalEarthProjection({ x: 0, y: 0, width, height }),
+        type: 'equal-earth',
+        rotate: [-10, 0],
+        domain: worldSphere,
         clip: false,
       },
       marks: [
-        Plot.geo([worldCollection(nextInput.revision)], {
+        Plot.geo([detailedWorldLand], {
           fill: '#e2e8f0',
           stroke: '#ffffff',
-          strokeWidth: 0.75,
+          strokeWidth: 0.5,
         }),
-        Plot.geo(worldRoutes(nextInput.revision), {
+        Plot.geo([worldGraticule], {
           fill: 'none',
-          stroke: (feature: WorldRoute) => feature.properties.stroke,
+          stroke: 'currentColor',
+          strokeOpacity: 0.2,
+          strokeWidth: 0.5,
+        }),
+        Plot.geo([beagleRoute], {
+          fill: 'none',
+          stroke: routeColors[nextInput.revision % 2] ?? routeColors[0],
           strokeWidth: 2,
           strokeOpacity: 0.9,
         }),
-        Plot.geo(routePlaces(nextInput.revision), {
-          r: 3.5,
-          fill: (feature: WorldPlace) => feature.properties.fill,
-          stroke: '#ffffff',
-          strokeWidth: 1,
+        Plot.geo([worldSphere], {
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeOpacity: 0.4,
+          strokeWidth: 0.75,
         }),
       ],
     }),

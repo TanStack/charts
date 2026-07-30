@@ -15,14 +15,14 @@
   ],
   "geometry": [
     { "role": "frame", "count": 1 },
-    { "role": "dot", "count": 72 }
+    { "role": "dot", "count": 320 }
   ],
   "source": {
     "title": "Observable Plot frame mark",
     "url": "https://observablehq.com/plot/marks/frame"
   },
   "ai": {
-    "create": "Create a guide-free quantitative scatterplot with a rounded filled frame exactly aligned to the inner plotting region.",
-    "maintain": "Change frame inset and styling while retaining responsive inner-bound alignment, typed points, and suppressed guides."
+    "create": "Create a guide-free scatterplot from the cars weight (lb) and economy (mpg) fields with a rounded filled frame aligned to the inner plotting region.",
+    "maintain": "Change frame inset and styling while retaining the imported rows, source fields, responsive inner-bound alignment, and suppressed guides."
   }
 }

@@ -96,11 +96,18 @@ function inferScaleDomain(
 
   const temporal = scale.domain().some((value) => value instanceof Date)
   if (temporal) {
+    const dates = observed.filter(
+      (value): value is Date => value instanceof Date,
+    )
+    if (dates.length !== observed.length) {
+      throw new TypeError(
+        'A temporal scale factory requires Date channel values',
+      )
+    }
     let minimum = Infinity
     let maximum = -Infinity
-    for (const value of observed) {
-      const number = value instanceof Date ? value.getTime() : Number.NaN
-      if (!Number.isFinite(number)) continue
+    for (const value of dates) {
+      const number = value.getTime()
       minimum = Math.min(minimum, number)
       maximum = Math.max(maximum, number)
     }
@@ -120,7 +127,11 @@ function inferScaleDomain(
   let minimum = Infinity
   let maximum = -Infinity
   for (const value of observed) {
-    if (!isFiniteNumber(value)) continue
+    if (!isFiniteNumber(value)) {
+      throw new TypeError(
+        'A quantitative scale factory requires numeric values',
+      )
+    }
     minimum = Math.min(minimum, value)
     maximum = Math.max(maximum, value)
   }
@@ -128,8 +139,9 @@ function inferScaleDomain(
     throw new TypeError('A quantitative scale factory requires numeric values')
   }
 
+  const logarithmic = isLogarithmicScale(scale)
   if (includeZero) {
-    if ('base' in scale && typeof scale.base === 'function') {
+    if (logarithmic) {
       throw new TypeError(
         'An inferred log scale cannot include an implicit zero baseline',
       )
@@ -137,6 +149,7 @@ function inferScaleDomain(
     minimum = Math.min(0, minimum)
     maximum = Math.max(0, maximum)
   }
+  validateInferredLogDomain(scale, minimum, maximum)
   if (minimum === maximum) {
     if (minimum === 0) return [0, 1]
     const offset = Math.abs(minimum) * 0.05 || 1
@@ -144,6 +157,25 @@ function inferScaleDomain(
     maximum += offset
   }
   return [minimum, maximum]
+}
+
+export function isLogarithmicScale(scale: object): boolean {
+  return (
+    'base' in scale && typeof (scale as { base?: unknown }).base === 'function'
+  )
+}
+
+export function validateInferredLogDomain(
+  scale: object,
+  minimum: number,
+  maximum: number,
+): void {
+  if (
+    isLogarithmicScale(scale) &&
+    (minimum === 0 || maximum === 0 || (minimum < 0 && maximum > 0))
+  ) {
+    throw new TypeError('An inferred log domain cannot include or cross zero')
+  }
 }
 
 function applyScaleNice(

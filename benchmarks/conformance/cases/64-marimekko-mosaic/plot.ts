@@ -1,30 +1,32 @@
 import * as Plot from '@observablehq/plot'
-import { mosaicColors, mosaicSegments } from './data'
-import { mosaicLayout } from './layout'
+import { survey } from '@charts-poc/demo-data/survey'
+import { mosaicLayout, mosaicResponses } from './layout'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
+const colors = ['#991b1b', '#ef4444', '#cbd5e1', '#60a5fa', '#1d4ed8']
+
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const { cells, labels } = mosaicLayout(nextInput.revision)
+    const { cells, labels } = mosaicLayout(survey)
 
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Marimekko market composition',
+      ariaLabel: 'Marimekko survey composition',
       x: {
         domain: [0, 1],
         tickFormat: '.0%',
-        label: 'Share of total market',
+        label: 'Share of responses',
       },
       y: {
         domain: [0, 1.12],
         tickFormat: '.0%',
-        label: 'Within-market share',
+        label: 'Within-question share',
       },
       color: {
-        domain: mosaicSegments,
-        range: mosaicSegments.map((segment) => mosaicColors[segment]),
+        domain: mosaicResponses,
+        range: colors,
         legend: true,
       },
       marks: [
@@ -33,13 +35,13 @@ export const mount: ConformanceMount = (container, input) =>
           x2: 'x2',
           y1: 'y1',
           y2: 'y2',
-          fill: 'segment',
+          fill: 'Response',
           inset: 1,
         }),
         Plot.text(labels, {
           x: 'x',
           y: 'y',
-          text: 'market',
+          text: 'Question',
           fill: '#334155',
           fontSize: 11,
         }),

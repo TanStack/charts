@@ -2,24 +2,25 @@
   "schemaVersion": 1,
   "order": 390,
   "id": "40-geojson-map",
-  "title": "Regional GeoJSON choropleth",
+  "title": "Westport House floor plan",
   "family": "geography",
-  "intent": "Compare regional values using a compact GeoJSON choropleth map.",
+  "intent": "Render a real indoor floor plan with planar GeoJSON coordinates.",
   "support": "native",
   "features": [
     "geo mark",
-    "GeoJSON",
+    "Observable Plot Westport House GeoJSON",
+    "121 source polygons",
     "identity projection",
     "d3-geo",
     "geoShape"
   ],
-  "geometry": [{ "role": "geo", "count": 6 }],
+  "geometry": [{ "role": "geo", "count": 121 }],
   "source": {
-    "title": "Observable Plot geo",
-    "url": "https://observablehq.com/plot/marks/geo"
+    "title": "Observable Plot identity projection",
+    "url": "https://observablehq.com/plot/features/projections#projection-options"
   },
   "ai": {
-    "create": "Create a six-region choropleth from a typed GeoJSON feature collection. Plot should use geo with an identity projection; TanStack should inject d3-geo and render one path per feature through geoShape.",
-    "maintain": "Keep projection fitting responsive, preserve feature identity and literal fills, and leave geographic projection code outside the ordinary cartesian bundle."
+    "create": "Import Observable Plot's pinned Westport House GeoJSON and render its source polygons with a fitted identity projection.",
+    "maintain": "Preserve source feature ids and properties, responsive planar fitting, one path per published feature, and the geo entrypoint boundary."
   }
 }

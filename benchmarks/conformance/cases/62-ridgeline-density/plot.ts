@@ -1,31 +1,33 @@
+import { simpsons } from '@charts-poc/demo-data/simpsons'
 import * as Plot from '@observablehq/plot'
-import { ridgeColors, ridgeData, ridgeRegions } from './data'
+import { isRatedEpisode, ridgeDensity, ridgeSeasons } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
+const colors = ['#2563eb', '#0d9488', '#d97706']
+
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = ridgeData(nextInput.revision)
+    const seasons = ridgeSeasons(nextInput.revision)
+    const rows = ridgeDensity(simpsons.filter(isRatedEpisode), seasons)
 
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
       ariaLabel: 'Ridgeline density comparison',
-      marginLeft: 48,
-      x: {
-        domain: [0, 100],
-        label: 'Value',
-        grid: true,
-      },
+      marginLeft: 76,
+      x: { domain: [4, 10], label: 'IMDb rating', grid: true },
       y: {
         domain: [-0.08, 2.86],
-        ticks: ridgeRegions.length,
-        tickFormat: (value: number) => ridgeRegions[Math.round(value)] ?? '',
+        ticks: seasons.length,
+        tickFormat: (value: number) => {
+          const season = seasons[Math.round(value)]
+          return season === undefined ? '' : `Season ${season}`
+        },
         label: null,
       },
       color: {
-        domain: ridgeRegions,
-        range: ridgeRegions.map((region) => ridgeColors[region]),
+        range: colors,
       },
       marks: [
         Plot.ruleY([0, 1, 2], {
@@ -33,19 +35,19 @@ export const mount: ConformanceMount = (container, input) =>
           strokeOpacity: 0.5,
         }),
         Plot.areaY(rows, {
-          x: 'x',
+          x: 'imdb_rating',
           y1: 'baseline',
           y2: 'density',
-          z: 'region',
-          fill: 'region',
+          z: 'season',
+          fill: 'season',
           fillOpacity: 0.52,
           curve: 'basis',
         }),
         Plot.lineY(rows, {
-          x: 'x',
+          x: 'imdb_rating',
           y: 'density',
-          z: 'region',
-          stroke: 'region',
+          z: 'season',
+          stroke: 'season',
           strokeWidth: 1.5,
           curve: 'basis',
         }),

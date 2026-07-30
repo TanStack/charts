@@ -5,7 +5,7 @@
   "id": "75-radar",
   "title": "Simple radar chart",
   "family": "polar",
-  "intent": "Compare one profile across six equally spaced qualitative dimensions.",
+  "intent": "Compare one decathlete across four events after normalizing their different units.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -16,7 +16,7 @@
   ],
   "geometry": [
     { "role": "radar", "count": 1 },
-    { "role": "text", "count": 11 }
+    { "role": "text", "count": 9 }
   ],
   "minimumGeometrySimilarity": 0.9999,
   "source": {
@@ -24,7 +24,7 @@
     "url": "https://recharts.github.io/en-US/examples/SimpleRadarChart/"
   },
   "ai": {
-    "create": "Create a radar chart for six subjects with a fixed radial domain, polygon grid, angle labels, and one translucent filled profile.",
+    "create": "Create a radar chart from one raw decathlon result, visibly normalizing four differently scaled events to a fixed radial domain with polygon guides and one translucent profile.",
     "maintain": "Update subject values while preserving subject order, radial domain, clockwise angle mapping, stable polygon identity, and label placement."
   }
 }

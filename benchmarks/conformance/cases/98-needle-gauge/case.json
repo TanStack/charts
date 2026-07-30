@@ -3,9 +3,9 @@
   "referenceRenderer": "recharts",
   "order": 980,
   "id": "98-needle-gauge",
-  "title": "Threshold gauge with needle",
+  "title": "County unemployment gauge",
   "family": "polar",
-  "intent": "Show one bounded reading against three threshold bands with a centered needle and value.",
+  "intent": "Show a real county unemployment rate against three policy-neutral rate bands with a centered needle and value.",
   "support": "native",
   "features": [
     "polar coordinates",
@@ -27,7 +27,7 @@
     "url": "https://recharts.github.io/en-US/examples/PieChartWithNeedle/"
   },
   "ai": {
-    "create": "Create a semicircular threshold gauge with three D3 pie sectors, eleven radial tick rules, a scale-driven radial rule needle, a radial dot hub, and a centered radial value label.",
-    "maintain": "Update the reading without changing threshold or tick boundaries; preserve stable keys, the zero-to-one-hundred angle domain, the responsive radius, and native polar mark ownership."
+    "create": "Create a semicircular gauge directly from a county's rate field in Observable Plot's U.S. unemployment data, with three D3 pie sectors, eleven radial tick rules, a scale-driven radial rule needle, a radial dot hub, and a centered value label.",
+    "maintain": "Change the selected county without changing threshold or tick boundaries; preserve stable keys, the zero-to-thirty-percent angle domain, the responsive radius, and native polar mark ownership."
   }
 }

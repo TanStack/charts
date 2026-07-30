@@ -26,6 +26,7 @@ export interface RectOptions<TDatum> {
   y1?: Channel<TDatum, ChartValue | null | undefined>
   y2?: Channel<TDatum, ChartValue | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   fill?: string
   fillOpacity?: number
@@ -119,10 +120,15 @@ export function rect<TDatum>(
       (_datum, index) => yValues[index],
     )
     const zValues = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
     const keys = inferredKeyValues(data, options.key, {
       groups: zValues,
       candidates: [compositeKeyValues(x1Values, x2Values, y1Values, y2Values)],
       markId: id,
+      warningIdentity: options,
     })
 
     return {
@@ -138,7 +144,7 @@ export function rect<TDatum>(
         },
         color: {
           scale: 'color',
-          values: zValues.filter(isChartKey),
+          values: colorValues.filter(isChartKey),
         },
       },
       render: ({ scales, color: resolveColor }) => {
@@ -178,7 +184,8 @@ export function rect<TDatum>(
           const width = categoricalWidth || Math.max(0, Math.abs(x2 - x1))
           const height = categoricalHeight || Math.max(0, Math.abs(y2 - y1))
           const group = zValues[datumIndex] ?? null
-          const color = options.fill ?? resolveColor(group)
+          const color =
+            options.fill ?? resolveColor(colorValues[datumIndex] ?? null)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           nodes.push({
             kind: 'rect',

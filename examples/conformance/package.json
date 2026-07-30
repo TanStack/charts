@@ -9,6 +9,7 @@
     "dev": "vite --host --port 5194 --strictPort"
   },
   "dependencies": {
+    "@charts-poc/demo-data": "workspace:*",
     "@observablehq/plot": "0.6.17",
     "@tanstack/charts": "workspace:*",
     "d3-array": "3.2.4",

@@ -1,27 +1,31 @@
 import { createMark, defineChart } from '@tanstack/charts'
 import { contours } from 'd3-contour'
 import { geoPath, geoTransform } from 'd3-geo'
-import { contourColor, contourGrid, contourThresholds } from './data'
+import { scaleThreshold } from 'd3-scale'
+import { contourThresholds, windSpeedGrid } from './transform'
 import { tanstackMount } from '../../shared/mount'
 import type { ContourMultiPolygon } from 'd3-contour'
 import type { ConformanceInput } from '../../types'
 import type { SceneNode } from '@tanstack/charts'
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const grid = contourGrid(input.revision)
-    const geometry = contours()
-      .size([grid.width, grid.height])
-      .thresholds([...contourThresholds])(grid.values)
+const colors = ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#2563eb']
 
-    return {
-      marks: [contourMark(geometry, grid.width, grid.height)],
-      x: null,
-      y: null,
-      guides: false,
-      margin: 12,
-    }
+const definition = (input: ConformanceInput) => {
+  const grid = windSpeedGrid(input.revision)
+  const geometry = contours()
+    .size([grid.width, grid.height])
+    .thresholds([...contourThresholds])(grid.values)
+
+  return defineChart({
+    marks: [contourMark(geometry, grid.width, grid.height)],
+    color: {
+      scale: scaleThreshold<number, string>,
+      domain: contourThresholds.slice(1),
+      range: colors,
+    },
+    margin: 12,
   })
+}
 
 function contourMark(
   geometry: readonly ContourMultiPolygon[],
@@ -33,8 +37,13 @@ function contourMark(
 
     return {
       id,
-      channels: {},
-      render: ({ chart }) => {
+      channels: {
+        color: {
+          scale: 'color',
+          values: geometry.map((contour) => contour.value),
+        },
+      },
+      render: ({ chart, color }) => {
         const projection = geoTransform({
           point(x, y) {
             this.stream.point(
@@ -57,7 +66,7 @@ function contourMark(
             points: [],
             path: pathData,
             style: {
-              fill: contourColor(contour.value),
+              fill: color(contour.value),
               stroke: '#ffffff',
               strokeWidth: 0.75,
             },
@@ -80,4 +89,4 @@ function contourMark(
   })
 }
 
-export const mount = tanstackMount(definition, 'Filled topographic contours')
+export const mount = tanstackMount(definition, 'Filled wind-speed contours')

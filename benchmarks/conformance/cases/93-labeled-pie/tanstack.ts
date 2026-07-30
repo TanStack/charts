@@ -5,37 +5,35 @@ import {
   radialRule,
   radialText,
 } from '@tanstack/charts/polar'
+import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { scaleLinear } from 'd3-scale'
 import { pie } from 'd3-shape'
-import { labeledPieData } from './data'
+import { selectLabeledPieData } from './selection'
 import { tanstackMount } from '../../shared/mount'
-import type { LabeledPieDatum } from './data'
+import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import type { ConformanceInput } from '../../types'
-import type { PieArcDatum } from 'd3-shape'
 
 const tau = Math.PI * 2
 const radiusRatio = 0.56
 const labelOffset = 20
-const pieLayout = pie<LabeledPieDatum>()
+const pieLayout = pie<AlphabetRow>()
   .sort(null)
-  .value(({ value }) => value)
+  .value(({ frequency }) => frequency)
+const colors = ['#2563eb', '#7c3aed', '#db2777', '#f59e0b']
 
 interface PieLabelDatum {
-  id: LabeledPieDatum['id']
-  label: string
-  fill: string
+  letter: string
   angle: number
   radius: number
 }
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const arcs = pieLayout([...labeledPieData(input.revision)])
-    const outerRadius = (Math.min(input.width, input.height) / 2) * radiusRatio
+const definition = (input: ConformanceInput) => {
+  const arcs = pieLayout([...selectLabeledPieData(alphabet, input.revision)])
+
+  return defineChart(({ width, height }) => {
+    const outerRadius = (Math.min(width, height) / 2) * radiusRatio
     const labels: readonly PieLabelDatum[] = arcs.map((slice) => ({
-      id: slice.data.id,
-      label: slice.data.label,
-      fill: slice.data.fill,
+      letter: slice.data.letter,
       angle: (slice.startAngle + slice.endAngle) / 2,
       radius: 1 + labelOffset / Math.max(1, outerRadius),
     }))
@@ -48,23 +46,20 @@ const definition = (input: ConformanceInput) =>
           radius: { scale: scaleLinear().domain([0, 1]) },
           marks: [
             radialArc(arcs, {
-              key: ({ data }: PieArcDatum<LabeledPieDatum>) => data.id,
-              fill: ({ data }: PieArcDatum<LabeledPieDatum>) => data.fill,
+              color: ({ data }) => data.letter,
             }),
             radialRule(labels, {
               angle: 'angle',
               radius1: 1,
               radius2: 'radius',
-              key: 'id',
               stroke: '#94a3b8',
               strokeWidth: 1,
             }),
             radialText(labels, {
               angle: 'angle',
               radius: 'radius',
-              text: 'label',
-              key: 'id',
-              fill: ({ fill }) => fill,
+              text: 'letter',
+              color: 'letter',
               fontSize: 12,
               fontWeight: 500,
               anchor: ({ angle }) => {
@@ -79,11 +74,13 @@ const definition = (input: ConformanceInput) =>
           ],
         }),
       ],
-      x: null,
-      y: null,
-      guides: false,
+      color: { range: colors },
       margin: 0,
     }
   })
+}
 
-export const mount = tanstackMount(definition, 'Pie with outside labels')
+export const mount = tanstackMount(
+  definition,
+  'Letter frequency pie with labels',
+)

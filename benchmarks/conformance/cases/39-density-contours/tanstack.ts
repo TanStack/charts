@@ -1,19 +1,23 @@
+import { penguins } from '@charts-poc/demo-data/penguins'
 import { createMark, defineChart } from '@tanstack/charts'
 import { contourDensity } from 'd3-contour'
 import { geoPath } from 'd3-geo'
 import { scaleLinear } from 'd3-scale'
-import {
-  densityBandwidth,
-  densityPoints,
-  densityThresholds,
-  densityXDomain,
-  densityYDomain,
-} from './data'
 import { tanstackMount } from '../../shared/mount'
+import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
 import type { ContourMultiPolygon } from 'd3-contour'
-import type { DensityPoint } from './data'
 import type { ConformanceInput } from '../../types'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
+
+type PenguinBill = PenguinsRow & {
+  readonly culmen_length_mm: number
+  readonly culmen_depth_mm: number
+}
+
+const densityBandwidth = 18
+export const densityThresholds = [0.04, 0.08, 0.12, 0.16, 0.2, 0.24]
+export const densityXDomain: [number, number] = [30, 62]
+export const densityYDomain: [number, number] = [12, 23]
 
 export interface DensityContourDatum {
   id: string
@@ -31,37 +35,46 @@ const densityCoordinate = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
 })
 
-export const densityDefinition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const points = densityPoints(input.revision)
+export const densityDefinition = (input: ConformanceInput) => {
+  const points = penguins
+    .filter((row): row is PenguinBill => {
+      return row.culmen_length_mm !== null && row.culmen_depth_mm !== null
+    })
+    .slice(input.revision * 8, input.revision * 8 + 320)
 
-    return {
-      marks: [densityMark(points)],
-      x: {
-        scale: scaleLinear().domain(densityXDomain),
-      },
-      y: {
-        scale: scaleLinear().domain(densityYDomain),
-      },
-      guides: false,
-      margin: 0,
-    }
+  return defineChart({
+    marks: [densityMark(points)],
+    x: {
+      scale: scaleLinear().domain(densityXDomain),
+    },
+    y: {
+      scale: scaleLinear().domain(densityYDomain),
+    },
+    guides: false,
+    margin: 0,
   })
+}
 
-function densityMark(data: DensityPoint[]) {
+function densityMark(data: PenguinBill[]) {
   return createMark<DensityContourDatum, number, number>(({ markIndex }) => {
     const id = `density-${markIndex}`
 
     return {
       id,
       channels: {
-        x: { scale: 'x', values: data.map((point) => point.x) },
-        y: { scale: 'y', values: data.map((point) => point.y) },
+        x: {
+          scale: 'x',
+          values: data.map((point) => point.culmen_length_mm),
+        },
+        y: {
+          scale: 'y',
+          values: data.map((point) => point.culmen_depth_mm),
+        },
       },
       render: ({ chart, scales }) => {
-        const estimator = contourDensity<DensityPoint>()
-          .x((point) => scales.x.map(point.x))
-          .y((point) => scales.y.map(point.y))
+        const estimator = contourDensity<PenguinBill>()
+          .x((point) => scales.x.map(point.culmen_length_mm))
+          .y((point) => scales.y.map(point.culmen_depth_mm))
           .size([chart.width, chart.height])
           .bandwidth(densityBandwidth)
           .thresholds(densityThresholds.map((threshold) => threshold / 100))
@@ -142,6 +155,6 @@ export const mount = tanstackMount(
   'Point density contours',
   {
     format: (point) =>
-      `Density: ${densityPercent.format(point.datum.density)} · Centroid: (${densityCoordinate.format(point.datum.centroidX)}, ${densityCoordinate.format(point.datum.centroidY)})`,
+      `Density: ${densityPercent.format(point.datum.density)} · Bill centroid: (${densityCoordinate.format(point.datum.centroidX)} mm, ${densityCoordinate.format(point.datum.centroidY)} mm)`,
   },
 )

@@ -8,18 +8,19 @@ import type {
   GridComponentOption,
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
+import { downloads } from '@charts-poc/demo-data/downloads'
 import { echartsMount } from '../../shared/echarts-mount'
+import { streamingData } from './selection'
 import {
   formatStreamingDate,
   fullStreamingViewport,
   latestStreamingViewport,
-  streamingData,
   streamingDateKey,
   streamingViewportDomain,
   visibleStreamingData,
-} from './data'
+} from './model'
 import { createStreamingControls, updateStreamingControls } from './controls'
-import type { StreamingDatum } from './data'
+import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
 import type { StreamingControls, StreamingViewportMode } from './controls'
 import type {
   ConformanceGeometryQuery,
@@ -37,7 +38,7 @@ type StreamingOption = ComposeOption<
 >
 
 interface StreamingState {
-  rows: readonly StreamingDatum[]
+  rows: readonly DownloadsRow[]
   appended: number
   viewport: readonly [Date, Date]
   viewportMode: StreamingViewportMode
@@ -49,7 +50,7 @@ const color = '#2563eb'
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
   const state: StreamingState = {
-    rows: streamingData(input.revision),
+    rows: streamingData(downloads, input.revision),
     appended: 0,
     viewport: streamingViewportDomain,
     viewportMode: 'locked',
@@ -72,7 +73,11 @@ export const mount: ConformanceMount = (container, input) => {
   const controls = createStreamingControls(container.ownerDocument, {
     append() {
       state.appended += 1
-      state.rows = streamingData(currentInput.revision, state.appended)
+      state.rows = streamingData(
+        downloads,
+        currentInput.revision,
+        state.appended,
+      )
       if (state.viewportMode === 'latest') {
         state.viewport = latestStreamingViewport(state.rows)
       } else if (state.viewportMode === 'all') {
@@ -80,7 +85,7 @@ export const mount: ConformanceMount = (container, input) => {
       }
       const added = state.rows.at(-1)
       state.announcement = added
-        ? `Added ${formatStreamingDate(added.date)} (${added.value}). ${
+        ? `Added ${formatStreamingDate(added.date)} (${added.downloads.toLocaleString()} downloads). ${
             visibleStreamingData([added], state.viewport).length
               ? 'The new sample is visible.'
               : `It is outside the locked viewport ending ${formatStreamingDate(state.viewport[1])}.`
@@ -113,7 +118,7 @@ export const mount: ConformanceMount = (container, input) => {
         state.viewport,
         state.viewportMode,
       ),
-    'Streaming observations in a locked time viewport',
+    'Package downloads in a locked time viewport',
     ({ chart, surface }) => createDriver(chart, surface, controls, state),
   )
   let chartHandle: ReturnType<ConformanceMount> | undefined
@@ -131,7 +136,7 @@ export const mount: ConformanceMount = (container, input) => {
     driver: chartHandle.driver,
     update(nextInput) {
       currentInput = nextInput
-      state.rows = streamingData(nextInput.revision, state.appended)
+      state.rows = streamingData(downloads, nextInput.revision, state.appended)
       if (state.viewportMode === 'latest') {
         state.viewport = latestStreamingViewport(state.rows)
       } else if (state.viewportMode === 'all') {
@@ -153,7 +158,7 @@ export const mount: ConformanceMount = (container, input) => {
 
 function streamingOption(
   _input: ConformanceInput,
-  rows: readonly StreamingDatum[],
+  rows: readonly DownloadsRow[],
   viewport: readonly [Date, Date],
   viewportMode: StreamingViewportMode,
 ): StreamingOption {
@@ -163,9 +168,15 @@ function streamingOption(
     aria: {
       enabled: true,
       description:
-        'A time series with controls for a locked window, following the latest observations, or showing all observations.',
+        'Package downloads with controls for a locked window, following the latest dates, or showing all dates.',
     },
-    grid: { top: 18, right: 24, bottom: 44, left: 58 },
+    grid: {
+      top: 18,
+      right: 24,
+      bottom: 44,
+      left: 58,
+      outerBoundsMode: 'none',
+    },
     xAxis: {
       type: 'time',
       min: viewport[0].getTime(),
@@ -177,14 +188,16 @@ function streamingOption(
             ? 'Following latest'
             : 'All samples',
       nameLocation: 'middle',
-      nameGap: 32,
+      nameGap: 30,
     },
     yAxis: {
       type: 'value',
-      min: 0,
-      max: 80,
-      interval: 20,
-      name: 'Value',
+      min: 'dataMin',
+      max: 'dataMax',
+      name: 'Downloads',
+      nameLocation: 'middle',
+      nameGap: 44,
+      nameRotate: 90,
       splitLine: {
         show: true,
         lineStyle: { color: '#e2e8f0' },
@@ -192,12 +205,12 @@ function streamingOption(
     },
     series: {
       id: 'stream',
-      name: 'Value',
+      name: 'Downloads',
       type: 'line',
       data: visibleRows.map((row) => ({
-        id: row.id,
-        name: row.id,
-        value: [row.date.getTime(), row.value],
+        id: streamingDateKey(row.date),
+        name: streamingDateKey(row.date),
+        value: [row.date.getTime(), row.downloads],
       })),
       color,
       lineStyle: { color, width: 2.5 },
@@ -257,18 +270,16 @@ function streamingState(state: StreamingState) {
   const first = state.rows[0]
   const last = state.rows[state.rows.length - 1]
   const visibleRows = visibleStreamingData(state.rows, state.viewport)
-  const revisionProbe = visibleRows.find((row) => row.id === 'sample-7')
   return {
     data: {
       count: state.rows.length,
-      ids: state.rows.map((row) => row.id),
+      ids: state.rows.map((row) => streamingDateKey(row.date)),
       domainStart: first ? streamingDateKey(first.date) : null,
       domainEnd: last ? streamingDateKey(last.date) : null,
     },
     visible: {
       count: visibleRows.length,
-      ids: visibleRows.map((row) => row.id),
-      revisionProbeValue: revisionProbe?.value ?? null,
+      ids: visibleRows.map((row) => streamingDateKey(row.date)),
     },
     viewport: {
       start: streamingDateKey(state.viewport[0]),
@@ -314,11 +325,11 @@ function streamingGeometry(
 
 function streamPoint(
   chart: EChartsType,
-  row: StreamingDatum,
+  row: DownloadsRow,
 ): readonly [number, number] | null {
   const point = chart.convertToPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [
     row.date.getTime(),
-    row.value,
+    row.downloads,
   ])
   if (
     !Array.isArray(point) ||

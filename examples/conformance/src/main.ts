@@ -6,7 +6,6 @@ import {
   loadTanStackImplementation,
   loadTanStackSources,
 } from '../../../benchmarks/conformance/native-catalog'
-import type { CatalogSourceFile } from '../../../benchmarks/conformance/catalog-loader'
 import type {
   ConformanceCaseMeta,
   ConformanceHandle,
@@ -32,6 +31,7 @@ import {
   parseCatalogRoute,
   type CatalogRoute,
 } from './routes'
+import { renderCatalogSourceView } from './source-view'
 import './styles.css'
 
 const app = requireApp()
@@ -542,7 +542,7 @@ async function mountRenderer(
     }
 
     if (sourceElement) {
-      sourceElement.innerHTML = renderSourceFiles(source)
+      sourceElement.innerHTML = renderCatalogSourceView(source)
     }
     if (!implementation) {
       container.innerHTML =
@@ -586,20 +586,6 @@ async function loadComparisonRenderer(
     catalog.loadComparisonImplementation(id, renderer),
     catalog.loadComparisonSources(id, renderer),
   ])
-}
-
-function renderSourceFiles(files: readonly CatalogSourceFile[]): string {
-  if (!files.length) return '<p class="gap">No implementation yet.</p>'
-  return files
-    .map(
-      (file, index) => `
-        <details class="source-file" ${index === 0 ? 'open' : ''}>
-          <summary>${escapeHtml(file.path)}</summary>
-          <pre><code>${escapeHtml(file.source)}</code></pre>
-        </details>
-      `,
-    )
-    .join('')
 }
 
 function loadComparisonCatalog() {

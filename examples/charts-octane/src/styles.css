@@ -306,6 +306,15 @@ a:focus-visible,
   line-height: 1;
 }
 
+.chart-stage__period {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .text-action {
   padding: 8px 0 5px;
   border: 0;

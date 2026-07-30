@@ -4,7 +4,7 @@
   "id": "31-linear-regression",
   "title": "Scatterplot with linear regression",
   "family": "relationship",
-  "intent": "Show a quantitative relationship together with a least-squares trend line.",
+  "intent": "Show the relationship between automobile power and fuel economy together with a least-squares trend line.",
   "support": "composed",
   "features": [
     "linear regression",
@@ -14,7 +14,7 @@
     "dot mark"
   ],
   "geometry": [
-    { "role": "dot", "count": 72 },
+    { "role": "dot", "count": 320 },
     {
       "role": "regression",
       "count": 1,
@@ -29,7 +29,7 @@
     "url": "https://observablehq.com/plot/marks/linear-regression"
   },
   "ai": {
-    "create": "Create a quantitative scatterplot with a least-squares regression line. Plot may use linearRegressionY; TanStack should pass two typed prepared endpoints to lineY.",
-    "maintain": "Regress each group independently and retain the raw dots, granular preparation, stable group colors, and cast-free channels."
+    "create": "Create a scatterplot directly from the cars power (hp) and economy (mpg) fields. Plot may use linearRegressionY; TanStack should pass two typed prepared endpoints to lineY.",
+    "maintain": "Change the selected automobiles while retaining the imported rows, visible least-squares preparation, source field names, and cast-free channels."
   }
 }

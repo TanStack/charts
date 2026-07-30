@@ -1,18 +1,27 @@
-import { channelValues, createMark, isChartValue } from './mark'
+import {
+  channelValues,
+  createMark,
+  isChartKey,
+  isChartValue,
+  visualValue,
+} from './mark'
 import { valueKey } from './scales'
 import type {
   Channel,
+  ChartKey,
   ChartMark,
   ChartValue,
   OptionChannelOutput,
   SceneNode,
+  VisualChannel,
   WidenChartValue,
 } from './types'
 
 export interface RuleYOptions<TDatum> {
   id?: string
   y?: Channel<TDatum, ChartValue | null | undefined>
-  stroke?: string
+  color?: Channel<TDatum, ChartKey | null | undefined>
+  stroke?: VisualChannel<TDatum, string>
   strokeOpacity?: number
   strokeWidth?: number
   strokeDasharray?: string
@@ -21,7 +30,8 @@ export interface RuleYOptions<TDatum> {
 export interface RuleXOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
-  stroke?: string
+  color?: Channel<TDatum, ChartKey | null | undefined>
+  stroke?: VisualChannel<TDatum, string>
   strokeOpacity?: number
   strokeWidth?: number
   strokeDasharray?: string
@@ -58,18 +68,26 @@ export function ruleY<TDatum>(
     const values = channelValues(data, options.y, (datum) =>
       isChartValue(datum) ? datum : undefined,
     )
+    const colorValues = channelValues(data, options.color, () => null)
     return {
       id,
-      channels: { y: { scale: 'y', values: values.filter(isChartValue) } },
-      render: ({ scales, chart, theme }) => ({
+      channels: {
+        y: { scale: 'y', values: values.filter(isChartValue) },
+        color: {
+          scale: 'color',
+          values: colorValues.filter(isChartKey),
+        },
+      },
+      render: ({ scales, chart, theme, color: resolveColor }) => ({
         nodes: [
           {
             kind: 'group',
             key: id,
             className: 'ts-chart__rule ts-chart__rule-y',
             ariaHidden: true,
-            children: values.flatMap((value, index): SceneNode[] =>
-              isChartValue(value)
+            children: data.flatMap((datum, index): SceneNode[] => {
+              const value = values[index]
+              return isChartValue(value)
                 ? [
                     {
                       kind: 'rule',
@@ -79,15 +97,23 @@ export function ruleY<TDatum>(
                       y1: scales.y.map(value),
                       y2: scales.y.map(value),
                       style: {
-                        stroke: options.stroke ?? theme.foreground,
+                        stroke: visualValue(
+                          options.stroke,
+                          datum,
+                          index,
+                          data,
+                          colorValues[index] == null
+                            ? theme.foreground
+                            : resolveColor(colorValues[index]),
+                        ),
                         strokeOpacity: options.strokeOpacity ?? 0.5,
                         strokeWidth: options.strokeWidth,
                         strokeDasharray: options.strokeDasharray,
                       },
                     },
                   ]
-                : [],
-            ),
+                : []
+            }),
           },
         ],
       }),
@@ -120,18 +146,26 @@ export function ruleX<TDatum>(
     const values = channelValues(data, options.x, (datum) =>
       isChartValue(datum) ? datum : undefined,
     )
+    const colorValues = channelValues(data, options.color, () => null)
     return {
       id,
-      channels: { x: { scale: 'x', values: values.filter(isChartValue) } },
-      render: ({ scales, chart, theme }) => ({
+      channels: {
+        x: { scale: 'x', values: values.filter(isChartValue) },
+        color: {
+          scale: 'color',
+          values: colorValues.filter(isChartKey),
+        },
+      },
+      render: ({ scales, chart, theme, color: resolveColor }) => ({
         nodes: [
           {
             kind: 'group',
             key: id,
             className: 'ts-chart__rule ts-chart__rule-x',
             ariaHidden: true,
-            children: values.flatMap((value, index): SceneNode[] =>
-              isChartValue(value)
+            children: data.flatMap((datum, index): SceneNode[] => {
+              const value = values[index]
+              return isChartValue(value)
                 ? [
                     {
                       kind: 'rule',
@@ -141,15 +175,23 @@ export function ruleX<TDatum>(
                       y1: chart.y,
                       y2: chart.y + chart.height,
                       style: {
-                        stroke: options.stroke ?? theme.foreground,
+                        stroke: visualValue(
+                          options.stroke,
+                          datum,
+                          index,
+                          data,
+                          colorValues[index] == null
+                            ? theme.foreground
+                            : resolveColor(colorValues[index]),
+                        ),
                         strokeOpacity: options.strokeOpacity ?? 0.5,
                         strokeWidth: options.strokeWidth,
                         strokeDasharray: options.strokeDasharray,
                       },
                     },
                   ]
-                : [],
-            ),
+                : []
+            }),
           },
         ],
       }),

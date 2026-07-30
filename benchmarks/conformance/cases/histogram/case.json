@@ -4,7 +4,7 @@
   "id": "histogram",
   "title": "Histogram",
   "family": "distribution",
-  "intent": "Show the frequency distribution of one quantitative variable using seven fixed ten-unit bins from 20 through 90.",
+  "intent": "Show the distribution of automobile fuel economy using nine fixed five-mpg bins from 5 through 50.",
   "support": "composed",
   "features": [
     "bin transform",
@@ -12,13 +12,13 @@
     "explicit thresholds",
     "zero baseline"
   ],
-  "geometry": [{ "role": "rect", "count": 7 }],
+  "geometry": [{ "role": "rect", "count": 9 }],
   "source": {
-    "title": "Observable Plot: athletes weight",
-    "url": "https://github.com/observablehq/plot/blob/main/test/plots/athletes-weight.ts"
+    "title": "Observable sample cars",
+    "url": "https://github.com/observablehq/sample-datasets/blob/732c0148de741469b2bcc03f53d93b0ad0b93f0a/cars.csv"
   },
   "ai": {
-    "create": "Create a histogram of the value field using the fixed bin boundaries 20, 30, 40, 50, 60, 70, 80, and 90.",
-    "maintain": "Change the threshold boundaries while keeping the Plot transform and granular D3 transform semantically equivalent."
+    "create": "Create a histogram directly from the cars economy (mpg) field using fixed five-mpg boundaries from 5 through 50.",
+    "maintain": "Change the threshold boundaries while retaining the imported rows and keeping the Plot and granular D3 transforms semantically equivalent."
   }
 }

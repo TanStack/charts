@@ -7,12 +7,16 @@ import {
   YAxis,
   ZAxis,
 } from 'recharts'
-import { manyPointSeries } from './data'
+import { cars } from '@charts-poc/demo-data/cars'
+import { selectManyPointData } from './selection'
+import { groupCarsByCylinder } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
+const colors = ['#2563eb', '#7c3aed', '#db2777', '#f97316', '#0f766e']
+
 function chart(input: ConformanceInput) {
-  const series = manyPointSeries(input.revision)
+  const series = groupCarsByCylinder(selectManyPointData(cars, input.revision))
   const children = [
     createElement(CartesianGrid, {
       key: 'grid',
@@ -21,31 +25,26 @@ function chart(input: ConformanceInput) {
     createElement(XAxis, {
       key: 'x',
       type: 'number',
-      dataKey: 'x',
-      domain: [0, 100],
-      ticks: [0, 20, 40, 60, 80, 100],
+      dataKey: 'weight (lb)',
     }),
     createElement(YAxis, {
       key: 'y',
       type: 'number',
-      dataKey: 'y',
-      domain: [0, 100],
-      ticks: [0, 20, 40, 60, 80, 100],
+      dataKey: '0-60 mph (s)',
       width: 60,
     }),
     createElement(ZAxis, {
       key: 'z',
       type: 'number',
-      dataKey: 'z',
-      domain: [0, 100],
+      dataKey: 'displacement (cc)',
       range: [16, 64],
     }),
-    ...series.map((item) =>
+    ...series.map((item, index) =>
       createElement(Scatter, {
-        key: item.name,
-        name: item.name,
-        data: item.points,
-        fill: item.status === 'passed' ? '#22c55e' : '#ef4444',
+        key: item.cylinders,
+        name: `${item.cylinders} cylinders`,
+        data: item.rows,
+        fill: colors[index % colors.length],
         fillOpacity: 0.72,
         isAnimationActive: false,
       }),
@@ -64,4 +63,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Many-point scatter performance')
+export const mount = rechartsMount(chart, 'Automobile specifications scatter')

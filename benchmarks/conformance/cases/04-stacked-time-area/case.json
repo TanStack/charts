@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 4,
   "id": "04-stacked-time-area",
-  "title": "Stacked multi-series time area",
+  "title": "Industry unemployment stacked area",
   "family": "composition",
-  "intent": "Stack three tidy time series over a shared UTC axis. Observable Plot applies stackY to the raw rows; TanStack Charts consumes explicit y1/y2 intervals produced by granular d3-shape stack output, following the industry-unemployment fixture.",
+  "intent": "Stack every industry in the unemployment dataset over a shared UTC axis. Plot applies stackY to the original rows; TanStack Charts exposes its d3-shape interval adaptation beside the chart.",
   "support": "composed",
   "features": [
     "area",
@@ -16,7 +16,7 @@
     "fixture:industry-unemployment"
   ],
   "geometry": [
-    { "role": "area", "count": 3 },
+    { "role": "area", "count": 14 },
     { "role": "rule", "count": 1 }
   ],
   "source": {
@@ -24,7 +24,7 @@
     "url": "https://observablehq.com/plot/transforms/stack"
   },
   "ai": {
-    "create": "Create a responsive stacked UTC area chart from tidy {id, date, value, series} rows. Plot may apply stackY directly; TanStack Charts must adapt granular d3-shape stack output into explicit y1/y2 channels while retaining series identity, stable keys, and the original values.",
-    "maintain": "Convert the chart to a normalized 100% stack. Use the corresponding Plot stack offset and granular D3 stack offset, update the y-axis formatting, and keep both implementations on the same raw tidy rows without casts or an umbrella D3 import."
+    "create": "Create a responsive stacked UTC area chart from the industries dataset's original date, industry, and unemployed fields. Plot may apply stackY directly; TanStack Charts adapts granular d3-shape output into explicit y1/y2 channels while retaining each source row.",
+    "maintain": "Convert the chart to a normalized 100% stack while keeping both implementations on the same imported industry observations and the transform visible beside the TanStack chart."
   }
 }

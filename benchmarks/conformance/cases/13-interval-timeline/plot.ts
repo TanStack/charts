@@ -1,39 +1,40 @@
+import { aapl } from '@charts-poc/demo-data/aapl'
 import * as Plot from '@observablehq/plot'
-import { timelineData } from './data'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
-const tasks = [
-  'Research',
-  'Schema',
-  'Prototype',
-  'Core API',
-  'Adapters',
-  'Documentation',
-  'Hardening',
-  'Release',
-]
-const phases = ['Plan', 'Build', 'Ship']
-const colors = ['#2563eb', '#f97316', '#10b981']
+const colors = ['#10b981', '#ef4444']
+const date = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+})
 
 export const mount: ConformanceMount = (container, input) =>
-  mountObservablePlot(container, input, (nextInput) =>
-    Plot.plot({
+  mountObservablePlot(container, input, (nextInput) => {
+    const rows = aapl.slice(nextInput.revision * 3, nextInput.revision * 3 + 8)
+
+    return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Project interval timeline',
-      marginLeft: 104,
-      x: { domain: [0, 40], grid: true, label: 'Project day' },
-      y: { domain: tasks, label: null },
-      color: { domain: phases, range: colors, legend: true },
+      ariaLabel: 'Apple daily open-to-close price ranges',
+      marginLeft: 72,
+      x: { grid: true, label: 'Share price ($)' },
+      y: {
+        type: 'band',
+        domain: rows.map((row) => row.Date),
+        label: null,
+        tickFormat: (value: Date) => date.format(value),
+      },
+      color: { range: colors, legend: true },
       marks: [
-        Plot.barX(timelineData(nextInput.revision), {
-          x1: 'start',
-          x2: 'end',
-          y: 'task',
-          fill: 'phase',
+        Plot.barX(rows, {
+          x1: 'Open',
+          x2: 'Close',
+          y: 'Date',
+          fill: (row) => (row.Close >= row.Open ? 'Gain' : 'Loss'),
           inset: 1,
         }),
       ],
-    }),
-  )
+    })
+  })

@@ -89,8 +89,8 @@ initializes every mark, collects x, y, and color channels, resolves configured
 scales, measures guides and legends, renders each mark once into the final
 chart bounds, and returns a scene value.
 
-It throws when a materialized positional channel has no scale. Use
-explicit `x: null` or `y: null` only when no mark uses that dimension.
+It throws when a materialized positional channel has no scale. Omit dimensions
+that no mark uses; explicit `null` is accepted only for an unused dimension.
 
 ## `defaultChartTheme`
 

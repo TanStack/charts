@@ -1,58 +1,64 @@
 import * as Plot from '@observablehq/plot'
-import { indexedData, indexedDateDomain, indexedSeries } from './data'
+import { industries } from '@charts-poc/demo-data/industries'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
 const colors = ['#2563eb', '#ea580c', '#059669', '#7c3aed']
 const formatIndex = (value: number) => `${Math.round((value - 1) * 100)}%`
+const includedIndustries = new Set([
+  'Construction',
+  'Finance',
+  'Government',
+  'Manufacturing',
+])
+const observations = industries.filter(
+  (row) =>
+    row.date >= new Date(Date.UTC(2008, 0, 1)) &&
+    includedIndustries.has(row.industry),
+)
 
 export const mount: ConformanceMount = (container, input) =>
-  mountObservablePlot(container, input, (nextInput) => {
-    const rows = indexedData(nextInput.revision)
-
-    return Plot.plot({
+  mountObservablePlot(container, input, (nextInput) =>
+    Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Indexed performance from first observation',
-      marginRight: 68,
+      ariaLabel: 'Indexed U.S. industry unemployment',
+      marginRight: 108,
       x: {
         type: 'utc',
-        domain: indexedDateDomain,
         label: 'Month',
       },
       y: {
-        domain: [0.72, 1.65],
-        nice: false,
         grid: true,
         tickFormat: formatIndex,
-        label: 'Change from first observation',
+        label: 'Change from January 2008',
       },
-      color: { domain: indexedSeries, range: colors },
+      color: { range: colors },
       marks: [
         Plot.ruleY([1], { strokeOpacity: 0.65 }),
         Plot.line(
-          rows,
+          observations,
           Plot.normalizeY('first', {
             x: 'date',
-            y: 'value',
-            stroke: 'series',
+            y: 'unemployed',
+            stroke: 'industry',
             strokeWidth: 2.25,
           }),
         ),
         Plot.text(
-          rows,
+          observations,
           Plot.selectLast(
             Plot.normalizeY('first', {
               x: 'date',
-              y: 'value',
-              z: 'series',
-              text: 'series',
-              fill: 'series',
+              y: 'unemployed',
+              z: 'industry',
+              text: 'industry',
+              fill: 'industry',
               textAnchor: 'start',
               dx: 5,
             }),
           ),
         ),
       ],
-    })
-  })
+    }),
+  )

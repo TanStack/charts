@@ -1,21 +1,23 @@
 import * as Plot from '@observablehq/plot'
-import { vectorData } from './data'
+import { wind } from '@charts-poc/demo-data/wind'
+import { sampleWind } from './selection'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 
 function render(input: ConformanceInput) {
+  const sampledWind = sampleWind(wind)
   return Plot.plot({
     width: input.width,
     height: input.height,
     ariaLabel: 'Two-dimensional vector field',
-    x: { domain: [-0.75, 5.75], grid: true, label: 'X' },
-    y: { domain: [-0.75, 4.75], grid: true, label: 'Y' },
+    x: { grid: true, label: 'Longitude' },
+    y: { grid: true, label: 'Latitude' },
     marks: [
-      Plot.vector(vectorData(input.revision), {
-        x: 'x',
-        y: 'y',
-        length: 'speed',
-        rotate: 'direction',
+      Plot.vector(sampledWind, {
+        x: 'longitude',
+        y: 'latitude',
+        length: (row) => Math.hypot(row.u, row.v) * 1.6,
+        rotate: (row) => (Math.atan2(row.u, row.v) * 180) / Math.PI,
         stroke: '#2563eb',
       }),
     ],

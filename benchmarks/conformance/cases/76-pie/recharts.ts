@@ -1,11 +1,14 @@
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
-import { pieData } from './data'
+import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { selectPieData } from './selection'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
+const colors = ['#2563eb', '#7c3aed', '#db2777', '#f59e0b']
+
 function chart(input: ConformanceInput) {
-  const data = pieData(input.revision)
+  const data = selectPieData(alphabet, input.revision)
   const radius = Math.min(input.width, input.height) * 0.4
 
   return createElement(
@@ -20,8 +23,8 @@ function chart(input: ConformanceInput) {
       Pie,
       {
         data,
-        dataKey: 'value',
-        nameKey: 'label',
+        dataKey: 'frequency',
+        nameKey: 'letter',
         cx: input.width / 2,
         cy: input.height / 2,
         innerRadius: 0,
@@ -31,10 +34,10 @@ function chart(input: ConformanceInput) {
         stroke: 'none',
         isAnimationActive: false,
       },
-      data.map((row) =>
+      data.map((row, index) =>
         createElement(Cell, {
-          key: row.id,
-          fill: row.fill,
+          key: row.letter,
+          fill: colors[index],
           stroke: 'none',
         }),
       ),
@@ -42,4 +45,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Categorical pie chart')
+export const mount = rechartsMount(chart, 'English letter frequency pie')

@@ -1,57 +1,47 @@
 import { areaY, defineChart, lineY } from '@tanstack/charts'
+import { sfTemperatures } from '@charts-poc/demo-data/sf-temperatures'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import { timeDomain } from '../../shared/data'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 import { tanstackMount } from '../../shared/mount'
-import { temperatureRangeData, temperatureValueDomain } from './data'
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = temperatureRangeData(input.revision)
-
-    return {
-      marks: [
-        areaY(rows, {
-          id: 'temperature-band',
-          x: 'date',
-          y1: 'low',
-          y2: 'high',
-          key: 'id',
-          fill: '#60a5fa',
-          fillOpacity: 0.24,
-        }),
-        lineY(rows, {
-          id: 'temperature-low',
-          x: 'date',
-          y: 'low',
-          key: 'id',
-          stroke: '#2563eb',
-          strokeWidth: 1.75,
-        }),
-        lineY(rows, {
-          id: 'temperature-high',
-          x: 'date',
-          y: 'high',
-          key: 'id',
-          stroke: '#dc2626',
-          strokeWidth: 1.75,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain(timeDomain),
-        label: 'Week',
-      },
-      y: {
-        scale: scaleLinear().domain(temperatureValueDomain),
-        label: 'Temperature (°F)',
-        grid: true,
-      },
-    }
+const definition = (input: ConformanceInput) => {
+  return defineChart({
+    marks: [
+      areaY(sfTemperatures, {
+        x: 'date',
+        y1: 'low',
+        y2: 'high',
+        fill: '#60a5fa',
+        fillOpacity: 0.24,
+      }),
+      lineY(sfTemperatures, {
+        x: 'date',
+        y: 'low',
+        stroke: '#2563eb',
+        strokeWidth: 1.75,
+      }),
+      lineY(sfTemperatures, {
+        x: 'date',
+        y: 'high',
+        stroke: '#dc2626',
+        strokeWidth: 1.75,
+      }),
+    ],
+    x: {
+      scale: scaleUtc,
+      label: 'Week',
+    },
+    y: {
+      scale: scaleLinear,
+      label: 'Temperature (°F)',
+      grid: true,
+    },
   })
+}
 
 export const mount: ConformanceMount = tanstackMount(
   definition,
-  'Weekly low-to-high temperature range',
+  'San Francisco daily low-to-high temperature range',
   {
     format: ({ datum }) =>
       `${datum.date.toLocaleDateString('en-US', {

@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 210,
   "id": "20-normalized-stacked-area",
-  "title": "Normalized 100% stacked area",
+  "title": "Industry share of unemployment",
   "family": "composition",
-  "intent": "Compare each series as a share of the weekly total using a normalized stack from the original tidy time-series rows.",
+  "intent": "Compare every industry's share of monthly unemployment using a normalized stack from the original imported observations.",
   "support": "composed",
   "features": [
     "area",
@@ -15,7 +15,7 @@
     "percent axis"
   ],
   "geometry": [
-    { "role": "area", "count": 3 },
+    { "role": "area", "count": 14 },
     { "role": "rule", "count": 1 }
   ],
   "source": {
@@ -23,7 +23,7 @@
     "url": "https://observablehq.com/plot/transforms/stack"
   },
   "ai": {
-    "create": "Create a responsive normalized 100% stacked UTC area chart from typed tidy rows, with Plot's native normalize offset and explicit granular d3-shape intervals for TanStack Charts.",
-    "maintain": "Change the series order while keeping each date normalized to 100%, all colors stable, the percent guide accurate, and every channel cast-free."
+    "create": "Create a responsive normalized UTC area chart from the industries dataset's original date, industry, and unemployed fields, with Plot's native normalize offset and explicit granular d3-shape intervals for TanStack Charts.",
+    "maintain": "Change the industry order while keeping each month normalized to 100%, colors stable, the percent guide accurate, and the imported rows untouched."
   }
 }

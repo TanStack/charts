@@ -1,27 +1,60 @@
 import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
-import { equalEarthProjection, worldRegions } from './geo-data'
+import { geoEqualEarth } from 'd3-geo'
+import { scaleThreshold } from 'd3-scale'
+import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
+import { learningPovertyCountries } from '../../shared/transforms/learning-poverty'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
+const colorRanges = [
+  ['#eff6ff', '#bfdbfe', '#60a5fa', '#2563eb', '#1e3a8a'],
+  ['#ecfeff', '#a5f3fc', '#22d3ee', '#0891b2', '#164e63'],
+]
+const thresholds = [20, 40, 60, 80]
+const projection = {
+  type: geoEqualEarth,
+  fit: 'sphere' as const,
+}
+
 const definition = (input: ConformanceInput) =>
-  defineChart(() => ({
+  defineChart({
     marks: [
-      geoShape(worldRegions(input.revision), {
-        key: (feature) => feature.properties.id,
-        projection: ({ chart }) => equalEarthProjection(chart),
-        fill: (feature) => feature.properties.fill,
-        stroke: '#f8fafc',
-        strokeWidth: 1,
+      geoShape([worldLand], {
+        projection,
+        fill: '#e2e8f0',
+        stroke: '#ffffff',
+        strokeWidth: 0.5,
+      }),
+      geoShape(learningPovertyCountries, {
+        projection,
+        color: (country) => country.properties['Learning Poverty'],
+        stroke: '#ffffff',
+        strokeWidth: 0.5,
+      }),
+      geoShape([worldSphere], {
+        projection,
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeOpacity: 0.35,
+        strokeWidth: 0.75,
       }),
     ],
-    x: null,
-    y: null,
-    guides: false,
+    color: {
+      scale: scaleThreshold<number, string>,
+      domain: thresholds,
+      range: colorRanges[input.revision % 2] ?? colorRanges[0],
+    },
     margin: 10,
-  }))
+  })
 
-export const mount = tanstackMount(definition, 'Equal Earth world choropleth', {
-  format: ({ datum }) =>
-    `${datum.properties.name} · Regional value ${datum.properties.value}`,
-})
+export const mount = tanstackMount(
+  definition,
+  'World learning-poverty choropleth',
+  {
+    format: ({ datum }) =>
+      'properties' in datum && 'Learning Poverty' in datum.properties
+        ? `${datum.properties['Country Name']} · ${datum.properties['Learning Poverty']}% learning poverty`
+        : 'World land',
+  },
+)

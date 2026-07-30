@@ -1,23 +1,26 @@
 import * as Plot from '@observablehq/plot'
-import { contourColor, contourGrid, contourThresholds } from './data'
+import { contourThresholds, windSpeedGrid } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
-interface PlotContour {
-  value: number
-}
+const colors = ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#2563eb']
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const grid = contourGrid(nextInput.revision)
+    const grid = windSpeedGrid(nextInput.revision)
 
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
       margin: 12,
-      ariaLabel: 'Filled topographic contours',
+      ariaLabel: 'Filled wind-speed contours',
       x: { axis: null },
       y: { axis: null },
+      color: {
+        type: 'threshold',
+        domain: contourThresholds.slice(1),
+        range: colors,
+      },
       marks: [
         Plot.contour(grid.values, {
           width: grid.width,
@@ -25,7 +28,7 @@ export const mount: ConformanceMount = (container, input) =>
           value: Plot.identity,
           interpolate: null,
           thresholds: contourThresholds,
-          fill: (contour: PlotContour) => contourColor(contour.value),
+          fill: 'value',
           stroke: '#ffffff',
           strokeWidth: 0.75,
         }),

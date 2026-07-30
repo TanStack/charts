@@ -1,68 +1,73 @@
 import { defineChart, lineY, ruleY, text } from '@tanstack/charts'
 import { group } from 'd3-array'
-import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
-import { indexedData, indexedDateDomain, indexedSeries } from './data'
-import type { IndexedValue } from './data'
+import { scaleLinear, scaleUtc } from 'd3-scale'
+import { industries } from '@charts-poc/demo-data/industries'
+import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput } from '../../types'
 
-interface IndexedPoint extends IndexedValue {
+interface IndexedPoint extends IndustriesRow {
   indexed: number
 }
 
 const colors = ['#2563eb', '#ea580c', '#059669', '#7c3aed']
 const formatIndex = (value: number) => `${Math.round((value - 1) * 100)}%`
+const includedIndustries = new Set([
+  'Construction',
+  'Finance',
+  'Government',
+  'Manufacturing',
+])
+const observations = industries.filter(
+  (row) =>
+    row.date >= new Date(Date.UTC(2008, 0, 1)) &&
+    includedIndustries.has(row.industry),
+)
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = indexFromFirst(indexedData(input.revision))
-    const labels = lastBySeries(rows)
+const definition = () => {
+  const rows = indexFromFirst(observations)
+  const labels = lastByIndustry(rows)
 
-    return {
-      marks: [
-        ruleY([1], { strokeOpacity: 0.65 }),
-        lineY(rows, {
-          x: 'date',
-          y: 'indexed',
-          z: 'series',
-          key: 'id',
-          strokeWidth: 2.25,
-        }),
-        text(labels, {
-          x: 'date',
-          y: 'indexed',
-          text: 'series',
-          z: 'series',
-          key: 'id',
-          anchor: 'start',
-          dx: 5,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain(indexedDateDomain),
-        label: 'Month',
-      },
-      y: {
-        scale: scaleLinear().domain([0.72, 1.65]),
-        grid: true,
-        format: formatIndex,
-        label: 'Change from first observation',
-      },
-      color: {
-        scale: scaleOrdinal<IndexedValue['series'], string>()
-          .domain(indexedSeries)
-          .range(colors),
-      },
-      margin: { right: 68 },
-    }
+  return defineChart({
+    marks: [
+      ruleY([1], { strokeOpacity: 0.65 }),
+      lineY(rows, {
+        x: 'date',
+        y: 'indexed',
+        color: 'industry',
+        strokeWidth: 2.25,
+      }),
+      text(labels, {
+        x: 'date',
+        y: 'indexed',
+        text: 'industry',
+        color: 'industry',
+        anchor: 'start',
+        dx: 5,
+      }),
+    ],
+    x: {
+      scale: scaleUtc,
+      label: 'Month',
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      format: formatIndex,
+      label: 'Change from January 2008',
+    },
+    color: {
+      range: colors,
+    },
+    margin: { right: 108 },
   })
+}
 
 export const mount = tanstackMount(
   definition,
-  'Indexed performance from first observation',
+  'Indexed U.S. industry unemployment',
   {
     format: ({ datum }) =>
-      `${datum.series} · ${datum.date.toLocaleDateString('en-US', {
+      `${datum.industry} · ${datum.date.toLocaleDateString('en-US', {
         month: 'short',
         year: 'numeric',
         timeZone: 'UTC',
@@ -71,24 +76,26 @@ export const mount = tanstackMount(
 )
 
 function indexFromFirst(
-  rows: readonly IndexedValue[],
+  rows: readonly IndustriesRow[],
 ): readonly IndexedPoint[] {
   const output: IndexedPoint[] = []
 
-  for (const seriesRows of group(rows, (row) => row.series).values()) {
-    const first = seriesRows[0]
-    if (first === undefined || first.value === 0) continue
+  for (const industryRows of group(rows, (row) => row.industry).values()) {
+    const first = industryRows[0]
+    if (first === undefined || first.unemployed === 0) continue
 
-    for (const row of seriesRows) {
-      output.push({ ...row, indexed: row.value / first.value })
+    for (const row of industryRows) {
+      output.push({ ...row, indexed: row.unemployed / first.unemployed })
     }
   }
 
   return output
 }
 
-function lastBySeries(rows: readonly IndexedPoint[]): readonly IndexedPoint[] {
-  return Array.from(group(rows, (row) => row.series).values())
-    .map((seriesRows) => seriesRows.at(-1))
+function lastByIndustry(
+  rows: readonly IndexedPoint[],
+): readonly IndexedPoint[] {
+  return Array.from(group(rows, (row) => row.industry).values())
+    .map((industryRows) => industryRows.at(-1))
     .filter((row): row is IndexedPoint => row !== undefined)
 }

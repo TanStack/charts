@@ -4,7 +4,7 @@
   "id": "heatmap-labeled",
   "title": "Labeled ordinal heatmap",
   "family": "matrix",
-  "intent": "Compare values across two ordinal dimensions with sequential color and readable cell labels.",
+  "intent": "Compare IMDb ratings across Simpsons seasons and episode numbers with continuous color and readable cell labels.",
   "support": "native",
   "features": [
     "cell mark",
@@ -14,15 +14,15 @@
     "continuous color legend"
   ],
   "geometry": [
-    { "role": "cell", "count": 42 },
-    { "role": "text", "count": 42 }
+    { "role": "cell", "count": 600 },
+    { "role": "text", "count": 600 }
   ],
   "source": {
     "title": "Observable Plot: Simpsons ratings",
-    "url": "https://github.com/observablehq/plot/blob/main/test/plots/simpsons-ratings.ts"
+    "url": "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/plots/simpsons-ratings.ts"
   },
   "ai": {
-    "create": "Create a labeled heatmap from day, hour, and numeric value fields using ordinal position scales and a sequential color scale.",
-    "maintain": "Change the color domain and label contrast threshold while preserving all 42 cells and labels."
+    "create": "Recreate Observable Plot's Simpsons ratings heatmap directly from season, number_in_season, imdb_rating, and title fields.",
+    "maintain": "Change the color treatment or label contrast while preserving all 600 imported episodes, source fields, cells, and labels."
   }
 }

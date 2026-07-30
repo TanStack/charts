@@ -1,27 +1,24 @@
+import { aapl } from '@charts-poc/demo-data/aapl'
 import * as Plot from '@observablehq/plot'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 import { mountObservablePlot } from '../../shared/mount'
-import { timeDomain } from '../../shared/data'
-import { gapData, gapValueDomain } from './data'
 
 function render(input: ConformanceInput) {
-  const rows = gapData(input.revision)
+  const rows = aapl.slice(Math.abs(input.revision) % 2)
 
   return Plot.plot({
     width: input.width,
     height: input.height,
-    ariaLabel: 'Time-series line with two missing-value gaps',
-    x: { type: 'utc', domain: timeDomain, label: 'Week' },
+    ariaLabel: 'Apple closing price with first-quarter gaps',
+    x: { type: 'utc', label: 'Week' },
     y: {
-      domain: gapValueDomain,
-      nice: false,
       grid: true,
-      label: 'Index',
+      label: 'Close (USD)',
     },
     marks: [
       Plot.lineY(rows, {
-        x: 'date',
-        y: 'value',
+        x: 'Date',
+        y: (row) => (row.Date.getUTCMonth() < 3 ? null : row.Close),
         stroke: '#2563eb',
         strokeWidth: 2.25,
       }),

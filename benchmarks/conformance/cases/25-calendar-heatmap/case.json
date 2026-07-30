@@ -4,7 +4,7 @@
   "id": "25-calendar-heatmap",
   "title": "Calendar heatmap",
   "family": "time",
-  "intent": "Show daily activity across calendar weeks while retaining weekday rhythm and gaps.",
+  "intent": "Show Seattle daily precipitation across calendar weeks while retaining weekday rhythm and dry days.",
   "support": "native",
   "features": [
     "calendar layout",
@@ -19,7 +19,7 @@
     "url": "https://observablehq.com/plot/marks/cell"
   },
   "ai": {
-    "create": "Create a fourteen-week calendar heatmap from typed {date, count} daily rows with week columns, weekday rows, and a continuous activity color.",
-    "maintain": "Change the date range while preserving UTC week alignment, complete daily cells, responsive labels, and inferred Date and number channels."
+    "create": "Create a fourteen-week calendar heatmap from Observable's Seattle weather rows using date for calendar placement and precipitation for continuous color.",
+    "maintain": "Change the selected weather window while preserving UTC week alignment, raw date and precipitation fields, complete daily cells, and responsive labels."
   }
 }

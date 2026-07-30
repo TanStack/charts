@@ -80,6 +80,10 @@ const threshold = createMark<ThresholdDatum, never, number>(({ markIndex }) => {
 
 `initialize` materializes channels for one scene build. `render` receives the
 resolved plot bounds, scales, theme, color resolver, and text layout tools.
+When a custom mark emits data labels, an optional `layoutLabels(context)` can
+return those positioned `SceneLabel` nodes before render so unlocked margins
+contain them. Keep that method pure because responsive layout may call it more
+than once; the final `render` call still happens once.
 
 Available scene nodes:
 

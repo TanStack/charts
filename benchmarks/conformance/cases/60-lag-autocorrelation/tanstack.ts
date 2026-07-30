@@ -1,68 +1,66 @@
 import { defineChart, dot, lineY } from '@tanstack/charts'
 import { pairs } from 'd3-array'
 import { scaleLinear } from 'd3-scale'
+import { aapl } from '@charts-poc/demo-data/aapl'
+import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput } from '../../types'
-import { autocorrelationData, autocorrelationDomain } from './data'
-import type { AutocorrelationObservation } from './data'
 
-interface LagPoint {
-  id: string
-  lag: number
-  current: number
+interface LagPoint extends AaplRow {
+  PreviousClose: number
 }
 
-const identity: readonly LagPoint[] = [
-  { id: 'start', lag: 20, current: 20 },
-  { id: 'end', lag: 90, current: 90 },
+interface ReferencePoint {
+  PreviousClose: number
+  Close: number
+}
+
+const observations = aapl.slice(-120)
+const closeDomain: readonly [number, number] = [150, 195]
+const identity: readonly ReferencePoint[] = [
+  { PreviousClose: closeDomain[0], Close: closeDomain[0] },
+  { PreviousClose: closeDomain[1], Close: closeDomain[1] },
 ]
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = lagPairs(autocorrelationData(input.revision))
+const definition = () => {
+  const rows = lagPairs(observations)
 
-    return {
-      marks: [
-        lineY(identity, {
-          x: 'lag',
-          y: 'current',
-          key: 'id',
-          stroke: '#94a3b8',
-          strokeDasharray: '5,4',
-        }),
-        dot(rows, {
-          x: 'lag',
-          y: 'current',
-          key: 'id',
-          fill: '#7c3aed',
-          fillOpacity: 0.78,
-          r: 4,
-        }),
-      ],
-      x: {
-        scale: scaleLinear().domain(autocorrelationDomain),
-        grid: true,
-        label: 'Previous observation',
-      },
-      y: {
-        scale: scaleLinear().domain(autocorrelationDomain),
-        grid: true,
-        label: 'Current observation',
-      },
-    }
+  return defineChart({
+    marks: [
+      lineY(identity, {
+        x: 'PreviousClose',
+        y: 'Close',
+        stroke: '#94a3b8',
+        strokeDasharray: '5,4',
+      }),
+      dot(rows, {
+        x: 'PreviousClose',
+        y: 'Close',
+        fill: '#7c3aed',
+        fillOpacity: 0.78,
+        r: 4,
+      }),
+    ],
+    x: {
+      scale: scaleLinear().domain(closeDomain),
+      grid: true,
+      label: 'Previous close (USD)',
+    },
+    y: {
+      scale: scaleLinear().domain(closeDomain),
+      grid: true,
+      label: 'Current close (USD)',
+    },
   })
+}
 
 export const mount = tanstackMount(
   definition,
-  'Lag-one autocorrelation scatterplot',
+  'Lag-one autocorrelation of Apple closing prices',
 )
 
-function lagPairs(
-  rows: readonly AutocorrelationObservation[],
-): readonly LagPoint[] {
+function lagPairs(rows: readonly AaplRow[]): readonly LagPoint[] {
   return pairs(rows, (previous, current) => ({
-    id: `${previous.id}->${current.id}`,
-    lag: previous.value,
-    current: current.value,
+    ...current,
+    PreviousClose: previous.Close,
   }))
 }

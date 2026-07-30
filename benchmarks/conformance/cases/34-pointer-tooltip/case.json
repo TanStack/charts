@@ -4,7 +4,7 @@
   "id": "34-pointer-tooltip",
   "title": "Pointer-selected tooltip",
   "family": "interaction",
-  "intent": "Reveal a formatted datum on pointer proximity while keeping the chart keyboard-focusable and update-safe.",
+  "intent": "Reveal an Apple closing-price observation on pointer proximity while keeping the chart keyboard-focusable and the original AAPL fields intact.",
   "support": "native",
   "features": [
     "pointer interaction",
@@ -23,13 +23,13 @@
       "steps": [
         {
           "type": "pointerMove",
-          "target": { "anchor": "point:Atlas:8" }
+          "target": { "anchor": "date:2013-05-23" }
         },
         {
           "type": "assert",
           "assertions": [
             { "path": "tooltip.visible", "equals": true },
-            { "path": "tooltip.text", "includes": "Atlas" }
+            { "path": "tooltip.text", "includes": "Apple" }
           ]
         },
         { "type": "pointerLeave" },
@@ -45,7 +45,7 @@
     "url": "https://observablehq.com/plot/interactions/pointer"
   },
   "ai": {
-    "create": "Create a UTC line chart whose nearest point reveals a tooltip containing the series name and formatted value on pointer movement.",
-    "maintain": "Make the tooltip sticky on selection and keep pointer, keyboard, update, and typed datum behavior aligned without rendering custom DOM inside the mark."
+    "create": "Create a UTC line chart from the AAPL dataset's Date and Close fields whose nearest point reveals the formatted Apple closing price.",
+    "maintain": "Make the tooltip sticky on selection while keeping the raw stock observations, pointer, keyboard, and update behavior aligned."
   }
 }

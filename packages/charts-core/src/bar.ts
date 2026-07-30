@@ -33,7 +33,7 @@ export interface BarYOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
-  /** Optional D3 band scale that positions z values within each x band. */
+  /** Optional D3 band scale that positions z, or color when z is omitted, within each x band. */
   groupScale?: ChartScaleInput<any>
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
@@ -51,7 +51,7 @@ export interface BarXOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
-  /** Optional D3 band scale that positions z values within each y band. */
+  /** Optional D3 band scale that positions z, or color when z is omitted, within each y band. */
   groupScale?: ChartScaleInput<any>
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
@@ -84,15 +84,21 @@ export function barY<TDatum>(
     )
     const y1Values = numericChannelValues(data, options.y1, () => 0)
     const zValues = channelValues(data, options.z, () => null)
-    const colorValues = channelValues(
-      data,
-      options.color ?? options.z,
-      () => null,
-    )
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
+    const groupValues =
+      options.groupScale !== undefined &&
+      options.z === undefined &&
+      options.color !== undefined
+        ? colorValues
+        : zValues
     const keys = inferredKeyValues(data, options.key, {
-      groups: zValues,
+      groups: groupValues,
       candidates: [xValues],
       markId: id,
+      warningIdentity: options,
     })
 
     return {
@@ -118,7 +124,7 @@ export function barY<TDatum>(
           inferBandwidth(scales.x, xValues, chart.width, data.length)
         const groupScale = resolveGroupScale(
           options.groupScale,
-          zValues,
+          groupValues,
           totalBandwidth,
         )
         const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
@@ -136,7 +142,7 @@ export function barY<TDatum>(
             !isFiniteNumber(y1Value)
           )
             return
-          const group = zValues[datumIndex] ?? null
+          const group = groupValues[datumIndex] ?? null
           const groupOffset = groupScale?.map(group) ?? 0
           const resolvedColor = resolveColor(colorValues[datumIndex])
           const fill = visualValue(
@@ -226,15 +232,21 @@ export function barX<TDatum>(
     const x1Values = numericChannelValues(data, options.x1, () => 0)
     const yValues = channelValues(data, options.y, (_datum, index) => index)
     const zValues = channelValues(data, options.z, () => null)
-    const colorValues = channelValues(
-      data,
-      options.color ?? options.z,
-      () => null,
-    )
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
+    const groupValues =
+      options.groupScale !== undefined &&
+      options.z === undefined &&
+      options.color !== undefined
+        ? colorValues
+        : zValues
     const keys = inferredKeyValues(data, options.key, {
-      groups: zValues,
+      groups: groupValues,
       candidates: [yValues],
       markId: id,
+      warningIdentity: options,
     })
 
     return {
@@ -260,7 +272,7 @@ export function barX<TDatum>(
           inferBandwidth(scales.y, yValues, chart.height, data.length)
         const groupScale = resolveGroupScale(
           options.groupScale,
-          zValues,
+          groupValues,
           totalBandwidth,
         )
         const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
@@ -278,7 +290,7 @@ export function barX<TDatum>(
             !isChartValue(yValue)
           )
             return
-          const group = zValues[datumIndex] ?? null
+          const group = groupValues[datumIndex] ?? null
           const groupOffset = groupScale?.map(group) ?? 0
           const resolvedColor = resolveColor(colorValues[datumIndex])
           const fill = visualValue(
@@ -357,12 +369,12 @@ function resolveGroupScale(
     bandwidth: groupBandwidth,
     map(value: ChartKey | null) {
       if (value === null) {
-        throw new TypeError('A bar with groupScale requires a z value')
+        throw new TypeError('A bar with groupScale requires a z or color value')
       }
       const position = scale(value)
       if (position === undefined || !Number.isFinite(position)) {
         throw new TypeError(
-          `Bar z value "${String(value)}" is outside the groupScale domain`,
+          `Bar group value "${String(value)}" is outside the groupScale domain`,
         )
       }
       return position

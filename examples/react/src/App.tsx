@@ -1,17 +1,17 @@
 import * as React from 'react'
 import {
+  bodyMassDistributionRenderer,
   downloadData,
   downloadsRenderer,
-  latencyData,
-  latencyDistributionRenderer,
-  type DownloadPoint,
+  penguinData,
+  type DownloadsRow,
 } from '@plot-poc/fixtures'
 import { Chart } from '@plot-poc/react-host'
 import type { ChartRenderMetrics } from '@plot-poc/host-core'
 
 export function App() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light')
-  const [selected, setSelected] = React.useState<DownloadPoint>()
+  const [selected, setSelected] = React.useState<DownloadsRow>()
   const [trendRender, setTrendRender] = React.useState<ChartRenderMetrics>()
 
   const toggleTheme = () => {
@@ -40,11 +40,11 @@ export function App() {
         <section className="chart-card">
           <div className="chart-card__header">
             <div>
-              <h2>Package momentum</h2>
+              <h2>@observablehq/cars downloads</h2>
               <p className="chart-card__meta">
                 {selected
-                  ? `${selected.package}: ${selected.downloads.toLocaleString()}`
-                  : 'Point at a series to inspect its value.'}
+                  ? `${selected.date.toLocaleDateString()}: ${selected.downloads.toLocaleString()}`
+                  : 'Point at the line to inspect a day.'}
               </p>
             </div>
             <span className="chart-card__badge">
@@ -58,7 +58,7 @@ export function App() {
             renderer={downloadsRenderer}
             sizing={{ height: 330 }}
             initialSize={{ width: 760, height: 330 }}
-            ariaLabel="TanStack package download trends"
+            ariaLabel="Daily @observablehq/cars downloads"
             onValueChange={setSelected}
             onRender={setTrendRender}
           />
@@ -67,7 +67,7 @@ export function App() {
         <section className="chart-card">
           <div className="chart-card__header">
             <div>
-              <h2>Latency shape by plan</h2>
+              <h2>Penguin body mass</h2>
               <p className="chart-card__meta">
                 Facets reflow vertically when their container becomes narrow.
               </p>
@@ -75,11 +75,11 @@ export function App() {
             <span className="chart-card__badge">Plot transform + facets</span>
           </div>
           <Chart
-            data={latencyData}
-            renderer={latencyDistributionRenderer}
+            data={penguinData}
+            renderer={bodyMassDistributionRenderer}
             sizing={{ height: 360 }}
             initialSize={{ width: 760, height: 360 }}
-            ariaLabel="Request latency distributions by plan"
+            ariaLabel="Penguin body-mass distributions by species"
           />
         </section>
       </div>

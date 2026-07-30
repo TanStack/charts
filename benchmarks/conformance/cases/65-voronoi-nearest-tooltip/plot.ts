@@ -1,36 +1,37 @@
+import { cars } from '@charts-poc/demo-data/cars'
 import * as Plot from '@observablehq/plot'
-import { voronoiColors, voronoiData, voronoiGroups } from './data'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount, ConformanceTestDriver } from '../../types'
 
+const colors = ['#2563eb', '#0d9488', '#d97706']
+
 export const mount: ConformanceMount = (container, input) => {
-  let rows = voronoiData(input.revision)
+  let rows = completeCars(input.revision)
   const handle = mountObservablePlot(container, input, (nextInput) => {
-    rows = voronoiData(nextInput.revision)
+    rows = completeCars(nextInput.revision)
 
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
       ariaLabel: 'Voronoi nearest-point interaction',
-      x: { domain: [0, 100], grid: true, label: 'X' },
-      y: { domain: [0, 100], grid: true, label: 'Y' },
+      x: { grid: true, label: 'Weight (lb)' },
+      y: { grid: true, label: 'Fuel economy (mpg)' },
       color: {
-        domain: voronoiGroups,
-        range: voronoiGroups.map((group) => voronoiColors[group]),
+        range: colors,
       },
       marks: [
         Plot.voronoi(rows, {
-          x: 'x',
-          y: 'y',
-          fill: 'group',
+          x: 'weight (lb)',
+          y: 'economy (mpg)',
+          fill: cylinderLabel,
           fillOpacity: 0.14,
           stroke: '#ffffff',
           strokeWidth: 1,
         }),
         Plot.dot(rows, {
-          x: 'x',
-          y: 'y',
-          fill: 'group',
+          x: 'weight (lb)',
+          y: 'economy (mpg)',
+          fill: cylinderLabel,
           stroke: '#ffffff',
           strokeWidth: 1,
           r: 4,
@@ -38,9 +39,9 @@ export const mount: ConformanceMount = (container, input) => {
         Plot.tip(
           rows,
           Plot.pointer({
-            x: 'x',
-            y: 'y',
-            title: (row) => `${row.label} · ${row.group}`,
+            x: 'weight (lb)',
+            y: 'economy (mpg)',
+            title: (row) => `${row.name} · ${cylinderLabel(row)}`,
           }),
         ),
       ],
@@ -50,10 +51,10 @@ export const mount: ConformanceMount = (container, input) => {
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
       if (target.view && target.view !== 'main') return null
-      const id = target.anchor.startsWith('point:')
-        ? target.anchor.slice('point:'.length)
-        : null
-      const index = rows.findIndex((row) => row.id === id)
+      const key = target.anchor.startsWith('car:')
+        ? target.anchor.slice('car:'.length)
+        : ''
+      const index = rows.findIndex((row) => carKey(row) === key)
       const circle =
         index < 0
           ? undefined
@@ -93,4 +94,18 @@ export const mount: ConformanceMount = (container, input) => {
   }
 
   return { ...handle, driver }
+}
+
+function completeCars(revision: number) {
+  return cars
+    .filter((row) => row['economy (mpg)'] !== null)
+    .slice(revision * 3, revision * 3 + 18)
+}
+
+function cylinderLabel(row: (typeof cars)[number]): string {
+  return `${row.cylinders} cylinders`
+}
+
+function carKey(row: (typeof cars)[number]): string {
+  return `${row.name}:${row.year}:${row['weight (lb)']}`
 }

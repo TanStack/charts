@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 540,
   "id": "54-bump-ranking",
-  "title": "Bump chart of changing ranks",
+  "title": "Industry unemployment bump chart",
   "family": "ranking",
-  "intent": "Show how the rank of five products changes across seven annual snapshots.",
+  "intent": "Show how five U.S. industries changed rank by January unemployment from 2004 through 2010.",
   "support": "composed",
   "features": [
     "bump chart",
@@ -23,7 +23,7 @@
     "url": "https://observablehq.com/plot/marks/line"
   },
   "ai": {
-    "create": "Create a bump chart from tidy annual product values by ranking products within each year, drawing one curved line per product, and directly labeling the final rank.",
-    "maintain": "Add another annual snapshot while retaining descending rank semantics, stable series colors, inferred channels, and labels at the newest observation."
+    "create": "Create a bump chart from the industries dataset by selecting January observations, ranking unemployment within each year, drawing one curved line per industry, and directly labeling the final rank.",
+    "maintain": "Change the industry or year selection while retaining the original date, industry, and unemployed fields through the ranking transform, stable series colors, and labels at the newest observation."
   }
 }

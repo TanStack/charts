@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 330,
   "id": "33-difference-chart",
-  "title": "Actual versus forecast difference",
+  "title": "Apple close versus moving average",
   "family": "change",
-  "intent": "Show where an actual series is above or below a forecast while preserving exact interpolated crossings.",
+  "intent": "Show where Apple's daily closing price is above or below its twenty-day moving average while preserving exact interpolated crossings.",
   "support": "composed",
   "features": [
     "difference chart",
@@ -14,37 +14,15 @@
     "line mark"
   ],
   "geometry": [
-    { "role": "area", "count": 4, "maxCount": 4 },
+    { "role": "area", "count": 4, "maxCount": 15 },
     { "role": "line", "count": 2 }
-  ],
-  "guideAssertions": [
-    {
-      "id": "month-sequence",
-      "axis": "x",
-      "sequence": [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep"
-      ]
-    },
-    {
-      "id": "value-sequence",
-      "axis": "y",
-      "sequence": ["10", "20", "30", "40", "50", "60"]
-    }
   ],
   "source": {
     "title": "Observable Plot difference mark",
     "url": "https://observablehq.com/plot/marks/difference"
   },
   "ai": {
-    "create": "Create an actual-versus-forecast difference chart. Plot may use differenceY; TanStack must interpolate every crossing and pass typed positive and negative lobes to areaY.",
-    "maintain": "Change the two series without losing exact crossing boundaries, semantic colors, explicit scales, or cast-free channels."
+    "create": "Create a Close-versus-twenty-day-average difference chart directly from AAPL rows. Keep the rolling reducer visible; Plot may use differenceY, while TanStack must interpolate every crossing and pass typed positive and negative lobes to areaY.",
+    "maintain": "Change the selected date window or rolling period without losing exact crossing boundaries, semantic colors, the original Date and Close fields, inferred extents, or cast-free channels."
   }
 }

@@ -1,49 +1,52 @@
 import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
+import { geoEqualEarth } from 'd3-geo'
 import { scaleSqrt } from 'd3-scale'
-import {
-  equalEarthProjection,
-  worldPlaces,
-  worldRegions,
-} from '../102-world-choropleth/geo-data'
+import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
+import { learningPovertyPointsByPopulation } from '../../shared/transforms/learning-poverty'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
-const radius = scaleSqrt().domain([0, 100]).range([0, 14])
+const fills = ['#2563eb', '#0891b2']
+const projection = {
+  type: geoEqualEarth,
+  fit: 'sphere' as const,
+}
 
 const definition = (input: ConformanceInput) =>
-  defineChart(() => ({
+  defineChart({
     marks: [
-      geoShape(worldRegions(input.revision), {
-        key: (feature) => feature.properties.id,
-        projection: ({ chart }) => equalEarthProjection(chart),
+      geoShape([worldLand], {
+        projection,
         fill: '#e2e8f0',
         stroke: '#ffffff',
-        strokeWidth: 1,
+        strokeWidth: 0.5,
       }),
-      geoShape(worldPlaces(input.revision), {
-        key: (feature) => feature.properties.id,
-        projection: ({ chart }) => equalEarthProjection(chart),
-        r: (feature) => feature.properties.value,
-        rScale: radius,
-        fill: (feature) => feature.properties.fill,
+      geoShape(learningPovertyPointsByPopulation, {
+        projection,
+        r: (country) => country.properties.population,
+        rScale: {
+          scale: () => scaleSqrt().range([2, 18]),
+        },
+        fill: fills[input.revision % 2] ?? fills[0],
+        fillOpacity: 0.72,
         stroke: '#ffffff',
-        strokeWidth: 1,
+        strokeWidth: 0.75,
+      }),
+      geoShape([worldSphere], {
+        projection,
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeOpacity: 0.35,
+        strokeWidth: 0.75,
       }),
     ],
-    x: null,
-    y: null,
-    guides: false,
     margin: 10,
-  }))
+  })
 
-export const mount = tanstackMount(
-  definition,
-  'Projected proportional-symbol map',
-  {
-    format: ({ datum }) =>
-      datum.geometry.type === 'Point'
-        ? `${datum.properties.name} · Magnitude ${datum.properties.value}`
-        : `${datum.properties.name} · Regional value ${datum.properties.value}`,
-  },
-)
+export const mount = tanstackMount(definition, 'World population bubble map', {
+  format: ({ datum }) =>
+    'properties' in datum && 'population' in datum.properties
+      ? `${datum.properties['Country Name']} · ${datum.properties.population.toLocaleString()} people`
+      : 'World land',
+})

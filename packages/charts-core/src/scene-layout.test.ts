@@ -4,6 +4,7 @@ import { measureSceneLabelBounds } from './guide-layout'
 import { lineY } from './line'
 import { createMark } from './mark'
 import { createChartScene, defineChart } from './scene'
+import { text } from './text'
 import type { ChartTextMeasurer, SceneLabel, SceneNode } from './types'
 
 const measureText: ChartTextMeasurer = (text, options) => {
@@ -120,6 +121,67 @@ describe('automatic scene guide layout', () => {
     )
   })
 
+  it('contains text-mark labels with unlocked margins', () => {
+    const rows = [
+      { id: 'top-right', x: 10, y: 10, label: 'Top right' },
+      { id: 'bottom-left', x: 0, y: 0, label: 'Bottom left' },
+    ]
+    const definition = defineChart({
+      marks: [
+        text(rows, {
+          x: 'x',
+          y: 'y',
+          text: 'label',
+          anchor: (row) => (row.x === 0 ? 'end' : 'start'),
+          dx: (row) => (row.x === 0 ? -6 : 6),
+          dy: (row) => (row.y === 0 ? 13 : -13),
+        }),
+      ],
+      x: { scale: scaleLinear().domain([0, 10]) },
+      y: { scale: scaleLinear().domain([0, 10]) },
+    })
+    const automatic = createChartScene(
+      definition,
+      { width: 480, height: 260 },
+      { measureText },
+    )
+    const locked = createChartScene(
+      { ...definition, margin: 0 },
+      { width: 480, height: 260 },
+      { measureText },
+    )
+
+    const markLabels = (nodes: readonly SceneNode[]) =>
+      flatten(nodes).filter(
+        (node): node is SceneLabel =>
+          node.kind === 'label' && node.key.startsWith('text-0:'),
+      )
+
+    for (const label of markLabels(automatic.nodes)) {
+      const bounds = measureSceneLabelBounds(label, measureText)
+      expect(bounds.x).toBeGreaterThanOrEqual(3.99)
+      expect(bounds.y).toBeGreaterThanOrEqual(3.99)
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(
+        automatic.width - 3.99,
+      )
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(
+        automatic.height - 3.99,
+      )
+    }
+
+    expect(
+      markLabels(locked.nodes).some((label) => {
+        const bounds = measureSceneLabelBounds(label, measureText)
+        return (
+          bounds.x < 0 ||
+          bounds.y < 0 ||
+          bounds.x + bounds.width > locked.width ||
+          bounds.y + bounds.height > locked.height
+        )
+      }),
+    ).toBe(true)
+  })
+
   it('treats numeric margin sides as locks', () => {
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
@@ -147,6 +209,94 @@ describe('automatic scene guide layout', () => {
     expect(locked.margin).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
   })
 
+  it('grows unlocked sides around text marks without overriding locks', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          text([{ x: 1, y: 1, label: 'Endpoint' }], {
+            x: 'x',
+            y: 'y',
+            text: 'label',
+            anchor: 'start',
+            dx: 8,
+            dy: -8,
+          }),
+        ],
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 1]) },
+        margin: { right: 7 },
+      }),
+      { width: 480, height: 260 },
+      { measureText },
+    )
+
+    expect(scene.margin.right).toBe(7)
+    expect(scene.margin.top).toBeGreaterThan(7)
+  })
+
+  it('does not grow text-mark margins when margins are locked or marks clip', () => {
+    const marks = [
+      text([{ x: 0.5, y: 1, label: 'Endpoint' }], {
+        x: 'x',
+        y: 'y',
+        text: 'label',
+        dy: -8,
+      }),
+    ]
+    const axes = {
+      x: { scale: scaleLinear().domain([0, 1]) },
+      y: { scale: scaleLinear().domain([0, 1]) },
+    }
+    const locked = createChartScene(
+      defineChart({
+        marks,
+        ...axes,
+        guides: false,
+        margin: 0,
+      }),
+      { width: 480, height: 260 },
+      { measureText },
+    )
+    const clipped = createChartScene(
+      defineChart({
+        marks,
+        ...axes,
+        guides: false,
+        clip: true,
+      }),
+      { width: 480, height: 260 },
+      { measureText },
+    )
+
+    expect(locked.margin).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
+    expect(clipped.margin).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
+  })
+
+  it('uses content-only margins for text marks when guides are disabled', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          text([{ x: 0.5, y: 1, label: 'Endpoint' }], {
+            x: 'x',
+            y: 'y',
+            text: 'label',
+            dy: -8,
+          }),
+        ],
+        guides: false,
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 1]) },
+      }),
+      { width: 480, height: 260 },
+      { measureText },
+    )
+
+    expect(scene.margin.top).toBeGreaterThan(0)
+    expect(scene.margin.right).toBe(0)
+    expect(scene.margin.bottom).toBe(0)
+    expect(scene.margin.left).toBe(0)
+  })
+
   it('does not render marks during guide-only layout passes', () => {
     const render = vi.fn(() => ({ nodes: [] }))
     const initialize = vi.fn(() => ({
@@ -170,6 +320,90 @@ describe('automatic scene guide layout', () => {
 
     expect(initialize).toHaveBeenCalledOnce()
     expect(render).toHaveBeenCalledOnce()
+  })
+
+  it('materializes text geometry accessors once and renders the mark once', () => {
+    const rows = [
+      { id: 'a', x: 0.25, y: 1, label: 'Alpha' },
+      { id: 'b', x: 0.75, y: 1, label: 'Beta' },
+    ]
+    const anchor = vi.fn(() => 'middle' as const)
+    const dx = vi.fn(() => 0)
+    const dy = vi.fn(() => -8)
+    const rotate = vi.fn(() => 0)
+    const fill = vi.fn(() => '#2563eb')
+    const base = text(rows, {
+      x: 'x',
+      y: 'y',
+      text: 'label',
+      key: 'id',
+      anchor,
+      dx,
+      dy,
+      rotate,
+      fill,
+    })
+    const render = vi.fn()
+    const mark = createMark((context) => {
+      const initialized = base.initialize(context)
+      return {
+        ...initialized,
+        render: (renderContext) => {
+          render()
+          return initialized.render(renderContext)
+        },
+      }
+    })
+
+    createChartScene(
+      defineChart({
+        marks: [mark],
+        guides: false,
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 1]) },
+      }),
+      { width: 480, height: 260 },
+      { measureText },
+    )
+
+    expect(anchor).toHaveBeenCalledTimes(rows.length)
+    expect(dx).toHaveBeenCalledTimes(rows.length)
+    expect(dy).toHaveBeenCalledTimes(rows.length)
+    expect(rotate).toHaveBeenCalledTimes(rows.length)
+    expect(fill).toHaveBeenCalledTimes(rows.length)
+    expect(render).toHaveBeenCalledOnce()
+  })
+
+  it('uses the injected text measurer for text-mark margins', () => {
+    const definition = defineChart({
+      marks: [
+        text([{ x: 0.5, y: 1, label: 'Endpoint' }], {
+          x: 'x',
+          y: 'y',
+          text: 'label',
+        }),
+      ],
+      guides: false,
+      x: { scale: scaleLinear().domain([0, 1]) },
+      y: { scale: scaleLinear().domain([0, 1]) },
+    })
+    const measuredScene = (height: number) =>
+      createChartScene(
+        definition,
+        { width: 480, height: 260 },
+        {
+          measureText: (label, options) => ({
+            x: -(label.length * options.fontSize * 0.3),
+            y: -height / 2,
+            width: label.length * options.fontSize * 0.6,
+            height,
+          }),
+        },
+      )
+
+    expect(measuredScene(40).margin.top).toBeGreaterThan(
+      measuredScene(8).margin.top,
+    )
   })
 
   it('uses no implicit inset when guides are disabled', () => {

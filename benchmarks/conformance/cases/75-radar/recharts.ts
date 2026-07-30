@@ -6,19 +6,30 @@ import {
   Radar,
   RadarChart,
 } from 'recharts'
-import { radarData } from './data'
+import { decathlon } from '@charts-poc/demo-data/decathlon'
+import { selectRadarAthlete } from './selection'
+import { radarProfile } from './transform'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
+const radarAthlete = selectRadarAthlete(decathlon)
+
 function chart(input: ConformanceInput) {
+  const compact = input.width < 480
+  const margin = compact
+    ? { top: 20, right: 55, bottom: 20, left: 105 }
+    : { top: 20, right: 20, bottom: 20, left: 20 }
+  const centerX = input.width / 2 + (margin.left - margin.right) / 2
+
   return createElement(
     RadarChart,
     {
       width: input.width,
       height: input.height,
-      data: radarData(input.revision),
+      data: radarProfile(decathlon, radarAthlete),
       outerRadius: '80%',
-      margin: { top: 20, right: 20, bottom: 20, left: 20 },
+      cx: centerX,
+      margin,
       accessibilityLayer: true,
     },
     [
@@ -29,18 +40,18 @@ function chart(input: ConformanceInput) {
       }),
       createElement(PolarAngleAxis, {
         key: 'angle',
-        dataKey: 'subject',
+        dataKey: 'event',
       }),
       createElement(PolarRadiusAxis, {
         key: 'radius',
-        domain: [0, 150],
-        ticks: [30, 60, 90, 120, 150],
+        domain: [0, 100],
+        ticks: [20, 40, 60, 80, 100],
         angle: 30,
       }),
       createElement(Radar, {
         key: 'profile',
-        name: 'Student',
-        dataKey: 'score',
+        name: radarAthlete.Country,
+        dataKey: 'relativePerformance',
         stroke: '#8884d8',
         strokeWidth: 2,
         fill: '#8884d8',
@@ -51,4 +62,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Simple radar chart')
+export const mount = rechartsMount(chart, 'Decathlon radar chart')

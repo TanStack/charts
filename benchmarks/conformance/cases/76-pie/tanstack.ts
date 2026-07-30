@@ -1,43 +1,45 @@
 import { defineChart } from '@tanstack/charts'
 import { polar, radialArc } from '@tanstack/charts/polar'
+import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { pie } from 'd3-shape'
-import { pieData } from './data'
+import { selectPieData } from './selection'
 import { tanstackMount } from '../../shared/mount'
-import type { PieDatum } from './data'
+import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import type { ConformanceInput } from '../../types'
-import type { PieArcDatum } from 'd3-shape'
 
-const pieLayout = pie<PieDatum>()
+const pieLayout = pie<AlphabetRow>()
   .sort(null)
-  .value(({ value }) => value)
+  .value(({ frequency }) => frequency)
+const colors = ['#2563eb', '#7c3aed', '#db2777', '#f59e0b']
+const percentage = new Intl.NumberFormat('en-US', {
+  style: 'percent',
+  maximumFractionDigits: 2,
+})
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const arcs = pieLayout([...pieData(input.revision)])
+const definition = (input: ConformanceInput) => {
+  const arcs = pieLayout([...selectPieData(alphabet, input.revision)])
 
-    return {
-      marks: [
-        polar({
-          inset: 0,
-          radiusRatio: 0.8,
-          marks: [
-            radialArc(arcs, {
-              startAngle: 'startAngle',
-              endAngle: 'endAngle',
-              padAngle: 'padAngle',
-              key: ({ data }: PieArcDatum<PieDatum>) => data.id,
-              fill: ({ data }: PieArcDatum<PieDatum>) => data.fill,
-            }),
-          ],
-        }),
-      ],
-      x: null,
-      y: null,
-      guides: false,
-      margin: 0,
-    }
+  return defineChart({
+    marks: [
+      polar({
+        inset: 0,
+        radiusRatio: 0.8,
+        marks: [
+          radialArc(arcs, {
+            startAngle: 'startAngle',
+            endAngle: 'endAngle',
+            padAngle: 'padAngle',
+            color: ({ data }) => data.letter,
+          }),
+        ],
+      }),
+    ],
+    color: { range: colors },
+    margin: 0,
   })
+}
 
-export const mount = tanstackMount(definition, 'Categorical pie chart', {
-  format: ({ datum }) => `${datum.data.label} · ${datum.data.value}%`,
+export const mount = tanstackMount(definition, 'English letter frequency pie', {
+  format: ({ datum }) =>
+    `${datum.data.letter} · ${percentage.format(datum.data.frequency)}`,
 })

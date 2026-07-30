@@ -25,6 +25,7 @@ export interface LineYOptions<TDatum> {
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, number | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
+  color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   stroke?: VisualChannel<TDatum, string>
   strokeOpacity?: number
@@ -39,7 +40,7 @@ interface LineRow<TDatum> {
   datumIndex: number
   xValue: ChartValue | null | undefined
   yValue: number | null | undefined
-  zValue: ChartKey | null | undefined
+  groupValue: ChartKey | null | undefined
   datumKey: ChartKey
 }
 
@@ -66,17 +67,26 @@ export function lineY<TDatum>(
       typeof datum === 'number' ? datum : undefined,
     )
     const zValues = channelValues(data, options.z, () => null)
+    const colorValues =
+      options.color === undefined
+        ? zValues
+        : channelValues(data, options.color, () => null)
+    const groupValues =
+      options.z === undefined && options.color !== undefined
+        ? colorValues
+        : zValues
     const keys = inferredKeyValues(data, options.key, {
-      groups: zValues,
+      groups: groupValues,
       candidates: [xValues],
       markId: id,
+      warningIdentity: options,
     })
     const rows = data.map((datum, datumIndex): LineRow<TDatum> => ({
       datum,
       datumIndex,
       xValue: xValues[datumIndex],
       yValue: yValues[datumIndex],
-      zValue: zValues[datumIndex],
+      groupValue: groupValues[datumIndex],
       datumKey: keys[datumIndex],
     }))
 
@@ -93,7 +103,7 @@ export function lineY<TDatum>(
         },
         color: {
           scale: 'color',
-          values: zValues.filter(isChartKey),
+          values: colorValues.filter(isChartKey),
         },
       },
       render: ({ scales, color: resolveColor }) => {
@@ -109,7 +119,7 @@ export function lineY<TDatum>(
             firstRow.datum,
             firstRow.datumIndex,
             data,
-            resolveColor(firstRow.zValue),
+            resolveColor(colorValues[firstRow.datumIndex] ?? null),
           )
           const children: SceneNode[] = []
           let segment: (readonly [number, number])[] = []
@@ -147,8 +157,8 @@ export function lineY<TDatum>(
             const point: ChartPoint<TDatum> = {
               key: `${id}:${groupKey}:${valueKey(row.datumKey)}`,
               markId: id,
-              group: row.zValue ?? null,
-              groupLabel: row.zValue == null ? id : String(row.zValue),
+              group: row.groupValue ?? null,
+              groupLabel: row.groupValue == null ? id : String(row.groupValue),
               datum: row.datum,
               datumIndex: row.datumIndex,
               xValue: row.xValue,
@@ -193,7 +203,7 @@ function groupRows<TDatum>(
 ): Map<string, LineRow<TDatum>[]> {
   const groups = new Map<string, LineRow<TDatum>[]>()
   for (const row of rows) {
-    const key = valueKey(row.zValue ?? '')
+    const key = valueKey(row.groupValue ?? null)
     const group = groups.get(key)
     if (group) group.push(row)
     else groups.set(key, [row])

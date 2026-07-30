@@ -77,6 +77,14 @@ async function inspectCatalogGraph() {
     ),
     'the local authoring entry registers a test module',
   )
+  assert(
+    !initialModules.some(isRawSourceModule),
+    'the local authoring entry eagerly loads raw catalog source',
+  )
+  assert(
+    !initialModules.some(isDemoDatasetPayload),
+    'the local authoring entry eagerly loads a demo dataset payload',
+  )
 
   const caseEntries = chunks.filter(
     (chunk) =>
@@ -113,7 +121,8 @@ async function inspectCatalogGraph() {
     'ECharts',
   )
 
-  const unexpectedEntries = caseEntries.filter((chunk) => {
+  const unexpectedImplementationEntries = caseEntries.filter((chunk) => {
+    if (isRawSourceModule(chunk.facadeModuleId ?? '')) return false
     const facade = normalizePath(chunk.facadeModuleId ?? '').replace(
       /\?raw$/,
       '',
@@ -121,10 +130,22 @@ async function inspectCatalogGraph() {
     return !/(?:\/tanstack|\/plot|\/recharts|\/echarts)\.ts$/.test(facade)
   })
   assert(
-    unexpectedEntries.length === 0,
-    `unexpected case entries: ${unexpectedEntries
+    unexpectedImplementationEntries.length === 0,
+    `unexpected case implementation entries: ${unexpectedImplementationEntries
       .map((chunk) => chunk.facadeModuleId)
       .join(', ')}`,
+  )
+
+  const rawSourceEntries = chunks.filter((chunk) =>
+    isRawSourceModule(chunk.facadeModuleId ?? ''),
+  )
+  assert(
+    rawSourceEntries.every(
+      (chunk) =>
+        chunk.isDynamicEntry &&
+        isCatalogSourceModule(chunk.facadeModuleId ?? ''),
+    ),
+    'raw catalog source must remain a lazy cases/shared entry',
   )
 
   const entryContent = await readRequiredFile(
@@ -161,6 +182,8 @@ function verifyPublishedGraph(graph, artifact) {
   }
 
   for (const entry of artifact.cases) {
+    verifyAuthoredSourceEntries(graph.chunks, artifact.source.pathRoot, entry)
+
     const tanstackClosureModules = staticClosure(
       entry.modules.tanstack.path,
       graph.chunksByFile,
@@ -193,6 +216,23 @@ function verifyPublishedGraph(graph, artifact) {
     assert(
       entry.modules.comparison.path === expectedReference.fileName,
       `${entry.id} comparison module drifted from the Vite graph`,
+    )
+  }
+}
+
+function verifyAuthoredSourceEntries(chunks, pathRoot, entry) {
+  const sourcePaths = new Set()
+  for (const implementation of Object.values(entry.authoredSource)) {
+    for (const role of Object.values(implementation.roles)) {
+      for (const sourcePath of role.paths) sourcePaths.add(sourcePath)
+    }
+  }
+
+  for (const sourcePath of sourcePaths) {
+    const sourceChunk = chunkByFacade(chunks, `/${pathRoot}${sourcePath}?raw`)
+    assert(
+      sourceChunk.isDynamicEntry,
+      `${entry.id} source ${sourcePath} must remain a dynamic entry`,
     )
   }
 }
@@ -255,6 +295,26 @@ function assertReferenceCount(count, expected, label) {
 function isReferenceImplementation(module) {
   return /\/benchmarks\/conformance\/cases\/[^/]+\/(?:plot|recharts|echarts)\.ts(?:\?|$)/.test(
     normalizePath(module),
+  )
+}
+
+function isRawSourceModule(module) {
+  return normalizePath(module).endsWith('?raw')
+}
+
+function isDemoDatasetPayload(module) {
+  const value = normalizePath(module)
+  return (
+    value.includes('/packages/charts-demo-data/src/') &&
+    !value.endsWith('/metadata.js')
+  )
+}
+
+function isCatalogSourceModule(module) {
+  const value = normalizePath(module)
+  return (
+    /\/benchmarks\/conformance\/(?:cases|shared)\/.+\.ts\?raw$/.test(value) &&
+    !value.endsWith('.test.ts?raw')
   )
 }
 

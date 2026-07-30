@@ -1,0 +1,89 @@
+// @vitest-environment node
+
+import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
+import { build } from 'esbuild'
+import { describe, expect, it } from 'vitest'
+import { demoDatasetMetadata } from '@charts-poc/demo-data/metadata'
+
+const workspace = resolve(import.meta.dirname, '..')
+
+describe('demo data', () => {
+  it('records a reproducible schema and provenance for every exact export', async () => {
+    const packageJson = JSON.parse(
+      await readFile(
+        resolve(workspace, 'packages/charts-demo-data/package.json'),
+        'utf8',
+      ),
+    )
+    const datasetExports = Object.keys(packageJson.exports)
+      .filter((specifier) => specifier !== './metadata')
+      .map((specifier) => specifier.slice(2))
+      .sort()
+
+    expect(demoDatasetMetadata.map(({ id }) => id).sort()).toEqual(
+      datasetExports,
+    )
+    for (const dataset of demoDatasetMetadata) {
+      expect(dataset.records).toBeGreaterThan(0)
+      expect(dataset.fields).not.toHaveLength(0)
+      expect(dataset.schema.map(({ name }) => name)).toEqual(dataset.fields)
+      expect(dataset.sha256).toMatch(/^[a-f0-9]{64}$/u)
+      expect(dataset.observableRevision).toMatch(/^[a-f0-9]{40}$/u)
+      expect(dataset.specifier).toBe(`@charts-poc/demo-data/${dataset.id}`)
+    }
+  })
+
+  it('keeps sibling datasets and CSV parsing out of exact-subpath bundles', async () => {
+    const result = await build({
+      absWorkingDir: workspace,
+      stdin: {
+        contents:
+          "import { alphabet } from '@charts-poc/demo-data/alphabet'; console.log(alphabet.length)",
+        resolveDir: workspace,
+      },
+      bundle: true,
+      format: 'esm',
+      platform: 'browser',
+      write: false,
+      metafile: true,
+      logLevel: 'silent',
+    })
+    const inputs = Object.keys(result.metafile.inputs)
+
+    expect(inputs.some((path) => path.endsWith('/src/alphabet.js'))).toBe(true)
+    expect(
+      inputs.some(
+        (path) =>
+          path.includes('/charts-demo-data/src/') &&
+          !path.endsWith('/src/alphabet.js'),
+      ),
+    ).toBe(false)
+    expect(inputs.some((path) => path.includes('d3-dsv'))).toBe(false)
+  })
+
+  it('keeps a complete large CSV snapshot below the catalog asset limit', async () => {
+    const result = await build({
+      absWorkingDir: workspace,
+      stdin: {
+        contents:
+          "import { olympians } from '@charts-poc/demo-data/olympians'; console.log(olympians.length)",
+        resolveDir: workspace,
+      },
+      bundle: true,
+      format: 'esm',
+      minify: true,
+      platform: 'browser',
+      write: false,
+      metafile: true,
+      logLevel: 'silent',
+    })
+
+    expect(
+      Object.keys(result.metafile.inputs).some((path) =>
+        path.includes('d3-dsv'),
+      ),
+    ).toBe(true)
+    expect(result.outputFiles[0]?.contents.byteLength).toBeLessThan(1024 * 1024)
+  })
+})

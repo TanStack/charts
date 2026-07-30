@@ -4,7 +4,7 @@
   "id": "27-parallel-coordinates",
   "title": "Parallel coordinates",
   "family": "multivariate",
-  "intent": "Compare several entities across the same ordered set of normalized quantitative dimensions.",
+  "intent": "Compare representative decathletes across four events after normalizing their different units.",
   "support": "native",
   "features": [
     "parallel coordinates",
@@ -14,15 +14,15 @@
     "categorical color"
   ],
   "geometry": [
-    { "role": "line", "count": 6 },
-    { "role": "dot", "count": 30 }
+    { "role": "line", "count": 7 },
+    { "role": "dot", "count": 28 }
   ],
   "source": {
     "title": "Observable Plot line mark",
     "url": "https://observablehq.com/plot/marks/line"
   },
   "ai": {
-    "create": "Create a parallel-coordinates chart from typed {model, metric, score} rows using one colored line per model across five ordered metrics.",
+    "create": "Create a parallel-coordinates chart from raw decathlon results, selecting one row per country and visibly normalizing four differently scaled events before drawing one colored line per country.",
     "maintain": "Add or reorder metrics while preserving series grouping, normalized quantitative domains, stable model colors, and inferred channel types."
   }
 }

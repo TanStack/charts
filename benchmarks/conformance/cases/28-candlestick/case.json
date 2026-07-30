@@ -22,10 +22,10 @@
   ],
   "source": {
     "title": "Observable Plot AAPL candlestick",
-    "url": "https://github.com/observablehq/plot/blob/main/test/plots/aapl-candlestick.ts"
+    "url": "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/plots/aapl-candlestick.ts"
   },
   "ai": {
-    "create": "Create a responsive candlestick chart from typed OHLC rows using a low-to-high wick and a thicker open-to-close body colored by direction.",
-    "maintain": "Add a neutral color for unchanged sessions while preserving all 60 interval segments, date identity, and typed endpoint channels."
+    "create": "Create a responsive candlestick chart from Observable's AAPL rows using the raw Date, Open, High, Low, and Close fields.",
+    "maintain": "Change the selected trading window while preserving all 60 interval segments, raw AAPL field names, date identity, and typed endpoint channels."
   }
 }

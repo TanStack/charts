@@ -1,11 +1,14 @@
 import { createElement } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
-import { donutData } from './data'
+import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { selectDonutData } from './selection'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 
+const colors = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316']
+
 function chart(input: ConformanceInput) {
-  const data = donutData(input.revision)
+  const data = selectDonutData(alphabet, input.revision)
   const outerRadius = Math.min(input.width, input.height) * 0.4
 
   return createElement(
@@ -20,8 +23,8 @@ function chart(input: ConformanceInput) {
       Pie,
       {
         data,
-        dataKey: 'value',
-        nameKey: 'label',
+        dataKey: 'frequency',
+        nameKey: 'letter',
         cx: input.width / 2,
         cy: input.height / 2,
         innerRadius: outerRadius * 0.58,
@@ -31,10 +34,10 @@ function chart(input: ConformanceInput) {
         stroke: 'none',
         isAnimationActive: false,
       },
-      data.map((row) =>
+      data.map((row, index) =>
         createElement(Cell, {
-          key: row.id,
-          fill: row.fill,
+          key: row.letter,
+          fill: colors[index],
           stroke: 'none',
         }),
       ),
@@ -42,4 +45,4 @@ function chart(input: ConformanceInput) {
   )
 }
 
-export const mount = rechartsMount(chart, 'Categorical donut chart')
+export const mount = rechartsMount(chart, 'English letter frequency donut')

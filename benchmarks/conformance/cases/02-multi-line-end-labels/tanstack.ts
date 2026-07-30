@@ -1,69 +1,61 @@
 import { defineChart, lineY, text } from '@tanstack/charts'
 import { group } from 'd3-array'
-import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
-import { timeDomain } from '../../shared/data'
-import type { TimePoint } from '../../shared/data'
+import { scaleLinear, scaleUtc } from 'd3-scale'
+import { industries } from '@charts-poc/demo-data/industries'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 import { tanstackMount } from '../../shared/mount'
-import {
-  multiLineData,
-  multiLineValueDomain,
-  seriesColors,
-  seriesNames,
-} from './data'
+import { selectMultiLineData } from './selection'
+import type { MultiLineDatum } from './selection'
 
-const definition = (input: ConformanceInput) =>
-  defineChart(() => {
-    const rows = multiLineData(input.revision)
-    const endpoints = lastBySeries(rows)
+const colors = ['#2563eb', '#ea580c', '#059669']
 
-    return {
-      marks: [
-        lineY(rows, {
-          id: 'series-lines',
-          x: 'date',
-          y: 'value',
-          z: 'series',
-          key: 'id',
-          strokeWidth: 2.25,
-        }),
-        text(endpoints, {
-          id: 'end-labels',
-          x: 'date',
-          y: 'value',
-          text: 'series',
-          z: 'series',
-          key: 'id',
-          anchor: 'start',
-          dx: 5,
-          fontWeight: 600,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain(timeDomain),
-        label: 'Week',
-      },
-      y: {
-        scale: scaleLinear().domain(multiLineValueDomain),
-        label: 'Index',
-        grid: true,
-      },
-      color: {
-        scale: scaleOrdinal<TimePoint['series'], string>()
-          .domain(seriesNames)
-          .range(seriesNames.map((series) => seriesColors[series])),
-      },
-      margin: { right: 72 },
-    }
+const definition = (input: ConformanceInput) => {
+  const rows = selectMultiLineData(industries, input.revision)
+  const endpoints = lastBySeries(rows)
+
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'date',
+        y: 'unemployed',
+        color: 'industry',
+        strokeWidth: 2.25,
+      }),
+      text(endpoints, {
+        x: 'date',
+        y: 'unemployed',
+        text: 'industry',
+        color: 'industry',
+        anchor: 'start',
+        dx: 5,
+        fontWeight: 600,
+      }),
+    ],
+    x: {
+      scale: scaleUtc,
+      label: 'Week',
+    },
+    y: {
+      scale: scaleLinear,
+      label: 'Unemployed (thousands)',
+      grid: true,
+    },
+    color: {
+      range: colors,
+    },
+    margin: { right: 112 },
   })
+}
 
 export const mount: ConformanceMount = tanstackMount(
   definition,
-  'Three time series with direct end labels',
+  'Unemployment by industry with direct end labels',
 )
 
-function lastBySeries(rows: readonly TimePoint[]): readonly TimePoint[] {
-  return Array.from(group(rows, (row) => row.series).values(), (seriesRows) =>
-    seriesRows.at(-1),
-  ).filter((row): row is TimePoint => row !== undefined)
+function lastBySeries(
+  rows: readonly MultiLineDatum[],
+): readonly MultiLineDatum[] {
+  return Array.from(group(rows, (row) => row.industry).values(), (groupRows) =>
+    groupRows.at(-1),
+  ).filter((row): row is MultiLineDatum => row !== undefined)
 }

@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "order": 2,
   "id": "02-multi-line-end-labels",
-  "title": "Multi-series line with end labels",
+  "title": "Industry unemployment with end labels",
   "family": "trend",
-  "intent": "Compare three chronological series and label the final observation of each series directly, following Observable Plot's selectLast example without requiring a separate legend.",
+  "intent": "Compare monthly unemployment in manufacturing, construction, and finance and label each industry's final observation directly, following Observable Plot's selectLast pattern.",
   "support": "composed",
   "features": [
     "line",
@@ -23,7 +23,7 @@
     "url": "https://observablehq.com/plot/transforms/select"
   },
   "ai": {
-    "create": "Create a responsive three-series UTC line chart from tidy {id, date, value, series} rows. Give each series a stable color and directly label its final observation; do not introduce a proprietary series data model, casts, or a hand-maintained endpoint array.",
-    "maintain": "Move the direct labels from the last observation to the first observation of each series while retaining series colors, stable line keys, inferred callback data, and readable label space."
+    "create": "Create a responsive three-industry UTC line chart from the industries dataset's original date, industry, and unemployed fields. Give each industry a stable color and directly label its final observation without reshaping the observations.",
+    "maintain": "Move the direct labels from the last observation to the first observation of each industry while retaining industry colors, inferred callback data, and readable label space."
   }
 }

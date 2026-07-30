@@ -1,41 +1,46 @@
 import * as Plot from '@observablehq/plot'
-import { timeDomain } from '../../shared/data'
+import { industries } from '@charts-poc/demo-data/industries'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceInput, ConformanceMount } from '../../types'
-import {
-  seriesColors,
-  seriesNames,
-  streamData,
-  streamValueDomain,
-} from './data'
+
+const colors = [
+  '#4e79a7',
+  '#f28e2c',
+  '#e15759',
+  '#76b7b2',
+  '#59a14f',
+  '#edc949',
+  '#af7aa1',
+  '#ff9da7',
+  '#9c755f',
+  '#bab0ab',
+]
 
 function render(input: ConformanceInput) {
   return Plot.plot({
     width: input.width,
     height: input.height,
-    ariaLabel: 'Three-series streamgraph',
-    x: { type: 'utc', domain: timeDomain, label: 'Week' },
+    marginLeft: 64,
+    ariaLabel: 'Unemployment by industry as a streamgraph',
+    x: { type: 'utc', label: 'Month' },
     y: {
-      domain: streamValueDomain,
-      nice: false,
       grid: true,
-      label: 'Stream offset',
+      label: 'Unemployed (thousands)',
     },
     color: {
-      domain: seriesNames,
-      range: seriesNames.map((series) => seriesColors[series]),
+      range: colors,
       legend: true,
     },
     marks: [
       Plot.areaY(
-        streamData(input.revision),
+        industries,
         Plot.stackY(
           { offset: 'wiggle', order: 'inside-out' },
           {
             x: 'date',
-            y: 'value',
-            z: 'series',
-            fill: 'series',
+            y: 'unemployed',
+            z: 'industry',
+            fill: 'industry',
             fillOpacity: 0.85,
           },
         ),

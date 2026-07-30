@@ -1,0 +1,124 @@
+{
+  "name": "@charts-poc/demo-data",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "dependencies": {
+    "d3-dsv": "3.0.1"
+  },
+  "exports": {
+    "./anscombe": {
+      "types": "./src/anscombe.d.ts",
+      "default": "./src/anscombe.js"
+    },
+    "./aapl": {
+      "types": "./src/aapl.d.ts",
+      "default": "./src/aapl.js"
+    },
+    "./alphabet": {
+      "types": "./src/alphabet.d.ts",
+      "default": "./src/alphabet.js"
+    },
+    "./beagle": {
+      "types": "./src/beagle.d.ts",
+      "default": "./src/beagle.js"
+    },
+    "./cars": {
+      "types": "./src/cars.d.ts",
+      "default": "./src/cars.js"
+    },
+    "./citywages": {
+      "types": "./src/citywages.d.ts",
+      "default": "./src/citywages.js"
+    },
+    "./crimean-war": {
+      "types": "./src/crimean-war.d.ts",
+      "default": "./src/crimean-war.js"
+    },
+    "./diamonds": {
+      "types": "./src/diamonds.d.ts",
+      "default": "./src/diamonds.js"
+    },
+    "./decathlon": {
+      "types": "./src/decathlon.d.ts",
+      "default": "./src/decathlon.js"
+    },
+    "./downloads": {
+      "types": "./src/downloads.d.ts",
+      "default": "./src/downloads.js"
+    },
+    "./driving": {
+      "types": "./src/driving.d.ts",
+      "default": "./src/driving.js"
+    },
+    "./flare": {
+      "types": "./src/flare.d.ts",
+      "default": "./src/flare.js"
+    },
+    "./industries": {
+      "types": "./src/industries.d.ts",
+      "default": "./src/industries.js"
+    },
+    "./learning-poverty": {
+      "types": "./src/learning-poverty.d.ts",
+      "default": "./src/learning-poverty.js"
+    },
+    "./metadata": {
+      "types": "./src/metadata.d.ts",
+      "default": "./src/metadata.js"
+    },
+    "./miserables": {
+      "types": "./src/miserables.d.ts",
+      "default": "./src/miserables.js"
+    },
+    "./morley": {
+      "types": "./src/morley.d.ts",
+      "default": "./src/morley.js"
+    },
+    "./olympians": {
+      "types": "./src/olympians.d.ts",
+      "default": "./src/olympians.js"
+    },
+    "./penguins": {
+      "types": "./src/penguins.d.ts",
+      "default": "./src/penguins.js"
+    },
+    "./pizza": {
+      "types": "./src/pizza.d.ts",
+      "default": "./src/pizza.js"
+    },
+    "./sf-temperatures": {
+      "types": "./src/sf-temperatures.d.ts",
+      "default": "./src/sf-temperatures.js"
+    },
+    "./simpsons": {
+      "types": "./src/simpsons.d.ts",
+      "default": "./src/simpsons.js"
+    },
+    "./survey": {
+      "types": "./src/survey.d.ts",
+      "default": "./src/survey.js"
+    },
+    "./travelers": {
+      "types": "./src/travelers.d.ts",
+      "default": "./src/travelers.js"
+    },
+    "./us-county-unemployment": {
+      "types": "./src/us-county-unemployment.d.ts",
+      "default": "./src/us-county-unemployment.js"
+    },
+    "./weather": {
+      "types": "./src/weather.d.ts",
+      "default": "./src/weather.js"
+    },
+    "./westport-house": {
+      "types": "./src/westport-house.d.ts",
+      "default": "./src/westport-house.js"
+    },
+    "./wind": {
+      "types": "./src/wind.d.ts",
+      "default": "./src/wind.js"
+    }
+  }
+}

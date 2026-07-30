@@ -1,8 +1,13 @@
-import { defineChart, mountChart } from '@tanstack/charts'
+import {
+  defineChart,
+  isDynamicChartDefinition,
+  mountChart,
+} from '@tanstack/charts'
 import type {
+  ChartDefinition,
+  ChartDefinitionOptions,
   ChartValue,
   ChartTooltipOptions,
-  DynamicChartDefinition,
 } from '@tanstack/charts'
 import type {
   ConformanceHandle,
@@ -37,17 +42,17 @@ export function tanstackMount<
 >(
   createDefinition: (
     input: ConformanceInput,
-  ) => DynamicChartDefinition<TDatum, TXValue, TYValue>,
+  ) => ChartDefinition<TDatum, TXValue, TYValue>,
   ariaLabel: string,
   interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
 ): ConformanceMount {
   return (container, input) => {
     const options = {
-      definition: defineChart(createDefinition(input), {
-        animate: false,
-        keyboard: input.interactive === true,
-        tooltip: input.interactive === true ? interactiveTooltip : false,
-      }),
+      definition: withConformanceBehavior(
+        createDefinition(input),
+        input,
+        interactiveTooltip,
+      ),
       width: input.width,
       height: input.height,
       ariaLabel,
@@ -58,12 +63,11 @@ export function tanstackMount<
       update(nextInput) {
         host.update({
           ...options,
-          definition: defineChart(createDefinition(nextInput), {
-            animate: false,
-            keyboard: nextInput.interactive === true,
-            tooltip:
-              nextInput.interactive === true ? interactiveTooltip : false,
-          }),
+          definition: withConformanceBehavior(
+            createDefinition(nextInput),
+            nextInput,
+            interactiveTooltip,
+          ),
           width: nextInput.width,
           height: nextInput.height,
         })
@@ -73,4 +77,25 @@ export function tanstackMount<
       },
     }
   }
+}
+
+function withConformanceBehavior<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  definition: ChartDefinition<TDatum, TXValue, TYValue>,
+  input: ConformanceInput,
+  interactiveTooltip: true | ChartTooltipOptions<TDatum>,
+): ChartDefinition<TDatum, TXValue, TYValue> {
+  const behavior: ChartDefinitionOptions<TDatum, TXValue, TYValue> = {
+    animate: false,
+    keyboard: input.interactive === true,
+    tooltip: input.interactive === true ? interactiveTooltip : false,
+  }
+
+  if (isDynamicChartDefinition(definition)) {
+    return defineChart(definition, behavior)
+  }
+  return defineChart(definition, behavior)
 }

@@ -8,6 +8,7 @@
     "dev": "vite --host --port 5183 --strictPort"
   },
   "dependencies": {
+    "@charts-poc/demo-data": "workspace:*",
     "@tanstack/charts": "workspace:*",
     "@tanstack/react-charts": "workspace:*",
     "d3-array": "3.2.4",

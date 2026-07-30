@@ -1,41 +1,44 @@
 import * as Plot from '@observablehq/plot'
-import { timeDomain } from '../../shared/data'
+import { industries } from '@charts-poc/demo-data/industries'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 import { mountObservablePlot } from '../../shared/mount'
-import {
-  seriesColors,
-  seriesNames,
-  stackedTimeData,
-  stackedTimeValueDomain,
-} from './data'
+
+const colors = [
+  '#4e79a7',
+  '#f28e2c',
+  '#e15759',
+  '#76b7b2',
+  '#59a14f',
+  '#edc949',
+  '#af7aa1',
+  '#ff9da7',
+  '#9c755f',
+  '#bab0ab',
+]
 
 function render(input: ConformanceInput) {
-  const rows = stackedTimeData(input.revision)
-
   return Plot.plot({
     width: input.width,
     height: input.height,
-    ariaLabel: 'Three stacked time-series areas',
-    x: { type: 'utc', domain: timeDomain, label: 'Week' },
+    marginLeft: 64,
+    ariaLabel: 'Unemployment by industry as stacked areas',
+    x: { type: 'utc', label: 'Month' },
     y: {
-      domain: stackedTimeValueDomain,
-      nice: false,
       grid: true,
-      label: 'Combined index',
+      label: 'Unemployed (thousands)',
     },
     color: {
-      domain: seriesNames,
-      range: seriesNames.map((series) => seriesColors[series]),
+      range: colors,
       legend: true,
     },
     marks: [
       Plot.areaY(
-        rows,
+        industries,
         Plot.stackY({
           x: 'date',
-          y: 'value',
-          z: 'series',
-          fill: 'series',
+          y: 'unemployed',
+          z: 'industry',
+          fill: 'industry',
           fillOpacity: 0.78,
         }),
       ),

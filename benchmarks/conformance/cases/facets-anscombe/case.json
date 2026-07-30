@@ -23,10 +23,10 @@
   ],
   "source": {
     "title": "Observable Plot: Anscombe quartet",
-    "url": "https://github.com/observablehq/plot/blob/main/test/plots/anscombe-quartet.ts"
+    "url": "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/plots/anscombe-quartet.ts"
   },
   "ai": {
-    "create": "Create four labeled small multiples for Anscombe's quartet with shared x and y domains.",
-    "maintain": "Change the facet layout while preserving shared domains, set order, and all 44 observations."
+    "create": "Create four labeled small multiples directly from the imported Anscombe series, x, and y fields with shared quantitative domains.",
+    "maintain": "Change the facet layout while preserving shared domains, series order, and all 44 source observations."
   }
 }

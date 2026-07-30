@@ -11,6 +11,7 @@ import { createMark } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
 import { cell, rect } from './rect'
 import type { RectOptions } from './rect'
+import { ruleX, ruleY } from './rule'
 import { createChartRuntime } from './runtime'
 import { createChartScene, defineChart } from './scene'
 import type {
@@ -226,6 +227,28 @@ const customMark = createMark<Row>(() => ({
   channels: {},
   render: () => ({ nodes: [] }),
 }))
+const positionlessMark = createMarkWithScaleValues<
+  Row,
+  number,
+  number,
+  never,
+  never
+>(() => ({
+  id: 'positionless',
+  channels: {},
+  render: () => ({ nodes: [] }),
+}))
+const positionlessDefinition = defineChart({
+  marks: [positionlessMark],
+})
+const verticalRuleDefinition = defineChart({
+  marks: [ruleY([1, 2])],
+  y: { scale: scaleLinear() },
+})
+const horizontalRuleDefinition = defineChart({
+  marks: [ruleX([1, 2])],
+  x: { scale: scaleLinear() },
+})
 const endpointCustomMark = createMarkWithScaleValues<
   Row,
   number,
@@ -273,6 +296,25 @@ const customScale: ChartScale = {
 }
 
 if (false) {
+  expectTypeOf(positionlessDefinition).toMatchTypeOf<
+    ChartDefinition<Row, number, number>
+  >()
+  expectTypeOf(verticalRuleDefinition).toMatchTypeOf<
+    ChartDefinition<never, never, never>
+  >()
+  expectTypeOf(horizontalRuleDefinition).toMatchTypeOf<
+    ChartDefinition<never, never, never>
+  >()
+  // @ts-expect-error Cartesian marks still require explicit x and y scales.
+  defineChart({ marks: [numericMark] })
+  // @ts-expect-error A mixed chart still requires axes used by its Cartesian mark.
+  defineChart({ marks: [positionlessMark, numericMark] })
+  // @ts-expect-error Positionless marks do not accept a phantom x scale.
+  defineChart({
+    marks: [positionlessMark],
+    x: { scale: scaleLinear() },
+  })
+
   const container = document.createElement('div')
   const categoricalFocus: ChartFocusStrategy<Row, string, number> = {
     resolve(points) {
@@ -644,8 +686,6 @@ if (false) {
   }
   const uncheckedFacetSpec: ChartSpec<readonly [typeof facetedMark]> = {
     marks: [facetedMark],
-    x: { scale: scaleLinear() },
-    y: { scale: scaleUtc() },
   }
   const uncheckedCustomMarkSpec: ChartSpec<readonly [typeof customMark]> = {
     marks: [customMark],
@@ -739,9 +779,7 @@ describe('public type contracts', () => {
     expectTypeOf<
       ChartMarkScaleY<typeof optionalEndpointRect>
     >().toEqualTypeOf<number>()
-    expectTypeOf<
-      ChartMarkScaleX<typeof facetedMark>
-    >().toEqualTypeOf<ChartValue>()
+    expectTypeOf<ChartMarkScaleX<typeof facetedMark>>().toEqualTypeOf<never>()
     expectTypeOf<ChartMarkY<typeof customMark>>().toEqualTypeOf<ChartValue>()
     expectTypeOf<
       ChartMarkScaleX<typeof endpointCustomMark>

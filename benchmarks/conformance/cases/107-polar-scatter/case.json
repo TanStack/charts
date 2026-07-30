@@ -3,11 +3,14 @@
   "referenceRenderer": "echarts",
   "order": 1070,
   "id": "107-polar-scatter",
-  "title": "Numeric polar scatter",
+  "title": "Surface wind polar scatter",
   "family": "polar",
-  "intent": "Compare independent observations by angular position and radial magnitude.",
+  "intent": "Compare gridded surface-wind observations by direction and speed.",
   "support": "native",
   "features": [
+    "Observable Plot wind observations",
+    "visible latitude-band selection",
+    "u/v direction and speed transforms",
     "polar coordinates",
     "continuous angle scale",
     "continuous radius scale",
@@ -15,14 +18,14 @@
     "circular grid",
     "responsive radius"
   ],
-  "geometry": [{ "role": "dot", "count": 14, "maxCount": 14 }],
+  "geometry": [{ "role": "dot", "count": 80, "maxCount": 80 }],
   "minimumGeometrySimilarity": 0.999,
   "source": {
-    "title": "Apache ECharts Polar Scatter Punch Card",
-    "url": "https://echarts.apache.org/examples/en/editor.html?c=scatter-polar-punchCard"
+    "title": "Observable Plot wind snapshot",
+    "url": "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/wind.csv"
   },
   "ai": {
-    "create": "Create fourteen equally sized points over continuous zero-to-three-hundred-sixty-degree angle and zero-to-one-hundred radius domains.",
-    "maintain": "Update radial values while preserving angles, fixed domains, responsive layout, stable observation keys, and constant symbol size."
+    "create": "Import Observable Plot's pinned wind grid, select one published latitude band, derive direction and speed directly from u and v, and plot every observation in polar coordinates.",
+    "maintain": "Keep source longitude, latitude, u, and v fields intact; preserve the visible band selection, fixed direction and speed domains, responsive layout, and constant symbol size."
   }
 }

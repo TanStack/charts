@@ -12,7 +12,7 @@ import type {
 
 declare const process: { env: { NODE_ENV?: string } } | undefined
 
-const warnedKeyFallbacks = new Set<string>()
+const warnedKeyFallbacks = new WeakSet<object>()
 
 export function isChartKey(value: unknown): value is ChartKey {
   return typeof value === 'string' || typeof value === 'number'
@@ -83,6 +83,7 @@ export function inferredKeyValues<TDatum>(
     groups?: readonly unknown[]
     candidates?: readonly (readonly unknown[])[]
     markId?: string
+    warningIdentity?: object
   } = {},
 ): ChartKey[] {
   if (key !== undefined) {
@@ -95,6 +96,13 @@ export function inferredKeyValues<TDatum>(
         ? (datum as Record<string, unknown>).id
         : undefined,
     ),
+    data.map((datum) => {
+      if (datum == null || typeof datum !== 'object') return undefined
+      const nested = (datum as Record<string, unknown>).data
+      return nested != null && typeof nested === 'object'
+        ? (nested as Record<string, unknown>).id
+        : undefined
+    }),
     ...(options.candidates ?? []),
   ]
 
@@ -109,7 +117,11 @@ export function inferredKeyValues<TDatum>(
     }
   }
 
-  warnAboutKeyFallback(options.markId, options.candidates)
+  warnAboutKeyFallback(
+    options.markId,
+    options.candidates,
+    options.warningIdentity,
+  )
   return data.map((_datum, index) => index)
 }
 
@@ -151,17 +163,19 @@ function keysAreUniqueWithinGroups(
 function warnAboutKeyFallback(
   markId: string | undefined,
   candidates: readonly (readonly unknown[])[] | undefined,
+  warningIdentity: object | undefined,
 ) {
   if (
     !markId ||
     !candidates?.length ||
-    warnedKeyFallbacks.has(markId) ||
+    !warningIdentity ||
+    warnedKeyFallbacks.has(warningIdentity) ||
     typeof process === 'undefined' ||
     process.env.NODE_ENV === 'production'
   ) {
     return
   }
-  warnedKeyFallbacks.add(markId)
+  warnedKeyFallbacks.add(warningIdentity)
   console.warn(
     `TanStack Charts could not infer a unique key for mark "${markId}". ` +
       'Using row position; supply key for stable identity across updates.',

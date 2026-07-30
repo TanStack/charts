@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { barY } from './bar'
 import { createChartScene, defineChart } from './scene'
 import { lineY } from './line'
+import { ruleY } from './rule'
+import { resolveScaleInput } from './scale-input'
 import type { ChartSpec } from './types'
 
 describe('configured scales', () => {
@@ -157,6 +159,30 @@ describe('configured scales', () => {
         { width: 480, height: 260 },
       ),
     ).toThrow('A quantitative scale factory requires numeric values')
+
+    expect(() =>
+      resolveScaleInput(scaleLinear, { values: [1, 'high'] }),
+    ).toThrow('A quantitative scale factory requires numeric values')
+    expect(() =>
+      resolveScaleInput(scaleUtc, {
+        values: [new Date('2026-01-01T00:00:00Z'), 'not-a-date'],
+      }),
+    ).toThrow('A temporal scale factory requires Date channel values')
+  })
+
+  it('requires inferred log domains to stay strictly on one side of zero', () => {
+    expect(resolveScaleInput(scaleLog, { values: [1, 10] }).domain()).toEqual([
+      1, 10,
+    ])
+    expect(resolveScaleInput(scaleLog, { values: [-10, -1] }).domain()).toEqual(
+      [-10, -1],
+    )
+
+    for (const values of [[0], [0, 10], [-10, 0], [-10, 10]]) {
+      expect(() => resolveScaleInput(scaleLog, { values })).toThrow(
+        'cannot include or cross zero',
+      )
+    }
   })
 
   it('adopts configured D3 domains while owning responsive ranges', () => {
@@ -223,8 +249,22 @@ describe('configured scales', () => {
 
     expect(positionless.scales.x.type).toBe('none')
     expect(positionless.scales.y.type).toBe('none')
+
+    const oneDimensional = createChartScene(
+      defineChart({
+        marks: [ruleY([1, 2])],
+        y: { scale: scaleLinear },
+      }),
+      { width: 480, height: 260 },
+    )
+    expect(oneDimensional.scales.x.type).toBe('none')
+    expect(oneDimensional.scales.y.type).toBe('configured')
+    expect(JSON.stringify(oneDimensional.nodes)).not.toContain('x-axis')
+    expect(JSON.stringify(oneDimensional.nodes)).toContain('y-tick')
+
     expect(() =>
       createChartScene(
+        // @ts-expect-error Materialized x channels cannot omit their scale.
         defineChart({
           marks: [lineY([])],
           x: null,

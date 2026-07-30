@@ -1,65 +1,54 @@
 import * as Plot from '@observablehq/plot'
-import { timeDomain, timeSeries } from '../../shared/data'
-import type { TimePoint } from '../../shared/data'
+import { industries } from '@charts-poc/demo-data/industries'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount, ConformanceTestDriver } from '../../types'
+import { industryNames, selectGroupedTooltipData } from './selection'
 
-const series = [
-  'Atlas',
-  'Beacon',
-  'Comet',
-] satisfies readonly TimePoint['series'][]
 const colors = ['#2563eb', '#f97316', '#10b981']
 
 export const mount: ConformanceMount = (container, input) => {
-  let rows = timeSeries(input.revision)
+  let rows = selectGroupedTooltipData(industries, input.revision)
   const handle = mountObservablePlot(container, input, (nextInput) => {
-    rows = timeSeries(nextInput.revision)
-    const tooltipRows = rows
-      .filter((row) => row.series === 'Atlas')
-      .map((atlas) => {
-        const atDate = rows.filter(
-          (row) => row.date.getTime() === atlas.date.getTime(),
-        )
-        return {
-          date: atlas.date,
-          value: atlas.value,
-          title: series
-            .map((seriesName) => {
-              const row = atDate.find(
-                (candidate) => candidate.series === seriesName,
-              )
-              return `${seriesName}: ${(row?.value ?? 0).toLocaleString()}`
-            })
-            .join('\n'),
-        }
-      })
+    rows = selectGroupedTooltipData(industries, nextInput.revision)
+    const tooltipRows = rows.filter((row) => row.industry === industryNames[0])
     return Plot.plot({
       width: nextInput.width,
       height: nextInput.height,
-      ariaLabel: 'Grouped series tooltip',
-      x: { type: 'utc', domain: timeDomain, label: null },
-      y: { domain: [10, 85], grid: true, label: 'Value' },
-      color: { domain: series, range: colors },
+      ariaLabel: 'Grouped industry unemployment tooltip',
+      x: { type: 'utc', label: null },
+      y: { grid: true, label: 'Unemployed (thousands)' },
+      color: { domain: industryNames, range: colors },
       marks: [
         Plot.line(rows, {
           x: 'date',
-          y: 'value',
-          z: 'series',
-          stroke: 'series',
+          y: 'unemployed',
+          z: 'industry',
+          stroke: 'industry',
         }),
         Plot.dot(rows, {
           x: 'date',
-          y: 'value',
-          fill: 'series',
+          y: 'unemployed',
+          fill: 'industry',
           r: 2.5,
         }),
         Plot.tip(
           tooltipRows,
           Plot.pointerX({
             x: 'date',
-            y: 'value',
-            title: 'title',
+            y: 'unemployed',
+            title: (row) => {
+              const atDate = rows.filter(
+                (candidate) => candidate.date.getTime() === row.date.getTime(),
+              )
+              return industryNames
+                .map((industry) => {
+                  const observation = atDate.find(
+                    (candidate) => candidate.industry === industry,
+                  )
+                  return `${industry}: ${(observation?.unemployed ?? 0).toLocaleString()}`
+                })
+                .join('\n')
+            },
             maxRadius: Number.POSITIVE_INFINITY,
           }),
         ),
@@ -70,10 +59,13 @@ export const mount: ConformanceMount = (container, input) => {
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
       if (target.view && target.view !== 'main') return null
-      const id = target.anchor.startsWith('point:')
-        ? target.anchor.slice('point:'.length)
+      const date = target.anchor.startsWith('date:')
+        ? target.anchor.slice('date:'.length)
         : null
-      const index = rows.findIndex((row) => row.id === id)
+      const index = rows.findIndex(
+        (row) =>
+          dateKey(row.date) === date && row.industry === industryNames[0],
+      )
       const circle =
         index < 0
           ? undefined
@@ -113,4 +105,8 @@ export const mount: ConformanceMount = (container, input) => {
   }
 
   return { ...handle, driver }
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10)
 }

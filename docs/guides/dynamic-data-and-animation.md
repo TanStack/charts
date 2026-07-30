@@ -21,7 +21,6 @@ function RankingChart({ rows, metric, accent }: Props) {
           barX(ranked, {
             x: 'value',
             y: 'label',
-            key: 'id',
             fill: accent,
           }),
         ],
@@ -55,9 +54,9 @@ host.update({
 
 ## Stable keys
 
-Built-in marks first use an explicit `key`, then a unique `datum.id`. Bars,
-lines, areas, and cells can also infer identity from their semantic positional
-channels:
+Built-in marks first use an explicit `key`, then a unique `datum.id`, then a
+unique nested `datum.data.id`. Marks can also infer identity from semantic
+positional channels:
 
 ```ts
 barX(rows, {
@@ -68,9 +67,10 @@ barX(rows, {
 
 Here `barX` uses the unique `y` value when rows have no `id`. `barY` uses `x`;
 `lineY` and `areaY` use `x`; `areaX` uses `y`; rects and cells use their x/y
-interval tuple. Inference is scoped to each group and falls back to array
-position when a candidate is incomplete or duplicated. Development builds
-warn once for each affected mark.
+interval tuple. Dots and text try x, then y, then their x/y tuple. Inference is
+scoped to each group and falls back to array position when a candidate is
+incomplete or duplicated. Development builds warn once for each affected mark
+instance.
 
 Supply `key` when the inferred value is not the entity's identity or can
 change independently of it. Stable identity preserves surviving SVG elements,

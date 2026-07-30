@@ -1,13 +1,8 @@
 import { scaleBand } from 'd3-scale'
-import {
-  resourceLanes,
-  timelineChartHeight,
-  timelineContentWidth,
-  timelineStatusColors,
-  timelineStatuses,
-} from './data'
+import { timelineStatusColors } from './colors'
+import { resourceLanes, timelineStatuses } from './scenario'
 import type { ConformanceInput } from '../../types'
-import type { ResourceTask } from './data'
+import type { ResourceTask } from './scenario'
 
 export const timelineMargin = {
   top: 18,
@@ -128,6 +123,14 @@ export function sizeResourceTimelineShell(
 
 export function timelineBodyHeight(height: number) {
   return Math.max(220, height - headerHeight)
+}
+
+export function timelineContentWidth(viewportWidth: number) {
+  return Math.max(960, viewportWidth * 2)
+}
+
+export function timelineChartHeight(viewportHeight: number) {
+  return Math.max(240, viewportHeight - 16)
 }
 
 export function timelineLaneRailWidth(width: number) {

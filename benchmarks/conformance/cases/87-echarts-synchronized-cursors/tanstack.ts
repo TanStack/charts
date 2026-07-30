@@ -1,17 +1,16 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import { focusX } from '@tanstack/charts/focus'
+import { travelers } from '@charts-poc/demo-data/travelers'
 import { scaleLinear, scaleUtc } from 'd3-scale'
+import { selectSynchronizedCursorData } from './selection'
+import { synchronizedCursorViews, synchronizedCursorYDomains } from './model'
+import { synchronizedCursorColors } from './colors'
 import {
   synchronizedCursorAnchorDate,
-  synchronizedCursorColors,
-  synchronizedCursorData,
-  synchronizedCursorDateDomain,
   synchronizedCursorDateKey,
   synchronizedCursorDatumAtDate,
   synchronizedCursorNearestDatum,
-  synchronizedCursorViews,
-  synchronizedCursorYDomains,
-} from './data'
+} from './model'
 import { createSynchronizedSummary, updateSynchronizedSummary } from './summary'
 import type {
   ChartPoint,
@@ -19,7 +18,8 @@ import type {
   ChartScene,
   ChartHostOptions,
 } from '@tanstack/charts'
-import type { SynchronizedCursorDatum, SynchronizedCursorView } from './data'
+import type { TravelersRow } from '@charts-poc/demo-data/travelers'
+import type { SynchronizedCursorView } from './model'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -40,52 +40,61 @@ interface CrosshairElements {
   marker: SVGCircleElement
 }
 
-const definition = (input: SynchronizedViewInput) =>
-  defineChart(() => {
-    const rows = synchronizedCursorData(input.view, input.revision)
-    return {
-      marks: [
-        lineY(rows, {
-          id: `${input.view}-line`,
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          stroke: synchronizedCursorColors[input.view],
-          strokeWidth: 2,
+const travelerCountFormat = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+})
+
+function synchronizedCursorData(revision = 0) {
+  return selectSynchronizedCursorData(travelers, revision)
+}
+
+function formatTravelers(value: number) {
+  return travelerCountFormat.format(value)
+}
+
+const definition = (input: SynchronizedViewInput) => {
+  const rows = synchronizedCursorData(input.revision)
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'date',
+        y: input.view,
+        stroke: synchronizedCursorColors[input.view],
+        strokeWidth: 2,
+      }),
+      dot(rows, {
+        x: 'date',
+        y: input.view,
+        fill: synchronizedCursorColors[input.view],
+        r: 3,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+    ],
+    x: {
+      scale: scaleUtc,
+      format: (value) =>
+        value.toLocaleDateString(undefined, {
+          month: 'short',
+          timeZone: 'UTC',
         }),
-        dot(rows, {
-          id: `${input.view}-dots`,
-          x: 'date',
-          y: 'value',
-          key: 'id',
-          fill: synchronizedCursorColors[input.view],
-          r: 3,
-          stroke: '#ffffff',
-          strokeWidth: 1,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain(synchronizedCursorDateDomain),
-        format: (value) =>
-          value.toLocaleDateString(undefined, {
-            month: 'short',
-            timeZone: 'UTC',
-          }),
-      },
-      y: {
-        scale: scaleLinear().domain(synchronizedCursorYDomains[input.view]),
-        ticks: 4,
-        grid: true,
-        label: input.view === 'primary' ? 'Throughput' : 'Error rate',
-      },
-      margin: {
-        top: 16,
-        right: 24,
-        bottom: 34,
-        left: 62,
-      },
-    }
+    },
+    y: {
+      scale: scaleLinear().domain(synchronizedCursorYDomains[input.view]),
+      ticks: 4,
+      grid: true,
+      label: input.view === 'current' ? '2020 travelers' : '2019 travelers',
+      format: formatTravelers,
+    },
+    margin: {
+      top: 16,
+      right: 24,
+      bottom: 34,
+      left: 62,
+    },
   })
+}
 
 export function mount(
   container: HTMLElement,
@@ -96,32 +105,32 @@ export function mount(
   let pinnedDate: Date | null = null
   const scenes: Record<
     SynchronizedCursorView,
-    ChartScene<SynchronizedCursorDatum> | null
+    ChartScene<TravelersRow> | null
   > = {
-    primary: null,
-    secondary: null,
+    current: null,
+    previous: null,
   }
   const document = container.ownerDocument
   const shell = document.createElement('div')
   const summary = createSynchronizedSummary(document)
   const chartStack = document.createElement('div')
-  const primarySurface = document.createElement('div')
-  const secondarySurface = document.createElement('div')
+  const currentSurface = document.createElement('div')
+  const previousSurface = document.createElement('div')
   const surfaces: Record<SynchronizedCursorView, HTMLDivElement> = {
-    primary: primarySurface,
-    secondary: secondarySurface,
+    current: currentSurface,
+    previous: previousSurface,
   }
-  primarySurface.dataset.conformanceView = 'primary'
-  secondarySurface.dataset.conformanceView = 'secondary'
-  primarySurface.style.position = 'relative'
-  secondarySurface.style.position = 'relative'
-  chartStack.append(primarySurface, secondarySurface)
+  currentSurface.dataset.conformanceView = 'current'
+  previousSurface.dataset.conformanceView = 'previous'
+  currentSurface.style.position = 'relative'
+  previousSurface.style.position = 'relative'
+  chartStack.append(currentSurface, previousSurface)
   shell.append(summary.root, chartStack)
   container.append(shell)
 
   const elements: Record<SynchronizedCursorView, CrosshairElements | null> = {
-    primary: null,
-    secondary: null,
+    current: null,
+    previous: null,
   }
 
   const viewHeight = () =>
@@ -152,11 +161,8 @@ export function mount(
       crosshair.marker.setAttribute('visibility', 'hidden')
       return
     }
-    const datum = synchronizedCursorDatumAtDate(
-      view,
-      currentInput.revision,
-      focusedDate,
-    )
+    const rows = synchronizedCursorData(currentInput.revision)
+    const datum = synchronizedCursorDatumAtDate(rows, focusedDate)
     const x = scene.scales.x.map(focusedDate)
     crosshair.line.setAttribute('x1', String(x))
     crosshair.line.setAttribute('x2', String(x))
@@ -170,7 +176,7 @@ export function mount(
       crosshair.marker.setAttribute('cx', String(x))
       crosshair.marker.setAttribute(
         'cy',
-        String(scene.scales.y.map(datum.value)),
+        String(scene.scales.y.map(datum[view])),
       )
       crosshair.marker.setAttribute('visibility', 'visible')
     } else {
@@ -188,15 +194,13 @@ export function mount(
     )
   }
 
-  const setFocusedDate = (
-    points: readonly ChartPoint<SynchronizedCursorDatum>[],
-  ) => {
+  const setFocusedDate = (points: readonly ChartPoint<TravelersRow>[]) => {
     if (!points.length && pinnedDate) return
     focusedDate = points[0]?.datum.date ?? null
     paintAll()
   }
 
-  const selectDate = (point: ChartPoint<SynchronizedCursorDatum> | null) => {
+  const selectDate = (point: ChartPoint<TravelersRow> | null) => {
     if (!point) return
     if (pinnedDate?.getTime() === point.datum.date.getTime()) {
       pinnedDate = null
@@ -219,14 +223,14 @@ export function mount(
 
   const onRender =
     (view: SynchronizedCursorView) =>
-    (context: ChartRenderContext<SynchronizedCursorDatum>) => {
+    (context: ChartRenderContext<TravelersRow>) => {
       scenes[view] = context.scene
       paintView(view)
     }
 
   const options = (
     view: SynchronizedCursorView,
-  ): ChartHostOptions<SynchronizedCursorDatum> => ({
+  ): ChartHostOptions<TravelersRow> => ({
     definition: defineChart(
       definition({
         ...currentInput,
@@ -242,21 +246,21 @@ export function mount(
     width: currentInput.width,
     height: viewHeight(),
     ariaLabel:
-      view === 'primary'
-        ? 'Linked primary throughput time series'
-        : 'Linked secondary error-rate time series',
+      view === 'current'
+        ? 'Linked 2020 airport travelers time series'
+        : 'Linked 2019 airport travelers time series',
     onFocusGroupChange: setFocusedDate,
     onSelect: selectDate,
     onRender: onRender(view),
   })
 
   sizeShell()
-  const primaryHost = mountChart(primarySurface, options('primary'))
-  const secondaryHost = mountChart(secondarySurface, options('secondary'))
-  elements.primary = createCrosshair(primarySurface)
-  elements.secondary = createCrosshair(secondarySurface)
-  scenes.primary = primaryHost.getScene()
-  scenes.secondary = secondaryHost.getScene()
+  const currentHost = mountChart(currentSurface, options('current'))
+  const previousHost = mountChart(previousSurface, options('previous'))
+  elements.current = createCrosshair(currentSurface)
+  elements.previous = createCrosshair(previousSurface)
+  scenes.current = currentHost.getScene()
+  scenes.previous = previousHost.getScene()
   paintAll()
 
   const driver = createDriver(
@@ -273,14 +277,14 @@ export function mount(
     update(nextInput) {
       currentInput = nextInput
       sizeShell()
-      primaryHost.update(options('primary'))
-      secondaryHost.update(options('secondary'))
+      currentHost.update(options('current'))
+      previousHost.update(options('previous'))
       paintAll()
     },
     destroy() {
       shell.removeEventListener('keydown', handleKeyDown)
-      primaryHost.destroy()
-      secondaryHost.destroy()
+      currentHost.destroy()
+      previousHost.destroy()
       shell.remove()
     },
   }
@@ -323,7 +327,7 @@ function createCrosshair(surface: HTMLDivElement): CrosshairElements {
 function createDriver(
   surfaces: Readonly<Record<SynchronizedCursorView, HTMLDivElement>>,
   scenes: Readonly<
-    Record<SynchronizedCursorView, ChartScene<SynchronizedCursorDatum> | null>
+    Record<SynchronizedCursorView, ChartScene<TravelersRow> | null>
   >,
   elements: Readonly<Record<SynchronizedCursorView, CrosshairElements | null>>,
   getInput: () => ConformanceInput,
@@ -359,7 +363,7 @@ function createDriver(
 function resolveTarget(
   surfaces: Readonly<Record<SynchronizedCursorView, HTMLDivElement>>,
   scenes: Readonly<
-    Record<SynchronizedCursorView, ChartScene<SynchronizedCursorDatum> | null>
+    Record<SynchronizedCursorView, ChartScene<TravelersRow> | null>
   >,
   input: ConformanceInput,
   target: ConformanceTarget,
@@ -368,20 +372,21 @@ function resolveTarget(
   const date = synchronizedCursorAnchorDate(target.anchor)
   if (!view || !date) return null
   const scene = scenes[view]
-  const datum = synchronizedCursorNearestDatum(view, input.revision, date)
+  const rows = synchronizedCursorData(input.revision)
+  const datum = synchronizedCursorNearestDatum(rows, date)
   if (!scene || !datum) return null
   return scenePointToClient(
     surfaces[view],
     scene,
     scene.scales.x.map(date),
-    scene.scales.y.map(datum.value),
+    scene.scales.y.map(datum[view]),
   )
 }
 
 function geometry(
   surfaces: Readonly<Record<SynchronizedCursorView, HTMLDivElement>>,
   scenes: Readonly<
-    Record<SynchronizedCursorView, ChartScene<SynchronizedCursorDatum> | null>
+    Record<SynchronizedCursorView, ChartScene<TravelersRow> | null>
   >,
   input: ConformanceInput,
   query: ConformanceGeometryQuery,
@@ -394,12 +399,12 @@ function geometry(
   const svgBounds = svg.getBoundingClientRect()
   const scaleX = svgBounds.width / scene.width
   const scaleY = svgBounds.height / scene.height
-  const rows = synchronizedCursorData(view, input.revision)
+  const rows = synchronizedCursorData(input.revision)
 
   if (query.role === 'dot') {
     return rows.map((datum) => ({
       x: svgBounds.left + scene.scales.x.map(datum.date) * scaleX - 3 * scaleX,
-      y: svgBounds.top + scene.scales.y.map(datum.value) * scaleY - 3 * scaleY,
+      y: svgBounds.top + scene.scales.y.map(datum[view]) * scaleY - 3 * scaleY,
       width: 6 * scaleX,
       height: 6 * scaleY,
       paint: synchronizedCursorColors[view],
@@ -409,7 +414,7 @@ function geometry(
   if (query.role === 'line') {
     const points = rows.map((datum): readonly [number, number] => [
       scene.scales.x.map(datum.date),
-      scene.scales.y.map(datum.value),
+      scene.scales.y.map(datum[view]),
     ])
     const sample = pointsBounds(
       points,
@@ -427,12 +432,12 @@ function geometry(
 function synchronizedView(
   view: string | undefined,
 ): SynchronizedCursorView | null {
-  return view === 'primary' || view === 'secondary' ? view : null
+  return view === 'current' || view === 'previous' ? view : null
 }
 
 function scenePointToClient(
   surface: HTMLDivElement,
-  scene: ChartScene<SynchronizedCursorDatum>,
+  scene: ChartScene<TravelersRow>,
   x: number,
   y: number,
 ) {
@@ -448,7 +453,7 @@ function scenePointToClient(
 
 function sceneChartBounds(
   surface: HTMLDivElement,
-  scene: ChartScene<SynchronizedCursorDatum>,
+  scene: ChartScene<TravelersRow>,
 ): ConformanceGeometrySample | null {
   const svg = surface.querySelector<SVGSVGElement>('svg.ts-chart')
   if (!svg) return null
@@ -488,37 +493,45 @@ function pointsBounds(
 
 function interactionState(
   scenes: Readonly<
-    Record<SynchronizedCursorView, ChartScene<SynchronizedCursorDatum> | null>
+    Record<SynchronizedCursorView, ChartScene<TravelersRow> | null>
   >,
   elements: Readonly<Record<SynchronizedCursorView, CrosshairElements | null>>,
   input: ConformanceInput,
   date: Date | null,
   pinned: boolean,
 ): ConformanceJsonObject {
+  const rows = synchronizedCursorData(input.revision)
+  const currentCrosshair = renderedCrosshairState(
+    scenes.current,
+    elements.current,
+  )
+  const previousCrosshair = renderedCrosshairState(
+    scenes.previous,
+    elements.previous,
+  )
   return {
     shared: {
       date: date ? synchronizedCursorDateKey(date) : null,
-      primaryValue: date
-        ? (synchronizedCursorDatumAtDate('primary', input.revision, date)
-            ?.value ?? null)
+      currentValue: date
+        ? (synchronizedCursorDatumAtDate(rows, date)?.current ?? null)
         : null,
-      secondaryValue: date
-        ? (synchronizedCursorDatumAtDate('secondary', input.revision, date)
-            ?.value ?? null)
+      previousValue: date
+        ? (synchronizedCursorDatumAtDate(rows, date)?.previous ?? null)
         : null,
       pinned,
     },
     crosshairs: {
-      primary: renderedCrosshairState(scenes.primary, elements.primary),
-      secondary: renderedCrosshairState(scenes.secondary, elements.secondary),
+      aligned: crosshairsAligned(currentCrosshair, previousCrosshair),
+      current: currentCrosshair,
+      previous: previousCrosshair,
     },
   }
 }
 
 function renderedCrosshairState(
-  scene: ChartScene<SynchronizedCursorDatum> | null,
+  scene: ChartScene<TravelersRow> | null,
   elements: CrosshairElements | null,
-): ConformanceJsonObject {
+) {
   const x = Number(elements?.line.getAttribute('x1'))
   const visible =
     Boolean(scene && elements?.line.isConnected) &&
@@ -529,4 +542,15 @@ function renderedCrosshairState(
     xNormalized:
       visible && scene ? (x - scene.chart.x) / scene.chart.width : null,
   }
+}
+
+function crosshairsAligned(
+  current: ReturnType<typeof renderedCrosshairState>,
+  previous: ReturnType<typeof renderedCrosshairState>,
+) {
+  return (
+    current.xNormalized !== null &&
+    previous.xNormalized !== null &&
+    Math.abs(current.xNormalized - previous.xNormalized) < 0.005
+  )
 }

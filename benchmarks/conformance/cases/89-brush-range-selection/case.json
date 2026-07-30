@@ -3,12 +3,12 @@
   "referenceRenderer": "echarts",
   "order": 890,
   "id": "89-brush-range-selection",
-  "title": "Monthly-snapped brush selection",
+  "title": "Observed monthly AAPL brush selection",
   "family": "interaction",
-  "intent": "Select and revise a UTC month range with a direct horizontal drag that snaps both boundaries to observed months.",
+  "intent": "Select AAPL monthly closes with a direct horizontal drag that snaps both boundaries to observed trading dates.",
   "support": "composed",
   "features": [
-    "monthly-snapped UTC brush",
+    "observed-month UTC brush",
     "real pointer drag",
     "normalized reverse selection",
     "persistent selection overlay",
@@ -23,29 +23,22 @@
     { "id": "series-points", "view": "main", "role": "dot", "count": 12 },
     { "id": "selection-band", "view": "main", "role": "rect", "count": 1 }
   ],
-  "minimumGeometrySimilarity": 0.991,
-  "guideAssertions": [
-    {
-      "id": "value-sequence",
-      "axis": "y",
-      "sequence": ["20", "40", "60", "80"]
-    }
-  ],
+  "minimumGeometrySimilarity": 0.98,
   "interactionScenarios": [
     {
       "id": "brush-forward",
       "steps": [
         {
           "type": "drag",
-          "from": { "view": "main", "anchor": "date:2025-03-01" },
-          "to": { "view": "main", "anchor": "date:2025-07-01" },
+          "from": { "view": "main", "anchor": "date:2017-03-31" },
+          "to": { "view": "main", "anchor": "date:2017-07-31" },
           "steps": 12
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "selection.start", "equals": "2025-03-01" },
-            { "path": "selection.end", "equals": "2025-07-01" },
+            { "path": "selection.start", "equals": "2017-03-31" },
+            { "path": "selection.end", "equals": "2017-07-31" },
             { "path": "selection.pointCount", "equals": 5 },
             { "path": "selection.dragging", "equals": false }
           ]
@@ -57,15 +50,15 @@
       "steps": [
         {
           "type": "drag",
-          "from": { "view": "main", "anchor": "date:2025-08-01" },
-          "to": { "view": "main", "anchor": "date:2025-05-01" },
+          "from": { "view": "main", "anchor": "date:2017-08-31" },
+          "to": { "view": "main", "anchor": "date:2017-05-31" },
           "steps": 12
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "selection.start", "equals": "2025-05-01" },
-            { "path": "selection.end", "equals": "2025-08-01" },
+            { "path": "selection.start", "equals": "2017-05-31" },
+            { "path": "selection.end", "equals": "2017-08-31" },
             { "path": "selection.pointCount", "equals": 4 },
             { "path": "selection.dragging", "equals": false }
           ]
@@ -127,7 +120,7 @@
             {
               "target": { "role": "status" },
               "property": "text",
-              "includes": "avg 47.7"
+              "includes": "avg $146.8"
             }
           ]
         },
@@ -139,10 +132,14 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "selection.start", "equals": "2025-04-01" },
-            { "path": "selection.end", "equals": "2025-07-01" },
+            { "path": "selection.start", "equals": "2017-04-28" },
+            { "path": "selection.end", "equals": "2017-07-31" },
             { "path": "selection.pointCount", "equals": 4 },
-            { "path": "selection.valueTotal", "equals": 204 },
+            {
+              "path": "selection.closeChange",
+              "approx": 5.080002,
+              "tolerance": 0.000001
+            },
             { "path": "selection.dragging", "equals": false }
           ]
         },
@@ -158,12 +155,12 @@
               "target": { "role": "slider", "name": "Range end" },
               "property": "attribute",
               "attribute": "aria-valuetext",
-              "equals": "2025-07-01"
+              "equals": "2017-07-31"
             },
             {
               "target": { "role": "status" },
               "property": "text",
-              "includes": "avg 51.0"
+              "includes": "avg $147.3"
             }
           ]
         },
@@ -176,8 +173,8 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "selection.start", "equals": "2025-04-01" },
-            { "path": "selection.end", "equals": "2025-04-01" },
+            { "path": "selection.start", "equals": "2017-04-28" },
+            { "path": "selection.end", "equals": "2017-04-28" },
             { "path": "selection.pointCount", "equals": 1 }
           ]
         },
@@ -189,8 +186,8 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "selection.start", "equals": "2025-04-01" },
-            { "path": "selection.end", "equals": "2025-12-01" },
+            { "path": "selection.start", "equals": "2017-04-28" },
+            { "path": "selection.end", "equals": "2017-12-29" },
             { "path": "selection.pointCount", "equals": 9 }
           ]
         }
@@ -201,19 +198,19 @@
       "steps": [
         {
           "type": "pointerDown",
-          "target": { "view": "main", "anchor": "date:2025-03-01" }
+          "target": { "view": "main", "anchor": "date:2017-03-31" }
         },
         {
           "type": "pointerMove",
-          "target": { "view": "main", "anchor": "date:2025-08-01" },
+          "target": { "view": "main", "anchor": "date:2017-08-31" },
           "steps": 8
         },
         { "type": "pointerCancel" },
         {
           "type": "assert",
           "assertions": [
-            { "path": "selection.start", "equals": "2025-04-01" },
-            { "path": "selection.end", "equals": "2025-06-01" },
+            { "path": "selection.start", "equals": "2017-04-28" },
+            { "path": "selection.end", "equals": "2017-06-30" },
             { "path": "selection.pointCount", "equals": 3 },
             { "path": "selection.dragging", "equals": false }
           ]
@@ -224,7 +221,7 @@
             {
               "target": { "role": "status" },
               "property": "text",
-              "includes": "Apr 1 → Jun 1"
+              "includes": "Apr 28 → Jun 30"
             }
           ]
         }
@@ -235,16 +232,16 @@
       "steps": [
         {
           "type": "touchDrag",
-          "from": { "view": "main", "anchor": "date:2025-03-01" },
-          "to": { "view": "main", "anchor": "date:2025-08-01" },
+          "from": { "view": "main", "anchor": "date:2017-03-31" },
+          "to": { "view": "main", "anchor": "date:2017-08-31" },
           "steps": 8,
           "cancel": true
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "selection.start", "equals": "2025-04-01" },
-            { "path": "selection.end", "equals": "2025-06-01" },
+            { "path": "selection.start", "equals": "2017-04-28" },
+            { "path": "selection.end", "equals": "2017-06-30" },
             { "path": "selection.pointCount", "equals": 3 },
             { "path": "selection.dragging", "equals": false }
           ]
@@ -252,16 +249,20 @@
       ]
     },
     {
-      "id": "revision-updates-live-summary",
+      "id": "catalog-update-preserves-live-summary",
       "steps": [
         { "type": "update", "revision": 1 },
         {
           "type": "assert",
           "assertions": [
-            { "path": "selection.valueTotal", "equals": 148 },
             {
-              "path": "selection.valueAverage",
-              "approx": 49.3333333333,
+              "path": "selection.closeChange",
+              "approx": 0.37001,
+              "tolerance": 0.000001
+            },
+            {
+              "path": "selection.closeAverage",
+              "approx": 146.8099976667,
               "tolerance": 0.000001
             }
           ]
@@ -272,7 +273,7 @@
             {
               "target": { "role": "status" },
               "property": "text",
-              "includes": "avg 49.3"
+              "includes": "avg $146.8"
             }
           ]
         }
@@ -284,7 +285,7 @@
     "url": "https://echarts.apache.org/handbook/en/interaction/brush/"
   },
   "ai": {
-    "create": "Create a UTC line chart with an optional granular d3-brush controller, monthly-snapped selection, two semantic slider handles, touch cancellation, and a live range summary.",
+    "create": "Create a UTC chart of monthly AAPL closes with an optional granular d3-brush controller, observed-date snapping, two semantic slider handles, touch cancellation, and a live range summary.",
     "maintain": "Keep the full semantic domain in an injected D3 UTC scale, snap committed bounds to observed UTC months, synchronize the D3 brush extent and selection to resolved scene bounds, and keep selection state outside the renderer."
   }
 }

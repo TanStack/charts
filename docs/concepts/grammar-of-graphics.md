@@ -26,19 +26,20 @@ The result is one `ChartSpec` compiled into a renderer-neutral scene.
 ## The smallest useful declaration
 
 ```ts
-import { scaleLinear } from 'd3-scale'
-import { defineChart, lineY } from '@tanstack/charts'
-
-const values = [4, 9, 7, 12]
+import { alphabet } from '@charts-poc/demo-data/alphabet'
+import { scaleBand, scaleLinear } from 'd3-scale'
+import { barY, defineChart } from '@tanstack/charts'
 
 const chart = defineChart({
-  marks: [lineY(values)],
-  x: { scale: scaleLinear },
+  marks: [barY(alphabet, { x: 'letter', y: 'frequency' })],
+  x: { scale: scaleBand },
   y: { scale: scaleLinear, nice: true },
 })
 ```
 
-`lineY(values)` uses the array index for `x` and the numeric datum for `y`. Supplying explicit channels makes the same grammar work with application rows.
+The mark consumes the published letter-frequency rows directly and maps their
+existing fields to x and y. No universal series wrapper or renamed chart fields
+sit between the source data and the mark.
 
 Because this example imports `d3-scale` directly, add `d3-scale` and `@types/d3-scale` as direct dependencies. [Scales and D3](./scales-and-d3.md) explains why scales remain explicit.
 
@@ -52,12 +53,10 @@ const marks = [
     x: 'date',
     y1: 'low',
     y2: 'high',
-    key: 'id',
   }),
   lineY(actualRows, {
     x: 'date',
     y: 'value',
-    key: 'id',
   }),
   ruleY([target]),
 ]
@@ -76,14 +75,16 @@ lineY(rows, {
   x: 'date',
   y: 'revenue',
   z: 'region',
-  key: 'id',
 })
 ```
 
 - `lineY` chooses connected line geometry.
 - `x` and `y` map compatible fields to positional channels.
 - `z` partitions observations into independent lines and feeds the default categorical color mapping.
-- `key` preserves observation identity across updates.
+
+Built-in marks infer observation identity from a unique top-level `id`, nested
+`data.id`, or mark-specific positional value. Add `key` only when none
+represents the entity.
 
 Choose a mark for the analytical task, then layer other marks to add context. [Marks and Layering](./marks-and-layering.md) describes the built-in families.
 
@@ -97,7 +98,6 @@ dot(rows, {
   y: 'retention',
   z: 'segment',
   r: 'accounts',
-  key: 'id',
 })
 ```
 
@@ -107,7 +107,6 @@ It can also be an accessor when the value is derived:
 dot(rows, {
   x: (row) => row.revenue / row.accounts,
   y: 'retention',
-  key: 'id',
 })
 ```
 
@@ -164,72 +163,48 @@ Omitted margins are measured from the actual guides. See [Layout, Axes, and Coor
 Marks render in array order. Put context behind the primary data and annotations above it:
 
 ```ts
+import { weather } from '@charts-poc/demo-data/weather'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
-import {
-  areaY,
-  barY,
-  d3Curve,
-  defineChart,
-  dot,
-  lineY,
-  ruleY,
-} from '@tanstack/charts'
+import { areaY, barY, d3Curve, defineChart, dot, lineY } from '@tanstack/charts'
 
-interface Quarter {
-  id: string
-  quarter: string
-  revenue: number
-  forecast: number
-}
-
-const quarters: readonly Quarter[] = [
-  { id: 'q1', quarter: 'Q1', revenue: 38, forecast: 35 },
-  { id: 'q2', quarter: 'Q2', revenue: 45, forecast: 43 },
-  { id: 'q3', quarter: 'Q3', revenue: 41, forecast: 46 },
-  { id: 'q4', quarter: 'Q4', revenue: 54, forecast: 51 },
-]
+const rows = weather.filter((row) => row.location === 'Seattle').slice(37, 43)
 
 const composedChart = defineChart({
   marks: [
-    ruleY([40], { stroke: '#94a3b8', strokeOpacity: 0.65 }),
-    areaY(quarters, {
-      x: 'quarter',
-      y1: 'forecast',
-      y2: 'revenue',
-      key: 'id',
-      fill: '#60a5fa',
-      fillOpacity: 0.16,
-    }),
-    barY(quarters, {
-      x: 'quarter',
-      y: 'revenue',
-      key: 'id',
-      fill: '#bfdbfe',
-      inset: 12,
-    }),
-    lineY(quarters, {
-      x: 'quarter',
-      y: 'forecast',
-      key: 'id',
-      stroke: '#f97316',
+    areaY(rows, {
+      x: 'date',
+      y: 'temp_max',
+      fill: '#8884d8',
+      fillOpacity: 0.2,
+      stroke: '#8884d8',
       curve: d3Curve(curveMonotoneX),
     }),
-    dot(quarters, {
-      x: 'quarter',
-      y: 'revenue',
-      key: 'id',
+    barY(rows, {
+      x: 'date',
+      y: 'precipitation',
+      fill: '#413ea0',
+      inset: 10,
+    }),
+    lineY(rows, {
+      x: 'date',
+      y: 'temp_min',
+      stroke: '#ff7300',
+      curve: d3Curve(curveMonotoneX),
+    }),
+    dot(rows, {
+      x: 'date',
+      y: 'wind',
       r: 4,
-      fill: '#2563eb',
+      fill: '#ef4444',
     }),
   ],
   x: {
-    scale: () => scaleBand<string>().padding(0.12),
-    label: 'Quarter',
+    scale: () => scaleBand<Date>().padding(0.12),
+    label: 'Date',
   },
   y: {
-    scale: scaleLinear().domain([0, 60]).nice(),
-    label: 'Revenue',
+    scale: scaleLinear,
     grid: true,
   },
 })
@@ -239,7 +214,7 @@ This source imports `d3-scale` and `d3-shape` directly, so add those modules and
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/70-composed-chart/?theme=system&height=400"
-  title="Layered area, bar, line, and dot composition built with TanStack Charts"
+  title="Layered Seattle weather area, bars, line, and wind points built with TanStack Charts"
   loading="lazy"
   width="100%"
   height="400"
