@@ -84,7 +84,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/reference/marks/rules-links-arrows-vectors-and-ticks.md — Rules, Links, Arrows, Vectors, and Ticks: Reference for ruleX, ruleY, link, arrow, vector, tickX, and tickY geometry, channels, defaults, curves, and focus anchors.
 - docs/reference/marks/text-frame-and-facet.md — Text, Frame, and Facet Marks: Reference for data labels, chart frames, responsive small multiples, shared or per-cell axes, labels, and facet constraints.
 - docs/reference/marks/geo.md — Geo Shape Mark: Reference for projecting GeoJSON with an opt-in D3-backed geoShape mark.
-- docs/reference/marks/polar.md — Polar Marks: Reference for the opt-in polar container, radial marks, guides, configured scales, and D3-backed geometry.
+- docs/reference/marks/polar.md — Polar Marks: Reference for the opt-in polar container, radial marks, guides, D3 scale factories, and D3-backed geometry.
 
 Authoring rules:
 

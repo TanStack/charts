@@ -32,7 +32,7 @@ Use the official D3 pages as the API reference for each algorithm. TanStack Char
 
 | Need                                                               | D3 module                                                   | How it enters TanStack Charts                                                                     |
 | ------------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Quantitative, temporal, categorical, log, radial, and color scales | [`d3-scale`](https://d3js.org/d3-scale)                     | Pass the configured scale to an axis, polar coordinate, `color.scale`, `rScale`, or custom mark   |
+| Quantitative, temporal, categorical, log, radial, and color scales | [`d3-scale`](https://d3js.org/d3-scale)                     | Pass a factory for an inferred domain or an instance for a fixed domain                           |
 | Sequential, diverging, and categorical color schemes               | [`d3-scale-chromatic`](https://d3js.org/d3-scale-chromatic) | Pass an interpolator or scheme to a configured D3 color scale                                     |
 | Extents, grouping, aggregation, bins, sorting, and statistics      | [`d3-array`](https://d3js.org/d3-array)                     | Convert source data into rows, domains, or thresholds before creating marks                       |
 | Stacks, pies, arcs, curves, and shape generators                   | [`d3-shape`](https://d3js.org/d3-shape)                     | Feed pie intervals and curve factories to polar marks, or bridge a Cartesian curve with `d3Curve` |
@@ -55,13 +55,10 @@ Every `ChartSpec` declares `x` and `y`:
 ```ts
 import { scaleLinear, scaleUtc } from 'd3-scale'
 
-const xScale = scaleUtc().domain([firstDate, lastDate]).nice()
-const yScale = scaleLinear().domain([0, maximum]).nice()
-
 const spec = {
   marks,
-  x: { scale: xScale },
-  y: { scale: yScale },
+  x: { scale: scaleUtc, nice: true },
+  y: { scale: scaleLinear, nice: true },
 }
 ```
 
@@ -77,32 +74,56 @@ const borderOnlyChart = defineChart({
 })
 ```
 
-A mark with x values needs an x scale. A mark with y values needs a y scale. Missing positional scales are authoring errors instead of invitations for the runtime to guess a semantic domain.
+A mark with x values needs an x scale. A mark with y values needs a y scale.
+The scale factory chooses the mapping; materialized mark channels supply its
+domain.
 
-## Domains are application semantics
+## Factory domains come from marks
 
-Set complete domains before passing scales to the chart:
+Pass the D3 factory itself when the domain should cover the rendered data:
 
 ```ts
-import { extent, max } from 'd3-array'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 
-const [firstDate, lastDate] = extent(rows, (row) => row.date)
-const dateDomain: [Date, Date] =
-  firstDate && lastDate
-    ? [firstDate, lastDate]
-    : [new Date(0), new Date(86_400_000)]
-const valueMaximum = max(rows, (row) => row.value) ?? 0
-
-const xScale = scaleUtc().domain(dateDomain).nice()
-const yScale = scaleLinear().domain([0, valueMaximum]).nice()
+const chart = defineChart({
+  marks: [lineY(rows, { x: 'date', y: 'value' })],
+  x: { scale: scaleUtc, nice: true },
+  y: { scale: scaleLinear, nice: true },
+})
 ```
 
-The fallback is part of application semantics. A revenue chart might use `[0, 1]` for an empty state, while a normalized ratio chart might always use `[0, 1]`. TanStack Charts cannot infer which policy is truthful.
+Continuous factories use the finite extent of their channels. Band and point
+factories use distinct values in first-seen order. Bars and areas include zero
+when they use an implicit zero baseline. Empty channels retain the factory's
+native D3 domain.
+
+Return a scale from a zero-argument factory when it needs configuration before
+domain inference:
+
+```ts
+const x = {
+  scale: () => scaleBand<string>().padding(0.16),
+}
+```
+
+Use the axis `nice` option because nicening must happen after inference.
+
+## Fixed domains remain application semantics
+
+Pass a scale instance when the domain must not follow the rendered marks:
+
+```ts
+const normalizedY = {
+  scale: scaleLinear().domain([0, 1]),
+}
+
+const windowedX = {
+  scale: scaleUtc().domain([windowStart, windowEnd]),
+}
+```
 
 Be equally deliberate with:
 
-- Whether zero belongs in a quantitative domain
 - Whether a log scale is valid for all values
 - Whether time is local or UTC
 - Which categories exist when some are filtered out
@@ -114,13 +135,13 @@ Be equally deliberate with:
 Do not assign pixel ranges to positional scales used by the chart:
 
 ```ts
-const xScale = scaleUtc().domain(dateDomain)
-const yScale = scaleLinear().domain(valueDomain)
+const xScale = scaleUtc
+const yScale = scaleLinear
 ```
 
 For each scene, TanStack Charts:
 
-1. Copies the configured scale.
+1. Creates a factory scale or copies a configured instance.
 2. Calculates the plot rectangle after guide measurement.
 3. Assigns the current responsive pixel range to the copy.
 4. Uses the copy for marks, ticks, grids, and interaction points.
@@ -131,22 +152,20 @@ The `reverse` axis option reverses the responsive range without changing the dom
 
 ```ts
 const y = {
-  scale: scaleLinear().domain([0, maximum]),
+  scale: scaleLinear,
   reverse: true,
 }
 ```
 
 ## Categorical scales and bandwidth
 
-Pass a configured D3 band scale for categorical positions:
+Pass a D3 band-scale factory for categorical positions:
 
 ```ts
 import { scaleBand } from 'd3-scale'
 
-const categoryScale = scaleBand<string>()
-  .domain(rows.map((row) => row.category))
-  .paddingInner(0.12)
-  .paddingOuter(0.06)
+const categoryScale = () =>
+  scaleBand<string>().paddingInner(0.12).paddingOuter(0.06)
 ```
 
 TanStack Charts applies the plot range, reads the scale bandwidth, and treats the mapped value as the center of the band for mark and interaction coordinates. Bars use the primary bandwidth by default.
@@ -165,7 +184,7 @@ const chart = defineChart({
 })
 ```
 
-Use a configured D3 color scale for semantic stability or a continuous encoding:
+Use a configured D3 color scale for semantic stability:
 
 ```ts
 import { scaleOrdinal } from 'd3-scale'
@@ -188,6 +207,14 @@ const chart = defineChart({
 
 The color scale is copied before use. Unlike positional scales, its range is semantic color output and remains the range you configured.
 
+Use a factory when a custom color mapping should infer its domain:
+
+```ts
+const color = {
+  scale: () => scaleOrdinal<string, string>().range(['#2563eb', '#f97316']),
+}
+```
+
 ## Radius scales
 
 `dot` treats `r` as pixels unless `rScale` is supplied:
@@ -195,17 +222,19 @@ The color scale is copied before use. Unlike positional scales, its range is sem
 ```ts
 import { scaleSqrt } from 'd3-scale'
 
-const radius = scaleSqrt().domain([0, accountMaximum]).range([3, 24])
-
 dot(rows, {
   x: 'revenue',
   y: 'retention',
   r: 'accounts',
-  rScale: radius,
+  rScale: {
+    scale: () => scaleSqrt().range([3, 24]),
+  },
 })
 ```
 
-TanStack Charts calls the function you supply. D3 owns the radius mapping; the chart owns dot geometry and rendering.
+The radius factory infers `[0, maximum]` from `r`. A configured scale instance
+still keeps its explicit domain. D3 owns the radius mapping; the chart owns dot
+geometry and rendering.
 
 ## Curves
 

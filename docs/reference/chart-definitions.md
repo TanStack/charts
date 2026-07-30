@@ -38,8 +38,8 @@ Use a static definition when its data and visual options are already known:
 ```ts
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value', key: 'id' })],
-  x: { scale: scaleUtc().domain(dateDomain) },
-  y: { scale: scaleLinear().domain(valueDomain).nice(), grid: true },
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear, nice: true, grid: true },
   focus: 'group-x',
   tooltip: {
     anchor: 'group-center',
@@ -58,9 +58,10 @@ const definition = defineChart({
   animate: true,
   chart: ({ width }) => ({
     marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
-    x: { scale: scaleBand().domain(categories) },
+    x: { scale: scaleBand },
     y: {
-      scale: scaleLinear().domain(valueDomain).nice(),
+      scale: scaleLinear,
+      nice: true,
       ticks: width < 480 ? 4 : 7,
       grid: true,
     },
@@ -102,13 +103,12 @@ const definition = useMemo(() => {
   return defineChart(({ width }) => ({
     marks: [barX(ranked, { x: 'value', y: 'label', key: 'id' })],
     x: {
-      scale: scaleLinear().domain(valueDomain(ranked)).nice(),
+      scale: scaleLinear,
+      nice: true,
       ticks: width < 480 ? 4 : 7,
     },
     y: {
-      scale: scaleBand()
-        .domain(ranked.map((row) => row.label))
-        .padding(0.1),
+      scale: () => scaleBand().padding(0.1),
     },
   }))
 }, [rows, metric])

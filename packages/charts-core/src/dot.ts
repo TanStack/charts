@@ -6,11 +6,13 @@ import {
   isChartValue,
   isNonnegativeFiniteNumber,
 } from './mark'
+import { resolveNumericScale } from './scale-input'
 import { valueKey } from './scales'
 import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartNumericScale,
   ChartPoint,
   ChartValue,
   OptionChannelOutput,
@@ -24,7 +26,7 @@ export interface DotOptions<TDatum> {
   z?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   r?: number | Channel<TDatum, number | null | undefined>
-  rScale?: (value: number) => number
+  rScale?: ChartNumericScale
   fill?: string
   fillOpacity?: number
   stroke?: string
@@ -64,7 +66,7 @@ export function dot<TDatum>(
       typeof options.r === 'number'
         ? data.map(() => options.r as number)
         : channelValues(data, options.r, () => 3.5)
-    const radiusMapper = options.rScale
+    const radiusMapper = resolveNumericScale(options.rScale, rawRadii)
     const radii = radiusMapper
       ? rawRadii.map((value) =>
           isNonnegativeFiniteNumber(value) ? radiusMapper(value) : Number.NaN,

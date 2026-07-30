@@ -1,8 +1,11 @@
 import { scaleOrdinal } from 'd3-scale'
 import type {
+  ChartColorScaleFactory,
   ChartColorOptions,
   ChartKey,
   ChartTheme,
+  ConfiguredColorScaleLike,
+  InferableColorScaleLike,
   ResolvedColorScale,
 } from './types'
 
@@ -12,7 +15,40 @@ export function createColorScale(
   theme: ChartTheme,
 ): ResolvedColorScale {
   if (options?.scale) {
-    const scale = options.scale.copy()
+    const infer = isColorScaleFactory(options.scale)
+    const source = infer
+      ? (options.scale as unknown as () => InferableColorScaleLike<any, any>)()
+      : options.scale
+    if (typeof source !== 'function' || typeof source.copy !== 'function') {
+      throw new TypeError('A color scale must be callable and copyable')
+    }
+    if (
+      infer &&
+      (typeof source.domain !== 'function' ||
+        typeof source.range !== 'function')
+    ) {
+      throw new TypeError(
+        'A color scale factory must return a scale with domain and range methods',
+      )
+    }
+    const scale = (source as ConfiguredColorScaleLike<any, any>).copy()
+    if (infer) {
+      const inferable = scale as InferableColorScaleLike<any, any>
+      const domain = options.domain ?? inferColorDomain(inferable, values)
+      if (domain.length) {
+        inferable.domain(domain)
+      }
+      if (options.range?.length) {
+        inferable.range(options.range)
+      }
+    }
+    if (options.nice) {
+      const nice = (scale as InferableColorScaleLike<any, any>).nice
+      if (typeof nice !== 'function') {
+        throw new TypeError('This color scale does not support nicening')
+      }
+      nice.call(scale, typeof options.nice === 'number' ? options.nice : 5)
+    }
     const domain = scale.domain?.() ?? options.domain ?? []
     const range = (scale.range?.() ?? options.range ?? theme.palette).map(
       String,
@@ -48,6 +84,58 @@ export function createColorScale(
     return ordinal(value)
   }
   return { type: 'ordinal', domain, range, map }
+}
+
+function isColorScaleFactory(
+  source: ConfiguredColorScaleLike<any, any> | ChartColorScaleFactory<any, any>,
+): source is ChartColorScaleFactory<any, any> {
+  return typeof source === 'function' && !('copy' in source)
+}
+
+function inferColorDomain(
+  scale: InferableColorScaleLike<any, any>,
+  values: readonly unknown[],
+): ChartKey[] {
+  const observed = values.filter(
+    (value): value is ChartKey =>
+      typeof value === 'string' ||
+      (typeof value === 'number' && Number.isFinite(value)),
+  )
+  if (typeof scale.ticks === 'function') {
+    let minimum = Infinity
+    let maximum = -Infinity
+    for (const value of observed) {
+      if (typeof value !== 'number') continue
+      minimum = Math.min(minimum, value)
+      maximum = Math.max(maximum, value)
+    }
+    if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) return []
+    if (minimum === maximum) {
+      if (minimum === 0) {
+        maximum = 1
+      } else {
+        const offset = Math.abs(minimum) * 0.05 || 1
+        minimum -= offset
+        maximum += offset
+      }
+    }
+    const stopCount = Math.max(2, scale.domain().length, scale.range().length)
+    return Array.from(
+      { length: stopCount },
+      (_value, index) =>
+        minimum + ((maximum - minimum) * index) / (stopCount - 1),
+    )
+  }
+
+  const domain: ChartKey[] = []
+  const seen = new Set<string>()
+  for (const value of observed) {
+    const key = `${typeof value}:${String(value)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    domain.push(value)
+  }
+  return domain
 }
 
 export function valueKey(value: unknown): string {

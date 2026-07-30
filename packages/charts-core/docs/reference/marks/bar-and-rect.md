@@ -108,20 +108,20 @@ rather than negative geometry.
 
 ## Grouped bars
 
-`groupScale` must be a callable, copyable band scale whose domain contains
-every non-null `z` value:
+Pass a band-scale factory to infer its domain from non-null `z` values:
 
 ```ts
 barY(rows, {
   x: 'quarter',
   y: 'revenue',
   z: 'region',
-  groupScale: scaleBand<string>().domain(regions).padding(0.1),
+  groupScale: () => scaleBand<string>().padding(0.1),
 })
 ```
 
-TanStack Charts copies it and replaces its range with
-`[0, categoricalBandwidth]`. It does not mutate the caller's scale.
+TanStack Charts creates the scale and assigns
+`[0, categoricalBandwidth]` as its range. Pass a configured scale instance
+when subgroup order is fixed independently of the rendered rows.
 
 The mark throws when:
 

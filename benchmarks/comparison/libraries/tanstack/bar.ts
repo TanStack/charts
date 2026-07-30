@@ -33,9 +33,7 @@ const definition = (input: BenchmarkInput) =>
             }),
       ],
       x: {
-        scale: scaleBand<string>()
-          .domain(input.rows.map((row) => row.category))
-          .padding(0.1),
+        scale: () => scaleBand<string>().padding(0.1),
         grid: true,
       },
       y: {

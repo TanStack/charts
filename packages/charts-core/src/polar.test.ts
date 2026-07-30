@@ -517,6 +517,38 @@ describe('polar marks', () => {
     expect(sourceRadius.range()).toEqual([0, 1])
   })
 
+  it('infers angle and radius domains from scale factories', () => {
+    const data = [
+      { direction: 'North', value: 20 },
+      { direction: 'East', value: 40 },
+      { direction: 'South', value: 30 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            angle: { scale: scalePoint<string> },
+            radius: { scale: scaleLinear, nice: true },
+            marks: [
+              radialDot(data, {
+                angle: 'direction',
+                radius: 'value',
+              }),
+            ],
+          }),
+        ],
+        x: null,
+        y: null,
+        guides: false,
+      }),
+      { width: 200, height: 200 },
+    )
+
+    expect(scene.points).toHaveLength(3)
+    expect(scene.points.every((point) => Number.isFinite(point.x))).toBe(true)
+    expect(scene.points.every((point) => Number.isFinite(point.y))).toBe(true)
+  })
+
   it('keeps the optional polar capability off the package root', () => {
     expect('polar' in rootExports).toBe(false)
     expect('radialArc' in rootExports).toBe(false)

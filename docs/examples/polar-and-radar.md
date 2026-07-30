@@ -214,9 +214,8 @@ length is useful for a compact status summary, not fine comparison.
 
 ## Radar profile
 
-Radar combines configured angle and radius scales with polar guides and radial
-marks. TanStack copies both scales and supplies responsive ranges; the source
-scales keep their semantic domains.
+Radar combines an inferred angle factory and a fixed radius instance with
+polar guides and radial marks. TanStack supplies both responsive ranges.
 
 <!-- docs-example: polar-radar typecheck -->
 
@@ -249,7 +248,7 @@ const radar = defineChart({
   marks: [
     polar({
       radiusRatio: 0.72,
-      angle: { scale: scaleBand<string>().domain(metrics) },
+      angle: { scale: scaleBand<string> },
       radius: { scale: scaleLinear().domain([0, 100]).nice(4) },
       guides: [
         radialGrid({ ticks: 4, shape: 'polygon', labels: false }),

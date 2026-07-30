@@ -15,6 +15,7 @@ import {
   visualValue,
 } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
+import { resolveNumericScale, resolveScaleInput } from './scale-input'
 import { valueKey } from './scales'
 import type { Arc, CurveFactory, CurveFactoryLineOnly } from 'd3-shape'
 import type {
@@ -23,10 +24,11 @@ import type {
   ChartBounds,
   ChartKey,
   ChartMark,
+  ChartNumericScale,
   ChartPoint,
   ChartTheme,
   ChartValue,
-  ConfiguredScaleLike,
+  ChartScaleInput,
   MarkScene,
   OptionChannelOutput,
   SceneNode,
@@ -56,7 +58,8 @@ export interface PolarLayoutContext {
 export type PolarLength = number | ((context: PolarLayoutContext) => number)
 
 export interface PolarAngleOptions<TValue extends ChartValue = any> {
-  scale: ConfiguredScaleLike<TValue>
+  scale: ChartScaleInput<TValue>
+  nice?: boolean | number
   /**
    * Avoids placing the first and last points at the same angle for point
    * scales. Defaults to true for a complete revolution and false for a
@@ -66,7 +69,8 @@ export interface PolarAngleOptions<TValue extends ChartValue = any> {
 }
 
 export interface PolarRadiusOptions<TValue extends ChartValue = any> {
-  scale: ConfiguredScaleLike<TValue>
+  scale: ChartScaleInput<TValue>
+  nice?: boolean | number
 }
 
 interface InitializedPolarMark<
@@ -76,6 +80,9 @@ interface InitializedPolarMark<
 > {
   id: string
   colorValues: readonly unknown[]
+  angleValues: readonly unknown[]
+  radiusValues: readonly unknown[]
+  includeZeroRadius: boolean
   requiresAngleScale: boolean
   requiresRadiusScale: boolean
   render: (
@@ -179,7 +186,7 @@ export function polar(
           },
         },
         render: ({ chart, color, theme }) => {
-          const layout = resolvePolarLayout(options, chart)
+          const layout = resolvePolarLayout(options, chart, marks)
           if (marks.some((mark) => mark.requiresAngleScale) && !layout.angle) {
             throw new TypeError(
               `Polar mark in "${id}" requires a configured angle scale`,
@@ -287,6 +294,9 @@ export function radialArc<TDatum>(
     return {
       id,
       colorValues: groups.filter(isChartKey),
+      angleValues: [],
+      radiusValues: [],
+      includeZeroRadius: false,
       requiresAngleScale: false,
       requiresRadiusScale: false,
       render: ({ layout, color: resolveColor }) => {
@@ -462,6 +472,9 @@ export function radialLine<TDatum>(
     return {
       id,
       colorValues: groups.filter(isChartKey),
+      angleValues: angleValues.filter(isChartValue),
+      radiusValues: radiusValues.filter(isChartValue),
+      includeZeroRadius: false,
       requiresAngleScale: true,
       requiresRadiusScale: true,
       render: ({ layout, color: resolveColor }) => {
@@ -626,6 +639,12 @@ export function radialArea<TDatum>(
     return {
       id,
       colorValues: groups.filter(isChartKey),
+      angleValues: angleValues.filter(isChartValue),
+      radiusValues: [
+        ...radiusValues.filter(isChartValue),
+        ...radius1Values.filter(isChartValue),
+      ],
+      includeZeroRadius: options.radius1 === undefined,
       requiresAngleScale: true,
       requiresRadiusScale: true,
       render: ({ layout, color: resolveColor }) => {
@@ -733,7 +752,7 @@ export function radialArea<TDatum>(
 
 export interface RadialDotOptions<TDatum> extends RadialPathOptions<TDatum> {
   r?: number | Channel<TDatum, number | null | undefined>
-  rScale?: (value: number) => number
+  rScale?: ChartNumericScale
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
   stroke?: string
@@ -794,6 +813,9 @@ export function radialText<TDatum>(
     return {
       id,
       colorValues: groups.filter(isChartKey),
+      angleValues: angleValues.filter(isChartValue),
+      radiusValues: radiusValues.filter(isChartValue),
+      includeZeroRadius: false,
       requiresAngleScale: true,
       requiresRadiusScale: true,
       render: ({ layout, color: resolveColor, theme }) => {
@@ -952,6 +974,12 @@ export function radialRule<TDatum>(
     return {
       id,
       colorValues: groups.filter(isChartKey),
+      angleValues: angleValues.filter(isChartValue),
+      radiusValues: [
+        ...radius1Values.filter(isChartValue),
+        ...radius2Values.filter(isChartValue),
+      ],
+      includeZeroRadius: options.radius1 === undefined,
       requiresAngleScale: true,
       requiresRadiusScale: true,
       render: ({ layout, color: resolveColor, theme }) => {
@@ -1058,17 +1086,19 @@ export function radialDot<TDatum>(
       typeof options.r === 'number'
         ? data.map(() => options.r as number)
         : channelValues(data, options.r, () => 3.5)
-    const radii = options.rScale
+    const radiusMapper = resolveNumericScale(options.rScale, rawRadii)
+    const radii = radiusMapper
       ? rawRadii.map((value) =>
-          isNonnegativeFiniteNumber(value)
-            ? options.rScale!(value)
-            : Number.NaN,
+          isNonnegativeFiniteNumber(value) ? radiusMapper(value) : Number.NaN,
         )
       : rawRadii
 
     return {
       id,
       colorValues: groups.filter(isChartKey),
+      angleValues: angleValues.filter(isChartValue),
+      radiusValues: radiusValues.filter(isChartValue),
+      includeZeroRadius: false,
       requiresAngleScale: true,
       requiresRadiusScale: true,
       render: ({ layout, color: resolveColor }) => {
@@ -1389,6 +1419,7 @@ export function angleGrid(options: AngleGridOptions = {}): PolarGuide {
 function resolvePolarLayout(
   options: PolarOptions,
   chart: ChartBounds,
+  marks: readonly InitializedPolarMark[],
 ): PolarLayoutContext {
   const startAngle = finite(options.startAngle, 0)
   const endAngle = finite(options.endAngle, tau)
@@ -1409,29 +1440,43 @@ function resolvePolarLayout(
       options.angle.wrap ?? isCompleteRevolution(startAngle, endAngle)
     layout.angle = resolvePolarScale(
       options.angle.scale,
+      collectPolarValues(marks, 'angleValues'),
       startAngle,
       endAngle,
       wrapPointScale,
+      false,
+      options.angle.nice,
     )
   }
   if (options.radius) {
     layout.radiusScale = resolvePolarScale(
       options.radius.scale,
+      collectPolarValues(marks, 'radiusValues'),
       0,
       radius,
       false,
+      marks.some((mark) => mark.includeZeroRadius),
+      options.radius.nice,
     )
   }
   return layout
 }
 
 function resolvePolarScale(
-  source: ConfiguredScaleLike<any>,
+  source: ChartScaleInput<any>,
+  values: readonly unknown[],
   rangeStart: number,
   rangeEnd: number,
   wrapPointScale: boolean,
+  includeZero: boolean,
+  nice: boolean | number | undefined,
 ): PolarResolvedScale {
-  const scale = source.copy()
+  const scale = resolveScaleInput(source, {
+    values,
+    includeZero,
+    nice,
+    niceCount: 5,
+  })
   const domain = scale.domain().filter(isChartValue)
   const pointScale =
     wrapPointScale &&
@@ -1457,6 +1502,17 @@ function resolvePolarScale(
     ticks: (count) => (scale.ticks?.(count) ?? domain).filter(isChartValue),
     bandwidth,
   }
+}
+
+function collectPolarValues(
+  marks: readonly InitializedPolarMark[],
+  key: 'angleValues' | 'radiusValues',
+): unknown[] {
+  const values: unknown[] = []
+  for (const mark of marks) {
+    for (const value of mark[key]) values.push(value)
+  }
+  return values
 }
 
 function polygonRingPath(angle: PolarResolvedScale, radius: number): string {

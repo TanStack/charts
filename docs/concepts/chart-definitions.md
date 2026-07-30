@@ -26,12 +26,11 @@ const rows = [
 const revenueByRegion = defineChart({
   marks: [barY(rows, { x: 'region', y: 'revenue', key: 'id' })],
   x: {
-    scale: scaleBand<string>()
-      .domain(rows.map((row) => row.region))
-      .padding(0.12),
+    scale: () => scaleBand<string>().padding(0.12),
   },
   y: {
-    scale: scaleLinear().domain([0, 60]).nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Revenue',
     grid: true,
   },
@@ -49,13 +48,12 @@ const productRanking = defineChart({
   chart: ({ width }) => ({
     marks: [barX(ranked, { x: 'value', y: 'product', key: 'id' })],
     x: {
-      scale: scaleLinear().domain([0, maximum]).nice(),
+      scale: scaleLinear,
+      nice: true,
       ticks: width < 480 ? 4 : 7,
     },
     y: {
-      scale: scaleBand<string>()
-        .domain(ranked.map((row) => row.product))
-        .padding(0.1),
+      scale: () => scaleBand<string>().padding(0.1),
     },
   }),
 })
@@ -93,20 +91,18 @@ Definitions capture the values they use. In React:
 function ProductRanking({ rows, metric }: Props) {
   const definition = useMemo(() => {
     const ranked = rankProducts(rows, metric)
-    const maximum = max(ranked, (row) => row.value) ?? 0
 
     return defineChart({
       tooltip: true,
       chart: ({ width }) => ({
         marks: [barX(ranked, { x: 'value', y: 'product', key: 'id' })],
         x: {
-          scale: scaleLinear().domain([0, maximum]).nice(),
+          scale: scaleLinear,
+          nice: true,
           ticks: width < 480 ? 4 : 7,
         },
         y: {
-          scale: scaleBand<string>()
-            .domain(ranked.map((row) => row.product))
-            .padding(0.1),
+          scale: () => scaleBand<string>().padding(0.1),
         },
       }),
     })

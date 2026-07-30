@@ -257,6 +257,35 @@ describe('core marks and categorical scales', () => {
     expect(groupScale.range()).toEqual([0, 1])
   })
 
+  it('infers grouped-bar domains from a band-scale factory', () => {
+    const data = [
+      { id: 'a:query', category: 'A', series: 'Query', value: 12 },
+      { id: 'a:router', category: 'A', series: 'Router', value: 8 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barY(data, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            groupScale: () => scaleBand<string>().padding(0.2),
+            key: 'id',
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 12]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const bars = flatten(scene.nodes).filter((node) => node.kind === 'rect')
+
+    expect(bars).toHaveLength(2)
+    expect(bars[0]?.kind === 'rect' ? bars[0].width : 0).toBeGreaterThan(0)
+    expect(bars[1]?.kind === 'rect' ? bars[1].x : 0).toBeGreaterThan(
+      bars[0]?.kind === 'rect' ? bars[0].x : 0,
+    )
+  })
+
   it('does not turn the z channel into implicit subgroup geometry', () => {
     const data = [
       { id: 'a', category: 'Alpha', series: 'A', value: 12 },
@@ -648,6 +677,34 @@ describe('core marks and categorical scales', () => {
     expect(scaledDots[0]).toMatchObject({ kind: 'dot', radius: 0 })
     expect(scaledDots[1]).toMatchObject({ kind: 'dot', radius: 14 })
     expect(rawDot).toMatchObject({ kind: 'dot', radius: 100 })
+  })
+
+  it('infers radius domains from a scale factory', () => {
+    const data = [
+      { id: 'a', x: 0, y: 0, size: 0 },
+      { id: 'b', x: 1, y: 1, size: 100 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          dot(data, {
+            x: 'x',
+            y: 'y',
+            r: 'size',
+            rScale: {
+              scale: () => scaleRadial().range([0, 14]),
+            },
+            key: 'id',
+          }),
+        ],
+        ...linearAxes([0, 1], [0, 1]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const dots = flatten(scene.nodes).filter((node) => node.kind === 'dot')
+
+    expect(dots[0]).toMatchObject({ kind: 'dot', radius: 0 })
+    expect(dots[1]).toMatchObject({ kind: 'dot', radius: 14 })
   })
 })
 

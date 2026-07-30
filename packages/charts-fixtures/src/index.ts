@@ -10,10 +10,9 @@ import {
   ruleY,
   rect,
 } from '@tanstack/charts'
-import { bin as d3Bin, max } from 'd3-array'
+import { bin as d3Bin } from 'd3-array'
 import { scaleBand, scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
-import { dateExtent, numberExtent, zeroExtent } from './domains'
 
 export interface BinDatum<TDatum> {
   x: number
@@ -88,13 +87,12 @@ export const downloadsChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleUtc().domain(dateExtent(downloadData, (point) => point.date)),
+    scale: scaleUtc,
     ticks: 6,
   },
   y: {
-    scale: scaleLinear()
-      .domain(numberExtent(downloadData, (point) => point.downloads))
-      .nice(5),
+    scale: scaleLinear,
+    nice: 5,
     label: 'Weekly downloads',
     ticks: 5,
     grid: true,
@@ -125,14 +123,14 @@ export const activityChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleLinear()
-      .domain(activityData.length > 1 ? [0, activityData.length - 1] : [0, 1])
-      .nice(7),
+    scale: scaleLinear,
+    nice: 7,
     label: 'Release',
     ticks: 7,
   },
   y: {
-    scale: scaleLinear().domain(zeroExtent(activityData)).nice(5),
+    scale: scaleLinear,
+    nice: 5,
     label: 'Activity',
     ticks: 5,
   },
@@ -159,14 +157,6 @@ export const latencyBins: BinDatum<number>[] = d3Bin<number, number>()
     }
   })
 
-const latencyXDomain = numberExtent(
-  latencyBins.flatMap((entry) => [entry.x1, entry.x2]),
-  (value) => value,
-)
-const latencyYMaximum = max(latencyBins, (entry) => entry.value) ?? 1
-const latencyColorDomain = numberExtent(latencyBins, (entry) => entry.value)
-const latencyColorMiddle = (latencyColorDomain[0] + latencyColorDomain[1]) / 2
-
 export const latencyChart = defineChart({
   marks: [
     rect(latencyBins, {
@@ -183,24 +173,22 @@ export const latencyChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleLinear().domain(latencyXDomain).nice(7),
+    scale: scaleLinear,
+    nice: 7,
     label: 'Latency (ms)',
     grid: false,
   },
   y: {
-    scale: scaleLinear().domain([0, latencyYMaximum]).nice(5),
+    scale: scaleLinear,
+    nice: 5,
     label: 'Requests',
     ticks: 5,
   },
   color: {
-    scale: scaleLinear<string>()
-      .domain([
-        latencyColorDomain[0],
-        latencyColorMiddle,
-        latencyColorDomain[1],
-      ])
-      .range(['#d1fae5', '#10b981', '#064e3b'])
-      .clamp(true),
+    scale: () =>
+      scaleLinear<string>()
+        .range(['#d1fae5', '#10b981', '#064e3b'])
+        .clamp(true),
     legend: colorGradientLegend({
       label: 'Requests per bin',
       steps: 24,
@@ -243,7 +231,6 @@ export const createRankingChart = (input: RankingInput) =>
   defineChart(({ width }) => {
     const ranked = [...input.data].sort((a, b) => b.score - a.score)
     const xTicks = width < 420 ? 4 : 6
-    const maximum = Math.max(1, max(ranked, (point) => point.score) ?? 1)
 
     return {
       marks: [
@@ -259,22 +246,18 @@ export const createRankingChart = (input: RankingInput) =>
         }),
       ],
       x: {
-        scale: scaleLinear().domain([0, maximum]).nice(xTicks),
+        scale: scaleLinear,
+        nice: xTicks,
         label: width < 420 ? undefined : 'Momentum score',
         grid: true,
         ticks: xTicks,
       },
       y: {
-        scale: scaleBand<string>()
-          .domain(ranked.map((point) => point.package))
-          .paddingInner(0.24)
-          .paddingOuter(0.12),
+        scale: () => scaleBand<string>().paddingInner(0.24).paddingOuter(0.12),
         grid: false,
       },
       color: {
-        scale: scaleOrdinal<string, string>()
-          .domain(['ranking'])
-          .range([input.accent]),
+        scale: () => scaleOrdinal<string, string>().range([input.accent]),
       },
     }
   })

@@ -11,7 +11,6 @@ import {
 import type { ChartKey, ChartValue } from '@tanstack/charts'
 import { scaleBand, scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
-import { dateExtent, zeroExtent } from './domains'
 
 export type StatsHistoryMode = 'line' | 'stacked' | 'share' | 'stream'
 export type StatsBarOrientation = 'vertical' | 'horizontal'
@@ -96,10 +95,10 @@ export const createStatsHistoryChart = (input: StatsHistoryInput) =>
     ]
     const zoomStart = dates.at(-9)
     const zoomEnd = dates.at(-1)
-    const xDomain =
+    const xScale =
       input.zoomed && zoomStart && zoomEnd
-        ? ([zoomStart, zoomEnd] as const)
-        : dateExtent(input.points, (point) => point.date)
+        ? scaleUtc().domain([zoomStart, zoomEnd])
+        : scaleUtc
     const complete = input.points.filter((point) => point.complete)
     const firstPartialIndex = input.points.findIndex((point) => !point.complete)
     const partialStart =
@@ -108,9 +107,6 @@ export const createStatsHistoryChart = (input: StatsHistoryInput) =>
         : Math.max(0, firstPartialIndex - series.length)
     const partial = input.points.slice(partialStart)
     const stacked = input.mode !== 'line'
-    const yValues = stacked
-      ? input.intervals.flatMap((point) => [point.y1, point.y2])
-      : input.points.map((point) => point.downloads)
 
     return {
       marks: stacked
@@ -168,12 +164,13 @@ export const createStatsHistoryChart = (input: StatsHistoryInput) =>
             }),
           ],
       x: {
-        scale: scaleUtc().domain(xDomain),
+        scale: xScale,
         label: 'Date',
         ticks: width < 520 ? 4 : 7,
       },
       y: {
-        scale: scaleLinear().domain(zeroExtent(yValues)).nice(5),
+        scale: scaleLinear,
+        nice: 5,
         label:
           input.mode === 'share'
             ? 'Download Share'
@@ -201,10 +198,6 @@ export const createStatsLatestChart = (input: StatsLatestInput) =>
       .domain([...input.domain])
       .paddingInner(0.1)
       .paddingOuter(0.05)
-    const numericValues = input.stacked
-      ? input.intervals.flatMap((point) => [point.value1, point.value2])
-      : input.grouped.map((point) => point.downloads)
-    const numericScale = scaleLinear().domain(zeroExtent(numericValues)).nice(7)
     const colorDomain = input.stacked
       ? unique(input.intervals.map((point) => point.packageName))
       : [...input.domain]
@@ -280,14 +273,16 @@ export const createStatsLatestChart = (input: StatsLatestInput) =>
             grid: false,
           }
         : {
-            scale: numericScale,
+            scale: scaleLinear,
+            nice: 7,
             label: 'Downloads',
             format: formatCompact,
             grid: true,
           },
       y: vertical
         ? {
-            scale: numericScale,
+            scale: scaleLinear,
+            nice: 7,
             label: 'Downloads',
             format: formatCompact,
             grid: true,

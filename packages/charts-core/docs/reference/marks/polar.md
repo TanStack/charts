@@ -1,6 +1,6 @@
 ---
 title: Polar Marks
-description: Reference for the opt-in polar container, radial marks, guides, configured scales, and D3-backed geometry.
+description: Reference for the opt-in polar container, radial marks, guides, D3 scale factories, and D3-backed geometry.
 ---
 
 Polar marks are available only from the capability subpath:
@@ -32,27 +32,28 @@ foregrounds paint last.
 function polar(options: PolarOptions): ChartMark
 ```
 
-| Option        | Type                    | Default       | Meaning                                           |
-| ------------- | ----------------------- | ------------- | ------------------------------------------------- |
-| `id`          | `string`                | Layer-derived | Stable container ID                               |
-| `className`   | `string`                | None          | Class added beside `ts-chart__polar`              |
-| `marks`       | `readonly PolarMark[]`  | Required      | Radial marks rendered in order                    |
-| `guides`      | `readonly PolarGuide[]` | `[]`          | Background/foreground guide layers around marks   |
-| `angle`       | `PolarAngleOptions`     | None          | Configured angle scale and optional wrap behavior |
-| `radius`      | `PolarRadiusOptions`    | None          | Configured radius scale                           |
-| `startAngle`  | `number`                | `0`           | Start of the available angular range in radians   |
-| `endAngle`    | `number`                | `2π`          | End of the available angular range in radians     |
-| `inset`       | `number`                | `0`           | Pixels removed from the maximum centered radius   |
-| `radiusRatio` | `number`                | `1`           | Multiplier applied to the radius after inset      |
+| Option        | Type                    | Default       | Meaning                                         |
+| ------------- | ----------------------- | ------------- | ----------------------------------------------- |
+| `id`          | `string`                | Layer-derived | Stable container ID                             |
+| `className`   | `string`                | None          | Class added beside `ts-chart__polar`            |
+| `marks`       | `readonly PolarMark[]`  | Required      | Radial marks rendered in order                  |
+| `guides`      | `readonly PolarGuide[]` | `[]`          | Background/foreground guide layers around marks |
+| `angle`       | `PolarAngleOptions`     | None          | Angle factory or instance and optional wrapping |
+| `radius`      | `PolarRadiusOptions`    | None          | Radius scale factory or instance                |
+| `startAngle`  | `number`                | `0`           | Start of the available angular range in radians |
+| `endAngle`    | `number`                | `2π`          | End of the available angular range in radians   |
+| `inset`       | `number`                | `0`           | Pixels removed from the maximum centered radius |
+| `radiusRatio` | `number`                | `1`           | Multiplier applied to the radius after inset    |
 
 The default angular range is a complete circle. Angles use D3's radial
 convention: zero is at twelve o'clock and positive values move clockwise.
 
-`PolarAngleOptions` and `PolarRadiusOptions` accept configured D3-compatible
-scales. TanStack copies them and supplies responsive ranges without mutating
-the source scales. An omitted `wrap` closes a complete revolution without
-adding a duplicate semantic category, but preserves both endpoints of a
-partial range. Set it explicitly to override that behavior.
+`PolarAngleOptions` and `PolarRadiusOptions` accept D3 factories with
+mark-inferred domains or configured instances with fixed domains. `nice`
+applies after inference. TanStack supplies responsive ranges without mutating
+an instance. An omitted `wrap` closes a complete revolution without adding a
+duplicate semantic category, but preserves both endpoints of a partial range.
+Set it explicitly to override that behavior.
 
 `PolarLayoutContext` contains `chart`, `centerX`, `centerY`, `radius`,
 `startAngle`, `endAngle`, and optional resolved angle/radius scales. Each

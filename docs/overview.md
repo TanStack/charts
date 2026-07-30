@@ -56,12 +56,8 @@ const performanceChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleUtc()
-      .domain([
-        new Date('2026-01-01T00:00:00Z'),
-        new Date('2026-04-01T00:00:00Z'),
-      ])
-      .nice(),
+    scale: scaleUtc,
+    nice: true,
     label: 'Month',
   },
   y: {

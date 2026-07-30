@@ -17,7 +17,7 @@ with a fixed series model. It is a composition of:
 1. **Data** — the observations or derived rows a mark consumes.
 2. **Marks** — geometric forms such as lines, bars, dots, areas, rules, or text.
 3. **Channels** — mappings from data to position, grouping, color, radius, or identity.
-4. **Scales** — configured D3 functions that map semantic values into visual coordinates.
+4. **Scales** — D3 factories or instances that map semantic values into visual coordinates.
 5. **Guides** — axes, ticks, grids, titles, and legends that explain those mappings.
 6. **Layers** — marks rendered together in declaration order.
 
@@ -33,8 +33,8 @@ const values = [4, 9, 7, 12]
 
 const chart = defineChart({
   marks: [lineY(values)],
-  x: { scale: scaleLinear().domain([0, values.length - 1]) },
-  y: { scale: scaleLinear().domain([0, 12]).nice() },
+  x: { scale: scaleLinear },
+  y: { scale: scaleLinear, nice: true },
 })
 ```
 
@@ -117,27 +117,29 @@ Channels describe mappings. Constant appearance options such as `stroke: '#2563e
 
 Read [Data and Channels](./data-and-channels.md) for missing values, accessors, keys, grouping, color, and radius.
 
-## Scales define semantic space
+## Scale factories derive semantic space
 
-TanStack Charts requires configured positional scales:
+Pass a D3 factory when its domain should follow the mark channels:
 
 ```ts
 const axes = {
   x: {
-    scale: scaleUtc().domain([firstDate, lastDate]).nice(),
+    scale: scaleUtc,
+    nice: true,
     label: 'Month',
   },
   y: {
-    scale: scaleLinear().domain([0, revenueMax]).nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Revenue',
     grid: true,
   },
 }
 ```
 
-Your application owns the domain and the type of mapping. TanStack Charts copies the scale and supplies its responsive pixel range. The source scale is never mutated.
-
-This explicit boundary prevents hidden domain guesses from changing the meaning of a chart and lets the application use the full, battle-tested D3 scale catalog without adding a competing scale system.
+The marks supply the domain, the factory supplies the mapping, and TanStack
+Charts supplies the responsive range. Pass a configured scale instance when
+the application owns a fixed domain.
 
 ## Guides explain scales
 
@@ -222,9 +224,7 @@ const composedChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleBand<string>()
-      .domain(quarters.map((row) => row.quarter))
-      .padding(0.12),
+    scale: () => scaleBand<string>().padding(0.12),
     label: 'Quarter',
   },
   y: {

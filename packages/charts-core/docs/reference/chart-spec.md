@@ -4,8 +4,8 @@ description: Reference for marks, axes, color, gradients, clipping, margins, gui
 ---
 
 Every static definition and dynamic chart builder resolves to a `ChartSpec`.
-The spec owns chart composition and presentation. Transformed data and semantic
-scale domains remain explicit inputs to that composition.
+The spec owns chart composition, scale factories or fixed scale instances, and
+presentation.
 
 ```ts
 interface ChartSpec<TMarks extends readonly ChartMark[]> {
@@ -73,13 +73,13 @@ while its order changes.
 
 ## Required positional axes
 
-`x` and `y` are intentionally required. Supply configured scales for every
-positional channel used by the marks:
+`x` and `y` are intentionally required. Supply a D3 factory for an inferred
+domain or a configured instance for a fixed domain:
 
 ```ts
 const axes = {
-  x: { scale: scaleUtc().domain(dateDomain) },
-  y: { scale: scaleLinear().domain(valueDomain) },
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear },
 }
 ```
 

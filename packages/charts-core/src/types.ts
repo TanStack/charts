@@ -33,6 +33,31 @@ export interface ConfiguredScaleLike<TValue extends ChartValue> {
   tickFormat?: (count: number) => (value: TValue) => string
 }
 
+export interface InferableScaleLike<
+  TValue extends ChartValue,
+> extends ConfiguredScaleLike<TValue> {
+  domain: {
+    (): readonly TValue[]
+    (values: Iterable<TValue>): InferableScaleLike<TValue>
+  }
+}
+
+export type ChartScaleFactory<TValue extends ChartValue> = Function & {
+  readonly copy?: never
+  readonly __chartValue?: TValue
+}
+
+export type ChartScaleInput<TValue extends ChartValue> =
+  ConfiguredScaleLike<TValue> | ChartScaleFactory<TValue>
+
+export interface ChartNumericScaleOptions {
+  scale: ChartScaleInput<number>
+  nice?: boolean | number
+}
+
+export type ChartNumericScale =
+  ((value: number) => number) | ChartNumericScaleOptions
+
 export type ChartScaleResolver = (
   context: ChartScaleResolveContext,
 ) => ResolvedScale
@@ -141,14 +166,25 @@ export interface ChartAxisGuideOptions<TValue extends ChartValue = any> {
 export interface ChartAxisOptions<
   TValue extends ChartValue = any,
 > extends ChartAxisGuideOptions<TValue> {
-  scale: ChartScale | ConfiguredScaleLike<TValue>
+  /**
+   * A D3 scale factory infers its domain from materialized mark channels.
+   * A scale instance retains its configured domain.
+   */
+  scale: ChartScale | ChartScaleInput<TValue>
+  /** Applies D3 nicening after an inferred or configured domain is resolved. */
+  nice?: boolean | number
 }
 
 export interface ChartColorOptions {
-  scale?: ConfiguredColorScaleLike<any, any>
+  /**
+   * A D3 color-scale factory infers its domain from color channels.
+   * A scale instance retains its configured domain.
+   */
+  scale?: ConfiguredColorScaleLike<any, any> | ChartColorScaleFactory<any, any>
   type?: ChartColorScale
   domain?: readonly ChartKey[]
   range?: readonly string[]
+  nice?: boolean | number
   legend?: ChartColorLegend
 }
 
@@ -157,6 +193,31 @@ export interface ConfiguredColorScaleLike<TValue extends ChartKey, TOutput> {
   copy: () => ConfiguredColorScaleLike<TValue, TOutput>
   domain?: () => readonly TValue[]
   range?: () => readonly TOutput[]
+}
+
+export interface InferableColorScaleLike<
+  TValue extends ChartKey,
+  TOutput,
+> extends ConfiguredColorScaleLike<TValue, TOutput> {
+  domain: {
+    (): readonly TValue[]
+    (values: Iterable<TValue>): InferableColorScaleLike<TValue, TOutput>
+  }
+  range: {
+    (): readonly TOutput[]
+    (values: Iterable<TOutput>): InferableColorScaleLike<TValue, TOutput>
+  }
+  ticks?: (count: number) => readonly TValue[]
+  nice?: (count?: number) => InferableColorScaleLike<TValue, TOutput>
+}
+
+export type ChartColorScaleFactory<
+  TValue extends ChartKey,
+  TOutput,
+> = Function & {
+  readonly copy?: never
+  readonly __chartValue?: TValue
+  readonly __chartOutput?: TOutput
 }
 
 export interface ChartColorScaleContext {

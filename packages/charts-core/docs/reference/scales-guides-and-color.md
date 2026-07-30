@@ -3,58 +3,72 @@ title: Scales, Guides, and Color
 description: Reference for injected positional scales, automatic axes and margins, color scales, legends, themes, and gradients.
 ---
 
-TanStack Charts requires positional scales instead of choosing semantic domains
-on the application's behalf. The chart copies each supplied scale, assigns its
-responsive pixel range, and uses the copy for marks, ticks, and interaction.
-The caller's scale is never mutated.
+Pass a D3 scale factory when its domain should come from mark channels. Pass a
+scale instance when the domain is fixed application state. TanStack Charts
+copies the resolved scale, assigns its responsive pixel range, and uses that
+copy for marks, ticks, and interaction. A supplied instance is never mutated.
 
 For the architectural boundary and guidance on selecting granular D3 modules,
 read [Scales and D3](../concepts/scales-and-d3.md). This page documents only
 the TanStack Charts contract around those primitives.
 
-## Configured positional scales
+## Positional scale factories
 
-The common path is a callable configured scale:
-
-```ts
-interface ConfiguredScaleLike<TValue extends ChartValue> {
-  (value: TValue): number | undefined
-  copy(): ConfiguredScaleLike<TValue>
-  domain(): readonly TValue[]
-  range(values: Iterable<number>): ConfiguredScaleLike<TValue>
-  bandwidth?(): number
-  ticks?(count: number): readonly TValue[]
-  tickFormat?(count: number): (value: TValue) => string
-}
-```
-
-Supply one through each non-null axis:
+The common path passes the D3 factory directly:
 
 ```ts
 import { scaleLinear, scaleUtc } from 'd3-scale'
 
 const x = {
-  scale: scaleUtc().domain([start, end]).nice(),
+  scale: scaleUtc,
+  nice: true,
   label: 'Date',
 }
 
 const y = {
-  scale: scaleLinear().domain([0, maximum]).nice(),
+  scale: scaleLinear,
+  nice: true,
   label: 'Revenue',
   grid: true,
 }
 ```
 
-The configured scale owns:
+The chart creates a fresh scale for each layout, derives its domain from every
+materialized channel bound to that axis, applies `nice`, and assigns the
+responsive range. Bar and area baselines contribute zero when their baseline
+is implicit. Empty channels retain the D3 factory's native domain.
+
+Return a configured scale from a zero-argument factory for options that should
+be applied before domain inference:
+
+```ts
+const x = {
+  scale: () => scaleBand<string>().padding(0.2),
+}
+```
+
+`nice` is an axis option because it must run after the inferred domain exists.
+
+## Fixed domains
+
+Pass a scale instance when the domain is semantic application state:
+
+```ts
+const y = {
+  scale: scaleLinear().domain([0, 100]),
+}
+```
+
+Instances retain:
 
 - its semantic domain
 - continuous, temporal, logarithmic, ordinal, or band mapping behavior
 - tick generation and default tick formatting
-- domain nicening, clamping, unknown values, and padding configured by the
-  caller
+- clamping, unknown values, interpolation, and padding configured by the caller
 
 TanStack Charts owns:
 
+- factory-domain inference
 - the responsive pixel range
 - y-range orientation and optional axis reversal
 - centering values within a band
@@ -66,7 +80,8 @@ Scale copies make one configured scale safe to reuse across responsive scenes.
 
 ```ts
 interface ChartAxisOptions<TValue extends ChartValue> {
-  scale: ChartScale | ConfiguredScaleLike<TValue>
+  scale: ChartScale | ConfiguredScaleLike<TValue> | ChartScaleFactory<TValue>
+  nice?: boolean | number
   guide?: boolean
   ticks?: number
   format?: (value: TValue) => string
@@ -80,7 +95,8 @@ interface ChartAxisOptions<TValue extends ChartValue> {
 
 | Option        | Default                                 | Meaning                                                                  |
 | ------------- | --------------------------------------- | ------------------------------------------------------------------------ |
-| `scale`       | Required                                | Configured callable scale or advanced `ChartScale`.                      |
+| `scale`       | Required                                | D3 factory, configured instance, or advanced `ChartScale`.               |
+| `nice`        | `false`                                 | Nice the resolved domain using the responsive or supplied tick count.    |
 | `guide`       | `true` for a non-null axis              | Renders the axis, ticks, title, and requested grid.                      |
 | `ticks`       | Responsive target                       | Suggested tick count passed to the scale. It is not a guaranteed count.  |
 | `format`      | Scale formatter, then string conversion | Formats tick values. Its value type is inferred from the marks.          |
@@ -182,35 +198,39 @@ interface ConfiguredColorScaleLike<TValue extends ChartKey, TOutput> {
 }
 
 interface ChartColorOptions {
-  scale?: ConfiguredColorScaleLike<any, any>
+  scale?: ConfiguredColorScaleLike<any, any> | ChartColorScaleFactory<any, any>
   type?: ChartColorScale
   domain?: readonly ChartKey[]
   range?: readonly string[]
+  nice?: boolean | number
   legend?: ChartColorLegend
 }
 ```
 
-| Option   | Default                 | Meaning                                                      |
-| -------- | ----------------------- | ------------------------------------------------------------ |
-| `scale`  | None                    | Configured callable color scale, copied before use           |
-| `type`   | None                    | Custom color-scale resolver                                  |
-| `domain` | Observed channel values | Domain hint for the built-in or custom resolver              |
-| `range`  | Resolved theme palette  | Range hint for the built-in or custom resolver               |
-| `legend` | None                    | Legend layout and scene renderer shown above the inner chart |
+| Option   | Default                 | Meaning                                                              |
+| -------- | ----------------------- | -------------------------------------------------------------------- |
+| `scale`  | None                    | D3 factory with inference or configured instance with a fixed domain |
+| `type`   | None                    | Custom color-scale resolver                                          |
+| `domain` | Observed channel values | Domain hint for factory, built-in, or custom resolution              |
+| `range`  | Resolved theme palette  | Range hint for the built-in or custom resolver                       |
+| `nice`   | `false`                 | Nice a factory or configured continuous color scale                  |
+| `legend` | None                    | Legend layout and scene renderer shown above the inner chart         |
 
 Resolution order:
 
-1. `color.scale`, copied before use
+1. `color.scale`, created or copied before use
 2. custom `color.type`
 3. the built-in ordinal scale using `domain` or observed channel values and
    `range` or the theme palette
 
-A supplied configured color scale is callable and copyable. Its outputs are
-converted to strings. Optional `domain()` and `range()` methods provide legend
-metadata; when either method is absent, supply the corresponding `domain` or
-`range` option if a legend needs it. A custom `ChartColorScale` receives
-observed values, optional domain and range, and the resolved theme, then
-returns:
+A color-scale factory infers a continuous extent or distinct categorical
+domain from color channels. Multi-stop continuous ranges receive evenly spaced
+domain stops across that extent. A supplied scale instance retains its domain.
+Outputs are converted to strings. Optional `domain()` and `range()` methods
+provide legend metadata; when either method is absent, supply the corresponding
+`domain` or `range` option if a legend needs it. A custom `ChartColorScale`
+receives observed values, optional domain and range, and the resolved theme,
+then returns:
 
 ```ts
 interface ResolvedColorScale {

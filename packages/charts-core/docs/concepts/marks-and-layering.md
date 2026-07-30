@@ -189,7 +189,6 @@ Clipping applies to the chart’s mark group, not axes or legends. Leave it off 
 ## Complete range-band composition
 
 ```ts
-import { extent, max, min } from 'd3-array'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
 
@@ -239,14 +238,6 @@ const rows: readonly TemperatureRow[] = [
   },
 ]
 
-const [firstDate, lastDate] = extent(rows, (row) => row.date)
-const dateDomain: [Date, Date] =
-  firstDate && lastDate
-    ? [firstDate, lastDate]
-    : [new Date(0), new Date(86_400_000)]
-const temperatureMinimum = min(rows, (row) => row.low) ?? 0
-const temperatureMaximum = max(rows, (row) => row.high) ?? 1
-
 const temperatureChart = defineChart({
   marks: [
     areaY(rows, {
@@ -285,20 +276,20 @@ const temperatureChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleUtc().domain(dateDomain),
+    scale: scaleUtc,
     label: 'Day',
   },
   y: {
-    scale: scaleLinear()
-      .domain([temperatureMinimum, temperatureMaximum])
-      .nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Temperature (°C)',
     grid: true,
   },
 })
 ```
 
-This example directly imports `d3-array` and `d3-scale`. Install those modules and their matching `@types` packages as direct dependencies.
+This example directly imports `d3-scale`. Install it and `@types/d3-scale` as
+direct dependencies.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/03-temperature-range-band/?theme=system&height=400"

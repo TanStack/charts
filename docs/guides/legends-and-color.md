@@ -59,13 +59,17 @@ import { interpolateBlues } from 'd3-scale-chromatic'
 import { colorGradientLegend } from '@tanstack/charts'
 
 const color = {
-  scale: scaleSequential(interpolateBlues).domain([0, maximum]),
+  scale: () => scaleSequential(interpolateBlues),
   legend: colorGradientLegend({
     label: 'Requests per minute',
     format: (value) => value.toLocaleString(),
   }),
 }
 ```
+
+The factory keeps the interpolator and lets the chart infer the numeric domain
+from color-channel values. Pass a configured scale instance when the color
+domain is a product threshold or must remain stable across filtered data.
 
 `d3-scale-chromatic` and its matching type package are optional direct
 application dependencies. They are never pulled into charts that do not import

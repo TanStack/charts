@@ -55,7 +55,6 @@ export interface ErrorVolumeInput {
 
 export const createErrorVolumeChart = (input: ErrorVolumeInput) =>
   defineChart(({ width }) => {
-    const dates = dateDomain(input.totals)
     const highest = max(input.totals, (row) => row.value) ?? 1
     const totalLine = input.stack.filter((row) => row.severity === 'Warning')
 
@@ -98,7 +97,7 @@ export const createErrorVolumeChart = (input: ErrorVolumeInput) =>
         }),
       ],
       x: {
-        scale: scaleUtc().domain(dates),
+        scale: scaleUtc,
         ticks: width < 680 ? 4 : 7,
         format: input.compactTime ? formatHour : formatDay,
       },
@@ -252,7 +251,6 @@ export const createHeatmapChart = (input: { rows: readonly HeatCell[] }) =>
 
 export const createServicesChart = (input: { rows: readonly ServiceRow[] }) =>
   defineChart(() => {
-    const domain = input.rows.map((row) => row.service)
     return {
       marks: [
         barX(input.rows, {
@@ -292,7 +290,7 @@ export const createServicesChart = (input: { rows: readonly ServiceRow[] }) =>
         grid: true,
       },
       y: {
-        scale: scaleBand<string>().domain(domain).paddingInner(0.2),
+        scale: () => scaleBand<string>().paddingInner(0.2),
       },
       margin: { top: 4, right: 6, bottom: 24, left: 48 },
       theme: chartTheme,

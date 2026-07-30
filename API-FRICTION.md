@@ -41,7 +41,7 @@ Each entry records:
 | F-003 | Scale requirements were absent from chart types          | API             | resolved   |
 | F-004 | A radius channel silently imported continuous D3         | API             | resolved   |
 | F-005 | Curved area topology was implemented independently       | API             | resolved   |
-| F-006 | Explicit domain construction is repetitive               | API/Skill       | monitoring |
+| F-006 | Explicit domain construction is repetitive               | API/Skill       | resolved   |
 | F-007 | Runtime and adapters bypassed strict scales              | API             | resolved   |
 | F-008 | D3 motion would currently burden every DOM host          | API             | resolved   |
 | F-009 | Automatic ordinal color is an implicit exception         | Documentation   | resolved   |
@@ -167,6 +167,7 @@ Each entry records:
 | F-129 | Responsive relayout restarted chart animation            | API             | resolved   |
 | F-130 | Adapter options duplicated chart behavior                | API             | resolved   |
 | F-131 | Stable identity repeated inferable key channels          | API             | resolved   |
+| F-132 | Factory unions disrupt D3's generic inference            | API             | monitoring |
 
 ## Findings
 
@@ -177,7 +178,8 @@ Each entry records:
 - Observed in: explicit-scale bundle spike
 - Friction: authors had to wrap `scaleLinear()` with `configuredScale(...)`
   even though the D3 callable already contained the complete contract.
-- Decision: accept raw callable, copyable D3 scales directly.
+- Decision: accept raw callable, copyable D3 scale instances directly and
+  direct D3 factories when Charts should infer the domain.
 - Verification: positional scale tests cover linear, UTC, band centering,
   reversal, responsive copying, and source-scale immutability.
 
@@ -189,8 +191,9 @@ Each entry records:
 - Friction: normal D3 examples configure both domain and range, while a
   container-responsive chart cannot know its final pixel range at definition
   time.
-- Decision: the author owns the semantic domain; TanStack copies the scale and
-  owns its responsive range.
+- Decision: a configured instance carries an author-owned semantic domain; a
+  factory delegates domain inference to Charts. TanStack copies either scale
+  and owns its responsive range.
 - Verification: the responsive-scale tests cover copying, range replacement,
   reversal, and source immutability. A source audit of the complete authored
   conformance catalog found no configured positional chart scale with an
@@ -205,9 +208,10 @@ Each entry records:
 - Observed in: strict compiler and runtime integration
 - Friction: definitions did not require an author to decide how both
   positional dimensions map, so omitted scales could reach scene creation.
-- Decision: `ChartSpec` requires `x` and `y`. Each dimension supplies a
-  configured scale or explicitly uses `null` when no mark materializes that
-  dimension. `createChartScene` retains guards for untyped consumers.
+- Decision: `ChartSpec` requires `x` and `y`. Each dimension supplies a scale
+  factory, a configured scale, or explicitly uses `null` when no mark
+  materializes that dimension. `createChartScene` retains guards for untyped
+  consumers.
 - Verification: TypeScript rejects an omitted axis; scene tests reject missing
   scales and `null` on materialized dimensions while accepting positionless
   charts with two explicit null axes.
@@ -220,7 +224,9 @@ Each entry records:
 - Friction: importing `dot` retained `scaleRadial` and the full continuous D3
   scale graph even when every dot used a fixed radius.
 - Decision: radius values are pixels by default. Data-driven area mapping
-  requires a supplied `scaleRadial` or compatible callable.
+  requires a supplied `scaleRadial` or compatible callable. The object form
+  accepts a factory when Charts should infer `[0, maximum]`; bare callables
+  remain direct radius mappers.
 - Verification: representative marks returned to 7.81 kB gzip from 15.39 kB;
   raw D3 radial mapping has behavior coverage.
 
@@ -237,27 +243,41 @@ Each entry records:
 
 ### F-006 — Explicit domain construction is repetitive
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
 - Observed in: recipe, sandbox, shared fixture, and TanStack Stats migrations
 - Friction: every positional scale needs a complete, empty-safe domain. The
   correct expression varies for linear, time, band, stacked, diverging, and
   interval data.
-- Current decision: teach direct `d3-array` and `d3-scale` construction before
-  adding runtime inference or TanStack wrappers.
-- Sandbox evidence: one time-series definition required separate
-  `dateDomain` and `zeroIncludingDomain` helpers, including two different
-  empty-data policies. The helpers remained short and application-specific.
-- Stats evidence: six layout branches required UTC extents, zero-inclusive
-  numeric extents, both endpoints of stacked and stream intervals, explicit
-  categorical order, and empty or constant fallbacks. D3 still supplied the
-  mathematical primitives; the remaining policy was application-specific.
-- Documentation evidence: an audit found examples asserting `d3.extent`
-  results into non-empty tuples. The recipes now show explicit empty-data
-  fallbacks instead of teaching an assertion that can create undefined scale
-  domains.
-- Follow-up: measure agent mistakes in recipes and evals. Add an API only if a
-  correctness-sensitive domain policy repeats across unrelated products.
+- Decision: a supplied D3 scale factory asks Charts to infer a domain from all
+  materialized mark channels that use the scale. A configured scale instance
+  keeps its application-owned domain. Factory-created categorical domains use
+  first-seen order; quantitative and temporal domains use finite extents; bar,
+  area, and interval baselines participate in zero inclusion. `nice` runs
+  after domain inference. Empty channels retain the D3 factory's native
+  domain.
+- Sandbox evidence: the main time series and service ranking could remove
+  date, numeric, and categorical domain preparation. The sparkline keeps an
+  explicit padded domain because that padding is a visual policy, not an
+  extent.
+- Stats evidence: unzoomed UTC, zero-inclusive numeric, stacked, and stream
+  domains now come from materialized channels. Zoom viewports, categorical
+  ordering, and semantic color assignments remain configured instances.
+- Documentation evidence: quick starts and core recipes removed empty-safe
+  `extent` and `max` setup when the result only repeated mark channels. Recipes
+  still configure normalized ranges, thresholds, shared facet domains, and
+  transform boundaries explicitly.
+- Scope: the same lifecycle applies to Cartesian, color, polar, grouped-bar,
+  and mark-local radius scales. Explicit instances remain necessary for
+  thresholds, fixed comparison windows, shared facet domains, stable semantic
+  color assignments, and interaction viewports.
+- Verification: focused tests cover numeric, temporal, band, ordinal,
+  continuous-color, polar, grouped-bar, and radius inference; zero baselines;
+  nicening; empty data; factory configuration; and fixed instance domains.
+  Root recipes, fixtures, Stats parity definitions, and the sandbox no longer
+  calculate domains that are direct extents of their mark channels. The locked
+  D3-scale line-scene bundle records the shared lifecycle cost at 2,879
+  minified and 861 gzip bytes.
 
 ### F-007 — Runtime and adapters bypassed strict scales
 
@@ -293,6 +313,9 @@ Each entry records:
   marks receive an automatic D3 ordinal theme scale.
 - Decision: retain this documented exception because it costs about 0.62 kB
   gzip and materially improves the default chart.
+- Extension: a color-scale factory now infers its domain from materialized
+  color channels while preserving configured range and interpolator options.
+  A configured color-scale instance remains the fixed semantic mapping.
 - Verification: the first grouped-series recipe now states the automatic
   theme-palette default and routes fixed semantic ownership to a supplied D3
   ordinal scale, palette-only changes to `color.range`, and theme-wide changes
@@ -368,14 +391,13 @@ Each entry records:
   tick-count formulas before calling D3's `nice(tickCount)`.
 - Expected: an application should supply semantic data policy without
   duplicating private guide-layout calculations.
-- Decision: Stats now supplies the exact semantic domain, matching Plot, and
-  lets the copied D3 scale generate ticks for the resolved range. This removes
-  its duplicate inner-size and tick-count calculation. If a future product
-  genuinely requires range-dependent nicing, it can justify a scale-factory
-  extension with new evidence.
-- Verification: the Stats definition no longer calculates private inner plot
-  dimensions or calls `.nice(tickCount)`, and its snapshot value endpoints
-  match Plot.
+- Decision: `nice` is a chart scale option applied after factory domain
+  inference, using the explicit count or the resolved guide tick count. This
+  keeps domain-dependent mutation out of the factory while persistent D3
+  configuration such as padding, clamping, and interpolation stays inside the
+  factory.
+- Verification: factory scale tests cover default and explicit nicing;
+  definitions no longer duplicate private inner-size calculations.
 
 ### F-015 — Legacy scale helpers compete with the D3-first API
 
@@ -2986,3 +3008,23 @@ Each entry records:
   records the shared resolver and development warning at +654 minified/+261
   gzip bytes; renderer hosts and adapters that materialize no keyed mark remain
   byte-identical.
+
+### F-132 — Factory unions disrupt D3's generic inference
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: direct scale-factory type integration
+- Friction: placing a typed zero-argument factory signature beside configured
+  callable D3 instances in one `scale` property contextually changes the
+  generic output inferred by expressions such as `scaleLinear()`. Valid
+  configured instances then fail assignment because their inferred range
+  includes the factory return type.
+- Current decision: preserve the existing channel-type validation for
+  configured instances and accept direct factories through a
+  runtime-discriminated callable type. Charts distinguishes a factory by the
+  absence of D3's `copy` method and validates the created scale contract at
+  runtime.
+- Follow-up: revisit if TypeScript gains a way to suppress contextual generic
+  inference for only one union member, or if evidence justifies a branded
+  helper despite its additional authoring syntax.

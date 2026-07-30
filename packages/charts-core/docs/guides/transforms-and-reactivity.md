@@ -36,8 +36,8 @@ function LatencyChart({ observations }: Props) {
           inset: 1,
         }),
       ],
-      x: { scale: scaleLinear().domain(histogramDomain(histogram)) },
-      y: { scale: scaleLinear().domain(countDomain(histogram)) },
+      x: { scale: scaleLinear },
+      y: { scale: scaleLinear, nice: true },
     })
   }, [observations])
 
@@ -46,8 +46,8 @@ function LatencyChart({ observations }: Props) {
 ```
 
 The imported data remains raw. The adjacent transform defines thresholds,
-empty-input behavior, derived row shape, and source observations retained for
-interaction.
+derived row shape, and source observations retained for interaction. The chart
+derives positional domains from the materialized interval endpoints.
 
 ## Responsive transforms
 

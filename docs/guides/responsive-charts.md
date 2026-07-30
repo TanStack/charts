@@ -7,7 +7,7 @@ TanStack Charts treats width and height differently:
 
 - width is normally measured from the chart container;
 - height is a product decision supplied as pixels or an aspect ratio;
-- configured positional scales own semantic domains;
+- scale factories infer domains while configured instances retain fixed domains;
 - TanStack Charts copies those scales and assigns responsive pixel ranges.
 
 This keeps a definition stable while the same chart moves between a dashboard
@@ -68,13 +68,12 @@ required by:
 const definition = defineChart({
   marks: [barX(rows, { x: 'value', y: 'label' })],
   x: {
-    scale: scaleLinear().domain([0, maximum]).nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Weekly downloads',
   },
   y: {
-    scale: scaleBand<string>()
-      .domain(rows.map((row) => row.label))
-      .padding(0.1),
+    scale: () => scaleBand<string>().padding(0.1),
   },
 })
 ```

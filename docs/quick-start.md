@@ -20,7 +20,6 @@ The host follows the container width when `width` is omitted.
 <!-- docs-example: core-quick-start typecheck -->
 
 ```ts
-import { extent, max } from 'd3-array'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { defineChart, lineY, mountChart } from '@tanstack/charts'
 
@@ -38,13 +37,6 @@ const rows: readonly RevenueRow[] = [
   { id: '2026-05', date: new Date('2026-05-01T00:00:00Z'), revenue: 57_800 },
 ]
 
-const [firstDate, lastDate] = extent(rows, (row) => row.date)
-const dateDomain: [Date, Date] =
-  firstDate && lastDate
-    ? [firstDate, lastDate]
-    : [new Date(0), new Date(86_400_000)]
-const revenueMax = max(rows, (row) => row.revenue ?? 0) ?? 0
-
 const revenueChart = defineChart({
   marks: [
     lineY(rows, {
@@ -56,11 +48,13 @@ const revenueChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleUtc().domain(dateDomain).nice(),
+    scale: scaleUtc,
+    nice: true,
     label: 'Month',
   },
   y: {
-    scale: scaleLinear().domain([0, revenueMax]).nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Revenue',
     format: (value) =>
       new Intl.NumberFormat(undefined, {
@@ -75,7 +69,8 @@ const revenueChart = defineChart({
 })
 ```
 
-Because this source imports `d3-array` and `d3-scale` directly, add those modules and `@types/d3-array` and `@types/d3-scale` as direct dependencies. See [Installation](./installation.md).
+Because this source imports `d3-scale` directly, add it and `@types/d3-scale`
+as direct dependencies. See [Installation](./installation.md).
 
 The missing March value creates a break instead of a misleading segment. The datum type flows through the mark and into interaction callbacks; no cast or manual chart generic is needed.
 
@@ -139,7 +134,7 @@ Destroying the host removes observers, event listeners, animations, tooltips, an
 - `lineY(rows, ...)` chooses a line mark and keeps the original row as the interaction datum.
 - `x: 'date'` and `y: 'revenue'` map typed fields to positional channels.
 - The unique row `id` gives each observation stable identity across updates.
-- The configured D3 scales own semantic domains, ticks, and mapping behavior.
+- D3 scale factories infer domains from mark channels and own mapping behavior.
 - TanStack Charts copies those scales and assigns responsive pixel ranges.
 - `label`, `format`, and `grid` configure the axis guide without changing the scale.
 - Omitted margins are measured automatically from the rendered labels and titles.

@@ -125,7 +125,7 @@ Automatic margins guarantee containment, not collision avoidance between adjacen
 
 ## Axis guide options
 
-Each axis combines a required configured scale with optional guide controls:
+Each axis combines a required scale factory or instance with optional guide controls:
 
 ```ts
 const x = {
@@ -176,7 +176,8 @@ Set an axis to `null` only when no mark needs that dimension.
 
 ## Scale ranges and coordinate direction
 
-Your configured D3 positional scales own semantic domains. TanStack Charts copies them and supplies ranges from `scene.chart`.
+Scale factories derive domains from marks. Configured D3 instances retain fixed
+semantic domains. TanStack Charts supplies ranges from `scene.chart`.
 
 For a normal cartesian chart:
 
@@ -291,7 +292,6 @@ const rows: readonly PackageRow[] = [
   { id: 'virtual', package: '@tanstack/virtual', downloads: 1_940_000 },
 ]
 
-const maximum = Math.max(0, ...rows.map((row) => row.downloads))
 const compact = new Intl.NumberFormat(undefined, {
   notation: 'compact',
   maximumFractionDigits: 1,
@@ -310,16 +310,14 @@ const rankingChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleLinear().domain([0, maximum]).nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Weekly downloads',
     format: (value) => compact.format(value),
     grid: true,
   },
   y: {
-    scale: scaleBand<string>()
-      .domain(rows.map((row) => row.package))
-      .paddingInner(0.12)
-      .paddingOuter(0.06),
+    scale: () => scaleBand<string>().paddingInner(0.12).paddingOuter(0.06),
   },
 })
 ```

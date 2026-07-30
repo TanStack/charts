@@ -65,7 +65,6 @@ or dropping down to a separate API.
 ## Quick look
 
 ```tsx
-import { max } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/react-charts'
@@ -85,14 +84,11 @@ const revenueChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleBand()
-      .domain(revenue.map((row) => row.month))
-      .padding(0.2),
+    scale: () => scaleBand().padding(0.2),
   },
   y: {
-    scale: scaleLinear()
-      .domain([0, max(revenue, (row) => row.value) ?? 0])
-      .nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Revenue',
     grid: true,
   },
@@ -111,9 +107,10 @@ export function RevenueChart() {
 ```
 
 Marks consume the original rows, channels describe their visual encodings, and
-configured D3 scales own the domain and mapping. TanStack copies those scales,
-assigns their responsive pixel ranges, compiles a renderer-neutral keyed scene,
-and hands that scene to the selected host.
+D3 scale factories infer domains from those channels. A configured scale
+instance keeps its authored domain. TanStack assigns responsive pixel ranges,
+compiles a renderer-neutral keyed scene, and hands that scene to the selected
+host.
 
 Definitions are framework-independent. The same `revenueChart` can render
 through React, Preact, Vue, Solid, Svelte, Angular, Lit, Alpine, Octane, the

@@ -173,8 +173,8 @@ const values = [4, 9, 7]
 
 const chart = defineChart({
   marks: [lineY(values)],
-  x: { scale: scaleLinear().domain([0, values.length - 1]) },
-  y: { scale: scaleLinear().domain([0, 10]) },
+  x: { scale: scaleLinear },
+  y: { scale: scaleLinear },
 })
 ```
 
@@ -203,8 +203,8 @@ import { createChartScene, defineChart, lineY } from '@tanstack/charts'
 
 const chart = defineChart({
   marks: [lineY([2, 5, 3])],
-  x: { scale: scaleLinear().domain([0, 2]) },
-  y: { scale: scaleLinear().domain([0, 5]) },
+  x: { scale: scaleLinear },
+  y: { scale: scaleLinear },
 })
 
 const scene = createChartScene(chart, { width: 640, height: 320 })

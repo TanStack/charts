@@ -12,12 +12,14 @@ import {
   isNonnegativeFiniteNumber,
   visualValue,
 } from './mark'
+import { resolveNumericScale } from './scale-input'
 import { valueKey } from './scales'
 import type {
   Channel,
   ChartBounds,
   ChartKey,
   ChartMark,
+  ChartNumericScale,
   ChartPoint,
   SceneNode,
   VisualChannel,
@@ -39,7 +41,7 @@ export interface GeoShapeOptions<TDatum extends GeoPermissibleObjects> {
   /** Pixel radius for Point and MultiPoint geometry. Defaults to 4.5. */
   r?: number | Channel<TDatum, number | null | undefined>
   /** Maps a quantitative radius value to a nonnegative pixel radius. */
-  rScale?: (value: number) => number
+  rScale?: ChartNumericScale
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
   stroke?: VisualChannel<TDatum, string>
@@ -75,7 +77,7 @@ export function geoShape<TDatum extends GeoPermissibleObjects>(
       typeof options.r === 'number'
         ? data.map(() => options.r as number)
         : channelValues(data, options.r, () => 4.5)
-    const radiusMapper = options.rScale
+    const radiusMapper = resolveNumericScale(options.rScale, rawRadii)
     const radii = radiusMapper
       ? rawRadii.map((value) =>
           isNonnegativeFiniteNumber(value) ? radiusMapper(value) : Number.NaN,

@@ -1,15 +1,21 @@
 import type {
   ChartScaleResolveContext,
   ChartValue,
-  ConfiguredScaleLike,
+  ChartScaleInput,
   ResolvedScale,
 } from './types'
+import { resolveScaleInput } from './scale-input'
 
 export function resolveConfiguredScale<TValue extends ChartValue>(
-  source: ConfiguredScaleLike<TValue>,
+  source: ChartScaleInput<TValue>,
   context: ChartScaleResolveContext,
 ): ResolvedScale {
-  const scale = source.copy()
+  const scale = resolveScaleInput(source, {
+    values: context.values,
+    includeZero: context.includeZero,
+    nice: context.options?.nice,
+    niceCount: context.tickCount,
+  })
   const categorical = scale.bandwidth !== undefined
   const naturalRange =
     categorical && context.id === 'y'

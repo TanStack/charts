@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { scaleLinear, scaleSequential } from 'd3-scale'
+import { scaleLinear, scaleOrdinal, scaleSequential } from 'd3-scale'
 import { createColorScale } from './scales'
 import { defaultChartTheme } from './scene'
 import { colorGradientLegend } from './legend'
@@ -34,6 +34,68 @@ describe('continuous color', () => {
     expect(scale.map(0)).toBe('rgb(0, 0, 0)')
     expect(scale.map(50)).toBe('rgb(128, 128, 128)')
     expect(scale.map(100)).toBe('rgb(255, 255, 255)')
+  })
+
+  it('infers categorical color domains for factories', () => {
+    const scale = createColorScale(
+      ['Beta', 'Alpha', 'Beta'],
+      {
+        scale: () =>
+          scaleOrdinal<string, string>().range(['#111111', '#eeeeee']),
+      },
+      defaultChartTheme,
+    )
+
+    expect(scale.domain).toEqual(['Beta', 'Alpha'])
+    expect(scale.map('Beta')).toBe('#111111')
+    expect(scale.map('Alpha')).toBe('#eeeeee')
+  })
+
+  it('applies color options to factory-created scales', () => {
+    const scale = createColorScale(
+      ['Beta', 'Alpha'],
+      {
+        scale: scaleOrdinal<string, string>,
+        range: ['#111111', '#eeeeee'],
+      },
+      defaultChartTheme,
+    )
+
+    expect(scale.domain).toEqual(['Beta', 'Alpha'])
+    expect(scale.range).toEqual(['#111111', '#eeeeee'])
+  })
+
+  it('rejects factories that do not return a color scale', () => {
+    expect(() =>
+      createColorScale(
+        ['Alpha'],
+        { scale: (() => '#111111') as never },
+        defaultChartTheme,
+      ),
+    ).toThrow('A color scale must be callable and copyable')
+  })
+
+  it('infers continuous color domains for factories', () => {
+    const scale = createColorScale(
+      [4, 9, 7],
+      { scale: scaleLinear<string> },
+      defaultChartTheme,
+    )
+
+    expect(scale.domain).toEqual([4, 9])
+  })
+
+  it('matches inferred continuous domains to configured color stops', () => {
+    const scale = createColorScale(
+      [0, 100],
+      {
+        scale: () =>
+          scaleLinear<string>().range(['#000000', '#808080', '#ffffff']),
+      },
+      defaultChartTheme,
+    )
+
+    expect(scale.domain).toEqual([0, 50, 100])
   })
 
   it('renders a gradient guide from the resolved scale', () => {

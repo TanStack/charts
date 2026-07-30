@@ -7,11 +7,13 @@ import {
   isNonnegativeFiniteNumber,
   visualValue,
 } from './mark'
+import { resolveNumericScale } from './scale-input'
 import { valueKey } from './scales'
 import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartNumericScale,
   ChartPoint,
   ChartValue,
   OptionChannelOutput,
@@ -26,7 +28,7 @@ export interface HexagonOptions<TDatum> {
   z?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   r?: number | Channel<TDatum, number | null | undefined>
-  rScale?: (value: number) => number
+  rScale?: ChartNumericScale
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
   stroke?: VisualChannel<TDatum, string>
@@ -68,7 +70,7 @@ export function hexagon<TDatum>(
       typeof radiusOption === 'number'
         ? data.map(() => radiusOption)
         : channelValues(data, radiusOption, () => 6)
-    const radiusMapper = options.rScale
+    const radiusMapper = resolveNumericScale(options.rScale, rawRadii)
     const radii = radiusMapper
       ? rawRadii.map((radius) =>
           isNonnegativeFiniteNumber(radius) ? radiusMapper(radius) : Number.NaN,

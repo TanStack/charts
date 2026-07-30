@@ -51,7 +51,7 @@ Every accessor receives:
 
 ## Positional channels
 
-The x and y channels feed the chart’s configured positional scales:
+The x and y channels feed the chart’s positional scale factories or instances:
 
 ```ts
 barX(rows, {
@@ -130,13 +130,13 @@ This snippet directly imports `scaleOrdinal` from `d3-scale` and uses `colorLege
 The `r` option on `dot` is a pixel radius unless `rScale` is supplied:
 
 ```ts
-const accountRadius = scaleSqrt().domain([0, accountMaximum]).range([3, 22])
-
 dot(rows, {
   x: 'revenue',
   y: 'retention',
   r: 'accounts',
-  rScale: accountRadius,
+  rScale: {
+    scale: () => scaleSqrt().range([3, 22]),
+  },
   key: 'id',
 })
 ```
@@ -272,7 +272,6 @@ responsive layout work.
 ## Complete bubble-scatter example
 
 ```ts
-import { max } from 'd3-array'
 import { scaleLinear, scaleOrdinal, scaleSqrt } from 'd3-scale'
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
 
@@ -297,8 +296,6 @@ const rows: readonly AccountSegment[] = [
   { id: 'd', revenue: 35, retention: 0.79, accounts: 240, segment: 'Consumer' },
 ]
 
-const accountMaximum = max(rows, (row) => row.accounts) ?? 0
-const radius = scaleSqrt().domain([0, accountMaximum]).range([4, 24])
 const segments: readonly AccountSegment['segment'][] = [
   'Consumer',
   'Enterprise',
@@ -312,7 +309,9 @@ const bubbleChart = defineChart({
       y: 'retention',
       z: 'segment',
       r: 'accounts',
-      rScale: radius,
+      rScale: {
+        scale: () => scaleSqrt().range([4, 24]),
+      },
       key: 'id',
       fillOpacity: 0.72,
       stroke: 'Canvas',

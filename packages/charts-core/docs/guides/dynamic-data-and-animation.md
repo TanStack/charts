@@ -13,7 +13,6 @@ definition changes or when the chart surface changes size.
 function RankingChart({ rows, metric, accent }: Props) {
   const definition = useMemo(() => {
     const ranked = rankRows(rows, metric)
-    const maximum = Math.max(1, max(ranked, (row) => row.value) ?? 0)
 
     return defineChart({
       animate: { duration: 280, easing: 'ease-out' },
@@ -27,13 +26,12 @@ function RankingChart({ rows, metric, accent }: Props) {
           }),
         ],
         x: {
-          scale: scaleLinear().domain([0, maximum]).nice(),
+          scale: scaleLinear,
+          nice: true,
           ticks: width < 420 ? 4 : 7,
         },
         y: {
-          scale: scaleBand<string>()
-            .domain(ranked.map((row) => row.label))
-            .padding(0.1),
+          scale: () => scaleBand<string>().padding(0.1),
         },
       }),
     })

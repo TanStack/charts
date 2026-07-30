@@ -7,14 +7,15 @@ import {
   isFiniteNumber,
   visualValue,
 } from './mark'
+import { resolveScaleInput } from './scale-input'
 import { valueKey } from './scales'
 import type {
   Channel,
   ChartKey,
   ChartMark,
   ChartPoint,
+  ChartScaleInput,
   ChartValue,
-  ConfiguredScaleLike,
   OptionChannelOutput,
   ResolvedScale,
   SceneNode,
@@ -33,7 +34,7 @@ export interface BarYOptions<TDatum> {
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
   /** Optional D3 band scale that positions z values within each x band. */
-  groupScale?: ConfiguredScaleLike<any>
+  groupScale?: ChartScaleInput<any>
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
   radius?: number
@@ -51,7 +52,7 @@ export interface BarXOptions<TDatum> {
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
   /** Optional D3 band scale that positions z values within each y band. */
-  groupScale?: ConfiguredScaleLike<any>
+  groupScale?: ChartScaleInput<any>
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
   radius?: number
@@ -115,7 +116,11 @@ export function barY<TDatum>(
         const totalBandwidth =
           scales.x.bandwidth ||
           inferBandwidth(scales.x, xValues, chart.width, data.length)
-        const groupScale = resolveGroupScale(options.groupScale, totalBandwidth)
+        const groupScale = resolveGroupScale(
+          options.groupScale,
+          zValues,
+          totalBandwidth,
+        )
         const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
         const inset = Math.max(0, options.inset ?? 0)
         const nodes: SceneNode[] = []
@@ -253,7 +258,11 @@ export function barX<TDatum>(
         const totalBandwidth =
           scales.y.bandwidth ||
           inferBandwidth(scales.y, yValues, chart.height, data.length)
-        const groupScale = resolveGroupScale(options.groupScale, totalBandwidth)
+        const groupScale = resolveGroupScale(
+          options.groupScale,
+          zValues,
+          totalBandwidth,
+        )
         const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
         const inset = Math.max(0, options.inset ?? 0)
         const nodes: SceneNode[] = []
@@ -333,11 +342,12 @@ export function barX<TDatum>(
 }
 
 function resolveGroupScale(
-  source: ConfiguredScaleLike<any> | undefined,
+  source: ChartScaleInput<any> | undefined,
+  values: readonly unknown[],
   bandwidth: number,
 ) {
   if (!source) return undefined
-  const scale = source.copy()
+  const scale = resolveScaleInput(source, { values })
   scale.range([0, bandwidth])
   const groupBandwidth = scale.bandwidth?.()
   if (groupBandwidth === undefined) {

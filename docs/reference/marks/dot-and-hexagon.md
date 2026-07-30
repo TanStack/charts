@@ -116,16 +116,17 @@ Every valid row emits one `ChartPoint` with:
 
 ## Radius scales
 
-`rScale` is deliberately only a numeric function. TanStack Charts does not
-copy it or assign a range. Configure its output range in pixels before passing
-it:
+Pass a numeric scale factory to infer `[0, maximum]` from the radius channel.
+Configure its semantic pixel range inside the factory:
 
 ```ts
-const radiusScale = scaleSqrt().domain([0, maximum]).range([2, 18])
+const rScale = {
+  scale: () => scaleSqrt().range([2, 18]),
+}
 ```
 
-The primitive remains application-owned and independently tree-shakeable. The
-shared integration boundary is documented in
+An ordinary numeric mapper or configured scale instance remains valid when
+the application owns the complete mapping. The shared integration boundary is documented in
 [Scales and D3](../../concepts/scales-and-d3.md).
 
 Radius does not contribute to x/y guide margins. Add an explicit partial

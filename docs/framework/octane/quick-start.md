@@ -7,8 +7,8 @@ Install the framework adapter, core grammar, Octane peer, and only the granular
 data and scale modules used by the chart:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/octane-charts octane d3-array d3-scale
-pnpm add -D @types/d3-array @types/d3-scale
+pnpm add @tanstack/charts @tanstack/octane-charts octane d3-scale
+pnpm add -D @types/d3-scale
 ```
 
 The shared [Scales and D3](../../concepts/scales-and-d3.md) page explains the
@@ -21,7 +21,6 @@ Definitions are framework-independent and can be shared with any adapter:
 <!-- docs-example: octane-quick-start octane -->
 
 ```tsx
-import { max } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/octane-charts'
@@ -33,8 +32,6 @@ const revenue = [
   { month: 'Apr', value: 64 },
 ]
 
-const maximum = max(revenue, (row) => row.value) ?? 0
-
 const revenueChart = defineChart({
   marks: [
     barY(revenue, {
@@ -43,12 +40,11 @@ const revenueChart = defineChart({
     }),
   ],
   x: {
-    scale: scaleBand()
-      .domain(revenue.map((row) => row.month))
-      .padding(0.18),
+    scale: () => scaleBand().padding(0.18),
   },
   y: {
-    scale: scaleLinear().domain([0, maximum]).nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Revenue',
     grid: true,
   },
@@ -100,8 +96,6 @@ interface RevenueInput {
 
 export function LiveRevenue({ rows, accent }: RevenueInput) {
   const definition = useMemo(() => {
-    const maximum = max(rows, (row) => row.value) ?? 0
-
     return defineChart({
       marks: [
         barY(rows, {
@@ -111,12 +105,11 @@ export function LiveRevenue({ rows, accent }: RevenueInput) {
         }),
       ],
       x: {
-        scale: scaleBand()
-          .domain(rows.map((row) => row.month))
-          .padding(0.18),
+        scale: () => scaleBand().padding(0.18),
       },
       y: {
-        scale: scaleLinear().domain([0, maximum]).nice(),
+        scale: scaleLinear,
+        nice: true,
       },
       animate: true,
       tooltip: true,

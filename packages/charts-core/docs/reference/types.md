@@ -144,24 +144,31 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 
 ## Scale, guide, color, and theme types
 
-| Type                       | Purpose                                                  |
-| -------------------------- | -------------------------------------------------------- |
-| `ChartAxisOptions`         | Required positional scale and optional guide behavior    |
-| `ChartAxisGuideOptions`    | Guide behavior without the scale field                   |
-| `ConfiguredScaleLike`      | Callable, copyable positional scale contract             |
-| `ChartScale`               | Custom positional scale extension                        |
-| `ChartScaleResolveContext` | Values, responsive range, guide options, and hints       |
-| `ChartScaleResolver`       | Function form of custom scale resolution                 |
-| `ChartColorOptions`        | Configured/custom color scale, domain, range, and legend |
-| `ConfiguredColorScaleLike` | Callable and copyable color scale contract               |
-| `ChartColorScale`          | Custom color scale extension                             |
-| `ChartColorScaleContext`   | Observed values, hints, and theme                        |
-| `ChartColorLegend`         | Legend layout and scene rendering                        |
-| `ChartColorLegendContext`  | Resolved colors, chart bounds, theme, and width          |
-| `ChartTheme`               | Foreground, muted, grid, background, and palette         |
-| `ChartLinearGradient`      | Named linear-gradient resource                           |
-| `ChartGradientStop`        | Gradient offset, color, and optional opacity             |
-| `ChartCurve`               | Line and y-area path generation                          |
+| Type                       | Purpose                                                      |
+| -------------------------- | ------------------------------------------------------------ |
+| `ChartAxisOptions`         | Required positional scale and optional guide behavior        |
+| `ChartAxisGuideOptions`    | Guide behavior without the scale field                       |
+| `ChartScaleFactory`        | Creates a positional scale with a mark-inferred domain       |
+| `ChartScaleInput`          | Factory or configured positional scale instance              |
+| `InferableScaleLike`       | Domain-configurable scale returned by a factory              |
+| `ConfiguredScaleLike`      | Callable, copyable positional scale contract                 |
+| `ChartNumericScale`        | Radius mapper, configured instance, or inferred factory spec |
+| `ChartNumericScaleOptions` | Inferred or configured radius scale with optional nicening   |
+| `ChartScale`               | Custom positional scale extension                            |
+| `ChartScaleResolveContext` | Values, responsive range, guide options, and hints           |
+| `ChartScaleResolver`       | Function form of custom scale resolution                     |
+| `ChartColorOptions`        | Factory, configured/custom color scale, hints, and legend    |
+| `ChartColorScaleFactory`   | Creates a color scale with a channel-inferred domain         |
+| `ConfiguredColorScaleLike` | Callable and copyable color scale contract                   |
+| `InferableColorScaleLike`  | Domain-configurable color scale returned by a factory        |
+| `ChartColorScale`          | Custom color scale extension                                 |
+| `ChartColorScaleContext`   | Observed values, hints, and theme                            |
+| `ChartColorLegend`         | Legend layout and scene rendering                            |
+| `ChartColorLegendContext`  | Resolved colors, chart bounds, theme, and width              |
+| `ChartTheme`               | Foreground, muted, grid, background, and palette             |
+| `ChartLinearGradient`      | Named linear-gradient resource                               |
+| `ChartGradientStop`        | Gradient offset, color, and optional opacity                 |
+| `ChartCurve`               | Line and y-area path generation                              |
 
 See [Scales, guides, and color](./scales-guides-and-color.md).
 
