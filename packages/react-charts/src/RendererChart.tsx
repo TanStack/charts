@@ -2,16 +2,12 @@ import * as React from 'react'
 import { createChartRendererAdapter } from '@tanstack/charts/adapter/renderer'
 import type {
   ChartAdapter,
-  ChartAnimationOptions,
   ChartRenderer,
   ChartRendererHostCommonOptions,
   ChartRendererHostOptions,
   ChartRendererRenderContext,
   ChartPoint,
-  ChartFocusMode,
-  ChartSpatialIndexFactory,
   ChartTextMeasurer,
-  ChartTooltipOptions,
   ChartValue,
   ChartDefinition,
 } from '@tanstack/charts'
@@ -51,15 +47,9 @@ export interface RendererChartCommonProps<
   initialWidth?: number
   className?: string
   style?: React.CSSProperties
-  maxFocusDistance?: number
-  focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
-  spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
-  animate?: boolean | ChartAnimationOptions
-  keyboard?: boolean
   tabIndex?: number
   idPrefix?: string
   measureText?: ChartTextMeasurer
-  tooltip?: boolean | ChartTooltipOptions<TDatum, TXValue, TYValue>
   onFocusChange?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
   onFocusGroupChange?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
@@ -100,16 +90,10 @@ export function RendererChartImplementation<
     initialWidth = 640,
     className,
     style,
-    maxFocusDistance = 48,
-    focus,
-    spatialIndex,
-    animate,
-    keyboard = true,
     tabIndex,
     idPrefix: idPrefixOption,
     renderer,
     measureText,
-    tooltip,
     onFocusChange,
     onFocusGroupChange,
     onSelect,
@@ -144,15 +128,9 @@ export function RendererChartImplementation<
     aspectRatio: resolvedAspectRatio,
     width,
     initialWidth,
-    maxFocusDistance,
-    focus,
-    spatialIndex,
-    animate,
-    keyboard,
     tabIndex,
     idPrefix,
     measureText,
-    tooltip,
     onFocusChange,
     onFocusGroupChange,
     onSelect,

@@ -148,16 +148,16 @@ export const mount: ConformanceMount = (container, input) => {
   container.append(view)
 
   const options = (): ChartHostOptions<EditableEvent> => ({
-    definition: definition({
-      ...currentInput,
-      end: state.end,
-    }),
+    definition: defineChart(
+      definition({
+        ...currentInput,
+        end: state.end,
+      }),
+      { animate: false, keyboard: false, focus: focusDisabled },
+    ),
     width: currentInput.width,
     height: currentInput.height,
     ariaLabel: editableAriaLabel(currentInput.revision, state.end),
-    animate: false,
-    keyboard: false,
-    focus: focusDisabled,
   })
   const host = mountChart(chartSurface, options())
   const interactions = createEditableInteractions(

@@ -9,7 +9,8 @@ description: Reference static and responsive chart definitions, build context, a
 import { defineChart } from '@tanstack/charts'
 ```
 
-`defineChart` accepts either a complete chart spec or a builder:
+`defineChart` accepts a complete chart spec, a responsive configuration, or an
+existing definition plus replacement behavior:
 
 ```ts
 function defineChart<const TMarks, const TSpec>(
@@ -19,6 +20,15 @@ function defineChart<const TMarks, const TSpec>(
 function defineChart<const TSpec>(
   chart: (context: ChartBuildContext) => TSpec,
 ): DynamicChartDefinition<InferredDatum, InferredX, InferredY>
+
+function defineChart<const TSpec>(
+  config: DynamicChartConfig<TSpec>,
+): DynamicChartDefinition<InferredDatum, InferredX, InferredY>
+
+function defineChart<TDatum, TXValue, TYValue>(
+  definition: ChartDefinition<TDatum, TXValue, TYValue>,
+  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
+): ChartDefinition<TDatum, TXValue, TYValue>
 ```
 
 ## Static definitions
@@ -30,23 +40,32 @@ const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value', key: 'id' })],
   x: { scale: scaleUtc().domain(dateDomain) },
   y: { scale: scaleLinear().domain(valueDomain).nice(), grid: true },
+  focus: 'group-x',
+  tooltip: {
+    anchor: 'group-center',
+    placement: ['top', 'right', 'left', 'bottom'],
+  },
 })
 ```
 
 ## Responsive definitions
 
-Use a builder when the spec depends on the resolved chart surface:
+Use a configuration object when the spec depends on the resolved chart
+surface:
 
 ```ts
-const definition = defineChart(({ width }) => ({
-  marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
-  x: { scale: scaleBand().domain(categories) },
-  y: {
-    scale: scaleLinear().domain(valueDomain).nice(),
-    ticks: width < 480 ? 4 : 7,
-    grid: true,
-  },
-}))
+const definition = defineChart({
+  animate: true,
+  chart: ({ width }) => ({
+    marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
+    x: { scale: scaleBand().domain(categories) },
+    y: {
+      scale: scaleLinear().domain(valueDomain).nice(),
+      ticks: width < 480 ? 4 : 7,
+      grid: true,
+    },
+  }),
+})
 ```
 
 The builder receives:
@@ -59,6 +78,17 @@ The builder receives:
 
 `width` and `height` are controlled by the host. The builder can read them but
 does not return or own them.
+
+## Definition behavior
+
+`ChartDefinitionOptions<TDatum, TXValue, TYValue>` contains `focus`,
+`maxFocusDistance`, `spatialIndex`, `animate`, `keyboard`, and `tooltip`.
+These options belong to both static and responsive definitions. Hosts and
+framework adapters do not override them.
+
+`DynamicChartConfig<TSpec>` combines those options with the responsive `chart`
+builder. The two-argument `defineChart(definition, options)` form creates a new
+definition when a reusable base needs a different interaction policy.
 
 ## Identity and updates
 

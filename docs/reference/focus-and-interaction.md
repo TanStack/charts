@@ -6,7 +6,7 @@ description: Configure pointer focus, grouped focus, keyboard navigation, native
 The DOM host and framework adapters provide point-level interaction from each
 mark's emitted `ChartPoint` values. The defaults cover nearest-point pointer
 focus, linear keyboard navigation, activation, and an optional native tooltip.
-Applications can replace each policy without replacing chart rendering.
+Definitions own these policies; adapters only mount them and report events.
 
 ## Default behavior
 
@@ -26,41 +26,31 @@ With no custom focus strategy:
 normal tab-order participation while keeping keyboard handling enabled. Set
 `keyboard: false` to remove keyboard navigation and force tab index `-1`.
 
-## Focus helpers
+## Focus modes
 
-Import optional axis strategies from their granular subpath:
+Use a preset for built-in focus behavior:
 
 ```ts
-import {
-  focusNearestX,
-  focusNearestY,
-  focusX,
-  focusY,
-} from '@tanstack/charts/focus'
-import { mountChart } from '@tanstack/charts/dom'
+const groupedDownloads = defineChart(definition, {
+  focus: 'group-x',
+  tooltip: true,
+})
 ```
 
-| Strategy        | Pointer resolution                                 | Group returned to callbacks and tooltip                               | Keyboard navigation                     |
-| --------------- | -------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------- |
-| `focusX`        | Nearest x coordinate, then nearest y within that x | One point per group sharing the semantic x value; nearest point first | One representative per semantic x value |
-| `focusNearestX` | Nearest x coordinate, then nearest y               | Primary point only                                                    | Every point                             |
-| `focusY`        | Nearest y coordinate, then nearest x within that y | One point per group sharing the semantic y value; nearest point first | One representative per semantic y value |
-| `focusNearestY` | Nearest y coordinate, then nearest x               | Primary point only                                                    | Every point                             |
+| Preset      | Pointer resolution                                 | Group returned to callbacks and tooltip                               | Keyboard navigation                     |
+| ----------- | -------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------- |
+| `nearest`   | Nearest point in two dimensions                    | Primary point only                                                    | Every point                             |
+| `nearest-x` | Nearest x coordinate, then nearest y               | Primary point only                                                    | Every point                             |
+| `nearest-y` | Nearest y coordinate, then nearest x               | Primary point only                                                    | Every point                             |
+| `group-x`   | Nearest x coordinate, then nearest y within that x | One point per group sharing the semantic x value; nearest point first | One representative per semantic x value |
+| `group-y`   | Nearest y coordinate, then nearest x within that y | One point per group sharing the semantic y value; nearest point first | One representative per semantic y value |
 
 Grouping compares semantic values, including dates by timestamp. Duplicate
 points with the same `group` value are reduced to one member in grouped focus.
 
-```ts
-mountChart(container, {
-  definition,
-  ariaLabel: 'Package downloads',
-  focus: focusX,
-  tooltip: {
-    formatGroup: (points) =>
-      points.map((point) => `${point.groupLabel}: ${point.yValue}`).join('\n'),
-  },
-})
-```
+The equivalent `focusX`, `focusY`, `focusNearestX`, and `focusNearestY`
+strategy objects remain available from `@tanstack/charts/focus` for composition
+or direct strategy use.
 
 ## Disabling chart-owned focus
 
@@ -71,8 +61,8 @@ import { focusDisabled } from '@tanstack/charts/focus/disabled'
 `focusDisabled` resolves, groups, and navigates to no points. Use it when an
 application owns gestures, selection paint, accessibility, and task semantics
 outside the native focus layer. It does not remove the rendered focus node or
-other DOM listeners; disable `keyboard` and omit `tooltip` as appropriate for
-the application-owned interaction.
+other DOM listeners; set definition `keyboard: false` and omit its `tooltip`
+as appropriate for the application-owned interaction.
 
 ## Custom focus strategies
 
@@ -104,18 +94,15 @@ interface ChartFocusStrategy<
 first. `group` is called when an existing point is restored or reached through
 keyboard navigation. `navigation` returns the ordered keyboard task set.
 
-`ChartFocusMode` is an alias of `ChartFocusStrategy`.
+`ChartFocusMode` accepts a `ChartFocusPreset` string or a
+`ChartFocusStrategy`.
 
 ## Tooltips
 
-Set `tooltip: true` for the native accessible tooltip. Its default line is:
-
-```text
-group label · x value · y value
-```
-
-Numbers and dates use the browser's locale formatting. Grouped focus produces
-one line per point.
+Set `tooltip: true` for the native accessible tooltip. The default is a
+structured label-value table. Grouped focus adds a shared-axis heading and one
+color swatch and value row per series. Visible axis labels are reused. Numbers
+use browser locale formatting; dates use stable UTC ISO formatting.
 
 ```ts
 interface ChartTooltipOptions<
@@ -124,6 +111,15 @@ interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
+  items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
+  sort?: ChartTooltipSort<TDatum, TXValue, TYValue>
+  anchor?: ChartTooltipAnchor<TDatum, TXValue, TYValue>
+  placement?: 'auto' | ChartTooltipPlacement | readonly ChartTooltipPlacement[]
+  offset?: number
+  content?: (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    context: ChartTooltipContentContext,
+  ) => ChartTooltipContent
   format?: (point: ChartPoint<TDatum, TXValue, TYValue>) => string
   formatGroup?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
@@ -132,23 +128,95 @@ interface ChartTooltipOptions<
 }
 ```
 
-| Option        | Default       | Meaning                                    |
-| ------------- | ------------- | ------------------------------------------ |
-| `className`   | None          | Class appended after `ts-chart-tooltip`    |
-| `format`      | Built-in line | Formats the primary point as text          |
-| `formatGroup` | None          | Formats the complete focused group as text |
-| `sticky`      | `false`       | Enables click-to-pin behavior              |
+| Option        | Default        | Meaning                                              |
+| ------------- | -------------- | ---------------------------------------------------- |
+| `className`   | None           | Class appended after `ts-chart-tooltip`              |
+| `items`       | Automatic x/y  | Ordered rows for a single focused point              |
+| `sort`        | `color-domain` | Grouped row order                                    |
+| `anchor`      | `point`        | Point, pointer, group center, or coordinate resolver |
+| `placement`   | `auto`         | Fixed or ordered fallback box placements             |
+| `offset`      | `10`           | Scene-pixel gap between anchor and box               |
+| `content`     | Automatic rows | Returns a safe title and structured rows             |
+| `format`      | None           | Replaces content with primary-point text             |
+| `formatGroup` | None           | Replaces content with focused-group text             |
+| `sticky`      | `true`         | Enables click-to-pin and text selection              |
 
-Formatting precedence is `formatGroup`, then `format`, then the default. The
-tooltip content is text, not HTML. Newlines are preserved. `className` is
-appended to `ts-chart-tooltip`.
+Formatting precedence is `content`, `formatGroup`, `format`, then the default.
+The text formatters do not parse HTML, and newlines are preserved. `className`
+is appended to `ts-chart-tooltip`.
 
-With `sticky: true`, clicking a point pins the tooltip and a later click
-unpins it. `Escape` unpins and clears focus. The tooltip has `role="status"`
-and `aria-live="polite"`.
+### Ordered point items
 
-The built-in tooltip is intentionally one layer. For rich or nested UI, omit
-it and render application content from `onFocusChange` or
+`items` is an ordered single-point row list. Use `x`, `y`, and `group`
+shorthands, a configured channel, a scalar datum field, or derived text:
+
+```ts
+const tooltip = {
+  items: [
+    {
+      channel: 'y',
+      label: 'Revenue',
+      text: (point) => currency(point.yValue),
+    },
+    {
+      field: 'volume',
+      label: 'Volume',
+      text: (point) => compact(point.datum.volume),
+    },
+    {
+      id: 'change',
+      label: 'Change',
+      text: (point) =>
+        point.datum.change == null ? null : percent(point.datum.change),
+    },
+    'x',
+    'group',
+  ],
+}
+```
+
+Array order is row order. A nullish datum field or nullish `text` result omits
+the row. Adding `group` to `items` renders it as a row instead of the automatic
+single-point title. In grouped focus, the shared-axis item supplies the heading
+label and text, the opposite-axis item formats values, and the group item
+formats series names. `sort` orders those generated series rows. Additional
+grouped structure belongs in `content`.
+
+`sort` accepts `color-domain`, `focus`, or a typed point comparator.
+
+### Anchor and placement
+
+`anchor` controls the scene coordinate followed by the box:
+
+- `point` follows the primary focused point.
+- `pointer` follows the current pointer and falls back to the point for
+  keyboard focus.
+- `group-center` uses the center of the focused points' bounding box.
+- A resolver receives the focused points plus pointer, chart bounds, width,
+  and height, and returns scene coordinates. A nullish or non-finite result
+  falls back to the primary point.
+
+`placement` accepts `auto`, one placement, or an ordered fallback list. The
+placements are `top`, `top-right`, `right`, `bottom-right`, `bottom`,
+`bottom-left`, `left`, and `top-left`. A single placement is fixed and shifted
+inside the surface. A list uses the first placement that fits; if none fits,
+it uses the least-overflowing candidate and shifts it inside. `auto` uses
+`top`, `bottom`, `right`, then `left`.
+
+```ts
+const tooltip = {
+  anchor: 'group-center',
+  placement: ['top', 'right', 'left', 'bottom'],
+  offset: 12,
+}
+```
+
+Clicking a point pins the tooltip. A later click unpins it. `Escape` unpins and
+clears focus. Set `sticky: false` to disable pinning. The tooltip has
+`role="status"` and `aria-live="polite"`.
+
+`content` supports display-only rows. For interactive or nested UI, omit the
+native tooltip and render application content from `onFocusChange` or
 `onFocusGroupChange`.
 
 ## Callbacks
@@ -184,8 +252,8 @@ type ChartSpatialIndexFactory<
 ) => ChartSpatialIndex<TDatum, TXValue, TYValue>
 ```
 
-The host rebuilds the index when the scene changes and when the factory
-changes. The index owns its search algorithm and must apply `maxDistance`.
+The host rebuilds the index when the scene or definition changes. The index
+owns its search algorithm and must apply `maxDistance`.
 Use the granular spatial primitive appropriate to the data; the boundary is
 described in [Scales and D3](../concepts/scales-and-d3.md).
 

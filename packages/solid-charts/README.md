@@ -7,9 +7,12 @@ pnpm add @tanstack/charts @tanstack/solid-charts solid-js d3-scale
 ```
 
 ```tsx
+import { defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/solid-charts'
 
-;<Chart definition={definition} ariaLabel="Revenue by month" tooltip />
+const interactiveDefinition = defineChart(definition, { tooltip: true })
+
+;<Chart definition={interactiveDefinition} ariaLabel="Revenue by month" />
 ```
 
 The adapter renders SVG during SSR and updates the shared chart host from

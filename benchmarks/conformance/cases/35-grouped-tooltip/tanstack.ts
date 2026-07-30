@@ -1,6 +1,5 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import type { ChartPoint, ChartHostOptions } from '@tanstack/charts'
-import { focusX } from '@tanstack/charts/focus'
 import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
 import { timeDomain, timeSeries } from '../../shared/data'
 import type { TimePoint } from '../../shared/data'
@@ -46,27 +45,28 @@ const definition = (input: ConformanceInput) =>
     }
   })
 
+const configuredDefinition = (input: ConformanceInput) =>
+  defineChart(definition(input), {
+    animate: false,
+    keyboard: true,
+    focus: 'group-x',
+    tooltip: {
+      anchor: 'group-center',
+      placement: ['top', 'right', 'left', 'bottom'],
+      sort: 'color-domain',
+    },
+  })
+
 export function mount(
   container: HTMLElement,
   input: ConformanceInput,
 ): ConformanceHandle {
   let focusedIds: string[] = []
-  const formatGroup = (points: readonly ChartPoint<TimePoint>[]) =>
-    points
-      .map(
-        (point) =>
-          `${point.datum.series}: ${point.datum.value.toLocaleString()}`,
-      )
-      .join('\n')
   const options: ChartHostOptions<TimePoint> = {
-    definition: definition(input),
+    definition: configuredDefinition(input),
     width: input.width,
     height: input.height,
     ariaLabel: 'Grouped series tooltip',
-    animate: false,
-    keyboard: true,
-    focus: focusX,
-    tooltip: { formatGroup },
     onFocusGroupChange(points) {
       focusedIds = points.map((point) => point.datum.id)
     },
@@ -108,7 +108,7 @@ export function mount(
     update(nextInput) {
       host.update({
         ...options,
-        definition: definition(nextInput),
+        definition: configuredDefinition(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

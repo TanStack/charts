@@ -44,6 +44,9 @@ const widenedDefinition: ChartDefinition<
   number,
   number
 > = data.length > 0 ? definition : typedDynamicDefinition
+const broadFocusDefinition = defineChart(definition, {
+  maxFocusDistance: 1_000,
+})
 
 if (false) {
   const legacyStaticArity = (
@@ -61,25 +64,27 @@ if (false) {
   void legacyStaticArity
   void explicitDynamicArity
 
+  const focusedDynamicDefinition = defineChart(typedDynamicDefinition, {
+    focus: {
+      resolve(points) {
+        expectTypeOf(points).items.toMatchTypeOf<{
+          datum: (typeof data)[number]
+          xValue: number
+          yValue: number
+        }>()
+        return points
+      },
+      group(_points, point) {
+        expectTypeOf(point.xValue).toEqualTypeOf<number>()
+        return [point]
+      },
+      navigation: (points) => points,
+    },
+  })
   const inferredCallback = (
     <Chart
-      definition={typedDynamicDefinition}
+      definition={focusedDynamicDefinition}
       ariaLabel="Revenue"
-      focus={{
-        resolve(points) {
-          expectTypeOf(points).items.toMatchTypeOf<{
-            datum: (typeof data)[number]
-            xValue: number
-            yValue: number
-          }>()
-          return points
-        },
-        group(_points, point) {
-          expectTypeOf(point.xValue).toEqualTypeOf<number>()
-          return [point]
-        },
-        navigation: (points) => points,
-      }}
       renderSvg={(scene) => {
         expectTypeOf(scene.points).items.toMatchTypeOf<{
           datum: (typeof data)[number]
@@ -181,7 +186,7 @@ describe('React adapter', () => {
     (aspectRatio) => {
       const html = renderToString(
         <Chart
-          definition={definition}
+          definition={broadFocusDefinition}
           width={480}
           aspectRatio={aspectRatio}
           ariaLabel="Revenue"
@@ -264,7 +269,6 @@ describe('React adapter', () => {
           width={480}
           height={260}
           ariaLabel="Revenue"
-          maxFocusDistance={1_000}
           onFocusChange={(point) => {
             onFocusChange(point)
             setFocused(point)

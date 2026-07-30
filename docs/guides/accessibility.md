@@ -101,7 +101,7 @@ semantics.
 
 ## Tooltips are supplemental
 
-The native tooltip uses a polite status region and locale-aware default text.
+The native tooltip exposes its structured rows through a polite status region.
 It is not a replacement for a label, axis, legend, or data table. Essential
 information must remain available without hovering.
 

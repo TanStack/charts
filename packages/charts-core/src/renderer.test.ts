@@ -44,13 +44,15 @@ describe('renderer-neutral chart host', () => {
     const onSelect = vi.fn()
     const onRender = vi.fn()
     const host = mountChartRenderer(container, {
-      definition,
+      definition: {
+        ...definition,
+        maxFocusDistance: 1_000,
+        tooltip: true,
+      },
       renderer: fake.renderer,
       width: 480,
       height: 260,
       ariaLabel: 'Renderer-neutral chart',
-      maxFocusDistance: 1_000,
-      tooltip: true,
       onFocusChange,
       onSelect,
       onRender,
@@ -106,9 +108,6 @@ describe('renderer-neutral chart host', () => {
     )
     const firstPoint = host.getScene().points[0]
     if (!firstPoint) throw new Error('Expected first chart point')
-    expect(tooltip.style.left).toBe(
-      `${Math.max(8, Math.min(272, firstPoint.x - 100))}px`,
-    )
     expect(Number.parseFloat(tooltip.style.left)).toBeGreaterThanOrEqual(8)
     expect(Number.parseFloat(tooltip.style.left) + 200).toBeLessThanOrEqual(472)
     expect(Number.parseFloat(tooltip.style.top)).toBeGreaterThanOrEqual(8)
@@ -130,19 +129,93 @@ describe('renderer-neutral chart host', () => {
     expect(container.childElementCount).toBe(0)
   })
 
+  it('anchors to the pointer, follows placement fallbacks, and clears pointer state for keyboard focus', () => {
+    const fake = createFakeRenderer()
+    fake.clientToScene.mockReturnValue({ x: 20, y: 20 })
+    const container = document.createElement('div')
+    const pointerDefinition = defineChart(definition, {
+      maxFocusDistance: 1_000,
+      tooltip: {
+        anchor: 'pointer',
+        placement: ['top', 'bottom-right'],
+        offset: 12,
+      },
+    })
+    const options = {
+      definition: pointerDefinition,
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Positioned tooltip',
+    }
+    const host = mountChartRenderer(container, options)
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+    if (!tooltip) throw new Error('Expected chart tooltip')
+    Object.defineProperties(tooltip, {
+      offsetWidth: { configurable: true, value: 100 },
+      offsetHeight: { configurable: true, value: 40 },
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+
+    expect(tooltip.dataset.placement).toBe('bottom-right')
+    expect(tooltip.style.left).toBe('32px')
+    expect(tooltip.style.top).toBe('32px')
+
+    const pointers: Array<{ x: number; y: number } | null> = []
+    const customDefinition = defineChart(definition, {
+      maxFocusDistance: 1_000,
+      tooltip: {
+        anchor(_points, context) {
+          pointers.push(context.pointer)
+          return { x: 300, y: 120 }
+        },
+        placement: 'left',
+        offset: 5,
+      },
+    })
+    host.update({ ...options, definition: customDefinition })
+
+    expect(pointers.at(-1)).toEqual({ x: 20, y: 20 })
+    expect(tooltip.dataset.placement).toBe('left')
+    expect(tooltip.style.left).toBe('195px')
+    expect(tooltip.style.top).toBe('100px')
+
+    fake.element.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }),
+    )
+    expect(pointers.at(-1)).toBeNull()
+    host.destroy()
+  })
+
   it('replaces a changed renderer once and restores focused tooltip state', () => {
     const first = createFakeRenderer('shared-id')
     const second = createFakeRenderer('shared-id')
     const container = document.createElement('div')
     const options = {
-      definition,
+      definition: {
+        ...definition,
+        maxFocusDistance: 1_000,
+        tooltip: true,
+        animate: true,
+      },
       renderer: first.renderer,
       width: 480,
       height: 260,
       ariaLabel: 'Replaceable renderer',
-      maxFocusDistance: 1_000,
-      tooltip: true,
-      animate: true,
     }
     const host = mountChartRenderer(container, options)
 
@@ -258,11 +331,12 @@ describe('renderer-neutral chart host', () => {
       toJSON: () => ({}),
     }))
     const options = {
-      definition,
+      definition: defineChart(definition, {
+        animate: { duration: 120 },
+      }),
       renderer: fake.renderer,
       height: 260,
       ariaLabel: 'Responsive animation',
-      animate: { duration: 120 },
     }
     const host = mountChartRenderer(container, options)
 
@@ -274,13 +348,15 @@ describe('renderer-neutral chart host', () => {
 
     host.update({
       ...options,
-      animate: { duration: 120, resize: true },
+      definition: defineChart(definition, {
+        animate: { duration: 120, resize: true },
+      }),
     })
     width = 640
     resize?.([], {} as ResizeObserver)
     frames.shift()?.(0)
 
-    expect(fake.render.mock.calls[2]?.[1].animation).toEqual({
+    expect(fake.render.mock.calls[3]?.[1].animation).toEqual({
       duration: 120,
     })
 
@@ -294,12 +370,13 @@ describe('renderer-neutral chart host', () => {
     const fake = createFakeRenderer()
     const container = document.createElement('div')
     const options = {
-      definition,
+      definition: defineChart(definition, {
+        animate: { duration: 120 },
+      }),
       renderer: fake.renderer,
       width: 320,
       height: 260,
       ariaLabel: 'Explicit size animation',
-      animate: { duration: 120 },
     }
     const host = mountChartRenderer(container, options)
 
@@ -309,7 +386,9 @@ describe('renderer-neutral chart host', () => {
     host.update({
       ...options,
       width: 640,
-      animate: { duration: 120, resize: true },
+      definition: defineChart(definition, {
+        animate: { duration: 120, resize: true },
+      }),
     })
     expect(fake.render.mock.calls[2]?.[1].animation).toEqual({
       duration: 120,

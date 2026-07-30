@@ -1,5 +1,6 @@
 import { Chart } from '@tanstack/react-charts'
 import { useMemo } from 'react'
+import { defineChart } from '@tanstack/charts'
 import { focusX, focusY } from '@tanstack/charts/focus'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import {
@@ -11,32 +12,36 @@ import {
 
 export function HistoryChart() {
   const definition = useMemo(
-    () => createStatsHistoryChart(createStatsHistoryInput('stream')),
+    () =>
+      defineChart(createStatsHistoryChart(createStatsHistoryInput('stream')), {
+        focus: focusX,
+        tooltip: true,
+      }),
     [],
   )
   return (
     <Chart
       definition={definition}
       ariaLabel="Package downloads"
-      focus={focusX}
       renderSvg={renderChartSvgWithResources}
-      tooltip
     />
   )
 }
 
 export function RankingChart() {
   const definition = useMemo(
-    () => createStatsLatestChart(createStatsLatestInput('horizontal', true)),
+    () =>
+      defineChart(
+        createStatsLatestChart(createStatsLatestInput('horizontal', true)),
+        { focus: focusY, tooltip: true },
+      ),
     [],
   )
   return (
     <Chart
       definition={definition}
       ariaLabel="Package ranking"
-      focus={focusY}
       renderSvg={renderChartSvgWithResources}
-      tooltip
     />
   )
 }

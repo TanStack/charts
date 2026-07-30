@@ -15,34 +15,31 @@ function RankingChart({ rows, metric, accent }: Props) {
     const ranked = rankRows(rows, metric)
     const maximum = Math.max(1, max(ranked, (row) => row.value) ?? 0)
 
-    return defineChart(({ width }) => ({
-      marks: [
-        barX(ranked, {
-          x: 'value',
-          y: 'label',
-          key: 'id',
-          fill: accent,
-        }),
-      ],
-      x: {
-        scale: scaleLinear().domain([0, maximum]).nice(),
-        ticks: width < 420 ? 4 : 7,
-      },
-      y: {
-        scale: scaleBand<string>()
-          .domain(ranked.map((row) => row.label))
-          .padding(0.1),
-      },
-    }))
+    return defineChart({
+      animate: { duration: 280, easing: 'ease-out' },
+      chart: ({ width }) => ({
+        marks: [
+          barX(ranked, {
+            x: 'value',
+            y: 'label',
+            key: 'id',
+            fill: accent,
+          }),
+        ],
+        x: {
+          scale: scaleLinear().domain([0, maximum]).nice(),
+          ticks: width < 420 ? 4 : 7,
+        },
+        y: {
+          scale: scaleBand<string>()
+            .domain(ranked.map((row) => row.label))
+            .padding(0.1),
+        },
+      }),
+    })
   }, [rows, metric, accent])
 
-  return (
-    <Chart
-      definition={definition}
-      ariaLabel="Revenue ranking"
-      animate={{ duration: 280, easing: 'ease-out' }}
-    />
-  )
+  return <Chart definition={definition} ariaLabel="Revenue ranking" />
 }
 ```
 
@@ -55,7 +52,6 @@ Angular `computed`, or Octane `useMemo`.
 host.update({
   ...options,
   definition: createRankingDefinition(nextRows, nextMetric, nextAccent),
-  animate: true,
 })
 ```
 

@@ -87,10 +87,11 @@ Scene keys become `data-ts-key` attributes for reconciliation.
 ```ts
 import { mountCanvasChart } from '@tanstack/charts/canvas'
 
+const interactiveDefinition = defineChart(definition, { tooltip: true })
+
 const host = mountCanvasChart(container, {
-  definition,
+  definition: interactiveDefinition,
   ariaLabel: 'Weekly revenue',
-  tooltip: true,
 })
 ```
 
@@ -291,11 +292,12 @@ interface ChartAnimationOptions {
 | `respectReducedMotion` | `true`       | Lets a host suppress animation for reduced-motion mode |
 | `resize`               | `false`      | Animates responsive and explicit host size changes     |
 
-On a host, `animate: true` uses `240` milliseconds, `ease-out`, and respects
+On a definition, `animate: true` uses `240` milliseconds, `ease-out`, and respects
 `prefers-reduced-motion: reduce`. A numeric duration is clamped to at least
 zero. A custom easing receives raw progress from `0` to `1`.
 
-`respectReducedMotion` and `resize` are host policies. Direct
+`respectReducedMotion` and `resize` are definition policies enforced by the
+host. Direct
 `reconcileChartSvg(container, markup, animation)` calls run the supplied
 animation without consulting media queries or render reasons.
 

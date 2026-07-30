@@ -227,20 +227,24 @@ export function mount(
   const options = (
     view: SynchronizedCursorView,
   ): ChartHostOptions<SynchronizedCursorDatum> => ({
-    definition: definition({
-      ...currentInput,
-      view,
-    }),
+    definition: defineChart(
+      definition({
+        ...currentInput,
+        view,
+      }),
+      {
+        animate: false,
+        keyboard: true,
+        focus: focusX,
+        maxFocusDistance: Number.POSITIVE_INFINITY,
+      },
+    ),
     width: currentInput.width,
     height: viewHeight(),
     ariaLabel:
       view === 'primary'
         ? 'Linked primary throughput time series'
         : 'Linked secondary error-rate time series',
-    animate: false,
-    keyboard: true,
-    focus: focusX,
-    maxFocusDistance: Number.POSITIVE_INFINITY,
     onFocusGroupChange: setFocusedDate,
     onSelect: selectDate,
     onRender: onRender(view),

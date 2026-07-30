@@ -217,26 +217,28 @@ export function mount(
   const detailOptions = (): ChartHostOptions<FocusContextDatum> => {
     const heights = viewHeights(currentInput.height)
     return {
-      definition: detailDefinition({ ...currentInput, window }),
+      definition: defineChart(detailDefinition({ ...currentInput, window }), {
+        animate: false,
+        keyboard: false,
+      }),
       width: currentInput.width,
       height: heights.detail,
       ariaLabel: 'Detail time window',
-      animate: false,
-      keyboard: false,
     }
   }
 
   const overviewOptions = (): ChartHostOptions<FocusContextDatum> => {
     const heights = viewHeights(currentInput.height)
     return {
-      definition: overviewDefinition(currentInput),
+      definition: defineChart(overviewDefinition(currentInput), {
+        animate: false,
+        keyboard: false,
+      }),
       width: currentInput.width,
       height: heights.overview,
       ariaLabel: 'Overview time series with draggable detail window',
       ariaDescription:
         'Drag the visible selection or use the range control below to reposition the four-month detail window.',
-      animate: false,
-      keyboard: false,
     }
   }
 

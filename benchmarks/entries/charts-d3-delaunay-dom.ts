@@ -7,9 +7,11 @@ import type {
 import { Delaunay } from 'd3-delaunay'
 import { scaleLinear } from 'd3-scale'
 
-const createDelaunayPointIndex: ChartSpatialIndexFactory<unknown> = (
-  points,
-): ChartSpatialIndex<unknown> => {
+const createDelaunayPointIndex: ChartSpatialIndexFactory<
+  { x: number; y: number },
+  number,
+  number
+> = (points): ChartSpatialIndex<{ x: number; y: number }, number, number> => {
   const data = [...points]
   const index = Delaunay.from(
     data,
@@ -32,12 +34,12 @@ const definition = defineChart({
   marks: [dot([{ x: 0, y: 0 }], { x: 'x', y: 'y' })],
   x: { scale: scaleLinear().domain([-1, 1]) },
   y: { scale: scaleLinear().domain([-1, 1]) },
+  spatialIndex: createDelaunayPointIndex,
 })
 
 export function mount(element: HTMLElement) {
   return mountChart(element, {
     definition,
     ariaLabel: 'Dense points',
-    spatialIndex: createDelaunayPointIndex,
   })
 }

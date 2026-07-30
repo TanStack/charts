@@ -10,17 +10,20 @@ pnpm add @tanstack/charts @tanstack/preact-charts preact d3-scale
 ```
 
 ```tsx
+import { defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/preact-charts'
 
 export function RevenueChart() {
-  const definition = useMemo(() => createRevenueChart(rows), [rows])
+  const definition = useMemo(
+    () => defineChart(createRevenueChart(rows), { tooltip: true }),
+    [rows],
+  )
 
   return (
     <Chart
       definition={definition}
       ariaLabel="Revenue by month"
       aspectRatio={16 / 9}
-      tooltip
     />
   )
 }

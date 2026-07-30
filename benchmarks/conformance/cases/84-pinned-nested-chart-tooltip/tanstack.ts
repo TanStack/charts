@@ -203,14 +203,15 @@ export function mount(
   const miniOptions = (
     rows: readonly NestedTooltipMiniDatum[],
   ): ChartHostOptions<NestedTooltipMiniDatum> => ({
-    definition: miniDefinition({ rows }),
+    definition: defineChart(miniDefinition({ rows }), {
+      animate: false,
+      keyboard: false,
+    }),
     ...miniDimensions(),
     ariaLabel: 'Recent latency for the pinned service',
     ariaDescription: rows
       .map((row) => `${row.period}: ${row.value} milliseconds`)
       .join('. '),
-    animate: false,
-    keyboard: false,
   })
 
   const renderTooltip = () => {
@@ -240,14 +241,15 @@ export function mount(
 
   let mainHost: ChartHost<NestedTooltipDatum>
   const mainOptions = (): ChartHostOptions<NestedTooltipDatum> => ({
-    definition: mainDefinition({ ...currentInput, pinnedId }),
+    definition: defineChart(mainDefinition({ ...currentInput, pinnedId }), {
+      animate: false,
+      keyboard: true,
+    }),
     width: currentInput.width,
     height: mainHeight(),
     ariaLabel: 'Selectable service latency chart',
     ariaDescription:
       'Use arrow keys to choose a service and Enter or Space to pin its recent history.',
-    animate: false,
-    keyboard: true,
     onFocusChange(point: ChartPoint<NestedTooltipDatum> | null) {
       hoveredId = point?.datum.id ?? null
     },

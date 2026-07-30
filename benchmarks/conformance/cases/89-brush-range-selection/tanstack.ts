@@ -106,13 +106,14 @@ export function mount(
   const options = (
     nextInput: ConformanceInput,
   ): ChartHostOptions<BrushDatum> => ({
-    definition: definition(nextInput),
+    definition: defineChart(definition(nextInput), {
+      animate: false,
+      keyboard: false,
+      focus: focusDisabled,
+    }),
     width: nextInput.width,
     height: nextInput.height,
     ariaLabel: 'Time series with a draggable horizontal range brush',
-    animate: false,
-    keyboard: false,
-    focus: focusDisabled,
   })
   const host = mountChart(surface, options(input))
   const controller = createBrushController(

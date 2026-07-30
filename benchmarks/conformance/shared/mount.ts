@@ -1,4 +1,4 @@
-import { mountChart } from '@tanstack/charts'
+import { defineChart, mountChart } from '@tanstack/charts'
 import type {
   ChartValue,
   ChartTooltipOptions,
@@ -43,13 +43,14 @@ export function tanstackMount<
 ): ConformanceMount {
   return (container, input) => {
     const options = {
-      definition: createDefinition(input),
+      definition: defineChart(createDefinition(input), {
+        animate: false,
+        keyboard: input.interactive === true,
+        tooltip: input.interactive === true ? interactiveTooltip : false,
+      }),
       width: input.width,
       height: input.height,
       ariaLabel,
-      animate: false,
-      keyboard: input.interactive === true,
-      tooltip: input.interactive === true ? interactiveTooltip : false,
     } as const
     const host = mountChart(container, options)
 
@@ -57,11 +58,14 @@ export function tanstackMount<
       update(nextInput) {
         host.update({
           ...options,
-          definition: createDefinition(nextInput),
+          definition: defineChart(createDefinition(nextInput), {
+            animate: false,
+            keyboard: nextInput.interactive === true,
+            tooltip:
+              nextInput.interactive === true ? interactiveTooltip : false,
+          }),
           width: nextInput.width,
           height: nextInput.height,
-          keyboard: nextInput.interactive === true,
-          tooltip: nextInput.interactive === true ? interactiveTooltip : false,
         })
       },
       destroy() {

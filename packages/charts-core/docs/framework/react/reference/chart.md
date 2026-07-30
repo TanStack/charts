@@ -38,8 +38,8 @@ const rendererChart = (
 )
 ```
 
-The Canvas `Chart` accepts the same common interaction and sizing props except
-`renderSvg`. Its `onRender` receives `ChartRendererRenderContext`. The `/core`
+The Canvas `Chart` accepts the same adapter props except `renderSvg`. Its
+`onRender` receives `ChartRendererRenderContext`. The `/core`
 `Chart` also requires `renderer: ChartRenderer`; use it for application-owned
 surfaces. Both entries export `ChartCommonProps`, `ChartProps`,
 `ChartDefinition`, and `ChartPoint`.
@@ -51,6 +51,9 @@ surfaces. Both entries export `ChartCommonProps`, `ChartProps`,
 | `definition` | Required | Framework-independent definition; identity is the application update boundary |
 
 See [Chart Definition API](../../../reference/chart-definitions.md).
+
+The definition owns `focus`, `maxFocusDistance`, `spatialIndex`, `animate`,
+`keyboard`, and `tooltip`. Adapters do not override them.
 
 ## Accessibility and sizing
 
@@ -68,19 +71,14 @@ See [Chart Definition API](../../../reference/chart-definitions.md).
 
 See [Sizing and layout](../adapter.md#sizing-and-layout).
 
-## Focus, tooltip, and callbacks
+## Callbacks
 
-| Prop                 | Type                                                       | Default       | Meaning                                                 |
-| -------------------- | ---------------------------------------------------------- | ------------- | ------------------------------------------------------- |
-| `maxFocusDistance`   | `number`                                                   | `48`          | Maximum default pointer-focus distance in scene pixels  |
-| `focus`              | `ChartFocusMode<TDatum, TXValue, TYValue>`                 | Nearest point | Pointer grouping and keyboard strategy                  |
-| `spatialIndex`       | `ChartSpatialIndexFactory<TDatum, TXValue, TYValue>`       | Linear scan   | Dense nearest-point index                               |
-| `keyboard`           | `boolean`                                                  | `true`        | Enables keyboard focus and navigation                   |
-| `tooltip`            | `boolean \| ChartTooltipOptions<TDatum, TXValue, TYValue>` | `false`       | Native tooltip                                          |
-| `onFocusChange`      | `(point: ChartPoint \| null) => void`                      | None          | Primary focus callback                                  |
-| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`                  | None          | Grouped focus callback                                  |
-| `onSelect`           | `(point: ChartPoint \| null) => void`                      | None          | Click and keyboard activation callback                  |
-| `onRender`           | `(context: ChartRenderContext) => void`                    | None          | Inner surface, live SVG, and scene after reconciliation |
+| Prop                 | Type                                      | Default | Meaning                                                 |
+| -------------------- | ----------------------------------------- | ------- | ------------------------------------------------------- |
+| `onFocusChange`      | `(point: ChartPoint \| null) => void`     | None    | Primary focus callback                                  |
+| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void` | None    | Grouped focus callback                                  |
+| `onSelect`           | `(point: ChartPoint \| null) => void`     | None    | Click and keyboard activation callback                  |
+| `onRender`           | `(context: ChartRenderContext) => void`   | None    | Inner surface, live SVG, and scene after reconciliation |
 
 See [Focus and interaction](../../../reference/focus-and-interaction.md) for
 the behavior and complete callback values.
@@ -89,7 +87,6 @@ the behavior and complete callback values.
 
 | Prop          | Type                                         | Default                     | Meaning                                      |
 | ------------- | -------------------------------------------- | --------------------------- | -------------------------------------------- |
-| `animate`     | `boolean \| ChartAnimationOptions`           | `false`                     | Keyed update animation                       |
 | `idPrefix`    | `string`                                     | Generated from `useId()`    | Prefix for renderer-owned document resources |
 | `renderSvg`   | `ChartSvgRenderer<TDatum, TXValue, TYValue>` | `renderChartSvg`            | Scene-to-SVG renderer                        |
 | `measureText` | `ChartTextMeasurer`                          | DOM inherited-font measurer | Guide glyph measurement                      |

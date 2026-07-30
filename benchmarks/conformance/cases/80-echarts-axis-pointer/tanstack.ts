@@ -130,16 +130,17 @@ export function mount(
   const chartOptions = (
     nextInput: ConformanceInput,
   ): ChartHostOptions<AxisPointerDatum> => ({
-    definition: definition(nextInput),
+    definition: defineChart(definition(nextInput), {
+      animate: false,
+      keyboard: true,
+      focus: focusX,
+      maxFocusDistance: Number.POSITIVE_INFINITY,
+    }),
     width: nextInput.width,
     height: nextInput.height,
     ariaLabel: 'Snapped axis pointer with grouped tooltip',
     ariaDescription:
       'Move across the chart or use the arrow keys to compare all three series at the nearest month.',
-    animate: false,
-    keyboard: true,
-    focus: focusX,
-    maxFocusDistance: Number.POSITIVE_INFINITY,
     onFocusGroupChange,
     onRender,
   })

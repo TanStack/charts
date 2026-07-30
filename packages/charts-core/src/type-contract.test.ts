@@ -302,12 +302,53 @@ if (false) {
     navigation: (points) => points,
   }
   const numericRenderer: ChartSvgRenderer<Row, number, number> = () => ''
-
-  const categoricalHost = mountChart(container, {
-    definition: staticDefinition,
-    ariaLabel: 'Categorical values',
+  const interactiveCategoricalDefinition = defineChart(staticDefinition, {
     focus: categoricalFocus,
     tooltip: {
+      items: [
+        {
+          channel: 'x',
+          label: 'Category',
+          text(point) {
+            expectTypeOf(point.datum).toEqualTypeOf<Row>()
+            expectTypeOf(point.xValue).toEqualTypeOf<string>()
+            return point.xValue
+          },
+        },
+        {
+          field: 'value',
+          text(point) {
+            expectTypeOf(point.datum.value).toEqualTypeOf<number>()
+            expectTypeOf(point.xValue).toEqualTypeOf<string>()
+            return point.datum.value.toLocaleString()
+          },
+        },
+        {
+          id: 'status',
+          text(point, context) {
+            expectTypeOf(point.datum).toEqualTypeOf<Row>()
+            expectTypeOf(context.formatY).toBeFunction()
+            return point.datum.enabled ? 'enabled' : null
+          },
+        },
+      ],
+      sort(left, right) {
+        expectTypeOf(left.datum).toEqualTypeOf<Row>()
+        expectTypeOf(right.xValue).toEqualTypeOf<string>()
+        return left.yValue - right.yValue
+      },
+      anchor(points, context) {
+        expectTypeOf(points).items.toMatchTypeOf<{
+          datum: Row
+          xValue: string
+          yValue: number
+        }>()
+        expectTypeOf(context.pointer?.x).toEqualTypeOf<number | undefined>()
+        expectTypeOf(context.chart.width).toEqualTypeOf<number>()
+        return context.pointer ?? { x: context.chart.x, y: context.chart.y }
+      },
+      placement: ['top', 'bottom-right'],
+      offset: 12,
       format(point) {
         expectTypeOf(point.datum).toEqualTypeOf<Row>()
         expectTypeOf(point.xValue).toEqualTypeOf<string>()
@@ -322,7 +363,35 @@ if (false) {
         }>()
         return points.map((point) => point.xValue).join(', ')
       },
+      content(points, context) {
+        expectTypeOf(points).items.toMatchTypeOf<{
+          datum: Row
+          xValue: string
+          yValue: number
+        }>()
+        expectTypeOf(context.xLabel).toEqualTypeOf<string>()
+        return {
+          rows: points.map((point) => ({
+            label: point.datum.category,
+            value: context.formatY(point.yValue),
+          })),
+        }
+      },
     },
+    spatialIndex(points) {
+      expectTypeOf(points).items.toMatchTypeOf<{
+        datum: Row
+        xValue: string
+        yValue: number
+      }>()
+      return {
+        findNearest: () => points[0] ?? null,
+      }
+    },
+  })
+  const categoricalHost = mountChart(container, {
+    definition: interactiveCategoricalDefinition,
+    ariaLabel: 'Categorical values',
     onFocusChange(point) {
       if (!point) return
       expectTypeOf(point.datum).toEqualTypeOf<Row>()
@@ -356,16 +425,6 @@ if (false) {
       }>()
       return ''
     },
-    spatialIndex(points) {
-      expectTypeOf(points).items.toMatchTypeOf<{
-        datum: Row
-        xValue: string
-        yValue: number
-      }>()
-      return {
-        findNearest: () => points[0] ?? null,
-      }
-    },
   })
   expectTypeOf(categoricalHost.getScene().points).items.toMatchTypeOf<{
     datum: Row
@@ -373,15 +432,35 @@ if (false) {
     yValue: number
   }>()
   mountChart(container, {
-    definition: staticDefinition,
+    definition: defineChart(staticDefinition, { focus: focusX }),
     ariaLabel: 'Built-in focus remains polymorphic',
-    focus: focusX,
+  })
+  mountChart(container, {
+    definition: defineChart(staticDefinition, { focus: 'group-x' }),
+    ariaLabel: 'Built-in focus preset',
+  })
+  // @ts-expect-error Boolean datum fields require a derived text item.
+  defineChart(staticDefinition, {
+    tooltip: {
+      items: [
+        {
+          field: 'enabled',
+        },
+      ],
+    },
+  })
+  mountChart(container, {
+    definition: staticDefinition,
+    ariaLabel: 'Definition-only tooltip configuration',
+    // @ts-expect-error Chart behavior belongs to the definition, not the host.
+    tooltip: true,
   })
   mountChart<Row, string, number>(container, {
-    definition: staticDefinition,
-    ariaLabel: 'Incompatible focus coordinates',
     // @ts-expect-error A numeric-x focus strategy cannot consume string-x points.
-    focus: numericFocus,
+    definition: defineChart(staticDefinition, {
+      focus: numericFocus,
+    }),
+    ariaLabel: 'Incompatible focus coordinates',
   })
   mountChart<Row, string, number>(container, {
     definition: staticDefinition,
@@ -436,9 +515,8 @@ if (false) {
   }>()
 
   const heterogeneousHost = mountChart(container, {
-    definition: heterogeneousDefinition,
+    definition: defineChart(heterogeneousDefinition, { focus: focusX }),
     ariaLabel: 'Heterogeneous values',
-    focus: focusX,
     onFocusChange(point) {
       if (!point) return
       expectTypeOf(point.datum).toEqualTypeOf<LineRow | BarRow>()

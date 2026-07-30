@@ -2,12 +2,19 @@ import { describe, expect, it, vi } from 'vitest'
 import { mountChart } from './dom'
 import { barY } from './bar'
 import { lineY } from './line'
+import { rect } from './rect'
 import { createChartRuntime } from './runtime'
 import { defineChart } from './scene'
 import { renderChartSvgWithResources } from './svg-resources'
 import { focusX } from './focus'
-import { bandXAxes, linearAxes } from './test-scales'
-import type { ChartDefinition, ChartPoint, ChartTextMeasurer } from './types'
+import { bandXAxes, linearAxes, utcXAxes } from './test-scales'
+import type {
+  ChartDefinition,
+  ChartDefinitionOptions,
+  ChartPoint,
+  ChartTextMeasurer,
+  ChartValue,
+} from './types'
 
 interface Datum {
   id: string
@@ -127,7 +134,11 @@ describe('dynamic chart runtime', () => {
     host.update({ ...options, tabIndex: 5 })
     expect(svg?.getAttribute('tabindex')).toBe('5')
 
-    host.update({ ...options, tabIndex: 5, keyboard: false })
+    host.update({
+      ...options,
+      definition: withChartOptions(definition, { keyboard: false }),
+      tabIndex: 5,
+    })
     expect(svg?.getAttribute('tabindex')).toBe('-1')
     host.destroy()
   })
@@ -146,12 +157,13 @@ describe('dynamic chart runtime', () => {
     }))
     const container = document.createElement('div')
     const options = {
-      definition,
+      definition: withChartOptions(definition, {
+        tooltip: true,
+        spatialIndex: firstIndex,
+      }),
       width: 480,
       height: 260,
       ariaLabel: 'Focused update chart',
-      tooltip: true,
-      spatialIndex: firstIndex,
     }
     const host = mountChart(container, options)
     const svg = container.querySelector('svg')
@@ -163,8 +175,10 @@ describe('dynamic chart runtime', () => {
 
     host.update({
       ...options,
-      tooltip: false,
-      spatialIndex: nextIndex,
+      definition: withChartOptions(definition, {
+        tooltip: false,
+        spatialIndex: nextIndex,
+      }),
     })
 
     expect(nextIndex).toHaveBeenCalledOnce()
@@ -192,11 +206,10 @@ describe('dynamic chart runtime', () => {
     const onFocusChange = vi.fn()
     const format = (point: ChartPoint<(typeof data)[number]>) => point.datum.id
     const options = {
-      definition,
+      definition: withChartOptions(definition, { tooltip: { format } }),
       width: 480,
       height: 260,
       ariaLabel: 'Duplicate point key chart',
-      tooltip: { format },
       onFocusChange,
     }
     const host = mountChart(container, options)
@@ -231,7 +244,7 @@ describe('dynamic chart runtime', () => {
 
     host.update({
       ...options,
-      tooltip: { format },
+      definition: withChartOptions(definition, { tooltip: { format } }),
     })
     expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe('c')
 
@@ -284,11 +297,10 @@ describe('dynamic chart runtime', () => {
     const onFocusChange = vi.fn()
     const onSelect = vi.fn()
     const host = mountChart(container, {
-      definition,
+      definition: withChartOptions(definition, { tooltip: true }),
       width: 480,
       height: 260,
       ariaLabel: 'Keyboard chart',
-      tooltip: true,
       onFocusChange,
       onSelect,
     })
@@ -326,11 +338,10 @@ describe('dynamic chart runtime', () => {
     })
     const container = document.createElement('div')
     const host = mountChart(container, {
-      definition,
+      definition: withChartOptions(definition, { tooltip: true }),
       width: 480,
       height: 260,
       ariaLabel: 'Decimal chart',
-      tooltip: true,
     })
     const svg = container.querySelector('svg')
     if (!svg) throw new Error('Expected SVG')
@@ -340,6 +351,285 @@ describe('dynamic chart runtime', () => {
     const text = container.querySelector('.ts-chart-tooltip')?.textContent
     expect(text).toContain('14.286')
     expect(text).not.toContain(String(value))
+    host.destroy()
+  })
+
+  it('formats automatic date values as stable UTC dates', () => {
+    const date = new Date('2024-05-26T00:00:00.000Z')
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [lineY([{ date, value: 4 }], { x: 'date', y: 'value' })],
+        ...utcXAxes([new Date('2024-05-01T00:00:00.000Z'), date], [0, 4]),
+        tooltip: true,
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'UTC date chart',
+    })
+    const svg = container.querySelector('svg')
+    if (!svg) throw new Error('Expected SVG')
+
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+
+    const text = container
+      .querySelector('.ts-chart-tooltip')
+      ?.getAttribute('aria-label')
+    expect(text).toContain('2024-05-26')
+    expect(text).not.toContain('PM')
+    host.destroy()
+  })
+
+  it('renders grouped tooltip rows with scale labels, formatting, and swatches', () => {
+    const data = [
+      { id: 'a:query', period: 'A', series: 'Query', value: 12 },
+      { id: 'a:router', period: 'A', series: 'Router', value: 8 },
+    ]
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          lineY(data, {
+            x: 'period',
+            y: 'value',
+            z: 'series',
+            key: 'id',
+          }),
+        ],
+        x: {
+          ...bandXAxes(['A'], [0, 12]).x,
+          label: 'Period',
+        },
+        y: {
+          ...linearAxes([0, 1], [0, 12]).y,
+          label: 'Downloads',
+          format: (value) => `${value}k`,
+        },
+        focus: 'group-x',
+        tooltip: {
+          anchor: 'group-center',
+          placement: 'right',
+          offset: 0,
+          sort: (left, right) => left.yValue - right.yValue,
+        },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Grouped downloads',
+    })
+    const svg = container.querySelector('svg')
+    if (!svg) throw new Error('Expected SVG')
+
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+
+    const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+    const rows = tooltip?.querySelectorAll('.ts-chart-tooltip__row')
+    expect(tooltip?.querySelector('div')?.textContent).toBe('Period: A')
+    expect(rows).toHaveLength(2)
+    expect(rows?.[0]?.textContent).toContain('Router')
+    expect(rows?.[0]?.textContent).toContain('8')
+    expect(rows?.[1]?.textContent).toContain('Query')
+    expect(rows?.[1]?.textContent).toContain('12')
+    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__swatch')).toHaveLength(
+      2,
+    )
+    expect(tooltip?.getAttribute('aria-label')).toBe(
+      'Period: A\nRouter: 8\nQuery: 12',
+    )
+    const focusedPoints = host.getScene().points
+    expect(Number.parseFloat(tooltip?.style.left ?? '')).toBeCloseTo(
+      focusedPoints[0]?.x ?? 0,
+    )
+    expect(Number.parseFloat(tooltip?.style.top ?? '')).toBeCloseTo(
+      ((focusedPoints[0]?.y ?? 0) + (focusedPoints[1]?.y ?? 0)) / 2,
+    )
+    host.destroy()
+  })
+
+  it('formats interval ranges and stacked lengths automatically', () => {
+    const rangeContainer = document.createElement('div')
+    const rangeHost = mountChart(rangeContainer, {
+      definition: defineChart({
+        marks: [
+          rect([{ x1: 2, x2: 4, y1: 1, y2: 3 }], {
+            x1: 'x1',
+            x2: 'x2',
+            y1: 'y1',
+            y2: 'y2',
+          }),
+        ],
+        ...linearAxes([0, 4], [0, 3]),
+        tooltip: true,
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Interval',
+    })
+    const rangeSvg = rangeContainer.querySelector('svg')
+    if (!rangeSvg) throw new Error('Expected SVG')
+    rangeSvg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    expect(
+      rangeContainer.querySelector('.ts-chart-tooltip')?.textContent,
+    ).toContain('2–4')
+    expect(
+      rangeContainer.querySelector('.ts-chart-tooltip')?.textContent,
+    ).toContain('1–3')
+    rangeHost.destroy()
+
+    const stackContainer = document.createElement('div')
+    const stackHost = mountChart(stackContainer, {
+      definition: defineChart({
+        marks: [
+          barY([{ period: 'A', start: 10, end: 16 }], {
+            x: 'period',
+            y1: 'start',
+            y: 'end',
+          }),
+        ],
+        x: bandXAxes(['A'], [0, 20]).x,
+        y: {
+          ...linearAxes([0, 1], [0, 20]).y,
+          label: 'Change',
+          format: (value) => `${value} units`,
+        },
+        tooltip: true,
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Stacked interval',
+    })
+    const stackSvg = stackContainer.querySelector('svg')
+    if (!stackSvg) throw new Error('Expected SVG')
+    stackSvg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    expect(
+      stackContainer
+        .querySelector('.ts-chart-tooltip')
+        ?.getAttribute('aria-label'),
+    ).toContain('Change: 6')
+    stackHost.destroy()
+  })
+
+  it('accepts application fields through structured tooltip content', () => {
+    const container = document.createElement('div')
+    const definition = defineChart({
+      marks: [lineY([{ x: 0, y: 4, note: 'Released' }], { x: 'x', y: 'y' })],
+      x: {
+        ...linearAxes([0, 1], [0, 4]).x,
+        label: 'Week',
+      },
+      y: {
+        ...linearAxes([0, 1], [0, 4]).y,
+        format: (value) => `${value}k`,
+      },
+    })
+    const host = mountChart(container, {
+      definition: withChartOptions(definition, {
+        tooltip: {
+          content: ([point], context) => ({
+            title: point ? context.formatX(point.xValue) : undefined,
+            rows: point
+              ? [
+                  {
+                    label: 'Status',
+                    value: point.datum.note,
+                    color: point.color,
+                  },
+                  {
+                    label: 'Downloads',
+                    value: `${point.yValue}k`,
+                  },
+                ]
+              : [],
+          }),
+        },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Custom tooltip content',
+    })
+    const svg = container.querySelector('svg')
+    if (!svg) throw new Error('Expected SVG')
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+
+    const tooltip = container.querySelector('.ts-chart-tooltip')
+    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(2)
+    expect(tooltip?.textContent).toContain('Released')
+    expect(tooltip?.textContent).toContain('4k')
+    host.destroy()
+  })
+
+  it('orders automatic point items and formats datum fields', () => {
+    const data = [
+      {
+        id: 'a',
+        period: 'A',
+        series: 'Atlas',
+        value: 4,
+        volume: 1_200,
+        change: 0.25,
+      },
+    ]
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          lineY(data, {
+            x: 'period',
+            y: 'value',
+            z: 'series',
+            key: 'id',
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 4]),
+        focus: 'nearest',
+        tooltip: {
+          items: [
+            {
+              channel: 'y',
+              label: 'Revenue',
+              text: (point) => point.yValue.toFixed(1),
+            },
+            {
+              field: 'volume',
+              label: 'Volume',
+              text: (point) => `${point.datum.volume / 1_000}k`,
+            },
+            {
+              id: 'change',
+              label: 'Change',
+              text: (point) => `${point.datum.change * 100}%`,
+            },
+            {
+              id: 'empty',
+              text: () => null,
+            },
+            {
+              channel: 'x',
+              label: 'Period',
+            },
+            'group',
+          ],
+        },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Ordered tooltip details',
+    })
+    const svg = container.querySelector('svg')
+    if (!svg) throw new Error('Expected SVG')
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+
+    const rows = [
+      ...container.querySelectorAll<HTMLElement>('.ts-chart-tooltip__row'),
+    ]
+    expect(rows.map((row) => row.textContent)).toEqual([
+      'Revenue4.0',
+      'Volume1.2k',
+      'Change25%',
+      'PeriodA',
+      'GroupAtlas',
+    ])
+    expect(container.querySelector('.ts-chart-tooltip__title')).toBeNull()
     host.destroy()
   })
 
@@ -353,11 +643,11 @@ describe('dynamic chart runtime', () => {
       definition: defineChart({
         marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
         ...linearAxes([0, 1], [0, 8]),
+        tooltip: true,
       }),
       width: 480,
       height: 260,
       ariaLabel: 'Sticky tooltip chart',
-      tooltip: { sticky: true },
     })
     const svg = container.querySelector('svg')
     const [first, second] = host.getScene().points
@@ -400,6 +690,13 @@ describe('dynamic chart runtime', () => {
     const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
     expect(tooltip?.hidden).toBe(false)
     expect(tooltip?.textContent).toContain('4')
+    expect(tooltip?.dataset.sticky).toBe('true')
+    expect(tooltip?.style.pointerEvents).toBe('auto')
+    expect(tooltip?.style.userSelect).toBe('text')
+
+    tooltip?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    container.dispatchEvent(new MouseEvent('mouseleave'))
+    expect(tooltip?.hidden).toBe(false)
 
     svg.dispatchEvent(
       new MouseEvent('pointermove', {
@@ -442,6 +739,55 @@ describe('dynamic chart runtime', () => {
     )
     container.dispatchEvent(new MouseEvent('mouseleave'))
     expect(tooltip?.hidden).toBe(true)
+    host.destroy()
+  })
+
+  it('can disable tooltip pinning', () => {
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [lineY([{ x: 0, y: 4 }], { x: 'x', y: 'y' })],
+        ...linearAxes([0, 1], [0, 4]),
+        tooltip: { sticky: false },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Transient tooltip chart',
+    })
+    const svg = container.querySelector('svg')
+    const point = host.getScene().points[0]
+    if (!svg || !point) throw new Error('Expected chart point')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    svg.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    container.dispatchEvent(new MouseEvent('mouseleave'))
+
+    expect(
+      container.querySelector<HTMLElement>('.ts-chart-tooltip')?.hidden,
+    ).toBe(true)
     host.destroy()
   })
 
@@ -549,16 +895,17 @@ describe('dynamic chart runtime', () => {
     const onFocusGroupChange = vi.fn()
     const onRender = vi.fn()
     const host = mountChart(container, {
-      definition,
+      definition: withChartOptions(definition, {
+        focus: focusX,
+        maxFocusDistance: 1_000,
+        tooltip: {
+          formatGroup: (points) =>
+            points.map((point) => point.groupLabel).join(', '),
+        },
+      }),
       width: 480,
       height: 260,
       ariaLabel: 'Grouped downloads',
-      focus: focusX,
-      maxFocusDistance: 1_000,
-      tooltip: {
-        formatGroup: (points) =>
-          points.map((point) => point.groupLabel).join(', '),
-      },
       onFocusGroupChange,
       onRender,
     })
@@ -896,13 +1243,17 @@ describe('dynamic chart runtime', () => {
     }
     const host = mountChart(container, options)
 
-    host.update({ ...options, definition: createDefinition(8), animate: true })
+    host.update({
+      ...options,
+      definition: withChartOptions(createDefinition(8), { animate: true }),
+    })
     expect(requestFrame).not.toHaveBeenCalled()
 
     host.update({
       ...options,
-      definition: createDefinition(12),
-      animate: { respectReducedMotion: false },
+      definition: withChartOptions(createDefinition(12), {
+        animate: { respectReducedMotion: false },
+      }),
     })
     expect(requestFrame).toHaveBeenCalled()
 
@@ -911,6 +1262,17 @@ describe('dynamic chart runtime', () => {
     requestFrame.mockRestore()
   })
 })
+
+function withChartOptions<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  definition: ChartDefinition<TDatum, TXValue, TYValue>,
+  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
+): ChartDefinition<TDatum, TXValue, TYValue> {
+  return { ...definition, ...options }
+}
 
 function textMeasurer(emWidth: number): ChartTextMeasurer {
   return (text, options) => {

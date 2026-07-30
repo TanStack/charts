@@ -277,11 +277,36 @@ export interface ChartSpec<TMarks extends AnyChartMarks = any> {
   theme?: Partial<ChartTheme>
 }
 
+export interface ChartDefinitionOptions<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  maxFocusDistance?: number
+  focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
+  spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
+  animate?: boolean | ChartAnimationOptions
+  keyboard?: boolean
+  tooltip?:
+    | boolean
+    | ChartTooltipOptions<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
+}
+
+interface StoredChartDefinitionOptions {
+  maxFocusDistance?: number
+  focus?: ChartFocusMode<any, any, any>
+  spatialIndex?: ChartSpatialIndexFactory<any, any, any>
+  animate?: boolean | ChartAnimationOptions
+  keyboard?: boolean
+  tooltip?: boolean | ChartTooltipOptions<any, any, any>
+}
+
 export interface StaticChartDefinition<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> extends Omit<ChartSpec, 'marks'> {
+>
+  extends Omit<ChartSpec, 'marks'>, StoredChartDefinitionOptions {
   marks: readonly ChartMark<unknown, any, any>[]
   readonly __datum?: TDatum
   readonly __xValue?: TXValue
@@ -298,11 +323,21 @@ export type CheckedChartSpec<TSpec extends ChartSpec> = TSpec extends ChartSpec
   ? TSpec & ChartSpec<TSpec['marks']>
   : never
 
+export interface DynamicChartConfig<
+  TSpec extends ChartSpec = ChartSpec,
+> extends ChartDefinitionOptions<
+  ChartSpecDatum<TSpec>,
+  ChartSpecXValue<TSpec>,
+  ChartSpecYValue<TSpec>
+> {
+  chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>
+}
+
 export interface DynamicChartDefinition<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> {
+> extends StoredChartDefinitionOptions {
   chart: (context: ChartBuildContext) => ChartSpec
   readonly __datum?: TDatum
   readonly __xValue?: TXValue
@@ -429,6 +464,12 @@ export interface ChartPoint<
   datumIndex: number
   xValue: TXValue
   yValue: TYValue
+  x1Value?: ChartValue
+  x2Value?: ChartValue
+  y1Value?: ChartValue
+  y2Value?: ChartValue
+  xInterval?: 'range' | 'difference'
+  yInterval?: 'range' | 'difference'
   x: number
   y: number
   color: string
@@ -630,11 +671,145 @@ export interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
+  items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
+  sort?: ChartTooltipSort<TDatum, TXValue, TYValue>
+  anchor?: ChartTooltipAnchor<TDatum, TXValue, TYValue>
+  placement?: 'auto' | ChartTooltipPlacement | readonly ChartTooltipPlacement[]
+  offset?: number
+  content?: (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    context: ChartTooltipContentContext,
+  ) => ChartTooltipContent
   format?: (point: ChartPoint<TDatum, TXValue, TYValue>) => string
   formatGroup?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) => string
   sticky?: boolean
+}
+
+export type ChartTooltipPlacement =
+  | 'top'
+  | 'top-right'
+  | 'right'
+  | 'bottom-right'
+  | 'bottom'
+  | 'bottom-left'
+  | 'left'
+  | 'top-left'
+
+export interface ChartTooltipPosition {
+  x: number
+  y: number
+}
+
+export interface ChartTooltipAnchorContext {
+  pointer: ChartTooltipPosition | null
+  chart: ChartBounds
+  width: number
+  height: number
+}
+
+export type ChartTooltipAnchor<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | 'point'
+  | 'pointer'
+  | 'group-center'
+  | ((
+      points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+      context: ChartTooltipAnchorContext,
+    ) => ChartTooltipPosition | null | undefined)
+
+export type ChartTooltipSort<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | 'color-domain'
+  | 'focus'
+  | ((
+      left: ChartPoint<TDatum, TXValue, TYValue>,
+      right: ChartPoint<TDatum, TXValue, TYValue>,
+    ) => number)
+
+export type ChartTooltipItem<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | 'x'
+  | 'y'
+  | 'group'
+  | ChartTooltipChannelItem<TDatum, TXValue, TYValue>
+  | ChartTooltipDatumItem<TDatum, TXValue, TYValue>
+  | ChartTooltipDerivedItem<TDatum, TXValue, TYValue>
+
+export interface ChartTooltipItemBase<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  label?: string
+  text?: (
+    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: ChartTooltipContentContext,
+  ) => string | null | undefined
+}
+
+type ChartTooltipScalarDatumKey<TDatum> = {
+  [TKey in keyof TDatum]-?: NonNullable<TDatum[TKey]> extends ChartValue
+    ? TKey
+    : never
+}[keyof TDatum] &
+  string
+
+export interface ChartTooltipChannelItem<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartTooltipItemBase<TDatum, TXValue, TYValue> {
+  channel: 'x' | 'y' | 'group'
+}
+
+export interface ChartTooltipDatumItem<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartTooltipItemBase<TDatum, TXValue, TYValue> {
+  field: ChartTooltipScalarDatumKey<TDatum>
+}
+
+export interface ChartTooltipDerivedItem<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartTooltipItemBase<TDatum, TXValue, TYValue> {
+  id: string
+  text: (
+    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: ChartTooltipContentContext,
+  ) => string | null | undefined
+}
+
+export interface ChartTooltipContent {
+  title?: string
+  color?: string
+  rows: readonly ChartTooltipRow[]
+}
+
+export interface ChartTooltipContentContext {
+  xLabel: string
+  yLabel: string
+  formatX: (value: ChartValue) => string
+  formatY: (value: ChartValue) => string
+}
+
+export interface ChartTooltipRow {
+  label: string
+  value: string
+  color?: string
 }
 
 export interface ChartFocusStrategy<
@@ -657,11 +832,14 @@ export interface ChartFocusStrategy<
   ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
 }
 
+export type ChartFocusPreset =
+  'nearest' | 'nearest-x' | 'nearest-y' | 'group-x' | 'group-y'
+
 export type ChartFocusMode<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> = ChartFocusStrategy<TDatum, TXValue, TYValue>
+> = ChartFocusPreset | ChartFocusStrategy<TDatum, TXValue, TYValue>
 
 export interface ChartRenderContext<
   TDatum = unknown,
@@ -702,16 +880,6 @@ export interface ChartHostCommonOptions<
   aspectRatio?: number
   width?: number
   initialWidth?: number
-  maxFocusDistance?: number
-  focus?: ChartFocusStrategy<
-    NoInfer<TDatum>,
-    NoInfer<TXValue>,
-    NoInfer<TYValue>
-  >
-  spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
-  animate?: boolean | ChartAnimationOptions
-  keyboard?: boolean
-  tooltip?: boolean | ChartTooltipOptions<TDatum, TXValue, TYValue>
   onFocusChange?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
   onFocusGroupChange?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
@@ -736,16 +904,6 @@ export interface ChartRendererHostCommonOptions<
   aspectRatio?: number
   width?: number
   initialWidth?: number
-  maxFocusDistance?: number
-  focus?: ChartFocusStrategy<
-    NoInfer<TDatum>,
-    NoInfer<TXValue>,
-    NoInfer<TYValue>
-  >
-  spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
-  animate?: boolean | ChartAnimationOptions
-  keyboard?: boolean
-  tooltip?: boolean | ChartTooltipOptions<TDatum, TXValue, TYValue>
   onFocusChange?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
   onFocusGroupChange?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],

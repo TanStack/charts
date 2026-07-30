@@ -95,13 +95,14 @@ export const mount: ConformanceMount = (container, input) => {
   container.append(view)
 
   const options = (): ChartHostOptions<PlaybackDatum> => ({
-    definition: definition(currentInput),
+    definition: defineChart(definition(currentInput), {
+      animate: false,
+      keyboard: false,
+      focus: focusDisabled,
+    }),
     width: currentInput.width,
     height: currentInput.height,
     ariaLabel: 'Weekly values with a draggable timeline playback scrubber',
-    animate: false,
-    keyboard: false,
-    focus: focusDisabled,
   })
   const host = mountChart(chartSurface, options())
   const interactions = createPlaybackInteractions(

@@ -4,8 +4,8 @@ description: Capture application values in memoized definitions and use responsi
 ---
 
 A chart definition is the typed boundary between application state and the
-chart grammar. It owns marks, scales, guides, theme overrides, and responsive
-choices.
+chart grammar. It owns marks, scales, guides, theme overrides, responsive
+choices, focus, tooltips, animation, keyboard policy, and spatial indexing.
 
 ## Static definitions
 
@@ -44,18 +44,21 @@ Pass a builder when tick density, annotations, or mark composition depends on
 the chart surface:
 
 ```ts
-const productRanking = defineChart(({ width }) => ({
-  marks: [barX(ranked, { x: 'value', y: 'product', key: 'id' })],
-  x: {
-    scale: scaleLinear().domain([0, maximum]).nice(),
-    ticks: width < 480 ? 4 : 7,
-  },
-  y: {
-    scale: scaleBand<string>()
-      .domain(ranked.map((row) => row.product))
-      .padding(0.1),
-  },
-}))
+const productRanking = defineChart({
+  tooltip: true,
+  chart: ({ width }) => ({
+    marks: [barX(ranked, { x: 'value', y: 'product', key: 'id' })],
+    x: {
+      scale: scaleLinear().domain([0, maximum]).nice(),
+      ticks: width < 480 ? 4 : 7,
+    },
+    y: {
+      scale: scaleBand<string>()
+        .domain(ranked.map((row) => row.product))
+        .padding(0.1),
+    },
+  }),
+})
 ```
 
 The host controls `width` and `height`; the builder only reads their resolved
@@ -92,18 +95,21 @@ function ProductRanking({ rows, metric }: Props) {
     const ranked = rankProducts(rows, metric)
     const maximum = max(ranked, (row) => row.value) ?? 0
 
-    return defineChart(({ width }) => ({
-      marks: [barX(ranked, { x: 'value', y: 'product', key: 'id' })],
-      x: {
-        scale: scaleLinear().domain([0, maximum]).nice(),
-        ticks: width < 480 ? 4 : 7,
-      },
-      y: {
-        scale: scaleBand<string>()
-          .domain(ranked.map((row) => row.product))
-          .padding(0.1),
-      },
-    }))
+    return defineChart({
+      tooltip: true,
+      chart: ({ width }) => ({
+        marks: [barX(ranked, { x: 'value', y: 'product', key: 'id' })],
+        x: {
+          scale: scaleLinear().domain([0, maximum]).nice(),
+          ticks: width < 480 ? 4 : 7,
+        },
+        y: {
+          scale: scaleBand<string>()
+            .domain(ranked.map((row) => row.product))
+            .padding(0.1),
+        },
+      }),
+    })
   }, [rows, metric])
 
   return <Chart definition={definition} ariaLabel="Product ranking" />
@@ -121,7 +127,10 @@ Vanilla code makes that boundary explicit:
 ```ts
 const createProductRanking = (rows: readonly ProductRow[], metric: Metric) => {
   const ranked = rankProducts(rows, metric)
-  return defineChart(({ width }) => buildRankingSpec(ranked, width))
+  return defineChart({
+    animate: true,
+    chart: ({ width }) => buildRankingSpec(ranked, width),
+  })
 }
 
 const options = {
@@ -136,7 +145,6 @@ host.update({
   ...options,
   definition: createProductRanking(rows, 'orders'),
   ariaLabel: 'Products ranked by orders',
-  animate: true,
 })
 ```
 

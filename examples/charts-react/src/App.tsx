@@ -15,8 +15,29 @@ import {
   type StatsHistoryMode,
 } from '@charts-poc/fixtures'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
-import { focusX, focusY } from '@tanstack/charts/focus'
+import { defineChart } from '@tanstack/charts'
 import { Chart, type ChartPoint } from '@tanstack/react-charts'
+
+const interactiveDownloadsChart = defineChart(downloadsChart, {
+  tooltip: {
+    placement: ['top', 'right', 'left', 'bottom'],
+    items: [
+      {
+        channel: 'y',
+        label: 'Downloads',
+        text: (point) => point.yValue.toLocaleString(),
+      },
+      'x',
+    ],
+  },
+})
+const interactiveLatencyChart = defineChart(latencyChart, {
+  tooltip: {
+    format: (point) =>
+      `${point.datum.x1.toFixed(0)}–${point.datum.x2.toFixed(0)} ms · ${point.yValue} requests`,
+  },
+})
+const interactiveActivityChart = defineChart(activityChart, { tooltip: true })
 
 export function App() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light')
@@ -37,23 +58,46 @@ export function App() {
   const [barsStacked, setBarsStacked] = React.useState(false)
   const rankingDefinition = React.useMemo(
     () =>
-      createRankingChart({
-        data: createRankingData(rankingRound),
-        accent: 'var(--ts-chart-4, #8b5cf6)',
-      }),
+      defineChart(
+        createRankingChart({
+          data: createRankingData(rankingRound),
+          accent: 'var(--ts-chart-4, #8b5cf6)',
+        }),
+        {
+          animate: { duration: 420, easing: 'ease-in-out' },
+          tooltip: {
+            format: (point) =>
+              `${point.yValue}: ${point.xValue.toLocaleString()}`,
+          },
+        },
+      ),
     [rankingRound],
   )
   const statsHistoryDefinition = React.useMemo(
     () =>
-      createStatsHistoryChart(
-        createStatsHistoryInput(historyMode, statsRound, historyZoomed),
+      defineChart(
+        createStatsHistoryChart(
+          createStatsHistoryInput(historyMode, statsRound, historyZoomed),
+        ),
+        {
+          animate: { duration: 500, easing: 'ease-out' },
+          focus: 'group-x',
+          tooltip: { formatGroup: formatStatsGroup },
+        },
       ),
     [historyMode, historyZoomed, statsRound],
   )
   const statsLatestDefinition = React.useMemo(
     () =>
-      createStatsLatestChart(
-        createStatsLatestInput(barOrientation, barsStacked, statsRound),
+      defineChart(
+        createStatsLatestChart(
+          createStatsLatestInput(barOrientation, barsStacked, statsRound),
+        ),
+        {
+          animate: { duration: 500, easing: 'ease-out' },
+          focus: barOrientation === 'vertical' ? 'group-x' : 'group-y',
+          tooltip: { format: formatStatsPoint },
+        },
       ),
     [barOrientation, barsStacked, statsRound],
   )
@@ -138,9 +182,6 @@ export function App() {
             height={410}
             initialWidth={1040}
             ariaLabel={`TanStack Stats ${historyMode} history parity chart`}
-            animate={{ duration: 500, easing: 'ease-out' }}
-            focus={focusX}
-            tooltip={{ formatGroup: formatStatsGroup }}
             renderSvg={renderChartSvgWithResources}
           />
         </section>
@@ -195,9 +236,6 @@ export function App() {
             height={430}
             initialWidth={1040}
             ariaLabel={`TanStack Stats ${barsStacked ? 'stacked' : 'grouped'} ${barOrientation} latest chart`}
-            animate={{ duration: 500, easing: 'ease-out' }}
-            focus={barOrientation === 'vertical' ? focusX : focusY}
-            tooltip={{ format: formatStatsPoint }}
             renderSvg={renderChartSvgWithResources}
           />
         </section>
@@ -215,14 +253,10 @@ export function App() {
             <span className="chart-card__badge">one mark · three groups</span>
           </div>
           <Chart
-            definition={downloadsChart}
+            definition={interactiveDownloadsChart}
             height={330}
             initialWidth={760}
             ariaLabel="TanStack package download trends"
-            tooltip={{
-              format: (point) =>
-                `${point.groupLabel} · ${point.yValue.toLocaleString()} downloads`,
-            }}
             onFocusChange={setDownload}
           />
         </section>
@@ -240,14 +274,10 @@ export function App() {
             <span className="chart-card__badge">bin · rect</span>
           </div>
           <Chart
-            definition={latencyChart}
+            definition={interactiveLatencyChart}
             height={320}
             initialWidth={760}
             ariaLabel="Request latency distribution"
-            tooltip={{
-              format: (point) =>
-                `${point.datum.x1.toFixed(0)}–${point.datum.x2.toFixed(0)} ms · ${point.yValue} requests`,
-            }}
             onFocusChange={setLatency}
           />
         </section>
@@ -267,11 +297,10 @@ export function App() {
             </span>
           </div>
           <Chart
-            definition={activityChart}
+            definition={interactiveActivityChart}
             height={320}
             initialWidth={760}
             ariaLabel="Release activity trend"
-            tooltip
             onFocusChange={setActivity}
           />
         </section>
@@ -298,11 +327,6 @@ export function App() {
             initialWidth={760}
             ariaLabel="TanStack package momentum ranking"
             ariaDescription="A horizontal ranking that reorders when its data changes."
-            animate={{ duration: 420, easing: 'ease-in-out' }}
-            tooltip={{
-              format: (point) =>
-                `${point.yValue}: ${point.xValue.toLocaleString()}`,
-            }}
           />
         </section>
       </div>

@@ -206,6 +206,12 @@ interface ChartPoint<
   datumIndex: number
   xValue: TXValue
   yValue: TYValue
+  x1Value?: ChartValue
+  x2Value?: ChartValue
+  y1Value?: ChartValue
+  y2Value?: ChartValue
+  xInterval?: 'range' | 'difference'
+  yInterval?: 'range' | 'difference'
   x: number
   y: number
   color: string
@@ -213,6 +219,8 @@ interface ChartPoint<
 ```
 
 `xValue` and `yValue` are semantic values inferred from mark channels. `x` and
-`y` are scene-pixel interaction coordinates. They need not describe every
-piece of a mark's geometry: an interval rect may focus at its center, a link at
-its midpoint, and an arrow at its endpoint.
+`y` are scene-pixel interaction coordinates. Interval marks also retain their
+endpoints and whether the presented value is a range or endpoint difference.
+The interaction coordinate need not describe every piece of a mark's geometry:
+an interval rect may focus at its center, a link at its midpoint, and an arrow
+at its endpoint.

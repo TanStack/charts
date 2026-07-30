@@ -55,8 +55,6 @@ export function RendererChart<
     props.aspectRatio > 0
       ? props.aspectRatio
       : undefined
-  const maxFocusDistance = props.maxFocusDistance ?? 48
-  const keyboard = props.keyboard ?? true
   const generatedId = useId()
   const idPrefix =
     props.idPrefix ??
@@ -71,15 +69,9 @@ export function RendererChart<
         aspectRatio,
         width: props.width,
         initialWidth,
-        maxFocusDistance,
-        focus: props.focus,
-        spatialIndex: props.spatialIndex,
-        animate: props.animate,
-        keyboard,
         tabIndex: props.tabIndex,
         idPrefix,
         measureText: props.measureText,
-        tooltip: props.tooltip,
         onFocusChange: (point) => onFocusChangeRef.current?.(point),
         onFocusGroupChange: (points) => onFocusGroupChangeRef.current?.(points),
         onSelect: (point) => onSelectRef.current?.(point),
@@ -93,15 +85,9 @@ export function RendererChart<
       height,
       aspectRatio,
       initialWidth,
-      maxFocusDistance,
-      props.focus,
-      props.spatialIndex,
-      props.animate,
-      keyboard,
       props.tabIndex,
       idPrefix,
       props.renderer,
-      props.tooltip,
       props.measureText,
     ],
   )

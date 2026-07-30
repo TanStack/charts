@@ -158,18 +158,18 @@ export const mount: ConformanceMount = (container, input) => {
   }
 
   const options = (): ChartHostOptions<SelectionDatum> => ({
-    definition: definition({
-      ...currentInput,
-      selectedId,
-    }),
+    definition: defineChart(
+      definition({
+        ...currentInput,
+        selectedId,
+      }),
+      { animate: false, keyboard: true, maxFocusDistance: 40 },
+    ),
     width: currentInput.width,
     height: chartHeight(),
     ariaLabel: 'Selectable observations chart',
     ariaDescription:
       'Use arrow keys to move between observations and Enter or Space to select one. The table below offers the same selections.',
-    animate: false,
-    keyboard: true,
-    maxFocusDistance: 40,
     onSelect(point) {
       select(point?.datum.id ?? null)
     },

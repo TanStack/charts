@@ -167,30 +167,46 @@ See [Scales, guides, and color](./scales-guides-and-color.md).
 
 ## Host and runtime types
 
-| Type                             | Purpose                                                                 |
-| -------------------------------- | ----------------------------------------------------------------------- |
-| `ChartHostCommonOptions`         | Accessibility, sizing, interaction, animation, and SVG renderer options |
-| `ChartHostOptions`               | Common options plus a chart definition                                  |
-| `ChartHost`                      | SVG host `update`, `getScene`, and `destroy`                            |
-| `ChartRendererHostCommonOptions` | Renderer-neutral common options plus required renderer                  |
-| `ChartRendererHostOptions`       | Renderer-neutral options plus a chart definition                        |
-| `ChartRendererHost`              | Renderer-neutral `update`, `getScene`, and `destroy`                    |
-| `ChartRuntime`                   | Repeated static or responsive scene rendering                           |
-| `ChartRenderContext`             | Container, live SVG, and scene reported after DOM render                |
-| `ChartRendererRenderContext`     | Container, live renderer surface, and scene reported after render       |
+| Type                             | Purpose                                                           |
+| -------------------------------- | ----------------------------------------------------------------- |
+| `ChartHostCommonOptions`         | Accessibility, sizing, callbacks, and SVG renderer options        |
+| `ChartHostOptions`               | Common options plus a chart definition                            |
+| `ChartHost`                      | SVG host `update`, `getScene`, and `destroy`                      |
+| `ChartRendererHostCommonOptions` | Renderer-neutral common options plus required renderer            |
+| `ChartRendererHostOptions`       | Renderer-neutral options plus a chart definition                  |
+| `ChartRendererHost`              | Renderer-neutral `update`, `getScene`, and `destroy`              |
+| `ChartRuntime`                   | Repeated static or responsive scene rendering                     |
+| `ChartRenderContext`             | Container, live SVG, and scene reported after DOM render          |
+| `ChartRendererRenderContext`     | Container, live renderer surface, and scene reported after render |
 
 See [DOM host](./dom-host.md) and
 [Runtime and scene](./runtime-and-scene.md).
 
 ## Focus and tooltip types
 
-| Type                       | Purpose                                             |
-| -------------------------- | --------------------------------------------------- |
-| `ChartFocusStrategy`       | Pointer resolution, grouping, and keyboard ordering |
-| `ChartFocusMode`           | Alias of `ChartFocusStrategy`                       |
-| `ChartSpatialIndex`        | Nearest-point query                                 |
-| `ChartSpatialIndexFactory` | Builds an index from current scene points           |
-| `ChartTooltipOptions`      | Native tooltip class, formatting, and stickiness    |
+| Type                         | Purpose                                                  |
+| ---------------------------- | -------------------------------------------------------- |
+| `ChartFocusStrategy`         | Pointer resolution, grouping, and keyboard ordering      |
+| `ChartFocusPreset`           | Built-in nearest and grouped axis focus names            |
+| `ChartFocusMode`             | Focus preset or custom strategy                          |
+| `ChartSpatialIndex`          | Nearest-point query                                      |
+| `ChartSpatialIndexFactory`   | Builds an index from current scene points                |
+| `ChartTooltipOptions`        | Native tooltip content, ordering, anchoring, and pinning |
+| `ChartTooltipItem`           | Ordered channel, datum-field, or derived point row       |
+| `ChartTooltipItemBase`       | Shared label and point-text contract for object items    |
+| `ChartTooltipChannelItem`    | Configured x, y, or group row                            |
+| `ChartTooltipDatumItem`      | Scalar datum-field row                                   |
+| `ChartTooltipDerivedItem`    | Row derived from the complete focused point              |
+| `ChartTooltipSort`           | Group row ordering                                       |
+| `ChartTooltipAnchor`         | Point, pointer, group-center, or custom scene anchor     |
+| `ChartTooltipAnchorContext`  | Pointer position, chart bounds, and surface size         |
+| `ChartTooltipPlacement`      | Tooltip box placement around its anchor                  |
+| `ChartTooltipPosition`       | Scene-pixel x/y coordinate                               |
+| `ChartDefinitionOptions`     | Focus, tooltip, animation, keyboard, and spatial policy  |
+| `DynamicChartConfig`         | Responsive builder plus definition-owned behavior        |
+| `ChartTooltipContent`        | Safe title and row model for a native tooltip            |
+| `ChartTooltipRow`            | Label, formatted value, and optional color swatch        |
+| `ChartTooltipContentContext` | Axis labels and value formatters for content callbacks   |
 
 See [Focus and interaction](./focus-and-interaction.md).
 

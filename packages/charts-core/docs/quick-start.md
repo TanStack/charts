@@ -72,6 +72,7 @@ const revenueChart = defineChart({
       }).format(value),
     grid: true,
   },
+  tooltip: true,
 })
 ```
 
@@ -94,7 +95,6 @@ const options = {
   initialWidth: 640,
   ariaLabel: 'Monthly revenue from January through May 2026',
   ariaDescription: 'March has no reported value.',
-  tooltip: true,
 }
 
 const host = mountChart(container, options)
@@ -111,21 +111,20 @@ const host = mountChart(container, options)
   style="width:100%;height:360px;border:0;"
 ></iframe>
 
-## 4. Update host options
+## 4. Update the chart
 
-Static definitions contain their data. You can still update host concerns such as height, focus, tooltips, accessibility text, and animation:
+Host options only cover mounting concerns such as size and accessibility:
 
 ```ts
 host.update({
   ...options,
   height: 420,
-  animate: { duration: 240, easing: 'ease-out' },
 })
 ```
 
-When data or visual options change, create a new definition and pass it to
-`host.update`. In a framework component, memoize the complete definition
-against the values it captures. See
+When data, visual options, focus, tooltips, keyboard policy, or animation
+change, create a new definition and pass it to `host.update`. In a framework
+component, memoize the complete definition against the values it captures. See
 [Chart definitions](./concepts/chart-definitions.md).
 
 ## 5. Clean up

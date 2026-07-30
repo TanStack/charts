@@ -55,7 +55,8 @@ export function createChartAdapter<
         ariaLabel: options.ariaLabel,
         ariaDescription: options.ariaDescription,
         className: options.className,
-        tabIndex: options.keyboard === false ? -1 : (options.tabIndex ?? 0),
+        tabIndex:
+          options.definition.keyboard === false ? -1 : (options.tabIndex ?? 0),
         idPrefix: options.idPrefix,
       })
     },

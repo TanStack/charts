@@ -52,16 +52,12 @@ const revenueChart = defineChart({
     label: 'Revenue',
     grid: true,
   },
+  tooltip: true,
 })
 
 export function RevenueChart() {
   return (
-    <Chart
-      definition={revenueChart}
-      height={320}
-      ariaLabel="Monthly revenue"
-      tooltip
-    />
+    <Chart definition={revenueChart} height={320} ariaLabel="Monthly revenue" />
   )
 }
 ```
@@ -122,6 +118,8 @@ export function LiveRevenue({ rows, accent }: RevenueInput) {
       y: {
         scale: scaleLinear().domain([0, maximum]).nice(),
       },
+      animate: true,
+      tooltip: true,
     })
   })
 
@@ -130,8 +128,6 @@ export function LiveRevenue({ rows, accent }: RevenueInput) {
       definition={definition}
       height={320}
       ariaLabel="Live monthly revenue"
-      animate
-      tooltip
     />
   )
 }
@@ -148,7 +144,6 @@ host when captured values changed. See
   definition={revenueChart}
   height={320}
   ariaLabel="Monthly revenue"
-  tooltip
   onFocusChange={(point) => {
     if (point) {
       console.log(point.datum.month, point.yValue)

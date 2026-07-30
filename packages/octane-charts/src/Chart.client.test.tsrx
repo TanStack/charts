@@ -27,6 +27,9 @@ const definition = defineChart({
 	x: { scale: scaleLinear().domain([1, 2]) },
 	y: { scale: scaleLinear().domain([8, 12]) },
 });
+const broadFocusDefinition = defineChart(definition, {
+	maxFocusDistance: 1_000,
+});
 
 describe('Octane Chart adapter client', () => {
 	it('renders a dynamic chart on mount', async () => {
@@ -66,11 +69,10 @@ describe('Octane Chart adapter client', () => {
 		function ClientChart() {
 			const [, setFocused] = useState<ChartPoint<Datum> | null>(null);
 			return <Chart
-				definition={definition}
+				definition={broadFocusDefinition}
 				width={480}
 				height={260}
 				ariaLabel="Revenue"
-				maxFocusDistance={1_000}
 				onFocusChange={point => {
 					onFocusChange(point);
 					setFocused(point);

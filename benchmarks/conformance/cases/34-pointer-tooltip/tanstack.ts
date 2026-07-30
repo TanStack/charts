@@ -39,22 +39,37 @@ const definition = (input: ConformanceInput) =>
     }
   })
 
+const configuredDefinition = (input: ConformanceInput) =>
+  defineChart(definition(input), {
+    animate: false,
+    keyboard: true,
+    tooltip: {
+      anchor: 'point',
+      placement: ['top', 'right', 'left', 'bottom'],
+      items: [
+        {
+          channel: 'y',
+          label: 'Atlas',
+          text: (point) => point.datum.value.toLocaleString(),
+        },
+        {
+          channel: 'x',
+          label: 'Date',
+        },
+      ],
+    },
+  })
+
 export function mount(
   container: HTMLElement,
   input: ConformanceInput,
 ): ConformanceHandle {
   let focusedIds: string[] = []
   const options: ChartHostOptions<TimePoint> = {
-    definition: definition(input),
+    definition: configuredDefinition(input),
     width: input.width,
     height: input.height,
     ariaLabel: 'Interactive Atlas trend',
-    animate: false,
-    keyboard: true,
-    tooltip: {
-      format: (point: ChartPoint<TimePoint>) =>
-        `Atlas: ${point.datum.value.toLocaleString()}`,
-    },
     onFocusGroupChange(points) {
       focusedIds = points.map((point) => point.datum.id)
     },
@@ -95,7 +110,7 @@ export function mount(
     update(nextInput) {
       host.update({
         ...options,
-        definition: definition(nextInput),
+        definition: configuredDefinition(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

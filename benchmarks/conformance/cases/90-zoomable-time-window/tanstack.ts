@@ -102,16 +102,16 @@ export function mount(
   container.append(surface)
 
   const options = (): ChartHostOptions<ZoomDatum> => ({
-    definition: definition({
-      ...currentInput,
-      window: state.window,
-    }),
+    definition: defineChart(
+      definition({
+        ...currentInput,
+        window: state.window,
+      }),
+      { animate: false, keyboard: false, focus: focusDisabled },
+    ),
     width: currentInput.width,
     height: currentInput.height,
     ariaLabel: 'Time series with a wheel-zoomable and pannable time viewport',
-    animate: false,
-    keyboard: false,
-    focus: focusDisabled,
   })
   const host = mountChart(surface, options())
   const controller = createZoomController(

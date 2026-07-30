@@ -14,17 +14,20 @@ Add or omit granular `d3-*` modules and their matching type packages with the
 chart's actual imports.
 
 ```tsx
+import { defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/react-charts'
 
+const interactiveDefinition = defineChart(definition, {
+  animate: true,
+  tooltip: true,
+})
+
 ;<Chart
-  definition={definition}
-  input={{ rows, metric }}
+  definition={interactiveDefinition}
   aspectRatio={16 / 9}
   initialWidth={640}
   ariaLabel="Revenue by month"
   ariaDescription="Monthly revenue for the current fiscal year."
-  animate
-  tooltip
   onFocusChange={setFocusedPoint}
   onSelect={setSelectedPoint}
 />
@@ -45,10 +48,9 @@ only the outer host; the framework-neutral chart host owns measurement,
 reconciliation, animation, and interaction. Shallow-equal inline plain-object
 input does not replace the live SVG.
 
-The definition drives all prop inference. Dynamic definitions require their
-exact `input` shape, and focus, group, selection, and render callbacks infer the
-original datum. Do not add `<Chart<Row, Input>>` generics or cast adapter props;
-fix the definition, channel, or scale that TypeScript rejects.
+The definition drives all prop inference. Focus, group, selection, and render
+callbacks infer the original datum. Do not add adapter generics or cast adapter
+props; fix the definition, channel, or scale that TypeScript rejects.
 
 Use `height` for a fixed-height chart or `aspectRatio` for proportional
 container sizing.

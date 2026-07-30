@@ -103,22 +103,32 @@ const definition = (input: ConformanceInput) =>
     }
   })
 
+const configuredDefinition = (input: ConformanceInput) =>
+  defineChart(definition(input), {
+    animate: false,
+    keyboard: true,
+    tooltip: {
+      anchor: 'pointer',
+      items: [
+        {
+          id: 'point',
+          label: 'Point',
+          text: (point) => `${point.datum.label} · ${point.datum.group}`,
+        },
+      ],
+    },
+  })
+
 export const mount: ConformanceMount = (
   container,
   input,
 ): ConformanceHandle => {
   let focusedIds: string[] = []
   const options: ChartHostOptions<VoronoiPoint> = {
-    definition: definition(input),
+    definition: configuredDefinition(input),
     width: input.width,
     height: input.height,
     ariaLabel: 'Voronoi nearest-point interaction',
-    animate: false,
-    keyboard: true,
-    tooltip: {
-      format: (point: ChartPoint<VoronoiPoint>) =>
-        `${point.datum.label} · ${point.datum.group}`,
-    },
     onFocusGroupChange(points) {
       focusedIds = points.map((point) => point.datum.id)
     },
@@ -160,7 +170,7 @@ export const mount: ConformanceMount = (
     update(nextInput) {
       host.update({
         ...options,
-        definition: definition(nextInput),
+        definition: configuredDefinition(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

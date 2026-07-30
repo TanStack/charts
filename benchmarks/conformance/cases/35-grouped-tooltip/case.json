@@ -10,7 +10,7 @@
     "grouped tooltip",
     "nearest x focus",
     "multi-series line",
-    "typed group formatter",
+    "automatic series swatches",
     "keyboard navigation"
   ],
   "geometry": [
@@ -34,6 +34,7 @@
             { "path": "tooltip.text", "includes": "Comet" }
           ]
         },
+        { "type": "screenshot", "name": "grouped-tooltip-open" },
         { "type": "pointerLeave" },
         {
           "type": "assert",
@@ -48,6 +49,6 @@
   },
   "ai": {
     "create": "Create a three-series UTC line chart whose nearest shared x position reveals all three series names and values.",
-    "maintain": "Add a fourth series while preserving one value per group, keyboard navigation by x, typed group formatting, and responsive tooltip positioning."
+    "maintain": "Add a fourth series while preserving one swatch and value per group, keyboard navigation by x, and responsive tooltip positioning."
   }
 }

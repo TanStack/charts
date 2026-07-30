@@ -9,16 +9,18 @@ pnpm add @tanstack/charts @tanstack/svelte-charts svelte d3-scale
 
 ```svelte
 <script lang="ts">
+  import { defineChart } from '@tanstack/charts'
   import { Chart } from '@tanstack/svelte-charts'
 
-  const definition = $derived(createRevenueChart(rows))
+  const definition = $derived(
+    defineChart(createRevenueChart(rows), { tooltip: true }),
+  )
 </script>
 
 <Chart
   {definition}
   ariaLabel="Revenue by month"
   aspectRatio={16 / 9}
-  tooltip
 />
 ```
 

@@ -120,7 +120,18 @@ export const mount: ConformanceMount = (container, input) => {
   const chartOptions = (
     nextInput: ConformanceInput,
   ): ChartHostOptions<ResourceTask> => ({
-    definition: definition(nextInput),
+    definition: defineChart(definition(nextInput), {
+      animate: false,
+      keyboard: true,
+      tooltip: {
+        format: (point) =>
+          `${point.datum.resource} · ${point.datum.label} · ${
+            point.datum.status
+          } · ${formatTaskDate(point.datum.start)}–${formatTaskDate(
+            point.datum.end,
+          )}`,
+      },
+    }),
     width: timelineContentWidth(
       nextInput.width - timelineLaneRailWidth(nextInput.width),
     ),
@@ -128,17 +139,7 @@ export const mount: ConformanceMount = (container, input) => {
     ariaLabel: 'Tasks scheduled across five resource lanes',
     ariaDescription:
       'Focus the chart and use the arrow, Home, and End keys to inspect tasks. Offscreen tasks scroll into view.',
-    animate: false,
-    keyboard: true,
     onFocusGroupChange: updateFocusedTask,
-    tooltip: {
-      format: (point: ChartPoint<ResourceTask>) =>
-        `${point.datum.resource} · ${point.datum.label} · ${
-          point.datum.status
-        } · ${formatTaskDate(point.datum.start)}–${formatTaskDate(
-          point.datum.end,
-        )}`,
-    },
   })
   const host = mountChart(chartSurface, chartOptions(input))
   const driver = createDriver(

@@ -8,15 +8,17 @@ pnpm add @tanstack/charts @tanstack/solid-charts solid-js d3-scale
 ```
 
 ```tsx
+import { defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/solid-charts'
 
-const definition = createMemo(() => createRevenueChart(rows()))
+const definition = createMemo(() =>
+  defineChart(createRevenueChart(rows()), { tooltip: true }),
+)
 
 ;<Chart
   definition={definition()}
   ariaLabel="Revenue by month"
   aspectRatio={16 / 9}
-  tooltip
 />
 ```
 

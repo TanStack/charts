@@ -9,6 +9,8 @@ import type {
   ChartBounds,
   ChartBuildContext,
   CheckedChartSpec,
+  ChartDefinitionOptions,
+  DynamicChartConfig,
   ChartColorLegend,
   ChartLayoutOptions,
   ChartMargin,
@@ -52,13 +54,24 @@ export function defineChart<
   const TMarks extends readonly ChartMark<unknown, any, any>[],
   const TSpec extends ChartSpec<TMarks>,
 >(
-  spec: TSpec & { marks: TMarks },
+  spec: TSpec & { marks: TMarks } & ChartDefinitionOptions<
+      ChartMarkDatum<TMarks[number]>,
+      ChartMarkPointX<TMarks[number]>,
+      ChartMarkPointY<TMarks[number]>
+    >,
 ): StaticChartDefinition<
   ChartMarkDatum<TMarks[number]>,
   ChartMarkPointX<TMarks[number]>,
   ChartMarkPointY<TMarks[number]>
 > &
-  TSpec
+  Omit<TSpec, keyof ChartDefinitionOptions>
+export function defineChart<const TSpec extends ChartSpec>(
+  config: DynamicChartConfig<TSpec>,
+): DynamicChartDefinition<
+  ChartSpecDatum<TSpec>,
+  ChartSpecXValue<TSpec>,
+  ChartSpecYValue<TSpec>
+>
 export function defineChart<const TSpec extends ChartSpec>(
   chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>,
 ): DynamicChartDefinition<
@@ -66,7 +79,24 @@ export function defineChart<const TSpec extends ChartSpec>(
   ChartSpecXValue<TSpec>,
   ChartSpecYValue<TSpec>
 >
-export function defineChart(definition?: any): any {
+export function defineChart<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  definition: StaticChartDefinition<TDatum, TXValue, TYValue>,
+  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
+): StaticChartDefinition<TDatum, TXValue, TYValue>
+export function defineChart<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  definition: DynamicChartDefinition<TDatum, TXValue, TYValue>,
+  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
+): DynamicChartDefinition<TDatum, TXValue, TYValue>
+export function defineChart(definition?: any, options?: any): any {
+  if (options) return { ...definition, ...options }
   return (
     typeof definition === 'function' ? { chart: definition } : definition
   ) as StaticChartDefinition | DynamicChartDefinition

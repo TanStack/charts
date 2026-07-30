@@ -56,7 +56,7 @@ Each entry records:
 | F-018 | Stats derivations still invalidate dynamic input         | Application     | monitoring |
 | F-019 | Custom tooltip formatting leaked float artifacts         | Application     | resolved   |
 | F-020 | Axis focus could not select a single nearest point       | API             | resolved   |
-| F-021 | Native tooltips only accept plain text                   | API             | monitoring |
+| F-021 | Native tooltips only accept plain text                   | API             | resolved   |
 | F-022 | Native tooltips could not be pinned                      | API             | resolved   |
 | F-023 | Fixed margins clip or waste guide space                  | API             | resolved   |
 | F-024 | Co-located benchmark cases defeated tree shaking         | Tooling         | resolved   |
@@ -165,6 +165,7 @@ Each entry records:
 | F-127 | Catalog source hid data transformation dependencies      | Docs/Tooling    | resolved   |
 | F-128 | Chart-owned data reactivity duplicated application state | API             | resolved   |
 | F-129 | Responsive relayout restarted chart animation            | API             | resolved   |
+| F-130 | Adapter options duplicated chart behavior                | API             | resolved   |
 
 ## Findings
 
@@ -482,7 +483,7 @@ Each entry records:
 
 ### F-021 — Native tooltips only accept plain text
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
 - Owner: API
 - Observed in: TanStack Stats tooltip parity
@@ -490,20 +491,26 @@ Each entry records:
   and values can match Plot, but an application cannot render structured rows,
   colored series swatches, or interactive content through the native tooltip
   option.
-- Current decision: keep `onFocusChange` as the rich-tooltip inversion point
-  while the built-in tooltip remains small and accessible. Add a structured
-  renderer only after another product needs it or Stats requires exact visual
-  tooltip parity.
-- Verification: the snapped-axis-pointer case builds a grouped tooltip with
-  color swatches and a crosshair from typed `onFocusGroupChange` and
-  `onRender` state. Its semantic pointer/leave scenarios pass across both
-  revisions and responsive widths without changing the locked DOM host. The
-  pinned nested-tooltip case keeps hover separate from activation, mounts a
-  real second chart host after click, and destroys it on Escape or a second
-  click; all three semantic scenarios pass.
-- Follow-up: evaluate whether a framework-neutral render callback can support
-  cleanup, SSR, keyboard focus, and adapters without burdening charts that use
-  plain text.
+- Decision: add a framework-neutral display model with a title, labeled rows,
+  and optional swatch colors. The automatic path reuses visible axis labels,
+  groups a shared axis value, renders series swatches, and understands ranges
+  and stacked lengths. Ordered `items` cover channels, scalar datum fields, and
+  derived point text; `sort` controls grouped-series order. Point, pointer,
+  group-center, and custom anchors combine with fixed or ordered fallback
+  placements. `content` remains the escape hatch for application-specific
+  grouped structure without accepting arbitrary DOM; interactive and nested
+  surfaces remain application-owned through focus callbacks.
+- Verification: core DOM-host tests cover automatic grouped swatches,
+  accessible row text, ordered point fields, grouped sorting, UTC date
+  formatting, interval ranges, stacked lengths, legacy plaintext formatting,
+  all anchor forms, placement fallback, and selectable pinned content. Catalog
+  cases 34, 35, and 65 exercise point, group-center, and pointer anchoring.
+  All three pass every Chromium interaction scenario across revisions, widths,
+  and themes. The complete DOM host is 12.61 kB gzip and the Stats surface is
+  32.48 kB gzip. Ordering, anchoring, placement, and focus presets add 3,182
+  minified/1,162 gzip bytes over the structured-tooltip baseline; the path adds
+  no dependency and changes locked static-scene entries by at most one gzip
+  byte.
 
 ### F-022 — Native tooltips could not be pinned
 
@@ -515,12 +522,13 @@ Each entry records:
   the pointer leaves or moves elsewhere. The TanStack host always cleared focus
   on mouse leave, so inspecting a dense value required holding the pointer
   still.
-- Decision: add opt-in `tooltip.sticky`. A click pins the focused point;
-  another click or Escape releases it. Pointer selection and `onSelect` remain
+- Decision: pointer clicks pin the focused point by default; another click or
+  Escape releases it, and `sticky: false` opts out. Pinned native content
+  allows text selection. Keyboard activation and `onSelect` remain
   available, and the option adds no separate interaction dependency.
 - Verification: the DOM-host regression covers pinning, ignored pointer
-  movement while pinned, mouse leave, Escape, repinning, and click release.
-  Stats enables the option.
+  movement while pinned, mouse leave, Escape, repinning, click release, text
+  selection, and the `sticky: false` opt-out.
 
 ### F-023 — Fixed margins clip or waste guide space
 
@@ -986,9 +994,15 @@ Each entry records:
 - Friction: an inline `mountChart` options literal infers the tooltip datum,
   but assigning the literal to a local variable before the call removes
   contextual typing from `tooltip.format` and `formatGroup`. Strict TypeScript
-  then requires a `ChartPoint<Row>` parameter annotation.
-- Current decision: document the annotation or a typed `ChartTooltipOptions`
-  variable as a normal type-introduction boundary; never recommend a cast.
+  then requires a `ChartPoint<Row>` parameter annotation. During ordered-item
+  design, a shared callback name with different value parameters across the
+  channel, field, and derived-item union caused the same loss inside an inline
+  `items` array.
+- Current decision: ordered items use one uniformly typed
+  `text(point, context)` callback, preserving contextual datum and coordinate
+  types for every item kind. For a separately hoisted complete tooltip object,
+  document an explicit `ChartTooltipOptions` annotation as a normal
+  type-introduction boundary; never recommend a cast.
 - Follow-up: if raw-host examples repeat this pattern, add a small
   definition-correlated options helper rather than weakening callback types.
 
@@ -2917,3 +2931,30 @@ Each entry records:
   SVG runtime and Canvas animation regressions pass through the shared policy.
   The shared SVG host adds 350 minified and 120 gzip bytes; the exact universal
   bundle baseline records that measured cost.
+
+### F-130 — Adapter options duplicated chart behavior
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: Observable Plot tooltip parity and the post-reactivity adapter
+  API audit
+- Friction: focus, tooltip, animation, keyboard policy, focus distance, and
+  spatial indexing were supplied beside the definition at every mount. A
+  reusable definition therefore did not describe its own behavior, and each
+  framework adapter repeated six chart options that were not
+  framework-specific.
+- Decision: move `focus`, `tooltip`, `animate`, `keyboard`,
+  `maxFocusDistance`, and `spatialIndex` to `ChartDefinitionOptions`. Static
+  definitions accept them directly; `DynamicChartConfig` combines them with a
+  responsive builder; `defineChart(definition, options)` creates an explicitly
+  different configured definition. Hosts and framework adapters expose no
+  override path. Sizing, accessible surface metadata, callbacks, renderer
+  hooks, and native wrapper styling remain host or adapter concerns.
+- Verification: definition type contracts preserve inferred datum and
+  coordinate types for focus, tooltip, and spatial callbacks while rejecting
+  incompatible strategies. The full 2,083-test repository suite, root
+  typecheck, packed declaration/runtime consumers, all seven adapter packages,
+  documentation contracts, formatting, and bundle policy pass. Catalog case
+  35 passes visual and interaction checks in Chromium at both quick-profile
+  widths.

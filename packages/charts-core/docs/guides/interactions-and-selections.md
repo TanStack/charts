@@ -79,11 +79,14 @@ When a gesture owns the chart surface, disable native focus explicitly:
 ```ts
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
 
-mountChart(element, {
-  definition,
-  input,
-  ariaLabel: 'Selectable monthly range',
+const gestureDefinition = defineChart(definition, {
   focus: focusDisabled,
+  keyboard: false,
+})
+
+mountChart(element, {
+  definition: gestureDefinition,
+  ariaLabel: 'Selectable monthly range',
   onRender: mountBrushOverlay,
 })
 ```

@@ -17,6 +17,9 @@ function Chart<
 >(props: ChartProps<TDatum, TXValue, TYValue>): unknown
 ```
 
+The definition owns focus, tooltip, animation, keyboard policy, focus distance,
+and spatial indexing.
+
 ## Renderer entry points
 
 The default entry uses SVG. The optional entries keep other renderer code
@@ -69,17 +72,12 @@ See [Sizing and layout](../adapter.md#sizing-and-layout).
 
 ## Focus, tooltip, and callbacks
 
-| Prop                 | Type                                                       | Default       | Meaning                                                 |
-| -------------------- | ---------------------------------------------------------- | ------------- | ------------------------------------------------------- |
-| `maxFocusDistance`   | `number`                                                   | `48`          | Maximum default pointer-focus distance in scene pixels  |
-| `focus`              | `ChartFocusMode<TDatum, TXValue, TYValue>`                 | Nearest point | Pointer grouping and keyboard strategy                  |
-| `spatialIndex`       | `ChartSpatialIndexFactory<TDatum, TXValue, TYValue>`       | Linear scan   | Dense nearest-point index                               |
-| `keyboard`           | `boolean`                                                  | `true`        | Enables keyboard focus and navigation                   |
-| `tooltip`            | `boolean \| ChartTooltipOptions<TDatum, TXValue, TYValue>` | `false`       | Native tooltip                                          |
-| `onFocusChange`      | `(point: ChartPoint \| null) => void`                      | None          | Primary focus callback                                  |
-| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`                  | None          | Grouped focus callback                                  |
-| `onSelect`           | `(point: ChartPoint \| null) => void`                      | None          | Click and keyboard activation callback                  |
-| `onRender`           | `(context: ChartRenderContext) => void`                    | None          | Inner surface, live SVG, and scene after reconciliation |
+| Prop                 | Type                                      | Default | Meaning                                                 |
+| -------------------- | ----------------------------------------- | ------- | ------------------------------------------------------- |
+| `onFocusChange`      | `(point: ChartPoint \| null) => void`     | None    | Primary focus callback                                  |
+| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void` | None    | Grouped focus callback                                  |
+| `onSelect`           | `(point: ChartPoint \| null) => void`     | None    | Click and keyboard activation callback                  |
+| `onRender`           | `(context: ChartRenderContext) => void`   | None    | Inner surface, live SVG, and scene after reconciliation |
 
 See [Focus and interaction](../../../reference/focus-and-interaction.md).
 
@@ -87,7 +85,6 @@ See [Focus and interaction](../../../reference/focus-and-interaction.md).
 
 | Prop          | Type                                         | Default                     | Meaning                                |
 | ------------- | -------------------------------------------- | --------------------------- | -------------------------------------- |
-| `animate`     | `boolean \| ChartAnimationOptions`           | `false`                     | Keyed update animation                 |
 | `idPrefix`    | `string`                                     | Generated from `useId()`    | Prefix for renderer-owned resource IDs |
 | `renderSvg`   | `ChartSvgRenderer<TDatum, TXValue, TYValue>` | `renderChartSvg`            | Scene-to-SVG renderer                  |
 | `measureText` | `ChartTextMeasurer`                          | DOM inherited-font measurer | Guide glyph measurement                |

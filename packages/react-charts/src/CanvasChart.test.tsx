@@ -25,6 +25,10 @@ const definition = defineChart({
   y: { scale: scaleLinear().domain([8, 12]) },
   guides: false,
 })
+const interactiveDefinition = defineChart(definition, {
+  maxFocusDistance: 1_000,
+  tooltip: true,
+})
 
 const dynamicDefinition = defineChart(() => ({
   marks: [
@@ -120,12 +124,10 @@ describe('React Canvas adapter', () => {
       root = hydrateRoot(
         target,
         <CanvasChart
-          definition={definition}
+          definition={interactiveDefinition}
           width={480}
           height={260}
           ariaLabel="Revenue"
-          maxFocusDistance={1_000}
-          tooltip
           onFocusChange={onFocusChange}
           onSelect={onSelect}
           onRender={onRender}

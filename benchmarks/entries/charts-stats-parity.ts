@@ -1,4 +1,4 @@
-import { mountChart } from '@tanstack/charts'
+import { defineChart, mountChart } from '@tanstack/charts'
 import { focusX, focusY } from '@tanstack/charts/focus'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import {
@@ -10,22 +10,22 @@ import {
 
 export function mountHistory(element: HTMLElement) {
   return mountChart(element, {
-    definition: createStatsHistoryChart(createStatsHistoryInput('stream')),
+    definition: defineChart(
+      createStatsHistoryChart(createStatsHistoryInput('stream')),
+      { focus: focusX, tooltip: true },
+    ),
     ariaLabel: 'Package downloads',
-    focus: focusX,
     renderSvg: renderChartSvgWithResources,
-    tooltip: true,
   })
 }
 
 export function mountRanking(element: HTMLElement) {
   return mountChart(element, {
-    definition: createStatsLatestChart(
-      createStatsLatestInput('horizontal', true),
+    definition: defineChart(
+      createStatsLatestChart(createStatsLatestInput('horizontal', true)),
+      { focus: focusY, tooltip: true },
     ),
     ariaLabel: 'Package ranking',
-    focus: focusY,
     renderSvg: renderChartSvgWithResources,
-    tooltip: true,
   })
 }

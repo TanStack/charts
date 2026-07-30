@@ -2,15 +2,11 @@ import * as React from 'react'
 import { renderChartSvg } from '@tanstack/charts/svg'
 import { createSvgChartRenderer } from '@tanstack/charts/svg/renderer'
 import type {
-  ChartAnimationOptions,
-  ChartFocusMode,
   ChartPoint,
   ChartRenderContext,
   ChartRendererRenderContext,
-  ChartSpatialIndexFactory,
   ChartSvgRenderer,
   ChartTextMeasurer,
-  ChartTooltipOptions,
   ChartValue,
   ChartDefinition,
 } from '@tanstack/charts'
@@ -32,11 +28,6 @@ export interface ChartCommonProps<
   initialWidth?: number
   className?: string
   style?: React.CSSProperties
-  maxFocusDistance?: number
-  focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
-  spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
-  animate?: boolean | ChartAnimationOptions
-  keyboard?: boolean
   tabIndex?: number
   idPrefix?: string
   renderSvg?: ChartSvgRenderer<
@@ -45,7 +36,6 @@ export interface ChartCommonProps<
     NoInfer<TYValue>
   >
   measureText?: ChartTextMeasurer
-  tooltip?: boolean | ChartTooltipOptions<TDatum, TXValue, TYValue>
   onFocusChange?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
   onFocusGroupChange?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],

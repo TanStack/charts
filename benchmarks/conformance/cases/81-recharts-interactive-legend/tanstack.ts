@@ -120,15 +120,16 @@ export const mount: ConformanceMount = (container, input) => {
   emptyState.style.font = '500 12px/1.3 system-ui, sans-serif'
 
   const options = (): ChartHostOptions<LegendDatum> => ({
-    definition: definition({
-      ...currentInput,
-      visibleSeries,
-    }),
+    definition: defineChart(
+      definition({
+        ...currentInput,
+        visibleSeries,
+      }),
+      { animate: false, keyboard: false },
+    ),
     width: currentInput.width,
     height: Math.max(96, currentInput.height - 62),
     ariaLabel: 'Revenue and profit chart',
-    animate: false,
-    keyboard: false,
   })
 
   const updateLegend = () => {

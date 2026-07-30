@@ -31,6 +31,10 @@ const definition = defineChart({
   y: { scale: scaleLinear().domain([8, 12]) },
   guides: false,
 })
+const interactiveDefinition = defineChart(definition, {
+  maxFocusDistance: 1_000,
+  tooltip: true,
+})
 
 let getContext: ReturnType<typeof vi.spyOn>
 
@@ -82,12 +86,10 @@ describe('Octane Canvas adapter client', () => {
     function ClientChart() {
       return (
         <Chart
-          definition={definition}
+          definition={interactiveDefinition}
           width={480}
           height={260}
           ariaLabel="Revenue"
-          maxFocusDistance={1_000}
-          tooltip
           onFocusChange={onFocusChange}
           onSelect={onSelect}
           onRender={onRender}

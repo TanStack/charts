@@ -83,6 +83,8 @@ const downloads = defineChart({
     scale: scaleOrdinal(packages, ['#0ea5e9', '#f97316', '#10b981']),
     legend: colorLegend({ label: 'Package' }),
   },
+  animate: true,
+  tooltip: true,
 })
 ```
 
@@ -95,8 +97,6 @@ const options = {
   definition: downloads,
   height: 320,
   ariaLabel: 'Weekly package downloads',
-  tooltip: true,
-  animate: true,
 }
 
 const host = mountChart(element, options)
@@ -125,7 +125,6 @@ import { Chart } from '@tanstack/react-charts'
   definition={downloads}
   height={320}
   ariaLabel="Weekly package downloads"
-  tooltip
 />
 ```
 

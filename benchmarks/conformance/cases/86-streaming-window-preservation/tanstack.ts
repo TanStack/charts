@@ -152,21 +152,25 @@ export const mount: ConformanceMount = (container, input) => {
   sizeStreamingView(view, chartSurface, input)
 
   const chartOptions = (): ChartHostOptions<StreamingDatum> => ({
-    definition: definition({
-      ...currentInput,
-      rows: state.rows,
-      viewport: state.viewport,
-      viewportMode: state.viewportMode,
-    }),
+    definition: defineChart(
+      definition({
+        ...currentInput,
+        rows: state.rows,
+        viewport: state.viewport,
+        viewportMode: state.viewportMode,
+      }),
+      {
+        animate: false,
+        keyboard: true,
+        tooltip: {
+          format: (point) =>
+            `${formatStreamingDate(point.datum.date)} · ${point.datum.value.toLocaleString()}`,
+        },
+      },
+    ),
     width: currentInput.width,
     height: streamingChartHeight(currentInput.height),
     ariaLabel: 'Streaming observations in a locked time viewport',
-    animate: false,
-    keyboard: true,
-    tooltip: {
-      format: (point: ChartPoint<StreamingDatum>) =>
-        `${formatStreamingDate(point.datum.date)} · ${point.datum.value.toLocaleString()}`,
-    },
   })
   let host: ChartHost<StreamingDatum> | undefined
   host = mountChart(chartSurface, chartOptions())

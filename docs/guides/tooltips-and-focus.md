@@ -18,11 +18,12 @@ Use that path until the product needs richer interaction.
 Enable the native tooltip with `tooltip: true`:
 
 ```ts
+const interactiveDefinition = defineChart(definition, { tooltip: true })
+
 const host = mountChart(element, {
-  definition,
+  definition: interactiveDefinition,
   height: 320,
   ariaLabel: 'Weekly downloads',
-  tooltip: true,
 })
 ```
 
@@ -30,21 +31,15 @@ The default focus strategy resolves one nearest point in two dimensions.
 `maxFocusDistance` defaults to 48 scene pixels. Empty space farther from any
 point clears transient focus.
 
-## Axis focus strategies
+## Axis focus modes
 
-Import an explicit strategy when the comparison should follow one axis:
-
-```ts
-import { focusNearestX, focusX } from '@tanstack/charts/focus'
-```
-
-| Strategy        | Result                                     |
-| --------------- | ------------------------------------------ |
-| omitted         | One nearest point in two dimensions        |
-| `focusNearestX` | One point, prioritizing x distance         |
-| `focusNearestY` | One point, prioritizing y distance         |
-| `focusX`        | One point per group at the nearest x value |
-| `focusY`        | One point per group at the nearest y value |
+| Mode        | Result                                     |
+| ----------- | ------------------------------------------ |
+| omitted     | One nearest point in two dimensions        |
+| `nearest-x` | One point, prioritizing x distance         |
+| `nearest-y` | One point, prioritizing y distance         |
+| `group-x`   | One point per group at the nearest x value |
+| `group-y`   | One point per group at the nearest y value |
 
 Grouped focus is appropriate for comparing several series at the same date or
 category. A sparse snapped cursor can opt into
@@ -60,8 +55,53 @@ empty space should mean no focus.
 
 ## Automatic tooltip mapping
 
-`tooltip: true` formats the focused point's group, x value, and y value.
-Numbers and dates use the user's locale.
+`tooltip: true` renders labeled rows for the focused point. Grouped focus uses
+the shared axis value as a heading and renders one row and color swatch per
+series. Visible axis labels carry into the tooltip. Numbers use the user's
+locale and dates use stable UTC ISO formatting.
+
+Rect and link endpoints display as ranges. Bars and areas with an explicit
+baseline display the interval length, so a stacked segment reports its own
+value instead of the cumulative endpoint.
+
+Order built-in channels, datum fields, and derived text for a single focused
+point:
+
+```ts
+const tooltip = {
+  items: [
+    {
+      channel: 'y',
+      label: 'Revenue',
+      text: (point) => currency(point.yValue),
+    },
+    {
+      field: 'status',
+      label: 'Status',
+    },
+    {
+      id: 'change',
+      label: 'Change',
+      text: (point) =>
+        point.datum.change == null ? null : percent(point.datum.change),
+    },
+    'x',
+  ],
+}
+
+const definition = defineChart({
+  marks,
+  x,
+  y,
+  tooltip,
+})
+```
+
+Array order is row order. A nullish field or `text` result omits the row.
+Grouped focus keeps its shared-axis heading and series rows; order those rows
+with `sort: 'color-domain'`, `sort: 'focus'`, or a typed comparator. Use
+channel items to format their heading, series names, and values. Use `content`
+when a grouped tooltip needs additional columns or nested sections.
 
 Customize plaintext content with typed formatters:
 
@@ -92,31 +132,96 @@ const tooltip = {
 }
 ```
 
-`formatGroup` takes precedence for grouped output. Built-in tooltip content is
-plain text by design. Returning HTML does not create a rich tooltip.
+Formatting precedence is `content`, `formatGroup`, `format`, then the automatic
+content. `content` returns safe title and row data. `format` and `formatGroup`
+return plain text; returning HTML does not create DOM.
 
-Add `className` to style the native HTML surface. Add `sticky: true` to let a
-click pin the current point; Escape dismisses the pin.
+Add `className` to style the native HTML surface. Clicking pins the current
+tooltip for text selection. A later click or Escape unpins it. Set
+`sticky: false` to disable pinning.
+
+## Anchoring and placement
+
+Point anchoring is the stable default for scatterplots, bars, and keyboard
+navigation:
+
+```ts
+const tooltip = {
+  anchor: 'point',
+  placement: 'top',
+}
+```
+
+Pointer anchoring is useful when a dense mark has a large hit region. Keyboard
+focus falls back to the primary point:
+
+```ts
+const tooltip = {
+  anchor: 'pointer',
+  placement: ['right', 'left', 'bottom', 'top'],
+  offset: 12,
+}
+```
+
+Grouped charts can avoid jumping between series by anchoring to the focused
+group's bounding-box center:
+
+```ts
+const definition = defineChart({
+  marks,
+  x,
+  y,
+  focus: 'group-x',
+  tooltip: {
+    anchor: 'group-center',
+    placement: ['top', 'right', 'left', 'bottom'],
+    sort: 'color-domain',
+  },
+})
+```
+
+A custom resolver covers event ranges, maps, and application-specific
+reference positions:
+
+```ts
+const tooltip = {
+  anchor: (_points, { chart }) => ({
+    x: chart.x + chart.width,
+    y: chart.y,
+  }),
+  placement: 'bottom-left',
+}
+```
+
+Resolvers and placement use scene pixels. A nullish or non-finite custom
+anchor falls back to the primary point. A placement list uses the first fit,
+then the least-overflowing candidate. Every result shifts inside the chart
+surface.
 
 ## Typed callbacks
 
 Use callbacks when application UI needs the current semantic state:
 
 ```tsx
-<Chart
-  definition={definition}
-  ariaLabel="Weekly downloads"
-  focus={focusX}
-  onFocusChange={(point) => {
-    setFocusedRow(point?.datum ?? null)
-  }}
-  onFocusGroupChange={(points) => {
-    setFocusedRows(points.map((point) => point.datum))
-  }}
-  onSelect={(point) => {
-    setSelectedId(point?.datum.id ?? null)
-  }}
-/>
+function WeeklyDownloads() {
+  const groupedDefinition = defineChart(definition, { focus: 'group-x' })
+
+  return (
+    <Chart
+      definition={groupedDefinition}
+      ariaLabel="Weekly downloads"
+      onFocusChange={(point) => {
+        setFocusedRow(point?.datum ?? null)
+      }}
+      onFocusGroupChange={(points) => {
+        setFocusedRows(points.map((point) => point.datum))
+      }}
+      onSelect={(point) => {
+        setSelectedId(point?.datum.id ?? null)
+      }}
+    />
+  )
+}
 ```
 
 `ChartPoint` includes:
@@ -125,6 +230,7 @@ Use callbacks when application UI needs the current semantic state:
 - stable point and mark keys;
 - group value and label;
 - typed semantic `xValue` and `yValue`;
+- optional interval endpoints and range-or-difference presentation hints;
 - resolved pixel `x` and `y`;
 - resolved color.
 
@@ -140,7 +246,7 @@ Render rich content in application-owned DOM when the surface needs:
 - arbitrary framework components;
 - a nested chart;
 - asynchronous detail;
-- custom collision or portal behavior.
+- portal or cross-surface collision behavior.
 
 Keep focus state controlled through `onFocusChange` or
 `onFocusGroupChange`. Pin the surface through `onSelect`. A pinned surface

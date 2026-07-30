@@ -45,9 +45,7 @@ if (false) {
 
   Chart({ definition: dynamicDefinition, ariaLabel: 'Values' })
 
-  Chart({
-    definition: dynamicDefinition,
-    ariaLabel: 'Values',
+  const focusedDynamicDefinition = defineChart(dynamicDefinition, {
     focus: {
       resolve(points) {
         expectTypeOf(points).items.toMatchTypeOf<{
@@ -63,6 +61,10 @@ if (false) {
       },
       navigation: (points) => points,
     },
+  })
+  Chart({
+    definition: focusedDynamicDefinition,
+    ariaLabel: 'Values',
     renderSvg(scene) {
       expectTypeOf(scene.points).items.toMatchTypeOf<{
         datum: (typeof rows)[number]

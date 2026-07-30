@@ -199,13 +199,14 @@ export function mount(
   const options = (
     nextInput: ConformanceInput,
   ): ChartHostOptions<FreeCursorDatum> => ({
-    definition: definition(nextInput),
+    definition: defineChart(definition(nextInput), {
+      animate: false,
+      keyboard: false,
+      focus: focusDisabled,
+    }),
     width: nextInput.width,
     height: freeCursorChartHeight(nextInput.height),
     ariaLabel: 'Line chart with a free two-dimensional cursor',
-    animate: false,
-    keyboard: false,
-    focus: focusDisabled,
     onRender,
   })
 

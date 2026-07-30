@@ -159,7 +159,7 @@ const tooltip = {
 }
 ```
 
-Rich tooltip structure remains application-owned. Use `onFocusChange` or
+Interactive tooltip content remains application-owned. Use `onFocusChange` or
 `onFocusGroupChange` to render arbitrary framework content. See
 [Tooltips and Focus](./tooltips-and-focus.md).
 

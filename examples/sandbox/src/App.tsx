@@ -1,7 +1,6 @@
 import * as React from 'react'
-import { focusX } from '@tanstack/charts/focus'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
-import type { ChartPoint } from '@tanstack/charts'
+import { defineChart, type ChartPoint } from '@tanstack/charts'
 import { Chart } from '@tanstack/react-charts'
 import {
   createDashboardData,
@@ -39,32 +38,93 @@ export function App() {
   )
   const definitions = React.useMemo(
     () => ({
-      budget: createBudgetChart({ value: data.budget }),
-      errorVolume: createErrorVolumeChart({
-        stack: data.errorStack,
-        totals: data.errorTotals,
-        releases: data.releases,
-        compactTime: range === '24h',
+      budget: defineChart(createBudgetChart({ value: data.budget }), {
+        keyboard: false,
+        animate: { duration: 800, easing: 'ease-out' },
       }),
-      heatmap: createHeatmapChart({ rows: data.heatmap }),
-      services: createServicesChart({ rows: data.services }),
-      severityStack: createSeverityStackChart({ rows: data.severityStack }),
-      sparks: data.sparks.map((rows, index) =>
-        createSparklineChart({
-          rows,
-          color: metricColors[index] ?? '#ff625a',
+      errorVolume: defineChart(
+        createErrorVolumeChart({
+          stack: data.errorStack,
+          totals: data.errorTotals,
+          releases: data.releases,
+          compactTime: range === '24h',
         }),
+        {
+          focus: 'group-x',
+          tooltip: {
+            className: 'obsidian-tooltip',
+            sticky: true,
+            formatGroup: formatErrorGroup,
+          },
+          animate: { duration: 720, easing: 'ease-out' },
+        },
       ),
-      triage: createTriageChart({ rows: data.triage }),
+      heatmap: defineChart(createHeatmapChart({ rows: data.heatmap }), {
+        tooltip: {
+          className: 'obsidian-tooltip',
+          format: (point) =>
+            `${point.datum.day} ${point.datum.hour}:00\n${point.datum.value} events`,
+        },
+        animate: { duration: 520, easing: 'ease-out' },
+      }),
+      services: defineChart(createServicesChart({ rows: data.services }), {
+        tooltip: {
+          className: 'obsidian-tooltip',
+          format: (point) =>
+            `${point.datum.service}\n${point.datum.value} load · ${point.datum.target} target`,
+        },
+        animate: { duration: 680, easing: 'ease-out' },
+      }),
+      severityStack: defineChart(
+        createSeverityStackChart({ rows: data.severityStack }),
+        {
+          tooltip: {
+            className: 'obsidian-tooltip',
+            format: (point) =>
+              `${point.datum.service} · ${point.datum.severity}\n${point.datum.value} issues`,
+          },
+          animate: { duration: 720, easing: 'ease-out' },
+        },
+      ),
+      sparks: data.sparks.map((rows, index) =>
+        defineChart(
+          createSparklineChart({
+            rows,
+            color: metricColors[index] ?? '#ff625a',
+          }),
+          {
+            keyboard: false,
+            animate: { duration: 650, easing: 'ease-out' },
+          },
+        ),
+      ),
+      triage: defineChart(createTriageChart({ rows: data.triage }), {
+        tooltip: {
+          className: 'obsidian-tooltip',
+          format: (point) => point.datum.status,
+        },
+        animate: { duration: 560, easing: 'ease-out' },
+      }),
     }),
     [data, range],
   )
   const impactDefinition = React.useMemo(
     () =>
-      createImpactChart({
-        rows: data.impact,
-        selectedId: selectedIssue,
-      }),
+      defineChart(
+        createImpactChart({
+          rows: data.impact,
+          selectedId: selectedIssue,
+        }),
+        {
+          tooltip: {
+            className: 'obsidian-tooltip',
+            sticky: true,
+            format: (point) =>
+              `${point.datum.issue}\n${point.datum.events} events · ${point.datum.users} users`,
+          },
+          animate: { duration: 620, easing: 'ease-out' },
+        },
+      ),
     [data.impact, selectedIssue],
   )
 
@@ -189,8 +249,6 @@ export function App() {
                     height={64}
                     initialWidth={150}
                     ariaLabel={`${metric.label} trend`}
-                    keyboard={false}
-                    animate={{ duration: 650, easing: 'ease-out' }}
                     renderSvg={renderChartSvgWithResources}
                   />
                 </div>
@@ -225,13 +283,6 @@ export function App() {
                   initialWidth={820}
                   ariaLabel="Error volume by severity"
                   ariaDescription="Stacked error events with release markers and alert threshold."
-                  focus={focusX}
-                  tooltip={{
-                    className: 'obsidian-tooltip',
-                    sticky: true,
-                    formatGroup: formatErrorGroup,
-                  }}
-                  animate={{ duration: 720, easing: 'ease-out' }}
                   renderSvg={renderChartSvgWithResources}
                 />
               </div>
@@ -247,8 +298,6 @@ export function App() {
                   height={232}
                   initialWidth={320}
                   ariaLabel={`${Math.round(data.budget)} percent error budget remaining`}
-                  keyboard={false}
-                  animate={{ duration: 800, easing: 'ease-out' }}
                 />
               </div>
               <div className="budget-stats">
@@ -279,12 +328,6 @@ export function App() {
                   height={228}
                   initialWidth={480}
                   ariaLabel="Error activity by weekday and hour"
-                  tooltip={{
-                    className: 'obsidian-tooltip',
-                    format: (point) =>
-                      `${point.datum.day} ${point.datum.hour}:00\n${point.datum.value} events`,
-                  }}
-                  animate={{ duration: 520, easing: 'ease-out' }}
                 />
               </div>
             </article>
@@ -305,12 +348,6 @@ export function App() {
                   height={228}
                   initialWidth={410}
                   ariaLabel="Issue event volume and affected users"
-                  tooltip={{
-                    className: 'obsidian-tooltip',
-                    sticky: true,
-                    format: (point) =>
-                      `${point.datum.issue}\n${point.datum.events} events · ${point.datum.users} users`,
-                  }}
                   onFocusChange={(point: ChartPoint<ImpactPoint> | null) =>
                     setFocusedIssue(point?.datum ?? null)
                   }
@@ -321,7 +358,6 @@ export function App() {
                         : (point?.datum.id ?? null),
                     )
                   }
-                  animate={{ duration: 620, easing: 'ease-out' }}
                 />
               </div>
             </article>
@@ -336,12 +372,6 @@ export function App() {
                   height={228}
                   initialWidth={350}
                   ariaLabel="Service error load compared with target"
-                  tooltip={{
-                    className: 'obsidian-tooltip',
-                    format: (point) =>
-                      `${point.datum.service}\n${point.datum.value} load · ${point.datum.target} target`,
-                  }}
-                  animate={{ duration: 680, easing: 'ease-out' }}
                 />
               </div>
             </article>
@@ -365,12 +395,6 @@ export function App() {
                   height={248}
                   initialWidth={720}
                   ariaLabel="Severity mix by service"
-                  tooltip={{
-                    className: 'obsidian-tooltip',
-                    format: (point) =>
-                      `${point.datum.service} · ${point.datum.severity}\n${point.datum.value} issues`,
-                  }}
-                  animate={{ duration: 720, easing: 'ease-out' }}
                 />
               </div>
             </article>
@@ -385,11 +409,6 @@ export function App() {
                   height={138}
                   initialWidth={500}
                   ariaLabel="Triage outcome unit chart"
-                  tooltip={{
-                    className: 'obsidian-tooltip',
-                    format: (point) => point.datum.status,
-                  }}
-                  animate={{ duration: 560, easing: 'ease-out' }}
                 />
               </div>
               <div className="triage-legend">

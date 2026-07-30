@@ -702,6 +702,32 @@ async function verifyDeclarations() {
       marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
       x: { scale: scaleBand<string>().domain(rows.map((row) => row.category)) },
       y: { scale: scaleLinear().domain([0, 8]) },
+      focus: {
+        resolve(points) {
+          const point = points[0]
+          if (point) {
+            type DatumIsRow = Expect<Equal<typeof point.datum, Row>>
+            type XIsString = Expect<Equal<typeof point.xValue, string>>
+            type YIsNumber = Expect<Equal<typeof point.yValue, number>>
+            const checks: [DatumIsRow, XIsString, YIsNumber] = [
+              true,
+              true,
+              true,
+            ]
+            void checks
+          }
+          return points
+        },
+        group(_points, point) {
+          point.datum.id.toUpperCase()
+          point.xValue.toUpperCase()
+          point.yValue.toFixed(0)
+          return [point]
+        },
+        navigation(points) {
+          return points
+        },
+      },
     })
     const responsiveDefinition = defineChart(({ width }) => ({
       marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
@@ -793,32 +819,6 @@ async function verifyDeclarations() {
     mountChart(container, {
       definition,
       ariaLabel: 'Core chart',
-      focus: {
-        resolve(points) {
-          const point = points[0]
-          if (point) {
-            type DatumIsRow = Expect<Equal<typeof point.datum, Row>>
-            type XIsString = Expect<Equal<typeof point.xValue, string>>
-            type YIsNumber = Expect<Equal<typeof point.yValue, number>>
-            const checks: [DatumIsRow, XIsString, YIsNumber] = [
-              true,
-              true,
-              true,
-            ]
-            void checks
-          }
-          return points
-        },
-        group(_points, point) {
-          point.datum.id.toUpperCase()
-          point.xValue.toUpperCase()
-          point.yValue.toFixed(0)
-          return [point]
-        },
-        navigation(points) {
-          return points
-        },
-      },
       renderSvg(scene) {
         const point = scene.points[0]
         if (point) {
@@ -846,32 +846,6 @@ async function verifyDeclarations() {
     ReactChart({
       definition,
       ariaLabel: 'React chart',
-      focus: {
-        resolve(points) {
-          const point = points[0]
-          if (point) {
-            type DatumIsRow = Expect<Equal<typeof point.datum, Row>>
-            type XIsString = Expect<Equal<typeof point.xValue, string>>
-            type YIsNumber = Expect<Equal<typeof point.yValue, number>>
-            const checks: [DatumIsRow, XIsString, YIsNumber] = [
-              true,
-              true,
-              true,
-            ]
-            void checks
-          }
-          return points
-        },
-        group(_points, point) {
-          point.datum.id.toUpperCase()
-          point.xValue.toUpperCase()
-          point.yValue.toFixed(0)
-          return [point]
-        },
-        navigation(points) {
-          return points
-        },
-      },
       renderSvg(scene) {
         const point = scene.points[0]
         if (point) {
@@ -898,32 +872,6 @@ async function verifyDeclarations() {
     OctaneChart({
       definition,
       ariaLabel: 'Octane chart',
-      focus: {
-        resolve(points) {
-          const point = points[0]
-          if (point) {
-            type DatumIsRow = Expect<Equal<typeof point.datum, Row>>
-            type XIsString = Expect<Equal<typeof point.xValue, string>>
-            type YIsNumber = Expect<Equal<typeof point.yValue, number>>
-            const checks: [DatumIsRow, XIsString, YIsNumber] = [
-              true,
-              true,
-              true,
-            ]
-            void checks
-          }
-          return points
-        },
-        group(_points, point) {
-          point.datum.id.toUpperCase()
-          point.xValue.toUpperCase()
-          point.yValue.toFixed(0)
-          return [point]
-        },
-        navigation(points) {
-          return points
-        },
-      },
       renderSvg(scene) {
         const point = scene.points[0]
         if (point) {
@@ -1030,16 +978,20 @@ async function verifyDeclarations() {
       navigation: (points) => points,
     }
     const numericRenderer: ChartSvgRenderer<Row, number, number> = () => ''
+    // @ts-expect-error A numeric-x focus strategy cannot consume string-x points.
+    defineChart(definition, {
+      focus: numericFocus,
+    })
     mountChart(container, {
       definition,
-      ariaLabel: 'Incompatible focus coordinates',
-      // @ts-expect-error A numeric-x focus strategy cannot consume string-x points.
+      ariaLabel: 'Core chart rejects host focus',
+      // @ts-expect-error Chart behavior belongs to the definition.
       focus: numericFocus,
     })
     ReactChart({
       definition,
-      ariaLabel: 'Incompatible React focus coordinates',
-      // @ts-expect-error React infers string x from the definition.
+      ariaLabel: 'React chart rejects host focus',
+      // @ts-expect-error Chart behavior belongs to the definition.
       focus: numericFocus,
     })
     ReactChart({
@@ -1050,8 +1002,8 @@ async function verifyDeclarations() {
     })
     OctaneChart({
       definition,
-      ariaLabel: 'Incompatible Octane focus coordinates',
-      // @ts-expect-error Octane infers string x from the definition.
+      ariaLabel: 'Octane chart rejects host focus',
+      // @ts-expect-error Chart behavior belongs to the definition.
       focus: numericFocus,
     })
     OctaneChart({

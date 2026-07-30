@@ -358,12 +358,14 @@ describe('Canvas renderer', () => {
     const onFocusChange = vi.fn()
     const onSelect = vi.fn()
     const host = mountCanvasChart(container, {
-      definition,
+      definition: {
+        ...definition,
+        maxFocusDistance: 1_000,
+        tooltip: true,
+      },
       width: 480,
       height: 260,
       ariaLabel: 'Interactive Canvas chart',
-      maxFocusDistance: 1_000,
-      tooltip: true,
       onFocusChange,
       onSelect,
     })

@@ -9,7 +9,7 @@ import type {
   StatsHistoryMode,
   StatsHistoryPoint,
 } from '@charts-poc/fixtures'
-import { focusX } from '@tanstack/charts/focus'
+import { defineChart } from '@tanstack/charts'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import { Chart } from '@tanstack/octane-charts'
 import type { ChartPoint } from '@tanstack/octane-charts'
@@ -27,15 +27,31 @@ export function App() {
 
   // Octane's compiler derives these memo dependencies from the closure.
   const historyDefinition = useMemo(() =>
-    createStatsHistoryChart(
-      createStatsHistoryInput(historyMode, revision, historyZoomed),
+    defineChart(
+      createStatsHistoryChart(
+        createStatsHistoryInput(historyMode, revision, historyZoomed),
+      ),
+      {
+        animate: { duration: 500, easing: 'ease-out' },
+        focus: 'group-x',
+        tooltip: { formatGroup: formatHistoryGroup },
+      },
     ),
   )
   const rankingDefinition = useMemo(() =>
-    createRankingChart({
-      data: createRankingData(revision),
-      accent: 'var(--demo-accent, #ff6a3d)',
-    }),
+    defineChart(
+      createRankingChart({
+        data: createRankingData(revision),
+        accent: 'var(--demo-accent, #ff6a3d)',
+      }),
+      {
+        animate: { duration: 500, easing: 'ease-in-out' },
+        tooltip: {
+          format: (point) =>
+            `${point.yValue}: ${point.xValue.toLocaleString()}`,
+        },
+      },
+    ),
   )
 
   const toggleTheme = () => {
@@ -162,9 +178,6 @@ export function App() {
             initialWidth={1080}
             ariaLabel={`TanStack package velocity shown as a ${historyMode} chart`}
             ariaDescription="A live chart rendered by the native Octane adapter. Use the pointer or keyboard to inspect values."
-            animate={{ duration: 500, easing: 'ease-out' }}
-            focus={focusX}
-            tooltip={{ formatGroup: formatHistoryGroup }}
             renderSvg={renderChartSvgWithResources}
             onFocusGroupChange={(points) => setFocusedPoints(points)}
           />
@@ -256,11 +269,6 @@ export function App() {
             height={320}
             initialWidth={600}
             ariaLabel="Animated TanStack package ranking"
-            animate={{ duration: 500, easing: 'ease-in-out' }}
-            tooltip={{
-              format: (point) =>
-                `${point.yValue}: ${point.xValue.toLocaleString()}`,
-            }}
           />
         </div>
       </section>

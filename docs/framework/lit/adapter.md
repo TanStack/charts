@@ -18,11 +18,12 @@ defineChartElement()
 Pass chart options as a property:
 
 ```ts
+import { defineChart } from '@tanstack/charts'
+
 html`<tanstack-chart
   .options=${{
-    definition: createRevenueChart(rows),
+    definition: defineChart(createRevenueChart(rows), { tooltip: true }),
     ariaLabel: 'Revenue by month',
-    tooltip: true,
   }}
 ></tanstack-chart>`
 ```

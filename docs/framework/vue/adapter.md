@@ -9,10 +9,13 @@ pnpm add @tanstack/charts @tanstack/vue-charts vue d3-scale
 
 ```vue
 <script setup lang="ts">
+import { defineChart } from '@tanstack/charts'
 import { computed } from 'vue'
 import { Chart } from '@tanstack/vue-charts'
 
-const definition = computed(() => createRevenueChart(rows.value))
+const definition = computed(() =>
+  defineChart(createRevenueChart(rows.value), { tooltip: true }),
+)
 </script>
 
 <template>
@@ -20,7 +23,6 @@ const definition = computed(() => createRevenueChart(rows.value))
     :definition="definition"
     aria-label="Revenue by month"
     :aspect-ratio="16 / 9"
-    :tooltip="true"
     @focus-change="focused = $event"
   />
 </template>

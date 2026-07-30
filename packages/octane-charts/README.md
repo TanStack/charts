@@ -14,16 +14,19 @@ Add or omit granular `d3-*` modules and their matching type packages with the
 chart's actual imports.
 
 ```tsx
+import { defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/octane-charts'
 
+const interactiveDefinition = defineChart(definition, {
+  animate: true,
+  tooltip: true,
+})
+
 ;<Chart
-  definition={definition}
-  input={{ rows, metric }}
+  definition={interactiveDefinition}
   aspectRatio={16 / 9}
   initialWidth={640}
   ariaLabel="Revenue by month"
-  animate
-  tooltip
   onSelect={setSelectedPoint}
 />
 ```
@@ -42,10 +45,9 @@ default bundle.
 Octane and React consume the same definitions, scene renderer, responsive host,
 SSR output, interaction values, and theme tokens.
 
-The definition drives all prop inference. Dynamic definitions require their
-exact `input` shape, and focus, group, selection, and render callbacks infer the
-original datum. Do not add `Chart<Row, Input>` generics or cast adapter props;
-fix the definition, channel, or scale that TypeScript rejects.
+The definition drives all prop inference. Focus, group, selection, and render
+callbacks infer the original datum. Do not add adapter generics or cast adapter
+props; fix the definition, channel, or scale that TypeScript rejects.
 
 Use `height` for a fixed-height chart or `aspectRatio` for proportional
 container sizing.

@@ -1,7 +1,11 @@
 import { createChartRuntime } from './runtime'
 import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint } from './scene'
+import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
 import type {
+  ChartAnimationOptions,
+  ChartFocusMode,
+  ChartFocusStrategy,
   ChartPoint,
   ChartRendererHost,
   ChartRendererHostOptions,
@@ -9,6 +13,13 @@ import type {
   ChartScene,
   ChartSpatialIndex,
   ChartSurface,
+  ChartTooltipContent,
+  ChartTooltipContentContext,
+  ChartTooltipChannelItem,
+  ChartTooltipItem,
+  ChartTooltipOptions,
+  ChartTooltipPlacement,
+  ChartTooltipPosition,
   ChartValue,
 } from './types'
 
@@ -35,6 +46,7 @@ export function mountChartRenderer<
   let options = initialOptions
   let scene!: ChartScene<TDatum, TXValue, TYValue>
   let focusedPoint: ChartPoint<TDatum, TXValue, TYValue> | null = null
+  let pointerPosition: ChartTooltipPosition | null = null
   let pinnedKey: string | null = null
   let observer: ResizeObserver | undefined
   let renderFrame: number | undefined
@@ -71,14 +83,15 @@ export function mountChartRenderer<
       ariaLabel: options.ariaLabel,
       ariaDescription: options.ariaDescription,
       className: options.className,
-      tabIndex: options.keyboard === false ? -1 : (options.tabIndex ?? 0),
+      tabIndex:
+        options.definition.keyboard === false ? -1 : (options.tabIndex ?? 0),
       idPrefix: options.idPrefix,
       animation: hasRendered
-        ? resolveAnimation(options.animate, container, reason)
+        ? resolveAnimation(options.definition.animate, container, reason)
         : undefined,
     })
     hasRendered = true
-    spatialIndex = options.spatialIndex?.(scene.points)
+    spatialIndex = options.definition.spatialIndex?.(scene.points)
     const nextFocusedPoint = previousFocusedPoint
       ? restoreFocusedPoint(scene.points, previousFocusedPoint)
       : null
@@ -159,9 +172,13 @@ export function mountChartRenderer<
 
   const updateFocus = (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    forcePaint = false,
   ) => {
     const point = points[0] ?? null
-    if (samePointIdentity(point, focusedPoint)) return
+    if (samePointIdentity(point, focusedPoint)) {
+      if (forcePaint) paintTooltip(point, points)
+      return
+    }
     focusedPoint = point
     paintFocus(point, points)
     options.onFocusChange?.(point)
@@ -178,13 +195,17 @@ export function mountChartRenderer<
 
   const pointsAtPointer = (clientX: number, clientY: number) => {
     const position = surface?.clientToScene(scene, clientX, clientY)
+    pointerPosition = position ?? null
     if (!position) return []
-    const maxDistance = options.maxFocusDistance ?? 48
+    const maxDistance = options.definition.maxFocusDistance ?? 48
     return resolvePointerFocus(position.x, position.y, maxDistance)
   }
   const handlePointerMove = (event: PointerEvent) => {
     if (pinnedKey) return
-    updateFocus(pointsAtPointer(event.clientX, event.clientY))
+    updateFocus(
+      pointsAtPointer(event.clientX, event.clientY),
+      tooltipTracksPointer(),
+    )
   }
   const clearTransientFocus = ({ relatedTarget }: MouseEvent | FocusEvent) => {
     if (
@@ -194,27 +215,36 @@ export function mountChartRenderer<
         relatedTarget instanceof view.Node &&
         container.contains(relatedTarget)
       )
-    )
+    ) {
+      pointerPosition = null
       updateFocus([])
+    }
   }
   const handleClick = (event: MouseEvent) => {
+    if (event.target && tooltipElement?.contains(event.target as Node)) {
+      return
+    }
     const points = pointsAtPointer(event.clientX, event.clientY)
     const point = points[0] ?? null
+    let pinChanged = false
     if (tooltipIsSticky()) {
       if (pinnedKey) {
         pinnedKey = null
+        pinChanged = true
       } else if (point) {
         pinnedKey = point.key
+        pinChanged = true
       }
     }
-    updateFocus(points)
+    updateFocus(points, pinChanged)
     options.onSelect?.(point)
   }
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (options.keyboard === false || !scene.points.length) return
+    if (options.definition.keyboard === false || !scene.points.length) return
     if (event.key === 'Escape' && pinnedKey) {
       event.preventDefault()
       pinnedKey = null
+      pointerPosition = null
       updateFocus([])
       return
     }
@@ -224,26 +254,30 @@ export function mountChartRenderer<
       options.onSelect?.(focusedPoint)
       return
     }
-    const point = options.focus
+    const focus = resolveFocusStrategy(options.definition.focus)
+    const point = focus
       ? pointFromNavigationOrder(
-          options.focus.navigation(scene.points),
+          focus.navigation(scene.points),
           focusedPoint,
           event.key,
         )
       : pointFromSceneOrder(scene.points, focusedPoint, event.key)
     if (point === undefined) return
     event.preventDefault()
+    pointerPosition = null
     updateFocus(point ? focusPointsForPoint(point) : [])
   }
   const handleFocus = (event: FocusEvent) => {
     if (
-      options.keyboard !== false &&
+      options.definition.keyboard !== false &&
       event.target === surface?.element &&
       !focusedPoint
     ) {
-      const point = options.focus
-        ? options.focus.navigation(scene.points)[0]
+      const focus = resolveFocusStrategy(options.definition.focus)
+      const point = focus
+        ? focus.navigation(scene.points)[0]
         : pointFromSceneOrder(scene.points, null, 'Home')
+      pointerPosition = null
       updateFocus(point ? focusPointsForPoint(point) : [])
     }
   }
@@ -283,12 +317,9 @@ export function mountChartRenderer<
         options.tabIndex !== nextOptions.tabIndex ||
         options.idPrefix !== nextOptions.idPrefix ||
         options.renderer !== nextOptions.renderer ||
-        options.keyboard !== nextOptions.keyboard ||
         options.measureText !== nextOptions.measureText ||
         fontChanged
       const observerChanged = options.width !== nextOptions.width
-      const spatialIndexChanged =
-        options.spatialIndex !== nextOptions.spatialIndex
       options = nextOptions
       if (!tooltipIsSticky()) pinnedKey = null
       if (needsRender) {
@@ -297,9 +328,6 @@ export function mountChartRenderer<
           layoutChanged ? 'layout' : sizeChanged ? 'resize' : 'update',
         )
       } else {
-        if (spatialIndexChanged) {
-          spatialIndex = options.spatialIndex?.(scene.points)
-        }
         if (focusedPoint) {
           paintFocus(focusedPoint, focusPointsForPoint(focusedPoint))
         }
@@ -352,8 +380,9 @@ export function mountChartRenderer<
     y: number,
     maxDistance: number,
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
-    if (options.focus) {
-      return options.focus.resolve(scene.points, x, y, maxDistance)
+    const focus = resolveFocusStrategy(options.definition.focus)
+    if (focus) {
+      return focus.resolve(scene.points, x, y, maxDistance)
     }
     const point = spatialIndex
       ? spatialIndex.findNearest(x, y, maxDistance)
@@ -364,39 +393,86 @@ export function mountChartRenderer<
   function focusPointsForPoint(
     point: ChartPoint<TDatum, TXValue, TYValue>,
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
-    return options.focus?.group(scene.points, point) ?? [point]
+    return (
+      resolveFocusStrategy(options.definition.focus)?.group(
+        scene.points,
+        point,
+      ) ?? [point]
+    )
   }
 
   function paintTooltip(
     point: ChartPoint<TDatum, TXValue, TYValue> | null,
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) {
-    if (!options.tooltip || !point) {
+    if (!options.definition.tooltip || !point) {
       tooltipElement?.setAttribute('hidden', '')
       return
     }
     const tooltipOptions =
-      typeof options.tooltip === 'object' ? options.tooltip : undefined
+      typeof options.definition.tooltip === 'object'
+        ? options.definition.tooltip
+        : undefined
     tooltipElement ??= createTooltip(container)
     tooltipElement.className = tooltipOptions?.className
       ? `ts-chart-tooltip ${tooltipOptions.className}`
       : 'ts-chart-tooltip'
-    tooltipElement.textContent =
-      tooltipOptions?.formatGroup?.(points) ??
-      tooltipOptions?.format?.(point) ??
-      (points.length > 1
-        ? points.map(defaultTooltip).join('\n')
-        : defaultTooltip(point))
+    const contentContext = createTooltipContentContext(scene, tooltipOptions)
+    const content = tooltipOptions?.content?.(points, contentContext)
+    const text =
+      content === undefined
+        ? (tooltipOptions?.formatGroup?.(points) ??
+          tooltipOptions?.format?.(point))
+        : undefined
+    if (content) {
+      paintStructuredTooltip(tooltipElement, content)
+    } else if (text !== undefined) {
+      paintPlainTooltip(tooltipElement, text)
+    } else {
+      paintStructuredTooltip(
+        tooltipElement,
+        defaultTooltipContent(points, scene, tooltipOptions),
+      )
+    }
+    const pinned = pinnedKey !== null
+    tooltipElement.style.pointerEvents = pinned ? 'auto' : 'none'
+    tooltipElement.style.userSelect = pinned ? 'text' : 'none'
+    tooltipElement.dataset.sticky = String(pinned)
     tooltipElement.style.visibility = 'hidden'
     tooltipElement.removeAttribute('hidden')
-    placeTooltip(tooltipElement, point.x, point.y, scene.width, scene.height)
+    const anchor = resolveTooltipAnchor(
+      point,
+      points,
+      scene,
+      pointerPosition,
+      tooltipOptions,
+    )
+    placeTooltip(
+      tooltipElement,
+      anchor.x,
+      anchor.y,
+      scene.width,
+      scene.height,
+      tooltipOptions?.placement,
+      tooltipOptions?.offset,
+    )
     tooltipElement.style.removeProperty('visibility')
   }
 
   function tooltipIsSticky() {
     return (
-      typeof options.tooltip === 'object' && options.tooltip.sticky === true
+      Boolean(options.definition.tooltip) &&
+      !(
+        typeof options.definition.tooltip === 'object' &&
+        options.definition.tooltip.sticky === false
+      )
     )
+  }
+
+  function tooltipTracksPointer() {
+    const tooltip = options.definition.tooltip
+    if (!tooltip || typeof tooltip !== 'object') return false
+    return tooltip.anchor === 'pointer' || typeof tooltip.anchor === 'function'
   }
 }
 
@@ -466,8 +542,30 @@ function isPositiveFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
 }
 
+function resolveFocusStrategy<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  focus: ChartFocusMode<TDatum, TXValue, TYValue> | undefined,
+): ChartFocusStrategy<TDatum, TXValue, TYValue> | undefined {
+  if (typeof focus !== 'string') return focus
+  switch (focus) {
+    case 'nearest-x':
+      return focusNearestX
+    case 'nearest-y':
+      return focusNearestY
+    case 'group-x':
+      return focusX
+    case 'group-y':
+      return focusY
+    case 'nearest':
+      return undefined
+  }
+}
+
 function resolveAnimation(
-  animation: ChartRendererHostOptions['animate'],
+  animation: boolean | ChartAnimationOptions | undefined,
   container: HTMLElement,
   reason: HostRenderReason,
 ) {
@@ -631,23 +729,360 @@ function createTooltip(container: HTMLElement) {
     boxShadow: '0 6px 24px rgb(0 0 0 / 0.14)',
     font: '500 0.75rem/1.3 system-ui, sans-serif',
     pointerEvents: 'none',
-    whiteSpace: 'pre',
+    overflowWrap: 'anywhere',
   })
   tooltip.hidden = true
   container.append(tooltip)
   return tooltip
 }
 
-function defaultTooltip(point: ChartPoint) {
-  return `${point.groupLabel} · ${formatValue(point.xValue)} · ${formatValue(point.yValue)}`
+function createTooltipContentContext(
+  scene: ChartScene,
+  options?: ChartTooltipOptions<any, any, any>,
+): ChartTooltipContentContext {
+  const x = findTooltipChannelItem(options?.items, 'x')
+  const y = findTooltipChannelItem(options?.items, 'y')
+  return {
+    xLabel: x?.label ?? findSceneLabel(scene, 'x-label') ?? 'x',
+    yLabel: y?.label ?? findSceneLabel(scene, 'y-label') ?? 'y',
+    formatX: formatValue,
+    formatY: formatValue,
+  }
 }
 
-function formatValue(value: ChartPoint['xValue']) {
+function defaultTooltipContent(
+  points: readonly ChartPoint[],
+  scene: ChartScene,
+  options?: ChartTooltipOptions<any, any, any>,
+): ChartTooltipContent {
+  const point = points[0]
+  if (!point) return { rows: [] }
+  const context = createTooltipContentContext(scene, options)
+  const x = findTooltipChannelItem(options?.items, 'x')
+  const y = findTooltipChannelItem(options?.items, 'y')
+  const group = findTooltipChannelItem(options?.items, 'group')
+  const orderedPoints = orderTooltipPoints(points, scene, options?.sort)
+  const sharedX =
+    points.length > 1 &&
+    points.every((candidate) => chartValueEqual(candidate.xValue, point.xValue))
+  const sharedY =
+    points.length > 1 &&
+    points.every((candidate) => chartValueEqual(candidate.yValue, point.yValue))
+
+  if (sharedX || sharedY) {
+    const axis = sharedX ? 'x' : 'y'
+    const axisItem = sharedX ? x : y
+    const label = axisItem?.label ?? findSceneLabel(scene, `${axis}-label`)
+    const value = formatPointAxis(point, axis, axisItem, context)
+    return {
+      title: label ? `${label}: ${value}` : value,
+      rows: orderedPoints.map((candidate) => ({
+        label: formatTooltipGroup(candidate, group, context),
+        value: formatPointAxis(
+          candidate,
+          sharedX ? 'y' : 'x',
+          sharedX ? y : x,
+          context,
+        ),
+        color: candidate.color,
+      })),
+    }
+  }
+
+  if (points.length > 1) {
+    return {
+      rows: orderedPoints.map((candidate) => ({
+        label: formatTooltipGroup(candidate, group, context),
+        value: `${formatPointAxis(candidate, 'x', x, context)} · ${formatPointAxis(candidate, 'y', y, context)}`,
+        color: candidate.color,
+      })),
+    }
+  }
+
+  const items = options?.items
+  return {
+    title:
+      point.group == null || items?.some(isTooltipGroupItem)
+        ? undefined
+        : formatTooltipGroup(point, group, context),
+    color:
+      point.group == null || items?.some(isTooltipGroupItem)
+        ? undefined
+        : point.color,
+    rows: items
+      ? tooltipItemRows(point, items, context)
+      : [
+          {
+            label: context.xLabel,
+            value: formatPointAxis(point, 'x', x, context),
+          },
+          {
+            label: context.yLabel,
+            value: formatPointAxis(point, 'y', y, context),
+          },
+        ],
+  }
+}
+
+function orderTooltipPoints(
+  points: readonly ChartPoint[],
+  scene: ChartScene,
+  sort: ChartTooltipOptions['sort'],
+) {
+  if (sort === 'focus') return [...points]
+  if (typeof sort === 'function') return [...points].sort(sort)
+  return [...points].sort(
+    (left, right) =>
+      colorOrder(scene, left.group) - colorOrder(scene, right.group),
+  )
+}
+
+function colorOrder(scene: ChartScene, group: ChartPoint['group']) {
+  const index = group == null ? -1 : scene.colors.domain.indexOf(group)
+  return index < 0 ? Number.MAX_SAFE_INTEGER : index
+}
+
+function tooltipItemRows(
+  point: ChartPoint,
+  items: readonly ChartTooltipItem<any, any, any>[],
+  context: ChartTooltipContentContext,
+) {
+  return items.flatMap((item) => {
+    if (typeof item === 'string') {
+      if (item === 'group') {
+        return [
+          {
+            label: 'Group',
+            value: point.groupLabel,
+            color: point.color,
+          },
+        ]
+      }
+      return [
+        {
+          label: item === 'x' ? context.xLabel : context.yLabel,
+          value: formatPointAxis(point, item, undefined, context),
+        },
+      ]
+    }
+    if ('channel' in item) {
+      const text = item.text?.(point, context)
+      if (item.text && text == null) return []
+      if (item.channel === 'group') {
+        return [
+          {
+            label: item.label ?? 'Group',
+            value: text ?? point.groupLabel,
+            color: point.color,
+          },
+        ]
+      }
+      return [
+        {
+          label:
+            item.label ??
+            (item.channel === 'x' ? context.xLabel : context.yLabel),
+          value:
+            text ?? formatPointAxis(point, item.channel, undefined, context),
+        },
+      ]
+    }
+    if ('field' in item) {
+      const value = (point.datum as Record<string, ChartValue | null>)[
+        item.field
+      ]
+      if (value == null) return []
+      const text = item.text?.(point, context)
+      if (item.text && text == null) return []
+      return [
+        {
+          label: item.label ?? item.field,
+          value: text ?? formatValue(value),
+        },
+      ]
+    }
+    const value = item.text(point, context)
+    return value == null ? [] : [{ label: item.label ?? item.id, value }]
+  })
+}
+
+function findTooltipChannelItem(
+  items: readonly ChartTooltipItem<any, any, any>[] | undefined,
+  channel: 'x' | 'y' | 'group',
+): ChartTooltipChannelItem<any, any, any> | undefined {
+  const item = items?.find(
+    (candidate) => tooltipItemChannel(candidate) === channel,
+  )
+  return typeof item === 'object' && 'channel' in item
+    ? (item as ChartTooltipChannelItem<any, any, any>)
+    : undefined
+}
+
+function tooltipItemChannel(item: ChartTooltipItem<any, any, any>) {
+  return typeof item === 'string'
+    ? item
+    : 'channel' in item
+      ? item.channel
+      : undefined
+}
+
+function isTooltipGroupItem(item: ChartTooltipItem<any, any, any>) {
+  return tooltipItemChannel(item) === 'group'
+}
+
+function formatTooltipGroup(
+  point: ChartPoint,
+  item: ChartTooltipChannelItem<any, any, any> | undefined,
+  context: ChartTooltipContentContext,
+) {
+  return item?.text?.(point, context) ?? point.groupLabel
+}
+
+function formatPointAxis(
+  point: ChartPoint,
+  axis: 'x' | 'y',
+  item: ChartTooltipChannelItem<any, any, any> | undefined,
+  context: ChartTooltipContentContext,
+) {
+  const itemText = item?.text?.(point, context)
+  if (itemText != null) return itemText
+  const start = axis === 'x' ? point.x1Value : point.y1Value
+  const end = axis === 'x' ? point.x2Value : point.y2Value
+  const interval = axis === 'x' ? point.xInterval : point.yInterval
+  if (
+    interval === 'difference' &&
+    typeof start === 'number' &&
+    typeof end === 'number'
+  ) {
+    return formatValue(end - start)
+  }
+  if (
+    interval === 'range' &&
+    start !== undefined &&
+    end !== undefined &&
+    !chartValueEqual(start, end)
+  ) {
+    return `${formatValue(start)}–${formatValue(end)}`
+  }
+  return formatValue(axis === 'x' ? point.xValue : point.yValue)
+}
+
+function findSceneLabel(scene: ChartScene, key: string) {
+  const axes = scene.nodes.find(
+    (node) => node.kind === 'group' && node.key === 'axes',
+  )
+  if (axes?.kind !== 'group') return undefined
+  const label = axes.children.find((node) => node.key === key)
+  return label?.kind === 'label' ? label.text : undefined
+}
+
+function paintPlainTooltip(tooltip: HTMLElement, text: string) {
+  tooltip.removeAttribute('aria-label')
+  tooltip.style.whiteSpace = 'pre-wrap'
+  tooltip.textContent = text
+}
+
+function paintStructuredTooltip(
+  tooltip: HTMLElement,
+  content: ChartTooltipContent,
+) {
+  const document = tooltip.ownerDocument
+  const children: HTMLElement[] = []
+  if (content.title) {
+    const title = document.createElement('div')
+    title.className = 'ts-chart-tooltip__title'
+    title.style.cssText = `display:flex;align-items:center;gap:.4rem;font-weight:650;margin-bottom:${content.rows.length ? '.3rem' : '0'}`
+    if (content.color)
+      title.append(createTooltipSwatch(document, content.color))
+    title.append(content.title)
+    children.push(title)
+  }
+  if (content.rows.length) {
+    const rows = document.createElement('div')
+    rows.className = 'ts-chart-tooltip__rows'
+    rows.setAttribute('aria-hidden', 'true')
+    for (const row of content.rows) {
+      const line = document.createElement('div')
+      line.className = 'ts-chart-tooltip__row'
+      line.style.cssText =
+        'display:grid;grid-template-columns:.55rem minmax(0,1fr) auto;align-items:center;column-gap:.4rem'
+      const swatch = row.color
+        ? createTooltipSwatch(document, row.color)
+        : document.createElement('span')
+      const label = document.createElement('span')
+      label.textContent = row.label
+      const value = document.createElement('span')
+      value.textContent = row.value
+      value.style.cssText =
+        'text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap'
+      line.append(swatch, label, value)
+      rows.append(line)
+    }
+    children.push(rows)
+  }
+  tooltip.style.whiteSpace = 'normal'
+  tooltip.replaceChildren(...children)
+  tooltip.setAttribute(
+    'aria-label',
+    [content.title, ...content.rows.map((row) => `${row.label}: ${row.value}`)]
+      .filter(Boolean)
+      .join('\n'),
+  )
+}
+
+function createTooltipSwatch(document: Document, color: string) {
+  const swatch = document.createElement('span')
+  swatch.className = 'ts-chart-tooltip__swatch'
+  swatch.setAttribute('aria-hidden', 'true')
+  swatch.style.cssText =
+    'display:block;width:.55rem;height:.55rem;border-radius:.15rem;box-shadow:inset 0 0 0 1px rgb(0 0 0/.12)'
+  swatch.style.background = color
+  return swatch
+}
+
+function formatValue(value: ChartValue) {
   return value instanceof Date
-    ? value.toLocaleString()
+    ? Number.isNaN(+value)
+      ? 'Invalid Date'
+      : value.toISOString().replace('T00:00:00.000Z', '')
     : typeof value === 'number'
       ? value.toLocaleString()
-      : value
+      : String(value)
+}
+
+function resolveTooltipAnchor(
+  point: ChartPoint,
+  points: readonly ChartPoint[],
+  scene: ChartScene,
+  pointer: ChartTooltipPosition | null,
+  options?: ChartTooltipOptions<any, any, any>,
+): ChartTooltipPosition {
+  const fallback = { x: point.x, y: point.y }
+  const anchor = options?.anchor ?? 'point'
+  if (anchor === 'point') return fallback
+  if (anchor === 'pointer') return pointer ?? fallback
+  if (anchor === 'group-center') {
+    let x1 = point.x
+    let x2 = point.x
+    let y1 = point.y
+    let y2 = point.y
+    for (const candidate of points) {
+      x1 = Math.min(x1, candidate.x)
+      x2 = Math.max(x2, candidate.x)
+      y1 = Math.min(y1, candidate.y)
+      y2 = Math.max(y2, candidate.y)
+    }
+    return { x: (x1 + x2) / 2, y: (y1 + y2) / 2 }
+  }
+  const resolved = anchor(points, {
+    pointer,
+    chart: scene.chart,
+    width: scene.width,
+    height: scene.height,
+  })
+  return resolved && Number.isFinite(resolved.x) && Number.isFinite(resolved.y)
+    ? resolved
+    : fallback
 }
 
 function placeTooltip(
@@ -656,21 +1091,114 @@ function placeTooltip(
   anchorY: number,
   sceneWidth: number,
   sceneHeight: number,
+  placement:
+    | 'auto'
+    | ChartTooltipPlacement
+    | readonly ChartTooltipPlacement[]
+    | undefined,
+  offset: number | undefined,
 ) {
   const edge = 8
-  const gap = 10
+  const gap =
+    offset !== undefined && Number.isFinite(offset) ? Math.max(0, offset) : 10
   const width = tooltip.offsetWidth
   const height = tooltip.offsetHeight
   const maxLeft = Math.max(edge, sceneWidth - edge - width)
   const maxTop = Math.max(edge, sceneHeight - edge - height)
-  const left = clamp(anchorX - width / 2, edge, maxLeft)
-  const topAbove = anchorY - height - gap
-  const placeBelow = topAbove < edge
-  const top = clamp(placeBelow ? anchorY + gap : topAbove, edge, maxTop)
+  const placements =
+    placement === undefined || placement === 'auto'
+      ? defaultTooltipPlacements
+      : Array.isArray(placement)
+        ? placement.length
+          ? placement
+          : defaultTooltipPlacements
+        : [placement as ChartTooltipPlacement]
+  const candidates = placements.map((candidate) =>
+    tooltipPlacement(candidate, anchorX, anchorY, width, height, gap),
+  )
+  let selected = candidates[0]!
+  let selectedOverflow = overflow(
+    selected,
+    width,
+    height,
+    sceneWidth,
+    sceneHeight,
+    edge,
+  )
+  for (const candidate of candidates) {
+    const candidateOverflow = overflow(
+      candidate,
+      width,
+      height,
+      sceneWidth,
+      sceneHeight,
+      edge,
+    )
+    if (candidateOverflow === 0) {
+      selected = candidate
+      break
+    }
+    if (candidateOverflow < selectedOverflow) {
+      selected = candidate
+      selectedOverflow = candidateOverflow
+    }
+  }
+  const left = clamp(selected.left, edge, maxLeft)
+  const top = clamp(selected.top, edge, maxTop)
 
   tooltip.style.left = `${left}px`
   tooltip.style.top = `${top}px`
-  tooltip.dataset.placement = placeBelow ? 'below' : 'above'
+  tooltip.dataset.placement = selected.placement
+}
+
+const defaultTooltipPlacements: readonly ChartTooltipPlacement[] = [
+  'top',
+  'bottom',
+  'right',
+  'left',
+]
+
+function tooltipPlacement(
+  placement: ChartTooltipPlacement,
+  anchorX: number,
+  anchorY: number,
+  width: number,
+  height: number,
+  gap: number,
+) {
+  const xDirection =
+    placement.endsWith('right') || placement === 'right'
+      ? 1
+      : placement.endsWith('left') || placement === 'left'
+        ? -1
+        : 0
+  const yDirection =
+    placement.startsWith('bottom') || placement === 'bottom'
+      ? 1
+      : placement.startsWith('top') || placement === 'top'
+        ? -1
+        : 0
+  return {
+    placement,
+    left: anchorX + ((xDirection - 1) * width) / 2 + xDirection * gap,
+    top: anchorY + ((yDirection - 1) * height) / 2 + yDirection * gap,
+  }
+}
+
+function overflow(
+  position: { left: number; top: number },
+  width: number,
+  height: number,
+  sceneWidth: number,
+  sceneHeight: number,
+  edge: number,
+) {
+  return (
+    Math.max(0, edge - position.left) +
+    Math.max(0, position.left + width + edge - sceneWidth) +
+    Math.max(0, edge - position.top) +
+    Math.max(0, position.top + height + edge - sceneHeight)
+  )
 }
 
 function clamp(value: number, minimum: number, maximum: number) {

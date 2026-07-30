@@ -7,9 +7,12 @@ pnpm add @tanstack/charts @tanstack/preact-charts preact d3-scale
 ```
 
 ```tsx
+import { defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/preact-charts'
 
-;<Chart definition={definition} ariaLabel="Revenue by month" tooltip />
+const interactiveDefinition = defineChart(definition, { tooltip: true })
+
+;<Chart definition={interactiveDefinition} ariaLabel="Revenue by month" />
 ```
 
 The adapter renders SVG on the server and adopts it on the client. Chart

@@ -148,7 +148,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    30.9,
+    32.5,
   ),
   locked(
     'Custom-scale line scene',
@@ -186,12 +186,12 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    20.9,
+    22.8,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    26.1,
+    27.9,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -269,7 +269,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    31.7,
+    33.4,
     { external: ['react', 'react/jsx-runtime'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),

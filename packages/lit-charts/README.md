@@ -7,6 +7,7 @@ pnpm add @tanstack/charts @tanstack/lit-charts lit d3-scale
 ```
 
 ```ts
+import { defineChart } from '@tanstack/charts'
 import { defineChartElement } from '@tanstack/lit-charts'
 
 defineChartElement()
@@ -15,9 +16,8 @@ defineChartElement()
 ```ts
 html`<tanstack-chart
   .options=${{
-    definition,
+    definition: defineChart(definition, { tooltip: true }),
     ariaLabel: 'Revenue by month',
-    tooltip: true,
   }}
 ></tanstack-chart>`
 ```

@@ -7,10 +7,12 @@ import type {
 import { quadtree } from 'd3-quadtree'
 import { scaleLinear } from 'd3-scale'
 
-const createQuadtreePointIndex: ChartSpatialIndexFactory<unknown> = (
-  points,
-): ChartSpatialIndex<unknown> => {
-  const index = quadtree<ChartPoint<unknown>>()
+const createQuadtreePointIndex: ChartSpatialIndexFactory<
+  { x: number; y: number },
+  number,
+  number
+> = (points): ChartSpatialIndex<{ x: number; y: number }, number, number> => {
+  const index = quadtree<ChartPoint<{ x: number; y: number }, number, number>>()
     .x((point) => point.x)
     .y((point) => point.y)
     .addAll([...points])
@@ -25,12 +27,12 @@ const definition = defineChart({
   marks: [dot([{ x: 0, y: 0 }], { x: 'x', y: 'y' })],
   x: { scale: scaleLinear().domain([-1, 1]) },
   y: { scale: scaleLinear().domain([-1, 1]) },
+  spatialIndex: createQuadtreePointIndex,
 })
 
 export function mount(element: HTMLElement) {
   return mountChart(element, {
     definition,
     ariaLabel: 'Dense points',
-    spatialIndex: createQuadtreePointIndex,
   })
 }

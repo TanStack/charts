@@ -1,12 +1,8 @@
 import type {
-  ChartAnimationOptions,
-  ChartFocusMode,
   ChartPoint,
   ChartRenderContext,
-  ChartSpatialIndexFactory,
   ChartSvgRenderer,
   ChartTextMeasurer,
-  ChartTooltipOptions,
   ChartValue,
   ChartDefinition,
 } from '@tanstack/charts'
@@ -24,11 +20,6 @@ export interface ChartCommonProps<
   initialWidth?: number
   class?: string
   style?: Record<string, string | number | undefined>
-  maxFocusDistance?: number
-  focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
-  spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
-  animate?: boolean | ChartAnimationOptions
-  keyboard?: boolean
   tabIndex?: number
   idPrefix?: string
   renderSvg?: ChartSvgRenderer<
@@ -37,7 +28,6 @@ export interface ChartCommonProps<
     NoInfer<TYValue>
   >
   measureText?: ChartTextMeasurer
-  tooltip?: boolean | ChartTooltipOptions<TDatum, TXValue, TYValue>
   onFocusChange?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
   onFocusGroupChange?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
