@@ -476,7 +476,6 @@ Use `mountChartRenderer` from `@tanstack/charts/renderer`, or the React and
 Octane `/core` entries, to mount a custom renderer. `RenderChartOptions`,
 `ChartSurfaceRenderOptions`, `ChartSurface`, `ChartRenderer`,
 `ChartRendererRenderContext`, `ChartRendererHostCommonOptions`,
-`StaticChartRendererHostOptions`, `DynamicChartRendererHostOptions`,
 `ChartRendererHostOptions`, and `ChartRendererHost` describe the complete
 boundary.
 

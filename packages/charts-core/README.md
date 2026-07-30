@@ -1,6 +1,6 @@
 # TanStack Charts
 
-Tiny chart grammar for TypeScript and JavaScript. Marks consume your data
+A chart grammar for TypeScript and JavaScript. Marks consume your data
 directly, channels describe visual encodings, and the engine compiles them into
 a renderer-neutral keyed scene. D3 supplies battle-tested algorithms; TanStack
 supplies the grammar, scene compiler, responsive range adapter, rendering, and
@@ -10,19 +10,24 @@ TanStack Charts is an independent implementation for typed application
 infrastructure. Project lineage is recorded in the repository
 [`ACKNOWLEDGEMENTS.md`](https://github.com/TanStack/charts/blob/main/ACKNOWLEDGEMENTS.md).
 
-Install the granular D3 modules your chart imports as direct application
-dependencies. Strict package managers do not expose TanStack Charts'
-transitive dependencies for application imports:
+> [!IMPORTANT]
+> This README describes unreleased source after `0.0.0`. The API below is not
+> available in the public `0.0.0` package.
+
+After the next package release, install the granular D3 modules your chart
+imports as direct application dependencies. Strict package managers do not
+expose TanStack Charts' transitive dependencies for application imports:
 
 ```sh
-pnpm add @tanstack/charts d3-array d3-scale d3-shape
-pnpm add -D @types/d3-array @types/d3-scale @types/d3-shape
+pnpm add @tanstack/charts d3-scale d3-shape
+pnpm add -D @types/d3-scale @types/d3-shape
 ```
 
 Omit any D3 module and matching type package that your chart does not use.
 
+<!-- docs-example: core-readme-definition typecheck -->
+
 ```ts
-import { extent, max } from 'd3-array'
 import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
 import { colorLegend, d3Curve, defineChart, lineY } from '@tanstack/charts'
@@ -55,32 +60,25 @@ const data: readonly DownloadRow[] = [
   },
 ]
 
-const [firstDate, lastDate] = extent(data, (row) => row.date)
-const dateDomain: [Date, Date] =
-  firstDate && lastDate
-    ? [firstDate, lastDate]
-    : [new Date(0), new Date(86_400_000)]
-const downloadMax = max(data, (row) => row.downloads) ?? 0
-const packages = [...new Set(data.map((row) => row.package))]
-
 const downloads = defineChart({
   marks: [
     lineY(data, {
       x: 'date',
       y: 'downloads',
       z: 'package',
-      key: 'id',
       curve: d3Curve(curveMonotoneX),
     }),
   ],
-  x: { scale: scaleUtc().domain(dateDomain).nice() },
+  x: { scale: scaleUtc, nice: true },
   y: {
-    scale: scaleLinear().domain([0, downloadMax]).nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Weekly downloads',
     grid: true,
   },
   color: {
-    scale: scaleOrdinal(packages, ['#0ea5e9', '#f97316', '#10b981']),
+    scale: () =>
+      scaleOrdinal<string, string>().range(['#0ea5e9', '#f97316', '#10b981']),
     legend: colorLegend({ label: 'Package' }),
   },
   animate: true,
@@ -155,16 +153,18 @@ ordinary bundles.
 - Marks: `lineY`, `areaX`, `areaY`, `barX`, `barY`, `dot`, `rect`, `cell`,
   `ruleX`, `ruleY`, `text`, `arrow`, `frame`, `hexagon`, `link`, `tickX`,
   `tickY`, `vector`, and responsive `facet` composition
-- Scales: required raw D3 positional scales through the responsive range
-  adapter; raw D3 color and radius scales are consumed directly
+- Scales: D3 factories with inferred domains or configured D3 instances with
+  application-owned domains, copied through responsive range adapters
 - Guides: responsive axes, grids, labels, categorical legends, and gradient
   legends
 - Data preparation: direct `d3-array` and `d3-shape` output, server-prepared
   intervals, and application-derived rows flow into ordinary marks
-- Runtime: stable dynamic definitions, responsive measurement, keyed
+- Runtime: object and responsive definitions, definition-identity updates,
+  responsive measurement, keyed
   reconciliation, interruptible animation, pointer and keyboard focus, point
   activation, native tooltips, SSR, and hydration
-- Renderers: static SVG and a vanilla DOM host
+- Renderers: static SVG, a vanilla DOM host, optional Canvas, and custom
+  renderer hosts
 - Optional export: standalone SVG and browser raster export from
   `@tanstack/charts/export`
 - Optional dense interaction: an application-supplied
@@ -188,7 +188,6 @@ overhang, and axis titles. The solve may resolve guide scales more than once,
 but marks render once against the final plot rectangle.
 
 ```ts
-import { max } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barX, defineChart } from '@tanstack/charts'
 
@@ -197,18 +196,16 @@ const rankingRows = [
   { package: 'Router', downloads: 420_000 },
   { package: 'Table', downloads: 360_000 },
 ]
-const maximum = max(rankingRows, (row) => row.downloads) ?? 0
 
 const chart = defineChart({
   marks: [barX(rankingRows, { x: 'downloads', y: 'package' })],
   x: {
-    scale: scaleLinear().domain([0, maximum]).nice(),
+    scale: scaleLinear,
+    nice: true,
     label: 'Weekly downloads',
   },
   y: {
-    scale: scaleBand()
-      .domain(rankingRows.map((row) => row.package))
-      .padding(0.1),
+    scale: () => scaleBand<string>().padding(0.1),
   },
 })
 ```
@@ -229,11 +226,11 @@ supply `measureText` on the host, adapter, runtime, or `createChartScene`
 layout options. Its returned `x` and `y` are the painted box offsets relative
 to the requested anchor and baseline.
 
-Definitions accept configured D3 scales directly, and `createChartScene`
-rejects missing positional scales. TanStack copies each caller scale, applies
-the responsive pixel range, and centers D3 band output. The supplied scale owns
-its domain, mapping, ticks, and formatting and is never mutated. Named D3
-imports keep each capability tree-shakeable:
+Definitions accept D3 factories for inferred domains and configured instances
+for application-owned domains. `createChartScene` rejects missing positional
+scales. TanStack copies each scale, applies the responsive pixel range, and
+centers D3 band output without mutating the source. Named D3 imports keep each
+capability tree-shakeable:
 
 ```ts
 import { createChartScene, defineChart, lineY } from '@tanstack/charts'

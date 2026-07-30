@@ -194,9 +194,23 @@ Clipping applies to the chart’s mark group, not axes or legends. Leave it off 
 ## Complete range-band composition
 
 ```ts
-import { sfTemperatures } from '@charts-poc/demo-data/sf-temperatures'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
+
+interface DailyTemperature {
+  date: Date
+  high: number
+  low: number
+}
+
+const sfTemperatures: readonly DailyTemperature[] = [
+  { date: new Date('2026-07-01T00:00:00Z'), high: 68, low: 55 },
+  { date: new Date('2026-07-02T00:00:00Z'), high: 71, low: 56 },
+  { date: new Date('2026-07-03T00:00:00Z'), high: 66, low: 54 },
+  { date: new Date('2026-07-04T00:00:00Z'), high: 69, low: 55 },
+  { date: new Date('2026-07-05T00:00:00Z'), high: 73, low: 57 },
+  { date: new Date('2026-07-06T00:00:00Z'), high: 70, low: 56 },
+]
 
 const temperatureChart = defineChart({
   marks: [

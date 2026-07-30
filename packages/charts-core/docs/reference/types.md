@@ -4,9 +4,9 @@ description: Public TypeScript types, inference rules, channels, definitions, sc
 ---
 
 TanStack Charts is inference-first. A mark's source data and channel selectors
-flow through its definition into scales, axis formatters, host input, focus
-callbacks, and selection callbacks. Normal application code should not cast
-chart definitions or supply adapter generics.
+flow through its definition into scales, axis formatters, host and adapter
+callbacks, focus callbacks, and selection callbacks. Normal application code
+should not cast chart definitions or supply adapter generics.
 
 ## Values and channels
 

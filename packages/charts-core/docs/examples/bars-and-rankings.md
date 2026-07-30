@@ -107,5 +107,6 @@ contracts are in [Bar and Rect Marks](../reference/marks/bar-and-rect.md).
   shape can carry the essential comparison.
 - Verify long labels and rotated ticks with
   [Responsive Charts](../guides/responsive-charts.md).
-- Use stable category keys when values reorder or animate. See
+- Preserve unique category values when bars reorder or animate; supply `key`
+  only when the category does not identify a row. See
   [Dynamic Data and Animation](../guides/dynamic-data-and-animation.md).

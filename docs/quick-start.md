@@ -3,6 +3,10 @@ title: Quick Start
 description: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 ---
 
+> [!IMPORTANT]
+> This walkthrough targets unreleased source after `0.0.0`. The current npm
+> package does not implement this definition contract.
+
 This walkthrough uses the framework-agnostic DOM host. The same chart
 definition passes unchanged to any supported
 [framework adapter](./installation.md#framework-compatibility).
@@ -20,13 +24,27 @@ The host follows the container width when `width` is omitted.
 <!-- docs-example: core-quick-start typecheck -->
 
 ```ts
-import { aapl } from '@charts-poc/demo-data/aapl'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { defineChart, lineY, mountChart } from '@tanstack/charts'
 
+interface ClosingPrice {
+  Date: Date
+  Close: number
+}
+
+const closingPrices: readonly ClosingPrice[] = [
+  { Date: new Date('2013-11-01T00:00:00Z'), Close: 74.29 },
+  { Date: new Date('2013-12-02T00:00:00Z'), Close: 78.75 },
+  { Date: new Date('2014-01-02T00:00:00Z'), Close: 79.02 },
+  { Date: new Date('2014-02-03T00:00:00Z'), Close: 71.65 },
+  { Date: new Date('2014-03-03T00:00:00Z'), Close: 75.39 },
+  { Date: new Date('2014-04-01T00:00:00Z'), Close: 77.38 },
+  { Date: new Date('2014-05-01T00:00:00Z'), Close: 84.5 },
+]
+
 const closingPriceChart = defineChart({
   marks: [
-    lineY(aapl, {
+    lineY(closingPrices, {
       id: 'apple-close',
       x: 'Date',
       y: (row) => (row.Date.getUTCMonth() < 3 ? null : row.Close),
@@ -52,8 +70,9 @@ Because this source imports `d3-scale` directly, add it and `@types/d3-scale`
 as direct dependencies. See [Installation](./installation.md).
 
 The accessor deliberately omits first-quarter observations, creating visible
-breaks instead of misleading segments. The original AAPL row flows through the
-mark and into interaction callbacks; no cast or manual chart generic is needed.
+breaks instead of misleading segments. The original closing-price row flows
+through the mark and into interaction callbacks; no cast or manual chart
+generic is needed.
 
 ## 3. Mount it
 
@@ -112,7 +131,8 @@ Destroying the host removes observers, event listeners, animations, tooltips, an
 
 ## What the declaration means
 
-- `lineY(aapl, ...)` chooses a line mark and keeps each original AAPL row as the interaction datum.
+- `lineY(closingPrices, ...)` chooses a line mark and keeps each source row as
+  the interaction datum.
 - `x: 'Date'` maps the source date field; the y accessor returns `Close` or an intentional gap.
 - The unique date gives each observation stable positional identity across updates.
 - D3 scale factories infer domains from mark channels and own mapping behavior.

@@ -1079,10 +1079,26 @@ async function writeBundleBaseline(
   baselineChartTypes,
   baselineTiers,
 ) {
+  const sourceRevision = revision()
   const baseline = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     generatedAt: new Date().toISOString(),
-    versions: baselineVersions,
+    packageVersions: baselineVersions,
+    sources: Object.fromEntries(
+      libraries.map((library) => [
+        library.id,
+        library.id === 'tanstack'
+          ? {
+              kind: 'workspace',
+              revision: sourceRevision,
+            }
+          : {
+              kind: 'package',
+              packageName: library.packageName,
+              version: baselineVersions[library.id],
+            },
+      ]),
+    ),
     matrix: {
       chartTypes: baselineChartTypes,
       tiers: baselineTiers,
@@ -1118,7 +1134,7 @@ async function checkBundleBaseline(bundles, actualVersions) {
   }
 
   const failures = []
-  if (baseline.schemaVersion !== 2) {
+  if (baseline.schemaVersion !== 3) {
     failures.push(
       'bundle baseline schema is stale; run pnpm benchmark:update-baseline',
     )
@@ -1133,7 +1149,7 @@ async function checkBundleBaseline(bundles, actualVersions) {
     )
   }
   for (const library of libraries) {
-    const expectedVersion = baseline.versions?.[library.id]
+    const expectedVersion = baseline.packageVersions?.[library.id]
     if (!expectedVersion) {
       failures.push(
         `${library.label}: bundle baseline is missing its package version`,
@@ -1144,6 +1160,25 @@ async function checkBundleBaseline(bundles, actualVersions) {
     if (actualVersion && actualVersion !== expectedVersion) {
       failures.push(
         `${library.label}: installed version ${actualVersion} does not match baseline ${expectedVersion}`,
+      )
+    }
+    const source = baseline.sources?.[library.id]
+    if (library.id === 'tanstack') {
+      if (
+        source?.kind !== 'workspace' ||
+        !/^[0-9a-f]{40}$/u.test(source.revision)
+      ) {
+        failures.push(
+          `${library.label}: bundle baseline must record its workspace revision`,
+        )
+      }
+    } else if (
+      source?.kind !== 'package' ||
+      source.packageName !== library.packageName ||
+      source.version !== expectedVersion
+    ) {
+      failures.push(
+        `${library.label}: bundle baseline package provenance is missing or stale`,
       )
     }
   }

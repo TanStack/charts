@@ -2,8 +2,12 @@
 
 React lifecycle adapter for `@tanstack/charts`.
 
-Declare the adapter, core grammar, framework peer, and each D3 module used by
-your chart directly:
+> [!IMPORTANT]
+> This README describes unreleased source after `0.0.0`. The API below is not
+> available in the public `0.0.0` package.
+
+After the next package release, declare the adapter, core grammar, framework
+peer, and each D3 module used by your chart directly:
 
 ```sh
 pnpm add @tanstack/charts @tanstack/react-charts react d3-scale
@@ -45,8 +49,9 @@ pulls Canvas into the default bundle.
 
 The adapter server-renders the complete shared SVG. On the client, React owns
 only the outer host; the framework-neutral chart host owns measurement,
-reconciliation, animation, and interaction. Shallow-equal inline plain-object
-input does not replace the live SVG.
+reconciliation, animation, and interaction. Reuse the definition while its
+captured values are unchanged; a new definition updates the mounted surface
+without replacing it.
 
 The definition drives all prop inference. Focus, group, selection, and render
 callbacks infer the original datum. Do not add adapter generics or cast adapter

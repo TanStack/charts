@@ -32,6 +32,20 @@ const allowedChartLibraryLinks = new Map([
   ['comparison.md', new Set(Object.values(comparisonOfficialSources))],
 ])
 
+const publicEntryPaths = [
+  'README.md',
+  'packages/charts-core/README.md',
+  'packages/preact-charts/README.md',
+  'packages/react-charts/README.md',
+  'packages/vue-charts/README.md',
+  'packages/solid-charts/README.md',
+  'packages/svelte-charts/README.md',
+  'packages/angular-charts/README.md',
+  'packages/lit-charts/README.md',
+  'packages/alpine-charts/README.md',
+  'packages/octane-charts/README.md',
+]
+
 export async function validateDocsContract(repositoryRoot) {
   const docsRoot = resolve(repositoryRoot, 'docs')
   const configPath = resolve(docsRoot, 'config.json')
@@ -55,17 +69,26 @@ export async function validateDocsContract(repositoryRoot) {
     validateIframes(path, source, cases, embeddedCases, failures)
   }
 
-  await validatePublicEntryLinks(repositoryRoot, failures)
+  const publicEntrySources = new Map()
+  for (const path of publicEntryPaths) {
+    publicEntrySources.set(
+      path,
+      await readFile(resolve(repositoryRoot, path), 'utf8'),
+    )
+  }
+  const publicSources = new Map([...markdownSources, ...publicEntrySources])
+
+  validatePublicEntryLinks(publicEntrySources, failures)
   await validateApiCoverage(repositoryRoot, markdownSources, failures)
   await validateComparisonEvidence(repositoryRoot, markdownSources, failures)
   await validateDocumentedTanStackImports(
     repositoryRoot,
-    markdownSources,
+    publicSources,
     failures,
   )
   const standaloneExamples = validateStandaloneExamples(
     repositoryRoot,
-    markdownSources,
+    publicSources,
     failures,
   )
 
@@ -155,8 +178,8 @@ export function isPublicChartLibraryLinkAllowed(path, href) {
 
 export function comparisonBaselineContractFailures(baseline, expectedVersions) {
   const failures = []
-  if (baseline.schemaVersion !== 2) {
-    failures.push('comparison bundle baseline must use schema version 2')
+  if (baseline.schemaVersion !== 3) {
+    failures.push('comparison bundle baseline must use schema version 3')
   }
   if (
     !sameStrings(baseline.matrix?.chartTypes ?? [], comparisonChartTypes) ||
@@ -166,9 +189,28 @@ export function comparisonBaselineContractFailures(baseline, expectedVersions) {
   }
   for (const library of chartLibraries) {
     const manifestVersion = expectedVersions[library.id]
-    if (baseline.versions?.[library.id] !== manifestVersion) {
+    if (baseline.packageVersions?.[library.id] !== manifestVersion) {
       failures.push(
         `comparison bundle baseline version is stale for ${library.label}: expected ${manifestVersion}`,
+      )
+    }
+    const source = baseline.sources?.[library.id]
+    if (library.id === 'tanstack') {
+      if (
+        source?.kind !== 'workspace' ||
+        !/^[0-9a-f]{40}$/u.test(source.revision)
+      ) {
+        failures.push(
+          'comparison bundle baseline must record the TanStack workspace revision',
+        )
+      }
+    } else if (
+      source?.kind !== 'package' ||
+      source.packageName !== library.packageName ||
+      source.version !== manifestVersion
+    ) {
+      failures.push(
+        `comparison bundle baseline package provenance is stale for ${library.label}`,
       )
     }
   }
@@ -412,27 +454,9 @@ function validateIframes(path, source, cases, embeddedCases, failures) {
   }
 }
 
-async function validatePublicEntryLinks(repositoryRoot, failures) {
-  const paths = [
-    'README.md',
-    'packages/charts-core/README.md',
-    'packages/preact-charts/README.md',
-    'packages/react-charts/README.md',
-    'packages/vue-charts/README.md',
-    'packages/solid-charts/README.md',
-    'packages/svelte-charts/README.md',
-    'packages/angular-charts/README.md',
-    'packages/lit-charts/README.md',
-    'packages/alpine-charts/README.md',
-    'packages/octane-charts/README.md',
-  ]
-
-  for (const path of paths) {
-    validatePublicLinks(
-      path,
-      await readFile(resolve(repositoryRoot, path), 'utf8'),
-      failures,
-    )
+function validatePublicEntryLinks(sources, failures) {
+  for (const [path, source] of sources) {
+    validatePublicLinks(path, source, failures)
   }
 }
 
@@ -475,30 +499,20 @@ async function validateDocumentedTanStackImports(
     }
   }
 
-  const sources = new Map(markdownSources)
-  for (const path of [
-    'README.md',
-    'packages/charts-core/README.md',
-    'packages/preact-charts/README.md',
-    'packages/react-charts/README.md',
-    'packages/vue-charts/README.md',
-    'packages/solid-charts/README.md',
-    'packages/svelte-charts/README.md',
-    'packages/angular-charts/README.md',
-    'packages/lit-charts/README.md',
-    'packages/alpine-charts/README.md',
-    'packages/octane-charts/README.md',
-  ]) {
-    sources.set(path, await readFile(resolve(repositoryRoot, path), 'utf8'))
-  }
-
-  for (const [path, source] of sources) {
+  for (const [path, source] of markdownSources) {
     for (const error of typedCodeFenceSyntaxErrors(source)) {
       failures.push(
         `${path} typed code fence ${error.fence} has invalid syntax: ${error.message}`,
       )
     }
     for (const code of typedCodeFences(source)) {
+      for (const match of code.matchAll(
+        /(?:\bfrom\s+|\bimport\s*\(\s*)['"](@charts-poc\/[^'"]+)['"]/g,
+      )) {
+        failures.push(
+          `${path} imports private workspace package ${match[1]} from public documentation`,
+        )
+      }
       for (const [specifier, names] of importedNamesBySpecifier(code)) {
         if (!specifier.startsWith('@tanstack/')) continue
         const available = exportsBySpecifier.get(specifier)
@@ -560,6 +574,12 @@ async function validateComparisonEvidence(
   const rootManifest = JSON.parse(
     await readFile(resolve(repositoryRoot, 'package.json'), 'utf8'),
   )
+  const baseline = JSON.parse(
+    await readFile(
+      resolve(repositoryRoot, 'benchmarks/comparison/bundle-baseline.json'),
+      'utf8',
+    ),
+  )
   const manifestVersions = new Map()
 
   for (const library of chartLibraries) {
@@ -571,14 +591,15 @@ async function validateComparisonEvidence(
         rootManifest.devDependencies?.[library.packageName])
     manifestVersions.set(library.id, version)
     const packageCell = `\`${library.packageName}\``
-    const versionCell = `\`${version}\``
+    const sourceCell =
+      library.id === 'tanstack'
+        ? `workspace \`${baseline.sources?.tanstack?.revision?.slice(0, 7)}\``
+        : `npm \`${version}\``
     if (
-      !rows.some(
-        (row) => row.includes(packageCell) && row.includes(versionCell),
-      )
+      !rows.some((row) => row.includes(packageCell) && row.includes(sourceCell))
     ) {
       failures.push(
-        `comparison.md must pair ${packageCell} with pinned version ${versionCell}`,
+        `comparison.md must pair ${packageCell} with measured source ${sourceCell}`,
       )
     }
   }
@@ -606,12 +627,6 @@ async function validateComparisonEvidence(
     }
   }
 
-  const baseline = JSON.parse(
-    await readFile(
-      resolve(repositoryRoot, 'benchmarks/comparison/bundle-baseline.json'),
-      'utf8',
-    ),
-  )
   failures.push(
     ...comparisonBaselineContractFailures(
       baseline,

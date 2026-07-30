@@ -14,9 +14,21 @@ Pass a complete spec when the chart does not need its resolved surface size:
 <!-- docs-example: static-definition typecheck -->
 
 ```ts
-import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+
+interface AlphabetRow {
+  letter: string
+  frequency: number
+}
+
+const alphabet: readonly AlphabetRow[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
 
 const letterFrequencies = defineChart({
   marks: [barY(alphabet, { x: 'letter', y: 'frequency' })],

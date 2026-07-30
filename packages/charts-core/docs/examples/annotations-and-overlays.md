@@ -38,10 +38,11 @@ category's endpoints, and labels the values directly.
   style="width:100%;height:440px;border:0;"
 ></iframe>
 
-Use stable category keys for the links and endpoints. Direct labels remove a
-legend lookup, but they need collision policy when values converge. Filter to
-meaningful categories, increase vertical space, or use an accessible detail
-view rather than allowing unreadable overlap.
+Preserve category identity for the links and endpoints; supply `key` only when
+the mark cannot infer it. Direct labels remove a legend lookup, but they need
+collision policy when values converge. Filter to meaningful categories,
+increase vertical space, or use an accessible detail view rather than allowing
+unreadable overlap.
 
 A slope implies before-to-after order. Label both periods and keep the same
 quantitative scale.

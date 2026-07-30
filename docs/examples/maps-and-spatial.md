@@ -104,18 +104,68 @@ Cartesian or geo-only consumer bundles.
 
 ## Project GeoJSON responsively
 
-Give `geoShape` a projection factory and an explicit fit target. This example
-uses Observable Plot's published Westport House floor plan and preserves its
-planar coordinates. The mark fits the projection to the final plot bounds
-again whenever the chart resizes.
+Give `geoShape` a projection factory and an explicit fit target. This
+self-contained example uses a small planar floor plan. The mark fits the
+projection to the final plot bounds again whenever the chart resizes.
 
 <!-- docs-example: geo-shape-responsive typecheck -->
 
 ```ts
-import { westportHouse } from '@charts-poc/demo-data/westport-house'
 import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
 import { geoIdentity } from 'd3-geo'
+
+interface FloorPlanFeature {
+  type: 'Feature'
+  properties: { id: number }
+  geometry: {
+    type: 'Polygon'
+    coordinates: [number, number][][]
+  }
+}
+
+interface FloorPlan {
+  type: 'FeatureCollection'
+  features: FloorPlanFeature[]
+}
+
+const westportHouse: FloorPlan = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { id: 1 },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0, 0],
+            [48, 0],
+            [48, 28],
+            [0, 28],
+            [0, 0],
+          ],
+        ],
+      },
+    },
+    {
+      type: 'Feature',
+      properties: { id: 2 },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [52, 0],
+            [84, 0],
+            [84, 28],
+            [52, 28],
+            [52, 0],
+          ],
+        ],
+      },
+    },
+  ],
+}
 
 const map = defineChart({
   marks: [

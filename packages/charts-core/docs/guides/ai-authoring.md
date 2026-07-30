@@ -53,7 +53,7 @@ Generated code should include:
 - a complete chart definition;
 - complete adapter or host usage;
 - a meaningful `ariaLabel`;
-- stable keys;
+- stable inferred or explicit identity;
 - empty and constant-domain policies when applicable.
 
 It should not require readers to invent undeclared variables, hidden imports,
@@ -87,8 +87,8 @@ Run, in order:
 4. Light and dark visual checks.
 5. A narrow production bundle measurement when a new capability is imported.
 
-For dynamic charts, also test reorder, resize, empty data, replacement input,
-and a burst that must settle on the latest revision.
+For changing charts, also test reorder, resize, empty data, replacement data,
+and a burst that must settle on the latest definition.
 
 ## Request template
 

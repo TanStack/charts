@@ -114,8 +114,34 @@ Body
       'observable-plot': '0.6.17',
     }
     const baseline = {
-      schemaVersion: 2,
-      versions,
+      schemaVersion: 3,
+      packageVersions: versions,
+      sources: {
+        tanstack: {
+          kind: 'workspace',
+          revision: '1'.repeat(40),
+        },
+        chartjs: {
+          kind: 'package',
+          packageName: 'chart.js',
+          version: versions.chartjs,
+        },
+        echarts: {
+          kind: 'package',
+          packageName: 'echarts',
+          version: versions.echarts,
+        },
+        recharts: {
+          kind: 'package',
+          packageName: 'recharts',
+          version: versions.recharts,
+        },
+        'observable-plot': {
+          kind: 'package',
+          packageName: '@observablehq/plot',
+          version: versions['observable-plot'],
+        },
+      },
       matrix: { chartTypes, tiers },
       bundles: Object.fromEntries(
         libraryIds.flatMap((library) =>
@@ -132,11 +158,13 @@ Body
     expect(comparisonBaselineContractFailures(baseline, versions)).toEqual([])
 
     const stale = structuredClone(baseline)
-    stale.versions.chartjs = '4.5.0'
+    stale.packageVersions.chartjs = '4.5.0'
+    stale.sources.tanstack.revision = 'unknown'
     delete stale.bundles['tanstack-line-basic']
     expect(comparisonBaselineContractFailures(stale, versions)).toEqual(
       expect.arrayContaining([
         'comparison bundle baseline version is stale for Chart.js: expected 4.5.1',
+        'comparison bundle baseline must record the TanStack workspace revision',
         'comparison bundle baseline must contain the complete 60-case matrix',
       ]),
     )

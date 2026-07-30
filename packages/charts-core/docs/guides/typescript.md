@@ -30,8 +30,8 @@ const definition = defineChart({
       y: 'temperature',
     }),
   ],
-  x: { scale: scaleTime() },
-  y: { scale: scaleLinear() },
+  x: { scale: scaleTime },
+  y: { scale: scaleLinear },
 })
 ```
 
@@ -50,8 +50,8 @@ function createTrafficDefinition(rows: readonly Reading[]) {
         y: 'temperature',
       }),
     ],
-    x: { scale: scaleTime() },
-    y: { scale: scaleLinear() },
+    x: { scale: scaleTime },
+    y: { scale: scaleLinear },
   })
 }
 ```
@@ -77,8 +77,8 @@ function createTrafficDefinition(rows: readonly Reading[]) {
         y: 'temperature',
       }),
     ],
-    x: { scale: scaleTime() },
-    y: { scale: scaleLinear() },
+    x: { scale: scaleTime },
+    y: { scale: scaleLinear },
     margin: width < 480 ? 24 : 40,
   }))
 }
@@ -175,7 +175,7 @@ Do not use it to make application examples compile.
 
 ## No-cast checklist
 
-- Datum and input types are declared at the application boundary.
+- Datum and captured application values are typed at the application boundary.
 - Channel fields are checked against the datum.
 - Scale domains match inferred coordinate types.
 - Definitions preserve their literal mark tuple.

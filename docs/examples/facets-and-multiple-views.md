@@ -105,7 +105,7 @@ Shared selection, cursor, category, or domain state belongs in the application:
 1. A view emits a semantic value through focus, selection, or a controlled
    gesture.
 2. Application state validates and stores that value.
-3. Each view derives its own input and configured scales.
+3. Each view derives its own definition and configured scales.
 4. Each chart compiles a new scene through its normal update path.
 
 Do not query one SVG for a pixel and apply that pixel directly to another view.

@@ -5,7 +5,7 @@ TanStack Charts is a framework-agnostic, type-safe visualization grammar with th
 Read the canonical pages below. Each concept is documented once; guides and examples link back to its owner page.
 
 - docs/overview.md — Overview: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
-- docs/comparison.md — Compare Libraries: Compare TanStack Charts with Chart.js, Apache ECharts, Recharts, and Observable Plot using pinned packages and reproducible fixtures.
+- docs/comparison.md — Compare Libraries: Compare current TanStack Charts workspace source with pinned Chart.js, Apache ECharts, Recharts, and Observable Plot packages.
 - docs/installation.md — Installation: Install TanStack Charts, a framework adapter, and the granular D3 modules used by your charts.
 - docs/quick-start.md — Quick Start: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 - docs/framework/react/quick-start.md — React Quick Start: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
@@ -89,10 +89,10 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 Authoring rules:
 
 - Use direct, granular d3-* imports for scales and analytical preparation; never import the d3 umbrella.
-- Let TanStack Charts own responsive pixel ranges while configured D3 scales own domains, ticks, and formatting.
+- Let TanStack Charts own responsive pixel ranges. D3 factories infer domains from mark channels; configured instances preserve application-owned domains.
 - Keep data in its application shape. Map fields or accessors into marks instead of creating a library-owned series model.
 - Memoize the complete definition against captured application values; definition identity is the application update boundary.
-- Use stable datum keys for updates, animation, and selection.
+- Preserve inferable datum identity across updates; add explicit keys only when IDs or unique positions are unavailable.
 - Prefer built-in marks, then composition, then a custom mark or application-owned overlay.
 - Treat docs/concepts/scales-and-d3.md as the sole D3 integration contract and follow its official D3 links for D3 API details.
 - Do not use casts, suppression comments, private imports, or adapter generics to force a chart through TypeScript.

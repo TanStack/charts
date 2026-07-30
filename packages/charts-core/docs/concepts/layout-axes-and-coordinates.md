@@ -285,9 +285,24 @@ Automatic margins only reserve space for chart-owned guides and legends. Applica
 ## Complete horizontal ranking
 
 ```ts
-import { citywages } from '@charts-poc/demo-data/citywages'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barX, defineChart, ruleX } from '@tanstack/charts'
+
+interface MetroPopulation {
+  Metro: string
+  POP_2015: number
+}
+
+const citywages: readonly MetroPopulation[] = [
+  { Metro: 'New York–Newark–Jersey City', POP_2015: 20_182_305 },
+  { Metro: 'Los Angeles–Long Beach–Anaheim', POP_2015: 13_340_068 },
+  { Metro: 'Chicago–Naperville–Elgin', POP_2015: 9_532_569 },
+  { Metro: 'Dallas–Fort Worth–Arlington', POP_2015: 7_206_144 },
+  { Metro: 'Houston–The Woodlands–Sugar Land', POP_2015: 6_656_947 },
+  { Metro: 'Washington–Arlington–Alexandria', POP_2015: 6_097_684 },
+  { Metro: 'Philadelphia–Camden–Wilmington', POP_2015: 6_069_875 },
+  { Metro: 'Miami–Fort Lauderdale–West Palm Beach', POP_2015: 6_012_331 },
+]
 
 const rows = [...citywages]
   .sort((left, right) => right.POP_2015 - left.POP_2015)

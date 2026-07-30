@@ -3,7 +3,13 @@ title: Installation
 description: Install TanStack Charts, a framework adapter, and the granular D3 modules used by your charts.
 ---
 
-Install the framework-agnostic core in every application that authors chart definitions:
+> [!IMPORTANT]
+> These docs describe unreleased source after `0.0.0`. The APIs and adapters
+> below are not all available from npm yet. Do not use these commands until the
+> next package versions are published.
+
+After the next release, install the framework-agnostic core in every
+application that authors chart definitions:
 
 ```sh
 pnpm add @tanstack/charts
@@ -62,7 +68,10 @@ needs browser mounting or server rendering.
 
 ## Install the D3 modules you import
 
-TanStack Charts accepts configured D3 scales and the output of D3 transforms directly. Your application must declare every `d3-*` module that its source imports. Strict package managers do not expose transitive dependencies as an application import contract.
+TanStack Charts accepts D3 scale factories, configured scale instances, and
+the output of D3 transforms directly. Your application must declare every
+`d3-*` module that its source imports. Strict package managers do not expose
+transitive dependencies as an application import contract.
 
 A typical cartesian chart uses:
 
