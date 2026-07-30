@@ -174,6 +174,10 @@ For a deliberately guide-free `margin: 0` scene, the full surface and inner
 plot can coincide. Do not assume that equivalence for ordinary automatic
 layout.
 
+Responsive relayout commits immediately even when animation is enabled for
+data updates. Set `animate: { resize: true }` only when size interpolation is
+intentional.
+
 The [Dynamic Data and Animation](./dynamic-data-and-animation.md) guide explains
 the two phases. The [D3 integration contract](../concepts/scales-and-d3.md)
 explains why application code should not set positional pixel ranges.

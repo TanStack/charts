@@ -280,6 +280,7 @@ interface ChartAnimationOptions {
     | 'ease-in-out'
     | ((progress: number) => number)
   respectReducedMotion?: boolean
+  resize?: boolean
 }
 ```
 
@@ -288,18 +289,20 @@ interface ChartAnimationOptions {
 | `duration`             | `240`        | Animation length in milliseconds, clamped to zero      |
 | `easing`               | `'ease-out'` | Named built-in easing or a progress-mapping function   |
 | `respectReducedMotion` | `true`       | Lets a host suppress animation for reduced-motion mode |
+| `resize`               | `false`      | Animates responsive and explicit host size changes     |
 
 On a host, `animate: true` uses `240` milliseconds, `ease-out`, and respects
 `prefers-reduced-motion: reduce`. A numeric duration is clamped to at least
 zero. A custom easing receives raw progress from `0` to `1`.
 
-`respectReducedMotion` is a host policy. Direct
+`respectReducedMotion` and `resize` are host policies. Direct
 `reconcileChartSvg(container, markup, animation)` calls run the supplied
-animation without consulting media queries.
+animation without consulting media queries or render reasons.
 
 Host animation begins only after the initial render. Updates without a scene
 render do not start an animation; the current animation options apply to the
-next reconciliation.
+next reconciliation. Responsive and explicit size changes commit immediately
+unless `resize: true`.
 
 Stable mark IDs and datum keys are essential for meaningful transitions.
 

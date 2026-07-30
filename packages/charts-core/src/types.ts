@@ -568,6 +568,7 @@ export interface ChartAnimationOptions {
     | 'ease-in-out'
     | ((progress: number) => number)
   respectReducedMotion?: boolean
+  resize?: boolean
 }
 
 export interface ChartSurfaceRenderOptions extends RenderChartOptions {

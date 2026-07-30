@@ -82,7 +82,9 @@ continuity.
 - `duration`: milliseconds;
 - `easing`: `linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out`, or a
   function from normalized progress to normalized progress;
-- `respectReducedMotion`: defaults to `true`.
+- `respectReducedMotion`: defaults to `true`;
+- `resize`: defaults to `false`, so responsive relayout does not repeatedly
+  restart animation.
 
 Numeric geometry and compatible path data interpolate. Entering and exiting
 nodes reconcile by key. If an update interrupts a transition, it begins from

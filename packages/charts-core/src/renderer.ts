@@ -12,6 +12,8 @@ import type {
   ChartValue,
 } from './types'
 
+type HostRenderReason = 'update' | 'resize' | 'layout'
+
 /**
  * Mounts a chart and owns the runtime until the returned host is destroyed.
  * Pass a runtime that already rendered initial markup to preserve renderer
@@ -37,6 +39,7 @@ export function mountChartRenderer<
   let observer: ResizeObserver | undefined
   let renderFrame: number | undefined
   let forceScheduledRender = false
+  let scheduledRenderReason: Exclude<HostRenderReason, 'update'> | undefined
   let destroyed = false
   let hasRendered = false
   let surface: ChartSurface<TDatum, TXValue, TYValue> | undefined
@@ -50,7 +53,7 @@ export function mountChartRenderer<
   const fontSet = container.ownerDocument.fonts
   if (ownsPosition) container.style.position = 'relative'
 
-  const render = (refreshText = false) => {
+  const render = (refreshText = false, reason: HostRenderReason = 'update') => {
     if (destroyed) return
     if (refreshText && !options.measureText) domText.refresh()
     const previousFocusedPoint = focusedPoint
@@ -71,7 +74,7 @@ export function mountChartRenderer<
       tabIndex: options.keyboard === false ? -1 : (options.tabIndex ?? 0),
       idPrefix: options.idPrefix,
       animation: hasRendered
-        ? resolveAnimation(options.animate, container)
+        ? resolveAnimation(options.animate, container, reason)
         : undefined,
     })
     hasRendered = true
@@ -109,13 +112,20 @@ export function mountChartRenderer<
     observer = new ResizeObserverConstructor(() => {
       const width = currentWidth()
       if (width === undefined || width === scene.width) return
-      scheduleRender()
+      scheduleRender(false, 'resize')
     })
     observer.observe(container)
   }
 
-  const scheduleRender = (force = false) => {
+  const scheduleRender = (
+    force = false,
+    reason: Exclude<HostRenderReason, 'update'> = 'layout',
+  ) => {
     forceScheduledRender ||= force
+    scheduledRenderReason =
+      scheduledRenderReason === 'layout' || reason === 'layout'
+        ? 'layout'
+        : 'resize'
     if (renderFrame !== undefined) return
     if (!view?.requestAnimationFrame) {
       const nextWidth = currentWidth()
@@ -123,7 +133,9 @@ export function mountChartRenderer<
         forceScheduledRender ||
         (nextWidth !== undefined && nextWidth !== scene.width)
       forceScheduledRender = false
-      if (shouldRender) render(true)
+      const nextReason = scheduledRenderReason ?? 'layout'
+      scheduledRenderReason = undefined
+      if (shouldRender) render(true, nextReason)
       return
     }
     renderFrame = view.requestAnimationFrame(() => {
@@ -133,7 +145,9 @@ export function mountChartRenderer<
         forceScheduledRender ||
         (nextWidth !== undefined && nextWidth !== scene.width)
       forceScheduledRender = false
-      if (shouldRender) render(true)
+      const nextReason = scheduledRenderReason ?? 'layout'
+      scheduledRenderReason = undefined
+      if (shouldRender) render(true, nextReason)
     })
   }
 
@@ -249,12 +263,20 @@ export function mountChartRenderer<
       if (destroyed) return
       const fontChanged =
         nextOptions.measureText === undefined && domText.refresh()
-      const needsRender =
-        options.definition !== nextOptions.definition ||
+      const definitionChanged = options.definition !== nextOptions.definition
+      const sizeChanged =
         options.height !== nextOptions.height ||
         options.aspectRatio !== nextOptions.aspectRatio ||
         options.width !== nextOptions.width ||
-        options.initialWidth !== nextOptions.initialWidth ||
+        options.initialWidth !== nextOptions.initialWidth
+      const layoutChanged =
+        options.idPrefix !== nextOptions.idPrefix ||
+        options.renderer !== nextOptions.renderer ||
+        options.measureText !== nextOptions.measureText ||
+        fontChanged
+      const needsRender =
+        definitionChanged ||
+        sizeChanged ||
         options.ariaLabel !== nextOptions.ariaLabel ||
         options.ariaDescription !== nextOptions.ariaDescription ||
         options.className !== nextOptions.className ||
@@ -269,8 +291,12 @@ export function mountChartRenderer<
         options.spatialIndex !== nextOptions.spatialIndex
       options = nextOptions
       if (!tooltipIsSticky()) pinnedKey = null
-      if (needsRender) render()
-      else {
+      if (needsRender) {
+        render(
+          false,
+          layoutChanged ? 'layout' : sizeChanged ? 'resize' : 'update',
+        )
+      } else {
         if (spatialIndexChanged) {
           spatialIndex = options.spatialIndex?.(scene.points)
         }
@@ -443,17 +469,21 @@ function isPositiveFiniteNumber(value: unknown): value is number {
 function resolveAnimation(
   animation: ChartRendererHostOptions['animate'],
   container: HTMLElement,
+  reason: HostRenderReason,
 ) {
-  const resolved = animation === true ? {} : animation || undefined
-  if (!resolved) return undefined
+  const configured = animation === true ? {} : animation || undefined
+  if (!configured) return undefined
+  if (reason === 'layout') return undefined
+  if (reason === 'resize' && configured.resize !== true) return undefined
   if (
-    (resolved.respectReducedMotion ?? true) &&
+    (configured.respectReducedMotion ?? true) &&
     container.ownerDocument.defaultView?.matchMedia?.(
       '(prefers-reduced-motion: reduce)',
     ).matches
   ) {
     return undefined
   }
+  const { resize: _resize, ...resolved } = configured
   return resolved
 }
 

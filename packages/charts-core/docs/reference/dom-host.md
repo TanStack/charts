@@ -105,7 +105,7 @@ The default SVG host requires `definition` and `ariaLabel`.
 | `maxFocusDistance`   | `48`                      | Maximum scene-pixel distance for default pointer focus.                                                |
 | `focus`              | Nearest point             | Custom focus strategy.                                                                                 |
 | `spatialIndex`       | Linear nearest-point scan | Factory for a dense-data nearest-point index.                                                          |
-| `animate`            | `false`                   | Enables keyed attribute, enter, and exit animation.                                                    |
+| `animate`            | `false`                   | Enables keyed attribute, enter, and exit animation for chart updates.                                  |
 | `keyboard`           | `true`                    | Enables keyboard navigation; `false` forces the SVG tab index to `-1`.                                 |
 | `tabIndex`           | `0`                       | SVG tab index while keyboard behavior is enabled.                                                      |
 | `tooltip`            | `false`                   | Enables the native tooltip or configures formatting and sticky behavior.                               |
@@ -147,7 +147,8 @@ The fallback order is:
 
 Height is explicit `height`, then a positive finite `aspectRatio`, then `320`.
 The host schedules responsive relayout on the document's animation frame and
-skips renders when the measured width has not changed.
+skips renders when the measured width has not changed. Resize relayout commits
+immediately by default; set `animate.resize` to `true` to animate it.
 
 The host temporarily assigns `position: relative` when the container's
 computed position is static, because native tooltips are absolutely positioned

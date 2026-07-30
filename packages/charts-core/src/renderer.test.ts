@@ -220,6 +220,103 @@ describe('renderer-neutral chart host', () => {
     requestFrame.mockRestore()
     cancelFrame.mockRestore()
   })
+
+  it('skips resize animation by default and supports an explicit opt-in', () => {
+    let resize: ResizeObserverCallback | undefined
+    let width = 320
+    const frames: FrameRequestCallback[] = []
+    class TestResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        resize = callback
+      }
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    }
+    const originalResizeObserver = window.ResizeObserver
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback)
+        return frames.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    window.ResizeObserver = TestResizeObserver
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    vi.spyOn(container, 'getBoundingClientRect').mockImplementation(() => ({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: width,
+      bottom: 260,
+      left: 0,
+      width,
+      height: 260,
+      toJSON: () => ({}),
+    }))
+    const options = {
+      definition,
+      renderer: fake.renderer,
+      height: 260,
+      ariaLabel: 'Responsive animation',
+      animate: { duration: 120 },
+    }
+    const host = mountChartRenderer(container, options)
+
+    width = 480
+    resize?.([], {} as ResizeObserver)
+    frames.shift()?.(0)
+
+    expect(fake.render.mock.calls[1]?.[1].animation).toBeUndefined()
+
+    host.update({
+      ...options,
+      animate: { duration: 120, resize: true },
+    })
+    width = 640
+    resize?.([], {} as ResizeObserver)
+    frames.shift()?.(0)
+
+    expect(fake.render.mock.calls[2]?.[1].animation).toEqual({
+      duration: 120,
+    })
+
+    host.destroy()
+    window.ResizeObserver = originalResizeObserver
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
+  it('applies resize animation policy to explicit size updates', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const options = {
+      definition,
+      renderer: fake.renderer,
+      width: 320,
+      height: 260,
+      ariaLabel: 'Explicit size animation',
+      animate: { duration: 120 },
+    }
+    const host = mountChartRenderer(container, options)
+
+    host.update({ ...options, width: 480 })
+    expect(fake.render.mock.calls[1]?.[1].animation).toBeUndefined()
+
+    host.update({
+      ...options,
+      width: 640,
+      animate: { duration: 120, resize: true },
+    })
+    expect(fake.render.mock.calls[2]?.[1].animation).toEqual({
+      duration: 120,
+    })
+
+    host.destroy()
+  })
 })
 
 interface FakeRenderer {

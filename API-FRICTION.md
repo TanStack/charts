@@ -164,6 +164,7 @@ Each entry records:
 | F-126 | Executable comparisons had no public documentation       | Docs/Tooling    | resolved   |
 | F-127 | Catalog source hid data transformation dependencies      | Docs/Tooling    | resolved   |
 | F-128 | Chart-owned data reactivity duplicated application state | API             | resolved   |
+| F-129 | Responsive relayout restarted chart animation            | API             | resolved   |
 
 ## Findings
 
@@ -2895,3 +2896,24 @@ Each entry records:
   TanStack DOM host and 716 minified/268 gzip bytes for the React adapter. An
   every-adapter example audit removed the final stale Angular and Lit guide
   snippets that still passed `input` separately from their definitions.
+
+### F-129 — Responsive relayout restarted chart animation
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: responsive animation policy review
+- Friction: the renderer-neutral host sent the same animation options for
+  chart updates and `ResizeObserver` relayouts. Dragging or resizing a
+  container repeatedly restarted geometry animation even though the motion
+  requirements said resize should commit immediately by default.
+- Decision: classify host renders internally. Chart updates remain animated;
+  responsive and explicit size changes commit immediately unless
+  `animate.resize` is `true`, and incompatible layout changes never animate.
+  Strip the host-only resize policy before passing animation options to the
+  active renderer.
+- Verification: renderer-neutral host tests cover default resize suppression,
+  explicit resize opt-in, option stripping, and coalesced frame scheduling.
+  SVG runtime and Canvas animation regressions pass through the shared policy.
+  The shared SVG host adds 350 minified and 120 gzip bytes; the exact universal
+  bundle baseline records that measured cost.
