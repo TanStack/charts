@@ -3,11 +3,10 @@ title: Compare Libraries
 description: Compare current TanStack Charts workspace source with pinned Chart.js, Apache ECharts, Recharts, and Observable Plot packages.
 ---
 
-TanStack Charts has one public pre-alpha release, `0.0.0`, but the TanStack
-results on this page do not measure that published artifact. They measure the
-current unreleased workspace source. This comparison records the architectural
-differences and evidence available today without turning untested behavior into
-a checkmark.
+TanStack Charts `0.0.1` is a pre-alpha release. Its results on this page measure
+the workspace implementation prepared for `0.0.1`, not the earlier published
+`0.0.0` artifact. This comparison records architectural differences and
+reproducible evidence without turning untested behavior into a checkmark.
 
 ## Tested versions
 
@@ -20,9 +19,9 @@ a checkmark.
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The TanStack library source is commit `a91106c`; the
-comparison fixture correction and tracked baseline live on this release-prep
-branch.
+at page render time. The TanStack product implementation ends at commit
+`a91106c`; the comparison fixture correction and tracked baseline are part of
+the `0.0.1` release preparation.
 
 ## Capability matrix
 

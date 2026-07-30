@@ -47,6 +47,9 @@
     "conformance:size": "node scripts/compare-plot-catalog.mjs --size-only",
     "performance": "node scripts/measure-rendering.mjs",
     "package:check": "node scripts/check-packed-consumers.mjs && pnpm adapters:check",
+    "release:artifacts": "node scripts/build-release-artifacts.mjs",
+    "release:check": "node scripts/publish-release.mjs --check",
+    "release:publish": "node scripts/publish-release.mjs",
     "test": "vitest run && vitest run --config vitest.solid.config.ts && vitest run --config vitest.solid-ssr.config.ts && vitest run --config vitest.svelte.config.ts && vitest run --config vitest.svelte-ssr.config.ts && vitest run --config vitest.octane.config.ts && vitest run --config vitest.octane-client.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

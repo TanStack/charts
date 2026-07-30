@@ -1,8 +1,13 @@
 {
   "name": "@tanstack/octane-charts",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.1",
+  "private": false,
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TanStack/charts.git",
+    "directory": "packages/octane-charts"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [
@@ -27,6 +32,7 @@
   },
   "publishConfig": {
     "access": "public",
+    "provenance": true,
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",

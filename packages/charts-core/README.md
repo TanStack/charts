@@ -10,13 +10,9 @@ TanStack Charts is an independent implementation for typed application
 infrastructure. Project lineage is recorded in the repository
 [`ACKNOWLEDGEMENTS.md`](https://github.com/TanStack/charts/blob/main/ACKNOWLEDGEMENTS.md).
 
-> [!IMPORTANT]
-> This README describes unreleased source after `0.0.0`. The API below is not
-> available in the public `0.0.0` package.
-
-After the next package release, install the granular D3 modules your chart
-imports as direct application dependencies. Strict package managers do not
-expose TanStack Charts' transitive dependencies for application imports:
+Install TanStack Charts with the granular D3 modules your chart imports as
+direct application dependencies. Strict package managers do not expose
+TanStack Charts' transitive dependencies for application imports:
 
 ```sh
 pnpm add @tanstack/charts d3-scale d3-shape

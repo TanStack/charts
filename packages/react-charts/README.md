@@ -2,16 +2,12 @@
 
 React lifecycle adapter for `@tanstack/charts`.
 
-> [!IMPORTANT]
-> This README describes unreleased source after `0.0.0`. The API below is not
-> available in the public `0.0.0` package.
-
-After the next package release, declare the adapter, core grammar, framework
-peer, and each D3 module used by your chart directly:
+Declare the adapter, core grammar, framework peers, and each D3 module used by
+your chart directly:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/react-charts react d3-scale
-pnpm add -D @types/d3-scale @types/react
+pnpm add @tanstack/charts @tanstack/react-charts react react-dom d3-scale
+pnpm add -D @types/d3-scale @types/react @types/react-dom
 ```
 
 Add or omit granular `d3-*` modules and their matching type packages with the

@@ -39,10 +39,8 @@ server-rendered application charts.
 <a id="status"></a>
 
 > [!IMPORTANT]
-> TanStack Charts is pre-alpha. The current source and documentation are ahead
-> of the public `0.0.0` API. Do not use these examples with `0.0.0`; wait for
-> the next package release or work from this repository. It is not ready for
-> production use.
+> TanStack Charts `0.0.1` is pre-alpha. Its API may change between releases,
+> and it is not ready for production use.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
 Charts gives you one typed grammar that can grow from a familiar line or bar

@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "generatedAt": "2026-07-30T21:26:09.124Z",
   "packageVersions": {
-    "tanstack": "0.0.0",
+    "tanstack": "0.0.1",
     "chartjs": "4.5.1",
     "echarts": "6.1.0",
     "recharts": "3.10.1",

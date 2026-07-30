@@ -3,13 +3,9 @@ title: Installation
 description: Install TanStack Charts, a framework adapter, and the granular D3 modules used by your charts.
 ---
 
-> [!IMPORTANT]
-> These docs describe unreleased source after `0.0.0`. The APIs and adapters
-> below are not all available from npm yet. Do not use these commands until the
-> next package versions are published.
-
-After the next release, install the framework-agnostic core in every
-application that authors chart definitions:
+TanStack Charts `0.0.1` publishes the framework-agnostic core and every adapter
+listed below. Install the core in each application that authors chart
+definitions:
 
 ```sh
 pnpm add @tanstack/charts

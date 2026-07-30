@@ -4,12 +4,11 @@ Last updated: 2026-07-30
 
 ## Status
 
-TanStack Charts is publicly available at `0.0.0`. Current development source
-contains substantial unreleased work intended for the next package versions.
-Marketing may direct people to the docs, examples, and catalog, but it must
-identify them as unreleased source, describe `0.0.0` as a prerelease, and avoid
-production-readiness claims until the gates in [`PLAN.md`](./PLAN.md) are
-complete.
+TanStack Charts `0.0.1` is a public pre-alpha release. The docs, examples, and
+catalog describe the same definition, behavior, scale, tooltip, and adapter
+contracts available in `0.0.1`. Marketing must keep the pre-alpha status
+visible and avoid production-readiness claims until the gates in
+[`PLAN.md`](./PLAN.md) are complete.
 
 ## Executive summary
 
@@ -52,10 +51,9 @@ package line is pre-alpha.
 visual encodings. D3 supplies algorithms. TanStack compiles the definition into
 a renderer-neutral keyed scene and owns the application runtime around it.
 
-**Framework position:** The core is framework-independent. Thin adapters exist
-in the repository for React, Vue, Svelte, Solid, Angular, Preact, Lit, Alpine,
-and Octane and are planned for the next package release. React and Octane also
-have Canvas components over the same runtime.
+**Framework position:** The core is framework-independent. `0.0.1` ships thin
+adapters for React, Vue, Svelte, Solid, Angular, Preact, Lit, Alpine, and
+Octane. React and Octane also have Canvas components over the same runtime.
 
 **Lineage:** TanStack Charts builds on the grammar-of-graphics tradition
 established by Leland Wilkinson and developed through ggplot2, Vega-Lite, and
@@ -360,20 +358,16 @@ matrix. Visx is the most important modular challenger to measure next.
 
 Internal bundle control is strong: eight ordinary TanStack consumers are exact
 minified and gzip byte locks, optional capabilities have isolated ceilings, and
-the current local checks reproduce those locks. Comparative stability is not
-ready for an unqualified public superlative:
+CI reproduces those locks. Comparative stability is not ready for an
+unqualified public superlative:
 
 - the small-library fixtures are not yet in the canonical matrix;
 - the comparison builds workspace source rather than packed production
   packages;
-- the toolchain and compression environment are not pinned at full-version
-  granularity;
-- the refreshed comparison baseline has not completed a post-change CI run;
 - there is not yet longitudinal CI history.
 
-Before launch, pin the exact toolchain, measure packed artifacts, add the
-small-library fixtures, exact-lock the named public claim consumers, and
-publish versioned JSON and Markdown results from CI.
+Before broad marketing, measure packed artifacts, add the small-library
+fixtures, and publish release-linked JSON and Markdown results from CI.
 
 Every published number must link to the
 [`comparison protocol`](./benchmarks/comparison/README.md),
@@ -404,9 +398,7 @@ Additional proof:
 **Body:** Keep your data, bring the D3 primitives you trust, and let TanStack
 handle the application runtime around them.
 
-**CTA today:** Explore TanStack Charts
-
-**CTA after release:** Build your first chart
+**CTA:** Build your first chart
 
 ## Go-to-market
 
@@ -470,7 +462,7 @@ about being "AI-native."
 | The chart catalog is smaller than AG Charts, ECharts, or Nivo | Also correct. The product thesis is a composable grammar with direct D3 interoperability, not first-party ownership of every specialized chart type.                                                                                                                                                                                                                                     |
 | Why not use D3 or visx directly?                              | They provide the algorithms or primitives. TanStack supplies the application runtime: responsive layout, guides, scene compilation, lifecycle, interaction, accessibility, SSR, hydration, animation, and export.                                                                                                                                                                        |
 | Why not use Observable Plot?                                  | Plot is the closest API inspiration and remains an excellent choice for concise exploratory visualization. TanStack is an independent implementation focused on typed application integration, explicit D3 policy, capability-level imports, framework lifecycle, and stable interactive scenes.                                                                                         |
-| Is it ready for production?                                   | Not yet. `0.0.0` is a public prerelease, and the next release has not been cut. Marketing must keep the documented release gates visible until they close.                                                                                                                                                                                                                               |
+| Is it ready for production?                                   | Not yet. `0.0.1` is a public pre-alpha release. Marketing must keep the documented release gates visible until they close.                                                                                                                                                                                                                                                               |
 | Can it handle millions of live points?                        | Canvas is an explicit opt-in and keeps the same definition and interaction API while removing per-mark DOM cost. It still creates scene nodes and interaction points, default focus is linear without a spatial index, and overplotting does not become useful because the pixels are cheaper. Treat million-point streaming as a measured representation problem, not a renderer claim. |
 
 ## Anti-personas
@@ -597,8 +589,8 @@ production case study.
 
 ### Current proof phase
 
-- Conversion: Read the unreleased docs, explore the catalog, or inspect the
-  current source. The public `0.0.0` package is an earlier API baseline.
+- Conversion: Install `0.0.1`, read the matching docs, explore the catalog,
+  and report friction.
 - Publish architecture, benchmarks, and working examples with limitations.
 - Recruit a small number of chart-heavy TanStack users.
 
@@ -623,16 +615,10 @@ tracked in [`PLAN.md`](./PLAN.md):
 
 - Visual regression suite.
 - Production-browser benchmark coverage.
-- Packed-consumer tests.
-- A green, fully pinned bundle-comparison workflow and published result
-  artifacts.
-- Published package versions for the intended core and adapter release set,
-  with internal dependency ranges and private flags resolved.
-- The schema-v4 tanstack.com consumer deployed and verified before the catalog
-  artifact switches from schema v2 to schema v4.
+- Longitudinal, release-linked bundle-comparison results.
 - Remaining Plot-backed animated export migration.
 - Accessibility, locale, and RTL release gates.
-- Versioning, release policy, license packaging, and compatibility policy.
+- Release and compatibility policy.
 
 ## Goals
 
@@ -640,8 +626,7 @@ tracked in [`PLAN.md`](./PLAN.md):
 foundation for data-rich TanStack applications and a credible choice for
 frontend teams whose visualizations need to grow beyond standard chart types.
 
-**Primary conversion today:** Explore the unreleased docs and catalog or
-inspect the current source.
+**Primary conversion today:** Install `0.0.1` and complete the first chart.
 
 **Primary conversion after stable release:** Install the package and complete
 the first chart.
@@ -657,7 +642,6 @@ the first chart.
 
 ## Open decisions
 
-- Next package versions and adapter release sequence.
 - Whether early access uses a waitlist, discussion thread, or prerelease npm
   channel.
 - Which TanStack product becomes the launch case study.

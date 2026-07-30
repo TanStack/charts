@@ -1,0 +1,90 @@
+name: Publish release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: charts-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify tagged main revision
+        run: |
+          release_revision="$(git rev-list -n 1 "$GITHUB_REF_NAME")"
+          if [ "$release_revision" != "$GITHUB_SHA" ]; then
+            echo "Tag $GITHUB_REF_NAME resolves to $release_revision, not $GITHUB_SHA." >&2
+            exit 1
+          fi
+          git fetch origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$release_revision" origin/main; then
+            echo "Release revision $release_revision is not on main." >&2
+            exit 1
+          fi
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+          registry-url: https://registry.npmjs.org
+
+      - run: npm install --global npm@11.12.1
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm docs:check
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm release:artifacts
+      - run: pnpm release:check
+
+      - name: Upload checked package artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: charts-release-${{ github.ref_name }}
+          path: .release-artifacts
+          if-no-files-found: error
+          include-hidden-files: true
+
+      - name: Publish packages with OIDC
+        run: pnpm release:publish
+
+  release:
+    needs: publish
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            exit 0
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "TanStack Charts $GITHUB_REF_NAME" \
+            --notes-file CHANGELOG.md

@@ -23,11 +23,12 @@ import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
 const execFileAsync = promisify(execFile)
 const root = resolve(import.meta.dirname, '..')
 const rootManifest = JSON.parse(await readFile(resolve(root, 'package.json')))
+const artifactDirectory = parseArtifactDirectory(process.argv.slice(2))
 const temporaryRoot = await mkdtemp(
   resolve(tmpdir(), 'tanstack-charts-packed-consumer-'),
 )
 const buildWorkspace = resolve(temporaryRoot, 'build')
-const tarballDirectory = resolve(temporaryRoot, 'tarballs')
+const tarballDirectory = artifactDirectory ?? resolve(temporaryRoot, 'tarballs')
 const fixtureDirectory = resolve(temporaryRoot, 'consumer')
 
 const packages = [
@@ -111,6 +112,7 @@ async function buildPackage(packageInfo) {
 
 function validateManifest(packageInfo) {
   const { manifest } = packageInfo
+  assert.equal(manifest.private, false, `${manifest.name} must be publishable`)
   assert.equal(manifest.type, 'module', `${manifest.name} must publish ESM`)
   assert.equal(
     manifest.sideEffects,
@@ -124,6 +126,11 @@ function validateManifest(packageInfo) {
   assert.ok(
     manifest.publishConfig?.exports,
     `${manifest.name} requires publishConfig.exports`,
+  )
+  assert.equal(
+    manifest.publishConfig?.provenance,
+    true,
+    `${manifest.name} must publish provenance`,
   )
   assert.deepEqual(
     Object.keys(manifest.publishConfig.exports).sort(),
@@ -1350,6 +1357,21 @@ function formatDiagnostics(diagnostics) {
     getCurrentDirectory: () => root,
     getNewLine: () => '\n',
   })
+}
+
+function parseArtifactDirectory(args) {
+  if (args.length === 0) return null
+  assert.deepEqual(
+    args.slice(0, 1),
+    ['--artifacts-dir'],
+    'Usage: node scripts/check-packed-consumers.mjs [--artifacts-dir <path>]',
+  )
+  assert.equal(
+    args.length,
+    2,
+    'Usage: node scripts/check-packed-consumers.mjs [--artifacts-dir <path>]',
+  )
+  return resolve(process.cwd(), args[1])
 }
 
 function formatBytes(bytes) {

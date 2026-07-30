@@ -3252,8 +3252,8 @@ Each entry records:
   chart-definitions documentation are byte-identical to their `58ee1e2`
   sources. The corrected changelog contains exactly the nine commits in
   `58ee1e2..a91106c`.
-- Follow-up: verify the next release workflow creates a tag, GitHub release,
-  and package provenance that all identify the same commit.
+- Follow-up: verify the `0.0.1` tag, GitHub release, and package provenance all
+  identify the exact release commit, then resolve this finding.
 
 ### F-136 — Comparison conflated workspace and published source
 
@@ -3270,26 +3270,28 @@ Each entry records:
   separately from source provenance and requires the TanStack workspace
   revision.
 - Verification: the public comparison names the measured TanStack revision,
-  the tracked baseline records `a91106c` as workspace provenance, and the
-  deterministic comparison check rejects missing or stale provenance.
+  the tracked baseline records the `0.0.1` manifest version separately from
+  `a91106c` workspace provenance, and the deterministic comparison check
+  rejects missing or stale provenance.
 
 ### F-137 — Latest docs installed an incompatible published API
 
 - Status: monitoring
 - Severity: high
 - Owner: Documentation/Release
-- Observed in: final public documentation audit before the next release
-- Friction: canonical docs and public README examples use the post-`0.0.0`
+- Observed in: final public documentation audit before `0.0.1`
+- Friction: canonical docs and public README examples used the post-`0.0.0`
   definition, behavior, and scale contracts, while unqualified install commands
-  still resolve to the earlier public `0.0.0` packages. Most framework adapters
-  are not published yet.
-- Decision: identify the current docs and examples as unreleased source and
-  state that their install commands apply only after the next package versions
-  publish. Marketing must not present repository adapters as currently
-  available packages.
-- Verification: the root, core, and React READMEs and the installation,
-  overview, and quick-start pages carry the release distinction; documentation
-  contracts still validate every executable example and generated mirror.
-- Follow-up: replace the temporary release distinction with exact published
-  versions or a real prerelease dist-tag, then verify every install command
-  against packed consumers.
+  resolved to the earlier public `0.0.0` packages. Most framework adapters were
+  not published yet.
+- Decision: keep the temporary unreleased-source distinction until `0.0.1`,
+  then make the README, installation, overview, quick-start, comparison, and
+  marketing copy describe the coordinated core and adapter release.
+- Verification: the `0.0.1` release-candidate documentation no longer directs
+  people to wait for another release. Core and adapter installation commands
+  match the intended tarballs, the React commands include React DOM and its
+  types, executable examples pass the documentation contract, and generated
+  mirrors remain synchronized.
+- Follow-up: after publication, install every `0.0.1` package from npm, verify
+  the documented entry points and peers, then resolve this finding. Keep future
+  public documentation deployments coupled to the npm release they describe.

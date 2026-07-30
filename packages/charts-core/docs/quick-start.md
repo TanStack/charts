@@ -3,10 +3,6 @@ title: Quick Start
 description: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 ---
 
-> [!IMPORTANT]
-> This walkthrough targets unreleased source after `0.0.0`. The current npm
-> package does not implement this definition contract.
-
 This walkthrough uses the framework-agnostic DOM host. The same chart
 definition passes unchanged to any supported
 [framework adapter](./installation.md#framework-compatibility).

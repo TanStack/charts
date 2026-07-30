@@ -1,14 +1,15 @@
 # Changelog
 
-## Unreleased (changes after 0.0.0)
+## 0.0.1 (2026-07-30)
 
-The published `0.0.0` baseline is
+`0.0.1` is the first coordinated update after the public `0.0.0` release. The
+verified `0.0.0` baseline is
 `58ee1e28e469f8ab28f99877a6e0abc3958977a4`, not the initial repository
 commit.
 
 - npm published `@tanstack/charts@0.0.0` at
-  `2026-07-29T18:42:40Z`, followed moments later by
-  `@tanstack/react-charts@0.0.0`.
+  `2026-07-29T18:42:40Z`, followed through `18:43:13Z` by the React, Octane,
+  Preact, Vue, Solid, Svelte, Angular, Lit, and Alpine adapters.
 - The published core and React README hashes, and the published core
   chart-definitions documentation hash, match commit `58ee1e2` exactly.
 - No later commit existed before those packages were published.
@@ -21,22 +22,25 @@ implementation range.
 
 [Compare the audited product range.](https://github.com/TanStack/charts/compare/58ee1e28e469f8ab28f99877a6e0abc3958977a4...a91106c34d654ea625a2f540f647222bd72bc0fc)
 
-### Release status and blockers
+### Release scope and gates
 
-- The source manifests for all product packages still declare
-  `"version": "0.0.0"` and `"private": true`. Release versions must be chosen,
-  internal dependency ranges updated, and intended packages made publishable.
+- `0.0.1` publishes `@tanstack/charts` and the React, Octane, Preact, Vue,
+  Solid, Svelte, Angular, Lit, and Alpine adapters as one versioned set. Every
+  adapter depends exactly on `@tanstack/charts@0.0.1`.
 - The comparison bundle review confirmed that basic TanStack line, bar, area,
   and scatter consumers now measure 24.19–24.81 KiB gzip. The increase comes
   from the reviewed definition-behavior, key-inference, scale-inference, and
   portal-tooltip code rather than an accidental dependency. The comparison
   fixture now configures behavior on the definition instead of the removed
-  host boundary, and the refreshed baseline passes locally. A post-change CI
-  run is still required before catalog publication.
-- The tanstack.com catalog cutover must be sequenced between the existing
-  schema-v2 consumer and the new schema-v4 artifact. Deploy and verify the v4
-  consumer before switching the published artifact, and keep the v2 path
-  available until the production routes are verified.
+  host boundary, and the refreshed baseline passed the full pull-request
+  validation, comparison, conformance, and stress workflow.
+- The tanstack.com schema-v4 catalog consumer must be deployed and verified
+  before the Charts release reaches `main`, because the successful main-branch
+  workflow publishes the schema-v4 artifact to `catalog-dist`. Keep schema-v2
+  compatibility until the production catalog and embed routes are verified.
+- The release commit must pass the same package, documentation, bundle,
+  comparison, catalog, stress, and conformance gates before its tag, GitHub
+  release, and npm provenance identify that exact revision.
 - `@charts-poc/demo-data` remains private. It is a catalog, example, and
   validation fixture package, not a production dependency or release target.
 - `@tanstack/charts-d3` remains a private superseded experiment and is not a
@@ -47,7 +51,7 @@ implementation range.
 All product packages in this table already existed at the published baseline.
 This range updates them; it does not introduce new adapters.
 
-| Package                    | Post-0.0.0 update                                                                                      |
+| Package                    | 0.0.1 update                                                                                           |
 | -------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `@tanstack/charts`         | Definition-owned reactivity and behavior, inferred keys and scale domains, portal tooltips, typed data |
 | `@tanstack/react-charts`   | Updated definition contract, composed tooltip bodies, portal mounting, and a `react-dom` peer          |
@@ -496,7 +500,8 @@ Documentation validation now:
 - Source accounting follows each implementation's transitive authored closure
   and keeps dataset provenance separate from authored chart code.
 - The current baseline records the reviewed 24.19–28.20 KiB complete-chart
-  range. A fresh CI artifact remains a release gate.
+  range. Pull-request CI reproduced the bundle and comparison gates before the
+  release version was prepared.
 
 ## Verification added or updated in the audited product range
 
@@ -518,20 +523,23 @@ Documentation validation now:
   loading.
 - The full catalog and interaction evidence completed during this range.
 
-## Release-preparation corrections in this branch
+## 0.0.1 release-preparation corrections
 
 - Updated the canonical docs, public READMEs, generated package mirrors, and
-  `llms.txt` indexes for the post-`0.0.0` API.
-- Marked current docs and examples as unreleased so their install guidance
-  cannot be mistaken for the incompatible public `0.0.0` packages.
+  `llms.txt` indexes for the `0.0.1` API.
+- Replaced temporary unreleased-source warnings with `0.0.1` installation
+  guidance, including the React DOM runtime and type peers required by the
+  React adapter.
 - Replaced private demo-data imports in public examples with small,
   self-contained typed datasets.
 - Fixed the comparison fixture to configure behavior on definitions instead of
   the removed host boundary.
 - Refreshed the reviewed bundle baseline and recorded the TanStack workspace
   revision separately from pinned competitor package versions.
-- Added this baseline-verified changelog and the tanstack.com schema-v4
-  consumer deployment gate. The release still requires a post-change CI run.
+- Updated the offline chart-authoring evaluation to target the `0.0.1`
+  definition, behavior, and scale contracts.
+- Added this baseline-verified changelog and the required tanstack.com
+  consumer-before-catalog deployment order.
 
 ## Audited product commit inventory
 
