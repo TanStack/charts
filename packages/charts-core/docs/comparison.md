@@ -12,7 +12,7 @@ reproducible evidence without turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `a91106c` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `99c08eb` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
@@ -20,8 +20,8 @@ reproducible evidence without turning untested behavior into a checkmark.
 
 The competitor versions are exact package pins, not latest versions inferred
 at page render time. The TanStack product implementation ends at commit
-`a91106c`; the comparison fixture correction and tracked baseline are part of
-the `0.0.1` release preparation.
+`a91106c`; the measured workspace revision is `99c08eb`, which adds the
+comparison fixture correction and tracked baseline for `0.0.1`.
 
 ## Capability matrix
 
@@ -111,10 +111,10 @@ Canvas composition while keeping D3 and state ownership explicit.
 
 ## Evidence and reproduction
 
-- [Standard comparison protocol](https://github.com/TanStack/charts/blob/main/benchmarks/comparison/README.md)
-- [Tracked bundle baseline](https://github.com/TanStack/charts/blob/main/benchmarks/comparison/bundle-baseline.json)
-- [Stress protocol](https://github.com/TanStack/charts/blob/main/benchmarks/comparison/stress/README.md)
-- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/main/benchmarks/conformance/README.md)
+- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.0.1/benchmarks/comparison/README.md)
+- [Tracked bundle baseline](https://github.com/TanStack/charts/blob/v0.0.1/benchmarks/comparison/bundle-baseline.json)
+- [Stress protocol](https://github.com/TanStack/charts/blob/v0.0.1/benchmarks/comparison/stress/README.md)
+- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.0.1/benchmarks/conformance/README.md)
 
 ```sh
 pnpm benchmark:size

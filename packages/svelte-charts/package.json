@@ -10,7 +10,7 @@
   },
   "type": "module",
   "sideEffects": false,
-  "svelte": "./src/index.ts",
+  "svelte": "./dist/index.js",
   "files": [
     "dist",
     "LICENSE",

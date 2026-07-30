@@ -120,6 +120,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "3.10.1",
+    "semver": "7.8.5",
     "solid-js": "^1.9.13",
     "svelte": "^5.56.2",
     "topojson-client": "3.1.0",

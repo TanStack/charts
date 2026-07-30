@@ -13,38 +13,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
+  validate:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
-      id-token: write
 
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
-
-      - name: Verify tagged main revision
-        run: |
-          release_revision="$(git rev-list -n 1 "$GITHUB_REF_NAME")"
-          if [ "$release_revision" != "$GITHUB_SHA" ]; then
-            echo "Tag $GITHUB_REF_NAME resolves to $release_revision, not $GITHUB_SHA." >&2
-            exit 1
-          fi
-          git fetch origin main:refs/remotes/origin/main
-          if ! git merge-base --is-ancestor "$release_revision" origin/main; then
-            echo "Release revision $release_revision is not on main." >&2
-            exit 1
-          fi
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24.18.0
           registry-url: https://registry.npmjs.org
+          cache: ''
 
-      - run: npm install --global npm@11.18.0
+      - name: Verify tagged main revision
+        run: node scripts/verify-release-revision.mjs
+
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
@@ -62,11 +52,68 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
 
-      - name: Publish packages with OIDC
-        run: pnpm release:publish
+  publish:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+          registry-url: https://registry.npmjs.org
+          cache: ''
+
+      - name: Download checked package artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: charts-release-${{ github.ref_name }}
+          path: .release-artifacts
+
+      - name: Revalidate refs and publish with OIDC
+        run: |
+          node scripts/verify-release-revision.mjs
+          node scripts/publish-release.mjs
+
+  verify:
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+          registry-url: https://registry.npmjs.org
+          cache: ''
+
+      - name: Download checked package artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: charts-release-${{ github.ref_name }}
+          path: .release-artifacts
+
+      - name: Verify installed packages, signatures, and provenance
+        run: node scripts/verify-published-release.mjs
 
   release:
-    needs: publish
+    needs: verify
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -74,12 +121,20 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
           persist-credentials: false
 
-      - name: Create GitHub release
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+          cache: ''
+
+      - name: Revalidate refs and create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          node scripts/verify-release-revision.mjs
           if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             exit 0
           fi

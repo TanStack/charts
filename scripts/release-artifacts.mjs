@@ -11,6 +11,15 @@ import {
 } from './release-package-config.mjs'
 
 const execFileAsync = promisify(execFile)
+const packedEntryFields = [
+  'main',
+  'module',
+  'browser',
+  'types',
+  'typings',
+  'svelte',
+  'style',
+]
 
 export async function createReleaseArtifactManifest(repositoryRoot) {
   const packages = await readReleasePackages(repositoryRoot)
@@ -24,7 +33,8 @@ export async function createReleaseArtifactManifest(repositoryRoot) {
     const tarball = resolve(artifactDirectory, packageInfo.artifactFilename)
     const integrity = await tarballIntegrity(tarball)
     const packedManifest = await readPackedManifest(tarball)
-    validatePackedManifest(packageInfo, packedManifest)
+    const packedFiles = await readPackedFiles(tarball)
+    validatePackedManifest(packageInfo, packedManifest, packedFiles)
     entries.push({
       name: packageInfo.name,
       directory: packageInfo.directory,
@@ -101,7 +111,8 @@ export async function validateReleaseArtifacts(repositoryRoot) {
       `${packageInfo.name} artifact integrity changed`,
     )
     const packedManifest = await readPackedManifest(tarball)
-    validatePackedManifest(packageInfo, packedManifest)
+    const packedFiles = await readPackedFiles(tarball)
+    validatePackedManifest(packageInfo, packedManifest, packedFiles)
     artifacts.push({
       ...packageInfo,
       tarball,
@@ -132,13 +143,25 @@ async function tarballIntegrity(tarball) {
 async function readPackedManifest(tarball) {
   const { stdout } = await execFileAsync(
     'tar',
-    ['-xOf', tarball, 'package/package.json'],
+    ['-xzOf', tarball, 'package/package.json'],
     { maxBuffer: 5 * 1024 * 1024 },
   )
   return JSON.parse(stdout)
 }
 
-function validatePackedManifest(packageInfo, packedManifest) {
+async function readPackedFiles(tarball) {
+  const { stdout } = await execFileAsync('tar', ['-tzf', tarball], {
+    maxBuffer: 5 * 1024 * 1024,
+  })
+  return new Set(
+    stdout
+      .split('\n')
+      .filter(Boolean)
+      .map((file) => file.replace(/^package\//, '')),
+  )
+}
+
+function validatePackedManifest(packageInfo, packedManifest, packedFiles) {
   const { manifest } = packageInfo
   assert.equal(
     packedManifest.name,
@@ -180,6 +203,7 @@ function validatePackedManifest(packageInfo, packedManifest) {
     true,
     `${manifest.name} packed without provenance`,
   )
+  validatePackedEntryFiles(manifest.name, packedManifest, packedFiles)
 
   for (const range of Object.values(packedManifest.dependencies ?? {})) {
     assert.equal(
@@ -194,6 +218,29 @@ function validatePackedManifest(packageInfo, packedManifest) {
       packedManifest.dependencies?.['@tanstack/charts'],
       manifest.version,
       `${manifest.name} must pin @tanstack/charts@${manifest.version}`,
+    )
+  }
+}
+
+export function validatePackedEntryFiles(
+  packageName,
+  packedManifest,
+  packedFiles,
+) {
+  for (const field of packedEntryFields) {
+    const target = packedManifest[field]
+    if (target === undefined) continue
+    if (field === 'browser' && typeof target === 'object' && target !== null) {
+      continue
+    }
+    assert.equal(
+      typeof target,
+      'string',
+      `${packageName} packed ${field} entry must identify one file`,
+    )
+    assert.ok(
+      packedFiles.has(target.replace(/^\.\//, '')),
+      `${packageName} packed ${field} entry is missing from tarball: ${target}`,
     )
   }
 }

@@ -235,13 +235,9 @@ existing data, bring native D3 scales and curves, and render the same definition
 through vanilla TypeScript or adapters for React, Vue, Svelte, Solid, Angular,
 Preact, Lit, Alpine, and Octane.
 
-**Primary CTA today:** Explore examples
+**Primary CTA:** Build your first chart
 
-**Secondary CTA today:** Read the docs
-
-**Primary CTA after release:** Build your first chart
-
-**Secondary CTA after release:** Explore examples
+**Secondary CTA:** Explore examples
 
 ### Problem section
 

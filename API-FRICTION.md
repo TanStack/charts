@@ -174,6 +174,7 @@ Each entry records:
 | F-136 | Comparison conflated workspace and published source      | Tooling/Docs    | resolved   |
 | F-137 | Latest docs installed an incompatible published API      | Docs/Release    | monitoring |
 | F-138 | Publisher pin predated explicit trust permissions        | Tooling/Release | resolved   |
+| F-139 | Top-level entries bypassed tarball validation            | Tooling/Release | resolved   |
 
 ## Findings
 
@@ -3268,12 +3269,15 @@ Each entry records:
   from `a91106c` plus a release-preparation fixture correction.
 - Decision: identify TanStack as workspace source and competitors as pinned npm
   packages. Bundle-baseline schema 3 records package manifest versions
-  separately from source provenance and requires the TanStack workspace
-  revision.
+  separately from source provenance. Derive the TanStack revision from the last
+  commit that changed core source or any transitive TanStack comparison input,
+  rather than the release branch head, so documentation-only commits do not
+  stale measured evidence.
 - Verification: the public comparison names the measured TanStack revision,
   the tracked baseline records the `0.0.1` manifest version separately from
-  `a91106c` workspace provenance, and the deterministic comparison check
-  rejects missing or stale provenance.
+  exact `99c08eb` comparison-input revision, and the deterministic comparison
+  check rejects missing, malformed, or mismatched provenance. Its CI checkout
+  retains the history required to resolve that revision.
 
 ### F-137 — Latest docs installed an incompatible published API
 
@@ -3307,8 +3311,40 @@ Each entry records:
   interface predated required per-action permissions. The initial publisher
   request completed two-factor authentication but returned an opaque HTTP 400
   instead of identifying the missing `--allow-publish` permission.
-- Decision: pin npm `11.18.0` in the release workflow and configure each public
-  package with an explicit publish permission.
+- Decision: configure trust with npm `11.18.0`, give each public package an
+  explicit publish permission, and keep npm installation outside the
+  OIDC-enabled job. The release checks that Node's bundled npm meets the
+  trusted-publishing minimum instead of replacing the CLI while a job can mint
+  identity tokens.
 - Verification: `npm trust list` reports the exact `TanStack/charts`
   repository, `release.yml` workflow, and `createPackage` permission for core
-  and all nine public framework adapters.
+  and all nine public framework adapters. The workflow has one OIDC-enabled
+  job; it checks out the exact release SHA, downloads already-checked
+  artifacts, installs no dependencies, revalidates the protected remote tag
+  and main immediately before publishing, and delegates package installation
+  and signature verification to a post-publish job without OIDC. That job
+  requires npm to verify every release package's attestation bundle and then
+  matches the fetched bundles before checking their exact package, digest,
+  repository, workflow, tag, and commit claims.
+
+### F-139 — Top-level package entries bypassed tarball validation
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: inspecting the `0.0.1` Svelte release-candidate tarball
+- Friction: pnpm correctly replaced conditional exports with their
+  `publishConfig` targets, but retained the independent top-level `svelte`
+  field as `./src/index.ts`. The package excludes `src`, so Svelte tooling
+  using that field would resolve a file absent from the published tarball.
+  Release gates only checked conditional export targets and did not detect the
+  broken entry.
+- Decision: point the Svelte package field at `./dist/index.js`. The release
+  artifact validator now reads the actual tar inventory and requires every
+  scalar top-level `main`, `module`, `browser`, `types`, `typings`, `svelte`,
+  and `style` entry to identify a packed file.
+- Verification: a focused regression reproduces and rejects the missing
+  `./src/index.ts` entry, covers every validated field, and accepts entries
+  present in the archive. The rebuilt Svelte tarball contains its
+  `./dist/index.js` entry, and the focused package and release-artifact gates
+  pass.

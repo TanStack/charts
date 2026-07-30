@@ -82,7 +82,7 @@ export async function readReleasePackages(repositoryRoot) {
       assert.equal(
         manifest.dependencies?.['@tanstack/charts'],
         'workspace:*',
-        `${manifest.name} must use the exact-version workspace protocol`,
+        `${manifest.name} must depend on @tanstack/charts via workspace:*`,
       )
     }
 

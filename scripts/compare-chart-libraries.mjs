@@ -15,6 +15,10 @@ import {
   comparisonTiers,
   formatComparisonImplementationDetail,
 } from './benchmark/comparison-capabilities.mjs'
+import {
+  tanstackComparisonRevision,
+  tanstackComparisonSourceFailure,
+} from './comparison-source-revision.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const comparisonDirectory = resolve(root, 'benchmarks/comparison')
@@ -1079,7 +1083,7 @@ async function writeBundleBaseline(
   baselineChartTypes,
   baselineTiers,
 ) {
-  const sourceRevision = revision()
+  const sourceRevision = tanstackComparisonRevision(root)
   const baseline = {
     schemaVersion: 3,
     generatedAt: new Date().toISOString(),
@@ -1134,6 +1138,7 @@ async function checkBundleBaseline(bundles, actualVersions) {
   }
 
   const failures = []
+  const expectedTanStackRevision = tanstackComparisonRevision(root)
   if (baseline.schemaVersion !== 3) {
     failures.push(
       'bundle baseline schema is stale; run pnpm benchmark:update-baseline',
@@ -1164,14 +1169,11 @@ async function checkBundleBaseline(bundles, actualVersions) {
     }
     const source = baseline.sources?.[library.id]
     if (library.id === 'tanstack') {
-      if (
-        source?.kind !== 'workspace' ||
-        !/^[0-9a-f]{40}$/u.test(source.revision)
-      ) {
-        failures.push(
-          `${library.label}: bundle baseline must record its workspace revision`,
-        )
-      }
+      const sourceFailure = tanstackComparisonSourceFailure(
+        source,
+        expectedTanStackRevision,
+      )
+      if (sourceFailure) failures.push(`${library.label}: ${sourceFailure}`)
     } else if (
       source?.kind !== 'package' ||
       source.packageName !== library.packageName ||

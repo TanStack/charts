@@ -6,6 +6,7 @@ import {
   normalizeRegistryPackageMetadata,
   validateReleaseArtifacts,
 } from './release-artifacts.mjs'
+import { validateTrustedPublishingNpmVersion } from './release-security.mjs'
 
 const execFileAsync = promisify(execFile)
 const repositoryRoot = resolve(import.meta.dirname, '..')
@@ -47,6 +48,7 @@ assert.match(
   /^[0-9a-f]{40}$/,
   'Publishing requires an exact GitHub revision',
 )
+validateTrustedPublishingNpmVersion((await runNpm(['--version'])).stdout)
 
 const states = new Map()
 for (const artifact of artifacts) {
@@ -55,7 +57,7 @@ for (const artifact of artifacts) {
     states.set(artifact.name, 'missing')
     continue
   }
-  validateRegistryPackage(artifact, registry, true)
+  validateRegistryPackage(artifact, registry)
   states.set(artifact.name, 'published')
 }
 
@@ -75,7 +77,7 @@ for (const artifact of artifacts) {
     '--provenance',
   ])
   const registry = await waitForRegistryPackage(artifact, version)
-  validateRegistryPackage(artifact, registry, true)
+  validateRegistryPackage(artifact, registry)
   console.log(`Published: ${artifact.name}@${version}`)
 }
 
@@ -93,8 +95,10 @@ async function waitForRegistryPackage(artifact, releaseVersion) {
     }
     await new Promise((resolvePromise) => setTimeout(resolvePromise, 2_000))
   }
-  assert.ok(lastResult, `${artifact.name}@${releaseVersion} did not appear`)
-  return lastResult
+  assert.fail(
+    `${artifact.name}@${releaseVersion} registry metadata did not stabilize after 120 seconds ` +
+      `(integrity: ${lastResult?.dist?.integrity ?? 'missing'}; provenance: ${hasAttestations(lastResult) ? 'present' : 'missing'})`,
+  )
 }
 
 async function readRegistryPackage(name, releaseVersion) {
@@ -115,7 +119,7 @@ async function readRegistryPackage(name, releaseVersion) {
   }
 }
 
-function validateRegistryPackage(artifact, registry, requireProvenance) {
+function validateRegistryPackage(artifact, registry) {
   assert.equal(
     registry.name,
     artifact.name,
@@ -131,12 +135,10 @@ function validateRegistryPackage(artifact, registry, requireProvenance) {
     artifact.integrity,
     `${artifact.name}@${artifact.manifest.version} already exists with different contents`,
   )
-  if (requireProvenance) {
-    assert.ok(
-      hasAttestations(registry),
-      `${artifact.name}@${artifact.manifest.version} lacks provenance attestations`,
-    )
-  }
+  assert.ok(
+    hasAttestations(registry),
+    `${artifact.name}@${artifact.manifest.version} lacks provenance attestations`,
+  )
 }
 
 function hasAttestations(registry) {

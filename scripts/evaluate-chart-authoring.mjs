@@ -17,6 +17,7 @@ import { spawn } from 'node:child_process'
 import { gzipSync } from 'node:zlib'
 import { chromium } from 'playwright'
 import ts from 'typescript'
+import { isExactNpmPackageVersion } from './package-version.mjs'
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const chartsPackageVersion = JSON.parse(
@@ -25,7 +26,7 @@ const chartsPackageVersion = JSON.parse(
     'utf8',
   ),
 ).version
-if (typeof chartsPackageVersion !== 'string' || !chartsPackageVersion) {
+if (!isExactNpmPackageVersion(chartsPackageVersion)) {
   throw new TypeError('@tanstack/charts requires a package version')
 }
 const cohortRoot = resolve(
