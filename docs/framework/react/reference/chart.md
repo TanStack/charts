@@ -55,6 +55,9 @@ See [Chart Definition API](../../../reference/chart-definitions.md).
 The definition owns `focus`, `maxFocusDistance`, `spatialIndex`, `animate`,
 `keyboard`, and `tooltip`. Adapters do not override them.
 
+Set definition `tooltip.portal: true` to escape clipping and local stacking
+contexts. The adapter still receives no portal override.
+
 ## Accessibility and sizing
 
 | Prop              | Type                  | Default                    | Meaning                                                |
@@ -83,6 +86,36 @@ See [Sizing and layout](../adapter.md#sizing-and-layout).
 See [Focus and interaction](../../../reference/focus-and-interaction.md) for
 the behavior and complete callback values.
 
+## Tooltip body
+
+| Prop                | Type                                                    | Default | Meaning                                          |
+| ------------------- | ------------------------------------------------------- | ------- | ------------------------------------------------ |
+| `renderTooltipBody` | `(context: ChartTooltipBodyRenderContext) => ReactNode` | None    | Composes React content inside the native surface |
+
+```ts
+interface ChartTooltipBodyRenderContext<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+> {
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  content: ChartTooltipContent | string
+  defaultBody: React.ReactNode
+  pinned: boolean
+  dismiss: () => void
+}
+```
+
+`defaultBody` preserves native headings, rows, formatting, and swatches.
+`points` follows the definition's focus and tooltip sort policy. Render
+interactive content only when `pinned` is true; transient tooltips do not
+accept pointer input. `dismiss()` clears the tooltip and restores chart focus
+when focus was inside its body.
+
+The prop is available from the default, `/canvas`, and `/core` entries. It is
+adapter presentation. Ordering, anchoring, placement, portaling, and sticky
+behavior remain in the chart definition.
+
 ## Rendering and layout extensions
 
 | Prop          | Type                                         | Default                     | Meaning                                      |
@@ -96,7 +129,8 @@ See [Rendering and export](../../../reference/rendering-and-export.md) and
 
 ## Exported prop types
 
-The adapter exports `ChartCommonProps` and `ChartProps`.
+The adapter exports `ChartCommonProps`, `ChartProps`, and
+`ChartTooltipBodyRenderContext`.
 
 ```ts
 interface ChartCommonProps<

@@ -1140,11 +1140,12 @@ async function verifyProductionBundles() {
     {
       label: 'React',
       filename: 'react.ts',
-      external: ['react', 'react/jsx-runtime'],
+      external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
       source: `
         import { createElement } from 'react'
         import { Chart } from '@tanstack/react-charts'
+        import type { ChartTooltipBodyRenderContext } from '@tanstack/react-charts'
         import { defineChart, lineY } from '@tanstack/charts'
         import { scaleLinear } from 'd3-scale'
         const rows = [{ x: 0, y: 2 }, { x: 1, y: 5 }]
@@ -1153,28 +1154,34 @@ async function verifyProductionBundles() {
           x: { scale: scaleLinear().domain([0, 1]) },
           y: { scale: scaleLinear().domain([0, 5]) },
         })
+        const renderTooltipBody = (
+          context: ChartTooltipBodyRenderContext<(typeof rows)[number], number, number>
+        ) => context.defaultBody
         export const chart = createElement(Chart, {
           definition,
           ariaLabel: 'Packed React chart',
+          renderTooltipBody,
         })
       `,
     },
     {
       label: 'React core',
       filename: 'react-core.ts',
-      external: ['react', 'react/jsx-runtime'],
+      external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'neutral',
       source: `
         export { Chart } from '@tanstack/react-charts/core'
+        export type { ChartTooltipBodyRenderContext } from '@tanstack/react-charts/core'
       `,
     },
     {
       label: 'React Canvas',
       filename: 'react-canvas.ts',
-      external: ['react', 'react/jsx-runtime'],
+      external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'canvas',
       source: `
         export { Chart } from '@tanstack/react-charts/canvas'
+        export type { ChartTooltipBodyRenderContext } from '@tanstack/react-charts/canvas'
       `,
     },
     {

@@ -397,6 +397,9 @@ describe('Canvas renderer', () => {
       new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
     )
     expect(onSelect.mock.calls.at(-1)?.[0]?.datum).toBe(data[1])
+    surface.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }),
+    )
 
     const first = host.getScene().points[0]
     if (!first) throw new Error('Expected chart point')

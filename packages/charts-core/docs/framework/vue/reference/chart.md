@@ -40,11 +40,31 @@ In templates, camel-cased props may use kebab case: `aria-label`,
 `onFocusChange`. Listener syntax such as `@focus-change="handleFocus"` supplies
 the callback prop. The component does not forward unrelated attributes.
 
+## Tooltip body slot
+
+The optional `#tooltipBody` scoped slot receives `points`, `content`,
+`defaultBody`, `pinned`, and `dismiss`:
+
+```vue
+<Chart :definition="definition" aria-label="Revenue">
+  <template #tooltipBody="{ points, defaultBody, pinned, dismiss }">
+    <component :is="defaultBody" />
+    <SeriesDetail :points="points" />
+    <button v-if="pinned" type="button" @click="dismiss">Close</button>
+  </template>
+</Chart>
+```
+
+`defaultBody` is a zero-argument Vue functional component containing the
+native title, rows, formatting, and swatches. Ordering, anchoring, placement,
+portaling, and pinning remain in the definition.
+
 ## Exported types
 
 `ChartCommonProps` contains the common host and presentation props.
 `ChartProps` adds the definition. `ChartPresentationProps` contains `class`
-and `style`. The package also re-exports `ChartDefinition` and `ChartPoint`.
+and `style`. `ChartTooltipBodySlotContext` describes the scoped slot. The
+package also re-exports `ChartDefinition` and `ChartPoint`.
 
 See the [Vue adapter](../adapter.md) for lifecycle and SSR behavior,
 [Focus and interaction](../../../reference/focus-and-interaction.md) for

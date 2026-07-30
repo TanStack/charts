@@ -3,9 +3,19 @@ import type {
   ChartRenderer,
   ChartRendererRenderContext,
   ChartTextMeasurer,
+  ChartTooltipBodyContext,
   ChartValue,
   ChartDefinition,
 } from '@tanstack/charts'
+import type { OctaneNode } from 'octane'
+
+export interface ChartTooltipBodyRenderContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartTooltipBodyContext<TDatum, TXValue, TYValue> {
+  defaultBody: OctaneNode
+}
 
 export interface RendererChartCommonProps<
   TDatum = unknown,
@@ -32,6 +42,9 @@ export interface RendererChartCommonProps<
   onRender?: (
     context: ChartRendererRenderContext<TDatum, TXValue, TYValue>,
   ) => void
+  renderTooltipBody?: (
+    context: ChartTooltipBodyRenderContext<TDatum, TXValue, TYValue>,
+  ) => OctaneNode
 }
 
 export type RendererChartProps<

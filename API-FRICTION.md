@@ -168,6 +168,7 @@ Each entry records:
 | F-130 | Adapter options duplicated chart behavior                | API             | resolved   |
 | F-131 | Stable identity repeated inferable key channels          | API             | resolved   |
 | F-132 | Factory unions disrupt D3's generic inference            | API             | monitoring |
+| F-133 | Clipped ancestors trapped native tooltips                | API             | resolved   |
 
 ## Findings
 
@@ -509,7 +510,7 @@ Each entry records:
 - Status: resolved
 - Severity: medium
 - Owner: API
-- Observed in: TanStack Stats tooltip parity
+- Observed in: TanStack Stats tooltip parity and framework adapter parity
 - Friction: the host assigns formatter output with `textContent`. Selection
   and values can match Plot, but an application cannot render structured rows,
   colored series swatches, or interactive content through the native tooltip
@@ -521,19 +522,25 @@ Each entry records:
   derived point text; `sort` controls grouped-series order. Point, pointer,
   group-center, and custom anchors combine with fixed or ordered fallback
   placements. `content` remains the escape hatch for application-specific
-  grouped structure without accepting arbitrary DOM; interactive and nested
-  surfaces remain application-owned through focus callbacks.
+  grouped structure without accepting arbitrary DOM. Every framework adapter
+  adds a native body-composition boundary with the focused points, resolved
+  content, native `defaultBody`, pinned state, and a dismissal action. Chart
+  behavior remains definition-owned; adapter props, slots, snippets, templates,
+  and directive options only render framework content into the core-owned body
+  mount.
 - Verification: core DOM-host tests cover automatic grouped swatches,
   accessible row text, ordered point fields, grouped sorting, UTC date
   formatting, interval ranges, stacked lengths, legacy plaintext formatting,
   all anchor forms, placement fallback, and selectable pinned content. Catalog
   cases 34, 35, and 65 exercise point, group-center, and pointer anchoring.
   All three pass every Chromium interaction scenario across revisions, widths,
-  and themes. The complete DOM host is 12.61 kB gzip and the Stats surface is
-  32.48 kB gzip. Ordering, anchoring, placement, and focus presets add 3,182
-  minified/1,162 gzip bytes over the structured-tooltip baseline; the path adds
-  no dependency and changes locked static-scene entries by at most one gzip
-  byte.
+  and themes. React, Preact, Solid, Vue, Svelte, Angular, Lit, Alpine, and
+  Octane adapter tests prove native-body composition and cleanup. Framework
+  lifecycle suites additionally cover nested charts, stable body mounting,
+  typed and sorted points, transient inertness, pinned dialog semantics, and
+  dismissal. With framework and core packages external, no adapter adds more
+  than 1.4 kB gzip. No new runtime library was introduced; React DOM is now
+  declared as the React adapter's portal peer.
 
 ### F-022 — Native tooltips could not be pinned
 
@@ -545,13 +552,13 @@ Each entry records:
   the pointer leaves or moves elsewhere. The TanStack host always cleared focus
   on mouse leave, so inspecting a dense value required holding the pointer
   still.
-- Decision: pointer clicks pin the focused point by default; another click or
-  Escape releases it, and `sticky: false` opts out. Pinned native content
-  allows text selection. Keyboard activation and `onSelect` remain
-  available, and the option adds no separate interaction dependency.
+- Decision: pointer clicks, Enter, and Space pin the focused point by default;
+  another activation or Escape releases it, and `sticky: false` opts out.
+  Pinned native content allows text selection. Activation still calls
+  `onSelect`, and the option adds no separate interaction dependency.
 - Verification: the DOM-host regression covers pinning, ignored pointer
   movement while pinned, mouse leave, Escape, repinning, click release, text
-  selection, and the `sticky: false` opt-out.
+  selection, keyboard activation, and the `sticky: false` opt-out.
 
 ### F-023 — Fixed margins clip or waste guide space
 
@@ -3028,3 +3035,35 @@ Each entry records:
 - Follow-up: revisit if TypeScript gains a way to suppress contextual generic
   inference for only one union member, or if evidence justifies a branded
   helper despite its additional authoring syntax.
+
+### F-133 — Clipped ancestors trapped native tooltips
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: nested tooltip exploration and dashboard containers with
+  clipped overflow
+- Friction: the native tooltip was an absolutely positioned child of the chart
+  container. `overflow: hidden`, transformed ancestors, and local stacking
+  contexts could clip it or place it below adjacent UI. Escaping those
+  boundaries required rebuilding focus, placement, collision, pinning, and
+  cleanup in an application-owned overlay.
+- Decision: add definition-owned `tooltip.portal`. The host opens the tooltip
+  itself as a manual Popover in the browser top layer where supported, keeping
+  its chart DOM ancestry and inherited styling. If Popover is unavailable or
+  fails, the tooltip moves directly under the `ownerDocument` body with fixed
+  high-stack positioning. Both paths map scene anchors to client coordinates,
+  collide against the viewport, and reposition on scroll, viewport resize,
+  chart resize, and tooltip content resize. Local positioning remains the
+  default. Documentation calls out the fallback's CSS inheritance boundary.
+- Verification: DOM-host regressions cover top-layer and fixed fallback
+  parenting, client-coordinate mapping, viewport collision,
+  scroll/resize/content repositioning, local-to-portal updates, renderer
+  replacement, owner-document targeting, and final cleanup. The React
+  composition regression exercises a pinned custom body inside the portaled
+  surface and removes it on unmount. Catalog case 35 passes its real-Chromium
+  quick profile, including both widths and every interaction step. The primary
+  suite passes 2,459 tests, all framework matrices pass, and type, docs,
+  packed-consumer, seven-adapter, formatting, and bundle gates pass. The
+  reviewed bundle change is 1,486 gzip bytes for the DOM host and 1,947 for the
+  React adapter; it adds no bundled dependency.

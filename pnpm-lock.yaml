@@ -593,6 +593,9 @@ importers:
       react:
         specifier: ^19.0.0
         version: 19.2.3
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.3(react@19.2.3)
     devDependencies:
       '@types/d3-scale':
         specifier: ^4.0.9

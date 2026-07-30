@@ -40,12 +40,36 @@ Callbacks are functions inside `options`, not Angular outputs. Replace the
 complete `options` value when chart state changes so `OnPush` change detection
 delivers an `ngOnChanges` update.
 
+## Tooltip body template
+
+Project a typed tooltip template into the chart:
+
+```html
+<tanstack-chart [options]="chartOptions">
+  <ng-template [tanstackChartTooltipBody]="chartOptions.definition" let-tooltip>
+    <ng-container [ngTemplateOutlet]="tooltip.defaultBody" />
+    <series-detail [points]="tooltip.points" />
+    @if (tooltip.pinned) {
+    <button type="button" (click)="tooltip.dismiss()">Close</button>
+    }
+  </ng-template>
+</tanstack-chart>
+```
+
+Import `ChartTooltipBodyDirective` and Angular's `NgTemplateOutlet` beside
+`Chart`. The context exposes `points`, `content`, `defaultBody`, `pinned`, and
+`dismiss`; named template bindings are also available. Binding the same
+definition gives Angular's strict template checker the datum and x/y value
+types. Ordering, anchoring, placement, portaling, and pinning remain in the
+definition.
+
 ## Exported types
 
 `ChartCommonOptions` contains common host and presentation options.
 `ChartOptions` adds the definition. `ChartPresentationOptions` contains
-`class` and `style`. The package also re-exports `ChartDefinition` and
-`ChartPoint`.
+`class` and `style`. The package exports `ChartTooltipBodyDirective`,
+`ChartTooltipBodyRenderContext`, and `ChartTooltipBodyTemplateContext`. It also
+re-exports `ChartDefinition` and `ChartPoint`.
 
 See the [Angular adapter](../adapter.md) for lifecycle and SSR behavior,
 [Focus and interaction](../../../reference/focus-and-interaction.md) for

@@ -13,7 +13,7 @@ Then add one adapter if the application needs it:
 
 ```sh
 # React
-pnpm add @tanstack/react-charts react
+pnpm add @tanstack/react-charts react react-dom
 
 # Preact
 pnpm add @tanstack/preact-charts preact
@@ -44,9 +44,9 @@ The adapters intentionally do not replace the core package. Definitions and mark
 
 ## Framework compatibility
 
-| Adapter package            | Framework peer                           |
+| Adapter package            | Framework peers                          |
 | -------------------------- | ---------------------------------------- |
-| `@tanstack/react-charts`   | React `^19.0.0`                          |
+| `@tanstack/react-charts`   | React and React DOM `^19.0.0`            |
 | `@tanstack/preact-charts`  | Preact `>=10`                            |
 | `@tanstack/vue-charts`     | Vue `>=3.5`                              |
 | `@tanstack/solid-charts`   | Solid `>=1.8`                            |
@@ -110,8 +110,9 @@ bun add @tanstack/charts d3-array d3-scale
 bun add -D @types/d3-array @types/d3-scale
 ```
 
-Install exactly one adapter package and its framework peer. A shared definition
-can move between adapters without changing marks, channels, scales, or input.
+Install exactly one adapter package and its required framework peers. A shared
+definition can move between adapters without changing marks, channels, scales,
+or captured data.
 
 ## Import boundaries
 

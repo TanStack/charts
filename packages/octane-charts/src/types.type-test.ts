@@ -90,6 +90,29 @@ if (false) {
       expectTypeOf(point?.xValue).toEqualTypeOf<number | undefined>()
       expectTypeOf(point?.yValue).toEqualTypeOf<number | undefined>()
     },
+    renderTooltipBody({ points, content, defaultBody, pinned, dismiss }) {
+      expectTypeOf(points).items.toMatchTypeOf<{
+        datum: (typeof rows)[number]
+        xValue: number
+        yValue: number
+      }>()
+      expectTypeOf(content).toMatchTypeOf<
+        | string
+        | {
+            title?: string
+            color?: string
+            rows: readonly {
+              label: string
+              value: string
+              color?: string
+            }[]
+          }
+      >()
+      expectTypeOf(defaultBody).toEqualTypeOf<unknown>()
+      expectTypeOf(pinned).toEqualTypeOf<boolean>()
+      expectTypeOf(dismiss).toEqualTypeOf<() => void>()
+      return defaultBody
+    },
   })
 
   Chart({

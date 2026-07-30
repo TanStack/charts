@@ -51,7 +51,14 @@ exposes the SVG component only; use `renderSvg` to replace SVG serialization
 without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
-`ChartDefinition`, and `ChartPoint`.
+`ChartTooltipBodySnippetContext`, `ChartDefinition`, and `ChartPoint`.
+
+## Tooltip body composition
+
+Pass a Svelte 5 `tooltipBody` snippet to render framework-owned content. Call
+`defaultBody()` to retain native rows and swatches. The shared host owns focus,
+placement, portaling, inert transient state, pinning, and dismissal; Svelte
+owns the snippet lifecycle inside the body target.
 
 See the [`Chart` reference](./reference/chart.md), [SSR and hydration](../../guides/ssr-and-hydration.md),
 and [Chart Definition API](../../reference/chart-definitions.md).

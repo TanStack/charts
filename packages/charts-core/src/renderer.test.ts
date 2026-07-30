@@ -201,6 +201,484 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 
+  it('orders tooltip body and anchor points without reordering focus callbacks', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const focusedGroups: string[][] = []
+    const tooltipGroups: string[][] = []
+    const anchorGroups: string[][] = []
+    let tooltipContent: unknown
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        focus: {
+          resolve: (points) => points,
+          group: (points) => points,
+          navigation: (points) => points,
+        },
+        tooltip: {
+          sort: (left, right) => right.yValue - left.yValue,
+          anchor(points) {
+            anchorGroups.push(points.map((point) => point.datum.id))
+            return { x: 240, y: 130 }
+          },
+        },
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Ordered tooltip body',
+      onFocusGroupChange(points) {
+        focusedGroups.push(points.map((point) => point.datum.id))
+      },
+      onTooltipBodyChange(target) {
+        if (!target) return
+        tooltipGroups.push(target.points.map((point) => point.datum.id))
+        tooltipContent = target.content
+      },
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+
+    expect(focusedGroups.at(-1)).toEqual(['a', 'b'])
+    expect(tooltipGroups.at(-1)).toEqual(['b', 'a'])
+    expect(anchorGroups.at(-1)).toEqual(['b', 'a'])
+    expect(tooltipContent).toMatchObject({
+      rows: [{ value: '1 · 8' }, { value: '0 · 4' }],
+    })
+    host.destroy()
+  })
+
+  it('uses the tooltip as a top-layer popover, retains ancestry, and reopens it while active', () => {
+    const popover = installPopoverMock(window)
+    const viewport = installVisualViewport(window, {
+      left: 600,
+      top: 100,
+      width: 400,
+      height: 300,
+    })
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    document.body.append(container)
+    let surfaceLeft = 800
+    vi.spyOn(fake.element, 'getBoundingClientRect').mockImplementation(() => ({
+      x: surfaceLeft,
+      y: 200,
+      top: 200,
+      right: surfaceLeft + 240,
+      bottom: 330,
+      left: surfaceLeft,
+      width: 240,
+      height: 130,
+      toJSON: () => ({}),
+    }))
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: {
+          portal: true,
+          anchor: () => ({ x: 240, y: 130 }),
+          placement: ['right', 'left'],
+          offset: 10,
+        },
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Portaled tooltip',
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 120,
+        clientY: 220,
+      }),
+    )
+    const tooltip = container.querySelector<HTMLElement>(
+      '.ts-chart-tooltip[data-ts-chart-tooltip-portal="popover"]',
+    )
+    if (!tooltip) throw new Error('Expected portaled tooltip')
+    Object.defineProperties(tooltip, {
+      offsetWidth: { configurable: true, value: 200 },
+      offsetHeight: { configurable: true, value: 40 },
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 120,
+        clientY: 220,
+      }),
+    )
+
+    expect(container.contains(tooltip)).toBe(true)
+    expect(tooltip.getAttribute('popover')).toBe('manual')
+    expect(popover.isOpen(tooltip)).toBe(true)
+    expect(tooltip.style.position).toBe('fixed')
+    expect(tooltip.dataset.placement).toBe('left')
+    expect(tooltip.style.left).toBe('710px')
+    expect(tooltip.style.top).toBe('245px')
+
+    tooltip.hidePopover()
+    expect(popover.isOpen(tooltip)).toBe(false)
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 120,
+        clientY: 220,
+      }),
+    )
+    expect(popover.isOpen(tooltip)).toBe(true)
+    expect(popover.show).toHaveBeenCalledTimes(2)
+
+    surfaceLeft = 1_200
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 120,
+        clientY: 220,
+      }),
+    )
+    expect(tooltip.hidden).toBe(true)
+    expect(popover.isOpen(tooltip)).toBe(false)
+
+    surfaceLeft = 800
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 120,
+        clientY: 220,
+      }),
+    )
+    expect(tooltip.hidden).toBe(false)
+    expect(popover.isOpen(tooltip)).toBe(true)
+
+    host.destroy()
+    expect(tooltip.isConnected).toBe(false)
+    container.remove()
+    viewport.restore()
+    popover.restore()
+  })
+
+  it('falls back to independent owner-document body portals and cleans up each host', () => {
+    const popover = disablePopover(window)
+    const removeEventListener = vi.spyOn(window, 'removeEventListener')
+    const first = createFakeRenderer()
+    const second = createFakeRenderer()
+    const firstContainer = document.createElement('div')
+    const secondContainer = document.createElement('div')
+    const bounds = {
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    }
+    vi.spyOn(first.element, 'getBoundingClientRect').mockReturnValue(bounds)
+    vi.spyOn(second.element, 'getBoundingClientRect').mockReturnValue(bounds)
+    const portalDefinition = defineChart(definition, {
+      maxFocusDistance: 1_000,
+      tooltip: { portal: true },
+    })
+    const firstHost = mountChartRenderer(firstContainer, {
+      definition: portalDefinition,
+      renderer: first.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'First portaled tooltip',
+    })
+    const secondHost = mountChartRenderer(secondContainer, {
+      definition: portalDefinition,
+      renderer: second.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Second portaled tooltip',
+    })
+
+    first.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    second.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+
+    const tooltips = document.querySelectorAll(
+      '.ts-chart-tooltip[data-ts-chart-tooltip-portal="fallback"]',
+    )
+    expect(tooltips).toHaveLength(2)
+    expect(tooltips[0]?.parentNode).toBe(document.body)
+    expect(tooltips[1]?.parentNode).toBe(document.body)
+    expect((tooltips[0] as HTMLElement).style.zIndex).toBe('2147483647')
+
+    firstHost.destroy()
+    expect(
+      document.querySelectorAll(
+        '.ts-chart-tooltip[data-ts-chart-tooltip-portal="fallback"]',
+      ),
+    ).toHaveLength(1)
+    expect(
+      removeEventListener.mock.calls.filter(([type]) => type === 'scroll'),
+    ).toHaveLength(1)
+    secondHost.destroy()
+    expect(
+      document.querySelector('.ts-chart-tooltip[data-ts-chart-tooltip-portal]'),
+    ).toBeNull()
+    expect(
+      removeEventListener.mock.calls.filter(([type]) => type === 'scroll'),
+    ).toHaveLength(2)
+    removeEventListener.mockRestore()
+    popover.restore()
+  })
+
+  it('moves an active tooltip between top-layer and local modes', () => {
+    const popover = installPopoverMock(window)
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    document.body.append(container)
+    vi.spyOn(fake.element, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+    const common = {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Switchable tooltip',
+    }
+    const portalDefinition = defineChart(definition, {
+      maxFocusDistance: 1_000,
+      tooltip: { portal: true },
+    })
+    const localDefinition = defineChart(definition, {
+      maxFocusDistance: 1_000,
+      tooltip: true,
+    })
+    const host = mountChartRenderer(container, {
+      ...common,
+      definition: portalDefinition,
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+    if (!tooltip) throw new Error('Expected tooltip')
+
+    host.update({ ...common, definition: localDefinition })
+    expect(container.contains(tooltip)).toBe(true)
+    expect(tooltip.style.position).toBe('absolute')
+    expect(tooltip.hasAttribute('popover')).toBe(false)
+    expect(tooltip.dataset.tsChartTooltipPortal).toBeUndefined()
+    expect(popover.isOpen(tooltip)).toBe(false)
+
+    host.update({ ...common, definition: portalDefinition })
+    expect(container.contains(tooltip)).toBe(true)
+    expect(tooltip.style.position).toBe('fixed')
+    expect(tooltip.getAttribute('popover')).toBe('manual')
+    expect(tooltip.dataset.tsChartTooltipPortal).toBe('popover')
+    expect(popover.isOpen(tooltip)).toBe(true)
+
+    host.update({
+      ...common,
+      definition: defineChart(definition, { tooltip: false }),
+    })
+    expect(tooltip.hidden).toBe(true)
+    expect(container.contains(tooltip)).toBe(true)
+    expect(tooltip.hasAttribute('popover')).toBe(false)
+    expect(tooltip.dataset.tsChartTooltipPortal).toBeUndefined()
+    host.destroy()
+    container.remove()
+    popover.restore()
+  })
+
+  it('replaces a renderer without orphaning its portaled tooltip', () => {
+    const popover = installPopoverMock(window)
+    const first = createFakeRenderer('shared-id')
+    const second = createFakeRenderer('shared-id')
+    const bounds = {
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    }
+    vi.spyOn(first.element, 'getBoundingClientRect').mockReturnValue(bounds)
+    vi.spyOn(second.element, 'getBoundingClientRect').mockReturnValue(bounds)
+    const container = document.createElement('div')
+    document.body.append(container)
+    const options = {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: { portal: true },
+      }),
+      renderer: first.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Replaceable portal renderer',
+    }
+    const host = mountChartRenderer(container, options)
+    first.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    const previousTooltip = container.querySelector<HTMLElement>(
+      '.ts-chart-tooltip[data-ts-chart-tooltip-portal="popover"]',
+    )
+    if (!previousTooltip) throw new Error('Expected portaled tooltip')
+
+    host.update({ ...options, renderer: second.renderer })
+
+    const nextTooltips = container.querySelectorAll(
+      '.ts-chart-tooltip[data-ts-chart-tooltip-portal="popover"]',
+    )
+    expect(previousTooltip.isConnected).toBe(false)
+    expect(nextTooltips).toHaveLength(1)
+    expect(nextTooltips[0]).not.toBe(previousTooltip)
+    expect(popover.isOpen(nextTooltips[0] as HTMLElement)).toBe(true)
+    host.destroy()
+    expect(
+      container.querySelector(
+        '.ts-chart-tooltip[data-ts-chart-tooltip-portal]',
+      ),
+    ).toBeNull()
+    container.remove()
+    popover.restore()
+  })
+
+  it('repositions a portaled tooltip after scroll, resize, and observed content changes', () => {
+    const popover = disablePopover(window)
+    let resize: ResizeObserverCallback | undefined
+    class TestResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        resize = callback
+      }
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    }
+    const originalResizeObserver = window.ResizeObserver
+    window.ResizeObserver = TestResizeObserver
+    const frames: FrameRequestCallback[] = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback)
+        return frames.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    const fake = createFakeRenderer()
+    let surfaceLeft = 100
+    vi.spyOn(fake.element, 'getBoundingClientRect').mockImplementation(() => ({
+      x: surfaceLeft,
+      y: 200,
+      top: 200,
+      right: surfaceLeft + 240,
+      bottom: 330,
+      left: surfaceLeft,
+      width: 240,
+      height: 130,
+      toJSON: () => ({}),
+    }))
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: {
+          portal: true,
+          anchor: () => ({ x: 240, y: 130 }),
+          placement: 'top',
+          offset: 10,
+        },
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Repositioned portal tooltip',
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    const tooltip = document.querySelector<HTMLElement>(
+      '.ts-chart-tooltip[data-ts-chart-tooltip-portal="fallback"]',
+    )
+    if (!tooltip) throw new Error('Expected portaled tooltip')
+    Object.defineProperties(tooltip, {
+      offsetWidth: { configurable: true, value: 100 },
+      offsetHeight: { configurable: true, value: 40 },
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    expect(tooltip.style.left).toBe('170px')
+
+    surfaceLeft = 140
+    window.dispatchEvent(new Event('scroll'))
+    window.dispatchEvent(new Event('resize'))
+    expect(frames).toHaveLength(1)
+    frames.shift()?.(0)
+    expect(tooltip.style.left).toBe('210px')
+
+    Object.defineProperty(tooltip, 'offsetWidth', {
+      configurable: true,
+      value: 160,
+    })
+    resize?.([], {} as ResizeObserver)
+    expect(frames).toHaveLength(1)
+    frames.shift()?.(0)
+    expect(tooltip.style.left).toBe('180px')
+
+    host.destroy()
+    window.ResizeObserver = originalResizeObserver
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+    popover.restore()
+  })
+
   it('replaces a changed renderer once and restores focused tooltip state', () => {
     const first = createFakeRenderer('shared-id')
     const second = createFakeRenderer('shared-id')
@@ -397,6 +875,113 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 })
+
+function installPopoverMock(view: Window & typeof globalThis) {
+  const prototype = view.HTMLElement.prototype
+  const showDescriptor = Object.getOwnPropertyDescriptor(
+    prototype,
+    'showPopover',
+  )
+  const hideDescriptor = Object.getOwnPropertyDescriptor(
+    prototype,
+    'hidePopover',
+  )
+  const matchesDescriptor = Object.getOwnPropertyDescriptor(
+    prototype,
+    'matches',
+  )
+  const matches = prototype.matches
+  const open = new WeakSet<HTMLElement>()
+  const show = vi.fn(function (this: HTMLElement) {
+    if (
+      !this.isConnected ||
+      this.hidden ||
+      this.getAttribute('popover') !== 'manual'
+    ) {
+      throw new Error('Popover is not ready to show')
+    }
+    open.add(this)
+  })
+  const hide = vi.fn(function (this: HTMLElement) {
+    open.delete(this)
+  })
+  Object.defineProperties(prototype, {
+    showPopover: { configurable: true, value: show },
+    hidePopover: { configurable: true, value: hide },
+    matches: {
+      configurable: true,
+      value(this: HTMLElement, selector: string) {
+        return selector === ':popover-open'
+          ? open.has(this)
+          : matches.call(this, selector)
+      },
+    },
+  })
+  return {
+    show,
+    hide,
+    isOpen: (element: HTMLElement) => open.has(element),
+    restore() {
+      restoreProperty(prototype, 'showPopover', showDescriptor)
+      restoreProperty(prototype, 'hidePopover', hideDescriptor)
+      restoreProperty(prototype, 'matches', matchesDescriptor)
+    },
+  }
+}
+
+function disablePopover(view: Window & typeof globalThis) {
+  const prototype = view.HTMLElement.prototype
+  const showDescriptor = Object.getOwnPropertyDescriptor(
+    prototype,
+    'showPopover',
+  )
+  const hideDescriptor = Object.getOwnPropertyDescriptor(
+    prototype,
+    'hidePopover',
+  )
+  Object.defineProperties(prototype, {
+    showPopover: { configurable: true, value: undefined },
+    hidePopover: { configurable: true, value: undefined },
+  })
+  return {
+    restore() {
+      restoreProperty(prototype, 'showPopover', showDescriptor)
+      restoreProperty(prototype, 'hidePopover', hideDescriptor)
+    },
+  }
+}
+
+function installVisualViewport(
+  view: Window & typeof globalThis,
+  bounds: { left: number; top: number; width: number; height: number },
+) {
+  const descriptor = Object.getOwnPropertyDescriptor(view, 'visualViewport')
+  const viewport = new EventTarget()
+  Object.defineProperties(viewport, {
+    offsetLeft: { value: bounds.left },
+    offsetTop: { value: bounds.top },
+    width: { value: bounds.width },
+    height: { value: bounds.height },
+  })
+  Object.defineProperty(view, 'visualViewport', {
+    configurable: true,
+    value: viewport,
+  })
+  return {
+    restore() {
+      restoreProperty(view, 'visualViewport', descriptor)
+    },
+  }
+}
+
+function restoreProperty(
+  target: object,
+  key: PropertyKey,
+  descriptor: PropertyDescriptor | undefined,
+) {
+  if (descriptor) Object.defineProperty(target, key, descriptor)
+  else Reflect.deleteProperty(target, key)
+}
 
 interface FakeRenderer {
   renderer: ChartRenderer<Datum, number, number>

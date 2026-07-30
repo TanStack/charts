@@ -1,5 +1,6 @@
 export { RendererChart as Chart } from './RendererChart'
 export type {
+  ChartTooltipBodyRenderContext,
   RendererChartCommonProps as ChartCommonProps,
   RendererChartProps as ChartProps,
 } from './RendererChart'

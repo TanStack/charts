@@ -111,14 +111,14 @@ The default SVG host requires `definition` and `ariaLabel`.
 
 The definition owns these chart behaviors:
 
-| Option             | Default                   | Meaning                                                 |
-| ------------------ | ------------------------- | ------------------------------------------------------- |
-| `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus  |
-| `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy       |
-| `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                          |
-| `animate`          | `false`                   | Keyed attribute, enter, and exit animation              |
-| `keyboard`         | `true`                    | Keyboard focus and navigation                           |
-| `tooltip`          | `false`                   | Native tooltip content, formatting, and sticky behavior |
+| Option             | Default                   | Meaning                                                  |
+| ------------------ | ------------------------- | -------------------------------------------------------- |
+| `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus   |
+| `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy        |
+| `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                           |
+| `animate`          | `false`                   | Keyed attribute, enter, and exit animation               |
+| `keyboard`         | `true`                    | Keyboard focus and navigation                            |
+| `tooltip`          | `false`                   | Native tooltip content, placement, layering, and pinning |
 
 Definition `keyboard: false` takes precedence over host `tabIndex`. A negative
 custom tab index can keep chart keyboard behavior available for programmatic
@@ -155,9 +155,12 @@ skips renders when the measured width has not changed. Resize relayout commits
 immediately by default; set `animate.resize` to `true` to animate it.
 
 The host temporarily assigns `position: relative` when the container's
-computed position is static, because native tooltips are absolutely positioned
-inside it. `destroy` restores the previous inline position when the host owned
-that change.
+computed position is static, because local native tooltips are absolutely
+positioned inside it. Definition `tooltip.portal: true` instead places the
+tooltip in the browser top layer through a manual Popover, or directly under
+the `ownerDocument` body as a fixed fallback, and positions it against the
+viewport. `destroy` restores the previous inline position when the host owned
+that change and removes its tooltip.
 
 ## Font measurement
 

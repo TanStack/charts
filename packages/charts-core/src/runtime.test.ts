@@ -379,6 +379,79 @@ describe('dynamic chart runtime', () => {
     expect(container.style.position).toBe('')
   })
 
+  it('portals the native tooltip into the chart owner document', () => {
+    const frame = document.createElement('iframe')
+    document.body.append(frame)
+    const chartDocument = frame.contentDocument
+    if (!chartDocument) throw new Error('Expected iframe document')
+    const chartView = chartDocument.defaultView
+    if (!chartView) throw new Error('Expected iframe window')
+    const prototype = chartView.HTMLElement.prototype
+    const showPopover = Object.getOwnPropertyDescriptor(
+      prototype,
+      'showPopover',
+    )
+    const hidePopover = Object.getOwnPropertyDescriptor(
+      prototype,
+      'hidePopover',
+    )
+    Object.defineProperties(prototype, {
+      showPopover: { configurable: true, value: undefined },
+      hidePopover: { configurable: true, value: undefined },
+    })
+    const container = chartDocument.createElement('div')
+    container.style.overflow = 'hidden'
+    chartDocument.body.append(container)
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [lineY([{ x: 0, y: 4 }], { x: 'x', y: 'y' })],
+        ...linearAxes([0, 1], [0, 4]),
+        tooltip: { portal: true },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Owner document portal',
+    })
+    const svg = container.querySelector('svg')
+    if (!svg) throw new Error('Expected SVG')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 20,
+      y: 30,
+      top: 30,
+      right: 500,
+      bottom: 290,
+      left: 20,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+
+    const tooltip = chartDocument.querySelector<HTMLElement>(
+      '.ts-chart-tooltip[data-ts-chart-tooltip-portal="fallback"]',
+    )
+    expect(tooltip?.parentNode).toBe(chartDocument.body)
+    expect(tooltip ? container.contains(tooltip) : null).toBe(false)
+    expect(
+      document.querySelector('.ts-chart-tooltip[data-ts-chart-tooltip-portal]'),
+    ).toBeNull()
+
+    host.destroy()
+    expect(
+      chartDocument.querySelector(
+        '.ts-chart-tooltip[data-ts-chart-tooltip-portal]',
+      ),
+    ).toBeNull()
+    if (showPopover)
+      Object.defineProperty(prototype, 'showPopover', showPopover)
+    else Reflect.deleteProperty(prototype, 'showPopover')
+    if (hidePopover)
+      Object.defineProperty(prototype, 'hidePopover', hidePopover)
+    else Reflect.deleteProperty(prototype, 'hidePopover')
+    frame.remove()
+  })
+
   it('suppresses floating-point artifacts in automatic tooltips', () => {
     const value = 100 / 7
     const definition = defineChart({

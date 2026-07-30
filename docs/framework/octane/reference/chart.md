@@ -44,7 +44,8 @@ const rendererChart = (
 The Canvas `Chart` accepts the common interaction and sizing props except
 `renderSvg`. Its `onRender` receives `ChartRendererRenderContext`. The `/core`
 `Chart` also requires `renderer: ChartRenderer`. Both entries export
-`ChartCommonProps`, `ChartProps`, `ChartDefinition`, and `ChartPoint`.
+`ChartCommonProps`, `ChartProps`, `ChartTooltipBodyRenderContext`,
+`ChartDefinition`, and `ChartPoint`.
 
 ## Definition props
 
@@ -72,12 +73,31 @@ See [Sizing and layout](../adapter.md#sizing-and-layout).
 
 ## Focus, tooltip, and callbacks
 
-| Prop                 | Type                                      | Default | Meaning                                                 |
-| -------------------- | ----------------------------------------- | ------- | ------------------------------------------------------- |
-| `onFocusChange`      | `(point: ChartPoint \| null) => void`     | None    | Primary focus callback                                  |
-| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void` | None    | Grouped focus callback                                  |
-| `onSelect`           | `(point: ChartPoint \| null) => void`     | None    | Click and keyboard activation callback                  |
-| `onRender`           | `(context: ChartRenderContext) => void`   | None    | Inner surface, live SVG, and scene after reconciliation |
+| Prop                 | Type                                                     | Default | Meaning                                                 |
+| -------------------- | -------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `onFocusChange`      | `(point: ChartPoint \| null) => void`                    | None    | Primary focus callback                                  |
+| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`                | None    | Grouped focus callback                                  |
+| `onSelect`           | `(point: ChartPoint \| null) => void`                    | None    | Click and keyboard activation callback                  |
+| `onRender`           | `(context: ChartRenderContext) => void`                  | None    | Inner surface, live SVG, and scene after reconciliation |
+| `renderTooltipBody`  | `(context: ChartTooltipBodyRenderContext) => OctaneNode` | None    | Composes Octane content inside the native tooltip body  |
+
+```tsx
+<Chart
+  definition={definition}
+  ariaLabel="Revenue"
+  renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => (
+    <div>
+      {defaultBody}
+      <SeriesDetail points={points} />
+      {pinned ? <button onClick={dismiss}>Close</button> : null}
+    </div>
+  )}
+/>
+```
+
+The context also exposes the resolved `content`. Ordering, anchoring,
+placement, portaling, and pinning remain in the definition. The prop is
+available from the default, `/canvas`, and `/core` entries.
 
 See [Focus and interaction](../../../reference/focus-and-interaction.md).
 
@@ -94,7 +114,8 @@ See [Rendering and export](../../../reference/rendering-and-export.md) and
 
 ## Exported prop types
 
-The adapter exports `ChartCommonProps` and `ChartProps`.
+The adapter exports `ChartCommonProps`, `ChartProps`, and
+`ChartTooltipBodyRenderContext`.
 
 ```ts
 interface ChartCommonProps<

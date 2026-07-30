@@ -3,12 +3,12 @@ title: React Quick Start
 description: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
 ---
 
-Install the framework adapter, core grammar, React peer, and only the granular
+Install the framework adapter, core grammar, React peers, and only the granular
 data and scale modules used by the chart:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/react-charts react d3-scale
-pnpm add -D @types/d3-scale @types/react
+pnpm add @tanstack/charts @tanstack/react-charts react react-dom d3-scale
+pnpm add -D @types/d3-scale @types/react @types/react-dom
 ```
 
 The shared [Scales and D3](../../concepts/scales-and-d3.md) page explains why

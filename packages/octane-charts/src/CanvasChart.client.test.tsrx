@@ -159,6 +159,15 @@ describe('Octane Canvas adapter client', () => {
     })
     expect(onSelect.mock.calls.at(-1)?.[0]?.datum).toBe(data[1])
 
+    await act(() => {
+      surface.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          bubbles: true,
+          key: 'Escape',
+        }),
+      )
+    })
+
     const first = context?.scene.points[0]
     if (!first) throw new Error('Expected a rendered chart point')
     await act(() => {

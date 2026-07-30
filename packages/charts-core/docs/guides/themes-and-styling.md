@@ -150,8 +150,9 @@ path-only geometry with no point bounds should use an explicit paint instead.
 
 ## HTML tooltip styling
 
-The native tooltip is an HTML element inside the chart container. Give it a
-class through `tooltip.className` and style that class in application CSS:
+The native tooltip is an HTML element inside the chart container by default.
+Give it a class through `tooltip.className` and style that class in application
+CSS:
 
 ```ts
 const tooltip = {
@@ -159,9 +160,14 @@ const tooltip = {
 }
 ```
 
-Interactive tooltip content remains application-owned. Use `onFocusChange` or
-`onFocusGroupChange` to render arbitrary framework content. See
-[Tooltips and Focus](./tooltips-and-focus.md).
+With `portal: true`, the preferred manual-Popover path keeps the element under
+the chart in the DOM, so inheritance and scoped selectors continue to work. If
+Popover is unavailable or fails, the fixed fallback moves the element under
+the chart's `ownerDocument` body. Use a document-level selector for its class
+and put required fallback tokens on that class or a shared document ancestor.
+
+Every framework adapter can compose native application content with the
+default rows. See [Tooltips and Focus](./tooltips-and-focus.md).
 
 ## Theme checklist
 

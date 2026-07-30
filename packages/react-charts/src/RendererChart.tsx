@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { createPortal } from 'react-dom'
 import { createChartRendererAdapter } from '@tanstack/charts/adapter/renderer'
 import type {
   ChartAdapter,
@@ -8,6 +9,9 @@ import type {
   ChartRendererRenderContext,
   ChartPoint,
   ChartTextMeasurer,
+  ChartTooltipBodyContext,
+  ChartTooltipBodyTarget,
+  ChartTooltipContent,
   ChartValue,
   ChartDefinition,
 } from '@tanstack/charts'
@@ -58,6 +62,17 @@ export interface RendererChartCommonProps<
   onRender?: (
     context: ChartRendererRenderContext<TDatum, TXValue, TYValue>,
   ) => void
+  renderTooltipBody?: (
+    context: ChartTooltipBodyRenderContext<TDatum, TXValue, TYValue>,
+  ) => React.ReactNode
+}
+
+export interface ChartTooltipBodyRenderContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartTooltipBodyContext<TDatum, TXValue, TYValue> {
+  defaultBody: React.ReactNode
 }
 
 export type RendererChartProps<
@@ -98,6 +113,7 @@ export function RendererChartImplementation<
     onFocusGroupChange,
     onSelect,
     onRender,
+    renderTooltipBody,
   } = props
   const generatedId = React.useId()
   const idPrefix =
@@ -116,6 +132,16 @@ export function RendererChartImplementation<
     TXValue,
     TYValue
   > | null>(null)
+  const [tooltipBodyTarget, setTooltipBodyTarget] =
+    React.useState<ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null>(
+      null,
+    )
+  const handleTooltipBodyChange = React.useCallback(
+    (target: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null) => {
+      setTooltipBodyTarget(target)
+    },
+    [],
+  )
   const commonHostOptions: ChartRendererHostCommonOptions<
     TDatum,
     TXValue,
@@ -135,6 +161,9 @@ export function RendererChartImplementation<
     onFocusGroupChange,
     onSelect,
     onRender,
+    onTooltipBodyChange: renderTooltipBody
+      ? handleTooltipBodyChange
+      : undefined,
   }
   const hostOptions: ChartRendererHostOptions<TDatum, TXValue, TYValue> = {
     ...commonHostOptions,
@@ -157,18 +186,110 @@ export function RendererChartImplementation<
     adapter.update(hostOptions)
   }, [adapter, hostOptions])
 
+  const tooltipPortal =
+    renderTooltipBody && tooltipBodyTarget
+      ? createPortal(
+          renderTooltipBody({
+            points: tooltipBodyTarget.points,
+            content: tooltipBodyTarget.content,
+            pinned: tooltipBodyTarget.pinned,
+            dismiss: tooltipBodyTarget.dismiss,
+            defaultBody: (
+              <DefaultTooltipBody content={tooltipBodyTarget.content} />
+            ),
+          }),
+          tooltipBodyTarget.element,
+        )
+      : null
+
   return (
-    <div
-      className={className ? `ts-chart-host ${className}` : 'ts-chart-host'}
+    <>
+      <div
+        className={className ? `ts-chart-host ${className}` : 'ts-chart-host'}
+        style={{
+          position: 'relative',
+          width: width === undefined ? '100%' : width,
+          height: height ?? (resolvedAspectRatio ? undefined : 320),
+          aspectRatio: height === undefined ? resolvedAspectRatio : undefined,
+          ...style,
+        }}
+      >
+        <ChartSurface ref={containerRef} markup={initialMarkupRef.current} />
+      </div>
+      {tooltipPortal}
+    </>
+  )
+}
+
+function DefaultTooltipBody({
+  content,
+}: {
+  content: ChartTooltipContent | string
+}) {
+  if (typeof content === 'string') return content
+
+  return (
+    <>
+      {content.title ? (
+        <div
+          className="ts-chart-tooltip__title"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            fontWeight: 650,
+            marginBottom: content.rows.length ? '0.3rem' : 0,
+          }}
+        >
+          {content.color ? <TooltipSwatch color={content.color} /> : null}
+          {content.title}
+        </div>
+      ) : null}
+      {content.rows.length ? (
+        <div className="ts-chart-tooltip__rows" aria-hidden="true">
+          {content.rows.map((row, index) => (
+            <div
+              className="ts-chart-tooltip__row"
+              key={`${row.label}\0${index}`}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '0.55rem minmax(0,1fr) auto',
+                alignItems: 'center',
+                columnGap: '0.4rem',
+              }}
+            >
+              {row.color ? <TooltipSwatch color={row.color} /> : <span />}
+              <span>{row.label}</span>
+              <span
+                style={{
+                  textAlign: 'right',
+                  fontVariantNumeric: 'tabular-nums',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {row.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function TooltipSwatch({ color }: { color: string }) {
+  return (
+    <span
+      className="ts-chart-tooltip__swatch"
+      aria-hidden="true"
       style={{
-        position: 'relative',
-        width: width === undefined ? '100%' : width,
-        height: height ?? (resolvedAspectRatio ? undefined : 320),
-        aspectRatio: height === undefined ? resolvedAspectRatio : undefined,
-        ...style,
+        display: 'block',
+        width: '0.55rem',
+        height: '0.55rem',
+        borderRadius: '0.15rem',
+        boxShadow: 'inset 0 0 0 1px rgb(0 0 0/.12)',
+        background: color,
       }}
-    >
-      <ChartSurface ref={containerRef} markup={initialMarkupRef.current} />
-    </div>
+    />
   )
 }

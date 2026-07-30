@@ -123,6 +123,8 @@ export type {
   ChartTextMeasureOptions,
   ChartTextMetrics,
   ChartTick,
+  ChartTooltipBodyContext,
+  ChartTooltipBodyTarget,
   ChartTooltipContent,
   ChartTooltipContentContext,
   ChartTooltipAnchor,

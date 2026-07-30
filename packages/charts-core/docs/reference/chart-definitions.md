@@ -87,6 +87,10 @@ does not return or own them.
 These options belong to both static and responsive definitions. Hosts and
 framework adapters do not override them.
 
+Tooltip placement policy stays with the definition, including `portal: true`
+when the surface must escape clipped chart ancestors. Framework-only content
+composition remains an adapter prop, slot, snippet, or template.
+
 `DynamicChartConfig<TSpec>` combines those options with the responsive `chart`
 builder. The two-argument `defineChart(definition, options)` form creates a new
 definition when a reusable base needs a different interaction policy.

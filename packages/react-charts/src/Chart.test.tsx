@@ -110,6 +110,35 @@ if (false) {
         expectTypeOf(point?.xValue).toEqualTypeOf<number | undefined>()
         expectTypeOf(point?.yValue).toEqualTypeOf<number | undefined>()
       }}
+      renderTooltipBody={({
+        points,
+        content,
+        defaultBody,
+        pinned,
+        dismiss,
+      }) => {
+        expectTypeOf(points).items.toMatchTypeOf<{
+          datum: (typeof data)[number]
+          xValue: number
+          yValue: number
+        }>()
+        expectTypeOf(content).toEqualTypeOf<
+          | string
+          | {
+              title?: string
+              color?: string
+              rows: readonly {
+                label: string
+                value: string
+                color?: string
+              }[]
+            }
+        >()
+        expectTypeOf(defaultBody).toEqualTypeOf<React.ReactNode>()
+        expectTypeOf(pinned).toEqualTypeOf<boolean>()
+        expectTypeOf(dismiss).toEqualTypeOf<() => void>()
+        return defaultBody
+      }}
     />
   )
   const inferredStaticCallback = (
@@ -312,6 +341,141 @@ describe('React adapter', () => {
     ).toBe('visible')
 
     await act(async () => root.unmount())
+  })
+
+  it('composes a custom tooltip with the default body and dismisses a pinned portal', async () => {
+    const tooltipDefinition = defineChart(definition, {
+      maxFocusDistance: 1_000,
+      tooltip: {
+        portal: true,
+        content: () => ({
+          title: 'January',
+          color: '#2563eb',
+          rows: [
+            {
+              label: 'Revenue',
+              value: '$8',
+              color: '#2563eb',
+            },
+          ],
+        }),
+      },
+    })
+    const target = document.createElement('div')
+    document.body.append(target)
+    const root = createRoot(target)
+
+    await act(async () => {
+      root.render(
+        <Chart
+          definition={tooltipDefinition}
+          width={480}
+          height={260}
+          ariaLabel="Revenue"
+          renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => (
+            <div data-testid="rich-tooltip">
+              {defaultBody}
+              <span data-testid="tooltip-point">{points[0]?.datum.id}</span>
+              <span data-testid="tooltip-pinned">{String(pinned)}</span>
+              <Chart
+                definition={definition}
+                width={120}
+                height={80}
+                ariaLabel="January trend"
+              />
+              <button type="button" onClick={dismiss}>
+                Close
+              </button>
+            </div>
+          )}
+        />,
+      )
+    })
+
+    const svg = target.querySelector('svg')
+    if (!svg) throw new Error('Expected an SVG chart')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    await act(async () => {
+      svg.dispatchEvent(
+        new MouseEvent('pointermove', {
+          bubbles: true,
+          clientX: 52,
+          clientY: 200,
+        }),
+      )
+    })
+
+    const portal = document.querySelector<HTMLElement>(
+      '[data-ts-chart-tooltip-portal]',
+    )
+    const body = portal?.querySelector<HTMLElement>('.ts-chart-tooltip__body')
+    expect(portal).not.toBeNull()
+    expect(target.querySelector('[data-testid="rich-tooltip"]')).toBeNull()
+    expect(body?.querySelector('[data-testid="rich-tooltip"]')).not.toBeNull()
+    expect(body?.querySelector('.ts-chart-tooltip__title')?.textContent).toBe(
+      'January',
+    )
+    expect(body?.querySelector('.ts-chart-tooltip__row')?.textContent).toBe(
+      'Revenue$8',
+    )
+    expect(
+      body?.querySelector<HTMLElement>('.ts-chart-tooltip__swatch')?.style
+        .background,
+    ).toBe('rgb(37, 99, 235)')
+    expect(
+      body?.querySelector('[data-testid="tooltip-point"]')?.textContent,
+    ).toBe('jan')
+    expect(
+      body?.querySelector('[data-testid="tooltip-pinned"]')?.textContent,
+    ).toBe('false')
+    expect(
+      body?.querySelector('svg[aria-label="January trend"]'),
+    ).not.toBeNull()
+    expect(body?.hasAttribute('inert')).toBe(true)
+    expect(portal?.getAttribute('role')).toBe('status')
+
+    await act(async () => {
+      svg.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          clientX: 52,
+          clientY: 200,
+        }),
+      )
+    })
+
+    expect(
+      body?.querySelector('[data-testid="tooltip-pinned"]')?.textContent,
+    ).toBe('true')
+    expect(portal?.dataset.sticky).toBe('true')
+    expect(body?.hasAttribute('inert')).toBe(false)
+    expect(portal?.getAttribute('role')).toBe('dialog')
+    expect(portal?.querySelector('.ts-chart-tooltip__body')).toBe(body)
+
+    await act(async () => {
+      body
+        ?.querySelector<HTMLButtonElement>('button')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(portal?.hidden).toBe(true)
+    expect(body?.querySelector('[data-testid="rich-tooltip"]')).toBeNull()
+    expect(body?.querySelector('svg[aria-label="January trend"]')).toBeNull()
+
+    await act(async () => root.unmount())
+    expect(document.querySelector('[data-ts-chart-tooltip-portal]')).toBeNull()
+    target.remove()
   })
 
   it('preserves the chart DOM when the definition is stable', async () => {

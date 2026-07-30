@@ -305,6 +305,7 @@ if (false) {
   const interactiveCategoricalDefinition = defineChart(staticDefinition, {
     focus: categoricalFocus,
     tooltip: {
+      portal: true,
       items: [
         {
           channel: 'x',

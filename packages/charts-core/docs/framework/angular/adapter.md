@@ -4,7 +4,7 @@ description: Render TanStack Charts with an Angular standalone component.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/angular-charts @angular/core @angular/platform-browser d3-scale
+pnpm add @tanstack/charts @tanstack/angular-charts @angular/common @angular/core @angular/platform-browser d3-scale
 ```
 
 ```ts
@@ -51,7 +51,19 @@ package exposes the SVG component only. Use `renderSvg` to replace SVG
 serialization without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonOptions`, `ChartOptions`,
-`ChartPresentationOptions`, `ChartDefinition`, and `ChartPoint`.
+`ChartPresentationOptions`, `ChartTooltipBodyDirective`,
+`ChartTooltipBodyRenderContext`, `ChartTooltipBodyTemplateContext`,
+`ChartDefinition`, and `ChartPoint`.
+
+## Tooltip body composition
+
+Project an `ng-template` with
+`[tanstackChartTooltipBody]="chartOptions.definition"` for Angular-owned
+content. The definition binding is the generic type witness for strict template
+checking; it does not configure behavior a second time. Render
+`tooltip.defaultBody` through `NgTemplateOutlet` to retain native rows and
+swatches. The shared host owns focus, placement, portaling, inert transient
+state, pinning, and dismissal; Angular owns the embedded-view lifecycle.
 
 See the [`Chart` reference](./reference/chart.md) and
 [Chart Definition API](../../reference/chart-definitions.md).

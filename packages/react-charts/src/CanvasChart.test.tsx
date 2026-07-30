@@ -187,6 +187,12 @@ describe('React Canvas adapter', () => {
     })
     expect(onSelect.mock.calls.at(-1)?.[0]?.datum).toBe(data[1])
 
+    await act(async () => {
+      surface.dispatchEvent(
+        new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }),
+      )
+    })
+
     const first = onRender.mock.calls.at(-1)?.[0]?.scene.points[0]
     if (!first) throw new Error('Expected a rendered point')
     await act(async () => {

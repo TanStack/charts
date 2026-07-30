@@ -33,18 +33,32 @@ spatial indexing.
 | `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`    | None                  | Grouped focus callback                                 |
 | `onSelect`           | `(point: ChartPoint \| null) => void`        | None                  | Pointer or keyboard activation callback                |
 | `onRender`           | `(context: ChartRenderContext) => void`      | None                  | Live SVG, container, and scene after rendering         |
+| `tooltipBody`        | `Snippet<[ChartTooltipBodySnippetContext]>`  | None                  | Composes Svelte content inside the native tooltip body |
 | `class`              | `string`                                     | None                  | Extra class on the outer `.ts-chart-host`              |
 | `style`              | `string`                                     | None                  | Outer host declarations applied after adapter sizing   |
 | `className`          | `string`                                     | None                  | Extra class on the rendered SVG surface                |
 
 Interaction hooks are Svelte 5 callback props. They are not component events.
 
+```svelte
+{#snippet tooltipBody({ points, defaultBody, pinned, dismiss })}
+  {@render defaultBody()}
+  <SeriesDetail {points} />
+  {#if pinned}<button onclick={dismiss}>Close</button>{/if}
+{/snippet}
+
+<Chart {definition} ariaLabel="Revenue" {tooltipBody} />
+```
+
+The snippet context also includes `content`. Ordering, anchoring, placement,
+portaling, and pinning remain in the definition.
+
 ## Exported types
 
 `ChartCommonProps` contains the common host and presentation props.
 `ChartProps` adds the definition. `ChartPresentationProps` contains `class`
-and the string `style`. The package also re-exports `ChartDefinition` and
-`ChartPoint`.
+and the string `style`. `ChartTooltipBodySnippetContext` describes the snippet
+argument. The package also re-exports `ChartDefinition` and `ChartPoint`.
 
 See the [Svelte adapter](../adapter.md) for lifecycle and SSR behavior,
 [Focus and interaction](../../../reference/focus-and-interaction.md) for

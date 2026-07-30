@@ -48,7 +48,29 @@ adapter sizing. The package exposes the SVG component only; use `renderSvg` to
 replace SVG serialization without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
-`ChartDefinition`, and `ChartPoint`.
+`ChartTooltipBodyRenderContext`, `ChartDefinition`, and `ChartPoint`.
+
+## Tooltip body composition
+
+```tsx
+<Chart
+  definition={definition()}
+  ariaLabel="Revenue"
+  renderTooltipBody={(tooltip) => (
+    <div>
+      {tooltip.defaultBody}
+      <SeriesDetail points={tooltip.points} />
+      <Show when={tooltip.pinned}>
+        <button onClick={tooltip.dismiss}>Close</button>
+      </Show>
+    </div>
+  )}
+/>
+```
+
+Read the context through `tooltip` instead of destructuring it so Solid tracks
+focused points and pinned state. The shared host owns focus, placement,
+portaling, and dismissal; Solid owns the returned component lifecycle.
 
 See the [`Chart` reference](./reference/chart.md), [SSR and hydration](../../guides/ssr-and-hydration.md),
 and [Chart Definition API](../../reference/chart-definitions.md).

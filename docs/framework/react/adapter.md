@@ -17,6 +17,7 @@ export type {
   ChartProps,
   ChartDefinition,
   ChartPoint,
+  ChartTooltipBodyRenderContext,
 } from '@tanstack/react-charts'
 ```
 
@@ -135,6 +136,20 @@ width.
 
 Core renderer `className` options apply to a surface when calling it directly.
 The React adapter's `className` intentionally owns the outer element instead.
+
+## Tooltip body composition
+
+`renderTooltipBody` mounts React content into the native tooltip surface. Its
+context provides `points`, `content`, `defaultBody`, `pinned`, and `dismiss`.
+Composing `defaultBody` keeps the core title, rows, formatting, and swatches;
+arbitrary React content can sit beside it.
+
+The shared host owns a stable body mount target and releases it when the
+tooltip is hidden, custom rendering is disabled, or the chart is destroyed.
+React owns the rendered component lifecycle. A custom body is inert while
+transient, so display-only content can remain visible but controls should
+render only while `pinned` is true. Definition `tooltip.portal: true` promotes
+the whole surface above clipped ancestors without changing this React API.
 
 ## Definition and input identity
 

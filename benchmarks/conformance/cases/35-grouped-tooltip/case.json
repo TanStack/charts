@@ -11,6 +11,7 @@
     "nearest x focus",
     "multi-series line",
     "automatic series swatches",
+    "top-layer tooltip",
     "keyboard navigation"
   ],
   "geometry": [
@@ -49,6 +50,6 @@
   },
   "ai": {
     "create": "Create a three-series UTC line chart whose nearest shared x position reveals all three series names and values.",
-    "maintain": "Add a fourth series while preserving one swatch and value per group, keyboard navigation by x, and responsive tooltip positioning."
+    "maintain": "Add a fourth series while preserving one swatch and value per group, keyboard navigation by x, and top-layer responsive tooltip positioning."
   }
 }

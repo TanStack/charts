@@ -6,6 +6,8 @@ import type {
   ChartValue,
   ChartDefinition,
 } from '@tanstack/charts'
+import type { OctaneNode } from 'octane'
+import type { ChartTooltipBodyRenderContext } from './renderer-types'
 
 export interface ChartCommonProps<
   TDatum = unknown,
@@ -34,6 +36,9 @@ export interface ChartCommonProps<
   ) => void
   onSelect?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
   onRender?: (context: ChartRenderContext<TDatum, TXValue, TYValue>) => void
+  renderTooltipBody?: (
+    context: ChartTooltipBodyRenderContext<TDatum, TXValue, TYValue>,
+  ) => OctaneNode
 }
 
 export type ChartProps<

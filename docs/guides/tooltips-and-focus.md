@@ -1,6 +1,6 @@
 ---
 title: Tooltips and Focus
-description: Configure nearest-point and grouped focus, automatic tooltip content, keyboard navigation, pinning, and application-owned rich surfaces.
+description: Configure grouped focus, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
 ---
 
 The DOM host provides a small automatic path for the common case:
@@ -198,6 +198,37 @@ anchor falls back to the primary point. A placement list uses the first fit,
 then the least-overflowing candidate. Every result shifts inside the chart
 surface.
 
+## Escaping clipped containers
+
+Keep tooltip layering with the chart definition:
+
+```ts
+const definition = defineChart({
+  marks,
+  x,
+  y,
+  focus: 'group-x',
+  tooltip: {
+    portal: true,
+    anchor: 'group-center',
+    placement: ['right', 'left', 'bottom', 'top'],
+  },
+})
+```
+
+`portal: true` opens the tooltip as a manual Popover in the browser top layer
+where supported. It remains a DOM descendant of the chart, so inherited styles,
+ancestor selectors, and chart-scoped CSS custom properties continue to work.
+If Popover is unavailable or fails, the host moves the tooltip directly under
+the chart's `ownerDocument` body with fixed high-stack positioning. Both paths
+escape `overflow: hidden` and local stacking contexts, use viewport collision
+bounds, and reposition after scroll, viewport resize, or content resize. The
+default `false` keeps ordinary absolute positioning inside the chart.
+
+For consistent fallback styling, target `tooltip.className` from a
+document-level stylesheet and define required CSS custom properties on that
+class or a shared document ancestor.
+
 ## Typed callbacks
 
 Use callbacks when application UI needs the current semantic state:
@@ -239,22 +270,120 @@ an overlay.
 
 ## Rich and nested tooltips
 
-Render rich content in application-owned DOM when the surface needs:
+Framework adapters can replace only the tooltip body while the shared host
+continues to own focus, ordering, anchoring, placement, portal coordinates,
+and dismissal. This React example places a nested pie beside the native rows:
 
-- links or buttons;
-- a table;
-- arbitrary framework components;
-- a nested chart;
-- asynchronous detail;
-- portal or cross-surface collision behavior.
+```tsx
+<Chart
+  definition={definition}
+  ariaLabel="Revenue by series"
+  renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'auto 8rem',
+        gap: 12,
+      }}
+    >
+      <div>{defaultBody}</div>
+      <div>
+        <SeriesPie points={points} />
+        {pinned ? (
+          <button type="button" onClick={dismiss}>
+            Close
+          </button>
+        ) : null}
+      </div>
+    </div>
+  )}
+/>
+```
 
-Keep focus state controlled through `onFocusChange` or
-`onFocusGroupChange`. Pin the surface through `onSelect`. A pinned surface
-needs visible state, Escape dismissal, focus management, and deterministic
-cleanup of any nested chart host.
+The nested component is an ordinary chart built from the focused group:
 
-The [Interactive Charts examples](../examples/interactive-charts.md) include a
-pinned nested chart pattern.
+```tsx
+import * as React from 'react'
+import { defineChart, type ChartPoint } from '@tanstack/charts'
+import { polar, radialArc } from '@tanstack/charts/polar'
+import { Chart } from '@tanstack/react-charts'
+import { pie } from 'd3-shape'
+
+interface RevenueRow {
+  date: Date
+  series: string
+  value: number
+}
+
+type RevenuePoint = ChartPoint<RevenueRow, Date, number>
+
+function SeriesPie({ points }: { points: readonly RevenuePoint[] }) {
+  const pieDefinition = React.useMemo(() => {
+    const slices = pie<RevenuePoint>()
+      .sort(null)
+      .value((point) => Math.max(0, point.yValue))(points)
+
+    return defineChart({
+      marks: [
+        polar({
+          inset: 2,
+          marks: [
+            radialArc(slices, {
+              key: (slice) => slice.data.key,
+              fill: (slice) => slice.data.color ?? 'CanvasText',
+            }),
+          ],
+        }),
+      ],
+      guides: false,
+      x: null,
+      y: null,
+      keyboard: false,
+    })
+  }, [points])
+
+  return (
+    <Chart
+      definition={pieDefinition}
+      width={128}
+      height={96}
+      ariaLabel="Series share at the focused date"
+    />
+  )
+}
+```
+
+`defaultBody` is the native title, rows, formatting, and swatches in the
+adapter's native composition form. Render it as-is, wrap it, or omit it.
+`points` preserves the grouped series order selected by `tooltip.sort`;
+`content` exposes the same safe model when a different layout is needed.
+`pinned` distinguishes transient inspection from interactive content, and
+`dismiss()` clears the tooltip and returns focus to the chart when focus was
+inside the body.
+
+A custom body is inert while transient, so a display-only nested chart can stay
+visible but cannot receive pointer or keyboard input. Render controls only when
+`pinned` is true. The pinned body becomes a non-modal dialog; its controls
+still need useful labels and intentional focus order. The adapter updates
+framework content with focused-point changes and unmounts it when the tooltip
+is dismissed or the parent chart unmounts.
+
+| Adapter                      | Native body composition                            |
+| ---------------------------- | -------------------------------------------------- |
+| React, Preact, Solid, Octane | `renderTooltipBody` prop                           |
+| Vue                          | `#tooltipBody` scoped slot                         |
+| Svelte                       | `tooltipBody` snippet prop                         |
+| Angular                      | `[tanstackChartTooltipBody]="definition"` template |
+| Lit                          | `options.renderTooltipBody`                        |
+| Alpine                       | `options.renderTooltipBody` returning DOM content  |
+
+Each receives `points`, `content`, `defaultBody`, `pinned`, and `dismiss`.
+Composition stays beside the component, slot, template, or directive options;
+the framework-neutral definition still owns every tooltip behavior.
+
+The [Interactive Charts examples](../examples/interactive-charts.md) and
+[Polar and Radar Charts](../examples/polar-and-radar.md#pie-and-donut) show the
+two pieces of the nested pie pattern.
 
 ## Keyboard behavior
 
@@ -263,7 +392,7 @@ With `keyboard` enabled:
 - focusing the SVG selects the first navigable point;
 - Arrow keys move through the strategy's navigation order;
 - Home and End move to the first and last point;
-- Enter or Space calls `onSelect`;
+- Enter or Space toggles an enabled sticky tooltip and calls `onSelect`;
 - Escape dismisses a sticky tooltip.
 
 A custom focus strategy owns both pointer resolution and navigation order.
@@ -285,7 +414,11 @@ search over every raw point.
 - Choose two-dimensional, nearest-axis, or grouped-axis semantics explicitly.
 - Keep a finite distance unless continuous snapping is intended.
 - Use native plaintext formatting for the 90% case.
-- Render rich content through typed callbacks in application DOM.
+- Use `portal: true` where clipped ancestors or stacking contexts can hide the
+  tooltip.
+- Use the adapter's tooltip-body composition surface for framework content;
+  use focus callbacks for separate application-owned surfaces.
 - Give keyboard and pointer users equivalent state and selection.
-- Keep pinned state controlled when it must survive updates.
-- Destroy nested charts and external listeners with their owner.
+- Keep interactive content pinned and dismissible.
+- Let framework lifecycle destroy nested charts and external listeners with
+  their owner.

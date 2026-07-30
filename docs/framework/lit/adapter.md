@@ -54,7 +54,15 @@ package exposes the SVG custom element only. Use `renderSvg` to replace SVG
 serialization without replacing the shared host.
 
 Exports: `Chart`, `defineChartElement`, `ChartCommonProps`,
-`ChartPresentationProps`, `ChartProps`, `ChartDefinition`, and `ChartPoint`.
+`ChartPresentationProps`, `ChartProps`, `ChartTooltipBodyRenderContext`,
+`ChartDefinition`, and `ChartPoint`.
+
+## Tooltip body composition
+
+Set `options.renderTooltipBody` to return any Lit-renderable value. Include its
+`defaultBody` `TemplateResult` to retain native rows and swatches. The shared
+host owns focus, placement, portaling, inert transient state, pinning, and
+dismissal; Lit owns the rendered template lifecycle.
 
 See the [`Chart` reference](./reference/chart.md) and
 [Chart Definition API](../../reference/chart-definitions.md).

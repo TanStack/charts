@@ -732,6 +732,7 @@ export interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
+  portal?: boolean
   items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
   sort?: ChartTooltipSort<TDatum, TXValue, TYValue>
   anchor?: ChartTooltipAnchor<TDatum, TXValue, TYValue>
@@ -873,6 +874,25 @@ export interface ChartTooltipRow {
   color?: string
 }
 
+export interface ChartTooltipBodyContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  content: ChartTooltipContent | string
+  pinned: boolean
+  dismiss: () => void
+}
+
+export interface ChartTooltipBodyTarget<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends ChartTooltipBodyContext<TDatum, TXValue, TYValue> {
+  element: HTMLElement
+}
+
 export interface ChartFocusStrategy<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
@@ -972,6 +992,13 @@ export interface ChartRendererHostCommonOptions<
   onSelect?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
   onRender?: (
     context: ChartRendererRenderContext<TDatum, TXValue, TYValue>,
+  ) => void
+  onTooltipBodyChange?: (
+    target: ChartTooltipBodyTarget<
+      NoInfer<TDatum>,
+      NoInfer<TXValue>,
+      NoInfer<TYValue>
+    > | null,
   ) => void
   measureText?: ChartTextMeasurer
 }

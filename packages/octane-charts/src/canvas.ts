@@ -3,4 +3,5 @@ export type {
   CanvasChartCommonProps as ChartCommonProps,
   CanvasChartProps as ChartProps,
 } from './canvas-types'
+export type { ChartTooltipBodyRenderContext } from './renderer-types'
 export type { ChartDefinition, ChartPoint } from '@tanstack/charts'

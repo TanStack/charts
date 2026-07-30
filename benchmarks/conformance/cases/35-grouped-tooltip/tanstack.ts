@@ -51,6 +51,7 @@ const configuredDefinition = (input: ConformanceInput) =>
     keyboard: true,
     focus: 'group-x',
     tooltip: {
+      portal: true,
       anchor: 'group-center',
       placement: ['top', 'right', 'left', 'bottom'],
       sort: 'color-domain',

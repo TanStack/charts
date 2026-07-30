@@ -7,7 +7,7 @@ Interaction should help the reader inspect, navigate, select, or edit semantic
 data. It should not turn a chart into a second application state system.
 
 TanStack Charts owns nearest-point focus, grouped focus, keyboard point
-navigation, point selection callbacks, and native text tooltips. The
+navigation, point selection callbacks, and native structured tooltips. The
 application owns interactions that change a domain, viewport, persistent
 selection, or product record.
 
@@ -16,7 +16,7 @@ selection, or product record.
 | Reader task                                                  | Start with                                     |
 | ------------------------------------------------------------ | ---------------------------------------------- |
 | Inspect one point or a same-x group                          | Native chart focus and tooltip                 |
-| Keep rich detail open, including another chart               | Pinned application-owned tooltip               |
+| Keep rich framework detail open, including another chart     | Pinned composed tooltip body                   |
 | Navigate a wide schedule without changing its semantic scale | Native horizontal scrolling                    |
 | Crop and pan a continuous domain                             | Controlled zoom and viewport state             |
 | Edit an interval or record                                   | Controlled direct manipulation plus form input |
@@ -27,9 +27,9 @@ defines the native inspection path.
 
 ## Pin rich nested detail
 
-A rich tooltip can be pinned on selection and contain application UI, including
-a second chart. Hover remains transient; click or keyboard activation changes
-the persistent selection.
+A rich tooltip can compose the native rows with framework UI, including a
+second chart. Hover remains transient; click or keyboard activation pins the
+surface before it accepts pointer input.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/84-pinned-nested-chart-tooltip/?theme=system&height=500"
@@ -40,13 +40,17 @@ the persistent selection.
   style="width:100%;height:500px;border:0;"
 ></iframe>
 
-The parent chart emits a selected datum. Application state owns the pinned
-record and renders the tooltip. The nested chart receives its own accessible
-label, definition, runtime, and cleanup.
+The embedded framework-neutral case uses a fully application-owned surface.
+Use the adapter's tooltip-body composition surface and include `defaultBody`
+to retain native rows and swatches. A grouped parent can pass `points`
+directly into a pie definition, placing the series comparison beside the rows
+in both transient and pinned states. The transient body is inert; gate controls
+on `pinned`. The nested chart receives its own accessible label, definition,
+runtime, and framework cleanup.
 
-Keep the tooltip inside the viewport, move focus intentionally when it contains
-controls, support Escape or a close button, and destroy the nested host when
-selection changes.
+Set definition `tooltip.portal: true` to escape clipped ancestors and use
+viewport collision handling. Move focus intentionally when the body contains
+controls, preserve Escape, and wire a close button to `dismiss`.
 
 ## Scroll a wide schedule
 

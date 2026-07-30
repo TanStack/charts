@@ -13,6 +13,7 @@ import type {
   ChartScene,
   ChartSpatialIndex,
   ChartSurface,
+  ChartTooltipBodyTarget,
   ChartTooltipContent,
   ChartTooltipContentContext,
   ChartTooltipChannelItem,
@@ -24,6 +25,13 @@ import type {
 } from './types'
 
 type HostRenderReason = 'update' | 'resize' | 'layout'
+
+interface TooltipBounds {
+  left: number
+  top: number
+  right: number
+  bottom: number
+}
 
 /**
  * Mounts a chart and owns the runtime until the returned host is destroyed.
@@ -56,6 +64,26 @@ export function mountChartRenderer<
   let hasRendered = false
   let surface: ChartSurface<TDatum, TXValue, TYValue> | undefined
   let tooltipElement: HTMLDivElement | undefined
+  let tooltipBodyElement: HTMLDivElement | undefined
+  let activeTooltipBodyChange:
+    | ((
+        target: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null,
+      ) => void)
+    | undefined
+  let tooltipBodyVisible = false
+  let tooltipBodyDefinition = options.definition
+  let tooltipBodyScene: ChartScene<TDatum, TXValue, TYValue> | undefined
+  let tooltipBodyPoints: readonly ChartPoint<TDatum, TXValue, TYValue>[] = []
+  let tooltipBodyPinned = false
+  let tooltipAnchor: ChartTooltipPosition | null = null
+  let tooltipActive = false
+  let tooltipUsesNativePopover = false
+  let tooltipPopoverOpen = false
+  let tooltipPopoverFailed = false
+  let tooltipPortalListening = false
+  let tooltipPositionFrame: number | undefined
+  let tooltipResizeObserver: ResizeObserver | undefined
+  let suppressNextSurfaceFocus = false
   let spatialIndex: ChartSpatialIndex<TDatum, TXValue, TYValue> | undefined
   const previousPosition = container.style.position
   const view = container.ownerDocument.defaultView
@@ -74,8 +102,8 @@ export function mountChartRenderer<
       surface = options.renderer.mount(container, scheduleRender)
     } else if (surface.renderer !== options.renderer) {
       surface?.destroy()
+      destroyTooltip()
       container.replaceChildren()
-      tooltipElement = undefined
       surface = options.renderer.mount(container, scheduleRender)
       hasRendered = false
     }
@@ -170,6 +198,20 @@ export function mountChartRenderer<
     scheduleRender(true)
   }
 
+  const scheduleTooltipPosition = () => {
+    if (destroyed || !tooltipActive || tooltipPositionFrame !== undefined) {
+      return
+    }
+    if (!view?.requestAnimationFrame) {
+      positionTooltip()
+      return
+    }
+    tooltipPositionFrame = view.requestAnimationFrame(() => {
+      tooltipPositionFrame = undefined
+      positionTooltip()
+    })
+  }
+
   const updateFocus = (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
     forcePaint = false,
@@ -183,6 +225,26 @@ export function mountChartRenderer<
     paintFocus(point, points)
     options.onFocusChange?.(point)
     options.onFocusGroupChange?.(points)
+  }
+
+  const dismissTooltip = () => {
+    if (!focusedPoint && !pinnedKey) return
+    const restoreFocus = Boolean(
+      tooltipElement?.contains(container.ownerDocument.activeElement),
+    )
+    pinnedKey = null
+    pointerPosition = null
+    updateFocus([])
+    const element = surface?.element
+    if (
+      restoreFocus &&
+      element &&
+      'focus' in element &&
+      typeof element.focus === 'function'
+    ) {
+      suppressNextSurfaceFocus = true
+      element.focus()
+    }
   }
 
   const paintFocus = (
@@ -204,7 +266,8 @@ export function mountChartRenderer<
     if (pinnedKey) return
     updateFocus(
       pointsAtPointer(event.clientX, event.clientY),
-      tooltipTracksPointer(),
+      tooltipTracksPointer() ||
+        (tooltipUsesNativePopover && !tooltipPopoverIsOpen()),
     )
   }
   const clearTransientFocus = ({ relatedTarget }: MouseEvent | FocusEvent) => {
@@ -243,14 +306,16 @@ export function mountChartRenderer<
     if (options.definition.keyboard === false || !scene.points.length) return
     if (event.key === 'Escape' && pinnedKey) {
       event.preventDefault()
-      pinnedKey = null
-      pointerPosition = null
-      updateFocus([])
+      dismissTooltip()
       return
     }
     if (event.key === 'Enter' || event.key === ' ') {
       if (!focusedPoint) return
       event.preventDefault()
+      if (tooltipIsSticky()) {
+        pinnedKey = pinnedKey ? null : focusedPoint.key
+        paintFocus(focusedPoint, focusPointsForPoint(focusedPoint))
+      }
       options.onSelect?.(focusedPoint)
       return
     }
@@ -268,6 +333,10 @@ export function mountChartRenderer<
     updateFocus(point ? focusPointsForPoint(point) : [])
   }
   const handleFocus = (event: FocusEvent) => {
+    if (event.target === surface?.element && suppressNextSurfaceFocus) {
+      suppressNextSurfaceFocus = false
+      return
+    }
     if (
       options.definition.keyboard !== false &&
       event.target === surface?.element &&
@@ -280,6 +349,12 @@ export function mountChartRenderer<
       pointerPosition = null
       updateFocus(point ? focusPointsForPoint(point) : [])
     }
+  }
+  const handleTooltipKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || !pinnedKey) return
+    event.preventDefault()
+    event.stopPropagation()
+    dismissTooltip()
   }
   container.addEventListener('pointermove', handlePointerMove)
   container.addEventListener('pointercancel', clearTransientFocus)
@@ -321,6 +396,7 @@ export function mountChartRenderer<
         fontChanged
       const observerChanged = options.width !== nextOptions.width
       options = nextOptions
+      if (!tooltipUsesPortal()) moveTooltipToContainer()
       if (!tooltipIsSticky()) pinnedKey = null
       if (needsRender) {
         render(
@@ -343,6 +419,7 @@ export function mountChartRenderer<
       if (renderFrame !== undefined) {
         view?.cancelAnimationFrame?.(renderFrame)
       }
+      destroyTooltip()
       surface?.destroy()
       runtime.destroy()
       container.removeEventListener('pointermove', handlePointerMove)
@@ -406,57 +483,357 @@ export function mountChartRenderer<
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) {
     if (!options.definition.tooltip || !point) {
-      tooltipElement?.setAttribute('hidden', '')
+      tooltipActive = false
+      tooltipAnchor = null
+      hideTooltipElement()
+      hideTooltipBody()
       return
     }
     const tooltipOptions =
       typeof options.definition.tooltip === 'object'
         ? options.definition.tooltip
         : undefined
-    tooltipElement ??= createTooltip(container)
+    tooltipActive = true
+    if (!tooltipElement) {
+      tooltipElement = createTooltip(container.ownerDocument)
+      tooltipElement.addEventListener('keydown', handleTooltipKeyDown)
+      tooltipResizeObserver = view?.ResizeObserver
+        ? new view.ResizeObserver(scheduleTooltipPosition)
+        : undefined
+      tooltipResizeObserver?.observe(tooltipElement)
+    }
+    configureTooltipParent(tooltipOptions)
     tooltipElement.className = tooltipOptions?.className
       ? `ts-chart-tooltip ${tooltipOptions.className}`
       : 'ts-chart-tooltip'
+    const tooltipPoints = orderTooltipPoints(
+      points,
+      scene,
+      tooltipOptions?.sort,
+    )
     const contentContext = createTooltipContentContext(scene, tooltipOptions)
-    const content = tooltipOptions?.content?.(points, contentContext)
+    const content = tooltipOptions?.content?.(tooltipPoints, contentContext)
     const text =
       content === undefined
-        ? (tooltipOptions?.formatGroup?.(points) ??
+        ? (tooltipOptions?.formatGroup?.(tooltipPoints) ??
           tooltipOptions?.format?.(point))
         : undefined
-    if (content) {
-      paintStructuredTooltip(tooltipElement, content)
-    } else if (text !== undefined) {
-      paintPlainTooltip(tooltipElement, text)
-    } else {
-      paintStructuredTooltip(
-        tooltipElement,
-        defaultTooltipContent(points, scene, tooltipOptions),
-      )
-    }
+    const resolvedContent =
+      content ??
+      text ??
+      defaultTooltipContent(tooltipPoints, scene, tooltipOptions)
     const pinned = pinnedKey !== null
+    const hasCustomBody = renderTooltipBody(
+      tooltipElement,
+      tooltipPoints,
+      resolvedContent,
+      pinned,
+    )
+    if (!hasCustomBody) {
+      if (typeof resolvedContent === 'string') {
+        paintPlainTooltip(tooltipElement, resolvedContent)
+      } else {
+        paintStructuredTooltip(tooltipElement, resolvedContent)
+      }
+    }
+    configureTooltipSemantics(
+      tooltipElement,
+      resolvedContent,
+      hasCustomBody,
+      pinned,
+    )
     tooltipElement.style.pointerEvents = pinned ? 'auto' : 'none'
     tooltipElement.style.userSelect = pinned ? 'text' : 'none'
     tooltipElement.dataset.sticky = String(pinned)
     tooltipElement.style.visibility = 'hidden'
     tooltipElement.removeAttribute('hidden')
-    const anchor = resolveTooltipAnchor(
+    tooltipAnchor = resolveTooltipAnchor(
       point,
-      points,
+      tooltipPoints,
       scene,
       pointerPosition,
       tooltipOptions,
     )
+    positionTooltip()
+    tooltipElement.style.removeProperty('visibility')
+  }
+
+  function renderTooltipBody(
+    tooltip: HTMLDivElement,
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    content: ChartTooltipContent | string,
+    pinned: boolean,
+  ) {
+    const callback = options.onTooltipBodyChange
+    if (!callback) {
+      deactivateTooltipBody()
+      return false
+    }
+    if (activeTooltipBodyChange !== callback) {
+      activeTooltipBodyChange?.(null)
+      activeTooltipBodyChange = callback
+      tooltipBodyVisible = false
+      tooltipBodyElement = undefined
+    }
+    if (!tooltipBodyElement) {
+      tooltipBodyElement = tooltip.ownerDocument.createElement('div')
+      tooltipBodyElement.className = 'ts-chart-tooltip__body'
+      tooltip.replaceChildren(tooltipBodyElement)
+    }
+    tooltipBodyElement.toggleAttribute('inert', !pinned)
+    setTooltipContentAccessibility(tooltip, content)
+    const changed =
+      !tooltipBodyVisible ||
+      tooltipBodyDefinition !== options.definition ||
+      tooltipBodyScene !== scene ||
+      tooltipBodyPinned !== pinned ||
+      !samePointList(points, tooltipBodyPoints)
+    tooltipBodyVisible = true
+    tooltipBodyDefinition = options.definition
+    tooltipBodyScene = scene
+    tooltipBodyPoints = points
+    tooltipBodyPinned = pinned
+    if (changed) {
+      callback({
+        element: tooltipBodyElement,
+        points,
+        content,
+        pinned,
+        dismiss: dismissTooltip,
+      })
+    }
+    return true
+  }
+
+  function hideTooltipBody() {
+    if (!tooltipBodyVisible) return
+    tooltipBodyVisible = false
+    activeTooltipBodyChange?.(null)
+  }
+
+  function deactivateTooltipBody() {
+    hideTooltipBody()
+    activeTooltipBodyChange = undefined
+    tooltipBodyElement = undefined
+    tooltipBodyScene = undefined
+    tooltipBodyPoints = []
+  }
+
+  function positionTooltip() {
+    if (!tooltipActive || !tooltipElement || !tooltipAnchor) return
+    if (tooltipUsesPortal()) {
+      positionPortalTooltip()
+      return
+    }
+    const tooltip = options.definition.tooltip
+    const tooltipOptions =
+      tooltip && typeof tooltip === 'object' ? tooltip : undefined
+    placeTooltip(
+      tooltipElement,
+      tooltipAnchor.x,
+      tooltipAnchor.y,
+      {
+        left: 0,
+        top: 0,
+        right: scene.width,
+        bottom: scene.height,
+      },
+      tooltipOptions?.placement,
+      tooltipOptions?.offset,
+    )
+  }
+
+  function configureTooltipParent(
+    tooltipOptions: ChartTooltipOptions<any, any, any> | undefined,
+  ) {
+    if (!tooltipElement) return
+    if (!tooltipOptions?.portal) {
+      moveTooltipToContainer()
+      return
+    }
+    startTooltipPortalPositioning()
+    const showPopover = (
+      tooltipElement as HTMLDivElement & { showPopover?: () => void }
+    ).showPopover
+    if (typeof showPopover === 'function' && !tooltipPopoverFailed) {
+      if (tooltipElement.parentNode !== container) {
+        container.append(tooltipElement)
+      }
+      tooltipElement.setAttribute('popover', 'manual')
+      tooltipElement.dataset.tsChartTooltipPortal = 'popover'
+      tooltipElement.style.zIndex = '1'
+      tooltipUsesNativePopover = true
+    } else {
+      moveTooltipToPortalFallback()
+    }
+    Object.assign(tooltipElement.style, {
+      position: 'fixed',
+      right: 'auto',
+      bottom: 'auto',
+      margin: '0',
+    })
+  }
+
+  function positionPortalTooltip() {
+    if (
+      !tooltipActive ||
+      !tooltipElement ||
+      !tooltipAnchor ||
+      !surface ||
+      !tooltipUsesPortal()
+    ) {
+      return
+    }
+    const anchor = sceneToClient(surface.element, scene, tooltipAnchor)
+    const boundary = viewportBounds(container.ownerDocument)
+    if (
+      !anchor ||
+      boundary.right <= boundary.left ||
+      boundary.bottom <= boundary.top ||
+      !pointInBounds(anchor, boundary)
+    ) {
+      hideTooltipElement(false)
+      return
+    }
+    tooltipElement.removeAttribute('hidden')
+    if (tooltipUsesNativePopover && !showTooltipPopover()) {
+      tooltipPopoverFailed = true
+      moveTooltipToPortalFallback()
+    }
+    const tooltipOptions = options.definition.tooltip as ChartTooltipOptions<
+      any,
+      any,
+      any
+    >
     placeTooltip(
       tooltipElement,
       anchor.x,
       anchor.y,
-      scene.width,
-      scene.height,
-      tooltipOptions?.placement,
-      tooltipOptions?.offset,
+      boundary,
+      tooltipOptions.placement,
+      tooltipOptions.offset,
     )
-    tooltipElement.style.removeProperty('visibility')
+  }
+
+  function moveTooltipToContainer() {
+    stopTooltipPortalPositioning()
+    if (tooltipElement) {
+      hideTooltipPopover()
+      tooltipUsesNativePopover = false
+      tooltipPopoverFailed = false
+      tooltipElement.removeAttribute('popover')
+      delete tooltipElement.dataset.tsChartTooltipPortal
+      container.append(tooltipElement)
+      tooltipElement.style.position = 'absolute'
+      tooltipElement.style.zIndex = '1'
+    }
+  }
+
+  function moveTooltipToPortalFallback() {
+    if (!tooltipElement) return
+    hideTooltipPopover()
+    tooltipUsesNativePopover = false
+    tooltipElement.removeAttribute('popover')
+    tooltipElement.dataset.tsChartTooltipPortal = 'fallback'
+    tooltipElement.style.zIndex = '2147483647'
+    const parent =
+      container.ownerDocument.body ?? container.ownerDocument.documentElement
+    if (tooltipElement.parentNode !== parent) parent.append(tooltipElement)
+  }
+
+  function startTooltipPortalPositioning() {
+    if (tooltipPortalListening) return
+    tooltipPortalListening = true
+    view?.addEventListener('scroll', scheduleTooltipPosition, {
+      capture: true,
+      passive: true,
+    })
+    view?.addEventListener('resize', scheduleTooltipPosition, { passive: true })
+    view?.visualViewport?.addEventListener('scroll', scheduleTooltipPosition, {
+      passive: true,
+    })
+    view?.visualViewport?.addEventListener('resize', scheduleTooltipPosition, {
+      passive: true,
+    })
+    tooltipResizeObserver?.observe(container)
+  }
+
+  function stopTooltipPortalPositioning() {
+    if (!tooltipPortalListening) return
+    tooltipPortalListening = false
+    view?.removeEventListener('scroll', scheduleTooltipPosition, true)
+    view?.removeEventListener('resize', scheduleTooltipPosition)
+    view?.visualViewport?.removeEventListener('scroll', scheduleTooltipPosition)
+    view?.visualViewport?.removeEventListener('resize', scheduleTooltipPosition)
+    tooltipResizeObserver?.unobserve(container)
+    if (tooltipPositionFrame !== undefined) {
+      view?.cancelAnimationFrame?.(tooltipPositionFrame)
+      tooltipPositionFrame = undefined
+    }
+  }
+
+  function showTooltipPopover() {
+    if (!tooltipElement || !tooltipUsesNativePopover) return false
+    if (tooltipPopoverIsOpen()) return true
+    try {
+      ;(
+        tooltipElement as HTMLDivElement & { showPopover: () => void }
+      ).showPopover()
+      tooltipPopoverOpen = true
+      return true
+    } catch {
+      tooltipPopoverOpen = false
+      return false
+    }
+  }
+
+  function hideTooltipPopover() {
+    if (!tooltipElement || !tooltipUsesNativePopover) return
+    try {
+      if (tooltipPopoverIsOpen()) {
+        ;(
+          tooltipElement as HTMLDivElement & { hidePopover?: () => void }
+        ).hidePopover?.()
+      }
+    } catch {
+      // Removing or hiding the tooltip below still closes its top-layer box.
+    }
+    tooltipPopoverOpen = false
+  }
+
+  function tooltipPopoverIsOpen() {
+    if (!tooltipElement || !tooltipUsesNativePopover) return false
+    try {
+      return tooltipElement.matches(':popover-open')
+    } catch {
+      return tooltipPopoverOpen
+    }
+  }
+
+  function hideTooltipElement(stopPortal = true) {
+    hideTooltipPopover()
+    tooltipElement?.setAttribute('hidden', '')
+    if (stopPortal) stopTooltipPortalPositioning()
+  }
+
+  function destroyTooltip() {
+    tooltipActive = false
+    tooltipAnchor = null
+    deactivateTooltipBody()
+    stopTooltipPortalPositioning()
+    hideTooltipPopover()
+    tooltipResizeObserver?.disconnect()
+    tooltipResizeObserver = undefined
+    tooltipElement?.remove()
+    tooltipElement = undefined
+    tooltipUsesNativePopover = false
+    tooltipPopoverOpen = false
+    tooltipPopoverFailed = false
+  }
+
+  function tooltipUsesPortal() {
+    const tooltip = options.definition.tooltip
+    return Boolean(tooltip && typeof tooltip === 'object' && tooltip.portal)
   }
 
   function tooltipIsSticky() {
@@ -491,6 +868,20 @@ function samePointIdentity<
       left.key === right.key &&
       left.markId === right.markId &&
       left.datumIndex === right.datumIndex)
+  )
+}
+
+function samePointList<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  left: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  right: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+) {
+  return (
+    left.length === right.length &&
+    left.every((point, index) => samePointIdentity(point, right[index] ?? null))
   )
 }
 
@@ -712,8 +1103,8 @@ function compareNavigationPoints<
   return left.x - right.x || left.y - right.y || leftIndex - rightIndex
 }
 
-function createTooltip(container: HTMLElement) {
-  const tooltip = container.ownerDocument.createElement('div')
+function createTooltip(document: Document) {
+  const tooltip = document.createElement('div')
   tooltip.className = 'ts-chart-tooltip'
   tooltip.setAttribute('role', 'status')
   tooltip.setAttribute('aria-live', 'polite')
@@ -732,7 +1123,6 @@ function createTooltip(container: HTMLElement) {
     overflowWrap: 'anywhere',
   })
   tooltip.hidden = true
-  container.append(tooltip)
   return tooltip
 }
 
@@ -761,7 +1151,6 @@ function defaultTooltipContent(
   const x = findTooltipChannelItem(options?.items, 'x')
   const y = findTooltipChannelItem(options?.items, 'y')
   const group = findTooltipChannelItem(options?.items, 'group')
-  const orderedPoints = orderTooltipPoints(points, scene, options?.sort)
   const sharedX =
     points.length > 1 &&
     points.every((candidate) => chartValueEqual(candidate.xValue, point.xValue))
@@ -776,7 +1165,7 @@ function defaultTooltipContent(
     const value = formatPointAxis(point, axis, axisItem, context)
     return {
       title: label ? `${label}: ${value}` : value,
-      rows: orderedPoints.map((candidate) => ({
+      rows: points.map((candidate) => ({
         label: formatTooltipGroup(candidate, group, context),
         value: formatPointAxis(
           candidate,
@@ -791,7 +1180,7 @@ function defaultTooltipContent(
 
   if (points.length > 1) {
     return {
-      rows: orderedPoints.map((candidate) => ({
+      rows: points.map((candidate) => ({
         label: formatTooltipGroup(candidate, group, context),
         value: `${formatPointAxis(candidate, 'x', x, context)} · ${formatPointAxis(candidate, 'y', y, context)}`,
         color: candidate.color,
@@ -824,10 +1213,14 @@ function defaultTooltipContent(
   }
 }
 
-function orderTooltipPoints(
-  points: readonly ChartPoint[],
-  scene: ChartScene,
-  sort: ChartTooltipOptions['sort'],
+function orderTooltipPoints<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+  sort: ChartTooltipOptions<TDatum, TXValue, TYValue>['sort'],
 ) {
   if (sort === 'focus') return [...points]
   if (typeof sort === 'function') return [...points].sort(sort)
@@ -977,8 +1370,7 @@ function findSceneLabel(scene: ChartScene, key: string) {
 }
 
 function paintPlainTooltip(tooltip: HTMLElement, text: string) {
-  tooltip.removeAttribute('aria-label')
-  tooltip.style.whiteSpace = 'pre-wrap'
+  setTooltipContentAccessibility(tooltip, text)
   tooltip.textContent = text
 }
 
@@ -1020,14 +1412,49 @@ function paintStructuredTooltip(
     }
     children.push(rows)
   }
-  tooltip.style.whiteSpace = 'normal'
   tooltip.replaceChildren(...children)
+  setTooltipContentAccessibility(tooltip, content)
+}
+
+function setTooltipContentAccessibility(
+  tooltip: HTMLElement,
+  content: ChartTooltipContent | string,
+) {
+  if (typeof content === 'string') {
+    tooltip.removeAttribute('aria-label')
+    tooltip.style.whiteSpace = 'pre-wrap'
+    return
+  }
+  tooltip.style.whiteSpace = 'normal'
   tooltip.setAttribute(
     'aria-label',
     [content.title, ...content.rows.map((row) => `${row.label}: ${row.value}`)]
       .filter(Boolean)
       .join('\n'),
   )
+}
+
+function configureTooltipSemantics(
+  tooltip: HTMLElement,
+  content: ChartTooltipContent | string,
+  custom: boolean,
+  pinned: boolean,
+) {
+  if (custom && typeof content === 'string') {
+    tooltip.setAttribute('aria-label', content)
+  }
+  if (custom && pinned) {
+    tooltip.setAttribute('role', 'dialog')
+    tooltip.setAttribute('aria-modal', 'false')
+    tooltip.removeAttribute('aria-live')
+    return
+  }
+  tooltip.setAttribute('role', 'status')
+  tooltip.setAttribute('aria-live', 'polite')
+  tooltip.removeAttribute('aria-modal')
+  if (!custom && typeof content === 'string') {
+    tooltip.removeAttribute('aria-label')
+  }
 }
 
 function createTooltipSwatch(document: Document, color: string) {
@@ -1089,8 +1516,7 @@ function placeTooltip(
   tooltip: HTMLElement,
   anchorX: number,
   anchorY: number,
-  sceneWidth: number,
-  sceneHeight: number,
+  boundary: TooltipBounds,
   placement:
     | 'auto'
     | ChartTooltipPlacement
@@ -1103,8 +1529,10 @@ function placeTooltip(
     offset !== undefined && Number.isFinite(offset) ? Math.max(0, offset) : 10
   const width = tooltip.offsetWidth
   const height = tooltip.offsetHeight
-  const maxLeft = Math.max(edge, sceneWidth - edge - width)
-  const maxTop = Math.max(edge, sceneHeight - edge - height)
+  const minimumLeft = boundary.left + edge
+  const minimumTop = boundary.top + edge
+  const maxLeft = Math.max(minimumLeft, boundary.right - edge - width)
+  const maxTop = Math.max(minimumTop, boundary.bottom - edge - height)
   const placements =
     placement === undefined || placement === 'auto'
       ? defaultTooltipPlacements
@@ -1117,23 +1545,9 @@ function placeTooltip(
     tooltipPlacement(candidate, anchorX, anchorY, width, height, gap),
   )
   let selected = candidates[0]!
-  let selectedOverflow = overflow(
-    selected,
-    width,
-    height,
-    sceneWidth,
-    sceneHeight,
-    edge,
-  )
+  let selectedOverflow = overflow(selected, width, height, boundary, edge)
   for (const candidate of candidates) {
-    const candidateOverflow = overflow(
-      candidate,
-      width,
-      height,
-      sceneWidth,
-      sceneHeight,
-      edge,
-    )
+    const candidateOverflow = overflow(candidate, width, height, boundary, edge)
     if (candidateOverflow === 0) {
       selected = candidate
       break
@@ -1143,8 +1557,8 @@ function placeTooltip(
       selectedOverflow = candidateOverflow
     }
   }
-  const left = clamp(selected.left, edge, maxLeft)
-  const top = clamp(selected.top, edge, maxTop)
+  const left = clamp(selected.left, minimumLeft, maxLeft)
+  const top = clamp(selected.top, minimumTop, maxTop)
 
   tooltip.style.left = `${left}px`
   tooltip.style.top = `${top}px`
@@ -1189,15 +1603,56 @@ function overflow(
   position: { left: number; top: number },
   width: number,
   height: number,
-  sceneWidth: number,
-  sceneHeight: number,
+  boundary: TooltipBounds,
   edge: number,
 ) {
   return (
-    Math.max(0, edge - position.left) +
-    Math.max(0, position.left + width + edge - sceneWidth) +
-    Math.max(0, edge - position.top) +
-    Math.max(0, position.top + height + edge - sceneHeight)
+    Math.max(0, boundary.left + edge - position.left) +
+    Math.max(0, position.left + width + edge - boundary.right) +
+    Math.max(0, boundary.top + edge - position.top) +
+    Math.max(0, position.top + height + edge - boundary.bottom)
+  )
+}
+
+function sceneToClient(
+  element: Element,
+  scene: ChartScene,
+  position: ChartTooltipPosition,
+): ChartTooltipPosition | null {
+  const bounds = element.getBoundingClientRect()
+  if (!bounds.width || !bounds.height || !scene.width || !scene.height) {
+    return null
+  }
+  return {
+    x: bounds.left + (position.x / scene.width) * bounds.width,
+    y: bounds.top + (position.y / scene.height) * bounds.height,
+  }
+}
+
+function viewportBounds(document: Document): TooltipBounds {
+  const view = document.defaultView
+  const visualViewport = view?.visualViewport
+  const left = visualViewport?.offsetLeft ?? 0
+  const top = visualViewport?.offsetTop ?? 0
+  const width =
+    visualViewport?.width ||
+    document.documentElement.clientWidth ||
+    view?.innerWidth ||
+    0
+  const height =
+    visualViewport?.height ||
+    document.documentElement.clientHeight ||
+    view?.innerHeight ||
+    0
+  return { left, top, right: left + width, bottom: top + height }
+}
+
+function pointInBounds(point: ChartTooltipPosition, bounds: TooltipBounds) {
+  return (
+    point.x >= bounds.left &&
+    point.x <= bounds.right &&
+    point.y >= bounds.top &&
+    point.y <= bounds.bottom
   )
 }
 

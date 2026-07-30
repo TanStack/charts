@@ -15,6 +15,7 @@ export { Chart } from '@tanstack/octane-charts'
 export type {
   ChartCommonProps,
   ChartProps,
+  ChartTooltipBodyRenderContext,
   ChartDefinition,
   ChartPoint,
 } from '@tanstack/octane-charts'
@@ -127,14 +128,22 @@ not the Octane outer host.
 ## Definition and option identity
 
 Keep fixed definitions outside component execution. Keep one dynamic
-definition stable and pass live values through `input`.
+definition stable until a captured application value changes.
 
 The adapter memoizes host options from semantic props. Callback functions are
 held in refs, so changing only a callback does not rebuild the option object
 and the live wrapper still calls the latest function.
 
-Input equality is core definition behavior; see
+Definition identity is core behavior; see
 [Chart Definition API](../../reference/chart-definitions.md).
+
+## Tooltip body composition
+
+`renderTooltipBody` portals Octane output into the core-owned tooltip body. Its
+context contains `points`, `content`, `defaultBody`, `pinned`, and `dismiss`.
+Include `defaultBody` to retain native rows and swatches. The shared host owns
+focus, placement, portaling, inert transient state, pinning, and dismissal;
+Octane owns the returned component lifecycle.
 
 ## Core boundary
 

@@ -56,7 +56,26 @@ package exposes the SVG component only; use `renderSvg` to replace SVG
 serialization without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
-`ChartDefinition`, and `ChartPoint`.
+`ChartTooltipBodyRenderContext`, `ChartDefinition`, and `ChartPoint`.
+
+## Tooltip body composition
+
+```tsx
+<Chart
+  definition={definition}
+  ariaLabel="Revenue"
+  renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => (
+    <div>
+      {defaultBody}
+      <SeriesDetail points={points} />
+      {pinned ? <button onClick={dismiss}>Close</button> : null}
+    </div>
+  )}
+/>
+```
+
+The shared host owns focus, placement, portaling, and dismissal. Preact owns
+the returned component lifecycle inside the stable tooltip body target.
 
 See the [`Chart` reference](./reference/chart.md), [SSR and hydration](../../guides/ssr-and-hydration.md),
 and [Chart Definition API](../../reference/chart-definitions.md).

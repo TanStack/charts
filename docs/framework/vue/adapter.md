@@ -55,7 +55,14 @@ SVG component only; use `renderSvg` to replace SVG serialization without
 replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
-`ChartDefinition`, and `ChartPoint`.
+`ChartTooltipBodySlotContext`, `ChartDefinition`, and `ChartPoint`.
+
+## Tooltip body composition
+
+Use the `#tooltipBody` scoped slot for Vue-owned content. Render
+`<component :is="defaultBody" />` to retain native rows and swatches. The
+shared host owns focus, placement, portaling, inert transient state, pinning,
+and dismissal; Vue owns the slot lifecycle inside the body target.
 
 See the [`Chart` reference](./reference/chart.md), [SSR and hydration](../../guides/ssr-and-hydration.md),
 and [Chart Definition API](../../reference/chart-definitions.md).

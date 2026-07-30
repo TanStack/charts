@@ -18,7 +18,8 @@ With no custom focus strategy:
 - focusing the SVG selects the first point in the keyboard task order
 - arrow keys move through points sorted by pixel x, then pixel y
 - `Home` and `End` move to the first and last point
-- `Enter` and Space call `onSelect` for the focused point
+- `Enter` and Space toggle an enabled sticky tooltip and call `onSelect` for
+  the focused point
 - a click focuses and selects the nearest point, or selects `null`
 - the renderer's focus ring follows the primary point
 
@@ -111,6 +112,7 @@ interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
+  portal?: boolean
   items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
   sort?: ChartTooltipSort<TDatum, TXValue, TYValue>
   anchor?: ChartTooltipAnchor<TDatum, TXValue, TYValue>
@@ -128,18 +130,19 @@ interface ChartTooltipOptions<
 }
 ```
 
-| Option        | Default        | Meaning                                              |
-| ------------- | -------------- | ---------------------------------------------------- |
-| `className`   | None           | Class appended after `ts-chart-tooltip`              |
-| `items`       | Automatic x/y  | Ordered rows for a single focused point              |
-| `sort`        | `color-domain` | Grouped row order                                    |
-| `anchor`      | `point`        | Point, pointer, group center, or coordinate resolver |
-| `placement`   | `auto`         | Fixed or ordered fallback box placements             |
-| `offset`      | `10`           | Scene-pixel gap between anchor and box               |
-| `content`     | Automatic rows | Returns a safe title and structured rows             |
-| `format`      | None           | Replaces content with primary-point text             |
-| `formatGroup` | None           | Replaces content with focused-group text             |
-| `sticky`      | `true`         | Enables click-to-pin and text selection              |
+| Option        | Default        | Meaning                                                 |
+| ------------- | -------------- | ------------------------------------------------------- |
+| `className`   | None           | Class appended after `ts-chart-tooltip`                 |
+| `portal`      | `false`        | Escapes clipping through top-layer or fixed positioning |
+| `items`       | Automatic x/y  | Ordered rows for a single focused point                 |
+| `sort`        | `color-domain` | Grouped row order                                       |
+| `anchor`      | `point`        | Point, pointer, group center, or coordinate resolver    |
+| `placement`   | `auto`         | Fixed or ordered fallback box placements                |
+| `offset`      | `10`           | Scene-pixel gap between anchor and box                  |
+| `content`     | Automatic rows | Returns a safe title and structured rows                |
+| `format`      | None           | Replaces content with primary-point text                |
+| `formatGroup` | None           | Replaces content with focused-group text                |
+| `sticky`      | `true`         | Enables activation-to-pin and text selection            |
 
 Formatting precedence is `content`, `formatGroup`, `format`, then the default.
 The text formatters do not parse HTML, and newlines are preserved. `className`
@@ -211,13 +214,22 @@ const tooltip = {
 }
 ```
 
-Clicking a point pins the tooltip. A later click unpins it. `Escape` unpins and
-clears focus. Set `sticky: false` to disable pinning. The tooltip has
-`role="status"` and `aria-live="polite"`.
+Set `portal: true` when an ancestor clips overflow or creates an incompatible
+stacking context. The host opens the tooltip as a manual Popover in the browser
+top layer where supported, while retaining its chart DOM ancestry. If Popover
+is unavailable or fails, it moves the tooltip directly under the chart's
+`ownerDocument` body with fixed high-stack positioning. Both paths map the
+scene anchor to viewport coordinates, reposition during scroll, resize, and
+content resize, and collide against the viewport instead of the chart box.
 
-`content` supports display-only rows. For interactive or nested UI, omit the
-native tooltip and render application content from `onFocusChange` or
-`onFocusGroupChange`.
+Clicking, Enter, or Space pins the tooltip. The next activation unpins it.
+`Escape` unpins and clears focus. Set `sticky: false` to disable pinning. A
+display-only tooltip has `role="status"` and `aria-live="polite"`.
+
+`content` supports display-only rows. Every framework adapter can compose
+native content around those rows while preserving the definition's ordering,
+anchor, placement, portal, and pinning behavior. A pinned custom body has
+non-modal dialog semantics.
 
 ## Callbacks
 

@@ -42,7 +42,32 @@ style attributes own its presentation. The `className` chart option applies
 to the rendered SVG surface. The package exposes the SVG directive only; use
 `renderSvg` to replace SVG serialization without replacing the shared host.
 
-Exports: `charts`, `ChartOptions`, `ChartDefinition`, and `ChartPoint`.
+Exports: `charts`, `ChartOptions`, `ChartTooltipBodyRenderContext`,
+`AlpineChartTooltipBody`, `ChartDefinition`, and `ChartPoint`.
+
+## Tooltip body composition
+
+```ts
+const chartOptions = {
+  definition,
+  ariaLabel: 'Revenue',
+  renderTooltipBody({ points, defaultBody, pinned, dismiss }) {
+    const body = document.createElement('div')
+    body.append(defaultBody)
+    body.append(`Focused rows: ${points.length}`)
+    if (pinned) {
+      const close = document.createElement('button')
+      close.textContent = 'Close'
+      close.addEventListener('click', dismiss)
+      body.append(close)
+    }
+    return body
+  },
+}
+```
+
+The shared host owns focus, placement, portaling, inert transient state,
+pinning, and dismissal. Alpine owns the returned DOM content.
 
 See the [`x-chart` reference](./reference/chart.md) and
 [Chart Definition API](../../reference/chart-definitions.md).

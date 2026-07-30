@@ -214,6 +214,8 @@ See [DOM host](./dom-host.md) and
 | `ChartTooltipContent`        | Safe title and row model for a native tooltip            |
 | `ChartTooltipRow`            | Label, formatted value, and optional color swatch        |
 | `ChartTooltipContentContext` | Axis labels and value formatters for content callbacks   |
+| `ChartTooltipBodyContext`    | Focused points, content, pinned state, and dismissal     |
+| `ChartTooltipBodyTarget`     | Renderer-adapter body mount element plus body context    |
 
 See [Focus and interaction](./focus-and-interaction.md).
 

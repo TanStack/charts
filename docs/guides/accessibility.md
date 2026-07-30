@@ -105,8 +105,13 @@ The native tooltip exposes its structured rows through a polite status region.
 It is not a replacement for a label, axis, legend, or data table. Essential
 information must remain available without hovering.
 
-For complex content, render an application-owned tooltip and manage focus,
-dismissal, and reading order as ordinary HTML.
+For complex framework content, use the adapter's tooltip-body composition
+surface. Its transient body is inert, so a display-only nested chart can remain
+visible but does not enter the focus or accessibility order. Render controls
+only while `pinned` is true. The pinned surface has non-modal dialog semantics,
+Escape and `dismiss()` close it, and focus returns to the chart when dismissal
+starts inside the body. Controls still need an intentional tab order and
+accessible names.
 
 ## Linked table pattern
 

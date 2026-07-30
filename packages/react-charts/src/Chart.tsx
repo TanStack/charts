@@ -12,6 +12,7 @@ import type {
 } from '@tanstack/charts'
 import {
   RendererChartImplementation,
+  type ChartTooltipBodyRenderContext,
   type RendererChartProps,
 } from './RendererChart'
 
@@ -42,6 +43,9 @@ export interface ChartCommonProps<
   ) => void
   onSelect?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
   onRender?: (context: ChartRenderContext<TDatum, TXValue, TYValue>) => void
+  renderTooltipBody?: (
+    context: ChartTooltipBodyRenderContext<TDatum, TXValue, TYValue>,
+  ) => React.ReactNode
 }
 
 export type ChartProps<

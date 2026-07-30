@@ -4,5 +4,10 @@
     "allowJs": true,
     "checkJs": true
   },
-  "include": ["src/**/*.svelte", "src/**/*.ts", "tests/**/*.ts"]
+  "include": [
+    "src/**/*.svelte",
+    "src/**/*.ts",
+    "tests/**/*.svelte",
+    "tests/**/*.ts"
+  ]
 }
