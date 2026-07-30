@@ -10,9 +10,10 @@ pnpm add @tanstack/charts @tanstack/solid-charts solid-js d3-scale
 ```tsx
 import { Chart } from '@tanstack/solid-charts'
 
+const definition = createMemo(() => createRevenueChart(rows()))
+
 ;<Chart
-  definition={definition}
-  input={{ rows }}
+  definition={definition()}
   ariaLabel="Revenue by month"
   aspectRatio={16 / 9}
   tooltip
@@ -27,15 +28,15 @@ Solid SSR.
 
 The component creates one shared adapter controller, forwards reactive props
 from `createEffect`, mounts it in `onMount`, and destroys it in `onCleanup`.
-Keep a fixed definition outside the component; pass live values through a
-dynamic definition's `input`.
+Keep stable definitions at module scope. Use `createMemo` for definitions that
+capture reactive values.
 
 ## SSR and hydration
 
 Solid SSR emits the complete `.ts-chart-host`, `.ts-chart-surface`, and
 accessible SVG. `initialWidth` controls responsive server geometry.
 `createUniqueId()` supplies the generated resource prefix. Keep server and
-browser definitions, inputs, formatters, and dimensions deterministic.
+browser definitions, formatters, and dimensions deterministic.
 
 ## Presentation and rendering
 
@@ -45,7 +46,7 @@ adapter sizing. The package exposes the SVG component only; use `renderSvg` to
 replace SVG serialization without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
-`DynamicChartProps`, `StaticChartProps`, `ChartDefinition`, and `ChartPoint`.
+`ChartDefinition`, and `ChartPoint`.
 
 See the [`Chart` reference](./reference/chart.md), [SSR and hydration](../../guides/ssr-and-hydration.md),
 and [Chart Definition API](../../reference/chart-definitions.md).

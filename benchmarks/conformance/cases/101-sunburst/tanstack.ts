@@ -37,68 +37,71 @@ function nodeKey(node: HierarchyRectangularNode<SunburstNode>): string {
     .join('/')
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const tree = sunburstData(input.revision)
-  const root = hierarchy(tree).sum((node) =>
-    node.children?.length ? 0 : node.value,
-  )
-  const layout = partition<SunburstNode>().size([Math.PI * 2, root.height + 1])(
-    root,
-  )
-  const data: SunburstArcDatum[] = layout
-    .descendants()
-    .filter((node) => node.depth > 0)
-    .map((node) => ({
-      id: nodeKey(node),
-      name: node.data.name,
-      value: node.value ?? 0,
-      depth: node.depth,
-      startAngle: Math.PI / 2 - node.x0,
-      endAngle: Math.PI / 2 - node.x1,
-      fill: inheritedFill(node),
-    }))
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const tree = sunburstData(input.revision)
+    const root = hierarchy(tree).sum((node) =>
+      node.children?.length ? 0 : node.value,
+    )
+    const layout = partition<SunburstNode>().size([
+      Math.PI * 2,
+      root.height + 1,
+    ])(root)
+    const data: SunburstArcDatum[] = layout
+      .descendants()
+      .filter((node) => node.depth > 0)
+      .map((node) => ({
+        id: nodeKey(node),
+        name: node.data.name,
+        value: node.value ?? 0,
+        depth: node.depth,
+        startAngle: Math.PI / 2 - node.x0,
+        endAngle: Math.PI / 2 - node.x1,
+        fill: inheritedFill(node),
+      }))
 
-  return {
-    marks: [
-      polar({
-        radiusRatio: 0.88,
-        marks: [
-          radialArc(data, {
-            key: 'id',
-            className: 'ts-chart__sunburst',
-            generator: ({ radius }) => {
-              const innerRadius = radius * 0.14
-              const treeDepth = root.height + 1
-              const thickness = (radius - innerRadius) / treeDepth
-              const ringPadding = 2
+    return {
+      marks: [
+        polar({
+          radiusRatio: 0.88,
+          marks: [
+            radialArc(data, {
+              key: 'id',
+              className: 'ts-chart__sunburst',
+              generator: ({ radius }) => {
+                const innerRadius = radius * 0.14
+                const treeDepth = root.height + 1
+                const thickness = (radius - innerRadius) / treeDepth
+                const ringPadding = 2
 
-              return arc<unknown, SunburstArcDatum>()
-                .startAngle((node) => node.startAngle)
-                .endAngle((node) => node.endAngle)
-                .innerRadius(
-                  (node) =>
-                    innerRadius + (node.depth - 1) * (thickness + ringPadding),
-                )
-                .outerRadius(
-                  (node) =>
-                    innerRadius +
-                    (node.depth - 1) * (thickness + ringPadding) +
-                    thickness,
-                )
-            },
-            fill: (node: SunburstArcDatum) => node.fill,
-            stroke: '#ffffff',
-            strokeWidth: 2,
-          }),
-        ],
-      }),
-    ],
-    x: null,
-    y: null,
-    guides: false,
-    margin: 0,
-  }
-})
+                return arc<unknown, SunburstArcDatum>()
+                  .startAngle((node) => node.startAngle)
+                  .endAngle((node) => node.endAngle)
+                  .innerRadius(
+                    (node) =>
+                      innerRadius +
+                      (node.depth - 1) * (thickness + ringPadding),
+                  )
+                  .outerRadius(
+                    (node) =>
+                      innerRadius +
+                      (node.depth - 1) * (thickness + ringPadding) +
+                      thickness,
+                  )
+              },
+              fill: (node: SunburstArcDatum) => node.fill,
+              stroke: '#ffffff',
+              strokeWidth: 2,
+            }),
+          ],
+        }),
+      ],
+      x: null,
+      y: null,
+      guides: false,
+      margin: 0,
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Sunburst hierarchy', {
   format: ({ datum }) =>

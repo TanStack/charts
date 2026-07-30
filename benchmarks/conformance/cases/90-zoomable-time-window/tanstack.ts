@@ -12,7 +12,7 @@ import {
   zoomFullDomain,
   zoomSpanDays,
 } from './data'
-import type { ChartScene, DynamicChartHostOptions } from '@tanstack/charts'
+import type { ChartScene, ChartHostOptions } from '@tanstack/charts'
 import type { D3ZoomEvent, ZoomTransform } from 'd3-zoom'
 import type { ZoomDatum, ZoomWindow } from './data'
 import type {
@@ -40,48 +40,49 @@ const color = '#0f766e'
 const yDomain = [20, 85] as const
 const zoomScale = scaleUtc().domain(zoomFullDomain)
 
-const definition = defineChart<ZoomChartInput>()(({ input }) => {
-  const rows = visibleZoomData(zoomData(input.revision), input.window)
-  return {
-    marks: [
-      lineY(rows, {
-        id: 'zoom-series',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        stroke: color,
-        strokeWidth: 2.5,
-      }),
-      dot(rows, {
-        id: 'zoom-points',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        fill: color,
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleForWindow(input.window),
-      label: 'Date',
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          timeZone: 'UTC',
+const definition = (input: ZoomChartInput) =>
+  defineChart(() => {
+    const rows = visibleZoomData(zoomData(input.revision), input.window)
+    return {
+      marks: [
+        lineY(rows, {
+          id: 'zoom-series',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          stroke: color,
+          strokeWidth: 2.5,
         }),
-    },
-    y: {
-      scale: scaleLinear().domain(yDomain),
-      ticks: 4,
-      grid: true,
-      label: 'Value',
-    },
-    margin: { top: 56, right: 24, bottom: 44, left: 58 },
-  }
-})
+        dot(rows, {
+          id: 'zoom-points',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          fill: color,
+          r: 3.5,
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+      ],
+      x: {
+        scale: scaleForWindow(input.window),
+        label: 'Date',
+        format: (value) =>
+          value.toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            timeZone: 'UTC',
+          }),
+      },
+      y: {
+        scale: scaleLinear().domain(yDomain),
+        ticks: 4,
+        grid: true,
+        label: 'Value',
+      },
+      margin: { top: 56, right: 24, bottom: 44, left: 58 },
+    }
+  })
 
 export function mount(
   container: HTMLElement,
@@ -100,12 +101,11 @@ export function mount(
   setSurfaceSize(surface, input)
   container.append(surface)
 
-  const options = (): DynamicChartHostOptions<ZoomDatum, ZoomChartInput> => ({
-    definition,
-    input: {
+  const options = (): ChartHostOptions<ZoomDatum> => ({
+    definition: definition({
       ...currentInput,
       window: state.window,
-    },
+    }),
     width: currentInput.width,
     height: currentInput.height,
     ariaLabel: 'Time series with a wheel-zoomable and pannable time viewport',

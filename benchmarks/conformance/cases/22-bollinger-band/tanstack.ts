@@ -18,40 +18,41 @@ interface BollingerPoint {
 const windowSize = 8
 const deviationMultiplier = 2
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = bollingerIntervals(bollingerData(input.revision))
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = bollingerIntervals(bollingerData(input.revision))
 
-  return {
-    marks: [
-      areaY(rows, {
-        id: 'bollinger-band',
-        x: 'date',
-        y1: 'lower',
-        y2: 'upper',
-        key: 'id',
-        fill: '#7c3aed',
-        fillOpacity: 0.18,
-      }),
-      lineY(rows, {
-        id: 'bollinger-mean',
-        x: 'date',
-        y: 'center',
-        key: 'id',
-        stroke: '#7c3aed',
-        strokeWidth: 2.25,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(timeDomain),
-      label: 'Week',
-    },
-    y: {
-      scale: scaleLinear().domain(bollingerValueDomain),
-      grid: true,
-      label: 'Index',
-    },
-  }
-})
+    return {
+      marks: [
+        areaY(rows, {
+          id: 'bollinger-band',
+          x: 'date',
+          y1: 'lower',
+          y2: 'upper',
+          key: 'id',
+          fill: '#7c3aed',
+          fillOpacity: 0.18,
+        }),
+        lineY(rows, {
+          id: 'bollinger-mean',
+          x: 'date',
+          y: 'center',
+          key: 'id',
+          stroke: '#7c3aed',
+          strokeWidth: 2.25,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(timeDomain),
+        label: 'Week',
+      },
+      y: {
+        scale: scaleLinear().domain(bollingerValueDomain),
+        grid: true,
+        label: 'Index',
+      },
+    }
+  })
 
 export const mount: ConformanceMount = tanstackMount(
   definition,

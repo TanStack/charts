@@ -34,58 +34,59 @@ function angleLabelDy({ angle, y }: PolarGuideLabelContext): number {
   return y > 0 ? -1.1 : 0
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const data = radarData(input.revision)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const data = radarData(input.revision)
 
-  return {
-    marks: [
-      polar({
-        angle: { scale: angleScale, wrap: true },
-        radius: { scale: radiusScale },
-        inset: 0,
-        radiusRatio: 0.8,
-        guides: [
-          radialGrid({
-            values: ringValues,
-            shape: 'polygon',
-            labels: true,
-            labelAngle: Math.PI / 3,
-            labelRotate: 60,
-            labelBaseline: 'auto',
-            labelFill: '#cccccc',
-            stroke: '#cbd5e1',
-          }),
-          angleGrid({
-            values: radarSubjects,
-            labels: true,
-            labelOffset: 8,
-            labelBaseline: angleLabelBaseline,
-            labelDy: angleLabelDy,
-            labelFill: '#808080',
-            stroke: '#cbd5e1',
-          }),
-        ],
-        marks: [
-          radialArea(data, {
-            angle: 'subject',
-            radius: 'score',
-            key: 'subject',
-            className: 'ts-chart__radar',
-            curve: curveLinearClosed,
-            fill: '#8884d8',
-            fillOpacity: 0.6,
-            stroke: '#8884d8',
-            strokeWidth: 2,
-          }),
-        ],
-      }),
-    ],
-    x: null,
-    y: null,
-    guides: false,
-    margin: 20,
-  }
-})
+    return {
+      marks: [
+        polar({
+          angle: { scale: angleScale, wrap: true },
+          radius: { scale: radiusScale },
+          inset: 0,
+          radiusRatio: 0.8,
+          guides: [
+            radialGrid({
+              values: ringValues,
+              shape: 'polygon',
+              labels: true,
+              labelAngle: Math.PI / 3,
+              labelRotate: 60,
+              labelBaseline: 'auto',
+              labelFill: '#cccccc',
+              stroke: '#cbd5e1',
+            }),
+            angleGrid({
+              values: radarSubjects,
+              labels: true,
+              labelOffset: 8,
+              labelBaseline: angleLabelBaseline,
+              labelDy: angleLabelDy,
+              labelFill: '#808080',
+              stroke: '#cbd5e1',
+            }),
+          ],
+          marks: [
+            radialArea(data, {
+              angle: 'subject',
+              radius: 'score',
+              key: 'subject',
+              className: 'ts-chart__radar',
+              curve: curveLinearClosed,
+              fill: '#8884d8',
+              fillOpacity: 0.6,
+              stroke: '#8884d8',
+              strokeWidth: 2,
+            }),
+          ],
+        }),
+      ],
+      x: null,
+      y: null,
+      guides: false,
+      margin: 20,
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Simple radar chart', {
   format: ({ datum }) => `${datum.subject} · ${datum.score} / ${maximumScore}`,

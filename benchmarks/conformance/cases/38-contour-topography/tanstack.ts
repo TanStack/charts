@@ -7,20 +7,21 @@ import type { ContourMultiPolygon } from 'd3-contour'
 import type { ConformanceInput } from '../../types'
 import type { SceneNode } from '@tanstack/charts'
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const grid = contourGrid(input.revision)
-  const geometry = contours()
-    .size([grid.width, grid.height])
-    .thresholds([...contourThresholds])(grid.values)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const grid = contourGrid(input.revision)
+    const geometry = contours()
+      .size([grid.width, grid.height])
+      .thresholds([...contourThresholds])(grid.values)
 
-  return {
-    marks: [contourMark(geometry, grid.width, grid.height)],
-    x: null,
-    y: null,
-    guides: false,
-    margin: 12,
-  }
-})
+    return {
+      marks: [contourMark(geometry, grid.width, grid.height)],
+      x: null,
+      y: null,
+      guides: false,
+      margin: 12,
+    }
+  })
 
 function contourMark(
   geometry: readonly ContourMultiPolygon[],

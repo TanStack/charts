@@ -10,25 +10,13 @@ import type {
   ChartHostOptions,
   ChartValue,
 } from '@tanstack/charts'
-import type { ChartProps, DynamicChartProps, StaticChartProps } from './types'
+import type { ChartProps } from './types'
 
 export function Chart<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(props: StaticChartProps<TDatum, TXValue, TYValue>): JSX.Element
-export function Chart<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->(props: DynamicChartProps<TDatum, TInput, TXValue, TYValue>): JSX.Element
-export function Chart<
-  TDatum,
-  TInput = undefined,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->(props: ChartProps<TDatum, TInput, TXValue, TYValue>) {
+>(props: ChartProps<TDatum, TXValue, TYValue>) {
   const generatedId = useId()
   const idPrefix =
     props.idPrefix ??
@@ -38,7 +26,7 @@ export function Chart<
     [props, idPrefix],
   )
   const adapterRef = useRef<ChartAdapter<
-    ChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+    ChartHostOptions<TDatum, TXValue, TYValue>,
     TDatum,
     TXValue,
     TYValue
@@ -79,7 +67,7 @@ export function Chart<
 }
 
 function hostStyle(
-  props: ChartProps<any, any, any, any>,
+  props: ChartProps<any, any, any>,
   layout: ReturnType<typeof resolveChartAdapterLayout>,
 ): JSX.CSSProperties {
   return Object.assign(
@@ -96,13 +84,12 @@ function hostStyle(
 
 function toHostOptions<
   TDatum,
-  TInput,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
+  props: ChartProps<TDatum, TXValue, TYValue>,
   idPrefix: string,
-): ChartHostOptions<TDatum, TInput, TXValue, TYValue> {
+): ChartHostOptions<TDatum, TXValue, TYValue> {
   const { className: _className, style: _style, ...options } = props
   return { ...options, idPrefix }
 }

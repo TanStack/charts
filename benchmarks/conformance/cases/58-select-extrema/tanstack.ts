@@ -15,48 +15,49 @@ interface ExtremumAnnotation extends ExtremumPoint {
 
 const annotationColor = '#dc2626'
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = extremumData(input.revision)
-  const annotations = selectExtrema(rows)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = extremumData(input.revision)
+    const annotations = selectExtrema(rows)
 
-  return {
-    marks: [
-      lineY(rows, {
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        stroke: '#2563eb',
-        strokeWidth: 2.25,
-      }),
-      dot(annotations, {
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        fill: annotationColor,
-        r: 5,
-      }),
-      text(annotations, {
-        x: 'date',
-        y: 'value',
-        text: 'label',
-        key: 'id',
-        fill: annotationColor,
-        anchor: (point) => point.anchor,
-        dx: (point) => point.dx,
-        dy: (point) => point.dy,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(extremumDateDomain),
-      label: 'Week',
-    },
-    y: {
-      scale: scaleLinear().domain(extremumValueDomain),
-      grid: true,
-      label: 'Index',
-    },
-  }
-})
+    return {
+      marks: [
+        lineY(rows, {
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          stroke: '#2563eb',
+          strokeWidth: 2.25,
+        }),
+        dot(annotations, {
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          fill: annotationColor,
+          r: 5,
+        }),
+        text(annotations, {
+          x: 'date',
+          y: 'value',
+          text: 'label',
+          key: 'id',
+          fill: annotationColor,
+          anchor: (point) => point.anchor,
+          dx: (point) => point.dx,
+          dy: (point) => point.dy,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(extremumDateDomain),
+        label: 'Week',
+      },
+      y: {
+        scale: scaleLinear().domain(extremumValueDomain),
+        grid: true,
+        label: 'Index',
+      },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

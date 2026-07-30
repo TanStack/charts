@@ -285,32 +285,33 @@ console.log(
   `| Stateful trend update · 78 points · 1024px | ${formatDuration(percentile(updateSamples, 0.5))} | ${formatDuration(percentile(updateSamples, 0.95))} |`,
 )
 
-const nativeDynamicDefinition = defineChart<{
+const createNativeDynamicDefinition = (input: {
   points: readonly DownloadPoint[]
-}>()(({ input }) => {
-  const maximum = max(input.points, (point) => point.downloads) ?? 1
-  return {
-    marks: [
-      lineY(input.points, {
-        id: 'downloads',
-        x: 'date',
-        y: 'downloads',
-        z: 'package',
-        key: (point) => `${point.package}:${point.date.toISOString()}`,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(input.points.map((point) => point.date)),
-      ticks: 6,
-    },
-    y: {
-      scale: scaleLinear().domain([0, maximum]).nice(5),
-      ticks: 5,
-    },
-  }
-})
+}) =>
+  defineChart(() => {
+    const maximum = max(input.points, (point) => point.downloads) ?? 1
+    return {
+      marks: [
+        lineY(input.points, {
+          id: 'downloads',
+          x: 'date',
+          y: 'downloads',
+          z: 'package',
+          key: (point) => `${point.package}:${point.date.toISOString()}`,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(input.points.map((point) => point.date)),
+        ticks: 6,
+      },
+      y: {
+        scale: scaleLinear().domain([0, maximum]).nice(5),
+        ticks: 5,
+      },
+    }
+  })
 const nativeUpdateSamples = measureNativeHostUpdates(
-  nativeDynamicDefinition,
+  createNativeDynamicDefinition,
   [{ points: downloadData }, { points: alternateDownloadData }],
   1024,
   330,
@@ -455,7 +456,7 @@ function measureD3(
 }
 
 function measureNativeHostUpdates<TInput>(
-  definition: DynamicChartDefinition<TInput, any, unknown>,
+  createDefinition: (input: TInput) => DynamicChartDefinition<unknown>,
   inputs: readonly [TInput, TInput],
   width: number,
   height: number,
@@ -463,8 +464,7 @@ function measureNativeHostUpdates<TInput>(
   const container = document.createElement('div')
   document.body.append(container)
   const options = {
-    definition,
-    input: inputs[0],
+    definition: createDefinition(inputs[0]),
     width,
     height,
     ariaLabel: 'Benchmark',
@@ -476,7 +476,7 @@ function measureNativeHostUpdates<TInput>(
     const startedAt = performance.now()
     host.update({
       ...options,
-      input: inputs[(index + 1) % 2],
+      definition: createDefinition(inputs[(index + 1) % 2]),
     })
     const duration = performance.now() - startedAt
     if (index >= 5) samples.push(duration)

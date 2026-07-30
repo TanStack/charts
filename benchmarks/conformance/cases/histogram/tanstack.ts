@@ -19,10 +19,11 @@ const createBins = bin<DistributionPoint, number>()
   .domain([boundaries[0] ?? 20, boundaries.at(-1) ?? 90])
   .thresholds(boundaries.slice(1, -1))
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = distributionData(input.revision)
-  const bins: readonly HistogramBin[] = createBins(rows).flatMap(
-    (bucket, index) =>
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const bins: readonly HistogramBin[] = createBins(
+      distributionData(input.revision),
+    ).flatMap((bucket, index) =>
       bucket.x0 === undefined || bucket.x1 === undefined
         ? []
         : [
@@ -33,32 +34,32 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
               count: bucket.length,
             },
           ],
-  )
+    )
 
-  return {
-    marks: [
-      rect(bins, {
-        x1: 'x0',
-        x2: 'x1',
-        y1: () => 0,
-        y2: 'count',
-        key: 'id',
-        fill: '#2563eb',
-        inset: 1,
-      }),
-    ],
-    x: {
-      scale: scaleLinear().domain([20, 90]),
-      grid: true,
-      label: 'Value',
-    },
-    y: {
-      scale: scaleLinear().domain([0, 80]),
-      grid: true,
-      label: 'Count',
-    },
-  }
-})
+    return {
+      marks: [
+        rect(bins, {
+          x1: 'x0',
+          x2: 'x1',
+          y1: () => 0,
+          y2: 'count',
+          key: 'id',
+          fill: '#2563eb',
+          inset: 1,
+        }),
+      ],
+      x: {
+        scale: scaleLinear().domain([20, 90]),
+        grid: true,
+        label: 'Value',
+      },
+      y: {
+        scale: scaleLinear().domain([0, 80]),
+        grid: true,
+        label: 'Count',
+      },
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Histogram of values', {
   format: ({ datum }) =>

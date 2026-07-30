@@ -53,170 +53,170 @@ export interface ErrorVolumeInput {
   compactTime: boolean
 }
 
-export const errorVolumeChart = defineChart<ErrorVolumeInput>()(({
-  input,
-  width,
-}) => {
-  const dates = dateDomain(input.totals)
-  const highest = max(input.totals, (row) => row.value) ?? 1
-  const totalLine = input.stack.filter((row) => row.severity === 'Warning')
+export const createErrorVolumeChart = (input: ErrorVolumeInput) =>
+  defineChart(({ width }) => {
+    const dates = dateDomain(input.totals)
+    const highest = max(input.totals, (row) => row.value) ?? 1
+    const totalLine = input.stack.filter((row) => row.severity === 'Warning')
 
-  return {
-    marks: [
-      areaY(input.stack, {
-        id: 'severity-area',
-        x: 'date',
-        y1: 'y1',
-        y2: 'y2',
-        z: 'severity',
-        key: 'id',
-        fill: (row) => `url(#${row.severity.toLowerCase()}-volume)`,
-        fillOpacity: 0.92,
-        curve: smooth,
-      }),
-      lineY(totalLine, {
-        id: 'total-line',
-        x: 'date',
-        y: 'y2',
-        key: 'id',
-        stroke: '#ff8372',
-        strokeWidth: 2.4,
-        curve: smooth,
-      }),
-      ruleY([highest * 0.66], {
-        id: 'alert-threshold',
-        stroke: '#ff847b',
-        strokeOpacity: 0.28,
-        strokeWidth: 1,
-        strokeDasharray: '3 6',
-      }),
-      ruleX(input.releases, {
-        id: 'release-rules',
-        x: 'date',
-        stroke: '#aea8ff',
-        strokeOpacity: 0.36,
-        strokeWidth: 1,
-        strokeDasharray: '2 5',
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(dates),
-      ticks: width < 680 ? 4 : 7,
-      format: input.compactTime ? formatHour : formatDay,
-    },
-    y: {
-      scale: scaleLinear()
-        .domain([0, highest * 1.08])
-        .nice(4),
-      ticks: 4,
-      format: compactNumber,
-      grid: true,
-    },
-    color: {
-      scale: scaleOrdinal<(typeof severities)[number], string>()
-        .domain(severities)
-        .range(severities.map((severity) => severityColors[severity])),
-    },
-    gradients: severities.map((severity) => ({
-      id: `${severity.toLowerCase()}-volume`,
-      x1: 0,
-      y1: 0,
-      x2: 0,
-      y2: 1,
-      stops: [
-        { offset: 0, color: severityColors[severity], opacity: 0.72 },
-        { offset: 1, color: severityColors[severity], opacity: 0.08 },
+    return {
+      marks: [
+        areaY(input.stack, {
+          id: 'severity-area',
+          x: 'date',
+          y1: 'y1',
+          y2: 'y2',
+          z: 'severity',
+          key: 'id',
+          fill: (row) => `url(#${row.severity.toLowerCase()}-volume)`,
+          fillOpacity: 0.92,
+          curve: smooth,
+        }),
+        lineY(totalLine, {
+          id: 'total-line',
+          x: 'date',
+          y: 'y2',
+          key: 'id',
+          stroke: '#ff8372',
+          strokeWidth: 2.4,
+          curve: smooth,
+        }),
+        ruleY([highest * 0.66], {
+          id: 'alert-threshold',
+          stroke: '#ff847b',
+          strokeOpacity: 0.28,
+          strokeWidth: 1,
+          strokeDasharray: '3 6',
+        }),
+        ruleX(input.releases, {
+          id: 'release-rules',
+          x: 'date',
+          stroke: '#aea8ff',
+          strokeOpacity: 0.36,
+          strokeWidth: 1,
+          strokeDasharray: '2 5',
+        }),
       ],
-    })),
-    clip: true,
-    margin: {
-      top: 18,
-      right: 8,
-      bottom: 28,
-      left: width < 520 ? 34 : 44,
-    },
-    theme: chartTheme,
-  }
-})
+      x: {
+        scale: scaleUtc().domain(dates),
+        ticks: width < 680 ? 4 : 7,
+        format: input.compactTime ? formatHour : formatDay,
+      },
+      y: {
+        scale: scaleLinear()
+          .domain([0, highest * 1.08])
+          .nice(4),
+        ticks: 4,
+        format: compactNumber,
+        grid: true,
+      },
+      color: {
+        scale: scaleOrdinal<(typeof severities)[number], string>()
+          .domain(severities)
+          .range(severities.map((severity) => severityColors[severity])),
+      },
+      gradients: severities.map((severity) => ({
+        id: `${severity.toLowerCase()}-volume`,
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 1,
+        stops: [
+          { offset: 0, color: severityColors[severity], opacity: 0.72 },
+          { offset: 1, color: severityColors[severity], opacity: 0.08 },
+        ],
+      })),
+      clip: true,
+      margin: {
+        top: 18,
+        right: 8,
+        bottom: 28,
+        left: width < 520 ? 34 : 44,
+      },
+      theme: chartTheme,
+    }
+  })
 
 export interface SparkInput {
   rows: readonly SparkPoint[]
   color: string
 }
 
-export const sparklineChart = defineChart<SparkInput>()(({ input }) => {
-  const [minimum, maximum] = extent(input.rows, (row) => row.value)
-  const minValue = minimum ?? 0
-  const maxValue = maximum ?? 1
-  const padding = Math.max(1, (maxValue - minValue) * 0.2)
+export const createSparklineChart = (input: SparkInput) =>
+  defineChart(() => {
+    const [minimum, maximum] = extent(input.rows, (row) => row.value)
+    const minValue = minimum ?? 0
+    const maxValue = maximum ?? 1
+    const padding = Math.max(1, (maxValue - minValue) * 0.2)
 
-  return {
-    marks: [
-      areaY(input.rows, {
-        id: 'spark-area',
-        x: 'date',
-        y1: minValue - padding,
-        y2: 'value',
-        key: 'id',
-        fill: 'url(#spark-fill)',
-        fillOpacity: 1,
-        curve: softCurve,
-      }),
-      lineY(input.rows, {
-        id: 'spark-line',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        stroke: input.color,
-        strokeWidth: 1.8,
-        curve: softCurve,
-      }),
-      dot(input.rows.slice(-1), {
-        id: 'spark-tip',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        fill: input.color,
-        stroke: '#111116',
-        strokeWidth: 2,
-        r: 3.25,
-      }),
-    ],
-    x: { scale: scaleUtc().domain(dateDomain(input.rows)), guide: false },
-    y: {
-      scale: scaleLinear().domain([minValue - padding, maxValue + padding]),
-      guide: false,
-    },
-    guides: false,
-    gradients: [
-      {
-        id: 'spark-fill',
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 1,
-        stops: [
-          { offset: 0, color: input.color, opacity: 0.28 },
-          { offset: 1, color: input.color, opacity: 0 },
-        ],
+    return {
+      marks: [
+        areaY(input.rows, {
+          id: 'spark-area',
+          x: 'date',
+          y1: minValue - padding,
+          y2: 'value',
+          key: 'id',
+          fill: 'url(#spark-fill)',
+          fillOpacity: 1,
+          curve: softCurve,
+        }),
+        lineY(input.rows, {
+          id: 'spark-line',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          stroke: input.color,
+          strokeWidth: 1.8,
+          curve: softCurve,
+        }),
+        dot(input.rows.slice(-1), {
+          id: 'spark-tip',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          fill: input.color,
+          stroke: '#111116',
+          strokeWidth: 2,
+          r: 3.25,
+        }),
+      ],
+      x: { scale: scaleUtc().domain(dateDomain(input.rows)), guide: false },
+      y: {
+        scale: scaleLinear().domain([minValue - padding, maxValue + padding]),
+        guide: false,
       },
-    ],
-    margin: 2,
+      guides: false,
+      gradients: [
+        {
+          id: 'spark-fill',
+          x1: 0,
+          y1: 0,
+          x2: 0,
+          y2: 1,
+          stops: [
+            { offset: 0, color: input.color, opacity: 0.28 },
+            { offset: 1, color: input.color, opacity: 0 },
+          ],
+        },
+      ],
+      margin: 2,
+      theme: chartTheme,
+    }
+  })
+
+export const createBudgetChart = (input: { value: number }) =>
+  defineChart(() => ({
+    marks: [radialBudgetMark(input.value)],
+    x: null,
+    y: null,
+    guides: false,
+    margin: 4,
     theme: chartTheme,
-  }
-})
+  }))
 
-export const budgetChart = defineChart<{ value: number }>()(({ input }) => ({
-  marks: [radialBudgetMark(input.value)],
-  x: null,
-  y: null,
-  guides: false,
-  margin: 4,
-  theme: chartTheme,
-}))
-
-export const heatmapChart = defineChart<{ rows: readonly HeatCell[] }>()(
-  ({ input, width }) => ({
+export const createHeatmapChart = (input: { rows: readonly HeatCell[] }) =>
+  defineChart(({ width }) => ({
     marks: [
       cell(input.rows, {
         id: 'activity-cells',
@@ -248,165 +248,165 @@ export const heatmapChart = defineChart<{ rows: readonly HeatCell[] }>()(
     },
     margin: { top: 6, right: 4, bottom: 24, left: 24 },
     theme: chartTheme,
-  }),
-)
+  }))
 
-export const servicesChart = defineChart<{ rows: readonly ServiceRow[] }>()(({
-  input,
-}) => {
-  const domain = input.rows.map((row) => row.service)
-  return {
-    marks: [
-      barX(input.rows, {
-        id: 'service-capacity',
-        x: () => 100,
-        y: 'service',
-        key: 'id',
-        fill: '#202027',
-        inset: 6,
-        radius: 4,
-      }),
-      barX(input.rows, {
-        id: 'service-volume',
-        x: 'value',
-        y: 'service',
-        key: 'id',
-        fill: (row) =>
-          row.value > 78 ? '#ff5b56' : row.value > 58 ? '#ff8a62' : '#7f76e8',
-        inset: 6,
-        radius: 4,
-      }),
-      dot(input.rows, {
-        id: 'service-target',
-        x: 'target',
-        y: 'service',
-        key: 'id',
-        fill: '#efedf7',
-        stroke: '#111116',
-        strokeWidth: 2,
-        r: 3,
-      }),
-    ],
-    x: {
-      scale: scaleLinear().domain([0, 100]),
-      ticks: 3,
-      format: (value) => `${value}`,
-      grid: true,
-    },
-    y: {
-      scale: scaleBand<string>().domain(domain).paddingInner(0.2),
-    },
-    margin: { top: 4, right: 6, bottom: 24, left: 48 },
-    theme: chartTheme,
-  }
-})
+export const createServicesChart = (input: { rows: readonly ServiceRow[] }) =>
+  defineChart(() => {
+    const domain = input.rows.map((row) => row.service)
+    return {
+      marks: [
+        barX(input.rows, {
+          id: 'service-capacity',
+          x: () => 100,
+          y: 'service',
+          key: 'id',
+          fill: '#202027',
+          inset: 6,
+          radius: 4,
+        }),
+        barX(input.rows, {
+          id: 'service-volume',
+          x: 'value',
+          y: 'service',
+          key: 'id',
+          fill: (row) =>
+            row.value > 78 ? '#ff5b56' : row.value > 58 ? '#ff8a62' : '#7f76e8',
+          inset: 6,
+          radius: 4,
+        }),
+        dot(input.rows, {
+          id: 'service-target',
+          x: 'target',
+          y: 'service',
+          key: 'id',
+          fill: '#efedf7',
+          stroke: '#111116',
+          strokeWidth: 2,
+          r: 3,
+        }),
+      ],
+      x: {
+        scale: scaleLinear().domain([0, 100]),
+        ticks: 3,
+        format: (value) => `${value}`,
+        grid: true,
+      },
+      y: {
+        scale: scaleBand<string>().domain(domain).paddingInner(0.2),
+      },
+      margin: { top: 4, right: 6, bottom: 24, left: 48 },
+      theme: chartTheme,
+    }
+  })
 
 export interface ImpactInput {
   rows: readonly ImpactPoint[]
   selectedId: string | null
 }
 
-export const impactChart = defineChart<ImpactInput>()(({ input }) => {
-  const selected = input.rows.filter((row) => row.id === input.selectedId)
-  return {
+export const createImpactChart = (input: ImpactInput) =>
+  defineChart(() => {
+    const selected = input.rows.filter((row) => row.id === input.selectedId)
+    return {
+      marks: [
+        ruleX([50], {
+          stroke: '#ffffff',
+          strokeOpacity: 0.11,
+          strokeDasharray: '3 5',
+        }),
+        ruleY([50], {
+          stroke: '#ffffff',
+          strokeOpacity: 0.11,
+          strokeDasharray: '3 5',
+        }),
+        dot(input.rows, {
+          id: 'impact-bubbles',
+          x: 'events',
+          y: 'users',
+          z: 'severity',
+          key: 'id',
+          r: 'volume',
+          rScale: scaleRadial().domain([0, 150]).range([3, 13]),
+          fillOpacity: 0.72,
+          stroke: '#17171c',
+          strokeWidth: 1.5,
+        }),
+        ...(selected.length
+          ? [
+              dot(selected, {
+                id: 'selected-impact',
+                x: 'events',
+                y: 'users',
+                key: 'id',
+                r: (row) => row.volume,
+                rScale: scaleRadial().domain([0, 150]).range([7, 18]),
+                fill: 'none',
+                stroke: '#ffffff',
+                strokeWidth: 1.5,
+              }),
+            ]
+          : []),
+      ],
+      x: {
+        scale: scaleLinear().domain([0, 100]),
+        ticks: 3,
+        format: visibleEndTick,
+        grid: true,
+      },
+      y: {
+        scale: scaleLinear().domain([0, 100]),
+        ticks: 3,
+        format: visibleEndTick,
+        grid: true,
+      },
+      color: {
+        scale: scaleOrdinal<(typeof severities)[number], string>()
+          .domain(severities)
+          .range(severities.map((severity) => severityColors[severity])),
+      },
+      margin: { top: 8, right: 8, bottom: 24, left: 30 },
+      theme: chartTheme,
+    }
+  })
+
+export const createSeverityStackChart = (input: {
+  rows: readonly SeverityStackPoint[]
+}) =>
+  defineChart(() => ({
     marks: [
-      ruleX([50], {
-        stroke: '#ffffff',
-        strokeOpacity: 0.11,
-        strokeDasharray: '3 5',
-      }),
-      ruleY([50], {
-        stroke: '#ffffff',
-        strokeOpacity: 0.11,
-        strokeDasharray: '3 5',
-      }),
-      dot(input.rows, {
-        id: 'impact-bubbles',
-        x: 'events',
-        y: 'users',
+      barY(input.rows, {
+        id: 'severity-bars',
+        x: 'service',
+        y1: 'y1',
+        y2: 'y2',
         z: 'severity',
         key: 'id',
-        r: 'volume',
-        rScale: scaleRadial().domain([0, 150]).range([3, 13]),
-        fillOpacity: 0.72,
-        stroke: '#17171c',
-        strokeWidth: 1.5,
+        inset: 4,
+        radius: 3,
       }),
-      ...(selected.length
-        ? [
-            dot(selected, {
-              id: 'selected-impact',
-              x: 'events',
-              y: 'users',
-              key: 'id',
-              r: (row) => row.volume,
-              rScale: scaleRadial().domain([0, 150]).range([7, 18]),
-              fill: 'none',
-              stroke: '#ffffff',
-              strokeWidth: 1.5,
-            }),
-          ]
-        : []),
     ],
     x: {
-      scale: scaleLinear().domain([0, 100]),
-      ticks: 3,
-      format: visibleEndTick,
-      grid: true,
+      scale: scaleBand<string>()
+        .domain(['API', 'Web', 'Worker', 'Auth', 'Billing'])
+        .paddingInner(0.08),
     },
     y: {
-      scale: scaleLinear().domain([0, 100]),
+      scale: scaleLinear().domain([0, 90]),
       ticks: 3,
-      format: visibleEndTick,
       grid: true,
+      format: visibleEndTick,
     },
     color: {
       scale: scaleOrdinal<(typeof severities)[number], string>()
         .domain(severities)
         .range(severities.map((severity) => severityColors[severity])),
     },
-    margin: { top: 8, right: 8, bottom: 24, left: 30 },
+    margin: { top: 4, right: 4, bottom: 28, left: 30 },
     theme: chartTheme,
-  }
-})
+  }))
 
-export const severityStackChart = defineChart<{
-  rows: readonly SeverityStackPoint[]
-}>()(({ input }) => ({
-  marks: [
-    barY(input.rows, {
-      id: 'severity-bars',
-      x: 'service',
-      y1: 'y1',
-      y2: 'y2',
-      z: 'severity',
-      key: 'id',
-      inset: 4,
-      radius: 3,
-    }),
-  ],
-  x: {
-    scale: scaleBand<string>()
-      .domain(['API', 'Web', 'Worker', 'Auth', 'Billing'])
-      .paddingInner(0.08),
-  },
-  y: {
-    scale: scaleLinear().domain([0, 90]),
-    ticks: 3,
-    grid: true,
-    format: visibleEndTick,
-  },
-  color: {
-    scale: scaleOrdinal<(typeof severities)[number], string>()
-      .domain(severities)
-      .range(severities.map((severity) => severityColors[severity])),
-  },
-  margin: { top: 4, right: 4, bottom: 28, left: 30 },
-  theme: chartTheme,
-}))
-
-export const triageChart = defineChart<{ rows: readonly TriageCell[] }>()(
-  ({ input }) => ({
+export const createTriageChart = (input: { rows: readonly TriageCell[] }) =>
+  defineChart(() => ({
     marks: [
       cell(input.rows, {
         id: 'triage-units',
@@ -434,8 +434,7 @@ export const triageChart = defineChart<{ rows: readonly TriageCell[] }>()(
     },
     margin: 2,
     theme: chartTheme,
-  }),
-)
+  }))
 
 function radialBudgetMark(value: number) {
   const datum = { value }

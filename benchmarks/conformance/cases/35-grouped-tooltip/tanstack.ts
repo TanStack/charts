@@ -1,5 +1,5 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
-import type { ChartPoint, DynamicChartHostOptions } from '@tanstack/charts'
+import type { ChartPoint, ChartHostOptions } from '@tanstack/charts'
 import { focusX } from '@tanstack/charts/focus'
 import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
 import { timeDomain, timeSeries } from '../../shared/data'
@@ -13,37 +13,38 @@ import type {
 const series: readonly TimePoint['series'][] = ['Atlas', 'Beacon', 'Comet']
 const colors = ['#2563eb', '#f97316', '#10b981']
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = timeSeries(input.revision)
-  return {
-    marks: [
-      lineY(rows, {
-        x: 'date',
-        y: 'value',
-        z: 'series',
-        key: 'id',
-      }),
-      dot(rows, {
-        x: 'date',
-        y: 'value',
-        z: 'series',
-        key: 'id',
-        r: 2.5,
-      }),
-    ],
-    x: { scale: scaleUtc().domain(timeDomain) },
-    y: {
-      scale: scaleLinear().domain([10, 85]),
-      grid: true,
-      label: 'Value',
-    },
-    color: {
-      scale: scaleOrdinal<TimePoint['series'], string>()
-        .domain(series)
-        .range(colors),
-    },
-  }
-})
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = timeSeries(input.revision)
+    return {
+      marks: [
+        lineY(rows, {
+          x: 'date',
+          y: 'value',
+          z: 'series',
+          key: 'id',
+        }),
+        dot(rows, {
+          x: 'date',
+          y: 'value',
+          z: 'series',
+          key: 'id',
+          r: 2.5,
+        }),
+      ],
+      x: { scale: scaleUtc().domain(timeDomain) },
+      y: {
+        scale: scaleLinear().domain([10, 85]),
+        grid: true,
+        label: 'Value',
+      },
+      color: {
+        scale: scaleOrdinal<TimePoint['series'], string>()
+          .domain(series)
+          .range(colors),
+      },
+    }
+  })
 
 export function mount(
   container: HTMLElement,
@@ -57,9 +58,8 @@ export function mount(
           `${point.datum.series}: ${point.datum.value.toLocaleString()}`,
       )
       .join('\n')
-  const options: DynamicChartHostOptions<TimePoint, ConformanceInput> = {
-    definition,
-    input,
+  const options: ChartHostOptions<TimePoint> = {
+    definition: definition(input),
     width: input.width,
     height: input.height,
     ariaLabel: 'Grouped series tooltip',
@@ -108,7 +108,7 @@ export function mount(
     update(nextInput) {
       host.update({
         ...options,
-        input: nextInput,
+        definition: definition(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

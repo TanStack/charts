@@ -13,48 +13,49 @@ interface IndexedPoint extends IndexedValue {
 const colors = ['#2563eb', '#ea580c', '#059669', '#7c3aed']
 const formatIndex = (value: number) => `${Math.round((value - 1) * 100)}%`
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = indexFromFirst(indexedData(input.revision))
-  const labels = lastBySeries(rows)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = indexFromFirst(indexedData(input.revision))
+    const labels = lastBySeries(rows)
 
-  return {
-    marks: [
-      ruleY([1], { strokeOpacity: 0.65 }),
-      lineY(rows, {
-        x: 'date',
-        y: 'indexed',
-        z: 'series',
-        key: 'id',
-        strokeWidth: 2.25,
-      }),
-      text(labels, {
-        x: 'date',
-        y: 'indexed',
-        text: 'series',
-        z: 'series',
-        key: 'id',
-        anchor: 'start',
-        dx: 5,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(indexedDateDomain),
-      label: 'Month',
-    },
-    y: {
-      scale: scaleLinear().domain([0.72, 1.65]),
-      grid: true,
-      format: formatIndex,
-      label: 'Change from first observation',
-    },
-    color: {
-      scale: scaleOrdinal<IndexedValue['series'], string>()
-        .domain(indexedSeries)
-        .range(colors),
-    },
-    margin: { right: 68 },
-  }
-})
+    return {
+      marks: [
+        ruleY([1], { strokeOpacity: 0.65 }),
+        lineY(rows, {
+          x: 'date',
+          y: 'indexed',
+          z: 'series',
+          key: 'id',
+          strokeWidth: 2.25,
+        }),
+        text(labels, {
+          x: 'date',
+          y: 'indexed',
+          text: 'series',
+          z: 'series',
+          key: 'id',
+          anchor: 'start',
+          dx: 5,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(indexedDateDomain),
+        label: 'Month',
+      },
+      y: {
+        scale: scaleLinear().domain([0.72, 1.65]),
+        grid: true,
+        format: formatIndex,
+        label: 'Change from first observation',
+      },
+      color: {
+        scale: scaleOrdinal<IndexedValue['series'], string>()
+          .domain(indexedSeries)
+          .range(colors),
+      },
+      margin: { right: 68 },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

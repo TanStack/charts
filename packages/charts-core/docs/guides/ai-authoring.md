@@ -48,7 +48,7 @@ authoritative documentation.
 Generated code should include:
 
 - every import and its exact subpath;
-- the datum and dynamic input interfaces;
+- the datum and captured application-value interfaces;
 - scale construction;
 - a complete chart definition;
 - complete adapter or host usage;

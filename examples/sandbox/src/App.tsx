@@ -12,14 +12,14 @@ import {
   type TimeRange,
 } from './data'
 import {
-  budgetChart,
-  errorVolumeChart,
-  heatmapChart,
-  impactChart,
-  servicesChart,
-  severityStackChart,
-  sparklineChart,
-  triageChart,
+  createBudgetChart,
+  createErrorVolumeChart,
+  createHeatmapChart,
+  createImpactChart,
+  createServicesChart,
+  createSeverityStackChart,
+  createSparklineChart,
+  createTriageChart,
 } from './plots'
 
 const ranges: readonly TimeRange[] = ['24h', '7d', '30d']
@@ -36,6 +36,36 @@ export function App() {
   const data = React.useMemo(
     () => createDashboardData(range, revision),
     [range, revision],
+  )
+  const definitions = React.useMemo(
+    () => ({
+      budget: createBudgetChart({ value: data.budget }),
+      errorVolume: createErrorVolumeChart({
+        stack: data.errorStack,
+        totals: data.errorTotals,
+        releases: data.releases,
+        compactTime: range === '24h',
+      }),
+      heatmap: createHeatmapChart({ rows: data.heatmap }),
+      services: createServicesChart({ rows: data.services }),
+      severityStack: createSeverityStackChart({ rows: data.severityStack }),
+      sparks: data.sparks.map((rows, index) =>
+        createSparklineChart({
+          rows,
+          color: metricColors[index] ?? '#ff625a',
+        }),
+      ),
+      triage: createTriageChart({ rows: data.triage }),
+    }),
+    [data, range],
+  )
+  const impactDefinition = React.useMemo(
+    () =>
+      createImpactChart({
+        rows: data.impact,
+        selectedId: selectedIssue,
+      }),
+    [data.impact, selectedIssue],
   )
 
   React.useEffect(() => {
@@ -155,11 +185,7 @@ export function App() {
                 </div>
                 <div className="sparkline">
                   <Chart
-                    definition={sparklineChart}
-                    input={{
-                      rows: data.sparks[index] ?? [],
-                      color: metricColors[index] ?? '#ff625a',
-                    }}
+                    definition={definitions.sparks[index]!}
                     height={64}
                     initialWidth={150}
                     ariaLabel={`${metric.label} trend`}
@@ -194,13 +220,7 @@ export function App() {
               </CardHeader>
               <div className="chart-wrap hero-chart">
                 <Chart
-                  definition={errorVolumeChart}
-                  input={{
-                    stack: data.errorStack,
-                    totals: data.errorTotals,
-                    releases: data.releases,
-                    compactTime: range === '24h',
-                  }}
+                  definition={definitions.errorVolume}
                   height={318}
                   initialWidth={820}
                   ariaLabel="Error volume by severity"
@@ -223,8 +243,7 @@ export function App() {
               </CardHeader>
               <div className="budget-chart">
                 <Chart
-                  definition={budgetChart}
-                  input={{ value: data.budget }}
+                  definition={definitions.budget}
                   height={232}
                   initialWidth={320}
                   ariaLabel={`${Math.round(data.budget)} percent error budget remaining`}
@@ -256,8 +275,7 @@ export function App() {
               </CardHeader>
               <div className="chart-wrap">
                 <Chart
-                  definition={heatmapChart}
-                  input={{ rows: data.heatmap }}
+                  definition={definitions.heatmap}
                   height={228}
                   initialWidth={480}
                   ariaLabel="Error activity by weekday and hour"
@@ -283,8 +301,7 @@ export function App() {
               </CardHeader>
               <div className="chart-wrap">
                 <Chart
-                  definition={impactChart}
-                  input={{ rows: data.impact, selectedId: selectedIssue }}
+                  definition={impactDefinition}
                   height={228}
                   initialWidth={410}
                   ariaLabel="Issue event volume and affected users"
@@ -315,8 +332,7 @@ export function App() {
               </CardHeader>
               <div className="chart-wrap">
                 <Chart
-                  definition={servicesChart}
-                  input={{ rows: data.services }}
+                  definition={definitions.services}
                   height={228}
                   initialWidth={350}
                   ariaLabel="Service error load compared with target"
@@ -345,8 +361,7 @@ export function App() {
               </CardHeader>
               <div className="chart-wrap">
                 <Chart
-                  definition={severityStackChart}
-                  input={{ rows: data.severityStack }}
+                  definition={definitions.severityStack}
                   height={248}
                   initialWidth={720}
                   ariaLabel="Severity mix by service"
@@ -366,8 +381,7 @@ export function App() {
               </CardHeader>
               <div className="triage-chart">
                 <Chart
-                  definition={triageChart}
-                  input={{ rows: data.triage }}
+                  definition={definitions.triage}
                   height={138}
                   initialWidth={500}
                   ariaLabel="Triage outcome unit chart"

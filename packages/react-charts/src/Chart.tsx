@@ -12,8 +12,7 @@ import type {
   ChartTextMeasurer,
   ChartTooltipOptions,
   ChartValue,
-  DynamicChartDefinition,
-  StaticChartDefinition,
+  ChartDefinition,
 } from '@tanstack/charts'
 import {
   RendererChartImplementation,
@@ -55,51 +54,19 @@ export interface ChartCommonProps<
   onRender?: (context: ChartRenderContext<TDatum, TXValue, TYValue>) => void
 }
 
-export type StaticChartProps<
-  TDatum = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: StaticChartDefinition<TDatum, TXValue, TYValue>
-  input?: never
-}
-
-export type DynamicChartProps<
-  TDatum = unknown,
-  TInput = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: DynamicChartDefinition<TInput, any, TDatum, TXValue, TYValue>
-  input: TInput
-}
-
 export type ChartProps<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> =
-  | StaticChartProps<TDatum, TXValue, TYValue>
-  | DynamicChartProps<TDatum, TInput, TXValue, TYValue>
+> = ChartCommonProps<TDatum, TXValue, TYValue> & {
+  definition: ChartDefinition<TDatum, TXValue, TYValue>
+}
 
 export function Chart<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(props: StaticChartProps<TDatum, TXValue, TYValue>): React.JSX.Element
-export function Chart<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->(props: DynamicChartProps<TDatum, TInput, TXValue, TYValue>): React.JSX.Element
-export function Chart<
-  TDatum,
-  TInput = undefined,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->(props: ChartProps<TDatum, TInput, TXValue, TYValue>) {
+>(props: ChartProps<TDatum, TXValue, TYValue>) {
   const renderSvg = props.renderSvg ?? renderChartSvg
   const renderer = React.useMemo(
     () => createSvgChartRenderer<TDatum, TXValue, TYValue>(renderSvg),
@@ -121,7 +88,7 @@ export function Chart<
       })
     }
   }, [props.onRender])
-  const rendererProps: RendererChartProps<TDatum, TInput, TXValue, TYValue> = {
+  const rendererProps: RendererChartProps<TDatum, TXValue, TYValue> = {
     ...props,
     renderer,
     onRender,

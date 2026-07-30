@@ -1,13 +1,19 @@
 /// <reference types="vite/client" />
 
-import { loadCatalogImplementation, loadCatalogSource } from './catalog-loader'
+import {
+  loadCatalogImplementation,
+  loadCatalogSourceClosure,
+} from './catalog-loader'
 import type { ConformanceImplementationModule } from './types'
 
 const implementationModules = import.meta.glob('./cases/*/tanstack.ts')
-const sourceModules = import.meta.glob('./cases/*/tanstack.ts', {
-  query: '?raw',
-  import: 'default',
-})
+const sourceModules = import.meta.glob(
+  ['./cases/**/*.ts', '!./cases/**/*.test.ts'],
+  {
+    query: '?raw',
+    import: 'default',
+  },
+)
 
 export function loadTanStackImplementation(
   id: string,
@@ -18,6 +24,6 @@ export function loadTanStackImplementation(
   )
 }
 
-export function loadTanStackSource(id: string): Promise<string | null> {
-  return loadCatalogSource(sourceModules, `./cases/${id}/tanstack.ts`)
+export function loadTanStackSources(id: string) {
+  return loadCatalogSourceClosure(sourceModules, `./cases/${id}/tanstack.ts`)
 }

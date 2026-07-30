@@ -16,40 +16,41 @@ interface AggregateTotal {
   value: number
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = summarize(aggregateData(input.revision))
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = summarize(aggregateData(input.revision))
 
-  return {
-    marks: [
-      barY(rows, {
-        x: 'category',
-        y: 'value',
-        key: 'id',
-        fill: '#0ea5e9',
-        inset: 1,
-      }),
-      text(rows, {
-        x: 'category',
-        y: 'value',
-        text: 'value',
-        key: 'id',
-        fill: '#0c4a6e',
-        dy: -8,
-      }),
-    ],
-    x: {
-      scale: scaleBand<string>()
-        .domain(aggregateCategories)
-        .paddingInner(0.1)
-        .paddingOuter(0.05),
-    },
-    y: {
-      scale: scaleLinear().domain(aggregateValueDomain),
-      grid: true,
-      label: 'Total amount',
-    },
-  }
-})
+    return {
+      marks: [
+        barY(rows, {
+          x: 'category',
+          y: 'value',
+          key: 'id',
+          fill: '#0ea5e9',
+          inset: 1,
+        }),
+        text(rows, {
+          x: 'category',
+          y: 'value',
+          text: 'value',
+          key: 'id',
+          fill: '#0c4a6e',
+          dy: -8,
+        }),
+      ],
+      x: {
+        scale: scaleBand<string>()
+          .domain(aggregateCategories)
+          .paddingInner(0.1)
+          .paddingOuter(0.05),
+      },
+      y: {
+        scale: scaleLinear().domain(aggregateValueDomain),
+        grid: true,
+        label: 'Total amount',
+      },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

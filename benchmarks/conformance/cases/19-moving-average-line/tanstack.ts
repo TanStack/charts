@@ -21,37 +21,38 @@ interface MovingAveragePoint {
 
 const windowSize = 7
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = trailingMeans(movingAverageData(input.revision))
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = trailingMeans(movingAverageData(input.revision))
 
-  return {
-    marks: [
-      lineY(rows, {
-        id: 'moving-average-lines',
-        x: 'date',
-        y: 'value',
-        z: 'series',
-        key: 'id',
-        strokeWidth: 2.25,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(timeDomain),
-      label: 'Week',
-    },
-    y: {
-      scale: scaleLinear().domain(movingAverageValueDomain),
-      grid: true,
-      label: 'Moving average',
-    },
-    color: {
-      scale: scaleOrdinal<TimePoint['series'], string>()
-        .domain(seriesNames)
-        .range(seriesNames.map((series) => seriesColors[series])),
-      legend: colorLegend({ label: 'Series' }),
-    },
-  }
-})
+    return {
+      marks: [
+        lineY(rows, {
+          id: 'moving-average-lines',
+          x: 'date',
+          y: 'value',
+          z: 'series',
+          key: 'id',
+          strokeWidth: 2.25,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(timeDomain),
+        label: 'Week',
+      },
+      y: {
+        scale: scaleLinear().domain(movingAverageValueDomain),
+        grid: true,
+        label: 'Moving average',
+      },
+      color: {
+        scale: scaleOrdinal<TimePoint['series'], string>()
+          .domain(seriesNames)
+          .range(seriesNames.map((series) => seriesColors[series])),
+        legend: colorLegend({ label: 'Series' }),
+      },
+    }
+  })
 
 export const mount: ConformanceMount = tanstackMount(
   definition,

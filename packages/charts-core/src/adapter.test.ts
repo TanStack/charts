@@ -19,21 +19,14 @@ const definition = defineChart({
 })
 
 describe('chart adapter controller', () => {
-  it('reuses prepared data between prerender and mount', () => {
-    const prepare = vi.fn(({ input }: { input: typeof rows }) => input)
-    const dynamic = defineChart<typeof rows>()({
-      prepare(input) {
-        return prepare({ input })
-      },
-      chart: ({ prepared }) => ({
-        marks: [lineY(prepared, { x: 'x', y: 'y', key: 'id' })],
-        x: { scale: scaleLinear().domain([0, 1]) },
-        y: { scale: scaleLinear().domain([0, 4]) },
-      }),
-    })
+  it('mounts a prerendered dynamic definition', () => {
+    const dynamic = defineChart(() => ({
+      marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
+      x: { scale: scaleLinear().domain([0, 1]) },
+      y: { scale: scaleLinear().domain([0, 4]) },
+    }))
     const adapter = createChartAdapter({
       definition: dynamic,
-      input: rows,
       width: 480,
       height: 260,
       ariaLabel: 'Revenue',
@@ -44,7 +37,6 @@ describe('chart adapter controller', () => {
 
     adapter.mount(container)
 
-    expect(prepare).toHaveBeenCalledTimes(1)
     expect(container.querySelector('svg')).not.toBeNull()
     adapter.destroy()
   })

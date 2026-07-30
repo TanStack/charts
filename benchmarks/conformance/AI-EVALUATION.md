@@ -29,9 +29,9 @@ paired order, and protected scaffold hashes.
   umbrella `d3`, or cross-library invented APIs.
 
 Compile separate negative probes for missing fields, boolean quantitative
-channels, invalid accessors, incompatible scale domains, dynamic input, and
-callback datum inference. A generated chart compiling is not evidence that the
-library rejected an invalid one.
+channels, invalid accessors, incompatible scale domains, responsive builder
+context, and callback datum inference. A generated chart compiling is not
+evidence that the library rejected an invalid one.
 
 ## Scoring
 

@@ -7,7 +7,7 @@ behavior select that renderer explicitly without creating a second harness.
 
 Each case owns:
 
-- one typed local data fixture and intent;
+- one typed raw data fixture and intent;
 - one isolated reference implementation;
 - one isolated TanStack implementation;
 - official source provenance;
@@ -19,6 +19,13 @@ The reference may use its built-in transforms. TanStack receives the same raw
 rows and injects the granular D3 primitive when transformation is needed.
 Precomputing both sides would hide the bundle and authoring tradeoff being
 measured.
+
+`data.ts` may load, parse, or deterministically generate observations. Bins,
+stacks, ranks, cumulative endpoints, summaries, density coordinates, and
+layout positions belong in the renderer source or a case-local transform
+module. The gallery follows local imports and displays those modules with the
+renderer entry. The conformance report counts the complete transitive authored
+source for each implementation and reports the source-line ratio per case.
 
 Cases omit `referenceRenderer` for the default `observable-plot` pairing and
 use `referenceRenderer: "recharts"` or `"echarts"` for another reference.

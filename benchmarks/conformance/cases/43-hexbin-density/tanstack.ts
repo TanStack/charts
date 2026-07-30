@@ -18,53 +18,54 @@ const coordinate = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
 })
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const xScale = scaleLinear()
-    .domain([0, 100])
-    .range([margin.left, input.width - margin.right])
-  const yScale = scaleLinear()
-    .domain([0, 100])
-    .range([input.height - margin.bottom, margin.top])
-  const bins = hexbin<HexbinPoint>()
-    .x((row) => xScale(row.x))
-    .y((row) => yScale(row.y))
-    .radius(24 / Math.sqrt(3))
-    .extent([
-      [margin.left, margin.top],
-      [input.width - margin.right, input.height - margin.bottom],
-    ])(Array.from(hexbinData(input.revision)))
-  const cells: readonly HexbinCell[] = bins.map((bin) => ({
-    id: `${bin.x}:${bin.y}`,
-    x: xScale.invert(bin.x),
-    y: yScale.invert(bin.y),
-    count: bin.length,
-  }))
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const xScale = scaleLinear()
+      .domain([0, 100])
+      .range([margin.left, input.width - margin.right])
+    const yScale = scaleLinear()
+      .domain([0, 100])
+      .range([input.height - margin.bottom, margin.top])
+    const bins = hexbin<HexbinPoint>()
+      .x((row) => xScale(row.x))
+      .y((row) => yScale(row.y))
+      .radius(24 / Math.sqrt(3))
+      .extent([
+        [margin.left, margin.top],
+        [input.width - margin.right, input.height - margin.bottom],
+      ])(Array.from(hexbinData(input.revision)))
+    const cells: readonly HexbinCell[] = bins.map((bin) => ({
+      id: `${bin.x}:${bin.y}`,
+      x: xScale.invert(bin.x),
+      y: yScale.invert(bin.y),
+      count: bin.length,
+    }))
 
-  return {
-    marks: [
-      hexagon(cells, {
-        x: 'x',
-        y: 'y',
-        key: 'id',
-        r: 11,
-        fill: (cell) => countColor(cell.count),
-        stroke: '#ffffff',
-        strokeWidth: 0.75,
-      }),
-    ],
-    x: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      label: 'X',
-    },
-    y: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      label: 'Y',
-    },
-    margin,
-  }
-})
+    return {
+      marks: [
+        hexagon(cells, {
+          x: 'x',
+          y: 'y',
+          key: 'id',
+          r: 11,
+          fill: (cell) => countColor(cell.count),
+          stroke: '#ffffff',
+          strokeWidth: 0.75,
+        }),
+      ],
+      x: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        label: 'X',
+      },
+      y: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        label: 'Y',
+      },
+      margin,
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

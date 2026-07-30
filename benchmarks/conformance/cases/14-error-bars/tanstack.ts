@@ -19,51 +19,52 @@ const categories = [
   'DB',
 ]
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = errorData(input.revision)
-  return {
-    marks: [
-      link(rows, {
-        x1: 'category',
-        y1: 'low',
-        x2: 'category',
-        y2: 'high',
-        key: 'id',
-        stroke: '#2563eb',
-        strokeWidth: 1.5,
-      }),
-      tickY(rows, {
-        x: 'category',
-        y: 'low',
-        key: 'id',
-        stroke: '#2563eb',
-        strokeWidth: 1.5,
-      }),
-      tickY(rows, {
-        x: 'category',
-        y: 'high',
-        key: 'id',
-        stroke: '#2563eb',
-        strokeWidth: 1.5,
-      }),
-      dot(rows, {
-        x: 'category',
-        y: 'mean',
-        key: 'id',
-        fill: '#2563eb',
-        r: 3.5,
-      }),
-    ],
-    x: {
-      scale: scaleBand<string>().domain(categories).padding(0.22),
-    },
-    y: {
-      scale: scaleLinear().domain([0, 70]),
-      grid: true,
-      label: 'Estimate',
-    },
-  }
-})
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = errorData(input.revision)
+    return {
+      marks: [
+        link(rows, {
+          x1: 'category',
+          y1: 'low',
+          x2: 'category',
+          y2: 'high',
+          key: 'id',
+          stroke: '#2563eb',
+          strokeWidth: 1.5,
+        }),
+        tickY(rows, {
+          x: 'category',
+          y: 'low',
+          key: 'id',
+          stroke: '#2563eb',
+          strokeWidth: 1.5,
+        }),
+        tickY(rows, {
+          x: 'category',
+          y: 'high',
+          key: 'id',
+          stroke: '#2563eb',
+          strokeWidth: 1.5,
+        }),
+        dot(rows, {
+          x: 'category',
+          y: 'mean',
+          key: 'id',
+          fill: '#2563eb',
+          r: 3.5,
+        }),
+      ],
+      x: {
+        scale: scaleBand<string>().domain(categories).padding(0.22),
+      },
+      y: {
+        scale: scaleLinear().domain([0, 70]),
+        grid: true,
+        label: 'Estimate',
+      },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

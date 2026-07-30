@@ -15,8 +15,6 @@ export { Chart } from '@tanstack/react-charts'
 export type {
   ChartCommonProps,
   ChartProps,
-  DynamicChartProps,
-  StaticChartProps,
   ChartDefinition,
   ChartPoint,
 } from '@tanstack/react-charts'
@@ -43,13 +41,16 @@ The adapter creates one `ChartRuntime` per mounted component and asks the
 selected renderer for its initial markup during React render. After commit:
 
 1. a layout effect mounts the shared DOM host into the existing chart surface
-2. the same runtime is passed to the host, preserving prepared data
+2. the same runtime is passed to the host
 3. a second layout effect forwards the latest complete host options
-4. later React commits call `host.update`
+4. later React commits call `host.update`; a new definition identity rebuilds
+   the scene
 5. effect cleanup destroys the host and runtime-owned browser behavior
 
-The chart surface is memoized after its first render. Dynamic changes are
-painted by the shared host rather than by rebuilding the surface through React.
+The chart surface is memoized after its first render. Scene changes are painted
+by the shared host rather than by rebuilding the surface through React.
+Memoize definitions that capture component values with `useMemo`; module-scope
+definitions need no component memoization.
 
 React batching may omit intermediate application states. Every committed prop
 set forwarded to the host remains declarative and complete.
@@ -149,10 +150,9 @@ const definition = defineChart({
 })
 ```
 
-For live state, keep one dynamic definition stable and pass changing values in
-`input`. Creating a new definition each render clears runtime preparation
-state. Input equality and preparation caching are core definition concerns;
-see [Chart Definition API](../../reference/chart-definitions.md).
+For live state, memoize the complete definition against the values it captures.
+Definition identity is the application update boundary; see
+[Chart Definition API](../../reference/chart-definitions.md).
 
 ## Callback freshness
 

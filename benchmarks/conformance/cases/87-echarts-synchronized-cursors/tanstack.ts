@@ -17,7 +17,7 @@ import type {
   ChartPoint,
   ChartRenderContext,
   ChartScene,
-  DynamicChartHostOptions,
+  ChartHostOptions,
 } from '@tanstack/charts'
 import type { SynchronizedCursorDatum, SynchronizedCursorView } from './data'
 import type {
@@ -40,51 +40,52 @@ interface CrosshairElements {
   marker: SVGCircleElement
 }
 
-const definition = defineChart<SynchronizedViewInput>()(({ input }) => {
-  const rows = synchronizedCursorData(input.view, input.revision)
-  return {
-    marks: [
-      lineY(rows, {
-        id: `${input.view}-line`,
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        stroke: synchronizedCursorColors[input.view],
-        strokeWidth: 2,
-      }),
-      dot(rows, {
-        id: `${input.view}-dots`,
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        fill: synchronizedCursorColors[input.view],
-        r: 3,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(synchronizedCursorDateDomain),
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          timeZone: 'UTC',
+const definition = (input: SynchronizedViewInput) =>
+  defineChart(() => {
+    const rows = synchronizedCursorData(input.view, input.revision)
+    return {
+      marks: [
+        lineY(rows, {
+          id: `${input.view}-line`,
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          stroke: synchronizedCursorColors[input.view],
+          strokeWidth: 2,
         }),
-    },
-    y: {
-      scale: scaleLinear().domain(synchronizedCursorYDomains[input.view]),
-      ticks: 4,
-      grid: true,
-      label: input.view === 'primary' ? 'Throughput' : 'Error rate',
-    },
-    margin: {
-      top: 16,
-      right: 24,
-      bottom: 34,
-      left: 62,
-    },
-  }
-})
+        dot(rows, {
+          id: `${input.view}-dots`,
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          fill: synchronizedCursorColors[input.view],
+          r: 3,
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(synchronizedCursorDateDomain),
+        format: (value) =>
+          value.toLocaleDateString(undefined, {
+            month: 'short',
+            timeZone: 'UTC',
+          }),
+      },
+      y: {
+        scale: scaleLinear().domain(synchronizedCursorYDomains[input.view]),
+        ticks: 4,
+        grid: true,
+        label: input.view === 'primary' ? 'Throughput' : 'Error rate',
+      },
+      margin: {
+        top: 16,
+        right: 24,
+        bottom: 34,
+        left: 62,
+      },
+    }
+  })
 
 export function mount(
   container: HTMLElement,
@@ -225,15 +226,11 @@ export function mount(
 
   const options = (
     view: SynchronizedCursorView,
-  ): DynamicChartHostOptions<
-    SynchronizedCursorDatum,
-    SynchronizedViewInput
-  > => ({
-    definition,
-    input: {
+  ): ChartHostOptions<SynchronizedCursorDatum> => ({
+    definition: definition({
       ...currentInput,
       view,
-    },
+    }),
     width: currentInput.width,
     height: viewHeight(),
     ariaLabel:

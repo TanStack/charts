@@ -52,7 +52,9 @@ Before adapting a case:
 
 [Data and Channels](../concepts/data-and-channels.md) defines the row-to-channel
 contract. [Scales and D3](../concepts/scales-and-d3.md) explains which
-preparation and scale semantics belong to the application.
+transforms and scale semantics belong to the application. [Transforms and
+Reactivity](../guides/transforms-and-reactivity.md) shows how raw observations
+become the rows consumed by marks.
 
 ## Build from the grammar
 

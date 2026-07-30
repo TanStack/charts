@@ -246,7 +246,7 @@ const histogram = bin()
   }))
 ```
 
-Pass `histogram` to `rect`, `barY`, `lineY`, `dot`, or a custom mark according to the desired geometry. In a dynamic definition, put substantial synchronous transformation in `prepare` and define `prepareEqual` around the inputs that affect it.
+Pass `histogram` to `rect`, `barY`, `lineY`, `dot`, or a custom mark according to the desired geometry. Keep substantial transforms in ordinary functions beside the definition and memoize them through application reactivity when necessary.
 
 The same rule applies to stacks, pies, hierarchies, force layouts, and
 server-prepared intervals: preserve the useful output as typed rows, then map

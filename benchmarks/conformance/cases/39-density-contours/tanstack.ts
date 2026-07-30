@@ -31,23 +31,22 @@ const densityCoordinate = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
 })
 
-export const densityDefinition = defineChart<ConformanceInput>()(({
-  input,
-}) => {
-  const points = densityPoints(input.revision)
+export const densityDefinition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const points = densityPoints(input.revision)
 
-  return {
-    marks: [densityMark(points)],
-    x: {
-      scale: scaleLinear().domain(densityXDomain),
-    },
-    y: {
-      scale: scaleLinear().domain(densityYDomain),
-    },
-    guides: false,
-    margin: 0,
-  }
-})
+    return {
+      marks: [densityMark(points)],
+      x: {
+        scale: scaleLinear().domain(densityXDomain),
+      },
+      y: {
+        scale: scaleLinear().domain(densityYDomain),
+      },
+      guides: false,
+      margin: 0,
+    }
+  })
 
 function densityMark(data: DensityPoint[]) {
   return createMark<DensityContourDatum, number, number>(({ markIndex }) => {

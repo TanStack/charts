@@ -47,23 +47,19 @@ type DistributiveOmit<TValue, TKey extends PropertyKey> = TValue extends unknown
 
 export type CanvasChartHostOptions<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = DistributiveOmit<
-  ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
+  ChartRendererHostOptions<TDatum, TXValue, TYValue>,
   'renderer'
 >
 
 export interface CanvasChartHost<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
-  update: (
-    options: CanvasChartHostOptions<TDatum, TInput, TXValue, TYValue>,
-  ) => void
+  update: (options: CanvasChartHostOptions<TDatum, TXValue, TYValue>) => void
   getScene: () => ChartScene<TDatum, TXValue, TYValue>
   destroy: () => void
 }
@@ -232,29 +228,27 @@ export const canvasChartRenderer = createCanvasChartRenderer()
 
 export function mountCanvasChart<
   TDatum,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(
   container: HTMLElement,
-  initialOptions: CanvasChartHostOptions<TDatum, TInput, TXValue, TYValue>,
-  runtime: ChartRuntime<TDatum, TInput, TXValue, TYValue> = createChartRuntime<
+  initialOptions: CanvasChartHostOptions<TDatum, TXValue, TYValue>,
+  runtime: ChartRuntime<TDatum, TXValue, TYValue> = createChartRuntime<
     TDatum,
-    TInput,
     TXValue,
     TYValue
   >(),
-): CanvasChartHost<TDatum, TInput, TXValue, TYValue> {
+): CanvasChartHost<TDatum, TXValue, TYValue> {
   const withRenderer = (
-    options: CanvasChartHostOptions<TDatum, TInput, TXValue, TYValue>,
-  ): ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue> => {
-    if ('chart' in options.definition) {
-      return { ...options, renderer: canvasChartRenderer }
-    }
+    options: CanvasChartHostOptions<TDatum, TXValue, TYValue>,
+  ): ChartRendererHostOptions<TDatum, TXValue, TYValue> => {
     return { ...options, renderer: canvasChartRenderer }
   }
-  const host: ChartRendererHost<TDatum, TInput, TXValue, TYValue> =
-    mountChartRenderer(container, withRenderer(initialOptions), runtime)
+  const host: ChartRendererHost<TDatum, TXValue, TYValue> = mountChartRenderer(
+    container,
+    withRenderer(initialOptions),
+    runtime,
+  )
 
   return {
     update(options) {

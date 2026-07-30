@@ -1,6 +1,6 @@
 ---
 title: Runtime and Scene
-description: Compile chart definitions into renderer-neutral scenes and cache dynamic preparation across renders.
+description: Compile object and responsive chart definitions into renderer-neutral scenes.
 ---
 
 TanStack Charts separates semantic chart construction from rendering:
@@ -11,7 +11,8 @@ TanStack Charts separates semantic chart construction from rendering:
 4. marks emit a keyed `ChartScene`
 5. the selected SVG, Canvas, or custom renderer consumes that scene
 
-Use `createChartRuntime` for repeated renders of static or dynamic definitions.
+Use `createChartRuntime` for repeated renders of object or responsive
+definitions.
 Use `createChartScene` for one static compilation.
 
 ## `createChartRuntime`
@@ -19,8 +20,8 @@ Use `createChartScene` for one static compilation.
 ```ts
 import { createChartRuntime } from '@tanstack/charts/runtime'
 
-const runtime = createChartRuntime<Row, Input, Date, number>()
-const scene = runtime.render(definition, input, {
+const runtime = createChartRuntime<Row, Date, number>()
+const scene = runtime.render(definition, {
   width: 800,
   height: 400,
 })
@@ -31,51 +32,32 @@ runtime.destroy()
 ```ts
 function createChartRuntime<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(): ChartRuntime<TDatum, TInput, TXValue, TYValue>
+>(): ChartRuntime<TDatum, TXValue, TYValue>
 ```
 
-`ChartRuntime.render` accepts a definition, input, size, and optional layout:
+`ChartRuntime.render` accepts a definition, size, and optional layout:
 
 ```ts
 interface RuntimeRenderSignature {
   render(
     definition,
-    input,
     size: { width: number; height: number },
     layout?: { measureText?: ChartTextMeasurer },
   ): ChartScene
 }
 ```
 
-Static definitions ignore input. Dynamic definitions use the comparison and
-preparation rules documented in
-[Chart Definition API](./chart-definitions.md#equality-and-memoization).
 Because a standalone runtime is created before its first `render` call, direct
-dynamic use supplies the datum, input, x-value, and y-value generics at the
-factory. DOM and framework adapter hosts infer them from the definition
-instead.
+use can supply datum, x-value, and y-value generics at the factory. DOM and
+framework adapter hosts infer them from the definition.
 
-A direct `runtime.render` call always builds a scene. `inputEqual` lets a DOM or
-framework host avoid calling render for an equal update; inside the runtime it
-also supplies the default for `prepareEqual`.
+### Runtime behavior
 
-### Cache behavior
-
-The runtime keeps one current definition:
-
-- changing definition identity aborts preparation and clears all cached input
-  and prepared state
-- a size-only render reuses prepared data but runs the chart builder again
-- `prepareEqual` decides whether preparation can be reused
-- the chart builder always receives the current input and current size
-- `destroy` aborts the active preparation signal and clears the cache
-
-Create one runtime per independently updating chart. Do not share a single
-runtime between concurrent chart instances, because its cache has one current
-definition.
+The runtime does not cache application data. A responsive builder receives the
+current surface size on every direct render. Framework adapters and application
+code own definition memoization and asynchronous cleanup.
 
 ## `createChartScene`
 

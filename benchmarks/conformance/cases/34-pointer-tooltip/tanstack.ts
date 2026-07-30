@@ -1,5 +1,5 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
-import type { ChartPoint, DynamicChartHostOptions } from '@tanstack/charts'
+import type { ChartPoint, ChartHostOptions } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { timeDomain, timeSeries } from '../../shared/data'
 import type { TimePoint } from '../../shared/data'
@@ -9,43 +9,43 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = timeSeries(input.revision).filter(
-    (row) => row.series === 'Atlas',
-  )
-  return {
-    marks: [
-      lineY(rows, {
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        stroke: '#2563eb',
-      }),
-      dot(rows, {
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        fill: '#2563eb',
-        r: 3,
-      }),
-    ],
-    x: { scale: scaleUtc().domain(timeDomain) },
-    y: {
-      scale: scaleLinear().domain([10, 60]),
-      grid: true,
-      label: 'Value',
-    },
-  }
-})
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = timeSeries(input.revision).filter(
+      (row) => row.series === 'Atlas',
+    )
+    return {
+      marks: [
+        lineY(rows, {
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          stroke: '#2563eb',
+        }),
+        dot(rows, {
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          fill: '#2563eb',
+          r: 3,
+        }),
+      ],
+      x: { scale: scaleUtc().domain(timeDomain) },
+      y: {
+        scale: scaleLinear().domain([10, 60]),
+        grid: true,
+        label: 'Value',
+      },
+    }
+  })
 
 export function mount(
   container: HTMLElement,
   input: ConformanceInput,
 ): ConformanceHandle {
   let focusedIds: string[] = []
-  const options: DynamicChartHostOptions<TimePoint, ConformanceInput> = {
-    definition,
-    input,
+  const options: ChartHostOptions<TimePoint> = {
+    definition: definition(input),
     width: input.width,
     height: input.height,
     ariaLabel: 'Interactive Atlas trend',
@@ -95,7 +95,7 @@ export function mount(
     update(nextInput) {
       host.update({
         ...options,
-        input: nextInput,
+        definition: definition(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

@@ -130,16 +130,12 @@ const literalDefinition = defineChart({
   x: { scale: scaleBand<string>().domain(['Alpha']) },
   y: { scale: scaleLinear().domain([0, 4]) },
 })
-const undefinedInputDefinition = defineChart<undefined>()(() => ({
+const responsiveDefinition = defineChart(() => ({
   ...categoricalSpec,
   marks: [categoricalMark] as const,
 }))
-const voidInputDefinition = defineChart<void>()(() => ({
-  ...categoricalSpec,
-  marks: [categoricalMark] as const,
-}))
-const widenedDefinition: ChartDefinition<Row, undefined> =
-  rows.length > 0 ? staticDefinition : undefinedInputDefinition
+const widenedDefinition: ChartDefinition<Row, string, number> =
+  rows.length > 0 ? staticDefinition : responsiveDefinition
 
 interface LineRow {
   kind: 'line'
@@ -159,23 +155,28 @@ type DynamicInput =
   | { kind: 'line'; rows: readonly LineRow[] }
   | { kind: 'bar'; rows: readonly BarRow[] }
 
-const heterogeneousDefinition = defineChart<DynamicInput>()(({ input }) =>
-  input.kind === 'line'
-    ? {
-        marks: [lineY(input.rows, { x: 'date', y: 'value', key: 'id' })],
-        x: { scale: scaleUtc().domain(input.rows.map((row) => row.date)) },
-        y: { scale: scaleLinear().domain([0, 10]) },
-      }
-    : {
-        marks: [barX(input.rows, { x: 'value', y: 'category', key: 'id' })],
-        x: { scale: scaleLinear().domain([0, 10]) },
-        y: {
-          scale: scaleBand<string>().domain(
-            input.rows.map((row) => row.category),
-          ),
+const createHeterogeneousDefinition = (input: DynamicInput) =>
+  defineChart(() =>
+    input.kind === 'line'
+      ? {
+          marks: [lineY(input.rows, { x: 'date', y: 'value', key: 'id' })],
+          x: { scale: scaleUtc().domain(input.rows.map((row) => row.date)) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        }
+      : {
+          marks: [barX(input.rows, { x: 'value', y: 'category', key: 'id' })],
+          x: { scale: scaleLinear().domain([0, 10]) },
+          y: {
+            scale: scaleBand<string>().domain(
+              input.rows.map((row) => row.category),
+            ),
+          },
         },
-      },
-)
+  )
+const heterogeneousDefinition = createHeterogeneousDefinition({
+  kind: 'line',
+  rows: [],
+})
 
 const categoricalRect = rect([{ x1: 'Alpha', x2: 'Beta', y1: 0, y2: 1 }], {
   x1: 'x1',
@@ -376,13 +377,13 @@ if (false) {
     ariaLabel: 'Built-in focus remains polymorphic',
     focus: focusX,
   })
-  mountChart<Row, undefined, string, number>(container, {
+  mountChart<Row, string, number>(container, {
     definition: staticDefinition,
     ariaLabel: 'Incompatible focus coordinates',
     // @ts-expect-error A numeric-x focus strategy cannot consume string-x points.
     focus: numericFocus,
   })
-  mountChart<Row, undefined, string, number>(container, {
+  mountChart<Row, string, number>(container, {
     definition: staticDefinition,
     ariaLabel: 'Incompatible renderer coordinates',
     // @ts-expect-error A numeric-x renderer cannot consume a string-x scene.
@@ -400,21 +401,19 @@ if (false) {
   }>()
 
   const staticRuntime = createChartRuntime<Row>()
-  const categoricalRuntimeScene = staticRuntime.render(
-    staticDefinition,
-    undefined,
-    { width: 640, height: 320 },
-  )
+  const categoricalRuntimeScene = staticRuntime.render(staticDefinition, {
+    width: 640,
+    height: 320,
+  })
   expectTypeOf(categoricalRuntimeScene.points).items.toMatchTypeOf<{
     datum: Row
     xValue: string
     yValue: number
   }>()
-  const temporalRuntimeScene = staticRuntime.render(
-    temporalDefinition,
-    undefined,
-    { width: 640, height: 320 },
-  )
+  const temporalRuntimeScene = staticRuntime.render(temporalDefinition, {
+    width: 640,
+    height: 320,
+  })
   expectTypeOf(temporalRuntimeScene.points).items.toMatchTypeOf<{
     datum: Row
     xValue: Date
@@ -438,7 +437,6 @@ if (false) {
 
   const heterogeneousHost = mountChart(container, {
     definition: heterogeneousDefinition,
-    input: { kind: 'line', rows: [] },
     ariaLabel: 'Heterogeneous values',
     focus: focusX,
     onFocusChange(point) {
@@ -461,14 +459,12 @@ if (false) {
     },
   })
   heterogeneousHost.update({
-    definition: heterogeneousDefinition,
-    input: { kind: 'bar', rows: [] },
+    definition: createHeterogeneousDefinition({ kind: 'bar', rows: [] }),
     ariaLabel: 'Updated heterogeneous values',
   })
-  const dynamicRuntime = createChartRuntime<LineRow | BarRow, DynamicInput>()
+  const dynamicRuntime = createChartRuntime<LineRow | BarRow>()
   const heterogeneousRuntimeScene = dynamicRuntime.render(
     heterogeneousDefinition,
-    { kind: 'line', rows: [] },
     { width: 640, height: 320 },
   )
   expectTypeOf(heterogeneousRuntimeScene.points).items.toMatchTypeOf<{
@@ -477,82 +473,21 @@ if (false) {
     yValue: number | string
   }>()
 
-  const undefinedInputHost = mountChart(container, {
-    definition: undefinedInputDefinition,
-    input: undefined,
-    ariaLabel: 'Undefined input',
+  const responsiveHost = mountChart(container, {
+    definition: responsiveDefinition,
+    ariaLabel: 'Responsive definition',
     onFocusChange(point) {
       expectTypeOf(point?.datum).toEqualTypeOf<Row | undefined>()
     },
   })
-  undefinedInputHost.update({
-    definition: undefinedInputDefinition,
-    input: undefined,
-    ariaLabel: 'Undefined input update',
+  responsiveHost.update({
+    definition: responsiveDefinition,
+    ariaLabel: 'Responsive definition update',
   })
 
-  // @ts-expect-error Host updates retain the explicit undefined-input requirement.
-  undefinedInputHost.update({
-    definition: undefinedInputDefinition,
-    ariaLabel: 'Missing undefined input update',
-  })
-
-  undefinedInputHost.update({
-    definition: undefinedInputDefinition,
-    // @ts-expect-error Host updates reject a value outside the inferred input type.
-    input: { rows },
-    ariaLabel: 'Wrong undefined input update',
-  })
-
-  mountChart(container, {
-    definition: voidInputDefinition,
-    input: undefined,
-    ariaLabel: 'Void input',
-  })
-
-  // @ts-expect-error Dynamic definitions require an explicit input property even when its value is undefined.
-  mountChart(container, {
-    definition: undefinedInputDefinition,
-    ariaLabel: 'Missing undefined input',
-  })
-
-  // @ts-expect-error Dynamic definitions require an explicit input property even when its value is void.
-  mountChart(container, {
-    definition: voidInputDefinition,
-    ariaLabel: 'Missing void input',
-  })
-
-  mountChart(container, {
-    definition: undefinedInputDefinition,
-    // @ts-expect-error Dynamic definitions reject a value outside their inferred input type.
-    input: { rows },
-    ariaLabel: 'Wrong undefined input',
-  })
-
-  // @ts-expect-error Static definitions reject non-undefined input.
-  mountChart(container, {
-    definition: staticDefinition,
-    input: { rows },
-    ariaLabel: 'Static input',
-  })
-
-  mountChart(container, {
-    definition: staticDefinition,
-    input: undefined,
-    ariaLabel: 'Explicit static undefined',
-  })
-
-  // @ts-expect-error A widened static-or-dynamic definition must be narrowed before mounting.
   mountChart(container, {
     definition: widenedDefinition,
     ariaLabel: 'Widened definition',
-  })
-
-  // @ts-expect-error Supplying input does not resolve a widened definition.
-  mountChart(container, {
-    definition: widenedDefinition,
-    input: undefined,
-    ariaLabel: 'Widened definition with input',
   })
 
   // @ts-expect-error A boolean field cannot feed a numeric channel.
@@ -592,9 +527,9 @@ if (false) {
     y: { scale: scaleLinear().domain([0, 4]) },
   })
 
-  // @ts-expect-error Dynamic definitions retain the mark-to-scale contract.
-  defineChart<{ rows: readonly Row[] }>()(({ input }) => ({
-    marks: [barY(input.rows, { x: 'category', y: 'value' })],
+  // @ts-expect-error Responsive definitions retain the mark-to-scale contract.
+  defineChart(() => ({
+    marks: [barY(rows, { x: 'category', y: 'value' })],
     x: { scale: scaleLinear().domain([0, 1]) },
     y: { scale: scaleLinear().domain([0, 4]) },
   }))

@@ -38,7 +38,6 @@ The server cannot measure a container. Supply one of these policies:
 ```tsx
 <Chart
   definition={trafficChart}
-  input={{ rows }}
   ariaLabel="Daily traffic"
   initialWidth={720}
   aspectRatio={16 / 9}
@@ -65,16 +64,14 @@ and options. In particular:
 - use stable keys derived from data identity;
 - provide `idPrefix` when multiple render roots need coordinated resource IDs.
 
-Dynamic `prepare` and `chart` functions are synchronous. Fetch data in the
+Dynamic chart functions are synchronous. Fetch and transform data in the
 application's server/data layer, then pass the resolved input to the chart.
 
 ## Hydration ownership
 
-Server and browser executions create separate runtime instances; preparation
-cache is not serialized across the network. Within the browser adapter's own
-initial render and layout-effect mount, the DOM host receives the already
-created browser runtime instead of starting a second cache. This avoids
-duplicating preparation while the client attaches behavior to its first scene.
+Server and browser executions create separate runtime instances. Within the
+browser adapter's own initial render and layout-effect mount, the DOM host
+receives the already created browser runtime.
 
 Do not conditionally replace a chart with a different component only because
 the code is executing on the server. That creates a different tree and gives
@@ -135,7 +132,7 @@ surface mounts.
 
 - Server input is fully resolved before chart rendering.
 - Initial dimensions are explicit and representative.
-- Definition, preparation, and formatting are deterministic.
+- Definition, transformed input, and formatting are deterministic.
 - Keys and `idPrefix` are stable.
 - The same adapter and definition render on both sides.
 - Browser-only work lives in host callbacks or application effects.

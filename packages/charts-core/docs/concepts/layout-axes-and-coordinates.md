@@ -59,15 +59,15 @@ Set a fixed `width` only for an intentionally fixed graphic such as export, prin
 Dynamic definitions receive the current `width` and `height`, so presentation can adapt to the chart container:
 
 ```ts
-const chart = defineChart<Input>()(({ input, width }) => ({
-  marks: [lineY(input.rows, { x: 'date', y: 'value', key: 'id' })],
+const chart = defineChart(({ width }) => ({
+  marks: [lineY(rows, { x: 'date', y: 'value', key: 'id' })],
   x: {
-    scale: input.xScale,
+    scale: xScale,
     ticks: width < 420 ? 4 : 8,
     tickRotate: width < 520 ? -30 : undefined,
   },
   y: {
-    scale: input.yScale,
+    scale: yScale,
     label: width < 480 ? undefined : 'Weekly downloads',
   },
 }))

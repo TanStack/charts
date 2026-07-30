@@ -586,6 +586,31 @@ input {
   font-weight: 650;
 }
 
+.source > div {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.source-file {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.source-file > summary {
+  padding: 9px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.source-file pre {
+  max-height: 440px;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 10px 10px;
+}
+
 pre {
   overflow: auto;
   max-height: 440px;

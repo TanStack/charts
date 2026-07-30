@@ -82,6 +82,11 @@ reference coverage, not each library's feature ceiling or a list of built-in
 TanStack chart types. Chart.js participates in the standard and stress suites,
 not the catalog corpus.
 
+The catalog displays each renderer entry and its case-local data or transform
+dependencies. Its report counts the complete transitive authored source and
+publishes the source-line ratio for every pair; moving transforms into
+`data.ts` does not remove it from the comparison.
+
 TanStack deliberately keeps several responsibilities outside the default
 runtime:
 

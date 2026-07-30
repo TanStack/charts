@@ -1,5 +1,6 @@
 import * as Plot from '@observablehq/plot'
-import { mosaicColors, mosaicLayout, mosaicSegments } from './data'
+import { mosaicColors, mosaicSegments } from './data'
+import { mosaicLayout } from './layout'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 

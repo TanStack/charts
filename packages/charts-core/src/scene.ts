@@ -3,7 +3,6 @@ import { resolveConfiguredScale } from './configured-scale'
 import { measureSceneLabelBounds } from './guide-layout'
 import { nearestPoint } from './nearest'
 import type {
-  DynamicChartConfig,
   DynamicChartDefinition,
   InitializedMark,
   ChartAxisOptions,
@@ -60,59 +59,14 @@ export function defineChart<
   ChartMarkPointY<TMarks[number]>
 > &
   TSpec
-export function defineChart<TInput>(): {
-  <const TSpec extends ChartSpec, TPrepared = TInput>(
-    config: DynamicChartConfig<TInput, TPrepared, TSpec>,
-  ): DynamicChartDefinition<
-    TInput,
-    TPrepared,
-    ChartSpecDatum<TSpec>,
-    ChartSpecXValue<TSpec>,
-    ChartSpecYValue<TSpec>
-  >
-  <const TSpec extends ChartSpec>(
-    chart: (
-      context: ChartBuildContext<TInput, TInput>,
-    ) => CheckedChartSpec<TSpec>,
-  ): DynamicChartDefinition<
-    TInput,
-    TInput,
-    ChartSpecDatum<TSpec>,
-    ChartSpecXValue<TSpec>,
-    ChartSpecYValue<TSpec>
-  >
-}
-export function defineChart<
-  TInput,
-  const TSpec extends ChartSpec,
-  TPrepared = TInput,
->(
-  config: DynamicChartConfig<TInput, TPrepared, TSpec>,
+export function defineChart<const TSpec extends ChartSpec>(
+  chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>,
 ): DynamicChartDefinition<
-  TInput,
-  TPrepared,
-  ChartSpecDatum<TSpec>,
-  ChartSpecXValue<TSpec>,
-  ChartSpecYValue<TSpec>
->
-export function defineChart<TInput, const TSpec extends ChartSpec>(
-  chart: (
-    context: ChartBuildContext<TInput, TInput>,
-  ) => CheckedChartSpec<TSpec>,
-): DynamicChartDefinition<
-  TInput,
-  TInput,
   ChartSpecDatum<TSpec>,
   ChartSpecXValue<TSpec>,
   ChartSpecYValue<TSpec>
 >
 export function defineChart(definition?: any): any {
-  if (definition === undefined) {
-    return (dynamicDefinition: any) =>
-      (typeof dynamicDefinition === 'function'
-        ? { chart: dynamicDefinition }
-        : dynamicDefinition) as DynamicChartDefinition
-  }
   return (
     typeof definition === 'function' ? { chart: definition } : definition
   ) as StaticChartDefinition | DynamicChartDefinition

@@ -93,11 +93,7 @@ Measure three layers independently:
    calls, plus optional animation.
 
 This separation reveals whether an expensive chart needs a better encoding, a
-cached transform, fewer scene nodes, or a different renderer.
-
-`prepareEqual` can prevent repeat analytical work while still rebuilding a
-responsive or restyled scene. See
-[Dynamic Data and Animation](./dynamic-data-and-animation.md).
+framework-memoized transform, fewer scene nodes, or a different renderer.
 
 ## Choose a sane representation
 
@@ -123,7 +119,7 @@ interaction policies.
 - Keep definitions at module scope.
 - Reuse input references when data is unchanged.
 - Give every mutable visual entity a stable key.
-- Separate visual-only fields with `prepareEqual`.
+- Memoize expensive derived data in the application.
 - Bound streaming windows.
 - Build a spatial index only when a measurement justifies it.
 - Disable animation for high-frequency updates or reduced-motion users.

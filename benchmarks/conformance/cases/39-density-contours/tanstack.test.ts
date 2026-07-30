@@ -6,15 +6,14 @@ import type { ConformanceInput } from '../../types'
 
 describe('density contour interaction points', () => {
   it('emits one semantic centroid and density value per contour', () => {
-    const runtime = createChartRuntime<
-      DensityContourDatum,
-      ConformanceInput,
-      number,
-      number
-    >()
+    const runtime = createChartRuntime<DensityContourDatum, number, number>()
     const scene = runtime.render(
-      densityDefinition,
-      { width: 640, height: 400, revision: 0, interactive: true },
+      densityDefinition({
+        width: 640,
+        height: 400,
+        revision: 0,
+        interactive: true,
+      }),
       { width: 640, height: 400 },
     )
 

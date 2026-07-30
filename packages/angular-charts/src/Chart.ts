@@ -59,14 +59,13 @@ class ChartIdGenerator {
 })
 export class Chart<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >
   implements OnChanges, AfterViewInit, OnDestroy
 {
   @Input({ required: true })
-  declare options: ChartOptions<TDatum, TInput, TXValue, TYValue>
+  declare options: ChartOptions<TDatum, TXValue, TYValue>
 
   @ViewChild('surface', { static: true })
   declare private surface: ElementRef<HTMLElement>
@@ -78,7 +77,7 @@ export class Chart<
   private readonly sanitizer = inject(DomSanitizer)
   private readonly generatedId = inject(ChartIdGenerator).next()
   private adapter?: ChartAdapter<
-    ChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+    ChartHostOptions<TDatum, TXValue, TYValue>,
     TDatum,
     TXValue,
     TYValue
@@ -129,13 +128,12 @@ export class Chart<
 
 function toHostOptions<
   TDatum,
-  TInput,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  options: ChartOptions<TDatum, TInput, TXValue, TYValue>,
+  options: ChartOptions<TDatum, TXValue, TYValue>,
   idPrefix: string,
-): ChartHostOptions<TDatum, TInput, TXValue, TYValue> {
+): ChartHostOptions<TDatum, TXValue, TYValue> {
   const { class: _class, style: _style, ...hostOptions } = options
   return { ...hostOptions, idPrefix }
 }

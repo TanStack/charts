@@ -21,203 +21,88 @@ interface Input {
 }
 
 describe('dynamic chart runtime', () => {
-  it('rejects missing dynamic input at the untyped runtime boundary', () => {
-    const definition = defineChart<Input>()(({ input }) => ({
-      marks: [lineY(input.data, { x: 'x', y: 'y' })],
-      ...linearAxes([0, 1], [0, 4]),
-    }))
-    const container = document.createElement('div')
-    const missingInput = {
-      definition,
-      width: 480,
-      height: 260,
-      ariaLabel: 'Dynamic chart',
-    }
-
-    // @ts-expect-error JavaScript consumers still receive the runtime guard.
-    expect(() => mountChart(container, missingInput)).toThrow(
-      'Dynamic chart definitions require an input value',
-    )
-
-    const host = mountChart(container, {
-      ...missingInput,
-      input: { data: [{ id: 'a', x: 0, y: 4 }], stroke: 'red' },
-    })
-    // @ts-expect-error Updates enforce the same dynamic input contract.
-    expect(() => host.update(missingInput)).toThrow(
-      'Dynamic chart definitions require an input value',
-    )
-    host.destroy()
-  })
-
   it('compiles dynamic specifications through the strict scale path', () => {
     const definition = {
-      chart: ({ input }: { input: Input }) => ({
-        marks: [lineY(input.data, { x: 'x', y: 'y' })],
+      chart: () => ({
+        marks: [lineY([{ id: 'a', x: 0, y: 4 }], { x: 'x', y: 'y' })],
       }),
-    } as unknown as ChartDefinition<Datum, Input>
-    const runtime = createChartRuntime<Datum, Input>()
+    } as unknown as ChartDefinition<Datum>
+    const runtime = createChartRuntime<Datum>()
 
     expect(() =>
-      runtime.render(
-        definition,
-        { data: [{ id: 'a', x: 0, y: 4 }], stroke: 'red' },
-        { width: 480, height: 260 },
-      ),
+      runtime.render(definition, { width: 480, height: 260 }),
     ).toThrow(/requires a configured scale/)
     runtime.destroy()
   })
 
-  it('separates input invalidation from prepared-data invalidation', () => {
+  it('builds each scene from captured values and the current size', () => {
     const firstData = [
       { id: 'a', x: 0, y: 4 },
       { id: 'b', x: 1, y: 8 },
     ]
-    const secondData = [...firstData, { id: 'c', x: 2, y: 12 }]
-    const prepare = vi.fn((input: Input) => input.data)
-    const chart = vi.fn(
-      ({ input, prepared }: { input: Input; prepared: readonly Datum[] }) => ({
+    const createDefinition = (input: Input) =>
+      defineChart(
+        vi.fn(({ width }) => ({
+          marks: [
+            lineY(input.data, {
+              x: 'x',
+              y: 'y',
+              key: 'id',
+              stroke: width < 400 ? 'red' : input.stroke,
+            }),
+          ],
+          ...linearAxes([0, 2], [0, 12]),
+        })),
+      )
+    const runtime = createChartRuntime<Datum>()
+
+    const narrow = runtime.render(
+      createDefinition({ data: firstData, stroke: 'red' }),
+      { width: 320, height: 260 },
+    )
+    const wide = runtime.render(
+      createDefinition({ data: firstData, stroke: 'blue' }),
+      { width: 640, height: 260 },
+    )
+
+    expect(narrow.points).toHaveLength(2)
+    expect(wide.points[0]?.color).toBe('blue')
+    runtime.destroy()
+  })
+
+  it('uses definition identity as the application update boundary', () => {
+    const data = [{ id: 'a', x: 0, y: 4 }]
+    const createDefinition = (stroke: string) =>
+      defineChart(() => ({
         marks: [
-          lineY(prepared, {
+          lineY(data, {
             x: 'x',
             y: 'y',
-            key: 'id',
-            stroke: input.stroke,
+            stroke,
           }),
         ],
-        ...linearAxes([0, 2], [0, 12]),
-      }),
-    )
-    const definition = defineChart<Input>()({
-      prepare,
-      prepareEqual: (previous, next) => previous.data === next.data,
-      chart,
-    })
-    const runtime = createChartRuntime<Datum, Input>()
-
-    const first = runtime.render(
-      definition,
-      { data: firstData, stroke: 'red' },
-      { width: 480, height: 260 },
-    )
-    const visualUpdate = runtime.render(
-      definition,
-      { data: firstData, stroke: 'blue' },
-      { width: 480, height: 260 },
-    )
-    runtime.render(
-      definition,
-      { data: secondData, stroke: 'blue' },
-      { width: 480, height: 260 },
-    )
-
-    expect(prepare).toHaveBeenCalledTimes(2)
-    expect(chart).toHaveBeenCalledTimes(3)
-    expect(first.points).toHaveLength(2)
-    expect(visualUpdate.points[0]?.color).toBe('blue')
-    runtime.destroy()
-  })
-
-  it('adopts a prerender runtime without preparing twice and owns cleanup', () => {
-    const signals: AbortSignal[] = []
-    const prepare = vi.fn((input: Input, context: { signal: AbortSignal }) => {
-      signals.push(context.signal)
-      return input.data
-    })
-    const definition = defineChart<Input>()({
-      prepare,
-      chart: ({ prepared }) => ({
-        marks: [lineY(prepared, { x: 'x', y: 'y' })],
         ...linearAxes([0, 1], [0, 4]),
-      }),
-    })
-    const input = {
-      data: [{ id: 'a', x: 0, y: 4 }],
-      stroke: 'red',
-    }
-    const runtime = createChartRuntime<Datum, Input>()
-    runtime.render(definition, input, { width: 480, height: 260 })
-
+      }))
     const container = document.createElement('div')
-    const host = mountChart(
-      container,
-      {
-        definition,
-        input,
-        width: 480,
-        height: 260,
-        ariaLabel: 'Dynamic chart',
-      },
-      runtime,
-    )
-
-    expect(prepare).toHaveBeenCalledOnce()
-    expect(signals[0]?.aborted).toBe(false)
-    host.destroy()
-    expect(signals[0]?.aborted).toBe(true)
-  })
-
-  it('aborts prepared work when its definition changes or is destroyed', () => {
-    const signals: AbortSignal[] = []
-    const makeDefinition = () =>
-      defineChart<Input>()({
-        prepare(input, context) {
-          signals.push(context.signal)
-          return input.data
-        },
-        chart: ({ prepared }) => ({
-          marks: [lineY(prepared, { x: 'x', y: 'y' })],
-          ...linearAxes([0, 1], [0, 4]),
-        }),
-      })
-    const runtime = createChartRuntime<Datum, Input>()
-    const input = { data: [{ id: 'a', x: 0, y: 4 }], stroke: 'red' }
-
-    runtime.render(makeDefinition(), input, { width: 480, height: 260 })
-    expect(signals[0]?.aborted).toBe(false)
-    runtime.render(makeDefinition(), input, { width: 480, height: 260 })
-    expect(signals[0]?.aborted).toBe(true)
-    expect(signals[1]?.aborted).toBe(false)
-    runtime.destroy()
-    expect(signals[1]?.aborted).toBe(true)
-  })
-
-  it('does not replace DOM for shallow-equal dynamic input', () => {
-    const data = [{ id: 'a', x: 0, y: 4 }]
-    const definition = defineChart<Input>()(({ input }) => ({
-      marks: [
-        lineY(input.data, {
-          x: 'x',
-          y: 'y',
-          stroke: input.stroke,
-        }),
-      ],
-      ...linearAxes([0, 1], [0, 4]),
-    }))
-    const container = document.createElement('div')
+    const onRender = vi.fn()
+    const definition = createDefinition('red')
     const options = {
       definition,
-      input: { data, stroke: 'red' },
       width: 480,
       height: 260,
       ariaLabel: 'Dynamic chart',
+      onRender,
     }
     const host = mountChart(container, options)
     const initialSvg = container.querySelector('svg')
 
-    host.update({
-      ...options,
-      input: { data, stroke: 'red' },
-    })
+    host.update({ ...options })
 
     expect(container.querySelector('svg')).toBe(initialSvg)
-    host.update({
-      ...options,
-      input: { data, stroke: 'red' },
-      keyboard: false,
-    })
-    expect(container.querySelector('svg')).toBe(initialSvg)
-    expect(initialSvg?.getAttribute('tabindex')).toBe('-1')
+    expect(onRender).toHaveBeenCalledOnce()
+    host.update({ ...options, definition: createDefinition('blue') })
+    expect(onRender).toHaveBeenCalledTimes(2)
+    expect(host.getScene().points[0]?.color).toBe('blue')
     host.destroy()
   })
 
@@ -992,10 +877,11 @@ describe('dynamic chart runtime', () => {
   })
 
   it('respects reduced-motion preferences unless explicitly overridden', () => {
-    const definition = defineChart<{ value: number }>()(({ input }) => ({
-      marks: [lineY([0, input.value])],
-      ...linearAxes([0, 1], [0, 12]),
-    }))
+    const createDefinition = (value: number) =>
+      defineChart(() => ({
+        marks: [lineY([0, value])],
+        ...linearAxes([0, 1], [0, 12]),
+      }))
     const originalMatchMedia = window.matchMedia
     const requestFrame = vi
       .spyOn(window, 'requestAnimationFrame')
@@ -1003,20 +889,19 @@ describe('dynamic chart runtime', () => {
     window.matchMedia = vi.fn().mockReturnValue({ matches: true })
     const container = document.createElement('div')
     const options = {
-      definition,
-      input: { value: 4 },
+      definition: createDefinition(4),
       width: 480,
       height: 260,
       ariaLabel: 'Motion chart',
     }
     const host = mountChart(container, options)
 
-    host.update({ ...options, input: { value: 8 }, animate: true })
+    host.update({ ...options, definition: createDefinition(8), animate: true })
     expect(requestFrame).not.toHaveBeenCalled()
 
     host.update({
       ...options,
-      input: { value: 12 },
+      definition: createDefinition(12),
       animate: { respectReducedMotion: false },
     })
     expect(requestFrame).toHaveBeenCalled()

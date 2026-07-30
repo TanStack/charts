@@ -3,15 +3,14 @@ import { focusX, focusY } from '@tanstack/charts/focus'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import {
   createStatsHistoryInput,
+  createStatsHistoryChart,
   createStatsLatestInput,
-  statsHistoryChart,
-  statsLatestChart,
+  createStatsLatestChart,
 } from '../../packages/charts-fixtures/src/stats-parity'
 
 export function mountHistory(element: HTMLElement) {
   return mountChart(element, {
-    definition: statsHistoryChart,
-    input: createStatsHistoryInput('stream'),
+    definition: createStatsHistoryChart(createStatsHistoryInput('stream')),
     ariaLabel: 'Package downloads',
     focus: focusX,
     renderSvg: renderChartSvgWithResources,
@@ -21,8 +20,9 @@ export function mountHistory(element: HTMLElement) {
 
 export function mountRanking(element: HTMLElement) {
   return mountChart(element, {
-    definition: statsLatestChart,
-    input: createStatsLatestInput('horizontal', true),
+    definition: createStatsLatestChart(
+      createStatsLatestInput('horizontal', true),
+    ),
     ariaLabel: 'Package ranking',
     focus: focusY,
     renderSvg: renderChartSvgWithResources,

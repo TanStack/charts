@@ -4,8 +4,8 @@ description: Reference for marks, axes, color, gradients, clipping, margins, gui
 ---
 
 Every static definition and dynamic chart builder resolves to a `ChartSpec`.
-The spec owns chart composition and presentation. Data preparation and
-semantic scale domains remain explicit inputs to that composition.
+The spec owns chart composition and presentation. Transformed data and semantic
+scale domains remain explicit inputs to that composition.
 
 ```ts
 interface ChartSpec<TMarks extends readonly ChartMark[]> {

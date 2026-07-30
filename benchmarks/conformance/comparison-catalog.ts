@@ -2,7 +2,7 @@
 
 import {
   loadCatalogImplementation,
-  loadCatalogSource,
+  loadCatalogSourceClosure,
   rendererFileName,
 } from './catalog-loader'
 import type {
@@ -16,7 +16,7 @@ const implementationModules = import.meta.glob([
   './cases/*/echarts.ts',
 ])
 const sourceModules = import.meta.glob(
-  ['./cases/*/plot.ts', './cases/*/recharts.ts', './cases/*/echarts.ts'],
+  ['./cases/**/*.ts', '!./cases/**/*.test.ts'],
   {
     query: '?raw',
     import: 'default',
@@ -33,11 +33,14 @@ export function loadComparisonImplementation(
   )
 }
 
-export function loadComparisonSource(
+export function loadComparisonSources(
   id: string,
   renderer: ConformanceReferenceRenderer,
-): Promise<string | null> {
-  return loadCatalogSource(sourceModules, implementationPath(id, renderer))
+) {
+  return loadCatalogSourceClosure(
+    sourceModules,
+    implementationPath(id, renderer),
+  )
 }
 
 function implementationPath(

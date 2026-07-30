@@ -29,13 +29,12 @@ explicit `renderer`, so a framework can expose a renderer-neutral binding.
 ```ts
 function createChartAdapter<
   TDatum,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(
-  initialOptions: ChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+  initialOptions: ChartHostOptions<TDatum, TXValue, TYValue>,
 ): ChartAdapter<
-  ChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+  ChartHostOptions<TDatum, TXValue, TYValue>,
   TDatum,
   TXValue,
   TYValue
@@ -45,20 +44,19 @@ function createChartAdapter<
 ```ts
 function createChartRendererAdapter<
   TDatum,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(
-  initialOptions: ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
+  initialOptions: ChartRendererHostOptions<TDatum, TXValue, TYValue>,
 ): ChartAdapter<
-  ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
+  ChartRendererHostOptions<TDatum, TXValue, TYValue>,
   TDatum,
   TXValue,
   TYValue
 >
 ```
 
-Both factories preserve the definition/input generic relationship from the
+Both factories preserve the definition's datum and coordinate types from the
 host options and return the same lifecycle contract:
 
 ```ts
@@ -79,14 +77,12 @@ interface ChartAdapter<
 | Method        | Contract                                                                                                                                           |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `prerender()` | Compiles the current options at the resolved initial size and returns the selected renderer's deterministic markup.                                |
-| `mount()`     | Mounts into one container. Calling it again while mounted throws. A preceding prerender shares the controller's runtime and prepared dynamic data. |
+| `mount()`     | Mounts into one container. Calling it again while mounted throws. A preceding prerender shares the controller's runtime.                           |
 | `update()`    | Replaces the complete options object. Before mount it updates later prerender and mount work; after mount it forwards the update to the live host. |
 | `getScene()`  | Returns `undefined` before mount, including after prerender, and the current compiled scene after mount.                                           |
 | `destroy()`   | Releases the mounted host, runtime, observers, renderer surface, and interaction listeners. Repeated calls after cleanup have no effect.           |
 
-Keep one controller per framework component instance. Creating a temporary
-controller for prerender and another for mount discards the preparation reuse
-that this API provides.
+Keep one controller per framework component instance.
 
 ## Prerender and mount
 
@@ -104,9 +100,8 @@ adapter.destroy()
 ```
 
 A server controller and browser controller are separate instances. The
-browser's initial render and mount should reuse one browser controller so the
-mount can reuse its prepared data. The renderer decides which compatible shell
-or root it adopts. The [SSR and Hydration
+browser's initial render and mount should reuse one browser controller. The
+renderer decides which compatible shell or root it adopts. The [SSR and Hydration
 guide](../guides/ssr-and-hydration.md) covers framework integration
 requirements.
 

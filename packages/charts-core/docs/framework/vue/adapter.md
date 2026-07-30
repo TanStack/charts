@@ -9,13 +9,15 @@ pnpm add @tanstack/charts @tanstack/vue-charts vue d3-scale
 
 ```vue
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Chart } from '@tanstack/vue-charts'
+
+const definition = computed(() => createRevenueChart(rows.value))
 </script>
 
 <template>
   <Chart
     :definition="definition"
-    :input="{ rows }"
     aria-label="Revenue by month"
     :aspect-ratio="16 / 9"
     :tooltip="true"
@@ -31,15 +33,15 @@ Vue prop updates call the shared host after each component update. `class` and
 
 The component prerenders through one shared adapter controller, mounts it in
 `onMounted`, forwards the latest complete props in `onUpdated`, and destroys it
-in `onBeforeUnmount`. Keep a fixed definition outside component setup; pass
-live values through a dynamic definition's `input`.
+in `onBeforeUnmount`. Keep stable definitions at module scope. Use `computed`
+for definitions that capture reactive values.
 
 ## SSR and hydration
 
 Vue SSR emits the complete `.ts-chart-host`, `.ts-chart-surface`, and
 accessible SVG. `initialWidth` controls responsive server geometry. Vue's
 `useId()` provides a stable generated resource prefix when server and browser
-render the same tree. Keep definitions, inputs, formatters, and dimensions
+render the same tree. Keep definitions, formatters, and dimensions
 deterministic.
 
 ## Presentation and rendering
@@ -51,7 +53,7 @@ SVG component only; use `renderSvg` to replace SVG serialization without
 replacing the shared host.
 
 Exports: `Chart`, `ChartCommonProps`, `ChartPresentationProps`, `ChartProps`,
-`DynamicChartProps`, `StaticChartProps`, `ChartDefinition`, and `ChartPoint`.
+`ChartDefinition`, and `ChartPoint`.
 
 See the [`Chart` reference](./reference/chart.md), [SSR and hydration](../../guides/ssr-and-hydration.md),
 and [Chart Definition API](../../reference/chart-definitions.md).

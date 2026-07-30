@@ -15,56 +15,38 @@ const staticDefinition = defineChart({
   y: { scale: scaleLinear().domain([0, 8]) },
 })
 
-const dynamicDefinition = defineChart<{
-  rows: typeof rows
-  stroke: string
-}>()(({ input }) => ({
+const dynamicDefinition = defineChart(() => ({
   marks: [
-    lineY(input.rows, {
+    lineY(rows, {
       x: 'x',
       y: 'value',
       key: 'id',
-      stroke: input.stroke,
+      stroke: 'red',
     }),
   ],
   x: { scale: scaleLinear().domain([0, 1]) },
   y: { scale: scaleLinear().domain([0, 8]) },
 }))
-const undefinedInputDefinition = defineChart<undefined>()(
-  () => staticDefinition,
-)
-const voidInputDefinition = defineChart<void>()(() => staticDefinition)
-const widenedDefinition: ChartDefinition<(typeof rows)[number], undefined> =
-  rows.length > 0 ? staticDefinition : undefinedInputDefinition
+const widenedDefinition: ChartDefinition<
+  (typeof rows)[number],
+  number,
+  number
+> = rows.length > 0 ? staticDefinition : dynamicDefinition
 
 if (false) {
   Chart<(typeof rows)[number]>({
     definition: staticDefinition,
     ariaLabel: 'Explicit static datum',
   })
-  Chart<(typeof rows)[number], { rows: typeof rows; stroke: string }>({
+  Chart<(typeof rows)[number], number, number>({
     definition: dynamicDefinition,
-    input: { rows, stroke: 'red' },
-    ariaLabel: 'Explicit dynamic datum and input',
+    ariaLabel: 'Explicit dynamic coordinates',
   })
 
-  // @ts-expect-error Dynamic chart props require input.
   Chart({ definition: dynamicDefinition, ariaLabel: 'Values' })
-
-  // @ts-expect-error Static chart props do not accept input.
-  Chart({ definition: staticDefinition, input: {}, ariaLabel: 'Values' })
-
-  const invalidDynamicProps = {
-    definition: dynamicDefinition,
-    input: { rows, stroke: 42 },
-    ariaLabel: 'Values',
-  }
-  // @ts-expect-error Dynamic chart input is inferred from the definition.
-  Chart(invalidDynamicProps)
 
   Chart({
     definition: dynamicDefinition,
-    input: { rows, stroke: 'red' },
     ariaLabel: 'Values',
     focus: {
       resolve(points) {
@@ -121,42 +103,5 @@ if (false) {
     },
   })
 
-  Chart({
-    definition: undefinedInputDefinition,
-    input: undefined,
-    ariaLabel: 'Undefined input',
-    onFocusChange(point) {
-      expectTypeOf(point?.datum).toEqualTypeOf<
-        (typeof rows)[number] | undefined
-      >()
-    },
-  })
-
-  Chart({
-    definition: voidInputDefinition,
-    input: undefined,
-    ariaLabel: 'Void input',
-  })
-
-  // @ts-expect-error Dynamic TSRX props require an explicit input property even when its value is undefined.
-  Chart({ definition: undefinedInputDefinition, ariaLabel: 'Undefined input' })
-
-  // @ts-expect-error Dynamic TSRX props require an explicit input property even when its value is void.
-  Chart({ definition: voidInputDefinition, ariaLabel: 'Void input' })
-
-  Chart({
-    definition: staticDefinition,
-    input: undefined,
-    ariaLabel: 'Explicit static undefined',
-  })
-
-  // @ts-expect-error A widened static-or-dynamic TSRX definition must be narrowed before rendering.
   Chart({ definition: widenedDefinition, ariaLabel: 'Widened definition' })
-
-  Chart({
-    // @ts-expect-error Supplying input does not resolve a widened TSRX definition.
-    definition: widenedDefinition,
-    input: undefined,
-    ariaLabel: 'Widened definition',
-  })
 }

@@ -7,22 +7,14 @@ description: Complete prop and type reference for the @tanstack/react-charts Cha
 import { Chart } from '@tanstack/react-charts'
 ```
 
-`Chart` has separate static and dynamic overloads. The supplied definition
-infers the datum, semantic x/y values, dynamic input, and callbacks.
+The supplied definition infers the datum, semantic x/y values, and callbacks.
 
 ```ts
 function Chart<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(props: StaticChartProps<TDatum, TXValue, TYValue>): React.JSX.Element
-
-function Chart<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->(props: DynamicChartProps<TDatum, TInput, TXValue, TYValue>): React.JSX.Element
+>(props: ChartProps<TDatum, TXValue, TYValue>): React.JSX.Element
 ```
 
 ## Renderer entry points
@@ -50,14 +42,13 @@ The Canvas `Chart` accepts the same common interaction and sizing props except
 `renderSvg`. Its `onRender` receives `ChartRendererRenderContext`. The `/core`
 `Chart` also requires `renderer: ChartRenderer`; use it for application-owned
 surfaces. Both entries export `ChartCommonProps`, `ChartProps`,
-`StaticChartProps`, `DynamicChartProps`, `ChartDefinition`, and `ChartPoint`.
+`ChartDefinition`, and `ChartPoint`.
 
 ## Definition props
 
-| Prop         | Static                     | Dynamic                     | Meaning                                         |
-| ------------ | -------------------------- | --------------------------- | ----------------------------------------------- |
-| `definition` | Required static definition | Required dynamic definition | Framework-independent chart definition          |
-| `input`      | Rejected                   | Required `TInput`           | Exact input declared by `defineChart<TInput>()` |
+| Prop         | Default  | Meaning                                                                       |
+| ------------ | -------- | ----------------------------------------------------------------------------- |
+| `definition` | Required | Framework-independent definition; identity is the application update boundary |
 
 See [Chart Definition API](../../../reference/chart-definitions.md).
 
@@ -108,8 +99,7 @@ See [Rendering and export](../../../reference/rendering-and-export.md) and
 
 ## Exported prop types
 
-The adapter exports `ChartCommonProps`, `ChartProps`, `StaticChartProps`, and
-`DynamicChartProps`.
+The adapter exports `ChartCommonProps` and `ChartProps`.
 
 ```ts
 interface ChartCommonProps<
@@ -120,34 +110,15 @@ interface ChartCommonProps<
   // every common prop listed above
 }
 
-type StaticChartProps<
-  TDatum = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: StaticChartDefinition<TDatum, TXValue, TYValue>
-  input?: never
-}
-
-type DynamicChartProps<
-  TDatum = unknown,
-  TInput = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: DynamicChartDefinition<TInput, any, TDatum, TXValue, TYValue>
-  input: TInput
-}
-
 type ChartProps<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> =
-  | StaticChartProps<TDatum, TXValue, TYValue>
-  | DynamicChartProps<TDatum, TInput, TXValue, TYValue>
+> = ChartCommonProps<TDatum, TXValue, TYValue> & {
+  definition: ChartDefinition<TDatum, TXValue, TYValue>
+}
 ```
 
 The package also re-exports `ChartDefinition` and `ChartPoint`. Prefer
-inference at the component call site; see [Types](../../../reference/types.md).
+inference at the component call site. Memoize definitions that capture
+component values; see [Types](../../../reference/types.md).

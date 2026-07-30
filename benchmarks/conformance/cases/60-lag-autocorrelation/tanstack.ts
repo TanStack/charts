@@ -17,39 +17,40 @@ const identity: readonly LagPoint[] = [
   { id: 'end', lag: 90, current: 90 },
 ]
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = lagPairs(autocorrelationData(input.revision))
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = lagPairs(autocorrelationData(input.revision))
 
-  return {
-    marks: [
-      lineY(identity, {
-        x: 'lag',
-        y: 'current',
-        key: 'id',
-        stroke: '#94a3b8',
-        strokeDasharray: '5,4',
-      }),
-      dot(rows, {
-        x: 'lag',
-        y: 'current',
-        key: 'id',
-        fill: '#7c3aed',
-        fillOpacity: 0.78,
-        r: 4,
-      }),
-    ],
-    x: {
-      scale: scaleLinear().domain(autocorrelationDomain),
-      grid: true,
-      label: 'Previous observation',
-    },
-    y: {
-      scale: scaleLinear().domain(autocorrelationDomain),
-      grid: true,
-      label: 'Current observation',
-    },
-  }
-})
+    return {
+      marks: [
+        lineY(identity, {
+          x: 'lag',
+          y: 'current',
+          key: 'id',
+          stroke: '#94a3b8',
+          strokeDasharray: '5,4',
+        }),
+        dot(rows, {
+          x: 'lag',
+          y: 'current',
+          key: 'id',
+          fill: '#7c3aed',
+          fillOpacity: 0.78,
+          r: 4,
+        }),
+      ],
+      x: {
+        scale: scaleLinear().domain(autocorrelationDomain),
+        grid: true,
+        label: 'Previous observation',
+      },
+      y: {
+        scale: scaleLinear().domain(autocorrelationDomain),
+        grid: true,
+        label: 'Current observation',
+      },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

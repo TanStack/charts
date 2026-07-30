@@ -1,41 +1,20 @@
-export interface WaterfallPoint {
+export interface WaterfallContribution {
   id: string
   label: string
-  start: number
-  end: number
-  kind: 'increase' | 'decrease' | 'total'
+  value: number
 }
 
-const changes = [
-  ['Revenue', 82],
-  ['Services', 28],
-  ['Returns', -14],
-  ['Infrastructure', -22],
-  ['People', -31],
-  ['Other', 9],
-] as const
+const contributions: readonly WaterfallContribution[] = [
+  { id: 'revenue', label: 'Revenue', value: 82 },
+  { id: 'services', label: 'Services', value: 28 },
+  { id: 'returns', label: 'Returns', value: -14 },
+  { id: 'infrastructure', label: 'Infrastructure', value: -22 },
+  { id: 'people', label: 'People', value: -31 },
+  { id: 'other', label: 'Other', value: 9 },
+]
 
-export function waterfallData(revision = 0): readonly WaterfallPoint[] {
-  const rows: WaterfallPoint[] = []
-  let total = 0
-  for (const [label, baseValue] of changes) {
-    const value = baseValue + (label === 'Services' ? revision * 3 : 0)
-    const start = total
-    total += value
-    rows.push({
-      id: label,
-      label,
-      start,
-      end: total,
-      kind: value >= 0 ? 'increase' : 'decrease',
-    })
-  }
-  rows.push({
-    id: 'Net',
-    label: 'Net',
-    start: 0,
-    end: total,
-    kind: 'total',
-  })
-  return rows
+export function waterfallData(revision = 0): readonly WaterfallContribution[] {
+  return contributions.map((row) =>
+    row.id === 'services' ? { ...row, value: row.value + revision * 3 } : row,
+  )
 }

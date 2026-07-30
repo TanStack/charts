@@ -29,38 +29,39 @@ interface StreamPoint {
   y2: number
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = streamIntervals(streamData(input.revision))
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = streamIntervals(streamData(input.revision))
 
-  return {
-    marks: [
-      areaY(rows, {
-        id: 'stream-areas',
-        x: 'date',
-        y1: 'y1',
-        y2: 'y2',
-        z: 'series',
-        key: 'id',
-        fillOpacity: 0.85,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(timeDomain),
-      label: 'Week',
-    },
-    y: {
-      scale: scaleLinear().domain(streamValueDomain),
-      grid: true,
-      label: 'Stream offset',
-    },
-    color: {
-      scale: scaleOrdinal<TimePoint['series'], string>()
-        .domain(seriesNames)
-        .range(seriesNames.map((series) => seriesColors[series])),
-      legend: colorLegend({ label: 'Series' }),
-    },
-  }
-})
+    return {
+      marks: [
+        areaY(rows, {
+          id: 'stream-areas',
+          x: 'date',
+          y1: 'y1',
+          y2: 'y2',
+          z: 'series',
+          key: 'id',
+          fillOpacity: 0.85,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(timeDomain),
+        label: 'Week',
+      },
+      y: {
+        scale: scaleLinear().domain(streamValueDomain),
+        grid: true,
+        label: 'Stream offset',
+      },
+      color: {
+        scale: scaleOrdinal<TimePoint['series'], string>()
+          .domain(seriesNames)
+          .range(seriesNames.map((series) => seriesColors[series])),
+        legend: colorLegend({ label: 'Series' }),
+      },
+    }
+  })
 
 export const mount: ConformanceMount = tanstackMount(
   definition,

@@ -4,8 +4,9 @@ import {
 } from '../../../benchmarks/conformance/catalog'
 import {
   loadTanStackImplementation,
-  loadTanStackSource,
+  loadTanStackSources,
 } from '../../../benchmarks/conformance/native-catalog'
+import type { CatalogSourceFile } from '../../../benchmarks/conformance/catalog-loader'
 import type {
   ConformanceCaseMeta,
   ConformanceHandle,
@@ -491,7 +492,7 @@ function renderRendererPanel(
       ></div>
       <details class="source">
         <summary>Source</summary>
-        <pre><code id="${escapeHtml(entry.id)}-${renderer}-source">loading…</code></pre>
+        <div id="${escapeHtml(entry.id)}-${renderer}-source">loading…</div>
       </details>
     </section>
   `
@@ -529,7 +530,7 @@ async function mountRenderer(
       renderer === 'tanstack'
         ? await Promise.all([
             loadTanStackImplementation(entry.id),
-            loadTanStackSource(entry.id),
+            loadTanStackSources(entry.id),
           ])
         : await loadComparisonRenderer(entry.id, renderer)
     if (
@@ -541,7 +542,7 @@ async function mountRenderer(
     }
 
     if (sourceElement) {
-      sourceElement.textContent = source ?? 'No implementation yet.'
+      sourceElement.innerHTML = renderSourceFiles(source)
     }
     if (!implementation) {
       container.innerHTML =
@@ -583,8 +584,22 @@ async function loadComparisonRenderer(
   const catalog = await loadComparisonCatalog()
   return Promise.all([
     catalog.loadComparisonImplementation(id, renderer),
-    catalog.loadComparisonSource(id, renderer),
+    catalog.loadComparisonSources(id, renderer),
   ])
+}
+
+function renderSourceFiles(files: readonly CatalogSourceFile[]): string {
+  if (!files.length) return '<p class="gap">No implementation yet.</p>'
+  return files
+    .map(
+      (file, index) => `
+        <details class="source-file" ${index === 0 ? 'open' : ''}>
+          <summary>${escapeHtml(file.path)}</summary>
+          <pre><code>${escapeHtml(file.source)}</code></pre>
+        </details>
+      `,
+    )
+    .join('')
 }
 
 function loadComparisonCatalog() {

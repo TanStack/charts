@@ -17,8 +17,7 @@ import { Chart } from '@tanstack/angular-charts'
 })
 export class RevenueChart {
   chartOptions = {
-    definition,
-    input: { rows },
+    definition: createRevenueChart(rows),
     ariaLabel: 'Revenue by month',
     aspectRatio: 16 / 9,
     tooltip: true,
@@ -52,8 +51,7 @@ package exposes the SVG component only. Use `renderSvg` to replace SVG
 serialization without replacing the shared host.
 
 Exports: `Chart`, `ChartCommonOptions`, `ChartOptions`,
-`ChartPresentationOptions`, `DynamicChartOptions`, `StaticChartOptions`,
-`ChartDefinition`, and `ChartPoint`.
+`ChartPresentationOptions`, `ChartDefinition`, and `ChartPoint`.
 
 See the [`Chart` reference](./reference/chart.md) and
 [Chart Definition API](../../reference/chart-definitions.md).

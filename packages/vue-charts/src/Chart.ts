@@ -1,6 +1,5 @@
 import {
   defineComponent,
-  getCurrentInstance,
   h,
   onBeforeUnmount,
   onMounted,
@@ -19,11 +18,10 @@ import type { ChartProps } from './types'
 interface ChartComponent {
   <
     TDatum,
-    TInput = undefined,
     TXValue extends ChartValue = ChartValue,
     TYValue extends ChartValue = ChartValue,
   >(
-    props: ChartProps<TDatum, TInput, TXValue, TYValue>,
+    props: ChartProps<TDatum, TXValue, TYValue>,
   ): VNode
 }
 
@@ -32,7 +30,6 @@ const ChartImplementation = defineComponent({
   inheritAttrs: false,
   props: {
     definition: { required: true },
-    input: null,
     ariaLabel: { type: String, required: true },
     ariaDescription: String,
     height: Number,
@@ -56,18 +53,12 @@ const ChartImplementation = defineComponent({
     onRender: Function,
   },
   setup(componentProps, { attrs }) {
-    const instance = getCurrentInstance()
-    const currentProps = () => {
-      const props = {
+    const currentProps = () =>
+      ({
         ...componentProps,
         class: attrs.class,
         style: attrs.style,
-      }
-      if (!Object.hasOwn(instance?.vnode.props ?? {}, 'input')) {
-        delete props.input
-      }
-      return props as ChartProps<any, any, any, any>
-    }
+      }) as ChartProps<any, any, any>
     const props = currentProps()
     const generatedId = useId()
     const generatedPrefix = `ts-chart-${generatedId.replaceAll(/[^a-zA-Z0-9_-]/g, '')}`
@@ -123,13 +114,12 @@ export const Chart = ChartImplementation as unknown as ChartComponent
 
 function toHostOptions<
   TDatum,
-  TInput,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
+  props: ChartProps<TDatum, TXValue, TYValue>,
   idPrefix: string,
-): ChartHostOptions<TDatum, TInput, TXValue, TYValue> {
+): ChartHostOptions<TDatum, TXValue, TYValue> {
   const { class: _class, style: _style, ...options } = props
   return { ...options, idPrefix }
 }

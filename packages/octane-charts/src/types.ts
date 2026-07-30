@@ -8,8 +8,7 @@ import type {
   ChartTextMeasurer,
   ChartTooltipOptions,
   ChartValue,
-  DynamicChartDefinition,
-  StaticChartDefinition,
+  ChartDefinition,
 } from '@tanstack/charts'
 
 export interface ChartCommonProps<
@@ -47,30 +46,10 @@ export interface ChartCommonProps<
   onRender?: (context: ChartRenderContext<TDatum, TXValue, TYValue>) => void
 }
 
-export type StaticChartProps<
-  TDatum = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: StaticChartDefinition<TDatum, TXValue, TYValue>
-  input?: never
-}
-
-export type DynamicChartProps<
-  TDatum = unknown,
-  TInput = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: DynamicChartDefinition<TInput, any, TDatum, TXValue, TYValue>
-  input: TInput
-}
-
 export type ChartProps<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> =
-  | StaticChartProps<TDatum, TXValue, TYValue>
-  | DynamicChartProps<TDatum, TInput, TXValue, TYValue>
+> = ChartCommonProps<TDatum, TXValue, TYValue> & {
+  definition: ChartDefinition<TDatum, TXValue, TYValue>
+}

@@ -16,8 +16,59 @@ interface BoxSummary {
   high: number
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = boxData(input.revision)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const { summaries, outliers } = summarizeBoxplots(boxData(input.revision))
+
+    return {
+      marks: [
+        link(summaries, {
+          x1: 'group',
+          y1: 'low',
+          x2: 'group',
+          y2: 'high',
+          key: 'id',
+          stroke: '#2563eb',
+        }),
+        barY(summaries, {
+          x: 'group',
+          y1: 'q1',
+          y2: 'q3',
+          key: 'id',
+          fill: '#bfdbfe',
+          inset: 18,
+        }),
+        tickY(summaries, {
+          x: 'group',
+          y: 'median',
+          key: 'id',
+          stroke: '#2563eb',
+          strokeWidth: 2,
+          inset: 18,
+        }),
+        dot(outliers, {
+          x: 'group',
+          y: 'value',
+          key: 'id',
+          fill: '#ffffff',
+          stroke: '#2563eb',
+          r: 2.5,
+        }),
+      ],
+      x: {
+        scale: scaleBand<string>()
+          .domain(['Alpha', 'Beta', 'Gamma'])
+          .padding(0.22),
+      },
+      y: {
+        scale: scaleLinear().domain([10, 100]),
+        grid: true,
+        label: 'Value',
+      },
+    }
+  })
+
+function summarizeBoxplots(rows: readonly BoxPoint[]) {
   const summaries: BoxSummary[] = []
   const outliers: BoxPoint[] = []
 
@@ -46,54 +97,8 @@ const definition = defineChart<ConformanceInput>()(({ input }) => {
       ),
     )
   }
-
-  return {
-    marks: [
-      link(summaries, {
-        x1: 'group',
-        y1: 'low',
-        x2: 'group',
-        y2: 'high',
-        key: 'id',
-        stroke: '#2563eb',
-      }),
-      barY(summaries, {
-        x: 'group',
-        y1: 'q1',
-        y2: 'q3',
-        key: 'id',
-        fill: '#bfdbfe',
-        inset: 18,
-      }),
-      tickY(summaries, {
-        x: 'group',
-        y: 'median',
-        key: 'id',
-        stroke: '#2563eb',
-        strokeWidth: 2,
-        inset: 18,
-      }),
-      dot(outliers, {
-        x: 'group',
-        y: 'value',
-        key: 'id',
-        fill: '#ffffff',
-        stroke: '#2563eb',
-        r: 2.5,
-      }),
-    ],
-    x: {
-      scale: scaleBand<string>()
-        .domain(['Alpha', 'Beta', 'Gamma'])
-        .padding(0.22),
-    },
-    y: {
-      scale: scaleLinear().domain([10, 100]),
-      grid: true,
-      label: 'Value',
-    },
-  }
-})
+  return { summaries, outliers }
+}
 
 export const mount = tanstackMount(definition, 'Grouped boxplots', {
   format: ({ datum }) =>

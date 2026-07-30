@@ -26,16 +26,13 @@ const definition = defineChart({
   guides: false,
 })
 
-const dynamicDefinition = defineChart<{
-  data: typeof data
-  stroke: string
-}>()(({ input }) => ({
+const dynamicDefinition = defineChart(() => ({
   marks: [
-    lineY(input.data, {
+    lineY(data, {
       x: 'month',
       y: 'value',
       key: 'id',
-      stroke: input.stroke,
+      stroke: '#2563eb',
     }),
   ],
   x: { scale: scaleLinear().domain([1, 2]) },
@@ -47,7 +44,6 @@ if (false) {
   const inferredCallbacks = (
     <CanvasChart
       definition={dynamicDefinition}
-      input={{ data, stroke: '#2563eb' }}
       ariaLabel="Revenue"
       onFocusChange={(point) => {
         expectTypeOf(point?.datum).toEqualTypeOf<
@@ -66,15 +62,7 @@ if (false) {
       }}
     />
   )
-  const missingInput = (
-    // @ts-expect-error Dynamic Canvas chart props require input.
-    <CanvasChart definition={dynamicDefinition} ariaLabel="Revenue" />
-  )
-  const staticInput = (
-    // @ts-expect-error Static Canvas chart props do not accept input.
-    <CanvasChart definition={definition} input={{}} ariaLabel="Revenue" />
-  )
-  void [inferredCallbacks, missingInput, staticInput]
+  void inferredCallbacks
 }
 
 describe('React Canvas adapter', () => {

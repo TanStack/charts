@@ -144,10 +144,9 @@ See [SSR and Hydration](./ssr-and-hydration.md) for the complete lifecycle.
 
 ## Responsive construction
 
-Most data preparation should depend only on input. The dynamic `chart` phase
-receives the full scene width and height, so it can choose breakpoints, tick
-counts, or a surface-relative representation without invalidating
-width-independent preparation.
+Most data transforms should depend only on application data. The responsive
+builder receives the full scene width and height, so it can choose breakpoints,
+tick counts, or a surface-relative representation.
 
 Those values are not the final inner plot bounds. Automatic guides and legends
 resolve `scene.chart` after the builder returns. Exact plot-space collision,
@@ -156,16 +155,19 @@ receives the final chart bounds and resolved scales, or in an application
 overlay driven by `onRender`.
 
 ```ts
-const definition = defineChart<Input>()({
-  prepare(input) {
-    return summarize(input.rows)
-  },
-  chart({ prepared, width }) {
-    return buildResponsiveSpec(prepared, {
+function summarizeRows(rows: Input['rows']) {
+  return summarize(rows)
+}
+
+function createDefinition(rows: Input['rows']) {
+  const summary = summarizeRows(rows)
+
+  return defineChart(({ width }) =>
+    buildResponsiveSpec(summary, {
       compact: width < 480,
-    })
-  },
-})
+    }),
+  )
+}
 ```
 
 For a deliberately guide-free `margin: 0` scene, the full surface and inner

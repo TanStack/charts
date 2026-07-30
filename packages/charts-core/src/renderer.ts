@@ -1,4 +1,4 @@
-import { createChartRuntime, chartInputsEqual } from './runtime'
+import { createChartRuntime } from './runtime'
 import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint } from './scene'
 import type {
@@ -14,25 +14,22 @@ import type {
 
 /**
  * Mounts a chart and owns the runtime until the returned host is destroyed.
- * Pass a runtime that already rendered initial markup to preserve its prepared
- * data across adapter prerender and DOM mounting.
+ * Pass a runtime that already rendered initial markup to preserve renderer
+ * handoff state across adapter prerender and DOM mounting.
  */
 export function mountChartRenderer<
   TDatum,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(
   container: HTMLElement,
-  initialOptions: ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
-  runtime: ChartRuntime<TDatum, TInput, TXValue, TYValue> = createChartRuntime<
+  initialOptions: ChartRendererHostOptions<TDatum, TXValue, TYValue>,
+  runtime: ChartRuntime<TDatum, TXValue, TYValue> = createChartRuntime<
     TDatum,
-    TInput,
     TXValue,
     TYValue
   >(),
-): ChartRendererHost<TDatum, TInput, TXValue, TYValue> {
-  assertRequiredInput(initialOptions)
+): ChartRendererHost<TDatum, TXValue, TYValue> {
   let options = initialOptions
   let scene!: ChartScene<TDatum, TXValue, TYValue>
   let focusedPoint: ChartPoint<TDatum, TXValue, TYValue> | null = null
@@ -250,16 +247,10 @@ export function mountChartRenderer<
   return {
     update(nextOptions) {
       if (destroyed) return
-      assertRequiredInput(nextOptions)
       const fontChanged =
         nextOptions.measureText === undefined && domText.refresh()
       const needsRender =
         options.definition !== nextOptions.definition ||
-        !chartInputsEqual(
-          nextOptions.definition,
-          options.input as TInput,
-          nextOptions.input as TInput,
-        ) ||
         options.height !== nextOptions.height ||
         options.aspectRatio !== nextOptions.aspectRatio ||
         options.width !== nextOptions.width ||
@@ -318,7 +309,6 @@ export function mountChartRenderer<
     const width = currentWidth() ?? options.initialWidth ?? 640
     return runtime.render(
       options.definition,
-      options.input as TInput,
       {
         width,
         height:
@@ -448,17 +438,6 @@ function chartValueEqual(left: ChartValue, right: ChartValue) {
 
 function isPositiveFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
-}
-
-function assertRequiredInput<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(options: ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>) {
-  if ('chart' in options.definition && !Object.hasOwn(options, 'input')) {
-    throw new TypeError('Dynamic chart definitions require an input value')
-  }
 }
 
 function resolveAnimation(

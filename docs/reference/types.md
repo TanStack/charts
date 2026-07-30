@@ -98,11 +98,9 @@ point extractors. New code should use the explicit names.
 | ------------------------ | ----------------------------------------------------------------------------- |
 | `ChartSpec`              | Complete marks, axes, guide, color, resource, margin, and theme spec          |
 | `StaticChartDefinition`  | A directly compilable spec with inferred datum and semantic x/y phantom types |
-| `DynamicChartDefinition` | Input-driven chart builder with optional prepared data                        |
+| `DynamicChartDefinition` | Responsive chart builder                                                      |
 | `ChartDefinition`        | Static or dynamic union                                                       |
-| `DynamicChartConfig`     | Dynamic `chart`, `prepare`, and equality functions                            |
-| `ChartBuildContext`      | Current input, prepared value, size, and build-time theme                     |
-| `ChartPrepareContext`    | Preparation `AbortSignal`                                                     |
+| `ChartBuildContext`      | Current size and build-time theme                                             |
 
 The complete overloads and runtime rules are in
 [Chart Definition API](./chart-definitions.md).
@@ -169,21 +167,17 @@ See [Scales, guides, and color](./scales-guides-and-color.md).
 
 ## Host and runtime types
 
-| Type                              | Purpose                                                                 |
-| --------------------------------- | ----------------------------------------------------------------------- |
-| `ChartHostCommonOptions`          | Accessibility, sizing, interaction, animation, and SVG renderer options |
-| `StaticChartHostOptions`          | Common options plus static definition; input omitted or `undefined`     |
-| `DynamicChartHostOptions`         | Common options plus dynamic definition and exact input                  |
-| `ChartHostOptions`                | Static or dynamic SVG host union                                        |
-| `ChartHost`                       | SVG host `update`, `getScene`, and `destroy`                            |
-| `ChartRendererHostCommonOptions`  | Renderer-neutral common options plus required renderer                  |
-| `StaticChartRendererHostOptions`  | Renderer-neutral static definition options                              |
-| `DynamicChartRendererHostOptions` | Renderer-neutral dynamic definition and exact input options             |
-| `ChartRendererHostOptions`        | Static or dynamic renderer-neutral host union                           |
-| `ChartRendererHost`               | Renderer-neutral `update`, `getScene`, and `destroy`                    |
-| `ChartRuntime`                    | Repeated scene rendering and preparation ownership                      |
-| `ChartRenderContext`              | Container, live SVG, and scene reported after DOM render                |
-| `ChartRendererRenderContext`      | Container, live renderer surface, and scene reported after render       |
+| Type                             | Purpose                                                                 |
+| -------------------------------- | ----------------------------------------------------------------------- |
+| `ChartHostCommonOptions`         | Accessibility, sizing, interaction, animation, and SVG renderer options |
+| `ChartHostOptions`               | Common options plus a chart definition                                  |
+| `ChartHost`                      | SVG host `update`, `getScene`, and `destroy`                            |
+| `ChartRendererHostCommonOptions` | Renderer-neutral common options plus required renderer                  |
+| `ChartRendererHostOptions`       | Renderer-neutral options plus a chart definition                        |
+| `ChartRendererHost`              | Renderer-neutral `update`, `getScene`, and `destroy`                    |
+| `ChartRuntime`                   | Repeated static or responsive scene rendering                           |
+| `ChartRenderContext`             | Container, live SVG, and scene reported after DOM render                |
+| `ChartRendererRenderContext`     | Container, live renderer surface, and scene reported after render       |
 
 See [DOM host](./dom-host.md) and
 [Runtime and scene](./runtime-and-scene.md).
@@ -268,7 +262,7 @@ When a normal chart requires `as`, first check:
 1. Is the row interface accurate, including nullable values?
 2. Is the selected field compatible with the mark channel?
 3. Does the configured scale domain accept the inferred semantic value?
-4. Does a dynamic definition declare the exact input shape?
+4. Does the definition capture values with their exact application types?
 5. Are mixed mark datum or value unions being narrowed honestly?
 6. Is a custom mark declaring its datum and point values at `createMark`?
 

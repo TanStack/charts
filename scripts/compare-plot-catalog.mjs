@@ -3433,8 +3433,8 @@ function renderMarkdown(result) {
     '',
     '## Case matrix',
     '',
-    '| Case | Reference | Support | Reference gzip | Charts gzip | Ratio | Reference mount | Charts mount | Reference update | Charts update | Geometry | Visual | Behavior | Types |',
-    '| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |',
+    '| Case | Reference | Support | Reference source | Charts source | Source ratio | Reference gzip | Charts gzip | Ratio | Reference mount | Charts mount | Reference update | Charts update | Geometry | Visual | Behavior | Types |',
+    '| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |',
   )
 
   for (const entry of result.cases) {
@@ -3470,7 +3470,7 @@ function renderMarkdown(result) {
       ) ?? [],
     )
     lines.push(
-      `| [${entry.title}](${entry.source.url}) | ${rendererLabel(referenceRenderer)} | ${entry.support} | ${formatBytes(referenceBundle?.gzipBytes)} | ${formatBytes(tanstackBundle?.gzipBytes)} | ${referenceBundle && tanstackBundle ? formatRatio(tanstackBundle.gzipBytes / referenceBundle.gzipBytes) : '—'} | ${formatDuration(referenceMeasurement?.mount.medianMs)} | ${formatDuration(tanstackMeasurement?.mount.medianMs)} | ${formatDuration(referenceMeasurement?.update.medianMs)} | ${formatDuration(tanstackMeasurement?.update.medianMs)} | ${formatSimilarity(geometrySimilarity)} | ${visual?.status ?? 'not run'} | ${behavior?.status ?? 'not applicable'} | ${diagnosticCount || unsafeCount ? `${diagnosticCount} diag / ${unsafeCount} escape` : 'clean'} |`,
+      `| [${entry.title}](${entry.source.url}) | ${rendererLabel(referenceRenderer)} | ${entry.support} | ${referenceBundle?.typeAudit.lines ?? '—'} lines | ${tanstackBundle?.typeAudit.lines ?? '—'} lines | ${referenceBundle && tanstackBundle ? formatRatio(tanstackBundle.typeAudit.lines / referenceBundle.typeAudit.lines) : '—'} | ${formatBytes(referenceBundle?.gzipBytes)} | ${formatBytes(tanstackBundle?.gzipBytes)} | ${referenceBundle && tanstackBundle ? formatRatio(tanstackBundle.gzipBytes / referenceBundle.gzipBytes) : '—'} | ${formatDuration(referenceMeasurement?.mount.medianMs)} | ${formatDuration(tanstackMeasurement?.mount.medianMs)} | ${formatDuration(referenceMeasurement?.update.medianMs)} | ${formatDuration(tanstackMeasurement?.update.medianMs)} | ${formatSimilarity(geometrySimilarity)} | ${visual?.status ?? 'not run'} | ${behavior?.status ?? 'not applicable'} | ${diagnosticCount || unsafeCount ? `${diagnosticCount} diag / ${unsafeCount} escape` : 'clean'} |`,
     )
   }
 

@@ -703,22 +703,14 @@ async function verifyDeclarations() {
       x: { scale: scaleBand<string>().domain(rows.map((row) => row.category)) },
       y: { scale: scaleLinear().domain([0, 8]) },
     })
-    const dynamicDefinition = defineChart<{ rows: readonly Row[] }>()(
-      ({ input }) => ({
-        marks: [
-          lineY(input.rows, { x: 'category', y: 'value', key: 'id' }),
-        ],
-        x: {
-          scale: scaleBand<string>().domain(
-            input.rows.map((row) => row.category),
-          ),
-        },
-        y: { scale: scaleLinear().domain([0, 8]) },
-      }),
-    )
-    const undefinedInputDefinition = defineChart<undefined>()(
-      () => definition,
-    )
+    const responsiveDefinition = defineChart(({ width }) => ({
+      marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
+      x: {
+        scale: scaleBand<string>().domain(rows.map((row) => row.category)),
+        ticks: width < 480 ? 3 : 5,
+      },
+      y: { scale: scaleLinear().domain([0, 8]) },
+    }))
     const endpointMark = createMarkWithScaleValues<
       Row,
       number,
@@ -1003,46 +995,34 @@ async function verifyDeclarations() {
     })
 
     mountChart(container, {
-      definition: dynamicDefinition,
-      input: { rows },
-      ariaLabel: 'Dynamic core chart',
+      definition: responsiveDefinition,
+      ariaLabel: 'Responsive core chart',
     })
     ReactChart({
-      definition: dynamicDefinition,
-      input: { rows },
-      ariaLabel: 'Dynamic React chart',
+      definition: responsiveDefinition,
+      ariaLabel: 'Responsive React chart',
     })
     OctaneChart({
-      definition: dynamicDefinition,
-      input: { rows },
-      ariaLabel: 'Dynamic Octane chart',
+      definition: responsiveDefinition,
+      ariaLabel: 'Responsive Octane chart',
     })
     ReactRendererChart({
       renderer: canvasChartRenderer,
-      definition: dynamicDefinition,
-      input: { rows },
-      ariaLabel: 'Dynamic React renderer chart',
+      definition: responsiveDefinition,
+      ariaLabel: 'Responsive React renderer chart',
     })
     ReactCanvasChart({
-      definition: dynamicDefinition,
-      input: { rows },
-      ariaLabel: 'Dynamic React Canvas chart',
+      definition: responsiveDefinition,
+      ariaLabel: 'Responsive React Canvas chart',
     })
     OctaneRendererChart({
       renderer: canvasChartRenderer,
-      definition: dynamicDefinition,
-      input: { rows },
-      ariaLabel: 'Dynamic Octane renderer chart',
+      definition: responsiveDefinition,
+      ariaLabel: 'Responsive Octane renderer chart',
     })
     OctaneCanvasChart({
-      definition: dynamicDefinition,
-      input: { rows },
-      ariaLabel: 'Dynamic Octane Canvas chart',
-    })
-    ReactChart({
-      definition: undefinedInputDefinition,
-      input: undefined,
-      ariaLabel: 'Undefined input chart',
+      definition: responsiveDefinition,
+      ariaLabel: 'Responsive Octane Canvas chart',
     })
     const numericFocus: ChartFocusStrategy<Row, number, number> = {
       resolve: (points) => points,
@@ -1081,38 +1061,8 @@ async function verifyDeclarations() {
       renderSvg: numericRenderer,
     })
 
-    mountChart(container, {
-      // @ts-expect-error Dynamic core definitions require input.
-      definition: dynamicDefinition,
-      ariaLabel: 'Missing core input',
-    })
-    ReactChart({
-      // @ts-expect-error Dynamic React definitions require input.
-      definition: dynamicDefinition,
-      ariaLabel: 'Missing React input',
-    })
-    OctaneChart({
-      // @ts-expect-error Dynamic Octane definitions require input.
-      definition: dynamicDefinition,
-      ariaLabel: 'Missing Octane input',
-    })
-    ReactCanvasChart({
-      // @ts-expect-error Dynamic React Canvas definitions require input.
-      definition: dynamicDefinition,
-      ariaLabel: 'Missing React Canvas input',
-    })
-    OctaneCanvasChart({
-      // @ts-expect-error Dynamic Octane Canvas definitions require input.
-      definition: dynamicDefinition,
-      ariaLabel: 'Missing Octane Canvas input',
-    })
-    ReactChart({
-      // @ts-expect-error Undefined-valued dynamic input is still required.
-      definition: undefinedInputDefinition,
-      ariaLabel: 'Missing undefined input',
-    })
-    // @ts-expect-error Static definitions reject input.
-    ReactChart({ definition, input: { rows }, ariaLabel: 'Static input' })
+    // @ts-expect-error Chart props reject formal input.
+    ReactChart({ definition: responsiveDefinition, input: { rows } })
 
     declare const point: ChartPoint<Row, string, number>
     point.xValue.toUpperCase()

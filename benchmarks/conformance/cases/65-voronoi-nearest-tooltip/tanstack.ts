@@ -2,11 +2,7 @@ import { createMark, defineChart, dot, mountChart } from '@tanstack/charts'
 import { Delaunay } from 'd3-delaunay'
 import { scaleLinear, scaleOrdinal } from 'd3-scale'
 import { voronoiColors, voronoiData, voronoiGroups } from './data'
-import type {
-  ChartPoint,
-  DynamicChartHostOptions,
-  SceneNode,
-} from '@tanstack/charts'
+import type { ChartPoint, ChartHostOptions, SceneNode } from '@tanstack/charts'
 import type {
   ConformanceHandle,
   ConformanceInput,
@@ -72,48 +68,48 @@ function voronoiCells(rows: readonly VoronoiPoint[]) {
   })
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = voronoiData(input.revision)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = voronoiData(input.revision)
 
-  return {
-    marks: [
-      voronoiCells(rows),
-      dot(rows, {
-        x: 'x',
-        y: 'y',
-        z: 'group',
-        key: 'id',
-        stroke: '#ffffff',
-        strokeWidth: 1,
-        r: 4,
-      }),
-    ],
-    x: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      label: 'X',
-    },
-    y: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      label: 'Y',
-    },
-    color: {
-      scale: scaleOrdinal<VoronoiGroup, string>()
-        .domain(voronoiGroups)
-        .range(voronoiGroups.map((group) => voronoiColors[group])),
-    },
-  }
-})
+    return {
+      marks: [
+        voronoiCells(rows),
+        dot(rows, {
+          x: 'x',
+          y: 'y',
+          z: 'group',
+          key: 'id',
+          stroke: '#ffffff',
+          strokeWidth: 1,
+          r: 4,
+        }),
+      ],
+      x: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        label: 'X',
+      },
+      y: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        label: 'Y',
+      },
+      color: {
+        scale: scaleOrdinal<VoronoiGroup, string>()
+          .domain(voronoiGroups)
+          .range(voronoiGroups.map((group) => voronoiColors[group])),
+      },
+    }
+  })
 
 export const mount: ConformanceMount = (
   container,
   input,
 ): ConformanceHandle => {
   let focusedIds: string[] = []
-  const options: DynamicChartHostOptions<VoronoiPoint, ConformanceInput> = {
-    definition,
-    input,
+  const options: ChartHostOptions<VoronoiPoint> = {
+    definition: definition(input),
     width: input.width,
     height: input.height,
     ariaLabel: 'Voronoi nearest-point interaction',
@@ -164,7 +160,7 @@ export const mount: ConformanceMount = (
     update(nextInput) {
       host.update({
         ...options,
-        input: nextInput,
+        definition: definition(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

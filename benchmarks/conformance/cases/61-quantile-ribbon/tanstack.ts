@@ -14,38 +14,39 @@ interface QuantileSummary {
   upper: number
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = summarizeQuantiles(quantileData(input.revision))
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = summarizeQuantiles(quantileData(input.revision))
 
-  return {
-    marks: [
-      areaY(rows, {
-        x: 'date',
-        y1: 'lower',
-        y2: 'upper',
-        key: 'id',
-        fill: '#0ea5e9',
-        fillOpacity: 0.22,
-      }),
-      lineY(rows, {
-        x: 'date',
-        y: 'median',
-        key: 'id',
-        stroke: '#0369a1',
-        strokeWidth: 2.25,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(quantileDateDomain),
-      label: 'Month',
-    },
-    y: {
-      scale: scaleLinear().domain(quantileValueDomain),
-      grid: true,
-      label: 'Observed value',
-    },
-  }
-})
+    return {
+      marks: [
+        areaY(rows, {
+          x: 'date',
+          y1: 'lower',
+          y2: 'upper',
+          key: 'id',
+          fill: '#0ea5e9',
+          fillOpacity: 0.22,
+        }),
+        lineY(rows, {
+          x: 'date',
+          y: 'median',
+          key: 'id',
+          stroke: '#0369a1',
+          strokeWidth: 2.25,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(quantileDateDomain),
+        label: 'Month',
+      },
+      y: {
+        scale: scaleLinear().domain(quantileValueDomain),
+        grid: true,
+        label: 'Observed value',
+      },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

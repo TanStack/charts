@@ -23,63 +23,64 @@ interface MarginalRect {
 
 const colors = ['#2563eb', '#ea580c', '#059669']
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = marginalData(input.revision)
-  const { xRects, yRects } = marginalRects(rows)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = marginalData(input.revision)
+    const { xRects, yRects } = marginalRects(rows)
 
-  return {
-    marks: [
-      dot(rows, {
-        x: 'x',
-        y: 'y',
-        z: 'group',
-        key: 'id',
-        r: 3,
-        fillOpacity: 0.78,
-      }),
-      rect(xRects, {
-        x1: 'x1',
-        x2: 'x2',
-        y1: 'y1',
-        y2: 'y2',
-        key: 'id',
-        fill: '#0ea5e9',
-        fillOpacity: 0.78,
-        inset: 1,
-      }),
-      rect(yRects, {
-        x1: 'x1',
-        x2: 'x2',
-        y1: 'y1',
-        y2: 'y2',
-        key: 'id',
-        fill: '#f97316',
-        fillOpacity: 0.78,
-        inset: 1,
-      }),
-      ruleX([80], { strokeOpacity: 0.5 }),
-      ruleY([80], { strokeOpacity: 0.5 }),
-    ],
-    x: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      format: visibleScatterTick,
-      label: 'X score',
-    },
-    y: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      format: visibleScatterTick,
-      label: 'Y score',
-    },
-    color: {
-      scale: scaleOrdinal<MarginalPoint['group'], string>()
-        .domain(marginalGroups)
-        .range(colors),
-      legend: colorLegend({ label: 'Group' }),
-    },
-  }
-})
+    return {
+      marks: [
+        dot(rows, {
+          x: 'x',
+          y: 'y',
+          z: 'group',
+          key: 'id',
+          r: 3,
+          fillOpacity: 0.78,
+        }),
+        rect(xRects, {
+          x1: 'x1',
+          x2: 'x2',
+          y1: 'y1',
+          y2: 'y2',
+          key: 'id',
+          fill: '#0ea5e9',
+          fillOpacity: 0.78,
+          inset: 1,
+        }),
+        rect(yRects, {
+          x1: 'x1',
+          x2: 'x2',
+          y1: 'y1',
+          y2: 'y2',
+          key: 'id',
+          fill: '#f97316',
+          fillOpacity: 0.78,
+          inset: 1,
+        }),
+        ruleX([80], { strokeOpacity: 0.5 }),
+        ruleY([80], { strokeOpacity: 0.5 }),
+      ],
+      x: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        format: visibleScatterTick,
+        label: 'X score',
+      },
+      y: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        format: visibleScatterTick,
+        label: 'Y score',
+      },
+      color: {
+        scale: scaleOrdinal<MarginalPoint['group'], string>()
+          .domain(marginalGroups)
+          .range(colors),
+        legend: colorLegend({ label: 'Group' }),
+      },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

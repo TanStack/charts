@@ -93,43 +93,44 @@ adapter server-renders with `initialWidth`, then the shared DOM host measures
 the actual container after hydration. See
 [React adapter](./adapter.md#sizing-and-layout).
 
-## Dynamic input
+## Memoize live definitions
 
-A dynamic definition makes `input` required with the exact declared shape:
+When a chart captures component values, memoize the complete definition:
 
 ```tsx
+import { useMemo } from 'react'
+
 interface RevenueInput {
   rows: readonly { month: string; value: number }[]
   accent: string
 }
 
-const dynamicRevenue = defineChart<RevenueInput>()(({ input }) => {
-  const maximum = max(input.rows, (row) => row.value) ?? 0
+export function LiveRevenue({ rows, accent }: RevenueInput) {
+  const definition = useMemo(() => {
+    const maximum = max(rows, (row) => row.value) ?? 0
 
-  return {
-    marks: [
-      barY(input.rows, {
-        x: 'month',
-        y: 'value',
-        fill: input.accent,
-      }),
-    ],
-    x: {
-      scale: scaleBand()
-        .domain(input.rows.map((row) => row.month))
-        .padding(0.18),
-    },
-    y: {
-      scale: scaleLinear().domain([0, maximum]).nice(),
-    },
-  }
-})
+    return defineChart({
+      marks: [
+        barY(rows, {
+          x: 'month',
+          y: 'value',
+          fill: accent,
+        }),
+      ],
+      x: {
+        scale: scaleBand()
+          .domain(rows.map((row) => row.month))
+          .padding(0.18),
+      },
+      y: {
+        scale: scaleLinear().domain([0, maximum]).nice(),
+      },
+    })
+  }, [rows, accent])
 
-export function LiveRevenue(props: RevenueInput) {
   return (
     <Chart
-      definition={dynamicRevenue}
-      input={props}
+      definition={definition}
       height={320}
       ariaLabel="Live monthly revenue"
       animate
@@ -139,8 +140,9 @@ export function LiveRevenue(props: RevenueInput) {
 }
 ```
 
-Preparation caching and equality belong to the definition, not the React
-component. See [Chart Definition API](../../reference/chart-definitions.md).
+The dependency list owns application invalidation. The definition identity
+tells the chart host when captured values changed. See
+[Chart Definition API](../../reference/chart-definitions.md).
 
 ## Interaction callbacks
 

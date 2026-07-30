@@ -128,25 +128,16 @@ interface CanvasChartRenderer<
 
 type CanvasChartHostOptions<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> =
-  | Omit<StaticChartRendererHostOptions<TDatum, TXValue, TYValue>, 'renderer'>
-  | Omit<
-      DynamicChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
-      'renderer'
-    >
+> = Omit<ChartRendererHostOptions<TDatum, TXValue, TYValue>, 'renderer'>
 
 interface CanvasChartHost<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
-  update: (
-    options: CanvasChartHostOptions<TDatum, TInput, TXValue, TYValue>,
-  ) => void
+  update: (options: CanvasChartHostOptions<TDatum, TXValue, TYValue>) => void
   getScene: () => ChartScene<TDatum, TXValue, TYValue>
   destroy: () => void
 }
@@ -163,14 +154,13 @@ const canvasChartRenderer: CanvasChartRenderer
 
 function mountCanvasChart<
   TDatum,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(
   container: HTMLElement,
-  initialOptions: CanvasChartHostOptions<TDatum, TInput, TXValue, TYValue>,
-  runtime?: ChartRuntime<TDatum, TInput, TXValue, TYValue>,
-): CanvasChartHost<TDatum, TInput, TXValue, TYValue>
+  initialOptions: CanvasChartHostOptions<TDatum, TXValue, TYValue>,
+  runtime?: ChartRuntime<TDatum, TXValue, TYValue>,
+): CanvasChartHost<TDatum, TXValue, TYValue>
 ```
 
 The surface's `element` is its accessible chart root. `canvas` holds the base
@@ -179,12 +169,11 @@ base scene. A finite, positive `pixelRatio` fixes both backing stores at that
 ratio. An omitted value uses `devicePixelRatio`, then `1`; an invalid value
 uses `1`.
 
-`CanvasChartHostOptions` preserves the static-versus-dynamic definition and
-input relationship from the renderer-neutral host while removing its required
-`renderer`. The returned `CanvasChartHost` owns update, scene access, and
-cleanup. Its optional runtime parameter has the same advanced prerender-reuse
-contract as [`mountChart`](./dom-host.md#signature), including runtime
-ownership on destroy.
+`CanvasChartHostOptions` removes the required `renderer` from the
+renderer-neutral host options. The returned `CanvasChartHost` owns update,
+scene access, and cleanup. Its optional runtime parameter has the same advanced
+prerender-reuse contract as [`mountChart`](./dom-host.md#signature), including
+runtime ownership on destroy.
 
 Use `canvasChartRenderer` for the shared default instance. Call
 `createCanvasChartRenderer` when the application needs a fixed `pixelRatio` or

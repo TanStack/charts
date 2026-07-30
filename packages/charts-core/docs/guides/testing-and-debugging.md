@@ -23,7 +23,8 @@ expect(scene.scales.x.domain).toEqual(expectedDates)
 expect(scene.chart.width).toBeGreaterThan(0)
 ```
 
-For dynamic definitions, create a runtime and call `render` with exact input.
+For responsive definitions, create a runtime and call `render` with an exact
+surface size.
 Scene tests are suited to:
 
 - materialized domains and ticks;

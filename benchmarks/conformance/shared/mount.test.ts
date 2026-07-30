@@ -11,17 +11,18 @@ type Point = {
 }
 
 const rows: Point[] = [{ id: 'a', x: 1, y: 2 }]
-const definition = defineChart<ConformanceInput>()(() => ({
-  marks: [
-    dot(rows, {
-      x: 'x',
-      y: 'y',
-      key: 'id',
-    }),
-  ],
-  x: { scale: scaleLinear().domain([0, 2]) },
-  y: { scale: scaleLinear().domain([0, 4]) },
-}))
+const definition = (_input: ConformanceInput) =>
+  defineChart(() => ({
+    marks: [
+      dot(rows, {
+        x: 'x',
+        y: 'y',
+        key: 'id',
+      }),
+    ],
+    x: { scale: scaleLinear().domain([0, 2]) },
+    y: { scale: scaleLinear().domain([0, 4]) },
+  }))
 
 describe('tanstackMount', () => {
   it('keeps benchmark comparisons passive', () => {

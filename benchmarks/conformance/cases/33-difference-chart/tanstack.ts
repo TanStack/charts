@@ -10,49 +10,50 @@ interface DifferenceAreaPoint extends DifferencePoint {
   sign: 'positive' | 'negative'
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = differenceData(input.revision)
-  const areaRows = differenceAreas(rows)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = differenceData(input.revision)
+    const areaRows = differenceAreas(rows)
 
-  return {
-    marks: [
-      areaY(areaRows, {
-        x: 'date',
-        y1: 'forecast',
-        y2: 'actual',
-        z: 'segment',
-        key: 'id',
-        fill: (row) => (row.sign === 'positive' ? '#16a34a' : '#dc2626'),
-        fillOpacity: 0.35,
-      }),
-      lineY(rows, {
-        x: 'date',
-        y: 'actual',
-        key: 'id',
-        stroke: '#166534',
-        strokeWidth: 2,
-      }),
-      lineY(rows, {
-        x: 'date',
-        y: 'forecast',
-        key: 'id',
-        stroke: '#475569',
-        strokeWidth: 2,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(differenceDomain),
-      ticks: 9,
-      format: formatDifferenceMonth,
-    },
-    y: {
-      scale: scaleLinear().domain([10, 60]),
-      ticks: 6,
-      grid: true,
-    },
-    margin: { top: 20, right: 20, bottom: 30, left: 40 },
-  }
-})
+    return {
+      marks: [
+        areaY(areaRows, {
+          x: 'date',
+          y1: 'forecast',
+          y2: 'actual',
+          z: 'segment',
+          key: 'id',
+          fill: (row) => (row.sign === 'positive' ? '#16a34a' : '#dc2626'),
+          fillOpacity: 0.35,
+        }),
+        lineY(rows, {
+          x: 'date',
+          y: 'actual',
+          key: 'id',
+          stroke: '#166534',
+          strokeWidth: 2,
+        }),
+        lineY(rows, {
+          x: 'date',
+          y: 'forecast',
+          key: 'id',
+          stroke: '#475569',
+          strokeWidth: 2,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(differenceDomain),
+        ticks: 9,
+        format: formatDifferenceMonth,
+      },
+      y: {
+        scale: scaleLinear().domain([10, 60]),
+        ticks: 6,
+        grid: true,
+      },
+      margin: { top: 20, right: 20, bottom: 30, left: 40 },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

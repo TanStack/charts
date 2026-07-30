@@ -9,11 +9,7 @@ import {
   playbackIndexFromAnchor,
 } from './data'
 import { createPlaybackOverlay } from './overlay'
-import type {
-  ChartHost,
-  ChartScene,
-  DynamicChartHostOptions,
-} from '@tanstack/charts'
+import type { ChartHost, ChartScene, ChartHostOptions } from '@tanstack/charts'
 import type { PlaybackDatum } from './data'
 import type { PlaybackOverlayLayout } from './overlay'
 import type {
@@ -37,46 +33,47 @@ const linePaint = '#2563eb'
 const yDomain: readonly [number, number] = [20, 80]
 const margin = { top: 64, right: 24, bottom: 68, left: 56 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = playbackData(input.revision)
-  return {
-    marks: [
-      lineY(rows, {
-        id: 'playback-series',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        stroke: linePaint,
-        strokeWidth: 2.5,
-      }),
-      dot(rows, {
-        id: 'playback-points',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        fill: linePaint,
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(playbackDomain),
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          timeZone: 'UTC',
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = playbackData(input.revision)
+    return {
+      marks: [
+        lineY(rows, {
+          id: 'playback-series',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          stroke: linePaint,
+          strokeWidth: 2.5,
         }),
-    },
-    y: {
-      scale: scaleLinear().domain(yDomain),
-      ticks: 4,
-      grid: true,
-    },
-    margin,
-  }
-})
+        dot(rows, {
+          id: 'playback-points',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          fill: linePaint,
+          r: 3.5,
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(playbackDomain),
+        format: (value) =>
+          value.toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            timeZone: 'UTC',
+          }),
+      },
+      y: {
+        scale: scaleLinear().domain(yDomain),
+        ticks: 4,
+        grid: true,
+      },
+      margin,
+    }
+  })
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
@@ -97,12 +94,8 @@ export const mount: ConformanceMount = (container, input) => {
   view.append(chartSurface)
   container.append(view)
 
-  const options = (): DynamicChartHostOptions<
-    PlaybackDatum,
-    ConformanceInput
-  > => ({
-    definition,
-    input: currentInput,
+  const options = (): ChartHostOptions<PlaybackDatum> => ({
+    definition: definition(currentInput),
     width: currentInput.width,
     height: currentInput.height,
     ariaLabel: 'Weekly values with a draggable timeline playback scrubber',
@@ -141,7 +134,7 @@ function createPlaybackInteractions(
   view: HTMLDivElement,
   getInput: () => ConformanceInput,
   state: PlaybackState,
-  host: ChartHost<PlaybackDatum, ConformanceInput>,
+  host: ChartHost<PlaybackDatum>,
 ) {
   let playbackTimer: ReturnType<typeof setInterval> | null = null
   let paint = () => {}

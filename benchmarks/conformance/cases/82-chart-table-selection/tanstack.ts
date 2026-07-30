@@ -13,49 +13,50 @@ interface ChartTableInput extends ConformanceInput {
   selectedId: SelectionId | null
 }
 
-const definition = defineChart<ChartTableInput>()(({ input }) => {
-  const rows = chartTableData(input.revision)
-  const selectedRows = rows.filter((row) => row.id === input.selectedId)
+const definition = (input: ChartTableInput) =>
+  defineChart(() => {
+    const rows = chartTableData(input.revision)
+    const selectedRows = rows.filter((row) => row.id === input.selectedId)
 
-  return {
-    marks: [
-      dot(rows, {
-        id: 'observations',
-        x: 'period',
-        y: 'value',
-        key: 'id',
-        r: 4.5,
-        fill: '#2563eb',
-      }),
-      ...(selectedRows.length
-        ? [
-            dot(selectedRows, {
-              id: 'selected-observation',
-              x: 'period',
-              y: 'value',
-              key: 'id',
-              r: 7,
-              fill: '#f97316',
-              stroke: '#ffffff',
-              strokeWidth: 2,
-            }),
-          ]
-        : []),
-    ],
-    x: {
-      scale: scaleBand<string>()
-        .domain(selectionPeriods)
-        .paddingInner(0.1)
-        .paddingOuter(0.05),
-    },
-    y: {
-      scale: scaleLinear().domain([0, 100]),
-      ticks: 5,
-      grid: true,
-    },
-    margin: { top: 16, right: 24, bottom: 42, left: 62 },
-  }
-})
+    return {
+      marks: [
+        dot(rows, {
+          id: 'observations',
+          x: 'period',
+          y: 'value',
+          key: 'id',
+          r: 4.5,
+          fill: '#2563eb',
+        }),
+        ...(selectedRows.length
+          ? [
+              dot(selectedRows, {
+                id: 'selected-observation',
+                x: 'period',
+                y: 'value',
+                key: 'id',
+                r: 7,
+                fill: '#f97316',
+                stroke: '#ffffff',
+                strokeWidth: 2,
+              }),
+            ]
+          : []),
+      ],
+      x: {
+        scale: scaleBand<string>()
+          .domain(selectionPeriods)
+          .paddingInner(0.1)
+          .paddingOuter(0.05),
+      },
+      y: {
+        scale: scaleLinear().domain([0, 100]),
+        ticks: 5,
+        grid: true,
+      },
+      margin: { top: 16, right: 24, bottom: 42, left: 62 },
+    }
+  })
 
 function selectionFromTarget(target: ConformanceTarget) {
   if (target.view !== undefined && target.view !== 'main') return null
@@ -67,7 +68,7 @@ function selectionFromTarget(target: ConformanceTarget) {
 
 function pointCoordinate(
   chartSurface: HTMLElement,
-  host: ChartHost<SelectionDatum, ChartTableInput>,
+  host: ChartHost<SelectionDatum>,
   pointId: SelectionId,
 ) {
   const scene = host.getScene()
@@ -138,7 +139,7 @@ export const mount: ConformanceMount = (container, input) => {
 
   let currentInput = input
   let selectedId: SelectionId | null = null
-  let host: ChartHost<SelectionDatum, ChartTableInput>
+  let host: ChartHost<SelectionDatum>
   const rowElements = new Map<
     SelectionId,
     {
@@ -156,12 +157,11 @@ export const mount: ConformanceMount = (container, input) => {
     view.style.gridTemplateRows = `${chart}px 52px ${tableHeight}px`
   }
 
-  const options = (): ChartHostOptions<SelectionDatum, ChartTableInput> => ({
-    definition,
-    input: {
+  const options = (): ChartHostOptions<SelectionDatum> => ({
+    definition: definition({
       ...currentInput,
       selectedId,
-    },
+    }),
     width: currentInput.width,
     height: chartHeight(),
     ariaLabel: 'Selectable observations chart',

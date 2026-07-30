@@ -13,8 +13,7 @@ import type {
   ChartTextMeasurer,
   ChartTooltipOptions,
   ChartValue,
-  DynamicChartDefinition,
-  StaticChartDefinition,
+  ChartDefinition,
 } from '@tanstack/charts'
 
 interface ChartSurfaceProps {
@@ -71,62 +70,27 @@ export interface RendererChartCommonProps<
   ) => void
 }
 
-export type StaticRendererChartProps<
-  TDatum = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = RendererChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: StaticChartDefinition<TDatum, TXValue, TYValue>
-  input?: never
-}
-
-export type DynamicRendererChartProps<
-  TDatum = unknown,
-  TInput = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = RendererChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: DynamicChartDefinition<TInput, any, TDatum, TXValue, TYValue>
-  input: TInput
-}
-
 export type RendererChartProps<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> =
-  | StaticRendererChartProps<TDatum, TXValue, TYValue>
-  | DynamicRendererChartProps<TDatum, TInput, TXValue, TYValue>
+> = RendererChartCommonProps<TDatum, TXValue, TYValue> & {
+  definition: ChartDefinition<TDatum, TXValue, TYValue>
+}
 
 export function RendererChart<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(props: StaticRendererChartProps<TDatum, TXValue, TYValue>): React.JSX.Element
-export function RendererChart<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->(
-  props: DynamicRendererChartProps<TDatum, TInput, TXValue, TYValue>,
-): React.JSX.Element
-export function RendererChart<
-  TDatum,
-  TInput = undefined,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->(props: RendererChartProps<TDatum, TInput, TXValue, TYValue>) {
+>(props: RendererChartProps<TDatum, TXValue, TYValue>) {
   return <RendererChartImplementation {...props} />
 }
 
 export function RendererChartImplementation<
   TDatum,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(props: RendererChartProps<TDatum, TInput, TXValue, TYValue>) {
+>(props: RendererChartProps<TDatum, TXValue, TYValue>) {
   const {
     ariaLabel,
     ariaDescription,
@@ -163,7 +127,7 @@ export function RendererChartImplementation<
       : undefined
   const containerRef = React.useRef<HTMLDivElement>(null)
   const adapterRef = React.useRef<ChartAdapter<
-    ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
+    ChartRendererHostOptions<TDatum, TXValue, TYValue>,
     TDatum,
     TXValue,
     TYValue
@@ -194,7 +158,10 @@ export function RendererChartImplementation<
     onSelect,
     onRender,
   }
-  const hostOptions = createHostOptions(props, commonHostOptions)
+  const hostOptions: ChartRendererHostOptions<TDatum, TXValue, TYValue> = {
+    ...commonHostOptions,
+    definition: props.definition,
+  }
   adapterRef.current ??= createChartRendererAdapter(hostOptions)
   const adapter = adapterRef.current
   const initialMarkupRef = React.useRef<string | null>(null)
@@ -226,37 +193,4 @@ export function RendererChartImplementation<
       <ChartSurface ref={containerRef} markup={initialMarkupRef.current} />
     </div>
   )
-}
-
-function createHostOptions<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  props: RendererChartProps<TDatum, TInput, TXValue, TYValue>,
-  common: ChartRendererHostCommonOptions<TDatum, TXValue, TYValue>,
-): ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue> {
-  if (isDynamicProps(props)) {
-    return {
-      ...common,
-      definition: props.definition,
-      input: props.input,
-    }
-  }
-  return {
-    ...common,
-    definition: props.definition,
-  }
-}
-
-function isDynamicProps<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  props: RendererChartProps<TDatum, TInput, TXValue, TYValue>,
-): props is DynamicRendererChartProps<TDatum, TInput, TXValue, TYValue> {
-  return 'chart' in props.definition
 }

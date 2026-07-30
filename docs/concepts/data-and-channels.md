@@ -47,7 +47,7 @@ Every accessor receives:
 ;(datum, index, data) => value
 ```
 
-`datum` has the exact source type, `index` is the zero-based position, and `data` is the readonly materialized source array. Accessors are evaluated when the mark initializes; keep expensive cross-row transforms in application code or a dynamic definition’s `prepare` phase.
+`datum` has the exact source type, `index` is the zero-based position, and `data` is the readonly materialized source array. Accessors are evaluated when the mark initializes; keep expensive cross-row transforms in application code.
 
 ## Positional channels
 
@@ -226,7 +226,8 @@ The definition’s interaction datum becomes the honest union of point-emitting 
 
 ## Derived data remains application-owned
 
-Grouping, binning, stacking, sorting, aggregation, and spatial preparation happen before marks:
+Grouping, binning, stacking, sorting, aggregation, and spatial preparation
+happen in ordinary application code before mark construction:
 
 ```ts
 const bins = bin().domain([minimum, maximum]).thresholds(24)(values)
@@ -240,7 +241,15 @@ const rows = bins.map((items, index) => ({
 }))
 ```
 
-The resulting rows flow into ordinary marks. Install the granular D3 module used by the transform and its matching type package. [Scales and D3](./scales-and-d3.md) routes each responsibility to official D3 documentation without duplicating it.
+The transform can run beside `defineChart` or inside the framework primitive
+that memoizes the complete definition. The resulting rows flow into ordinary
+marks. Install the granular D3 module used by the transform and its matching
+type package. [Scales and D3](./scales-and-d3.md) routes each responsibility to
+official D3 documentation without duplicating it.
+
+[Transforms and Reactivity](../guides/transforms-and-reactivity.md) shows the
+complete raw-data-to-mark path and separates application memoization from
+responsive layout work.
 
 ## Complete bubble-scatter example
 

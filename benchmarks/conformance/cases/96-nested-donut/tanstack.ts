@@ -14,35 +14,36 @@ const outerLayout = pie<NestedDonutDatum>()
   .sort(null)
   .value(({ value }) => value)
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const data = nestedDonutData(input.revision)
-  const innerArcs = innerLayout([...data.inner])
-  const outerArcs = outerLayout([...data.outer])
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const data = nestedDonutData(input.revision)
+    const innerArcs = innerLayout([...data.inner])
+    const outerArcs = outerLayout([...data.outer])
 
-  return {
-    marks: [
-      polar({
-        radiusRatio: 0.8,
-        marks: [
-          radialArc(innerArcs, {
-            innerRadius: ({ radius }) => radius * 0.12,
-            outerRadius: ({ radius }) => radius * 0.46,
-            key: ({ data }: PieArcDatum<NestedDonutDatum>) => data.id,
-            fill: ({ data }: PieArcDatum<NestedDonutDatum>) => data.fill,
-          }),
-          radialArc(outerArcs, {
-            innerRadius: ({ radius }) => radius * 0.56,
-            key: ({ data }: PieArcDatum<NestedDonutDatum>) => data.id,
-            fill: ({ data }: PieArcDatum<NestedDonutDatum>) => data.fill,
-          }),
-        ],
-      }),
-    ],
-    x: null,
-    y: null,
-    guides: false,
-    margin: 0,
-  }
-})
+    return {
+      marks: [
+        polar({
+          radiusRatio: 0.8,
+          marks: [
+            radialArc(innerArcs, {
+              innerRadius: ({ radius }) => radius * 0.12,
+              outerRadius: ({ radius }) => radius * 0.46,
+              key: ({ data }: PieArcDatum<NestedDonutDatum>) => data.id,
+              fill: ({ data }: PieArcDatum<NestedDonutDatum>) => data.fill,
+            }),
+            radialArc(outerArcs, {
+              innerRadius: ({ radius }) => radius * 0.56,
+              key: ({ data }: PieArcDatum<NestedDonutDatum>) => data.id,
+              fill: ({ data }: PieArcDatum<NestedDonutDatum>) => data.fill,
+            }),
+          ],
+        }),
+      ],
+      x: null,
+      y: null,
+      guides: false,
+      margin: 0,
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Nested donut rings')

@@ -63,11 +63,11 @@ const definition = defineChart({
 })
 ```
 
-`theme` is partial. Omitted fields retain defaults. A dynamic definition's
+`theme` is partial. Omitted fields retain defaults. A responsive definition's
 `chart` context receives the default build-time theme, which is useful when
 marks need the shared palette or foreground tokens. A `theme` returned by that
 same builder is merged afterward while the scene is created, so read an
-application-supplied theme from typed input when the builder itself must use
+application-supplied theme from the builder's captured values when it must use
 those overrides.
 
 Do not encode semantic status by reading the current theme in data

@@ -52,42 +52,43 @@ function delaunayEdges(
   return edges
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const points = spatialData(input.revision)
-  const edges = delaunayEdges(points)
-  return {
-    marks: [
-      link(edges, {
-        x1: 'x1',
-        y1: 'y1',
-        x2: 'x2',
-        y2: 'y2',
-        key: 'id',
-        stroke: '#94a3b8',
-        strokeOpacity: 0.75,
-        strokeWidth: 1,
-      }),
-      dot(points, {
-        x: 'x',
-        y: 'y',
-        key: 'id',
-        fill: '#2563eb',
-        stroke: '#ffffff',
-        strokeWidth: 1,
-        r: 4,
-      }),
-    ],
-    x: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      label: 'X',
-    },
-    y: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      label: 'Y',
-    },
-  }
-})
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const points = spatialData(input.revision)
+    const edges = delaunayEdges(points)
+    return {
+      marks: [
+        link(edges, {
+          x1: 'x1',
+          y1: 'y1',
+          x2: 'x2',
+          y2: 'y2',
+          key: 'id',
+          stroke: '#94a3b8',
+          strokeOpacity: 0.75,
+          strokeWidth: 1,
+        }),
+        dot(points, {
+          x: 'x',
+          y: 'y',
+          key: 'id',
+          fill: '#2563eb',
+          stroke: '#ffffff',
+          strokeWidth: 1,
+          r: 4,
+        }),
+      ],
+      x: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        label: 'X',
+      },
+      y: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        label: 'Y',
+      },
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Delaunay spatial network')

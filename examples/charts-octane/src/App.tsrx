@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'octane'
 import {
   createRankingData,
+  createRankingChart,
   createStatsHistoryInput,
-  rankingChart,
-  statsHistoryChart,
+  createStatsHistoryChart,
 } from '@charts-poc/fixtures'
 import type {
   StatsHistoryMode,
@@ -26,10 +26,17 @@ export function App() {
   >([])
 
   // Octane's compiler derives these memo dependencies from the closure.
-  const historyInput = useMemo(() =>
-    createStatsHistoryInput(historyMode, revision, historyZoomed),
+  const historyDefinition = useMemo(() =>
+    createStatsHistoryChart(
+      createStatsHistoryInput(historyMode, revision, historyZoomed),
+    ),
   )
-  const rankingData = useMemo(() => createRankingData(revision))
+  const rankingDefinition = useMemo(() =>
+    createRankingChart({
+      data: createRankingData(revision),
+      accent: 'var(--demo-accent, #ff6a3d)',
+    }),
+  )
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light'
@@ -150,8 +157,7 @@ export function App() {
 
         <div class="chart-stage__canvas">
           <Chart
-            definition={statsHistoryChart}
-            input={historyInput}
+            definition={historyDefinition}
             height={410}
             initialWidth={1080}
             ariaLabel={`TanStack package velocity shown as a ${historyMode} chart`}
@@ -209,18 +215,20 @@ export function App() {
           </div>
           <pre>
             <code>
-              <span class="code-keyword">const</span> input ={' '}
+              <span class="code-keyword">const</span> definition ={' '}
               <span class="code-call">useMemo</span>(() ={`>`}
               {'\n  '}
+              <span class="code-call">createStatsHistoryChart</span>(
+              {'\n    '}
               <span class="code-call">createStatsHistoryInput</span>(
-              {'\n    '}mode, revision, zoomed
+              {'\n      '}mode, revision, zoomed
+              {'\n    '})
               {'\n  '})
               {'\n'})
               {'\n'}
               {`<`}
               <span class="code-component">Chart</span>
-              {'\n  '}definition={'{statsHistoryChart}'}
-              {'\n  '}input={'{input}'}
+              {'\n  '}definition={'{definition}'}
               {'\n  '}animate
               {'\n  '}focus={'{focusX}'}
               {'\n'}/{`>`}
@@ -244,11 +252,7 @@ export function App() {
             </button>
           </div>
           <Chart
-            definition={rankingChart}
-            input={{
-              data: rankingData,
-              accent: 'var(--demo-accent, #ff6a3d)',
-            }}
+            definition={rankingDefinition}
             height={320}
             initialWidth={600}
             ariaLabel="Animated TanStack package ranking"

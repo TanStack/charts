@@ -20,30 +20,28 @@ export {
 
 export function createChartAdapter<
   TDatum,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(
-  initialOptions: ChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+  initialOptions: ChartHostOptions<TDatum, TXValue, TYValue>,
 ): ChartAdapter<
-  ChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+  ChartHostOptions<TDatum, TXValue, TYValue>,
   TDatum,
   TXValue,
   TYValue
 > {
-  let runtime: ChartRuntime<TDatum, TInput, TXValue, TYValue> | undefined =
-    createChartRuntime<TDatum, TInput, TXValue, TYValue>()
+  let runtime: ChartRuntime<TDatum, TXValue, TYValue> | undefined =
+    createChartRuntime<TDatum, TXValue, TYValue>()
   let options = initialOptions
-  let host: ChartHost<TDatum, TInput, TXValue, TYValue> | undefined
+  let host: ChartHost<TDatum, TXValue, TYValue> | undefined
   const getRuntime = () =>
-    (runtime ??= createChartRuntime<TDatum, TInput, TXValue, TYValue>())
+    (runtime ??= createChartRuntime<TDatum, TXValue, TYValue>())
 
   return {
     prerender() {
       const layout = resolveChartAdapterLayout(options)
       const scene = getRuntime().render(
         options.definition,
-        options.input as TInput,
         {
           width: layout.initialWidth,
           height: layout.initialHeight,

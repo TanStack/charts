@@ -22,7 +22,7 @@ import type {
   ChartHost,
   ChartPoint,
   ChartScene,
-  DynamicChartHostOptions,
+  ChartHostOptions,
 } from '@tanstack/charts'
 import type { ResourceTask, TimelineStatus } from './data'
 import type {
@@ -43,51 +43,54 @@ interface TimelineFocusState {
   scrolled: boolean
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = resourceTasks(input.revision)
-  return {
-    marks: [
-      rect(rows, {
-        id: 'resource-tasks',
-        x1: 'start',
-        x2: 'end',
-        y: 'resource',
-        z: 'status',
-        key: 'id',
-        inset: taskInset,
-        radius: 4,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(resourceTimelineDomain),
-      grid: true,
-      ticks: Math.max(
-        6,
-        Math.floor(
-          timelineContentWidth(
-            input.width - timelineLaneRailWidth(input.width),
-          ) / 84,
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = resourceTasks(input.revision)
+    return {
+      marks: [
+        rect(rows, {
+          id: 'resource-tasks',
+          x1: 'start',
+          x2: 'end',
+          y: 'resource',
+          z: 'status',
+          key: 'id',
+          inset: taskInset,
+          radius: 4,
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(resourceTimelineDomain),
+        grid: true,
+        ticks: Math.max(
+          6,
+          Math.floor(
+            timelineContentWidth(
+              input.width - timelineLaneRailWidth(input.width),
+            ) / 84,
+          ),
         ),
-      ),
-    },
-    y: {
-      scale: scaleBand<string>()
-        .domain(resourceLanes)
-        .paddingInner(0.08)
-        .paddingOuter(0.04),
-      grid: false,
-      guide: false,
-    },
-    color: {
-      scale: scaleOrdinal<TimelineStatus, string>()
-        .domain(timelineStatuses)
-        .range(timelineStatuses.map((status) => timelineStatusColors[status])),
-    },
-    margin: timelineMargin,
-  }
-})
+      },
+      y: {
+        scale: scaleBand<string>()
+          .domain(resourceLanes)
+          .paddingInner(0.08)
+          .paddingOuter(0.04),
+        grid: false,
+        guide: false,
+      },
+      color: {
+        scale: scaleOrdinal<TimelineStatus, string>()
+          .domain(timelineStatuses)
+          .range(
+            timelineStatuses.map((status) => timelineStatusColors[status]),
+          ),
+      },
+      margin: timelineMargin,
+    }
+  })
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
@@ -116,9 +119,8 @@ export const mount: ConformanceMount = (container, input) => {
 
   const chartOptions = (
     nextInput: ConformanceInput,
-  ): DynamicChartHostOptions<ResourceTask, ConformanceInput> => ({
-    definition,
-    input: nextInput,
+  ): ChartHostOptions<ResourceTask> => ({
+    definition: definition(nextInput),
     width: timelineContentWidth(
       nextInput.width - timelineLaneRailWidth(nextInput.width),
     ),
@@ -174,7 +176,7 @@ function createDriver(
   viewport: HTMLDivElement,
   chartSurface: HTMLDivElement,
   getInput: () => ConformanceInput,
-  host: ChartHost<ResourceTask, ConformanceInput>,
+  host: ChartHost<ResourceTask>,
   focusState: TimelineFocusState,
 ): ConformanceTestDriver {
   return {
@@ -199,7 +201,7 @@ function createDriver(
 function timelineTarget(
   viewport: HTMLDivElement,
   chartSurface: HTMLDivElement,
-  host: ChartHost<ResourceTask, ConformanceInput>,
+  host: ChartHost<ResourceTask>,
   target: ConformanceTarget,
 ) {
   if (target.view !== undefined && target.view !== 'main') {

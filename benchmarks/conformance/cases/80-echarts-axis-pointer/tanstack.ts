@@ -15,7 +15,7 @@ import type {
   ChartPoint,
   ChartRenderContext,
   ChartScene,
-  DynamicChartHostOptions,
+  ChartHostOptions,
 } from '@tanstack/charts'
 import type {
   ConformanceGeometryQuery,
@@ -27,54 +27,55 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = axisPointerData(input.revision)
-  return {
-    marks: [
-      lineY(rows, {
-        x: 'date',
-        y: 'value',
-        z: 'series',
-        key: 'id',
-        strokeWidth: 2,
-      }),
-      dot(rows, {
-        x: 'date',
-        y: 'value',
-        z: 'series',
-        key: 'id',
-        r: 3,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(axisPointerDomain),
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          timeZone: 'UTC',
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = axisPointerData(input.revision)
+    return {
+      marks: [
+        lineY(rows, {
+          x: 'date',
+          y: 'value',
+          z: 'series',
+          key: 'id',
+          strokeWidth: 2,
         }),
-    },
-    y: {
-      scale: scaleLinear().domain([0, 80]),
-      ticks: 5,
-      grid: true,
-      label: 'Value',
-    },
-    color: {
-      scale: scaleOrdinal<AxisPointerSeries, string>()
-        .domain(axisPointerSeries)
-        .range(axisPointerSeries.map((series) => axisPointerColors[series])),
-    },
-    margin: {
-      top: 20,
-      right: 24,
-      bottom: 45,
-      left: 60,
-    },
-  }
-})
+        dot(rows, {
+          x: 'date',
+          y: 'value',
+          z: 'series',
+          key: 'id',
+          r: 3,
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(axisPointerDomain),
+        format: (value) =>
+          value.toLocaleDateString(undefined, {
+            month: 'short',
+            timeZone: 'UTC',
+          }),
+      },
+      y: {
+        scale: scaleLinear().domain([0, 80]),
+        ticks: 5,
+        grid: true,
+        label: 'Value',
+      },
+      color: {
+        scale: scaleOrdinal<AxisPointerSeries, string>()
+          .domain(axisPointerSeries)
+          .range(axisPointerSeries.map((series) => axisPointerColors[series])),
+      },
+      margin: {
+        top: 20,
+        right: 24,
+        bottom: 45,
+        left: 60,
+      },
+    }
+  })
 
 interface InteractionState {
   date: string | null
@@ -128,9 +129,8 @@ export function mount(
 
   const chartOptions = (
     nextInput: ConformanceInput,
-  ): DynamicChartHostOptions<AxisPointerDatum, ConformanceInput> => ({
-    definition,
-    input: nextInput,
+  ): ChartHostOptions<AxisPointerDatum> => ({
+    definition: definition(nextInput),
     width: nextInput.width,
     height: nextInput.height,
     ariaLabel: 'Snapped axis pointer with grouped tooltip',

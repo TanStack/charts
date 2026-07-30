@@ -72,13 +72,7 @@ describe('polar marks', () => {
       .cornerRadius(4)
 
     expectTypeOf(definition).toMatchTypeOf<
-      ChartDefinition<
-        (typeof arcs)[number],
-        undefined,
-        undefined,
-        number,
-        number
-      >
+      ChartDefinition<(typeof arcs)[number], number, number>
     >()
     expect(smallPaths[0]).toMatchObject({
       kind: 'area',

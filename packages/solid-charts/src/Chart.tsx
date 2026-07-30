@@ -10,10 +10,9 @@ import type { ChartProps } from './types'
 
 export function Chart<
   TDatum,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(props: ChartProps<TDatum, TInput, TXValue, TYValue>): JSX.Element {
+>(props: ChartProps<TDatum, TXValue, TYValue>): JSX.Element {
   const generatedId = createUniqueId()
   const generatedPrefix = `ts-chart-${generatedId.replaceAll(/[^a-zA-Z0-9_-]/g, '')}`
   const options = () => toHostOptions(props, props.idPrefix ?? generatedPrefix)
@@ -58,13 +57,12 @@ export function Chart<
 
 function toHostOptions<
   TDatum,
-  TInput,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
+  props: ChartProps<TDatum, TXValue, TYValue>,
   idPrefix: string,
-): ChartHostOptions<TDatum, TInput, TXValue, TYValue> {
+): ChartHostOptions<TDatum, TXValue, TYValue> {
   const { class: _class, style: _style, ...options } = props
   return { ...options, idPrefix }
 }

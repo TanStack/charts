@@ -1,5 +1,6 @@
 import * as Plot from '@observablehq/plot'
-import { networkColors, networkGroups, networkLayout } from './data'
+import { networkColors, networkGroups } from './data'
+import { networkLayout } from './layout'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 

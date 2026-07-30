@@ -87,224 +87,223 @@ const historyGradients = series.map((entry) => ({
   ],
 }))
 
-export const statsHistoryChart = defineChart<StatsHistoryInput>()(({
-  input,
-  width,
-}) => {
-  const dates = [
-    ...new Map(
-      input.points.map((point) => [point.date.getTime(), point.date]),
-    ).values(),
-  ]
-  const zoomStart = dates.at(-9)
-  const zoomEnd = dates.at(-1)
-  const xDomain =
-    input.zoomed && zoomStart && zoomEnd
-      ? ([zoomStart, zoomEnd] as const)
-      : dateExtent(input.points, (point) => point.date)
-  const complete = input.points.filter((point) => point.complete)
-  const firstPartialIndex = input.points.findIndex((point) => !point.complete)
-  const partialStart =
-    firstPartialIndex < 0
-      ? input.points.length
-      : Math.max(0, firstPartialIndex - series.length)
-  const partial = input.points.slice(partialStart)
-  const stacked = input.mode !== 'line'
-  const yValues = stacked
-    ? input.intervals.flatMap((point) => [point.y1, point.y2])
-    : input.points.map((point) => point.downloads)
+export const createStatsHistoryChart = (input: StatsHistoryInput) =>
+  defineChart(({ width }) => {
+    const dates = [
+      ...new Map(
+        input.points.map((point) => [point.date.getTime(), point.date]),
+      ).values(),
+    ]
+    const zoomStart = dates.at(-9)
+    const zoomEnd = dates.at(-1)
+    const xDomain =
+      input.zoomed && zoomStart && zoomEnd
+        ? ([zoomStart, zoomEnd] as const)
+        : dateExtent(input.points, (point) => point.date)
+    const complete = input.points.filter((point) => point.complete)
+    const firstPartialIndex = input.points.findIndex((point) => !point.complete)
+    const partialStart =
+      firstPartialIndex < 0
+        ? input.points.length
+        : Math.max(0, firstPartialIndex - series.length)
+    const partial = input.points.slice(partialStart)
+    const stacked = input.mode !== 'line'
+    const yValues = stacked
+      ? input.intervals.flatMap((point) => [point.y1, point.y2])
+      : input.points.map((point) => point.downloads)
 
-  return {
-    marks: stacked
-      ? [
-          ruleY([0], { strokeOpacity: 0.35, strokeWidth: 1.5 }),
-          areaY(input.intervals, {
-            id: `stats-${input.mode}-areas`,
-            x: 'date',
-            y1: 'y1',
-            y2: 'y2',
-            z: 'series',
-            key: 'id',
-            fill: (datum) => `url(#${datum.gradient})`,
-            fillOpacity: 1,
-            curve: d3Curve(curveMonotoneX),
-          }),
-          lineY(input.intervals, {
-            id: `stats-${input.mode}-caps`,
-            x: 'date',
-            y: 'y2',
-            z: 'series',
-            key: 'id',
-            stroke: (datum) => seriesColor.get(datum.series) ?? 'currentColor',
-            strokeWidth: 1.4,
-            strokeOpacity: 0.95,
-            curve: d3Curve(curveMonotoneX),
-          }),
-        ]
-      : [
-          ruleY([0], { strokeOpacity: 0.35, strokeWidth: 1.5 }),
-          lineY(complete, {
-            id: 'stats-history-complete',
-            x: 'date',
-            y: 'downloads',
-            z: 'series',
-            key: 'id',
-            stroke: (datum) => seriesColor.get(datum.series) ?? 'currentColor',
-            strokeWidth: 2,
-            curve: d3Curve(curveMonotoneX),
-          }),
-          lineY(partial, {
-            id: 'stats-history-partial',
-            x: 'date',
-            y: 'downloads',
-            z: 'series',
-            key: 'id',
-            stroke: (datum) => seriesColor.get(datum.series) ?? 'currentColor',
-            strokeWidth: 1.5,
-            strokeOpacity: 0.8,
-            strokeDasharray: '2 4',
-            curve: d3Curve(curveMonotoneX),
-          }),
-        ],
-    x: {
-      scale: scaleUtc().domain(xDomain),
-      label: 'Date',
-      ticks: width < 520 ? 4 : 7,
-    },
-    y: {
-      scale: scaleLinear().domain(zeroExtent(yValues)).nice(5),
-      label:
-        input.mode === 'share'
-          ? 'Download Share'
-          : input.mode === 'stream'
-            ? 'Downloads (stream)'
-            : 'Downloads',
-      format: input.mode === 'share' ? formatPercent : formatCompact,
-      ticks: 5,
-      grid: true,
-    },
-    color: {
-      scale: scaleOrdinal<string, string>()
-        .domain(series.map((entry) => entry.name))
-        .range(series.map((entry) => entry.color)),
-    },
-    gradients: historyGradients,
-    clip: input.zoomed,
-  }
-})
+    return {
+      marks: stacked
+        ? [
+            ruleY([0], { strokeOpacity: 0.35, strokeWidth: 1.5 }),
+            areaY(input.intervals, {
+              id: `stats-${input.mode}-areas`,
+              x: 'date',
+              y1: 'y1',
+              y2: 'y2',
+              z: 'series',
+              key: 'id',
+              fill: (datum) => `url(#${datum.gradient})`,
+              fillOpacity: 1,
+              curve: d3Curve(curveMonotoneX),
+            }),
+            lineY(input.intervals, {
+              id: `stats-${input.mode}-caps`,
+              x: 'date',
+              y: 'y2',
+              z: 'series',
+              key: 'id',
+              stroke: (datum) =>
+                seriesColor.get(datum.series) ?? 'currentColor',
+              strokeWidth: 1.4,
+              strokeOpacity: 0.95,
+              curve: d3Curve(curveMonotoneX),
+            }),
+          ]
+        : [
+            ruleY([0], { strokeOpacity: 0.35, strokeWidth: 1.5 }),
+            lineY(complete, {
+              id: 'stats-history-complete',
+              x: 'date',
+              y: 'downloads',
+              z: 'series',
+              key: 'id',
+              stroke: (datum) =>
+                seriesColor.get(datum.series) ?? 'currentColor',
+              strokeWidth: 2,
+              curve: d3Curve(curveMonotoneX),
+            }),
+            lineY(partial, {
+              id: 'stats-history-partial',
+              x: 'date',
+              y: 'downloads',
+              z: 'series',
+              key: 'id',
+              stroke: (datum) =>
+                seriesColor.get(datum.series) ?? 'currentColor',
+              strokeWidth: 1.5,
+              strokeOpacity: 0.8,
+              strokeDasharray: '2 4',
+              curve: d3Curve(curveMonotoneX),
+            }),
+          ],
+      x: {
+        scale: scaleUtc().domain(xDomain),
+        label: 'Date',
+        ticks: width < 520 ? 4 : 7,
+      },
+      y: {
+        scale: scaleLinear().domain(zeroExtent(yValues)).nice(5),
+        label:
+          input.mode === 'share'
+            ? 'Download Share'
+            : input.mode === 'stream'
+              ? 'Downloads (stream)'
+              : 'Downloads',
+        format: input.mode === 'share' ? formatPercent : formatCompact,
+        ticks: 5,
+        grid: true,
+      },
+      color: {
+        scale: scaleOrdinal<string, string>()
+          .domain(series.map((entry) => entry.name))
+          .range(series.map((entry) => entry.color)),
+      },
+      gradients: historyGradients,
+      clip: input.zoomed,
+    }
+  })
 
-export const statsLatestChart = defineChart<StatsLatestInput>()(({
-  input,
-  width,
-}) => {
-  const vertical = input.orientation === 'vertical'
-  const categoricalScale = scaleBand<string>()
-    .domain([...input.domain])
-    .paddingInner(0.1)
-    .paddingOuter(0.05)
-  const numericValues = input.stacked
-    ? input.intervals.flatMap((point) => [point.value1, point.value2])
-    : input.grouped.map((point) => point.downloads)
-  const numericScale = scaleLinear().domain(zeroExtent(numericValues)).nice(7)
-  const colorDomain = input.stacked
-    ? unique(input.intervals.map((point) => point.packageName))
-    : [...input.domain]
-  const colorRange = input.stacked
-    ? colorDomain.map(packageColor)
-    : colorDomain.map(groupColor)
-  const marks = input.stacked
-    ? vertical
-      ? [
-          ruleY([0], { strokeOpacity: 0.5, strokeWidth: 1.5 }),
-          barY(input.intervals, {
-            id: 'stats-latest-stacked-y',
-            x: 'groupName',
-            y1: 'value1',
-            y2: 'value2',
-            z: 'packageName',
-            key: 'id',
-            fill: (datum) => `url(#${datum.gradient})`,
-            fillOpacity: 1,
-            inset: 1,
-          }),
-        ]
-      : [
-          ruleX([0], { strokeOpacity: 0.5, strokeWidth: 1.5 }),
-          barX(input.intervals, {
-            id: 'stats-latest-stacked-x',
-            y: 'groupName',
-            x1: 'value1',
-            x2: 'value2',
-            z: 'packageName',
-            key: 'id',
-            fill: (datum) => `url(#${datum.gradient})`,
-            fillOpacity: 1,
-            inset: 1,
-          }),
-        ]
-    : vertical
-      ? [
-          ruleY([0], { strokeOpacity: 0.5, strokeWidth: 1.5 }),
-          barY(input.grouped, {
-            id: 'stats-latest-grouped-y',
-            x: 'name',
-            y: 'downloads',
-            color: 'seriesName',
-            key: 'id',
-            fill: (datum) => `url(#${datum.gradient})`,
-            fillOpacity: 1,
-            inset: 2,
-            radius: 2,
-          }),
-        ]
-      : [
-          ruleX([0], { strokeOpacity: 0.5, strokeWidth: 1.5 }),
-          barX(input.grouped, {
-            id: 'stats-latest-grouped-x',
-            x: 'downloads',
-            y: 'name',
-            color: 'seriesName',
-            key: 'id',
-            fill: (datum) => `url(#${datum.gradient})`,
-            fillOpacity: 1,
-            inset: 2,
-            radius: 2,
-          }),
-        ]
+export const createStatsLatestChart = (input: StatsLatestInput) =>
+  defineChart(({ width }) => {
+    const vertical = input.orientation === 'vertical'
+    const categoricalScale = scaleBand<string>()
+      .domain([...input.domain])
+      .paddingInner(0.1)
+      .paddingOuter(0.05)
+    const numericValues = input.stacked
+      ? input.intervals.flatMap((point) => [point.value1, point.value2])
+      : input.grouped.map((point) => point.downloads)
+    const numericScale = scaleLinear().domain(zeroExtent(numericValues)).nice(7)
+    const colorDomain = input.stacked
+      ? unique(input.intervals.map((point) => point.packageName))
+      : [...input.domain]
+    const colorRange = input.stacked
+      ? colorDomain.map(packageColor)
+      : colorDomain.map(groupColor)
+    const marks = input.stacked
+      ? vertical
+        ? [
+            ruleY([0], { strokeOpacity: 0.5, strokeWidth: 1.5 }),
+            barY(input.intervals, {
+              id: 'stats-latest-stacked-y',
+              x: 'groupName',
+              y1: 'value1',
+              y2: 'value2',
+              z: 'packageName',
+              key: 'id',
+              fill: (datum) => `url(#${datum.gradient})`,
+              fillOpacity: 1,
+              inset: 1,
+            }),
+          ]
+        : [
+            ruleX([0], { strokeOpacity: 0.5, strokeWidth: 1.5 }),
+            barX(input.intervals, {
+              id: 'stats-latest-stacked-x',
+              y: 'groupName',
+              x1: 'value1',
+              x2: 'value2',
+              z: 'packageName',
+              key: 'id',
+              fill: (datum) => `url(#${datum.gradient})`,
+              fillOpacity: 1,
+              inset: 1,
+            }),
+          ]
+      : vertical
+        ? [
+            ruleY([0], { strokeOpacity: 0.5, strokeWidth: 1.5 }),
+            barY(input.grouped, {
+              id: 'stats-latest-grouped-y',
+              x: 'name',
+              y: 'downloads',
+              color: 'seriesName',
+              key: 'id',
+              fill: (datum) => `url(#${datum.gradient})`,
+              fillOpacity: 1,
+              inset: 2,
+              radius: 2,
+            }),
+          ]
+        : [
+            ruleX([0], { strokeOpacity: 0.5, strokeWidth: 1.5 }),
+            barX(input.grouped, {
+              id: 'stats-latest-grouped-x',
+              x: 'downloads',
+              y: 'name',
+              color: 'seriesName',
+              key: 'id',
+              fill: (datum) => `url(#${datum.gradient})`,
+              fillOpacity: 1,
+              inset: 2,
+              radius: 2,
+            }),
+          ]
 
-  return {
-    marks,
-    x: vertical
-      ? {
-          scale: categoricalScale,
-          tickRotate: width < 680 ? -28 : 0,
-          grid: false,
-        }
-      : {
-          scale: numericScale,
-          label: 'Downloads',
-          format: formatCompact,
-          grid: true,
-        },
-    y: vertical
-      ? {
-          scale: numericScale,
-          label: 'Downloads',
-          format: formatCompact,
-          grid: true,
-        }
-      : {
-          scale: categoricalScale,
-          grid: false,
-        },
-    color: {
-      scale: scaleOrdinal<string, string>()
-        .domain(colorDomain)
-        .range(colorRange),
-    },
-    gradients: createLatestGradients(input),
-  }
-})
+    return {
+      marks,
+      x: vertical
+        ? {
+            scale: categoricalScale,
+            tickRotate: width < 680 ? -28 : 0,
+            grid: false,
+          }
+        : {
+            scale: numericScale,
+            label: 'Downloads',
+            format: formatCompact,
+            grid: true,
+          },
+      y: vertical
+        ? {
+            scale: numericScale,
+            label: 'Downloads',
+            format: formatCompact,
+            grid: true,
+          }
+        : {
+            scale: categoricalScale,
+            grid: false,
+          },
+      color: {
+        scale: scaleOrdinal<string, string>()
+          .domain(colorDomain)
+          .range(colorRange),
+      },
+      gradients: createLatestGradients(input),
+    }
+  })
 
 export function createStatsHistoryInput(
   mode: StatsHistoryMode,

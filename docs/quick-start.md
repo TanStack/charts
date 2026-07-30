@@ -123,7 +123,10 @@ host.update({
 })
 ```
 
-Use a [dynamic definition](./concepts/chart-definitions.md) when data or visual options change. Dynamic definitions receive a required, exactly typed `input` value while keeping the definition stable at module scope.
+When data or visual options change, create a new definition and pass it to
+`host.update`. In a framework component, memoize the complete definition
+against the values it captures. See
+[Chart definitions](./concepts/chart-definitions.md).
 
 ## 5. Clean up
 
@@ -131,7 +134,7 @@ Use a [dynamic definition](./concepts/chart-definitions.md) when data or visual 
 host.destroy()
 ```
 
-Destroying the host removes observers, event listeners, animations, runtime caches, tooltips, and chart markup. Framework adapters do this automatically during unmount.
+Destroying the host removes observers, event listeners, animations, tooltips, and chart markup. Framework adapters do this automatically during unmount.
 
 ## What the declaration means
 

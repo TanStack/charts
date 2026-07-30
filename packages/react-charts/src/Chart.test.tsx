@@ -27,25 +27,23 @@ const definition = defineChart({
   y: { scale: scaleLinear().domain([8, 12]) },
 })
 
-const typedDynamicDefinition = defineChart<{
-  data: typeof data
-  stroke: string
-}>()(({ input }) => ({
+const typedDynamicDefinition = defineChart(() => ({
   marks: [
-    lineY(input.data, {
+    lineY(data, {
       x: 'month',
       y: 'value',
       key: 'id',
-      stroke: input.stroke,
+      stroke: 'red',
     }),
   ],
   x: { scale: scaleLinear().domain([1, 2]) },
   y: { scale: scaleLinear().domain([8, 12]) },
 }))
-const undefinedInputDefinition = defineChart<undefined>()(() => definition)
-const voidInputDefinition = defineChart<void>()(() => definition)
-const widenedDefinition: ChartDefinition<(typeof data)[number], undefined> =
-  data.length > 0 ? definition : undefinedInputDefinition
+const widenedDefinition: ChartDefinition<
+  (typeof data)[number],
+  number,
+  number
+> = data.length > 0 ? definition : typedDynamicDefinition
 
 if (false) {
   const legacyStaticArity = (
@@ -54,37 +52,18 @@ if (false) {
       ariaLabel="Explicit static datum"
     />
   )
-  const legacyDynamicArity = (
-    <Chart<(typeof data)[number], { data: typeof data; stroke: string }>
+  const explicitDynamicArity = (
+    <Chart<(typeof data)[number], number, number>
       definition={typedDynamicDefinition}
-      input={{ data, stroke: 'red' }}
-      ariaLabel="Explicit dynamic datum and input"
+      ariaLabel="Explicit dynamic coordinates"
     />
   )
   void legacyStaticArity
-  void legacyDynamicArity
+  void explicitDynamicArity
 
-  const missingInput = (
-    // @ts-expect-error Dynamic chart props require input.
-    <Chart definition={typedDynamicDefinition} ariaLabel="Revenue" />
-  )
-  const staticInput = (
-    // @ts-expect-error Static chart props do not accept input.
-    <Chart definition={definition} input={{}} ariaLabel="Revenue" />
-  )
-  const invalidDynamicProps = {
-    definition: typedDynamicDefinition,
-    input: { data, stroke: 42 },
-    ariaLabel: 'Revenue',
-  }
-  const wrongInput = (
-    // @ts-expect-error Dynamic chart input is inferred from the definition.
-    <Chart {...invalidDynamicProps} />
-  )
   const inferredCallback = (
     <Chart
       definition={typedDynamicDefinition}
-      input={{ data, stroke: 'red' }}
       ariaLabel="Revenue"
       focus={{
         resolve(points) {
@@ -142,62 +121,10 @@ if (false) {
       }}
     />
   )
-  const explicitUndefinedInput = (
-    <Chart
-      definition={undefinedInputDefinition}
-      input={undefined}
-      ariaLabel="Undefined input"
-      onFocusChange={(point) => {
-        expectTypeOf(point?.datum).toEqualTypeOf<
-          (typeof data)[number] | undefined
-        >()
-      }}
-    />
-  )
-  const explicitVoidInput = (
-    <Chart
-      definition={voidInputDefinition}
-      input={undefined}
-      ariaLabel="Void input"
-    />
-  )
-  const missingUndefinedInput = (
-    // @ts-expect-error Dynamic JSX props require an explicit input property even when its value is undefined.
-    <Chart definition={undefinedInputDefinition} ariaLabel="Undefined input" />
-  )
-  const missingVoidInput = (
-    // @ts-expect-error Dynamic JSX props require an explicit input property even when its value is void.
-    <Chart definition={voidInputDefinition} ariaLabel="Void input" />
-  )
-  const explicitStaticUndefined = (
-    <Chart definition={definition} input={undefined} ariaLabel="Revenue" />
-  )
-  const missingWidenedInput = (
-    // @ts-expect-error A widened static-or-dynamic definition must be narrowed before rendering.
+  const widened = (
     <Chart definition={widenedDefinition} ariaLabel="Widened definition" />
   )
-  const explicitWidenedInput = (
-    <Chart
-      // @ts-expect-error Supplying input does not resolve a widened definition.
-      definition={widenedDefinition}
-      input={undefined}
-      ariaLabel="Widened definition"
-    />
-  )
-  void [
-    missingInput,
-    staticInput,
-    wrongInput,
-    inferredCallback,
-    inferredStaticCallback,
-    explicitUndefinedInput,
-    explicitVoidInput,
-    missingUndefinedInput,
-    missingVoidInput,
-    explicitStaticUndefined,
-    missingWidenedInput,
-    explicitWidenedInput,
-  ]
+  void [inferredCallback, inferredStaticCallback, widened]
 }
 
 describe('React adapter', () => {
@@ -383,29 +310,19 @@ describe('React adapter', () => {
     await act(async () => root.unmount())
   })
 
-  it('preserves the chart DOM for structurally equal dynamic input', async () => {
-    const prepare = vi.fn(
-      (input: { data: typeof data; stroke: string }) => input.data,
-    )
-    const dynamicDefinition = defineChart<{
-      data: typeof data
-      stroke: string
-    }>()({
-      prepare,
-      prepareEqual: (previous, next) => previous.data === next.data,
-      chart: ({ input, prepared }) => ({
-        marks: [
-          lineY(prepared, {
-            x: 'month',
-            y: 'value',
-            key: 'id',
-            stroke: input.stroke,
-          }),
-        ],
-        x: { scale: scaleLinear().domain([1, 2]) },
-        y: { scale: scaleLinear().domain([8, 12]) },
-      }),
-    })
+  it('preserves the chart DOM when the definition is stable', async () => {
+    const dynamicDefinition = defineChart(() => ({
+      marks: [
+        lineY(data, {
+          x: 'month',
+          y: 'value',
+          key: 'id',
+          stroke: 'red',
+        }),
+      ],
+      x: { scale: scaleLinear().domain([1, 2]) },
+      y: { scale: scaleLinear().domain([8, 12]) },
+    }))
     const target = document.createElement('div')
     const root = createRoot(target)
 
@@ -413,22 +330,18 @@ describe('React adapter', () => {
       root.render(
         <Chart
           definition={dynamicDefinition}
-          input={{ data, stroke: 'red' }}
           width={480}
           height={260}
           ariaLabel="Revenue"
         />,
       )
     })
-    expect(prepare).toHaveBeenCalledOnce()
     const initialSvg = target.querySelector('svg')
-    const prepareCount = prepare.mock.calls.length
 
     await act(async () => {
       root.render(
         <Chart
           definition={dynamicDefinition}
-          input={{ data, stroke: 'red' }}
           width={480}
           height={260}
           ariaLabel="Revenue"
@@ -437,7 +350,6 @@ describe('React adapter', () => {
     })
 
     expect(target.querySelector('svg')).toBe(initialSvg)
-    expect(prepare).toHaveBeenCalledTimes(prepareCount)
     await act(async () => root.unmount())
   })
 

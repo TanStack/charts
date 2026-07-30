@@ -139,9 +139,8 @@ including `Date`; conditional definitions expose honest unions for normal
 TypeScript narrowing. Rectangles infer scale types from their interval
 endpoints independently from their interaction anchors, and cells retain their
 categorical point values. Facets and custom marks remain unchecked only where
-their positional semantics are intentionally opaque. A dynamic
-`defineChart<Input>()` also makes `input` required with that exact shape in the
-vanilla host and every framework adapter.
+their positional semantics are intentionally opaque. Definitions capture
+application values directly, and their identity is the host update boundary.
 
 Normal authoring needs no cast, mark-array annotation, or adapter generic. If
 TypeScript rejects a chart, correct the data type, channel, scale, or
@@ -163,10 +162,9 @@ ordinary bundles.
   legends
 - Data preparation: direct `d3-array` and `d3-shape` output, server-prepared
   intervals, and application-derived rows flow into ordinary marks
-- Runtime: stable dynamic definitions, separate preparation caching,
-  responsive measurement, keyed reconciliation, interruptible animation,
-  pointer and keyboard focus, point activation, native tooltips, SSR, and
-  hydration
+- Runtime: stable dynamic definitions, responsive measurement, keyed
+  reconciliation, interruptible animation, pointer and keyboard focus, point
+  activation, native tooltips, SSR, and hydration
 - Renderers: static SVG and a vanilla DOM host
 - Optional export: standalone SVG and browser raster export from
   `@tanstack/charts/export`

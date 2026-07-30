@@ -3,10 +3,10 @@ import { createChartRuntime, createChartScene } from '@tanstack/charts'
 import type { SceneNode } from '@tanstack/charts'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import {
+  createStatsHistoryChart,
   createStatsHistoryInput,
+  createStatsLatestChart,
   createStatsLatestInput,
-  statsHistoryChart,
-  statsLatestChart,
 } from './stats-parity'
 import type {
   StatsHistoryInput,
@@ -20,32 +20,26 @@ import type {
 describe('TanStack Stats parity fixtures', () => {
   it('covers line, absolute stack, share, stream, zoom, and partial data', () => {
     const runtime = createChartRuntime<
-      number | StatsHistoryPoint | StatsHistoryInterval,
-      StatsHistoryInput
+      number | StatsHistoryPoint | StatsHistoryInterval
     >()
     const line = runtime.render(
-      statsHistoryChart,
-      createStatsHistoryInput('line'),
+      createStatsHistoryChart(createStatsHistoryInput('line')),
       { width: 760, height: 420 },
     )
     const stacked = runtime.render(
-      statsHistoryChart,
-      createStatsHistoryInput('stacked'),
+      createStatsHistoryChart(createStatsHistoryInput('stacked')),
       { width: 760, height: 420 },
     )
     const share = runtime.render(
-      statsHistoryChart,
-      createStatsHistoryInput('share'),
+      createStatsHistoryChart(createStatsHistoryInput('share')),
       { width: 760, height: 420 },
     )
     const stream = runtime.render(
-      statsHistoryChart,
-      createStatsHistoryInput('stream'),
+      createStatsHistoryChart(createStatsHistoryInput('stream')),
       { width: 760, height: 420 },
     )
     const zoomed = runtime.render(
-      statsHistoryChart,
-      createStatsHistoryInput('stacked', 0, true),
+      createStatsHistoryChart(createStatsHistoryInput('stacked', 0, true)),
       { width: 760, height: 420 },
     )
     const lineSvg = renderChartSvgWithResources(line, {
@@ -78,15 +72,16 @@ describe('TanStack Stats parity fixtures', () => {
       createStatsLatestInput('horizontal', true),
     ] as const
     const runtime = createChartRuntime<
-      number | StatsLatestPoint | StatsLatestInterval,
-      StatsLatestInput
+      number | StatsLatestPoint | StatsLatestInterval
     >()
     const scenes = variants.map((input) =>
-      runtime.render(statsLatestChart, input, { width: 760, height: 420 }),
+      runtime.render(createStatsLatestChart(input), {
+        width: 760,
+        height: 420,
+      }),
     )
     const updated = runtime.render(
-      statsLatestChart,
-      createStatsLatestInput('vertical', true, 1),
+      createStatsLatestChart(createStatsLatestInput('vertical', true, 1)),
       { width: 760, height: 420 },
     )
     const firstStackedKeys = new Set(
@@ -119,9 +114,7 @@ describe('TanStack Stats parity fixtures', () => {
   it('keeps explicit interval endpoints and gradient fills in static output', () => {
     const input = createStatsLatestInput('vertical', true)
     const scene = createChartScene(
-      statsLatestChart.chart({
-        input,
-        prepared: input,
+      createStatsLatestChart(input).chart({
         width: 760,
         height: 420,
         theme: {

@@ -49,50 +49,51 @@ export function prepareFacetedDistributionBins(
   })
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = facetedDistributionData(input.revision)
-  const bins = prepareFacetedDistributionBins(rows)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = facetedDistributionData(input.revision)
+    const bins = prepareFacetedDistributionBins(rows)
 
-  return {
-    marks: [
-      facet(bins, {
-        by: 'group',
-        columns: 1,
-        gap: 8,
-        label: (group) => String(group),
-        chart: (facetBins) => ({
-          marks: [
-            rect(facetBins, {
-              x1: 'x1',
-              x2: 'x2',
-              y1: () => 0,
-              y2: 'proportion',
-              key: 'id',
-              fill: '#8b5cf6',
-              inset: 0.75,
-            }),
-          ],
-          x: {
-            scale: scaleLinear().domain([0, 100]),
-            grid: true,
-            label: 'Observed value',
-          },
-          y: {
-            scale: scaleLinear().domain([0, 0.25]),
-            grid: true,
-            ticks: 3,
-            label: 'Proportion',
-            format: (value) => percent.format(value),
-          },
+    return {
+      marks: [
+        facet(bins, {
+          by: 'group',
+          columns: 1,
+          gap: 8,
+          label: (group) => String(group),
+          chart: (facetBins) => ({
+            marks: [
+              rect(facetBins, {
+                x1: 'x1',
+                x2: 'x2',
+                y1: () => 0,
+                y2: 'proportion',
+                key: 'id',
+                fill: '#8b5cf6',
+                inset: 0.75,
+              }),
+            ],
+            x: {
+              scale: scaleLinear().domain([0, 100]),
+              grid: true,
+              label: 'Observed value',
+            },
+            y: {
+              scale: scaleLinear().domain([0, 0.25]),
+              grid: true,
+              ticks: 3,
+              label: 'Proportion',
+              format: (value) => percent.format(value),
+            },
+          }),
         }),
-      }),
-    ],
-    guides: false,
-    margin: 0,
-    x: null,
-    y: null,
-  }
-})
+      ],
+      guides: false,
+      margin: 0,
+      x: null,
+      y: null,
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

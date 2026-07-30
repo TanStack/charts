@@ -42,8 +42,7 @@ style attributes own its presentation. The `className` chart option applies
 to the rendered SVG surface. The package exposes the SVG directive only; use
 `renderSvg` to replace SVG serialization without replacing the shared host.
 
-Exports: `charts`, `ChartOptions`, `DynamicChartOptions`,
-`StaticChartOptions`, `ChartDefinition`, and `ChartPoint`.
+Exports: `charts`, `ChartOptions`, `ChartDefinition`, and `ChartPoint`.
 
 See the [`x-chart` reference](./reference/chart.md) and
 [Chart Definition API](../../reference/chart-definitions.md).

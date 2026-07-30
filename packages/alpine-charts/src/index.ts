@@ -2,32 +2,13 @@ import {
   createChartAdapter,
   resolveChartAdapterLayout,
 } from '@tanstack/charts/adapter'
-import type {
-  ChartHostOptions,
-  ChartValue,
-  DynamicChartHostOptions,
-  StaticChartHostOptions,
-} from '@tanstack/charts'
-
-export type StaticChartOptions<
-  TDatum = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = StaticChartHostOptions<TDatum, TXValue, TYValue>
-
-export type DynamicChartOptions<
-  TDatum = unknown,
-  TInput = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = DynamicChartHostOptions<TDatum, TInput, TXValue, TYValue>
+import type { ChartHostOptions, ChartValue } from '@tanstack/charts'
 
 export type ChartOptions<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> = ChartHostOptions<TDatum, TInput, TXValue, TYValue>
+> = ChartHostOptions<TDatum, TXValue, TYValue>
 
 interface AlpineDirectiveUtilities {
   evaluateLater: (
@@ -69,12 +50,12 @@ export function charts(Alpine: AlpineLike) {
         aspectRatio: element.style.aspectRatio,
       }
       let adapter:
-        ReturnType<typeof createChartAdapter<any, any, any, any>> | undefined
+        ReturnType<typeof createChartAdapter<any, any, any>> | undefined
       const generatedId = `ts-chart-alpine-${++nextChartId}`
 
       effect(() => {
         evaluate((value) => {
-          const options = value as ChartOptions<any, any, any, any>
+          const options = value as ChartOptions<any, any, any>
           const hostOptions = {
             ...options,
             idPrefix: options.idPrefix ?? generatedId,
@@ -101,7 +82,7 @@ export function charts(Alpine: AlpineLike) {
 
 function applyLayout(
   element: HTMLElement,
-  options: ChartOptions<any, any, any, any>,
+  options: ChartOptions<any, any, any>,
   initial: {
     position: string
     width: string

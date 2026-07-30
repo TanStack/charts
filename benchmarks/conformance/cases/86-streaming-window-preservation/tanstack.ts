@@ -14,7 +14,7 @@ import type {
   ChartHost,
   ChartPoint,
   ChartScene,
-  DynamicChartHostOptions,
+  ChartHostOptions,
 } from '@tanstack/charts'
 import type { StreamingDatum } from './data'
 import type { StreamingControls, StreamingViewportMode } from './controls'
@@ -43,53 +43,54 @@ interface StreamingState {
 
 const color = '#2563eb'
 
-const definition = defineChart<StreamingChartInput>()(({ input }) => {
-  const visibleRows = visibleStreamingData(input.rows, input.viewport)
-  return {
-    marks: [
-      lineY(visibleRows, {
-        id: 'stream-line',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        stroke: color,
-        strokeWidth: 2.5,
-      }),
-      dot(visibleRows, {
-        id: 'stream-points',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        fill: color,
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(input.viewport),
-      label:
-        input.viewportMode === 'locked'
-          ? 'Locked viewport'
-          : input.viewportMode === 'latest'
-            ? 'Following latest'
-            : 'All samples',
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          timeZone: 'UTC',
+const definition = (input: StreamingChartInput) =>
+  defineChart(() => {
+    const visibleRows = visibleStreamingData(input.rows, input.viewport)
+    return {
+      marks: [
+        lineY(visibleRows, {
+          id: 'stream-line',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          stroke: color,
+          strokeWidth: 2.5,
         }),
-    },
-    y: {
-      scale: scaleLinear().domain([0, 80]),
-      ticks: 5,
-      grid: true,
-      label: 'Value',
-    },
-    margin: { top: 18, right: 24, bottom: 44, left: 58 },
-  }
-})
+        dot(visibleRows, {
+          id: 'stream-points',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          fill: color,
+          r: 3.5,
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+      ],
+      x: {
+        scale: scaleUtc().domain(input.viewport),
+        label:
+          input.viewportMode === 'locked'
+            ? 'Locked viewport'
+            : input.viewportMode === 'latest'
+              ? 'Following latest'
+              : 'All samples',
+        format: (value) =>
+          value.toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            timeZone: 'UTC',
+          }),
+      },
+      y: {
+        scale: scaleLinear().domain([0, 80]),
+        ticks: 5,
+        grid: true,
+        label: 'Value',
+      },
+      margin: { top: 18, right: 24, bottom: 44, left: 58 },
+    }
+  })
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
@@ -150,17 +151,13 @@ export const mount: ConformanceMount = (container, input) => {
   container.append(view)
   sizeStreamingView(view, chartSurface, input)
 
-  const chartOptions = (): DynamicChartHostOptions<
-    StreamingDatum,
-    StreamingChartInput
-  > => ({
-    definition,
-    input: {
+  const chartOptions = (): ChartHostOptions<StreamingDatum> => ({
+    definition: definition({
       ...currentInput,
       rows: state.rows,
       viewport: state.viewport,
       viewportMode: state.viewportMode,
-    },
+    }),
     width: currentInput.width,
     height: streamingChartHeight(currentInput.height),
     ariaLabel: 'Streaming observations in a locked time viewport',
@@ -171,7 +168,7 @@ export const mount: ConformanceMount = (container, input) => {
         `${formatStreamingDate(point.datum.date)} · ${point.datum.value.toLocaleString()}`,
     },
   })
-  let host: ChartHost<StreamingDatum, StreamingChartInput> | undefined
+  let host: ChartHost<StreamingDatum> | undefined
   host = mountChart(chartSurface, chartOptions())
   updateStreamingControls(controls, {
     mode: state.viewportMode,
@@ -208,7 +205,7 @@ function createDriver(
   chartSurface: HTMLDivElement,
   controls: StreamingControls,
   state: StreamingState,
-  host: ChartHost<StreamingDatum, StreamingChartInput>,
+  host: ChartHost<StreamingDatum>,
 ): ConformanceTestDriver {
   return {
     resolveTarget(target) {

@@ -6,11 +6,7 @@ import type {
   ChartRendererHostOptions,
   ChartValue,
 } from '@tanstack/charts'
-import type {
-  DynamicRendererChartProps,
-  RendererChartProps,
-  StaticRendererChartProps,
-} from './renderer-types'
+import type { RendererChartProps } from './renderer-types'
 
 interface ChartSurfaceProps {
   markup: string
@@ -35,22 +31,10 @@ export function RendererChart<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
->(props: StaticRendererChartProps<TDatum, TXValue, TYValue>): unknown
-export function RendererChart<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->(props: DynamicRendererChartProps<TDatum, TInput, TXValue, TYValue>): unknown
-export function RendererChart<
-  TDatum,
-  TInput = undefined,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->(props: RendererChartProps<TDatum, TInput, TXValue, TYValue>) {
+>(props: RendererChartProps<TDatum, TXValue, TYValue>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const adapterRef = useRef<ChartAdapter<
-    ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
+    ChartRendererHostOptions<TDatum, TXValue, TYValue>,
     TDatum,
     TXValue,
     TYValue
@@ -77,12 +61,10 @@ export function RendererChart<
   const idPrefix =
     props.idPrefix ??
     `ts-chart-${generatedId.replaceAll(/[^a-zA-Z0-9_-]/g, '')}`
-  const hostOptions = useMemo<
-    ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>
-  >(
-    () =>
-      createHostOptions(props, {
+  const hostOptions = useMemo<ChartRendererHostOptions<TDatum, TXValue, TYValue>>(
+    () => ({
         renderer: props.renderer,
+        definition: props.definition,
         ariaLabel: props.ariaLabel,
         ariaDescription: props.ariaDescription,
         height,
@@ -105,7 +87,6 @@ export function RendererChart<
       }),
     [
       props.definition,
-      props.input,
       props.ariaLabel,
       props.ariaDescription,
       props.width,
@@ -158,37 +139,4 @@ export function RendererChart<
       />
     </div>
   )
-}
-
-function createHostOptions<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  props: RendererChartProps<TDatum, TInput, TXValue, TYValue>,
-  common: ChartRendererHostCommonOptions<TDatum, TXValue, TYValue>,
-): ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue> {
-  if (isDynamicProps(props)) {
-    return {
-      ...common,
-      definition: props.definition,
-      input: props.input,
-    }
-  }
-  return {
-    ...common,
-    definition: props.definition,
-  }
-}
-
-function isDynamicProps<
-  TDatum,
-  TInput,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  props: RendererChartProps<TDatum, TInput, TXValue, TYValue>,
-): props is DynamicRendererChartProps<TDatum, TInput, TXValue, TYValue> {
-  return 'chart' in props.definition
 }

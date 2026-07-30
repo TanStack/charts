@@ -59,43 +59,44 @@ function layoutCells(revision: number): readonly BundleCell[] {
   })
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const cells = layoutCells(input.revision)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const cells = layoutCells(input.revision)
 
-  return {
-    marks: [
-      rect(cells, {
-        x1: 'x1',
-        x2: 'x2',
-        y1: 'y1',
-        y2: 'y2',
-        z: 'family',
-        key: 'id',
-        inset: 1,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-      text(cells, {
-        x: 'labelX',
-        y: 'labelY',
-        text: 'name',
-        key: 'id',
-        fill: '#ffffff',
-        fontSize: 8,
-        fontWeight: 600,
-        anchor: 'middle',
-      }),
-    ],
-    x: { scale: scaleLinear().domain([0, 100]) },
-    y: { scale: scaleLinear().domain([100, 0]) },
-    color: {
-      scale: scaleOrdinal<BundleFamily, string>()
-        .domain(bundleFamilies)
-        .range(bundleFamilies.map((family) => bundleColors[family])),
-    },
-    guides: false,
-    margin: 0,
-  }
-})
+    return {
+      marks: [
+        rect(cells, {
+          x1: 'x1',
+          x2: 'x2',
+          y1: 'y1',
+          y2: 'y2',
+          z: 'family',
+          key: 'id',
+          inset: 1,
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+        text(cells, {
+          x: 'labelX',
+          y: 'labelY',
+          text: 'name',
+          key: 'id',
+          fill: '#ffffff',
+          fontSize: 8,
+          fontWeight: 600,
+          anchor: 'middle',
+        }),
+      ],
+      x: { scale: scaleLinear().domain([0, 100]) },
+      y: { scale: scaleLinear().domain([100, 0]) },
+      color: {
+        scale: scaleOrdinal<BundleFamily, string>()
+          .domain(bundleFamilies)
+          .range(bundleFamilies.map((family) => bundleColors[family])),
+      },
+      guides: false,
+      margin: 0,
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Bundle size treemap')

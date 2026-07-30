@@ -11,30 +11,31 @@ import type { ConformanceInput } from '../../types'
 
 const radius = scaleSqrt().domain([0, 100]).range([0, 14])
 
-const definition = defineChart<ConformanceInput>()(({ input }) => ({
-  marks: [
-    geoShape(worldRegions(input.revision), {
-      key: (feature) => feature.properties.id,
-      projection: ({ chart }) => equalEarthProjection(chart),
-      fill: '#e2e8f0',
-      stroke: '#ffffff',
-      strokeWidth: 1,
-    }),
-    geoShape(worldPlaces(input.revision), {
-      key: (feature) => feature.properties.id,
-      projection: ({ chart }) => equalEarthProjection(chart),
-      r: (feature) => feature.properties.value,
-      rScale: radius,
-      fill: (feature) => feature.properties.fill,
-      stroke: '#ffffff',
-      strokeWidth: 1,
-    }),
-  ],
-  x: null,
-  y: null,
-  guides: false,
-  margin: 10,
-}))
+const definition = (input: ConformanceInput) =>
+  defineChart(() => ({
+    marks: [
+      geoShape(worldRegions(input.revision), {
+        key: (feature) => feature.properties.id,
+        projection: ({ chart }) => equalEarthProjection(chart),
+        fill: '#e2e8f0',
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+      geoShape(worldPlaces(input.revision), {
+        key: (feature) => feature.properties.id,
+        projection: ({ chart }) => equalEarthProjection(chart),
+        r: (feature) => feature.properties.value,
+        rScale: radius,
+        fill: (feature) => feature.properties.fill,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+    ],
+    x: null,
+    y: null,
+    guides: false,
+    margin: 10,
+  }))
 
 export const mount = tanstackMount(
   definition,

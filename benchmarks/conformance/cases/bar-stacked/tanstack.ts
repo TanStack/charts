@@ -17,45 +17,46 @@ interface CategoryStackRow {
   Tablet: number
 }
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = categoryData(input.revision)
-  const intervals = stackRows(rows)
-  const categoryDomain = [...new Set(rows.map((row) => row.category))]
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = categoryData(input.revision)
+    const intervals = stackRows(rows)
+    const categoryDomain = [...new Set(rows.map((row) => row.category))]
 
-  return {
-    marks: [
-      barY(intervals, {
-        x: 'category',
-        y1: 'y1',
-        y2: 'y2',
-        z: 'series',
-        key: 'id',
-        inset: 1,
-      }),
-      ruleY([0]),
-    ],
-    x: {
-      scale: scaleBand<string>()
-        .domain(categoryDomain)
-        .paddingInner(0.1)
-        .paddingOuter(0.05),
-    },
-    y: {
-      scale: scaleLinear().domain(categoryTotalDomain),
-      label: 'Total value',
-      ticks: 5,
-      grid: true,
-    },
-    color: {
-      scale: scaleOrdinal<CategoryPoint['series'], string>()
-        .domain(seriesDomain)
-        .range(seriesColors),
-      legend: colorLegend({
-        label: 'Device',
-      }),
-    },
-  }
-})
+    return {
+      marks: [
+        barY(intervals, {
+          x: 'category',
+          y1: 'y1',
+          y2: 'y2',
+          z: 'series',
+          key: 'id',
+          inset: 1,
+        }),
+        ruleY([0]),
+      ],
+      x: {
+        scale: scaleBand<string>()
+          .domain(categoryDomain)
+          .paddingInner(0.1)
+          .paddingOuter(0.05),
+      },
+      y: {
+        scale: scaleLinear().domain(categoryTotalDomain),
+        label: 'Total value',
+        ticks: 5,
+        grid: true,
+      },
+      color: {
+        scale: scaleOrdinal<CategoryPoint['series'], string>()
+          .domain(seriesDomain)
+          .range(seriesColors),
+        legend: colorLegend({
+          label: 'Device',
+        }),
+      },
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Stacked bars')
 

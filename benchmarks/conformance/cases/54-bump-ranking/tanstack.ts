@@ -13,58 +13,59 @@ interface RankedBumpValue extends BumpValue {
 
 const colors = ['#2563eb', '#ea580c', '#059669', '#7c3aed', '#db2777']
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = rankWithinYear(bumpData(input.revision))
-  const labels = lastByEntity(rows)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = rankWithinYear(bumpData(input.revision))
+    const labels = lastByEntity(rows)
 
-  return {
-    marks: [
-      lineY(rows, {
-        x: 'year',
-        y: 'rank',
-        z: 'entity',
-        key: 'id',
-        curve: d3Curve(curveBumpX),
-        strokeWidth: 2.25,
-      }),
-      dot(rows, {
-        x: 'year',
-        y: 'rank',
-        z: 'entity',
-        key: 'id',
-        r: 3,
-      }),
-      text(labels, {
-        x: 'year',
-        y: 'rank',
-        text: 'entity',
-        z: 'entity',
-        key: 'id',
-        anchor: 'start',
-        dx: 6,
-      }),
-    ],
-    x: {
-      scale: scaleLinear().domain([2018, 2024]),
-      ticks: 7,
-      format: (year) => `${year}`,
-      label: 'Year',
-    },
-    y: {
-      scale: scaleLinear().domain([5.2, 0.8]),
-      ticks: 5,
-      format: (value) => `#${value}`,
-      grid: true,
-      label: 'Rank',
-    },
-    color: {
-      scale: scaleOrdinal<BumpValue['entity'], string>()
-        .domain(bumpEntities)
-        .range(colors),
-    },
-    margin: { right: 72 },
-  }
-})
+    return {
+      marks: [
+        lineY(rows, {
+          x: 'year',
+          y: 'rank',
+          z: 'entity',
+          key: 'id',
+          curve: d3Curve(curveBumpX),
+          strokeWidth: 2.25,
+        }),
+        dot(rows, {
+          x: 'year',
+          y: 'rank',
+          z: 'entity',
+          key: 'id',
+          r: 3,
+        }),
+        text(labels, {
+          x: 'year',
+          y: 'rank',
+          text: 'entity',
+          z: 'entity',
+          key: 'id',
+          anchor: 'start',
+          dx: 6,
+        }),
+      ],
+      x: {
+        scale: scaleLinear().domain([2018, 2024]),
+        ticks: 7,
+        format: (year) => `${year}`,
+        label: 'Year',
+      },
+      y: {
+        scale: scaleLinear().domain([5.2, 0.8]),
+        ticks: 5,
+        format: (value) => `#${value}`,
+        grid: true,
+        label: 'Rank',
+      },
+      color: {
+        scale: scaleOrdinal<BumpValue['entity'], string>()
+          .domain(bumpEntities)
+          .range(colors),
+      },
+      margin: { right: 72 },
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Annual product rank bump chart')
 

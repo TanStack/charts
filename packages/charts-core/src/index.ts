@@ -30,12 +30,7 @@ export type { ColorGradientLegendOptions, ColorLegendOptions } from './legend'
 export { createMark } from './mark'
 export { cell, rect } from './rect'
 export type { CellOptions, RectOptions } from './rect'
-export {
-  createChartRuntime,
-  isDynamicChartDefinition,
-  chartInputsEqual,
-  shallowInputEqual,
-} from './runtime'
+export { createChartRuntime, isDynamicChartDefinition } from './runtime'
 export {
   createChartScene,
   defaultChartTheme,
@@ -56,9 +51,7 @@ export type {
   ChannelAccessor,
   ChannelField,
   ChannelOutput,
-  DynamicChartConfig,
   DynamicChartDefinition,
-  DynamicChartHostOptions,
   InitializedMark,
   MarkInitializeContext,
   MarkRenderContext,
@@ -93,7 +86,6 @@ export type {
   ChartMarkX,
   ChartMarkY,
   ChartPoint,
-  ChartPrepareContext,
   ChartRuntime,
   ChartRenderContext,
   ChartRenderer,
@@ -140,9 +132,6 @@ export type {
   SceneRule,
   SceneStyle,
   StaticChartDefinition,
-  StaticChartHostOptions,
-  StaticChartRendererHostOptions,
-  DynamicChartRendererHostOptions,
 } from './types'
 export { areaX } from './area-x'
 export type { AreaXCurve, AreaXOptions } from './area-x'

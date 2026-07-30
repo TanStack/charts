@@ -11,7 +11,7 @@ import { createFreeCursorControls, updateFreeCursorControls } from './controls'
 import type {
   ChartRenderContext,
   ChartScene,
-  DynamicChartHostOptions,
+  ChartHostOptions,
 } from '@tanstack/charts'
 import type { FreeCursorDatum } from './data'
 import type { FreeCursorControls } from './controls'
@@ -46,46 +46,47 @@ interface CursorElements {
 const configuredXScale = scaleLinear().domain(freeCursorXDomain)
 const configuredYScale = scaleLinear().domain(freeCursorYDomain)
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = freeCursorData(input.revision)
-  return {
-    marks: [
-      lineY(rows, {
-        id: 'free-cursor-line',
-        x: 'x',
-        y: 'y',
-        key: 'id',
-        stroke: '#0f766e',
-        strokeWidth: 2,
-      }),
-      dot(rows, {
-        id: 'free-cursor-dots',
-        x: 'x',
-        y: 'y',
-        key: 'id',
-        fill: '#0f766e',
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: configuredXScale,
-      label: 'X',
-    },
-    y: {
-      scale: configuredYScale,
-      grid: true,
-      label: 'Y',
-    },
-    margin: {
-      top: 22,
-      right: 24,
-      bottom: 44,
-      left: 58,
-    },
-  }
-})
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = freeCursorData(input.revision)
+    return {
+      marks: [
+        lineY(rows, {
+          id: 'free-cursor-line',
+          x: 'x',
+          y: 'y',
+          key: 'id',
+          stroke: '#0f766e',
+          strokeWidth: 2,
+        }),
+        dot(rows, {
+          id: 'free-cursor-dots',
+          x: 'x',
+          y: 'y',
+          key: 'id',
+          fill: '#0f766e',
+          r: 3.5,
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+      ],
+      x: {
+        scale: configuredXScale,
+        label: 'X',
+      },
+      y: {
+        scale: configuredYScale,
+        grid: true,
+        label: 'Y',
+      },
+      margin: {
+        top: 22,
+        right: 24,
+        bottom: 44,
+        left: 58,
+      },
+    }
+  })
 
 export function mount(
   container: HTMLElement,
@@ -197,9 +198,8 @@ export function mount(
 
   const options = (
     nextInput: ConformanceInput,
-  ): DynamicChartHostOptions<FreeCursorDatum, ConformanceInput> => ({
-    definition,
-    input: nextInput,
+  ): ChartHostOptions<FreeCursorDatum> => ({
+    definition: definition(nextInput),
     width: nextInput.width,
     height: freeCursorChartHeight(nextInput.height),
     ariaLabel: 'Line chart with a free two-dimensional cursor',

@@ -162,6 +162,8 @@ Each entry records:
 | F-124 | Name-only inventories masked undocumented contracts      | Docs/Tooling    | resolved   |
 | F-125 | Adapter surface classes disappeared across lifecycles    | API             | resolved   |
 | F-126 | Executable comparisons had no public documentation       | Docs/Tooling    | resolved   |
+| F-127 | Catalog source hid data transformation dependencies      | Docs/Tooling    | resolved   |
+| F-128 | Chart-owned data reactivity duplicated application state | API             | resolved   |
 
 ## Findings
 
@@ -316,13 +318,11 @@ Each entry records:
   and immediately prepares the same input again. A preparation counter reads
   two before the first interactive update.
 - Expected: one logical chart mount performs expensive preparation once.
-- Decision: the adapter-owned prerender runtime is handed to `mountChart`,
-  which adopts it and owns its eventual cleanup. A measured-width first render
-  can rebuild the scene while reusing prepared data.
-- Verification: vanilla runtime adoption tests assert one preparation and
-  cleanup abort ownership; React and Octane client adapter tests assert one
-  preparation on mount. React hydration, React SSR, and Octane SSR tests retain
-  complete initial markup and pass unchanged.
+- Decision: superseded by F-128. Charts no longer owns data preparation.
+  Adapter prerender and mount still share one runtime for renderer handoff, but
+  application reactivity owns transformed data and asynchronous cleanup.
+- Verification: React and Octane dynamic mounts, hydration, and SSR retain
+  complete initial markup without a preparation lifecycle.
 
 ### F-012 — Render callbacks omit diagnostic metrics
 
@@ -2832,3 +2832,66 @@ Each entry records:
   ranges against the tracked baseline, and exact competitor-link
   allowlisting. The canonical and package documentation contain 80 pages, and
   the generated indexes route readers to the comparison.
+
+### F-127 — Catalog source hid data transformation dependencies
+
+- Status: resolved
+- Severity: high
+- Owner: Documentation/Tooling
+- Observed in: transform authoring audit of the public catalog and example
+  guides
+- Friction: the gallery rendered only each `tanstack.ts` entry even though 95
+  of 100 entries imported case-local or shared data. Several `data.ts` modules
+  contained the defining accumulation, layout, or derived coordinates, making
+  the visible source appear simpler than the raw-data-to-chart implementation.
+  Transform-heavy dynamic cases also obscured whether transformation or cache
+  invalidation belonged to Charts.
+- Decision: treat the raw-data boundary as part of the authoring contract.
+  Catalog source follows and displays every case-local source dependency.
+  Raw fixture modules may load, parse, or generate observations; bins, stacks,
+  ranks, cumulative endpoints, summaries, and layouts remain visible in
+  renderer or transform source. The conformance report exposes transitive
+  authored lines per implementation and their per-case ratio. Data-space
+  transforms use ordinary adjacent functions; application or framework
+  reactivity owns memoization. Surface-responsive transforms remain in the
+  chart callback.
+- Verification: recursive source-loader coverage proves that the entry,
+  `data.ts`, and local transform modules render while shared harness modules
+  stay excluded. Histogram, moving-average, stacked-area, boxplot, lollipop,
+  and waterfall show their transforms beside `defineChart`. Waterfall data
+  exports signed contributions rather than cumulative endpoints; force and
+  Marimekko show their local layout modules; the responsive waffle source
+  visibly expands category totals into cells. The nine-case browser run passes
+  with zero diagnostics or unsafe assertions and reports a 1.19× geometric-mean
+  authored-source ratio to Observable Plot.
+
+### F-128 — Chart-owned data reactivity duplicated application state
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: transform authoring audit and catalog migration
+- Friction: `prepare`, formal chart `input`, and their equality functions added
+  a second reactivity contract beside framework computed state or explicit
+  vanilla updates. The API added input and prepared-data generics, runtime
+  caches, adapter handoff rules, and manual equality whose invalidation could
+  diverge from application reactivity.
+- Decision: remove `prepare`, `prepareEqual`, `ChartPrepareContext`,
+  `prepared`, formal `input`, `inputEqual`, `chartInputsEqual`,
+  `shallowInputEqual`, and their generics from the public API and runtime.
+  Definitions capture application values. Framework-native memoization owns
+  invalidation, definition identity signals application changes, and host size
+  changes still rebuild responsive definitions. Place transforms in ordinary
+  functions beside `defineChart`; memoize the complete definition when its
+  captured values change.
+- Verification: strict typecheck, 1,966 core and framework tests, the
+  seven-adapter package gate, and the 81-page documentation contract pass with
+  definitions built only from captured application values plus current size
+  and theme. Public docs, adapters, and executable examples contain no formal
+  chart input or chart-owned equality API. The packed-consumer declaration
+  fixture exercises responsive definitions across core, React, and Octane and
+  asserts that adapter chart props reject formal `input`. The bundle contract
+  records additional reductions of 921 minified/311 gzip bytes for the
+  TanStack DOM host and 716 minified/268 gzip bytes for the React adapter. An
+  every-adapter example audit removed the final stale Angular and Lit guide
+  snippets that still passed `input` separately from their definitions.

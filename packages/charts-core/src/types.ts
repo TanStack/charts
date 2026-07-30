@@ -288,46 +288,22 @@ export interface StaticChartDefinition<
   readonly __yValue?: TYValue
 }
 
-export interface ChartBuildContext<TInput, TPrepared = TInput> {
-  input: TInput
-  prepared: TPrepared
+export interface ChartBuildContext {
   width: number
   height: number
   theme: ChartTheme
-}
-
-export interface ChartPrepareContext {
-  signal: AbortSignal
 }
 
 export type CheckedChartSpec<TSpec extends ChartSpec> = TSpec extends ChartSpec
   ? TSpec & ChartSpec<TSpec['marks']>
   : never
 
-export interface DynamicChartConfig<
-  TInput,
-  TPrepared,
-  TSpec extends ChartSpec = ChartSpec,
-> {
-  chart: (
-    context: ChartBuildContext<TInput, TPrepared>,
-  ) => CheckedChartSpec<TSpec>
-  prepare?: (input: TInput, context: ChartPrepareContext) => TPrepared
-  inputEqual?: (previous: TInput, next: TInput) => boolean
-  prepareEqual?: (previous: TInput, next: TInput) => boolean
-}
-
 export interface DynamicChartDefinition<
-  TInput = unknown,
-  TPrepared = TInput,
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
-  chart: (context: ChartBuildContext<TInput, TPrepared>) => ChartSpec
-  prepare?: (input: TInput, context: ChartPrepareContext) => TPrepared
-  inputEqual?: (previous: TInput, next: TInput) => boolean
-  prepareEqual?: (previous: TInput, next: TInput) => boolean
+  chart: (context: ChartBuildContext) => ChartSpec
   readonly __datum?: TDatum
   readonly __xValue?: TXValue
   readonly __yValue?: TYValue
@@ -335,13 +311,11 @@ export interface DynamicChartDefinition<
 
 export type ChartDefinition<
   TDatum = unknown,
-  TInput = undefined,
-  TPrepared = TInput,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > =
   | StaticChartDefinition<TDatum, TXValue, TYValue>
-  | DynamicChartDefinition<TInput, TPrepared, TDatum, TXValue, TYValue>
+  | DynamicChartDefinition<TDatum, TXValue, TYValue>
 
 export type ChartMarkDatum<TMark> =
   TMark extends ChartMark<infer TDatum, any, any> ? TDatum : never
@@ -782,101 +756,49 @@ export interface ChartRendererHostCommonOptions<
   measureText?: ChartTextMeasurer
 }
 
-export type StaticChartRendererHostOptions<
-  TDatum = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartRendererHostCommonOptions<TDatum, TXValue, TYValue> & {
-  definition: StaticChartDefinition<TDatum, TXValue, TYValue>
-  input?: never
-}
-
-export type DynamicChartRendererHostOptions<
-  TDatum = unknown,
-  TInput = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartRendererHostCommonOptions<TDatum, TXValue, TYValue> & {
-  definition: DynamicChartDefinition<TInput, any, TDatum, TXValue, TYValue>
-  input: TInput
-}
-
 export type ChartRendererHostOptions<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> =
-  | StaticChartRendererHostOptions<TDatum, TXValue, TYValue>
-  | DynamicChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>
-
-export type StaticChartHostOptions<
-  TDatum = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartHostCommonOptions<TDatum, TXValue, TYValue> & {
-  definition: StaticChartDefinition<TDatum, TXValue, TYValue>
-  input?: never
-}
-
-export type DynamicChartHostOptions<
-  TDatum = unknown,
-  TInput = unknown,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
-> = ChartHostCommonOptions<TDatum, TXValue, TYValue> & {
-  definition: DynamicChartDefinition<TInput, any, TDatum, TXValue, TYValue>
-  input: TInput
+> = ChartRendererHostCommonOptions<TDatum, TXValue, TYValue> & {
+  definition: ChartDefinition<TDatum, TXValue, TYValue>
 }
 
 export type ChartHostOptions<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> =
-  | StaticChartHostOptions<TDatum, TXValue, TYValue>
-  | DynamicChartHostOptions<TDatum, TInput, TXValue, TYValue>
+> = ChartHostCommonOptions<TDatum, TXValue, TYValue> & {
+  definition: ChartDefinition<TDatum, TXValue, TYValue>
+}
 
 export interface ChartHost<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
-  update: (options: ChartHostOptions<TDatum, TInput, TXValue, TYValue>) => void
+  update: (options: ChartHostOptions<TDatum, TXValue, TYValue>) => void
   getScene: () => ChartScene<TDatum, TXValue, TYValue>
   destroy: () => void
 }
 
 export interface ChartRendererHost<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
-  update: (
-    options: ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
-  ) => void
+  update: (options: ChartRendererHostOptions<TDatum, TXValue, TYValue>) => void
   getScene: () => ChartScene<TDatum, TXValue, TYValue>
   destroy: () => void
 }
 
 export interface ChartRuntime<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
   render: <TRenderXValue extends TXValue, TRenderYValue extends TYValue>(
-    definition: ChartDefinition<
-      TDatum,
-      TInput,
-      any,
-      TRenderXValue,
-      TRenderYValue
-    >,
-    input: TInput,
+    definition: ChartDefinition<TDatum, TRenderXValue, TRenderYValue>,
     size: ChartSize,
     layout?: ChartLayoutOptions,
   ) => ChartScene<TDatum, TRenderXValue, TRenderYValue>

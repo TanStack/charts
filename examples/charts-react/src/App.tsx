@@ -1,14 +1,14 @@
 import * as React from 'react'
 import {
   activityChart,
+  createRankingChart,
   createStatsHistoryInput,
+  createStatsHistoryChart,
   createStatsLatestInput,
+  createStatsLatestChart,
   createRankingData,
   downloadsChart,
   latencyChart,
-  rankingChart,
-  statsHistoryChart,
-  statsLatestChart,
   type BinDatum,
   type DownloadPoint,
   type StatsBarOrientation,
@@ -35,16 +35,26 @@ export function App() {
   const [barOrientation, setBarOrientation] =
     React.useState<StatsBarOrientation>('vertical')
   const [barsStacked, setBarsStacked] = React.useState(false)
-  const rankingData = React.useMemo(
-    () => createRankingData(rankingRound),
+  const rankingDefinition = React.useMemo(
+    () =>
+      createRankingChart({
+        data: createRankingData(rankingRound),
+        accent: 'var(--ts-chart-4, #8b5cf6)',
+      }),
     [rankingRound],
   )
-  const statsHistoryInput = React.useMemo(
-    () => createStatsHistoryInput(historyMode, statsRound, historyZoomed),
+  const statsHistoryDefinition = React.useMemo(
+    () =>
+      createStatsHistoryChart(
+        createStatsHistoryInput(historyMode, statsRound, historyZoomed),
+      ),
     [historyMode, historyZoomed, statsRound],
   )
-  const statsLatestInput = React.useMemo(
-    () => createStatsLatestInput(barOrientation, barsStacked, statsRound),
+  const statsLatestDefinition = React.useMemo(
+    () =>
+      createStatsLatestChart(
+        createStatsLatestInput(barOrientation, barsStacked, statsRound),
+      ),
     [barOrientation, barsStacked, statsRound],
   )
 
@@ -124,8 +134,7 @@ export function App() {
             </span>
           </div>
           <Chart
-            definition={statsHistoryChart}
-            input={statsHistoryInput}
+            definition={statsHistoryDefinition}
             height={410}
             initialWidth={1040}
             ariaLabel={`TanStack Stats ${historyMode} history parity chart`}
@@ -182,8 +191,7 @@ export function App() {
             </button>
           </div>
           <Chart
-            definition={statsLatestChart}
-            input={statsLatestInput}
+            definition={statsLatestDefinition}
             height={430}
             initialWidth={1040}
             ariaLabel={`TanStack Stats ${barsStacked ? 'stacked' : 'grouped'} ${barOrientation} latest chart`}
@@ -285,11 +293,7 @@ export function App() {
             </button>
           </div>
           <Chart
-            definition={rankingChart}
-            input={{
-              data: rankingData,
-              accent: 'var(--ts-chart-4, #8b5cf6)',
-            }}
+            definition={rankingDefinition}
             height={360}
             initialWidth={760}
             ariaLabel="TanStack package momentum ranking"

@@ -20,8 +20,7 @@ Pass chart options as a property:
 ```ts
 html`<tanstack-chart
   .options=${{
-    definition,
-    input: { rows },
+    definition: createRevenueChart(rows),
     ariaLabel: 'Revenue by month',
     tooltip: true,
   }}
@@ -54,8 +53,7 @@ package exposes the SVG custom element only. Use `renderSvg` to replace SVG
 serialization without replacing the shared host.
 
 Exports: `Chart`, `defineChartElement`, `ChartCommonProps`,
-`ChartPresentationProps`, `ChartProps`, `DynamicChartProps`,
-`StaticChartProps`, `ChartDefinition`, and `ChartPoint`.
+`ChartPresentationProps`, `ChartProps`, `ChartDefinition`, and `ChartPoint`.
 
 See the [`Chart` reference](./reference/chart.md) and
 [Chart Definition API](../../reference/chart-definitions.md).

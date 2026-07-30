@@ -15,31 +15,32 @@ const pieLayout = pie<GaugeDatum>()
   .startAngle(startAngle)
   .endAngle(endAngle)
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const arcs = pieLayout([...gaugeData(input.revision)])
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const arcs = pieLayout([...gaugeData(input.revision)])
 
-  return {
-    marks: [
-      polar({
-        inset: 0,
-        radiusRatio: 0.8,
-        marks: [
-          radialArc(arcs, {
-            startAngle: 'startAngle',
-            endAngle: 'endAngle',
-            padAngle: 'padAngle',
-            innerRadius: ({ radius }: { radius: number }) => radius * 0.72,
-            key: ({ data }: PieArcDatum<GaugeDatum>) => data.id,
-            fill: ({ data }: PieArcDatum<GaugeDatum>) => data.fill,
-          }),
-        ],
-      }),
-    ],
-    x: null,
-    y: null,
-    guides: false,
-    margin: 0,
-  }
-})
+    return {
+      marks: [
+        polar({
+          inset: 0,
+          radiusRatio: 0.8,
+          marks: [
+            radialArc(arcs, {
+              startAngle: 'startAngle',
+              endAngle: 'endAngle',
+              padAngle: 'padAngle',
+              innerRadius: ({ radius }: { radius: number }) => radius * 0.72,
+              key: ({ data }: PieArcDatum<GaugeDatum>) => data.id,
+              fill: ({ data }: PieArcDatum<GaugeDatum>) => data.fill,
+            }),
+          ],
+        }),
+      ],
+      x: null,
+      y: null,
+      guides: false,
+      margin: 0,
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Partial-circle gauge')

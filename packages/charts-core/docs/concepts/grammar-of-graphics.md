@@ -65,7 +65,7 @@ const marks = [
 
 The arrays may have different lengths and datum types. There is no required `{ series: [...] }` wrapper and no requirement to reshape unrelated layers into one table. This keeps simple charts simple and lets custom compositions use the data model that naturally represents each layer.
 
-If a transform creates new rows, run that transform before the mark. For dynamic charts, use the definition’s `prepare` phase when the work should be cached separately from visual updates. See [Chart Definitions](./chart-definitions.md).
+If a transform creates new rows, run that transform before the mark. Memoize expensive derived rows through application or framework reactivity. See [Chart Definitions](./chart-definitions.md).
 
 ## Marks choose geometry
 
@@ -250,11 +250,13 @@ This source imports `d3-scale` and `d3-shape` directly, so add those modules and
 
 `defineChart` preserves the relationship between datum types, channel values, configured scales, axes, scenes, and interaction callbacks.
 
-- A **static definition** closes over stable data and options.
-- A **dynamic definition** receives exact application input, optional prepared
-  data, current size, and the default build-time theme.
+- An **object definition** closes over stable data and options.
+- A **responsive definition** receives the current size and default build-time
+  theme.
 
-The definition is also the memoization boundary. Keep reusable definitions at module scope; pass changing values through dynamic `input`.
+The definition is also the application memoization boundary. Keep reusable
+definitions at module scope. In a component, memoize the complete definition
+against the application values it captures.
 
 ## Rendering is downstream
 

@@ -1,6 +1,6 @@
 ---
 title: TypeScript
-description: Preserve end-to-end inference from chart input and channels through scales, focus callbacks, adapters, and custom extensions.
+description: Preserve end-to-end inference from chart data and channels through scales, focus callbacks, adapters, and custom extensions.
 ---
 
 TanStack Charts is designed so ordinary chart code names its application types
@@ -40,33 +40,52 @@ Here the datum is `Reading`, x values are `Date`, and y values are `number`.
 An incompatible scale or channel field fails at the definition instead of
 surfacing later in a tooltip callback.
 
-## Type dynamic input once
+## Capture application values
 
 ```ts
-interface TrafficInput {
-  rows: readonly Reading[]
-  unit: 'celsius' | 'fahrenheit'
+function createTrafficDefinition(rows: readonly Reading[]) {
+  return defineChart({
+    marks: [
+      lineY(rows, {
+        x: 'recordedAt',
+        y: 'temperature',
+        key: 'id',
+      }),
+    ],
+    x: { scale: scaleTime() },
+    y: { scale: scaleLinear() },
+  })
 }
-
-const dynamicDefinition = defineChart<TrafficInput>()({
-  chart({ input }) {
-    return {
-      marks: [
-        lineY(input.rows, {
-          x: 'recordedAt',
-          y: 'temperature',
-          key: 'id',
-        }),
-      ],
-      x: { scale: scaleTime() },
-      y: { scale: scaleLinear() },
-    }
-  },
-})
 ```
 
-`mountChart` and every framework adapter require `input` for this definition
-and reject it for a static definition.
+Framework components should memoize the complete definition:
+
+```tsx
+const definition = useMemo(() => createTrafficDefinition(readings), [readings])
+
+return <Chart definition={definition} ariaLabel="Temperature history" />
+```
+
+Definition identity tells the host when captured application data or options
+changed. A responsive definition callback still rebuilds when the host size
+changes:
+
+```ts
+function createTrafficDefinition(rows: readonly Reading[]) {
+  return defineChart(({ width }) => ({
+    marks: [
+      lineY(rows, {
+        x: 'recordedAt',
+        y: 'temperature',
+        key: 'id',
+      }),
+    ],
+    x: { scale: scaleTime() },
+    y: { scale: scaleLinear() },
+    margin: width < 480 ? 24 : 40,
+  }))
+}
+```
 
 ## Keep literal information
 
@@ -74,7 +93,7 @@ Prefer:
 
 - field-name channels such as `x: 'recordedAt'`;
 - typed accessors when a value is derived;
-- `defineChart({...})` or `defineChart<Input>()({...})`;
+- `defineChart({...})` or `defineChart({...})`;
 - `satisfies` when naming a configuration object separately.
 
 Avoid annotating an intermediate object as broad `ChartSpec` before passing it
@@ -140,7 +159,7 @@ type test.
 Keep positive and negative examples near reusable definitions:
 
 ```ts
-// @ts-expect-error static definitions do not accept input
+// @ts-expect-error chart options do not accept formal input
 mountChart(container, {
   definition,
   input: { rows: readings },

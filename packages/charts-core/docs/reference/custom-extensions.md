@@ -96,8 +96,7 @@ interface MarkScene<
 - Emit finite geometry only.
 - Preserve the original datum and index in every interaction point.
 - Use one honest focus coordinate and semantic x/y pair per point.
-- Keep preprocessing outside `render`, or in a dynamic definition's
-  `prepare`.
+- Keep preprocessing outside `render`.
 
 The scene node and point shapes are documented in
 [Runtime and scene](./runtime-and-scene.md).

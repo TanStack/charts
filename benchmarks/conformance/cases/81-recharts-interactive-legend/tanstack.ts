@@ -22,50 +22,51 @@ interface InteractiveLegendInput extends ConformanceInput {
 const yDomain = [0, 120] as const
 const initialVisibleSeries: readonly LegendSeriesId[] = ['revenue', 'profit']
 
-const definition = defineChart<InteractiveLegendInput>()(({ input }) => {
-  const rows = interactiveLegendData(input.revision)
+const definition = (input: InteractiveLegendInput) =>
+  defineChart(() => {
+    const rows = interactiveLegendData(input.revision)
 
-  return {
-    marks: [
-      ...(input.visibleSeries.includes('revenue')
-        ? [
-            lineY(rows, {
-              id: 'revenue',
-              x: 'period',
-              y: 'revenue',
-              key: 'period',
-              stroke: '#2563eb',
-              strokeWidth: 2.5,
-            }),
-          ]
-        : []),
-      ...(input.visibleSeries.includes('profit')
-        ? [
-            lineY(rows, {
-              id: 'profit',
-              x: 'period',
-              y: 'profit',
-              key: 'period',
-              stroke: '#f97316',
-              strokeWidth: 2.5,
-            }),
-          ]
-        : []),
-    ],
-    x: {
-      scale: scaleBand<string>()
-        .domain(legendPeriods)
-        .paddingInner(0.1)
-        .paddingOuter(0.05),
-    },
-    y: {
-      scale: scaleLinear().domain(yDomain),
-      ticks: 5,
-      grid: true,
-    },
-    margin: { top: 20, right: 24, bottom: 44, left: 62 },
-  }
-})
+    return {
+      marks: [
+        ...(input.visibleSeries.includes('revenue')
+          ? [
+              lineY(rows, {
+                id: 'revenue',
+                x: 'period',
+                y: 'revenue',
+                key: 'period',
+                stroke: '#2563eb',
+                strokeWidth: 2.5,
+              }),
+            ]
+          : []),
+        ...(input.visibleSeries.includes('profit')
+          ? [
+              lineY(rows, {
+                id: 'profit',
+                x: 'period',
+                y: 'profit',
+                key: 'period',
+                stroke: '#f97316',
+                strokeWidth: 2.5,
+              }),
+            ]
+          : []),
+      ],
+      x: {
+        scale: scaleBand<string>()
+          .domain(legendPeriods)
+          .paddingInner(0.1)
+          .paddingOuter(0.05),
+      },
+      y: {
+        scale: scaleLinear().domain(yDomain),
+        ticks: 5,
+        grid: true,
+      },
+      margin: { top: 20, right: 24, bottom: 44, left: 62 },
+    }
+  })
 
 function center(element: HTMLElement | SVGElement) {
   const bounds = element.getBoundingClientRect()
@@ -110,7 +111,7 @@ export const mount: ConformanceMount = (container, input) => {
 
   let currentInput = input
   let visibleSeries = initialVisibleSeries
-  let host: ChartHost<LegendDatum, InteractiveLegendInput>
+  let host: ChartHost<LegendDatum>
   const buttons = new Map<LegendSeriesId, HTMLButtonElement>()
   const emptyState = container.ownerDocument.createElement('span')
   emptyState.setAttribute('role', 'status')
@@ -118,15 +119,11 @@ export const mount: ConformanceMount = (container, input) => {
   emptyState.style.color = 'CanvasText'
   emptyState.style.font = '500 12px/1.3 system-ui, sans-serif'
 
-  const options = (): ChartHostOptions<
-    LegendDatum,
-    InteractiveLegendInput
-  > => ({
-    definition,
-    input: {
+  const options = (): ChartHostOptions<LegendDatum> => ({
+    definition: definition({
       ...currentInput,
       visibleSeries,
-    },
+    }),
     width: currentInput.width,
     height: Math.max(96, currentInput.height - 62),
     ariaLabel: 'Revenue and profit chart',

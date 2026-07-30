@@ -336,7 +336,7 @@ if (false) {
     number,
     number
   >
-  mountChartRenderer<CategoricalDatum, undefined, string, number>(container, {
+  mountChartRenderer<CategoricalDatum, string, number>(container, {
     definition: categoricalDefinition,
     ariaLabel: 'Incompatible renderer',
     // @ts-expect-error A numeric-x renderer cannot consume a string-x scene.

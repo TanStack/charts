@@ -29,13 +29,11 @@ const definition = defineChart({
 });
 
 describe('Octane Chart adapter client', () => {
-	it('prepares a dynamic chart once on mount', async () => {
-		const prepare = vi.fn((input: { data: readonly Datum[] }) => input.data);
-		const dynamicDefinition = defineChart<{ data: readonly Datum[] }>()({
-			prepare,
-			chart: ({ prepared }) => ({
+	it('renders a dynamic chart on mount', async () => {
+		const dynamicDefinition = defineChart(
+			() => ({
 				marks: [
-					lineY(prepared, {
+					lineY(data, {
 						x: 'month',
 						y: 'value',
 						key: 'id',
@@ -44,21 +42,20 @@ describe('Octane Chart adapter client', () => {
 				x: { scale: scaleLinear().domain([1, 2]) },
 				y: { scale: scaleLinear().domain([8, 12]) },
 			}),
-		});
+		);
 		const target = document.createElement('div');
 		const root = createRoot(target);
 
 		await act(() => root.render(
 			<Chart
 				definition={dynamicDefinition}
-				input={{ data }}
 				width={480}
 				height={260}
 				ariaLabel="Revenue"
 			/>,
 		));
 
-		expect(prepare).toHaveBeenCalledOnce();
+		expect(target.querySelector('svg')).not.toBeNull();
 		await act(() => root.unmount());
 	});
 

@@ -24,10 +24,10 @@ export interface BinDatum<TDatum> {
 }
 
 export {
+  createStatsHistoryChart,
   createStatsHistoryInput,
+  createStatsLatestChart,
   createStatsLatestInput,
-  statsHistoryChart,
-  statsLatestChart,
 } from './stats-parity'
 export type {
   StatsBarOrientation,
@@ -239,17 +239,16 @@ export function createRankingData(round: number): RankingPoint[] {
   }))
 }
 
-export const rankingChart = defineChart<RankingInput>()({
-  prepare: (input) => [...input.data].sort((a, b) => b.score - a.score),
-  prepareEqual: (previous, next) => previous.data === next.data,
-  chart: ({ input, prepared, width }) => {
+export const createRankingChart = (input: RankingInput) =>
+  defineChart(({ width }) => {
+    const ranked = [...input.data].sort((a, b) => b.score - a.score)
     const xTicks = width < 420 ? 4 : 6
-    const maximum = Math.max(1, max(prepared, (point) => point.score) ?? 1)
+    const maximum = Math.max(1, max(ranked, (point) => point.score) ?? 1)
 
     return {
       marks: [
         ruleX([0], { strokeOpacity: 0.2 }),
-        barX(prepared, {
+        barX(ranked, {
           id: 'ranking',
           x: 'score',
           y: 'package',
@@ -267,7 +266,7 @@ export const rankingChart = defineChart<RankingInput>()({
       },
       y: {
         scale: scaleBand<string>()
-          .domain(prepared.map((point) => point.package))
+          .domain(ranked.map((point) => point.package))
           .paddingInner(0.24)
           .paddingOuter(0.12),
         grid: false,
@@ -278,5 +277,4 @@ export const rankingChart = defineChart<RankingInput>()({
           .range([input.accent]),
       },
     }
-  },
-})
+  })

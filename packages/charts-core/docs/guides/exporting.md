@@ -30,10 +30,10 @@ const svg = renderChartSvg(scene, {
 })
 ```
 
-For a dynamic definition, create a runtime with its datum, input, x-value, and
-y-value generics, then call `render(...)` with the required input. See
-[Runtime and Scene](../reference/runtime-and-scene.md#createchartruntime) and
-[SSR and Hydration](./ssr-and-hydration.md).
+For a responsive definition, create a runtime with its datum, x-value, and
+y-value generics, then call `render(...)` with the definition and explicit
+size. See [Runtime and Scene](../reference/runtime-and-scene.md#createchartruntime)
+and [SSR and Hydration](./ssr-and-hydration.md).
 
 Use explicit export dimensions. Responsive browser dimensions are a display
 policy, not a reproducible file size.

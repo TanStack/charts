@@ -171,6 +171,10 @@
           "to": "guides/dynamic-data-and-animation"
         },
         {
+          "label": "Transforms and Reactivity",
+          "to": "guides/transforms-and-reactivity"
+        },
+        {
           "label": "Tooltips and Focus",
           "to": "guides/tooltips-and-focus"
         },

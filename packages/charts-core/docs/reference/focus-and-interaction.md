@@ -197,6 +197,7 @@ resolution.
 Brushes, zooming, dragging, scrolling, crosshair overlays, and selections can
 listen on a wrapper or use `onRender` to attach application behavior to the
 live SVG. Keep semantic state outside the scene, update a dynamic definition
-through input, and clean up listeners before the next attachment or unmount.
+by replacing its identity, and clean up listeners before the next attachment
+or unmount.
 For a completely independent renderer or interaction layer, use the scene and
 extension contracts in [Custom extensions](./custom-extensions.md).

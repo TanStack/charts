@@ -25,7 +25,7 @@ Record:
 
 Screenshots alone do not capture these decisions.
 
-## Preserve preparation
+## Preserve transforms
 
 Keep proven application, server, SQL, or D3 transforms for the first migration.
 Pass their output to marks directly. Rewriting analytical logic at the same
@@ -79,7 +79,7 @@ A reliable order is:
 3. Add responsive sizing and automatic margins.
 4. Match tooltip and keyboard focus.
 5. Match selection and controlled viewport state.
-6. Add dynamic input and preparation caching.
+6. Capture live values in framework-memoized definitions.
 7. Add animation.
 8. Measure production bundles and update performance.
 9. Remove the old renderer after the parity suite passes.

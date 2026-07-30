@@ -83,29 +83,32 @@ interactive marks. Compare source, represented, prepared, and rendered counts;
 measure compilation, paint, interaction, and memory; then aggregate, sample,
 or bound the window when the representation exceeds the product budget.
 
-## Preparation ownership
+## Transform ownership
 
-Put width-independent aggregation in a dynamic definition's `prepare` phase.
-Use `prepareEqual` to avoid repeating it for a theme or presentation change.
+Put width-independent aggregation in application code. Memoize it with the
+framework's computed-state primitive when it should survive a presentation
+change.
 
-Surface-responsive transforms may use the dynamic builder's full scene width.
+Surface-responsive transforms may use the responsive builder's full scene width.
 Exact screen-space transforms need the final inner plot bounds and resolved
 scales, so implement them in a custom mark's render phase or an
 application-owned overlay. Keep either cost visible rather than hiding it in
 an unrelated renderer.
 
 ```ts
-const densityChart = defineChart<Input>()({
-  prepareEqual: (previous, next) => previous.rows === next.rows,
-  prepare(input) {
-    return summarizeSource(input.rows)
-  },
-  chart({ prepared, width }) {
+function summarizeDensity(rows: Input['rows']) {
+  return summarizeSource(rows)
+}
+
+function createDensityChart(rows: Input['rows']) {
+  const summary = summarizeDensity(rows)
+
+  return defineChart(({ width }) => {
     const thresholds = width < 480 ? 12 : width < 900 ? 24 : 40
-    const bins = buildSemanticBins(prepared, { thresholds })
+    const bins = buildSemanticBins(summary, { thresholds })
     return densitySpec(bins)
-  },
-})
+  })
+}
 ```
 
 The full scene dimensions equal final plot dimensions only for a deliberately

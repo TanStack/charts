@@ -11,30 +11,28 @@ import type {
 
 export function createChartRendererAdapter<
   TDatum,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(
-  initialOptions: ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
+  initialOptions: ChartRendererHostOptions<TDatum, TXValue, TYValue>,
 ): ChartAdapter<
-  ChartRendererHostOptions<TDatum, TInput, TXValue, TYValue>,
+  ChartRendererHostOptions<TDatum, TXValue, TYValue>,
   TDatum,
   TXValue,
   TYValue
 > {
-  let runtime: ChartRuntime<TDatum, TInput, TXValue, TYValue> | undefined =
-    createChartRuntime<TDatum, TInput, TXValue, TYValue>()
+  let runtime: ChartRuntime<TDatum, TXValue, TYValue> | undefined =
+    createChartRuntime<TDatum, TXValue, TYValue>()
   let options = initialOptions
-  let host: ChartRendererHost<TDatum, TInput, TXValue, TYValue> | undefined
+  let host: ChartRendererHost<TDatum, TXValue, TYValue> | undefined
   const getRuntime = () =>
-    (runtime ??= createChartRuntime<TDatum, TInput, TXValue, TYValue>())
+    (runtime ??= createChartRuntime<TDatum, TXValue, TYValue>())
 
   return {
     prerender() {
       const layout = resolveChartAdapterLayout(options)
       const scene = getRuntime().render(
         options.definition,
-        options.input as TInput,
         {
           width: layout.initialWidth,
           height: layout.initialHeight,

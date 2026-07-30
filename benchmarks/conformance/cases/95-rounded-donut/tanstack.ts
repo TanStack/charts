@@ -13,31 +13,32 @@ const pieLayout = pie<RoundedDonutDatum>()
   .value(({ value }) => value)
   .padAngle(paddingAngle)
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const arcs = pieLayout([...roundedDonutData(input.revision)])
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const arcs = pieLayout([...roundedDonutData(input.revision)])
 
-  return {
-    marks: [
-      polar({
-        radiusRatio: 0.8,
-        marks: [
-          radialArc(arcs, {
-            startAngle: 'startAngle',
-            endAngle: (slice) => slice.endAngle - slice.padAngle,
-            padAngle: () => 0,
-            innerRadius: ({ radius }) => radius * 0.58,
-            cornerRadius: 8,
-            key: ({ data }: PieArcDatum<RoundedDonutDatum>) => data.id,
-            fill: ({ data }: PieArcDatum<RoundedDonutDatum>) => data.fill,
-          }),
-        ],
-      }),
-    ],
-    x: null,
-    y: null,
-    guides: false,
-    margin: 0,
-  }
-})
+    return {
+      marks: [
+        polar({
+          radiusRatio: 0.8,
+          marks: [
+            radialArc(arcs, {
+              startAngle: 'startAngle',
+              endAngle: (slice) => slice.endAngle - slice.padAngle,
+              padAngle: () => 0,
+              innerRadius: ({ radius }) => radius * 0.58,
+              cornerRadius: 8,
+              key: ({ data }: PieArcDatum<RoundedDonutDatum>) => data.id,
+              fill: ({ data }: PieArcDatum<RoundedDonutDatum>) => data.fill,
+            }),
+          ],
+        }),
+      ],
+      x: null,
+      y: null,
+      guides: false,
+      margin: 0,
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Rounded donut with gaps')

@@ -6,37 +6,38 @@ import { categoryData, categoryTotalDomain } from '../../shared/data'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = summarizeCategories(categoryData(input.revision)).sort(
-    (left, right) => right.value - left.value,
-  )
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = summarizeCategories(categoryData(input.revision)).sort(
+      (left, right) => right.value - left.value,
+    )
 
-  return {
-    marks: [
-      barX(rows, {
-        x: 'value',
-        y: 'category',
-        key: 'id',
-        fill: '#7c3aed',
-        inset: 1,
-      }),
-      ruleX([0]),
-    ],
-    x: {
-      scale: scaleLinear().domain(categoryTotalDomain),
-      label: 'Total value',
-      ticks: 5,
-      grid: true,
-    },
-    y: {
-      scale: scaleBand<string>()
-        .domain(rows.map((row) => row.category))
-        .paddingInner(0.1)
-        .paddingOuter(0.05),
-      format: formatCategory,
-    },
-  }
-})
+    return {
+      marks: [
+        barX(rows, {
+          x: 'value',
+          y: 'category',
+          key: 'id',
+          fill: '#7c3aed',
+          inset: 1,
+        }),
+        ruleX([0]),
+      ],
+      x: {
+        scale: scaleLinear().domain(categoryTotalDomain),
+        label: 'Total value',
+        ticks: 5,
+        grid: true,
+      },
+      y: {
+        scale: scaleBand<string>()
+          .domain(rows.map((row) => row.category))
+          .paddingInner(0.1)
+          .paddingOuter(0.05),
+        format: formatCategory,
+      },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

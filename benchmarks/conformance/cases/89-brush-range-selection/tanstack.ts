@@ -16,7 +16,7 @@ import {
   normalizedBrushRange,
 } from './data'
 import { brushSelectionFill, normalizedElementFill } from './paint'
-import type { ChartScene, DynamicChartHostOptions } from '@tanstack/charts'
+import type { ChartScene, ChartHostOptions } from '@tanstack/charts'
 import type { D3BrushEvent } from 'd3-brush'
 import type { BrushDatum, BrushRange } from './data'
 import type {
@@ -43,43 +43,44 @@ const brushMonthFormatter = new Intl.DateTimeFormat('en-US', {
   timeZone: 'UTC',
 })
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = brushData(input.revision)
-  return {
-    marks: [
-      lineY(rows, {
-        id: 'brush-series',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        stroke: color,
-        strokeWidth: 2.5,
-      }),
-      dot(rows, {
-        id: 'brush-points',
-        x: 'date',
-        y: 'value',
-        key: 'id',
-        fill: color,
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: brushScale,
-      format: (value) => brushMonthFormatter.format(value),
-      label: 'Month',
-    },
-    y: {
-      scale: scaleLinear().domain(yDomain),
-      ticks: 4,
-      grid: true,
-      label: 'Value',
-    },
-    margin: { top: 52, right: 24, bottom: 44, left: 58 },
-  }
-})
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = brushData(input.revision)
+    return {
+      marks: [
+        lineY(rows, {
+          id: 'brush-series',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          stroke: color,
+          strokeWidth: 2.5,
+        }),
+        dot(rows, {
+          id: 'brush-points',
+          x: 'date',
+          y: 'value',
+          key: 'id',
+          fill: color,
+          r: 3.5,
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+      ],
+      x: {
+        scale: brushScale,
+        format: (value) => brushMonthFormatter.format(value),
+        label: 'Month',
+      },
+      y: {
+        scale: scaleLinear().domain(yDomain),
+        ticks: 4,
+        grid: true,
+        label: 'Value',
+      },
+      margin: { top: 52, right: 24, bottom: 44, left: 58 },
+    }
+  })
 
 export function mount(
   container: HTMLElement,
@@ -104,9 +105,8 @@ export function mount(
 
   const options = (
     nextInput: ConformanceInput,
-  ): DynamicChartHostOptions<BrushDatum, ConformanceInput> => ({
-    definition,
-    input: nextInput,
+  ): ChartHostOptions<BrushDatum> => ({
+    definition: definition(nextInput),
     width: nextInput.width,
     height: nextInput.height,
     ariaLabel: 'Time series with a draggable horizontal range brush',

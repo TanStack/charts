@@ -8,16 +8,14 @@ import { charts } from '@tanstack/alpine-charts'
 ```
 
 Register `charts` with `Alpine.plugin`, then make `x-chart` evaluate to a
-complete `ChartOptions` value. Static definitions reject `input`; dynamic
-definitions require the exact `input` type declared by
-`defineChart<Input>()`.
+complete `ChartOptions` value. Replace the definition identity when captured
+application values change.
 
 ## Directive options
 
 | Option               | Type                                                       | Default                                  | Meaning                                              |
 | -------------------- | ---------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------- |
-| `definition`         | `StaticChartDefinition \| DynamicChartDefinition`          | Required                                 | Framework-neutral chart definition                   |
-| `input`              | Inferred `TInput`                                          | Required only when dynamic               | Input accepted by a dynamic definition               |
+| `definition`         | `ChartDefinition`                                          | Required                                 | Framework-neutral chart definition                   |
 | `ariaLabel`          | `string`                                                   | Required                                 | Accessible chart name                                |
 | `ariaDescription`    | `string`                                                   | None                                     | Optional accessible description                      |
 | `height`             | `number`                                                   | Existing height or `320` without a ratio | Fixed CSS and scene height                           |
@@ -46,9 +44,8 @@ surface and restores the element's prior inline layout and host class.
 
 ## Exported types
 
-`StaticChartOptions` rejects `input`; `DynamicChartOptions` requires it;
-`ChartOptions` is their union. The package also re-exports `ChartDefinition`
-and `ChartPoint`.
+`ChartOptions` includes the definition and host options. The package also
+re-exports `ChartDefinition` and `ChartPoint`.
 
 See the [Alpine adapter](../adapter.md) for lifecycle and browser requirements,
 [Focus and interaction](../../../reference/focus-and-interaction.md) for

@@ -1,6 +1,6 @@
 <script
   lang="ts"
-  generics="TDatum, TInput = undefined, TXValue extends ChartValue = ChartValue, TYValue extends ChartValue = ChartValue"
+  generics="TDatum, TXValue extends ChartValue = ChartValue, TYValue extends ChartValue = ChartValue"
 >
   import { onMount, untrack } from 'svelte'
   import {
@@ -10,7 +10,7 @@
   import type { ChartHostOptions, ChartValue } from '@tanstack/charts'
   import type { ChartProps } from './types'
 
-  let props: ChartProps<TDatum, TInput, TXValue, TYValue> = $props()
+  let props: ChartProps<TDatum, TXValue, TYValue> = $props()
   const generatedId = $props.id()
   const idPrefix = $derived(
     props.idPrefix ??
@@ -43,9 +43,9 @@
   })
 
   function toHostOptions(
-    value: ChartProps<TDatum, TInput, TXValue, TYValue>,
+    value: ChartProps<TDatum, TXValue, TYValue>,
     prefix: string,
-  ): ChartHostOptions<TDatum, TInput, TXValue, TYValue> {
+  ): ChartHostOptions<TDatum, TXValue, TYValue> {
     const { class: _class, style: _style, ...hostOptions } = value
     return { ...hostOptions, idPrefix: prefix }
   }

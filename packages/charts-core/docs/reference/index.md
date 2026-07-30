@@ -13,12 +13,12 @@ and application-owned interaction.
 
 | Area                                                        | Reference                                                 |
 | ----------------------------------------------------------- | --------------------------------------------------------- |
-| Static and dynamic definitions                              | [Chart Definition API](./chart-definitions.md)            |
+| Object and responsive definitions                           | [Chart Definition API](./chart-definitions.md)            |
 | The `ChartSpec` object                                      | [Chart spec](./chart-spec.md)                             |
 | Positional scales, axes, color, legends, and gradients      | [Scales, guides, and color](./scales-guides-and-color.md) |
 | Vanilla DOM mounting and responsive sizing                  | [DOM host](./dom-host.md)                                 |
 | Framework prerender, mount, update, and layout lifecycle    | [Adapter controller](./adapter-controller.md)             |
-| Dynamic preparation, scene compilation, and runtime caching | [Runtime and scene](./runtime-and-scene.md)               |
+| Dynamic scene compilation and runtime behavior              | [Runtime and scene](./runtime-and-scene.md)               |
 | Pointer focus, keyboard navigation, tooltips, and selection | [Focus and interaction](./focus-and-interaction.md)       |
 | SVG, Canvas, custom rendering, reconciliation, and export   | [Rendering and export](./rendering-and-export.md)         |
 | Custom marks, renderers, scales, and indexes                | [Custom extensions](./custom-extensions.md)               |

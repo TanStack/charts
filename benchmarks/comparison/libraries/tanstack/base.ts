@@ -26,12 +26,11 @@ export const margin = { top: 16, right: 16, bottom: 32, left: 48 }
 export function mountDefinition<TDatum>(
   container: HTMLElement,
   input: BenchmarkInput,
-  definition: DynamicChartDefinition<BenchmarkInput, any, TDatum>,
+  createDefinition: (input: BenchmarkInput) => DynamicChartDefinition<TDatum>,
   interactive: boolean,
 ): BenchmarkHandle {
   const options = {
-    definition,
-    input,
+    definition: createDefinition(input),
     width: input.width,
     height: input.height,
     ariaLabel: 'Benchmark chart',
@@ -240,7 +239,7 @@ export function mountDefinition<TDatum>(
       }
       host.update({
         ...options,
-        input: nextInput,
+        definition: createDefinition(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

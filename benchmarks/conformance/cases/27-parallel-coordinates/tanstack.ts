@@ -14,42 +14,43 @@ const colors = [
   '#0891b2',
 ]
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const rows = parallelData(input.revision)
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const rows = parallelData(input.revision)
 
-  return {
-    marks: [
-      lineY(rows, {
-        x: 'metric',
-        y: 'score',
-        z: 'model',
-        key: 'id',
-        strokeWidth: 1.75,
-      }),
-      dot(rows, {
-        x: 'metric',
-        y: 'score',
-        z: 'model',
-        key: 'id',
-        r: 2.75,
-      }),
-    ],
-    x: {
-      scale: scaleBand<string>().domain(parallelMetrics).padding(0.1),
-    },
-    y: {
-      scale: scaleLinear().domain([0, 100]),
-      grid: true,
-      label: 'Normalized score',
-    },
-    color: {
-      scale: scaleOrdinal<ParallelPoint['model'], string>()
-        .domain(parallelModels)
-        .range(colors),
-      legend: colorLegend({ label: 'Model' }),
-    },
-  }
-})
+    return {
+      marks: [
+        lineY(rows, {
+          x: 'metric',
+          y: 'score',
+          z: 'model',
+          key: 'id',
+          strokeWidth: 1.75,
+        }),
+        dot(rows, {
+          x: 'metric',
+          y: 'score',
+          z: 'model',
+          key: 'id',
+          r: 2.75,
+        }),
+      ],
+      x: {
+        scale: scaleBand<string>().domain(parallelMetrics).padding(0.1),
+      },
+      y: {
+        scale: scaleLinear().domain([0, 100]),
+        grid: true,
+        label: 'Normalized score',
+      },
+      color: {
+        scale: scaleOrdinal<ParallelPoint['model'], string>()
+          .domain(parallelModels)
+          .range(colors),
+        legend: colorLegend({ label: 'Model' }),
+      },
+    }
+  })
 
 export const mount = tanstackMount(
   definition,

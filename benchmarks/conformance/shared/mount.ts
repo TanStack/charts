@@ -1,5 +1,6 @@
 import { mountChart } from '@tanstack/charts'
 import type {
+  ChartValue,
   ChartTooltipOptions,
   DynamicChartDefinition,
 } from '@tanstack/charts'
@@ -29,19 +30,20 @@ export function mountObservablePlot(
   }
 }
 
-export function tanstackMount<TDatum>(
-  definition: DynamicChartDefinition<
-    ConformanceInput,
-    ConformanceInput,
-    TDatum
-  >,
+export function tanstackMount<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  createDefinition: (
+    input: ConformanceInput,
+  ) => DynamicChartDefinition<TDatum, TXValue, TYValue>,
   ariaLabel: string,
   interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
 ): ConformanceMount {
   return (container, input) => {
     const options = {
-      definition,
-      input,
+      definition: createDefinition(input),
       width: input.width,
       height: input.height,
       ariaLabel,
@@ -55,7 +57,7 @@ export function tanstackMount<TDatum>(
       update(nextInput) {
         host.update({
           ...options,
-          input: nextInput,
+          definition: createDefinition(nextInput),
           width: nextInput.width,
           height: nextInput.height,
           keyboard: nextInput.interactive === true,

@@ -15,8 +15,6 @@ export { Chart } from '@tanstack/octane-charts'
 export type {
   ChartCommonProps,
   ChartProps,
-  DynamicChartProps,
-  StaticChartProps,
   ChartDefinition,
   ChartPoint,
 } from '@tanstack/octane-charts'
@@ -42,13 +40,16 @@ The adapter creates one `ChartRuntime` for each component instance and asks the
 selected renderer for initial markup in TSRX. After layout:
 
 1. `useLayoutEffect` mounts the shared DOM host into the existing chart surface
-2. the initial runtime is passed through, preserving prepared data
+2. the initial runtime is passed through
 3. a later layout effect forwards memoized host options
-4. subsequent Octane updates call `host.update`
+4. subsequent Octane updates call `host.update`; a new definition identity
+   rebuilds the scene
 5. cleanup destroys the host and all browser-owned behavior
 
 The inner chart surface is memoized after its first output. The shared host
-paints later scenes directly into the selected surface.
+paints later scenes directly into the selected surface. Memoize definitions
+that capture component values with `useMemo`; module-scope definitions need no
+component memoization.
 
 ## SSR and hydration
 
@@ -126,14 +127,13 @@ not the Octane outer host.
 ## Definition and option identity
 
 Keep fixed definitions outside component execution. Keep one dynamic
-definition stable and pass live values through `input`; changing definition
-identity resets prepared state.
+definition stable and pass live values through `input`.
 
 The adapter memoizes host options from semantic props. Callback functions are
 held in refs, so changing only a callback does not rebuild the option object
 and the live wrapper still calls the latest function.
 
-Input equality and preparation are core definition behavior; see
+Input equality is core definition behavior; see
 [Chart Definition API](../../reference/chart-definitions.md).
 
 ## Core boundary

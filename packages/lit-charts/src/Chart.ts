@@ -16,7 +16,6 @@ let nextChartId = 0
 
 export class Chart<
   TDatum = unknown,
-  TInput = undefined,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > extends LitElement {
@@ -24,10 +23,10 @@ export class Chart<
     options: { attribute: false },
   }
 
-  declare options: ChartProps<TDatum, TInput, TXValue, TYValue>
+  declare options: ChartProps<TDatum, TXValue, TYValue>
 
   private adapter?: ChartAdapter<
-    ChartHostOptions<TDatum, TInput, TXValue, TYValue>,
+    ChartHostOptions<TDatum, TXValue, TYValue>,
     TDatum,
     TXValue,
     TYValue
@@ -132,13 +131,12 @@ export function defineChartElement(tagName = 'tanstack-chart') {
 
 function toHostOptions<
   TDatum,
-  TInput,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  props: ChartProps<TDatum, TInput, TXValue, TYValue>,
+  props: ChartProps<TDatum, TXValue, TYValue>,
   idPrefix: string,
-): ChartHostOptions<TDatum, TInput, TXValue, TYValue> {
+): ChartHostOptions<TDatum, TXValue, TYValue> {
   const { class: _class, style: _style, ...options } = props
   return { ...options, idPrefix }
 }

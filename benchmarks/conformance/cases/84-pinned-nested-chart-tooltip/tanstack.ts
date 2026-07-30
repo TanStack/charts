@@ -5,11 +5,7 @@ import {
   nestedTooltipData,
   nestedTooltipServices,
 } from './data'
-import type {
-  ChartHost,
-  ChartPoint,
-  DynamicChartHostOptions,
-} from '@tanstack/charts'
+import type { ChartHost, ChartPoint, ChartHostOptions } from '@tanstack/charts'
 import type {
   NestedTooltipDatum,
   NestedTooltipId,
@@ -31,74 +27,76 @@ interface MainChartInput extends ConformanceInput {
 
 let tooltipIdSequence = 0
 
-const mainDefinition = defineChart<MainChartInput>()(({ input }) => {
-  const rows = nestedTooltipData(input.revision)
-  const selectedRows = rows.filter((row) => row.id === input.pinnedId)
-  return {
+const mainDefinition = (input: MainChartInput) =>
+  defineChart(() => {
+    const rows = nestedTooltipData(input.revision)
+    const selectedRows = rows.filter((row) => row.id === input.pinnedId)
+    return {
+      marks: [
+        dot(rows, {
+          id: 'services',
+          x: 'service',
+          y: 'latency',
+          key: 'id',
+          r: 5,
+          fill: '#2563eb',
+          stroke: '#ffffff',
+          strokeWidth: 1,
+        }),
+        ...(selectedRows.length
+          ? [
+              dot(selectedRows, {
+                id: 'pinned-service',
+                x: 'service',
+                y: 'latency',
+                key: 'id',
+                r: 9,
+                fill: '#f97316',
+                stroke: '#ffffff',
+                strokeWidth: 3,
+              }),
+            ]
+          : []),
+      ],
+      x: {
+        scale: scaleBand<string>()
+          .domain(nestedTooltipServices)
+          .paddingInner(0.1)
+          .paddingOuter(0.05),
+      },
+      y: {
+        scale: scaleLinear().domain([0, 100]),
+        ticks: 5,
+        grid: true,
+      },
+      margin: { top: 18, right: 24, bottom: 42, left: 68 },
+    }
+  })
+
+const miniDefinition = (input: MiniChartInput) =>
+  defineChart(() => ({
     marks: [
-      dot(rows, {
-        id: 'services',
-        x: 'service',
-        y: 'latency',
+      barY(input.rows, {
+        id: 'history-bars',
+        x: 'period',
+        y: 'value',
         key: 'id',
-        r: 5,
-        fill: '#2563eb',
-        stroke: '#ffffff',
-        strokeWidth: 1,
+        fill: '#8b5cf6',
+        inset: 1,
       }),
-      ...(selectedRows.length
-        ? [
-            dot(selectedRows, {
-              id: 'pinned-service',
-              x: 'service',
-              y: 'latency',
-              key: 'id',
-              r: 9,
-              fill: '#f97316',
-              stroke: '#ffffff',
-              strokeWidth: 3,
-            }),
-          ]
-        : []),
     ],
     x: {
       scale: scaleBand<string>()
-        .domain(nestedTooltipServices)
-        .paddingInner(0.1)
-        .paddingOuter(0.05),
+        .domain(input.rows.map((row) => row.period))
+        .paddingInner(0.18)
+        .paddingOuter(0.08),
     },
     y: {
       scale: scaleLinear().domain([0, 100]),
-      ticks: 5,
-      grid: true,
+      guide: false,
     },
-    margin: { top: 18, right: 24, bottom: 42, left: 68 },
-  }
-})
-
-const miniDefinition = defineChart<MiniChartInput>()(({ input }) => ({
-  marks: [
-    barY(input.rows, {
-      id: 'history-bars',
-      x: 'period',
-      y: 'value',
-      key: 'id',
-      fill: '#8b5cf6',
-      inset: 1,
-    }),
-  ],
-  x: {
-    scale: scaleBand<string>()
-      .domain(input.rows.map((row) => row.period))
-      .paddingInner(0.18)
-      .paddingOuter(0.08),
-  },
-  y: {
-    scale: scaleLinear().domain([0, 100]),
-    guide: false,
-  },
-  margin: { top: 6, right: 6, bottom: 24, left: 6 },
-}))
+    margin: { top: 6, right: 6, bottom: 24, left: 6 },
+  }))
 
 function pointFromTarget(target: ConformanceTarget) {
   if (target.view !== undefined && target.view !== 'main') return null
@@ -188,7 +186,7 @@ export function mount(
   let currentInput = input
   let hoveredId: NestedTooltipId | null = null
   let pinnedId: NestedTooltipId | null = null
-  let miniHost: ChartHost<NestedTooltipMiniDatum, MiniChartInput> | undefined
+  let miniHost: ChartHost<NestedTooltipMiniDatum> | undefined
 
   const narrowLayout = () => currentInput.width < 520
   const panelHeight = () =>
@@ -204,9 +202,8 @@ export function mount(
 
   const miniOptions = (
     rows: readonly NestedTooltipMiniDatum[],
-  ): DynamicChartHostOptions<NestedTooltipMiniDatum, MiniChartInput> => ({
-    definition: miniDefinition,
-    input: { rows },
+  ): ChartHostOptions<NestedTooltipMiniDatum> => ({
+    definition: miniDefinition({ rows }),
     ...miniDimensions(),
     ariaLabel: 'Recent latency for the pinned service',
     ariaDescription: rows
@@ -241,13 +238,9 @@ export function mount(
     placeTooltip(datum.id)
   }
 
-  let mainHost: ChartHost<NestedTooltipDatum, MainChartInput>
-  const mainOptions = (): DynamicChartHostOptions<
-    NestedTooltipDatum,
-    MainChartInput
-  > => ({
-    definition: mainDefinition,
-    input: { ...currentInput, pinnedId },
+  let mainHost: ChartHost<NestedTooltipDatum>
+  const mainOptions = (): ChartHostOptions<NestedTooltipDatum> => ({
+    definition: mainDefinition({ ...currentInput, pinnedId }),
     width: currentInput.width,
     height: mainHeight(),
     ariaLabel: 'Selectable service latency chart',

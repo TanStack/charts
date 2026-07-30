@@ -177,10 +177,12 @@ final decisions. Almost all of the implementation was produced with AI coding
 agents under my direct supervision, then reviewed and accepted into the
 project.
 
-For live application state, `defineChart<Input>()` keeps expensive preparation
-separate from visual construction and responsive layout. The definition drives
-host prop and callback inference, so normal authoring does not require adapter
-generics, mark-array annotations, or casts. See
+For live application state, memoize the complete `defineChart(...)` result with
+the framework's native memoization primitive. Definition identity is the
+application update boundary, while responsive definition callbacks still
+receive the current chart size and theme. The definition drives host prop and
+callback inference, so normal authoring does not require adapter generics,
+mark-array annotations, or casts. See
 [Chart Definitions](./docs/concepts/chart-definitions.md) for the complete
 pattern.
 

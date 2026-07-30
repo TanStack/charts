@@ -11,31 +11,32 @@ const pieLayout = pie<PieDatum>()
   .sort(null)
   .value(({ value }) => value)
 
-const definition = defineChart<ConformanceInput>()(({ input }) => {
-  const arcs = pieLayout([...pieData(input.revision)])
+const definition = (input: ConformanceInput) =>
+  defineChart(() => {
+    const arcs = pieLayout([...pieData(input.revision)])
 
-  return {
-    marks: [
-      polar({
-        inset: 0,
-        radiusRatio: 0.8,
-        marks: [
-          radialArc(arcs, {
-            startAngle: 'startAngle',
-            endAngle: 'endAngle',
-            padAngle: 'padAngle',
-            key: ({ data }: PieArcDatum<PieDatum>) => data.id,
-            fill: ({ data }: PieArcDatum<PieDatum>) => data.fill,
-          }),
-        ],
-      }),
-    ],
-    x: null,
-    y: null,
-    guides: false,
-    margin: 0,
-  }
-})
+    return {
+      marks: [
+        polar({
+          inset: 0,
+          radiusRatio: 0.8,
+          marks: [
+            radialArc(arcs, {
+              startAngle: 'startAngle',
+              endAngle: 'endAngle',
+              padAngle: 'padAngle',
+              key: ({ data }: PieArcDatum<PieDatum>) => data.id,
+              fill: ({ data }: PieArcDatum<PieDatum>) => data.fill,
+            }),
+          ],
+        }),
+      ],
+      x: null,
+      y: null,
+      guides: false,
+      margin: 0,
+    }
+  })
 
 export const mount = tanstackMount(definition, 'Categorical pie chart', {
   format: ({ datum }) => `${datum.data.label} · ${datum.data.value}%`,

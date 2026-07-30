@@ -81,7 +81,7 @@ export async function createLlmsIndex(root) {
     '- Use direct, granular d3-* imports for scales and analytical preparation; never import the d3 umbrella.',
     '- Let TanStack Charts own responsive pixel ranges while configured D3 scales own domains, ticks, and formatting.',
     '- Keep data in its application shape. Map fields or accessors into marks instead of creating a library-owned series model.',
-    '- Keep definitions stable and pass changing state through typed dynamic input.',
+    '- Memoize the complete definition against captured application values; definition identity is the application update boundary.',
     '- Use stable datum keys for updates, animation, and selection.',
     '- Prefer built-in marks, then composition, then a custom mark or application-owned overlay.',
     '- Treat docs/concepts/scales-and-d3.md as the sole D3 integration contract and follow its official D3 links for D3 API details.',
