@@ -278,9 +278,60 @@ responsive layout work.
 ## Complete bubble-scatter example
 
 ```ts
-import { penguins, type PenguinsRow } from '@charts-poc/demo-data/penguins'
 import { scaleLinear, scaleOrdinal, scaleSqrt } from 'd3-scale'
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
+
+interface PenguinsRow {
+  species: string
+  culmen_length_mm: number | null
+  culmen_depth_mm: number | null
+  body_mass_g: number | null
+}
+
+const penguins: readonly PenguinsRow[] = [
+  {
+    species: 'Adelie',
+    culmen_length_mm: 39.1,
+    culmen_depth_mm: 18.7,
+    body_mass_g: 3750,
+  },
+  {
+    species: 'Adelie',
+    culmen_length_mm: 40.3,
+    culmen_depth_mm: 18,
+    body_mass_g: 3250,
+  },
+  {
+    species: 'Chinstrap',
+    culmen_length_mm: 46.5,
+    culmen_depth_mm: 17.9,
+    body_mass_g: 3500,
+  },
+  {
+    species: 'Chinstrap',
+    culmen_length_mm: 50,
+    culmen_depth_mm: 19.5,
+    body_mass_g: 3900,
+  },
+  {
+    species: 'Gentoo',
+    culmen_length_mm: 46.1,
+    culmen_depth_mm: 13.2,
+    body_mass_g: 4500,
+  },
+  {
+    species: 'Gentoo',
+    culmen_length_mm: 50,
+    culmen_depth_mm: 16.3,
+    body_mass_g: 5700,
+  },
+  {
+    species: 'Gentoo',
+    culmen_length_mm: null,
+    culmen_depth_mm: null,
+    body_mass_g: null,
+  },
+]
 
 type CompletePenguin = PenguinsRow & {
   culmen_length_mm: number

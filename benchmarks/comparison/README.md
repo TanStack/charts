@@ -68,10 +68,13 @@ pnpm benchmark:update-baseline
 Update the baseline only after reviewing the built files and confirming that a
 size change is intentional. The check permits 3% or 512 bytes, whichever is
 larger. It rejects package-version or chart/tier matrix drift before comparing
-bytes. It also requires normal comparison artifacts to contain zero bytes from
-the stress-probe modules; optional measurement machinery must disappear
-through direct build-time feature gates. It does not gate browser timings
-because those are hardware-sensitive. Every check writes
+bytes. The TanStack source revision must exactly match the last commit that
+changed core source or a transitive TanStack comparison input;
+documentation-only commits do not stale the evidence. It also requires normal
+comparison artifacts to contain zero bytes from the stress-probe modules;
+optional measurement machinery must disappear through direct build-time
+feature gates. It does not gate browser timings because those are
+hardware-sensitive. Every check writes
 `.benchmark-output/results/bundle-baseline.candidate.json` with all measured
 cases. CI uploads that candidate when the baseline fails; a manual workflow run
 can request it explicitly. This keeps exact Ubuntu measurements available

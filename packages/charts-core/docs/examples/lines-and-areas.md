@@ -110,7 +110,8 @@ separate layers remain easier to update and extend.
 - Use a temporal scale for dates and define the domain in application data
   semantics, as described in
   [Scales and D3](../concepts/scales-and-d3.md).
-- Give each moving row and series a stable key. See
+- Preserve row IDs or unique positions across updates, and group series with
+  `z`; supply `key` only when the mark cannot infer identity. See
   [Dynamic Data and Animation](../guides/dynamic-data-and-animation.md).
 - Let automatic layout measure tick labels, then verify the smallest container
   in [Responsive Charts](../guides/responsive-charts.md).

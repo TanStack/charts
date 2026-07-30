@@ -109,7 +109,8 @@ explains how to base region geometry on the final chart bounds.
 ## Composition checklist
 
 - Layer order reflects visual occlusion and reading order.
-- Each mark keeps its natural data shape and stable keys.
+- Each mark keeps its natural data shape and stable inferred or explicit
+  identity.
 - Shared scales are used only where direct positional comparison is intended.
 - Facet axis policy is explicit.
 - Each independently interactive view has its own accessible name.

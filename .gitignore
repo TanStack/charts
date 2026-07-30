@@ -5,6 +5,7 @@ dist
 .bundle-output
 .benchmark-output
 .catalog-artifact
+.release-artifacts
 coverage
 *.log
 tanstack.com-parity/

@@ -43,7 +43,7 @@ Use the official D3 pages as the API reference for each algorithm. TanStack Char
 | Delaunay and Voronoi geometry                                      | [`d3-delaunay`](https://d3js.org/d3-delaunay)               | Implement a spatial index, overlay, or custom mark                                                |
 | DOM selection for optional D3 gesture controllers                  | [`d3-selection`](https://d3js.org/d3-selection)             | Attach an application-owned brush or zoom behavior to an overlay                                  |
 | Brushes                                                            | [`d3-brush`](https://d3js.org/d3-brush)                     | Own the gesture in application code and map pixels through a copied chart scale                   |
-| Pan and zoom                                                       | [`d3-zoom`](https://d3js.org/d3-zoom)                       | Own the gesture and update chart input or a configured scale domain                               |
+| Pan and zoom                                                       | [`d3-zoom`](https://d3js.org/d3-zoom)                       | Own the gesture, update application state, and rebuild the definition with a configured domain    |
 | Hierarchies and layouts                                            | [`d3-hierarchy`](https://d3js.org/d3-hierarchy)             | Convert layout output into ordinary rows or custom scene nodes                                    |
 | Force simulation                                                   | [`d3-force`](https://d3js.org/d3-force)                     | Prepare positioned nodes and links before rendering                                               |
 | Geographic projections and paths                                   | [`d3-geo`](https://d3js.org/d3-geo)                         | Pass a responsive projection factory to `geoShape`                                                |
@@ -313,9 +313,22 @@ When the application owns the gesture, disable the native nearest-point focus st
 <!-- docs-example: log-scale typecheck -->
 
 ```ts
-import { flare, type FlareRow } from '@charts-poc/demo-data/flare'
 import { scaleLinear, scaleLog } from 'd3-scale'
 import { defineChart, dot } from '@tanstack/charts'
+
+interface FlareRow {
+  name: string
+  size: number | null
+}
+
+const flare: readonly FlareRow[] = [
+  { name: 'flare.analytics.cluster', size: 3938 },
+  { name: 'flare.analytics.graph', size: 10_871 },
+  { name: 'flare.analytics.optimization', size: 5731 },
+  { name: 'flare.display', size: 12_867 },
+  { name: 'flare.query', size: 2779 },
+  { name: 'flare.unresolved', size: null },
+]
 
 type SizedFlareRow = FlareRow & { size: number }
 

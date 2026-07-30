@@ -170,6 +170,11 @@ Each entry records:
 | F-132 | Factory unions disrupt D3's generic inference            | API             | monitoring |
 | F-133 | Clipped ancestors trapped native tooltips                | API             | resolved   |
 | F-134 | Demo fixtures modeled charts instead of source data      | Docs/Tooling    | resolved   |
+| F-135 | Published release lacked a repository baseline marker    | Tooling/Release | monitoring |
+| F-136 | Comparison conflated workspace and published source      | Tooling/Docs    | resolved   |
+| F-137 | Latest docs installed an incompatible published API      | Docs/Release    | monitoring |
+| F-138 | Publisher pin predated explicit trust permissions        | Tooling/Release | resolved   |
+| F-139 | Top-level entries bypassed tarball validation            | Tooling/Release | resolved   |
 
 ## Findings
 
@@ -2599,17 +2604,17 @@ Each entry records:
 - Owner: API/Documentation
 - Observed in: authoring the runtime, SSR, and TypeScript reference pages
 - Friction: `createChartRuntime()` is called before `runtime.render()` receives
-  a definition, so TypeScript cannot infer the datum, input, x-value, and
-  y-value types from that later call. The low-level direct-runtime examples
-  required all four generic arguments even though normal hosts and adapters
-  infer them from `definition`.
-- Decision: document the four explicit generics at the advanced direct-runtime
+  a definition, so TypeScript cannot infer the datum, x-value, and y-value types
+  from that later call. The low-level direct-runtime examples require all three
+  generic arguments even though normal hosts and adapters infer them from
+  `definition`.
+- Decision: document the three explicit generics at the advanced direct-runtime
   boundary and keep the common host and adapter paths fully inferred. Do not
   add a definition token or second runtime-construction shape until repeated
   direct-runtime use shows that the extra API surface would pay for itself.
-- Verification: the runtime, SSR, and TypeScript pages use the exact generic
-  order, while host, React, Octane, and packed declaration tests continue to
-  prove definition-driven inference without casts or adapter generics.
+- Verification: the runtime and SSR pages use the exact generic order, while
+  host, React, Octane, and packed declaration tests continue to prove
+  definition-driven inference without casts or adapter generics.
 
 ### F-114 — Gradient stop tokens disappeared from standalone exports
 
@@ -2640,19 +2645,21 @@ Each entry records:
   also accepted without proving the destination existed. Plausible, copyable
   snippets could pass with a wrong type import or a bare object-property
   fragment that was not valid TypeScript, while cross-page navigation could
-  silently land at the top.
+  silently land at the top. Primary README examples could still be
+  syntactically valid while passing an option to the wrong API boundary.
 - Decision: parse typed code fences in canonical docs and public READMEs,
   reject syntax diagnostics, resolve every TanStack specifier through its
   package manifest, and validate every named value and type import against
   that source entry. Resolve local Markdown fragments against generated
   heading anchors, including duplicate-heading suffixes. Designate primary
-  standalone examples for strict TypeScript checking; compile the Octane
-  quick start in both client and server modes.
+  standalone examples in canonical docs and public READMEs for strict
+  TypeScript checking; compile the Octane quick start in both client and server
+  modes.
 - Verification: the contract rejects invalid typed syntax, unknown subpaths,
   unknown symbols, and missing headings; helper tests cover syntax,
-  named-import extraction, heading slugs, and example discovery; 16
-  executable examples, all 79 canonical pages, and the public READMEs pass
-  against the current package manifests.
+  named-import extraction, heading slugs, and example discovery; 17 executable
+  examples, all 81 canonical pages, and the public READMEs pass against the
+  current package manifests.
 
 ### F-116 — Build context was mistaken for resolved plot geometry
 
@@ -2764,7 +2771,7 @@ Each entry records:
   preserved ownership but necessarily replaced the site's chrome, routing,
   headers, cache policy, and content delivery behavior.
 - Decision: treat the catalog as generated structured content. Charts CI builds
-  schema-v3 `catalog.json` plus only the recursively allowlisted implementation
+  schema-v4 `catalog.json` plus only the recursively allowlisted implementation
   modules, then replaces the generated `catalog-dist` branch after validation
   and the unfiltered conformance matrix. TanStack.com's existing content
   pipeline reads that branch, verifies hashes and limits, renders native routes
@@ -2782,9 +2789,15 @@ Each entry records:
   Main-branch CI uploads the validated artifact and publishes only
   `catalog.json` and `assets/*.js` to `catalog-dist`. The publication workflow
   pins every third-party action to a full commit SHA, as required by the
-  repository's Actions policy.
-- Follow-up: keep monitoring through the TanStack.com cutover, production route
-  verification, and retirement of the previously deployed catalog Worker.
+  repository's Actions policy. The TanStack.com consumer accepts the existing
+  schema-v2 publication and the schema-v4 replacement through separate strict
+  validators, applies their respective 5 MiB and 6 MiB limits, fetches complete
+  v4 source closures, excludes harness source, and renders dataset provenance
+  without raw rows. Its focused catalog tests pass 67 cases with site
+  typechecking and lint.
+- Follow-up: land and deploy the TanStack.com consumer before publishing the
+  schema-v4 artifact, then verify the production routes before removing
+  schema-v2 compatibility.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 
@@ -3077,7 +3090,10 @@ Each entry records:
   typecheck, packed declaration/runtime consumers, all seven adapter packages,
   documentation contracts, formatting, and bundle policy pass. Catalog case
   35 passes visual and interaction checks in Chromium at both quick-profile
-  widths.
+  widths. The cross-library fixtures now configure tooltip, keyboard, focus,
+  and animation on each definition through the typed `defineChart` overload;
+  a typed host-options boundary prevents behavior from drifting back to
+  adapter props.
 
 ### F-131 — Stable identity repeated inferable key channels
 
@@ -3207,11 +3223,128 @@ Each entry records:
   have been audited: there are no case-local `data.ts` modules or `./data`
   imports, 25 explicit `selection.ts` modules, and only the two authored
   interaction-state exceptions named `scenario.ts`. The React, Octane, and
-  sandbox showcases import source-shaped demo rows. Demo-data sync, metadata,
-  schema, hash, exact-subpath, and compact-large-CSV tests pass. The catalog
-  source-view and schema-v4 artifact checks pass at 100 cases and 5.45 MiB.
-  The full 100-case Chromium matrix renders without gaps, all 16 interaction
-  cases pass, strict sources produce zero diagnostics or unsafe assertions,
-  and mean frame-relative geometry similarity is 96.7%. Root unit tests,
-  typecheck, docs sync, production builds, packed consumers, bundle budgets,
-  and all seven framework adapter package gates pass.
+  sandbox showcases import source-shaped demo rows. Public documentation and
+  READMEs instead use small typed inline data, and the documentation contract
+  rejects private workspace imports in public code fences. Demo-data sync,
+  metadata, schema, hash, exact-subpath, and compact-large-CSV tests pass. The
+  catalog source-view and schema-v4 artifact checks pass at 100 cases and 5.45
+  MiB. The full 100-case Chromium matrix renders without gaps, all 16
+  interaction cases pass, strict sources produce zero diagnostics or unsafe
+  assertions, and mean frame-relative geometry similarity is 96.7%. Root unit
+  tests, typecheck, docs sync, production builds, packed consumers, bundle
+  budgets, and all seven framework adapter package gates pass.
+
+### F-135 — The published release had no repository baseline marker
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: generating the post-`0.0.0` release changelog
+- Friction: npm contains one published version of every product package, but
+  the repository has no `0.0.0` tag or GitHub release and the npm metadata has
+  no `gitHead`. An initial history audit therefore treated the repository's
+  first commit as the release baseline and incorrectly included 11 commits
+  that were already present in the published packages.
+- Decision: use commit `58ee1e2` as the verified `0.0.0` source baseline. For
+  future releases, record the exact source revision in the package provenance
+  and create the matching repository tag before generating the next changelog.
+- Verification: npm timestamps place the `@tanstack/charts` and
+  `@tanstack/react-charts` publication after `58ee1e2` and before the next
+  repository commit. The published core README, React README, and core
+  chart-definitions documentation are byte-identical to their `58ee1e2`
+  sources. The corrected changelog contains exactly the nine commits in
+  `58ee1e2..a91106c`.
+- Follow-up: verify the `0.0.1` tag, GitHub release, and package provenance all
+  identify the exact release commit, then resolve this finding.
+
+### F-136 — Comparison conflated workspace and published source
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Documentation
+- Observed in: final release-note and bundle-provenance audit
+- Friction: the comparison page and tracked bundle baseline labeled TanStack as
+  `@tanstack/charts@0.0.0`, but the benchmark imports current workspace source.
+  The published `0.0.0` artifact comes from `58ee1e2`; the measured source comes
+  from `a91106c` plus a release-preparation fixture correction.
+- Decision: identify TanStack as workspace source and competitors as pinned npm
+  packages. Bundle-baseline schema 3 records package manifest versions
+  separately from source provenance. Derive the TanStack revision from the last
+  commit that changed core source or any transitive TanStack comparison input,
+  rather than the release branch head, so documentation-only commits do not
+  stale measured evidence.
+- Verification: the public comparison names the measured TanStack revision,
+  the tracked baseline records the `0.0.1` manifest version separately from
+  exact `99c08eb` comparison-input revision, and the deterministic comparison
+  check rejects missing, malformed, or mismatched provenance. Its CI checkout
+  retains the history required to resolve that revision.
+
+### F-137 — Latest docs installed an incompatible published API
+
+- Status: monitoring
+- Severity: high
+- Owner: Documentation/Release
+- Observed in: final public documentation audit before `0.0.1`
+- Friction: canonical docs and public README examples used the post-`0.0.0`
+  definition, behavior, and scale contracts, while unqualified install commands
+  resolved to the earlier public `0.0.0` packages. Most framework adapters were
+  not published yet.
+- Decision: keep the temporary unreleased-source distinction until `0.0.1`,
+  then make the README, installation, overview, quick-start, comparison, and
+  marketing copy describe the coordinated core and adapter release.
+- Verification: the `0.0.1` release-candidate documentation no longer directs
+  people to wait for another release. Core and adapter installation commands
+  match the intended tarballs, the React commands include React DOM and its
+  types, executable examples pass the documentation contract, and generated
+  mirrors remain synchronized.
+- Follow-up: after publication, install every `0.0.1` package from npm, verify
+  the documented entry points and peers, then resolve this finding. Keep future
+  public documentation deployments coupled to the npm release they describe.
+
+### F-138 — The publisher pin predated explicit trust permissions
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: configuring npm trusted publishing for `0.0.1`
+- Friction: the release workflow pinned npm `11.12.1`, whose `npm trust`
+  interface predated required per-action permissions. The initial publisher
+  request completed two-factor authentication but returned an opaque HTTP 400
+  instead of identifying the missing `--allow-publish` permission.
+- Decision: configure trust with npm `11.18.0`, give each public package an
+  explicit publish permission, and keep npm installation outside the
+  OIDC-enabled job. The release checks that Node's bundled npm meets the
+  trusted-publishing minimum instead of replacing the CLI while a job can mint
+  identity tokens.
+- Verification: `npm trust list` reports the exact `TanStack/charts`
+  repository, `release.yml` workflow, and `createPackage` permission for core
+  and all nine public framework adapters. The workflow has one OIDC-enabled
+  job; it checks out the exact release SHA, downloads already-checked
+  artifacts, installs no dependencies, revalidates the protected remote tag
+  and main immediately before publishing, and delegates package installation
+  and signature verification to a post-publish job without OIDC. That job
+  requires npm to verify every release package's attestation bundle and then
+  matches the fetched bundles before checking their exact package, digest,
+  repository, workflow, tag, and commit claims.
+
+### F-139 — Top-level package entries bypassed tarball validation
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: inspecting the `0.0.1` Svelte release-candidate tarball
+- Friction: pnpm correctly replaced conditional exports with their
+  `publishConfig` targets, but retained the independent top-level `svelte`
+  field as `./src/index.ts`. The package excludes `src`, so Svelte tooling
+  using that field would resolve a file absent from the published tarball.
+  Release gates only checked conditional export targets and did not detect the
+  broken entry.
+- Decision: point the Svelte package field at `./dist/index.js`. The release
+  artifact validator now reads the actual tar inventory and requires every
+  scalar top-level `main`, `module`, `browser`, `types`, `typings`, `svelte`,
+  and `style` entry to identify a packed file.
+- Verification: a focused regression reproduces and rejects the missing
+  `./src/index.ts` entry, covers every validated field, and accepts entries
+  present in the archive. The rebuilt Svelte tarball contains its
+  `./dist/index.js` entry, and the focused package and release-artifact gates
+  pass.

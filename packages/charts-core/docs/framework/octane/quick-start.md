@@ -21,10 +21,22 @@ Definitions are framework-independent and can be shared with any adapter:
 <!-- docs-example: octane-quick-start octane -->
 
 ```tsx
-import { alphabet, type AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/octane-charts'
+
+interface AlphabetRow {
+  letter: string
+  frequency: number
+}
+
+const alphabet: readonly AlphabetRow[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
 
 const percent = new Intl.NumberFormat('en-US', {
   style: 'percent',

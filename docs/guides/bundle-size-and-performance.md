@@ -116,9 +116,11 @@ interaction policies.
 
 ## Update efficiently
 
-- Keep definitions at module scope.
-- Reuse input references when data is unchanged.
-- Give every mutable visual entity a stable key.
+- Keep fixed definitions at module scope.
+- Memoize captured-data definitions until their application values change.
+- Reuse derived data references when source data is unchanged.
+- Let marks infer identity from IDs or unique positions; supply `key` only when
+  that identity is unavailable or can change.
 - Memoize expensive derived data in the application.
 - Bound streaming windows.
 - Build a spatial index only when a measurement justifies it.

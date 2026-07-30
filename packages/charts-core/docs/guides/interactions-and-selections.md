@@ -41,7 +41,7 @@ Every application-owned gesture follows the same loop:
 3. Convert pointer geometry into semantic values.
 4. Clamp, snap, or validate those values as product policy.
 5. update application state.
-6. Let the normal chart input produce the next scene.
+6. Let the next definition produce the scene.
 
 Do not mutate SVG geometry directly and then attempt to reconcile application
 state afterward.
@@ -132,8 +132,9 @@ DOM behavior. Decide:
 - touch pinch and cancellation;
 - reset and follow-latest behavior.
 
-Use `d3-zoom` and `d3-selection` when they improve modality handling. Feed the
-resulting domain back into the chart input.
+Use `d3-zoom` and `d3-selection` when they improve modality handling. Store the
+resulting domain in application state and rebuild the definition with a
+configured scale.
 
 ## Linked views
 

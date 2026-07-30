@@ -22,7 +22,7 @@ runtime and renderer on the server and in the browser.
 | [Alpine](../framework/alpine/adapter.md)   | None                                | Browser-only directive                              |
 
 For adapters with server output, the browser must render the same definition,
-input, dimensions, formatters, and component tree. Angular and Lit may run
+dimensions, formatters, and component tree. Angular and Lit may run
 inside applications with their own server infrastructure, but this library
 does not yet promise or test adapter hydration for them.
 
@@ -53,19 +53,22 @@ See [Responsive Charts](./responsive-charts.md) for the complete size policy.
 
 ## Keep output deterministic
 
-Server and first-client output must agree for the same definition, input, size,
-and options. In particular:
+Server and first-client output must agree for the same definition, size, and
+options. In particular:
 
-- create definitions at module scope;
+- keep fixed definitions at module scope and recreate captured-data definitions
+  from the same resolved data;
 - sort unordered collections before creating marks;
 - do not read `window`, layout, time, locale, or random values while building a
   definition;
 - pass locale-sensitive formatters explicitly;
-- use stable keys derived from data identity;
+- rely on inferred IDs or unique positions, and supply explicit keys when the
+  data has no stable identity;
 - provide `idPrefix` when multiple render roots need coordinated resource IDs.
 
-Dynamic chart functions are synchronous. Fetch and transform data in the
-application's server/data layer, then pass the resolved input to the chart.
+Responsive chart functions are synchronous. Fetch and transform data in the
+application's server/data layer, then capture the resolved data in the
+definition.
 
 ## Hydration ownership
 
@@ -112,8 +115,8 @@ instead of shipping a font engine to the server.
 ```ts
 import { createChartRuntime, renderChartSvg } from '@tanstack/charts'
 
-const runtime = createChartRuntime<TrafficRow, TrafficInput, Date, number>()
-const scene = runtime.render(definition, input, { width: 720, height: 400 })
+const runtime = createChartRuntime<TrafficRow, Date, number>()
+const scene = runtime.render(definition, { width: 720, height: 400 })
 
 const svg = renderChartSvg(scene, {
   ariaLabel: 'Daily traffic',
@@ -130,9 +133,9 @@ surface mounts.
 
 ## Hydration checklist
 
-- Server input is fully resolved before chart rendering.
+- Server data is fully resolved before chart rendering.
 - Initial dimensions are explicit and representative.
-- Definition, transformed input, and formatting are deterministic.
+- Definition, transformed data, and formatting are deterministic.
 - Keys and `idPrefix` are stable.
 - The same adapter and definition render on both sides.
 - Browser-only work lives in host callbacks or application effects.

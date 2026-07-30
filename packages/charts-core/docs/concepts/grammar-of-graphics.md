@@ -26,9 +26,21 @@ The result is one `ChartSpec` compiled into a renderer-neutral scene.
 ## The smallest useful declaration
 
 ```ts
-import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+
+interface LetterFrequency {
+  letter: string
+  frequency: number
+}
+
+const alphabet: readonly LetterFrequency[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
 
 const chart = defineChart({
   marks: [barY(alphabet, { x: 'letter', y: 'frequency' })],
@@ -37,9 +49,9 @@ const chart = defineChart({
 })
 ```
 
-The mark consumes the published letter-frequency rows directly and maps their
-existing fields to x and y. No universal series wrapper or renamed chart fields
-sit between the source data and the mark.
+The mark consumes the typed letter-frequency rows directly and maps their
+existing fields to x and y. No universal series wrapper or renamed chart
+fields sit between the source data and the mark.
 
 Because this example imports `d3-scale` directly, add `d3-scale` and `@types/d3-scale` as direct dependencies. [Scales and D3](./scales-and-d3.md) explains why scales remain explicit.
 
@@ -163,12 +175,71 @@ Omitted margins are measured from the actual guides. See [Layout, Axes, and Coor
 Marks render in array order. Put context behind the primary data and annotations above it:
 
 ```ts
-import { weather } from '@charts-poc/demo-data/weather'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
 import { areaY, barY, d3Curve, defineChart, dot, lineY } from '@tanstack/charts'
 
-const rows = weather.filter((row) => row.location === 'Seattle').slice(37, 43)
+interface WeatherRow {
+  location: string
+  date: Date
+  precipitation: number
+  temp_max: number
+  temp_min: number
+  wind: number
+}
+
+const weather: readonly WeatherRow[] = [
+  {
+    location: 'Seattle',
+    date: new Date('2026-03-01T00:00:00Z'),
+    precipitation: 0.5,
+    temp_max: 9.4,
+    temp_min: 3.2,
+    wind: 4.1,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2026-03-02T00:00:00Z'),
+    precipitation: 3.1,
+    temp_max: 8.2,
+    temp_min: 2.8,
+    wind: 5.2,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2026-03-03T00:00:00Z'),
+    precipitation: 1.4,
+    temp_max: 10.6,
+    temp_min: 4.1,
+    wind: 3.8,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2026-03-04T00:00:00Z'),
+    precipitation: 0,
+    temp_max: 12.7,
+    temp_min: 5.3,
+    wind: 2.9,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2026-03-05T00:00:00Z'),
+    precipitation: 2.2,
+    temp_max: 11.1,
+    temp_min: 4.7,
+    wind: 4.6,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2026-03-06T00:00:00Z'),
+    precipitation: 0.3,
+    temp_max: 13.4,
+    temp_min: 6.1,
+    wind: 3.3,
+  },
+]
+
+const rows = weather.filter((row) => row.location === 'Seattle')
 
 const composedChart = defineChart({
   marks: [

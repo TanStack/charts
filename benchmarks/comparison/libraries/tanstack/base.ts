@@ -1,5 +1,8 @@
 import {
+  defineChart,
   mountChart,
+  type ChartDefinitionOptions,
+  type ChartHostOptions,
   type ChartPoint,
   type ChartScene,
   type DynamicChartDefinition,
@@ -29,11 +32,7 @@ export function mountDefinition<TDatum>(
   createDefinition: (input: BenchmarkInput) => DynamicChartDefinition<TDatum>,
   interactive: boolean,
 ): BenchmarkHandle {
-  const options = {
-    definition: createDefinition(input),
-    width: input.width,
-    height: input.height,
-    ariaLabel: 'Benchmark chart',
+  const definitionOptions = {
     keyboard: interactive,
     tooltip: BENCHMARK_GROUPED_X_FOCUS
       ? {
@@ -55,7 +54,15 @@ export function mountDefinition<TDatum>(
         }
       : undefined),
     animate: false,
-  }
+  } satisfies ChartDefinitionOptions<TDatum>
+  const resolveDefinition = (nextInput: BenchmarkInput) =>
+    defineChart(createDefinition(nextInput), definitionOptions)
+  const options = {
+    definition: resolveDefinition(input),
+    width: input.width,
+    height: input.height,
+    ariaLabel: 'Benchmark chart',
+  } satisfies ChartHostOptions<TDatum>
   const host = mountChart(container, options)
   let width = input.width
   let height = input.height
@@ -239,7 +246,7 @@ export function mountDefinition<TDatum>(
       }
       host.update({
         ...options,
-        definition: createDefinition(nextInput),
+        definition: resolveDefinition(nextInput),
         width: nextInput.width,
         height: nextInput.height,
       })

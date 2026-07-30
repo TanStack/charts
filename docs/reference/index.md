@@ -62,7 +62,7 @@ capabilities and individual marks independently tree-shakeable.
 
 | Import                               | Public values                                                                                                                                                                  |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `@tanstack/charts`                   | Common marks, legends, D3 curve bridges, `createMark`, `defineChart`, `createChartScene`, `createChartRuntime`, `mountChart`, `renderChartSvg`, and runtime comparison helpers |
+| `@tanstack/charts`                   | Common marks, legends, D3 curve bridges, `createMark`, `defineChart`, `createChartScene`, `createChartRuntime`, `isDynamicChartDefinition`, `mountChart`, and `renderChartSvg` |
 | `@tanstack/charts/adapter`           | `createChartAdapter`, `resolveChartAdapterLayout`, `ChartAdapter`, `ChartAdapterLayout`, and `ChartAdapterLayoutOptions`                                                       |
 | `@tanstack/charts/adapter/renderer`  | `createChartRendererAdapter`                                                                                                                                                   |
 | `@tanstack/charts/area`              | `areaY`                                                                                                                                                                        |
@@ -90,7 +90,7 @@ capabilities and individual marks independently tree-shakeable.
 | `@tanstack/charts/rect`              | `rect`, `cell`                                                                                                                                                                 |
 | `@tanstack/charts/renderer`          | `mountChartRenderer`                                                                                                                                                           |
 | `@tanstack/charts/rule`              | `ruleX`, `ruleY`                                                                                                                                                               |
-| `@tanstack/charts/runtime`           | `createChartRuntime`, definition and input comparison helpers                                                                                                                  |
+| `@tanstack/charts/runtime`           | `createChartRuntime`, `isDynamicChartDefinition`                                                                                                                               |
 | `@tanstack/charts/scene`             | `defineChart`, `createChartScene`, `defaultChartTheme`, `findNearestPoint`                                                                                                     |
 | `@tanstack/charts/svg`               | `renderChartSvg`                                                                                                                                                               |
 | `@tanstack/charts/svg/renderer`      | `createSvgChartRenderer`, `svgChartRenderer`                                                                                                                                   |

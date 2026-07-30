@@ -47,6 +47,9 @@
     "conformance:size": "node scripts/compare-plot-catalog.mjs --size-only",
     "performance": "node scripts/measure-rendering.mjs",
     "package:check": "node scripts/check-packed-consumers.mjs && pnpm adapters:check",
+    "release:artifacts": "node scripts/build-release-artifacts.mjs",
+    "release:check": "node scripts/publish-release.mjs --check",
+    "release:publish": "node scripts/publish-release.mjs",
     "test": "vitest run && vitest run --config vitest.solid.config.ts && vitest run --config vitest.solid-ssr.config.ts && vitest run --config vitest.svelte.config.ts && vitest run --config vitest.svelte-ssr.config.ts && vitest run --config vitest.octane.config.ts && vitest run --config vitest.octane-client.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
@@ -117,6 +120,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "3.10.1",
+    "semver": "7.8.5",
     "solid-js": "^1.9.13",
     "svelte": "^5.56.2",
     "topojson-client": "3.1.0",

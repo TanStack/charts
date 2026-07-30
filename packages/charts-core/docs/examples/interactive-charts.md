@@ -130,8 +130,8 @@ A complete editor should:
 - Keep color-independent event labels visible.
 
 Do not mutate a rectangle and treat that painted geometry as the saved record.
-Update application state, validate it, and let the next definition input
-produce the scene.
+Update application state, validate it, and let the next definition produce the
+scene.
 
 ## State and lifecycle
 

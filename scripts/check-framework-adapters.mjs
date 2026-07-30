@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { execFile } from 'node:child_process'
 import {
+  mkdir,
   mkdtemp,
   readFile,
   readdir,
@@ -19,9 +20,11 @@ import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
 
 const execFileAsync = promisify(execFile)
 const root = resolve(import.meta.dirname, '..')
+const artifactDirectory = parseArtifactDirectory(process.argv.slice(2))
 const temporaryDirectory = await mkdtemp(
   resolve(tmpdir(), 'tanstack-charts-framework-packages-'),
 )
+const tarballDirectory = artifactDirectory ?? temporaryDirectory
 const packageNames = [
   'preact-charts',
   'vue-charts',
@@ -39,6 +42,7 @@ const standardPackages = [
 ]
 
 try {
+  await mkdir(tarballDirectory, { recursive: true })
   for (const [directory, jsxImportSource] of standardPackages) {
     await buildStandardPackage(directory, jsxImportSource)
   }
@@ -193,8 +197,10 @@ async function verifyPackage(directory) {
   const manifest = JSON.parse(
     await readFile(resolve(packageRoot, 'package.json'), 'utf8'),
   )
+  assert.equal(manifest.private, false)
   assert.equal(manifest.type, 'module')
   assert.equal(manifest.sideEffects, false)
+  assert.equal(manifest.publishConfig?.provenance, true)
   assert.deepEqual(
     Object.keys(manifest.exports).sort(),
     Object.keys(manifest.publishConfig.exports).sort(),
@@ -209,7 +215,10 @@ async function verifyPackage(directory) {
     }
   }
 
-  const tarball = resolve(temporaryDirectory, `${directory}.tgz`)
+  const tarball = resolve(
+    tarballDirectory,
+    `${directory}-${manifest.version}.tgz`,
+  )
   const { stdout } = await run(
     'pnpm',
     ['pack', '--out', tarball, '--json'],
@@ -330,4 +339,19 @@ function formatDiagnostics(diagnostics) {
     getCurrentDirectory: () => root,
     getNewLine: () => '\n',
   })
+}
+
+function parseArtifactDirectory(args) {
+  if (args.length === 0) return null
+  assert.deepEqual(
+    args.slice(0, 1),
+    ['--artifacts-dir'],
+    'Usage: node scripts/check-framework-adapters.mjs [--artifacts-dir <path>]',
+  )
+  assert.equal(
+    args.length,
+    2,
+    'Usage: node scripts/check-framework-adapters.mjs [--artifacts-dir <path>]',
+  )
+  return resolve(process.cwd(), args[1])
 }

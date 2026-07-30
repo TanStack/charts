@@ -3,6 +3,9 @@ title: Overview
 description: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
 ---
 
+TanStack Charts `0.0.1` is a pre-alpha release. Its API may change between
+releases.
+
 TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and JavaScript. Give each mark its natural data, map fields or accessors to visual channels, and supply the D3 scales that define the meaning of each axis. TanStack Charts compiles that declaration into a responsive, keyed scene and renders accessible SVG by default, with Canvas available as an opt-in surface.
 
 TanStack Charts builds on the grammar-of-graphics tradition established by
@@ -27,16 +30,30 @@ adapter. React and Octane also provide optional Canvas entries.
 <!-- docs-example: overview typecheck -->
 
 ```ts
-import { aapl } from '@charts-poc/demo-data/aapl'
 import { mean } from 'd3-array'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
 
-const observations = aapl.slice(0, 120)
+interface ClosingPrice {
+  Date: Date
+  Close: number
+}
+
+const observations: readonly ClosingPrice[] = [
+  { Date: new Date('2013-05-13T00:00:00Z'), Close: 64.96 },
+  { Date: new Date('2013-05-14T00:00:00Z'), Close: 63.41 },
+  { Date: new Date('2013-05-15T00:00:00Z'), Close: 61.26 },
+  { Date: new Date('2013-05-16T00:00:00Z'), Close: 62.08 },
+  { Date: new Date('2013-05-17T00:00:00Z'), Close: 61.89 },
+  { Date: new Date('2013-05-20T00:00:00Z'), Close: 63.28 },
+  { Date: new Date('2013-05-21T00:00:00Z'), Close: 62.81 },
+  { Date: new Date('2013-05-22T00:00:00Z'), Close: 63.05 },
+]
+
 const rows = observations.flatMap((row, index) => {
-  if (index < 19) return []
+  if (index < 2) return []
   const average = mean(
-    observations.slice(index - 19, index + 1),
+    observations.slice(index - 2, index + 1),
     (observation) => observation.Close,
   )
   return average === undefined ? [] : [{ ...row, average }]
@@ -109,12 +126,12 @@ TanStack Charts owns the parts that make a declarative chart reliable inside an 
 
 TanStack Charts deliberately does not hide data or spatial algorithms behind a second abstraction.
 
-| Responsibility                                                                                     | Owner                                                   |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Scale domains, scale semantics, binning, stacking, grouping, interpolation, and spatial algorithms | Your application using the granular D3 modules it needs |
-| Fetching, cleaning, profiling, and exploratory analysis                                            | Your data layer, server, or AI workflow                 |
-| Marks, channels, responsive ranges, guide layout, scenes, rendering, and chart lifecycle           | TanStack Charts                                         |
-| Page controls, queries, filters, persistence, and application state                                | Your application                                        |
+| Responsibility                                                                                            | Owner                                                   |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Scale choice and configuration, fixed semantic domains, transforms, interpolation, and spatial algorithms | Your application using the granular D3 modules it needs |
+| Fetching, cleaning, profiling, and exploratory analysis                                                   | Your data layer, server, or AI workflow                 |
+| Mark-channel domain inference, responsive ranges, guide layout, scenes, rendering, and chart lifecycle    | TanStack Charts                                         |
+| Page controls, queries, filters, persistence, and application state                                       | Your application                                        |
 
 This division keeps the core small and makes advanced work explicit. Prepared data can come from D3, SQL, a server, or ordinary TypeScript; marks consume it without requiring a special series container.
 
@@ -126,7 +143,8 @@ The normal path is intentionally short:
 - Omit `margin` to measure axes, tick labels, rotation, and titles automatically.
 - Supply `ariaLabel`; keyboard focus is enabled by default.
 - Add `tooltip: true` to the definition when a native value tooltip is enough.
-- Use stable `key` channels for rows that can move, enter, or leave.
+- Let built-in marks infer stable identity from IDs or unique positions; supply
+  `key` when that identity is unavailable or can change.
 - Let field names, datum types, scales, interaction points, and adapters infer without casts.
 - Use inherited `currentColor` and the `--ts-chart-*` CSS variables for automatic theme integration.
 

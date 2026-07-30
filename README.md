@@ -33,14 +33,14 @@
 
 # TanStack Charts
 
-A tiny TypeScript visualization grammar for responsive, accessible,
+A TypeScript visualization grammar for responsive, accessible,
 server-rendered application charts.
 
 <a id="status"></a>
 
 > [!IMPORTANT]
-> TanStack Charts is currently an unpublished `0.0.0` product proof. The packages
-> are not published or ready for production use yet.
+> TanStack Charts `0.0.1` is pre-alpha. Its API may change between releases,
+> and it is not ready for production use.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
 Charts gives you one typed grammar that can grow from a familiar line or bar
@@ -63,6 +63,8 @@ or dropping down to a separate API.
 ### <a href="https://tanstack.com/charts">Read the docs →</a>
 
 ## Quick look
+
+<!-- docs-example: root-readme-quick-look typecheck -->
 
 ```tsx
 import { scaleBand, scaleLinear } from 'd3-scale'
@@ -92,16 +94,12 @@ const revenueChart = defineChart({
     label: 'Revenue',
     grid: true,
   },
+  tooltip: true,
 })
 
 export function RevenueChart() {
   return (
-    <Chart
-      definition={revenueChart}
-      height={320}
-      ariaLabel="Monthly revenue"
-      tooltip
-    />
+    <Chart definition={revenueChart} height={320} ariaLabel="Monthly revenue" />
   )
 }
 ```
@@ -117,7 +115,7 @@ through React, Preact, Vue, Solid, Svelte, Angular, Lit, Alpine, Octane, the
 vanilla DOM host, static SVG, or the optional Canvas renderer.
 
 When SVG element count becomes the bottleneck, switch the adapter import and
-keep the definition and interaction props:
+keep the definition and host callbacks:
 
 ```tsx
 import { Chart } from '@tanstack/react-charts/canvas'

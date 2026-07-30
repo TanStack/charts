@@ -32,10 +32,22 @@ nonzero inner radius is a donut.
 <!-- docs-example: polar-pie-donut typecheck -->
 
 ```ts
-import { alphabet, type AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import { defineChart } from '@tanstack/charts'
 import { polar, radialArc } from '@tanstack/charts/polar'
 import { pie } from 'd3-shape'
+
+interface AlphabetRow {
+  letter: string
+  frequency: number
+}
+
+const alphabet: readonly AlphabetRow[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
 
 const partColors = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316']
 const letters = alphabet.slice(0, 5)
@@ -141,10 +153,24 @@ a separate geometry implementation.
 <!-- docs-example: polar-partial-gauge typecheck -->
 
 ```ts
-import { survey, type SurveyRow } from '@charts-poc/demo-data/survey'
 import { defineChart } from '@tanstack/charts'
 import { polar, radialArc } from '@tanstack/charts/polar'
 import { pie } from 'd3-shape'
+
+interface SurveyRow {
+  Question: string
+  ID: number
+  Response: string
+}
+
+const survey: readonly SurveyRow[] = [
+  { Question: 'Q1', ID: 1, Response: 'Strongly Agree' },
+  { Question: 'Q1', ID: 2, Response: 'Agree' },
+  { Question: 'Q1', ID: 3, Response: 'Agree' },
+  { Question: 'Q1', ID: 4, Response: 'Neutral' },
+  { Question: 'Q1', ID: 5, Response: 'Disagree' },
+  { Question: 'Q2', ID: 1, Response: 'Neutral' },
+]
 
 interface GaugePart {
   id: 'agreement' | 'other'
@@ -223,7 +249,6 @@ polar guides and radial marks. TanStack supplies both responsive ranges.
 <!-- docs-example: polar-radar typecheck -->
 
 ```ts
-import { decathlon, type DecathlonRow } from '@charts-poc/demo-data/decathlon'
 import { defineChart } from '@tanstack/charts'
 import {
   angleGrid,
@@ -236,6 +261,45 @@ import {
 import { extent } from 'd3-array'
 import { scaleLinear, scalePoint } from 'd3-scale'
 import { curveLinearClosed } from 'd3-shape'
+
+interface DecathlonRow {
+  Country: string
+  '100 Meters': number
+  'Long Jump': number
+  'High Jump': number
+  '100 Meter Hurdles': number
+}
+
+const decathlon: readonly DecathlonRow[] = [
+  {
+    Country: 'United States',
+    '100 Meters': 10.35,
+    'Long Jump': 7.96,
+    'High Jump': 2.05,
+    '100 Meter Hurdles': 13.61,
+  },
+  {
+    Country: 'Great Britain',
+    '100 Meters': 10.44,
+    'Long Jump': 7.74,
+    'High Jump': 2.11,
+    '100 Meter Hurdles': 13.75,
+  },
+  {
+    Country: 'Germany',
+    '100 Meters': 10.67,
+    'Long Jump': 7.62,
+    'High Jump': 2.08,
+    '100 Meter Hurdles': 14.02,
+  },
+  {
+    Country: 'France',
+    '100 Meters': 10.58,
+    'Long Jump': 7.81,
+    'High Jump': 1.99,
+    '100 Meter Hurdles': 13.88,
+  },
+]
 
 const events = [
   '100 Meters',
@@ -264,7 +328,7 @@ function radarProfile(row: DecathlonRow) {
 }
 
 const athlete = decathlon[0]
-if (!athlete) throw new Error('The decathlon snapshot is empty')
+if (!athlete) throw new Error('The decathlon data is empty')
 const profile = radarProfile(athlete)
 
 const radar = defineChart({
@@ -339,8 +403,6 @@ measurements without renaming those measurements into chart fields.
 <!-- docs-example: polar-line-scatter typecheck -->
 
 ```ts
-import { weather, type WeatherRow } from '@charts-poc/demo-data/weather'
-import { wind, type WindRow } from '@charts-poc/demo-data/wind'
 import { defineChart } from '@tanstack/charts'
 import {
   angleGrid,
@@ -350,6 +412,59 @@ import {
   radialLine,
 } from '@tanstack/charts/polar'
 import { scaleLinear } from 'd3-scale'
+
+interface WeatherRow {
+  location: string
+  date: Date
+  temp_max: number
+}
+
+const weather: readonly WeatherRow[] = [
+  {
+    location: 'Seattle',
+    date: new Date('2012-01-15T00:00:00Z'),
+    temp_max: 8.3,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2012-03-15T00:00:00Z'),
+    temp_max: 12.2,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2012-05-15T00:00:00Z'),
+    temp_max: 18.9,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2012-07-15T00:00:00Z'),
+    temp_max: 25.6,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2012-09-15T00:00:00Z'),
+    temp_max: 21.1,
+  },
+  {
+    location: 'Seattle',
+    date: new Date('2012-11-15T00:00:00Z'),
+    temp_max: 11.7,
+  },
+]
+
+interface WindRow {
+  latitude: number
+  u: number
+  v: number
+}
+
+const wind: readonly WindRow[] = [
+  { latitude: 48.125, u: 4.2, v: 1.6 },
+  { latitude: 48.125, u: 2.1, v: 5.8 },
+  { latitude: 48.125, u: -3.4, v: 6.2 },
+  { latitude: 48.125, u: -5.1, v: -2.3 },
+  { latitude: 48.125, u: 1.8, v: -4.7 },
+]
 
 const seattle2012 = weather.filter(
   (row) => row.location === 'Seattle' && row.date.getUTCFullYear() === 2012,
@@ -481,7 +596,8 @@ the isolated consumer budgets.
 
 - Keep angle for cyclic order or part-to-whole intervals.
 - Use D3 pie output rather than reimplementing angle accumulation.
-- Give every mutable arc and point a stable source key.
+- Let marks infer identity from source IDs or unique positions; supply a key
+  when neither is available.
 - Preserve original values for tooltips and accessible summaries.
 - Keep radar dimension domains, directions, and units explicit.
 - Verify labels around the full circumference at narrow widths.

@@ -151,7 +151,7 @@ transient, so display-only content can remain visible but controls should
 render only while `pinned` is true. Definition `tooltip.portal: true` promotes
 the whole surface above clipped ancestors without changing this React API.
 
-## Definition and input identity
+## Definition identity
 
 Define a fixed chart outside component render:
 

@@ -17,8 +17,18 @@ import { spawn } from 'node:child_process'
 import { gzipSync } from 'node:zlib'
 import { chromium } from 'playwright'
 import ts from 'typescript'
+import { isExactNpmPackageVersion } from './package-version.mjs'
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const chartsPackageVersion = JSON.parse(
+  await readFile(
+    resolve(repositoryRoot, 'packages/charts-core/package.json'),
+    'utf8',
+  ),
+).version
+if (!isExactNpmPackageVersion(chartsPackageVersion)) {
+  throw new TypeError('@tanstack/charts requires a package version')
+}
 const cohortRoot = resolve(
   repositoryRoot,
   '.benchmark-output/conformance/ai/smoke-v1',
@@ -203,7 +213,7 @@ function workspaceFiles(entry, renderer) {
           '@observablehq/plot': '0.6.17',
         }
       : {
-          '@tanstack/charts': '0.0.0',
+          '@tanstack/charts': chartsPackageVersion,
           'd3-array': '3.2.4',
           'd3-scale': '4.0.2',
         }
@@ -367,26 +377,34 @@ the relevant primitives, not a complete implementation.
 
   return `# Routed TanStack Charts notes
 
-Pinned packages: \`@tanstack/charts@0.0.0\`, \`d3-array@3.2.4\`, and
+Pinned packages: \`@tanstack/charts@${chartsPackageVersion}\`,
+\`d3-array@3.2.4\`, and
 \`d3-scale@4.0.2\`.
 
 This offline synopsis is pinned from the package README and task-oriented
 recipes shipped with the local package.
 
-- Marks consume prepared rows. D3 owns aggregation and binning.
-- \`defineChart({ marks, x, y })\` creates a static definition.
-- Both positional axes require configured D3 scales. TanStack copies their
-  domains and owns their responsive pixel ranges.
-- \`mountChart(container, { definition, width, height, ariaLabel, animate:
-  false, keyboard: false })\` returns a host with \`destroy()\`.
+- Marks consume application-owned rows; keep D3 transforms beside the
+  definition.
+- \`defineChart({ marks, x, y, animate: false, keyboard: false })\` creates a
+  static definition. Chart behavior belongs to the definition.
+- Each materialized positional dimension requires a D3 scale factory or
+  configured instance. A factory infers its domain from mark channels; an
+  instance keeps its authored domain. TanStack owns responsive pixel ranges.
+- \`mountChart(container, { definition, width, height, ariaLabel })\` returns a
+  host with \`destroy()\`.
 ${
   entry.id === 'bar-vertical-sorted'
     ? `- Use granular \`rollups\` and \`sum\` from \`d3-array\` to aggregate the raw rows.
 - \`barY(rows, { x, y, key, fill, inset })\` renders vertical bars.
-- A \`scaleBand\` domain owns category order. A \`scaleLinear\` domain owns the zero baseline and value extent.`
+- Sort the aggregated rows from largest to smallest, then use a \`scaleBand\`
+  factory to infer that category order.
+- Use a configured \`scaleLinear().domain([0, 140])\` instance for the required
+  fixed y domain.`
     : `- Use granular \`bin\` from \`d3-array\`. D3 treats a threshold array as interior cuts, so set the first and last boundaries as the bin domain and pass only the interior boundaries to \`thresholds\`.
 - \`rect(rows, { x1, x2, y1, y2, key, fill, inset })\` renders interval rectangles.
-- Use configured \`scaleLinear\` values for both axes.`
+- Use configured \`scaleLinear\` instances for the required x domain
+  \`[20, 90]\` and y domain \`[0, 80]\`.`
 }
 
 Use the public package declarations for exact option types. These notes describe
