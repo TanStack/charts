@@ -18,6 +18,7 @@ import {
 const execFileAsync = promisify(execFile)
 const repositoryRoot = resolve(import.meta.dirname, '..')
 const registry = 'https://registry.npmjs.org'
+const requestTimeout = 30_000
 const { artifacts, manifest, version } =
   await validateReleaseArtifacts(repositoryRoot)
 
@@ -198,6 +199,7 @@ async function waitForAttestations(url) {
     const response = await fetch(url, {
       headers: { accept: 'application/json' },
       redirect: 'error',
+      signal: AbortSignal.timeout(requestTimeout),
     })
     lastStatus = response.status
     if (response.ok) return response.json()

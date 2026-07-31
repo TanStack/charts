@@ -1,0 +1,41 @@
+name: Setup Charts
+description: Install the workspace and restore local Nx and Playwright caches
+
+inputs:
+  playwright:
+    description: Install the Chromium runtime used by browser checks
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup tools
+      uses: TanStack/config/.github/setup@e4b48f16568324f76f467aa4c2aac2f05db632c3
+
+    - name: Restore Nx cache
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+      with:
+        path: .nx/cache
+        key: ${{ runner.os }}-nx-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.job }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-nx-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.job }}-
+          ${{ runner.os }}-nx-${{ hashFiles('pnpm-lock.yaml') }}-
+
+    - name: Restore Playwright
+      if: inputs.playwright == 'true'
+      id: playwright-cache
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+
+    - name: Install Chromium
+      if: inputs.playwright == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: pnpm exec playwright install --only-shell chromium
+
+    - name: Install Chromium system dependencies
+      if: inputs.playwright == 'true'
+      shell: bash
+      run: pnpm exec playwright install-deps chromium

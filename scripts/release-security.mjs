@@ -13,7 +13,11 @@ export function validateReleaseEnvironment({
   expectedRevision = env.GITHUB_SHA,
 }) {
   assert.equal(env.GITHUB_ACTIONS, 'true', 'Release requires GitHub Actions')
-  assert.equal(env.GITHUB_EVENT_NAME, 'push', 'Release requires a push event')
+  assert.ok(
+    env.GITHUB_EVENT_NAME === 'push' ||
+      env.GITHUB_EVENT_NAME === 'workflow_dispatch',
+    'Release requires a tag push or explicit workflow dispatch',
+  )
   assert.equal(env.GITHUB_REF_TYPE, 'tag', 'Release requires a tag ref')
   assert.equal(
     env.GITHUB_REF_NAME,

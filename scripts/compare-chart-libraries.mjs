@@ -19,6 +19,7 @@ import {
   tanstackComparisonRevision,
   tanstackComparisonSourceFailure,
 } from './comparison-source-revision.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const comparisonDirectory = resolve(root, 'benchmarks/comparison')
@@ -278,64 +279,65 @@ if (args.has('--check')) {
 }
 
 async function buildCases(benchmarkCases) {
-  const results = []
-
-  for (const benchmarkCase of benchmarkCases) {
-    const outfile = resolve(caseOutputDirectory, `${benchmarkCase.id}.js`)
-    const buildResult = await bundleCase(benchmarkCase, outfile)
-    const contents = await readFile(outfile)
-    const sharedExternals = benchmarkCase.library.sharedExternals ?? []
-    let incrementalContents = contents
-
-    if (sharedExternals.length) {
-      const incrementalOutfile = resolve(
-        caseOutputDirectory,
-        `${benchmarkCase.id}-incremental.js`,
-      )
-      await bundleCase(benchmarkCase, incrementalOutfile, sharedExternals)
-      incrementalContents = await readFile(incrementalOutfile)
-    }
-
-    results.push({
-      id: benchmarkCase.id,
-      library: benchmarkCase.library.id,
-      libraryLabel: benchmarkCase.library.label,
-      chartType: benchmarkCase.chartType,
-      tier: benchmarkCase.tier,
-      minifiedBytes: contents.byteLength,
-      gzipBytes: gzipSync(contents).byteLength,
-      brotliBytes: brotliCompressSync(contents).byteLength,
-      incrementalBytes: incrementalContents.byteLength,
-      incrementalGzipBytes: gzipSync(incrementalContents).byteLength,
-      incrementalBrotliBytes:
-        brotliCompressSync(incrementalContents).byteLength,
-      bundledModuleCount: Object.values(buildResult.metafile.outputs).reduce(
-        (total, output) =>
-          total +
-          Object.values(output.inputs).filter(
-            (input) => input.bytesInOutput > 0,
-          ).length,
-        0,
-      ),
-      stressSupportBytes: Object.values(buildResult.metafile.outputs).reduce(
-        (total, output) =>
-          total +
-          Object.entries(output.inputs)
-            .filter(
-              ([input]) =>
-                input.includes('/comparison/stress/') ||
-                input.includes('\\comparison\\stress\\'),
-            )
-            .reduce(
-              (outputTotal, [, input]) => outputTotal + input.bytesInOutput,
-              0,
-            ),
-        0,
-      ),
-    })
-  }
+  const results = new Array(benchmarkCases.length)
+  await runWithConcurrency(benchmarkCases, 4, async (benchmarkCase, index) => {
+    results[index] = await buildCase(benchmarkCase)
+  })
 
   return results
+}
+
+async function buildCase(benchmarkCase) {
+  const outfile = resolve(caseOutputDirectory, `${benchmarkCase.id}.js`)
+  const buildResult = await bundleCase(benchmarkCase, outfile)
+  const contents = await readFile(outfile)
+  const sharedExternals = benchmarkCase.library.sharedExternals ?? []
+  let incrementalContents = contents
+
+  if (sharedExternals.length) {
+    const incrementalOutfile = resolve(
+      caseOutputDirectory,
+      `${benchmarkCase.id}-incremental.js`,
+    )
+    await bundleCase(benchmarkCase, incrementalOutfile, sharedExternals)
+    incrementalContents = await readFile(incrementalOutfile)
+  }
+
+  return {
+    id: benchmarkCase.id,
+    library: benchmarkCase.library.id,
+    libraryLabel: benchmarkCase.library.label,
+    chartType: benchmarkCase.chartType,
+    tier: benchmarkCase.tier,
+    minifiedBytes: contents.byteLength,
+    gzipBytes: gzipSync(contents).byteLength,
+    brotliBytes: brotliCompressSync(contents).byteLength,
+    incrementalBytes: incrementalContents.byteLength,
+    incrementalGzipBytes: gzipSync(incrementalContents).byteLength,
+    incrementalBrotliBytes: brotliCompressSync(incrementalContents).byteLength,
+    bundledModuleCount: Object.values(buildResult.metafile.outputs).reduce(
+      (total, output) =>
+        total +
+        Object.values(output.inputs).filter((input) => input.bytesInOutput > 0)
+          .length,
+      0,
+    ),
+    stressSupportBytes: Object.values(buildResult.metafile.outputs).reduce(
+      (total, output) =>
+        total +
+        Object.entries(output.inputs)
+          .filter(
+            ([input]) =>
+              input.includes('/comparison/stress/') ||
+              input.includes('\\comparison\\stress\\'),
+          )
+          .reduce(
+            (outputTotal, [, input]) => outputTotal + input.bytesInOutput,
+            0,
+          ),
+      0,
+    ),
+  }
 }
 
 async function bundleCase(benchmarkCase, outfile, external = []) {
