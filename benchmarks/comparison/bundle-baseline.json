@@ -11,7 +11,7 @@
   "sources": {
     "tanstack": {
       "kind": "workspace",
-      "revision": "2c43b53727046e23238ab4824bd151361eeaf583"
+      "revision": "c422a2ce45799d4edd63fdbde7ecb31daa3dae31"
     },
     "chartjs": {
       "kind": "package",
