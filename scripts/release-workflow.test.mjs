@@ -10,8 +10,32 @@ const workflow = await readFile(
   resolve(import.meta.dirname, '../.github/workflows/release.yml'),
   'utf8',
 )
+const changesetConfig = JSON.parse(
+  await readFile(
+    resolve(import.meta.dirname, '../.changeset/config.json'),
+    'utf8',
+  ),
+)
 
 describe('release workflow contract', () => {
+  test('versions only the fixed public package set', () => {
+    assert.equal(changesetConfig.privatePackages, false)
+    assert.deepEqual(changesetConfig.fixed, [
+      [
+        '@tanstack/charts',
+        '@tanstack/react-charts',
+        '@tanstack/octane-charts',
+        '@tanstack/preact-charts',
+        '@tanstack/vue-charts',
+        '@tanstack/solid-charts',
+        '@tanstack/svelte-charts',
+        '@tanstack/angular-charts',
+        '@tanstack/lit-charts',
+        '@tanstack/alpine-charts',
+      ],
+    ])
+  })
+
   test('orchestrates versions and tags only from successful main CI', () => {
     assert.match(
       workflow,

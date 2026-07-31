@@ -180,6 +180,7 @@ Each entry records:
 | F-142 | Package verification reinstalled during release builds   | Tooling/Release | resolved   |
 | F-143 | The `ci` script name collided with pnpm's clean install  | Tooling/Docs    | resolved   |
 | F-144 | Action pin checks accepted invalid commit lengths        | Tooling         | resolved   |
+| F-145 | Changesets included private workspaces in version plans  | Tooling/Release | resolved   |
 
 ## Findings
 
@@ -646,11 +647,17 @@ Each entry records:
 - Friction: core previously resolved fixed margin heuristics before scales,
   formatted ticks, titles, and rotations existed. Stats compensated with
   duplicated character-width estimates and large manual margins, yet labels
-  could still escape a clipped SVG.
+  could still escape a clipped SVG. The strict zero-failure CI gate later made
+  the same existing mistake blocking in two conformance examples: a locked
+  64px left margin left the rotated y-axis title 1.35px outside the surface
+  under Linux font metrics. A long 11px x-axis title was also wider than its
+  entire 320px surface.
 - Decision: make omitted margin sides automatic. Solve the minimum guide bounds
   from formatted text, anchors, and rotations; treat numeric sides as hard
   overrides; expose resolved bounds for aligned application UI. Keep label
-  containment separate from tick collision and tiny-container degradation.
+  containment separate from tick collision. Content-dependent examples omit
+  margin locks, and axis titles use the same compact 10px typography as ticks
+  below 360px.
 - Verification: six guide-bound tests cover deterministic measurement, anchors,
   baselines, rotation, translated groups, and all four sides. Five scene-layout
   tests cover long labels and titles, rotated endpoints, narrow-to-wide
@@ -659,7 +666,9 @@ Each entry records:
   bounds, measurer replacement, coalesced font completion, and cleanup. Stats
   supplies neither Charts margins nor title offsets; its timeline consumes the
   resolved scene margin. TypeScript, focused lint, browser containment across
-  every Stats shape, and bundle ceilings pass.
+  every Stats shape, and bundle ceilings pass. The stacked-area, streamgraph,
+  and narrow Likert cases pass the same 320px and 640px containment contract in
+  local Chromium. Pull-request CI remains the cross-platform release gate.
 
 ### F-024 — Co-located benchmark cases defeated tree shaking
 
@@ -1318,11 +1327,16 @@ Each entry records:
 - Friction: removing redundant numeric domains exposed that automatic layout
   measured guides but not data-bound text. Labels at an inferred maximum
   escaped the top of the surface even though that margin side was unlocked.
+  The bump-ranking conformance example later locked its right margin to the
+  reference renderer's 160px heuristic, which left its longest direct label
+  8.64px outside the surface under Ubuntu font metrics.
 - Decision: built-in text marks expose their positioned labels to the existing
   monotonic margin solver. It measures anchors, `dx`/`dy`, rotation, font
   metrics, and responsive scale positions without calling mark render.
   Explicit margin sides and `margin: 0` remain locks; `clip: true` keeps clipped
   plots authoritative. Custom marks can opt in with `layoutLabels`.
+  Content-dependent examples leave the relevant side unlocked instead of
+  copying another renderer's fixed margin.
 - Verification: focused core layout/text tests pass, mark render remains
   single-pass, and all six affected cases pass containment at 320 and 640 px
   across initial and updated data. The grouped/stacked ordering checks in the
@@ -1330,6 +1344,9 @@ Each entry records:
   keeps the isolated automatic text-margin cost to 219 minified bytes / 85 gzip
   bytes for the locked line scene and 524 minified bytes / 178 gzip bytes for
   the representative-mark entry, with no new dependency.
+  The bump-ranking case passes 320px and 640px containment in local Chromium
+  with its right margin resolved from the direct labels. Pull-request CI
+  remains the cross-platform release gate.
 
 ### F-054 — D3 reducer output needs empty-safe narrowing
 
@@ -3475,3 +3492,19 @@ Each entry records:
   contract.
 - Verification: the focused CI and release workflow contracts reject the
   previous 41-character revision and accept every current action pin.
+
+### F-145 — Changesets included private workspaces in version plans
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: preparing the first automated patch after the CI migration
+- Friction: Changesets defaults to versioning private packages. A core-only
+  patch plan therefore included private examples, fixtures, and the sandbox
+  alongside the ten public Charts packages, even though the artifact publisher
+  intentionally releases only the public fixed group.
+- Decision: disable private-package versioning explicitly and keep the ten
+  public packages in one exact fixed group.
+- Verification: the release workflow contract locks both settings, and
+  `changeset status` reports only the ten public packages for the compact-axis
+  patch.

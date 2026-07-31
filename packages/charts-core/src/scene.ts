@@ -686,7 +686,7 @@ function createAxes(
       text: definition.x.label,
       anchor: 'middle',
       baseline: hasOffset ? 'auto' : 'hanging',
-      fontSize: 11,
+      fontSize: width < 360 ? 10 : 11,
       fontWeight: 600,
       style: { fill: theme.foreground, fillOpacity: 0.76 },
     }
