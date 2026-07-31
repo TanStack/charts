@@ -4,7 +4,7 @@ description: Compare current TanStack Charts workspace source with pinned Chart.
 ---
 
 TanStack Charts `0.3.1` is a pre-alpha release. Its results on this page measure
-the exact workspace source included in this release and pinned competitor
+the exact current workspace revision recorded below and pinned competitor
 packages. This comparison records architectural differences and reproducible
 evidence without turning untested behavior into a checkmark.
 
@@ -12,14 +12,14 @@ evidence without turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `c422a2c` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `43ae5f3` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `c422a2c`.
+at page render time. The measured TanStack workspace revision is `43ae5f3`.
 
 ## Capability matrix
 
@@ -111,7 +111,8 @@ Canvas composition while keeping D3 and state ownership explicit.
 ## Evidence and reproduction
 
 - [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.3.1/benchmarks/comparison/README.md)
-- [Tracked bundle baseline](https://github.com/TanStack/charts/blob/v0.3.1/benchmarks/comparison/bundle-baseline.json)
+- [Tracked current bundle baseline](https://github.com/TanStack/charts/blob/main/benchmarks/comparison/bundle-baseline.json)
+- [Tagged release bundle baseline](https://github.com/TanStack/charts/blob/v0.3.1/benchmarks/comparison/bundle-baseline.json)
 - [Stress protocol](https://github.com/TanStack/charts/blob/v0.3.1/benchmarks/comparison/stress/README.md)
 - [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.3.1/benchmarks/conformance/README.md)
 

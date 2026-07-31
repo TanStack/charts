@@ -3694,9 +3694,10 @@ Each entry records:
 - Decision: derive the previous release from the generated root changelog,
   advance an explicit allowlist of release-facing sources, then run the
   repository's canonical docs sync before formatting the version pull request.
-  Keep one replaceable current-version reference per allowlisted source;
-  compatibility guidance should not duplicate it. Historical changelog and
-  friction evidence remain immutable.
+  Keep each allowlisted source's configured number of replaceable
+  current-version references stable; compatibility guidance should not add an
+  ambiguous extra reference. Historical changelog and friction evidence remain
+  immutable.
 - Verification: focused tests cover version-heading discovery, complete
   replacement, idempotency, ambiguous-reference rejection, and missing-version
   rejection. Generated package docs remain outputs of `pnpm docs:sync`, never
@@ -3731,7 +3732,7 @@ Each entry records:
   exported for host-adapter authors. Typed DOM tooltip and portal lifecycles
   remain in the DOM module. Do not conditionally change the root until a native
   host can test one coherent platform contract.
-- Verification: root typechecking and 61 focused core tests pass. An export test
+- Verification: root typechecking and focused core tests pass. An export test
   verifies portable/universal runtime parity. The packed package gate resolves
   `/portable`, `/universal`, and `/types` from `dist` and compiles their
   declarations, including tooltip definition inputs and direct generic-token
@@ -3739,7 +3740,7 @@ Each entry records:
   swapping tooltip and portal tokens.
   The packed bundle proof excludes the root, adapters, Canvas, DOM host/text,
   browser export, reconciliation, renderer, and SVG surface modules. That full
-  universal barrel measures 53.95 kB minified and 16.60 kB gzip; granular
+  universal barrel measures 84.30 kB minified and 26.55 kB gzip; granular
   subpaths remain the bundle-sensitive option.
 
 ### F-155 — Optional tooltip code burdened every chart consumer
