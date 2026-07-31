@@ -18,6 +18,7 @@ become less legible than a matrix, grouped summary, or searchable table.
 | What is the parent-child structure and depth?                  | Tidy hierarchy tree                    |
 | Which positioned observations are spatial neighbors?           | Delaunay adjacency network             |
 | Which dependency clusters emerge without fixed positions?      | Force-directed network                 |
+| How does value move through staged subtotals?                  | Sankey flow diagram                    |
 | How large are branches within a strict hierarchy?              | Packed or rectangular hierarchy        |
 | Must many entities be compared by attributes, not connections? | A table, facets, or quantitative chart |
 
@@ -25,6 +26,29 @@ Layout, traversal, grouping, and collision handling belong to data
 preparation. [Scales and D3](../concepts/scales-and-d3.md) routes those
 algorithms to the official D3 documentation while TanStack Charts renders the
 typed result.
+
+## Trace value through staged totals
+
+A Sankey diagram makes conservation and decomposition visible at the same
+time: link width carries quantity, while each node marks a meaningful subtotal
+or outcome. This Apple FY22 income statement follows product and service
+revenue through gross profit, operating costs, operating profit, and net
+profit.
+
+<iframe
+  src="https://tanstack.com/charts/catalog/embed/111-sankey-flow/?theme=system&height=500"
+  title="Apple FY22 income statement Sankey diagram built with TanStack Charts"
+  loading="lazy"
+  width="100%"
+  height="500"
+  style="width:100%;height:500px;border:0;"
+></iframe>
+
+The example runs the official `d3-sankey` layout inside a custom mark and
+renders its nodes, horizontal links, direct labels, and interaction points as a
+normal TanStack Charts scene. Keep the source data explicit and verify that
+every intermediate subtotal has equal incoming and outgoing value. Use direct
+labels and tone as well as color so profit and cost paths remain identifiable.
 
 ## Show a strict hierarchy
 

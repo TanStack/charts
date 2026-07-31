@@ -1001,6 +1001,15 @@ Each entry records:
   scatter drivers report hex colors while TanStack inspection reads computed
   RGB; both now pass the six-variant standard paint gate without case-specific
   color rewriting.
+- Sankey evidence: that same six-variant gate passed while the TanStack
+  implementation used `round` line caps for width-encoded links, producing
+  large circular endpoint lobes that were absent from the reference chart.
+  Counts, bounds, paint, and similarity did not encode that cap topology.
+- Decision: keep the general gate bounded and make cap topology an explicit
+  case-level invariant for stroke-width-encoded flows.
+- Verification: the Sankey scene regression requires `butt` caps for every
+  link, so each flow now ends flush with its node instead of expanding into a
+  circular lobe.
 
 ### F-037 — Facets repeat shared axes in every panel
 
