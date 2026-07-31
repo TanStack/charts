@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "order": 1110,
+  "id": "111-basic-sankey",
+  "title": "Basic Sankey",
+  "family": "network",
+  "intent": "Show one input splitting into two paths and recombining into one output, with link width proportional to value.",
+  "support": "composed",
+  "features": [
+    "d3-sankey layout",
+    "responsive node positioning",
+    "proportional link width",
+    "theme-default styling",
+    "custom mark"
+  ],
+  "geometry": [
+    { "role": "link", "count": 4 },
+    { "role": "rect", "count": 4 },
+    { "role": "text", "count": 4 }
+  ],
+  "source": {
+    "title": "D3 Graph Gallery Sankey Diagram",
+    "url": "https://d3-graph-gallery.com/sankey.html"
+  },
+  "ai": {
+    "create": "Create a minimal responsive Sankey diagram with four named nodes, four links, the official d3-sankey layout, one label per node, and the chart theme's default foreground and muted colors.",
+    "maintain": "Keep this example intentionally minimal: preserve the simple split-and-recombine dataset, flow conservation, responsive bounds, flat link caps, one label per node, and the direct d3-sankey dependency without adding semantic color overrides or decorative labels."
+  }
+}

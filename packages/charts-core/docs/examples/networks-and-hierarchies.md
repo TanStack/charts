@@ -18,6 +18,7 @@ become less legible than a matrix, grouped summary, or searchable table.
 | What is the parent-child structure and depth?                  | Tidy hierarchy tree                    |
 | Which positioned observations are spatial neighbors?           | Delaunay adjacency network             |
 | Which dependency clusters emerge without fixed positions?      | Force-directed network                 |
+| How does quantity split and recombine?                         | Basic Sankey                           |
 | How does value move through staged subtotals?                  | Sankey flow diagram                    |
 | How large are branches within a strict hierarchy?              | Packed or rectangular hierarchy        |
 | Must many entities be compared by attributes, not connections? | A table, facets, or quantitative chart |
@@ -27,7 +28,26 @@ preparation. [Scales and D3](../concepts/scales-and-d3.md) routes those
 algorithms to the official D3 documentation while TanStack Charts renders the
 typed result.
 
-## Trace value through staged totals
+## Start with a basic Sankey
+
+The smallest useful Sankey shows a single input splitting into two paths and
+recombining into one output. Link width is the only quantitative encoding in
+this example; nodes and links use the chart theme, and every node gets one
+short name.
+
+<iframe
+  src="https://tanstack.com/charts/catalog/embed/111-basic-sankey/?theme=system&height=360"
+  title="Basic Sankey diagram built with TanStack Charts"
+  loading="lazy"
+  width="100%"
+  height="360"
+  style="width:100%;height:360px;border:0;"
+></iframe>
+
+Use this version as the starting point when the structure matters more than
+styling. Its four explicit links preserve a 60/40 split through both paths.
+
+## Customize a Sankey
 
 A Sankey diagram makes conservation and decomposition visible at the same
 time: link width carries quantity, while each node marks a meaningful subtotal

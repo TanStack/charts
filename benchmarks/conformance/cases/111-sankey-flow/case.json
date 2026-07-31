@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "referenceRenderer": "recharts",
-  "order": 1110,
+  "order": 1120,
   "id": "111-sankey-flow",
-  "title": "Apple FY22 income statement Sankey",
+  "title": "Sankey",
   "family": "network",
   "intent": "Trace Apple FY22 product and service revenue through gross profit, operating costs, operating profit, and net profit with flow width proportional to reported value.",
   "support": "composed",
