@@ -265,8 +265,20 @@ describe('core marks and categorical scales', () => {
 
   it('uses an injected D3 band scale for grouped bar geometry', () => {
     const data = [
-      { id: 'a:query', category: 'A', series: 'Query', value: 12 },
-      { id: 'a:router', category: 'A', series: 'Router', value: 8 },
+      {
+        id: 'a:query',
+        category: 'A',
+        series: 'Query',
+        start: 0,
+        end: 12,
+      },
+      {
+        id: 'a:router',
+        category: 'A',
+        series: 'Router',
+        start: 0,
+        end: 8,
+      },
     ]
     const groupScale = scaleBand<string>()
       .domain(['Query', 'Router'])
@@ -276,7 +288,8 @@ describe('core marks and categorical scales', () => {
         marks: [
           barY(data, {
             x: 'category',
-            y: 'value',
+            y1: 'start',
+            y2: 'end',
             z: 'series',
             layout: group({ scale: groupScale }),
             key: 'id',

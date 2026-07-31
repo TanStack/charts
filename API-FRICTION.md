@@ -460,15 +460,18 @@ Each entry records:
 - Expected: the supplied D3 band scale completely owns bar position and
   thickness. Series or color identity must not silently change geometry.
 - Decision: a single quantitative bar channel is a length and stacks
-  implicitly at repeated positions. Explicit endpoints opt out. Side-by-side
+  implicitly at repeated positions. Explicit endpoints opt out of stacking but
+  remain compatible with orthogonal `layout: group()` positioning. Side-by-side
   geometry requires `layout: group()`, optionally with a copied D3 band scale.
   `z` supplies series identity; discrete `color` may infer identity only after
   geometry is selected. `layout: stack()` exposes order, reversal, diverging,
   normalization, centering, and wiggle offsets for bars and areas while
   preserving the default implicit stack.
 - Verification: focused tests cover implicit diverging bars, normalized and
-  ordered stacks, area stacks, explicit endpoints, explicit grouping,
-  source-scale immutability, and continuous-color rejection.
+  ordered stacks, area stacks, explicit endpoints with grouping, explicit
+  grouping, source-scale immutability, and continuous-color rejection. Catalog
+  conformance case 72 passes with explicit stacked endpoints adjacent to an
+  independent grouped bar.
 
 ### F-014 — Responsive nicing duplicates layout calculations
 

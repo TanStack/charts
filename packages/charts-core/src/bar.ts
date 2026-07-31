@@ -100,9 +100,9 @@ export function barY<TDatum>(
         ? colorValues
         : zValues
     const explicitExtent = options.y1 !== undefined || options.y2 !== undefined
-    if (explicitExtent && options.layout) {
+    if (explicitExtent && options.layout?.type === 'stack') {
       throw new TypeError(
-        'A bar with explicit y1 or y2 endpoints cannot also configure a layout',
+        'A bar with explicit y1 or y2 endpoints cannot also configure a stack layout',
       )
     }
     const grouped = options.layout?.type === 'group'
@@ -278,9 +278,9 @@ export function barX<TDatum>(
         ? colorValues
         : zValues
     const explicitExtent = options.x1 !== undefined || options.x2 !== undefined
-    if (explicitExtent && options.layout) {
+    if (explicitExtent && options.layout?.type === 'stack') {
       throw new TypeError(
-        'A bar with explicit x1 or x2 endpoints cannot also configure a layout',
+        'A bar with explicit x1 or x2 endpoints cannot also configure a stack layout',
       )
     }
     const grouped = options.layout?.type === 'group'
