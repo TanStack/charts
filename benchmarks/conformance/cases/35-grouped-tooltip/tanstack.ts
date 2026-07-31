@@ -1,4 +1,11 @@
-import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import {
+  bandX,
+  defineChart,
+  dot,
+  lineY,
+  mountChart,
+  whenFocused,
+} from '@tanstack/charts'
 import type { ChartHostOptions } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
@@ -14,8 +21,19 @@ const colors = ['#2563eb', '#f97316', '#10b981']
 
 const definition = (input: ConformanceInput) => {
   const rows = selectGroupedTooltipData(industries, input.revision)
+  const dates = rows.filter((row) => row.industry === industryNames[0])
   return defineChart({
     marks: [
+      whenFocused(
+        bandX(dates, {
+          x: 'date',
+          fill: '#64748b',
+          fillOpacity: 0.14,
+          inset: 3,
+          radius: 4,
+        }),
+        { match: 'x' },
+      ),
       lineY(rows, {
         x: 'date',
         y: 'unemployed',

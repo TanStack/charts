@@ -4,10 +4,11 @@
   "id": "35-grouped-tooltip",
   "title": "Grouped X tooltip",
   "family": "interaction",
-  "intent": "Compare unemployment in manufacturing, construction, and finance at the nearest shared month in one pointer interaction.",
+  "intent": "Highlight and compare unemployment in manufacturing, construction, and finance at the nearest shared month in one pointer interaction.",
   "support": "native",
   "features": [
     "grouped tooltip",
+    "focus-filtered date band",
     "nearest x focus",
     "multi-series line",
     "automatic series swatches",

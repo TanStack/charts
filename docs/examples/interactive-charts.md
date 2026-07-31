@@ -26,6 +26,55 @@ selection, or product record.
 the controlled gesture loop. [Tooltips and Focus](../guides/tooltips-and-focus.md)
 defines the native inspection path.
 
+## Compare focus marks
+
+A focused dot emphasizes one observation without replacing the ordinary dots
+that provide pointer targets:
+
+```ts
+whenFocused(
+  dot(rows, {
+    x: 'Date',
+    y: 'Close',
+    r: 7,
+    fill: '#2563eb',
+    stroke: 'Canvas',
+    strokeWidth: 2,
+  }),
+  { match: 'primary' },
+)
+```
+
+<iframe
+  src="https://tanstack.com/charts/catalog/embed/34-pointer-tooltip/?theme=system&height=360"
+  title="Focused dot emphasizing the nearest Apple closing price"
+  loading="lazy"
+  width="100%"
+  height="360"
+  style="width:100%;height:360px;border:0;"
+></iframe>
+
+A focused band emphasizes the shared x value for every series. Its position
+before the lines places it underneath them:
+
+```ts
+marks: [
+  whenFocused(
+    bandX(dates, {
+      x: 'date',
+      fill: '#64748b',
+      fillOpacity: 0.14,
+      inset: 3,
+    }),
+    { match: 'x' },
+  ),
+  lineY(rows, { x: 'date', y: 'unemployed', color: 'industry' }),
+]
+```
+
+[Open the grouped focus example](https://tanstack.com/charts/catalog/35-grouped-tooltip/)
+to inspect its live chart and complete source.
+
 ## Pin rich nested detail
 
 A rich tooltip can compose the native rows with framework UI, including a
