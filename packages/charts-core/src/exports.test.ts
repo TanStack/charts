@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import packageJson from '../package.json'
 
+const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
+
 describe('public package exports', () => {
   it('resolves every manifest capability subpath', async () => {
     const specifiers = Object.keys(packageJson.exports).map((subpath) =>
@@ -13,6 +15,31 @@ describe('public package exports', () => {
     )
 
     expect(modules).toHaveLength(specifiers.length)
-    expect(modules.every((module) => Object.keys(module).length > 0)).toBe(true)
+    expect(
+      modules.every(
+        (module, index) =>
+          typeOnlySpecifiers.has(specifiers[index]!) ||
+          Object.keys(module).length > 0,
+      ),
+    ).toBe(true)
+  })
+
+  it('keeps the portable barrel aligned with root authoring exports', async () => {
+    const [root, portable] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/portable'),
+    ])
+    const browserOnlyRootValues = new Set([
+      'createChartAdapter',
+      'createChartRendererAdapter',
+      'mountChart',
+      'resolveChartAdapterLayout',
+    ])
+
+    expect(Object.keys(portable).sort()).toEqual(
+      Object.keys(root)
+        .filter((name) => !browserOnlyRootValues.has(name))
+        .sort(),
+    )
   })
 })

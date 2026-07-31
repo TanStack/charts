@@ -189,6 +189,7 @@ Each entry records:
 | F-151 | Artifact actions targeted deprecated Node 20             | Tooling         | resolved   |
 | F-152 | Version bumps invalidated workspace bundle evidence      | Tooling/Release | resolved   |
 | F-153 | Changesets left release-facing version claims behind     | Tooling/Release | resolved   |
+| F-154 | Root barrels crossed the browser host boundary           | API/Tooling     | resolved   |
 
 ## Findings
 
@@ -3655,3 +3656,28 @@ Each entry records:
 - Verification: focused tests cover version-heading discovery, complete
   replacement, idempotency, and missing-version rejection. Generated package
   docs remain outputs of `pnpm docs:sync`, never hand-edited sources.
+
+### F-154 — Root barrels crossed the browser host boundary
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: isolating the React Native host proof from the core package
+- Friction: shared chart definitions and scene compilation are
+  platform-neutral, but the root value barrel made bundlers traverse DOM hosts,
+  adapters, reconciliation, and SVG surfaces. Its type graph also declared
+  `Element`, `HTMLElement`, and `SVGSVGElement`, so a non-DOM consumer could
+  not select the portable contracts as one supported entry.
+- Decision: preserve the existing browser-oriented root API and add
+  `@tanstack/charts/portable` for common authoring/runtime values plus
+  `@tanstack/charts/types` for portable contracts. DOM surface, renderer, host,
+  and render-context types now live behind an internal module while retaining
+  their existing root re-exports. Do not conditionally change the root until a
+  native host can test one coherent platform contract.
+- Verification: root typechecking and 61 focused core tests pass. The packed
+  package gate resolves both new entries from `dist`, compiles their
+  declarations with Web Worker rather than DOM globals, and proves the
+  portable bundle excludes the root, adapters, Canvas, DOM host/text, browser
+  export, reconciliation, renderer, and SVG surface modules. That full
+  portable barrel measures 55.26 kB minified and 17.04 kB gzip; granular
+  subpaths remain the bundle-sensitive option.

@@ -54,6 +54,7 @@
     "./link": "./src/link.ts",
     "./mark/scale-values": "./src/mark-with-scale-values.ts",
     "./polar": "./src/polar.ts",
+    "./portable": "./src/portable.ts",
     "./reconcile": "./src/reconcile.ts",
     "./rect": "./src/rect.ts",
     "./renderer": "./src/renderer.ts",
@@ -65,6 +66,7 @@
     "./svg/resources": "./src/svg-resources.ts",
     "./text": "./src/text.ts",
     "./tick": "./src/tick.ts",
+    "./types": "./src/portable-types.ts",
     "./vector": "./src/vector.ts"
   },
   "publishConfig": {
@@ -167,6 +169,10 @@
         "types": "./dist/polar.d.ts",
         "import": "./dist/polar.js"
       },
+      "./portable": {
+        "types": "./dist/portable.d.ts",
+        "import": "./dist/portable.js"
+      },
       "./reconcile": {
         "types": "./dist/reconcile.d.ts",
         "import": "./dist/reconcile.js"
@@ -210,6 +216,10 @@
       "./tick": {
         "types": "./dist/tick.d.ts",
         "import": "./dist/tick.js"
+      },
+      "./types": {
+        "types": "./dist/portable-types.d.ts",
+        "import": "./dist/portable-types.js"
       },
       "./vector": {
         "types": "./dist/vector.d.ts",
