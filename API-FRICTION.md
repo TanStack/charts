@@ -3690,22 +3690,24 @@ Each entry records:
   platform-neutral, but the root value barrel made bundlers traverse DOM hosts,
   adapters, reconciliation, and SVG surfaces. Its type graph also declared
   `Element`, `HTMLElement`, and `SVGSVGElement`, so a non-DOM consumer could
-  not select the portable contracts as one supported entry.
+  not select the universal contracts as one supported entry.
 - Decision: preserve the existing browser-oriented root API and add
-  `@tanstack/charts/portable` for common authoring/runtime values plus
-  `@tanstack/charts/types` for portable contracts. DOM surface, renderer, host,
-  and render-context types now live behind an internal module while retaining
-  their existing root re-exports. Definition inputs retain DOM-free extension
-  token contracts while typed tooltip and portal lifecycles remain in the DOM
-  module. Do not conditionally change the root until a native host can test one
-  coherent platform contract.
+  `@tanstack/charts/universal` for common authoring/runtime values plus
+  `@tanstack/charts/types` for universal contracts. The name describes the
+  supported cross-runtime surface while the browser-first root remains the
+  normal web entry. DOM surface, renderer, host, and render-context types now
+  live behind an internal module while retaining their existing root
+  re-exports. Definition inputs retain DOM-free extension token contracts while
+  typed tooltip and portal lifecycles remain in the DOM module. Do not
+  conditionally change the root until a native host can test one coherent
+  platform contract.
 - Verification: root typechecking and 61 focused core tests pass. The packed
   package gate resolves both new entries from `dist`, compiles their
   declarations, including tooltip definition inputs, with Web Worker rather
   than DOM globals. Type regressions reject swapping tooltip and portal tokens.
   The packed bundle proof excludes the root, adapters, Canvas, DOM host/text,
   browser export, reconciliation, renderer, and SVG surface modules. That full
-  portable barrel measures 53.95 kB minified and 16.60 kB gzip; granular
+  universal barrel measures 53.95 kB minified and 16.60 kB gzip; granular
   subpaths remain the bundle-sensitive option.
 
 ### F-155 — Optional tooltip code burdened every chart consumer

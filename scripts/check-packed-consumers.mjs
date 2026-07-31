@@ -1111,14 +1111,14 @@ async function verifyDeclarations() {
 
   await assertPackedDeclarationSources(program, 'DOM declaration contract')
 
-  const portableSource = `
+  const universalSource = `
     import {
       createChartRuntime,
       defineChart,
       lineY,
       type ChartPoint,
       type ChartTooltipOptions,
-    } from '@tanstack/charts/portable'
+    } from '@tanstack/charts/universal'
     import type {
       ChartDefinition,
       ChartScene,
@@ -1151,26 +1151,26 @@ async function verifyDeclarations() {
     }
     void [point, tooltip]
   `
-  const portableContractPath = resolve(
+  const universalContractPath = resolve(
     fixtureDirectory,
-    'portable-type-contract.ts',
+    'universal-type-contract.ts',
   )
-  await writeFile(portableContractPath, portableSource)
-  const portableProgram = ts.createProgram([portableContractPath], {
+  await writeFile(universalContractPath, universalSource)
+  const universalProgram = ts.createProgram([universalContractPath], {
     ...options,
     lib: ['lib.es2022.d.ts', 'lib.webworker.d.ts'],
   })
-  const portableDiagnostics = ts.getPreEmitDiagnostics(portableProgram)
-  if (portableDiagnostics.length) {
+  const universalDiagnostics = ts.getPreEmitDiagnostics(universalProgram)
+  if (universalDiagnostics.length) {
     throw new Error(
-      `Packed portable declaration contract failed:\n${formatDiagnostics(
-        portableDiagnostics,
+      `Packed universal declaration contract failed:\n${formatDiagnostics(
+        universalDiagnostics,
       )}`,
     )
   }
   await assertPackedDeclarationSources(
-    portableProgram,
-    'portable declaration contract',
+    universalProgram,
+    'universal declaration contract',
   )
 }
 
@@ -1263,14 +1263,14 @@ async function verifyProductionBundles() {
   }
   const entries = [
     {
-      label: 'Portable',
-      filename: 'portable.ts',
+      label: 'Universal',
+      filename: 'universal.ts',
       external: [],
-      rendererBoundary: 'portable',
+      rendererBoundary: 'universal',
       platform: 'neutral',
       conditions: ['import', 'default'],
       source: `
-        export * from '@tanstack/charts/portable'
+        export * from '@tanstack/charts/universal'
       `,
     },
     {
@@ -1602,11 +1602,11 @@ function assertRendererBoundary(label, inputs, boundary, modules) {
   const svg = matchingModules(paths, modules.svg)
   const browserHost = matchingModules(paths, modules.browserHost)
 
-  if (boundary === 'portable') {
+  if (boundary === 'universal') {
     assert.deepEqual(
       browserHost,
       [],
-      `${label} portable bundle included browser host modules`,
+      `${label} universal bundle included browser host modules`,
     )
     return
   }

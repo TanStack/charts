@@ -57,7 +57,7 @@ select the optional Canvas renderer; their `/core` entries require an explicit
 ## Import map
 
 The root `@tanstack/charts` entry point exports the common grammar, runtime,
-scene, SVG renderer, browser host, and their public types. The portable entry
+scene, SVG renderer, browser host, and their public types. The universal entry
 excludes browser hosts and adapters. Granular subpaths keep optional
 capabilities and individual marks independently tree-shakeable.
 
@@ -87,7 +87,7 @@ capabilities and individual marks independently tree-shakeable.
 | `@tanstack/charts/link`              | `link`                                                                                                                                                                         |
 | `@tanstack/charts/mark/scale-values` | `createMarkWithScaleValues`                                                                                                                                                    |
 | `@tanstack/charts/polar`             | `polar`, radial arc/line/area/dot marks, and radial/angle guides                                                                                                               |
-| `@tanstack/charts/portable`          | Common root authoring, runtime, scene, and static SVG values without browser hosts or adapters                                                                                 |
+| `@tanstack/charts/universal`         | Common root authoring, runtime, scene, and static SVG values without browser hosts or adapters                                                                                 |
 | `@tanstack/charts/reconcile`         | `reconcileChartSvg`                                                                                                                                                            |
 | `@tanstack/charts/rect`              | `rect`, `cell`                                                                                                                                                                 |
 | `@tanstack/charts/renderer`          | `mountChartRenderer`                                                                                                                                                           |
@@ -99,7 +99,7 @@ capabilities and individual marks independently tree-shakeable.
 | `@tanstack/charts/svg/resources`     | `renderChartSvgWithResources`                                                                                                                                                  |
 | `@tanstack/charts/text`              | `text`                                                                                                                                                                         |
 | `@tanstack/charts/tick`              | `tickX`, `tickY`                                                                                                                                                               |
-| `@tanstack/charts/types`             | Portable definition, mark, scene, runtime, focus, and tooltip-model types                                                                                                      |
+| `@tanstack/charts/types`             | Universal definition, mark, scene, runtime, focus, and tooltip-model types                                                                                                     |
 | `@tanstack/charts/vector`            | `vector`                                                                                                                                                                       |
 
 Import from the narrowest stable entry point when bundle isolation matters.
