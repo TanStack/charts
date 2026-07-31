@@ -1,4 +1,3 @@
-import { quantileSorted } from 'd3-array'
 import { valueKey } from './scales'
 import type {
   ChartColorLegend,
@@ -225,13 +224,23 @@ function legendThresholds(
     )
   }
   if (colors.kind === 'quantile') {
-    return Array.from(
-      { length: Math.max(0, count - 1) },
-      (_value, index) =>
-        quantileSorted(domain, (index + 1) / count) ?? Number.NaN,
+    return Array.from({ length: Math.max(0, count - 1) }, (_value, index) =>
+      quantileSorted(domain, (index + 1) / count),
     ).filter(Number.isFinite)
   }
   return []
+}
+
+function quantileSorted(values: readonly number[], probability: number) {
+  const count = values.length
+  if (count === 0) return Number.NaN
+  if (probability <= 0 || count < 2) return values[0] ?? Number.NaN
+  if (probability >= 1) return values[count - 1] ?? Number.NaN
+  const position = (count - 1) * probability
+  const lowerIndex = Math.floor(position)
+  const lower = values[lowerIndex] ?? Number.NaN
+  const upper = values[lowerIndex + 1] ?? lower
+  return lower + (upper - lower) * (position - lowerIndex)
 }
 
 export function colorGradientLegend(

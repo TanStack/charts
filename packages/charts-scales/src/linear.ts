@@ -1,4 +1,4 @@
-import { tickIncrement, ticks as createTicks, tickStep } from 'd3-array'
+import { tickIncrement, ticks as createTicks, tickStep } from './ticks'
 
 export interface LinearScale {
   (value: number | null | undefined): number | undefined

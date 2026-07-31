@@ -12,14 +12,14 @@ evidence without turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `e997c89` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `c422a2c` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `e997c89`.
+at page render time. The measured TanStack workspace revision is `c422a2c`.
 
 ## Capability matrix
 
@@ -59,7 +59,7 @@ that lane externalizes React and React DOM.
 
 | Library         | Full cold-page gzip | React externalized |
 | --------------- | ------------------: | -----------------: |
-| TanStack Charts |     26.62–32.17 KiB |                  — |
+| TanStack Charts |     26.58–32.08 KiB |                  — |
 | Chart.js        |     44.70–58.21 KiB |                  — |
 | Apache ECharts  |   153.10–173.18 KiB |                  — |
 | Recharts        |   153.08–168.27 KiB |   94.96–109.96 KiB |

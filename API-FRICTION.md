@@ -45,7 +45,7 @@ Each entry records:
 | F-007 | Runtime and adapters bypassed strict scales              | API             | resolved   |
 | F-008 | D3 motion would currently burden every DOM host          | API             | resolved   |
 | F-009 | Color semantics were overloaded onto grouping and paint  | API             | resolved   |
-| F-010 | D3 curves require one TanStack grammar bridge            | API             | monitoring |
+| F-010 | D3 curves require one TanStack grammar bridge            | API             | resolved   |
 | F-011 | Adapters performed dynamic preparation twice             | API             | resolved   |
 | F-012 | Render callbacks omit diagnostic metrics                 | API             | monitoring |
 | F-013 | Bar series identity also changed bar geometry            | API             | resolved   |
@@ -200,6 +200,7 @@ Each entry records:
 | F-162 | Focus styling required duplicate marks                   | API             | resolved   |
 | F-163 | Cross-row transforms lacked a public ownership boundary  | API             | resolved   |
 | F-164 | Sankey widths required a custom scene renderer           | API             | resolved   |
+| F-165 | Incidental D3 utilities leaked into core paths           | API/Tooling     | resolved   |
 
 ## Findings
 
@@ -417,15 +418,18 @@ Each entry records:
 
 ### F-010 — D3 curves require one TanStack grammar bridge
 
-- Status: monitoring
+- Status: resolved
 - Severity: low
 - Observed in: optional curve integration
 - Friction: authors write `d3Curve(curveMonotoneX)` instead of supplying the D3
   curve factory directly.
-- Decision: keep the bridge while it prevents straight lines and areas from
-  importing `d3-shape` and gives one curve value both line and area semantics.
-- Follow-up: measure authoring errors before considering a direct curve-factory
-  overload or a separate curved mark.
+- Decision: keep the bridge while it gives one curve value both line and area
+  semantics. Keep the convenient root and universal exports alongside the exact
+  `@tanstack/charts/d3/shape` entry; supported bundlers remove the bridge and
+  its D3 line and area generators when unused.
+- Verification: direct D3 curve entries, Cartesian curve tests, packed
+  declarations, and documentation examples cover both barrel and exact-subpath
+  forms.
 
 ### F-011 — Adapters performed dynamic preparation twice on mount
 
@@ -3957,3 +3961,28 @@ Each entry records:
   graph passes its type, package, bundle, documentation, catalog, and framework
   gates. Browser conformance passes both Sankey cases at 320px and 640px with
   clean types and 98.3% mean frame-relative geometry similarity.
+
+### F-165 — Incidental D3 utilities leaked into core paths
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: auditing whether ordinary chart paths retain incidental D3
+- Friction: nearest-point lookup and legend thresholds used small `d3-array`
+  utilities, while compact linear scales imported D3 tick math. Those imports
+  leaked D3 into common paths despite being easy to own locally. Numeric-bin,
+  stack, polar, geo, and curve modules are deliberately D3-backed and expose
+  strict D3 semantics rather than credible interchangeable APIs.
+- Decision: implement nearest-point, quantile, and compact tick math locally.
+  Keep `d3-array` inside numeric-bin transforms, `d3-shape` inside stack,
+  polar, and curve features, and `d3-geo` inside geo features as normal
+  dependencies, not peers or caller-supplied `use` capabilities. Keep the
+  tree-shakable D3 curve bridges available from the root, universal, and exact
+  barrels. Compact scales declare no production D3 dependency.
+- Verification: core, geo, polar, curve, compact-scale, and type-contract tests
+  pass. The independently structured tick helpers match `d3-array` across
+  fixed edge cases and 2,000 deterministic generated domains. Bundle
+  retained-input gates reject D3 geometry from ordinary root consumers and
+  every `d3-*` module plus `internmap` from compact consumers, while selected
+  transform, polar, geo, and curve features retain their owned D3
+  implementation.

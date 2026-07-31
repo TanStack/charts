@@ -15,12 +15,10 @@
     "LICENSE",
     "README.md"
   ],
-  "dependencies": {
-    "d3-array": "3.2.4"
-  },
   "devDependencies": {
     "@types/d3-array": "^3.2.2",
     "@types/d3-scale": "^4.0.9",
+    "d3-array": "3.2.4",
     "d3-scale": "4.0.2"
   },
   "exports": {

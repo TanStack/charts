@@ -55,4 +55,20 @@ describe('public package exports', () => {
     expect(tooltipModule.tooltip.id).toBe('tooltip')
     expect(portalModule.portal.id).toBe('portal')
   })
+
+  it('keeps D3 curve bridges available from barrels and exact subpaths', async () => {
+    const [root, universal, shape, areaX] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/universal'),
+      import('@tanstack/charts/d3/shape'),
+      import('@tanstack/charts/d3/area-x'),
+    ])
+
+    expect(root).toHaveProperty('d3Curve')
+    expect(root).toHaveProperty('d3AreaXCurve')
+    expect(universal).toHaveProperty('d3Curve')
+    expect(universal).toHaveProperty('d3AreaXCurve')
+    expect(shape).toHaveProperty('d3Curve')
+    expect(areaX).toHaveProperty('d3AreaXCurve')
+  })
 })
