@@ -36,8 +36,14 @@ Pull-request CI runs the cached Nx target graph, the locked comparison bundle
 gate, and these uncached browser matrices in parallel:
 
 - four chart-library comparison shards;
-- eight conformance shards;
 - four stress-workload shards.
+
+Conformance runs as regression monitoring outside normal validation. One
+deterministically rotated standard shard runs nightly, all eight standard
+shards run weekly, and a manual run can select all shards or reproduce one
+exact shard. Add the `full-conformance` label to a risky pull request to run
+the complete standard matrix against that pull request; later commits rerun
+it while the label remains.
 
 Browser measurements and the revision-stamped catalog artifact are not cached
 because their results depend on the browser environment or exact Git commit.
@@ -87,9 +93,10 @@ Every push to `main` starts the release workflow:
    attestations, the workflow creates one annotated `vX.Y.Z` tag and GitHub
    release from the root changelog.
 
-The complete chart, browser, and catalog workflow still runs on `main`, but it
-is independent from npm publication. User-visible package work must pass that
-workflow in its feature pull request before merging.
+The chart comparison, stress, and catalog workflow still runs on `main`, but
+it is independent from npm publication. Scheduled conformance monitoring is
+also independent from release and catalog publication. User-visible package
+work must pass normal validation in its feature pull request before merging.
 
 Never move or reuse a release tag. If publishing succeeds but tag or GitHub
 release creation fails, rerun the failed `Release` workflow; its registry
