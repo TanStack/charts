@@ -56,16 +56,18 @@ const definition = () => {
     ],
     x: {
       scale: scaleUtc,
-      ticks: 7,
-      format: (date) => `${date.getUTCFullYear()}`,
-      label: 'Year',
+      axis: {
+        ticks: { count: 7, format: (date) => `${date.getUTCFullYear()}` },
+        label: 'Year',
+      },
     },
     y: {
       scale: scaleLinear().domain([5.2, 0.8]),
-      ticks: 5,
-      format: (value) => `#${value}`,
       grid: true,
-      label: 'Rank',
+      axis: {
+        ticks: { count: 5, format: (value) => `#${value}` },
+        label: 'Rank',
+      },
     },
     color: {
       domain: includedIndustries,

@@ -30,7 +30,7 @@ describe('optional export', () => {
     expect(result).toContain('width="480"')
     expect(result).toContain('height="260"')
     expect(result).toContain('aria-label="Exported chart"')
-    expect(result).not.toContain('data-ts-chart-focus')
+    expect(result).not.toContain('data-ts-focus-layer')
   })
 
   it('inlines computed presentation for gradient stops', () => {
@@ -88,7 +88,7 @@ describe('optional export', () => {
   it('exports Canvas scene and optional focus layers through the raster API', async () => {
     const container = document.createElement('div')
     container.innerHTML =
-      '<div class="ts-chart ts-chart-canvas" data-ts-chart-width="400" data-ts-chart-height="200" data-ts-chart-pixel-ratio="2"><canvas class="ts-chart-canvas__scene" width="800" height="400"></canvas><canvas class="ts-chart-canvas__focus" width="800" height="400"></canvas></div>'
+      '<div class="ts-chart ts-chart-canvas" data-ts-chart-width="400" data-ts-chart-height="200" data-ts-chart-pixel-ratio="2"><canvas class="ts-chart-canvas__focus-under" width="800" height="400"></canvas><canvas class="ts-chart-canvas__scene" width="800" height="400"></canvas><canvas class="ts-chart-canvas__focus" width="800" height="400"></canvas></div>'
     const drawImage = vi.fn()
     let output: HTMLCanvasElement | undefined
     const getContext = vi
@@ -115,11 +115,14 @@ describe('optional export', () => {
     expect(blob.type).toBe('image/png')
     expect(output?.width).toBe(600)
     expect(output?.height).toBe(300)
-    expect(drawImage).toHaveBeenCalledTimes(2)
+    expect(drawImage).toHaveBeenCalledTimes(3)
     expect(drawImage.mock.calls[0]?.[0]).toBe(
-      container.querySelector('.ts-chart-canvas__scene'),
+      container.querySelector('.ts-chart-canvas__focus-under'),
     )
     expect(drawImage.mock.calls[1]?.[0]).toBe(
+      container.querySelector('.ts-chart-canvas__scene'),
+    )
+    expect(drawImage.mock.calls[2]?.[0]).toBe(
       container.querySelector('.ts-chart-canvas__focus'),
     )
     getContext.mockRestore()

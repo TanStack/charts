@@ -31,6 +31,39 @@ The default focus strategy resolves one nearest point in two dimensions.
 `maxFocusDistance` defaults to 48 scene pixels. Empty space farther from any
 point clears transient focus.
 
+## Focus presentation
+
+The default focus marker is an implicit focus-filtered mark. Replace it by
+filtering any ordinary mark with `whenFocused`:
+
+```ts
+import { bandX, whenFocused } from '@tanstack/charts'
+
+const definition = defineChart({
+  focus: 'group-x',
+  marks: [
+    whenFocused(
+      bandX(rows, {
+        x: 'date',
+        fill: '#64748b',
+        fillOpacity: 0.14,
+        inset: -6,
+      }),
+      { match: 'x' },
+    ),
+    lineY(rows, { x: 'date', y: 'value', color: 'series' }),
+  ],
+})
+```
+
+The mark before the line paints below it; moving it after the line paints
+above it. Focus marks contribute channels to scale inference but do not add hit
+targets. Their scene nodes update from the centralized focus state without
+rebuilding the scene or repainting base Canvas geometry.
+
+`match` accepts `primary`, `group`, `key`, `x`, `y`, or `series`. The same
+focused group drives tooltips and every filtered mark.
+
 ## Axis focus modes
 
 | Mode        | Result                                     |
@@ -180,23 +213,39 @@ const definition = defineChart({
 })
 ```
 
+Axis coordinates can be selected independently. This keeps a grouped tooltip
+centered over the plot while fixing it to the top edge:
+
+```ts
+const tooltip = {
+  anchor: { x: 'plot-center', y: 'plot-top' },
+  placement: 'bottom',
+}
+```
+
+X accepts `point`, `pointer`, `value`, `group-center`, `plot-left`,
+`plot-center`, and `plot-right`. Y accepts `point`, `pointer`, `value`,
+`group-center`, `plot-top`, `plot-center`, and `plot-bottom`. Pointer
+coordinates fall back to the focused value for keyboard focus.
+
 A custom resolver covers event ranges, maps, and application-specific
 reference positions:
 
 ```ts
 const tooltip = {
-  anchor: (_points, { chart }) => ({
-    x: chart.x + chart.width,
-    y: chart.y,
+  anchor: (_points, { focus, pointer, plot, surface, scales }) => ({
+    x: plot.x + plot.width,
+    y: plot.y,
   }),
   placement: 'bottom-left',
 }
 ```
 
-Resolvers and placement use scene pixels. A nullish or non-finite custom
-anchor falls back to the primary point. A placement list uses the first fit,
-then the least-overflowing candidate. Every result shifts inside the chart
-surface.
+The callback receives the complete focus state, current pointer or `null`,
+plot bounds, surface size, and resolved scales. Resolvers and placement use
+scene pixels. A nullish or non-finite custom anchor falls back to the primary
+point. A placement list uses the first fit, then the least-overflowing
+candidate. Every result shifts inside the chart surface.
 
 ## Escaping clipped containers
 

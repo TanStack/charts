@@ -16,6 +16,7 @@ selection, or product record.
 | Reader task                                                  | Start with                                     |
 | ------------------------------------------------------------ | ---------------------------------------------- |
 | Inspect one point or a same-x group                          | Native chart focus and tooltip                 |
+| Paint a band, rule, or mark only for the active datum/group  | `whenFocused` around an ordinary mark          |
 | Keep rich framework detail open, including another chart     | Pinned composed tooltip body                   |
 | Navigate a wide schedule without changing its semantic scale | Native horizontal scrolling                    |
 | Crop and pan a continuous domain                             | Controlled zoom and viewport state             |

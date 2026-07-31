@@ -344,6 +344,10 @@ function ruleStrokes(nodes: readonly SceneNode[]): (string | undefined)[] {
 
 function flatten(nodes: readonly SceneNode[]): SceneNode[] {
   return nodes.flatMap((node) =>
-    node.kind === 'group' ? [node, ...flatten(node.children)] : [node],
+    node.kind === 'group'
+      ? node.focus
+        ? [node]
+        : [node, ...flatten(node.children)]
+      : [node],
   )
 }

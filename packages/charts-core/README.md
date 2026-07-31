@@ -69,8 +69,8 @@ const downloads = defineChart({
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Weekly downloads',
     grid: true,
+    axis: { label: 'Weekly downloads' },
   },
   color: {
     scale: () =>
@@ -198,7 +198,7 @@ const chart = defineChart({
   x: {
     scale: scaleLinear,
     nice: true,
-    label: 'Weekly downloads',
+    axis: { label: 'Weekly downloads' },
   },
   y: {
     scale: () => scaleBand<string>().padding(0.1),

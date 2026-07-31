@@ -112,7 +112,7 @@ describe('Octane Canvas adapter client', () => {
     }
     const context = onRender.mock.calls.at(-1)?.[0]
     expect(context?.surface.element).toBe(surface)
-    expect(target.querySelectorAll('canvas')).toHaveLength(2)
+    expect(target.querySelectorAll('canvas')).toHaveLength(3)
     expect(target.querySelector('svg')).toBeNull()
 
     vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({

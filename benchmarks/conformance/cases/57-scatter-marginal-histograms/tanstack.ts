@@ -69,14 +69,15 @@ const definition = (input: ConformanceInput) => {
     x: {
       scale: scaleLinear().domain([170, 245]),
       grid: true,
-      format: visibleFlipperTick,
-      label: 'Flipper length (mm)',
+      axis: {
+        ticks: { format: visibleFlipperTick },
+        label: 'Flipper length (mm)',
+      },
     },
     y: {
       scale: scaleLinear().domain([2500, 7000]),
       grid: true,
-      format: visibleMassTick,
-      label: 'Body mass (g)',
+      axis: { ticks: { format: visibleMassTick }, label: 'Body mass (g)' },
     },
     color: {
       range: colors,

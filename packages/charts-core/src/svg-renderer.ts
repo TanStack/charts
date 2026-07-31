@@ -45,7 +45,7 @@ export function renderChartSvgWithHooks(
           idPrefix,
         )
 
-  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}" style="display:block;overflow:visible">${description}${definitions}${background}${scene.nodes.map((node) => renderNode(node, hooks, idPrefix)).join('')}<circle data-ts-chart-focus="" visibility="hidden" r="5" fill="var(--ts-chart-focus-fill, Canvas)" stroke-width="2.5" vector-effect="non-scaling-stroke" pointer-events="none" aria-hidden="true"/></svg>`
+  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}" style="display:block;overflow:visible">${description}${definitions}${background}${scene.nodes.map((node) => renderNode(node, hooks, idPrefix)).join('')}</svg>`
 }
 
 function renderNode(
@@ -62,7 +62,10 @@ function renderNode(
           ? ''
           : ` transform="translate(${number(node.translateX ?? 0)} ${number(node.translateY ?? 0)})"`
       const extension = hooks?.renderGroup?.(node, idPrefix)
-      return `<g${common}${transform}${extension?.attributes ?? ''}>${extension?.content ?? ''}${node.children.map((child) => renderNode(child, hooks, idPrefix)).join('')}</g>`
+      const focus = node.focus
+        ? ` data-ts-focus-layer="${node.focus.placement}" visibility="hidden"`
+        : ''
+      return `<g${common}${transform}${focus}${extension?.attributes ?? ''}>${extension?.content ?? ''}${node.children.map((child) => renderNode(child, hooks, idPrefix)).join('')}</g>`
     }
     case 'rule':
       return `<line${common} x1="${number(node.x1)}" y1="${number(node.y1)}" x2="${number(node.x2)}" y2="${number(node.y2)}"/>`

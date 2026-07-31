@@ -40,7 +40,7 @@ const definition = () =>
     y: {
       scale: scaleLinear().domain([0, 100]),
       grid: true,
-      label: 'Relative performance within sample',
+      axis: { label: 'Relative performance within sample' },
     },
     color: {
       range: colors,

@@ -73,12 +73,12 @@ const definition = (input: ConformanceInput) => {
     x: {
       scale: scaleLinear().domain([30, 62]),
       grid: true,
-      label: 'Bill length (mm)',
+      axis: { label: 'Bill length (mm)' },
     },
     y: {
       scale: scaleLinear().domain([12, 23]),
       grid: true,
-      label: 'Bill depth (mm)',
+      axis: { label: 'Bill depth (mm)' },
     },
     color: {
       scale: scaleSequential,

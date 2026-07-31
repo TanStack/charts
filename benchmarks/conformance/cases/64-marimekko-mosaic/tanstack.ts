@@ -31,13 +31,11 @@ const definition = () => {
     ],
     x: {
       scale: scaleLinear().domain([0, 1]),
-      format: percent,
-      label: 'Share of responses',
+      axis: { ticks: { format: percent }, label: 'Share of responses' },
     },
     y: {
       scale: scaleLinear().domain([0, 1.12]),
-      format: percent,
-      label: 'Within-question share',
+      axis: { ticks: { format: percent }, label: 'Within-question share' },
     },
     color: {
       domain: mosaicResponses,

@@ -26,7 +26,11 @@ export function resolveConfiguredScale<TValue extends ChartValue>(
     : naturalRange
   scale.range(range)
   const domain = scale.domain()
-  const tickValues = scale.ticks?.(context.tickCount) ?? domain
+  const tickOptions =
+    context.options?.axis === false ? undefined : context.options?.axis?.ticks
+  const configuredTicks = tickOptions === false ? undefined : tickOptions
+  const tickValues =
+    configuredTicks?.values ?? scale.ticks?.(context.tickCount) ?? domain
   const tickFormat = scale.tickFormat?.(context.tickCount)
   const bandwidth = scale.bandwidth?.() ?? 0
   const map = (value: unknown) => {
@@ -43,7 +47,7 @@ export function resolveConfiguredScale<TValue extends ChartValue>(
       value,
       position: map(value),
       label:
-        context.options?.format?.(value) ??
+        configuredTicks?.format?.(value) ??
         tickFormat?.(value) ??
         formatValue(value),
     })),

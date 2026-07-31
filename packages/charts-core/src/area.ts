@@ -8,6 +8,7 @@ import {
   visualValue,
 } from './mark'
 import { valueKey } from './scales'
+import { stackExtents, stackOptions } from './stack-internal'
 import type {
   Channel,
   ChartKey,
@@ -55,17 +56,13 @@ export function areaY<TDatum>(
   return createMark(({ markIndex }) => {
     const id = options.id ?? `area-y-${markIndex}`
     const xValues = channelValues(data, options.x, (_datum, index) => index)
-    const y2 = options.y2 ?? options.y
-    const yValues =
-      typeof y2 === 'number'
-        ? data.map(() => y2)
-        : channelValues(data, y2, (datum) =>
+    const rawY = options.y ?? options.y2
+    const rawYValues =
+      typeof rawY === 'number'
+        ? data.map(() => rawY)
+        : channelValues(data, rawY, (datum) =>
             typeof datum === 'number' ? datum : undefined,
           )
-    const y1Values =
-      typeof options.y1 === 'number'
-        ? data.map(() => options.y1 as number)
-        : channelValues(data, options.y1, () => 0)
     const zValues = channelValues(data, options.z, () => null)
     const colorValues =
       options.color === undefined
@@ -75,6 +72,20 @@ export function areaY<TDatum>(
       options.z === undefined && options.color !== undefined
         ? colorValues
         : zValues
+    const explicitExtent = options.y1 !== undefined || options.y2 !== undefined
+    const stacked = explicitExtent
+      ? undefined
+      : stackAreaValues(xValues, rawYValues, groupValues, options)
+    const y1Values = explicitExtent
+      ? typeof options.y1 === 'number'
+        ? data.map(() => options.y1 as number)
+        : channelValues(data, options.y1, () => 0)
+      : stacked!.starts
+    const y2Values = explicitExtent
+      ? typeof options.y2 === 'number'
+        ? data.map(() => options.y2 as number)
+        : channelValues(data, options.y2 ?? options.y, () => undefined)
+      : stacked!.ends
     const keys = inferredKeyValues(data, options.key, {
       groups: groupValues,
       candidates: [xValues],
@@ -91,12 +102,13 @@ export function areaY<TDatum>(
 
     return {
       id,
+      seriesFromColor: options.z === undefined && options.color !== undefined,
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
         y: {
           scale: 'y',
           values: [
-            ...yValues.filter(isFiniteNumber),
+            ...y2Values.filter(isFiniteNumber),
             ...y1Values.filter(isFiniteNumber),
           ],
           includeZero: options.y1 === undefined,
@@ -160,18 +172,20 @@ export function areaY<TDatum>(
 
           for (const datumIndex of indices) {
             const xValue = xValues[datumIndex]
-            const yValue = yValues[datumIndex]
+            const yValue = rawYValues[datumIndex]
             const y1Value = y1Values[datumIndex]
+            const y2Value = y2Values[datumIndex]
             if (
               !isChartValue(xValue) ||
               !isFiniteNumber(yValue) ||
-              !isFiniteNumber(y1Value)
+              !isFiniteNumber(y1Value) ||
+              !isFiniteNumber(y2Value)
             ) {
               flush()
               continue
             }
             const x = scales.x.map(xValue)
-            const y = scales.y.map(yValue)
+            const y = scales.y.map(y2Value)
             top.push([x, y])
             bottom.push([x, scales.y.map(y1Value)])
             const key = `${id}:${groupKey}:${valueKey(keys[datumIndex])}`
@@ -185,7 +199,7 @@ export function areaY<TDatum>(
               xValue,
               yValue,
               y1Value,
-              y2Value: yValue,
+              y2Value,
               yInterval: 'difference',
               x,
               y,
@@ -210,4 +224,39 @@ export function areaY<TDatum>(
       },
     }
   })
+}
+
+function stackAreaValues(
+  positions: readonly unknown[],
+  values: readonly unknown[],
+  series: readonly unknown[],
+  options: object,
+) {
+  const input = positions.flatMap((position, index) => {
+    const value = values[index]
+    if (!isChartValue(position) || !isFiniteNumber(value)) return []
+    const seriesValue = series[index]
+    return [
+      {
+        index,
+        position,
+        value,
+        series: isChartKey(seriesValue) ? seriesValue : 'value',
+      },
+    ]
+  })
+  const extents = stackExtents(input, stackOptions(options))
+  const starts: (number | undefined)[] = Array.from(
+    { length: positions.length },
+    () => undefined,
+  )
+  const ends: (number | undefined)[] = Array.from(
+    { length: positions.length },
+    () => undefined,
+  )
+  for (const [index, extent] of extents) {
+    starts[index] = extent.start
+    ends[index] = extent.end
+  }
+  return { starts, ends }
 }

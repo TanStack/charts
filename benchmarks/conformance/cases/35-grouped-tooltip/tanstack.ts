@@ -32,7 +32,7 @@ const definition = (input: ConformanceInput) => {
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Unemployed (thousands)',
+      axis: { label: 'Unemployed (thousands)' },
     },
     color: {
       domain: industryNames,

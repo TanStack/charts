@@ -68,14 +68,15 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: brushScale,
-      format: (value) => brushMonthFormatter.format(value),
-      label: 'Month',
+      axis: {
+        ticks: { format: (value) => brushMonthFormatter.format(value) },
+        label: 'Month',
+      },
     },
     y: {
       scale: scaleLinear,
-      ticks: 4,
       grid: true,
-      label: 'AAPL close ($)',
+      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
     },
     margin: { top: 52, right: 24, bottom: 44, left: 58 },
   })

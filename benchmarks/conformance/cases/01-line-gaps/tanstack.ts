@@ -16,15 +16,8 @@ const definition = (input: ConformanceInput) => {
         strokeWidth: 2.25,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Week',
-    },
-    y: {
-      scale: scaleLinear,
-      label: 'Close (USD)',
-      grid: true,
-    },
+    x: { scale: scaleUtc, axis: { label: 'Week' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Close (USD)' } },
   })
 }
 

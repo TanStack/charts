@@ -34,16 +34,8 @@ const definition = (input: ConformanceInput) => {
         strokeWidth: 0.75,
       }),
     ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Bill length (mm)',
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Bill depth (mm)',
-    },
+    x: { scale: scaleLinear, grid: true, axis: { label: 'Bill length (mm)' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Bill depth (mm)' } },
     color: {
       range: groupRange,
       legend: colorLegend({ label: 'Species' }),

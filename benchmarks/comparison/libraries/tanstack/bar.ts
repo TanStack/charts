@@ -38,8 +38,8 @@ const definition = (input: BenchmarkInput) =>
       },
       y: {
         scale: scaleLinear().domain([0, BENCHMARK_ADVANCED ? 200 : 100]),
-        ticks: 5,
         grid: true,
+        axis: { ticks: { count: 5 } },
       },
       color: BENCHMARK_INTERACTIVE
         ? {

@@ -23,16 +23,8 @@ const definition = (input: ConformanceInput) => {
         fillOpacity: 0.72,
       }),
     ],
-    x: {
-      scale: scaleLinear,
-      ticks: 6,
-      grid: true,
-    },
-    y: {
-      scale: scaleLinear,
-      ticks: 6,
-      grid: true,
-    },
+    x: { scale: scaleLinear, grid: true, axis: { ticks: { count: 6 } } },
+    y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 6 } } },
     color: {
       range: colors,
     },

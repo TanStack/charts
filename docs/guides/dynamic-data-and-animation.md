@@ -27,7 +27,7 @@ function RankingChart({ rows, metric, accent }: Props) {
         x: {
           scale: scaleLinear,
           nice: true,
-          ticks: width < 420 ? 4 : 7,
+          axis: { ticks: { count: width < 420 ? 4 : 7 } },
         },
         y: {
           scale: () => scaleBand<string>().padding(0.1),

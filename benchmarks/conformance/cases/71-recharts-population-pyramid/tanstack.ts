@@ -26,10 +26,14 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: scaleLinear().domain([-80, 80]),
-      ticks: 5,
-      format: (value) => Math.abs(value).toLocaleString('en-US'),
-      label: 'Penguins observed',
       grid: true,
+      axis: {
+        ticks: {
+          count: 5,
+          format: (value) => Math.abs(value).toLocaleString('en-US'),
+        },
+        label: 'Penguins observed',
+      },
     },
     y: {
       scale: () => scaleBand<string>().paddingInner(0.02).paddingOuter(0.01),

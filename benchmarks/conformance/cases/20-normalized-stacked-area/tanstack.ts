@@ -46,15 +46,11 @@ const definition = (_input: ConformanceInput) => {
       }),
       ruleY([0]),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Month',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Month' } },
     y: {
       scale: scaleLinear().domain([0, 1]),
       grid: true,
-      label: 'Share of unemployment',
-      format: percent,
+      axis: { ticks: { format: percent }, label: 'Share of unemployment' },
     },
     color: {
       range: colors,

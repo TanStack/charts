@@ -62,7 +62,7 @@ const definition = defineChart({
     y: {
       scale: scaleLinear,
       nice: true,
-      ticks: width < 480 ? 4 : 7,
+      axis: { ticks: { count: width < 480 ? 4 : 7 } },
       grid: true,
     },
   }),
@@ -109,7 +109,7 @@ const definition = useMemo(() => {
     x: {
       scale: scaleLinear,
       nice: true,
-      ticks: width < 480 ? 4 : 7,
+      axis: { ticks: { count: width < 480 ? 4 : 7 } },
     },
     y: {
       scale: () => scaleBand().padding(0.1),

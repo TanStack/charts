@@ -9,7 +9,7 @@ undefined, invalid, or nonfinite create gaps instead of connecting across
 missing data.
 
 ```ts
-import { areaX, areaY, defineChart, lineY } from '@tanstack/charts'
+import { areaX, areaY, defineChart, lineY, stackY } from '@tanstack/charts'
 ```
 
 ## `lineY`
@@ -86,9 +86,9 @@ function areaY<TDatum>(
 | ------------- | ------------------------------------ | ------------------------------ | -------------------------------------------------------------- |
 | `id`          | `string`                             | Layer-derived                  | Stable mark ID                                                 |
 | `x`           | `Channel<TDatum, ChartValue?>`       | Row index                      | Shared horizontal position                                     |
-| `y`           | `Channel<TDatum, number?>`           | Numeric datum                  | Upper value when `y2` is absent                                |
-| `y1`          | `number \| Channel<TDatum, number?>` | `0`                            | Lower baseline                                                 |
-| `y2`          | `number \| Channel<TDatum, number?>` | `y`                            | Upper value; takes precedence over `y`                         |
+| `y`           | `Channel<TDatum, number?>`           | Numeric datum                  | Layer thickness; implicitly stacked at each x                  |
+| `y1`          | `number \| Channel<TDatum, number?>` | Implicit stack start           | Explicit lower boundary                                        |
+| `y2`          | `number \| Channel<TDatum, number?>` | Implicit stack end             | Explicit upper boundary; takes precedence over y               |
 | `z`           | `Channel<TDatum, ChartKey?>`         | No explicit group              | Area grouping; overrides color grouping                        |
 | `color`       | `Channel<TDatum, ChartKey?>`         | `z`                            | Color-scale value; groups when `z` is absent                   |
 | `key`         | `Channel<TDatum, ChartKey>`          | Top/nested `id`, x, then index | Stable interaction identity                                    |
@@ -98,9 +98,11 @@ function areaY<TDatum>(
 | `strokeWidth` | `number`                             | SVG default                    | Boundary stroke width                                          |
 | `curve`       | `ChartCurve`                         | Straight segments              | Optional path generator                                        |
 
-When `y1` is omitted, the y channel materialization carries an `includeZero`
-hint. The caller still owns the scale domain. Explicit `y1`, including a
-constant, removes that hint.
+Without explicit endpoints, repeated x positions stack by series. `z` defines
+series; a discrete `color` channel may infer it when `z` is absent. Use
+`stackY(options, channels)` for explicit order, reversal, normalization,
+centering, or wiggle offset. Supplying `y1` or `y2` opts out and preserves
+authored interval boundaries.
 
 Input order and null-gap behavior match `lineY`. Each valid row emits one point
 at the upper `y2`/`y` value, not at the lower baseline.

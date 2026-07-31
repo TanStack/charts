@@ -35,8 +35,11 @@ export function serializeChartSvg(
   const clone = svg.cloneNode(true) as SVGSVGElement
   inlinePresentation(svg, clone)
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-  if (!options.includeFocus)
-    clone.querySelector('[data-ts-chart-focus]')?.remove()
+  if (!options.includeFocus) {
+    clone
+      .querySelectorAll('[data-ts-focus-layer]')
+      .forEach((layer) => layer.remove())
+  }
   const dimensions = svgDimensions(svg)
   const width = options.width ?? (dimensions.width || svg.clientWidth)
   const height = options.height ?? (dimensions.height || svg.clientHeight)
@@ -110,10 +113,16 @@ export async function renderChartImage(
       view.URL.revokeObjectURL(url)
     }
   } else {
+    const focusUnder = canvasSurface!.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__focus-under',
+    )
     const scene = canvasSurface!.querySelector<HTMLCanvasElement>(
       '.ts-chart-canvas__scene',
     )
     if (!scene) throw new Error('Expected a Canvas chart scene layer')
+    if (options.includeFocus && focusUnder) {
+      context.drawImage(focusUnder, 0, 0, width, height)
+    }
     context.drawImage(scene, 0, 0, width, height)
     if (options.includeFocus) {
       const focus = canvasSurface!.querySelector<HTMLCanvasElement>(

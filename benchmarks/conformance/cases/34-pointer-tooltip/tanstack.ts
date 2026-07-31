@@ -27,11 +27,7 @@ const definition = (input: ConformanceInput) => {
       }),
     ],
     x: { scale: scaleUtc },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Apple close (USD)',
-    },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Apple close (USD)' } },
   })
 }
 

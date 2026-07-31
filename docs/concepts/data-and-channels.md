@@ -89,9 +89,9 @@ also supplies that path grouping. When both are present, `z` wins for geometry
 and interaction grouping while `color` remains an independent color-scale
 value. Omitting `color` reuses `z` for color.
 
-On bars, neither channel implicitly invents grouped-bar geometry. Supply a D3
-`groupScale` when multiple bars must occupy sub-bands within one category.
-The scale uses `z` when present, otherwise `color`. See
+Bars stack their length channel by default. Use `layout: group()` when multiple
+bars must occupy sub-bands within one category. Grouping uses `z` when present,
+otherwise a discrete `color` channel may infer series identity. See
 [Bars and Rankings](../examples/bars-and-rankings.md).
 
 ## Color channels and constants
@@ -365,13 +365,13 @@ const bubbleChart = defineChart({
   ],
   x: {
     scale: scaleLinear,
-    label: 'Bill length (mm)',
     grid: true,
+    axis: { label: 'Bill length (mm)' },
   },
   y: {
     scale: scaleLinear,
-    label: 'Bill depth (mm)',
     grid: true,
+    axis: { label: 'Bill depth (mm)' },
   },
   color: {
     scale: scaleOrdinal(species, ['#2563eb', '#f97316', '#10b981']),

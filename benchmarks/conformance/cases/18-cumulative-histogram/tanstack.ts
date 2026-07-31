@@ -51,16 +51,8 @@ const definition = (input: ConformanceInput) => {
         inset: 1,
       }),
     ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Weight (kg)',
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Cumulative count',
-    },
+    x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (kg)' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Cumulative count' } },
   })
 }
 

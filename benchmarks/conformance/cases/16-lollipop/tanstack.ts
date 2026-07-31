@@ -33,8 +33,10 @@ const definition = (_input: ConformanceInput) => {
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Frequency',
-      format: (value) => percent.format(value),
+      axis: {
+        ticks: { format: (value) => percent.format(value) },
+        label: 'Frequency',
+      },
     },
   })
 }

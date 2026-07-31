@@ -96,14 +96,14 @@ const horizontalThresholds = defineChart({
 })
 ```
 
-`guide: false` hides an axis but does not remove its scale. Scene compilation
+`axis: false` hides an axis but does not remove its scale. Scene compilation
 still guards untyped consumers that omit or null an axis used by a mark.
 
 ## Guides and margins
 
 Guide visibility and geometry are separate:
 
-- `x.guide: false` or `y.guide: false` hides one guide.
+- `x.axis: false` or `y.axis: false` hides one axis.
 - `guides: false` hides all guides and removes their implicit margin.
 - Omitted `margin` sides are measured from ticks, rotation, titles, edge
   overhang, color legends, and Cartesian `text` marks.

@@ -36,15 +36,11 @@ const definition = () => {
         headLength: 8,
       }),
     ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Log₁₀ population',
-    },
+    x: { scale: scaleLinear, grid: true, axis: { label: 'Log₁₀ population' } },
     y: {
       scale: scaleLinear,
       grid: true,
-      label: '90th-to-10th-percentile wage ratio',
+      axis: { label: '90th-to-10th-percentile wage ratio' },
     },
   })
 }

@@ -67,15 +67,11 @@ const definition = (input: ConformanceInput) => {
         strokeWidth: 2,
       }),
     ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Power (hp)',
-    },
+    x: { scale: scaleLinear, grid: true, axis: { label: 'Power (hp)' } },
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Fuel economy (mpg)',
+      axis: { label: 'Fuel economy (mpg)' },
     },
   })
 }

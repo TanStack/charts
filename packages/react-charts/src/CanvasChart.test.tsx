@@ -228,7 +228,7 @@ describe('React Canvas adapter', () => {
     })
 
     expect(target.querySelector('.ts-chart-canvas')).not.toBeNull()
-    expect(target.querySelectorAll('canvas')).toHaveLength(2)
+    expect(target.querySelectorAll('canvas')).toHaveLength(3)
     expect(target.querySelector('svg')).toBeNull()
 
     await act(async () => root.unmount())

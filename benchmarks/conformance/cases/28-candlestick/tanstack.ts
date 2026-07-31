@@ -48,11 +48,7 @@ const definition = (input: ConformanceInput) => {
       }),
     ],
     x: { scale: scaleUtc },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Price',
-    },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Price' } },
   })
 }
 

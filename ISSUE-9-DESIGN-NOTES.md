@@ -1,0 +1,448 @@
+# Issue #9 design decisions
+
+Source: https://github.com/TanStack/charts/issues/9
+
+This is the working decision log for reviewing the issue sequentially. Update
+it after each feedback item is settled. It records API direction, not an
+implementation plan or compatibility promise.
+
+## Review status
+
+1. Background highlight and focused-mark presentation — implemented
+2. Gridlines without tick stubs — implemented
+3. Responsive axis labels — implemented
+4. Fixed tooltip placement — implemented
+5. Stacked and grouped bar authoring — implemented
+
+## 1. Focus presentation
+
+### Decision
+
+Model interaction presentation as ordinary marks filtered by one centralized
+chart focus state. Do not create a separate renderer primitive for every
+effect such as a point, band, rule, or active bar.
+
+Observable Plot's pointer render transform is the useful precedent: an
+interactive transform filters an ordinary mark to the active datum. TanStack
+should retain its stronger centralized focus resolution rather than letting
+each interactive mark resolve the pointer independently.
+
+A representative API is:
+
+```ts
+defineChart({
+  focus: 'group-x',
+  marks: [
+    whenFocused(
+      bandX(rows, {
+        x: 'date',
+        fill: '#94a3b8',
+        fillOpacity: 0.16,
+        inset: -6,
+      }),
+      {
+        match: 'x',
+      },
+    ),
+    barY(rows, {
+      x: 'date',
+      y: 'value',
+      color: 'category',
+    }),
+  ],
+})
+```
+
+The implementation follows this contract:
+
+- one `ChartFocusState` drives tooltips and every focus-filtered mark;
+- the state distinguishes the primary point, focused group, input source, and
+  pinned state;
+- filters can match the primary point, focused group, stable point key, shared
+  x value, shared y value, or group;
+- ordinary mark order controls whether an effect is before or after other
+  marks while axes retain their intended foreground placement;
+- full mark data is available for channel and scale inference while the focus
+  filter controls the rows rendered in the transient state;
+- the hardcoded focus circle becomes an implicit focus-filtered mark;
+- custom renderers receive complete interaction state rather than
+  `paintFocus(point, points)`;
+- SVG and Canvas must share the behavior without DOM mutation as the public
+  extension mechanism;
+- pointer updates must not rebuild the complete chart scene or repaint
+  unrelated base geometry.
+
+### Related work to preserve in the design
+
+- Controlled or programmatic focus for linked charts, legends, and tables.
+- Honest separation between semantic points, hit geometry, and presentation
+  geometry.
+- Keyboard, pointer, pinned, restored, and programmatic focus parity.
+- Deterministic composition, non-interactive effect nodes, and transient export
+  behavior.
+- Facets and non-Cartesian coordinate systems must be supported by the general
+  transform contract; Cartesian helpers can remain conveniences.
+
+Specialized helpers such as `focusBandX` can be built later as compositions of
+an ordinary mark and the focus filter. They should not define the core model.
+
+## 2. Axis and grid configuration
+
+### Decision
+
+Use the freedom to make breaking changes. Replace the current flat mixture of
+scale behavior and guide presentation with a nested axis model. Keep grid
+presentation independent from the axis.
+
+```ts
+y: {
+  scale: scaleLinear,
+  nice: true,
+  grid: true,
+  axis: {
+    line: true,
+    ticks: { count: 5, size: 0, padding: 4, format: formatCurrency },
+    tickLabels: { rotate: 0 },
+    label: {
+      text: 'Revenue',
+      offset: 'auto',
+    },
+  },
+}
+```
+
+The automatic-to-explicit range is:
+
+```ts
+// Inferred axis.
+y: { scale: scaleLinear }
+
+// Inferred axis plus grid.
+y: { scale: scaleLinear, grid: true }
+
+// Labels and grid without tick stubs.
+y: {
+  scale: scaleLinear,
+  grid: true,
+  axis: { ticks: { size: 0 } },
+}
+
+// Labels and grid without an axis baseline or tick stubs.
+y: {
+  scale: scaleLinear,
+  grid: true,
+  axis: {
+    line: false,
+    ticks: { size: 0 },
+  },
+}
+
+// Materialized scale without a visible axis.
+y: {
+  scale: scaleLinear,
+  axis: false,
+}
+```
+
+This replaces:
+
+- `guide` with `axis`;
+- `ticks` with `axis.ticks.count`;
+- `format` with `axis.ticks.format`;
+- `tickRotate` with `axis.tickLabels.rotate`;
+- `label` and `labelOffset` with `axis.label`;
+- the current coupling between `guide: false` and `grid`.
+
+`axis.ticks.size: 0` should omit tick-stub nodes. Tick padding and automatic
+guide margins must use the resolved tick size rather than preserving hidden
+four-pixel geometry.
+
+Do not add explicit `axisX()` or `gridY()` guide marks based only on this
+feedback. They introduce additional layout, duplication, positioning, and
+facet semantics without current task evidence.
+
+## 3. Responsive tick labels
+
+### Decision
+
+Separate semantic tick generation from label layout. Length-aware scales and
+axes choose candidate values first. Rotation and thinning then operate as
+orthogonal label policies, with thinning enabled by default as the final
+readability guarantee.
+
+```ts
+x: {
+  scale: scaleBand,
+  axis: {
+    ticks: {
+      spacing: 80,
+      size: 0,
+    },
+    tickLabels: {
+      rotate: -35,
+      thin: {
+        minGap: 8,
+        priority: 'ends',
+        keep: [launchDate],
+      },
+    },
+  },
+}
+```
+
+The resolution pipeline is:
+
+```text
+available axis length
+→ requested tick count
+→ scale-generated candidate values
+→ formatted and rotated label bounds
+→ collision thinning
+→ automatic guide margins
+```
+
+Candidate tick policies are mutually exclusive:
+
+```ts
+ticks: {
+  spacing: 80
+} // length-aware count
+ticks: {
+  count: 5
+} // explicit count hint
+ticks: {
+  values: importantDates
+} // exact candidates
+```
+
+The scale owns semantic candidates. A D3 scale may return a different number
+than requested to preserve meaningful numeric or calendar intervals. Band
+scales normally use their complete domain as the candidate set.
+
+Label policies are independent:
+
+```ts
+tickLabels: {} // horizontal and automatically thinned
+tickLabels: { rotate: -35 } // rotated and automatically thinned
+tickLabels: { thin: false } // every horizontal label
+tickLabels: { rotate: -35, thin: false } // every rotated label
+tickLabels: false // no labels
+```
+
+Automatic rotation is not a default. Rotation changes reading direction and
+chart height; authors opt into it. Thinning only prevents unreadable overlap
+and remains enabled unless explicitly disabled.
+
+Thinning supports both soft priority and hard retention:
+
+```ts
+tickLabels: {
+  thin: {
+    priority: 'ends',
+    keep: [launchDate, migrationDate],
+  },
+}
+```
+
+- `priority` influences the best collision-free subset.
+- `keep` guarantees that exact labels render.
+- Hard-kept labels are placed first and ordinary colliding labels are removed.
+- If hard-kept labels collide with each other, both remain because the author
+  explicitly required them.
+- Exact kept values are label-only by default; they do not implicitly add a
+  tick stub or gridline.
+
+For categorical x axes, first and last candidates receive soft priority by
+default. They are not hard-kept when the available length cannot fit both.
+
+Gridlines and tick stubs use the scale-generated candidates before label
+thinning. Hiding a label does not remove its stub or gridline. A shorter axis
+may still produce fewer gridlines when its length-aware scale generates fewer
+candidate ticks.
+
+Responsive scene layout iterates candidate resolution, label measurement,
+thinning, and margins until stable. It uses a conservative result if a
+threshold oscillates. Font loading and resize relayout may revise the visible
+subset without restarting mark animation.
+
+## 4. Tooltip anchoring along an axis
+
+### Decision
+
+Allow each tooltip anchor coordinate to select its source independently.
+Avoid combinatorial presets such as `group-top`, `pointer-top`, and
+`value-bottom`.
+
+```ts
+tooltip: {
+  anchor: {
+    x: 'value',
+    y: 'plot-top',
+  },
+  placement: 'bottom',
+  offset: 12,
+}
+```
+
+`x: 'value'` maps the primary focus point's semantic `xValue` through the
+resolved x scale. For dodged bars, this locates the outer category center
+rather than a subgroup center or an average that changes when a series is
+missing.
+
+Coordinate sources are axis-specific:
+
+```ts
+anchor: {
+  x:
+    | 'point'
+    | 'pointer'
+    | 'value'
+    | 'group-center'
+    | 'plot-left'
+    | 'plot-center'
+    | 'plot-right',
+  y:
+    | 'point'
+    | 'pointer'
+    | 'value'
+    | 'group-center'
+    | 'plot-top'
+    | 'plot-center'
+    | 'plot-bottom',
+}
+```
+
+Existing whole-anchor shorthands such as `point`, `pointer`, and
+`group-center` can expand to the corresponding x/y pair.
+
+The full callback remains available and receives complete interaction and
+geometry context:
+
+```ts
+anchor: (_points, { focus, pointer, plot, surface, scales }) => ({
+  x: scales.x.map(focus.primary.xValue),
+  y: plot.y,
+})
+```
+
+Use `plot` for inner plotting bounds rather than the current misleading
+`chart` context property. `surface` describes the complete rendered size.
+
+Fallbacks resolve per coordinate:
+
+- an unavailable pointer coordinate falls back to the primary point;
+- a non-finite semantic value mapping falls back to the primary point;
+- an empty group falls back to the primary point;
+- an invalid custom coordinate falls back to the primary point.
+
+## 5. Stacked and grouped mark authoring
+
+### Decision
+
+Treat stacking and grouping as different geometric capabilities. Series
+identity may be inferred from appearance after the geometry is known, but an
+appearance channel must not select the geometry.
+
+For stackable interval marks, a single value channel represents a length and
+is converted to endpoints by an implicit stack transform:
+
+```ts
+barY(rows, {
+  x: 'date',
+  y: 'value',
+  color: 'category',
+})
+```
+
+Explicit endpoints opt out:
+
+```ts
+barY(rows, {
+  x: 'date',
+  y1: 'start',
+  y2: 'end',
+  color: 'category',
+})
+```
+
+Stack behavior can be configured through a reusable transform:
+
+```ts
+barY(
+  rows,
+  stackY(
+    {
+      order: 'input',
+      offset: 'normalize',
+    },
+    {
+      x: 'date',
+      y: 'value',
+      color: 'category',
+    },
+  ),
+)
+```
+
+The semantics follow Observable Plot's coherent distinction: `y` is a length,
+while `y1` and `y2` are already resolved extents. `stackY` is shared by
+vertical bars and areas.
+
+Grouping remains an explicit geometric choice:
+
+```ts
+barY(rows, {
+  x: 'date',
+  y: 'value',
+  color: 'category',
+  layout: group(),
+})
+```
+
+The fully explicit form supplies series identity independently:
+
+```ts
+barY(rows, {
+  x: 'date',
+  y: 'value',
+  z: 'category',
+  color: 'category',
+  layout: group(),
+})
+```
+
+Series resolution obeys these rules:
+
+- explicit `z` wins;
+- otherwise, a discrete color channel may infer series identity once the
+  geometry is known;
+- a continuous color channel cannot infer series identity;
+- color alone never switches a mark between stacked and grouped geometry;
+- grouping without explicit or inferable series identity is a configuration
+  error.
+
+Therefore, supplying only `color` to a stackable interval mark produces
+colored stacked intervals. Authors expecting side-by-side intervals must
+request grouping explicitly.
+
+Do not expose one generic `layout` option on every mark. Capabilities follow
+mark semantics:
+
+- bars support implicit length-to-extent stacking and explicit grouping;
+- areas share the reusable stack transform;
+- lines use positional values and do not stack by default, although a
+  discrete stroke or color may infer the separate paths required to render
+  series;
+- dots, text, and rules overlap at repeated positions unless an explicit
+  displacement transform such as dodge or jitter is used;
+- cells and heatmaps use aggregation or binning rather than stacking;
+- arcs use a dedicated angular or pie transform.
+
+Computed geometry is part of the transform contract:
+
+- scale domains use computed extents;
+- labels and custom renderers can access endpoints and midpoints;
+- tooltips receive the original value and computed endpoints;
+- focus, legends, and interaction use the resolved series identity;
+- transformed points preserve their original datum;
+- types expose only the capabilities supported by each mark.

@@ -30,14 +30,11 @@ const definition = (_input: ConformanceInput) => {
         strokeDasharray: '4 4',
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Date',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Date' } },
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Fourteen-day average temperature (°F)',
+      axis: { label: 'Fourteen-day average temperature (°F)' },
     },
   })
 }

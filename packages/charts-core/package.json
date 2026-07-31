@@ -37,6 +37,7 @@
     "./area-x": "./src/area-x.ts",
     "./arrow": "./src/arrow.ts",
     "./bar": "./src/bar.ts",
+    "./band": "./src/band.ts",
     "./canvas": "./src/canvas.ts",
     "./d3/area-x": "./src/d3-area-x.ts",
     "./d3/shape": "./src/d3-shape.ts",
@@ -45,8 +46,10 @@
     "./export": "./src/export.ts",
     "./facet": "./src/facet.ts",
     "./focus": "./src/focus.ts",
+    "./focus/mark": "./src/focus-mark.ts",
     "./focus/disabled": "./src/focus-disabled.ts",
     "./frame": "./src/frame.ts",
+    "./group": "./src/group.ts",
     "./geo": "./src/geo.ts",
     "./hexagon": "./src/hexagon.ts",
     "./legend": "./src/legend.ts",
@@ -63,6 +66,7 @@
     "./svg": "./src/svg.ts",
     "./svg/renderer": "./src/svg-surface.ts",
     "./svg/resources": "./src/svg-resources.ts",
+    "./stack": "./src/stack.ts",
     "./text": "./src/text.ts",
     "./tick": "./src/tick.ts",
     "./vector": "./src/vector.ts"
@@ -99,6 +103,10 @@
         "types": "./dist/bar.d.ts",
         "import": "./dist/bar.js"
       },
+      "./band": {
+        "types": "./dist/band.d.ts",
+        "import": "./dist/band.js"
+      },
       "./canvas": {
         "types": "./dist/canvas.d.ts",
         "import": "./dist/canvas.js"
@@ -131,6 +139,10 @@
         "types": "./dist/focus.d.ts",
         "import": "./dist/focus.js"
       },
+      "./focus/mark": {
+        "types": "./dist/focus-mark.d.ts",
+        "import": "./dist/focus-mark.js"
+      },
       "./focus/disabled": {
         "types": "./dist/focus-disabled.d.ts",
         "import": "./dist/focus-disabled.js"
@@ -138,6 +150,10 @@
       "./frame": {
         "types": "./dist/frame.d.ts",
         "import": "./dist/frame.js"
+      },
+      "./group": {
+        "types": "./dist/group.d.ts",
+        "import": "./dist/group.js"
       },
       "./geo": {
         "types": "./dist/geo.d.ts",
@@ -202,6 +218,10 @@
       "./svg/resources": {
         "types": "./dist/svg-resources.d.ts",
         "import": "./dist/svg-resources.js"
+      },
+      "./stack": {
+        "types": "./dist/stack.d.ts",
+        "import": "./dist/stack.js"
       },
       "./text": {
         "types": "./dist/text.d.ts",

@@ -37,15 +37,19 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: scaleLinear().domain([4, 10]),
-      label: 'IMDb rating',
       grid: true,
+      axis: { label: 'IMDb rating' },
     },
     y: {
       scale: scaleLinear().domain([-0.08, 2.86]),
-      ticks: seasons.length,
-      format: (value) => {
-        const season = seasons[Math.round(value)]
-        return season === undefined ? '' : `Season ${season}`
+      axis: {
+        ticks: {
+          count: seasons.length,
+          format: (value) => {
+            const season = seasons[Math.round(value)]
+            return season === undefined ? '' : `Season ${season}`
+          },
+        },
       },
     },
     color: {

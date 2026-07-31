@@ -8,6 +8,7 @@ import type {
   ChartScene,
   ChartSurface,
   ChartSurfaceRenderOptions,
+  ChartTooltipAnchorContext,
 } from './types'
 
 interface Datum {
@@ -88,7 +89,11 @@ describe('renderer-neutral chart host', () => {
       45,
     )
     expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[0])
-    expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.datum).toBe(data[0])
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.datum).toBe(data[0])
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      source: 'pointer',
+      pinned: false,
+    })
     expect(
       container.querySelector<HTMLElement>('.ts-chart-tooltip')?.hidden,
     ).toBe(false)
@@ -122,6 +127,10 @@ describe('renderer-neutral chart host', () => {
       new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
     )
     expect(onSelect.mock.calls.at(-1)?.[0]?.datum).toBe(data[1])
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      source: 'keyboard',
+      pinned: true,
+    })
 
     host.destroy()
     host.destroy()
@@ -198,6 +207,78 @@ describe('renderer-neutral chart host', () => {
       new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }),
     )
     expect(pointers.at(-1)).toBeNull()
+    host.destroy()
+  })
+
+  it('resolves tooltip coordinates independently and exposes complete anchor context', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    let anchorContext:
+      ChartTooltipAnchorContext<Datum, number, number> | undefined
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: {
+          anchor: { x: 'plot-center', y: 'plot-top' },
+          placement: 'bottom',
+          offset: 12,
+        },
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Axis-anchored tooltip',
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+    if (!tooltip) throw new Error('Expected chart tooltip')
+    expect(tooltip.style.left).toBe('240px')
+    expect(tooltip.style.top).toBe('12px')
+
+    host.update({
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: {
+          anchor(points, context) {
+            anchorContext = context
+            return {
+              x: context.scales.x.map(points[0]!.xValue),
+              y: context.plot.y,
+            }
+          },
+          placement: 'bottom',
+        },
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Callback-anchored tooltip',
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+
+    expect(anchorContext).toMatchObject({
+      plot: host.getScene().chart,
+      surface: { width: 480, height: 260 },
+      focus: {
+        source: 'pointer',
+        pinned: false,
+      },
+    })
+    expect(anchorContext?.focus.primary.datum).toBe(data[0])
+    expect(anchorContext?.focus.group).toHaveLength(1)
     host.destroy()
   })
 
@@ -715,7 +796,9 @@ describe('renderer-neutral chart host', () => {
     expect(second.mount).toHaveBeenCalledOnce()
     expect(second.render).toHaveBeenCalledOnce()
     expect(second.render.mock.calls[0]?.[1].animation).toBeUndefined()
-    expect(second.paintFocus.mock.calls.at(-1)?.[0]?.datum).toBe(data[0])
+    expect(second.paintFocus.mock.calls.at(-1)?.[0]?.primary.datum).toBe(
+      data[0],
+    )
     const nextTooltip =
       container.querySelector<HTMLElement>('.ts-chart-tooltip')
     expect(nextTooltip).not.toBe(previousTooltip)

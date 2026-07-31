@@ -43,12 +43,12 @@ const definition = () => {
     x: {
       scale: scaleLinear().domain(closeDomain),
       grid: true,
-      label: 'Previous close (USD)',
+      axis: { label: 'Previous close (USD)' },
     },
     y: {
       scale: scaleLinear().domain(closeDomain),
       grid: true,
-      label: 'Current close (USD)',
+      axis: { label: 'Current close (USD)' },
     },
   })
 }

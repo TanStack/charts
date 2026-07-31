@@ -88,14 +88,15 @@ const definition = (input: ConformanceInput) => {
           x: {
             scale: scaleLinear().domain([2500, 6500]),
             grid: true,
-            label: 'Body mass (g)',
+            axis: { label: 'Body mass (g)' },
           },
           y: {
             scale: scaleLinear().domain([0, 0.4]),
             grid: true,
-            ticks: 3,
-            label: 'Proportion',
-            format: (value) => percent.format(value),
+            axis: {
+              ticks: { count: 3, format: (value) => percent.format(value) },
+              label: 'Proportion',
+            },
           },
         }),
       }),

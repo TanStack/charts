@@ -18,16 +18,8 @@ const definition = () =>
         stroke: '#2563eb',
       }),
     ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Longitude',
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Latitude',
-    },
+    x: { scale: scaleLinear, grid: true, axis: { label: 'Longitude' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Latitude' } },
   })
 
 export const mount = tanstackMount(definition, 'Two-dimensional vector field')

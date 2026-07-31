@@ -1,5 +1,5 @@
 import { penguins } from '@charts-poc/demo-data/penguins'
-import { barY, colorLegend, defineChart } from '@tanstack/charts'
+import { barY, colorLegend, defineChart, group } from '@tanstack/charts'
 import { rollups } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
@@ -27,19 +27,20 @@ const definition = (input: ConformanceInput) =>
           x: 'species',
           y: 'count',
           color: 'sex',
-          groupScale: scaleBand<string>().domain(sexDomain).paddingInner(0.08),
+          layout: group({
+            scale: scaleBand<string>().domain(sexDomain).paddingInner(0.08),
+          }),
           inset: 1,
         }),
       ],
       x: {
         scale: () => scaleBand<string>().paddingInner(0.14).paddingOuter(0.06),
-        tickRotate: width < 640 ? -32 : 0,
+        axis: { tickLabels: { rotate: width < 640 ? -32 : 0 } },
       },
       y: {
         scale: scaleLinear,
-        label: 'Penguins',
-        ticks: 5,
         grid: true,
+        axis: { ticks: { count: 5 }, label: 'Penguins' },
       },
       color: {
         range: sexColors,

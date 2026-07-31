@@ -1,5 +1,6 @@
 import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
+import { focusedSceneNodes } from './focus-layer'
 import type {
   ChartAnimationOptions,
   ChartBounds,
@@ -27,6 +28,7 @@ export interface CanvasChartSurface<
 > extends ChartSurface<TDatum, TXValue, TYValue> {
   readonly element: HTMLDivElement
   readonly canvas: HTMLCanvasElement
+  readonly focusUnderCanvas: HTMLCanvasElement
   readonly focusCanvas: HTMLCanvasElement
 }
 
@@ -122,6 +124,10 @@ export function createCanvasChartRenderer<
       const document = container.ownerDocument
       const view = document.defaultView
       const root = findOrCreateRoot(container)
+      const focusUnderCanvas = findOrCreateCanvas(
+        root,
+        'ts-chart-canvas__focus-under',
+      )
       const canvas = findOrCreateCanvas(root, 'ts-chart-canvas__scene')
       const focusCanvas = findOrCreateCanvas(root, 'ts-chart-canvas__focus')
       const resolver = new CanvasPaintResolver(root)
@@ -142,6 +148,7 @@ export function createCanvasChartRenderer<
         renderer,
         element: root,
         canvas,
+        focusUnderCanvas,
         focusCanvas,
         render(nextScene, options) {
           if (destroyed) return
@@ -161,10 +168,12 @@ export function createCanvasChartRenderer<
             pixelRatio === nextPixelRatio
           pixelRatio = nextPixelRatio
           sizeCanvas(canvas, nextScene, pixelRatio)
+          sizeCanvas(focusUnderCanvas, nextScene, pixelRatio)
           sizeCanvas(focusCanvas, nextScene, pixelRatio)
           root.dataset.tsChartWidth = String(nextScene.width)
           root.dataset.tsChartHeight = String(nextScene.height)
           root.dataset.tsChartPixelRatio = String(pixelRatio)
+          clearCanvas(focusUnderCanvas, nextScene, pixelRatio)
           clearCanvas(focusCanvas, nextScene, pixelRatio)
 
           if (canAnimate) {
@@ -189,21 +198,24 @@ export function createCanvasChartRenderer<
             y: ((clientY - bounds.top) / bounds.height) * currentScene.height,
           }
         },
-        paintFocus(point) {
+        paintFocus(focus) {
           if (!scene || destroyed) return
-          const context = requiredContext(focusCanvas)
-          resetContext(context, pixelRatio)
-          context.clearRect(0, 0, scene.width, scene.height)
-          if (!point) return
-          context.beginPath()
-          context.arc(point.x, point.y, 5, 0, Math.PI * 2)
-          context.fillStyle =
-            resolver.resolve('var(--ts-chart-focus-fill, Canvas)') ??
-            'transparent'
-          context.fill()
-          context.strokeStyle = resolver.resolve(point.color) ?? 'currentColor'
-          context.lineWidth = 2.5
-          context.stroke()
+          paintFocusCanvas(
+            focusUnderCanvas,
+            scene,
+            focusedSceneNodes(scene, focus, 'under'),
+            pixelRatio,
+            resolver,
+            root,
+          )
+          paintFocusCanvas(
+            focusCanvas,
+            scene,
+            focusedSceneNodes(scene, focus, 'over'),
+            pixelRatio,
+            resolver,
+            root,
+          )
         },
         destroy() {
           if (destroyed) return
@@ -271,7 +283,7 @@ function renderCanvasShell(
     : ''
   const width = integer(scene.width)
   const height = integer(scene.height)
-  return `<div class="${escapeAttribute(className)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}"${description} tabindex="${integer(options.tabIndex ?? 0)}" data-ts-chart-width="${width}" data-ts-chart-height="${height}" data-ts-chart-pixel-ratio="1" style="display:block;position:relative;width:100%;height:100%;overflow:visible"><canvas class="ts-chart-canvas__scene" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas><canvas class="ts-chart-canvas__focus" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas></div>`
+  return `<div class="${escapeAttribute(className)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}"${description} tabindex="${integer(options.tabIndex ?? 0)}" data-ts-chart-width="${width}" data-ts-chart-height="${height}" data-ts-chart-pixel-ratio="1" style="display:block;position:relative;width:100%;height:100%;overflow:visible"><canvas class="ts-chart-canvas__focus-under" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas><canvas class="ts-chart-canvas__scene" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas><canvas class="ts-chart-canvas__focus" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas></div>`
 }
 
 function findOrCreateRoot(container: HTMLElement): HTMLDivElement {
@@ -477,6 +489,23 @@ function paintScene(
   paintNodes(painter, scene.nodes, defaultPaint)
 }
 
+function paintFocusCanvas(
+  canvas: HTMLCanvasElement,
+  scene: ChartScene,
+  nodes: readonly SceneNode[],
+  pixelRatio: number,
+  resolver: CanvasPaintResolver,
+  root: HTMLDivElement,
+) {
+  const context = requiredContext(canvas)
+  resetContext(context, pixelRatio)
+  context.clearRect(0, 0, scene.width, scene.height)
+  if (!nodes.length) return
+  const Path = root.ownerDocument.defaultView?.Path2D
+  const font = readFont(root)
+  paintNodes({ context, resolver, scene, Path, font }, nodes, defaultPaint)
+}
+
 function paintNodes(
   painter: ScenePainter,
   nodes: readonly SceneNode[],
@@ -505,6 +534,7 @@ function paintNode(
   try {
     switch (node.kind) {
       case 'group': {
+        if (node.focus) return
         context.translate(node.translateX ?? 0, node.translateY ?? 0)
         if (node.clip) {
           context.beginPath()

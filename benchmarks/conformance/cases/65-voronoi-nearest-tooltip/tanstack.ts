@@ -97,15 +97,11 @@ const definition = (rows: readonly CompleteCar[]) =>
         r: 4,
       }),
     ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Weight (lb)',
-    },
+    x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (lb)' } },
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Fuel economy (mpg)',
+      axis: { label: 'Fuel economy (mpg)' },
     },
     color: {
       range: colors,

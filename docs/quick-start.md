@@ -50,13 +50,13 @@ const closingPriceChart = defineChart({
   x: {
     scale: scaleUtc,
     nice: true,
-    label: 'Date',
+    axis: { label: 'Date' },
   },
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Close (USD)',
     grid: true,
+    axis: { label: 'Close (USD)' },
   },
   tooltip: true,
 })

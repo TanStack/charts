@@ -54,18 +54,21 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: scaleUtc,
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          timeZone: 'UTC',
-        }),
+      axis: {
+        ticks: {
+          format: (value) =>
+            value.toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              timeZone: 'UTC',
+            }),
+        },
+      },
     },
     y: {
       scale: scaleLinear,
-      ticks: 4,
       grid: true,
-      label: 'AAPL close ($)',
+      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
     },
     margin,
   })

@@ -54,13 +54,9 @@ const definition = (input: ConformanceInput) => {
     x: {
       scale: scaleLinear,
       grid: true,
-      label: 'Fuel economy (mpg)',
+      axis: { label: 'Fuel economy (mpg)' },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Count',
-    },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Count' } },
   })
 }
 

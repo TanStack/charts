@@ -22,14 +22,18 @@ const definition = (_input: ConformanceInput) =>
       ],
       x: {
         scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
-        tickRotate: width < 560 ? -32 : 0,
+        axis: { tickLabels: { rotate: width < 560 ? -32 : 0 } },
       },
       y: {
         scale: scaleLinear,
-        label: 'Frequency',
-        ticks: 5,
         grid: true,
-        format: (value) => percent.format(value),
+        axis: {
+          ticks: {
+            count: 5,
+            format: (value: number) => percent.format(value),
+          },
+          label: 'Frequency',
+        },
       },
     }
   })

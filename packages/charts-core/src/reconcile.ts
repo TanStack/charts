@@ -262,9 +262,7 @@ function indexChildren(children: readonly Element[]) {
 function identities(children: readonly Element[]) {
   const counts = new Map<string, number>()
   return children.map((child) => {
-    const explicit =
-      child.getAttribute('data-ts-key') ??
-      (child.hasAttribute('data-ts-chart-focus') ? 'chart-focus' : undefined)
+    const explicit = child.getAttribute('data-ts-key')
     if (explicit) return `key:${explicit}`
     const count = counts.get(child.localName) ?? 0
     counts.set(child.localName, count + 1)

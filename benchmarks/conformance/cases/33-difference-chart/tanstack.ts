@@ -45,14 +45,9 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: scaleUtc,
-      ticks: 9,
-      format: formatDifferenceMonth,
+      axis: { ticks: { count: 9, format: formatDifferenceMonth } },
     },
-    y: {
-      scale: scaleLinear,
-      ticks: 6,
-      grid: true,
-    },
+    y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 6 } } },
     color: {
       domain: ['positive', 'negative'],
       range: ['#16a34a', '#dc2626'],

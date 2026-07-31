@@ -33,7 +33,7 @@ visible nearby:
 The SVG renderer emits an image role, a chart roledescription, and a `<desc>`
 when a description is supplied. The Canvas renderer places the same image role,
 name, roledescription, description, and tab index on its root while keeping its
-two paint canvases `aria-hidden`. Do not put instructions, conclusions, and all
+three paint canvases `aria-hidden`. Do not put instructions, conclusions, and all
 underlying data into one enormous accessible name.
 
 ## Preserve semantic context outside the surface

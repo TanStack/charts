@@ -31,14 +31,11 @@ const definition = (input: ConformanceInput) => {
         fontWeight: 600,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Week',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Week' } },
     y: {
       scale: scaleLinear,
-      label: 'Unemployed (thousands)',
       grid: true,
+      axis: { label: 'Unemployed (thousands)' },
     },
     color: {
       range: colors,

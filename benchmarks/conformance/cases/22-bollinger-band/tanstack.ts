@@ -35,15 +35,8 @@ const definition = (input: ConformanceInput) => {
         strokeWidth: 2.25,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Date',
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Apple close (USD)',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Date' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Apple close (USD)' } },
   })
 }
 

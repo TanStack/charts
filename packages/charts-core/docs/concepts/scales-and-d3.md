@@ -168,7 +168,9 @@ const categoryScale = () =>
 
 TanStack Charts applies the plot range, reads the scale bandwidth, and treats the mapped value as the center of the band for mark and interaction coordinates. Bars use the primary bandwidth by default.
 
-For grouped bars, pass a second band scale as the mark’s `groupScale`. Its range is assigned within the primary band. Grouping is explicit because `z` alone cannot decide whether a chart should overlap, stack, dodge, or only color its rows.
+For grouped bars, use `layout: group({ scale })`. The supplied band scale is
+copied and its range is assigned within the primary band. Grouping is explicit;
+the default length-channel geometry is stacked.
 
 ## Color scales
 
@@ -348,13 +350,13 @@ const logChart = defineChart({
   ],
   x: {
     scale: scaleLog().domain([200, 30_000]),
-    label: 'Class size',
     grid: true,
+    axis: { label: 'Class size' },
   },
   y: {
     scale: scaleLinear,
-    label: 'Hierarchy depth',
     grid: true,
+    axis: { label: 'Hierarchy depth' },
   },
 })
 ```

@@ -49,14 +49,14 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: scaleLinear().domain([0.5, 3.5]),
-      ticks: violinSpecies.length,
-      format: (value) => violinSpecies[Math.round(value) - 1] ?? '',
+      axis: {
+        ticks: {
+          count: violinSpecies.length,
+          format: (value) => violinSpecies[Math.round(value) - 1] ?? '',
+        },
+      },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Body mass (g)',
-    },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Body mass (g)' } },
     color: {
       range: colors,
     },

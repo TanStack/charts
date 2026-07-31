@@ -64,12 +64,12 @@ const definition = (input: ConformanceInput) => {
       x: {
         scale: scaleLinear().domain([1500, 5500]),
         grid: true,
-        label: 'Weight (lb)',
+        axis: { label: 'Weight (lb)' },
       },
       y: {
         scale: scaleLinear().domain([5, 50]),
         grid: true,
-        label: 'Fuel economy (mpg)',
+        axis: { label: 'Fuel economy (mpg)' },
       },
       color: {
         scale: scaleThreshold<number, string>,

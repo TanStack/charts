@@ -215,7 +215,7 @@ describe('React adapter', () => {
     (aspectRatio) => {
       const html = renderToString(
         <Chart
-          definition={broadFocusDefinition}
+          definition={definition}
           width={480}
           aspectRatio={aspectRatio}
           ariaLabel="Revenue"
@@ -294,7 +294,7 @@ describe('React adapter', () => {
       const [, setFocused] = React.useState<unknown>(null)
       return (
         <Chart
-          definition={definition}
+          definition={broadFocusDefinition}
           width={480}
           height={260}
           ariaLabel="Revenue"
@@ -337,7 +337,7 @@ describe('React adapter', () => {
     expect(onFocusChange).toHaveBeenCalled()
     expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[0])
     expect(
-      target.querySelector('[data-ts-chart-focus]')?.getAttribute('visibility'),
+      target.querySelector('[data-ts-focus-layer]')?.getAttribute('visibility'),
     ).toBe('visible')
 
     await act(async () => root.unmount())

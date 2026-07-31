@@ -79,8 +79,8 @@ and an overflow-visible display style. A nontransparent scene background
 renders as the first rect. All labels escape text and inherit the document
 font.
 
-The renderer includes one hidden focus circle controlled by the DOM host.
-Scene keys become `data-ts-key` attributes for reconciliation.
+Focus-filtered scene groups render hidden until the DOM host supplies focus
+state. Scene keys become `data-ts-key` attributes for reconciliation.
 
 ## Canvas renderer
 
@@ -97,9 +97,9 @@ const host = mountCanvasChart(container, {
 
 `mountCanvasChart` has the same definition, sizing, focus, spatial-index,
 keyboard, tooltip, selection, update, and destroy behavior as `mountChart`.
-The renderer paints the base scene and focus indicator on separate canvases,
-uses the browser device-pixel ratio by default, and maps pointer coordinates
-back into the scene.
+The renderer paints focus underlays, the base scene, and focus overlays on
+separate canvases, uses the browser device-pixel ratio by default, and maps
+pointer coordinates back into the scene.
 
 ```ts
 interface CanvasChartRendererOptions {
@@ -113,6 +113,7 @@ interface CanvasChartSurface<
 > extends ChartSurface<TDatum, TXValue, TYValue> {
   readonly element: HTMLDivElement
   readonly canvas: HTMLCanvasElement
+  readonly focusUnderCanvas: HTMLCanvasElement
   readonly focusCanvas: HTMLCanvasElement
 }
 
@@ -165,8 +166,9 @@ function mountCanvasChart<
 ```
 
 The surface's `element` is its accessible chart root. `canvas` holds the base
-scene; `focusCanvas` is a separate overlay, so focus changes do not repaint the
-base scene. A finite, positive `pixelRatio` fixes both backing stores at that
+scene; `focusUnderCanvas` and `focusCanvas` paint transient layers below and
+above it, so focus changes do not repaint the base scene. A finite, positive
+`pixelRatio` fixes every backing store at that
 ratio. An omitted value uses `devicePixelRatio`, then `1`; an invalid value
 uses `1`.
 
@@ -181,7 +183,7 @@ Use `canvasChartRenderer` for the shared default instance. Call
 an independently typed renderer instance.
 
 The server-facing `prerender` step emits a deterministic, named chart shell
-with two `aria-hidden` canvases. It does not attempt server-side pixel
+with three `aria-hidden` canvases. It does not attempt server-side pixel
 painting. The browser adopts that shell, sizes the backing stores, paints the
 scene, and attaches the shared interaction host. See
 [SSR and Hydration](../guides/ssr-and-hydration.md).
@@ -335,8 +337,8 @@ interface SerializeChartSvgOptions {
 ```
 
 `target` may be the SVG or an ancestor containing `svg.ts-chart`. The serializer
-clones the SVG, adds the XML namespace, removes the focus circle unless
-`includeFocus` is true, and resolves dimensions from options, then the
+clones the SVG, adds the XML namespace, removes focus-filtered scene layers
+unless `includeFocus` is true, and resolves dimensions from options, then the
 `viewBox`, then client dimensions.
 
 The serializer can inline computed `color`, fill, fill opacity, font family,
@@ -395,8 +397,8 @@ consistent with the selected MIME type.
 
 The raster helpers accept a mounted SVG or Canvas chart root, or an ancestor
 containing one. SVG is serialized, decoded, and drawn into the export canvas.
-Canvas uses its base scene layer directly and composites the separate focus
-layer only when `includeFocus` is true. `serializeChartSvg` and
+Canvas uses its base scene layer directly and composites focus underlays and
+overlays only when `includeFocus` is true. `serializeChartSvg` and
 `downloadChartSvg` remain SVG-only.
 
 ## Custom renderers
@@ -425,10 +427,7 @@ interface ChartSurface<
     clientX: number,
     clientY: number,
   ) => { x: number; y: number } | null
-  paintFocus: (
-    point: ChartPoint<TDatum, TXValue, TYValue> | null,
-    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  ) => void
+  paintFocus: (focus: ChartFocusState<TDatum, TXValue, TYValue> | null) => void
   destroy: () => void
 }
 
@@ -458,7 +457,7 @@ interface ChartRenderer<
 | `ChartSurface.element`  | Expose the accessible, focusable root used by shared keyboard and focus handling                           |
 | `render()`              | Paint the complete scene and apply accessible name, class, tab index, ID prefix, and optional animation    |
 | `clientToScene()`       | Convert viewport client coordinates to scene coordinates, or return `null` when conversion is unavailable  |
-| `paintFocus()`          | Paint or clear focus for the primary point; the full point array contains its resolved focus group         |
+| `paintFocus()`          | Paint or clear the complete focus state: primary, group, source, and pinned status                         |
 | `destroy()`             | Release renderer-owned animation, observers, listeners, and resources                                      |
 
 `requestRender()` asks the shared host to rebuild and repaint on its next
@@ -510,7 +509,7 @@ renderer should preserve:
 
 - an SVG root discoverable by the host
 - stable `data-ts-key` identities for reconciliation
-- a `[data-ts-chart-focus]` element when native focus paint is desired
+- focus-filtered scene groups when native focus paint is desired
 - the scene coordinate system and accessible name
 
 See [Custom extensions](./custom-extensions.md#custom-renderers) before

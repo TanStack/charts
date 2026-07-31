@@ -24,12 +24,12 @@ const definition = (_input: ConformanceInput) =>
           x: {
             scale: scaleLinear().domain([3, 20]),
             grid: true,
-            ticks: 5,
+            axis: { ticks: { count: 5 } },
           },
           y: {
             scale: scaleLinear().domain([2, 14]),
             grid: true,
-            ticks: 4,
+            axis: { ticks: { count: 4 } },
           },
         }),
       }),

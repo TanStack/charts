@@ -92,11 +92,10 @@ rule. When `z` is omitted on a connected line or area, an authored `color`
 channel supplies the path groups as well as color semantics. Explicit `z`
 always wins when the two fields differ.
 
-Bars use the primary band by default. Supply a configured D3 `groupScale` for
-side-by-side bars; it groups by `z` when present and otherwise by `color`.
-When rows should stack, prepare explicit `y1` and `y2` or `x1` and `x2`
-intervals before the mark. TanStack Charts does not guess whether bars should
-dodge, stack, or overlap.
+Bars stack their single quantitative channel by default. Use
+`layout: group({ scale })` for side-by-side bars; it groups by `z` when present
+and otherwise by discrete `color`. Explicit `y1`/`y2` or `x1`/`x2` channels
+opt out of implicit stacking and preserve authored intervals.
 
 ## Line and area gaps
 
@@ -239,13 +238,13 @@ const temperatureChart = defineChart({
   ],
   x: {
     scale: scaleUtc,
-    label: 'Day',
+    axis: { label: 'Day' },
   },
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Temperature (°F)',
     grid: true,
+    axis: { label: 'Temperature (°F)' },
   },
 })
 ```

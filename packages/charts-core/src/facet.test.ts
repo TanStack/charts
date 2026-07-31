@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { scaleLinear } from 'd3-scale'
 import { facet, facetChart } from './facet'
+import { measureSceneLabelBounds } from './guide-layout'
 import { lineY } from './line'
 import { createMark } from './mark'
 import { createChartScene } from './scene'
@@ -103,11 +104,11 @@ describe('facets', () => {
           marks: [lineY(group, { x: 'x', y: 'y' })],
           x: {
             scale: scaleLinear().domain([0, 1]),
-            label: 'Horizontal',
+            axis: { label: 'Horizontal' },
           },
           y: {
             scale: scaleLinear().domain([0, 6]),
-            label: 'Vertical',
+            axis: { label: 'Vertical' },
           },
         }),
       }),
@@ -160,11 +161,11 @@ describe('facets', () => {
           marks: [lineY(group, { x: 'x', y: 'y', key: 'id' })],
           x: {
             scale: scaleLinear().domain([0, 1]),
-            label: 'Horizontal',
+            axis: { label: 'Horizontal' },
           },
           y: {
             scale: scaleLinear().domain([0, 6]),
-            label: 'Vertical',
+            axis: { label: 'Vertical' },
           },
         }),
       }),
@@ -202,6 +203,66 @@ describe('facets', () => {
       1,
     )
     expect(pointSpans.every((span) => span === pointSpans[0])).toBe(true)
+  })
+
+  it('remeasures shared outer axes after responsive tick thinning', () => {
+    const data = ['A', 'B', 'C', 'D'].flatMap((group) => [
+      { group, x: 3, y: 2 },
+      { group, x: 20, y: 14 },
+    ])
+    const measureText = (
+      text: string,
+      options: { fontSize: number; anchor: 'start' | 'middle' | 'end' },
+    ) => {
+      const width = text.length * options.fontSize * 0.64
+      return {
+        x:
+          options.anchor === 'middle'
+            ? -width / 2
+            : options.anchor === 'end'
+              ? -width
+              : 0,
+        y: -options.fontSize * 0.8,
+        width,
+        height: options.fontSize,
+      }
+    }
+    const scene = createChartScene(
+      facetChart(data, {
+        by: 'group',
+        columns: 4,
+        gap: 12,
+        chart: (group) => ({
+          marks: [lineY(group, { x: 'x', y: 'y' })],
+          x: {
+            scale: scaleLinear().domain([3, 20]),
+            axis: { ticks: { count: 5 } },
+          },
+          y: {
+            scale: scaleLinear().domain([2, 14]),
+            axis: { ticks: { count: 4 } },
+          },
+        }),
+      }),
+      { width: 320, height: 360 },
+      { measureText },
+    )
+    const labels = translatedLabels(scene.nodes)
+      .filter(({ label }) => label.key.startsWith('x-tick-label:'))
+      .map(({ label, x, y }) =>
+        measureSceneLabelBounds(
+          { ...label, x: label.x + x, y: label.y + y },
+          measureText,
+        ),
+      )
+
+    expect(labels.length).toBeGreaterThan(0)
+    expect(
+      Math.min(...labels.map((bounds) => bounds.x)),
+    ).toBeGreaterThanOrEqual(0)
+    expect(
+      Math.max(...labels.map((bounds) => bounds.x + bounds.width)),
+    ).toBeLessThanOrEqual(320)
   })
 
   it('composes nested facets with unique points and responsive outer flow', () => {
@@ -361,6 +422,26 @@ function flatten(nodes: readonly SceneNode[]): SceneNode[] {
   return nodes.flatMap((node) =>
     node.kind === 'group' ? [node, ...flatten(node.children)] : [node],
   )
+}
+
+function translatedLabels(
+  nodes: readonly SceneNode[],
+  x = 0,
+  y = 0,
+): {
+  label: Extract<SceneNode, { kind: 'label' }>
+  x: number
+  y: number
+}[] {
+  return nodes.flatMap((node) => {
+    if (node.kind === 'label') return [{ label: node, x, y }]
+    if (node.kind !== 'group') return []
+    return translatedLabels(
+      node.children,
+      x + (node.translateX ?? 0),
+      y + (node.translateY ?? 0),
+    )
+  })
 }
 
 function directFacetCells(

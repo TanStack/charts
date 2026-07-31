@@ -165,21 +165,24 @@ export const createStatsHistoryChart = (input: StatsHistoryInput) =>
           ],
       x: {
         scale: xScale,
-        label: 'Date',
-        ticks: width < 520 ? 4 : 7,
+        axis: { ticks: { count: width < 520 ? 4 : 7 }, label: 'Date' },
       },
       y: {
         scale: scaleLinear,
         nice: 5,
-        label:
-          input.mode === 'share'
-            ? 'Download Share'
-            : input.mode === 'stream'
-              ? 'Downloads (stream)'
-              : 'Downloads',
-        format: input.mode === 'share' ? formatPercent : formatCompact,
-        ticks: 5,
         grid: true,
+        axis: {
+          ticks: {
+            count: 5,
+            format: input.mode === 'share' ? formatPercent : formatCompact,
+          },
+          label:
+            input.mode === 'share'
+              ? 'Download Share'
+              : input.mode === 'stream'
+                ? 'Downloads (stream)'
+                : 'Downloads',
+        },
       },
       color: {
         scale: scaleOrdinal<string, string>()
@@ -269,23 +272,27 @@ export const createStatsLatestChart = (input: StatsLatestInput) =>
       x: vertical
         ? {
             scale: categoricalScale,
-            tickRotate: width < 680 ? -28 : 0,
             grid: false,
+            axis: { tickLabels: { rotate: width < 680 ? -28 : 0 } },
           }
         : {
             scale: scaleLinear,
             nice: 7,
-            label: 'Downloads',
-            format: formatCompact,
             grid: true,
+            axis: {
+              ticks: { format: formatCompact },
+              label: 'Downloads',
+            },
           },
       y: vertical
         ? {
             scale: scaleLinear,
             nice: 7,
-            label: 'Downloads',
-            format: formatCompact,
             grid: true,
+            axis: {
+              ticks: { format: formatCompact },
+              label: 'Downloads',
+            },
           }
         : {
             scale: categoricalScale,

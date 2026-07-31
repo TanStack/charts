@@ -21,7 +21,7 @@ With no custom focus strategy:
 - `Enter` and Space toggle an enabled sticky tooltip and call `onSelect` for
   the focused point
 - a click focuses and selects the nearest point, or selects `null`
-- the renderer's focus ring follows the primary point
+- the default focus-filtered marker follows the primary point
 
 `maxFocusDistance` defaults to `48` scene pixels. Set `tabIndex` to control
 normal tab-order participation while keeping keyboard handling enabled. Set
@@ -52,6 +52,43 @@ points with the same `group` value are reduced to one member in grouped focus.
 The equivalent `focusX`, `focusY`, `focusNearestX`, and `focusNearestY`
 strategy objects remain available from `@tanstack/charts/focus` for composition
 or direct strategy use.
+
+## Focus-filtered marks
+
+`whenFocused(mark, { match })` turns an ordinary mark into transient focus
+presentation. It uses the chart's existing focus state and never participates
+in pointer hit testing.
+
+```ts
+import { bandX, lineY, whenFocused } from '@tanstack/charts'
+
+const marks = [
+  whenFocused(
+    bandX(rows, {
+      x: 'date',
+      fill: '#64748b',
+      fillOpacity: 0.14,
+      inset: -6,
+    }),
+    { match: 'x' },
+  ),
+  lineY(rows, { x: 'date', y: 'value', color: 'series' }),
+]
+```
+
+| Match     | Visible rows                                     |
+| --------- | ------------------------------------------------ |
+| `primary` | The primary focused datum                        |
+| `group`   | Datums represented by the complete focused group |
+| `key`     | The primary point's stable key                   |
+| `x`       | Rows sharing the primary semantic x value        |
+| `y`       | Rows sharing the primary semantic y value        |
+| `series`  | Rows sharing the primary series/group identity   |
+
+Mark order controls layering. A leading filtered mark paints below ordinary
+marks; a later one paints above them. Supplying any custom focus-filtered mark
+replaces the implicit default marker. SVG toggles matching scene nodes; Canvas
+repaints only its focus layers.
 
 ## Disabling chart-owned focus
 
@@ -136,7 +173,7 @@ interface ChartTooltipOptions<
 | `portal`      | `false`        | Escapes clipping through top-layer or fixed positioning |
 | `items`       | Automatic x/y  | Ordered rows for a single focused point                 |
 | `sort`        | `color-domain` | Grouped row order                                       |
-| `anchor`      | `point`        | Point, pointer, group center, or coordinate resolver    |
+| `anchor`      | `point`        | Preset, per-axis coordinates, or coordinate resolver    |
 | `placement`   | `auto`         | Fixed or ordered fallback box placements                |
 | `offset`      | `10`           | Scene-pixel gap between anchor and box                  |
 | `content`     | Automatic rows | Returns a safe title and structured rows                |
@@ -195,9 +232,11 @@ grouped structure belongs in `content`.
 - `pointer` follows the current pointer and falls back to the point for
   keyboard focus.
 - `group-center` uses the center of the focused points' bounding box.
-- A resolver receives the focused points plus pointer, chart bounds, width,
-  and height, and returns scene coordinates. A nullish or non-finite result
-  falls back to the primary point.
+- `{ x, y }` selects each coordinate independently from the point, pointer,
+  focused value, group center, or a plot edge/center.
+- A resolver receives the focused points plus `{ focus, pointer, plot,
+surface, scales }` and returns scene coordinates. A nullish or non-finite
+  result falls back to the primary point.
 
 `placement` accepts `auto`, one placement, or an ordered fallback list. The
 placements are `top`, `top-right`, `right`, `bottom-right`, `bottom`,
@@ -208,7 +247,7 @@ it uses the least-overflowing candidate and shifts it inside. `auto` uses
 
 ```ts
 const tooltip = {
-  anchor: 'group-center',
+  anchor: { x: 'plot-center', y: 'plot-top' },
   placement: ['top', 'right', 'left', 'bottom'],
   offset: 12,
 }

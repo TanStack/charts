@@ -163,9 +163,11 @@ export function mountDefinition<TDatum>(
                     typeof point.xValue === 'number' ? point.xValue : undefined,
                 }
               }
-              const points = container.querySelectorAll<SVGGraphicsElement>(
-                'svg circle[data-ts-key]:not([data-ts-chart-focus])',
-              )
+              const points = [
+                ...container.querySelectorAll<SVGGraphicsElement>(
+                  'svg circle[data-ts-key]',
+                ),
+              ].filter((element) => !element.closest('[data-ts-focus-layer]'))
               const point =
                 points[
                   Math.round(

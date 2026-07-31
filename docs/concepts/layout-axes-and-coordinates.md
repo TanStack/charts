@@ -63,12 +63,14 @@ const chart = defineChart(({ width }) => ({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
   x: {
     scale: xScale,
-    ticks: width < 420 ? 4 : 8,
-    tickRotate: width < 520 ? -30 : undefined,
+    axis: {
+      ticks: { count: width < 420 ? 4 : 8 },
+      tickLabels: { rotate: width < 520 ? -30 : undefined },
+    },
   },
   y: {
     scale: yScale,
-    label: width < 480 ? undefined : 'Weekly downloads',
+    axis: { label: width < 480 ? undefined : 'Weekly downloads' },
   },
 }))
 ```
@@ -124,10 +126,9 @@ inherited font and relayout after web fonts load.
 
 Advanced renderers can supply `measureText`. Its metrics include painted x and y offsets relative to the requested anchor and baseline, not only width and height. This is necessary for correct containment of rotated and anchored labels.
 
-Automatic margins contain chart-owned guides and Cartesian `text` marks; they do
-not avoid collisions between adjacent labels. Use `ticks` to reduce density,
-`tickRotate` when guide labels overlap, and explicit text placement when data
-labels overlap one another.
+Automatic margins contain chart-owned guides and Cartesian `text` marks. Axis
+tick labels are thinned against their measured, optionally rotated bounds.
+Explicit text placement remains responsible for data-label collisions.
 
 ## Axis guide options
 
@@ -136,34 +137,61 @@ Each axis combines a required scale factory or instance with optional guide cont
 ```ts
 const x = {
   scale: xScale,
-  label: 'Month',
-  ticks: 6,
-  format: (date: Date) => monthFormatter.format(date),
-  tickRotate: -30,
-  labelOffset: 12,
   grid: false,
+  axis: {
+    ticks: {
+      count: 6,
+      format: (date: Date) => monthFormatter.format(date),
+    },
+    tickLabels: { rotate: -30 },
+    label: { text: 'Month', offset: 12 },
+  },
 }
 ```
 
-| Option        | Purpose                                            |
-| ------------- | -------------------------------------------------- |
-| `guide`       | Show or hide this axis, its title, ticks, and grid |
-| `ticks`       | Suggested tick count                               |
-| `format`      | Format a typed tick value                          |
-| `grid`        | Draw grid lines at ticks                           |
-| `label`       | Axis title                                         |
-| `reverse`     | Reverse the responsive range                       |
-| `tickRotate`  | Rotate tick labels in degrees                      |
-| `labelOffset` | Add distance between the axis and title            |
+| Option            | Purpose                                              |
+| ----------------- | ---------------------------------------------------- |
+| `axis`            | Configure the axis or hide it with `false`           |
+| `axis.line`       | Show or hide the baseline                            |
+| `axis.ticks`      | Configure candidates, stubs, padding, and formatting |
+| `axis.tickLabels` | Configure label rotation and collision thinning      |
+| `axis.label`      | Configure the axis title and offset                  |
+| `grid`            | Draw grid lines at semantic candidates               |
+| `reverse`         | Reverse the responsive range                         |
 
 The y grid defaults to visible and the x grid defaults to hidden when `grid` is omitted.
+
+Candidate generation and label layout are separate. Choose at most one of
+`axis.ticks.count`, `axis.ticks.spacing`, and `axis.ticks.values`. Grid lines
+and tick stubs use the generated candidates; label thinning does not remove
+either. `axis.ticks.size: 0` removes stubs while retaining labels and grid
+lines.
+
+Rotation and thinning are independent. Thinning is enabled by default and
+uses measured rotated bounds:
+
+```ts
+const x = {
+  scale: xScale,
+  axis: {
+    ticks: { spacing: 80 },
+    tickLabels: {
+      rotate: -35,
+      thin: { minGap: 8, priority: 'ends', keep: importantDates },
+    },
+  },
+}
+```
+
+Hard-kept labels are retained even when they collide. Values absent from the
+candidate set add labels only.
 
 Hide one guide without removing its scale:
 
 ```ts
 const x = {
   scale: xScale,
-  guide: false,
+  axis: false,
 }
 ```
 
@@ -247,7 +275,8 @@ barX(rows, {
 
 The D3 band scale’s `paddingInner` and `paddingOuter` determine category spacing. `inset` removes additional pixels from both bar edges after layout.
 
-For side-by-side bars, `groupScale` subdivides the primary bandwidth. See [Bars and Rankings](../examples/bars-and-rankings.md).
+For side-by-side bars, `layout: group()` subdivides the primary bandwidth. See
+[Bars and Rankings](../examples/bars-and-rankings.md).
 
 ## Scene and pointer coordinates
 
@@ -327,9 +356,11 @@ const rankingChart = defineChart({
   x: {
     scale: scaleLinear,
     nice: true,
-    label: '2015 population',
-    format: (value) => compact.format(value),
     grid: true,
+    axis: {
+      label: '2015 population',
+      ticks: { format: (value) => compact.format(value) },
+    },
   },
   y: {
     scale: () => scaleBand<string>().paddingInner(0.12).paddingOuter(0.06),

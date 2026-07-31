@@ -54,17 +54,20 @@ const definition = (input: InteractiveLegendInput) => {
     ],
     x: {
       scale: scaleUtc,
-      format: (date) =>
-        date.toLocaleDateString('en-US', {
-          month: 'short',
-          timeZone: 'UTC',
-        }),
+      axis: {
+        ticks: {
+          format: (date) =>
+            date.toLocaleDateString('en-US', {
+              month: 'short',
+              timeZone: 'UTC',
+            }),
+        },
+      },
     },
     y: {
       scale: scaleLinear().domain(yDomain),
-      ticks: 5,
       grid: true,
-      label: 'Unemployed (thousands)',
+      axis: { ticks: { count: 5 }, label: 'Unemployed (thousands)' },
     },
     color: {
       domain: legendSeries.map((series) => series.id),

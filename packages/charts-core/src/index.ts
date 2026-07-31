@@ -11,6 +11,8 @@ export type {
 } from './adapter'
 export { barX, barY } from './bar'
 export type { BarXOptions, BarYOptions } from './bar'
+export { bandX, bandY } from './band'
+export type { BandXOptions, BandYOptions } from './band'
 export { d3Curve } from './d3-shape'
 export { dot } from './dot'
 export type { DotOptions } from './dot'
@@ -18,6 +20,9 @@ export { facet, facetChart } from './facet'
 export type { FacetAxes, FacetOptions } from './facet'
 export { frame } from './frame'
 export type { FrameOptions } from './frame'
+export { whenFocused } from './focus-mark'
+export { group } from './group'
+export type { GroupLayout, GroupOptions } from './group'
 export { hexagon } from './hexagon'
 export type { HexagonOptions } from './hexagon'
 export { mountChart } from './dom'
@@ -38,6 +43,13 @@ export {
   findNearestPoint,
 } from './scene'
 export { renderChartSvg } from './svg'
+export { stackY } from './stack'
+export type {
+  StackOffset,
+  StackOptions,
+  StackOrder,
+  StackYChannels,
+} from './stack'
 export { ruleX, ruleY } from './rule'
 export type { RuleXOptions, RuleYOptions } from './rule'
 export { text } from './text'
@@ -58,7 +70,11 @@ export type {
   MarkScene,
   MaterializedChannel,
   ChartAxisOptions,
-  ChartAxisGuideOptions,
+  ChartAxisLabelOptions,
+  ChartAxisPresentationOptions,
+  ChartAxisTickLabelOptions,
+  ChartAxisTickLabelThinOptions,
+  ChartAxisTickOptions,
   ChartAxisValue,
   ChartAnimationOptions,
   ChartBounds,
@@ -76,7 +92,11 @@ export type {
   ChartDefinition,
   ChartDefinitionOptions,
   ChartFocusMode,
+  ChartFocusFilter,
+  ChartFocusMatch,
   ChartFocusPreset,
+  ChartFocusSource,
+  ChartFocusState,
   ChartFocusStrategy,
   ChartGradientStop,
   ChartHost,
@@ -129,6 +149,7 @@ export type {
   ChartTooltipContent,
   ChartTooltipContentContext,
   ChartTooltipAnchor,
+  ChartTooltipAxisAnchor,
   ChartTooltipAnchorContext,
   ChartTooltipChannelItem,
   ChartTooltipDatumItem,
@@ -138,6 +159,8 @@ export type {
   ChartTooltipOptions,
   ChartTooltipPlacement,
   ChartTooltipPosition,
+  ChartTooltipXAnchor,
+  ChartTooltipYAnchor,
   ChartTooltipRow,
   ChartTooltipSort,
   ChartValue,

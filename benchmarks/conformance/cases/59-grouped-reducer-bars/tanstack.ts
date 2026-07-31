@@ -43,7 +43,7 @@ const definition = () => {
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Mean body mass (g)',
+      axis: { label: 'Mean body mass (g)' },
     },
   })
 }

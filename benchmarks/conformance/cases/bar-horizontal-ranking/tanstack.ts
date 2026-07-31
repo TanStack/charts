@@ -21,9 +21,8 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: scaleLinear,
-      label: '2015 population',
-      ticks: 5,
       grid: true,
+      axis: { ticks: { count: 5 }, label: '2015 population' },
     },
     y: {
       scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),

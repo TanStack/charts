@@ -49,7 +49,7 @@ const definition = (input: ConformanceInput) => {
     y: {
       scale: scaleLinear,
       grid: true,
-      label: '90th/10th percentile wage ratio',
+      axis: { label: '90th/10th percentile wage ratio' },
     },
     color: {
       range: colors,

@@ -45,13 +45,15 @@ const definition = (input: ConformanceInput) => {
     x: {
       scale: scaleLinear,
       grid: true,
-      label: 'Fuel economy (mpg)',
+      axis: { label: 'Fuel economy (mpg)' },
     },
     y: {
       scale: scaleLinear().domain([0, 1]),
       grid: true,
-      label: 'Cumulative proportion',
-      format: (value) => percent.format(value),
+      axis: {
+        ticks: { format: (value) => percent.format(value) },
+        label: 'Cumulative proportion',
+      },
     },
   })
 }

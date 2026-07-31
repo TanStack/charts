@@ -92,6 +92,7 @@ export function lineY<TDatum>(
 
     return {
       id,
+      seriesFromColor: options.z === undefined && options.color !== undefined,
       channels: {
         x: {
           scale: 'x',

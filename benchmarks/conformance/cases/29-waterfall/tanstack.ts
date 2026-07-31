@@ -45,12 +45,12 @@ const definition = () =>
       ],
       x: {
         scale: () => scaleBand<string>().padding(0.14),
-        tickRotate: width < 560 ? -32 : 0,
+        axis: { tickLabels: { rotate: width < 560 ? -32 : 0 } },
       },
       y: {
         scale: scaleLinear,
         grid: true,
-        label: 'Change in gasoline price (USD per gallon)',
+        axis: { label: 'Change in gasoline price (USD per gallon)' },
       },
       color: {
         domain: kinds,

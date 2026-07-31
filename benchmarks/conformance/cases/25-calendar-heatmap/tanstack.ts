@@ -27,8 +27,7 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: () => scaleBand<number>().paddingInner(0.06).paddingOuter(0.03),
-      label: 'Week',
-      format: (value) => `W${value + 1}`,
+      axis: { ticks: { format: (value) => `W${value + 1}` }, label: 'Week' },
     },
     y: {
       scale: scaleBand<string>()

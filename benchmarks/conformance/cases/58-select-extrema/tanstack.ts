@@ -41,15 +41,8 @@ const definition = () => {
         dy: (point) => point.dy,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Date',
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Apple close (USD)',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Date' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Apple close (USD)' } },
   })
 }
 

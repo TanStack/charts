@@ -121,13 +121,13 @@ const nativeDownloads = defineChart({
   ],
   x: {
     scale: scaleUtc().domain(downloadData.map((point) => point.date)),
-    ticks: 6,
+    axis: { ticks: { count: 6 } },
   },
   y: {
     scale: scaleLinear()
       .domain([0, max(downloadData, (point) => point.downloads) ?? 1])
       .nice(5),
-    ticks: 5,
+    axis: { ticks: { count: 5 } },
   },
 })
 const largeData = Array.from({ length: 10_000 }, (_, index) => ({
@@ -296,11 +296,11 @@ const createNativeDynamicDefinition = (input: {
       ],
       x: {
         scale: scaleUtc().domain(input.points.map((point) => point.date)),
-        ticks: 6,
+        axis: { ticks: { count: 6 } },
       },
       y: {
         scale: scaleLinear().domain([0, maximum]).nice(5),
-        ticks: 5,
+        axis: { ticks: { count: 5 } },
       },
     }
   })

@@ -58,13 +58,12 @@ const mainDefinition = (input: MainChartInput) => {
     ],
     x: {
       scale: scaleLinear().domain([170, 235]),
-      label: 'Flipper length (mm)',
+      axis: { label: 'Flipper length (mm)' },
     },
     y: {
       scale: scaleLinear().domain([3000, 6000]),
-      ticks: 5,
       grid: true,
-      label: 'Body mass (g)',
+      axis: { ticks: { count: 5 }, label: 'Body mass (g)' },
     },
     margin: { top: 18, right: 24, bottom: 42, left: 68 },
   })
@@ -83,10 +82,7 @@ const miniDefinition = (input: MiniChartInput) =>
     x: {
       scale: () => scaleBand<string>().paddingInner(0.18).paddingOuter(0.08),
     },
-    y: {
-      scale: scaleLinear,
-      guide: false,
-    },
+    y: { scale: scaleLinear, axis: false },
     margin: { top: 6, right: 6, bottom: 24, left: 6 },
   })
 

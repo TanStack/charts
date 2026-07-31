@@ -90,7 +90,9 @@ describe('native mark and channel scene', () => {
     expect(scene.points.map((point) => point.datum)).toEqual(values)
     expect(scene.points.map((point) => point.xValue)).toEqual([0, 1, 2])
     expect(
-      flatten(scene.nodes).filter((node) => node.kind === 'dot'),
+      flatten(scene.nodes).filter(
+        (node) => node.kind === 'dot' && !node.key.startsWith('default-focus:'),
+      ),
     ).toHaveLength(3)
   })
 
@@ -217,7 +219,7 @@ describe('native mark and channel scene', () => {
     expect(svg).toContain('<path')
     expect(svg).toContain('aria-label="Revenue &lt;trend&gt;"')
     expect(svg).toContain('<desc>A &amp; B</desc>')
-    expect(svg).toContain('data-ts-chart-focus')
+    expect(svg).toContain('data-ts-focus-layer="over"')
   })
 
   it('inherits shared grid presentation attributes from one group', () => {
@@ -312,7 +314,7 @@ describe('native mark and channel scene', () => {
     expect(container.innerHTML).toContain('Updated revenue')
     expect(
       container
-        .querySelector('[data-ts-chart-focus]')
+        .querySelector('[data-ts-focus-layer]')
         ?.getAttribute('visibility'),
     ).toBe('visible')
     expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(firstDatum)

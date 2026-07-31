@@ -60,24 +60,27 @@ const definition = (input: StreamingChartInput) => {
     ],
     x: {
       scale: scaleUtc().domain(input.viewport),
-      label:
-        input.viewportMode === 'locked'
-          ? 'Locked viewport'
-          : input.viewportMode === 'latest'
-            ? 'Following latest'
-            : 'All samples',
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          timeZone: 'UTC',
-        }),
+      axis: {
+        ticks: {
+          format: (value) =>
+            value.toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              timeZone: 'UTC',
+            }),
+        },
+        label:
+          input.viewportMode === 'locked'
+            ? 'Locked viewport'
+            : input.viewportMode === 'latest'
+              ? 'Following latest'
+              : 'All samples',
+      },
     },
     y: {
       scale: scaleLinear,
-      ticks: 5,
       grid: true,
-      label: 'Downloads',
+      axis: { ticks: { count: 5 }, label: 'Downloads' },
     },
     margin: { top: 18, right: 24, bottom: 44, left: 58 },
   })
