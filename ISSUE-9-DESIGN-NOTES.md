@@ -98,12 +98,12 @@ implementation plan or compatibility promise.
   every contributing row.
 - Eight conformance consumers now use flat named transform results directly,
   removing 60 net source lines and six direct D3 aggregation/rank imports.
-- The common transform suite is 16.60 kB minified / 6.18 kB gzip. Individual
-  families range from 0.78 kB gzip (`select`) to 2.87 kB (`binX`); calendar bins
-  are 1.30 kB, 2D bins 2.75 kB, rank 0.79 kB, and cumulative 1.04 kB. The full
+- The common transform suite is 16.59 kB minified / 6.16 kB gzip. Individual
+  families range from 0.77 kB gzip (`rank`) to 2.89 kB (`binX`); calendar bins
+  are 1.30 kB, 2D bins 2.75 kB, and cumulative 1.03 kB. The full
   advanced reducer set is 0.42 kB gzip and is absent unless imported.
 - Keeping advanced reducers outside the shared string switch reduced a complete
-  histogram from the first-pass 18.75 kB gzip to 18.60 kB, below its 18.7 kB
+  histogram from the first-pass 18.75 kB gzip to 18.63 kB, below its 18.7 kB
   ceiling. The comparable direct-D3 histogram is 17.41 kB. Locked non-transform
   entries remain byte-identical, showing the root exports still tree-shake.
 

@@ -4,15 +4,15 @@
   "bundles": {
     "D3-scale line scene": {
       "bytes": 40296,
-      "gzip": 15530
+      "gzip": 15529
     },
     "D3-scale line + static SVG": {
       "bytes": 43237,
-      "gzip": 16601
+      "gzip": 16602
     },
     "Representative marks": {
       "bytes": 57754,
-      "gzip": 20974
+      "gzip": 20970
     },
     "TanStack DOM host": {
       "bytes": 51426,
@@ -28,11 +28,11 @@
     },
     "Custom-scale line scene": {
       "bytes": 21077,
-      "gzip": 7832
+      "gzip": 7831
     },
     "D3 linear-scale line scene": {
       "bytes": 40228,
-      "gzip": 15496
+      "gzip": 15495
     }
   }
 }
