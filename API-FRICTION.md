@@ -3315,9 +3315,10 @@ Each entry records:
   stale measured evidence.
 - Verification: the public comparison names the measured TanStack revision,
   the tracked baseline records the `0.0.1` manifest version separately from
-  exact `99c08eb` comparison-input revision, and the deterministic comparison
+  exact `5c36a38` comparison-input revision, and the deterministic comparison
   check rejects missing, malformed, or mismatched provenance. Its CI checkout
-  retains the history required to resolve that revision.
+  retains the history required to resolve that revision. The reviewed 60-case
+  baseline matches the candidate produced by Ubuntu PR run `30607255311`.
 
 ### F-137 — Latest docs installed an incompatible published API
 
