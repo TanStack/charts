@@ -57,6 +57,9 @@ implementation plan or compatibility promise.
   React compact-scale line; portal transport adds another 0.79 kB. Static,
   compact-scale, renderer-neutral, and adapter entries enforce that tooltip and
   portal modules are absent unless selected.
+- The committed 12-consumer comparison matrix now spans 26.62-32.17 kB gzip
+  for TanStack Charts across line, bar, area, and scatter tiers. Its baseline
+  records the exact source revision separately from documentation-only commits.
 - Every transform family now has an isolated gzip ceiling and a retained-input
   boundary. Numeric and 2D bins may retain `d3-array`; row stacks may retain
   `d3-shape`; all other families reject those dependencies and every granular
