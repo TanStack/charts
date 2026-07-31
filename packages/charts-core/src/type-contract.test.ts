@@ -498,11 +498,20 @@ if (false) {
   })
   // @ts-expect-error Configured tooltip options require an extension token.
   defineChart(staticDefinition, { tooltip: { sticky: false } })
+  // @ts-expect-error Portal tokens cannot enable the tooltip extension.
+  defineChart(staticDefinition, { tooltip: portal })
   // @ts-expect-error Portaling requires the explicit portal extension.
   defineChart(staticDefinition, {
     tooltip: {
       use: tooltip,
       portal: true,
+    },
+  })
+  // @ts-expect-error Tooltip tokens cannot configure portal transport.
+  defineChart(staticDefinition, {
+    tooltip: {
+      use: tooltip,
+      portal: tooltip,
     },
   })
   mountChart(container, {

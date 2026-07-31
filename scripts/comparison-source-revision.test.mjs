@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
+  comparisonInstalledVersionFailure,
   tanstackComparisonInputPaths,
   tanstackComparisonRevision,
   tanstackComparisonSourceFailure,
@@ -55,6 +56,23 @@ describe('TanStack comparison source provenance', () => {
     ).toBe(
       `bundle baseline workspace revision ${recordedRevision} does not match measured inputs ${expectedRevision}`,
     )
+  })
+
+  it('uses source revisions for workspaces and versions for installed packages', () => {
+    expect(
+      comparisonInstalledVersionFailure(
+        { kind: 'workspace', revision: 'a'.repeat(40) },
+        '0.0.2',
+        '0.0.1',
+      ),
+    ).toBeUndefined()
+    expect(
+      comparisonInstalledVersionFailure(
+        { kind: 'package', packageName: 'chart.js', version: '4.5.1' },
+        '4.5.2',
+        '4.5.1',
+      ),
+    ).toBe('installed version 4.5.2 does not match baseline 4.5.1')
   })
 })
 

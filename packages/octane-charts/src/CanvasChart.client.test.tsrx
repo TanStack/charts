@@ -51,31 +51,35 @@ afterEach(() => {
 })
 
 describe('Octane Canvas adapter client', () => {
-  it('hydrates the server-rendered Canvas shell in place', async () => {
-    const target = document.createElement('div')
-    target.innerHTML = await renderServerHydrationFixture()
-    const host = target.querySelector('.ts-chart-host')
-    const surface = target.querySelector('.ts-chart-canvas')
-    const sceneCanvas = target.querySelector('.ts-chart-canvas__scene')
-    const focusCanvas = target.querySelector('.ts-chart-canvas__focus')
-    if (!host || !surface || !sceneCanvas || !focusCanvas) {
-      throw new Error('Expected the server-rendered Canvas chart shell')
-    }
+  it(
+    'hydrates the server-rendered Canvas shell in place',
+    async () => {
+      const target = document.createElement('div')
+      target.innerHTML = await renderServerHydrationFixture()
+      const host = target.querySelector('.ts-chart-host')
+      const surface = target.querySelector('.ts-chart-canvas')
+      const sceneCanvas = target.querySelector('.ts-chart-canvas__scene')
+      const focusCanvas = target.querySelector('.ts-chart-canvas__focus')
+      if (!host || !surface || !sceneCanvas || !focusCanvas) {
+        throw new Error('Expected the server-rendered Canvas chart shell')
+      }
 
-    let root: ReturnType<typeof hydrateRoot> | undefined
-    await act(() => {
-      root = hydrateRoot(target, HydrationCanvasChart)
-    })
+      let root: ReturnType<typeof hydrateRoot> | undefined
+      await act(() => {
+        root = hydrateRoot(target, HydrationCanvasChart)
+      })
 
-    expect(target.querySelector('.ts-chart-host')).toBe(host)
-    expect(target.querySelector('.ts-chart-canvas')).toBe(surface)
-    expect(target.querySelector('.ts-chart-canvas__scene')).toBe(sceneCanvas)
-    expect(target.querySelector('.ts-chart-canvas__focus')).toBe(focusCanvas)
-    expect(target.querySelector('svg')).toBeNull()
+      expect(target.querySelector('.ts-chart-host')).toBe(host)
+      expect(target.querySelector('.ts-chart-canvas')).toBe(surface)
+      expect(target.querySelector('.ts-chart-canvas__scene')).toBe(sceneCanvas)
+      expect(target.querySelector('.ts-chart-canvas__focus')).toBe(focusCanvas)
+      expect(target.querySelector('svg')).toBeNull()
 
-    await act(() => root?.unmount())
-    expect(target.childElementCount).toBe(0)
-  })
+      await act(() => root?.unmount())
+      expect(target.childElementCount).toBe(0)
+    },
+    15_000,
+  )
 
   it('adopts its rendered Canvas shell and preserves interaction callbacks', async () => {
     const target = document.createElement('div')

@@ -121,6 +121,42 @@ describe('automatic scene guide layout', () => {
     )
   })
 
+  it('keeps long axis titles inside narrow surfaces', () => {
+    const definition = defineChart({
+      marks: [lineY([1, 2, 3])],
+      x: {
+        scale: scaleLinear().domain([0, 2]),
+        label: '← more disagree · Number of responses · more agree →',
+      },
+      y: { scale: scaleLinear().domain([0, 3]) },
+    })
+    const scene = createChartScene(
+      definition,
+      { width: 320, height: 260 },
+      { measureText },
+    )
+    const regular = createChartScene(
+      definition,
+      { width: 360, height: 260 },
+      { measureText },
+    )
+    const title = flatten(scene.nodes).find(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key === 'x-label',
+    )
+    const regularTitle = flatten(regular.nodes).find(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key === 'x-label',
+    )
+    if (!title || !regularTitle) throw new Error('Expected x-axis titles')
+
+    const bounds = measureSceneLabelBounds(title, measureText)
+    expect(title.fontSize).toBe(10)
+    expect(regularTitle.fontSize).toBe(11)
+    expect(bounds.x).toBeGreaterThanOrEqual(3.99)
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(scene.width - 3.99)
+  })
+
   it('contains text-mark labels with unlocked margins', () => {
     const rows = [
       { id: 'top-right', x: 10, y: 10, label: 'Top right' },

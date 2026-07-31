@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-This section documents migration from `0.0.1` and supersedes tooltip examples
+This section documents migration from `0.0.2` and supersedes tooltip examples
 in the historical release entries below.
 
 ### Breaking changes
@@ -30,7 +30,7 @@ const configuredTooltip = {
 
 Apply these replacements to chart definition options:
 
-| `0.0.1` input      | Unreleased input                        |
+| `0.0.2` input      | `0.1.0` input                           |
 | ------------------ | --------------------------------------- |
 | `tooltip: true`    | `tooltip`                               |
 | `tooltip: false`   | `tooltip: false`                        |
@@ -52,11 +52,11 @@ contextual typing boundary for inline tooltip callbacks.
 React consumers that provide `renderTooltipBody` must move the component and
 matching prop-type imports to `@tanstack/react-charts/tooltip`:
 
-| `0.0.1` import                          | Unreleased component | Unreleased prop types                            |
-| --------------------------------------- | -------------------- | ------------------------------------------------ |
-| `@tanstack/react-charts` `Chart`        | `Chart`              | `ChartProps`, `ChartCommonProps`                 |
-| `@tanstack/react-charts/canvas` `Chart` | `CanvasChart`        | `CanvasChartProps`, `CanvasChartCommonProps`     |
-| `@tanstack/react-charts/core` `Chart`   | `RendererChart`      | `RendererChartProps`, `RendererChartCommonProps` |
+| `0.0.2` import                          | `0.1.0` component | `0.1.0` prop types                               |
+| --------------------------------------- | ----------------- | ------------------------------------------------ |
+| `@tanstack/react-charts` `Chart`        | `Chart`           | `ChartProps`, `ChartCommonProps`                 |
+| `@tanstack/react-charts/canvas` `Chart` | `CanvasChart`     | `CanvasChartProps`, `CanvasChartCommonProps`     |
+| `@tanstack/react-charts/core` `Chart`   | `RendererChart`   | `RendererChartProps`, `RendererChartCommonProps` |
 
 Do not rename `/canvas` or `/core` imports to `/tooltip` while retaining the
 name `Chart`; that name selects the default SVG component in the new entry. The
@@ -91,12 +91,83 @@ require the chart-definition migration above.
 
 ### Bundle impact
 
-- The representative compact React line consumer is 14,225 bytes gzip
+- The representative compact React line consumer is 14,227 bytes gzip
   (13.89 KiB), down from 25,708 bytes gzip (25.11 KiB). React, the React JSX
   runtime, and React DOM are external in both measurements.
-- Opting into the tooltip extension produces 17,607 bytes gzip, an increase of
-  3,382 bytes.
-- Adding the portal extension produces 18,413 bytes gzip, another 806 bytes.
+- Opting into the tooltip extension produces 17,608 bytes gzip, an increase of
+  3,381 bytes.
+- Adding the portal extension produces 18,414 bytes gzip, another 806 bytes.
+
+## 0.0.2
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#12](https://github.com/TanStack/charts/pull/12) [`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3) - Keep long Cartesian axis titles contained on compact charts.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
 
 ## 0.0.1 (2026-07-30)
 

@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 ## Triage rule
 
@@ -176,7 +176,22 @@ Each entry records:
 | F-138 | Publisher pin predated explicit trust permissions        | Tooling/Release | resolved   |
 | F-139 | Top-level entries bypassed tarball validation            | Tooling/Release | resolved   |
 | F-140 | Behavior config could erase responsive datum inference   | API             | monitoring |
-| F-141 | Optional tooltip code burdened every chart consumer      | API             | resolved   |
+| F-141 | Vitest followed pnpm workspace symlinks                  | Tooling         | resolved   |
+| F-142 | Package verification reinstalled during release builds   | Tooling/Release | resolved   |
+| F-143 | The `ci` script name collided with pnpm's clean install  | Tooling/Docs    | resolved   |
+| F-144 | Action pin checks accepted invalid commit lengths        | Tooling         | resolved   |
+| F-145 | Changesets included private workspaces in version plans  | Tooling/Release | resolved   |
+| F-146 | Octane hydration used a unit-test timeout                | Tooling         | resolved   |
+| F-147 | Release automation duplicated validated work             | Tooling/Release | resolved   |
+| F-148 | Publisher failure returned before its workers settled    | Tooling/Release | resolved   |
+| F-149 | Release checks could stall or accept an unbound tag      | Tooling/Release | resolved   |
+| F-150 | Nx worktree caches followed the common Git directory     | Tooling         | monitoring |
+| F-151 | Artifact actions targeted deprecated Node 20             | Tooling         | resolved   |
+| F-152 | Version bumps invalidated workspace bundle evidence      | Tooling/Release | resolved   |
+| F-153 | Changesets left release-facing version claims behind     | Tooling/Release | resolved   |
+| F-154 | Root barrels crossed the browser host boundary           | API/Tooling     | resolved   |
+| F-155 | Optional tooltip code burdened every chart consumer      | API             | resolved   |
+| F-156 | Releases stranded manual Unreleased migration notes      | Tooling/Release | resolved   |
 
 ## Findings
 
@@ -492,7 +507,7 @@ Each entry records:
   tests are deleted; fixtures and histogram benchmarks use direct `d3.bin`;
   differential tests cover the compact subset against D3; packed-consumer
   checks resolve every exact entry. The complete compact family is 1,877 gzip
-  bytes, and a representative compact React line is 14,225 gzip bytes without
+  bytes, and a representative compact React line is 14,227 gzip bytes without
   retaining `d3-scale`, `d3-format`, or `d3-interpolate`.
 
 ### F-016 — Stats animated export still renders through Plot
@@ -649,11 +664,17 @@ Each entry records:
 - Friction: core previously resolved fixed margin heuristics before scales,
   formatted ticks, titles, and rotations existed. Stats compensated with
   duplicated character-width estimates and large manual margins, yet labels
-  could still escape a clipped SVG.
+  could still escape a clipped SVG. The strict zero-failure CI gate later made
+  the same existing mistake blocking in two conformance examples: a locked
+  64px left margin left the rotated y-axis title 1.35px outside the surface
+  under Linux font metrics. A long 11px x-axis title was also wider than its
+  entire 320px surface.
 - Decision: make omitted margin sides automatic. Solve the minimum guide bounds
   from formatted text, anchors, and rotations; treat numeric sides as hard
   overrides; expose resolved bounds for aligned application UI. Keep label
-  containment separate from tick collision and tiny-container degradation.
+  containment separate from tick collision. Content-dependent examples omit
+  margin locks, and axis titles use the same compact 10px typography as ticks
+  below 360px.
 - Verification: six guide-bound tests cover deterministic measurement, anchors,
   baselines, rotation, translated groups, and all four sides. Five scene-layout
   tests cover long labels and titles, rotated endpoints, narrow-to-wide
@@ -662,7 +683,9 @@ Each entry records:
   bounds, measurer replacement, coalesced font completion, and cleanup. Stats
   supplies neither Charts margins nor title offsets; its timeline consumes the
   resolved scene margin. TypeScript, focused lint, browser containment across
-  every Stats shape, and bundle ceilings pass.
+  every Stats shape, and bundle ceilings pass. The stacked-area, streamgraph,
+  and narrow Likert cases pass the same 320px and 640px containment contract in
+  local Chromium. Pull-request CI remains the cross-platform release gate.
 
 ### F-024 — Co-located benchmark cases defeated tree shaking
 
@@ -1085,7 +1108,7 @@ Each entry records:
   byte lock runs on pinned Ubuntu 24.04 and Node 24.18.0; this prevents runner
   and compressor upgrades from masquerading as library-size changes. The
   bundle-reduction work locks the compact scene at 6,711 gzip bytes and its
-  React consumer at 14,225. Tooltip adds 3,382 bytes and portal adds another 806. Retained-output assertions prove the base excludes tooltip, portal,
+  React consumer at 14,227. Tooltip adds 3,381 bytes and portal adds another 806. Retained-output assertions prove the base excludes tooltip, portal,
   React tooltip composition, and the D3 scale/format/interpolate stack.
   Replacing the core-owned D3 ordinal default required reviewed 0.05 KiB
   adjustments to the tick and polar-composition feature ceilings; all other
@@ -1331,11 +1354,16 @@ Each entry records:
 - Friction: removing redundant numeric domains exposed that automatic layout
   measured guides but not data-bound text. Labels at an inferred maximum
   escaped the top of the surface even though that margin side was unlocked.
+  The bump-ranking conformance example later locked its right margin to the
+  reference renderer's 160px heuristic, which left its longest direct label
+  8.64px outside the surface under Ubuntu font metrics.
 - Decision: built-in text marks expose their positioned labels to the existing
   monotonic margin solver. It measures anchors, `dx`/`dy`, rotation, font
   metrics, and responsive scale positions without calling mark render.
   Explicit margin sides and `margin: 0` remain locks; `clip: true` keeps clipped
   plots authoritative. Custom marks can opt in with `layoutLabels`.
+  Content-dependent examples leave the relevant side unlocked instead of
+  copying another renderer's fixed margin.
 - Verification: focused core layout/text tests pass, mark render remains
   single-pass, and all six affected cases pass containment at 320 and 640 px
   across initial and updated data. The grouped/stacked ordering checks in the
@@ -1343,6 +1371,9 @@ Each entry records:
   keeps the isolated automatic text-margin cost to 219 minified bytes / 85 gzip
   bytes for the locked line scene and 524 minified bytes / 178 gzip bytes for
   the representative-mark entry, with no new dependency.
+  The bump-ranking case passes 320px and 640px containment in local Chromium
+  with its right margin resolved from the direct labels. Pull-request CI
+  remains the cross-platform release gate.
 
 ### F-054 — D3 reducer output needs empty-safe narrowing
 
@@ -3313,9 +3344,10 @@ Each entry records:
   stale measured evidence.
 - Verification: the public comparison names the measured TanStack revision,
   the tracked baseline records the `0.0.1` manifest version separately from
-  exact `99c08eb` comparison-input revision, and the deterministic comparison
+  exact `5c36a38` comparison-input revision, and the deterministic comparison
   check rejects missing, malformed, or mismatched provenance. Its CI checkout
-  retains the history required to resolve that revision.
+  retains the history required to resolve that revision. The reviewed 60-case
+  baseline matches the candidate produced by Ubuntu PR run `30607255311`.
 
 ### F-137 — Latest docs installed an incompatible published API
 
@@ -3351,22 +3383,18 @@ Each entry records:
   request completed two-factor authentication but returned an opaque HTTP 400
   instead of identifying the missing `--allow-publish` permission.
 - Decision: configure trust with npm `11.18.0`, give each public package an
-  explicit publish permission, and keep npm installation outside the
-  OIDC-enabled job. The release checks that Node's bundled npm meets the
-  trusted-publishing minimum instead of replacing the CLI while a job can mint
-  identity tokens.
+  explicit publish permission, and use the repository's standard Changesets
+  workflow without an npm token. The publisher checks that Node's bundled npm
+  meets the trusted-publishing minimum before requesting OIDC-backed
+  publication.
 - Verification: `npm trust list` reports the exact `TanStack/charts`
   repository, `release.yml` workflow, and `createPackage` permission for core
-  and all nine public framework adapters. The workflow has one OIDC-enabled
-  job; it checks out the exact release SHA, downloads already-checked
-  artifacts, installs no dependencies, revalidates the protected remote tag
-  and main immediately before publishing, and delegates package installation
-  and signature verification to a post-publish job without OIDC. That job
-  requires npm to verify every release package's attestation bundle and then
-  matches the fetched bundles before checking their exact package, digest,
-  repository, workflow, tag, and commit claims. Release workflow
-  `30592985603` completed that OIDC publication and independent verification
-  successfully for all ten packages.
+  and all nine public framework adapters. Release workflow `30592985603`
+  completed OIDC publication for all ten `0.0.1` packages. The current
+  publisher builds checked tarballs for an unpublished or unfinished release,
+  waits for matching registry integrity and attestations, and the workflow
+  contract grants `id-token: write` once without `NPM_TOKEN` or
+  `NODE_AUTH_TOKEN`.
 
 ### F-139 — Top-level package entries bypassed tarball validation
 
@@ -3414,13 +3442,276 @@ Each entry records:
   whether its overload can retain builder datum inference without making
   behavior ownership ambiguous.
 
-### F-141 — Optional tooltip code burdened every chart consumer
+### F-141 — Vitest followed pnpm workspace symlinks
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: Nx and CI migration after the `0.0.1` release
+- Friction: the root Vitest configuration replaced the default exclusion list
+  when it excluded framework-owned suites. Vitest therefore followed pnpm
+  workspace links through `node_modules` and ran the same physical tests under
+  packages and examples. CI reported 464 files and 2,989 tests even though the
+  intended root suite contained 106 files and 537 tests. That one invocation
+  consumed 206 seconds.
+- Decision: extend `configDefaults.exclude` before adding the framework-specific
+  exclusions. Keep the seven framework environments as independent Nx targets
+  so they run in parallel and cache independently.
+- Verification: the corrected direct root suite completes in 4.92 seconds.
+  The cold seven-target Nx unit graph completes in 6.90 seconds, and an
+  unchanged warm local-cache run completes in 0.54 seconds.
+
+### F-142 — Package verification reinstalled dependencies during release builds
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: validating the fresh release-artifact path during the Nx and CI
+  migration
+- Friction: pnpm's dependency verification treated newly generated adapter
+  `dist` files as a stale workspace and started a clean install when the
+  builder later called `pnpm exec` or `pnpm pack`. With the packed-consumer and
+  framework builders running together, that reinstall removed root package
+  links while the packed consumer was bundling. Its installed
+  `@tanstack/charts` tarball could no longer resolve `d3-array` or `d3-scale`.
+  The cached package gate did not reproduce the release-only failure.
+- Decision: disable `verifyDepsBeforeRun` because setup already performs one
+  frozen install before every CI job. Run the two top-level release builders
+  sequentially and serialize every nested pnpm command through one
+  framework-builder queue. Independent in-process adapter builds and post-pack
+  checks retain four-worker pools.
+- Verification: a frozen install restores the workspace graph; the uncached
+  release-artifact command builds and validates all ten tarballs; and the
+  artifact-only publisher check accepts the resulting manifest and integrity
+  records.
+
+### F-143 — The `ci` script name collided with pnpm's clean install
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Documentation
+- Observed in: validating the documented local Nx command
+- Friction: pnpm 11 reserves `pnpm ci` for its clean-install command, so the
+  root `"ci"` package script was not reachable through the documented
+  shorthand. Running the command removed `node_modules` instead of executing
+  the Nx validation graph.
+- Decision: expose the local graph as `pnpm run validate`. Keep the unambiguous
+  command in GitHub Actions as well.
+- Verification: `pnpm run validate` resolves the `charts-workspace:ci` Nx
+  target locally and in CI, while contributor docs no longer instruct
+  maintainers to invoke pnpm's clean-install command. The workspace contains
+  25 inferred Nx projects but only the root owns the current aggregate CI
+  target, so removing the misleading `nx affected --target=ci` alias avoids
+  claiming task pruning that does not yet exist; target-level cache replay
+  still skips unchanged work.
+
+### F-144 — Action pin checks accepted invalid commit lengths
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: the first pull-request run of the split Nx workflow
+- Friction: the action-pin contract accepted hashes between 40 and 64
+  characters but GitHub required the repository's SHA-1 action revisions to
+  contain exactly 40. A 41-character `actions/cache` revision therefore
+  passed local validation and caused every CI partition to fail during shared
+  setup before project commands ran. The test also ignored external actions
+  nested in the local composite setup action.
+- Decision: pin `actions/cache@v5.0.4` to its exact 40-character commit and
+  validate both workflows and the shared composite action with an exact-length
+  contract.
+- Verification: the focused CI and release workflow contracts reject the
+  previous 41-character revision and accept every current action pin.
+
+### F-145 — Changesets included private workspaces in version plans
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: preparing the first automated patch after the CI migration
+- Friction: Changesets defaults to versioning private packages. A core-only
+  patch plan therefore included private examples, fixtures, and the sandbox
+  alongside the ten public Charts packages, even though the artifact publisher
+  intentionally releases only the public fixed group.
+- Decision: disable private-package versioning explicitly and keep the ten
+  public packages in one exact fixed group.
+- Verification: the release workflow contract locks both settings, and
+  `changeset status` reports only the ten public packages for the compact-axis
+  patch.
+
+### F-146 — Octane hydration used a unit-test timeout
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: parallel Ubuntu static checks
+- Friction: the Octane Canvas hydration regression creates a Vite SSR server,
+  compiles the server fixture, renders it, hydrates it, and closes the server.
+  Under the full parallel CI graph that integration path took 5.4 seconds and
+  exceeded Vitest's generic five-second unit-test limit.
+- Decision: give only that cold SSR integration test a 15-second timeout.
+  Ordinary Octane client tests retain the five-second default.
+- Verification: the focused Octane client suite covers all seven client tests;
+  pull-request static checks remain the parallel Linux gate.
+
+### F-147 — Release automation duplicated validated work
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: the `0.0.2` release and comparison with Query, Router, Virtual,
+  Form, Store, Pacer, and the TanStack repository template
+- Friction: the built-in workflow token intentionally does not start
+  pull-request Actions for the generated Changesets PR. The previous workaround
+  explicitly dispatched 22 checks that took 2 minutes 46 seconds, even though
+  Charts has no required status-check or review rule. Merging that mechanical
+  PR then ran the complete main workflow for another 4 minutes 12 seconds
+  before a tag dispatch started four more release jobs.
+- Decision: use the standard TanStack push-to-main Changesets job. Pending
+  changesets create or update the mergeable version PR immediately. With no
+  pending changesets, the same job preflights npm, builds the checked package
+  tarballs, publishes through OIDC, and finalizes the aggregate tag and release.
+  Main browser and catalog CI remains independent.
+- Verification: the repository ruleset protects main only from deletion and
+  non-fast-forward updates. PR `#13` merged without a review or required check.
+  Workflow contracts reject the removed `version_pr` dispatch path and require
+  one branch-scoped Changesets release job with registry-aware finalization.
+
+### F-148 — Publisher failure returned before its workers settled
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: release-safety review of parallel package work
+- Friction: the adapter publisher, framework package gate, and comparison
+  builder used `Promise.all` over long-lived workers. One rejected operation
+  could end its caller while other workers were still running; publication
+  could hide later failures, and package cleanup could remove a temporary
+  directory beneath active builds.
+- Decision: drain a bounded worker pool, continue independent queued
+  publications, collect failures in source order, and throw one
+  `AggregateError` only after every worker has settled.
+- Verification: all three paths use the shared worker pool. Its regression
+  forces an early failure, confirms all four operations start, all successful
+  operations finish, active work is zero when the error surfaces, and
+  concurrency never exceeds two.
+
+### F-149 — Release checks could stall or accept an unbound tag
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: release-safety review of idempotent tag dispatch
+- Friction: an existing remote release tag bypassed the revision comparison
+  when `RELEASE_REVISION` was absent, and direct npm, GitHub, and attestation
+  requests had no request deadline below the job-level timeout.
+- Decision: require an exact 40-character expected revision whenever a tag
+  already exists, require equality before dispatch, and give every direct
+  release fetch a 30-second deadline.
+- Verification: focused tests reject missing, empty, and mismatched revisions,
+  accept the exact match, and the release workflow contract counts a bounded
+  signal on every direct release request.
+
+### F-150 — Nx worktree caches followed the common Git directory
+
+- Status: monitoring
+- Severity: low
+- Owner: Tooling
+- Observed in: validating Nx from a sandboxed Git worktree
+- Friction: Nx resolved its relative cache and workspace-data directories
+  through the worktree's common Git checkout. The sandbox could execute every
+  target but could not write task metadata outside the active worktree.
+- Current decision: keep the portable repository defaults. In restricted
+  worktrees, set `NX_CACHE_DIRECTORY` and `NX_WORKSPACE_DATA_DIRECTORY` to
+  absolute paths inside that worktree.
+- Verification: the full 17-target validation graph passes with both
+  directories scoped to the active worktree. Ordinary clones and GitHub
+  Actions retain `.nx/cache` and `.nx/workspace-data`.
+
+### F-151 — Artifact actions targeted deprecated Node 20
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: the final split-CI pull-request matrix
+- Friction: GitHub forced the pinned v4 artifact actions onto Node 24 and
+  emitted a deprecation annotation in every artifact-producing shard.
+- Decision: pin the official Node 24 releases of `upload-artifact` v6 and
+  `download-artifact` v7 by exact commit.
+- Verification: workflow contracts require immutable action revisions; the
+  final GitHub matrix exercises every upload path before merge.
+
+### F-152 — Version-only releases invalidated workspace bundle evidence
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: the first automated Changesets version pull request
+- Friction: the comparison baseline required the TanStack workspace package
+  version to match its last measured release. Changesets advanced the package
+  to 0.0.2 without changing measured source, so both the bundle gate and docs
+  contract rejected an otherwise unchanged artifact.
+- Decision: keep exact installed-version checks for external registry
+  packages. For the TanStack workspace, use the existing exact Git revision of
+  every measured input as the authoritative provenance boundary; a version-only
+  release no longer requires rewriting bundle measurements.
+- Verification: focused contracts accept a workspace release changing from
+  0.0.1 to 0.0.2, still reject external package-version drift, and retain the
+  exact workspace source-revision check.
+
+### F-153 — Changesets left release-facing version claims behind
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: auditing the generated 0.0.2 version pull request
+- Friction: Changesets advanced manifests, package changelogs, and the lockfile
+  but left the root README, canonical docs, comparison evidence links, and
+  marketing material on 0.0.1. Merging the generated pull request would have
+  published a newer package line beside stale install and status claims.
+- Decision: derive the previous release from the generated root changelog,
+  advance an explicit allowlist of release-facing sources, then run the
+  repository's canonical docs sync before formatting the version pull request.
+  Historical changelog and friction evidence remain immutable.
+- Verification: focused tests cover version-heading discovery, complete
+  replacement, idempotency, and missing-version rejection. Generated package
+  docs remain outputs of `pnpm docs:sync`, never hand-edited sources.
+
+### F-154 — Root barrels crossed the browser host boundary
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: isolating the React Native host proof from the core package
+- Friction: shared chart definitions and scene compilation are
+  platform-neutral, but the root value barrel made bundlers traverse DOM hosts,
+  adapters, reconciliation, and SVG surfaces. Its type graph also declared
+  `Element`, `HTMLElement`, and `SVGSVGElement`, so a non-DOM consumer could
+  not select the portable contracts as one supported entry.
+- Decision: preserve the existing browser-oriented root API and add
+  `@tanstack/charts/portable` for common authoring/runtime values plus
+  `@tanstack/charts/types` for portable contracts. DOM surface, renderer, host,
+  and render-context types now live behind an internal module while retaining
+  their existing root re-exports. Definition inputs retain DOM-free extension
+  token contracts while typed tooltip and portal lifecycles remain in the DOM
+  module. Do not conditionally change the root until a native host can test one
+  coherent platform contract.
+- Verification: root typechecking and 61 focused core tests pass. The packed
+  package gate resolves both new entries from `dist`, compiles their
+  declarations, including tooltip definition inputs, with Web Worker rather
+  than DOM globals. Type regressions reject swapping tooltip and portal tokens.
+  The packed bundle proof excludes the root, adapters, Canvas, DOM host/text,
+  browser export, reconciliation, renderer, and SVG surface modules. That full
+  portable barrel measures 53.95 kB minified and 16.60 kB gzip; granular
+  subpaths remain the bundle-sensitive option.
+
+### F-155 — Optional tooltip code burdened every chart consumer
 
 - Status: resolved
 - Severity: high
 - Owner: API
-- Observed in: reducing the representative React line consumer from roughly
-  24 KiB to 15 KiB gzip
+- Observed in: reducing the representative React line consumer from 25.11 KiB
+  to 13.89 KiB gzip
 - Friction: the renderer statically owned native tooltip DOM, formatting,
   placement, pinning, portal transport, and observers. React's base entries
   also statically owned `react-dom` portal composition and the default rich
@@ -3433,9 +3724,30 @@ Each entry records:
   CanvasChart, and RendererChart exports from
   `@tanstack/react-charts/tooltip`. Base entries export only erased extension
   types and never import those runtime modules.
-- Verification: the representative compact React line is 14,225 gzip bytes.
-  Native tooltip adds 3,382 bytes; portal adds 806 more. Retained-output graph
+- Verification: the representative compact React line is 14,227 gzip bytes.
+  Native tooltip adds 3,381 bytes; portal adds 806 more. Retained-output graph
   checks prove base renderer and React entries contain none of the tooltip,
   portal, or React rich-body modules. Core, Lit, React, export, declaration,
   packed-package, and lifecycle tests cover creation, update, disable,
   transport switching, custom bodies, and cleanup.
+
+### F-156 — Releases stranded manual Unreleased migration notes
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: rebasing the tooltip and compact-scale release onto the
+  Changesets-based `0.0.2` release flow
+- Friction: the root changelog held the complete human- and agent-readable
+  migration under `## Unreleased`, while Changesets generated package sections
+  and prepended the new version without consuming that section. The resulting
+  release would leave the migration under an obsolete heading instead of the
+  version users were upgrading to.
+- Decision: when synchronizing a new root release, move the body of
+  `## Unreleased` into the generated version section and remove the pending
+  heading. Package-specific changesets retain the core, React, and compact-scale
+  migration instructions in their published package changelogs.
+- Verification: the focused changelog synchronization regression moves pending
+  breaking-change notes under the generated version, removes `## Unreleased`,
+  preserves earlier releases, and includes the migration in extracted GitHub
+  release notes.

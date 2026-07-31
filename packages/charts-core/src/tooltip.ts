@@ -1,18 +1,20 @@
 import { placeTooltip } from './tooltip-position'
 import type {
+  ChartTooltipExtension,
+  ChartTooltipExtensionContext,
+  ChartTooltipExtensionInstance,
+  ChartTooltipPaintContext,
+  ChartTooltipPortalExtension,
+  ChartTooltipPortalExtensionInstance,
+} from './dom-types'
+import type {
   ChartPoint,
   ChartScene,
   ChartTooltipChannelItem,
   ChartTooltipContent,
   ChartTooltipContentContext,
-  ChartTooltipExtension,
-  ChartTooltipExtensionContext,
-  ChartTooltipExtensionInstance,
   ChartTooltipItem,
   ChartTooltipOptions,
-  ChartTooltipPaintContext,
-  ChartTooltipPortalExtension,
-  ChartTooltipPortalExtensionInstance,
   ChartTooltipPortalOptions,
   ChartValue,
 } from './types'
@@ -23,6 +25,13 @@ export const tooltip: ChartTooltipExtension = {
 }
 
 export type {
+  ChartTooltipExtension,
+  ChartTooltipExtensionContext,
+  ChartTooltipExtensionInstance,
+  ChartTooltipPaintContext,
+} from './dom-types'
+
+export type {
   ChartTooltipAnchor,
   ChartTooltipAnchorContext,
   ChartTooltipChannelItem,
@@ -30,14 +39,10 @@ export type {
   ChartTooltipContentContext,
   ChartTooltipDatumItem,
   ChartTooltipDerivedItem,
-  ChartTooltipExtension,
-  ChartTooltipExtensionContext,
-  ChartTooltipExtensionInstance,
   ChartTooltipInput,
   ChartTooltipItem,
   ChartTooltipItemBase,
   ChartTooltipOptions,
-  ChartTooltipPaintContext,
   ChartTooltipPlacement,
   ChartTooltipPosition,
   ChartTooltipRow,
@@ -201,11 +206,9 @@ function createTooltipExtension<
   function syncPortal() {
     if (!element) return
     const input = options.portal
-    const nextExtension = input
-      ? 'create' in input
-        ? input
-        : input.use
-      : undefined
+    const nextExtension = (
+      input ? ('create' in input ? input : input.use) : undefined
+    ) as ChartTooltipPortalExtension | undefined
     const nextOptions: ChartTooltipPortalOptions =
       input && 'use' in input ? input : {}
     if (nextExtension !== portalExtension) {

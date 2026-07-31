@@ -39,7 +39,7 @@ server-rendered application charts.
 <a id="status"></a>
 
 > [!IMPORTANT]
-> TanStack Charts `0.0.1` is pre-alpha. Its API may change between releases,
+> TanStack Charts `0.0.2` is pre-alpha. Its API may change between releases,
 > and it is not ready for production use.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
@@ -273,10 +273,13 @@ tracked in [`API-FRICTION.md`](./API-FRICTION.md).
 
 ## Development
 
-The workspace requires Node.js 22 or newer and pnpm 11.
+The workspace requires Node.js 22 or newer and pnpm 11. Use the version in
+`.nvmrc`. See [Contributing](./CONTRIBUTING.md) for the Nx CI graph, changeset
+requirements, and automated OIDC release flow.
 
 ```sh
 pnpm install
+pnpm run validate
 pnpm test
 pnpm typecheck
 pnpm build

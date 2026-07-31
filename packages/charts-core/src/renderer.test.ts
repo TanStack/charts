@@ -7,10 +7,10 @@ import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartRenderer,
-  ChartScene,
   ChartSurface,
   ChartSurfaceRenderOptions,
-} from './types'
+} from './dom-types'
+import type { ChartScene } from './types'
 
 interface Datum {
   id: string

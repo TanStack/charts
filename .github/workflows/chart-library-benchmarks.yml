@@ -23,170 +23,245 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
+  static:
+    name: Static checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - run: corepack enable
+      - name: Setup
+        uses: ./.github/actions/setup
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.18.0
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
-      - run: pnpm docs:check
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm package:check
-      - run: pnpm bundle:check
-      - name: Check comparison bundle baseline
-        id: benchmark-check
-        run: pnpm benchmark:check
-
-      - name: Upload comparison bundle baseline candidate
-        if: ${{ always() && steps.benchmark-check.outcome != 'skipped' && (steps.benchmark-check.outcome == 'failure' || inputs.upload_bundle_baseline_candidate) }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: comparison-bundle-baseline-${{ github.sha }}
-          path: .benchmark-output/results/bundle-baseline.candidate.json
-          if-no-files-found: error
-
-      - run: pnpm catalog:check
-      - run: pnpm catalog:build
-      - run: pnpm catalog:loading:check
-      - run: git diff --check
+      - name: Run cached validation graph
+        run: pnpm run validate
 
       - name: Upload production catalog
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: charts-catalog-${{ github.sha }}
           path: .catalog-artifact
           if-no-files-found: error
           include-hidden-files: true
 
-  compare:
-    needs: validate
+  bundle-baseline:
+    name: Bundle baseline
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Check comparison bundle baseline
+        id: benchmark-check
+        run: pnpm benchmark:check
+
+      - name: Upload comparison bundle baseline candidate
+        if: ${{ always() && steps.benchmark-check.outcome != 'skipped' && (steps.benchmark-check.outcome == 'failure' || inputs.upload_bundle_baseline_candidate) }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: comparison-bundle-baseline-${{ github.sha }}
+          path: .benchmark-output/results/bundle-baseline.candidate.json
+          if-no-files-found: error
+
+  compare:
+    name: Comparison (${{ matrix.chart }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        chart:
+          - line
+          - bar
+          - area
+          - scatter
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - run: corepack enable
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
-          node-version: 24.18.0
-          cache: pnpm
+          playwright: 'true'
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm benchmark -- --profile=ci
-      - run: cat .benchmark-output/results/comparison.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Run comparison shard
+        run: pnpm benchmark -- --profile=ci --chart=${{ matrix.chart }}
+
+      - name: Publish comparison summary
+        if: success()
+        run: |
+          summaries=(.benchmark-output/results/*.md)
+          test -e "${summaries[0]}"
+          cat "${summaries[@]}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload comparison
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: chart-library-comparison-${{ github.run_id }}
+          name: chart-library-comparison-${{ matrix.chart }}-${{ github.run_id }}
           path: .benchmark-output/results
           if-no-files-found: error
 
   conformance:
-    needs: validate
+    name: Conformance (${{ matrix.shard }}/8)
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 7
+          - 8
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - run: corepack enable
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
-          node-version: 24.18.0
-          cache: pnpm
+          playwright: 'true'
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      - name: Run pull-request conformance
+      - name: Run pull-request conformance shard
         if: github.event_name == 'pull_request'
-        run: pnpm conformance:quick
-      - name: Run production conformance
+        run: pnpm conformance:quick -- --shard=${{ matrix.shard }}/8
+
+      - name: Run production conformance shard
         if: github.event_name != 'pull_request'
-        run: pnpm conformance
-      - run: cat .benchmark-output/conformance/results/plot-catalog.md >> "$GITHUB_STEP_SUMMARY"
+        run: pnpm conformance -- --shard=${{ matrix.shard }}/8
+
+      - name: Publish conformance summary
+        if: success()
+        run: |
+          summaries=(.benchmark-output/conformance/results/*.md)
+          test -e "${summaries[0]}"
+          cat "${summaries[@]}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload conformance
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: chart-library-conformance-${{ github.run_id }}
+          name: chart-library-conformance-${{ matrix.shard }}-${{ github.run_id }}
           path: |
             .benchmark-output/conformance/results
             .benchmark-output/conformance/screenshots
           if-no-files-found: error
 
   stress:
-    needs: validate
+    name: Stress (${{ matrix.name }})
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: raw
+            workloads: raw-line,raw-scatter,interactive-scatter
+          - name: envelopes
+            workloads: binned-density,pixel-envelope,viewport-envelope
+          - name: transforms
+            workloads: stats-multi-series-line,rolling-keyed-window,histogram-128
+          - name: collections
+            workloads: top-categories,dashboard-lines
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - run: corepack enable
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
-          node-version: 24.18.0
-          cache: pnpm
+          playwright: 'true'
 
-      - run: pnpm install --frozen-lockfile
       - name: Validate stress workload invariants
         run: pnpm exec vitest run benchmarks/comparison/stress
-      - run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run quick stress profile
+      - name: Run quick stress shard
         if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: pnpm benchmark:stress:quick
+        run: pnpm benchmark:stress:quick -- --workload=${{ matrix.workloads }}
 
-      - name: Run standard stress profile
+      - name: Run standard stress shard
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: pnpm benchmark:stress:standard
+        run: pnpm benchmark:stress:standard -- --workload=${{ matrix.workloads }}
 
       - name: Publish stress summary
         if: success()
-        run: cat .benchmark-output/stress/results/*.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          summaries=(.benchmark-output/stress/results/*.md)
+          test -e "${summaries[0]}"
+          cat "${summaries[@]}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload stress results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: chart-library-stress-${{ github.run_id }}
+          name: chart-library-stress-${{ matrix.name }}-${{ github.run_id }}
           path: .benchmark-output/stress/results
           if-no-files-found: error
+
+  ci:
+    name: CI
+    if: always()
+    needs:
+      - static
+      - bundle-baseline
+      - compare
+      - conformance
+      - stress
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Require every CI partition
+        env:
+          STATIC_RESULT: ${{ needs.static.result }}
+          BUNDLE_RESULT: ${{ needs.bundle-baseline.result }}
+          COMPARISON_RESULT: ${{ needs.compare.result }}
+          CONFORMANCE_RESULT: ${{ needs.conformance.result }}
+          STRESS_RESULT: ${{ needs.stress.result }}
+        run: |
+          for result in \
+            "$STATIC_RESULT" \
+            "$BUNDLE_RESULT" \
+            "$COMPARISON_RESULT" \
+            "$CONFORMANCE_RESULT" \
+            "$STRESS_RESULT"
+          do
+            test "$result" = success
+          done
 
   publish-catalog:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
-      - validate
-      - conformance
+      - static
+      - ci
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     concurrency:
@@ -196,12 +271,13 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       - name: Download validated catalog
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: charts-catalog-${{ github.sha }}
           path: .catalog-artifact

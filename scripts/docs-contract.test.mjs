@@ -156,6 +156,12 @@ Body
     }
 
     expect(comparisonBaselineContractFailures(baseline, versions)).toEqual([])
+    expect(
+      comparisonBaselineContractFailures(baseline, {
+        ...versions,
+        tanstack: '0.0.2',
+      }),
+    ).toEqual([])
 
     const stale = structuredClone(baseline)
     stale.packageVersions.chartjs = '4.5.0'

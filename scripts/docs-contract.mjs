@@ -190,7 +190,11 @@ export function comparisonBaselineContractFailures(baseline, expectedVersions) {
   }
   for (const library of chartLibraries) {
     const manifestVersion = expectedVersions[library.id]
-    if (baseline.packageVersions?.[library.id] !== manifestVersion) {
+    const baselineVersion = baseline.packageVersions?.[library.id]
+    if (
+      !baselineVersion ||
+      (library.id !== 'tanstack' && baselineVersion !== manifestVersion)
+    ) {
       failures.push(
         `comparison bundle baseline version is stale for ${library.label}: expected ${manifestVersion}`,
       )

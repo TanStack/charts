@@ -1,9 +1,9 @@
-name: Publish release
+name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -13,133 +13,68 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  validate:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.18.0
-          registry-url: https://registry.npmjs.org
-          cache: ''
-
-      - name: Verify tagged main revision
-        run: node scripts/verify-release-revision.mjs
-
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
-      - run: pnpm docs:check
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm release:artifacts
-      - run: pnpm release:check
-
-      - name: Upload checked package artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: charts-release-${{ github.ref_name }}
-          path: .release-artifacts
-          if-no-files-found: error
-          include-hidden-files: true
-
-  publish:
-    needs: validate
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.18.0
-          registry-url: https://registry.npmjs.org
-          cache: ''
-
-      - name: Download checked package artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: charts-release-${{ github.ref_name }}
-          path: .release-artifacts
-
-      - name: Revalidate refs and publish with OIDC
-        run: |
-          node scripts/verify-release-revision.mjs
-          node scripts/publish-release.mjs
-
-  verify:
-    needs: publish
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.18.0
-          registry-url: https://registry.npmjs.org
-          cache: ''
-
-      - name: Download checked package artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: charts-release-${{ github.ref_name }}
-          path: .release-artifacts
-
-      - name: Verify installed packages, signatures, and provenance
-        run: node scripts/verify-published-release.mjs
-
   release:
-    needs: verify
+    name: Release
+    if: github.repository_owner == 'TanStack'
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     permissions:
       contents: write
+      id-token: write
+      pull-requests: write
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.sha }}
           fetch-depth: 0
-          persist-credentials: false
+          persist-credentials: true
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Create version pull request or publish
+        id: changesets
+        uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
         with:
-          node-version: 24.18.0
-          cache: ''
-
-      - name: Revalidate refs and create GitHub release
+          branch: main
+          version: pnpm changeset:version
+          publish: pnpm changeset:publish
+          title: 'ci: Version Packages'
+          commit: 'ci: changeset release'
+          createGithubReleases: false
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_REVISION: ${{ github.sha }}
+
+      - name: Determine release finalization
+        id: status
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_REVISION: ${{ github.sha }}
+        run: node scripts/release-status.mjs
+
+      - name: Create annotated release tag
+        if: steps.status.outputs.create_tag == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.status.outputs.tag }}
+          RELEASE_REVISION: ${{ github.sha }}
         run: |
-          node scripts/verify-release-revision.mjs
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            exit 0
-          fi
-          gh release create "$GITHUB_REF_NAME" \
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$RELEASE_TAG" "$RELEASE_REVISION" -m "TanStack Charts $RELEASE_TAG"
+          git push origin "refs/tags/$RELEASE_TAG"
+
+      - name: Create GitHub release
+        if: steps.status.outputs.dispatch == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.status.outputs.tag }}
+        run: |
+          node scripts/write-release-notes.mjs /tmp/charts-release-notes.md
+          gh release create "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
-            --title "TanStack Charts $GITHUB_REF_NAME" \
-            --notes-file CHANGELOG.md
+            --title "TanStack Charts $RELEASE_TAG" \
+            --notes-file /tmp/charts-release-notes.md

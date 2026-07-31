@@ -561,6 +561,7 @@ async function verifyEsmRuntime() {
 
     const canonicalRoot = pathToFileURL(${JSON.stringify(`${root}${sep}`)}).href
     const installedRoot = realpathSync('./node_modules')
+    const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
     for (const specifier of ${JSON.stringify(publishedSubpaths)}) {
       const resolved = import.meta.resolve(specifier)
       const resolvedPath = realpathSync(fileURLToPath(resolved))
@@ -568,7 +569,9 @@ async function verifyEsmRuntime() {
       assert.ok(resolvedPath.includes('/dist/'), resolvedPath)
       assert.equal(resolved.startsWith(canonicalRoot), false, resolved)
       const module = await import(specifier)
-      assert.ok(Object.keys(module).length > 0, specifier)
+      if (!typeOnlySpecifiers.has(specifier)) {
+        assert.ok(Object.keys(module).length > 0, specifier)
+      }
     }
     assert.equal(compactScaleLinear([0, 1], [0, 10])(0.5), 5)
     assert.equal(compactScaleBand(['a', 'b'], [0, 10]).domain().length, 2)
@@ -679,13 +682,24 @@ async function verifyDeclarations() {
       mountChart,
       renderChartSvg,
       type ChartFocusStrategy,
+      type ChartHost,
+      type ChartHostCommonOptions,
+      type ChartHostOptions,
       type ChartSpec,
       type ChartPoint,
+      type ChartRenderContext,
       type ChartRenderer,
+      type ChartRendererHost,
+      type ChartRendererHostCommonOptions,
+      type ChartRendererHostOptions,
+      type ChartRendererRenderContext,
       type ChartSpecDatum,
       type ChartSpecXValue,
       type ChartSpecYValue,
+      type ChartSurface,
+      type ChartSurfaceRenderOptions,
       type ChartSvgRenderer,
+      type ChartTooltipBodyTarget,
     } from '@tanstack/charts'
     import { canvasChartRenderer } from '@tanstack/charts/canvas'
     import { lineY } from '@tanstack/charts/line'
@@ -1095,6 +1109,72 @@ async function verifyDeclarations() {
     )
   }
 
+  await assertPackedDeclarationSources(program, 'DOM declaration contract')
+
+  const portableSource = `
+    import {
+      createChartRuntime,
+      defineChart,
+      lineY,
+      type ChartPoint,
+      type ChartTooltipOptions,
+    } from '@tanstack/charts/portable'
+    import type {
+      ChartDefinition,
+      ChartScene,
+    } from '@tanstack/charts/types'
+    import { scaleLinear } from 'd3-scale'
+
+    interface Row {
+      id: string
+      x: number
+      y: number
+    }
+
+    const rows: readonly Row[] = [
+      { id: 'a', x: 0, y: 2 },
+      { id: 'b', x: 1, y: 5 },
+    ]
+    const definition: ChartDefinition<Row, number, number> = defineChart({
+      marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
+      x: { scale: scaleLinear() },
+      y: { scale: scaleLinear() },
+    })
+    const runtime = createChartRuntime<Row, number, number>()
+    const scene: ChartScene<Row, number, number> = runtime.render(
+      definition,
+      { width: 320, height: 180 },
+    )
+    const point: ChartPoint<Row, number, number> | undefined = scene.points[0]
+    const tooltip: ChartTooltipOptions<Row, number, number> = {
+      format: (nextPoint) => nextPoint.datum.id,
+    }
+    void [point, tooltip]
+  `
+  const portableContractPath = resolve(
+    fixtureDirectory,
+    'portable-type-contract.ts',
+  )
+  await writeFile(portableContractPath, portableSource)
+  const portableProgram = ts.createProgram([portableContractPath], {
+    ...options,
+    lib: ['lib.es2022.d.ts', 'lib.webworker.d.ts'],
+  })
+  const portableDiagnostics = ts.getPreEmitDiagnostics(portableProgram)
+  if (portableDiagnostics.length) {
+    throw new Error(
+      `Packed portable declaration contract failed:\n${formatDiagnostics(
+        portableDiagnostics,
+      )}`,
+    )
+  }
+  await assertPackedDeclarationSources(
+    portableProgram,
+    'portable declaration contract',
+  )
+}
+
+async function assertPackedDeclarationSources(program, label) {
   const canonicalSourceRoots = packages.map(
     (packageInfo) => `${resolve(packageInfo.sourceDirectory, 'src')}${sep}`,
   )
@@ -1106,7 +1186,7 @@ async function verifyDeclarations() {
     .filter((file) => file.fileName.includes(`${sep}@tanstack${sep}`))
   assert.ok(
     resolvedPackageSources.length > 0,
-    'TypeScript did not load packed declarations',
+    `TypeScript did not load packed declarations for ${label}`,
   )
   for (const file of resolvedPackageSources) {
     const resolvedFile = await realpath(file.fileName)
@@ -1115,15 +1195,15 @@ async function verifyDeclarations() {
         resolvedFile.startsWith(sourceRoot),
       ),
       false,
-      `TypeScript escaped to workspace source: ${resolvedFile}`,
+      `${label} escaped to workspace source: ${resolvedFile}`,
     )
     assert.ok(
       resolvedFile.startsWith(fixtureNodeModules),
-      `TypeScript resolved outside the fixture: ${resolvedFile}`,
+      `${label} resolved outside the fixture: ${resolvedFile}`,
     )
     assert.ok(
       resolvedFile.includes(`${sep}dist${sep}`),
-      `TypeScript did not resolve a declaration artifact: ${resolvedFile}`,
+      `${label} did not resolve a declaration artifact: ${resolvedFile}`,
     )
   }
 }
@@ -1145,6 +1225,19 @@ async function verifyProductionBundles() {
       '/@tanstack/charts/dist/svg.js',
       '/@tanstack/react-charts/dist/Chart.js',
       '/@tanstack/octane-charts/dist/Chart.js',
+    ],
+    browserHost: [
+      '/@tanstack/charts/dist/index.js',
+      '/@tanstack/charts/dist/adapter.js',
+      '/@tanstack/charts/dist/adapter-renderer.js',
+      '/@tanstack/charts/dist/adapter-shared.js',
+      '/@tanstack/charts/dist/canvas.js',
+      '/@tanstack/charts/dist/dom.js',
+      '/@tanstack/charts/dist/dom-text.js',
+      '/@tanstack/charts/dist/export.js',
+      '/@tanstack/charts/dist/reconcile.js',
+      '/@tanstack/charts/dist/renderer.js',
+      '/@tanstack/charts/dist/svg-surface.js',
     ],
   }
   const packedInputModules = {
@@ -1169,6 +1262,17 @@ async function verifyProductionBundles() {
     ],
   }
   const entries = [
+    {
+      label: 'Portable',
+      filename: 'portable.ts',
+      external: [],
+      rendererBoundary: 'portable',
+      platform: 'neutral',
+      conditions: ['import', 'default'],
+      source: `
+        export * from '@tanstack/charts/portable'
+      `,
+    },
     {
       label: 'Core',
       filename: 'core.ts',
@@ -1432,14 +1536,14 @@ async function verifyProductionBundles() {
       outfile,
       absWorkingDir: fixtureDirectory,
       bundle: true,
-      conditions: ['browser', 'import', 'default'],
+      conditions: entry.conditions ?? ['browser', 'import', 'default'],
       external: entry.external,
       format: 'esm',
       legalComments: 'none',
       logLevel: 'silent',
       metafile: true,
       minify: true,
-      platform: 'browser',
+      platform: entry.platform ?? 'browser',
       target: 'es2022',
       treeShaking: true,
     })
@@ -1496,6 +1600,16 @@ function assertRendererBoundary(label, inputs, boundary, modules) {
   const paths = inputs.map((input) => input.replaceAll('\\', '/'))
   const canvas = matchingModules(paths, modules.canvas)
   const svg = matchingModules(paths, modules.svg)
+  const browserHost = matchingModules(paths, modules.browserHost)
+
+  if (boundary === 'portable') {
+    assert.deepEqual(
+      browserHost,
+      [],
+      `${label} portable bundle included browser host modules`,
+    )
+    return
+  }
 
   if (boundary === 'neutral') {
     assert.deepEqual(canvas, [], `${label} neutral bundle included Canvas`)

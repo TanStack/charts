@@ -1,16 +1,18 @@
 import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
 import type {
-  ChartAnimationOptions,
-  ChartBounds,
-  ChartPoint,
   ChartRenderer,
   ChartRendererHost,
   ChartRendererHostOptions,
-  ChartRuntime,
-  ChartScene,
   ChartSurface,
   ChartSurfaceRenderOptions,
+} from './dom-types'
+import type {
+  ChartAnimationOptions,
+  ChartBounds,
+  ChartPoint,
+  ChartRuntime,
+  ChartScene,
   ChartValue,
   SceneNode,
   SceneStyle,

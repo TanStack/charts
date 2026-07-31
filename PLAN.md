@@ -2045,8 +2045,8 @@ Track and gate at least:
 
 ### Deferred post-15 KiB options — 2026-07-30
 
-The compact-scale React line consumer is currently 14,225 gzip bytes. Its
-native tooltip adds 3,382 bytes and portal transport adds another 806 bytes.
+The compact-scale React line consumer is currently 14,227 gzip bytes. Its
+native tooltip adds 3,381 bytes and portal transport adds another 806 bytes.
 The following read-only bundle experiments are options for later work, not
 commitments for the current tooltip release:
 

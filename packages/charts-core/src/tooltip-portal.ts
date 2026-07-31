@@ -8,9 +8,9 @@ import type {
   ChartTooltipPortalExtension,
   ChartTooltipPortalExtensionContext,
   ChartTooltipPortalExtensionInstance,
-  ChartTooltipPortalOptions,
   ChartTooltipPortalPositionContext,
-} from './types'
+} from './dom-types'
+import type { ChartTooltipPortalOptions } from './types'
 
 export const portal: ChartTooltipPortalExtension = {
   id: 'portal',
@@ -21,9 +21,11 @@ export type {
   ChartTooltipPortalExtension,
   ChartTooltipPortalExtensionContext,
   ChartTooltipPortalExtensionInstance,
+  ChartTooltipPortalPositionContext,
+} from './dom-types'
+export type {
   ChartTooltipPortalInput,
   ChartTooltipPortalOptions,
-  ChartTooltipPortalPositionContext,
 } from './types'
 
 function createPortal(

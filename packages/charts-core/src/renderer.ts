@@ -3,18 +3,20 @@ import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint } from './scene'
 import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
 import type {
+  ChartRendererHost,
+  ChartRendererHostOptions,
+  ChartSurface,
+  ChartTooltipExtension,
+  ChartTooltipExtensionInstance,
+} from './dom-types'
+import type {
   ChartAnimationOptions,
   ChartFocusMode,
   ChartFocusStrategy,
   ChartPoint,
-  ChartRendererHost,
-  ChartRendererHostOptions,
   ChartRuntime,
   ChartScene,
   ChartSpatialIndex,
-  ChartSurface,
-  ChartTooltipExtension,
-  ChartTooltipExtensionInstance,
   ChartTooltipInput,
   ChartTooltipOptions,
   ChartTooltipPosition,
@@ -505,11 +507,11 @@ function resolveTooltipInput<
   if (!input) return null
   return 'create' in input
     ? {
-        extension: input,
+        extension: input as ChartTooltipExtension,
         options: emptyTooltipOptions,
       }
     : {
-        extension: input.use,
+        extension: input.use as ChartTooltipExtension,
         options: input,
       }
 }
