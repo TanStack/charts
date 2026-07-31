@@ -57,6 +57,7 @@
     "./link": "./src/link.ts",
     "./mark/scale-values": "./src/mark-with-scale-values.ts",
     "./polar": "./src/polar.ts",
+    "./portable": "./src/portable.ts",
     "./universal": "./src/universal.ts",
     "./reconcile": "./src/reconcile.ts",
     "./rect": "./src/rect.ts",
@@ -198,6 +199,10 @@
       "./polar": {
         "types": "./dist/polar.d.ts",
         "import": "./dist/polar.js"
+      },
+      "./portable": {
+        "types": "./dist/portable.d.ts",
+        "import": "./dist/portable.js"
       },
       "./universal": {
         "types": "./dist/universal.d.ts",

@@ -24,9 +24,10 @@ describe('public package exports', () => {
     ).toBe(true)
   })
 
-  it('keeps the universal barrel aligned with root authoring exports', async () => {
-    const [root, universal] = await Promise.all([
+  it('keeps the environment-safe barrels aligned with root authoring exports', async () => {
+    const [root, portable, universal] = await Promise.all([
       import('@tanstack/charts'),
+      import('@tanstack/charts/portable'),
       import('@tanstack/charts/universal'),
     ])
     const browserOnlyRootValues = new Set([
@@ -41,6 +42,7 @@ describe('public package exports', () => {
         .filter((name) => !browserOnlyRootValues.has(name))
         .sort(),
     )
+    expect(Object.keys(portable).sort()).toEqual(Object.keys(universal).sort())
   })
 
   it('keeps tooltip capabilities on exact subpaths', async () => {

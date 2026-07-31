@@ -168,8 +168,11 @@ import {
 import type { ChartDefinition } from '@tanstack/charts/types'
 ```
 
-The root remains the browser-oriented compatibility entry. Subpaths expose the
-same contracts behind explicit capability boundaries.
+The root remains the primary browser-oriented entry. Subpaths expose the same
+contracts behind explicit capability boundaries.
+
+`@tanstack/charts/portable` remains a compatibility alias for existing
+consumers. New environment-neutral code should use `/universal`.
 
 Optional capabilities have explicit entries:
 

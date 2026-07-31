@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Restored `@tanstack/charts/portable` as a compatibility alias of
+  `@tanstack/charts/universal`. The browser-oriented root and preferred
+  `/universal` entry remain unchanged.
+
 ## 0.3.1
 
 ### @tanstack/charts
@@ -92,7 +100,6 @@
 
 - Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
   - @tanstack/charts@0.3.1
-
 ## 0.3.0
 
 ### @tanstack/charts
@@ -175,7 +182,6 @@
 
 - Updated dependencies [[`d9404fa`](https://github.com/TanStack/charts/commit/d9404fa6143cc199b0e224658dfac45e0a10deb7), [`1cb4167`](https://github.com/TanStack/charts/commit/1cb41675e5bf443f255d66d23b455188cecf9b1f)]:
   - @tanstack/charts@0.3.0
-
 ## 0.2.0
 
 ### @tanstack/charts

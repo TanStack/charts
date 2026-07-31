@@ -1119,6 +1119,7 @@ async function verifyDeclarations() {
       type ChartPoint,
       type ChartTooltipOptions,
     } from '@tanstack/charts/universal'
+    import { defineChart as definePortableChart } from '@tanstack/charts/portable'
     import type {
       ChartDefinition,
       ChartScene,
@@ -1159,7 +1160,7 @@ async function verifyDeclarations() {
       id: 'host-tooltip-portal',
       create: () => undefined,
     }
-    void [point, tooltip, tooltipToken, portalToken]
+    void [point, tooltip, tooltipToken, portalToken, definePortableChart]
   `
   const universalContractPath = resolve(
     fixtureDirectory,

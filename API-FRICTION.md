@@ -3687,14 +3687,20 @@ Each entry records:
 - Friction: Changesets advanced manifests, package changelogs, and the lockfile
   but left the root README, canonical docs, comparison evidence links, and
   marketing material on 0.0.1. Merging the generated pull request would have
-  published a newer package line beside stale install and status claims.
+  published a newer package line beside stale install and status claims. The
+  synchronizer also treats every current-version literal in an allowlisted
+  source as mutable, so a second explanatory mention made the replacement
+  boundary ambiguous and failed CI.
 - Decision: derive the previous release from the generated root changelog,
   advance an explicit allowlist of release-facing sources, then run the
   repository's canonical docs sync before formatting the version pull request.
-  Historical changelog and friction evidence remain immutable.
+  Keep one replaceable current-version reference per allowlisted source;
+  compatibility guidance should not duplicate it. Historical changelog and
+  friction evidence remain immutable.
 - Verification: focused tests cover version-heading discovery, complete
-  replacement, idempotency, and missing-version rejection. Generated package
-  docs remain outputs of `pnpm docs:sync`, never hand-edited sources.
+  replacement, idempotency, ambiguous-reference rejection, and missing-version
+  rejection. Generated package docs remain outputs of `pnpm docs:sync`, never
+  hand-edited sources.
 
 ### F-154 — Root barrels crossed the browser host boundary
 
@@ -3706,20 +3712,28 @@ Each entry records:
   platform-neutral, but the root value barrel made bundlers traverse DOM hosts,
   adapters, reconciliation, and SVG surfaces. Its type graph also declared
   `Element`, `HTMLElement`, and `SVGSVGElement`, so a non-DOM consumer could
-  not select the universal contracts as one supported entry.
+  not select the universal contracts as one supported entry. While the naming
+  change was in flight, 0.1.0 published the initial `/portable` entry, making
+  its removal a breaking change for published consumers. The generated 0.2.0
+  release merged before the compatibility follow-up and published that removal.
+  The subsequent 0.3.0 and 0.3.1 releases also shipped before the follow-up
+  could land, so the restoration must remain a focused patch after the latest
+  release boundary.
 - Decision: preserve the existing browser-oriented root API and add
   `@tanstack/charts/universal` for common authoring/runtime values plus
   `@tanstack/charts/types` for universal contracts. The name describes the
   supported cross-runtime surface while the browser-first root remains the
-  normal web entry. DOM surface, renderer, host, and render-context types now
-  live behind an internal module while retaining their existing root
-  re-exports. Definition inputs retain DOM-free extension token contracts while
-  the generic tooltip and portal token interfaces are exported for host-adapter
-  authors. Typed DOM tooltip and portal lifecycles remain in the DOM module. Do
-  not conditionally change the root until a native host can test one coherent
-  platform contract.
-- Verification: root typechecking and 61 focused core tests pass. The packed
-  package gate resolves both new entries from `dist`, compiles their
+  normal web entry. Restore `/portable` as a compatibility alias for the
+  published 0.1.0 surface in the next patch after 0.3.1. DOM surface, renderer,
+  host, and render-context types now live behind an internal module while retaining
+  their existing root re-exports. Definition inputs retain DOM-free extension
+  token contracts while the generic tooltip and portal token interfaces are
+  exported for host-adapter authors. Typed DOM tooltip and portal lifecycles
+  remain in the DOM module. Do not conditionally change the root until a native
+  host can test one coherent platform contract.
+- Verification: root typechecking and 61 focused core tests pass. An export test
+  verifies portable/universal runtime parity. The packed package gate resolves
+  `/portable`, `/universal`, and `/types` from `dist` and compiles their
   declarations, including tooltip definition inputs and direct generic-token
   imports, with Web Worker rather than DOM globals. Type regressions reject
   swapping tooltip and portal tokens.
