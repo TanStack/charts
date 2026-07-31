@@ -292,29 +292,35 @@ continues to own focus, ordering, anchoring, placement, portal coordinates,
 and dismissal. This React example places a nested pie beside the native rows:
 
 ```tsx
-<Chart
-  definition={definition}
-  ariaLabel="Revenue by series"
-  renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'auto 8rem',
-        gap: 12,
-      }}
-    >
-      <div>{defaultBody}</div>
-      <div>
-        <SeriesPie points={points} />
-        {pinned ? (
-          <button type="button" onClick={dismiss}>
-            Close
-          </button>
-        ) : null}
-      </div>
-    </div>
-  )}
-/>
+import { Chart as TooltipChart } from '@tanstack/react-charts/tooltip'
+
+export function RevenueChart() {
+  return (
+    <TooltipChart
+      definition={definition}
+      ariaLabel="Revenue by series"
+      renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto 8rem',
+            gap: 12,
+          }}
+        >
+          <div>{defaultBody}</div>
+          <div>
+            <SeriesPie points={points} />
+            {pinned ? (
+              <button type="button" onClick={dismiss}>
+                Close
+              </button>
+            ) : null}
+          </div>
+        </div>
+      )}
+    />
+  )
+}
 ```
 
 The nested component is an ordinary chart built from the focused group:

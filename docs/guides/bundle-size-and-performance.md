@@ -27,8 +27,6 @@ import { d3Curve } from '@tanstack/charts/d3/shape'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { tooltip } from '@tanstack/charts/tooltip'
-import { portal } from '@tanstack/charts/tooltip/portal'
 ```
 
 Canvas is opt-in. The default core and every default framework entry remain
