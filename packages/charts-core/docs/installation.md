@@ -135,7 +135,20 @@ import { mountChart } from '@tanstack/charts/dom'
 import { renderChartSvg } from '@tanstack/charts/svg'
 ```
 
-Subpaths are not a second API. They expose the same functions without making unrelated marks, the DOM host, exporters, or framework code reachable from that entry.
+Use the portable barrel when definitions and scene compilation must not make
+the browser host reachable:
+
+```ts
+import {
+  createChartRuntime,
+  defineChart,
+  lineY,
+} from '@tanstack/charts/portable'
+import type { ChartDefinition } from '@tanstack/charts/types'
+```
+
+The root remains the browser-oriented compatibility entry. Subpaths expose the
+same contracts behind explicit capability boundaries.
 
 Optional capabilities have explicit entries:
 

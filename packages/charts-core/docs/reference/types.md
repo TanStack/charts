@@ -8,6 +8,11 @@ flow through its definition into scales, axis formatters, host and adapter
 callbacks, focus callbacks, and selection callbacks. Normal application code
 should not cast chart definitions or supply adapter generics.
 
+Browser applications can import types from the package root. Platform-neutral
+libraries can import the same definition, mark, scene, runtime, focus, and
+tooltip-model contracts from `@tanstack/charts/types`; DOM host and renderer
+types remain available from the root.
+
 ## Values and channels
 
 ```ts

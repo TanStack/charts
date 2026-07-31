@@ -5,10 +5,10 @@ import { mountChartRenderer } from './renderer'
 import { defineChart } from './scene'
 import type {
   ChartRenderer,
-  ChartScene,
   ChartSurface,
   ChartSurfaceRenderOptions,
-} from './types'
+} from './dom-types'
+import type { ChartScene } from './types'
 
 interface Datum {
   id: string

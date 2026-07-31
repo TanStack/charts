@@ -1,10 +1,9 @@
 import { reconcileChartSvg } from './reconcile'
 import { renderChartSvg } from './svg'
+import type { ChartRenderer, ChartSurface } from './dom-types'
 import type {
   ChartPoint,
-  ChartRenderer,
   ChartScene,
-  ChartSurface,
   ChartSvgRenderer,
   ChartValue,
 } from './types'

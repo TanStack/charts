@@ -4,12 +4,8 @@ import { renderChartSvg } from './svg'
 import { createSvgChartRenderer } from './svg-surface'
 import { resolveChartAdapterLayout } from './adapter-shared'
 import type { ChartAdapter } from './adapter-shared'
-import type {
-  ChartHost,
-  ChartHostOptions,
-  ChartRuntime,
-  ChartValue,
-} from './types'
+import type { ChartHost, ChartHostOptions } from './dom-types'
+import type { ChartRuntime, ChartValue } from './types'
 
 export {
   resolveChartAdapterLayout,

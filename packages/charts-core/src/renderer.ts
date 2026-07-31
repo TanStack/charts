@@ -3,17 +3,19 @@ import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint } from './scene'
 import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
 import type {
+  ChartRendererHost,
+  ChartRendererHostOptions,
+  ChartSurface,
+  ChartTooltipBodyTarget,
+} from './dom-types'
+import type {
   ChartAnimationOptions,
   ChartFocusMode,
   ChartFocusStrategy,
   ChartPoint,
-  ChartRendererHost,
-  ChartRendererHostOptions,
   ChartRuntime,
   ChartScene,
   ChartSpatialIndex,
-  ChartSurface,
-  ChartTooltipBodyTarget,
   ChartTooltipContent,
   ChartTooltipContentContext,
   ChartTooltipChannelItem,
