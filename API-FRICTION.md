@@ -193,6 +193,7 @@ Each entry records:
 | F-155 | Optional tooltip code burdened every chart consumer      | API             | resolved   |
 | F-156 | Releases stranded manual Unreleased migration notes      | Tooling/Release | monitoring |
 | F-157 | Conformance monitoring blocked unrelated changes         | Tooling         | resolved   |
+| F-158 | Sankey widths required a custom scene renderer           | API             | resolved   |
 
 ## Findings
 
@@ -3793,3 +3794,23 @@ Each entry records:
   read-only permissions, immutable action pins, and standard-profile browser
   execution. The main CI contract rejects any conformance dependency while
   retaining every exact-revision catalog publication guard.
+
+### F-158 — Sankey widths required a custom scene renderer
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: converting pull request `#16` from case-owned Sankey scenes to
+  native TanStack Charts marks
+- Friction: `link` accepted only fixed stroke width and opacity and always used
+  round caps. Proportional `d3-sankey` links therefore forced both examples to
+  duplicate complete custom scene construction for paths, nodes, labels, and
+  interaction points instead of composing the existing marks.
+- Decision: make link stroke width and opacity visual channels and expose its
+  SVG line cap. Keep `d3-sankey` as a direct application dependency; run its
+  responsive layout in the dynamic chart builder, then render the positioned
+  output with native `link`, `rect`, and `text` marks.
+- Verification: focused link and Sankey tests pass; the complete 17-target CI
+  graph passes its type, package, bundle, documentation, catalog, and framework
+  gates. Browser conformance passes both Sankey cases at 320px and 640px with
+  clean types and 98.3% mean frame-relative geometry similarity.
