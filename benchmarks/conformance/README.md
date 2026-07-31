@@ -188,13 +188,15 @@ pnpm catalog:build
 pnpm catalog:loading:check
 ```
 
-Main-branch CI publishes a new generated commit only after validation and the
-unfiltered standard conformance matrix pass. TanStack.com's existing content
-pipeline reads that branch and verifies the schema, revision, module allowlist,
-sizes, and hashes before serving it. It composes `site.assetBasePath`, the
-resolved `catalog-dist` commit SHA, and each relative module path into the
-immutable asset URL. A rollback points `catalog-dist` back to a prior generated
-commit; the catalog has no mutable runtime state.
+Main-branch CI publishes a new generated commit only after the static,
+package, bundle, comparison, and stress gates pass. Conformance runs
+independently as nightly rotating, weekly complete, manual, and labeled-PR
+monitoring. TanStack.com's existing content pipeline reads the generated branch
+and verifies the schema, revision, module allowlist, sizes, and hashes before
+serving it. It composes `site.assetBasePath`, the resolved `catalog-dist` commit
+SHA, and each relative module path into the immutable asset URL. A rollback
+points `catalog-dist` back to a prior generated commit; the catalog has no
+mutable runtime state.
 
 ## What is and is not equivalent
 
