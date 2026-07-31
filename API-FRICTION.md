@@ -191,7 +191,7 @@ Each entry records:
 | F-153 | Changesets left release-facing version claims behind     | Tooling/Release | resolved   |
 | F-154 | Root barrels crossed the browser host boundary           | API/Tooling     | resolved   |
 | F-155 | Optional tooltip code burdened every chart consumer      | API             | resolved   |
-| F-156 | Releases stranded manual Unreleased migration notes      | Tooling/Release | resolved   |
+| F-156 | Releases stranded manual Unreleased migration notes      | Tooling/Release | monitoring |
 | F-157 | Conformance monitoring blocked unrelated changes         | Tooling         | resolved   |
 
 ## Findings
@@ -3740,24 +3740,34 @@ Each entry records:
 
 ### F-156 — Releases stranded manual Unreleased migration notes
 
-- Status: resolved
+- Status: monitoring
 - Severity: high
 - Owner: Tooling/Release
 - Observed in: rebasing the tooltip and compact-scale release onto the
-  Changesets-based `0.0.2` release flow
+  Changesets-based `0.0.2` release flow, then landing the universal-entry rename
+  after the `0.1.0` version pull request had merged and published
 - Friction: the root changelog held the complete human- and agent-readable
   migration under `## Unreleased`, while Changesets generated package sections
   and prepended the new version without consuming that section. The resulting
   release would leave the migration under an obsolete heading instead of the
-  version users were upgrading to.
+  version users were upgrading to. A later feature branch exposed the inverse
+  race: its pending universal-entry note merged into the already-published
+  `0.1.0` section after the version pull request had consumed `## Unreleased`,
+  even though its remaining changeset correctly targeted `0.2.0`.
 - Decision: when synchronizing a new root release, move the body of
   `## Unreleased` into the generated version section and remove the pending
   heading. Package-specific changesets retain the core, React, and compact-scale
-  migration instructions in their published package changelogs.
+  migration instructions in their published package changelogs. A feature pull
+  request that crosses a published version boundary must re-establish
+  `## Unreleased`, keep the published section immutable, and describe migration
+  from the package version that actually reached npm.
 - Verification: the focused changelog synchronization regression moves pending
   breaking-change notes under the generated version, removes `## Unreleased`,
   preserves earlier releases, and includes the migration in extracted GitHub
-  release notes.
+  release notes. The universal follow-up restores its note under
+  `## Unreleased`, leaves the published `0.1.0` section accurate, and reports a
+  single minor `@tanstack/charts` release from `0.1.0` to `0.2.0`; the docs,
+  bundle, changelog-consumption, and release-artifact gates pass.
 
 ### F-157 — Conformance monitoring blocked unrelated changes
 

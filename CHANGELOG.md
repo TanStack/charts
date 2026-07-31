@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes
+
+#### Universal entry
+
+Replace `@tanstack/charts/portable` imports from `0.1.0` with
+`@tanstack/charts/universal`. The browser-oriented `@tanstack/charts` root and
+the environment-safe `@tanstack/charts/types` entry remain unchanged.
+
 ## 0.1.0
 
 ### @tanstack/charts
@@ -164,11 +174,6 @@ runtime. Other framework adapters retain their existing entry points and only
 require the chart-definition migration above.
 
 ### Added
-
-- Added environment-safe `@tanstack/charts/universal` and
-  `@tanstack/charts/types` entry points for cross-runtime chart definitions,
-  scene compilation, and extension contracts. The existing `@tanstack/charts`
-  root remains the browser-oriented entry point.
 
 - Added the optional compact scale package:
 
