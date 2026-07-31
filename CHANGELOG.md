@@ -2,49 +2,101 @@
 
 ## Unreleased
 
+This section documents migration from `0.0.1` and supersedes tooltip examples
+in the historical release entries below.
+
 ### Breaking changes
 
-- Tooltips are now explicit extensions. Import `tooltip` from
-  `@tanstack/charts/tooltip` and replace `tooltip: true` with `tooltip`.
-- Configured tooltips now require the extension discriminator:
-  `{ use: tooltip, format(point) {} }`. This is also the contextual typing
-  boundary for tooltip options.
-- Portaled tooltips now import `portal` from
-  `@tanstack/charts/tooltip/portal` and use `portal` instead of `portal: true`.
-- React consumers that provide `renderTooltipBody` must import `Chart`,
-  `RendererChart`, or `CanvasChart` from `@tanstack/react-charts/tooltip`.
-  The base React entries retain native tooltips without including React DOM's
-  portal runtime.
+#### Tooltip extensions
+
+Tooltips and tooltip portals are now explicit extensions:
 
 ```ts
-import { tooltip } from '@tanstack/charts/tooltip'
+import { tooltip, type ChartTooltipInput } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
 
-defineChart({
-  // ...
-  tooltip: {
-    use: tooltip,
-    portal,
-    format(point) {
-      return String(point.datum.value)
-    },
+interface Datum {
+  value: number
+}
+
+const configuredTooltip = {
+  use: tooltip,
+  portal,
+  format(point) {
+    return String(point.datum.value)
   },
-})
+} satisfies ChartTooltipInput<Datum>
 ```
+
+Apply these replacements to chart definition options:
+
+| `0.0.1` input      | Unreleased input                        |
+| ------------------ | --------------------------------------- |
+| `tooltip: true`    | `tooltip`                               |
+| `tooltip: false`   | `tooltip: false`                        |
+| `tooltip: enabled` | `tooltip: enabled ? tooltip : false`    |
+| `tooltip: options` | `tooltip: { use: tooltip, ...options }` |
+| `portal: true`     | `portal`                                |
+| `portal: false`    | Omit `portal`                           |
+| `portal: enabled`  | `portal: enabled ? portal : undefined`  |
+
+`portal` remains a property of a configured tooltip object. `ChartTooltipOptions`
+still describes only the options after `use`; it does not contain the extension
+discriminator. Type a complete value assigned to `definition.tooltip` as
+`ChartTooltipInput`, or wrap reusable `ChartTooltipOptions` with
+`{ use: tooltip, ...options }`. The object containing `use: tooltip` is the
+contextual typing boundary for inline tooltip callbacks.
+
+#### React tooltip bodies
+
+React consumers that provide `renderTooltipBody` must move the component and
+matching prop-type imports to `@tanstack/react-charts/tooltip`:
+
+| `0.0.1` import                          | Unreleased component | Unreleased prop types                            |
+| --------------------------------------- | -------------------- | ------------------------------------------------ |
+| `@tanstack/react-charts` `Chart`        | `Chart`              | `ChartProps`, `ChartCommonProps`                 |
+| `@tanstack/react-charts/canvas` `Chart` | `CanvasChart`        | `CanvasChartProps`, `CanvasChartCommonProps`     |
+| `@tanstack/react-charts/core` `Chart`   | `RendererChart`      | `RendererChartProps`, `RendererChartCommonProps` |
+
+Do not rename `/canvas` or `/core` imports to `/tooltip` while retaining the
+name `Chart`; that name selects the default SVG component in the new entry. The
+base React entries retain native tooltips without including React DOM's portal
+runtime. Other framework adapters retain their existing entry points and only
+require the chart-definition migration above.
 
 ### Added
 
-- Added compact callable scales through the exact
-  `@tanstack/charts-scales/linear`, `/band`, `/point`, and `/ordinal`
-  subpaths. Full D3 scales remain supported when their broader behavior is
-  required.
+- Added the optional compact scale package:
+
+  ```sh
+  pnpm add @tanstack/charts-scales
+  ```
+
+  Import one exact family; there is no `@tanstack/charts-scales` root export:
+
+  ```ts
+  import { scaleLinear } from '@tanstack/charts-scales/linear'
+  import { scaleBand } from '@tanstack/charts-scales/band'
+  import { scalePoint } from '@tanstack/charts-scales/point'
+  import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+  ```
+
+  These scales are documented subsets, not complete D3 replacements. Compact
+  linear scales are numeric and two-stop. Use `d3-scale` for time, UTC, log,
+  power, symlog, radial, sequential, diverging, quantile, quantize, threshold,
+  piecewise or nonnumeric interpolation, locale-aware format specifiers, and
+  other full D3 behavior. Unsupported D3 behavior does not trigger a runtime
+  warning or automatic fallback. See [Scales and D3](docs/concepts/scales-and-d3.md#compact-scales)
+  for the compatibility boundary.
 
 ### Bundle impact
 
 - The representative compact React line consumer is 14,225 bytes gzip
-  (13.89 KiB), down from approximately 24 KiB.
-- Opting into the tooltip extension adds 3,382 bytes gzip.
-- Adding the portal extension adds another 806 bytes gzip.
+  (13.89 KiB), down from 25,708 bytes gzip (25.11 KiB). React, the React JSX
+  runtime, and React DOM are external in both measurements.
+- Opting into the tooltip extension produces 17,607 bytes gzip, an increase of
+  3,382 bytes.
+- Adding the portal extension produces 18,413 bytes gzip, another 806 bytes.
 
 ## 0.0.1 (2026-07-30)
 
