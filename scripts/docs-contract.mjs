@@ -35,6 +35,7 @@ const allowedChartLibraryLinks = new Map([
 const publicEntryPaths = [
   'README.md',
   'packages/charts-core/README.md',
+  'packages/charts-scales/README.md',
   'packages/preact-charts/README.md',
   'packages/react-charts/README.md',
   'packages/vue-charts/README.md',
@@ -467,6 +468,7 @@ async function validateDocumentedTanStackImports(
 ) {
   const packages = [
     ['packages/charts-core', '@tanstack/charts'],
+    ['packages/charts-scales', '@tanstack/charts-scales'],
     ['packages/preact-charts', '@tanstack/preact-charts'],
     ['packages/react-charts', '@tanstack/react-charts'],
     ['packages/vue-charts', '@tanstack/vue-charts'],
@@ -535,6 +537,7 @@ async function validateDocumentedTanStackImports(
 async function validateApiCoverage(repositoryRoot, markdownSources, failures) {
   const packages = [
     ['charts-core', '@tanstack/charts', 'reference/'],
+    ['charts-scales', '@tanstack/charts-scales', 'reference/'],
     ['react-charts', '@tanstack/react-charts', 'framework/react/'],
     ['preact-charts', '@tanstack/preact-charts', 'framework/preact/'],
     ['vue-charts', '@tanstack/vue-charts', 'framework/vue/'],

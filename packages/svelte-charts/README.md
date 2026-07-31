@@ -9,9 +9,10 @@ pnpm add @tanstack/charts @tanstack/svelte-charts svelte d3-scale
 ```svelte
 <script lang="ts">
   import { defineChart } from '@tanstack/charts'
+  import { tooltip } from '@tanstack/charts/tooltip'
   import { Chart } from '@tanstack/svelte-charts'
 
-  const interactiveDefinition = defineChart(definition, { tooltip: true })
+  const interactiveDefinition = defineChart(definition, { tooltip })
 </script>
 
 <Chart definition={interactiveDefinition} ariaLabel="Revenue by month" />

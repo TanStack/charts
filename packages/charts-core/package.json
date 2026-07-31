@@ -22,12 +22,12 @@
     "@types/d3-shape": "^3.1.8",
     "d3-array": "3.2.4",
     "d3-geo": "3.1.1",
-    "d3-scale": "4.0.2",
     "d3-shape": "3.2.0"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.2",
-    "@types/d3-scale": "^4.0.9"
+    "@types/d3-scale": "^4.0.9",
+    "d3-scale": "4.0.2"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -65,6 +65,8 @@
     "./svg/resources": "./src/svg-resources.ts",
     "./text": "./src/text.ts",
     "./tick": "./src/tick.ts",
+    "./tooltip": "./src/tooltip.ts",
+    "./tooltip/portal": "./src/tooltip-portal.ts",
     "./vector": "./src/vector.ts"
   },
   "publishConfig": {
@@ -210,6 +212,14 @@
       "./tick": {
         "types": "./dist/tick.d.ts",
         "import": "./dist/tick.js"
+      },
+      "./tooltip": {
+        "types": "./dist/tooltip.d.ts",
+        "import": "./dist/tooltip.js"
+      },
+      "./tooltip/portal": {
+        "types": "./dist/tooltip-portal.d.ts",
+        "import": "./dist/tooltip-portal.js"
       },
       "./vector": {
         "types": "./dist/vector.d.ts",

@@ -7,6 +7,7 @@ import {
 } from './canvas'
 import { lineY } from './line'
 import { defineChart } from './scene'
+import { tooltip } from './tooltip'
 import type { ChartScene, ChartSurfaceRenderOptions, SceneNode } from './types'
 
 interface FakeCanvasContext {
@@ -361,7 +362,7 @@ describe('Canvas renderer', () => {
       definition: {
         ...definition,
         maxFocusDistance: 1_000,
-        tooltip: true,
+        tooltip,
       },
       width: 480,
       height: 260,

@@ -200,31 +200,43 @@ See [DOM host](./dom-host.md) and
 
 ## Focus and tooltip types
 
-| Type                         | Purpose                                                  |
-| ---------------------------- | -------------------------------------------------------- |
-| `ChartFocusStrategy`         | Pointer resolution, grouping, and keyboard ordering      |
-| `ChartFocusPreset`           | Built-in nearest and grouped axis focus names            |
-| `ChartFocusMode`             | Focus preset or custom strategy                          |
-| `ChartSpatialIndex`          | Nearest-point query                                      |
-| `ChartSpatialIndexFactory`   | Builds an index from current scene points                |
-| `ChartTooltipOptions`        | Native tooltip content, ordering, anchoring, and pinning |
-| `ChartTooltipItem`           | Ordered channel, datum-field, or derived point row       |
-| `ChartTooltipItemBase`       | Shared label and point-text contract for object items    |
-| `ChartTooltipChannelItem`    | Configured x, y, or group row                            |
-| `ChartTooltipDatumItem`      | Scalar datum-field row                                   |
-| `ChartTooltipDerivedItem`    | Row derived from the complete focused point              |
-| `ChartTooltipSort`           | Group row ordering                                       |
-| `ChartTooltipAnchor`         | Point, pointer, group-center, or custom scene anchor     |
-| `ChartTooltipAnchorContext`  | Pointer position, chart bounds, and surface size         |
-| `ChartTooltipPlacement`      | Tooltip box placement around its anchor                  |
-| `ChartTooltipPosition`       | Scene-pixel x/y coordinate                               |
-| `ChartDefinitionOptions`     | Focus, tooltip, animation, keyboard, and spatial policy  |
-| `DynamicChartConfig`         | Responsive builder plus definition-owned behavior        |
-| `ChartTooltipContent`        | Safe title and row model for a native tooltip            |
-| `ChartTooltipRow`            | Label, formatted value, and optional color swatch        |
-| `ChartTooltipContentContext` | Axis labels and value formatters for content callbacks   |
-| `ChartTooltipBodyContext`    | Focused points, content, pinned state, and dismissal     |
-| `ChartTooltipBodyTarget`     | Renderer-adapter body mount element plus body context    |
+| Type                                  | Purpose                                                                |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| `ChartFocusStrategy`                  | Pointer resolution, grouping, and keyboard ordering                    |
+| `ChartFocusPreset`                    | Built-in nearest and grouped axis focus names                          |
+| `ChartFocusMode`                      | Focus preset or custom strategy                                        |
+| `ChartSpatialIndex`                   | Nearest-point query                                                    |
+| `ChartSpatialIndexFactory`            | Builds an index from current scene points                              |
+| `ChartExtensionInput`                 | Generic bare-token or `{ use, ...options }` extension input            |
+| `ChartTooltipInput`                   | Tooltip extension token or configured extension options                |
+| `ChartTooltipExtension`               | Tooltip lifecycle implementation                                       |
+| `ChartTooltipExtensionContext`        | Container, dismissal, and adapter-body bridge given to a tooltip       |
+| `ChartTooltipExtensionInstance`       | Tooltip update, paint, hide, containment, and destroy lifecycle        |
+| `ChartTooltipPaintContext`            | Focused points, scene, surface, pointer, and pinned state              |
+| `ChartTooltipOptions`                 | Native tooltip content, ordering, anchoring, and pinning               |
+| `ChartTooltipPortalInput`             | Portal extension token or configured transport options                 |
+| `ChartTooltipPortalExtension`         | Tooltip transport lifecycle implementation                             |
+| `ChartTooltipPortalExtensionContext`  | Container, tooltip element, and reposition callback given to a portal  |
+| `ChartTooltipPortalExtensionInstance` | Portal update, position, hide, and destroy lifecycle                   |
+| `ChartTooltipPortalOptions`           | Reserved configuration object for portal extensions                    |
+| `ChartTooltipPortalPositionContext`   | Scene, surface, anchor, placement, and offset for viewport positioning |
+| `ChartTooltipItem`                    | Ordered channel, datum-field, or derived point row                     |
+| `ChartTooltipItemBase`                | Shared label and point-text contract for object items                  |
+| `ChartTooltipChannelItem`             | Configured x, y, or group row                                          |
+| `ChartTooltipDatumItem`               | Scalar datum-field row                                                 |
+| `ChartTooltipDerivedItem`             | Row derived from the complete focused point                            |
+| `ChartTooltipSort`                    | Group row ordering                                                     |
+| `ChartTooltipAnchor`                  | Point, pointer, group-center, or custom scene anchor                   |
+| `ChartTooltipAnchorContext`           | Pointer position, chart bounds, and surface size                       |
+| `ChartTooltipPlacement`               | Tooltip box placement around its anchor                                |
+| `ChartTooltipPosition`                | Scene-pixel x/y coordinate                                             |
+| `ChartDefinitionOptions`              | Focus, tooltip, animation, keyboard, and spatial policy                |
+| `DynamicChartConfig`                  | Responsive builder plus definition-owned behavior                      |
+| `ChartTooltipContent`                 | Safe title and row model for a native tooltip                          |
+| `ChartTooltipRow`                     | Label, formatted value, and optional color swatch                      |
+| `ChartTooltipContentContext`          | Axis labels and value formatters for content callbacks                 |
+| `ChartTooltipBodyContext`             | Focused points, content, pinned state, and dismissal                   |
+| `ChartTooltipBodyTarget`              | Renderer-adapter body mount element plus body context                  |
 
 See [Focus and interaction](./focus-and-interaction.md).
 

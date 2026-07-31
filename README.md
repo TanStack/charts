@@ -69,6 +69,7 @@ or dropping down to a separate API.
 ```tsx
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
 
 const revenue = [
@@ -94,7 +95,7 @@ const revenueChart = defineChart({
     label: 'Revenue',
     grid: true,
   },
-  tooltip: true,
+  tooltip,
 })
 
 export function RevenueChart() {

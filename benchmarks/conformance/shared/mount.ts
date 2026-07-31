@@ -3,6 +3,7 @@ import {
   isDynamicChartDefinition,
   mountChart,
 } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import type {
   ChartDefinition,
   ChartDefinitionOptions,
@@ -91,7 +92,12 @@ function withConformanceBehavior<
   const behavior: ChartDefinitionOptions<TDatum, TXValue, TYValue> = {
     animate: false,
     keyboard: input.interactive === true,
-    tooltip: input.interactive === true ? interactiveTooltip : false,
+    tooltip:
+      input.interactive !== true
+        ? false
+        : interactiveTooltip === true
+          ? tooltip
+          : { use: tooltip, ...interactiveTooltip },
   }
 
   if (isDynamicChartDefinition(definition)) {

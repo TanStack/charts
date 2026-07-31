@@ -390,8 +390,8 @@ export interface ChartDefinitionOptions<
   animate?: boolean | ChartAnimationOptions
   keyboard?: boolean
   tooltip?:
-    | boolean
-    | ChartTooltipOptions<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
+    | false
+    | ChartTooltipInput<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
 }
 
 interface StoredChartDefinitionOptions {
@@ -400,7 +400,7 @@ interface StoredChartDefinitionOptions {
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
   animate?: boolean | ChartAnimationOptions
   keyboard?: boolean
-  tooltip?: boolean | ChartTooltipOptions<any, any, any>
+  tooltip?: false | ChartTooltipInput<any, any, any>
 }
 
 export interface StaticChartDefinition<
@@ -776,7 +776,7 @@ export interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
-  portal?: boolean
+  portal?: ChartTooltipPortalInput
   items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
   sort?: ChartTooltipSort<TDatum, TXValue, TYValue>
   anchor?: ChartTooltipAnchor<TDatum, TXValue, TYValue>
@@ -791,6 +791,100 @@ export interface ChartTooltipOptions<
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) => string
   sticky?: boolean
+}
+
+export type ChartExtensionInput<TExtension, TOptions> =
+  TExtension | ({ use: TExtension } & TOptions)
+
+export type ChartTooltipInput<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartExtensionInput<
+  ChartTooltipExtension,
+  ChartTooltipOptions<TDatum, TXValue, TYValue>
+>
+
+export interface ChartTooltipExtension {
+  readonly id: string
+  create: <TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
+    context: ChartTooltipExtensionContext<TDatum, TXValue, TYValue>,
+  ) => ChartTooltipExtensionInstance<TDatum, TXValue, TYValue>
+}
+
+export interface ChartTooltipExtensionContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  container: HTMLElement
+  dismiss: () => void
+  bodyChange: () =>
+    | ((
+        target: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null,
+      ) => void)
+    | undefined
+}
+
+export interface ChartTooltipPaintContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  point: ChartPoint<TDatum, TXValue, TYValue>
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  scene: ChartScene<TDatum, TXValue, TYValue>
+  surface: ChartSurface<TDatum, TXValue, TYValue>
+  pointer: ChartTooltipPosition | null
+  pinned: boolean
+}
+
+export interface ChartTooltipExtensionInstance<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  update: (options: ChartTooltipOptions<TDatum, TXValue, TYValue>) => void
+  paint: (context: ChartTooltipPaintContext<TDatum, TXValue, TYValue>) => void
+  hide: () => void
+  contains: (target: EventTarget | null) => boolean
+  destroy: () => void
+}
+
+export type ChartTooltipPortalOptions = Record<never, never>
+
+export type ChartTooltipPortalInput = ChartExtensionInput<
+  ChartTooltipPortalExtension,
+  ChartTooltipPortalOptions
+>
+
+export interface ChartTooltipPortalExtension {
+  readonly id: string
+  create: (
+    context: ChartTooltipPortalExtensionContext,
+    options: ChartTooltipPortalOptions,
+  ) => ChartTooltipPortalExtensionInstance
+}
+
+export interface ChartTooltipPortalExtensionContext {
+  container: HTMLElement
+  element: HTMLElement
+  schedulePosition: () => void
+}
+
+export interface ChartTooltipPortalPositionContext {
+  scene: ChartScene<any, any, any>
+  surface: ChartSurface<any, any, any>
+  anchor: ChartTooltipPosition
+  placement?: 'auto' | ChartTooltipPlacement | readonly ChartTooltipPlacement[]
+  offset?: number
+}
+
+export interface ChartTooltipPortalExtensionInstance {
+  update: (options: ChartTooltipPortalOptions) => void
+  position: (context: ChartTooltipPortalPositionContext) => boolean
+  hide: () => void
+  destroy: () => void
 }
 
 export type ChartTooltipPlacement =

@@ -6,7 +6,7 @@ Observed difficulty from using the API is tracked separately in
 [`API-FRICTION.md`](./API-FRICTION.md). Production migrations, examples, and
 agent evaluations must update that log when they expose a repeatable problem.
 
-Last updated: 2026-07-28
+Last updated: 2026-07-30
 
 ## Working thesis
 
@@ -1870,17 +1870,19 @@ This should allow a chart to update Router search state, Store state, filters, d
 
 Tooltips follow the same progressive-disclosure rule:
 
-- `tooltip: true` derives locale-safe plain text from scene point metadata.
-- `format(point)` and `formatGroup(points)` own custom text without changing the
-  mark data.
-- `sticky: true` enables click-to-pin behavior.
+- The imported `tooltip` token derives structured content from scene point
+  metadata.
+- `{ use: tooltip, format(point) {} }` and `formatGroup(points)` own custom text
+  without changing the mark data.
+- Tooltips are pinnable by default; `sticky: false` disables click-to-pin
+  behavior.
 - `onFocusChange` and `onFocusGroupChange` provide complete external-state
   control for rich application UI.
 
-The remaining advanced target is a framework-neutral structured content model
-with labeled rows, ordering, suppression, and color swatches derived from
-explicit semantic channels. It must remain optional and must not accept
-framework nodes or arbitrary HTML in the core protocol.
+The tooltip extension owns framework-neutral labeled rows, ordering,
+suppression, and color swatches derived from explicit semantic channels. Rich
+framework bodies remain adapter-owned optional entries; the core protocol does
+not accept framework nodes or arbitrary HTML.
 
 The default DOM presentation owns adaptive placement, light and dark styling,
 keyboard and pointer behavior, pinning, text selection, and accessible live
@@ -2040,6 +2042,39 @@ Track and gate at least:
 - SVG export
 - Raster export
 - Motion
+
+### Deferred post-15 KiB options — 2026-07-30
+
+The compact-scale React line consumer is currently 14,225 gzip bytes. Its
+native tooltip adds 3,382 bytes and portal transport adds another 806 bytes.
+The following read-only bundle experiments are options for later work, not
+commitments for the current tooltip release:
+
+- Move the remaining tooltip host lifecycle behind the tooltip extension:
+  approximately 480 bytes from charts without tooltips.
+- Replace the retained `d3-array/least` nearest-point call with an equivalent
+  local loop: approximately 108 bytes with no intended behavior change.
+- Make compact scales native chart-scale tokens and move general callable D3
+  positional and color-scale adaptation behind exact opt-in entries:
+  approximately 1,300 bytes from both base and tooltip consumers.
+- Move animation and specialized focus modes behind exact tokens:
+  approximately 692 and 351 bytes respectively.
+- Split a lean text tooltip from structured rows, items, swatches, and rich
+  framework bodies. A virtual lean-tooltip consumer measured 14,689 gzip bytes;
+  preserve the current structured behavior through an exact optional entry if
+  this is pursued.
+- Keep precise DOM text measurement in the default path unless visual evidence
+  justifies making it optional. Its measured 709-byte saving does not currently
+  outweigh label-layout risk.
+- Consider a separate fixed-size `StaticChart` entry only for consumers that do
+  not need updates, resizing, focus, or tooltips. The counterfactual measured
+  7,942 gzip bytes and is not a replacement for the normal chart.
+
+A combined virtual build measured 11,128 gzip bytes for the base, 14,493 with
+the current tooltip, and 15,303 with portal transport. These figures establish
+an opportunity envelope; every future boundary must retain its own behavioral,
+type, packed-consumer, and retained-module gates. Do not simplify tick quality,
+nicening, inversion, or clamping merely to chase the remaining bytes.
 
 If the product requires going below Plot’s supported floor, the correct paths
 are an upstream contribution, a deliberately maintained compatible fork, or a

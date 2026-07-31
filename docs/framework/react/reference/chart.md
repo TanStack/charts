@@ -44,6 +44,9 @@ The Canvas `Chart` accepts the same adapter props except `renderSvg`. Its
 surfaces. Both entries export `ChartCommonProps`, `ChartProps`,
 `ChartDefinition`, and `ChartPoint`.
 
+These base entries render the native tooltip without React tooltip-body
+composition.
+
 ## Definition props
 
 | Prop         | Default  | Meaning                                                                       |
@@ -55,8 +58,9 @@ See [Chart Definition API](../../../reference/chart-definitions.md).
 The definition owns `focus`, `maxFocusDistance`, `spatialIndex`, `animate`,
 `keyboard`, and `tooltip`. Adapters do not override them.
 
-Set definition `tooltip.portal: true` to escape clipping and local stacking
-contexts. The adapter still receives no portal override.
+Add the `portal` extension to the definition's tooltip options to escape
+clipping and local stacking contexts. The adapter still receives no portal
+override.
 
 ## Accessibility and sizing
 
@@ -88,6 +92,17 @@ the behavior and complete callback values.
 
 ## Tooltip body
 
+Import the drop-in component from the optional tooltip entry to use
+`renderTooltipBody`:
+
+```tsx
+import {
+  Chart,
+  CanvasChart,
+  RendererChart,
+} from '@tanstack/react-charts/tooltip'
+```
+
 | Prop                | Type                                                    | Default | Meaning                                          |
 | ------------------- | ------------------------------------------------------- | ------- | ------------------------------------------------ |
 | `renderTooltipBody` | `(context: ChartTooltipBodyRenderContext) => ReactNode` | None    | Composes React content inside the native surface |
@@ -112,9 +127,11 @@ interactive content only when `pinned` is true; transient tooltips do not
 accept pointer input. `dismiss()` clears the tooltip and restores chart focus
 when focus was inside its body.
 
-The prop is available from the default, `/canvas`, and `/core` entries. It is
-adapter presentation. Ordering, anchoring, placement, portaling, and sticky
-behavior remain in the chart definition.
+Existing users of this prop should move `Chart` from
+`@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. Replace
+`Chart as CanvasChart` from `/canvas` or `Chart as RendererChart` from `/core`
+with the corresponding named component from `/tooltip`. Ordering, anchoring,
+placement, portaling, and sticky behavior remain in the chart definition.
 
 ## Rendering and layout extensions
 
@@ -129,7 +146,10 @@ See [Rendering and export](../../../reference/rendering-and-export.md) and
 
 ## Exported prop types
 
-The adapter exports `ChartCommonProps`, `ChartProps`, and
+The base entries export `ChartCommonProps` and `ChartProps`. The `/tooltip`
+entry exports its extended `ChartCommonProps`, `ChartProps`,
+`RendererChartCommonProps`, `RendererChartProps`, `CanvasChartCommonProps`,
+`CanvasChartProps`, `ChartTooltipBodyRenderProps`, and
 `ChartTooltipBodyRenderContext`.
 
 ```ts

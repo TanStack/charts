@@ -32,9 +32,11 @@ normal tab-order participation while keeping keyboard handling enabled. Set
 Use a preset for built-in focus behavior:
 
 ```ts
+import { tooltip } from '@tanstack/charts/tooltip'
+
 const groupedDownloads = defineChart(definition, {
   focus: 'group-x',
-  tooltip: true,
+  tooltip,
 })
 ```
 
@@ -100,10 +102,11 @@ keyboard navigation. `navigation` returns the ordered keyboard task set.
 
 ## Tooltips
 
-Set `tooltip: true` for the native accessible tooltip. The default is a
-structured label-value table. Grouped focus adds a shared-axis heading and one
-color swatch and value row per series. Visible axis labels are reused. Numbers
-use browser locale formatting; dates use stable UTC ISO formatting.
+Import `tooltip` from `@tanstack/charts/tooltip` and place it on the definition
+for the native accessible tooltip. The default is a structured label-value
+table. Grouped focus adds a shared-axis heading and one color swatch and value
+row per series. Visible axis labels are reused. Numbers use browser locale
+formatting; dates use stable UTC ISO formatting.
 
 ```ts
 interface ChartTooltipOptions<
@@ -112,7 +115,7 @@ interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
-  portal?: boolean
+  portal?: ChartTooltipPortalInput
   items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
   sort?: ChartTooltipSort<TDatum, TXValue, TYValue>
   anchor?: ChartTooltipAnchor<TDatum, TXValue, TYValue>
@@ -130,19 +133,19 @@ interface ChartTooltipOptions<
 }
 ```
 
-| Option        | Default        | Meaning                                                 |
-| ------------- | -------------- | ------------------------------------------------------- |
-| `className`   | None           | Class appended after `ts-chart-tooltip`                 |
-| `portal`      | `false`        | Escapes clipping through top-layer or fixed positioning |
-| `items`       | Automatic x/y  | Ordered rows for a single focused point                 |
-| `sort`        | `color-domain` | Grouped row order                                       |
-| `anchor`      | `point`        | Point, pointer, group center, or coordinate resolver    |
-| `placement`   | `auto`         | Fixed or ordered fallback box placements                |
-| `offset`      | `10`           | Scene-pixel gap between anchor and box                  |
-| `content`     | Automatic rows | Returns a safe title and structured rows                |
-| `format`      | None           | Replaces content with primary-point text                |
-| `formatGroup` | None           | Replaces content with focused-group text                |
-| `sticky`      | `true`         | Enables activation-to-pin and text selection            |
+| Option        | Default        | Meaning                                              |
+| ------------- | -------------- | ---------------------------------------------------- |
+| `className`   | None           | Class appended after `ts-chart-tooltip`              |
+| `portal`      | None           | Optional top-layer or fixed-position transport       |
+| `items`       | Automatic x/y  | Ordered rows for a single focused point              |
+| `sort`        | `color-domain` | Grouped row order                                    |
+| `anchor`      | `point`        | Point, pointer, group center, or coordinate resolver |
+| `placement`   | `auto`         | Fixed or ordered fallback box placements             |
+| `offset`      | `10`           | Scene-pixel gap between anchor and box               |
+| `content`     | Automatic rows | Returns a safe title and structured rows             |
+| `format`      | None           | Replaces content with primary-point text             |
+| `formatGroup` | None           | Replaces content with focused-group text             |
+| `sticky`      | `true`         | Enables activation-to-pin and text selection         |
 
 Formatting precedence is `content`, `formatGroup`, `format`, then the default.
 The text formatters do not parse HTML, and newlines are preserved. `className`
@@ -154,28 +157,31 @@ is appended to `ts-chart-tooltip`.
 shorthands, a configured channel, a scalar datum field, or derived text:
 
 ```ts
-const tooltip = {
-  items: [
-    {
-      channel: 'y',
-      label: 'Revenue',
-      text: (point) => currency(point.yValue),
-    },
-    {
-      field: 'volume',
-      label: 'Volume',
-      text: (point) => compact(point.datum.volume),
-    },
-    {
-      id: 'change',
-      label: 'Change',
-      text: (point) =>
-        point.datum.change == null ? null : percent(point.datum.change),
-    },
-    'x',
-    'group',
-  ],
-}
+const detailedDefinition = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    items: [
+      {
+        channel: 'y',
+        label: 'Revenue',
+        text: (point) => currency(point.yValue),
+      },
+      {
+        field: 'volume',
+        label: 'Volume',
+        text: (point) => compact(point.datum.volume),
+      },
+      {
+        id: 'change',
+        label: 'Change',
+        text: (point) =>
+          point.datum.change == null ? null : percent(point.datum.change),
+      },
+      'x',
+      'group',
+    ],
+  },
+})
 ```
 
 Array order is row order. A nullish datum field or nullish `text` result omits
@@ -207,20 +213,25 @@ it uses the least-overflowing candidate and shifts it inside. `auto` uses
 `top`, `bottom`, `right`, then `left`.
 
 ```ts
-const tooltip = {
-  anchor: 'group-center',
-  placement: ['top', 'right', 'left', 'bottom'],
-  offset: 12,
-}
+const groupedDefinition = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    anchor: 'group-center',
+    placement: ['top', 'right', 'left', 'bottom'],
+    offset: 12,
+  },
+})
 ```
 
-Set `portal: true` when an ancestor clips overflow or creates an incompatible
-stacking context. The host opens the tooltip as a manual Popover in the browser
-top layer where supported, while retaining its chart DOM ancestry. If Popover
-is unavailable or fails, it moves the tooltip directly under the chart's
-`ownerDocument` body with fixed high-stack positioning. Both paths map the
-scene anchor to viewport coordinates, reposition during scroll, resize, and
-content resize, and collide against the viewport instead of the chart box.
+Import `portal` from `@tanstack/charts/tooltip/portal` and assign it to the
+tooltip's `portal` option when an ancestor clips overflow or creates an
+incompatible stacking context. The host opens the tooltip as a manual Popover
+in the browser top layer where supported, while retaining its chart DOM
+ancestry. If Popover is unavailable or fails, it moves the tooltip directly
+under the chart's `ownerDocument` body with fixed high-stack positioning. Both
+paths map the scene anchor to viewport coordinates, reposition during scroll,
+resize, and content resize, and collide against the viewport instead of the
+chart box.
 
 Clicking, Enter, or Space pins the tooltip. The next activation unpins it.
 `Escape` unpins and clears focus. Set `sticky: false` to disable pinning. A

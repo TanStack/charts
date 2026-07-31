@@ -7,6 +7,8 @@ description: Reference static and responsive chart definitions, build context, a
 
 ```ts
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal } from '@tanstack/charts/tooltip/portal'
 ```
 
 `defineChart` accepts a complete chart spec, a responsive configuration, or an
@@ -42,6 +44,8 @@ const definition = defineChart({
   y: { scale: scaleLinear, nice: true, grid: true },
   focus: 'group-x',
   tooltip: {
+    use: tooltip,
+    portal,
     anchor: 'group-center',
     placement: ['top', 'right', 'left', 'bottom'],
   },
@@ -87,7 +91,7 @@ does not return or own them.
 These options belong to both static and responsive definitions. Hosts and
 framework adapters do not override them.
 
-Tooltip placement policy stays with the definition, including `portal: true`
+Tooltip placement policy stays with the definition. Add the `portal` extension
 when the surface must escape clipped chart ancestors. Framework-only content
 composition remains an adapter prop, slot, snippet, or template.
 

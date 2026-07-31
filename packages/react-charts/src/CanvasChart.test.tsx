@@ -4,6 +4,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { scaleLinear } from 'd3-scale'
 import { CanvasChart } from './CanvasChart'
 
@@ -27,7 +28,7 @@ const definition = defineChart({
 })
 const interactiveDefinition = defineChart(definition, {
   maxFocusDistance: 1_000,
-  tooltip: true,
+  tooltip,
 })
 
 const dynamicDefinition = defineChart(() => ({

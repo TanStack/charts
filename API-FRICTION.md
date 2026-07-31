@@ -176,6 +176,7 @@ Each entry records:
 | F-138 | Publisher pin predated explicit trust permissions        | Tooling/Release | resolved   |
 | F-139 | Top-level entries bypassed tarball validation            | Tooling/Release | resolved   |
 | F-140 | Behavior config could erase responsive datum inference   | API             | monitoring |
+| F-141 | Optional tooltip code burdened every chart consumer      | API             | resolved   |
 
 ## Findings
 
@@ -472,7 +473,8 @@ Each entry records:
 
 - Status: resolved
 - Severity: high
-- Observed in: strict migration of fixtures, sandbox, and Stats
+- Observed in: strict migration of fixtures, sandbox, and Stats, followed by
+  the 15 KiB representative React bundle target
 - Friction: `scaleUtc`, `scaleTime`, `scaleLog`, `scaleSymlog`, `scaleSqrt`,
   `configuredScale`, `ChartScaleTransform`, and inferred scale types remain
   exported beside native `d3-scale` values. Their names are easier for both
@@ -480,13 +482,18 @@ Each entry records:
   longer consumes inferred axis options.
 - Decision: remove the legacy inferred scale and transform surface after its
   historical tests and bundle fixtures have been relabeled or deleted. Keep
-  D3 imports visibly sourced from `d3-scale`.
+  D3 imports visibly sourced from `d3-scale` for its complete semantics. Offer
+  the deliberately smaller linear, band, point, and ordinal subset only from
+  exact `@tanstack/charts-scales/*` entries, with no root export. The compact
+  package is a constrained bundle option, not a second general-purpose scale
+  API.
 - Verification: the obsolete scale, radius, color, curve, transform, and
   spatial wrappers and subpaths are gone; the inferred-scale builder and its
   tests are deleted; fixtures and histogram benchmarks use direct `d3.bin`;
-  repository search finds only direct D3 imports in product definitions.
-  TypeScript, the standard test suite, both four-test Octane matrices, and
-  every bundle budget pass.
+  differential tests cover the compact subset against D3; packed-consumer
+  checks resolve every exact entry. The complete compact family is 1,877 gzip
+  bytes, and a representative compact React line is 14,225 gzip bytes without
+  retaining `d3-scale`, `d3-format`, or `d3-interpolate`.
 
 ### F-016 — Stats animated export still renders through Plot
 
@@ -1063,7 +1070,10 @@ Each entry records:
   consumers are byte-locked. Optional features have isolated gzip budgets;
   comparison and exploratory kernels remain measurement-only. Baseline
   changes require an explicit reviewed command, including decreases, so saved
-  bytes cannot become silent future headroom.
+  bytes cannot become silent future headroom. Input-boundary checks use only
+  modules with retained output bytes, so an imported-but-eliminated module
+  cannot create a false pass or failure. The compact React line has a hard
+  15 KiB ceiling; tooltip and portal are measured as separate increments.
 - Verification: repeated builds match the exact minified and gzip baseline.
   `pnpm bundle:check` passes the locked consumers and the tightened histogram,
   facet, curve, time, transform, spatial, arrow, frame, link, and tick feature
@@ -1074,8 +1084,12 @@ Each entry records:
   now locked rather than hidden inside unused ceiling headroom. The canonical
   byte lock runs on pinned Ubuntu 24.04 and Node 24.18.0; this prevents runner
   and compressor upgrades from masquerading as library-size changes. The
-  current canonical baseline records the unchanged source tree under that
-  environment.
+  bundle-reduction work locks the compact scene at 6,711 gzip bytes and its
+  React consumer at 14,225. Tooltip adds 3,382 bytes and portal adds another 806. Retained-output assertions prove the base excludes tooltip, portal,
+  React tooltip composition, and the D3 scale/format/interpolate stack.
+  Replacing the core-owned D3 ordinal default required reviewed 0.05 KiB
+  adjustments to the tick and polar-composition feature ceilings; all other
+  policy changes are exact locks or new isolated budgets.
 
 ### F-041 — Bounded segments and caps required custom marks
 
@@ -1112,9 +1126,12 @@ Each entry records:
   `items` array.
 - Current decision: ordered items use one uniformly typed
   `text(point, context)` callback, preserving contextual datum and coordinate
-  types for every item kind. For a separately hoisted complete tooltip object,
-  document an explicit `ChartTooltipOptions` annotation as a normal
-  type-introduction boundary; never recommend a cast.
+  types for every item kind. The extension form
+  `{ use: tooltip, format(point) {} }` remains inside `defineChart`, so the
+  definition supplies contextual datum and coordinate types at the exact
+  option location. For a separately hoisted complete tooltip object, document
+  an explicit `ChartTooltipOptions` annotation as a normal type-introduction
+  boundary; never recommend a cast.
 - Follow-up: if raw-host examples repeat this pattern, add a small
   definition-correlated options helper rather than weakening callback types.
 
@@ -3174,14 +3191,15 @@ Each entry records:
   contexts could clip it or place it below adjacent UI. Escaping those
   boundaries required rebuilding focus, placement, collision, pinning, and
   cleanup in an application-owned overlay.
-- Decision: add definition-owned `tooltip.portal`. The host opens the tooltip
-  itself as a manual Popover in the browser top layer where supported, keeping
-  its chart DOM ancestry and inherited styling. If Popover is unavailable or
-  fails, the tooltip moves directly under the `ownerDocument` body with fixed
-  high-stack positioning. Both paths map scene anchors to client coordinates,
-  collide against the viewport, and reposition on scroll, viewport resize,
-  chart resize, and tooltip content resize. Local positioning remains the
-  default. Documentation calls out the fallback's CSS inheritance boundary.
+- Decision: make portal transport an exact opt-in extension imported from
+  `@tanstack/charts/tooltip/portal` and installed as the nested `portal` option
+  on `{ use: tooltip }`. It opens the tooltip as a manual Popover in the
+  browser top layer where supported, keeping its chart DOM ancestry and
+  inherited styling. If Popover is unavailable or fails, the tooltip moves
+  directly under the `ownerDocument` body with fixed high-stack positioning.
+  Both paths map scene anchors to client coordinates, collide against the
+  viewport, and reposition on scroll, viewport resize, chart resize, and
+  tooltip content resize. Local positioning remains the default.
 - Verification: DOM-host regressions cover top-layer and fixed fallback
   parenting, client-coordinate mapping, viewport collision,
   scroll/resize/content repositioning, local-to-portal updates, renderer
@@ -3189,10 +3207,11 @@ Each entry records:
   composition regression exercises a pinned custom body inside the portaled
   surface and removes it on unmount. Catalog case 35 passes its real-Chromium
   quick profile, including both widths and every interaction step. The primary
-  suite passes 2,459 tests, all framework matrices pass, and type, docs,
+  suite passes 3,003 tests, all framework matrices pass, and type, docs,
   packed-consumer, seven-adapter, formatting, and bundle gates pass. The
-  reviewed bundle change is 1,486 gzip bytes for the DOM host and 1,947 for the
-  React adapter; it adds no bundled dependency.
+  portal transport is absent from retained base and tooltip-only graphs. Its
+  isolated kernel is 1,580 gzip bytes and its measured increment on the
+  representative React tooltip consumer is 806 bytes.
 
 ### F-134 — Demo fixtures modeled charts instead of source data
 
@@ -3394,3 +3413,29 @@ Each entry records:
 - Follow-up: add a focused type regression for the single-call form and decide
   whether its overload can retain builder datum inference without making
   behavior ownership ambiguous.
+
+### F-141 — Optional tooltip code burdened every chart consumer
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: reducing the representative React line consumer from roughly
+  24 KiB to 15 KiB gzip
+- Friction: the renderer statically owned native tooltip DOM, formatting,
+  placement, pinning, portal transport, and observers. React's base entries
+  also statically owned `react-dom` portal composition and the default rich
+  body. A chart with no tooltip paid for all of it, and tree shaking could not
+  cross the host's built-in branches.
+- Decision: keep focus and pin policy in the host, but move tooltip rendering
+  behind the `ChartTooltipExtension` lifecycle and exact
+  `@tanstack/charts/tooltip` token. Move viewport transport behind the nested
+  portal extension. Move React rich-body composition to drop-in Chart,
+  CanvasChart, and RendererChart exports from
+  `@tanstack/react-charts/tooltip`. Base entries export only erased extension
+  types and never import those runtime modules.
+- Verification: the representative compact React line is 14,225 gzip bytes.
+  Native tooltip adds 3,382 bytes; portal adds 806 more. Retained-output graph
+  checks prove base renderer and React entries contain none of the tooltip,
+  portal, or React rich-body modules. Core, Lit, React, export, declaration,
+  packed-package, and lifecycle tests cover creation, update, disable,
+  transport switching, custom bodies, and cleanup.

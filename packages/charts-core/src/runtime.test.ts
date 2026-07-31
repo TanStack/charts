@@ -8,6 +8,8 @@ import { defineChart } from './scene'
 import { renderChartSvgWithResources } from './svg-resources'
 import { focusX } from './focus'
 import { bandXAxes, linearAxes, utcXAxes } from './test-scales'
+import { tooltip as tooltipExtension } from './tooltip'
+import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartDefinition,
   ChartDefinitionOptions,
@@ -207,7 +209,7 @@ describe('dynamic chart runtime', () => {
     const container = document.createElement('div')
     const options = {
       definition: withChartOptions(definition, {
-        tooltip: true,
+        tooltip: tooltipExtension,
         spatialIndex: firstIndex,
       }),
       width: 480,
@@ -255,7 +257,9 @@ describe('dynamic chart runtime', () => {
     const onFocusChange = vi.fn()
     const format = (point: ChartPoint<(typeof data)[number]>) => point.datum.id
     const options = {
-      definition: withChartOptions(definition, { tooltip: { format } }),
+      definition: withChartOptions(definition, {
+        tooltip: { use: tooltipExtension, format },
+      }),
       width: 480,
       height: 260,
       ariaLabel: 'Duplicate point key chart',
@@ -293,7 +297,9 @@ describe('dynamic chart runtime', () => {
 
     host.update({
       ...options,
-      definition: withChartOptions(definition, { tooltip: { format } }),
+      definition: withChartOptions(definition, {
+        tooltip: { use: tooltipExtension, format },
+      }),
     })
     expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe('c')
 
@@ -346,7 +352,9 @@ describe('dynamic chart runtime', () => {
     const onFocusChange = vi.fn()
     const onSelect = vi.fn()
     const host = mountChart(container, {
-      definition: withChartOptions(definition, { tooltip: true }),
+      definition: withChartOptions(definition, {
+        tooltip: tooltipExtension,
+      }),
       width: 480,
       height: 260,
       ariaLabel: 'Keyboard chart',
@@ -406,7 +414,7 @@ describe('dynamic chart runtime', () => {
       definition: defineChart({
         marks: [lineY([{ x: 0, y: 4 }], { x: 'x', y: 'y' })],
         ...linearAxes([0, 1], [0, 4]),
-        tooltip: { portal: true },
+        tooltip: { use: tooltipExtension, portal: portalExtension },
       }),
       width: 480,
       height: 260,
@@ -460,7 +468,9 @@ describe('dynamic chart runtime', () => {
     })
     const container = document.createElement('div')
     const host = mountChart(container, {
-      definition: withChartOptions(definition, { tooltip: true }),
+      definition: withChartOptions(definition, {
+        tooltip: tooltipExtension,
+      }),
       width: 480,
       height: 260,
       ariaLabel: 'Decimal chart',
@@ -483,7 +493,7 @@ describe('dynamic chart runtime', () => {
       definition: defineChart({
         marks: [lineY([{ date, value: 4 }], { x: 'date', y: 'value' })],
         ...utcXAxes([new Date('2024-05-01T00:00:00.000Z'), date], [0, 4]),
-        tooltip: true,
+        tooltip: tooltipExtension,
       }),
       width: 480,
       height: 260,
@@ -529,6 +539,7 @@ describe('dynamic chart runtime', () => {
         },
         focus: 'group-x',
         tooltip: {
+          use: tooltipExtension,
           anchor: 'group-center',
           placement: 'right',
           offset: 0,
@@ -581,7 +592,7 @@ describe('dynamic chart runtime', () => {
           }),
         ],
         ...linearAxes([0, 4], [0, 3]),
-        tooltip: true,
+        tooltip: tooltipExtension,
       }),
       width: 480,
       height: 260,
@@ -614,7 +625,7 @@ describe('dynamic chart runtime', () => {
           label: 'Change',
           format: (value) => `${value} units`,
         },
-        tooltip: true,
+        tooltip: tooltipExtension,
       }),
       width: 480,
       height: 260,
@@ -647,6 +658,7 @@ describe('dynamic chart runtime', () => {
     const host = mountChart(container, {
       definition: withChartOptions(definition, {
         tooltip: {
+          use: tooltipExtension,
           content: ([point], context) => ({
             title: point ? context.formatX(point.xValue) : undefined,
             rows: point
@@ -705,6 +717,7 @@ describe('dynamic chart runtime', () => {
         ...bandXAxes(['A'], [0, 4]),
         focus: 'nearest',
         tooltip: {
+          use: tooltipExtension,
           items: [
             {
               channel: 'y',
@@ -765,7 +778,7 @@ describe('dynamic chart runtime', () => {
       definition: defineChart({
         marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
         ...linearAxes([0, 1], [0, 8]),
-        tooltip: true,
+        tooltip: tooltipExtension,
       }),
       width: 480,
       height: 260,
@@ -870,7 +883,7 @@ describe('dynamic chart runtime', () => {
       definition: defineChart({
         marks: [lineY([{ x: 0, y: 4 }], { x: 'x', y: 'y' })],
         ...linearAxes([0, 1], [0, 4]),
-        tooltip: { sticky: false },
+        tooltip: { use: tooltipExtension, sticky: false },
       }),
       width: 480,
       height: 260,
@@ -1021,6 +1034,7 @@ describe('dynamic chart runtime', () => {
         focus: focusX,
         maxFocusDistance: 1_000,
         tooltip: {
+          use: tooltipExtension,
           formatGroup: (points) =>
             points.map((point) => point.groupLabel).join(', '),
         },

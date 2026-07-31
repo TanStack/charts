@@ -1,5 +1,51 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes
+
+- Tooltips are now explicit extensions. Import `tooltip` from
+  `@tanstack/charts/tooltip` and replace `tooltip: true` with `tooltip`.
+- Configured tooltips now require the extension discriminator:
+  `{ use: tooltip, format(point) {} }`. This is also the contextual typing
+  boundary for tooltip options.
+- Portaled tooltips now import `portal` from
+  `@tanstack/charts/tooltip/portal` and use `portal` instead of `portal: true`.
+- React consumers that provide `renderTooltipBody` must import `Chart`,
+  `RendererChart`, or `CanvasChart` from `@tanstack/react-charts/tooltip`.
+  The base React entries retain native tooltips without including React DOM's
+  portal runtime.
+
+```ts
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal } from '@tanstack/charts/tooltip/portal'
+
+defineChart({
+  // ...
+  tooltip: {
+    use: tooltip,
+    portal,
+    format(point) {
+      return String(point.datum.value)
+    },
+  },
+})
+```
+
+### Added
+
+- Added compact callable scales through the exact
+  `@tanstack/charts-scales/linear`, `/band`, `/point`, and `/ordinal`
+  subpaths. Full D3 scales remain supported when their broader behavior is
+  required.
+
+### Bundle impact
+
+- The representative compact React line consumer is 14,225 bytes gzip
+  (13.89 KiB), down from approximately 24 KiB.
+- Opting into the tooltip extension adds 3,382 bytes gzip.
+- Adding the portal extension adds another 806 bytes gzip.
+
 ## 0.0.1 (2026-07-30)
 
 `0.0.1` is the first coordinated update after the public `0.0.0` release. The

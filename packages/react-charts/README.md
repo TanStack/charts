@@ -15,11 +15,12 @@ chart's actual imports.
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
 
 const interactiveDefinition = defineChart(definition, {
   animate: true,
-  tooltip: true,
+  tooltip,
 })
 
 ;<Chart
@@ -32,6 +33,30 @@ const interactiveDefinition = defineChart(definition, {
   onSelect={setSelectedPoint}
 />
 ```
+
+The base `Chart` renders the core native tooltip without including React
+tooltip-body composition. Import the drop-in component from `/tooltip` only
+when passing `renderTooltipBody`:
+
+```tsx
+import { Chart } from '@tanstack/react-charts/tooltip'
+
+;<Chart
+  definition={interactiveDefinition}
+  ariaLabel="Revenue by month"
+  renderTooltipBody={({ defaultBody, pinned, dismiss }) => (
+    <>
+      {defaultBody}
+      {pinned ? <button onClick={dismiss}>Close</button> : null}
+    </>
+  )}
+/>
+```
+
+Existing `renderTooltipBody` users should move their component import from
+`@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. That entry also
+exports `CanvasChart` and `RendererChart` for the same opt-in with those
+renderers.
 
 Switch only the import to opt into Canvas:
 

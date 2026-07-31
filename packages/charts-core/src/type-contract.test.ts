@@ -14,6 +14,8 @@ import type { RectOptions } from './rect'
 import { ruleX, ruleY } from './rule'
 import { createChartRuntime } from './runtime'
 import { createChartScene, defineChart } from './scene'
+import { tooltip } from './tooltip'
+import { portal } from './tooltip-portal'
 import type {
   ChartDefinition,
   ChartFocusStrategy,
@@ -347,7 +349,8 @@ if (false) {
   const interactiveCategoricalDefinition = defineChart(staticDefinition, {
     focus: categoricalFocus,
     tooltip: {
-      portal: true,
+      use: tooltip,
+      portal,
       items: [
         {
           channel: 'x',
@@ -485,6 +488,7 @@ if (false) {
   // @ts-expect-error Boolean datum fields require a derived text item.
   defineChart(staticDefinition, {
     tooltip: {
+      use: tooltip,
       items: [
         {
           field: 'enabled',
@@ -492,11 +496,20 @@ if (false) {
       ],
     },
   })
+  // @ts-expect-error Configured tooltip options require an extension token.
+  defineChart(staticDefinition, { tooltip: { sticky: false } })
+  // @ts-expect-error Portaling requires the explicit portal extension.
+  defineChart(staticDefinition, {
+    tooltip: {
+      use: tooltip,
+      portal: true,
+    },
+  })
   mountChart(container, {
     definition: staticDefinition,
     ariaLabel: 'Definition-only tooltip configuration',
     // @ts-expect-error Chart behavior belongs to the definition, not the host.
-    tooltip: true,
+    tooltip,
   })
   mountChart<Row, string, number>(container, {
     // @ts-expect-error A numeric-x focus strategy cannot consume string-x points.

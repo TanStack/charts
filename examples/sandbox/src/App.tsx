@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import { defineChart, type ChartPoint } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
 import {
   createDashboardData,
@@ -53,6 +54,7 @@ export function App() {
         {
           focus: 'group-x',
           tooltip: {
+            use: tooltip,
             className: 'obsidian-tooltip',
             sticky: true,
             formatGroup: formatIndustryGroup,
@@ -62,6 +64,7 @@ export function App() {
       ),
       ratings: defineChart(createRatingsHeatmap({ rows: data.simpsons }), {
         tooltip: {
+          use: tooltip,
           className: 'obsidian-tooltip',
           format: (point) =>
             `S${point.datum.season} E${point.datum.number_in_season} · ${point.datum.title}\nIMDb ${point.datum.imdb_rating?.toFixed(1)}`,
@@ -70,6 +73,7 @@ export function App() {
       }),
       cars: defineChart(createCarEconomyChart({ rows: data.carEconomy }), {
         tooltip: {
+          use: tooltip,
           className: 'obsidian-tooltip',
           format: (point) =>
             `${point.datum.cylinders} cylinders\n${point.datum.economy.toFixed(1)} mpg mean`,
@@ -80,6 +84,7 @@ export function App() {
         createSurveyStackChart({ rows: data.surveyStack }),
         {
           tooltip: {
+            use: tooltip,
             className: 'obsidian-tooltip',
             format: (point) =>
               `${point.datum.Question} · ${point.datum.Response}\n${point.datum.count} responses`,
@@ -91,6 +96,7 @@ export function App() {
         createSurveyWaffleChart({ rows: data.surveyCells }),
         {
           tooltip: {
+            use: tooltip,
             className: 'obsidian-tooltip',
             format: (point) =>
               `${point.datum.Question} · ${point.datum.Response}`,
@@ -160,6 +166,7 @@ export function App() {
         }),
         {
           tooltip: {
+            use: tooltip,
             className: 'obsidian-tooltip',
             sticky: true,
             format: (point) =>

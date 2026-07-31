@@ -10,11 +10,12 @@ pnpm add @tanstack/charts @tanstack/vue-charts vue d3-scale
 ```vue
 <script setup lang="ts">
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { computed } from 'vue'
 import { Chart } from '@tanstack/vue-charts'
 
 const definition = computed(() =>
-  defineChart(createRevenueChart(rows.value), { tooltip: true }),
+  defineChart(createRevenueChart(rows.value), { tooltip }),
 )
 </script>
 

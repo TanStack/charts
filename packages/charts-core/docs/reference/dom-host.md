@@ -10,6 +10,7 @@ pointer and keyboard interaction, native tooltips, font relayout, and cleanup.
 ```ts
 import { defineChart } from '@tanstack/charts'
 import { mountChart } from '@tanstack/charts/dom'
+import { tooltip } from '@tanstack/charts/tooltip'
 ```
 
 ## Signature
@@ -34,7 +35,7 @@ also destroys that runtime. In ordinary vanilla use, omit it.
 
 ```ts
 const options = {
-  definition: defineChart(definition, { tooltip: true }),
+  definition: defineChart(definition, { tooltip }),
   height: 320,
   ariaLabel: 'Weekly revenue',
 }
@@ -70,7 +71,7 @@ import { canvasChartRenderer } from '@tanstack/charts/canvas'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 
 const host = mountChartRenderer(container, {
-  definition: defineChart(definition, { tooltip: true }),
+  definition: defineChart(definition, { tooltip }),
   renderer: canvasChartRenderer,
   ariaLabel: 'Weekly revenue',
 })
@@ -156,11 +157,11 @@ immediately by default; set `animate.resize` to `true` to animate it.
 
 The host temporarily assigns `position: relative` when the container's
 computed position is static, because local native tooltips are absolutely
-positioned inside it. Definition `tooltip.portal: true` instead places the
-tooltip in the browser top layer through a manual Popover, or directly under
-the `ownerDocument` body as a fixed fallback, and positions it against the
-viewport. `destroy` restores the previous inline position when the host owned
-that change and removes its tooltip.
+positioned inside it. Adding the `portal` extension to the tooltip options
+instead places the tooltip in the browser top layer through a manual Popover,
+or directly under the `ownerDocument` body as a fixed fallback, and positions
+it against the viewport. `destroy` restores the previous inline position when
+the host owned that change and removes its tooltip.
 
 ## Font measurement
 

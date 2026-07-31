@@ -15,10 +15,12 @@ Use that path until the product needs richer interaction.
 
 ## Default nearest point
 
-Enable the native tooltip with `tooltip: true`:
+Import the native tooltip extension and add it to the definition:
 
 ```ts
-const interactiveDefinition = defineChart(definition, { tooltip: true })
+import { tooltip } from '@tanstack/charts/tooltip'
+
+const interactiveDefinition = defineChart(definition, { tooltip })
 
 const host = mountChart(element, {
   definition: interactiveDefinition,
@@ -55,10 +57,10 @@ empty space should mean no focus.
 
 ## Automatic tooltip mapping
 
-`tooltip: true` renders labeled rows for the focused point. Grouped focus uses
-the shared axis value as a heading and renders one row and color swatch per
-series. Visible axis labels carry into the tooltip. Numbers use the user's
-locale and dates use stable UTC ISO formatting.
+The default `tooltip` extension renders labeled rows for the focused point.
+Grouped focus uses the shared axis value as a heading and renders one row and
+color swatch per series. Visible axis labels carry into the tooltip. Numbers
+use the user's locale and dates use stable UTC ISO formatting.
 
 Rect and link endpoints display as ranges. Bars and areas with an explicit
 baseline display the interval length, so a stacked segment reports its own
@@ -68,32 +70,31 @@ Order built-in channels, datum fields, and derived text for a single focused
 point:
 
 ```ts
-const tooltip = {
-  items: [
-    {
-      channel: 'y',
-      label: 'Revenue',
-      text: (point) => currency(point.yValue),
-    },
-    {
-      field: 'status',
-      label: 'Status',
-    },
-    {
-      id: 'change',
-      label: 'Change',
-      text: (point) =>
-        point.datum.change == null ? null : percent(point.datum.change),
-    },
-    'x',
-  ],
-}
-
 const definition = defineChart({
   marks,
   x,
   y,
-  tooltip,
+  tooltip: {
+    use: tooltip,
+    items: [
+      {
+        channel: 'y',
+        label: 'Revenue',
+        text: (point) => currency(point.yValue),
+      },
+      {
+        field: 'status',
+        label: 'Status',
+      },
+      {
+        id: 'change',
+        label: 'Change',
+        text: (point) =>
+          point.datum.change == null ? null : percent(point.datum.change),
+      },
+      'x',
+    ],
+  },
 })
 ```
 
@@ -106,30 +107,37 @@ when a grouped tooltip needs additional columns or nested sections.
 Customize plaintext content with typed formatters:
 
 ```ts
-const tooltip = {
-  format(point) {
-    return `${point.datum.label}: ${point.datum.value.toLocaleString()}`
+const formattedDefinition = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    format(point) {
+      return `${point.datum.label}: ${point.datum.value.toLocaleString()}`
+    },
   },
-}
+})
 ```
 
 For grouped focus:
 
 ```ts
-const tooltip = {
-  formatGroup(points) {
-    const date = points[0]?.xValue
-    const heading =
-      date instanceof Date ? date.toLocaleDateString() : String(date ?? '')
+const groupedDefinition = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    formatGroup(points) {
+      const date = points[0]?.xValue
+      const heading =
+        date instanceof Date ? date.toLocaleDateString() : String(date ?? '')
 
-    return [
-      heading,
-      ...points.map(
-        (point) => `${point.groupLabel}: ${point.datum.value.toLocaleString()}`,
-      ),
-    ].join('\n')
+      return [
+        heading,
+        ...points.map(
+          (point) =>
+            `${point.groupLabel}: ${point.datum.value.toLocaleString()}`,
+        ),
+      ].join('\n')
+    },
   },
-}
+})
 ```
 
 Formatting precedence is `content`, `formatGroup`, `format`, then the automatic
@@ -146,21 +154,23 @@ Point anchoring is the stable default for scatterplots, bars, and keyboard
 navigation:
 
 ```ts
-const tooltip = {
-  anchor: 'point',
-  placement: 'top',
-}
+const pointDefinition = defineChart(definition, {
+  tooltip: { use: tooltip, anchor: 'point', placement: 'top' },
+})
 ```
 
 Pointer anchoring is useful when a dense mark has a large hit region. Keyboard
 focus falls back to the primary point:
 
 ```ts
-const tooltip = {
-  anchor: 'pointer',
-  placement: ['right', 'left', 'bottom', 'top'],
-  offset: 12,
-}
+const pointerDefinition = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    anchor: 'pointer',
+    placement: ['right', 'left', 'bottom', 'top'],
+    offset: 12,
+  },
+})
 ```
 
 Grouped charts can avoid jumping between series by anchoring to the focused
@@ -173,6 +183,7 @@ const definition = defineChart({
   y,
   focus: 'group-x',
   tooltip: {
+    use: tooltip,
     anchor: 'group-center',
     placement: ['top', 'right', 'left', 'bottom'],
     sort: 'color-domain',
@@ -184,13 +195,16 @@ A custom resolver covers event ranges, maps, and application-specific
 reference positions:
 
 ```ts
-const tooltip = {
-  anchor: (_points, { chart }) => ({
-    x: chart.x + chart.width,
-    y: chart.y,
-  }),
-  placement: 'bottom-left',
-}
+const customAnchorDefinition = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    anchor: (_points, { chart }) => ({
+      x: chart.x + chart.width,
+      y: chart.y,
+    }),
+    placement: 'bottom-left',
+  },
+})
 ```
 
 Resolvers and placement use scene pixels. A nullish or non-finite custom
@@ -203,27 +217,30 @@ surface.
 Keep tooltip layering with the chart definition:
 
 ```ts
+import { portal } from '@tanstack/charts/tooltip/portal'
+
 const definition = defineChart({
   marks,
   x,
   y,
   focus: 'group-x',
   tooltip: {
-    portal: true,
+    use: tooltip,
+    portal,
     anchor: 'group-center',
     placement: ['right', 'left', 'bottom', 'top'],
   },
 })
 ```
 
-`portal: true` opens the tooltip as a manual Popover in the browser top layer
-where supported. It remains a DOM descendant of the chart, so inherited styles,
-ancestor selectors, and chart-scoped CSS custom properties continue to work.
-If Popover is unavailable or fails, the host moves the tooltip directly under
-the chart's `ownerDocument` body with fixed high-stack positioning. Both paths
-escape `overflow: hidden` and local stacking contexts, use viewport collision
-bounds, and reposition after scroll, viewport resize, or content resize. The
-default `false` keeps ordinary absolute positioning inside the chart.
+The `portal` extension opens the tooltip as a manual Popover in the browser top
+layer where supported. It remains a DOM descendant of the chart, so inherited
+styles, ancestor selectors, and chart-scoped CSS custom properties continue to
+work. If Popover is unavailable or fails, the host moves the tooltip directly
+under the chart's `ownerDocument` body with fixed high-stack positioning. Both
+paths escape `overflow: hidden` and local stacking contexts, use viewport
+collision bounds, and reposition after scroll, viewport resize, or content
+resize. Omitting `portal` keeps ordinary absolute positioning inside the chart.
 
 For consistent fallback styling, target `tooltip.className` from a
 document-level stylesheet and define required CSS custom properties on that
@@ -414,8 +431,8 @@ search over every raw point.
 - Choose two-dimensional, nearest-axis, or grouped-axis semantics explicitly.
 - Keep a finite distance unless continuous snapping is intended.
 - Use native plaintext formatting for the 90% case.
-- Use `portal: true` where clipped ancestors or stacking contexts can hide the
-  tooltip.
+- Use the `portal` extension where clipped ancestors or stacking contexts can
+  hide the tooltip.
 - Use the adapter's tooltip-body composition surface for framework content;
   use focus callbacks for separate application-owned surfaces.
 - Give keyboard and pointer users equivalent state and selection.

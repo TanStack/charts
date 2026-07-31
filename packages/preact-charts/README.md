@@ -8,9 +8,10 @@ pnpm add @tanstack/charts @tanstack/preact-charts preact d3-scale
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/preact-charts'
 
-const interactiveDefinition = defineChart(definition, { tooltip: true })
+const interactiveDefinition = defineChart(definition, { tooltip })
 
 ;<Chart definition={interactiveDefinition} ariaLabel="Revenue by month" />
 ```

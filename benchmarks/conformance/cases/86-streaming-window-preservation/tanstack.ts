@@ -1,4 +1,5 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { downloads } from '@charts-poc/demo-data/downloads'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { streamingData } from './selection'
@@ -158,6 +159,7 @@ export const mount: ConformanceMount = (container, input) => {
         animate: false,
         keyboard: true,
         tooltip: {
+          use: tooltip,
           format: (point) =>
             `${formatStreamingDate(point.datum.date)} · ${point.datum.downloads.toLocaleString()} downloads`,
         },

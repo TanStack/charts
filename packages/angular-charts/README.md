@@ -8,6 +8,7 @@ pnpm add @tanstack/charts @tanstack/angular-charts @angular/core @angular/platfo
 
 ```ts
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/angular-charts'
 
 @Component({
@@ -16,7 +17,7 @@ import { Chart } from '@tanstack/angular-charts'
 })
 export class RevenueChart {
   chartOptions = {
-    definition: defineChart(definition, { tooltip: true }),
+    definition: defineChart(definition, { tooltip }),
     ariaLabel: 'Revenue by month',
   }
 }

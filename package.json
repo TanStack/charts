@@ -64,6 +64,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tanstack/charts": "workspace:*",
     "@tanstack/charts-d3": "workspace:*",
+    "@tanstack/charts-scales": "workspace:*",
     "@tanstack/octane-charts": "workspace:*",
     "@tanstack/react-charts": "workspace:*",
     "@types/d3-array": "^3.2.2",

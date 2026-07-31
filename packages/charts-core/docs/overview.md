@@ -142,9 +142,9 @@ The normal path is intentionally short:
 - Omit `width` to follow the chart container.
 - Omit `margin` to measure axes, tick labels, rotation, and titles automatically.
 - Supply `ariaLabel`; keyboard focus is enabled by default.
-- Add `tooltip: true` to the definition when a native value tooltip is enough.
+- Add the `tooltip` extension when a native value tooltip is enough.
 - Let built-in marks infer stable identity from IDs or unique positions; supply
-  `key` when that identity is unavailable or can change.
+  a stable `key` when that identity is unavailable or can change.
 - Let field names, datum types, scales, interaction points, and adapters infer without casts.
 - Use inherited `currentColor` and the `--ts-chart-*` CSS variables for automatic theme integration.
 

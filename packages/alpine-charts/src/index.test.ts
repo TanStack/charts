@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
 import type { ChartTooltipContent } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { scaleLinear } from 'd3-scale'
 import { charts } from './index'
 import type { ChartOptions } from './index'
@@ -101,6 +102,7 @@ describe('Alpine adapter', () => {
     const tooltipDefinition = defineChart(definition, {
       maxFocusDistance: 1_000,
       tooltip: {
+        use: tooltip,
         content: () => ({
           title: 'January',
           rows: [{ label: 'Revenue', value: '$8', color: '#2563eb' }],

@@ -3,6 +3,7 @@ import { octane } from 'octane/compiler/vite'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
 import type { ChartPoint, ChartRendererRenderContext } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/octane-charts/canvas'
 import { scaleLinear } from 'd3-scale'
 import { createServer } from 'vite'
@@ -33,7 +34,7 @@ const definition = defineChart({
 })
 const interactiveDefinition = defineChart(definition, {
   maxFocusDistance: 1_000,
-  tooltip: true,
+  tooltip,
 })
 
 let getContext: ReturnType<typeof vi.spyOn>

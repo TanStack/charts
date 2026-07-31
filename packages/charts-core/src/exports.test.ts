@@ -15,4 +15,17 @@ describe('public package exports', () => {
     expect(modules).toHaveLength(specifiers.length)
     expect(modules.every((module) => Object.keys(module).length > 0)).toBe(true)
   })
+
+  it('keeps tooltip capabilities on exact subpaths', async () => {
+    const [root, tooltipModule, portalModule] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/tooltip'),
+      import('@tanstack/charts/tooltip/portal'),
+    ])
+
+    expect(root).not.toHaveProperty('tooltip')
+    expect(root).not.toHaveProperty('portal')
+    expect(tooltipModule.tooltip.id).toBe('tooltip')
+    expect(portalModule.portal.id).toBe('portal')
+  })
 })
