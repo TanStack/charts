@@ -199,6 +199,7 @@ Each entry records:
 | F-161 | Tooltip anchors could not fix coordinates independently  | API             | resolved   |
 | F-162 | Focus styling required duplicate marks                   | API             | resolved   |
 | F-163 | Cross-row transforms lacked a public ownership boundary  | API             | resolved   |
+| F-164 | Sankey widths required a custom scene renderer           | API             | resolved   |
 
 ## Findings
 
@@ -3936,3 +3937,23 @@ Each entry records:
   independent bundle measurement; ordinary mark entries remain protected by
   exact baselines. The private legacy transform export and its 402 lines of
   duplicate implementation/tests remain removed.
+
+### F-164 — Sankey widths required a custom scene renderer
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: converting pull request `#16` from case-owned Sankey scenes to
+  native TanStack Charts marks
+- Friction: `link` accepted only fixed stroke width and opacity and always used
+  round caps. Proportional `d3-sankey` links therefore forced both examples to
+  duplicate complete custom scene construction for paths, nodes, labels, and
+  interaction points instead of composing the existing marks.
+- Decision: make link stroke width and opacity visual channels and expose its
+  SVG line cap. Keep `d3-sankey` as a direct application dependency; run its
+  responsive layout in the dynamic chart builder, then render the positioned
+  output with native `link`, `rect`, and `text` marks.
+- Verification: focused link and Sankey tests pass; the complete 17-target CI
+  graph passes its type, package, bundle, documentation, catalog, and framework
+  gates. Browser conformance passes both Sankey cases at 320px and 640px with
+  clean types and 98.3% mean frame-relative geometry similarity.

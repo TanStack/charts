@@ -29,9 +29,10 @@ export interface LinkOptions<TDatum> {
   color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
   stroke?: VisualChannel<TDatum, string>
-  strokeOpacity?: number
-  strokeWidth?: number
+  strokeOpacity?: VisualChannel<TDatum, number>
+  strokeWidth?: VisualChannel<TDatum, number>
   strokeDasharray?: string
+  lineCap?: 'butt' | 'round' | 'square'
   curve?: ChartCurve
 }
 
@@ -129,10 +130,25 @@ export function link<TDatum>(
           const style = {
             fill: 'none',
             stroke: color,
-            strokeOpacity: options.strokeOpacity,
-            strokeWidth: options.strokeWidth ?? 1.5,
+            strokeOpacity:
+              options.strokeOpacity === undefined
+                ? undefined
+                : visualValue(
+                    options.strokeOpacity,
+                    datum,
+                    datumIndex,
+                    data,
+                    1,
+                  ),
+            strokeWidth: visualValue(
+              options.strokeWidth,
+              datum,
+              datumIndex,
+              data,
+              1.5,
+            ),
             strokeDasharray: options.strokeDasharray,
-            lineCap: 'round' as const,
+            lineCap: options.lineCap ?? ('round' as const),
             lineJoin: 'round' as const,
           }
 

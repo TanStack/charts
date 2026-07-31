@@ -9,8 +9,8 @@ import type { ChartDefinition, SceneNode } from './types'
 describe('link and tick marks', () => {
   it('maps independent typed endpoints and exposes one midpoint per link', () => {
     const data = [
-      { id: 'a', x1: 1, y1: 2, x2: 4, y2: 7 },
-      { id: 'b', x1: 2, y1: 8, x2: 6, y2: 3 },
+      { id: 'a', x1: 1, y1: 2, x2: 4, y2: 7, weight: 2 },
+      { id: 'b', x1: 2, y1: 8, x2: 6, y2: 3, weight: 5 },
     ]
     const definition = defineChart({
       marks: [
@@ -21,6 +21,9 @@ describe('link and tick marks', () => {
           y2: 'y2',
           key: 'id',
           stroke: '#2563eb',
+          strokeOpacity: (_datum, index) => 0.25 + index * 0.25,
+          strokeWidth: (datum) => datum.weight,
+          lineCap: 'butt',
         }),
       ],
       ...linearAxes([0, 8], [0, 10]),
@@ -39,6 +42,10 @@ describe('link and tick marks', () => {
       ChartDefinition<(typeof data)[number]>
     >()
     expect(rules).toHaveLength(2)
+    expect(rules.map((rule) => rule.style)).toMatchObject([
+      { strokeOpacity: 0.25, strokeWidth: 2, lineCap: 'butt' },
+      { strokeOpacity: 0.5, strokeWidth: 5, lineCap: 'butt' },
+    ])
     expect(scene.points).toHaveLength(2)
     expect(scene.points[0]).toMatchObject({
       datum: data[0],
@@ -46,6 +53,7 @@ describe('link and tick marks', () => {
       yValue: 7,
     })
     expect(svg).toContain('class="ts-chart__link"')
+    expect(svg).toContain('stroke-linecap="butt"')
   })
 
   it('sizes ticks from the perpendicular band and accepts an explicit length', () => {

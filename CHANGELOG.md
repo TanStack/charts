@@ -1,6 +1,79 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#20](https://github.com/TanStack/charts/pull/20) [`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158) - Rename the environment-safe `/portable` entry from `0.1.0` to `/universal`.
+  Replace `@tanstack/charts/portable` imports with `@tanstack/charts/universal`.
+  The `/types` entry and browser-oriented root exports remain unchanged. The
+  universal type surface now includes generic tooltip-extension token contracts
+  for non-DOM hosts.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158)]:
+  - @tanstack/charts@0.2.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158)]:
+  - @tanstack/charts@0.2.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158)]:
+  - @tanstack/charts@0.2.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158)]:
+  - @tanstack/charts@0.2.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158)]:
+  - @tanstack/charts@0.2.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158)]:
+  - @tanstack/charts@0.2.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158)]:
+  - @tanstack/charts@0.2.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158)]:
+  - @tanstack/charts@0.2.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158)]:
+  - @tanstack/charts@0.2.0
 
 ### Breaking changes
 
@@ -9,6 +82,14 @@
 Replace `@tanstack/charts/portable` imports from `0.1.0` with
 `@tanstack/charts/universal`. The browser-oriented `@tanstack/charts` root and
 the environment-safe `@tanstack/charts/types` entry remain unchanged.
+
+### Added
+
+- `link` marks now accept data-driven `strokeWidth` and `strokeOpacity`
+  channels plus configurable line caps. This supports responsive `d3-sankey`
+  layouts through native `link`, `rect`, and `text` composition while keeping
+  `d3-sankey` as a direct application dependency. The catalog and networks
+  guide include basic and Apple FY22 income-statement examples.
 
 ## 0.1.0
 

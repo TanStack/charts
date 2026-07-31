@@ -13,11 +13,13 @@
     "@observablehq/plot": "0.6.17",
     "@tanstack/charts": "workspace:*",
     "d3-array": "3.2.4",
+    "d3-sankey": "0.12.3",
     "d3-scale": "4.0.2",
     "d3-shape": "3.2.0"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.2",
+    "@types/d3-sankey": "^0.12.5",
     "@types/d3-scale": "^4.0.9",
     "@types/d3-shape": "^3.1.8",
     "vite": "^8.0.16"
