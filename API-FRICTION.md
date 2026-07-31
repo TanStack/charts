@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-07-31
+Last updated: 2026-07-30
 
 ## Triage rule
 
@@ -1001,15 +1001,6 @@ Each entry records:
   scatter drivers report hex colors while TanStack inspection reads computed
   RGB; both now pass the six-variant standard paint gate without case-specific
   color rewriting.
-- Sankey evidence: that same six-variant gate passed while the TanStack
-  implementation used `round` line caps for width-encoded links, producing
-  large circular endpoint lobes that were absent from the reference chart.
-  Counts, bounds, paint, and similarity did not encode that cap topology.
-- Decision: keep the general gate bounded and make cap topology an explicit
-  case-level invariant for stroke-width-encoded flows.
-- Verification: the Sankey scene regression requires `butt` caps for every
-  link, so each flow now ends flush with its node instead of expanding into a
-  circular lobe.
 
 ### F-037 — Facets repeat shared axes in every panel
 
@@ -3263,13 +3254,6 @@ Each entry records:
   normalization helpers accept the imported source rows instead of reaching
   through a hidden fixture. Cases 85 and 92 retain authored interaction state
   as explicitly named `scenario.ts`, not observation data.
-- Sankey-update evidence: both new Sankey cases were initially added with
-  chart-shaped nodes and links in case-local `data.ts` modules. Adding revision
-  updates made the bounded split and the Apple leaf ranges, seeded variation,
-  and conserved subtotal derivation application logic rather than raw
-  observation fixtures. That logic now lives in open-by-default `model.ts`
-  modules, and both TanStack Charts and Recharts consume the same deterministic
-  results.
 - Framework-example evidence: the React and Octane showcases no longer import
   the synthetic Stats parity fixture. They import pinned industries, penguins,
   cars, and downloads subpaths directly; their time-window selection, D3 stack
@@ -3295,12 +3279,6 @@ Each entry records:
   assertions, and mean frame-relative geometry similarity is 96.7%. Root unit
   tests, typecheck, docs sync, production builds, packed consumers, bundle
   budgets, and all seven framework adapter package gates pass.
-  The Sankey regressions additionally check the Basic example's total of 10
-  across five splits plus the Apple example's exact initial values, declared
-  leaf bounds, deterministic repeated revisions, and conservation across four
-  revisions. Both cases' full 320/640/960 light/dark initial-and-update
-  conformance matrices pass with clean strict types; the Basic case has 99.9%
-  mean geometry similarity and the Apple case has 95.8%.
 
 ### F-135 — The published release had no repository baseline marker
 
