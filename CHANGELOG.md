@@ -10,6 +10,14 @@ Replace `@tanstack/charts/portable` imports from `0.1.0` with
 `@tanstack/charts/universal`. The browser-oriented `@tanstack/charts` root and
 the environment-safe `@tanstack/charts/types` entry remain unchanged.
 
+### Added
+
+- `link` marks now accept data-driven `strokeWidth` and `strokeOpacity`
+  channels plus configurable line caps. This supports responsive `d3-sankey`
+  layouts through native `link`, `rect`, and `text` composition while keeping
+  `d3-sankey` as a direct application dependency. The catalog and networks
+  guide include basic and Apple FY22 income-statement examples.
+
 ## 0.1.0
 
 ### @tanstack/charts
