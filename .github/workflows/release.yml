@@ -29,6 +29,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
+      actions: write
       contents: write
       pull-requests: write
 
@@ -44,6 +45,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Create or update version pull request
+        id: changesets
         uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
         with:
           branch: main
@@ -53,6 +55,22 @@ jobs:
           createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate version pull request
+        if: steps.changesets.outputs.pullRequestNumber != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
+        run: |
+          version_ref=$(gh pr view "$VERSION_PR_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --json headRefName \
+            --jq .headRefName)
+          test -n "$version_ref"
+          gh workflow run chart-library-benchmarks.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$version_ref" \
+            -f version_pr=true
 
   tag:
     name: Dispatch validated release
@@ -164,11 +182,11 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 24.18.0
           registry-url: https://registry.npmjs.org
-          cache: ''
+          package-manager-cache: false
 
       - name: Download checked package artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -197,11 +215,11 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 24.18.0
           registry-url: https://registry.npmjs.org
-          cache: ''
+          package-manager-cache: false
 
       - name: Download checked package artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -229,10 +247,10 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 24.18.0
-          cache: ''
+          package-manager-cache: false
 
       - name: Revalidate refs and create GitHub release
         env:

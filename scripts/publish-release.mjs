@@ -7,6 +7,7 @@ import {
   validateReleaseArtifacts,
 } from './release-artifacts.mjs'
 import { validateTrustedPublishingNpmVersion } from './release-security.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const execFileAsync = promisify(execFile)
 const repositoryRoot = resolve(import.meta.dirname, '..')
@@ -94,19 +95,6 @@ async function publishArtifact(artifact) {
   const registry = await waitForRegistryPackage(artifact, version)
   validateRegistryPackage(artifact, registry)
   console.log(`Published: ${artifact.name}@${version}`)
-}
-
-async function runWithConcurrency(values, concurrency, operation) {
-  let nextIndex = 0
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, values.length) }, async () => {
-      while (nextIndex < values.length) {
-        const index = nextIndex
-        nextIndex += 1
-        await operation(values[index])
-      }
-    }),
-  )
 }
 
 async function waitForRegistryPackage(artifact, releaseVersion) {

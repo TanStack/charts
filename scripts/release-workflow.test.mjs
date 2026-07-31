@@ -10,6 +10,18 @@ const workflow = await readFile(
   resolve(import.meta.dirname, '../.github/workflows/release.yml'),
   'utf8',
 )
+const releaseStatusScript = await readFile(
+  resolve(import.meta.dirname, './release-status.mjs'),
+  'utf8',
+)
+const verifyCiScript = await readFile(
+  resolve(import.meta.dirname, './verify-ci-success.mjs'),
+  'utf8',
+)
+const verifyPublishedScript = await readFile(
+  resolve(import.meta.dirname, './verify-published-release.mjs'),
+  'utf8',
+)
 const changesetConfig = JSON.parse(
   await readFile(
     resolve(import.meta.dirname, '../.changeset/config.json'),
@@ -60,12 +72,22 @@ describe('release workflow contract', () => {
     )
     assert.match(version, /persist-credentials:\s*true/)
     assert.match(version, /changesets\/action@[0-9a-f]{40}/)
+    assert.match(version, /id:\s*changesets/)
     assert.match(version, /version:\s*pnpm changeset:version/)
     assert.match(version, /createGithubReleases:\s*false/)
+    assert.match(
+      version,
+      /if:\s*steps\.changesets\.outputs\.pullRequestNumber != ''/,
+    )
+    assert.match(version, /gh pr view "\$VERSION_PR_NUMBER"/)
+    assert.match(
+      version,
+      /gh workflow run chart-library-benchmarks\.yml[\s\S]*--ref "\$version_ref"[\s\S]*-f version_pr=true/,
+    )
+    assert.match(version, /actions:\s*write/)
     assert.match(version, /contents:\s*write/)
     assert.match(version, /pull-requests:\s*write/)
     assert.doesNotMatch(version, /id-token:\s*write/)
-    assert.doesNotMatch(version, /actions:\s*write/)
   })
 
   test('creates an annotated tag and explicitly dispatches its release', () => {
@@ -143,6 +165,7 @@ describe('release workflow contract', () => {
     assert.doesNotMatch(publish, /\bcorepack enable\b/)
     assert.doesNotMatch(publish, /\bpnpm (?:test|typecheck|docs:check)\b/)
     assert.doesNotMatch(publish, /\bNPM_TOKEN\b|\bNODE_AUTH_TOKEN\b/)
+    assert.match(publish, /package-manager-cache:\s*false/)
     assert.ok(
       publish.indexOf('verify-release-revision.mjs') <
         publish.indexOf('publish-release.mjs'),
@@ -157,6 +180,7 @@ describe('release workflow contract', () => {
     assert.match(verify, /persist-credentials:\s*false/)
     assert.match(verify, /actions\/download-artifact@[0-9a-f]{40}/)
     assert.match(verify, /node scripts\/verify-published-release\.mjs/)
+    assert.match(verify, /package-manager-cache:\s*false/)
     assert.doesNotMatch(verify, /id-token:\s*write/)
     assert.doesNotMatch(verify, /contents:\s*write/)
 
@@ -169,6 +193,7 @@ describe('release workflow contract', () => {
     assert.match(release, /gh release create "\$GITHUB_REF_NAME"/)
     assert.match(release, /--verify-tag/)
     assert.match(release, /--notes-file \/tmp\/charts-release-notes\.md/)
+    assert.match(release, /package-manager-cache:\s*false/)
     assert.doesNotMatch(release, /--notes-file CHANGELOG\.md/)
     assert.doesNotMatch(release, /id-token:\s*write/)
     assert.ok(
@@ -180,6 +205,38 @@ describe('release workflow contract', () => {
 
   test('pins every external action to an immutable revision', () => {
     assertPinnedExternalActions(workflow)
+    assert.equal(
+      (workflow.match(/package-manager-cache:\s*false/g) ?? []).length,
+      3,
+    )
+    assert.doesNotMatch(workflow, /^\s*cache:\s*['"]{2}\s*$/m)
+  })
+
+  test('bounds every direct release network request', () => {
+    assert.equal(
+      (
+        releaseStatusScript.match(
+          /signal:\s*AbortSignal\.timeout\(requestTimeout\)/g,
+        ) ?? []
+      ).length,
+      3,
+    )
+    assert.equal(
+      (
+        verifyCiScript.match(
+          /signal:\s*AbortSignal\.timeout\(requestTimeout\)/g,
+        ) ?? []
+      ).length,
+      1,
+    )
+    assert.equal(
+      (
+        verifyPublishedScript.match(
+          /signal:\s*AbortSignal\.timeout\(requestTimeout\)/g,
+        ) ?? []
+      ).length,
+      1,
+    )
   })
 })
 

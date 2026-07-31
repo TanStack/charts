@@ -31,6 +31,11 @@ describe('CI workflow contract', () => {
 
   test('pins every external action used by shared setup', () => {
     assertPinnedExternalActions(setupAction)
+    assert.match(
+      setupAction,
+      /key:\s*\${{ runner\.os }}-playwright-\${{ hashFiles\('pnpm-lock\.yaml'\) }}/,
+    )
+    assert.doesNotMatch(setupAction, /playwright-\d+\.\d+\.\d+/)
   })
 
   test('runs static, bundle, comparison, conformance, and stress partitions independently', () => {
@@ -56,15 +61,12 @@ describe('CI workflow contract', () => {
     assert.doesNotMatch(job('bundle-baseline'), /playwright:\s*['"]true['"]/)
   })
 
-  test('uses affected checks only for pull requests and builds the main catalog fully', () => {
+  test('runs the cached workspace graph and builds the main catalog fully', () => {
     const staticChecks = job('static')
     assert.match(staticChecks, /fetch-depth:\s*0/)
     assert.match(staticChecks, /persist-credentials:\s*false/)
-    assert.match(staticChecks, /nrwl\/nx-set-shas@[0-9a-f]{40}/)
-    assert.match(staticChecks, /if:\s*github\.event_name == 'pull_request'/)
-    assert.match(staticChecks, /run:\s*pnpm ci:pr/)
-    assert.match(staticChecks, /if:\s*github\.event_name != 'pull_request'/)
-    assert.match(staticChecks, /run:\s*pnpm ci:all/)
+    assert.match(staticChecks, /run:\s*pnpm run validate/)
+    assert.doesNotMatch(staticChecks, /nx-set-shas|nx affected|pnpm ci:/)
     assert.match(
       staticChecks,
       /if:\s*github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/,
@@ -87,6 +89,10 @@ describe('CI workflow contract', () => {
       comparison,
       /name:\s*chart-library-comparison-\${{ matrix\.chart }}-\${{ github\.run_id }}/,
     )
+    assert.match(
+      comparison,
+      /summaries=\(\.benchmark-output\/results\/\*\.md\)[\s\S]*test -e "\${summaries\[0\]}"[\s\S]*cat "\${summaries\[@\]}"/,
+    )
 
     const conformance = job('conformance')
     assert.match(conformance, /fail-fast:\s*false/)
@@ -107,11 +113,23 @@ describe('CI workflow contract', () => {
     )
     assert.match(
       conformance,
+      /if:\s*github\.event_name == 'pull_request' \|\| inputs\.version_pr/,
+    )
+    assert.match(
+      conformance,
       /pnpm conformance -- --shard=\${{ matrix\.shard }}\/8/,
     )
     assert.match(
       conformance,
+      /if:\s*github\.event_name != 'pull_request' && !inputs\.version_pr/,
+    )
+    assert.match(
+      conformance,
       /name:\s*chart-library-conformance-\${{ matrix\.shard }}-\${{ github\.run_id }}/,
+    )
+    assert.match(
+      conformance,
+      /summaries=\(\.benchmark-output\/conformance\/results\/\*\.md\)[\s\S]*test -e "\${summaries\[0\]}"[\s\S]*cat "\${summaries\[@\]}"/,
     )
   })
 
@@ -144,9 +162,18 @@ describe('CI workflow contract', () => {
       stress,
       /benchmark:stress:standard -- --workload=\${{ matrix\.workloads }}/,
     )
+    assert.match(stress, /github\.event_name == 'push' \|\| inputs\.version_pr/)
+    assert.match(
+      stress,
+      /github\.event_name == 'workflow_dispatch' && !inputs\.version_pr/,
+    )
     assert.match(
       stress,
       /name:\s*chart-library-stress-\${{ matrix\.name }}-\${{ github\.run_id }}/,
+    )
+    assert.match(
+      stress,
+      /summaries=\(\.benchmark-output\/stress\/results\/\*\.md\)[\s\S]*test -e "\${summaries\[0\]}"[\s\S]*cat "\${summaries\[@\]}"/,
     )
 
     const workloads = matrixIncludes(stress).flatMap((entry) =>

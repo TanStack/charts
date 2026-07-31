@@ -17,4 +17,12 @@ describe('release package configuration', () => {
       assertStableReleaseVersion('@tanstack/charts', '0.0.2-rc.0'),
     ).toThrow('requires a stable release version')
   })
+
+  it('rejects non-canonical versions with leading zeroes', () => {
+    for (const version of ['01.2.3', '1.02.3', '1.2.03']) {
+      expect(() =>
+        assertStableReleaseVersion('@tanstack/charts', version),
+      ).toThrow('requires a stable release version')
+    }
+  })
 })

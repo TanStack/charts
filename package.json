@@ -9,8 +9,6 @@
   },
   "scripts": {
     "validate": "nx run charts-workspace:ci --parallel=5",
-    "ci:all": "nx run-many --all --target=ci --parallel=5",
-    "ci:pr": "nx affected --target=ci --parallel=5",
     "benchmark": "node scripts/compare-chart-libraries.mjs",
     "benchmark:check": "nx run charts-workspace:benchmark-check",
     "benchmark:perf": "node scripts/compare-chart-libraries.mjs --perf-only",

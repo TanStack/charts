@@ -17,6 +17,7 @@ import ts from 'typescript'
 import { build as viteBuild } from 'vite'
 import solid from 'vite-plugin-solid'
 import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const execFileAsync = promisify(execFile)
 const root = resolve(import.meta.dirname, '..')
@@ -56,11 +57,13 @@ try {
       buildAngularPackage,
     ],
     4,
+    (operation) => operation(),
   )
 
   await runWithConcurrency(
     packageNames.map((directory) => () => verifyPackage(directory)),
     4,
+    (operation) => operation(),
   )
 
   console.log(
@@ -68,22 +71,6 @@ try {
   )
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true })
-}
-
-async function runWithConcurrency(operations, concurrency) {
-  let nextIndex = 0
-  await Promise.all(
-    Array.from(
-      { length: Math.min(concurrency, operations.length) },
-      async () => {
-        while (nextIndex < operations.length) {
-          const index = nextIndex
-          nextIndex += 1
-          await operations[index]()
-        }
-      },
-    ),
-  )
 }
 
 async function buildStandardPackage(directory, jsxImportSource) {

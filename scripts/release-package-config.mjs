@@ -109,7 +109,7 @@ export function releaseTag(version) {
 export function assertStableReleaseVersion(packageName, version) {
   assert.match(
     version,
-    /^\d+\.\d+\.\d+$/,
+    /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/,
     `${packageName} requires a stable release version`,
   )
 }

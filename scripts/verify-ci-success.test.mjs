@@ -19,6 +19,8 @@ describe('release CI gate', () => {
           { ...valid, id: 2, head_sha: 'b'.repeat(40) },
           { ...valid, id: 3, event: 'pull_request' },
           { ...valid, id: 4, conclusion: 'failure' },
+          { ...valid, id: 5, head_branch: 'release' },
+          { ...valid, id: 6, status: 'in_progress' },
           valid,
         ],
         revision,

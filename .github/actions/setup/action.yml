@@ -28,7 +28,7 @@ runs:
       uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
       with:
         path: ~/.cache/ms-playwright
-        key: ${{ runner.os }}-playwright-1.62.0
+        key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
 
     - name: Install Chromium
       if: inputs.playwright == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'

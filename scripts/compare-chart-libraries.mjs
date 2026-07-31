@@ -19,6 +19,7 @@ import {
   tanstackComparisonRevision,
   tanstackComparisonSourceFailure,
 } from './comparison-source-revision.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const comparisonDirectory = resolve(root, 'benchmarks/comparison')
@@ -279,18 +280,9 @@ if (args.has('--check')) {
 
 async function buildCases(benchmarkCases) {
   const results = new Array(benchmarkCases.length)
-  let nextIndex = 0
-  const workerCount = Math.min(4, benchmarkCases.length)
-
-  await Promise.all(
-    Array.from({ length: workerCount }, async () => {
-      while (nextIndex < benchmarkCases.length) {
-        const index = nextIndex
-        nextIndex += 1
-        results[index] = await buildCase(benchmarkCases[index])
-      }
-    }),
-  )
+  await runWithConcurrency(benchmarkCases, 4, async (benchmarkCase, index) => {
+    results[index] = await buildCase(benchmarkCase)
+  })
 
   return results
 }

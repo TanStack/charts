@@ -182,6 +182,10 @@ Each entry records:
 | F-144 | Action pin checks accepted invalid commit lengths        | Tooling         | resolved   |
 | F-145 | Changesets included private workspaces in version plans  | Tooling/Release | resolved   |
 | F-146 | Octane hydration used a unit-test timeout                | Tooling         | resolved   |
+| F-147 | Bot-authored version PRs lacked an automatic CI trigger  | Tooling/Release | resolved   |
+| F-148 | Publisher failure returned before its workers settled    | Tooling/Release | resolved   |
+| F-149 | Release checks could stall or accept an unbound tag      | Tooling/Release | resolved   |
+| F-150 | Nx worktree caches followed the common Git directory     | Tooling         | monitoring |
 
 ## Findings
 
@@ -3472,10 +3476,14 @@ Each entry records:
   shorthand. Running the command removed `node_modules` instead of executing
   the Nx validation graph.
 - Decision: expose the local graph as `pnpm run validate`. Keep the unambiguous
-  `ci:pr` and `ci:all` scripts for GitHub Actions.
+  command in GitHub Actions as well.
 - Verification: `pnpm run validate` resolves the `charts-workspace:ci` Nx
-  target, while contributor docs no longer instruct maintainers to invoke
-  pnpm's clean-install command.
+  target locally and in CI, while contributor docs no longer instruct
+  maintainers to invoke pnpm's clean-install command. The workspace contains
+  25 inferred Nx projects but only the root owns the current aggregate CI
+  target, so removing the misleading `nx affected --target=ci` alias avoids
+  claiming task pruning that does not yet exist; target-level cache replay
+  still skips unchanged work.
 
 ### F-144 — Action pin checks accepted invalid commit lengths
 
@@ -3525,3 +3533,72 @@ Each entry records:
   Ordinary Octane client tests retain the five-second default.
 - Verification: the focused Octane client suite covers all seven client tests;
   pull-request static checks remain the parallel Linux gate.
+
+### F-147 — Bot-authored version PRs lacked an automatic CI trigger
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: hardening the automated Changesets release path
+- Friction: the built-in workflow token can create and update the Changesets
+  version pull request, but relying on that mutation to start pull-request CI
+  leaves validation subject to GitHub's bot-event suppression and approval
+  behavior.
+- Decision: use the action's `pullRequestNumber` output to resolve the exact
+  version branch, then explicitly dispatch the full chart workflow on that
+  ref with the job's narrowly scoped `actions: write` permission. A typed
+  dispatch input selects the same quick browser profile as ordinary pull
+  requests.
+- Verification: the release workflow contract requires the Changesets output,
+  exact PR-head lookup, and explicit branch-scoped workflow dispatch.
+
+### F-148 — Publisher failure returned before its workers settled
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: release-safety review of parallel package work
+- Friction: the adapter publisher, framework package gate, and comparison
+  builder used `Promise.all` over long-lived workers. One rejected operation
+  could end its caller while other workers were still running; publication
+  could hide later failures, and package cleanup could remove a temporary
+  directory beneath active builds.
+- Decision: drain a bounded worker pool, continue independent queued
+  publications, collect failures in source order, and throw one
+  `AggregateError` only after every worker has settled.
+- Verification: all three paths use the shared worker pool. Its regression
+  forces an early failure, confirms all four operations start, all successful
+  operations finish, active work is zero when the error surfaces, and
+  concurrency never exceeds two.
+
+### F-149 — Release checks could stall or accept an unbound tag
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: release-safety review of idempotent tag dispatch
+- Friction: an existing remote release tag bypassed the revision comparison
+  when `RELEASE_REVISION` was absent, and direct npm, GitHub, and attestation
+  requests had no request deadline below the job-level timeout.
+- Decision: require an exact 40-character expected revision whenever a tag
+  already exists, require equality before dispatch, and give every direct
+  release fetch a 30-second deadline.
+- Verification: focused tests reject missing, empty, and mismatched revisions,
+  accept the exact match, and the release workflow contract counts a bounded
+  signal on every direct release request.
+
+### F-150 — Nx worktree caches followed the common Git directory
+
+- Status: monitoring
+- Severity: low
+- Owner: Tooling
+- Observed in: validating Nx from a sandboxed Git worktree
+- Friction: Nx resolved its relative cache and workspace-data directories
+  through the worktree's common Git checkout. The sandbox could execute every
+  target but could not write task metadata outside the active worktree.
+- Current decision: keep the portable repository defaults. In restricted
+  worktrees, set `NX_CACHE_DIRECTORY` and `NX_WORKSPACE_DATA_DIRECTORY` to
+  absolute paths inside that worktree.
+- Verification: the full 17-target validation graph passes with both
+  directories scoped to the active worktree. Ordinary clones and GitHub
+  Actions retain `.nx/cache` and `.nx/workspace-data`.

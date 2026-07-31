@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { releaseRepositorySlug } from './release-security.mjs'
+
+const requestTimeout = 30_000
 
 export function findSuccessfulMainRun(runs, revision) {
   return runs.find(
@@ -19,8 +22,8 @@ export async function verifyCiSuccess({ env = process.env } = {}) {
   assert.match(revision ?? '', /^[0-9a-f]{40}$/, 'CI gate requires a SHA')
   assert.equal(
     repository,
-    'TanStack/charts',
-    'CI gate requires TanStack/charts',
+    releaseRepositorySlug,
+    `CI gate requires ${releaseRepositorySlug}`,
   )
   assert.ok(env.GITHUB_TOKEN, 'CI gate requires GITHUB_TOKEN')
 
@@ -37,6 +40,7 @@ export async function verifyCiSuccess({ env = process.env } = {}) {
         authorization: `Bearer ${env.GITHUB_TOKEN}`,
         'x-github-api-version': '2022-11-28',
       },
+      signal: AbortSignal.timeout(requestTimeout),
     },
   )
   assert.equal(

@@ -9,6 +9,11 @@ on:
     - cron: '17 7 * * 1'
   workflow_dispatch:
     inputs:
+      version_pr:
+        description: Run the pull-request validation profile
+        required: false
+        type: boolean
+        default: false
       upload_bundle_baseline_candidate:
         description: Upload exact comparison bundle measurements
         required: false
@@ -38,19 +43,8 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Set affected revisions
-        if: github.event_name == 'pull_request'
-        uses: nrwl/nx-set-shas@3e9ad7370203c1e93d109be57f3b72eb0eb511b1 # v4.4.0
-        with:
-          main-branch-name: main
-
-      - name: Run affected checks
-        if: github.event_name == 'pull_request'
-        run: pnpm ci:pr
-
-      - name: Run all checks
-        if: github.event_name != 'pull_request'
-        run: pnpm ci:all
+      - name: Run cached validation graph
+        run: pnpm run validate
 
       - name: Upload production catalog
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -117,7 +111,10 @@ jobs:
 
       - name: Publish comparison summary
         if: success()
-        run: cat .benchmark-output/results/*.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          summaries=(.benchmark-output/results/*.md)
+          test -e "${summaries[0]}"
+          cat "${summaries[@]}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload comparison
         if: always()
@@ -156,16 +153,19 @@ jobs:
           playwright: 'true'
 
       - name: Run pull-request conformance shard
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || inputs.version_pr
         run: pnpm conformance:quick -- --shard=${{ matrix.shard }}/8
 
       - name: Run production conformance shard
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && !inputs.version_pr
         run: pnpm conformance -- --shard=${{ matrix.shard }}/8
 
       - name: Publish conformance summary
         if: success()
-        run: cat .benchmark-output/conformance/results/*.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          summaries=(.benchmark-output/conformance/results/*.md)
+          test -e "${summaries[0]}"
+          cat "${summaries[@]}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload conformance
         if: always()
@@ -209,16 +209,19 @@ jobs:
         run: pnpm exec vitest run benchmarks/comparison/stress
 
       - name: Run quick stress shard
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        if: github.event_name == 'pull_request' || github.event_name == 'push' || inputs.version_pr
         run: pnpm benchmark:stress:quick -- --workload=${{ matrix.workloads }}
 
       - name: Run standard stress shard
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.version_pr)
         run: pnpm benchmark:stress:standard -- --workload=${{ matrix.workloads }}
 
       - name: Publish stress summary
         if: success()
-        run: cat .benchmark-output/stress/results/*.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          summaries=(.benchmark-output/stress/results/*.md)
+          test -e "${summaries[0]}"
+          cat "${summaries[@]}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload stress results
         if: always()

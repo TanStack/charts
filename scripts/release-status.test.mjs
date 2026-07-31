@@ -73,6 +73,20 @@ describe('automated release status', () => {
     ).toThrow('existing release tag points to a different revision')
   })
 
+  it('rejects an existing tag when the expected revision is missing', () => {
+    for (const expectedRevision of [undefined, '']) {
+      expect(() =>
+        classifyReleaseStatus({
+          expectedRevision,
+          hasPendingChangesets: false,
+          packageStates: ['missing'],
+          releaseExists: false,
+          tagRevision: 'a'.repeat(40),
+        }),
+      ).toThrow('existing release tag requires the expected revision')
+    }
+  })
+
   it('does nothing after npm, the tag, and GitHub release all exist', () => {
     expect(
       classifyReleaseStatus({

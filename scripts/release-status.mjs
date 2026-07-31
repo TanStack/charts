@@ -10,6 +10,7 @@ import { releaseNotes } from './sync-release-changelog.mjs'
 
 const execFileAsync = promisify(execFile)
 const registry = 'https://registry.npmjs.org'
+const requestTimeout = 30_000
 
 export function classifyReleaseStatus({
   expectedRevision,
@@ -48,7 +49,12 @@ export function classifyReleaseStatus({
     }
   }
 
-  if (tagRevision !== null && expectedRevision !== undefined) {
+  if (tagRevision !== null) {
+    assert.match(
+      expectedRevision ?? '',
+      /^[0-9a-f]{40}$/,
+      'An existing release tag requires the expected revision',
+    )
     assert.equal(
       tagRevision,
       expectedRevision,
@@ -125,7 +131,10 @@ export async function releaseStatus({
 async function readRegistryPackage(name, version) {
   const response = await fetch(
     `${registry}/${encodeURIComponent(name)}/${encodeURIComponent(version)}`,
-    { headers: { accept: 'application/json' } },
+    {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(requestTimeout),
+    },
   )
   if (response.status === 404) return null
   assert.equal(
@@ -139,7 +148,10 @@ async function readRegistryPackage(name, version) {
 async function readLatestVersion(name) {
   const response = await fetch(
     `${registry}/${encodeURIComponent(name)}/latest`,
-    { headers: { accept: 'application/json' } },
+    {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(requestTimeout),
+    },
   )
   if (response.status === 404) return null
   assert.equal(
@@ -200,6 +212,7 @@ async function githubReleaseExists(env, tag) {
           : {}),
         'x-github-api-version': '2022-11-28',
       },
+      signal: AbortSignal.timeout(requestTimeout),
     },
   )
   if (response.status === 404) return false
