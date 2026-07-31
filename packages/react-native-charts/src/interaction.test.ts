@@ -1,0 +1,125 @@
+import { describe, expect, it } from 'vitest'
+import type {
+  ChartDefinition,
+  ChartPoint,
+  ChartScene,
+} from '@tanstack/charts/types'
+import { adjacentFocusPoint, createNativeChartFocusModel } from './interaction'
+
+interface Datum {
+  id: string
+}
+
+describe('native focus model', () => {
+  it('reuses grouped focus semantics and native accessibility order', () => {
+    const points = [
+      point('alpha-1', 'alpha', 0, 10, 10, 1, 2),
+      point('beta-1', 'beta', 1, 10, 30, 1, 3),
+      point('alpha-2', 'alpha', 2, 40, 20, 2, 4),
+    ]
+    const model = createNativeChartFocusModel(
+      chartScene(points),
+      definition({ focus: 'group-x', maxFocusDistance: 20 }),
+    )
+
+    expect(model.resolve(11, 29).map((candidate) => candidate.key)).toEqual([
+      'beta-1',
+      'alpha-1',
+    ])
+    expect(adjacentFocusPoint(model, null, 1)?.key).toBe('alpha-1')
+    expect(adjacentFocusPoint(model, model.navigation[0] ?? null, 1)?.key).toBe(
+      'alpha-2',
+    )
+  })
+
+  it('honors a supplied spatial index for nearest focus', () => {
+    const points = [point('alpha', 'alpha', 0, 10, 10, 1, 2)]
+    let calls = 0
+    const model = createNativeChartFocusModel(
+      chartScene(points),
+      definition({
+        spatialIndex: (indexedPoints) => ({
+          findNearest() {
+            calls += 1
+            return indexedPoints[0] ?? null
+          },
+        }),
+      }),
+    )
+
+    expect(model.resolve(500, 500)[0]?.key).toBe('alpha')
+    expect(calls).toBe(1)
+  })
+
+  it('restores duplicate keys by datum identity after a scene update', () => {
+    const datum = { id: 'same' }
+    const previous = point('duplicate', 'alpha', 0, 10, 10, 1, 2, datum)
+    const other = point('duplicate', 'alpha', 0, 20, 20, 2, 3, { id: 'same' })
+    const restored = point('duplicate', 'alpha', 1, 30, 30, 3, 4, datum)
+    const model = createNativeChartFocusModel(
+      chartScene([other, restored]),
+      definition({}),
+    )
+
+    expect(model.restore(previous)).toBe(restored)
+  })
+})
+
+function definition(
+  options: Partial<ChartDefinition<Datum, number, number>>,
+): ChartDefinition<Datum, number, number> {
+  return { marks: [], ...options }
+}
+
+function point(
+  key: string,
+  group: string,
+  datumIndex: number,
+  x: number,
+  y: number,
+  xValue: number,
+  yValue: number,
+  datum: Datum = { id: key },
+): ChartPoint<Datum, number, number> {
+  return {
+    key,
+    markId: 'series',
+    group,
+    groupLabel: group,
+    datum,
+    datumIndex,
+    xValue,
+    yValue,
+    x,
+    y,
+    color: '#2563eb',
+  }
+}
+
+function chartScene(
+  points: readonly ChartPoint<Datum, number, number>[],
+): ChartScene<Datum, number, number> {
+  return {
+    width: 100,
+    height: 60,
+    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    chart: { x: 0, y: 0, width: 100, height: 60 },
+    nodes: [],
+    points,
+    scales: {},
+    colors: {
+      type: 'ordinal',
+      domain: ['alpha', 'beta'],
+      range: ['#2563eb', '#f97316'],
+      map: (value) => (value === 'beta' ? '#f97316' : '#2563eb'),
+    },
+    gradients: [],
+    theme: {
+      foreground: '#111827',
+      muted: '#6b7280',
+      grid: '#d1d5db',
+      background: 'transparent',
+      palette: ['#2563eb', '#f97316'],
+    },
+  }
+}

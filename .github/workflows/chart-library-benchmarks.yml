@@ -41,6 +41,9 @@ jobs:
       - name: Run cached validation graph
         run: pnpm run validate
 
+      - name: Check React Native POC types
+        run: pnpm react-native:poc:types
+
       - name: Upload production catalog
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
