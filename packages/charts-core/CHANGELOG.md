@@ -1,5 +1,15 @@
 # @tanstack/charts
 
+## 0.2.0
+
+### Minor Changes
+
+- [#20](https://github.com/TanStack/charts/pull/20) [`4a8a256`](https://github.com/TanStack/charts/commit/4a8a256c8f0e8c6149b8710ceb1a8acb72779158) - Rename the environment-safe `/portable` entry from `0.1.0` to `/universal`.
+  Replace `@tanstack/charts/portable` imports with `@tanstack/charts/universal`.
+  The `/types` entry and browser-oriented root exports remain unchanged. The
+  universal type surface now includes generic tooltip-extension token contracts
+  for non-DOM hosts.
+
 ## 0.1.0
 
 ### Minor Changes
