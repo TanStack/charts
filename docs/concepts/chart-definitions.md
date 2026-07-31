@@ -50,8 +50,10 @@ Pass a builder when tick density, annotations, or mark composition depends on
 the chart surface:
 
 ```ts
+import { tooltip } from '@tanstack/charts/tooltip'
+
 const productRanking = defineChart({
-  tooltip: true,
+  tooltip,
   chart: ({ width }) => ({
     marks: [barX(ranked, { x: 'value', y: 'product' })],
     x: {
@@ -95,12 +97,14 @@ concerns.
 Definitions capture the values they use. In React:
 
 ```tsx
+import { tooltip } from '@tanstack/charts/tooltip'
+
 function ProductRanking({ rows, metric }: Props) {
   const definition = useMemo(() => {
     const ranked = rankProducts(rows, metric)
 
     return defineChart({
-      tooltip: true,
+      tooltip,
       chart: ({ width }) => ({
         marks: [barX(ranked, { x: 'value', y: 'product' })],
         x: {

@@ -93,6 +93,21 @@ pnpm add -D @types/d3-geo @types/d3-quadtree @types/d3-delaunay @types/d3-select
 
 Do not install the `d3` umbrella package just because a chart uses one D3 capability. Named modules keep ownership visible and make the measured consumer bundle reflect the chart that was actually authored. [Scales and D3](./concepts/scales-and-d3.md) is the single guide to this boundary and links to the corresponding official D3 documentation.
 
+For the common numeric and categorical subset, the smaller scale package is an
+alternative to `d3-scale`:
+
+```sh
+pnpm add @tanstack/charts-scales
+```
+
+```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+```
+
+Use its exact `/linear`, `/band`, `/point`, or `/ordinal` entry. The package
+has no root export. Install `d3-scale` instead when the chart needs temporal,
+logarithmic, piecewise, color-interpolating, or full D3 formatting semantics.
+
 ## Package-manager examples
 
 The core plus a common scale-and-array setup:
@@ -156,6 +171,8 @@ Optional capabilities have explicit entries:
 import { d3Curve } from '@tanstack/charts/d3/shape'
 import { renderChartImage } from '@tanstack/charts/export'
 import { focusX } from '@tanstack/charts/focus'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal } from '@tanstack/charts/tooltip/portal'
 import { mountCanvasChart } from '@tanstack/charts/canvas'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { polar, radialArc } from '@tanstack/charts/polar'

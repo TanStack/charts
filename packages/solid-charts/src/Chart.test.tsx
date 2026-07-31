@@ -5,6 +5,8 @@ import type { JSX } from 'solid-js'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
 import type { ChartTooltipContent } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from 'd3-scale'
 import { Chart } from './Chart'
 
@@ -72,7 +74,8 @@ describe('Solid adapter', () => {
     const tooltipDefinition = defineChart(definition, {
       maxFocusDistance: 1_000,
       tooltip: {
-        portal: true,
+        use: tooltip,
+        portal: tooltipPortal,
         content: () => ({
           title: 'First',
           color: '#2563eb',

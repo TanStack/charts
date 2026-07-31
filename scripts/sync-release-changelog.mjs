@@ -48,6 +48,28 @@ export function combinedReleaseSection(packageChangelogs, version) {
   return `## ${version}\n\n${packageSections.join('\n\n')}`
 }
 
+export function consumeUnreleasedSection(source) {
+  const lines = source.split('\n')
+  const start = lines.findIndex((line) => line === '## Unreleased')
+  if (start === -1) return { source, body: '' }
+
+  let end = lines.length
+  for (let index = start + 1; index < lines.length; index += 1) {
+    if (/^## /.test(lines[index])) {
+      end = index
+      break
+    }
+  }
+
+  return {
+    source: [...lines.slice(0, start), ...lines.slice(end)].join('\n'),
+    body: lines
+      .slice(start + 1, end)
+      .join('\n')
+      .trim(),
+  }
+}
+
 export function syncRootChangelog(rootChangelog, packageChangelogs, version) {
   if (versionSection(rootChangelog, version)) return rootChangelog
   assert.ok(
@@ -55,7 +77,14 @@ export function syncRootChangelog(rootChangelog, packageChangelogs, version) {
     'Root changelog must start with # Changelog',
   )
   const section = combinedReleaseSection(packageChangelogs, version)
-  return rootChangelog.replace('# Changelog\n', `# Changelog\n\n${section}\n`)
+  const pending = consumeUnreleasedSection(rootChangelog)
+  const releaseSection = pending.body
+    ? `${section}\n\n${pending.body}`
+    : section
+  return pending.source.replace(
+    '# Changelog\n',
+    `# Changelog\n\n${releaseSection}\n`,
+  )
 }
 
 export async function syncReleaseChangelog({

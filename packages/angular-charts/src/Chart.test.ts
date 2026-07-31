@@ -15,6 +15,8 @@ import {
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
 import type { ChartTooltipContent } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from 'd3-scale'
 import { Chart, ChartTooltipBodyDirective } from './index'
 import type {
@@ -36,7 +38,8 @@ const definition = defineChart({
 const tooltipDefinition = defineChart(definition, {
   maxFocusDistance: 1_000,
   tooltip: {
-    portal: true,
+    use: tooltip,
+    portal,
     content: () => ({
       title: 'First',
       color: '#2563eb',

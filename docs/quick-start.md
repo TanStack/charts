@@ -22,6 +22,7 @@ The host follows the container width when `width` is omitted.
 ```ts
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { defineChart, lineY, mountChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 
 interface ClosingPrice {
   Date: Date
@@ -58,7 +59,7 @@ const closingPriceChart = defineChart({
     label: 'Close (USD)',
     grid: true,
   },
-  tooltip: true,
+  tooltip,
 })
 ```
 

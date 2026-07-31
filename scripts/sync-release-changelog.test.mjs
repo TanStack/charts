@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   combinedReleaseSection,
+  consumeUnreleasedSection,
   releaseNotes,
   syncRootChangelog,
   versionSection,
@@ -113,5 +114,43 @@ Verification details.`)
     expect(synced).toContain('# Changelog\n\n## 0.0.2\n\n### @tanstack/charts')
     expect(synced).toContain('### @tanstack/react-charts')
     expect(syncRootChangelog(synced, packages, '0.0.2')).toBe(synced)
+  })
+
+  it('moves pending migration notes into the generated release section', () => {
+    const root = `# Changelog
+
+## Unreleased
+
+### Breaking changes
+
+Replace the legacy tooltip input.
+
+## 0.0.1
+
+- Initial release.
+`
+    const consumed = consumeUnreleasedSection(root)
+    expect(consumed.body).toBe(`### Breaking changes
+
+Replace the legacy tooltip input.`)
+    expect(consumed.source).not.toContain('## Unreleased')
+
+    const synced = syncRootChangelog(
+      root,
+      [{ name: '@tanstack/charts', source: packageChangelog }],
+      '0.0.2',
+    )
+    expect(synced).toContain(`## 0.0.2
+
+### @tanstack/charts`)
+    expect(synced).toContain(`### Breaking changes
+
+Replace the legacy tooltip input.
+
+## 0.0.1`)
+    expect(synced).not.toContain('## Unreleased')
+    expect(releaseNotes(synced, '0.0.2')).toContain(
+      'Replace the legacy tooltip input.',
+    )
   })
 })

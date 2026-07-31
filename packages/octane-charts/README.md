@@ -15,11 +15,12 @@ chart's actual imports.
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/octane-charts'
 
 const interactiveDefinition = defineChart(definition, {
   animate: true,
-  tooltip: true,
+  tooltip,
 })
 
 ;<Chart

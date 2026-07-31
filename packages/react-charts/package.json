@@ -18,7 +18,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./canvas": "./src/canvas.ts",
-    "./core": "./src/core.ts"
+    "./core": "./src/core.ts",
+    "./tooltip": "./src/tooltip.tsx"
   },
   "dependencies": {
     "@tanstack/charts": "workspace:*"
@@ -46,6 +47,10 @@
       "./core": {
         "types": "./dist/core.d.ts",
         "import": "./dist/core.js"
+      },
+      "./tooltip": {
+        "types": "./dist/tooltip.d.ts",
+        "import": "./dist/tooltip.js"
       }
     }
   }

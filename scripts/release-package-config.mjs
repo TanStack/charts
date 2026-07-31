@@ -10,6 +10,7 @@ export const releaseRepository = {
 
 export const releasePackageConfigs = [
   ['charts-core', '@tanstack/charts'],
+  ['charts-scales', '@tanstack/charts-scales'],
   ['react-charts', '@tanstack/react-charts'],
   ['octane-charts', '@tanstack/octane-charts'],
   ['preact-charts', '@tanstack/preact-charts'],
@@ -68,11 +69,14 @@ export async function readReleasePackages(repositoryRoot) {
       `${manifest.name} requires published exports`,
     )
 
-    if (manifest.name === '@tanstack/charts') {
+    if (
+      manifest.name === '@tanstack/charts' ||
+      manifest.name === '@tanstack/charts-scales'
+    ) {
       assert.equal(
         manifest.dependencies?.['@tanstack/charts'],
         undefined,
-        '@tanstack/charts cannot depend on itself',
+        `${manifest.name} must remain independent from @tanstack/charts`,
       )
     } else {
       assert.equal(

@@ -32,6 +32,7 @@ const tarballDirectory = artifactDirectory ?? resolve(temporaryRoot, 'tarballs')
 const fixtureDirectory = resolve(temporaryRoot, 'consumer')
 
 const packages = [
+  packageConfig('charts-scales', 'scale'),
   packageConfig('charts-core', 'core'),
   packageConfig('react-charts', 'react'),
   packageConfig('octane-charts', 'octane'),
@@ -419,8 +420,10 @@ async function verifyPackedMarkdownLinks(packageInfo, packedFiles) {
 async function installFixture(tarballs) {
   await mkdir(fixtureDirectory, { recursive: true })
   const coreTarball = fileDependency(tarballs.get('@tanstack/charts'))
+  const scalesTarball = fileDependency(tarballs.get('@tanstack/charts-scales'))
   const dependencies = {
     '@tanstack/charts': coreTarball,
+    '@tanstack/charts-scales': scalesTarball,
     '@tanstack/octane-charts': fileDependency(
       tarballs.get('@tanstack/octane-charts'),
     ),
@@ -454,6 +457,8 @@ async function installFixture(tarballs) {
     resolve(fixtureDirectory, 'pnpm-workspace.yaml'),
     `packages:\n  - '.'\noverrides:\n  '@tanstack/charts': ${JSON.stringify(
       coreTarball,
+    )}\n  '@tanstack/charts-scales': ${JSON.stringify(
+      scalesTarball,
     )}\n  'd3-array': ${JSON.stringify(
       installedDependency('d3-array'),
     )}\n  'd3-geo': ${JSON.stringify(
@@ -534,6 +539,10 @@ async function verifyEsmRuntime() {
     import { renderToStaticMarkup } from 'react-dom/server'
     import { renderToString } from 'octane/server'
     import { scaleLinear } from 'd3-scale'
+    import { scaleBand as compactScaleBand } from '@tanstack/charts-scales/band'
+    import { scaleLinear as compactScaleLinear } from '@tanstack/charts-scales/linear'
+    import { scaleOrdinal as compactScaleOrdinal } from '@tanstack/charts-scales/ordinal'
+    import { scalePoint as compactScalePoint } from '@tanstack/charts-scales/point'
     import {
       createChartScene,
       defineChart,
@@ -541,6 +550,8 @@ async function verifyEsmRuntime() {
       renderChartSvg,
     } from '@tanstack/charts'
     import { canvasChartRenderer } from '@tanstack/charts/canvas'
+    import { tooltip } from '@tanstack/charts/tooltip'
+    import { portal } from '@tanstack/charts/tooltip/portal'
     import { Chart as ReactChart } from '@tanstack/react-charts'
     import { Chart as ReactCanvasChart } from '@tanstack/react-charts/canvas'
     import { Chart as ReactRendererChart } from '@tanstack/react-charts/core'
@@ -562,6 +573,12 @@ async function verifyEsmRuntime() {
         assert.ok(Object.keys(module).length > 0, specifier)
       }
     }
+    assert.equal(compactScaleLinear([0, 1], [0, 10])(0.5), 5)
+    assert.equal(compactScaleBand(['a', 'b'], [0, 10]).domain().length, 2)
+    assert.equal(compactScalePoint(['a', 'b'], [0, 10]).bandwidth(), 0)
+    assert.equal(compactScaleOrdinal(['a'], ['red'])('a'), 'red')
+    assert.equal(tooltip.id, 'tooltip')
+    assert.equal(portal.id, 'portal')
 
     const rows = [
       { id: 'a', x: 0, y: 2 },
@@ -686,6 +703,12 @@ async function verifyDeclarations() {
     } from '@tanstack/charts'
     import { canvasChartRenderer } from '@tanstack/charts/canvas'
     import { lineY } from '@tanstack/charts/line'
+    import { tooltip } from '@tanstack/charts/tooltip'
+    import { portal } from '@tanstack/charts/tooltip/portal'
+    import { scaleBand as compactScaleBand } from '@tanstack/charts-scales/band'
+    import { scaleLinear as compactScaleLinear } from '@tanstack/charts-scales/linear'
+    import { scaleOrdinal as compactScaleOrdinal } from '@tanstack/charts-scales/ordinal'
+    import { scalePoint as compactScalePoint } from '@tanstack/charts-scales/point'
     import {
       createMarkWithScaleValues,
       type ChartMarkPointX,
@@ -750,6 +773,30 @@ async function verifyDeclarations() {
         },
       },
     })
+    const compactDefinition = defineChart({
+      marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
+      x: {
+        scale: compactScaleBand<string>().domain(
+          rows.map((row) => row.category),
+        ),
+      },
+      y: { scale: compactScaleLinear().domain([0, 8]) },
+      tooltip: {
+        use: tooltip,
+        portal,
+        format(point) {
+          point.datum.id.toUpperCase()
+          point.xValue.toUpperCase()
+          point.yValue.toFixed(0)
+          return point.datum.category
+        },
+      },
+    })
+    compactScalePoint<string>().domain(rows.map((row) => row.category))
+    compactScaleOrdinal<string, string>()
+      .domain(rows.map((row) => row.category))
+      .range(['red'])
+    void compactDefinition
     const responsiveDefinition = defineChart(({ width }) => ({
       marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
       x: {
@@ -1193,6 +1240,27 @@ async function verifyProductionBundles() {
       '/@tanstack/charts/dist/svg-surface.js',
     ],
   }
+  const packedInputModules = {
+    compactLinear: ['/@tanstack/charts-scales/dist/linear.js'],
+    compactBand: ['/@tanstack/charts-scales/dist/band.js'],
+    compactPoint: ['/@tanstack/charts-scales/dist/point.js'],
+    compactBandKernel: ['/@tanstack/charts-scales/dist/band-kernel.js'],
+    compactOrdinal: ['/@tanstack/charts-scales/dist/ordinal.js'],
+    tooltip: [
+      '/@tanstack/charts/dist/tooltip.js',
+      '/@tanstack/charts/dist/tooltip-position.js',
+    ],
+    tooltipExtension: ['/@tanstack/charts/dist/tooltip.js'],
+    tooltipPortal: ['/@tanstack/charts/dist/tooltip-portal.js'],
+    reactTooltip: ['/@tanstack/react-charts/dist/tooltip.js'],
+    d3ScaleRuntime: [
+      '/d3-scale/',
+      '/d3-format/',
+      '/d3-interpolate/',
+      '/d3-color/',
+      '/internmap/',
+    ],
+  }
   const entries = [
     {
       label: 'Portable',
@@ -1235,6 +1303,9 @@ async function verifyProductionBundles() {
       filename: 'core-renderer.ts',
       external: [],
       rendererBoundary: 'neutral',
+      inputBoundary: {
+        forbid: ['tooltip', 'tooltipPortal'],
+      },
       source: `
         export { mountChartRenderer } from '@tanstack/charts/renderer'
       `,
@@ -1253,10 +1324,12 @@ async function verifyProductionBundles() {
       filename: 'react.ts',
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
+      inputBoundary: {
+        forbid: ['tooltip', 'tooltipPortal', 'reactTooltip'],
+      },
       source: `
         import { createElement } from 'react'
         import { Chart } from '@tanstack/react-charts'
-        import type { ChartTooltipBodyRenderContext } from '@tanstack/react-charts'
         import { defineChart, lineY } from '@tanstack/charts'
         import { scaleLinear } from 'd3-scale'
         const rows = [{ x: 0, y: 2 }, { x: 1, y: 5 }]
@@ -1265,13 +1338,9 @@ async function verifyProductionBundles() {
           x: { scale: scaleLinear().domain([0, 1]) },
           y: { scale: scaleLinear().domain([0, 5]) },
         })
-        const renderTooltipBody = (
-          context: ChartTooltipBodyRenderContext<(typeof rows)[number], number, number>
-        ) => context.defaultBody
         export const chart = createElement(Chart, {
           definition,
           ariaLabel: 'Packed React chart',
-          renderTooltipBody,
         })
       `,
     },
@@ -1280,6 +1349,9 @@ async function verifyProductionBundles() {
       filename: 'react-core.ts',
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'neutral',
+      inputBoundary: {
+        forbid: ['tooltip', 'tooltipPortal', 'reactTooltip'],
+      },
       source: `
         export { Chart } from '@tanstack/react-charts/core'
         export type { ChartTooltipBodyRenderContext } from '@tanstack/react-charts/core'
@@ -1290,9 +1362,134 @@ async function verifyProductionBundles() {
       filename: 'react-canvas.ts',
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'canvas',
+      inputBoundary: {
+        forbid: ['tooltip', 'tooltipPortal', 'reactTooltip'],
+      },
       source: `
         export { Chart } from '@tanstack/react-charts/canvas'
         export type { ChartTooltipBodyRenderContext } from '@tanstack/react-charts/canvas'
+      `,
+    },
+    {
+      label: 'Compact linear scale',
+      filename: 'compact-linear.ts',
+      external: [],
+      inputBoundary: {
+        require: ['compactLinear'],
+        forbid: [
+          'compactBand',
+          'compactPoint',
+          'compactBandKernel',
+          'compactOrdinal',
+          'd3ScaleRuntime',
+        ],
+      },
+      source: `
+        export { scaleLinear } from '@tanstack/charts-scales/linear'
+      `,
+    },
+    {
+      label: 'Compact band scale',
+      filename: 'compact-band.ts',
+      external: [],
+      inputBoundary: {
+        require: ['compactBand', 'compactBandKernel'],
+        forbid: [
+          'compactLinear',
+          'compactPoint',
+          'compactOrdinal',
+          'd3ScaleRuntime',
+        ],
+      },
+      source: `
+        export { scaleBand } from '@tanstack/charts-scales/band'
+      `,
+    },
+    {
+      label: 'Compact point scale',
+      filename: 'compact-point.ts',
+      external: [],
+      inputBoundary: {
+        require: ['compactPoint', 'compactBandKernel'],
+        forbid: [
+          'compactLinear',
+          'compactBand',
+          'compactOrdinal',
+          'd3ScaleRuntime',
+        ],
+      },
+      source: `
+        export { scalePoint } from '@tanstack/charts-scales/point'
+      `,
+    },
+    {
+      label: 'Compact ordinal scale',
+      filename: 'compact-ordinal.ts',
+      external: [],
+      inputBoundary: {
+        require: ['compactOrdinal'],
+        forbid: [
+          'compactLinear',
+          'compactBand',
+          'compactPoint',
+          'compactBandKernel',
+          'd3ScaleRuntime',
+        ],
+      },
+      source: `
+        export { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+      `,
+    },
+    {
+      label: 'Tooltip extension',
+      filename: 'tooltip.ts',
+      external: [],
+      inputBoundary: {
+        require: ['tooltipExtension'],
+        forbid: ['tooltipPortal', 'reactTooltip'],
+      },
+      source: `
+        export { tooltip } from '@tanstack/charts/tooltip'
+      `,
+    },
+    {
+      label: 'Tooltip portal transport',
+      filename: 'tooltip-portal.ts',
+      external: [],
+      inputBoundary: {
+        require: ['tooltipPortal'],
+        forbid: ['tooltipExtension', 'reactTooltip'],
+      },
+      source: `
+        export { portal } from '@tanstack/charts/tooltip/portal'
+      `,
+    },
+    {
+      label: 'React rich tooltip',
+      filename: 'react-tooltip.ts',
+      external: ['react', 'react/jsx-runtime', 'react-dom'],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['tooltipExtension', 'reactTooltip'],
+        forbid: ['tooltipPortal'],
+      },
+      source: `
+        import { createElement } from 'react'
+        import { defineChart, lineY } from '@tanstack/charts'
+        import { tooltip } from '@tanstack/charts/tooltip'
+        import { scaleLinear } from '@tanstack/charts-scales/linear'
+        import { Chart } from '@tanstack/react-charts/tooltip'
+        const definition = defineChart({
+          marks: [lineY([2, 5])],
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+          tooltip,
+        })
+        export const chart = createElement(Chart, {
+          definition,
+          ariaLabel: 'Packed React tooltip chart',
+          renderTooltipBody: (context) => context.defaultBody,
+        })
       `,
     },
     {
@@ -1356,11 +1553,18 @@ async function verifyProductionBundles() {
       contents.byteLength < 500_000,
       `${entry.label} bundle unexpectedly exceeds 500 kB`,
     )
+    const retainedInputs = collectRetainedInputs(result.metafile)
     assertRendererBoundary(
       entry.label,
-      Object.keys(result.metafile.inputs),
+      retainedInputs,
       entry.rendererBoundary,
       packedRendererModules,
+    )
+    assertPackedInputBoundary(
+      entry.label,
+      retainedInputs,
+      entry.inputBoundary,
+      packedInputModules,
     )
     for (const input of Object.keys(result.metafile.inputs)) {
       const absoluteInput = resolve(fixtureDirectory, input)
@@ -1392,6 +1596,7 @@ async function verifyProductionBundles() {
 }
 
 function assertRendererBoundary(label, inputs, boundary, modules) {
+  if (!boundary) return
   const paths = inputs.map((input) => input.replaceAll('\\', '/'))
   const canvas = matchingModules(paths, modules.canvas)
   const svg = matchingModules(paths, modules.svg)
@@ -1422,6 +1627,42 @@ function assertRendererBoundary(label, inputs, boundary, modules) {
     return
   }
   assert.fail(`${label} uses unknown renderer boundary ${boundary}`)
+}
+
+function collectRetainedInputs(metafile) {
+  const retained = new Set()
+  for (const output of Object.values(metafile.outputs)) {
+    for (const [input, contribution] of Object.entries(output.inputs)) {
+      if (contribution.bytesInOutput > 0) {
+        retained.add(input.replaceAll('\\', '/'))
+      }
+    }
+  }
+  return [...retained].sort()
+}
+
+function assertPackedInputBoundary(label, inputs, boundary, modules) {
+  if (!boundary) return
+  for (const group of boundary.require ?? []) {
+    assert.ok(
+      matchingPackedInputs(inputs, modules[group]).length > 0,
+      `${label} bundle omitted ${group}`,
+    )
+  }
+  for (const group of boundary.forbid ?? []) {
+    assert.deepEqual(
+      matchingPackedInputs(inputs, modules[group]),
+      [],
+      `${label} bundle retained ${group}`,
+    )
+  }
+}
+
+function matchingPackedInputs(inputs, fragments) {
+  assert.ok(fragments, 'Unknown packed input boundary')
+  return inputs.filter((input) =>
+    fragments.some((fragment) => input.includes(fragment)),
+  )
 }
 
 function matchingModules(inputs, suffixes) {

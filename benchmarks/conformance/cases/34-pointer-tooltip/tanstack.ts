@@ -1,5 +1,6 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import type { ChartHostOptions } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
@@ -40,6 +41,7 @@ const configuredDefinition = (input: ConformanceInput) =>
     animate: false,
     keyboard: true,
     tooltip: {
+      use: tooltip,
       anchor: 'point',
       placement: ['top', 'right', 'left', 'bottom'],
       items: [

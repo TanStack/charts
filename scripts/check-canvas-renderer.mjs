@@ -20,6 +20,7 @@ const bundle = await build({
       import { dot } from '@tanstack/charts/dot'
       import { renderChartImage } from '@tanstack/charts/export'
       import { defineChart } from '@tanstack/charts/scene'
+      import { tooltip } from '@tanstack/charts/tooltip'
 
       window.runCanvasRendererCheck = async () => {
         const container = document.querySelector('#surface')
@@ -184,12 +185,12 @@ const bundle = await build({
             marks: [dot(data, { x: 'x', y: 'y', key: 'id' })],
             x: { scale: scaleLinear().domain([0, 1]) },
             y: { scale: scaleLinear().domain([0, 2]) },
+            tooltip,
+            maxFocusDistance: 1000,
           }),
           width: 320,
           height: 180,
           ariaLabel: 'Interactive Canvas browser check',
-          tooltip: true,
-          maxFocusDistance: 1000,
           onFocusChange: (point) => focused.push(point?.datum?.id ?? null),
           onSelect: (point) => selected.push(point?.datum?.id ?? null),
         })

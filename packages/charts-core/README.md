@@ -27,6 +27,7 @@ Omit any D3 module and matching type package that your chart does not use.
 import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
 import { colorLegend, d3Curve, defineChart, lineY } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 
 interface DownloadRow {
   id: string
@@ -78,7 +79,7 @@ const downloads = defineChart({
     legend: colorLegend({ label: 'Package' }),
   },
   animate: true,
-  tooltip: true,
+  tooltip,
 })
 ```
 

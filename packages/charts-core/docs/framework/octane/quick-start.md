@@ -23,6 +23,7 @@ Definitions are framework-independent and can be shared with any adapter:
 ```tsx
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/octane-charts'
 
 interface AlphabetRow {
@@ -60,7 +61,7 @@ const letterFrequencyChart = defineChart({
     format: (value) => percent.format(value),
     grid: true,
   },
-  tooltip: true,
+  tooltip,
 })
 
 export function LetterFrequencyChart() {
@@ -132,7 +133,7 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
         nice: true,
       },
       animate: true,
-      tooltip: true,
+      tooltip,
     })
   })
 

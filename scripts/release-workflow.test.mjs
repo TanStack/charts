@@ -30,6 +30,7 @@ describe('release workflow contract', () => {
     assert.deepEqual(changesetConfig.fixed, [
       [
         '@tanstack/charts',
+        '@tanstack/charts-scales',
         '@tanstack/react-charts',
         '@tanstack/octane-charts',
         '@tanstack/preact-charts',

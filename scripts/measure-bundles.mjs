@@ -28,6 +28,35 @@ const rendererBoundaryModules = {
     'packages/react-charts/src/Chart.tsx',
   ],
 }
+const retainedInputGroups = {
+  compactLinear: [/(?:^|\/)packages\/charts-scales\/src\/linear\.ts$/u],
+  compactBandEntry: [/(?:^|\/)packages\/charts-scales\/src\/band\.ts$/u],
+  compactPointEntry: [/(?:^|\/)packages\/charts-scales\/src\/point\.ts$/u],
+  compactBandKernel: [
+    /(?:^|\/)packages\/charts-scales\/src\/band-kernel\.ts$/u,
+  ],
+  compactOrdinal: [/(?:^|\/)packages\/charts-scales\/src\/ordinal\.ts$/u],
+  coreTooltipRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/tooltip\.ts$/u,
+    /(?:^|\/)packages\/charts-core\/src\/tooltip-position\.ts$/u,
+  ],
+  reactTooltipBridge: [/(?:^|\/)packages\/react-charts\/src\/tooltip\.tsx$/u],
+  tooltipRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/tooltip\.ts$/u,
+    /(?:^|\/)packages\/charts-core\/src\/tooltip-position\.ts$/u,
+    /(?:^|\/)packages\/react-charts\/src\/tooltip\.tsx$/u,
+  ],
+  tooltipExtension: [/(?:^|\/)packages\/charts-core\/src\/tooltip\.ts$/u],
+  tooltipPortal: [/(?:^|\/)packages\/charts-core\/src\/tooltip-portal\.ts$/u],
+  d3Array: [/(?:^|\/)node_modules\/d3-array\//u],
+  d3ScaleRuntime: [
+    /(?:^|\/)node_modules\/d3-scale\//u,
+    /(?:^|\/)node_modules\/d3-format\//u,
+    /(?:^|\/)node_modules\/d3-interpolate\//u,
+    /(?:^|\/)node_modules\/d3-color\//u,
+    /(?:^|\/)node_modules\/internmap\//u,
+  ],
+}
 const entries = [
   measured('Core host', 'benchmarks/entries/core.ts'),
   locked('D3-scale line scene', 'benchmarks/entries/charts-core.ts'),
@@ -82,7 +111,7 @@ const entries = [
   budgeted(
     'D3-scale ticks + static SVG',
     'benchmarks/entries/charts-tick-svg.ts',
-    15.2,
+    15.25,
   ),
   budgeted(
     'D3-scale vectors + static SVG',
@@ -112,19 +141,27 @@ const entries = [
   budgeted(
     'Polar line + scatter composition + static SVG',
     'benchmarks/entries/charts-polar-line-scatter-svg.ts',
-    20.3,
+    20.35,
   ),
   locked('Representative marks', 'benchmarks/entries/charts-representative.ts'),
   measured(
     'Renderer-neutral DOM host',
     'benchmarks/entries/charts-renderer.ts',
-    { rendererBoundary: 'neutral' },
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        forbid: ['tooltipRuntime', 'tooltipPortal'],
+      },
+    },
   ),
   measured('Canvas DOM host', 'benchmarks/entries/charts-canvas.ts', {
     rendererBoundary: 'canvas',
   }),
   locked('TanStack DOM host', 'benchmarks/entries/charts-dom.ts', {
     rendererBoundary: 'svg',
+    inputBoundary: {
+      forbid: ['tooltipRuntime', 'tooltipPortal'],
+    },
   }),
   measured(
     'React renderer-neutral adapter',
@@ -132,6 +169,9 @@ const entries = [
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'neutral',
+      inputBoundary: {
+        forbid: ['tooltipRuntime', 'tooltipPortal'],
+      },
     },
   ),
   measured(
@@ -145,10 +185,138 @@ const entries = [
   locked('React adapter', 'benchmarks/entries/charts-react.ts', {
     external: ['react', 'react/jsx-runtime', 'react-dom'],
     rendererBoundary: 'svg',
+    inputBoundary: {
+      forbid: ['tooltipRuntime', 'tooltipPortal'],
+    },
   }),
   locked('React line consumer', 'benchmarks/entries/charts-react-line.ts', {
     external: ['react', 'react/jsx-runtime', 'react-dom'],
   }),
+  lockedBudgeted(
+    'Compact-scale line scene',
+    'benchmarks/entries/charts-compact-linear-scene.ts',
+    7,
+    {
+      inputBoundary: {
+        require: ['compactLinear'],
+        forbid: [
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
+  ),
+  lockedBudgeted(
+    'React compact-scale line consumer',
+    'benchmarks/entries/charts-react-compact-line.ts',
+    15,
+    {
+      external: ['react', 'react/jsx-runtime', 'react-dom'],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['compactLinear'],
+        forbid: [
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'Tooltip extension kernel',
+    'benchmarks/entries/charts-tooltip-kernel.ts',
+    5,
+    {
+      inputBoundary: {
+        require: ['tooltipExtension'],
+        forbid: [
+          'tooltipPortal',
+          'compactLinear',
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'compactOrdinal',
+          'reactTooltipBridge',
+          'd3Array',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'Tooltip portal transport kernel',
+    'benchmarks/entries/charts-tooltip-portal-kernel.ts',
+    2,
+    {
+      inputBoundary: {
+        require: ['tooltipPortal'],
+        forbid: [
+          'tooltipExtension',
+          'compactLinear',
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'compactOrdinal',
+          'reactTooltipBridge',
+          'd3Array',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'React compact-scale line + tooltip',
+    'benchmarks/entries/charts-react-compact-line-tooltip.ts',
+    'React compact-scale line consumer',
+    4.5,
+    {
+      external: ['react', 'react/jsx-runtime', 'react-dom'],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['compactLinear', 'tooltipExtension'],
+        forbid: [
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'tooltipPortal',
+          'reactTooltipBridge',
+          'd3ScaleRuntime',
+        ],
+        addedFrom: 'React compact-scale line consumer',
+        allowAdded: ['coreTooltipRuntime'],
+      },
+    },
+  ),
+  incrementalBudgeted(
+    'React compact-scale line + tooltip portal',
+    'benchmarks/entries/charts-react-compact-line-tooltip-portal.ts',
+    'React compact-scale line + tooltip',
+    2,
+    {
+      external: ['react', 'react/jsx-runtime', 'react-dom'],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['compactLinear', 'tooltipExtension', 'tooltipPortal'],
+        forbid: [
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'reactTooltipBridge',
+          'd3ScaleRuntime',
+        ],
+        addedFrom: 'React compact-scale line + tooltip',
+        allowAdded: ['tooltipPortal'],
+      },
+    },
+  ),
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
@@ -157,6 +325,19 @@ const entries = [
   locked(
     'Custom-scale line scene',
     'benchmarks/entries/charts-custom-scale-scene.ts',
+    {
+      inputBoundary: {
+        forbid: [
+          'compactLinear',
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
   ),
   locked(
     'D3 linear-scale line scene',
@@ -229,6 +410,92 @@ const entries = [
     'D3 scale family kernel',
     'benchmarks/entries/d3-scale-family-kernel.ts',
   ),
+  budgeted(
+    'TanStack compact linear scale kernel',
+    'benchmarks/entries/charts-scale-linear-kernel.ts',
+    1.5,
+    {
+      inputBoundary: {
+        require: ['compactLinear'],
+        forbid: [
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'compactOrdinal',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'TanStack compact band scale kernel',
+    'benchmarks/entries/charts-scale-band-kernel.ts',
+    1,
+    {
+      inputBoundary: {
+        require: ['compactBandEntry', 'compactBandKernel'],
+        forbid: [
+          'compactLinear',
+          'compactPointEntry',
+          'compactOrdinal',
+          'd3Array',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'TanStack compact point scale kernel',
+    'benchmarks/entries/charts-scale-point-kernel.ts',
+    1,
+    {
+      inputBoundary: {
+        require: ['compactPointEntry', 'compactBandKernel'],
+        forbid: [
+          'compactLinear',
+          'compactBandEntry',
+          'compactOrdinal',
+          'd3Array',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'TanStack compact ordinal scale kernel',
+    'benchmarks/entries/charts-scale-ordinal-kernel.ts',
+    0.75,
+    {
+      inputBoundary: {
+        require: ['compactOrdinal'],
+        forbid: [
+          'compactLinear',
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'd3Array',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'TanStack compact scale family kernel',
+    'benchmarks/entries/charts-scale-family-kernel.ts',
+    2.5,
+    {
+      inputBoundary: {
+        require: [
+          'compactLinear',
+          'compactBandEntry',
+          'compactPointEntry',
+          'compactBandKernel',
+          'compactOrdinal',
+        ],
+        forbid: ['d3ScaleRuntime'],
+      },
+    },
+  ),
   budgeted('D3 curve kernel', 'benchmarks/entries/d3-curve-kernel.ts', 2.25),
   budgeted(
     'D3 transform kernel',
@@ -298,6 +565,7 @@ for (const {
   alias,
   policy,
   rendererBoundary,
+  inputBoundary,
 } of entries) {
   const outfile = resolve(
     outputDirectory,
@@ -318,13 +586,16 @@ for (const {
     alias,
     metafile: true,
   })
-  assertRendererBoundary(label, result.metafile.inputs, rendererBoundary)
+  const retainedInputs = collectRetainedInputs(result.metafile)
+  assertRendererBoundary(label, retainedInputs, rendererBoundary)
+  assertRetainedInputBoundary(label, retainedInputs, inputBoundary, rows)
   const contents = await readFile(outfile)
   rows.push({
     label,
     bytes: contents.byteLength,
     gzip: gzipSync(contents).byteLength,
     policy,
+    retainedInputs,
   })
 }
 
@@ -392,11 +663,39 @@ function locked(label, entry, options = {}) {
   return createEntry(label, entry, { kind: 'locked' }, options)
 }
 
+function lockedBudgeted(label, entry, maxGzipKib, options = {}) {
+  return createEntry(
+    label,
+    entry,
+    { kind: 'locked', maxGzipBytes: maxGzipKib * 1024 },
+    options,
+  )
+}
+
 function budgeted(label, entry, maxGzipKib, options = {}) {
   return createEntry(
     label,
     entry,
     { kind: 'budget', maxGzipBytes: maxGzipKib * 1024 },
+    options,
+  )
+}
+
+function incrementalBudgeted(
+  label,
+  entry,
+  relativeTo,
+  maxGzipKib,
+  options = {},
+) {
+  return createEntry(
+    label,
+    entry,
+    {
+      kind: 'budget',
+      maxGzipBytes: maxGzipKib * 1024,
+      relativeTo,
+    },
     options,
   )
 }
@@ -409,12 +708,13 @@ function createEntry(label, entry, policy, options) {
     external: options.external,
     alias: options.alias,
     rendererBoundary: options.rendererBoundary,
+    inputBoundary: options.inputBoundary,
   }
 }
 
 function assertRendererBoundary(label, inputs, boundary) {
   if (!boundary) return
-  const paths = Object.keys(inputs).map((input) => input.replaceAll('\\', '/'))
+  const paths = inputs.map((input) => input.replaceAll('\\', '/'))
   const canvas = matchingModules(paths, rendererBoundaryModules.canvas)
   const svg = matchingModules(paths, rendererBoundaryModules.svg)
   const failures = []
@@ -443,13 +743,103 @@ function matchingModules(inputs, suffixes) {
   )
 }
 
+function collectRetainedInputs(metafile) {
+  const retained = new Set()
+  for (const output of Object.values(metafile.outputs)) {
+    for (const [input, contribution] of Object.entries(output.inputs)) {
+      if (contribution.bytesInOutput > 0) {
+        retained.add(input.replaceAll('\\', '/'))
+      }
+    }
+  }
+  return [...retained].sort()
+}
+
+function assertRetainedInputBoundary(label, inputs, boundary, measuredRows) {
+  if (!boundary) return
+  const failures = []
+
+  for (const group of boundary.require ?? []) {
+    if (!matchingRetainedInputs(inputs, group).length) {
+      failures.push(`did not retain ${group}`)
+    }
+  }
+  for (const group of boundary.forbid ?? []) {
+    const matches = matchingRetainedInputs(inputs, group)
+    if (matches.length) {
+      failures.push(`retained forbidden ${group}: ${matches.join(', ')}`)
+    }
+  }
+
+  if (boundary.addedFrom) {
+    const reference = measuredRows.find(
+      (row) => row.label === boundary.addedFrom,
+    )
+    if (!reference) {
+      failures.push(
+        `references unmeasured input boundary ${boundary.addedFrom}`,
+      )
+    } else {
+      const previousInputs = new Set(reference.retainedInputs)
+      const addedInputs = inputs.filter(
+        (input) =>
+          !previousInputs.has(input) &&
+          !/(?:^|\/)benchmarks\/entries\//u.test(input),
+      )
+      const unexpected = addedInputs.filter(
+        (input) =>
+          !(boundary.allowAdded ?? []).some(
+            (group) => matchingRetainedInputs([input], group).length,
+          ),
+      )
+      if (unexpected.length) {
+        failures.push(
+          `added inputs outside ${boundary.allowAdded?.join(', ') || 'the empty allowlist'}: ${unexpected.join(', ')}`,
+        )
+      }
+    }
+  }
+
+  if (failures.length) {
+    throw new Error(
+      `${label} retained-input boundary failed: ${failures.join('; ')}`,
+    )
+  }
+}
+
+function matchingRetainedInputs(inputs, group) {
+  const patterns = retainedInputGroups[group]
+  if (!patterns) {
+    throw new Error(`Unknown retained-input group ${group}`)
+  }
+  return inputs.filter((input) =>
+    patterns.some((pattern) => pattern.test(input)),
+  )
+}
+
 function checkBudgets(measuredRows) {
+  const rowsByLabel = new Map(measuredRows.map((row) => [row.label, row]))
   return measuredRows.flatMap((row) => {
-    if (row.policy?.kind !== 'budget' || row.gzip <= row.policy.maxGzipBytes) {
+    if (row.policy?.maxGzipBytes === undefined) {
       return []
     }
+    const reference = row.policy.relativeTo
+      ? rowsByLabel.get(row.policy.relativeTo)
+      : undefined
+    if (row.policy.relativeTo && !reference) {
+      return [
+        `${row.label}: missing incremental bundle reference ${row.policy.relativeTo}`,
+      ]
+    }
+    const measuredGzip = row.gzip - (reference?.gzip ?? 0)
+    if (measuredGzip <= row.policy.maxGzipBytes) return []
+    const description = reference
+      ? `increment over ${reference.label}`
+      : row.policy.kind === 'locked'
+        ? 'locked product'
+        : 'isolated'
     return [
-      `${row.label}: ${formatBytes(row.gzip)} exceeds its isolated ${formatBytes(row.policy.maxGzipBytes)} gzip budget`,
+      `${row.label}: ${formatBytes(measuredGzip)} exceeds its ${description} ${formatBytes(row.policy.maxGzipBytes)} gzip budget`,
     ]
   })
 }

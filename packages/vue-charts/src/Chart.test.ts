@@ -3,6 +3,8 @@ import type { VNodeChild } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from 'd3-scale'
 import { Chart } from './Chart'
 import type { ChartTooltipBodySlotContext } from './types'
@@ -19,7 +21,8 @@ const definition = defineChart({
 const tooltipDefinition = defineChart(definition, {
   maxFocusDistance: 1_000,
   tooltip: {
-    portal: true,
+    use: tooltip,
+    portal,
     content: () => ({
       title: 'January',
       color: '#2563eb',

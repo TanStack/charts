@@ -1,0 +1,54 @@
+{
+  "name": "@tanstack/charts-scales",
+  "version": "0.0.2",
+  "private": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TanStack/charts.git",
+    "directory": "packages/charts-scales"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "d3-array": "3.2.4"
+  },
+  "devDependencies": {
+    "@types/d3-array": "^3.2.2",
+    "@types/d3-scale": "^4.0.9",
+    "d3-scale": "4.0.2"
+  },
+  "exports": {
+    "./band": "./src/band.ts",
+    "./linear": "./src/linear.ts",
+    "./ordinal": "./src/ordinal.ts",
+    "./point": "./src/point.ts"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "exports": {
+      "./band": {
+        "types": "./dist/band.d.ts",
+        "import": "./dist/band.js"
+      },
+      "./linear": {
+        "types": "./dist/linear.d.ts",
+        "import": "./dist/linear.js"
+      },
+      "./ordinal": {
+        "types": "./dist/ordinal.d.ts",
+        "import": "./dist/ordinal.js"
+      },
+      "./point": {
+        "types": "./dist/point.d.ts",
+        "import": "./dist/point.js"
+      }
+    }
+  }
+}

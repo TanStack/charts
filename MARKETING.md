@@ -302,23 +302,24 @@ unrelated chart thumbnails.
 The durable public claim is:
 
 > Complete tested charts are approximately 24–29 KiB gzip. A static SVG line
-> is 14.88 KiB gzip. Consumers pay for the capabilities they import.
+> is 14.54 KiB gzip. Consumers pay for the capabilities they import.
 
-Do not lead with the 6.28 KiB custom-scale scene. It proves the scene compiler
+Do not lead with the 5.82 KiB custom-scale scene. It proves the scene compiler
 has a low isolated cost when an application supplies its own scale, but it is
 not a complete rendered chart.
 
 #### TanStack consumer boundaries
 
-| Consumer surface                              |       Gzip size | Evidence status                                          |
-| --------------------------------------------- | --------------: | -------------------------------------------------------- |
-| Custom-scale line scene, no renderer          |        6.28 KiB | Exact byte lock; not a complete chart                    |
-| D3-scale line with static SVG                 |       14.88 KiB | Exact byte lock                                          |
-| Mounted basic line, bar, area, or scatter     | 24.19–24.81 KiB | Checked four-chart comparison baseline                   |
-| Mounted chart with legend and pointer tooltip | 25.38–25.98 KiB | Checked four-chart comparison baseline                   |
-| Advanced two-series composition               | 25.39–28.20 KiB | Checked four-chart comparison baseline                   |
-| React line consumer, with React externalized  |       25.11 KiB | Exact byte lock                                          |
-| TanStack Stats parity surface                 |       35.35 KiB | Isolated measurement under a 35.45 KiB capability budget |
+| Consumer surface                                        |            Gzip size | Evidence status                                          |
+| ------------------------------------------------------- | -------------------: | -------------------------------------------------------- |
+| Custom-scale line scene, no renderer                    |             5.82 KiB | Exact byte lock; not a complete chart                    |
+| D3-scale line with static SVG                           |            14.54 KiB | Exact byte lock                                          |
+| Mounted basic line, bar, area, or scatter               |      23.68–24.70 KiB | Checked four-chart comparison baseline                   |
+| Mounted chart with legend and pointer tooltip           |      25.27–25.92 KiB | Checked four-chart comparison baseline                   |
+| Advanced two-series composition                         |      25.27–28.06 KiB | Checked four-chart comparison baseline                   |
+| React line consumer, D3 scales, React externalized      | 21,281 B / 20.78 KiB | Exact byte lock                                          |
+| React line consumer, compact scales, React externalized | 14,227 B / 13.89 KiB | Exact byte lock                                          |
+| TanStack Stats parity surface                           |            35.35 KiB | Isolated measurement under a 35.45 KiB capability budget |
 
 The exact ordinary-consumer locks live in
 [`universal-baseline.json`](./benchmarks/bundle-size/universal-baseline.json).
@@ -334,16 +335,16 @@ variable point size.
 
 | Gzip comparison            |           Basic |     Interactive |        Advanced |
 | -------------------------- | --------------: | --------------: | --------------: |
-| TanStack Charts            | 24.19–24.81 KiB | 25.38–25.98 KiB | 25.39–28.20 KiB |
-| Chart.js                   |      1.85–2.08× |      2.06–2.29× |      2.01–2.07× |
-| Observable Plot            |      3.44–3.79× |      3.28–3.61× |      3.21–3.29× |
-| Recharts, React external   |      3.82–3.98× |      4.22–4.28× |      3.87–4.27× |
-| Recharts, full cold bundle |      6.17–6.39× |      6.47–6.58× |      5.94–6.57× |
-| Apache ECharts             |      6.33–6.57× |      6.57–6.81× |      6.14–6.57× |
+| TanStack Charts            | 23.68–24.70 KiB | 25.27–25.92 KiB | 25.27–28.06 KiB |
+| Chart.js                   |      1.89–2.12× |      2.07–2.29× |      2.02–2.08× |
+| Observable Plot            |      3.45–3.87× |      3.29–3.63× |      3.23–3.30× |
+| Recharts, React external   |      3.85–4.07× |      4.24–4.30× |      3.89–4.29× |
+| Recharts, full cold bundle |      6.20–6.53× |      6.49–6.61× |      5.97–6.60× |
+| Apache ECharts             |      6.37–6.72× |      6.60–6.83× |      6.17–6.60× |
 
 Competitor cells are competitor gzip divided by TanStack gzip, ranged across
 the matched line, bar, area, and scatter fixtures. Across every matched fixture
-in this controlled suite, TanStack shipped 46–85% less gzipped JavaScript.
+in this controlled suite, TanStack shipped 47–85% less gzipped JavaScript.
 
 This supports “substantially smaller than the measured mainstream libraries.”
 It does not support “smaller than every popular charting library.” Highcharts,
@@ -352,7 +353,7 @@ matrix. Visx is the most important modular challenger to measure next.
 
 #### Evidence maturity
 
-Internal bundle control is strong: eight ordinary TanStack consumers are exact
+Internal bundle control is strong: ten ordinary TanStack consumers are exact
 minified and gzip byte locks, optional capabilities have isolated ceilings, and
 CI reproduces those locks. Comparative stability is not ready for an
 unqualified public superlative:

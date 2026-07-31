@@ -390,8 +390,8 @@ export interface ChartDefinitionOptions<
   animate?: boolean | ChartAnimationOptions
   keyboard?: boolean
   tooltip?:
-    | boolean
-    | ChartTooltipOptions<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
+    | false
+    | ChartTooltipInput<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
 }
 
 interface StoredChartDefinitionOptions {
@@ -400,7 +400,7 @@ interface StoredChartDefinitionOptions {
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
   animate?: boolean | ChartAnimationOptions
   keyboard?: boolean
-  tooltip?: boolean | ChartTooltipOptions<any, any, any>
+  tooltip?: false | ChartTooltipInput<any, any, any>
 }
 
 export interface StaticChartDefinition<
@@ -723,7 +723,7 @@ export interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
-  portal?: boolean
+  portal?: ChartTooltipPortalInput
   items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
   sort?: ChartTooltipSort<TDatum, TXValue, TYValue>
   anchor?: ChartTooltipAnchor<TDatum, TXValue, TYValue>
@@ -739,6 +739,37 @@ export interface ChartTooltipOptions<
   ) => string
   sticky?: boolean
 }
+
+export type ChartExtensionInput<TExtension, TOptions> =
+  TExtension | ({ use: TExtension } & TOptions)
+
+export interface ChartTooltipExtensionToken {
+  readonly id: string
+  readonly create: Function
+  readonly __chartExtensionType?: 'tooltip'
+}
+
+export type ChartTooltipInput<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartExtensionInput<
+  ChartTooltipExtensionToken,
+  ChartTooltipOptions<TDatum, TXValue, TYValue>
+>
+
+export type ChartTooltipPortalOptions = Record<never, never>
+
+export interface ChartTooltipPortalExtensionToken {
+  readonly id: string
+  readonly create: Function
+  readonly __chartExtensionType?: 'tooltip-portal'
+}
+
+export type ChartTooltipPortalInput = ChartExtensionInput<
+  ChartTooltipPortalExtensionToken,
+  ChartTooltipPortalOptions
+>
 
 export type ChartTooltipPlacement =
   | 'top'

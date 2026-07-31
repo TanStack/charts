@@ -9,10 +9,11 @@ pnpm add @tanstack/charts @tanstack/solid-charts solid-js d3-scale
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/solid-charts'
 
 const definition = createMemo(() =>
-  defineChart(createRevenueChart(rows()), { tooltip: true }),
+  defineChart(createRevenueChart(rows()), { tooltip }),
 )
 
 ;<Chart

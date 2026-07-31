@@ -14,6 +14,21 @@ import { defaultChartTheme } from './scene'
 import { colorGradientLegend, colorLegend } from './legend'
 
 describe('continuous color', () => {
+  it('keeps the default ordinal mapping stable without D3 scale runtime', () => {
+    const scale = createColorScale(
+      ['1', 1, Number.NaN, Number.NaN],
+      { range: ['red', 'blue'] },
+      defaultChartTheme,
+    )
+
+    expect(scale.domain).toEqual(['1', 1, Number.NaN])
+    expect(scale.map('1')).toBe('red')
+    expect(scale.map(1)).toBe('blue')
+    expect(scale.map(Number.NaN)).toBe('red')
+    expect(scale.map('later')).toBe('blue')
+    expect(scale.map('later')).toBe('blue')
+  })
+
   it('accepts configured D3 color scales directly', () => {
     const configured = scaleSequential((ratio) => `value:${ratio}`).domain([
       0, 100,

@@ -11,6 +11,7 @@ pnpm add @tanstack/charts @tanstack/angular-charts @angular/common @angular/core
 import { Component } from '@angular/core'
 import { Chart } from '@tanstack/angular-charts'
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 
 @Component({
   imports: [Chart],
@@ -18,7 +19,7 @@ import { defineChart } from '@tanstack/charts'
 })
 export class RevenueChart {
   chartOptions = {
-    definition: defineChart(createRevenueChart(rows), { tooltip: true }),
+    definition: defineChart(createRevenueChart(rows), { tooltip }),
     ariaLabel: 'Revenue by month',
     aspectRatio: 16 / 9,
   }

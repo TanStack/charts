@@ -2,6 +2,8 @@ import { act, createRoot, useState } from 'octane';
 import { describe, expect, it, vi } from 'vitest';
 import { defineChart, lineY } from '@tanstack/charts';
 import type { ChartPoint } from '@tanstack/charts';
+import { tooltip } from '@tanstack/charts/tooltip';
+import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal';
 import { Chart } from '@tanstack/octane-charts';
 import { scaleLinear } from 'd3-scale';
 
@@ -120,7 +122,8 @@ describe('Octane Chart adapter client', () => {
 		const tooltipDefinition = defineChart(definition, {
 			maxFocusDistance: 1_000,
 			tooltip: {
-				portal: true,
+				use: tooltip,
+				portal: tooltipPortal,
 				content: () => ({
 					title: 'January',
 					rows: [{ label: 'Revenue', value: '$8', color: '#2563eb' }],

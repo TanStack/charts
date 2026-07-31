@@ -1,5 +1,6 @@
 import { cars } from '@charts-poc/demo-data/cars'
 import { createMark, defineChart, dot, mountChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Delaunay } from 'd3-delaunay'
 import { scaleLinear } from 'd3-scale'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
@@ -117,6 +118,7 @@ const configuredDefinition = (rows: readonly CompleteCar[]) =>
     animate: false,
     keyboard: true,
     tooltip: {
+      use: tooltip,
       anchor: 'pointer',
       items: [
         {
