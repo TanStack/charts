@@ -63,11 +63,13 @@ implementation plan or compatibility promise.
 
 - General transforms are eager, pure row-to-row functions. They do not mutate
   mark options, create a hidden transform graph, or own framework reactivity.
-- Accessors and reducers use single object arguments. Aggregating outputs retain
-  `source` and `sourceIndexes`; one-to-one outputs retain `datum` and `index`.
-- `groupBy`, `binX`/`binY`, `window`, `normalize`, `select`, and
-  `stackRowsX`/`stackRowsY` cover the common cross-row operations. A typed
-  `transformData` protocol supports reusable custom pipelines.
+- Accessors and reducers use single object arguments. Group dimensions keep
+  their names; aggregations retain `source` and `sourceIndexes`; one-to-one
+  transforms extend flat input rows.
+- `groupBy`, one- and two-dimensional numeric bins, calendar bins, `window`,
+  `cumulative`, `rank`, `normalize`, `select`, and row stacks cover the common
+  cross-row operations. Ordinary functions are the custom composition escape
+  hatch. There is no transform protocol or hidden reactive graph.
 - Row stacks and mark stacks share `stackValues`. `stack()`/`group()` remain
   mark-local layout; row transforms are for reusable or inspectable data.
 - Root exports remain tree-shakeable, and every transform family also has a
@@ -75,27 +77,35 @@ implementation plan or compatibility promise.
 
 ### Transform implementation audit
 
-- The complete transform implementation is 1,240 source lines across the
-  public protocol, seven transform families, and two shared internal modules.
-  Binning is the largest unit at 274 lines because it owns domains, explicit
-  boundaries, shared grouped bins, interval output, and empty-bin reducers.
-- Field/accessor materialization, compound-key identity, grouping, reducer
+- The complete transform layer is 1,726 source lines across the public value
+  and reducer contracts, shared grouping/reduction internals, and ten transform
+  families. Four new evidenced families replace repeated application logic;
+  the public protocol and nested-row adapters were removed rather than carried
+  beside the new model.
+- Every transform family has a granular entry point. Numeric, two-dimensional,
+  and calendar binning are separate entries so specialized logic does not
+  enlarge ordinary histograms. Reducers and grouping mechanics remain shared.
+- Field/accessor materialization, named-group identity, grouping, reducer
   preparation, and source lineage are shared. Named reducer inputs are
   evaluated once per source, avoiding a group-by-source rescan. Row stacks call
   the same `stackValues` engine as mark layouts. The obsolete private D3-core
   transform module and its tests are removed, deleting 402 duplicated lines.
-- Group, normalize, select, and stack are linear in source rows plus emitted
-  output. Bin adds threshold construction and emitted empty bins. Window work
-  is proportional to rows × window width because custom reducers and complete
-  per-row lineage require each window to remain observable.
-- Migrating the histogram, grouped reducer, moving average, and extrema cases
-  removes 47 net source lines from those consumers.
-- The combined granular transform suite is 13.82 kB minified / 5.30 kB gzip.
-  A complete built-in histogram is 18.52 kB gzip versus 17.41 kB for the direct
-  D3 preparation entry; the reviewed histogram ceiling is 18.7 kB. Locked
-  ordinary entries remain byte-identical after tree shaking. Esbuild's changed
-  module graph shifts gzip output by -1 to +4 bytes through identifier naming;
-  the exact baseline records those audited artifacts.
+- Group, normalize, select, rank, and stack are linear in source rows plus
+  emitted output. Numeric bins add threshold construction. Calendar bins bucket
+  rows in one pass; two-dimensional bins assign each row once before emitting
+  the cell matrix. Window and cumulative work remain proportional to the
+  observable reducer windows because custom reducers and exact lineage receive
+  every contributing row.
+- Eight conformance consumers now use flat named transform results directly,
+  removing 60 net source lines and six direct D3 aggregation/rank imports.
+- The common transform suite is 16.60 kB minified / 6.18 kB gzip. Individual
+  families range from 0.78 kB gzip (`select`) to 2.87 kB (`binX`); calendar bins
+  are 1.30 kB, 2D bins 2.75 kB, rank 0.79 kB, and cumulative 1.04 kB. The full
+  advanced reducer set is 0.42 kB gzip and is absent unless imported.
+- Keeping advanced reducers outside the shared string switch reduced a complete
+  histogram from the first-pass 18.75 kB gzip to 18.60 kB, below its 18.7 kB
+  ceiling. The comparable direct-D3 histogram is 17.41 kB. Locked non-transform
+  entries remain byte-identical, showing the root exports still tree-shake.
 
 ## 1. Focus presentation
 

@@ -44,33 +44,31 @@ export interface StackRowsXOptions<
   z?: TZ
 }
 
-export interface StackRowsYDatum<
+export type StackRowsYDatum<
   TDatum,
   TXValue extends ChartValue,
   TZValue extends ChartKey,
-> extends TransformLineage<TDatum> {
-  readonly datum: TDatum
-  readonly index: number
-  readonly x: TXValue
-  readonly y: number
-  readonly y1: number
-  readonly y2: number
-  readonly z: TZValue
-}
+> = TDatum &
+  TransformLineage<TDatum> & {
+    readonly x: TXValue
+    readonly y: number
+    readonly y1: number
+    readonly y2: number
+    readonly z: TZValue
+  }
 
-export interface StackRowsXDatum<
+export type StackRowsXDatum<
   TDatum,
   TYValue extends ChartValue,
   TZValue extends ChartKey,
-> extends TransformLineage<TDatum> {
-  readonly datum: TDatum
-  readonly index: number
-  readonly x: number
-  readonly x1: number
-  readonly x2: number
-  readonly y: TYValue
-  readonly z: TZValue
-}
+> = TDatum &
+  TransformLineage<TDatum> & {
+    readonly x: number
+    readonly x1: number
+    readonly x2: number
+    readonly y: TYValue
+    readonly z: TZValue
+  }
 
 type StackSeries<TDatum, TZ> =
   TZ extends TransformValue<TDatum, ChartKey>
@@ -78,7 +76,7 @@ type StackSeries<TDatum, TZ> =
     : 'value'
 
 export function stackRowsY<
-  TDatum,
+  TDatum extends object,
   const TX extends TransformValue<TDatum, ChartValue>,
   const TY extends TransformValue<TDatum, number | null | undefined>,
   const TZ extends TransformValue<TDatum, ChartKey> | undefined = undefined,
@@ -126,8 +124,7 @@ export function stackRowsY<
     }
     return [
       {
-        datum,
-        index,
+        ...datum,
         x: position as Extract<TransformValueOutput<TDatum, TX>, ChartValue>,
         y: value,
         y1: start,
@@ -141,7 +138,7 @@ export function stackRowsY<
 }
 
 export function stackRowsX<
-  TDatum,
+  TDatum extends object,
   const TX extends TransformValue<TDatum, number | null | undefined>,
   const TY extends TransformValue<TDatum, ChartValue>,
   const TZ extends TransformValue<TDatum, ChartKey> | undefined = undefined,
@@ -189,8 +186,7 @@ export function stackRowsX<
     }
     return [
       {
-        datum,
-        index,
+        ...datum,
         x: value,
         x1: start,
         x2: end,

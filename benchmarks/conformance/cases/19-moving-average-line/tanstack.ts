@@ -19,13 +19,13 @@ const definition = (_input: ConformanceInput) => {
   return defineChart({
     marks: [
       lineY(rows, {
-        x: ({ datum }) => datum.date,
+        x: 'date',
         y: 'low',
         stroke: '#4e79a7',
         strokeWidth: 2.25,
       }),
       lineY(rows, {
-        x: ({ datum }) => datum.date,
+        x: 'date',
         y: 'high',
         stroke: '#e15759',
         strokeWidth: 2.25,

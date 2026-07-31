@@ -1,52 +1,34 @@
 import { olympians } from '@charts-poc/demo-data/olympians'
-import { defineChart, rect } from '@tanstack/charts'
-import { bin, thresholdScott } from 'd3-array'
+import { binX, cumulative, defineChart, rect } from '@tanstack/charts'
+import { thresholdScott } from 'd3-array'
 import { scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { OlympiansRow } from '@charts-poc/demo-data/olympians'
 import type { ConformanceInput } from '../../types'
-
-interface CumulativeBin {
-  id: string
-  x0: number
-  x1: number
-  count: number
-}
 
 type OlympianWithWeight = OlympiansRow & { weight: number }
 
 const completeOlympians = olympians.filter(
   (row): row is OlympianWithWeight => row.weight !== null,
 )
-const createBins = bin<OlympianWithWeight, number>()
-  .value((row) => row.weight)
-  .thresholds(thresholdScott)
-
 const definition = (input: ConformanceInput) => {
-  let cumulative = 0
-  const bins: CumulativeBin[] = createBins(
-    completeOlympians.slice(input.revision * 8),
-  ).flatMap((bucket, index) => {
-    cumulative += bucket.length
-    return bucket.x0 === undefined || bucket.x1 === undefined
-      ? []
-      : [
-          {
-            id: `bin:${index}`,
-            x0: bucket.x0,
-            x1: bucket.x1,
-            count: cumulative,
-          },
-        ]
+  const bins = binX(completeOlympians.slice(input.revision * 8), {
+    value: 'weight',
+    thresholds: thresholdScott,
+    outputs: { count: { reduce: 'count' } },
+  })
+  const cumulativeBins = cumulative(bins, {
+    orderBy: 'x1',
+    outputs: { cumulativeCount: { value: 'count', reduce: 'sum' } },
   })
 
   return defineChart({
     marks: [
-      rect(bins, {
-        x1: 'x0',
-        x2: 'x1',
+      rect(cumulativeBins, {
+        x1: 'x1',
+        x2: 'x2',
         y1: () => 0,
-        y2: 'count',
+        y2: 'cumulativeCount',
         fill: '#2563eb',
         inset: 1,
       }),

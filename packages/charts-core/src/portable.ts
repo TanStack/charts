@@ -25,10 +25,23 @@ export {
 } from './scene'
 export { renderChartSvg } from './svg'
 export { stack } from './stack'
-export { transformData } from './transform'
 export { binX, binY } from './transform-bin'
+export { binXY } from './transform-bin-xy'
+export { binTimeX, binTimeY } from './transform-bin-time'
+export { cumulative } from './transform-cumulative'
 export { groupBy } from './transform-group'
 export { normalize } from './transform-normalize'
+export {
+  deviation,
+  difference,
+  first,
+  last,
+  median,
+  quantile,
+  ratio,
+  variance,
+} from './transform-reduce'
+export { rank } from './transform-rank'
 export { select } from './transform-select'
 export { stackRowsX, stackRowsY } from './transform-stack'
 export { window } from './transform-window'

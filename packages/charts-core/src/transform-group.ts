@@ -1,80 +1,63 @@
-import type { TransformOutputRow, TransformOutputs } from './transform-reduce'
-import {
-  type TransformKey,
-  type TransformLineage,
-  type TransformValue,
-  type TransformValueOutput,
+import type {
+  TransformGroupRow,
+  TransformGroupSpec,
+  TransformLineage,
 } from './transform'
-import { toArray, transformKey, transformValues } from './transform-internal'
+import type { TransformOutputRow, TransformOutputs } from './transform-reduce'
+import { materializeGroups, toArray } from './transform-internal'
 import {
   assertTransformOutputNames,
   prepareOutputs,
   reducePreparedOutputs,
-  type ContextualTransformOutputs,
 } from './transform-reduce-internal'
 
 export interface GroupByOptions<TDatum> {
-  by: TransformValue<TDatum, TransformKey>
+  by: TransformGroupSpec<TDatum>
   outputs: TransformOutputs<TDatum>
 }
 
 interface InferredGroupByOptions<
   TDatum,
-  TBy extends TransformValue<TDatum, TransformKey>,
+  TBy extends TransformGroupSpec<TDatum>,
   TOutputs extends TransformOutputs<TDatum>,
 > {
   by: TBy
-  outputs: ContextualTransformOutputs<TDatum, TOutputs>
+  outputs: TOutputs
 }
 
-export type GroupByDatum<
+export type GroupByDatum<TDatum, TBy, TOutputs> = TransformGroupRow<
   TDatum,
-  TKey extends TransformKey,
-  TOutputs,
-> = TransformLineage<TDatum> &
-  TransformOutputRow<TOutputs> & {
-    readonly key: TKey
-  }
+  TBy
+> &
+  TransformLineage<TDatum> &
+  TransformOutputRow<TOutputs>
 
 export function groupBy<
   TDatum,
-  const TBy extends TransformValue<TDatum, TransformKey>,
+  const TBy extends TransformGroupSpec<TDatum>,
   const TOutputs extends TransformOutputs<TDatum>,
 >(
   source: Iterable<TDatum>,
   options: InferredGroupByOptions<TDatum, TBy, TOutputs>,
-): GroupByDatum<
-  TDatum,
-  Extract<TransformValueOutput<TDatum, TBy>, TransformKey>,
-  TOutputs
->[] {
-  type TKey = Extract<TransformValueOutput<TDatum, TBy>, TransformKey>
+): GroupByDatum<TDatum, TBy, TOutputs>[] {
   const data = toArray(source)
+  const groups = materializeGroups(data, options.by)
+  const groupNames = groups[0] ? Object.keys(groups[0].group) : []
   assertTransformOutputNames(
     options.outputs,
-    ['key', 'source', 'sourceIndexes'],
+    [...groupNames, 'source', 'sourceIndexes'],
     'groupBy',
   )
-  const keys = transformValues(data, options.by) as TKey[]
-  const groups = new Map<string, { key: TKey; indexes: number[] }>()
   const preparedOutputs = prepareOutputs(data, options.outputs)
-
-  keys.forEach((key, index) => {
-    const identity = transformKey(key)
-    const group = groups.get(identity)
-    if (group) group.indexes.push(index)
-    else groups.set(identity, { key, indexes: [index] })
-  })
-
-  return [...groups.values()].map(({ key, indexes }) => ({
-    key,
+  return groups.map(({ group, indexes }) => ({
+    ...group,
     source: indexes.map((index) => data[index] as TDatum),
     sourceIndexes: indexes,
     ...reducePreparedOutputs<TDatum, TOutputs>(
       data,
       indexes,
-      key,
+      group,
       preparedOutputs,
     ),
-  }))
+  })) as GroupByDatum<TDatum, TBy, TOutputs>[]
 }

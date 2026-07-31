@@ -1,35 +1,27 @@
+import type { TransformGroupSpec, TransformValue } from './transform'
 import {
-  type TransformKey,
-  type TransformValue,
-  type TransformValueOutput,
-} from './transform'
-import { groupedIndexes, toArray, transformValues } from './transform-internal'
+  materializeGroups,
+  toArray,
+  transformValues,
+} from './transform-internal'
 
 export type SelectMethod = 'first' | 'last' | 'min' | 'max'
 
-export interface SelectContext<
-  TDatum,
-  TKey extends TransformKey = TransformKey,
-> {
+export interface SelectContext<TDatum> {
   values: readonly (number | null | undefined)[]
   data: readonly TDatum[]
   indexes: readonly number[]
-  key: TKey
+  group: Readonly<Record<string, unknown>>
 }
 
 interface SelectOptionsBase<TDatum, TBy> {
   by?: TBy
 }
 
-type SelectKey<TDatum, TBy> =
-  TBy extends TransformValue<TDatum, TransformKey>
-    ? Extract<TransformValueOutput<TDatum, TBy>, TransformKey>
-    : null
-
 export type SelectOptions<
   TDatum,
-  TBy extends TransformValue<TDatum, TransformKey> | undefined =
-    TransformValue<TDatum, TransformKey> | undefined,
+  TBy extends TransformGroupSpec<TDatum> | undefined =
+    TransformGroupSpec<TDatum> | undefined,
 > = SelectOptionsBase<TDatum, TBy> &
   (
     | {
@@ -43,34 +35,29 @@ export type SelectOptions<
     | {
         value?: TransformValue<TDatum, number | null | undefined>
         select: (
-          context: SelectContext<TDatum, SelectKey<TDatum, TBy>>,
+          context: SelectContext<TDatum>,
         ) => number | readonly number[] | undefined
       }
   )
 
 export function select<
   TDatum,
-  const TBy extends TransformValue<TDatum, TransformKey> | undefined =
-    undefined,
+  const TBy extends TransformGroupSpec<TDatum> | undefined = undefined,
 >(source: Iterable<TDatum>, options: SelectOptions<TDatum, TBy>): TDatum[] {
   const data = toArray(source)
-  const keys =
-    options.by !== undefined
-      ? transformValues(data, options.by)
-      : data.map(() => null)
   const values =
     options.value !== undefined
       ? transformValues(data, options.value)
       : data.map(() => undefined)
   const selected: number[] = []
 
-  for (const { key, indexes } of groupedIndexes(keys)) {
+  for (const { group, indexes } of materializeGroups(data, options.by)) {
     if (typeof options.select === 'function') {
       const result = options.select({
         values: indexes.map((index) => values[index]),
         data: indexes.map((index) => data[index] as TDatum),
         indexes,
-        key: key as SelectKey<TDatum, TBy>,
+        group,
       })
       const allowed = new Set(indexes)
       if (typeof result === 'number') {

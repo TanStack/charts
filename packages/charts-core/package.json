@@ -70,8 +70,13 @@
     "./stack": "./src/stack.ts",
     "./transform": "./src/transform.ts",
     "./transform/bin": "./src/transform-bin.ts",
+    "./transform/bin-time": "./src/transform-bin-time.ts",
+    "./transform/bin-xy": "./src/transform-bin-xy.ts",
+    "./transform/cumulative": "./src/transform-cumulative.ts",
     "./transform/group": "./src/transform-group.ts",
     "./transform/normalize": "./src/transform-normalize.ts",
+    "./transform/rank": "./src/transform-rank.ts",
+    "./transform/reduce": "./src/transform-reduce.ts",
     "./transform/select": "./src/transform-select.ts",
     "./transform/stack": "./src/transform-stack.ts",
     "./transform/window": "./src/transform-window.ts",
@@ -244,6 +249,18 @@
         "types": "./dist/transform-bin.d.ts",
         "import": "./dist/transform-bin.js"
       },
+      "./transform/bin-time": {
+        "types": "./dist/transform-bin-time.d.ts",
+        "import": "./dist/transform-bin-time.js"
+      },
+      "./transform/bin-xy": {
+        "types": "./dist/transform-bin-xy.d.ts",
+        "import": "./dist/transform-bin-xy.js"
+      },
+      "./transform/cumulative": {
+        "types": "./dist/transform-cumulative.d.ts",
+        "import": "./dist/transform-cumulative.js"
+      },
       "./transform/group": {
         "types": "./dist/transform-group.d.ts",
         "import": "./dist/transform-group.js"
@@ -251,6 +268,14 @@
       "./transform/normalize": {
         "types": "./dist/transform-normalize.d.ts",
         "import": "./dist/transform-normalize.js"
+      },
+      "./transform/rank": {
+        "types": "./dist/transform-rank.d.ts",
+        "import": "./dist/transform-rank.js"
+      },
+      "./transform/reduce": {
+        "types": "./dist/transform-reduce.d.ts",
+        "import": "./dist/transform-reduce.js"
       },
       "./transform/select": {
         "types": "./dist/transform-select.d.ts",

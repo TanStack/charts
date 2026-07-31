@@ -30,7 +30,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/guides/themes-and-styling.md — Themes and Styling: Apply automatic light and dark color behavior, CSS palette tokens, mark styles, and renderer-aware resources.
 - docs/guides/accessibility.md — Accessibility: Give charts useful names, keyboard-equivalent interaction, reduced motion, redundant encodings, and exact-value alternatives.
 - docs/guides/dynamic-data-and-animation.md — Dynamic Data and Animation: Recreate memoized definitions when application values change and animate keyed geometry safely.
-- docs/guides/transforms-and-reactivity.md — Transforms and Reactivity: Derive typed chart rows with explicit transforms and memoize them through application reactivity.
+- docs/guides/transforms-and-reactivity.md — Transforms and Reactivity: Derive typed rows once and memoize them where the data is owned.
 - docs/guides/tooltips-and-focus.md — Tooltips and Focus: Configure grouped focus, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
 - docs/guides/interactions-and-selections.md — Interactions and Selections: Build controlled cursors, linked selections, brushes, zooming, scrolling, timelines, and editors around semantic chart state.
 - docs/guides/faceting-and-composition.md — Faceting and Composition: Layer marks, repeat a shared chart by group, and coordinate multiple views without introducing a fixed chart-type model.
@@ -61,7 +61,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/reference/index.md — API Reference: Reference for TanStack Charts definitions, marks, scales, runtime, rendering, interaction, and framework adapters.
 - docs/reference/chart-definitions.md — Chart Definition API: Reference static and responsive chart definitions, build context, and identity-based updates.
 - docs/reference/chart-spec.md — Chart Spec: Reference for marks, axes, color, gradients, clipping, margins, guides, and themes in a TanStack Charts spec.
-- docs/reference/transforms.md — Data Transforms: Public group, bin, window, normalize, select, stack-row, reducer, lineage, and custom transform contracts.
+- docs/reference/transforms.md — Data Transforms: Typed, eager transforms for reusable application data.
 - docs/reference/scales-guides-and-color.md — Scales, Guides, and Color: Reference for injected positional scales, automatic axes and margins, color scales, legends, themes, and gradients.
 - docs/reference/dom-host.md — DOM Host: Mount, update, size, interact with, and destroy a TanStack Chart in a browser DOM container.
 - docs/reference/adapter-controller.md — Adapter Controller: Build framework adapters over shared prerender, mount, update, layout, scene access, and cleanup behavior.

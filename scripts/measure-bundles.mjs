@@ -34,6 +34,41 @@ const entries = [
     'Granular data transform suite',
     'benchmarks/entries/charts-transform-suite.ts',
   ),
+  measured(
+    'Transform: numeric bin',
+    'benchmarks/entries/charts-transform-bin.ts',
+  ),
+  measured(
+    'Transform: 2D bin',
+    'benchmarks/entries/charts-transform-bin-xy.ts',
+  ),
+  measured(
+    'Transform: calendar bin',
+    'benchmarks/entries/charts-transform-bin-time.ts',
+  ),
+  measured('Transform: group', 'benchmarks/entries/charts-transform-group.ts'),
+  measured(
+    'Transform: window',
+    'benchmarks/entries/charts-transform-window.ts',
+  ),
+  measured(
+    'Transform: cumulative',
+    'benchmarks/entries/charts-transform-cumulative.ts',
+  ),
+  measured('Transform: rank', 'benchmarks/entries/charts-transform-rank.ts'),
+  measured(
+    'Transform: normalize',
+    'benchmarks/entries/charts-transform-normalize.ts',
+  ),
+  measured(
+    'Transform: select',
+    'benchmarks/entries/charts-transform-select.ts',
+  ),
+  measured('Transform: stack', 'benchmarks/entries/charts-transform-stack.ts'),
+  measured(
+    'Transform: advanced reducers',
+    'benchmarks/entries/charts-transform-reduce.ts',
+  ),
   locked('D3-scale line scene', 'benchmarks/entries/charts-core.ts'),
   locked('D3-scale line + static SVG', 'benchmarks/entries/charts-svg.ts', {
     rendererBoundary: 'svg',

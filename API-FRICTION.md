@@ -3830,16 +3830,25 @@ Each entry records:
   private legacy package exposed a different options-rewriting transform model.
   Authors had no public typed path for common reductions, no consistent source
   lineage, and no clear distinction between reusable stack rows and mark-local
-  stack/group layout.
-- Decision: expose eager data-first `groupBy`, `binX`/`binY`, `window`,
-  `normalize`, `select`, and `stackRowsX`/`stackRowsY` helpers. Accessors and
-  reducers use object bags; aggregations retain source rows and indexes;
-  `transformData` composes custom stages. Framework primitives own memoization,
-  while `stack()` and `group()` remain mark layouts.
-- Verification: focused unit and type tests cover callback inference, compound
-  keys, aligned grouped bins, rolling lineage, normalization, selection, and
-  shared stack semantics. Four conformance cases use the public helpers, the
-  histogram bundle uses `binX`, granular entry points are packed, and the
-  transform suite is measured independently by the bundle audit. The private
-  legacy transform export and its 402 lines of duplicate implementation/tests
-  are removed.
+  stack/group layout. The first public pass then exposed opaque `key` tuples,
+  nested `datum.datum` paths, input-order-only windows, and implicit reducer
+  defaults. Real heatmap, cumulative histogram, ECDF, bump, Bollinger, and
+  temporal aggregation cases still required one-off D3 glue.
+- Decision: expose eager data-first grouping, numeric and temporal binning,
+  two-dimensional binning, window, cumulative, rank, normalize, select, and
+  stack-row helpers. Group fields are named. One-to-one transforms extend flat
+  input rows. Windowed operations accept explicit ordering. Every output names
+  its reducer. Common reductions use compact string names; descriptive,
+  dispersion, endpoint, change, ratio, and quantile reducers are separately
+  tree-shakeable functions. Ordinary functions
+  are the custom composition escape hatch; there is no `transformData`
+  protocol or hidden reactive graph. `stack()` and `group()` remain mark
+  layouts.
+- Verification: focused unit and type tests cover callback inference, named
+  compound groups, aligned grouped and two-dimensional bins, calendar-aligned
+  empty periods, ordered rolling and cumulative lineage, ranks, quantiles,
+  normalization, selection, and shared stack semantics. Conformance consumers
+  use flat rows directly. Each transform family has a packed granular entry and
+  independent bundle measurement; ordinary mark entries remain protected by
+  exact baselines. The private legacy transform export and its 402 lines of
+  duplicate implementation/tests remain removed.

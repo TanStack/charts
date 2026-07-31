@@ -1,4 +1,4 @@
-import type { TransformKey, TransformValue } from './transform'
+import type { TransformValue } from './transform'
 
 export type TransformNumericReducer = 'count' | 'sum' | 'mean' | 'min' | 'max'
 
@@ -6,17 +6,23 @@ export interface TransformReduceContext<TDatum> {
   values: readonly number[]
   data: readonly TDatum[]
   indexes: readonly number[]
-  key: TransformKey
+  group: Readonly<Record<string, unknown>>
 }
 
 export type TransformReducer<TDatum, TResult = unknown> =
   | TransformNumericReducer
   | ((context: TransformReduceContext<TDatum>) => TResult)
 
-export interface TransformOutputSpec<TDatum, TResult = unknown> {
-  value?: TransformValue<TDatum, number | null | undefined>
-  reduce?: TransformReducer<TDatum, TResult>
-}
+export type TransformOutputSpec<TDatum, TResult = unknown> =
+  | { reduce: 'count'; value?: never }
+  | {
+      value: TransformValue<TDatum, number | null | undefined>
+      reduce: TransformNumericReducer
+    }
+  | {
+      value?: TransformValue<TDatum, number | null | undefined>
+      reduce: (context: TransformReduceContext<TDatum>) => TResult
+    }
 
 export type TransformOutputs<TDatum> = Record<
   string,
@@ -31,4 +37,57 @@ export type TransformOutputValue<TSpec> = TSpec extends {
 
 export type TransformOutputRow<TOutputs> = {
   readonly [TKey in keyof TOutputs]: TransformOutputValue<TOutputs[TKey]>
+}
+
+export function quantile<TDatum>(
+  probability: number,
+): (context: TransformReduceContext<TDatum>) => number {
+  if (!Number.isFinite(probability) || probability < 0 || probability > 1) {
+    throw new TypeError('quantile: probability must be between zero and one')
+  }
+  return ({ values }) => {
+    if (!values.length) return Number.NaN
+    const sorted = [...values].sort((left, right) => left - right)
+    const position = (sorted.length - 1) * probability
+    const lower = Math.floor(position)
+    const upper = Math.ceil(position)
+    const start = sorted[lower] as number
+    const end = sorted[upper] as number
+    return start + (end - start) * (position - lower)
+  }
+}
+
+export function median(context: TransformReduceContext<unknown>): number {
+  return quantile(0.5)(context)
+}
+
+export function variance({ values }: TransformReduceContext<unknown>): number {
+  if (values.length < 2) return Number.NaN
+  const mean = values.reduce((total, value) => total + value, 0) / values.length
+  return (
+    values.reduce((total, value) => total + (value - mean) ** 2, 0) /
+    (values.length - 1)
+  )
+}
+
+export function deviation(context: TransformReduceContext<unknown>): number {
+  return Math.sqrt(variance(context))
+}
+
+export function first({ values }: TransformReduceContext<unknown>): number {
+  return values[0] ?? Number.NaN
+}
+
+export function last({ values }: TransformReduceContext<unknown>): number {
+  return values.at(-1) ?? Number.NaN
+}
+
+export function difference({
+  values,
+}: TransformReduceContext<unknown>): number {
+  return (values.at(-1) ?? Number.NaN) - (values[0] ?? Number.NaN)
+}
+
+export function ratio({ values }: TransformReduceContext<unknown>): number {
+  return (values.at(-1) ?? Number.NaN) / (values[0] ?? Number.NaN)
 }

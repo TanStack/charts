@@ -23,13 +23,13 @@ const definition = () => {
   return defineChart({
     marks: [
       barY(rows, {
-        x: 'key',
+        x: 'species',
         y: 'meanBodyMass',
         fill: '#0ea5e9',
         inset: 1,
       }),
       text(rows, {
-        x: 'key',
+        x: 'species',
         y: 'meanBodyMass',
         text: (row) => formatMass(row.meanBodyMass),
         fill: '#0c4a6e',

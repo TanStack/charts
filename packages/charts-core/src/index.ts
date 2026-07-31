@@ -50,27 +50,35 @@ export type {
   StackOptions,
   StackOrder,
 } from './stack'
-export { transformData } from './transform'
 export type {
-  DataTransform,
-  DataTransformContext,
   TransformAccessor,
   TransformAccessorContext,
   TransformField,
+  TransformGroupRow,
+  TransformGroupSpec,
   TransformKey,
   TransformLineage,
+  TransformOrder,
+  TransformOrderOptions,
   TransformValue,
   TransformValueOutput,
 } from './transform'
 export { groupBy } from './transform-group'
 export type { GroupByDatum, GroupByOptions } from './transform-group'
 export { binX, binY } from './transform-bin'
-export type { BinKey, BinOptions, BinXDatum, BinYDatum } from './transform-bin'
+export type { BinOptions, BinXDatum, BinYDatum } from './transform-bin'
+export { binXY } from './transform-bin-xy'
+export type { BinXYDatum, BinXYOptions } from './transform-bin-xy'
+export { binTimeX, binTimeY } from './transform-bin-time'
+export type {
+  BinTimeDatum,
+  BinTimeOptions,
+  TimeIntervalLike,
+} from './transform-bin-time'
 export { window } from './transform-window'
 export type {
   WindowAnchor,
   WindowDatum,
-  WindowKey,
   WindowOptions,
 } from './transform-window'
 export { normalize } from './transform-normalize'
@@ -78,9 +86,12 @@ export type {
   NormalizeBasis,
   NormalizeContext,
   NormalizeDatum,
-  NormalizeKey,
   NormalizeOptions,
 } from './transform-normalize'
+export { cumulative } from './transform-cumulative'
+export type { CumulativeDatum, CumulativeOptions } from './transform-cumulative'
+export { rank } from './transform-rank'
+export type { RankDatum, RankOptions, RankTies } from './transform-rank'
 export { select } from './transform-select'
 export type {
   SelectContext,
@@ -101,6 +112,16 @@ export type {
   TransformOutputs,
   TransformReduceContext,
   TransformReducer,
+} from './transform-reduce'
+export {
+  deviation,
+  difference,
+  first,
+  last,
+  median,
+  quantile,
+  ratio,
+  variance,
 } from './transform-reduce'
 export { ruleX, ruleY } from './rule'
 export type { RuleXOptions, RuleYOptions } from './rule'

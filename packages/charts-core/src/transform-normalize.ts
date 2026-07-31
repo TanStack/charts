@@ -1,70 +1,60 @@
-import {
-  type TransformKey,
-  type TransformLineage,
-  type TransformValue,
-  type TransformValueOutput,
+import type {
+  TransformGroupSpec,
+  TransformLineage,
+  TransformValue,
 } from './transform'
-import { groupedIndexes, toArray, transformValues } from './transform-internal'
+import {
+  materializeGroups,
+  toArray,
+  transformValues,
+} from './transform-internal'
 
 export type NormalizeBasis = 'sum' | 'max' | 'extent' | 'first' | 'last'
 
-export interface NormalizeContext<
-  TDatum,
-  TKey extends TransformKey = TransformKey,
-> {
+export interface NormalizeContext<TDatum> {
   values: readonly number[]
   data: readonly TDatum[]
   indexes: readonly number[]
-  key: TKey
+  group: Readonly<Record<string, unknown>>
 }
 
 export interface NormalizeOptions<
   TDatum,
   TValue extends TransformValue<TDatum, number | null | undefined> =
     TransformValue<TDatum, number | null | undefined>,
-  TBy extends TransformValue<TDatum, TransformKey> | undefined =
-    TransformValue<TDatum, TransformKey> | undefined,
+  TBy extends TransformGroupSpec<TDatum> | undefined =
+    TransformGroupSpec<TDatum> | undefined,
+  TAs extends string = string,
 > {
   value: TValue
   by?: TBy
-  basis?:
-    | NormalizeBasis
-    | ((context: NormalizeContext<TDatum, NormalizeKey<TDatum, TBy>>) => number)
+  as?: TAs
+  basis?: NormalizeBasis | ((context: NormalizeContext<TDatum>) => number)
 }
 
-export type NormalizeKey<TDatum, TBy> =
-  TBy extends TransformValue<TDatum, TransformKey>
-    ? Extract<TransformValueOutput<TDatum, TBy>, TransformKey>
-    : null
-
-export interface NormalizeDatum<
+export type NormalizeDatum<TDatum, TAs extends string> = Omit<
   TDatum,
-  TKey extends TransformKey,
-> extends TransformLineage<TDatum> {
-  readonly datum: TDatum
-  readonly index: number
-  readonly key: TKey
-  readonly value: number
-}
+  TAs | keyof TransformLineage<TDatum>
+> &
+  TransformLineage<TDatum> & { readonly [TKey in TAs]: number }
 
 export function normalize<
-  TDatum,
+  TDatum extends object,
   const TValue extends TransformValue<TDatum, number | null | undefined>,
-  const TBy extends TransformValue<TDatum, TransformKey> | undefined =
-    undefined,
+  const TBy extends TransformGroupSpec<TDatum> | undefined = undefined,
+  const TAs extends string = 'normalized',
 >(
   source: Iterable<TDatum>,
-  options: NormalizeOptions<TDatum, TValue, TBy>,
-): NormalizeDatum<TDatum, NormalizeKey<TDatum, TBy>>[] {
+  options: NormalizeOptions<TDatum, TValue, TBy, TAs>,
+): NormalizeDatum<TDatum, TAs>[] {
   const data = toArray(source)
   const rawValues = transformValues(data, options.value)
-  const keys =
-    options.by !== undefined
-      ? transformValues(data, options.by)
-      : data.map(() => null)
-  const output: NormalizeDatum<TDatum, NormalizeKey<TDatum, TBy>>[] = []
-
-  for (const { key, indexes } of groupedIndexes(keys)) {
+  const outputName = options.as ?? 'normalized'
+  if (outputName === 'source' || outputName === 'sourceIndexes') {
+    throw new TypeError(`normalize: output name "${outputName}" is reserved`)
+  }
+  const output: NormalizeDatum<TDatum, TAs>[] = []
+  for (const { group, indexes } of materializeGroups(data, options.by)) {
     const validIndexes = indexes.filter((index) =>
       isFiniteNumber(rawValues[index]),
     )
@@ -73,35 +63,29 @@ export function normalize<
     const basis = options.basis ?? 'sum'
     const denominator =
       typeof basis === 'function'
-        ? basis({
-            values,
-            data: groupData,
-            indexes: validIndexes,
-            key: key as NormalizeKey<TDatum, TBy>,
-          })
+        ? basis({ values, data: groupData, indexes: validIndexes, group })
         : resolveDenominator(values, basis)
     const minimum =
       basis === 'extent' && values.length ? Math.min(...values) : 0
     for (const index of validIndexes) {
       const rawValue = rawValues[index] as number
+      const normalized =
+        basis === 'extent'
+          ? denominator === 0
+            ? 0
+            : (rawValue - minimum) / denominator
+          : denominator === 0
+            ? 0
+            : rawValue / denominator
       output.push({
-        datum: data[index] as TDatum,
-        index,
-        key: key as NormalizeKey<TDatum, TBy>,
-        value:
-          basis === 'extent'
-            ? denominator === 0
-              ? 0
-              : (rawValue - minimum) / denominator
-            : denominator === 0
-              ? 0
-              : rawValue / denominator,
+        ...(data[index] as TDatum),
+        [outputName]: normalized,
         source: [data[index] as TDatum],
         sourceIndexes: [index],
-      })
+      } as NormalizeDatum<TDatum, TAs>)
     }
   }
-  return output.sort((left, right) => left.index - right.index)
+  return output
 }
 
 function resolveDenominator(values: readonly number[], basis: NormalizeBasis) {

@@ -1,4 +1,3 @@
-import type { TransformKey } from './transform'
 import { transformValues } from './transform-internal'
 import type {
   TransformOutputRow,
@@ -58,12 +57,12 @@ export function assertTransformOutputNames(
 export function reducePreparedOutputs<TDatum, TOutputs>(
   data: readonly TDatum[],
   indexes: readonly number[],
-  key: TransformKey,
+  group: Readonly<Record<string, unknown>>,
   outputs: PreparedTransformOutputs<TDatum>,
 ): TransformOutputRow<TOutputs> {
   const entries = Object.entries(outputs).map(([name, output]) => [
     name,
-    reducePreparedOutput(data, indexes, key, output),
+    reducePreparedOutput(data, indexes, group, output),
   ])
   return Object.fromEntries(entries) as TransformOutputRow<TOutputs>
 }
@@ -71,7 +70,7 @@ export function reducePreparedOutputs<TDatum, TOutputs>(
 function reducePreparedOutput<TDatum, TResult>(
   data: readonly TDatum[],
   indexes: readonly number[],
-  key: TransformKey,
+  group: Readonly<Record<string, unknown>>,
   output: PreparedTransformOutput<TDatum>,
 ): TResult | number {
   const values = indexes.flatMap((index) => {
@@ -81,10 +80,9 @@ function reducePreparedOutput<TDatum, TResult>(
   const selectedData = indexes.flatMap((index) =>
     index in data ? [data[index] as TDatum] : [],
   )
-  const reducer =
-    output.spec.reduce ?? (output.spec.value !== undefined ? 'sum' : 'count')
+  const reducer = output.spec.reduce
   if (typeof reducer === 'function') {
-    return reducer({ values, data: selectedData, indexes, key }) as TResult
+    return reducer({ values, data: selectedData, indexes, group }) as TResult
   }
   if (reducer === 'count') return selectedData.length
   if (!values.length) return reducer === 'sum' ? 0 : Number.NaN

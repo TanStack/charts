@@ -23,23 +23,31 @@ export type { TextAnchor, TextOptions } from './text'
 export type { TickXOptions, TickYOptions } from './tick'
 export type { VectorAnchor, VectorOptions } from './vector'
 export type {
-  DataTransform,
-  DataTransformContext,
   TransformAccessor,
   TransformAccessorContext,
   TransformField,
+  TransformGroupRow,
+  TransformGroupSpec,
   TransformKey,
   TransformLineage,
+  TransformOrder,
+  TransformOrderOptions,
   TransformValue,
   TransformValueOutput,
 } from './transform'
-export type { BinKey, BinOptions, BinXDatum, BinYDatum } from './transform-bin'
+export type { BinOptions, BinXDatum, BinYDatum } from './transform-bin'
+export type { BinXYDatum, BinXYOptions } from './transform-bin-xy'
+export type {
+  BinTimeDatum,
+  BinTimeOptions,
+  TimeIntervalLike,
+} from './transform-bin-time'
+export type { CumulativeDatum, CumulativeOptions } from './transform-cumulative'
 export type { GroupByDatum, GroupByOptions } from './transform-group'
 export type {
   NormalizeBasis,
   NormalizeContext,
   NormalizeDatum,
-  NormalizeKey,
   NormalizeOptions,
 } from './transform-normalize'
 export type {
@@ -50,6 +58,7 @@ export type {
   TransformReduceContext,
   TransformReducer,
 } from './transform-reduce'
+export type { RankDatum, RankOptions, RankTies } from './transform-rank'
 export type {
   SelectContext,
   SelectMethod,
@@ -64,7 +73,6 @@ export type {
 export type {
   WindowAnchor,
   WindowDatum,
-  WindowKey,
   WindowOptions,
 } from './transform-window'
 export type {

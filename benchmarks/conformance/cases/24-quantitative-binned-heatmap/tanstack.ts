@@ -1,6 +1,5 @@
 import { penguins } from '@charts-poc/demo-data/penguins'
-import { colorGradientLegend, defineChart, rect } from '@tanstack/charts'
-import { bin } from 'd3-array'
+import { binXY, colorGradientLegend, defineChart, rect } from '@tanstack/charts'
 import { scaleLinear, scaleSequential } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
@@ -11,53 +10,22 @@ type PenguinBill = PenguinsRow & {
   readonly culmen_depth_mm: number
 }
 
-interface QuantitativeHeatCell {
-  id: string
-  x1: number
-  x2: number
-  y1: number
-  y2: number
-  count: number
-}
-
 const xBoundaries = [30, 34, 38, 42, 46, 50, 54, 58, 62]
 const yBoundaries = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-const createXBins = bin<PenguinBill, number>()
-  .value((row) => row.culmen_length_mm)
-  .domain([30, 62])
-  .thresholds(xBoundaries.slice(1, -1))
-const createYBins = bin<PenguinBill, number>()
-  .value((row) => row.culmen_depth_mm)
-  .domain([12, 23])
-  .thresholds(yBoundaries.slice(1, -1))
-
 const definition = (input: ConformanceInput) => {
-  const cells: QuantitativeHeatCell[] = []
   const rows = penguins
     .filter((row): row is PenguinBill => {
       return row.culmen_length_mm !== null && row.culmen_depth_mm !== null
     })
     .slice(input.revision * 8, input.revision * 8 + 320)
 
-  for (const xBucket of createXBins(rows)) {
-    if (xBucket.x0 === undefined || xBucket.x1 === undefined) continue
-    for (const yBucket of createYBins(xBucket)) {
-      if (
-        yBucket.x0 === undefined ||
-        yBucket.x1 === undefined ||
-        yBucket.length === 0
-      )
-        continue
-      cells.push({
-        id: `${xBucket.x0}:${yBucket.x0}`,
-        x1: xBucket.x0,
-        x2: xBucket.x1,
-        y1: yBucket.x0,
-        y2: yBucket.x1,
-        count: yBucket.length,
-      })
-    }
-  }
+  const cells = binXY(rows, {
+    x: 'culmen_length_mm',
+    y: 'culmen_depth_mm',
+    xThresholds: xBoundaries,
+    yThresholds: yBoundaries,
+    outputs: { count: { reduce: 'count' } },
+  }).filter((cell) => cell.count > 0)
 
   return defineChart({
     marks: [
