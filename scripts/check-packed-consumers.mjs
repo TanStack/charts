@@ -1263,13 +1263,8 @@ async function verifyProductionBundles() {
     tooltipExtension: ['/@tanstack/charts/dist/tooltip.js'],
     tooltipPortal: ['/@tanstack/charts/dist/tooltip-portal.js'],
     reactTooltip: ['/@tanstack/react-charts/dist/tooltip.js'],
-    d3ScaleRuntime: [
-      '/d3-scale/',
-      '/d3-format/',
-      '/d3-interpolate/',
-      '/d3-color/',
-      '/internmap/',
-    ],
+    d3GeometryRuntime: ['/d3-geo/', '/d3-shape/'],
+    d3Runtime: ['/d3-', '/internmap/'],
   }
   const entries = [
     {
@@ -1288,6 +1283,7 @@ async function verifyProductionBundles() {
       filename: 'core.ts',
       external: [],
       rendererBoundary: 'svg',
+      inputBoundary: { forbid: ['d3GeometryRuntime'] },
       source: `
         import {
           createChartScene,
@@ -1335,7 +1331,12 @@ async function verifyProductionBundles() {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
       inputBoundary: {
-        forbid: ['tooltip', 'tooltipPortal', 'reactTooltip'],
+        forbid: [
+          'tooltip',
+          'tooltipPortal',
+          'reactTooltip',
+          'd3GeometryRuntime',
+        ],
       },
       source: `
         import { createElement } from 'react'
@@ -1391,7 +1392,7 @@ async function verifyProductionBundles() {
           'compactPoint',
           'compactBandKernel',
           'compactOrdinal',
-          'd3ScaleRuntime',
+          'd3Runtime',
         ],
       },
       source: `
@@ -1408,7 +1409,7 @@ async function verifyProductionBundles() {
           'compactLinear',
           'compactPoint',
           'compactOrdinal',
-          'd3ScaleRuntime',
+          'd3Runtime',
         ],
       },
       source: `
@@ -1421,12 +1422,7 @@ async function verifyProductionBundles() {
       external: [],
       inputBoundary: {
         require: ['compactPoint', 'compactBandKernel'],
-        forbid: [
-          'compactLinear',
-          'compactBand',
-          'compactOrdinal',
-          'd3ScaleRuntime',
-        ],
+        forbid: ['compactLinear', 'compactBand', 'compactOrdinal', 'd3Runtime'],
       },
       source: `
         export { scalePoint } from '@tanstack/charts-scales/point'
@@ -1443,7 +1439,7 @@ async function verifyProductionBundles() {
           'compactBand',
           'compactPoint',
           'compactBandKernel',
-          'd3ScaleRuntime',
+          'd3Runtime',
         ],
       },
       source: `

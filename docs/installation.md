@@ -69,6 +69,12 @@ the output of D3 transforms directly. Your application must declare every
 `d3-*` module that its source imports. Strict package managers do not expose
 transitive dependencies as an application import contract.
 
+The core package declares the `d3-array`, `d3-shape`, and `d3-geo`
+implementations owned by its numeric-bin and stack transforms, polar and D3
+curve features, and geo features. They are normal dependencies, not peer
+requirements, and bundlers remove unused algorithms and geometry from
+application bundles.
+
 A typical cartesian chart uses:
 
 ```sh

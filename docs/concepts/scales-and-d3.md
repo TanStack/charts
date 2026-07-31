@@ -13,6 +13,12 @@ TanStack Charts uses an explicit algorithm layer:
 Both scale implementations use callable, copyable scale objects. There is no
 hidden D3 umbrella import.
 
+`@tanstack/charts` declares `d3-array`, `d3-shape`, and `d3-geo` because its
+numeric-bin and stack transforms, polar and D3 curve features, and geo features
+own those implementations. They are not peers and require no `use`
+configuration. Bundlers tree-shake unused algorithms and geometry, and exact
+feature subpaths remain available when an application wants a narrower import.
+
 ## Direct dependency ownership
 
 If application source imports a `d3-*` module, declare that module and its matching TypeScript package directly:

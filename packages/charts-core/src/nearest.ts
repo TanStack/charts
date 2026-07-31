@@ -1,4 +1,3 @@
-import { least } from 'd3-array'
 import type { ChartPoint, ChartValue } from './types'
 
 export function nearestPoint<
@@ -11,13 +10,17 @@ export function nearestPoint<
   y: number,
   maxDistance: number,
 ): ChartPoint<TDatum, TXValue, TYValue> | null {
-  const result = least(points, (point) => {
+  let result: ChartPoint<TDatum, TXValue, TYValue> | undefined
+  let resultDistance = Infinity
+  for (const point of points) {
     const dx = point.x - x
     const dy = point.y - y
-    return dx * dx + dy * dy
-  })
+    const distance = dx * dx + dy * dy
+    if (distance < resultDistance) {
+      result = point
+      resultDistance = distance
+    }
+  }
   if (!result) return null
-  const dx = result.x - x
-  const dy = result.y - y
-  return dx * dx + dy * dy <= Math.max(0, maxDistance) ** 2 ? result : null
+  return resultDistance <= Math.max(0, maxDistance) ** 2 ? result : null
 }
