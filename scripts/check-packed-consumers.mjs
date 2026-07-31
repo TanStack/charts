@@ -1122,6 +1122,8 @@ async function verifyDeclarations() {
     import type {
       ChartDefinition,
       ChartScene,
+      ChartTooltipExtensionToken,
+      ChartTooltipPortalExtensionToken,
     } from '@tanstack/charts/types'
     import { scaleLinear } from 'd3-scale'
 
@@ -1149,7 +1151,15 @@ async function verifyDeclarations() {
     const tooltip: ChartTooltipOptions<Row, number, number> = {
       format: (nextPoint) => nextPoint.datum.id,
     }
-    void [point, tooltip]
+    const tooltipToken: ChartTooltipExtensionToken = {
+      id: 'host-tooltip',
+      create: () => undefined,
+    }
+    const portalToken: ChartTooltipPortalExtensionToken = {
+      id: 'host-tooltip-portal',
+      create: () => undefined,
+    }
+    void [point, tooltip, tooltipToken, portalToken]
   `
   const universalContractPath = resolve(
     fixtureDirectory,
