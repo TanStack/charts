@@ -2,14 +2,14 @@ import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { incomeStatementData } from './model'
 import { sankeyDefinition } from './tanstack'
-import type { FlowNode } from './model'
+import type { IncomeSankeyDatum } from './tanstack'
 import type { SceneNode } from '@tanstack/charts'
 
 describe('Apple income statement Sankey composition', () => {
   it('renders every flow with a flat link cap', () => {
     const input = { width: 768, height: 500, revision: 0 }
     const { links: flowLinks } = incomeStatementData(input.revision)
-    const runtime = createChartRuntime<FlowNode, string, number>()
+    const runtime = createChartRuntime<IncomeSankeyDatum, number, number>()
     const scene = runtime.render(sankeyDefinition(input), input)
     const links = flatten(scene.nodes).filter(
       (node) => node.kind === 'polyline' && node.path,

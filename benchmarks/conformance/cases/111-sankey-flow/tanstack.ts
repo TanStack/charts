@@ -1,6 +1,8 @@
-import { defineChart } from '@tanstack/charts'
-import { createMarkWithScaleValues } from '@tanstack/charts/mark/scale-values'
-import { sankey, sankeyLeft, sankeyLinkHorizontal } from 'd3-sankey'
+import { d3Curve, defineChart, link, rect, text } from '@tanstack/charts'
+import { sankey, sankeyLeft } from 'd3-sankey'
+import { scaleLinear } from 'd3-scale'
+import { curveBumpX } from 'd3-shape'
+import { labelBackdropBounds, responsiveLayout } from './layout'
 import {
   incomeStatementData,
   incomeStatementTitle,
@@ -8,7 +10,6 @@ import {
   toneColors,
 } from './model'
 import { tanstackMount } from '../../shared/mount'
-import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { SankeyGraph, SankeyLink, SankeyNode } from 'd3-sankey'
 import type { FlowLink, FlowNode, FlowTone } from './model'
 import type { ConformanceInput } from '../../types'
@@ -19,233 +20,221 @@ const toneDomain = [
   'Cost',
 ] as const satisfies readonly FlowTone[]
 
+export interface IncomeSankeyNodeRow extends FlowNode {
+  readonly kind: 'node'
+  readonly x0: number
+  readonly x1: number
+  readonly y0: number
+  readonly y1: number
+  readonly labelText: string
+  readonly labelX: number
+  readonly labelNameY: number
+  readonly labelValueY: number
+  readonly labelAnchor: 'start' | 'end'
+  readonly backdropX0: number
+  readonly backdropX1: number
+  readonly backdropY0: number
+  readonly backdropY1: number
+}
+
+export interface IncomeSankeyLinkRow extends FlowLink {
+  readonly kind: 'link'
+  readonly id: string
+  readonly sourceLabel: string
+  readonly targetLabel: string
+  readonly x1: number
+  readonly y1: number
+  readonly x2: number
+  readonly y2: number
+  readonly width: number
+}
+
+export interface IncomeSankeyTitleRow {
+  readonly kind: 'title'
+  readonly id: 'title'
+  readonly title: string
+  readonly x: number
+  readonly y: number
+}
+
+export type IncomeSankeyDatum =
+  IncomeSankeyNodeRow | IncomeSankeyLinkRow | IncomeSankeyTitleRow
+
 export const sankeyDefinition = (input: ConformanceInput) => {
   const { nodes, links } = incomeStatementData(input.revision)
 
-  return defineChart({
-    marks: [sankeyFlow(nodes, links)],
-    color: {
-      domain: toneDomain,
-      range: toneDomain.map((tone) => toneColors[tone]),
-    },
-    margin: 0,
+  return defineChart(({ width, height }) => {
+    const layout = responsiveLayout(width, height)
+    const graph = sankey<FlowNode, FlowLink>()
+      .nodeId((node) => node.id)
+      .nodeAlign(sankeyLeft)
+      .nodeSort((left, right) => left.order - right.order)
+      .nodeWidth(layout.nodeWidth)
+      .nodePadding(layout.nodePadding)
+      .extent([
+        [layout.leftMargin, layout.topMargin],
+        [width - layout.rightMargin, height - layout.bottomMargin],
+      ])
+      .iterations(32)(cloneGraph(nodes, links))
+    const nodeRows = graph.nodes.map((node) =>
+      nodeRow(node, width, layout.labelOffset, layout.labelFontSize),
+    )
+    const linkRows = graph.links.map(linkRow)
+    const backdropRows = nodeRows.filter((node) => node.labelBackdrop)
+    const titleRows: readonly IncomeSankeyTitleRow[] = [
+      {
+        kind: 'title',
+        id: 'title',
+        title: incomeStatementTitle,
+        x: width / 2,
+        y: layout.titleY,
+      },
+    ]
+
+    return {
+      marks: [
+        link(linkRows, {
+          x1: 'x1',
+          y1: 'y1',
+          x2: 'x2',
+          y2: 'y2',
+          stroke: (flow) => linkColors[flow.tone],
+          strokeOpacity: (flow) => (flow.tone === 'Neutral' ? 0.58 : 0.64),
+          strokeWidth: (flow) => flow.width,
+          lineCap: 'butt',
+          curve: d3Curve(curveBumpX),
+        }),
+        rect(nodeRows, {
+          x1: 'x0',
+          x2: 'x1',
+          y1: 'y0',
+          y2: 'y1',
+          color: 'tone',
+          inset: 0,
+        }),
+        rect(backdropRows, {
+          x1: 'backdropX0',
+          x2: 'backdropX1',
+          y1: 'backdropY0',
+          y2: 'backdropY1',
+          fill: 'var(--panel, #ffffff)',
+          fillOpacity: 0.82,
+          inset: 0,
+          radius: 1,
+        }),
+        text(nodeRows, {
+          x: 'labelX',
+          y: 'labelNameY',
+          text: 'labelText',
+          anchor: (node) => node.labelAnchor,
+          fill: 'currentColor',
+          fontSize: layout.labelFontSize,
+          fontWeight: 700,
+        }),
+        text(nodeRows, {
+          x: 'labelX',
+          y: 'labelValueY',
+          text: 'displayValue',
+          anchor: (node) => node.labelAnchor,
+          fill: 'currentColor',
+          fontSize: layout.labelFontSize,
+          fontWeight: 500,
+        }),
+        text(titleRows, {
+          x: 'x',
+          y: 'y',
+          text: 'title',
+          fill: '#155477',
+          fontSize: layout.titleFontSize,
+          fontWeight: 750,
+        }),
+      ],
+      x: { scale: scaleLinear().domain([0, width]) },
+      y: { scale: scaleLinear().domain([height, 0]) },
+      color: {
+        domain: toneDomain,
+        range: toneDomain.map((tone) => toneColors[tone]),
+      },
+      guides: false,
+      margin: 0,
+    }
   })
 }
 
-function sankeyFlow(nodes: readonly FlowNode[], links: readonly FlowLink[]) {
-  return createMarkWithScaleValues<FlowNode, string, number, never, never>(
-    ({ markIndex }) => {
-      const id = `sankey-${markIndex}`
-      const sourceNodes = new Map(nodes.map((node) => [node.id, node]))
+function nodeRow(
+  node: SankeyNode<FlowNode, FlowLink>,
+  width: number,
+  labelOffset: number,
+  labelFontSize: number,
+): IncomeSankeyNodeRow {
+  const { x0, x1, y0, y1 } = resolvedNodeBounds(node)
+  const labelOnRight = node.labelSide === 'right'
+  const labelX = labelOnRight ? x1 + labelOffset : x0 - labelOffset
+  const labelAnchor = labelOnRight ? 'start' : 'end'
+  const centerY = (y0 + y1) / 2
+  const labelText =
+    width < 720 && node.compactLabel ? node.compactLabel : node.label
+  const backdrop = labelBackdropBounds({
+    anchor: labelAnchor,
+    centerY,
+    fontSize: labelFontSize,
+    label: labelText,
+    labelX,
+    value: node.displayValue,
+  })
 
-      return {
-        id,
-        channels: {
-          color: {
-            scale: 'color',
-            values: nodes.map((node) => node.tone),
-          },
-        },
-        render: ({ chart, color, theme }) => {
-          const layout = responsiveLayout(chart.width, chart.height)
-          const graph = sankey<FlowNode, FlowLink>()
-            .nodeId((node) => node.id)
-            .nodeAlign(sankeyLeft)
-            .nodeSort((left, right) => left.order - right.order)
-            .nodeWidth(layout.nodeWidth)
-            .nodePadding(layout.nodePadding)
-            .extent([
-              [chart.x + layout.leftMargin, chart.y + layout.topMargin],
-              [
-                chart.x + chart.width - layout.rightMargin,
-                chart.y + chart.height - layout.bottomMargin,
-              ],
-            ])
-            .iterations(32)(cloneGraph(nodes, links))
-          const linkPath = sankeyLinkHorizontal<FlowNode, FlowLink>()
-          const linkNodes: SceneNode[] = []
-          const rectNodes: SceneNode[] = []
-          const labelNodes: SceneNode[] = [
-            {
-              kind: 'label',
-              key: `${id}:title`,
-              x: chart.x + chart.width / 2,
-              y: chart.y + layout.titleY,
-              text: incomeStatementTitle,
-              anchor: 'middle',
-              baseline: 'middle',
-              fontSize: layout.titleFontSize,
-              fontWeight: 750,
-              style: { fill: '#155477' },
-            },
-          ]
-          const points: ChartPoint<FlowNode, string, number>[] = []
-
-          for (const link of graph.links) {
-            const source = resolvedLinkNode(link.source, 'source')
-            const target = resolvedLinkNode(link.target, 'target')
-            const path = linkPath(link)
-            if (path === null) continue
-            linkNodes.push({
-              kind: 'polyline',
-              key: `${id}:link:${source.id}:${target.id}`,
-              points: [],
-              path,
-              style: {
-                fill: 'none',
-                stroke: linkColors[link.tone],
-                strokeOpacity: link.tone === 'Neutral' ? 0.58 : 0.64,
-                strokeWidth: Math.max(1, link.width ?? 1),
-                lineCap: 'butt',
-              },
-            })
-          }
-
-          for (const node of graph.nodes) {
-            const bounds = resolvedNodeBounds(node)
-            const datum = sourceNodes.get(node.id)
-            if (!datum) {
-              throw new TypeError(`Unknown Sankey node "${node.id}"`)
-            }
-            const fill = color(node.tone)
-            const key = `${id}:node:${node.id}`
-            const centerX = (bounds.x0 + bounds.x1) / 2
-            const centerY = (bounds.y0 + bounds.y1) / 2
-            const labelOnRight = node.labelSide === 'right'
-            const labelX = labelOnRight
-              ? bounds.x1 + layout.labelOffset
-              : bounds.x0 - layout.labelOffset
-            const labelAnchor = labelOnRight ? 'start' : 'end'
-            const label =
-              chart.width < 720 && node.compactLabel
-                ? node.compactLabel
-                : node.label
-
-            rectNodes.push({
-              kind: 'rect',
-              key,
-              x: bounds.x0,
-              y: bounds.y0,
-              width: bounds.x1 - bounds.x0,
-              height: Math.max(1, bounds.y1 - bounds.y0),
-              style: { fill },
-            })
-            if (node.labelBackdrop) {
-              const backdrop = labelBackdropBounds({
-                anchor: labelAnchor,
-                centerY,
-                fontSize: layout.labelFontSize,
-                label,
-                labelX,
-                value: node.displayValue,
-              })
-              rectNodes.push({
-                kind: 'rect',
-                key: `${key}:label-backdrop`,
-                ...backdrop,
-                radius: 1,
-                style: {
-                  fill: 'var(--panel, #ffffff)',
-                  fillOpacity: 0.82,
-                },
-              })
-            }
-            labelNodes.push(
-              {
-                kind: 'label',
-                key: `${key}:name`,
-                x: labelX,
-                y: centerY - layout.labelFontSize * 0.5,
-                text: label,
-                anchor: labelAnchor,
-                baseline: 'middle',
-                fontSize: layout.labelFontSize,
-                fontWeight: 700,
-                style: { fill: theme.foreground },
-              },
-              {
-                kind: 'label',
-                key: `${key}:value`,
-                x: labelX,
-                y: centerY + layout.labelFontSize * 0.58,
-                text: node.displayValue,
-                anchor: labelAnchor,
-                baseline: 'middle',
-                fontSize: layout.labelFontSize,
-                fontWeight: 500,
-                style: { fill: theme.foreground },
-              },
-            )
-            points.push({
-              key,
-              markId: id,
-              group: node.tone,
-              groupLabel: node.tone,
-              datum,
-              datumIndex: points.length,
-              xValue: node.id,
-              yValue: node.value ?? 0,
-              x: centerX,
-              y: centerY,
-              color: fill,
-            })
-          }
-
-          return {
-            nodes: [
-              sceneGroup(`${id}:links`, 'ts-chart__link', linkNodes),
-              sceneGroup(`${id}:nodes`, 'ts-chart__rect', rectNodes),
-              sceneGroup(`${id}:labels`, 'ts-chart__text', labelNodes),
-            ],
-            points,
-          }
-        },
-      }
-    },
-  )
-}
-
-function responsiveLayout(width: number, height: number) {
   return {
-    leftMargin: clamp(width * 0.15, 56, 122),
-    rightMargin: clamp(width * 0.13, 48, 105),
-    topMargin: clamp(height * 0.14, 38, 70),
-    bottomMargin: clamp(height * 0.025, 8, 14),
-    nodeWidth: clamp(width * 0.032, 10, 24),
-    nodePadding: clamp(height * 0.11, 12, 40),
-    labelFontSize: clamp(width * 0.013, 6.5, 10.5),
-    labelOffset: clamp(width * 0.008, 3, 6),
-    titleFontSize: clamp(width * 0.034, 14, 26),
-    titleY: clamp(height * 0.065, 17, 32),
+    kind: 'node',
+    id: node.id,
+    label: node.label,
+    compactLabel: node.compactLabel,
+    value: node.value,
+    displayValue: node.displayValue,
+    tone: node.tone,
+    order: node.order,
+    labelSide: node.labelSide,
+    labelBackdrop: node.labelBackdrop,
+    x0,
+    x1,
+    y0,
+    y1,
+    labelText,
+    labelX,
+    labelNameY: centerY - labelFontSize * 0.5,
+    labelValueY: centerY + labelFontSize * 0.58,
+    labelAnchor,
+    backdropX0: backdrop.x,
+    backdropX1: backdrop.x + backdrop.width,
+    backdropY0: backdrop.y,
+    backdropY1: backdrop.y + backdrop.height,
   }
 }
 
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.min(maximum, Math.max(minimum, value))
-}
+function linkRow(flow: SankeyLink<FlowNode, FlowLink>): IncomeSankeyLinkRow {
+  const source = resolvedLinkNode(flow.source, 'source')
+  const target = resolvedLinkNode(flow.target, 'target')
+  const y1 = flow.y0
+  const y2 = flow.y1
+  if (y1 === undefined || y2 === undefined) {
+    throw new TypeError(
+      `Sankey link "${source.id} → ${target.id}" has no layout`,
+    )
+  }
 
-function labelBackdropBounds(options: {
-  anchor: 'start' | 'end'
-  centerY: number
-  fontSize: number
-  label: string
-  labelX: number
-  value: string
-}) {
-  const width =
-    Math.max(options.label.length, options.value.length) *
-      options.fontSize *
-      0.58 +
-    5
-  const height = options.fontSize * 2.25
   return {
-    x:
-      options.anchor === 'start'
-        ? options.labelX - 2
-        : options.labelX - width + 2,
-    y: options.centerY - height / 2,
-    width,
-    height,
+    kind: 'link',
+    id: `${source.id}:${target.id}`,
+    source: source.id,
+    target: target.id,
+    sourceLabel: source.label,
+    targetLabel: target.label,
+    value: flow.value,
+    tone: flow.tone,
+    x1: resolvedNodeBounds(source).x1,
+    y1,
+    x2: resolvedNodeBounds(target).x0,
+    y2,
+    width: Math.max(1, flow.width ?? 1),
   }
 }
 
@@ -255,7 +244,7 @@ function cloneGraph(
 ): SankeyGraph<FlowNode, FlowLink> {
   return {
     nodes: nodes.map((node) => ({ ...node })),
-    links: links.map((link) => ({ ...link })),
+    links: links.map((flow) => ({ ...flow })),
   }
 }
 
@@ -280,20 +269,10 @@ function resolvedNodeBounds(node: SankeyNode<FlowNode, FlowLink>) {
   return { x0, x1, y0, y1 }
 }
 
-function sceneGroup(
-  key: string,
-  className: string,
-  children: readonly SceneNode[],
-): SceneNode {
-  return {
-    kind: 'group',
-    key,
-    className,
-    ariaHidden: true,
-    children,
-  }
-}
-
 export const mount = tanstackMount(sankeyDefinition, incomeStatementTitle, {
-  format: ({ datum }) => `${datum.label} · ${datum.displayValue}`,
+  format: ({ datum }) => {
+    if (datum.kind === 'title') return datum.title
+    if (datum.kind === 'node') return `${datum.label} · ${datum.displayValue}`
+    return `${datum.sourceLabel} → ${datum.targetLabel} · ${datum.value}`
+  },
 })

@@ -1,151 +1,149 @@
-import { defineChart } from '@tanstack/charts'
-import { createMarkWithScaleValues } from '@tanstack/charts/mark/scale-values'
-import { sankey, sankeyLeft, sankeyLinkHorizontal } from 'd3-sankey'
+import { d3Curve, defineChart, link, rect, text } from '@tanstack/charts'
+import { sankey, sankeyLeft } from 'd3-sankey'
+import { scaleLinear } from 'd3-scale'
+import { curveBumpX } from 'd3-shape'
+import { responsiveLayout } from './layout'
 import { basicSankeyData } from './model'
 import { tanstackMount } from '../../shared/mount'
-import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { SankeyGraph, SankeyLink, SankeyNode } from 'd3-sankey'
 import type { ConformanceInput } from '../../types'
 import type { BasicFlowLink, BasicFlowNode } from './model'
 
+export interface BasicSankeyNodeRow extends BasicFlowNode {
+  readonly kind: 'node'
+  readonly value: number
+  readonly x0: number
+  readonly x1: number
+  readonly y0: number
+  readonly y1: number
+  readonly labelX: number
+  readonly labelY: number
+  readonly labelAnchor: 'start' | 'end'
+}
+
+export interface BasicSankeyLinkRow extends BasicFlowLink {
+  readonly kind: 'link'
+  readonly id: string
+  readonly sourceLabel: string
+  readonly targetLabel: string
+  readonly x1: number
+  readonly y1: number
+  readonly x2: number
+  readonly y2: number
+  readonly width: number
+}
+
+export type BasicSankeyDatum = BasicSankeyNodeRow | BasicSankeyLinkRow
+
 export const basicSankeyDefinition = (input: ConformanceInput) => {
   const { nodes, links } = basicSankeyData(input.revision)
 
-  return defineChart({
-    marks: [basicSankey(nodes, links)],
-    margin: 0,
+  return defineChart(({ width, height }) => {
+    const layout = responsiveLayout(width, height)
+    const graph = sankey<BasicFlowNode, BasicFlowLink>()
+      .nodeId((node) => node.id)
+      .nodeAlign(sankeyLeft)
+      .nodeWidth(layout.nodeWidth)
+      .nodePadding(layout.nodePadding)
+      .extent([
+        [layout.sideMargin, layout.verticalMargin],
+        [width - layout.sideMargin, height - layout.verticalMargin],
+      ])
+      .iterations(16)(cloneGraph(nodes, links))
+    const nodeRows = graph.nodes.map((node) =>
+      nodeRow(node, layout.labelOffset),
+    )
+    const linkRows = graph.links.map(linkRow)
+
+    return {
+      marks: [
+        link(linkRows, {
+          x1: 'x1',
+          y1: 'y1',
+          x2: 'x2',
+          y2: 'y2',
+          stroke: 'currentColor',
+          strokeOpacity: 0.35,
+          strokeWidth: (flow) => flow.width,
+          lineCap: 'butt',
+          curve: d3Curve(curveBumpX),
+        }),
+        rect(nodeRows, {
+          x1: 'x0',
+          x2: 'x1',
+          y1: 'y0',
+          y2: 'y1',
+          fill: 'currentColor',
+          fillOpacity: 0.72,
+          inset: 0,
+        }),
+        text(nodeRows, {
+          x: 'labelX',
+          y: 'labelY',
+          text: 'label',
+          anchor: (node) => node.labelAnchor,
+          fill: 'currentColor',
+          fontSize: layout.labelFontSize,
+          fontWeight: 650,
+        }),
+      ],
+      x: { scale: scaleLinear().domain([0, width]) },
+      y: { scale: scaleLinear().domain([height, 0]) },
+      guides: false,
+      margin: 0,
+    }
   })
 }
 
-function basicSankey(
-  nodes: readonly BasicFlowNode[],
-  links: readonly BasicFlowLink[],
-) {
-  return createMarkWithScaleValues<BasicFlowNode, string, number, never, never>(
-    ({ markIndex }) => {
-      const id = `basic-sankey-${markIndex}`
-      const sourceNodes = new Map(nodes.map((node) => [node.id, node]))
+function nodeRow(
+  node: SankeyNode<BasicFlowNode, BasicFlowLink>,
+  labelOffset: number,
+): BasicSankeyNodeRow {
+  const { x0, x1, y0, y1 } = resolvedNodeBounds(node)
+  const labelOnRight = node.depth !== 0
 
-      return {
-        id,
-        channels: {},
-        render: ({ chart, theme }) => {
-          const layout = responsiveLayout(chart.width, chart.height)
-          const graph = sankey<BasicFlowNode, BasicFlowLink>()
-            .nodeId((node) => node.id)
-            .nodeAlign(sankeyLeft)
-            .nodeWidth(layout.nodeWidth)
-            .nodePadding(layout.nodePadding)
-            .extent([
-              [chart.x + layout.sideMargin, chart.y + layout.verticalMargin],
-              [
-                chart.x + chart.width - layout.sideMargin,
-                chart.y + chart.height - layout.verticalMargin,
-              ],
-            ])
-            .iterations(16)(cloneGraph(nodes, links))
-          const linkPath = sankeyLinkHorizontal<BasicFlowNode, BasicFlowLink>()
-          const linkNodes: SceneNode[] = []
-          const rectNodes: SceneNode[] = []
-          const labelNodes: SceneNode[] = []
-          const points: ChartPoint<BasicFlowNode, string, number>[] = []
-
-          for (const link of graph.links) {
-            const source = resolvedLinkNode(link.source, 'source')
-            const target = resolvedLinkNode(link.target, 'target')
-            const path = linkPath(link)
-            if (path === null) continue
-            linkNodes.push({
-              kind: 'polyline',
-              key: `${id}:link:${source.id}:${target.id}`,
-              points: [],
-              path,
-              style: {
-                fill: 'none',
-                stroke: theme.muted,
-                strokeOpacity: 0.35,
-                strokeWidth: Math.max(1, link.width ?? 1),
-                lineCap: 'butt',
-              },
-            })
-          }
-
-          for (const node of graph.nodes) {
-            const bounds = resolvedNodeBounds(node)
-            const datum = sourceNodes.get(node.id)
-            if (!datum) {
-              throw new TypeError(`Unknown Sankey node "${node.id}"`)
-            }
-            const key = `${id}:node:${node.id}`
-            const labelOnRight = node.depth !== 0
-            const centerX = (bounds.x0 + bounds.x1) / 2
-            const centerY = (bounds.y0 + bounds.y1) / 2
-
-            rectNodes.push({
-              kind: 'rect',
-              key,
-              x: bounds.x0,
-              y: bounds.y0,
-              width: bounds.x1 - bounds.x0,
-              height: Math.max(1, bounds.y1 - bounds.y0),
-              style: { fill: theme.foreground, fillOpacity: 0.72 },
-            })
-            labelNodes.push({
-              kind: 'label',
-              key: `${key}:label`,
-              x: labelOnRight
-                ? bounds.x1 + layout.labelOffset
-                : bounds.x0 - layout.labelOffset,
-              y: centerY,
-              text: node.label,
-              anchor: labelOnRight ? 'start' : 'end',
-              baseline: 'middle',
-              fontSize: layout.labelFontSize,
-              fontWeight: 650,
-              style: { fill: theme.foreground },
-            })
-            points.push({
-              key,
-              markId: id,
-              group: 'Flow',
-              groupLabel: 'Flow',
-              datum,
-              datumIndex: points.length,
-              xValue: node.id,
-              yValue: node.value ?? 0,
-              x: centerX,
-              y: centerY,
-              color: theme.foreground,
-            })
-          }
-
-          return {
-            nodes: [
-              sceneGroup(`${id}:links`, 'ts-chart__link', linkNodes),
-              sceneGroup(`${id}:nodes`, 'ts-chart__rect', rectNodes),
-              sceneGroup(`${id}:labels`, 'ts-chart__text', labelNodes),
-            ],
-            points,
-          }
-        },
-      }
-    },
-  )
-}
-
-function responsiveLayout(width: number, height: number) {
   return {
-    sideMargin: clamp(width * 0.14, 48, 82),
-    verticalMargin: clamp(height * 0.1, 18, 32),
-    nodeWidth: clamp(width * 0.025, 10, 18),
-    nodePadding: clamp(height * 0.12, 18, 38),
-    labelFontSize: clamp(width * 0.018, 8, 12),
-    labelOffset: clamp(width * 0.012, 4, 8),
+    kind: 'node',
+    id: node.id,
+    label: node.label,
+    value: node.value ?? 0,
+    x0,
+    x1,
+    y0,
+    y1,
+    labelX: labelOnRight ? x1 + labelOffset : x0 - labelOffset,
+    labelY: (y0 + y1) / 2,
+    labelAnchor: labelOnRight ? 'start' : 'end',
   }
 }
 
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.min(maximum, Math.max(minimum, value))
+function linkRow(
+  flow: SankeyLink<BasicFlowNode, BasicFlowLink>,
+): BasicSankeyLinkRow {
+  const source = resolvedLinkNode(flow.source, 'source')
+  const target = resolvedLinkNode(flow.target, 'target')
+  const y1 = flow.y0
+  const y2 = flow.y1
+  if (y1 === undefined || y2 === undefined) {
+    throw new TypeError(
+      `Sankey link "${source.id} → ${target.id}" has no layout`,
+    )
+  }
+
+  return {
+    kind: 'link',
+    id: `${source.id}:${target.id}`,
+    source: source.id,
+    target: target.id,
+    sourceLabel: source.label,
+    targetLabel: target.label,
+    value: flow.value,
+    x1: resolvedNodeBounds(source).x1,
+    y1,
+    x2: resolvedNodeBounds(target).x0,
+    y2,
+    width: Math.max(1, flow.width ?? 1),
+  }
 }
 
 function cloneGraph(
@@ -154,7 +152,7 @@ function cloneGraph(
 ): SankeyGraph<BasicFlowNode, BasicFlowLink> {
   return {
     nodes: nodes.map((node) => ({ ...node })),
-    links: links.map((link) => ({ ...link })),
+    links: links.map((flow) => ({ ...flow })),
   }
 }
 
@@ -179,20 +177,9 @@ function resolvedNodeBounds(node: SankeyNode<BasicFlowNode, BasicFlowLink>) {
   return { x0, x1, y0, y1 }
 }
 
-function sceneGroup(
-  key: string,
-  className: string,
-  children: readonly SceneNode[],
-): SceneNode {
-  return {
-    kind: 'group',
-    key,
-    className,
-    ariaHidden: true,
-    children,
-  }
-}
-
 export const mount = tanstackMount(basicSankeyDefinition, 'Basic Sankey', {
-  format: ({ datum }) => datum.label,
+  format: ({ datum }) =>
+    datum.kind === 'node'
+      ? `${datum.label} · ${datum.value}`
+      : `${datum.sourceLabel} → ${datum.targetLabel} · ${datum.value}`,
 })

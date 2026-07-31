@@ -36,12 +36,12 @@ this example; nodes and links use the chart theme, and every node gets one
 short name.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/111-basic-sankey/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/111-basic-sankey/?theme=system&height=480"
   title="Basic Sankey diagram built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="360"
-  style="width:100%;height:360px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Use this version as the starting point when the structure matters more than
@@ -65,11 +65,13 @@ profit.
   style="width:100%;height:500px;border:0;"
 ></iframe>
 
-The example runs the official `d3-sankey` layout inside a custom mark and
-renders its nodes, horizontal links, direct labels, and interaction points as a
-normal TanStack Charts scene. Keep the source data explicit and verify that
-every intermediate subtotal has equal incoming and outgoing value. Use direct
-labels and tone as well as color so profit and cost paths remain identifiable.
+The example runs the official `d3-sankey` layout in responsive data
+preparation, converts its output to positioned rows, and renders those rows
+with the native `link`, `rect`, and `text` marks. The application owns direct
+`d3-sankey` and `@types/d3-sankey` dependencies; Charts does not add them to
+unrelated consumers. Keep the source data explicit and verify that every
+intermediate subtotal has equal incoming and outgoing value. Use direct labels
+and tone as well as color so profit and cost paths remain identifiable.
 
 ## Show a strict hierarchy
 

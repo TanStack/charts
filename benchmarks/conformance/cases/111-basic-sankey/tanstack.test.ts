@@ -2,7 +2,7 @@ import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { basicFlowNodes, basicSankeyData } from './model'
 import { basicSankeyDefinition } from './tanstack'
-import type { BasicFlowNode } from './model'
+import type { BasicSankeyDatum } from './tanstack'
 import type { SceneNode } from '@tanstack/charts'
 
 describe('basic Sankey composition', () => {
@@ -12,7 +12,7 @@ describe('basic Sankey composition', () => {
   ])('lays out a minimal flow inside $width×$height', (size) => {
     const input = { ...size, revision: 0 }
     const { links: flowLinks } = basicSankeyData(input.revision)
-    const runtime = createChartRuntime<BasicFlowNode, string, number>()
+    const runtime = createChartRuntime<BasicSankeyDatum, number, number>()
     const scene = runtime.render(basicSankeyDefinition(input), size)
     const nodes = flatten(scene.nodes)
     const links = nodes.filter((node) => node.kind === 'polyline' && node.path)
@@ -31,9 +31,13 @@ describe('basic Sankey composition', () => {
     expect(
       labels.map((label) => (label.kind === 'label' ? label.text : '')),
     ).toEqual(basicFlowNodes.map((node) => node.label))
-    expect(scene.points.map((point) => point.datum.id)).toEqual(
-      basicFlowNodes.map((node) => node.id),
-    )
+    expect(
+      new Set(
+        scene.points
+          .filter((point) => point.datum.kind === 'node')
+          .map((point) => point.datum.id),
+      ),
+    ).toEqual(new Set(basicFlowNodes.map((node) => node.id)))
 
     for (const rectangle of rectangles) {
       if (rectangle.kind !== 'rect') continue

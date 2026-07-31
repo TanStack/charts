@@ -71,6 +71,8 @@ link(edges, {
   x2: 'targetX',
   y2: 'targetY',
   z: 'kind',
+  strokeWidth: (edge) => edge.weight,
+  lineCap: 'butt',
 })
 ```
 
@@ -90,9 +92,10 @@ function link<TDatum>(
 | `color`           | `Channel<TDatum, ChartKey?>`    | `z`                    | Value sent to the chart color scale |
 | `key`             | `Channel<TDatum, ChartKey>`     | Top/nested `id`, index | Stable identity                     |
 | `stroke`          | `VisualChannel<TDatum, string>` | Resolved color         | Final segment paint override        |
-| `strokeOpacity`   | `number`                        | SVG default            | Stroke opacity                      |
-| `strokeWidth`     | `number`                        | `1.5`                  | Stroke width                        |
+| `strokeOpacity`   | `VisualChannel<TDatum, number>` | SVG default            | Stroke opacity                      |
+| `strokeWidth`     | `VisualChannel<TDatum, number>` | `1.5`                  | Stroke width                        |
 | `strokeDasharray` | `string`                        | None                   | SVG dash array                      |
+| `lineCap`         | `"butt" \| "round" \| "square"` | `"round"`              | Stroke cap                          |
 | `curve`           | `ChartCurve`                    | Straight rule          | Optional path generator             |
 
 With no curve, the scene contains a rule. With a curve, it contains a

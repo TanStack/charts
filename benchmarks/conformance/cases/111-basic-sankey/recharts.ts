@@ -1,9 +1,10 @@
 import { createElement } from 'react'
 import { Sankey } from 'recharts'
+import { responsiveLayout } from './layout'
 import { basicSankeyData } from './model'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
-import type { LinkProps, NodeProps } from 'recharts/types/chart/Sankey'
+import type { SankeyLinkProps, SankeyNodeProps } from 'recharts'
 
 function chart(input: ConformanceInput) {
   const { nodes, links } = basicSankeyData(input.revision)
@@ -17,7 +18,7 @@ function chart(input: ConformanceInput) {
     targetY,
     targetControlX,
     linkWidth,
-  }: LinkProps) =>
+  }: SankeyLinkProps) =>
     createElement('path', {
       className: 'recharts-sankey-link',
       d: [
@@ -32,7 +33,7 @@ function chart(input: ConformanceInput) {
       strokeWidth: Math.max(1, linkWidth),
       strokeLinecap: 'butt',
     })
-  const renderNode = ({ x, y, width, height, index }: NodeProps) => {
+  const renderNode = ({ x, y, width, height, index }: SankeyNodeProps) => {
     const node = nodes[index]
     if (!node) return createElement('g')
     const labelOnRight = index !== 0
@@ -95,21 +96,6 @@ function chart(input: ConformanceInput) {
     },
     accessibilityLayer: true,
   })
-}
-
-function responsiveLayout(width: number, height: number) {
-  return {
-    sideMargin: clamp(width * 0.14, 48, 82),
-    verticalMargin: clamp(height * 0.1, 18, 32),
-    nodeWidth: clamp(width * 0.025, 10, 18),
-    nodePadding: clamp(height * 0.12, 18, 38),
-    labelFontSize: clamp(width * 0.018, 8, 12),
-    labelOffset: clamp(width * 0.012, 4, 8),
-  }
-}
-
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.min(maximum, Math.max(minimum, value))
 }
 
 function requiredNodeIndex(indexes: ReadonlyMap<string, number>, id: string) {
