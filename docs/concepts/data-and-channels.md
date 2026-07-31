@@ -248,28 +248,23 @@ const marks = [
 
 The definition’s interaction datum becomes the honest union of point-emitting mark data. Callbacks narrow that union using your existing discriminants or type guards.
 
-## Derived data remains application-owned
+## Derived data stays explicit
 
-Grouping, binning, stacking, sorting, aggregation, and spatial preparation
-happen in ordinary application code before mark construction:
+Grouping, binning, rolling, normalization, selection, and reusable stack
+endpoints happen before mark construction. Use the pure transforms from
+TanStack Charts or an ordinary application function:
 
 ```ts
-const bins = bin().domain([minimum, maximum]).thresholds(24)(values)
-
-const rows = bins.map((items, index) => ({
-  id: index,
-  x1: items.x0 ?? minimum,
-  x2: items.x1 ?? maximum,
-  count: items.length,
-  items,
-}))
+const bins = binX(observations, {
+  value: 'latency',
+  thresholds: 24,
+})
 ```
 
-The transform can run beside `defineChart` or inside the framework primitive
-that memoizes the complete definition. The resulting rows flow into ordinary
-marks. Install the granular D3 module used by the transform and its matching
-type package. [Scales and D3](./scales-and-d3.md) routes each responsibility to
-official D3 documentation without duplicating it.
+Transforms return materialized typed rows and retain source lineage. They do
+not rewrite mark options or own reactivity. Run them beside `defineChart` or
+inside the framework primitive that memoizes the definition. The resulting
+rows flow into ordinary marks.
 
 [Transforms and Reactivity](../guides/transforms-and-reactivity.md) shows the
 complete raw-data-to-mark path and separates application memoization from

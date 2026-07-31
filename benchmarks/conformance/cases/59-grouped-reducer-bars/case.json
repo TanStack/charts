@@ -12,7 +12,7 @@
     "mean reducer",
     "raw tidy rows",
     "direct value labels",
-    "d3-array rollups"
+    "TanStack groupBy"
   ],
   "geometry": [
     { "role": "bar", "count": 3 },

@@ -30,7 +30,7 @@ Then use this package’s recipes for exact native syntax.
 | `rect`, `ruleX`, `ruleY`, `text`                  | native constructors                                   |
 | linear, log, symlog, sqrt, time, UTC, band, point | native scales; advanced families are explicit imports |
 | ordinal and continuous color                      | `color` options with an explicit continuous strategy  |
-| `bin`, `group`, `stackY`                          | typed pure transforms, normally used in `prepare`     |
+| `bin`, `group`, `stackY`                          | data-first transforms from `@tanstack/charts`         |
 | facets                                            | `facetChart` or the composable `facet` mark           |
 | pointer tip and activation                        | host tooltip, focus, and selection callbacks          |
 

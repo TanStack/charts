@@ -194,6 +194,7 @@ Each entry records:
 | F-156 | Responsive tick labels had no collision policy           | API             | resolved   |
 | F-157 | Tooltip anchors could not fix coordinates independently  | API             | resolved   |
 | F-158 | Focus styling required duplicate marks                   | API             | resolved   |
+| F-159 | Cross-row transforms lacked a public ownership boundary  | API             | resolved   |
 
 ## Findings
 
@@ -3762,3 +3763,28 @@ Each entry records:
   quadratic node/point scan with a per-mark prefix index. Static line-scene
   plumbing adds 71 gzip bytes; the complete SVG DOM host adds 994 gzip bytes,
   recorded in the reviewed universal bundle baseline.
+
+### F-159 — Cross-row transforms lacked a public ownership boundary
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: replacing manual histogram, grouped-reducer, rolling-average,
+  extrema, and stack preparation in the issue #9 authoring pass
+- Friction: canonical docs assigned every transform to application code while a
+  private legacy package exposed a different options-rewriting transform model.
+  Authors had no public typed path for common reductions, no consistent source
+  lineage, and no clear distinction between reusable stack rows and mark-local
+  stack/group layout.
+- Decision: expose eager data-first `groupBy`, `binX`/`binY`, `window`,
+  `normalize`, `select`, and `stackRowsX`/`stackRowsY` helpers. Accessors and
+  reducers use object bags; aggregations retain source rows and indexes;
+  `transformData` composes custom stages. Framework primitives own memoization,
+  while `stack()` and `group()` remain mark layouts.
+- Verification: focused unit and type tests cover callback inference, compound
+  keys, aligned grouped bins, rolling lineage, normalization, selection, and
+  shared stack semantics. Four conformance cases use the public helpers, the
+  histogram bundle uses `binX`, granular entry points are packed, and the
+  transform suite is measured independently by the bundle audit. The private
+  legacy transform export and its 402 lines of duplicate implementation/tests
+  are removed.

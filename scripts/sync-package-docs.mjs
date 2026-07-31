@@ -78,7 +78,7 @@ export async function createLlmsIndex(root) {
     '',
     'Authoring rules:',
     '',
-    '- Use direct, granular d3-* imports for scales and analytical preparation; never import the d3 umbrella.',
+    '- Use TanStack data transforms for common group, bin, window, normalize, select, and row-stack preparation. Use direct, granular d3-* imports for scales and specialized algorithms; never import the d3 umbrella.',
     '- Let TanStack Charts own responsive pixel ranges. D3 factories infer domains from mark channels; configured instances preserve application-owned domains.',
     '- Keep data in its application shape. Map fields or accessors into marks instead of creating a library-owned series model.',
     '- Memoize the complete definition against captured application values; definition identity is the application update boundary.',

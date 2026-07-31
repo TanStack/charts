@@ -124,16 +124,20 @@ TanStack Charts owns the parts that make a declarative chart reliable inside an 
 
 ## What stays outside the library
 
-TanStack Charts deliberately does not hide data or spatial algorithms behind a second abstraction.
+TanStack Charts keeps data preparation explicit and spatial algorithms outside
+the rendering runtime.
 
-| Responsibility                                                                                            | Owner                                                   |
-| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Scale choice and configuration, fixed semantic domains, transforms, interpolation, and spatial algorithms | Your application using the granular D3 modules it needs |
-| Fetching, cleaning, profiling, and exploratory analysis                                                   | Your data layer, server, or AI workflow                 |
-| Mark-channel domain inference, responsive ranges, guide layout, scenes, rendering, and chart lifecycle    | TanStack Charts                                         |
-| Page controls, queries, filters, persistence, and application state                                       | Your application                                        |
+| Responsibility                                                                                         | Owner                                                   |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| Common group, bin, window, normalize, select, and row-stack transforms                                 | TanStack's eager data-transform helpers                 |
+| Scale choice, fixed semantic domains, interpolation, specialized statistics, and spatial algorithms    | Your application using the granular D3 modules it needs |
+| Fetching, cleaning, profiling, and exploratory analysis                                                | Your data layer, server, or AI workflow                 |
+| Mark-channel domain inference, responsive ranges, guide layout, scenes, rendering, and chart lifecycle | TanStack Charts                                         |
+| Page controls, queries, filters, persistence, memoization, and application state                       | Your application                                        |
 
-This division keeps the core small and makes advanced work explicit. Prepared data can come from D3, SQL, a server, or ordinary TypeScript; marks consume it without requiring a special series container.
+Prepared data can come from TanStack transforms, D3, SQL, a server, or
+ordinary TypeScript; marks consume it without requiring a special series
+container.
 
 ## Defaults for the common case
 

@@ -1,25 +1,26 @@
 import {
   colorGradientLegend,
+  binX,
   createChartScene,
   defineChart,
   rect,
   renderChartSvg,
 } from '@tanstack/charts'
-import { bin } from 'd3-array'
 import { scaleLinear } from 'd3-scale'
 
-const bins = bin<number, number>()
-  .value((value) => value)
-  .thresholds(5)([1, 2, 2, 3, 5, 8, 13, 21])
+const bins = binX([1, 2, 2, 3, 5, 8, 13, 21], {
+  value: ({ datum }) => datum,
+  thresholds: 5,
+})
 const definition = defineChart({
   marks: [
     rect(bins, {
-      x: (entry) => ((entry.x0 ?? 0) + (entry.x1 ?? 0)) / 2,
-      x1: (entry) => entry.x0,
-      x2: (entry) => entry.x1,
+      x: 'x',
+      x1: 'x1',
+      x2: 'x2',
       y1: () => 0,
-      y2: (entry) => entry.length,
-      z: (entry) => entry.length,
+      y2: 'value',
+      z: 'value',
     }),
   ],
   x: { scale: scaleLinear().domain([0, 25]) },

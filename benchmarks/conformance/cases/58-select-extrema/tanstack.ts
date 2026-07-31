@@ -1,5 +1,4 @@
-import { defineChart, dot, lineY, text } from '@tanstack/charts'
-import { greatest, least } from 'd3-array'
+import { defineChart, dot, lineY, select, text } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
@@ -54,8 +53,8 @@ export const mount = tanstackMount(
 function selectExtrema(
   rows: readonly AaplRow[],
 ): readonly ExtremumAnnotation[] {
-  const minimum = least(rows, (point) => point.Close)
-  const maximum = greatest(rows, (point) => point.Close)
+  const minimum = select(rows, { value: 'Close', select: 'min' })[0]
+  const maximum = select(rows, { value: 'Close', select: 'max' })[0]
   const annotations: ExtremumAnnotation[] = []
 
   if (minimum) {

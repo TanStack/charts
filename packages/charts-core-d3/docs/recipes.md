@@ -141,9 +141,9 @@ when the channel already contains pixel radii.
 
 ```ts
 import { rect } from '@tanstack/charts'
-import { bin } from '@tanstack/charts/transforms'
+import { binX } from '@tanstack/charts/transform/bin'
 
-const bins = bin(rows, {
+const bins = binX(rows, {
   value: 'latency',
   thresholds: 20,
 })
@@ -165,17 +165,16 @@ const chart = defineChart({
 })
 ```
 
-`bin`, `group`, and `stackY` are opt-in pure visualization transforms. Their
-derived rows retain the contributing source rows. Put them in `prepare` when
-the input is dynamic so visual-only updates reuse the result.
+Public data transforms retain contributing source rows. Memoize them through
+the owning framework when the input is dynamic.
 
 ## Stacked values
 
 ```ts
 import { rect } from '@tanstack/charts'
-import { stackY } from '@tanstack/charts/transforms'
+import { stackRowsY } from '@tanstack/charts/transform/stack'
 
-const stacked = stackY(rows, {
+const stacked = stackRowsY(rows, {
   x: 'quarter',
   y: 'revenue',
   z: 'product',

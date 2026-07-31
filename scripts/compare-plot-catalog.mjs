@@ -3576,7 +3576,7 @@ function renderMarkdown(result) {
     '',
     `- Same typed raw rows and intent are used by both renderers.`,
     `- Paired implementations use the same explicit semantic scale domains; responsive pixel ranges remain renderer-owned.`,
-    `- A reference may use its built-in transforms; Charts injects the equivalent granular D3 primitive.`,
+    `- A reference may use its built-in transforms; Charts uses the equivalent TanStack data transform or granular D3 primitive.`,
     `- Bundles are isolated per case and renderer. The gallery bundle is never measured.`,
     `- Timings exclude module loading and animations and include forced layout.`,
     `- Reference updates follow that library's native lifecycle; Charts updates reconcile the existing SVG.`,

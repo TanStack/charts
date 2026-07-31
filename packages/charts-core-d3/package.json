@@ -40,7 +40,6 @@
     "./spatial": "./src/spatial.ts",
     "./svg": "./src/svg.ts",
     "./svg/resources": "./src/svg-resources.ts",
-    "./text": "./src/text.ts",
-    "./transforms": "./src/transforms.ts"
+    "./text": "./src/text.ts"
   }
 }

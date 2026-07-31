@@ -93,11 +93,12 @@ authoring.
 TanStack deliberately keeps several responsibilities outside the default
 runtime:
 
-| Responsibility                                      | Owner                                      |
-| --------------------------------------------------- | ------------------------------------------ |
-| Binning, stacking, statistics, and spatial layouts  | Application code using granular D3 modules |
-| Brush, zoom, scrubber, and editor state             | Application state and optional D3 behavior |
-| Data fetching, cleaning, filtering, and persistence | The application's data and state layers    |
+| Responsibility                                              | Owner                                      |
+| ----------------------------------------------------------- | ------------------------------------------ |
+| Common grouping, binning, rolling, normalization, selection | TanStack's eager data transforms           |
+| Specialized statistics and spatial layouts                  | Application code using granular D3 modules |
+| Brush, zoom, scrubber, and editor state                     | Application state and optional D3 behavior |
+| Data fetching, cleaning, filtering, and persistence         | The application's data and state layers    |
 
 Choose Chart.js when Canvas-first standard charts and its plugin ecosystem fit
 the application. Choose Apache ECharts for a broad built-in controller and

@@ -50,9 +50,9 @@ Data loading, querying, profiling, cleaning, recommendation, and exploratory
 analysis belong outside the runtime. Those tasks are suitable for TanStack
 Intent skills and application code.
 
-`group`, `bin`, and `stackY` are visualization transforms, not exploration
-machinery. Import them from `@tanstack/charts/transforms`, normally call them in
-`prepare`, and render their output through ordinary marks.
+The current public package provides data-first transforms from
+`@tanstack/charts/transform/*`. This private prototype no longer carries a
+second transform API.
 
 ## Definition choice
 

@@ -9,14 +9,14 @@ import { valueKey } from './scales'
 import type { StackOptions, StackOrder } from './stack'
 import type { ChartKey, ChartValue } from './types'
 
-interface StackInput {
+export interface StackInput {
   index: number
   position: ChartValue
   value: number
   series: ChartKey
 }
 
-interface StackExtent {
+export interface StackExtent {
   start: number
   end: number
 }

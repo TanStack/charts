@@ -30,6 +30,10 @@ const rendererBoundaryModules = {
 }
 const entries = [
   measured('Core host', 'benchmarks/entries/core.ts'),
+  measured(
+    'Granular data transform suite',
+    'benchmarks/entries/charts-transform-suite.ts',
+  ),
   locked('D3-scale line scene', 'benchmarks/entries/charts-core.ts'),
   locked('D3-scale line + static SVG', 'benchmarks/entries/charts-svg.ts', {
     rendererBoundary: 'svg',
@@ -42,7 +46,7 @@ const entries = [
   budgeted(
     'D3-scale histogram + static SVG',
     'benchmarks/entries/charts-histogram-svg.ts',
-    17.5,
+    18.7,
   ),
   budgeted(
     'D3-scale facets + static SVG',

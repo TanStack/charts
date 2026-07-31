@@ -50,6 +50,58 @@ export type {
   StackOptions,
   StackOrder,
 } from './stack'
+export { transformData } from './transform'
+export type {
+  DataTransform,
+  DataTransformContext,
+  TransformAccessor,
+  TransformAccessorContext,
+  TransformField,
+  TransformKey,
+  TransformLineage,
+  TransformValue,
+  TransformValueOutput,
+} from './transform'
+export { groupBy } from './transform-group'
+export type { GroupByDatum, GroupByOptions } from './transform-group'
+export { binX, binY } from './transform-bin'
+export type { BinKey, BinOptions, BinXDatum, BinYDatum } from './transform-bin'
+export { window } from './transform-window'
+export type {
+  WindowAnchor,
+  WindowDatum,
+  WindowKey,
+  WindowOptions,
+} from './transform-window'
+export { normalize } from './transform-normalize'
+export type {
+  NormalizeBasis,
+  NormalizeContext,
+  NormalizeDatum,
+  NormalizeKey,
+  NormalizeOptions,
+} from './transform-normalize'
+export { select } from './transform-select'
+export type {
+  SelectContext,
+  SelectMethod,
+  SelectOptions,
+} from './transform-select'
+export { stackRowsX, stackRowsY } from './transform-stack'
+export type {
+  StackRowsXDatum,
+  StackRowsXOptions,
+  StackRowsYDatum,
+  StackRowsYOptions,
+} from './transform-stack'
+export type {
+  TransformNumericReducer,
+  TransformOutputRow,
+  TransformOutputSpec,
+  TransformOutputs,
+  TransformReduceContext,
+  TransformReducer,
+} from './transform-reduce'
 export { ruleX, ruleY } from './rule'
 export type { RuleXOptions, RuleYOptions } from './rule'
 export { text } from './text'

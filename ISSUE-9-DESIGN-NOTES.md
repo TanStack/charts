@@ -13,6 +13,7 @@ implementation plan or compatibility promise.
 3. Responsive axis labels — implemented
 4. Fixed tooltip placement — implemented
 5. Stacked and grouped bar authoring — implemented
+6. General data transforms — implemented
 
 ## Implementation audit
 
@@ -57,6 +58,44 @@ implementation plan or compatibility promise.
   headroom.
 - Exact universal baselines were updated only after the source audit. The full
   bundle policy remains the release gate.
+
+### General transform boundary
+
+- General transforms are eager, pure row-to-row functions. They do not mutate
+  mark options, create a hidden transform graph, or own framework reactivity.
+- Accessors and reducers use single object arguments. Aggregating outputs retain
+  `source` and `sourceIndexes`; one-to-one outputs retain `datum` and `index`.
+- `groupBy`, `binX`/`binY`, `window`, `normalize`, `select`, and
+  `stackRowsX`/`stackRowsY` cover the common cross-row operations. A typed
+  `transformData` protocol supports reusable custom pipelines.
+- Row stacks and mark stacks share `stackValues`. `stack()`/`group()` remain
+  mark-local layout; row transforms are for reusable or inspectable data.
+- Root exports remain tree-shakeable, and every transform family also has a
+  granular `@tanstack/charts/transform/*` entry point.
+
+### Transform implementation audit
+
+- The complete transform implementation is 1,240 source lines across the
+  public protocol, seven transform families, and two shared internal modules.
+  Binning is the largest unit at 274 lines because it owns domains, explicit
+  boundaries, shared grouped bins, interval output, and empty-bin reducers.
+- Field/accessor materialization, compound-key identity, grouping, reducer
+  preparation, and source lineage are shared. Named reducer inputs are
+  evaluated once per source, avoiding a group-by-source rescan. Row stacks call
+  the same `stackValues` engine as mark layouts. The obsolete private D3-core
+  transform module and its tests are removed, deleting 402 duplicated lines.
+- Group, normalize, select, and stack are linear in source rows plus emitted
+  output. Bin adds threshold construction and emitted empty bins. Window work
+  is proportional to rows × window width because custom reducers and complete
+  per-row lineage require each window to remain observable.
+- Migrating the histogram, grouped reducer, moving average, and extrema cases
+  removes 47 net source lines from those consumers.
+- The combined granular transform suite is 13.82 kB minified / 5.30 kB gzip.
+  A complete built-in histogram is 18.52 kB gzip versus 17.41 kB for the direct
+  D3 preparation entry; the reviewed histogram ceiling is 18.7 kB. Locked
+  ordinary entries remain byte-identical after tree shaking. Esbuild's changed
+  module graph shifts gzip output by -1 to +4 bytes through identifier naming;
+  the exact baseline records those audited artifacts.
 
 ## 1. Focus presentation
 

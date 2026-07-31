@@ -12,7 +12,7 @@
     "window transform",
     "temperature",
     "two-series",
-    "d3-array-mean"
+    "TanStack window"
   ],
   "geometry": [
     { "role": "line", "count": 2 },

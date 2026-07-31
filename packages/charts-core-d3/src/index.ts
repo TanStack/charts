@@ -46,16 +46,6 @@ export { ruleX, ruleY } from './rule'
 export type { RuleXOptions, RuleYOptions } from './rule'
 export { text } from './text'
 export type { TextOptions } from './text'
-export { bin, group, stackY } from './transforms'
-export type {
-  BinDatum,
-  BinOptions,
-  GroupDatum,
-  GroupOptions,
-  NumericReducer,
-  StackYDatum,
-  StackYOptions,
-} from './transforms'
 export type {
   Channel,
   ChannelAccessor,
