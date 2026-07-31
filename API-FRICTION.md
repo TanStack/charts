@@ -208,6 +208,7 @@ Each entry records:
 | F-169 | Text measurement omits native typography                 | API             | monitoring |
 | F-170 | Packed declarations assume one platform global set       | Tooling         | monitoring |
 | F-171 | Metro skipped the fixture-owned Babel runtime            | Tooling         | resolved   |
+| F-172 | Metro retained the complete universal barrel             | API/Tooling     | monitoring |
 
 ## Findings
 
@@ -3184,7 +3185,9 @@ Each entry records:
   widths. The cross-library fixtures now configure tooltip, keyboard, focus,
   and animation on each definition through the typed `defineChart` overload;
   a typed host-options boundary prevents behavior from drifting back to
-  adapter props.
+  adapter props. The React Native `/universal` fixture keeps behavior on its
+  directly authored one-argument definition; the two-argument form remains
+  reserved for decorating an existing definition.
 
 ### F-131 — Stable identity repeated inferable key channels
 
@@ -3718,21 +3721,22 @@ Each entry records:
   `@tanstack/charts/universal` for common authoring/runtime values plus
   `@tanstack/charts/types` for universal contracts. The name describes the
   supported cross-runtime surface while the browser-first root remains the
-  normal web entry. DOM surface, renderer, host, and render-context types now
-  live behind an internal module while retaining their existing root
-  re-exports. Definition inputs retain DOM-free extension token contracts while
-  the generic tooltip and portal token interfaces are exported for host-adapter
-  authors. Typed DOM tooltip and portal lifecycles remain in the DOM module. Do
-  not conditionally change the root until a native host can test one coherent
-  platform contract.
-- Verification: root typechecking and 61 focused core tests pass. The packed
-  package gate resolves both new entries from `dist`, compiles their
+  normal web entry. `/portable` was an early pre-1.0 name and is intentionally
+  not restored; `/universal` is the sole cross-runtime barrel. DOM surface,
+  renderer, host, and render-context types now live behind an internal module
+  while retaining their existing root re-exports. Definition inputs retain
+  DOM-free extension token contracts while the generic tooltip and portal token
+  interfaces are exported for host-adapter authors. Typed DOM tooltip and
+  portal lifecycles remain in the DOM module. Do not conditionally change the
+  root until a native host can test one coherent platform contract.
+- Verification: root typechecking and focused core tests pass. The packed
+  package gate resolves `/universal` and `/types` from `dist` and compiles their
   declarations, including tooltip definition inputs and direct generic-token
   imports, with Web Worker rather than DOM globals. Type regressions reject
   swapping tooltip and portal tokens.
   The packed bundle proof excludes the root, adapters, Canvas, DOM host/text,
   browser export, reconciliation, renderer, and SVG surface modules. That full
-  universal barrel measures 53.95 kB minified and 16.60 kB gzip; granular
+  universal barrel measures 84.30 kB minified and 26.55 kB gzip; granular
   subpaths remain the bundle-sensitive option.
 
 ### F-155 — Optional tooltip code burdened every chart consumer
@@ -3761,9 +3765,11 @@ Each entry records:
 - Verification: the representative compact React line is 14,227 gzip bytes.
   Native tooltip adds 3,381 bytes; portal adds 806 more. Retained-output graph
   checks prove base renderer and React entries contain none of the tooltip,
-  portal, or React rich-body modules. The React Native base host is 9,141 gzip
-  bytes and adding its tooltip subpath costs 1,685 bytes; retained-input checks
-  prove both the base host and line consumer omit `Tooltip.tsx`. Core, Lit,
+  portal, or React rich-body modules. The React Native base host is 10,468 gzip
+  bytes and adding its tooltip subpath costs 1,923 bytes; retained-input checks
+  prove both the base host and line consumer omit `Tooltip.tsx`, all native
+  entries omit web tooltip and portal code, and the base host retains no D3
+  runtime. Core, Lit,
   React, native, export, declaration, packed-package, and lifecycle tests cover
   creation, update, disable, host ownership, transport switching, custom
   bodies, and cleanup.
@@ -4042,10 +4048,22 @@ Each entry records:
   after tooltip rendering moved behind an extension token
 - Friction: focus preset resolution, stable-point restoration, navigation
   order, tooltip content construction, anchor resolution, and placement math
-  are pure behavior but live as private functions inside `renderer.ts`. The
-  native proof reproduced them to exercise realistic interaction. The
+  are pure behavior but remain private across the DOM renderer and tooltip
+  implementation. The native proof reproduced them to exercise realistic
+  interaction. The
   extension split also made configured tooltip options require a host-owned
   token; importing the web token would pull DOM implementation into Metro.
+  Restacking onto 0.3.0 also required the duplicate native resolver to learn
+  the new per-axis anchors and focus-aware custom-anchor context before its
+  strict type gate passed again. The scene compiler now also emits authored or
+  default focus layers and inline mark-state metadata. Rendering those groups
+  directly made inactive focus marks permanently visible in the native scene.
+  The duplicate tooltip path also sorted display rows before choosing its
+  primary point, so a non-first focused series changed formatter and anchor
+  context. Scene restoration compared only semantic point identity, leaving
+  overlays, tooltips, and external callbacks attached to old point objects
+  after responsive geometry changed. Callback prop identity could also
+  retrigger restoration and incorrectly change the focus source.
 - Current decision: keep the duplication confined to the private proof. The
   native adapter exports a branded extension from its optional `/tooltip`
   subpath, accepts duplicate package copies and custom native implementations,
@@ -4057,14 +4075,24 @@ Each entry records:
   when decorated with a tooltip token, while applications can still share the
   chart spec and options before that platform step. A supported native package
   still requires extracting renderer-neutral interaction and tooltip state,
-  with the DOM and native hosts consuming the same implementation.
+  with the DOM and native hosts consuming the same implementation. The proof
+  omits shared focus-layer groups from its base scene and uses a generic native
+  overlay; authored focus marks and inline mark states remain unsupported until
+  scene-state resolution is shared. It now preserves the original primary and
+  focus group independently from sorted tooltip rows, refreshes restored point
+  objects and callbacks, and keeps callback refs out of restoration effect
+  dependencies.
 - Verification: focused native tests cover strategy selection, grouping,
-  restoration, navigation, supported default content, placement, and extension
-  ownership. The native type and Metro gates use the native token without web
-  tooltip modules, and retained-input gates prove the base native entry does
-  not include the optional tooltip implementation. Browser portal tokens fail
-  explicitly instead of being ignored. The default native tooltip still lacks
-  the complete `items` formatting contract.
+  restoration, navigation, axis and custom anchors, supported default content,
+  placement, and extension ownership. The native type and Metro gates use the
+  native token without web tooltip modules, and retained-input gates prove the
+  base native entry does not include the optional tooltip implementation.
+  Browser portal tokens fail explicitly instead of being ignored. The default
+  native tooltip still lacks the complete `items` formatting contract. A
+  regression verifies inactive focus-layer paint is absent from the native
+  scene. Component regressions cover a primary point that sorts after another
+  series, restored coordinates and callbacks after resize, and stable focus
+  source when only callback props change.
 
 ### F-168 — CSS theme defaults reach the native scene compiler
 
@@ -4133,6 +4161,29 @@ Each entry records:
 - Decision: configure Metro's `resolver.nodeModulesPaths` with the example and
   workspace module roots. Keep Babel ownership in the example rather than
   masking the monorepo resolution boundary with a root dependency.
-- Verification: all eight blank, RNSVG, core, and full-chart production bundles
-  complete for iOS and Android. The full-chart source-map checks also exclude
-  every guarded browser implementation module.
+- Verification: all ten blank, RNSVG, core, granular full-chart, and universal
+  full-chart production bundles complete for iOS and Android. The universal
+  variants require `/universal`, and source-map checks exclude every guarded
+  browser implementation module.
+
+### F-172 — Metro retained the complete universal barrel
+
+- Status: monitoring
+- Severity: medium
+- Owner: API/Tooling
+- Observed in: measuring the documented React Native minimum usage through
+  `@tanstack/charts/universal`
+- Friction: Metro 0.84 retained every runtime module re-exported by the broad
+  barrel, even though the fixture imported only `defineChart` and `lineY`. The
+  result included unused marks, data-transform families, and the
+  environment-neutral static SVG string serializer. Against the same granular
+  full-chart fixture, `/universal` added 119.06 KiB minified and 28.91 KiB gzip
+  on both iOS and Android, plus 102 modules per platform.
+- Current decision: keep `/universal` as the ergonomic cross-runtime authoring
+  entry and make the full-chart Metro proof exercise it. Keep the native host's
+  own imports granular, publish granular entries as the bundle-sensitive path,
+  and do not describe the broad barrel as cost-equivalent under Metro.
+- Verification: the iOS and Android full-chart bundles require
+  `packages/charts-core/src/universal.ts`, measure 102.94 and 102.99 KiB gzip over
+  blank respectively, and exclude DOM hosts, browser adapters, Canvas,
+  reconciliation, SVG resources/surface, web tooltip code, and `react-dom`.

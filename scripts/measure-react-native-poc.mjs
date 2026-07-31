@@ -17,20 +17,24 @@ const forbiddenSources = [
   'packages/charts-core/src/export.ts',
   'packages/charts-core/src/reconcile.ts',
   'packages/charts-core/src/renderer.ts',
-  'packages/charts-core/src/svg-renderer.ts',
   'packages/charts-core/src/svg-resources.ts',
   'packages/charts-core/src/svg-surface.ts',
-  'packages/charts-core/src/svg.ts',
   'packages/charts-core/src/tooltip-portal.ts',
   'packages/charts-core/src/tooltip-position.ts',
   'packages/charts-core/src/tooltip.ts',
+  'packages/octane-charts/',
   'packages/react-charts/',
   'react-dom/',
+]
+const universalRetainedSources = [
+  'packages/charts-core/src/svg-renderer.ts',
+  'packages/charts-core/src/svg.ts',
 ]
 const variants = {
   blank: 'index.blank.js',
   svg: 'index.svg.js',
   core: 'index.core.js',
+  granular: 'index.granular.js',
   chart: 'index.js',
 }
 
@@ -66,7 +70,8 @@ for (const platform of ['ios', 'android']) {
     const contents = await readFile(bundle)
     const map = JSON.parse(await readFile(sourceMap, 'utf8'))
     const sources = map.sources.map(normalize)
-    if (variant === 'chart') assertNativeBoundary(platform, sources)
+    if (variant === 'chart') assertNativeBoundary(platform, sources, true)
+    if (variant === 'granular') assertNativeBoundary(platform, sources, false)
     bundles.push({
       platform,
       variant,
@@ -78,9 +83,9 @@ for (const platform of ['ios', 'android']) {
 }
 
 const rows = [
-  '| Platform | Full chart JS delta | RNSVG-only gzip delta | Core line gzip delta | Full chart gzip delta |',
+  '| Platform | Full chart `/universal` JS delta | RNSVG-only gzip delta | Core line gzip delta | Full chart `/universal` gzip delta | `/universal` over granular gzip |',
 ]
-rows.push('| --- | ---: | ---: | ---: | ---: |')
+rows.push('| --- | ---: | ---: | ---: | ---: | ---: |')
 for (const platform of ['ios', 'android']) {
   const blank = bundles.find(
     (bundle) => bundle.platform === platform && bundle.variant === 'blank',
@@ -88,17 +93,20 @@ for (const platform of ['ios', 'android']) {
   const chart = bundles.find(
     (bundle) => bundle.platform === platform && bundle.variant === 'chart',
   )
+  const granular = bundles.find(
+    (bundle) => bundle.platform === platform && bundle.variant === 'granular',
+  )
   const svg = bundles.find(
     (bundle) => bundle.platform === platform && bundle.variant === 'svg',
   )
   const core = bundles.find(
     (bundle) => bundle.platform === platform && bundle.variant === 'core',
   )
-  if (!blank || !chart || !svg || !core) {
+  if (!blank || !chart || !granular || !svg || !core) {
     throw new Error(`Missing ${platform} bundle result`)
   }
   rows.push(
-    `| ${platform} | ${format(chart.bytes - blank.bytes)} | ${format(svg.gzip - blank.gzip)} | ${format(core.gzip - blank.gzip)} | ${format(chart.gzip - blank.gzip)} |`,
+    `| ${platform} | ${format(chart.bytes - blank.bytes)} | ${format(svg.gzip - blank.gzip)} | ${format(core.gzip - blank.gzip)} | ${format(chart.gzip - blank.gzip)} | ${format(chart.gzip - granular.gzip)} |`,
   )
 }
 
@@ -108,7 +116,7 @@ await writeFile(
   `${JSON.stringify(
     {
       schemaVersion: 1,
-      note: 'Metro production JS only. This excludes react-native-svg native binary code.',
+      note: 'Metro production JS only. The chart and granular variants share one UI and definition factory while their application entries use @tanstack/charts/universal and granular definition imports respectively; this excludes react-native-svg native binary code.',
       bundles,
     },
     null,
@@ -116,12 +124,37 @@ await writeFile(
   )}\n`,
 )
 
-function assertNativeBoundary(platform, sources) {
+function assertNativeBoundary(platform, sources, requiresUniversal) {
   const nativeSources = sources.filter((source) =>
     source.includes('packages/react-native-charts/src/'),
   )
   if (!nativeSources.length) {
     throw new Error(`${platform} bundle did not include the native host`)
+  }
+  const includesUniversal = sources.some((source) =>
+    source.includes('packages/charts-core/src/universal.ts'),
+  )
+  if (requiresUniversal && !includesUniversal) {
+    throw new Error(`${platform} bundle did not exercise the universal entry`)
+  }
+  if (!requiresUniversal && includesUniversal) {
+    throw new Error(`${platform} granular bundle included the universal entry`)
+  }
+  const retainedUniversalSources = universalRetainedSources.filter(
+    (candidate) => sources.some((source) => source.includes(candidate)),
+  )
+  if (
+    requiresUniversal &&
+    retainedUniversalSources.length !== universalRetainedSources.length
+  ) {
+    throw new Error(
+      `${platform} universal bundle did not retain its static SVG serializer`,
+    )
+  }
+  if (!requiresUniversal && retainedUniversalSources.length) {
+    throw new Error(
+      `${platform} granular bundle retained broad universal modules:\n${retainedUniversalSources.join('\n')}`,
+    )
   }
   const forbidden = sources.filter((source) =>
     forbiddenSources.some((candidate) => source.includes(candidate)),

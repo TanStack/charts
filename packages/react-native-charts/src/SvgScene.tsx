@@ -99,6 +99,7 @@ function renderSceneNode(
   idPrefix: string,
   paint: (value: string) => ColorValue,
 ): React.ReactNode {
+  if (node.kind === 'group' && node.focus) return null
   const style = nativeSceneStyle(node.style, paint)
 
   switch (node.kind) {

@@ -47,6 +47,7 @@ The private `@tanstack/react-native-charts` package includes:
 - nearest, axis-nearest, and grouped focus;
 - tap selection, sticky pinning, focus restoration, and accessibility actions;
 - a separate SVG focus overlay;
+- inactive shared focus-layer groups are omitted from the base scene;
 - an optional native tooltip subpath with point, pointer, group-center, and
   custom anchors, collision-aware placement, custom content, and a custom
   React body;
@@ -57,9 +58,9 @@ The private `@tanstack/react-native-charts` package includes:
 
 The host imports runtime values from narrow core subpaths. It does not import
 the root barrel, `react-dom`, a browser adapter, the DOM renderer, the Canvas
-host, or the SVG string/reconciliation pipeline. The narrow imports keep this
-measurement bundle-sensitive; application definitions can instead use the
-environment-safe `@tanstack/charts/universal` barrel.
+host, or the SVG string/reconciliation pipeline. The full-chart Metro fixture
+imports its application definition from `@tanstack/charts/universal`; the core
+line control keeps granular imports for a tighter comparison.
 
 That distinction matters to shared application source. A Metro probe using
 `defineChart` and `lineY` from the browser-oriented root
@@ -67,6 +68,13 @@ That distinction matters to shared application source. A Metro probe using
 SVG surface, and adapters. The prerequisite universal-barrel PR adds
 `@tanstack/charts/universal` for normal environment-neutral authoring while
 retaining granular entries for tighter bundles.
+
+Metro 0.84 retains every runtime module re-exported by `/universal`, including
+unused marks and the environment-neutral static SVG string serializer. It does
+not retain the guarded DOM or browser host modules. The broad entry is the
+simplest supported authoring path; bundle-sensitive native applications can
+use granular mark, runtime, and scene entries until Metro can eliminate those
+unused re-exports.
 
 That prerequisite also adds `@tanstack/charts/types`, exports the generic
 tooltip and portal token interfaces for host-adapter authors, and moves DOM
@@ -82,14 +90,12 @@ import { defineChart, lineY } from '@tanstack/charts/universal'
 import { Chart } from '@tanstack/react-native-charts'
 import { tooltip } from '@tanstack/react-native-charts/tooltip'
 
-const definition = defineChart(
-  {
-    marks: [lineY([4, 9, 7])],
-    x: { scale: scaleLinear().domain([0, 2]) },
-    y: { scale: scaleLinear().domain([0, 10]) },
-  },
-  { tooltip: { use: tooltip, sticky: true } },
-)
+const definition = defineChart({
+  marks: [lineY([4, 9, 7])],
+  x: { scale: scaleLinear().domain([0, 2]) },
+  y: { scale: scaleLinear().domain([0, 10]) },
+  tooltip: { use: tooltip, sticky: true },
+})
 
 export function RevenueChart() {
   return (
@@ -115,17 +121,17 @@ external in the native entries.
 
 | Entry                              | Minified |     Gzip |
 | ---------------------------------- | -------: | -------: |
-| React Native SVG host              | 23.26 kB |  8.93 kB |
-| React Native SVG host with tooltip | 28.04 kB | 10.57 kB |
-| React Native line consumer         | 45.30 kB | 17.68 kB |
-| Shared line scene                  | 34.29 kB | 13.44 kB |
-| Existing React web adapter         | 32.66 kB | 12.03 kB |
-| Existing React web line consumer   | 54.50 kB | 20.78 kB |
+| React Native SVG host              | 26.95 kB | 10.22 kB |
+| React Native SVG host with tooltip | 32.50 kB | 12.10 kB |
+| React Native line consumer         | 49.18 kB | 19.03 kB |
+| Shared line scene                  | 38.17 kB | 14.82 kB |
+| Existing React web adapter         | 39.98 kB | 14.57 kB |
+| Existing React web line consumer   | 62.03 kB | 23.41 kB |
 
 The native host entry includes the host plus every shared runtime and D3 module
 reachable from exporting `Chart`; it is not isolated adapter-only overhead.
 The base host and line consumer omit `Tooltip.tsx`. Importing the tooltip
-subpath adds 4.78 kB minified and 1.65 kB gzip. The native line consumer
+subpath adds 5.55 kB minified and 1.88 kB gzip. The native line consumer
 additionally includes the line mark and D3 scale code while leaving platform
 peers external. It is the closest comparison to the existing React line entry,
 but the two platforms do not have identical runtime baselines. The native
@@ -135,26 +141,29 @@ entries are informational measurements, not locked budgets.
 
 React Native production bundles were minified for both platforms. Each row is
 measured against a blank React Native application built with the same Metro
-configuration.
+configuration. The full chart uses `/universal`; the core line control uses
+granular entries.
 
-| Platform | Full chart minified JS delta | `react-native-svg` gzip delta | Core line gzip delta | Full chart gzip delta | Full chart module delta |
-| -------- | ---------------------------: | ----------------------------: | -------------------: | --------------------: | ----------------------: |
-| iOS      |                   309.42 KiB |                     27.75 KiB |            37.78 KiB |             72.53 KiB |                     281 |
-| Android  |                   309.56 KiB |                     27.69 KiB |            37.81 KiB |             72.62 KiB |                     281 |
+| Platform | Full `/universal` chart minified JS delta | `react-native-svg` gzip delta | Core line gzip delta | Full `/universal` chart gzip delta | Full chart module delta |
+| -------- | ----------------------------------------: | ----------------------------: | -------------------: | ---------------------------------: | ----------------------: |
+| iOS      |                                434.28 KiB |                     27.75 KiB |            38.95 KiB |                         102.94 KiB |                     384 |
+| Android  |                                434.42 KiB |                     27.69 KiB |            38.94 KiB |                         102.99 KiB |                     384 |
 
-The full iOS bundle was 1,200,921 bytes and 288,655 bytes gzip, versus 884,080
-and 214,381 for blank. Android was 1,206,437 and 289,754, versus 889,448 and
-215,395 for blank.
+The full iOS bundle was 1,328,782 bytes and 319,792 bytes gzip, versus 884,080
+and 214,381 for blank. Android was 1,334,298 and 320,860, versus 889,448 and
+215,395 for blank. Compared with the otherwise identical granular fixture,
+`/universal` retains another 119.06 KiB minified and 28.91 KiB gzip on both iOS
+and Android, plus 102 modules per platform under this Metro version.
 
 These are JavaScript bundle measurements, not Hermes bytecode or installed
 application sizes. They exclude the native iOS and Android code linked by
 `react-native-svg`. A clean release-binary before/after comparison is still
 required.
 
-The full-chart source maps include the native host and exclude every guarded
-browser module: adapters, DOM host, DOM text measurement, renderer, Canvas,
-reconciliation, SVG serialization/surface code, `react-dom`, React web charts,
-and Octane charts.
+The full-chart source maps require `/universal` and include its static SVG
+serializer. They exclude every guarded browser module: adapters, DOM host, DOM
+text measurement, DOM renderer, Canvas, reconciliation, SVG resources/surface,
+`react-dom`, React web charts, and Octane charts.
 
 ## Parity and boundaries
 
@@ -168,6 +177,7 @@ and Octane charts.
 | Paint                                  | `currentColor` and CSS fallback resolution | Dynamic definitions still see the web default theme                            |
 | Text                                   | SVG text plus injected core measurer       | Exact native typography and async measurement are unresolved                   |
 | Nearest and grouped focus              | Implemented                                | Logic is duplicated from the DOM renderer                                      |
+| Focus presentation                     | Generic native overlay                     | Authored focus marks and mark states are not applied                           |
 | Tap, selection, sticky tooltip         | Implemented                                | Responder ownership may conflict with scrolling and gestures                   |
 | Tooltip                                | Native in-tree overlay                     | Web `className`, portal semantics, and full item formatting are not equivalent |
 | Accessibility                          | Labeled adjustable root and actions        | No per-point native accessibility tree or data-table escape                    |
@@ -194,9 +204,13 @@ and Octane charts.
 ### Interaction details that are not exact
 
 - Focus preset resolution, point restoration, navigation order, tooltip
-  content, anchor, and placement are private functions inside the DOM renderer.
-  The POC had to reproduce those policies. A supported package must extract
-  the pure behavior and make both hosts consume it.
+  content, anchor, and placement remain private across the DOM renderer and
+  tooltip implementation. The POC had to reproduce those policies. A supported
+  package must extract the pure behavior and make both hosts consume it.
+- Shared focus-layer groups are hidden from the base native scene so they are
+  not painted permanently. The proof uses its generic native overlay instead;
+  authored focus marks and inline mark states need a shared scene-state
+  resolver before they can be supported accurately.
 - The POC does not implement the complete `tooltip.items` channel, datum, and
   derived-row contract. Custom `content`, `format`, `formatGroup`, and a custom
   React body work, but default structured content is only partial.
@@ -287,29 +301,32 @@ conditional-export, and Metro-consumer gate is part of productionization.
 - Many SVG nodes can become expensive before the shared scene compiler does.
 - Native support needs devices, release builds, TalkBack/VoiceOver testing,
   and two platform-specific failure surfaces.
-- Current interaction and tooltip ownership must be refactored out of a mature
-  DOM renderer without regressing web behavior.
+- Current interaction and tooltip ownership must be refactored out of mature
+  DOM host implementations without regressing web behavior.
 - A publishable native package needs a separate packed-declaration gate because
   React Native and DOM global declarations conflict in the current web fixture.
 
 ## Verification performed
 
-- 16 focused POC tests cover every scene primitive, gradients, clips, paint
-  resolution, focus modes, point restoration, placement, chart compilation,
-  extension ownership, and no-speculative-size behavior. Component mapping
-  tests use React DOM server rendering with native modules mocked; they are
-  structural tests, not native renderer tests.
+- 21 focused POC tests cover every scene primitive, gradients, clips, paint
+  resolution, focus modes, point and callback restoration, tooltip ordering,
+  placement, chart compilation, extension ownership, inactive focus layers,
+  and no-speculative-size behavior. Component mapping tests use React DOM with
+  native modules mocked; they are structural tests, not native renderer tests.
 - The native package and the normal React Native application configuration
   typecheck.
 - The repository-wide typecheck passes with the native dependency graph.
-- The prerequisite PR's packed gate validates both environment-safe entries without
-  changing the browser root.
+- The prerequisite PR's packed gate validates the supported environment-safe
+  entries without changing the browser root.
 - Existing locked web bundle baselines remain unchanged.
-- Production Metro bundles complete for iOS and Android.
+- Production Metro bundles complete for iOS and Android, and the full-chart
+  variants must resolve `/universal`.
 - Source-map gates prove the full native entries do not include guarded browser
   implementation files, including the web tooltip and portal runtimes.
 - Retained-input gates prove the base native host and line consumer omit the
-  optional native tooltip implementation.
+  optional native tooltip implementation, all native entries omit web tooltip
+  and portal code, the base host retains no D3 runtime, and the line consumer
+  retains no D3 geometry runtime.
 
 A strict native consumer with `skipLibCheck: false` now gets past the Charts
 DOM boundary and stops in `@types/d3-array`, whose `blurImage` declaration
@@ -318,9 +335,9 @@ only those two known errors, or a clean result after the upstream declaration
 is fixed. The POC does not add a fake global or pull DOM libraries into native
 to hide the upstream declaration problem.
 
-The native declaration check and isolated esbuild boundary run in the normal
-validation workflow. The eight-build iOS/Android Metro measurement remains a
-local spike command rather than a mandatory CI gate.
+The isolated esbuild boundary runs in `pnpm validate`. GitHub runs the native
+declaration check as a separate workflow step. The ten-build iOS/Android Metro
+measurement remains a local spike command rather than a mandatory CI gate.
 
 Not performed:
 

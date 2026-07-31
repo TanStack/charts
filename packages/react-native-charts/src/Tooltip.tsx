@@ -8,6 +8,7 @@ import type {
 import { Text, View } from 'react-native'
 import type {
   ChartPoint,
+  ChartFocusSource,
   ChartScene,
   ChartTooltipContent,
   ChartTooltipContentContext,
@@ -15,6 +16,8 @@ import type {
   ChartTooltipOptions,
   ChartTooltipPlacement,
   ChartTooltipPosition,
+  ChartTooltipXAnchor,
+  ChartTooltipYAnchor,
   ChartValue,
 } from '@tanstack/charts/types'
 import { resolveNativeSolidPaint, type NativePaintResolver } from './paint'
@@ -41,6 +44,7 @@ export interface NativeChartTooltipProps<
   height: number
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
   pointer: ChartTooltipPosition | null
+  focusSource: ChartFocusSource
   options?: ChartTooltipOptions<TDatum, TXValue, TYValue>
   pinned: boolean
   color: ColorValue
@@ -61,6 +65,7 @@ export function NativeChartTooltip<
   height,
   points: unorderedPoints,
   pointer,
+  focusSource,
   options,
   pinned,
   color,
@@ -73,15 +78,18 @@ export function NativeChartTooltip<
     () => orderTooltipPoints(unorderedPoints, scene, options?.sort),
     [options?.sort, scene, unorderedPoints],
   )
-  const point = points[0]
+  const point = unorderedPoints[0]
   if (!point) return null
-  const content = createNativeTooltipContent(points, scene, options)
-  const sceneAnchor = resolveTooltipAnchor(
+  const content = createNativeTooltipContent(points, scene, options, point)
+  const sceneAnchor = resolveNativeTooltipAnchor(
     point,
     points,
     scene,
     pointer,
+    focusSource,
+    pinned,
     options,
+    unorderedPoints,
   )
   const anchor = {
     x: (sceneAnchor.x / scene.width) * width,
@@ -101,8 +109,9 @@ export function NativeChartTooltip<
       resolvePaint={resolvePaint}
     />
   )
-  const body =
-    render?.({ points, content, pinned, dismiss, defaultBody }) ?? defaultBody
+  const body = render
+    ? render({ points, content, pinned, dismiss, defaultBody })
+    : defaultBody
   const accessibilityLabel = tooltipAccessibilityLabel(content)
   const handleLayout = (event: LayoutChangeEvent) => {
     const next = event.nativeEvent.layout
@@ -206,13 +215,15 @@ export function createNativeTooltipContent<
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   scene: ChartScene<TDatum, TXValue, TYValue>,
   options?: ChartTooltipOptions<TDatum, TXValue, TYValue>,
+  primaryPoint?: ChartPoint<TDatum, TXValue, TYValue>,
 ): ChartTooltipContent | string {
   const point = points[0]
   if (!point) return { rows: [] }
   const context = createTooltipContentContext(scene)
   const content = options?.content?.(points, context)
   if (content !== undefined) return content
-  const formatted = options?.formatGroup?.(points) ?? options?.format?.(point)
+  const formatted =
+    options?.formatGroup?.(points) ?? options?.format?.(primaryPoint ?? point)
   if (formatted !== undefined) return formatted
 
   const sharedX =
@@ -281,7 +292,7 @@ function findSceneLabel(scene: ChartScene, key: string) {
   return label?.kind === 'label' ? label.text : undefined
 }
 
-function resolveTooltipAnchor<
+export function resolveNativeTooltipAnchor<
   TDatum,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
@@ -290,7 +301,10 @@ function resolveTooltipAnchor<
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   scene: ChartScene<TDatum, TXValue, TYValue>,
   pointer: ChartTooltipPosition | null,
+  focusSource: ChartFocusSource,
+  pinned: boolean,
   options?: ChartTooltipOptions<TDatum, TXValue, TYValue>,
+  focusPoints: readonly ChartPoint<TDatum, TXValue, TYValue>[] = points,
 ): ChartTooltipPosition {
   const fallback = { x: point.x, y: point.y }
   const anchor = options?.anchor ?? 'point'
@@ -304,15 +318,88 @@ function resolveTooltipAnchor<
       y: (Math.min(...y) + Math.max(...y)) / 2,
     }
   }
+  if (typeof anchor === 'object') {
+    return {
+      x: resolveTooltipCoordinate(
+        'x',
+        anchor.x,
+        point,
+        points,
+        scene,
+        pointer,
+        fallback.x,
+      ),
+      y: resolveTooltipCoordinate(
+        'y',
+        anchor.y,
+        point,
+        points,
+        scene,
+        pointer,
+        fallback.y,
+      ),
+    }
+  }
   const resolved = anchor(points, {
+    focus: {
+      primary: point,
+      group: focusPoints,
+      source: focusSource,
+      pinned,
+    },
     pointer,
-    chart: scene.chart,
-    width: scene.width,
-    height: scene.height,
+    plot: scene.chart,
+    surface: { width: scene.width, height: scene.height },
+    scales: scene.scales,
   })
   return resolved && Number.isFinite(resolved.x) && Number.isFinite(resolved.y)
     ? resolved
     : fallback
+}
+
+function resolveTooltipCoordinate<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  axis: 'x' | 'y',
+  source: ChartTooltipXAnchor | ChartTooltipYAnchor,
+  point: ChartPoint<TDatum, TXValue, TYValue>,
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+  pointer: ChartTooltipPosition | null,
+  fallback: number,
+): number {
+  if (source === 'point') return axis === 'x' ? point.x : point.y
+  if (source === 'pointer') return pointer?.[axis] ?? fallback
+  if (source === 'value') {
+    const value = axis === 'x' ? point.xValue : point.yValue
+    const position = scene.scales[axis]?.map(value)
+    return position !== undefined && Number.isFinite(position)
+      ? position
+      : fallback
+  }
+  if (source === 'group-center') {
+    let minimum = axis === 'x' ? point.x : point.y
+    let maximum = minimum
+    for (const candidate of points) {
+      const position = axis === 'x' ? candidate.x : candidate.y
+      minimum = Math.min(minimum, position)
+      maximum = Math.max(maximum, position)
+    }
+    return (minimum + maximum) / 2
+  }
+  const plot = scene.chart
+  if (axis === 'x') {
+    if (source === 'plot-left') return plot.x
+    if (source === 'plot-center') return plot.x + plot.width / 2
+    if (source === 'plot-right') return plot.x + plot.width
+  } else {
+    if (source === 'plot-top') return plot.y
+    if (source === 'plot-center') return plot.y + plot.height / 2
+    if (source === 'plot-bottom') return plot.y + plot.height
+  }
+  return fallback
 }
 
 export function placeNativeTooltip(

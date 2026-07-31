@@ -108,7 +108,7 @@ export function samePointIdentity<
   )
 }
 
-export function samePointList<
+export function samePointReferences<
   TDatum,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
@@ -118,7 +118,7 @@ export function samePointList<
 ) {
   return (
     left.length === right.length &&
-    left.every((point, index) => samePointIdentity(point, right[index] ?? null))
+    left.every((point, index) => point === right[index])
   )
 }
 

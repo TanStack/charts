@@ -1,6 +1,17 @@
+import * as React from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import type { ChartPoint, ChartScene } from '@tanstack/charts/types'
-import { createNativeTooltipContent, placeNativeTooltip } from './Tooltip'
+import type {
+  ChartPoint,
+  ChartScene,
+  ChartTooltipAnchorContext,
+} from '@tanstack/charts/types'
+import {
+  createNativeTooltipContent,
+  NativeChartTooltip,
+  placeNativeTooltip,
+  resolveNativeTooltipAnchor,
+} from './Tooltip'
 
 vi.mock('react-native', () => ({
   Text: 'span',
@@ -30,6 +41,127 @@ describe('native tooltip model', () => {
         10,
       ),
     ).toEqual({ left: 8, top: 8, placement: 'top' })
+  })
+
+  it('preserves an intentional null custom body', () => {
+    const points = [point('alpha', 'Alpha', 3)]
+    const markup = renderToStaticMarkup(
+      React.createElement(NativeChartTooltip<unknown, number, number>, {
+        scene: scene(points),
+        width: 100,
+        height: 60,
+        points,
+        pointer: null,
+        focusSource: 'programmatic',
+        pinned: false,
+        color: '#111827',
+        resolvePaint: (value) => value,
+        dismiss: vi.fn(),
+        render: () => null,
+      }),
+    )
+
+    expect(markup).not.toContain('<span')
+  })
+
+  it('resolves axis anchors and supplies focus context to custom anchors', () => {
+    const points = [point('alpha', 'Alpha', 3), point('beta', 'Beta', 7)]
+    const currentScene = scene(points)
+
+    expect(
+      resolveNativeTooltipAnchor(
+        points[0]!,
+        points,
+        currentScene,
+        null,
+        'keyboard',
+        true,
+        { anchor: { x: 'plot-center', y: 'plot-top' } },
+      ),
+    ).toEqual({ x: 50, y: 0 })
+
+    let context: ChartTooltipAnchorContext<unknown, number, number> | undefined
+    expect(
+      resolveNativeTooltipAnchor(
+        points[0]!,
+        points,
+        currentScene,
+        null,
+        'keyboard',
+        true,
+        {
+          anchor: (_focusedPoints, nextContext) => {
+            context = nextContext
+            return { x: 75, y: 25 }
+          },
+        },
+      ),
+    ).toEqual({ x: 75, y: 25 })
+    expect(context).toEqual({
+      focus: {
+        primary: points[0],
+        group: points,
+        source: 'keyboard',
+        pinned: true,
+      },
+      pointer: null,
+      plot: currentScene.chart,
+      surface: { width: 100, height: 60 },
+      scales: currentScene.scales,
+    })
+  })
+
+  it('keeps the focused point stable when display rows are sorted', () => {
+    const beta = point('beta', 'Beta', 7)
+    const alpha = point('alpha', 'Alpha', 3)
+    const focusedPoints = [beta, alpha]
+    const currentScene = scene(focusedPoints)
+    const format = vi.fn(
+      (focused: ChartPoint<unknown, number, number>) => focused.key,
+    )
+    const anchor = vi.fn(
+      (
+        _points: readonly ChartPoint<unknown, number, number>[],
+        _context: ChartTooltipAnchorContext<unknown, number, number>,
+      ) => ({ x: 75, y: 25 }),
+    )
+    let renderedPoints:
+      readonly ChartPoint<unknown, number, number>[] | undefined
+
+    renderToStaticMarkup(
+      React.createElement(NativeChartTooltip<unknown, number, number>, {
+        scene: currentScene,
+        width: 100,
+        height: 60,
+        points: focusedPoints,
+        pointer: null,
+        focusSource: 'keyboard',
+        options: { anchor, format },
+        pinned: true,
+        color: '#111827',
+        resolvePaint: (value) => value,
+        dismiss: vi.fn(),
+        render: (context) => {
+          renderedPoints = context.points
+          return null
+        },
+      }),
+    )
+
+    expect(renderedPoints).toEqual([alpha, beta])
+    expect(format).toHaveBeenCalledWith(beta)
+    expect(anchor).toHaveBeenCalledWith([alpha, beta], {
+      focus: {
+        primary: beta,
+        group: focusedPoints,
+        source: 'keyboard',
+        pinned: true,
+      },
+      pointer: null,
+      plot: currentScene.chart,
+      surface: { width: 100, height: 60 },
+      scales: currentScene.scales,
+    })
   })
 })
 

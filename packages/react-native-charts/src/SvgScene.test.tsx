@@ -42,6 +42,7 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).toContain('<circle')
     expect(markup).toContain('rx="4"')
     expect(markup).toContain('rotate(-30 40 50)')
+    expect(markup).not.toContain('#fedcba')
     expect(markup).not.toContain('currentColor')
     expect(markup).not.toContain('var(--')
   })
@@ -129,6 +130,21 @@ function scene(): ChartScene {
       fontSize: 12,
       fontWeight: 600,
       style: { fill: '#111111' },
+    },
+    {
+      kind: 'group',
+      key: 'inactive-focus',
+      focus: { match: 'primary', points: [], placement: 'over' },
+      children: [
+        {
+          kind: 'dot',
+          key: 'inactive-focus-dot',
+          x: 50,
+          y: 30,
+          radius: 9,
+          style: { fill: '#fedcba' },
+        },
+      ],
     },
   ]
   return {

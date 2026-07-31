@@ -372,7 +372,12 @@ const entries = [
       external: nativeExternals,
       rendererBoundary: 'native',
       inputBoundary: {
-        forbid: ['nativeTooltip'],
+        forbid: [
+          'nativeTooltip',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
       },
       platform: 'neutral',
       conditions: ['react-native', 'import'],
@@ -386,6 +391,7 @@ const entries = [
       rendererBoundary: 'native',
       inputBoundary: {
         require: ['nativeTooltip'],
+        forbid: ['tooltipRuntime', 'tooltipPortal', 'd3Runtime'],
         addedFrom: 'React Native SVG host',
         allowAdded: ['nativeTooltip'],
       },
@@ -400,7 +406,12 @@ const entries = [
       external: nativeExternals,
       rendererBoundary: 'native',
       inputBoundary: {
-        forbid: ['nativeTooltip'],
+        forbid: [
+          'nativeTooltip',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
       },
       platform: 'neutral',
       conditions: ['react-native', 'import'],

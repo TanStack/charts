@@ -1,9 +1,10 @@
 import * as React from 'react'
-import { defineChart, lineY } from '@tanstack/charts/universal'
+import { lineY } from '@tanstack/charts/line'
+import { defineChart } from '@tanstack/charts/scene'
 import { createRevenueDefinition, RevenueChart } from './RevenueChart'
 
 const definition = createRevenueDefinition(defineChart, lineY)
 
-export default function App() {
+export default function GranularApp() {
   return <RevenueChart definition={definition} />
 }

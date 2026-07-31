@@ -4,6 +4,6 @@
     "lib": ["es2022"],
     "types": ["react", "react-native"]
   },
-  "include": ["App.tsx"],
+  "include": ["App.tsx", "App.granular.tsx", "RevenueChart.tsx"],
   "exclude": ["node_modules"]
 }

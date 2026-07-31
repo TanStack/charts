@@ -11,6 +11,7 @@ import { View } from 'react-native'
 import { createChartRuntime } from '@tanstack/charts/runtime'
 import type {
   ChartDefinition,
+  ChartFocusSource,
   ChartPoint,
   ChartScene,
   ChartTextMeasurer,
@@ -24,7 +25,7 @@ import { NativeChartFocusOverlay } from './FocusOverlay'
 import {
   adjacentFocusPoint,
   createNativeChartFocusModel,
-  samePointList,
+  samePointReferences,
 } from './interaction'
 import { resolveNativePaint, type NativePaintResolver } from './paint'
 import { NativeChartScene } from './SvgScene'
@@ -133,10 +134,16 @@ export function Chart<
     readonly ChartPoint<TDatum, TXValue, TYValue>[]
   >([])
   const focusedPointsRef = React.useRef(focusedPoints)
+  const onFocusChangeRef = React.useRef(onFocusChange)
+  const onFocusGroupChangeRef = React.useRef(onFocusGroupChange)
+  onFocusChangeRef.current = onFocusChange
+  onFocusGroupChangeRef.current = onFocusGroupChange
   const [pinnedKey, setPinnedKey] = React.useState<string | null>(null)
   const [pointer, setPointer] = React.useState<ChartTooltipPosition | null>(
     null,
   )
+  const [focusSource, setFocusSource] =
+    React.useState<ChartFocusSource>('programmatic')
   const tooltipInput = React.useMemo(
     () => resolveNativeTooltipInput(definition.tooltip),
     [definition.tooltip],
@@ -148,13 +155,14 @@ export function Chart<
 
   const commitFocus = React.useCallback(
     (points: readonly ChartPoint<TDatum, TXValue, TYValue>[]) => {
-      if (samePointList(points, focusedPointsRef.current)) return
+      const current = focusedPointsRef.current
+      if (samePointReferences(points, current)) return
       focusedPointsRef.current = points
       setFocusedPoints(points)
-      onFocusChange?.(points[0] ?? null)
-      onFocusGroupChange?.(points)
+      onFocusChangeRef.current?.(points[0] ?? null)
+      onFocusGroupChangeRef.current?.(points)
     },
-    [onFocusChange, onFocusGroupChange],
+    [],
   )
 
   React.useEffect(() => () => runtime.destroy(), [runtime])
@@ -166,6 +174,7 @@ export function Chart<
     if (!focusModel || !previous) return
     const restored = focusModel.restore(previous)
     if (restored) {
+      setFocusSource('restored')
       commitFocus(focusModel.group(restored))
     } else {
       setPinnedKey(null)
@@ -192,6 +201,7 @@ export function Chart<
         x: (event.nativeEvent.locationX / measuredWidth) * scene.width,
         y: (event.nativeEvent.locationY / measuredHeight) * scene.height,
       }
+      setFocusSource('pointer')
       setPointer(position)
       return focusModel.resolve(position.x, position.y)
     },
@@ -230,6 +240,7 @@ export function Chart<
 
   const navigate = (direction: -1 | 1) => {
     if (!focusModel) return
+    setFocusSource('keyboard')
     const point = adjacentFocusPoint(
       focusModel,
       focusedPointsRef.current[0] ?? null,
@@ -338,6 +349,7 @@ export function Chart<
               height={layout?.height ?? scene.height}
               points={focusedPoints}
               pointer={pointer}
+              focusSource={focusSource}
               options={tooltipOptions}
               pinned={pinnedKey !== null}
               color={color}
