@@ -182,7 +182,7 @@ Each entry records:
 | F-144 | Action pin checks accepted invalid commit lengths        | Tooling         | resolved   |
 | F-145 | Changesets included private workspaces in version plans  | Tooling/Release | resolved   |
 | F-146 | Octane hydration used a unit-test timeout                | Tooling         | resolved   |
-| F-147 | Bot-authored version PRs lacked an automatic CI trigger  | Tooling/Release | resolved   |
+| F-147 | Release automation duplicated validated work             | Tooling/Release | resolved   |
 | F-148 | Publisher failure returned before its workers settled    | Tooling/Release | resolved   |
 | F-149 | Release checks could stall or accept an unbound tag      | Tooling/Release | resolved   |
 | F-150 | Nx worktree caches followed the common Git directory     | Tooling         | monitoring |
@@ -3362,22 +3362,18 @@ Each entry records:
   request completed two-factor authentication but returned an opaque HTTP 400
   instead of identifying the missing `--allow-publish` permission.
 - Decision: configure trust with npm `11.18.0`, give each public package an
-  explicit publish permission, and keep npm installation outside the
-  OIDC-enabled job. The release checks that Node's bundled npm meets the
-  trusted-publishing minimum instead of replacing the CLI while a job can mint
-  identity tokens.
+  explicit publish permission, and use the repository's standard Changesets
+  workflow without an npm token. The publisher checks that Node's bundled npm
+  meets the trusted-publishing minimum before requesting OIDC-backed
+  publication.
 - Verification: `npm trust list` reports the exact `TanStack/charts`
   repository, `release.yml` workflow, and `createPackage` permission for core
-  and all nine public framework adapters. The workflow has one OIDC-enabled
-  job; it checks out the exact release SHA, downloads already-checked
-  artifacts, installs no dependencies, revalidates the protected remote tag
-  and main immediately before publishing, and delegates package installation
-  and signature verification to a post-publish job without OIDC. That job
-  requires npm to verify every release package's attestation bundle and then
-  matches the fetched bundles before checking their exact package, digest,
-  repository, workflow, tag, and commit claims. Release workflow
-  `30592985603` completed that OIDC publication and independent verification
-  successfully for all ten packages.
+  and all nine public framework adapters. Release workflow `30592985603`
+  completed OIDC publication for all ten `0.0.1` packages. The current
+  publisher builds checked tarballs for an unpublished or unfinished release,
+  waits for matching registry integrity and attestations, and the workflow
+  contract grants `id-token: write` once without `NPM_TOKEN` or
+  `NODE_AUTH_TOKEN`.
 
 ### F-139 — Top-level package entries bypassed tarball validation
 
@@ -3537,23 +3533,28 @@ Each entry records:
 - Verification: the focused Octane client suite covers all seven client tests;
   pull-request static checks remain the parallel Linux gate.
 
-### F-147 — Bot-authored version PRs lacked an automatic CI trigger
+### F-147 — Release automation duplicated validated work
 
 - Status: resolved
 - Severity: high
 - Owner: Tooling/Release
-- Observed in: hardening the automated Changesets release path
-- Friction: the built-in workflow token can create and update the Changesets
-  version pull request, but relying on that mutation to start pull-request CI
-  leaves validation subject to GitHub's bot-event suppression and approval
-  behavior.
-- Decision: use the action's `pullRequestNumber` output to resolve the exact
-  version branch, then explicitly dispatch the full chart workflow on that
-  ref with the job's narrowly scoped `actions: write` permission. A typed
-  dispatch input selects the same quick browser profile as ordinary pull
-  requests.
-- Verification: the release workflow contract requires the Changesets output,
-  exact PR-head lookup, and explicit branch-scoped workflow dispatch.
+- Observed in: the `0.0.2` release and comparison with Query, Router, Virtual,
+  Form, Store, Pacer, and the TanStack repository template
+- Friction: the built-in workflow token intentionally does not start
+  pull-request Actions for the generated Changesets PR. The previous workaround
+  explicitly dispatched 22 checks that took 2 minutes 46 seconds, even though
+  Charts has no required status-check or review rule. Merging that mechanical
+  PR then ran the complete main workflow for another 4 minutes 12 seconds
+  before a tag dispatch started four more release jobs.
+- Decision: use the standard TanStack push-to-main Changesets job. Pending
+  changesets create or update the mergeable version PR immediately. With no
+  pending changesets, the same job preflights npm, builds the checked package
+  tarballs, publishes through OIDC, and finalizes the aggregate tag and release.
+  Main browser and catalog CI remains independent.
+- Verification: the repository ruleset protects main only from deletion and
+  non-fast-forward updates. PR `#13` merged without a review or required check.
+  Workflow contracts reject the removed `version_pr` dispatch path and require
+  one branch-scoped Changesets release job with registry-aware finalization.
 
 ### F-148 — Publisher failure returned before its workers settled
 

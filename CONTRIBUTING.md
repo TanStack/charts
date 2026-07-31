@@ -69,24 +69,31 @@ hand. The automated version pull request owns those changes.
 
 ## Release flow
 
-After a push to `main` passes the complete CI workflow:
+Every push to `main` starts the release workflow:
 
-1. Changesets creates or updates `ci: Version Packages` from the pending
-   changesets.
-2. Merging that pull request updates all public package versions, consumes the
-   changesets, synchronizes the root changelog, and updates the lockfile.
-3. CI validates the exact merge commit. The release workflow then creates an
-   annotated version tag when that version is not already released.
-4. The tag-scoped workflow rebuilds and checks all ten package artifacts.
-5. Only the publish job receives `id-token: write`. npm trusted publishing uses
-   that OIDC identity to publish with provenance; the repository does not use a
-   long-lived npm token.
-6. A separate job installs the published packages and verifies their
-   integrity, signatures, and provenance before GitHub creates the release.
+1. When pending changesets exist, Changesets creates or updates
+   `ci: Version Packages`. The generated pull request does not repeat the
+   browser benchmark matrix.
+2. Review and merge that pull request when the release is ready. It updates all
+   public package versions, consumes the changesets, synchronizes the root and
+   package changelogs, updates release-facing docs, and refreshes the lockfile.
+3. The merge starts the same workflow again. With no pending changesets, the
+   publisher checks npm and builds fresh, consumer-tested tarballs only when
+   the coordinated version is unpublished.
+4. npm trusted publishing uses the workflow's OIDC identity to publish core
+   before the nine adapters with provenance. The repository has no long-lived
+   npm token.
+5. After all ten registry entries report the expected integrity and
+   attestations, the workflow creates one annotated `vX.Y.Z` tag and GitHub
+   release from the root changelog.
 
-Never move or reuse a release tag. If publishing succeeds but final
-verification or GitHub release creation fails, rerun the release workflow
-against the existing tag.
+The complete chart, browser, and catalog workflow still runs on `main`, but it
+is independent from npm publication. User-visible package work must pass that
+workflow in its feature pull request before merging.
+
+Never move or reuse a release tag. If publishing succeeds but tag or GitHub
+release creation fails, rerun the failed `Release` workflow; its registry
+preflight resumes finalization without republishing existing versions.
 
 Changing the repository name or
 `.github/workflows/release.yml` requires updating the trusted-publisher

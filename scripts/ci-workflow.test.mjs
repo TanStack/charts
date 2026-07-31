@@ -111,18 +111,13 @@ describe('CI workflow contract', () => {
       conformance,
       /pnpm conformance:quick -- --shard=\${{ matrix\.shard }}\/8/,
     )
-    assert.match(
-      conformance,
-      /if:\s*github\.event_name == 'pull_request' \|\| inputs\.version_pr/,
-    )
+    assert.match(conformance, /if:\s*github\.event_name == 'pull_request'/)
     assert.match(
       conformance,
       /pnpm conformance -- --shard=\${{ matrix\.shard }}\/8/,
     )
-    assert.match(
-      conformance,
-      /if:\s*github\.event_name != 'pull_request' && !inputs\.version_pr/,
-    )
+    assert.match(conformance, /if:\s*github\.event_name != 'pull_request'/)
+    assert.doesNotMatch(conformance, /version_pr/)
     assert.match(
       conformance,
       /name:\s*chart-library-conformance-\${{ matrix\.shard }}-\${{ github\.run_id }}/,
@@ -162,11 +157,15 @@ describe('CI workflow contract', () => {
       stress,
       /benchmark:stress:standard -- --workload=\${{ matrix\.workloads }}/,
     )
-    assert.match(stress, /github\.event_name == 'push' \|\| inputs\.version_pr/)
     assert.match(
       stress,
-      /github\.event_name == 'workflow_dispatch' && !inputs\.version_pr/,
+      /github\.event_name == 'pull_request' \|\| github\.event_name == 'push'/,
     )
+    assert.match(
+      stress,
+      /github\.event_name == 'schedule' \|\| github\.event_name == 'workflow_dispatch'/,
+    )
+    assert.doesNotMatch(stress, /version_pr/)
     assert.match(
       stress,
       /name:\s*chart-library-stress-\${{ matrix\.name }}-\${{ github\.run_id }}/,
