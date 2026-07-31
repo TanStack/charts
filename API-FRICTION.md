@@ -187,6 +187,8 @@ Each entry records:
 | F-149 | Release checks could stall or accept an unbound tag      | Tooling/Release | resolved   |
 | F-150 | Nx worktree caches followed the common Git directory     | Tooling         | monitoring |
 | F-151 | Artifact actions targeted deprecated Node 20             | Tooling         | resolved   |
+| F-152 | Version bumps invalidated workspace bundle evidence      | Tooling/Release | resolved   |
+| F-153 | Changesets left release-facing version claims behind     | Tooling/Release | resolved   |
 
 ## Findings
 
@@ -3616,3 +3618,39 @@ Each entry records:
   `download-artifact` v7 by exact commit.
 - Verification: workflow contracts require immutable action revisions; the
   final GitHub matrix exercises every upload path before merge.
+
+### F-152 — Version-only releases invalidated workspace bundle evidence
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: the first automated Changesets version pull request
+- Friction: the comparison baseline required the TanStack workspace package
+  version to match its last measured release. Changesets advanced the package
+  to 0.0.2 without changing measured source, so both the bundle gate and docs
+  contract rejected an otherwise unchanged artifact.
+- Decision: keep exact installed-version checks for external registry
+  packages. For the TanStack workspace, use the existing exact Git revision of
+  every measured input as the authoritative provenance boundary; a version-only
+  release no longer requires rewriting bundle measurements.
+- Verification: focused contracts accept a workspace release changing from
+  0.0.1 to 0.0.2, still reject external package-version drift, and retain the
+  exact workspace source-revision check.
+
+### F-153 — Changesets left release-facing version claims behind
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: auditing the generated 0.0.2 version pull request
+- Friction: Changesets advanced manifests, package changelogs, and the lockfile
+  but left the root README, canonical docs, comparison evidence links, and
+  marketing material on 0.0.1. Merging the generated pull request would have
+  published a newer package line beside stale install and status claims.
+- Decision: derive the previous release from the generated root changelog,
+  advance an explicit allowlist of release-facing sources, then run the
+  repository's canonical docs sync before formatting the version pull request.
+  Historical changelog and friction evidence remain immutable.
+- Verification: focused tests cover version-heading discovery, complete
+  replacement, idempotency, and missing-version rejection. Generated package
+  docs remain outputs of `pnpm docs:sync`, never hand-edited sources.

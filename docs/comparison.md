@@ -4,9 +4,9 @@ description: Compare current TanStack Charts workspace source with pinned Chart.
 ---
 
 TanStack Charts `0.0.1` is a pre-alpha release. Its results on this page measure
-the workspace implementation prepared for the next patch, not the published
-`0.0.1` artifact. This comparison records architectural differences and
-reproducible evidence without turning untested behavior into a checkmark.
+the exact workspace source included in this release and pinned competitor
+packages. This comparison records architectural differences and reproducible
+evidence without turning untested behavior into a checkmark.
 
 ## Tested versions
 
