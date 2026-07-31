@@ -4,7 +4,7 @@
   "bundles": {
     "D3-scale line scene": {
       "bytes": 35111,
-      "gzip": 13765
+      "gzip": 13764
     },
     "D3-scale line + static SVG": {
       "bytes": 38163,
@@ -40,7 +40,7 @@
     },
     "D3 linear-scale line scene": {
       "bytes": 35043,
-      "gzip": 13728
+      "gzip": 13727
     }
   }
 }
