@@ -46,9 +46,9 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification.parameterless).toEqual([])
-    expect(classification.static).toBe(92)
+    expect(classification.static).toBe(94)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
-    expect(classification.static + classification.responsive.length).toBe(102)
+    expect(classification.static + classification.responsive.length).toBe(104)
   })
 })
 
