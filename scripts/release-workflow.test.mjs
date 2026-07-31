@@ -28,6 +28,9 @@ const changesetConfig = JSON.parse(
     'utf8',
   ),
 )
+const packageManifest = JSON.parse(
+  await readFile(resolve(import.meta.dirname, '../package.json'), 'utf8'),
+)
 
 describe('release workflow contract', () => {
   test('versions only the fixed public package set', () => {
@@ -46,6 +49,13 @@ describe('release workflow contract', () => {
         '@tanstack/alpine-charts',
       ],
     ])
+  })
+
+  test('synchronizes changelogs and release-facing docs in version pull requests', () => {
+    assert.equal(
+      packageManifest.scripts['changeset:version'],
+      'changeset version && node scripts/sync-release-changelog.mjs && node scripts/sync-release-version.mjs && pnpm docs:sync && pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile && pnpm format',
+    )
   })
 
   test('orchestrates versions and tags only from successful main CI', () => {

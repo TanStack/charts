@@ -16,6 +16,7 @@ import {
   formatComparisonImplementationDetail,
 } from './benchmark/comparison-capabilities.mjs'
 import {
+  comparisonInstalledVersionFailure,
   tanstackComparisonRevision,
   tanstackComparisonSourceFailure,
 } from './comparison-source-revision.mjs'
@@ -1164,12 +1165,13 @@ async function checkBundleBaseline(bundles, actualVersions) {
       continue
     }
     const actualVersion = actualVersions[library.id]
-    if (actualVersion && actualVersion !== expectedVersion) {
-      failures.push(
-        `${library.label}: installed version ${actualVersion} does not match baseline ${expectedVersion}`,
-      )
-    }
     const source = baseline.sources?.[library.id]
+    const versionFailure = comparisonInstalledVersionFailure(
+      source,
+      actualVersion,
+      expectedVersion,
+    )
+    if (versionFailure) failures.push(`${library.label}: ${versionFailure}`)
     if (library.id === 'tanstack') {
       const sourceFailure = tanstackComparisonSourceFailure(
         source,

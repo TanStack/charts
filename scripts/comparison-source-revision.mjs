@@ -38,3 +38,19 @@ export function tanstackComparisonSourceFailure(source, expectedRevision) {
     return `bundle baseline workspace revision ${source.revision} does not match measured inputs ${expectedRevision}`
   }
 }
+
+export function comparisonInstalledVersionFailure(
+  source,
+  actualVersion,
+  baselineVersion,
+) {
+  if (
+    source?.kind === 'workspace' ||
+    !actualVersion ||
+    actualVersion === baselineVersion
+  ) {
+    return
+  }
+
+  return `installed version ${actualVersion} does not match baseline ${baselineVersion}`
+}

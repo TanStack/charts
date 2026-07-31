@@ -1,0 +1,94 @@
+import assert from 'node:assert/strict'
+import { readFile, writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { readReleasePackages } from './release-package-config.mjs'
+
+export const releaseVersionSources = [
+  { path: 'README.md', references: 1 },
+  { path: 'MARKETING.md', references: 6 },
+  { path: 'docs/overview.md', references: 1 },
+  { path: 'docs/installation.md', references: 1 },
+  { path: 'docs/comparison.md', references: 5 },
+]
+
+export function changelogVersions(source) {
+  return [
+    ...source.matchAll(/^## (\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)(?:\s|$)/gm),
+  ]
+    .map((match) => match[1])
+    .filter((version, index, versions) => versions.indexOf(version) === index)
+}
+
+export function syncReleaseVersionReference(
+  source,
+  previousVersion,
+  version,
+  path,
+  expectedReferences,
+) {
+  const previousReferences = source.split(previousVersion).length - 1
+  const currentReferences = source.split(version).length - 1
+  const expectedCount = `${expectedReferences} ${
+    expectedReferences === 1 ? 'reference' : 'references'
+  }`
+  if (previousReferences === 0) {
+    assert.equal(
+      currentReferences,
+      expectedReferences,
+      `${path} must contain ${expectedCount} to release ${version}`,
+    )
+    return source
+  }
+
+  assert.equal(
+    previousReferences,
+    expectedReferences,
+    `${path} must contain ${expectedCount} to release ${previousVersion}`,
+  )
+  assert.equal(
+    currentReferences,
+    0,
+    `${path} mixes release versions ${previousVersion} and ${version}`,
+  )
+  return source.replaceAll(previousVersion, version)
+}
+
+export async function syncReleaseVersion({
+  repositoryRoot = resolve(import.meta.dirname, '..'),
+} = {}) {
+  const packages = await readReleasePackages(repositoryRoot)
+  const version = packages[0].manifest.version
+  const rootChangelog = await readFile(
+    resolve(repositoryRoot, 'CHANGELOG.md'),
+    'utf8',
+  )
+  const versions = changelogVersions(rootChangelog)
+  assert.equal(
+    versions[0],
+    version,
+    `Root changelog must begin with release ${version}`,
+  )
+  const previousVersion = versions.find((entry) => entry !== version)
+  assert.ok(previousVersion, `Root changelog has no release before ${version}`)
+
+  await Promise.all(
+    releaseVersionSources.map(async ({ path, references }) => {
+      const target = resolve(repositoryRoot, path)
+      const source = await readFile(target, 'utf8')
+      const next = syncReleaseVersionReference(
+        source,
+        previousVersion,
+        version,
+        path,
+        references,
+      )
+      if (next !== source) await writeFile(target, next)
+    }),
+  )
+}
+
+const entrypoint = process.argv[1]
+if (entrypoint && import.meta.url === pathToFileURL(resolve(entrypoint)).href) {
+  await syncReleaseVersion()
+}
