@@ -214,12 +214,14 @@ See [DOM host](./dom-host.md) and
 | `ChartSpatialIndexFactory`            | Builds an index from current scene points                              |
 | `ChartExtensionInput`                 | Generic bare-token or `{ use, ...options }` extension input            |
 | `ChartTooltipInput`                   | Tooltip extension token or configured extension options                |
+| `ChartTooltipExtensionToken`          | Environment-neutral contract implemented by host tooltip extensions    |
 | `ChartTooltipExtension`               | Tooltip lifecycle implementation                                       |
 | `ChartTooltipExtensionContext`        | Container, dismissal, and adapter-body bridge given to a tooltip       |
 | `ChartTooltipExtensionInstance`       | Tooltip update, paint, hide, containment, and destroy lifecycle        |
 | `ChartTooltipPaintContext`            | Focused points, scene, surface, pointer, and pinned state              |
 | `ChartTooltipOptions`                 | Native tooltip content, ordering, anchoring, and pinning               |
 | `ChartTooltipPortalInput`             | Portal extension token or configured transport options                 |
+| `ChartTooltipPortalExtensionToken`    | Environment-neutral contract implemented by host portal extensions     |
 | `ChartTooltipPortalExtension`         | Tooltip transport lifecycle implementation                             |
 | `ChartTooltipPortalExtensionContext`  | Container, tooltip element, and reposition callback given to a portal  |
 | `ChartTooltipPortalExtensionInstance` | Portal update, position, hide, and destroy lifecycle                   |

@@ -150,7 +150,7 @@ import { mountChart } from '@tanstack/charts/dom'
 import { renderChartSvg } from '@tanstack/charts/svg'
 ```
 
-Use the portable barrel when definitions and scene compilation must not make
+Use the universal barrel when definitions and scene compilation must not make
 the browser host reachable:
 
 ```ts
@@ -158,7 +158,7 @@ import {
   createChartRuntime,
   defineChart,
   lineY,
-} from '@tanstack/charts/portable'
+} from '@tanstack/charts/universal'
 import type { ChartDefinition } from '@tanstack/charts/types'
 ```
 
