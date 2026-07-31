@@ -43,12 +43,12 @@ export {
   findNearestPoint,
 } from './scene'
 export { renderChartSvg } from './svg'
-export { stackY } from './stack'
+export { stack } from './stack'
 export type {
+  StackLayout,
   StackOffset,
   StackOptions,
   StackOrder,
-  StackYChannels,
 } from './stack'
 export { ruleX, ruleY } from './rule'
 export type { RuleXOptions, RuleYOptions } from './rule'
@@ -110,6 +110,17 @@ export type {
   ChartLinearGradient,
   ChartMark,
   ChartMarkDatum,
+  ChartMarkState,
+  ChartMarkStateContext,
+  ChartMarkStateSelector,
+  ChartMarkStateStyle,
+  ChartMarkStateValue,
+  ChartAreaStateStyle,
+  ChartBarStateStyle,
+  ChartDotStateStyle,
+  ChartLineStateStyle,
+  ChartRectStateStyle,
+  ChartTextStateStyle,
   ChartMarkX,
   ChartMarkY,
   ChartPoint,

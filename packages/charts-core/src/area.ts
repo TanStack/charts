@@ -5,14 +5,17 @@ import {
   isChartKey,
   isChartValue,
   isFiniteNumber,
+  markStates,
   visualValue,
 } from './mark'
 import { valueKey } from './scales'
-import { stackExtents, stackOptions } from './stack-internal'
+import { stackValues } from './stack-internal'
 import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkState,
+  ChartAreaStateStyle,
   ChartPoint,
   ChartValue,
   ChartCurve,
@@ -20,6 +23,7 @@ import type {
   SceneNode,
   VisualChannel,
 } from './types'
+import type { StackLayout } from './stack'
 
 export interface AreaYOptions<TDatum> {
   id?: string
@@ -35,6 +39,8 @@ export interface AreaYOptions<TDatum> {
   stroke?: VisualChannel<TDatum, string>
   strokeWidth?: number
   curve?: ChartCurve
+  layout?: StackLayout
+  states?: readonly ChartMarkState<TDatum, ChartAreaStateStyle<TDatum>>[]
 }
 
 export function areaY<TDatum>(
@@ -73,9 +79,14 @@ export function areaY<TDatum>(
         ? colorValues
         : zValues
     const explicitExtent = options.y1 !== undefined || options.y2 !== undefined
+    if (explicitExtent && options.layout) {
+      throw new TypeError(
+        'An area with explicit y1 or y2 endpoints cannot also configure a stack layout',
+      )
+    }
     const stacked = explicitExtent
       ? undefined
-      : stackAreaValues(xValues, rawYValues, groupValues, options)
+      : stackValues(xValues, rawYValues, groupValues, options.layout)
     const y1Values = explicitExtent
       ? typeof options.y1 === 'number'
         ? data.map(() => options.y1 as number)
@@ -102,6 +113,7 @@ export function areaY<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
       seriesFromColor: options.z === undefined && options.color !== undefined,
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
@@ -224,39 +236,4 @@ export function areaY<TDatum>(
       },
     }
   })
-}
-
-function stackAreaValues(
-  positions: readonly unknown[],
-  values: readonly unknown[],
-  series: readonly unknown[],
-  options: object,
-) {
-  const input = positions.flatMap((position, index) => {
-    const value = values[index]
-    if (!isChartValue(position) || !isFiniteNumber(value)) return []
-    const seriesValue = series[index]
-    return [
-      {
-        index,
-        position,
-        value,
-        series: isChartKey(seriesValue) ? seriesValue : 'value',
-      },
-    ]
-  })
-  const extents = stackExtents(input, stackOptions(options))
-  const starts: (number | undefined)[] = Array.from(
-    { length: positions.length },
-    () => undefined,
-  )
-  const ends: (number | undefined)[] = Array.from(
-    { length: positions.length },
-    () => undefined,
-  )
-  for (const [index, extent] of extents) {
-    starts[index] = extent.start
-    ends[index] = extent.end
-  }
-  return { starts, ends }
 }

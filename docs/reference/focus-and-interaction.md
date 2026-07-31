@@ -90,6 +90,80 @@ marks; a later one paints above them. Supplying any custom focus-filtered mark
 replaces the implicit default marker. SVG toggles matching scene nodes; Canvas
 repaints only its focus layers.
 
+## Inline mark states
+
+Use `states` when focus should change an existing dot, bar, rect/cell, line,
+area, or text mark. Later matching states override earlier properties:
+
+```ts
+dot(rows, {
+  x: 'date',
+  y: 'value',
+  fill: '#2563eb',
+  r: 3,
+  states: [
+    {
+      when: { focus: 'primary' },
+      style: {
+        r: ({ datum }) => (datum.priority ? 9 : 7),
+        fill: ({ point }) => point.color,
+        stroke: 'Canvas',
+        strokeWidth: 2,
+      },
+      transition: { duration: 140, easing: 'ease-out' },
+    },
+    {
+      when: { focus: 'unmatched' },
+      style: { opacity: 0.25 },
+    },
+  ],
+})
+```
+
+`when` accepts a focus selector or a callback. Style callbacks receive one
+object with `datum`, `index`, `data`, `point`, `focus`, `pointer`, and
+`matches(match)`. Selectors may also restrict `source` or `pinned` state.
+
+State styles are presentation-only. They can change paint, opacity, dot
+radius, bar inset/corner radius, and text size or offset. Data, keys, channels,
+layout, and scale values remain stable. Use `whenFocused` for additional
+transient geometry such as a band or rule.
+
+```ts
+type ChartMarkStateValue<TDatum, TValue> =
+  TValue | ((context: ChartMarkStateContext<TDatum>) => TValue)
+
+interface ChartMarkStateContext<TDatum> {
+  datum: TDatum
+  index: number
+  data: readonly TDatum[]
+  point: ChartPoint<TDatum>
+  focus: ChartFocusState<TDatum>
+  pointer: ChartTooltipPosition | null
+  matches: (match: ChartFocusMatch) => boolean
+}
+
+interface ChartMarkStateSelector {
+  focus: ChartFocusMatch | 'unmatched'
+  source?: ChartFocusSource | readonly ChartFocusSource[]
+  pinned?: boolean
+}
+
+interface ChartMarkState<TDatum, TStyle extends ChartMarkStateStyle<TDatum>> {
+  when:
+    | ChartMarkStateSelector
+    | ((context: ChartMarkStateContext<TDatum>) => boolean)
+  style: TStyle
+  transition?: ChartAnimationOptions
+}
+```
+
+`ChartMarkStateStyle` is the complete presentation vocabulary. Mark options
+narrow it to `ChartDotStateStyle`, `ChartBarStateStyle`,
+`ChartRectStateStyle`, `ChartLineStateStyle`, `ChartAreaStateStyle`, or
+`ChartTextStateStyle`, preventing layout or unsupported geometry properties
+from entering a state.
+
 ## Disabling chart-owned focus
 
 ```ts

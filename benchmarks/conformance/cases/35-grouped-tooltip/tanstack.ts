@@ -44,6 +44,17 @@ const definition = (input: ConformanceInput) => {
         y: 'unemployed',
         color: 'industry',
         r: 2.5,
+        states: [
+          {
+            when: { focus: 'group' },
+            style: { r: 5, stroke: 'Canvas', strokeWidth: 1.5 },
+            transition: { duration: 140, easing: 'ease-out' },
+          },
+          {
+            when: { focus: 'unmatched' },
+            style: { opacity: 0.3 },
+          },
+        ],
       }),
     ],
     x: { scale: scaleUtc },

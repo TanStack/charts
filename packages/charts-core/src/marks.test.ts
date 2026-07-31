@@ -2,6 +2,7 @@ import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { scaleBand, scaleLinear, scaleOrdinal, scaleRadial } from 'd3-scale'
 import { curveMonotoneX, curveStep } from 'd3-shape'
 import { areaY } from './area'
+import { areaX } from './area-x'
 import { barX, barY } from './bar'
 import { d3Curve } from './d3-shape'
 import { dot } from './dot'
@@ -11,7 +12,7 @@ import { lineY } from './line'
 import { cell } from './rect'
 import { ruleX, ruleY } from './rule'
 import { createChartScene, defineChart } from './scene'
-import { stackY } from './stack'
+import { stack } from './stack'
 import { renderChartSvg } from './svg'
 import { renderChartSvgWithResources } from './svg-resources'
 import { text } from './text'
@@ -597,7 +598,7 @@ describe('core marks and categorical scales', () => {
     expect(scene.scales.y.domain).toEqual([-4, 20])
   })
 
-  it('configures implicit stacks through the reusable stackY transform', () => {
+  it('configures implicit stacks through the stack layout', () => {
     const rows = [
       { category: 'A', series: 'Query', value: 1 },
       { category: 'A', series: 'Router', value: 3 },
@@ -605,13 +606,12 @@ describe('core marks and categorical scales', () => {
     const scene = createChartScene(
       defineChart({
         marks: [
-          barY(
-            rows,
-            stackY(
-              { offset: 'normalize', order: 'descending' },
-              { x: 'category', y: 'value', z: 'series' },
-            ),
-          ),
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            layout: stack({ offset: 'normalize', order: 'descending' }),
+          }),
         ],
         ...bandXAxes(['A'], [0, 1]),
       }),
@@ -664,6 +664,60 @@ describe('core marks and categorical scales', () => {
       { yValue: 4, y1Value: 2, y2Value: 6 },
       { yValue: 5, y1Value: 3, y2Value: 8 },
     ])
+  })
+
+  it('transposes implicit stack semantics for areaX', () => {
+    const rows = [
+      { position: 1, series: 'Query', value: 2 },
+      { position: 2, series: 'Query', value: 3 },
+      { position: 1, series: 'Router', value: 4 },
+      { position: 2, series: 'Router', value: 5 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          areaX(rows, {
+            x: 'value',
+            y: 'position',
+            color: 'series',
+          }),
+        ],
+        ...linearAxes([0, 8], [1, 2]),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      scene.points.map(({ xValue, x1Value, x2Value }) => ({
+        xValue,
+        x1Value,
+        x2Value,
+      })),
+    ).toEqual([
+      { xValue: 2, x1Value: 0, x2Value: 2 },
+      { xValue: 3, x1Value: 0, x2Value: 3 },
+      { xValue: 4, x1Value: 2, x2Value: 6 },
+      { xValue: 5, x1Value: 3, x2Value: 8 },
+    ])
+  })
+
+  it('rejects a stack layout combined with authored endpoints', () => {
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [
+            areaY([{ x: 1, start: 0, end: 2 }], {
+              x: 'x',
+              y1: 'start',
+              y2: 'end',
+              layout: stack(),
+            }),
+          ],
+          ...linearAxes([0, 2], [0, 2]),
+        }),
+        { width: 480, height: 260 },
+      ),
+    ).toThrow(/explicit y1 or y2 endpoints/)
   })
 
   it('rejects continuous color as inferred stack identity', () => {

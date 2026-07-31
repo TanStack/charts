@@ -48,6 +48,7 @@ function dot<TDatum>(
 | `stroke`        | `string`                             | None                 | Constant stroke                       |
 | `strokeOpacity` | `number`                             | SVG default          | Stroke opacity                        |
 | `strokeWidth`   | `number`                             | SVG default          | Stroke width                          |
+| `states`        | `readonly ChartMarkState[]`          | None                 | Focus-driven presentation overrides   |
 
 `rScale` is called only for finite, nonnegative raw radii. The mapped result
 must also be finite and nonnegative or the row is skipped.

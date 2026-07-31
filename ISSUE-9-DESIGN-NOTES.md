@@ -14,6 +14,47 @@ implementation plan or compatibility promise.
 4. Fixed tooltip placement — implemented
 5. Stacked and grouped bar authoring — implemented
 
+## Implementation audit
+
+### Complexity
+
+- State selection and callback evaluation live in one renderer-neutral scene
+  resolver. SVG reconciles the resolved scene; Canvas repaints it and uses its
+  existing crossfade path for transitions.
+- Stateful scene groups build a prefix index once per focus paint. Point marks
+  resolve a node in near-constant time instead of scanning every point for
+  every node. This removes the quadratic dense-dot path found during review.
+- Pointer movement repaints only when a scene contains inline states. Canvas
+  must repaint its base scene when existing marks change or unmatched marks
+  fade; that is an intentional cost, not duplicated interaction state.
+- The resolver is the largest new runtime unit (315 source lines). Mark files
+  only attach typed state metadata; focus resolution remains centralized.
+
+### Duplication
+
+- Bars and both area orientations use one `stackValues` adapter over one D3
+  stack engine. The previous outer-transform registration and three repeated
+  extent-expansion helpers are gone.
+- SVG and Canvas share selectors, callbacks, ordered overrides, reduced-motion
+  handling, and transition selection. Their remaining code differs only at
+  the paint boundary.
+- Native stack authoring removes 90 net lines from the stacked and normalized
+  area examples by deleting their tidy-to-wide D3 preparation.
+
+### Bundle size
+
+- State metadata plumbing adds 245 minified / 71 gzip bytes to a static line
+  scene. Representative marks add 584 / 204 bytes.
+- The SVG DOM host adds 2,929 minified / 994 gzip bytes; the React adapter adds
+  2,925 / 1,016 bytes. These include the shared state resolver, prefix index,
+  transition handling, and SVG integration.
+- Symmetric implicit stacking puts the isolated `areaX` + static SVG entry at
+  19.66 kB gzip. Its reviewed ceiling moves from 18.35 to 19.8 kB. Host-derived
+  ceilings move by the measured state-engine cost, with roughly 0.15 kB
+  headroom.
+- Exact universal baselines were updated only after the source audit. The full
+  bundle policy remains the release gate.
+
 ## 1. Focus presentation
 
 ### Decision
@@ -85,6 +126,37 @@ The implementation follows this contract:
 
 Specialized helpers such as `focusBandX` can be built later as compositions of
 an ordinary mark and the focus filter. They should not define the core model.
+
+Existing marks use inline state styles. This is separate from `whenFocused`:
+the former changes presentation on existing geometry, while the latter adds
+transient geometry.
+
+```ts
+dot(rows, {
+  x: 'date',
+  y: 'value',
+  r: 3,
+  states: [
+    {
+      when: { focus: 'primary' },
+      style: {
+        r: ({ datum }) => (datum.priority ? 9 : 7),
+        fill: ({ point }) => point.color,
+      },
+      transition: { duration: 140, easing: 'ease-out' },
+    },
+    {
+      when: { focus: 'unmatched' },
+      style: { opacity: 0.25 },
+    },
+  ],
+})
+```
+
+Callback values receive one object containing `datum`, `index`, `data`,
+`point`, `focus`, `pointer`, and `matches`. Later matching states override
+earlier properties. State styles cannot change data, channels, keys, layout,
+or scale values.
 
 ## 2. Axis and grid configuration
 
@@ -365,28 +437,24 @@ barY(rows, {
 })
 ```
 
-Stack behavior can be configured through a reusable transform:
+Stack behavior can be configured in the same layout slot used by grouping:
 
 ```ts
-barY(
-  rows,
-  stackY(
-    {
-      order: 'input',
-      offset: 'normalize',
-    },
-    {
-      x: 'date',
-      y: 'value',
-      color: 'category',
-    },
-  ),
-)
+barY(rows, {
+  x: 'date',
+  y: 'value',
+  color: 'category',
+  layout: stack({
+    order: 'input',
+    offset: 'normalize',
+  }),
+})
 ```
 
 The semantics follow Observable Plot's coherent distinction: `y` is a length,
-while `y1` and `y2` are already resolved extents. `stackY` is shared by
-vertical bars and areas.
+while `y1` and `y2` are already resolved extents. `color` can infer series
+identity, so it implies the default stack at repeated positions. `layout` is
+optional unless stack order or offset is configured.
 
 Grouping remains an explicit geometric choice:
 

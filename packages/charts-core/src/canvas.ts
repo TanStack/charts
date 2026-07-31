@@ -1,6 +1,7 @@
 import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
 import { focusedSceneNodes } from './focus-layer'
+import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
 import type {
   ChartAnimationOptions,
   ChartBounds,
@@ -142,6 +143,7 @@ export function createCanvasChartRenderer<
       let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
       let pixelRatio = 1
       let cancelAnimation = () => {}
+      let stateTransition: ChartAnimationOptions | undefined
       let destroyed = false
 
       const surface: CanvasChartSurface<TDatum, TXValue, TYValue> = {
@@ -189,6 +191,7 @@ export function createCanvasChartRenderer<
             paintCanvas(canvas, nextScene, pixelRatio, resolver, root)
           }
           scene = nextScene
+          stateTransition = undefined
         },
         clientToScene(currentScene, clientX, clientY) {
           const bounds = root.getBoundingClientRect()
@@ -198,20 +201,45 @@ export function createCanvasChartRenderer<
             y: ((clientY - bounds.top) / bounds.height) * currentScene.height,
           }
         },
-        paintFocus(focus) {
+        paintFocus(focus, pointer) {
           if (!scene || destroyed) return
+          const resolved = resolveMarkStateScene(scene, focus, pointer)
+          const previousTransition = stateTransition
+          if (resolved.scene !== scene || previousTransition) {
+            cancelAnimation()
+            const transition = resolveMarkStateTransition(
+              resolved.transition ?? previousTransition,
+              root,
+            )
+            if (transition) {
+              cancelAnimation = animateScene(
+                canvas,
+                resolved.scene,
+                pixelRatio,
+                transition,
+                resolver,
+                root,
+              )
+            } else {
+              paintCanvas(canvas, resolved.scene, pixelRatio, resolver, root)
+              cancelAnimation = () => {}
+            }
+          }
+          stateTransition = focus
+            ? (resolved.transition ?? previousTransition)
+            : undefined
           paintFocusCanvas(
             focusUnderCanvas,
-            scene,
-            focusedSceneNodes(scene, focus, 'under'),
+            resolved.scene,
+            focusedSceneNodes(resolved.scene, focus, 'under'),
             pixelRatio,
             resolver,
             root,
           )
           paintFocusCanvas(
             focusCanvas,
-            scene,
-            focusedSceneNodes(scene, focus, 'over'),
+            resolved.scene,
+            focusedSceneNodes(resolved.scene, focus, 'over'),
             pixelRatio,
             resolver,
             root,

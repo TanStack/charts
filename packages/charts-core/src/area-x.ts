@@ -5,19 +5,24 @@ import {
   isChartKey,
   isChartValue,
   isFiniteNumber,
+  markStates,
   visualValue,
 } from './mark'
 import { valueKey } from './scales'
+import { stackValues } from './stack-internal'
 import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkState,
+  ChartAreaStateStyle,
   ChartPoint,
   ChartValue,
   OptionChannelOutput,
   SceneNode,
   VisualChannel,
 } from './types'
+import type { StackLayout } from './stack'
 
 export interface AreaXCurve {
   areaX: (
@@ -40,6 +45,8 @@ export interface AreaXOptions<TDatum> {
   stroke?: VisualChannel<TDatum, string>
   strokeWidth?: number
   curve?: AreaXCurve
+  layout?: StackLayout
+  states?: readonly ChartMarkState<TDatum, ChartAreaStateStyle<TDatum>>[]
 }
 
 export function areaX<TDatum>(
@@ -60,17 +67,13 @@ export function areaX<TDatum>(
 
   return createMark(({ markIndex }) => {
     const id = options.id ?? `area-x-${markIndex}`
-    const x2 = options.x2 ?? options.x
-    const xValues =
-      typeof x2 === 'number'
-        ? data.map(() => x2)
-        : channelValues(data, x2, (datum) =>
+    const rawX = options.x ?? options.x2
+    const rawXValues =
+      typeof rawX === 'number'
+        ? data.map(() => rawX)
+        : channelValues(data, rawX, (datum) =>
             typeof datum === 'number' ? datum : undefined,
           )
-    const x1Values =
-      typeof options.x1 === 'number'
-        ? data.map(() => options.x1 as number)
-        : channelValues(data, options.x1, () => 0)
     const yValues = channelValues(data, options.y, (_datum, index) => index)
     const zValues = channelValues(data, options.z, () => null)
     const colorValues =
@@ -81,6 +84,25 @@ export function areaX<TDatum>(
       options.z === undefined && options.color !== undefined
         ? colorValues
         : zValues
+    const explicitExtent = options.x1 !== undefined || options.x2 !== undefined
+    if (explicitExtent && options.layout) {
+      throw new TypeError(
+        'An area with explicit x1 or x2 endpoints cannot also configure a stack layout',
+      )
+    }
+    const stacked = explicitExtent
+      ? undefined
+      : stackValues(yValues, rawXValues, groupValues, options.layout)
+    const x1Values = explicitExtent
+      ? typeof options.x1 === 'number'
+        ? data.map(() => options.x1 as number)
+        : channelValues(data, options.x1, () => 0)
+      : stacked!.starts
+    const x2Values = explicitExtent
+      ? typeof options.x2 === 'number'
+        ? data.map(() => options.x2 as number)
+        : channelValues(data, options.x2 ?? options.x, () => undefined)
+      : stacked!.ends
     const keys = inferredKeyValues(data, options.key, {
       groups: groupValues,
       candidates: [yValues],
@@ -97,11 +119,13 @@ export function areaX<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
+      seriesFromColor: options.z === undefined && options.color !== undefined,
       channels: {
         x: {
           scale: 'x',
           values: [
-            ...xValues.filter(isFiniteNumber),
+            ...x2Values.filter(isFiniteNumber),
             ...x1Values.filter(isFiniteNumber),
           ],
           includeZero: options.x1 === undefined,
@@ -165,18 +189,20 @@ export function areaX<TDatum>(
           }
 
           for (const datumIndex of indices) {
-            const xValue = xValues[datumIndex]
+            const xValue = rawXValues[datumIndex]
             const x1Value = x1Values[datumIndex]
+            const x2Value = x2Values[datumIndex]
             const yValue = yValues[datumIndex]
             if (
               !isFiniteNumber(xValue) ||
               !isFiniteNumber(x1Value) ||
+              !isFiniteNumber(x2Value) ||
               !isChartValue(yValue)
             ) {
               flush()
               continue
             }
-            const x = scales.x.map(xValue)
+            const x = scales.x.map(x2Value)
             const y = scales.y.map(yValue)
             right.push([x, y])
             left.push([scales.x.map(x1Value), y])
@@ -191,7 +217,7 @@ export function areaX<TDatum>(
               xValue,
               yValue,
               x1Value,
-              x2Value: xValue,
+              x2Value,
               xInterval: 'difference',
               x,
               y,

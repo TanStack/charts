@@ -271,8 +271,8 @@ their behavior:
   image export](./rendering-and-export.md#browser-image-export).
 - `@tanstack/charts/group`: `GroupLayout` and `GroupOptions`. See
   [Grouped bars](./marks/bar-and-rect.md#grouped-bars).
-- `@tanstack/charts/stack`: `StackOptions`, `StackOrder`, `StackOffset`, and
-  `StackYChannels`. See [Stacked bars](./marks/bar-and-rect.md#stacked-bars).
+- `@tanstack/charts/stack`: `StackLayout`, `StackOptions`, `StackOrder`, and
+  `StackOffset`. See [Stacked bars](./marks/bar-and-rect.md#stacked-bars).
 - `@tanstack/charts/geo`: `GeoProjectionContext`, `GeoProjectionDescriptor`,
   `GeoProjectionInput`, and `GeoShapeOptions`. See
   [Geo shape](./marks/geo.md).

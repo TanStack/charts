@@ -64,6 +64,30 @@ rebuilding the scene or repainting base Canvas geometry.
 `match` accepts `primary`, `group`, `key`, `x`, `y`, or `series`. The same
 focused group drives tooltips and every filtered mark.
 
+To restyle an existing mark instead of adding geometry, use inline `states`:
+
+```ts
+dot(rows, {
+  x: 'date',
+  y: 'value',
+  r: 3,
+  states: [
+    {
+      when: { focus: 'primary' },
+      style: { r: 7, stroke: 'Canvas', strokeWidth: 2 },
+      transition: { duration: 140, easing: 'ease-out' },
+    },
+    {
+      when: { focus: 'unmatched' },
+      style: { opacity: 0.25 },
+    },
+  ],
+})
+```
+
+Use `whenFocused` for a new band, rule, or mark. Use `states` for paint and
+presentation changes on geometry that already exists.
+
 ## Axis focus modes
 
 | Mode        | Result                                     |

@@ -109,6 +109,111 @@ export type OptionChannelOutput<
 export type VisualChannel<TDatum, TValue> =
   TValue | ChannelAccessor<TDatum, TValue>
 
+export interface ChartMarkStateContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  datum: TDatum
+  index: number
+  data: readonly TDatum[]
+  point: ChartPoint<TDatum, TXValue, TYValue>
+  focus: ChartFocusState<TDatum, TXValue, TYValue>
+  pointer: ChartTooltipPosition | null
+  matches: (match: ChartFocusMatch) => boolean
+}
+
+export type ChartMarkStateValue<TDatum, TValue> =
+  TValue | ((context: ChartMarkStateContext<TDatum>) => TValue)
+
+export interface ChartMarkStateStyle<TDatum = unknown> {
+  fill?: ChartMarkStateValue<TDatum, string>
+  fillOpacity?: ChartMarkStateValue<TDatum, number>
+  stroke?: ChartMarkStateValue<TDatum, string>
+  strokeOpacity?: ChartMarkStateValue<TDatum, number>
+  strokeWidth?: ChartMarkStateValue<TDatum, number>
+  opacity?: ChartMarkStateValue<TDatum, number>
+  strokeDasharray?: ChartMarkStateValue<TDatum, string>
+  r?: ChartMarkStateValue<TDatum, number>
+  radius?: ChartMarkStateValue<TDatum, number>
+  inset?: ChartMarkStateValue<TDatum, number>
+  fontSize?: ChartMarkStateValue<TDatum, number>
+  fontWeight?: ChartMarkStateValue<TDatum, number>
+  dx?: ChartMarkStateValue<TDatum, number>
+  dy?: ChartMarkStateValue<TDatum, number>
+  rotate?: ChartMarkStateValue<TDatum, number>
+}
+
+export type ChartDotStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  | 'fill'
+  | 'fillOpacity'
+  | 'stroke'
+  | 'strokeOpacity'
+  | 'strokeWidth'
+  | 'opacity'
+  | 'r'
+>
+
+export type ChartBarStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  | 'fill'
+  | 'fillOpacity'
+  | 'stroke'
+  | 'strokeWidth'
+  | 'opacity'
+  | 'radius'
+  | 'inset'
+>
+
+export type ChartRectStateStyle<TDatum = unknown> = ChartBarStateStyle<TDatum>
+
+export type ChartLineStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  'stroke' | 'strokeOpacity' | 'strokeWidth' | 'strokeDasharray' | 'opacity'
+>
+
+export type ChartAreaStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  | 'fill'
+  | 'fillOpacity'
+  | 'stroke'
+  | 'strokeOpacity'
+  | 'strokeWidth'
+  | 'opacity'
+>
+
+export type ChartTextStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  | 'fill'
+  | 'fillOpacity'
+  | 'stroke'
+  | 'strokeWidth'
+  | 'opacity'
+  | 'fontSize'
+  | 'fontWeight'
+  | 'dx'
+  | 'dy'
+  | 'rotate'
+>
+
+export interface ChartMarkStateSelector {
+  focus: ChartFocusMatch | 'unmatched'
+  source?: ChartFocusSource | readonly ChartFocusSource[]
+  pinned?: boolean
+}
+
+export interface ChartMarkState<
+  TDatum = unknown,
+  TStyle extends ChartMarkStateStyle<TDatum> = ChartMarkStateStyle<TDatum>,
+> {
+  when:
+    | ChartMarkStateSelector
+    | ((context: ChartMarkStateContext<TDatum>) => boolean)
+  style: TStyle
+  transition?: ChartAnimationOptions
+}
+
 export interface ChartSize {
   width: number
   height: number
@@ -579,6 +684,10 @@ export interface InitializedMark<
   /** The mark uses a discrete color channel as inferred series identity. */
   seriesFromColor?: boolean
   focus?: ChartFocusFilter
+  states?: {
+    data: readonly unknown[]
+    definitions: readonly ChartMarkState<any>[]
+  }
   layoutLabels?: (context: MarkRenderContext) => readonly SceneLabel[]
   render: (context: MarkRenderContext) => MarkScene<TDatum, TXValue, TYValue>
 }
@@ -652,6 +761,11 @@ export interface SceneGroup extends SceneNodeBase {
     points: readonly ChartPoint[]
     placement: 'under' | 'over'
   }
+  states?: {
+    data: readonly unknown[]
+    definitions: readonly ChartMarkState<any>[]
+    points: readonly ChartPoint[]
+  }
 }
 
 export interface SceneRule extends SceneNodeBase {
@@ -688,6 +802,8 @@ export interface SceneRect extends SceneNodeBase {
   width: number
   height: number
   radius?: number
+  /** Applied inset retained for absolute inline-state overrides. */
+  inset?: number
 }
 
 export interface SceneLabel extends SceneNodeBase {
@@ -778,7 +894,10 @@ export interface ChartSurface<
     clientX: number,
     clientY: number,
   ) => { x: number; y: number } | null
-  paintFocus: (focus: ChartFocusState<TDatum, TXValue, TYValue> | null) => void
+  paintFocus: (
+    focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
+    pointer?: ChartTooltipPosition | null,
+  ) => void
   destroy: () => void
 }
 

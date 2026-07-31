@@ -75,7 +75,7 @@ function filterNodes(
   return output
 }
 
-function matchesFocusPoint(
+export function matchesFocusPoint(
   candidate: ChartPoint,
   focus: ChartFocusState,
   match: NonNullable<SceneGroup['focus']>['match'],

@@ -1,10 +1,4 @@
-import {
-  defineChart,
-  dot,
-  lineY,
-  mountChart,
-  whenFocused,
-} from '@tanstack/charts'
+import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import type { ChartHostOptions } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
@@ -30,18 +24,18 @@ const definition = (input: ConformanceInput) => {
         y: 'Close',
         fill: '#2563eb',
         r: 3,
+        states: [
+          {
+            when: { focus: 'primary' },
+            style: {
+              r: 7,
+              stroke: 'Canvas',
+              strokeWidth: 2,
+            },
+            transition: { duration: 140, easing: 'ease-out' },
+          },
+        ],
       }),
-      whenFocused(
-        dot(rows, {
-          x: 'Date',
-          y: 'Close',
-          fill: '#2563eb',
-          stroke: 'Canvas',
-          strokeWidth: 2,
-          r: 7,
-        }),
-        { match: 'primary' },
-      ),
     ],
     x: { scale: scaleUtc },
     y: { scale: scaleLinear, grid: true, axis: { label: 'Apple close (USD)' } },

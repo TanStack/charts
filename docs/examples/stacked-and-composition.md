@@ -24,8 +24,8 @@ values remain available elsewhere.
 | Which subgroup values must be compared precisely across groups? | Grouped bars or aligned small multiples |
 | Do contributions extend in positive and negative directions?    | Diverging stack around an explicit zero |
 
-Single-value bar and area channels stack implicitly. Use `stackY` when the
-order or offset must be explicit; supply interval endpoints when the
+Single-value bar and area channels stack implicitly. Use `layout: stack()`
+when the order or offset must be explicit; supply interval endpoints when the
 application has already computed them.
 
 ## Preserve totals with a stacked area
@@ -35,13 +35,12 @@ The top boundary carries the total; the thickness of each layer carries its
 contribution.
 
 ```ts
-areaY(
-  rows,
-  stackY(
-    { order: ['Core', 'Services'] },
-    { x: 'date', y: 'value', color: 'series' },
-  ),
-)
+areaY(rows, {
+  x: 'date',
+  y: 'value',
+  color: 'series',
+  layout: stack({ order: ['Core', 'Services'] }),
+})
 ```
 
 <iframe
@@ -80,7 +79,7 @@ Format the quantitative guide as a percentage and state the denominator. Keep
 raw totals available in a tooltip, table, or companion view when the reader may
 otherwise mistake stable share for stable volume.
 
-Use `stackY({ offset: 'normalize' }, channels)`. Normalization is resolved
+Use `layout: stack({ offset: 'normalize' })`. Normalization is resolved
 independently at each x position.
 
 ## Emphasize changing shape

@@ -1,5 +1,5 @@
 import { crimeanWar } from '@charts-poc/demo-data/crimean-war'
-import { barY, defineChart, ruleY, stackY } from '@tanstack/charts'
+import { barY, defineChart, ruleY, stack } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
@@ -18,18 +18,13 @@ const definition = (input: ConformanceInput) => {
 
   return defineChart({
     marks: [
-      barY(
-        rows,
-        stackY(
-          { order: [...causes].reverse() },
-          {
-            x: 'date',
-            y: 'deaths',
-            z: 'cause',
-            color: 'cause',
-          },
-        ),
-      ),
+      barY(rows, {
+        x: 'date',
+        y: 'deaths',
+        z: 'cause',
+        color: 'cause',
+        layout: stack({ order: [...causes].reverse() }),
+      }),
       ruleY([0]),
     ],
     x: {

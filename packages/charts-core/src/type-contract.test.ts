@@ -740,6 +740,34 @@ if (false) {
 }
 
 describe('public type contracts', () => {
+  it('types inline state callbacks from one context object', () => {
+    dot(rows, {
+      x: 'value',
+      y: 'value',
+      states: [
+        {
+          when: ({ datum, index, data, point, focus, pointer, matches }) => {
+            expectTypeOf(datum).toEqualTypeOf<Row>()
+            expectTypeOf(index).toEqualTypeOf<number>()
+            expectTypeOf(data).toEqualTypeOf<readonly Row[]>()
+            expectTypeOf(point.datum).toEqualTypeOf<Row>()
+            expectTypeOf(focus.primary.datum).toEqualTypeOf<Row>()
+            expectTypeOf(pointer).toEqualTypeOf<{
+              x: number
+              y: number
+            } | null>()
+            expectTypeOf(matches).toBeFunction()
+            return matches('primary')
+          },
+          style: {
+            fill: ({ datum }) => (datum.enabled ? '#2563eb' : '#94a3b8'),
+            r: ({ index }) => index + 4,
+          },
+        },
+      ],
+    })
+  })
+
   it('preserves precise datum unions through heterogeneous definitions', () => {
     type InferredDatum = NonNullable<typeof heterogeneousDefinition.__datum>
 

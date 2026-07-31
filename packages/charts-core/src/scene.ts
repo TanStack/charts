@@ -236,7 +236,20 @@ function createChartSceneWithScaleResolver<
         children: rendered.nodes,
       })
     } else {
-      for (const node of rendered.nodes) markNodes.push(node)
+      if (mark.states) {
+        markNodes.push({
+          kind: 'group',
+          key: `states:${mark.id}`,
+          children: rendered.nodes,
+          states: {
+            data: mark.states.data,
+            definitions: mark.states.definitions,
+            points: rendered.points ?? [],
+          },
+        })
+      } else {
+        for (const node of rendered.nodes) markNodes.push(node)
+      }
       for (const point of (rendered.points ?? []) as readonly ChartPoint<
         TDatum,
         TXValue,

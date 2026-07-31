@@ -10,8 +10,7 @@
     "area",
     "normalized stack",
     "100 percent composition",
-    "d3-shape-stack",
-    "d3-shape-stackOffsetExpand",
+    "native stack layout",
     "percent axis"
   ],
   "geometry": [
@@ -23,7 +22,7 @@
     "url": "https://observablehq.com/plot/transforms/stack"
   },
   "ai": {
-    "create": "Create a responsive normalized UTC area chart from the industries dataset's original date, industry, and unemployed fields, with Plot's native normalize offset and explicit granular d3-shape intervals for TanStack Charts.",
+    "create": "Create a responsive normalized UTC area chart from the industries dataset's original date, industry, and unemployed fields using each library's native normalize offset.",
     "maintain": "Change the industry order while keeping each month normalized to 100%, colors stable, the percent guide accurate, and the imported rows untouched."
   }
 }

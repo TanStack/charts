@@ -9,19 +9,6 @@ import { valueKey } from './scales'
 import type { StackOptions, StackOrder } from './stack'
 import type { ChartKey, ChartValue } from './types'
 
-const optionStore = new WeakMap<object, Readonly<StackOptions>>()
-
-export function registerStackOptions(
-  channels: object,
-  options: Readonly<StackOptions>,
-) {
-  optionStore.set(channels, options)
-}
-
-export function stackOptions(options: object): Readonly<StackOptions> {
-  return optionStore.get(options) ?? {}
-}
-
 interface StackInput {
   index: number
   position: ChartValue
@@ -100,6 +87,62 @@ export function stackExtents(
     })
   })
   return output
+}
+
+export function stackValues(
+  positions: readonly unknown[],
+  values: readonly unknown[],
+  series: readonly unknown[],
+  options: Readonly<StackOptions> = {},
+  fallbackSeries: 'value' | 'index' = 'value',
+) {
+  const input: StackInput[] = []
+  for (let index = 0; index < positions.length; index += 1) {
+    const position = positions[index]
+    const value = values[index]
+    if (!isChartValue(position) || !isFiniteNumber(value)) continue
+    const seriesValue = series[index]
+    input.push({
+      index,
+      position,
+      value,
+      series: isChartKey(seriesValue)
+        ? seriesValue
+        : fallbackSeries === 'index'
+          ? index
+          : 'value',
+    })
+  }
+  const extents = stackExtents(input, options)
+  const starts: (number | undefined)[] = Array.from(
+    { length: positions.length },
+    () => undefined,
+  )
+  const ends: (number | undefined)[] = Array.from(
+    { length: positions.length },
+    () => undefined,
+  )
+  for (const [index, extent] of extents) {
+    starts[index] = extent.start
+    ends[index] = extent.end
+  }
+  return { starts, ends }
+}
+
+function isChartKey(value: unknown): value is ChartKey {
+  return typeof value === 'string' || typeof value === 'number'
+}
+
+function isChartValue(value: unknown): value is ChartValue {
+  return (
+    typeof value === 'string' ||
+    isFiniteNumber(value) ||
+    (value instanceof Date && Number.isFinite(value.getTime()))
+  )
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
 }
 
 function orderedSeries(

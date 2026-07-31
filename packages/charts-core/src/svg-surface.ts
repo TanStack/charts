@@ -1,6 +1,7 @@
 import { reconcileChartSvg } from './reconcile'
 import { renderChartSvg } from './svg'
 import { focusedNodeKeys } from './focus-layer'
+import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
 import type {
   ChartFocusState,
   ChartPoint,
@@ -9,6 +10,7 @@ import type {
   SceneGroup,
   ChartSurface,
   ChartSvgRenderer,
+  ChartSurfaceRenderOptions,
   ChartValue,
 } from './types'
 
@@ -25,6 +27,8 @@ export function createSvgChartRenderer<
     mount(container) {
       let cancelAnimation = () => {}
       let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
+      let renderOptions: ChartSurfaceRenderOptions | undefined
+      let stateTransition: ChartSurfaceRenderOptions['animation']
       const svgElement = () => {
         const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
         if (!svg) {
@@ -48,13 +52,31 @@ export function createSvgChartRenderer<
             options.animation,
           )
           scene = nextScene
+          renderOptions = options
+          stateTransition = undefined
         },
         clientToScene(scene, clientX, clientY) {
           return clientToScene(svgElement(), scene, clientX, clientY)
         },
-        paintFocus(focus) {
-          if (!scene) return
-          paintSvgFocus(svgElement(), scene, focus)
+        paintFocus(focus, pointer) {
+          if (!scene || !renderOptions) return
+          const resolved = resolveMarkStateScene(scene, focus, pointer)
+          const previousTransition = stateTransition
+          if (resolved.scene !== scene || previousTransition) {
+            cancelAnimation()
+            cancelAnimation = reconcileChartSvg(
+              container,
+              renderSvg(resolved.scene, renderOptions),
+              resolveMarkStateTransition(
+                resolved.transition ?? previousTransition,
+                container,
+              ),
+            )
+          }
+          stateTransition = focus
+            ? (resolved.transition ?? previousTransition)
+            : undefined
+          paintSvgFocus(svgElement(), resolved.scene, focus)
         },
         destroy() {
           cancelAnimation()

@@ -6,15 +6,18 @@ import {
   isChartKey,
   isChartValue,
   isFiniteNumber,
+  markStates,
   visualValue,
 } from './mark'
 import { resolveScaleInput } from './scale-input'
 import { valueKey } from './scales'
-import { stackExtents, stackOptions } from './stack-internal'
+import { stackValues } from './stack-internal'
 import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkState,
+  ChartBarStateStyle,
   ChartPoint,
   ChartValue,
   OptionChannelOutput,
@@ -23,6 +26,9 @@ import type {
   VisualChannel,
 } from './types'
 import type { GroupLayout } from './group'
+import type { StackLayout } from './stack'
+
+type BarLayout = GroupLayout | StackLayout
 
 export interface BarYOptions<TDatum> {
   id?: string
@@ -35,10 +41,11 @@ export interface BarYOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
-  layout?: GroupLayout
+  layout?: BarLayout
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
   radius?: number
+  states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
 
 export interface BarXOptions<TDatum> {
@@ -52,10 +59,11 @@ export interface BarXOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
-  layout?: GroupLayout
+  layout?: BarLayout
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
   radius?: number
+  states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
 
 export function barY<TDatum>(
@@ -92,10 +100,16 @@ export function barY<TDatum>(
         ? colorValues
         : zValues
     const explicitExtent = options.y1 !== undefined || options.y2 !== undefined
+    if (explicitExtent && options.layout) {
+      throw new TypeError(
+        'A bar with explicit y1 or y2 endpoints cannot also configure a layout',
+      )
+    }
     const grouped = options.layout?.type === 'group'
+    const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
     const stacked =
       !explicitExtent && !grouped
-        ? stackYValues(xValues, rawYValues, seriesValues, options)
+        ? stackValues(xValues, rawYValues, seriesValues, stackLayout, 'index')
         : undefined
     const y1Values = explicitExtent
       ? numericChannelValues(data, options.y1, () => 0)
@@ -119,6 +133,7 @@ export function barY<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
       seriesFromColor:
         options.z === undefined &&
         options.color !== undefined &&
@@ -143,7 +158,7 @@ export function barY<TDatum>(
           scales.x.bandwidth ||
           inferBandwidth(scales.x, xValues, chart.width, data.length)
         const groupScale = resolveGroupScale(
-          options.layout,
+          options.layout?.type === 'group' ? options.layout : undefined,
           groupValues,
           totalBandwidth,
         )
@@ -188,6 +203,7 @@ export function barY<TDatum>(
             width: Math.max(0, groupBandwidth - inset * 2),
             height: Math.abs(baselinePosition - valuePosition),
             radius: options.radius,
+            inset,
             style: {
               fill,
               fillOpacity: options.fillOpacity,
@@ -262,10 +278,16 @@ export function barX<TDatum>(
         ? colorValues
         : zValues
     const explicitExtent = options.x1 !== undefined || options.x2 !== undefined
+    if (explicitExtent && options.layout) {
+      throw new TypeError(
+        'A bar with explicit x1 or x2 endpoints cannot also configure a layout',
+      )
+    }
     const grouped = options.layout?.type === 'group'
+    const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
     const stacked =
       !explicitExtent && !grouped
-        ? stackXValues(yValues, rawXValues, seriesValues, options)
+        ? stackValues(yValues, rawXValues, seriesValues, stackLayout, 'index')
         : undefined
     const x1Values = explicitExtent
       ? numericChannelValues(data, options.x1, () => 0)
@@ -289,6 +311,7 @@ export function barX<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
       seriesFromColor:
         options.z === undefined &&
         options.color !== undefined &&
@@ -313,7 +336,7 @@ export function barX<TDatum>(
           scales.y.bandwidth ||
           inferBandwidth(scales.y, yValues, chart.height, data.length)
         const groupScale = resolveGroupScale(
-          options.layout,
+          options.layout?.type === 'group' ? options.layout : undefined,
           groupValues,
           totalBandwidth,
         )
@@ -357,6 +380,7 @@ export function barX<TDatum>(
             width: Math.abs(baselinePosition - valuePosition),
             height: Math.max(0, groupBandwidth - inset * 2),
             radius: options.radius,
+            inset,
             style: {
               fill,
               fillOpacity: options.fillOpacity,
@@ -433,49 +457,6 @@ function resolveGroupScale(
       return position
     },
   }
-}
-
-function stackYValues(
-  positions: readonly unknown[],
-  values: readonly unknown[],
-  series: readonly unknown[],
-  options: object,
-) {
-  const input = positions.flatMap((position, index) => {
-    const value = values[index]
-    if (!isChartValue(position) || !isFiniteNumber(value)) return []
-    return [
-      {
-        index,
-        position,
-        value,
-        series: isChartKey(series[index]) ? series[index] : index,
-      },
-    ]
-  })
-  const extents = stackExtents(input, stackOptions(options))
-  const starts: (number | undefined)[] = Array.from(
-    { length: positions.length },
-    () => undefined,
-  )
-  const ends: (number | undefined)[] = Array.from(
-    { length: positions.length },
-    () => undefined,
-  )
-  for (const [index, extent] of extents) {
-    starts[index] = extent.start
-    ends[index] = extent.end
-  }
-  return { starts, ends }
-}
-
-function stackXValues(
-  positions: readonly unknown[],
-  values: readonly unknown[],
-  series: readonly unknown[],
-  options: object,
-) {
-  return stackYValues(positions, values, series, options)
 }
 
 function hasDuplicateValues(values: readonly unknown[]) {

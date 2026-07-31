@@ -5,6 +5,7 @@ import {
   inferredKeyValues,
   isChartKey,
   isChartValue,
+  markStates,
   visualValue,
 } from './mark'
 import { valueKey } from './scales'
@@ -12,6 +13,8 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkState,
+  ChartTextStateStyle,
   MarkRenderContext,
   ChartPoint,
   ChartValue,
@@ -38,6 +41,7 @@ export interface TextOptions<TDatum> {
   rotate?: VisualChannel<TDatum, number>
   dx?: VisualChannel<TDatum, number>
   dy?: VisualChannel<TDatum, number>
+  states?: readonly ChartMarkState<TDatum, ChartTextStateStyle<TDatum>>[]
 }
 
 export function text<TDatum>(
@@ -122,6 +126,7 @@ export function text<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
         y: { scale: 'y', values: yValues.filter(isChartValue) },

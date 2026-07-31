@@ -17,6 +17,7 @@ selection, or product record.
 | ------------------------------------------------------------ | ---------------------------------------------- |
 | Inspect one point or a same-x group                          | Native chart focus and tooltip                 |
 | Paint a band, rule, or mark only for the active datum/group  | `whenFocused` around an ordinary mark          |
+| Resize, recolor, or fade existing marks during focus         | Inline mark `states`                           |
 | Keep rich framework detail open, including another chart     | Pinned composed tooltip body                   |
 | Navigate a wide schedule without changing its semantic scale | Native horizontal scrolling                    |
 | Crop and pan a continuous domain                             | Controlled zoom and viewport state             |
@@ -28,21 +29,22 @@ defines the native inspection path.
 
 ## Compare focus marks
 
-A focused dot emphasizes one observation without replacing the ordinary dots
-that provide pointer targets:
+A focused dot can resize and restyle the existing pointer target:
 
 ```ts
-whenFocused(
-  dot(rows, {
-    x: 'Date',
-    y: 'Close',
-    r: 7,
-    fill: '#2563eb',
-    stroke: 'Canvas',
-    strokeWidth: 2,
-  }),
-  { match: 'primary' },
-)
+dot(rows, {
+  x: 'Date',
+  y: 'Close',
+  r: 3,
+  fill: '#2563eb',
+  states: [
+    {
+      when: { focus: 'primary' },
+      style: { r: 7, stroke: 'Canvas', strokeWidth: 2 },
+      transition: { duration: 140, easing: 'ease-out' },
+    },
+  ],
+})
 ```
 
 <iframe

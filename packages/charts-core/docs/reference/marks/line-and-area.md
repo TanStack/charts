@@ -9,7 +9,7 @@ undefined, invalid, or nonfinite create gaps instead of connecting across
 missing data.
 
 ```ts
-import { areaX, areaY, defineChart, lineY, stackY } from '@tanstack/charts'
+import { areaX, areaY, defineChart, lineY, stack } from '@tanstack/charts'
 ```
 
 ## `lineY`
@@ -50,6 +50,7 @@ function lineY<TDatum>(
 | `strokeDasharray` | `string`                        | None                           | SVG dash array                                 |
 | `points`          | `boolean`                       | `false`                        | Draws a radius-`2.5` dot at each valid point   |
 | `curve`           | `ChartCurve`                    | Straight segments              | Optional path generator                        |
+| `states`          | `readonly ChartMarkState[]`     | None                           | Focus-driven presentation overrides            |
 
 Input order is path order. Sort rows before creating the mark when semantic x
 order differs from input order. A null row flushes the current segment; later
@@ -97,10 +98,12 @@ function areaY<TDatum>(
 | `stroke`      | `VisualChannel<TDatum, string>`      | None                           | Optional boundary stroke, evaluated from the group's first row |
 | `strokeWidth` | `number`                             | SVG default                    | Boundary stroke width                                          |
 | `curve`       | `ChartCurve`                         | Straight segments              | Optional path generator                                        |
+| `layout`      | `StackLayout`                        | Implicit diverging stack       | Configured stack order or offset                               |
+| `states`      | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides                            |
 
 Without explicit endpoints, repeated x positions stack by series. `z` defines
 series; a discrete `color` channel may infer it when `z` is absent. Use
-`stackY(options, channels)` for explicit order, reversal, normalization,
+`layout: stack(options)` for explicit order, reversal, normalization,
 centering, or wiggle offset. Supplying `y1` or `y2` opts out and preserves
 authored interval boundaries.
 
@@ -133,9 +136,9 @@ function areaX<TDatum>(
 | Option        | Type                                 | Default                        | Meaning                                           |
 | ------------- | ------------------------------------ | ------------------------------ | ------------------------------------------------- |
 | `id`          | `string`                             | Layer-derived                  | Stable mark ID                                    |
-| `x`           | `Channel<TDatum, number?>`           | Numeric datum                  | Right value when `x2` is absent                   |
-| `x1`          | `number \| Channel<TDatum, number?>` | `0`                            | Left baseline                                     |
-| `x2`          | `number \| Channel<TDatum, number?>` | `x`                            | Right value; takes precedence over `x`            |
+| `x`           | `Channel<TDatum, number?>`           | Numeric datum                  | Layer thickness; implicitly stacked at each y     |
+| `x1`          | `number \| Channel<TDatum, number?>` | Implicit stack start           | Explicit left boundary                            |
+| `x2`          | `number \| Channel<TDatum, number?>` | Implicit stack end             | Explicit right boundary; takes precedence over x  |
 | `y`           | `Channel<TDatum, ChartValue?>`       | Row index                      | Shared vertical position                          |
 | `z`           | `Channel<TDatum, ChartKey?>`         | No explicit group              | Area grouping; overrides color grouping           |
 | `color`       | `Channel<TDatum, ChartKey?>`         | `z`                            | Color-scale value; groups when `z` is absent      |
@@ -145,8 +148,11 @@ function areaX<TDatum>(
 | `stroke`      | `VisualChannel<TDatum, string>`      | None                           | Optional boundary stroke                          |
 | `strokeWidth` | `number`                             | SVG default                    | Boundary stroke width                             |
 | `curve`       | `AreaXCurve`                         | Straight segments              | Optional transposed path generator                |
+| `layout`      | `StackLayout`                        | Implicit diverging stack       | Configured stack order or offset                  |
+| `states`      | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides               |
 
-When `x1` is omitted, the x channel carries the `includeZero` hint. Each valid
+Without explicit endpoints, repeated y positions stack by series. Supplying
+`x1` or `x2` opts out and preserves authored interval boundaries. Each valid
 row emits one point at its right `x2`/`x` value.
 
 Line and area paths have one paint value. When both channels are present,

@@ -1,6 +1,7 @@
 import { createChartRuntime } from './runtime'
 import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint } from './scene'
+import { sceneHasMarkStates } from './mark-state'
 import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
 import type {
   ChartAnimationOptions,
@@ -65,6 +66,7 @@ export function mountChartRenderer<
   let scheduledRenderReason: Exclude<HostRenderReason, 'update'> | undefined
   let destroyed = false
   let hasRendered = false
+  let hasStatefulMarks = false
   let surface: ChartSurface<TDatum, TXValue, TYValue> | undefined
   let tooltipElement: HTMLDivElement | undefined
   let tooltipBodyElement: HTMLDivElement | undefined
@@ -101,6 +103,7 @@ export function mountChartRenderer<
     if (refreshText && !options.measureText) domText.refresh()
     const previousFocusedPoint = focusedPoint
     scene = createScene()
+    hasStatefulMarks = sceneHasMarkStates(scene.nodes)
     if (!surface) {
       surface = options.renderer.mount(container, scheduleRender)
     } else if (surface.renderer !== options.renderer) {
@@ -222,7 +225,8 @@ export function mountChartRenderer<
   ) => {
     const point = points[0] ?? null
     if (samePointIdentity(point, focusedPoint)) {
-      if (forcePaint) paintTooltip(point, points)
+      if (hasStatefulMarks) paintFocus(point, points)
+      else if (forcePaint) paintTooltip(point, points)
       return
     }
     focusedPoint = point
@@ -264,6 +268,7 @@ export function mountChartRenderer<
             pinned: pinnedKey !== null,
           }
         : null,
+      pointerPosition,
     )
     paintTooltip(point, points)
   }

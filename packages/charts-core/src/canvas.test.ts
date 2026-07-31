@@ -304,6 +304,70 @@ describe('Canvas renderer', () => {
     surface.destroy()
   })
 
+  it('repaints inline mark states and restores the base Canvas scene', () => {
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer.mount(container, () => {})
+    const point = {
+      key: 'dots:null:a',
+      markId: 'dots',
+      group: null,
+      groupLabel: 'dots',
+      datum: { id: 'a' },
+      datumIndex: 0,
+      xValue: 1,
+      yValue: 2,
+      x: 50,
+      y: 30,
+      color: '#2563eb',
+    }
+    surface.render(
+      scene([
+        {
+          kind: 'group',
+          key: 'states:dots',
+          states: {
+            data: [point.datum],
+            points: [point],
+            definitions: [
+              {
+                when: { focus: 'primary' },
+                style: { r: 9, fill: '#f97316' },
+                transition: { duration: 0 },
+              },
+            ],
+          },
+          children: [
+            {
+              kind: 'dot',
+              key: point.key,
+              x: 50,
+              y: 30,
+              radius: 5,
+              style: { fill: '#2563eb' },
+            },
+          ],
+        },
+      ]),
+      renderOptions(),
+    )
+    const fake = contexts.get(surface.canvas)
+    if (!fake) throw new Error('Expected scene context')
+
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(fake.operations).toContain('arc:50,30,9')
+
+    const restoreStart = fake.operations.length
+    surface.paintFocus(null)
+    const restored = fake.operations.slice(restoreStart)
+    expect(restored).toContain('arc:50,30,5')
+    surface.destroy()
+  })
+
   it('paints leading focus marks below the cached base scene', () => {
     const container = document.createElement('div')
     const surface = createCanvasChartRenderer().mount(container, () => {})

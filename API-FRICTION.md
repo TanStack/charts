@@ -193,6 +193,7 @@ Each entry records:
 | F-155 | Axis scale and presentation controls were interleaved    | API             | resolved   |
 | F-156 | Responsive tick labels had no collision policy           | API             | resolved   |
 | F-157 | Tooltip anchors could not fix coordinates independently  | API             | resolved   |
+| F-158 | Focus styling required duplicate marks                   | API             | resolved   |
 
 ## Findings
 
@@ -462,8 +463,9 @@ Each entry records:
   implicitly at repeated positions. Explicit endpoints opt out. Side-by-side
   geometry requires `layout: group()`, optionally with a copied D3 band scale.
   `z` supplies series identity; discrete `color` may infer identity only after
-  geometry is selected. `stackY` exposes order, reversal, diverging,
-  normalization, centering, and wiggle offsets for bars and vertical areas.
+  geometry is selected. `layout: stack()` exposes order, reversal, diverging,
+  normalization, centering, and wiggle offsets for bars and areas while
+  preserving the default implicit stack.
 - Verification: focused tests cover implicit diverging bars, normalized and
   ordered stacks, area stacks, explicit endpoints, explicit grouping,
   source-scale immutability, and continuous-color rejection.
@@ -3732,3 +3734,28 @@ Each entry records:
   focus, pointer, plot, surface, and resolved-scale state.
 - Verification: renderer tests cover mixed plot-center/plot-top anchoring,
   keyboard pointer fallback, and the complete typed callback context.
+
+### F-158 — Focus styling required duplicate marks
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: issue #9 pointer and grouped-tooltip examples
+- Friction: enlarging or recoloring an existing focused dot required a second
+  `whenFocused(dot(...))` with duplicated data, position channels, key policy,
+  and paint. That replacement geometry could not interpolate from the base
+  mark and made callback-dependent presentation repeat channel logic.
+- Decision: supported marks accept ordered inline `states`. A state selects
+  centralized focus by primary, group, key, x, y, series, unmatched, source,
+  pinned state, or a callback. Style callbacks receive one object containing
+  datum, index, data, point, focus, pointer, and a focus matcher. State styles
+  change presentation only; `whenFocused` remains the composition for new
+  transient geometry.
+- Verification: SVG tests cover callback context, ordered active/unmatched
+  overrides, paint and radius transitions, and restoration. Canvas tests cover
+  equivalent repaint and restoration. Public type tests preserve the source
+  datum throughout the single-object callback, and catalog cases 34 and 35
+  exercise primary and grouped state styles. The complexity audit replaced a
+  quadratic node/point scan with a per-mark prefix index. Static line-scene
+  plumbing adds 71 gzip bytes; the complete SVG DOM host adds 994 gzip bytes,
+  recorded in the reviewed universal bundle baseline.

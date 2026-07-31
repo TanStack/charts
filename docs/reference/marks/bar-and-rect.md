@@ -9,7 +9,7 @@ primitive for heatmaps, interval blocks, and cells.
 
 ```ts
 import { scaleBand } from 'd3-scale'
-import { barX, barY, cell, group, rect, stackY } from '@tanstack/charts'
+import { barX, barY, cell, group, rect, stack } from '@tanstack/charts'
 ```
 
 ## `barY`
@@ -44,9 +44,10 @@ function barY<TDatum>(
 | `key`         | `Channel<TDatum, ChartKey>`          | Top/nested `id`, x, then index | Stable scene and interaction identity            |
 | `fill`        | `VisualChannel<TDatum, string>`      | Resolved `color`               | Final bar paint override                         |
 | `fillOpacity` | `number`                             | SVG default                    | Fill opacity                                     |
-| `layout`      | `GroupLayout`                        | Stacked                        | `group()` opts into side-by-side subgroup slots  |
+| `layout`      | `GroupLayout \| StackLayout`         | Implicit diverging stack       | Configures grouping or stack order/offset        |
 | `inset`       | `number`                             | `0`                            | Pixels removed from both categorical edges       |
 | `radius`      | `number`                             | None                           | SVG rectangle corner radius                      |
+| `states`      | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides              |
 
 The interaction point is at the group-band center and the `y2`/`y` endpoint.
 Its semantic `xValue` is x and its `yValue` is the value endpoint.
@@ -83,9 +84,10 @@ Its options transpose `barY`:
 | `key`         | `Channel<TDatum, ChartKey>`          | Top/nested `id`, y, then index | Stable identity                             |
 | `fill`        | `VisualChannel<TDatum, string>`      | Resolved `color`               | Final bar paint override                    |
 | `fillOpacity` | `number`                             | SVG default                    | Fill opacity                                |
-| `layout`      | `GroupLayout`                        | Stacked                        | `group()` opts into side-by-side slots      |
+| `layout`      | `GroupLayout \| StackLayout`         | Implicit diverging stack       | Configures grouping or stack order/offset   |
 | `inset`       | `number`                             | `0`                            | Pixels removed from both categorical edges  |
 | `radius`      | `number`                             | None                           | Corner radius                               |
+| `states`      | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides         |
 
 The interaction point is at the `x2`/`x` endpoint and group-band center.
 
@@ -132,7 +134,8 @@ The mark throws when:
 - a grouped row has a null effective group value
 - a group value is outside the group-scale domain or maps to a nonfinite position
 
-Color never chooses stacked versus grouped geometry.
+Repeated positions stack by default. `layout: group()` is the explicit opt-in
+to side-by-side geometry.
 
 ## Stacked bars
 
@@ -147,17 +150,19 @@ barY(rows, {
 })
 ```
 
-Use `z` when series identity differs from color. Wrap the channels in
-`stackY` to select order or offset:
+Use `z` when series identity differs from color. Add `layout: stack()` only
+when the default stack needs a configured order or offset:
 
 ```ts
-barY(
-  rows,
-  stackY(
-    { order: ['Core', 'Services'], offset: 'normalize' },
-    { x: 'quarter', y: 'revenue', color: 'segment' },
-  ),
-)
+barY(rows, {
+  x: 'quarter',
+  y: 'revenue',
+  color: 'segment',
+  layout: stack({
+    order: ['Core', 'Services'],
+    offset: 'normalize',
+  }),
+})
 ```
 
 `order` accepts input order, ascending or descending absolute totals, or an
@@ -174,7 +179,9 @@ interface StackOptions {
   reverse?: boolean
 }
 
-type StackYChannels<TChannels extends object> = TChannels
+interface StackLayout extends StackOptions {
+  readonly type: 'stack'
+}
 ```
 
 Supplying `y1` or `y2` opts out of implicit stacking and treats the channels
@@ -259,6 +266,7 @@ function rect<TDatum>(
 | `strokeWidth` | `number`                       | SVG default                            | Stroke width                                         |
 | `inset`       | `number`                       | `0.75`                                 | Pixels removed from all four edges                   |
 | `radius`      | `number`                       | None                                   | Corner radius                                        |
+| `states`      | `readonly ChartMarkState[]`    | None                                   | Focus-driven presentation overrides                  |
 
 Both endpoints must be valid chart values. Endpoint order may be reversed.
 
