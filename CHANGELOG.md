@@ -1,6 +1,105 @@
 # Changelog
 
-## Unreleased
+## 0.1.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#8](https://github.com/TanStack/charts/pull/8) [`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9) - Add environment-safe `/portable` and `/types` entry points while preserving
+  the existing browser-oriented root exports.
+
+- Make native tooltips and tooltip portals explicit extensions. Import `tooltip`
+  from `@tanstack/charts/tooltip`; replace `tooltip: true` with `tooltip`, dynamic
+  booleans with `enabled ? tooltip : false`, and configured objects with
+  `{ use: tooltip, ...options }`. Complete definition values use
+  `ChartTooltipInput`; `ChartTooltipOptions` remains the options-only type.
+
+  Import `portal` from `@tanstack/charts/tooltip/portal`; replace `portal: true`
+  with `portal`, omit `portal: false`, and replace dynamic booleans with
+  `enabled ? portal : undefined` inside the configured tooltip object.
+
+### @tanstack/charts-scales
+
+#### Minor Changes
+
+- Add compact callable linear, band, point, and ordinal scales through the exact
+  `@tanstack/charts-scales/linear`, `/band`, `/point`, and `/ordinal` entries.
+  There is no package root export. Compact linear scales are numeric and two-stop;
+  use `d3-scale` for time, transformed, piecewise, nonnumeric, locale-aware, and
+  other full D3 behavior. Unsupported D3 behavior does not warn or fall back at
+  runtime.
+
+### @tanstack/react-charts
+
+#### Minor Changes
+
+- Move React tooltip-body composition to `@tanstack/react-charts/tooltip`.
+  Consumers using `renderTooltipBody` must migrate root `Chart` to `Chart`,
+  `/canvas` `Chart` to `CanvasChart`, and `/core` `Chart` to `RendererChart` from
+  that entry. Move wrapper types to the matching `ChartProps`, `CanvasChartProps`,
+  or `RendererChartProps` names and their `CommonProps` counterparts.
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
 
 This section documents migration from `0.0.2` and supersedes tooltip examples
 in the historical release entries below.

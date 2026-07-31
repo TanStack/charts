@@ -4,9 +4,9 @@ Last updated: 2026-07-30
 
 ## Status
 
-TanStack Charts `0.0.2` is a public pre-alpha release. The docs, examples, and
+TanStack Charts `0.1.0` is a public pre-alpha release. The docs, examples, and
 catalog describe the same definition, behavior, scale, tooltip, and adapter
-contracts available in `0.0.2`. Marketing must keep the pre-alpha status
+contracts available in `0.1.0`. Marketing must keep the pre-alpha status
 visible and avoid production-readiness claims until the gates in
 [`PLAN.md`](./PLAN.md) are complete.
 
@@ -51,7 +51,7 @@ package line is pre-alpha.
 visual encodings. D3 supplies algorithms. TanStack compiles the definition into
 a renderer-neutral keyed scene and owns the application runtime around it.
 
-**Framework position:** The core is framework-independent. `0.0.2` ships thin
+**Framework position:** The core is framework-independent. `0.1.0` ships thin
 adapters for React, Vue, Svelte, Solid, Angular, Preact, Lit, Alpine, and
 Octane. React and Octane also have Canvas components over the same runtime.
 
@@ -459,7 +459,7 @@ about being "AI-native."
 | The chart catalog is smaller than AG Charts, ECharts, or Nivo | Also correct. The product thesis is a composable grammar with direct D3 interoperability, not first-party ownership of every specialized chart type.                                                                                                                                                                                                                                     |
 | Why not use D3 or visx directly?                              | They provide the algorithms or primitives. TanStack supplies the application runtime: responsive layout, guides, scene compilation, lifecycle, interaction, accessibility, SSR, hydration, animation, and export.                                                                                                                                                                        |
 | Why not use Observable Plot?                                  | Plot is the closest API inspiration and remains an excellent choice for concise exploratory visualization. TanStack is an independent implementation focused on typed application integration, explicit D3 policy, capability-level imports, framework lifecycle, and stable interactive scenes.                                                                                         |
-| Is it ready for production?                                   | Not yet. `0.0.2` is a public pre-alpha release. Marketing must keep the documented release gates visible until they close.                                                                                                                                                                                                                                                               |
+| Is it ready for production?                                   | Not yet. `0.1.0` is a public pre-alpha release. Marketing must keep the documented release gates visible until they close.                                                                                                                                                                                                                                                               |
 | Can it handle millions of live points?                        | Canvas is an explicit opt-in and keeps the same definition and interaction API while removing per-mark DOM cost. It still creates scene nodes and interaction points, default focus is linear without a spatial index, and overplotting does not become useful because the pixels are cheaper. Treat million-point streaming as a measured representation problem, not a renderer claim. |
 
 ## Anti-personas
@@ -586,7 +586,7 @@ production case study.
 
 ### Current proof phase
 
-- Conversion: Install `0.0.2`, read the matching docs, explore the catalog,
+- Conversion: Install `0.1.0`, read the matching docs, explore the catalog,
   and report friction.
 - Publish architecture, benchmarks, and working examples with limitations.
 - Recruit a small number of chart-heavy TanStack users.
@@ -623,7 +623,7 @@ tracked in [`PLAN.md`](./PLAN.md):
 foundation for data-rich TanStack applications and a credible choice for
 frontend teams whose visualizations need to grow beyond standard chart types.
 
-**Primary conversion today:** Install `0.0.2` and complete the first chart.
+**Primary conversion today:** Install `0.1.0` and complete the first chart.
 
 **Primary conversion after stable release:** Install the package and complete
 the first chart.
