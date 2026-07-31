@@ -51,20 +51,35 @@ assert.match(
 validateTrustedPublishingNpmVersion((await runNpm(['--version'])).stdout)
 
 const states = new Map()
-for (const artifact of artifacts) {
-  const registry = await readRegistryPackage(artifact.name, version)
-  if (registry === null) {
-    states.set(artifact.name, 'missing')
-    continue
-  }
-  validateRegistryPackage(artifact, registry)
-  states.set(artifact.name, 'published')
-}
+await Promise.all(
+  artifacts.map(async (artifact) => {
+    const registry = await readRegistryPackage(artifact.name, version)
+    if (registry === null) {
+      states.set(artifact.name, 'missing')
+      return
+    }
+    validateRegistryPackage(artifact, registry)
+    states.set(artifact.name, 'published')
+  }),
+)
 
-for (const artifact of artifacts) {
+const coreArtifact = artifacts.find(
+  (artifact) => artifact.name === '@tanstack/charts',
+)
+assert.ok(coreArtifact, 'Release artifacts must include @tanstack/charts')
+await publishArtifact(coreArtifact)
+await runWithConcurrency(
+  artifacts.filter((artifact) => artifact !== coreArtifact),
+  3,
+  publishArtifact,
+)
+
+console.log(`Published ${manifest.tag} with verified integrity and provenance.`)
+
+async function publishArtifact(artifact) {
   if (states.get(artifact.name) === 'published') {
     console.log(`Already published: ${artifact.name}@${version}`)
-    continue
+    return
   }
 
   await runNpm([
@@ -81,7 +96,18 @@ for (const artifact of artifacts) {
   console.log(`Published: ${artifact.name}@${version}`)
 }
 
-console.log(`Published ${manifest.tag} with verified integrity and provenance.`)
+async function runWithConcurrency(values, concurrency, operation) {
+  let nextIndex = 0
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, values.length) }, async () => {
+      while (nextIndex < values.length) {
+        const index = nextIndex
+        nextIndex += 1
+        await operation(values[index])
+      }
+    }),
+  )
+}
 
 async function waitForRegistryPackage(artifact, releaseVersion) {
   let lastResult = null

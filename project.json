@@ -1,0 +1,169 @@
+{
+  "$schema": "./node_modules/nx/schemas/project-schema.json",
+  "name": "charts-workspace",
+  "root": ".",
+  "targets": {
+    "format-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --check ."
+      }
+    },
+    "docs-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/check-docs.mjs"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p tsconfig.json"
+      }
+    },
+    "test-dom": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.config.ts"
+      }
+    },
+    "test-solid": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.solid.config.ts"
+      }
+    },
+    "test-solid-ssr": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.solid-ssr.config.ts"
+      }
+    },
+    "test-svelte": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.svelte.config.ts"
+      }
+    },
+    "test-svelte-ssr": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.svelte-ssr.config.ts"
+      }
+    },
+    "test-octane": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.octane.config.ts"
+      }
+    },
+    "test-octane-client": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run --config vitest.octane-client.config.ts"
+      }
+    },
+    "test-unit": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "test-dom",
+        "test-solid",
+        "test-solid-ssr",
+        "test-svelte",
+        "test-svelte-ssr",
+        "test-octane",
+        "test-octane-client"
+      ],
+      "options": {
+        "command": "node -e \"console.log('Unit test targets passed.')\""
+      },
+      "cache": false
+    },
+    "adapters-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/check-framework-adapters.mjs"
+      }
+    },
+    "package-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/check-packed-consumers.mjs && node scripts/check-framework-adapters.mjs"
+      }
+    },
+    "bundle": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/measure-bundles.mjs"
+      }
+    },
+    "bundle-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/measure-bundles.mjs --check"
+      }
+    },
+    "benchmark-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/compare-chart-libraries.mjs --check"
+      }
+    },
+    "catalog-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm --filter @charts-poc/conformance-example check:catalog"
+      }
+    },
+    "catalog-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "CATALOG_BASE_PATH=/charts/catalog/ pnpm --filter @charts-poc/conformance-example build"
+      }
+    },
+    "catalog-loading-check": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["catalog-build"],
+      "options": {
+        "command": "node scripts/check-catalog-loading.mjs"
+      }
+    },
+    "workspace-diff-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "git diff --check"
+      },
+      "cache": false
+    },
+    "release-artifacts": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/build-release-artifacts.mjs"
+      }
+    },
+    "ci": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "format-check",
+        "docs-check",
+        "typecheck",
+        "test-dom",
+        "test-solid",
+        "test-solid-ssr",
+        "test-svelte",
+        "test-svelte-ssr",
+        "test-octane",
+        "test-octane-client",
+        "package-check",
+        "bundle-check",
+        "catalog-check",
+        "catalog-loading-check",
+        "workspace-diff-check"
+      ],
+      "options": {
+        "command": "node -e \"console.log('CI targets passed.')\""
+      },
+      "cache": false
+    }
+  }
+}

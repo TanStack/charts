@@ -272,10 +272,13 @@ tracked in [`API-FRICTION.md`](./API-FRICTION.md).
 
 ## Development
 
-The workspace requires Node.js 22 or newer and pnpm 11.
+The workspace requires Node.js 22 or newer and pnpm 11. Use the version in
+`.nvmrc`. See [Contributing](./CONTRIBUTING.md) for the Nx CI graph, changeset
+requirements, and automated OIDC release flow.
 
 ```sh
 pnpm install
+pnpm run validate
 pnpm test
 pnpm typecheck
 pnpm build

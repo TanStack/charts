@@ -2,8 +2,11 @@ packages:
   - packages/*
   - examples/*
 
+verifyDepsBeforeRun: false
+
 allowBuilds:
   '@parcel/watcher': false
   esbuild: true
+  nx: true
   sharp: false
   workerd: true

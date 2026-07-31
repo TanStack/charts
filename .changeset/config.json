@@ -1,0 +1,33 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.2/schema.json",
+  "changelog": [
+    "@changesets/changelog-github",
+    {
+      "repo": "TanStack/charts",
+      "disableThanks": true
+    }
+  ],
+  "commit": false,
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "fixed": [
+    [
+      "@tanstack/charts",
+      "@tanstack/react-charts",
+      "@tanstack/octane-charts",
+      "@tanstack/preact-charts",
+      "@tanstack/vue-charts",
+      "@tanstack/solid-charts",
+      "@tanstack/svelte-charts",
+      "@tanstack/angular-charts",
+      "@tanstack/lit-charts",
+      "@tanstack/alpine-charts"
+    ]
+  ],
+  "linked": [],
+  "ignore": [],
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
+  }
+}

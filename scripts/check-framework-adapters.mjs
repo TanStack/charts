@@ -40,25 +40,50 @@ const standardPackages = [
   ['lit-charts'],
   ['alpine-charts'],
 ]
+let pnpmQueue = Promise.resolve()
 
 try {
   await mkdir(tarballDirectory, { recursive: true })
-  for (const [directory, jsxImportSource] of standardPackages) {
-    await buildStandardPackage(directory, jsxImportSource)
-  }
-  await buildSolidPackage()
-  await buildSveltePackage()
-  await buildAngularPackage()
+  await runWithConcurrency(
+    [
+      ...standardPackages.map(
+        ([directory, jsxImportSource]) =>
+          () =>
+            buildStandardPackage(directory, jsxImportSource),
+      ),
+      buildSolidPackage,
+      buildSveltePackage,
+      buildAngularPackage,
+    ],
+    4,
+  )
 
-  for (const directory of packageNames) {
-    await verifyPackage(directory)
-  }
+  await runWithConcurrency(
+    packageNames.map((directory) => () => verifyPackage(directory)),
+    4,
+  )
 
   console.log(
     `Framework package gate passed for ${packageNames.length} adapters.`,
   )
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true })
+}
+
+async function runWithConcurrency(operations, concurrency) {
+  let nextIndex = 0
+  await Promise.all(
+    Array.from(
+      { length: Math.min(concurrency, operations.length) },
+      async () => {
+        while (nextIndex < operations.length) {
+          const index = nextIndex
+          nextIndex += 1
+          await operations[index]()
+        }
+      },
+    ),
+  )
 }
 
 async function buildStandardPackage(directory, jsxImportSource) {
@@ -114,8 +139,7 @@ async function buildSolidPackage() {
 }
 
 async function buildSveltePackage() {
-  await run(
-    'pnpm',
+  await runPnpm(
     [
       '--filter',
       '@tanstack/svelte-charts',
@@ -126,8 +150,7 @@ async function buildSveltePackage() {
     ],
     root,
   )
-  await run(
-    'pnpm',
+  await runPnpm(
     [
       '--filter',
       '@tanstack/svelte-charts',
@@ -143,8 +166,7 @@ async function buildSveltePackage() {
 }
 
 async function buildAngularPackage() {
-  await run(
-    'pnpm',
+  await runPnpm(
     [
       '--filter',
       '@tanstack/angular-charts',
@@ -219,8 +241,7 @@ async function verifyPackage(directory) {
     tarballDirectory,
     `${directory}-${manifest.version}.tgz`,
   )
-  const { stdout } = await run(
-    'pnpm',
+  const { stdout } = await runPnpm(
     ['pack', '--out', tarball, '--json'],
     packageRoot,
   )
@@ -331,6 +352,12 @@ async function run(command, args, cwd) {
     env: { ...process.env, CI: 'true' },
     maxBuffer: 20 * 1024 * 1024,
   })
+}
+
+function runPnpm(args, cwd) {
+  const operation = pnpmQueue.then(() => run('pnpm', args, cwd))
+  pnpmQueue = operation.catch(() => undefined)
+  return operation
 }
 
 function formatDiagnostics(diagnostics) {

@@ -1,0 +1,179 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultBase": "main",
+  "useInferencePlugins": false,
+  "parallel": 5,
+  "tui": {
+    "enabled": false
+  },
+  "namedInputs": {
+    "sharedGlobals": [
+      "{workspaceRoot}/.nvmrc",
+      "{workspaceRoot}/package.json",
+      "{workspaceRoot}/pnpm-lock.yaml",
+      "{workspaceRoot}/pnpm-workspace.yaml",
+      "{workspaceRoot}/tsconfig.json",
+      { "env": "CI" }
+    ],
+    "source": [
+      "sharedGlobals",
+      "{workspaceRoot}/packages/**/*",
+      "{workspaceRoot}/examples/**/*",
+      "{workspaceRoot}/benchmarks/**/*",
+      "{workspaceRoot}/scripts/**/*",
+      "{workspaceRoot}/vitest*.config.ts",
+      "!{workspaceRoot}/**/dist/**/*"
+    ],
+    "format": [
+      "{workspaceRoot}/**/*",
+      "!{workspaceRoot}/.benchmark-output/**/*",
+      "!{workspaceRoot}/.bundle-output/**/*",
+      "!{workspaceRoot}/.catalog-artifact/**/*",
+      "!{workspaceRoot}/.nx/**/*",
+      "!{workspaceRoot}/.release-artifacts/**/*",
+      "!{workspaceRoot}/node_modules/**/*"
+    ],
+    "docs": [
+      "sharedGlobals",
+      "{workspaceRoot}/README.md",
+      "{workspaceRoot}/CONTRIBUTING.md",
+      "{workspaceRoot}/CHANGELOG.md",
+      "{workspaceRoot}/llms.txt",
+      "{workspaceRoot}/docs/**/*",
+      "{workspaceRoot}/packages/*/README.md",
+      "{workspaceRoot}/packages/*/package.json",
+      "{workspaceRoot}/packages/*/src/**/*",
+      "{workspaceRoot}/packages/charts-core/docs/**/*",
+      "{workspaceRoot}/packages/charts-core/llms.txt",
+      "{workspaceRoot}/benchmarks/conformance/**/*",
+      "{workspaceRoot}/benchmarks/comparison/bundle-baseline.json",
+      "{workspaceRoot}/scripts/benchmark/chart-libraries.mjs",
+      "{workspaceRoot}/scripts/benchmark/comparison-capabilities.mjs",
+      "{workspaceRoot}/scripts/check-docs.mjs",
+      "{workspaceRoot}/scripts/docs-contract.mjs",
+      "{workspaceRoot}/scripts/packed-markdown-links.mjs",
+      "{workspaceRoot}/scripts/sync-package-docs.mjs"
+    ],
+    "release": [
+      "sharedGlobals",
+      "{workspaceRoot}/LICENSE",
+      "{workspaceRoot}/README.md",
+      "{workspaceRoot}/docs/**/*",
+      "{workspaceRoot}/packages/charts-core/**/*",
+      "{workspaceRoot}/packages/*-charts/**/*",
+      "!{workspaceRoot}/packages/*/dist/**/*",
+      "{workspaceRoot}/scripts/*package*.mjs",
+      "{workspaceRoot}/scripts/*release*.mjs",
+      "{workspaceRoot}/scripts/check-framework-adapters.mjs",
+      "{workspaceRoot}/scripts/check-packed-consumers.mjs",
+      "{workspaceRoot}/scripts/packed-markdown-links.mjs"
+    ],
+    "testSolid": [
+      "sharedGlobals",
+      "{workspaceRoot}/vitest.solid*.config.ts",
+      "{workspaceRoot}/packages/charts-core/**/*",
+      "{workspaceRoot}/packages/solid-charts/**/*",
+      "!{workspaceRoot}/packages/*/dist/**/*"
+    ],
+    "testSvelte": [
+      "sharedGlobals",
+      "{workspaceRoot}/vitest.svelte*.config.ts",
+      "{workspaceRoot}/packages/charts-core/**/*",
+      "{workspaceRoot}/packages/svelte-charts/**/*",
+      "!{workspaceRoot}/packages/*/dist/**/*"
+    ],
+    "testOctane": [
+      "sharedGlobals",
+      "{workspaceRoot}/vitest.octane*.config.ts",
+      "{workspaceRoot}/packages/charts-core/**/*",
+      "{workspaceRoot}/packages/octane/**/*",
+      "{workspaceRoot}/packages/octane-charts/**/*",
+      "!{workspaceRoot}/packages/*/dist/**/*"
+    ],
+    "comparisonRevision": [
+      {
+        "runtime": "git log -1 --format=%H -- benchmarks/comparison/libraries/tanstack packages/charts-core/src benchmarks/comparison/libraries/tier.ts benchmarks/comparison/stress/operation.ts benchmarks/comparison/types.ts"
+      }
+    ]
+  },
+  "targetDefaults": {
+    "format-check": {
+      "cache": true,
+      "inputs": ["format"]
+    },
+    "docs-check": {
+      "cache": true,
+      "inputs": ["docs"]
+    },
+    "typecheck": {
+      "cache": true,
+      "inputs": ["source"]
+    },
+    "test-*": {
+      "cache": true,
+      "inputs": ["source"]
+    },
+    "test-solid": {
+      "cache": true,
+      "inputs": ["testSolid"]
+    },
+    "test-solid-ssr": {
+      "cache": true,
+      "inputs": ["testSolid"]
+    },
+    "test-svelte": {
+      "cache": true,
+      "inputs": ["testSvelte"]
+    },
+    "test-svelte-ssr": {
+      "cache": true,
+      "inputs": ["testSvelte"]
+    },
+    "test-octane": {
+      "cache": true,
+      "inputs": ["testOctane"]
+    },
+    "test-octane-client": {
+      "cache": true,
+      "inputs": ["testOctane"]
+    },
+    "adapters-check": {
+      "cache": true,
+      "inputs": ["release"]
+    },
+    "package-check": {
+      "cache": true,
+      "inputs": ["release"]
+    },
+    "bundle": {
+      "cache": true,
+      "inputs": ["source"],
+      "outputs": ["{workspaceRoot}/.bundle-output"]
+    },
+    "bundle-check": {
+      "cache": true,
+      "inputs": ["source"],
+      "outputs": ["{workspaceRoot}/.bundle-output"]
+    },
+    "benchmark-check": {
+      "cache": true,
+      "inputs": ["source", "comparisonRevision"],
+      "outputs": ["{workspaceRoot}/.benchmark-output/results"]
+    },
+    "catalog-check": {
+      "cache": true,
+      "inputs": ["source"]
+    },
+    "catalog-build": {
+      "cache": false
+    },
+    "catalog-loading-check": {
+      "cache": false
+    },
+    "release-artifacts": {
+      "cache": true,
+      "inputs": ["release"],
+      "outputs": ["{workspaceRoot}/.release-artifacts"]
+    }
+  }
+}

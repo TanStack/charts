@@ -46,6 +46,16 @@ describe('release environment', () => {
         expectedRevision: revision,
       }),
     ).toThrow(/refs\/tags\/v0\.0\.1/)
+    expect(() =>
+      validateReleaseEnvironment({
+        env: {
+          ...releaseEnvironment(),
+          GITHUB_EVENT_NAME: 'workflow_dispatch',
+        },
+        expectedTag: tag,
+        expectedRevision: revision,
+      }),
+    ).not.toThrow()
   })
 
   it('requires an npm version with trusted publishing support', () => {

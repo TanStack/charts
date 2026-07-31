@@ -176,6 +176,9 @@ Each entry records:
 | F-138 | Publisher pin predated explicit trust permissions        | Tooling/Release | resolved   |
 | F-139 | Top-level entries bypassed tarball validation            | Tooling/Release | resolved   |
 | F-140 | Behavior config could erase responsive datum inference   | API             | monitoring |
+| F-141 | Vitest followed pnpm workspace symlinks                  | Tooling         | resolved   |
+| F-142 | Package verification reinstalled during release builds   | Tooling/Release | resolved   |
+| F-143 | The `ci` script name collided with pnpm's clean install  | Tooling/Docs    | resolved   |
 
 ## Findings
 
@@ -3394,3 +3397,62 @@ Each entry records:
 - Follow-up: add a focused type regression for the single-call form and decide
   whether its overload can retain builder datum inference without making
   behavior ownership ambiguous.
+
+### F-141 — Vitest followed pnpm workspace symlinks
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: Nx and CI migration after the `0.0.1` release
+- Friction: the root Vitest configuration replaced the default exclusion list
+  when it excluded framework-owned suites. Vitest therefore followed pnpm
+  workspace links through `node_modules` and ran the same physical tests under
+  packages and examples. CI reported 464 files and 2,989 tests even though the
+  intended root suite contained 106 files and 537 tests. That one invocation
+  consumed 206 seconds.
+- Decision: extend `configDefaults.exclude` before adding the framework-specific
+  exclusions. Keep the seven framework environments as independent Nx targets
+  so they run in parallel and cache independently.
+- Verification: the corrected direct root suite completes in 4.92 seconds.
+  The cold seven-target Nx unit graph completes in 6.90 seconds, and an
+  unchanged warm local-cache run completes in 0.54 seconds.
+
+### F-142 — Package verification reinstalled dependencies during release builds
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: validating the fresh release-artifact path during the Nx and CI
+  migration
+- Friction: pnpm's dependency verification treated newly generated adapter
+  `dist` files as a stale workspace and started a clean install when the
+  builder later called `pnpm exec` or `pnpm pack`. With the packed-consumer and
+  framework builders running together, that reinstall removed root package
+  links while the packed consumer was bundling. Its installed
+  `@tanstack/charts` tarball could no longer resolve `d3-array` or `d3-scale`.
+  The cached package gate did not reproduce the release-only failure.
+- Decision: disable `verifyDepsBeforeRun` because setup already performs one
+  frozen install before every CI job. Run the two top-level release builders
+  sequentially and serialize every nested pnpm command through one
+  framework-builder queue. Independent in-process adapter builds and post-pack
+  checks retain four-worker pools.
+- Verification: a frozen install restores the workspace graph; the uncached
+  release-artifact command builds and validates all ten tarballs; and the
+  artifact-only publisher check accepts the resulting manifest and integrity
+  records.
+
+### F-143 — The `ci` script name collided with pnpm's clean install
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Documentation
+- Observed in: validating the documented local Nx command
+- Friction: pnpm 11 reserves `pnpm ci` for its clean-install command, so the
+  root `"ci"` package script was not reachable through the documented
+  shorthand. Running the command removed `node_modules` instead of executing
+  the Nx validation graph.
+- Decision: expose the local graph as `pnpm run validate`. Keep the unambiguous
+  `ci:pr` and `ci:all` scripts for GitHub Actions.
+- Verification: `pnpm run validate` resolves the `charts-workspace:ci` Nx
+  target, while contributor docs no longer instruct maintainers to invoke
+  pnpm's clean-install command.

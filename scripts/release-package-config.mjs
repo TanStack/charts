@@ -38,11 +38,7 @@ export async function readReleasePackages(repositoryRoot) {
       config.name,
       `${manifestPath} has the wrong name`,
     )
-    assert.match(
-      manifest.version,
-      /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/,
-      `${manifest.name} requires a publishable version`,
-    )
+    assertStableReleaseVersion(manifest.name, manifest.version)
     assert.equal(
       manifest.private,
       false,
@@ -108,4 +104,12 @@ export async function readReleasePackages(repositoryRoot) {
 
 export function releaseTag(version) {
   return `v${version}`
+}
+
+export function assertStableReleaseVersion(packageName, version) {
+  assert.match(
+    version,
+    /^\d+\.\d+\.\d+$/,
+    `${packageName} requires a stable release version`,
+  )
 }
