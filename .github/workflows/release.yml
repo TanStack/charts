@@ -1,268 +1,80 @@
-name: Publish release
+name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
-  workflow_dispatch:
-  workflow_run:
-    workflows:
-      - Chart library benchmarks
-    types:
-      - completed
+    branches:
+      - main
 
 permissions:
   contents: read
 
 concurrency:
-  group: charts-release
+  group: charts-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  version:
-    name: Version pull request
-    if: >-
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main'
+  release:
+    name: Release
+    if: github.repository_owner == 'TanStack'
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     permissions:
-      actions: write
       contents: write
+      id-token: write
       pull-requests: write
 
     steps:
-      - name: Checkout validated main
+      - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           persist-credentials: true
 
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Create or update version pull request
+      - name: Create version pull request or publish
         id: changesets
         uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
         with:
           branch: main
           version: pnpm changeset:version
+          publish: pnpm changeset:publish
           title: 'ci: Version Packages'
           commit: 'ci: changeset release'
           createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_REVISION: ${{ github.sha }}
 
-      - name: Validate version pull request
-        if: steps.changesets.outputs.pullRequestNumber != ''
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
-        run: |
-          version_ref=$(gh pr view "$VERSION_PR_NUMBER" \
-            --repo "$GITHUB_REPOSITORY" \
-            --json headRefName \
-            --jq .headRefName)
-          test -n "$version_ref"
-          gh workflow run chart-library-benchmarks.yml \
-            --repo "$GITHUB_REPOSITORY" \
-            --ref "$version_ref" \
-            -f version_pr=true
-
-  tag:
-    name: Dispatch validated release
-    needs: version
-    if: >-
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    permissions:
-      actions: write
-      contents: write
-
-    steps:
-      - name: Checkout validated main
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          fetch-depth: 0
-          persist-credentials: true
-
-      - name: Setup
-        uses: ./.github/actions/setup
-
-      - name: Determine release status
+      - name: Determine release finalization
         id: status
+        if: steps.changesets.outputs.hasChangesets == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_REVISION: ${{ github.event.workflow_run.head_sha }}
+          RELEASE_REVISION: ${{ github.sha }}
         run: node scripts/release-status.mjs
 
       - name: Create annotated release tag
         if: steps.status.outputs.create_tag == 'true'
         env:
           RELEASE_TAG: ${{ steps.status.outputs.tag }}
-          RELEASE_REVISION: ${{ github.event.workflow_run.head_sha }}
+          RELEASE_REVISION: ${{ github.sha }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$RELEASE_TAG" "$RELEASE_REVISION" -m "TanStack Charts $RELEASE_TAG"
           git push origin "refs/tags/$RELEASE_TAG"
 
-      - name: Dispatch tag-scoped OIDC release
+      - name: Create GitHub release
         if: steps.status.outputs.dispatch == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ steps.status.outputs.tag }}
-        run: gh workflow run release.yml --ref "$RELEASE_TAG"
-
-  validate:
-    name: Build release candidate
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    permissions:
-      actions: read
-      contents: read
-
-    steps:
-      - name: Checkout tagged revision
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Setup
-        uses: ./.github/actions/setup
-
-      - name: Verify tag and successful exact-SHA CI
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          node scripts/verify-release-revision.mjs
-          node scripts/verify-ci-success.mjs
-
-      - name: Build fresh package artifacts
-        run: node scripts/build-release-artifacts.mjs
-
-      - name: Check release artifacts
-        run: node scripts/publish-release.mjs --check
-
-      - name: Upload checked package artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: charts-release-${{ github.ref_name }}
-          path: .release-artifacts
-          if-no-files-found: error
-          include-hidden-files: true
-
-  publish:
-    name: Publish with npm OIDC
-    needs: validate
-    if: needs.validate.result == 'success'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - name: Checkout tagged revision
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Setup Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: 24.18.0
-          registry-url: https://registry.npmjs.org
-          package-manager-cache: false
-
-      - name: Download checked package artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          name: charts-release-${{ github.ref_name }}
-          path: .release-artifacts
-
-      - name: Revalidate refs and publish with OIDC
-        run: |
-          node scripts/verify-release-revision.mjs
-          node scripts/publish-release.mjs
-
-  verify:
-    name: Verify published packages
-    needs: publish
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout tagged revision
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-
-      - name: Setup Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: 24.18.0
-          registry-url: https://registry.npmjs.org
-          package-manager-cache: false
-
-      - name: Download checked package artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          name: charts-release-${{ github.ref_name }}
-          path: .release-artifacts
-
-      - name: Verify installed packages, signatures, and provenance
-        run: node scripts/verify-published-release.mjs
-
-  release:
-    name: Create GitHub release
-    needs: verify
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout tagged revision
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Setup Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: 24.18.0
-          package-manager-cache: false
-
-      - name: Revalidate refs and create GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          node scripts/verify-release-revision.mjs
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            exit 0
-          fi
           node scripts/write-release-notes.mjs /tmp/charts-release-notes.md
-          gh release create "$GITHUB_REF_NAME" \
+          gh release create "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
-            --title "TanStack Charts $GITHUB_REF_NAME" \
+            --title "TanStack Charts $RELEASE_TAG" \
             --notes-file /tmp/charts-release-notes.md

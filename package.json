@@ -54,6 +54,7 @@
     "test": "nx run charts-workspace:test-unit --parallel=5",
     "typecheck": "nx run charts-workspace:typecheck",
     "changeset": "changeset",
+    "changeset:publish": "node scripts/publish-release.mjs",
     "changeset:version": "changeset version && node scripts/sync-release-changelog.mjs && node scripts/sync-release-version.mjs && pnpm docs:sync && pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile && pnpm format"
   },
   "devDependencies": {

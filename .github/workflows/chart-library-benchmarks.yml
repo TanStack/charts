@@ -9,11 +9,6 @@ on:
     - cron: '17 7 * * 1'
   workflow_dispatch:
     inputs:
-      version_pr:
-        description: Run the pull-request validation profile
-        required: false
-        type: boolean
-        default: false
       upload_bundle_baseline_candidate:
         description: Upload exact comparison bundle measurements
         required: false
@@ -153,11 +148,11 @@ jobs:
           playwright: 'true'
 
       - name: Run pull-request conformance shard
-        if: github.event_name == 'pull_request' || inputs.version_pr
+        if: github.event_name == 'pull_request'
         run: pnpm conformance:quick -- --shard=${{ matrix.shard }}/8
 
       - name: Run production conformance shard
-        if: github.event_name != 'pull_request' && !inputs.version_pr
+        if: github.event_name != 'pull_request'
         run: pnpm conformance -- --shard=${{ matrix.shard }}/8
 
       - name: Publish conformance summary
@@ -209,11 +204,11 @@ jobs:
         run: pnpm exec vitest run benchmarks/comparison/stress
 
       - name: Run quick stress shard
-        if: github.event_name == 'pull_request' || github.event_name == 'push' || inputs.version_pr
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: pnpm benchmark:stress:quick -- --workload=${{ matrix.workloads }}
 
       - name: Run standard stress shard
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.version_pr)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: pnpm benchmark:stress:standard -- --workload=${{ matrix.workloads }}
 
       - name: Publish stress summary
