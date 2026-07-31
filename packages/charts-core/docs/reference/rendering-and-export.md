@@ -86,8 +86,9 @@ state. Scene keys become `data-ts-key` attributes for reconciliation.
 
 ```ts
 import { mountCanvasChart } from '@tanstack/charts/canvas'
+import { tooltip } from '@tanstack/charts/tooltip'
 
-const interactiveDefinition = defineChart(definition, { tooltip: true })
+const interactiveDefinition = defineChart(definition, { tooltip })
 
 const host = mountCanvasChart(container, {
   definition: interactiveDefinition,

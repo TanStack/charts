@@ -104,6 +104,14 @@ are available from the root entry point. The four `ChartMarkPoint*` and
 `ChartMarkX` and `ChartMarkY` remain exported as deprecated aliases of the
 point extractors. New code should use the explicit names.
 
+Stateful mark presentation uses `ChartMarkStateContext` as one object bag for
+the datum, index, data, point, focus, pointer, and matching helper. A
+`ChartMarkStateSelector` handles the common declarative cases, while callbacks
+can return any `ChartMarkStateValue`. `ChartMarkStateStyle` is the complete
+style vocabulary; `ChartDotStateStyle`, `ChartBarStateStyle`,
+`ChartRectStateStyle`, `ChartLineStateStyle`, `ChartAreaStateStyle`, and
+`ChartTextStateStyle` narrow it to properties each mark can render.
+
 ## Definitions
 
 | Type                     | Purpose                                                                       |
@@ -158,12 +166,13 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 
 | Type                            | Purpose                                                      |
 | ------------------------------- | ------------------------------------------------------------ |
-| `ChartAxisOptions`              | Required positional scale, grid, and optional nested axis    |
-| `ChartAxisPresentationOptions`  | Baseline, ticks, tick labels, and title presentation         |
-| `ChartAxisTickOptions`          | Candidate policy, stub size, padding, and formatting         |
-| `ChartAxisTickLabelOptions`     | Rotation and thinning policy                                 |
-| `ChartAxisTickLabelThinOptions` | Collision gap, end priority, and hard-kept values            |
-| `ChartAxisLabelOptions`         | Axis title text and automatic or numeric offset              |
+| `ChartAxisOptions`              | Required positional scale and optional guide behavior        |
+| `ChartAxisGuideOptions`         | Guide behavior without the scale field                       |
+| `ChartAxisPresentationOptions`  | Axis line, ticks, tick labels, and title presentation        |
+| `ChartAxisTickOptions`          | Candidate values, density, formatting, size, and padding     |
+| `ChartAxisTickLabelOptions`     | Optional rotation and collision-aware thinning               |
+| `ChartAxisTickLabelThinOptions` | Minimum gap, end priority, and labels that must be kept      |
+| `ChartAxisLabelOptions`         | Axis title text and explicit or measured offset              |
 | `ChartScaleFactory`             | Creates a positional scale with a mark-inferred domain       |
 | `ChartScaleInput`               | Factory or configured positional scale instance              |
 | `InferableScaleLike`            | Domain-configurable scale returned by a factory              |
@@ -209,38 +218,52 @@ See [DOM host](./dom-host.md) and
 
 ## Focus and tooltip types
 
-| Type                         | Purpose                                                  |
-| ---------------------------- | -------------------------------------------------------- |
-| `ChartFocusStrategy`         | Pointer resolution, grouping, and keyboard ordering      |
-| `ChartFocusPreset`           | Built-in nearest and grouped axis focus names            |
-| `ChartFocusMode`             | Focus preset or custom strategy                          |
-| `ChartFocusState`            | Primary, group, source, and pinned interaction state     |
-| `ChartFocusSource`           | Pointer, keyboard, programmatic, or restored source      |
-| `ChartFocusFilter`           | Focus-filtered mark matching configuration               |
-| `ChartFocusMatch`            | Primary, group, key, x, y, or series matching            |
-| `ChartSpatialIndex`          | Nearest-point query                                      |
-| `ChartSpatialIndexFactory`   | Builds an index from current scene points                |
-| `ChartTooltipOptions`        | Native tooltip content, ordering, anchoring, and pinning |
-| `ChartTooltipItem`           | Ordered channel, datum-field, or derived point row       |
-| `ChartTooltipItemBase`       | Shared label and point-text contract for object items    |
-| `ChartTooltipChannelItem`    | Configured x, y, or group row                            |
-| `ChartTooltipDatumItem`      | Scalar datum-field row                                   |
-| `ChartTooltipDerivedItem`    | Row derived from the complete focused point              |
-| `ChartTooltipSort`           | Group row ordering                                       |
-| `ChartTooltipAnchor`         | Point, pointer, group-center, or custom scene anchor     |
-| `ChartTooltipAxisAnchor`     | Independent x/y anchor sources                           |
-| `ChartTooltipXAnchor`        | Point, pointer, value, group, or plot x source           |
-| `ChartTooltipYAnchor`        | Point, pointer, value, group, or plot y source           |
-| `ChartTooltipAnchorContext`  | Focus, pointer, plot, surface, and resolved scales       |
-| `ChartTooltipPlacement`      | Tooltip box placement around its anchor                  |
-| `ChartTooltipPosition`       | Scene-pixel x/y coordinate                               |
-| `ChartDefinitionOptions`     | Focus, tooltip, animation, keyboard, and spatial policy  |
-| `DynamicChartConfig`         | Responsive builder plus definition-owned behavior        |
-| `ChartTooltipContent`        | Safe title and row model for a native tooltip            |
-| `ChartTooltipRow`            | Label, formatted value, and optional color swatch        |
-| `ChartTooltipContentContext` | Axis labels and value formatters for content callbacks   |
-| `ChartTooltipBodyContext`    | Focused points, content, pinned state, and dismissal     |
-| `ChartTooltipBodyTarget`     | Renderer-adapter body mount element plus body context    |
+| Type                                  | Purpose                                                                |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| `ChartFocusStrategy`                  | Pointer resolution, grouping, and keyboard ordering                    |
+| `ChartFocusPreset`                    | Built-in nearest and grouped axis focus names                          |
+| `ChartFocusMode`                      | Focus preset or custom strategy                                        |
+| `ChartFocusState`                     | Primary, group, source, and pinned interaction state                   |
+| `ChartFocusSource`                    | Pointer, keyboard, programmatic, or restored source                    |
+| `ChartFocusFilter`                    | Focus-filtered mark matching configuration                             |
+| `ChartFocusMatch`                     | Primary, group, key, x, y, or series matching                          |
+| `ChartSpatialIndex`                   | Nearest-point query                                                    |
+| `ChartSpatialIndexFactory`            | Builds an index from current scene points                              |
+| `ChartExtensionInput`                 | Generic bare-token or `{ use, ...options }` extension input            |
+| `ChartTooltipInput`                   | Tooltip extension token or configured extension options                |
+| `ChartTooltipExtensionToken`          | Environment-neutral contract implemented by host tooltip extensions    |
+| `ChartTooltipExtension`               | Tooltip lifecycle implementation                                       |
+| `ChartTooltipExtensionContext`        | Container, dismissal, and adapter-body bridge given to a tooltip       |
+| `ChartTooltipExtensionInstance`       | Tooltip update, paint, hide, containment, and destroy lifecycle        |
+| `ChartTooltipPaintContext`            | Focus, points, scene, surface, pointer, and pinned state               |
+| `ChartTooltipOptions`                 | Native tooltip content, ordering, anchoring, and pinning               |
+| `ChartTooltipPortalInput`             | Portal extension token or configured transport options                 |
+| `ChartTooltipPortalExtensionToken`    | Environment-neutral contract implemented by host portal extensions     |
+| `ChartTooltipPortalExtension`         | Tooltip transport lifecycle implementation                             |
+| `ChartTooltipPortalExtensionContext`  | Container, tooltip element, and reposition callback given to a portal  |
+| `ChartTooltipPortalExtensionInstance` | Portal update, position, hide, and destroy lifecycle                   |
+| `ChartTooltipPortalOptions`           | Reserved configuration object for portal extensions                    |
+| `ChartTooltipPortalPositionContext`   | Scene, surface, anchor, placement, and offset for viewport positioning |
+| `ChartTooltipItem`                    | Ordered channel, datum-field, or derived point row                     |
+| `ChartTooltipItemBase`                | Shared label and point-text contract for object items                  |
+| `ChartTooltipChannelItem`             | Configured x, y, or group row                                          |
+| `ChartTooltipDatumItem`               | Scalar datum-field row                                                 |
+| `ChartTooltipDerivedItem`             | Row derived from the complete focused point                            |
+| `ChartTooltipSort`                    | Group row ordering                                                     |
+| `ChartTooltipAnchor`                  | Preset, independent axis coordinates, or custom scene anchor           |
+| `ChartTooltipAxisAnchor`              | Independent x and y anchor sources                                     |
+| `ChartTooltipXAnchor`                 | Point, pointer, value, group, or plot x source                         |
+| `ChartTooltipYAnchor`                 | Point, pointer, value, group, or plot y source                         |
+| `ChartTooltipAnchorContext`           | Focus, pointer, plot, surface, and resolved scales                     |
+| `ChartTooltipPlacement`               | Tooltip box placement around its anchor                                |
+| `ChartTooltipPosition`                | Scene-pixel x/y coordinate                                             |
+| `ChartDefinitionOptions`              | Focus, tooltip, animation, keyboard, and spatial policy                |
+| `DynamicChartConfig`                  | Responsive builder plus definition-owned behavior                      |
+| `ChartTooltipContent`                 | Safe title and row model for a native tooltip                          |
+| `ChartTooltipRow`                     | Label, formatted value, and optional color swatch                      |
+| `ChartTooltipContentContext`          | Axis labels and value formatters for content callbacks                 |
+| `ChartTooltipBodyContext`             | Focused points, content, pinned state, and dismissal                   |
+| `ChartTooltipBodyTarget`              | Renderer-adapter body mount element plus body context                  |
 
 See [Focus and interaction](./focus-and-interaction.md).
 
@@ -274,10 +297,6 @@ their behavior:
   `RenderChartPngOptions`. See [SVG
   serialization](./rendering-and-export.md#svg-serialization) and [browser
   image export](./rendering-and-export.md#browser-image-export).
-- `@tanstack/charts/group`: `GroupLayout` and `GroupOptions`. See
-  [Grouped bars](./marks/bar-and-rect.md#grouped-bars).
-- `@tanstack/charts/stack`: `StackLayout`, `StackOptions`, `StackOrder`, and
-  `StackOffset`. See [Stacked bars](./marks/bar-and-rect.md#stacked-bars).
 - `@tanstack/charts/geo`: `GeoProjectionContext`, `GeoProjectionDescriptor`,
   `GeoProjectionInput`, and `GeoShapeOptions`. See
   [Geo shape](./marks/geo.md).
@@ -295,8 +314,7 @@ Every built-in mark exports its options type from the root and its granular
 subpath:
 
 - `LineYOptions`, `AreaYOptions`, `AreaXOptions`, `AreaXCurve`
-- `BarYOptions`, `BarXOptions`, `GroupLayout`, `GroupOptions`
-- `BandXOptions`, `BandYOptions`
+- `BarYOptions`, `BarXOptions`
 - `DotOptions`, `HexagonOptions`
 - `RectOptions`, `CellOptions`
 - `RuleXOptions`, `RuleYOptions`

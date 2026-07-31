@@ -144,6 +144,14 @@ export type {
   ChartSurface,
   ChartSurfaceRenderOptions,
   ChartTooltipBodyTarget,
+  ChartTooltipExtension,
+  ChartTooltipExtensionContext,
+  ChartTooltipExtensionInstance,
+  ChartTooltipPaintContext,
+  ChartTooltipPortalExtension,
+  ChartTooltipPortalExtensionContext,
+  ChartTooltipPortalExtensionInstance,
+  ChartTooltipPortalPositionContext,
 } from './dom-types'
 export type {
   Channel,
@@ -178,6 +186,7 @@ export type {
   ChartCurve,
   ChartDefinition,
   ChartDefinitionOptions,
+  ChartExtensionInput,
   ChartFocusMode,
   ChartFocusFilter,
   ChartFocusMatch,
@@ -240,10 +249,15 @@ export type {
   ChartTooltipChannelItem,
   ChartTooltipDatumItem,
   ChartTooltipDerivedItem,
+  ChartTooltipExtensionToken,
+  ChartTooltipInput,
   ChartTooltipItem,
   ChartTooltipItemBase,
   ChartTooltipOptions,
   ChartTooltipPlacement,
+  ChartTooltipPortalInput,
+  ChartTooltipPortalExtensionToken,
+  ChartTooltipPortalOptions,
   ChartTooltipPosition,
   ChartTooltipXAnchor,
   ChartTooltipYAnchor,
@@ -267,7 +281,7 @@ export type {
   SceneRule,
   SceneStyle,
   StaticChartDefinition,
-} from './portable-types'
+} from './universal-types'
 export { areaX } from './area-x'
 export type { AreaXCurve, AreaXOptions } from './area-x'
 export { d3AreaXCurve } from './d3-area-x'

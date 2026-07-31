@@ -28,12 +28,12 @@ A two-dimensional binned heatmap makes density bounded: the number of rendered
 cells depends on the chosen grid, not directly on the number of raw points.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/24-quantitative-binned-heatmap/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/24-quantitative-binned-heatmap/?theme=system&height=480"
   title="Two-dimensional quantitative binned heatmap built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Prepare explicit x and y interval endpoints plus the aggregate value. Use
@@ -47,12 +47,12 @@ Density contours turn many points into nested level sets. They are useful for
 revealing cluster shape and overlap when raw dots would occlude one another.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/39-density-contours/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/39-density-contours/?theme=system&height=480"
   title="Nested point-density contours built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Bandwidth and thresholds change the visible shape. Treat them as analytical
@@ -67,12 +67,12 @@ count or statistic. They provide a compact alternative when a rectangular grid
 would impose stronger horizontal and vertical edges.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/43-hexbin-density/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/43-hexbin-density/?theme=system&height=480"
   title="Pixel-space hexagonally binned density chart built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Pixel-space binning is responsive work: a changed container changes the spatial

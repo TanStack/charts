@@ -12,8 +12,8 @@ import {
 
 describe('catalog embed contract', () => {
   it('uses documented defaults when query parameters are absent or empty', () => {
-    expect(parseChartEmbedHeight(null)).toBe(360)
-    expect(parseChartEmbedHeight('')).toBe(360)
+    expect(parseChartEmbedHeight(null)).toBe(480)
+    expect(parseChartEmbedHeight('')).toBe(480)
     expect(parseChartEmbedRevision(null)).toBe(0)
     expect(parseChartEmbedTheme(null)).toBe('system')
   })
@@ -22,7 +22,7 @@ describe('catalog embed contract', () => {
     expect(parseChartEmbedHeight('119')).toBe(120)
     expect(parseChartEmbedHeight('421.6')).toBe(422)
     expect(parseChartEmbedHeight('1201')).toBe(1_200)
-    expect(parseChartEmbedHeight('not-a-number')).toBe(360)
+    expect(parseChartEmbedHeight('not-a-number')).toBe(480)
     expect(parseChartEmbedRevision('-1')).toBe(0)
     expect(parseChartEmbedRevision('10001')).toBe(10_000)
   })

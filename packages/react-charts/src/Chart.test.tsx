@@ -6,8 +6,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
 import type { ChartDefinition } from '@tanstack/charts'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from 'd3-scale'
 import { Chart } from './Chart'
+import { Chart as TooltipChart } from './tooltip'
 
 const data = [
   { id: 'jan', month: 1, value: 8 },
@@ -82,7 +85,7 @@ if (false) {
     },
   })
   const inferredCallback = (
-    <Chart
+    <TooltipChart
       definition={focusedDynamicDefinition}
       ariaLabel="Revenue"
       renderSvg={(scene) => {
@@ -347,7 +350,8 @@ describe('React adapter', () => {
     const tooltipDefinition = defineChart(definition, {
       maxFocusDistance: 1_000,
       tooltip: {
-        portal: true,
+        use: tooltip,
+        portal: tooltipPortal,
         content: () => ({
           title: 'January',
           color: '#2563eb',
@@ -367,7 +371,7 @@ describe('React adapter', () => {
 
     await act(async () => {
       root.render(
-        <Chart
+        <TooltipChart
           definition={tooltipDefinition}
           width={480}
           height={260}

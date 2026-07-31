@@ -29,30 +29,30 @@ A choropleth joins one value to each named geographic feature and maps that
 value through a color scale.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/102-world-choropleth/?theme=system&height=460"
+  src="https://tanstack.com/charts/catalog/embed/102-world-choropleth/?theme=system&height=480"
   title="World learning-poverty choropleth over Natural Earth land"
   loading="lazy"
   width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/108-country-choropleth/?theme=system&height=460"
+  src="https://tanstack.com/charts/catalog/embed/108-country-choropleth/?theme=system&height=480"
   title="World population-density choropleth for 95 matched countries"
   loading="lazy"
   width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/109-us-state-choropleth/?theme=system&height=460"
+  src="https://tanstack.com/charts/catalog/embed/109-us-state-choropleth/?theme=system&height=480"
   title="Albers USA choropleth of 3,141 county unemployment rates"
   loading="lazy"
   width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 The join is part of data preparation. Match features through stable IDs, report
@@ -190,12 +190,12 @@ than its spherical centroid. The complete option contract is in
 [Geo Shape Mark](../reference/marks/geo.md).
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/40-geojson-map/?theme=system&height=460"
+  src="https://tanstack.com/charts/catalog/embed/40-geojson-map/?theme=system&height=480"
   title="Westport House floor plan from 121 published GeoJSON polygons"
   loading="lazy"
   width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## Project points by magnitude
@@ -204,12 +204,12 @@ Point and MultiPoint features use D3 `geoPath().pointRadius()`. The `r`
 channel can carry pixels directly; `rScale` maps a quantitative value first.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/103-bubble-map/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/103-bubble-map/?theme=system&height=480"
   title="World population bubbles for 95 atlas-matched countries"
   loading="lazy"
   width="100%"
-  height="440"
-  style="width:100%;height:440px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## Change the projection
@@ -218,12 +218,12 @@ The same GeoJSON can use any D3 projection factory. Sphere and graticule
 geometry are ordinary `geoShape` layers.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/104-orthographic-globe/?theme=system&height=460"
+  src="https://tanstack.com/charts/catalog/embed/104-orthographic-globe/?theme=system&height=480"
   title="Orthographic globe with sphere and graticule layers"
   loading="lazy"
   width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
@@ -240,12 +240,12 @@ geometry are ordinary `geoShape` layers.
 Polygon, LineString, and Point features can share one responsive projection.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/105-route-map/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/105-route-map/?theme=system&height=480"
   title="Recorded HMS Beagle voyage projected over 50m world land"
   loading="lazy"
   width="100%"
-  height="440"
-  style="width:100%;height:440px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## Show direction and magnitude
@@ -254,12 +254,12 @@ A vector field places an arrow at each sampled position. Direction uses angle;
 magnitude can use length, color, or both.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/42-vector-field/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/42-vector-field/?theme=system&height=480"
   title="Surface-wind vectors derived from longitude, latitude, u, and v"
   loading="lazy"
   width="100%"
-  height="440"
-  style="width:100%;height:440px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Choose a sampling density that remains legible at the smallest container. More

@@ -12,6 +12,37 @@ For the architectural boundary and guidance on selecting granular D3 modules,
 read [Scales and D3](../concepts/scales-and-d3.md). This page documents only
 the TanStack Charts contract around those primitives.
 
+## Compact scale package
+
+`@tanstack/charts-scales` supplies four exact, tree-shakeable entries:
+
+| Entry                             | Runtime export | Type contract  |
+| --------------------------------- | -------------- | -------------- |
+| `@tanstack/charts-scales/linear`  | `scaleLinear`  | `LinearScale`  |
+| `@tanstack/charts-scales/band`    | `scaleBand`    | `BandScale`    |
+| `@tanstack/charts-scales/point`   | `scalePoint`   | `PointScale`   |
+| `@tanstack/charts-scales/ordinal` | `scaleOrdinal` | `OrdinalScale` |
+
+`LinearScale` supports numeric two-stop domains and ranges, `invert`, `clamp`,
+`ticks`, basic `tickFormat`, `nice`, and `copy`. `BandScale` supports
+`padding`, `paddingInner`, `paddingOuter`, `align`, `round`, `rangeRound`,
+`bandwidth`, `step`, and `copy`. `PointScale` exposes the corresponding point
+operations with zero bandwidth. `OrdinalScale` supports explicit or implicit
+domains, cyclic ranges, `unknown`, and `copy`.
+
+```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
+const y = {
+  scale: scaleLinear().domain([0, 100]),
+}
+```
+
+These factories satisfy `ConfiguredScaleLike` and `ChartScaleInput` directly.
+They are a documented subset, not a complete `d3-scale` compatibility claim.
+Use D3 for temporal or transformed domains, piecewise and nonnumeric
+interpolation, and full formatting semantics.
+
 ## Positional scale factories
 
 The common path passes the D3 factory directly:

@@ -48,12 +48,12 @@ dot(rows, {
 ```
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/34-pointer-tooltip/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/34-pointer-tooltip/?theme=system&height=480"
   title="Focused dot emphasizing the nearest Apple closing price"
   loading="lazy"
   width="100%"
-  height="360"
-  style="width:100%;height:360px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 A focused band emphasizes the shared x value for every series. Its position
@@ -100,9 +100,10 @@ in both transient and pinned states. The transient body is inert; gate controls
 on `pinned`. The nested chart receives its own accessible label, definition,
 runtime, and framework cleanup.
 
-Set definition `tooltip.portal: true` to escape clipped ancestors and use
-viewport collision handling. Move focus intentionally when the body contains
-controls, preserve Escape, and wire a close button to `dismiss`.
+Add the `portal` extension to the definition's tooltip options to escape
+clipped ancestors and use viewport collision handling. Move focus intentionally
+when the body contains controls, preserve Escape, and wire a close button to
+`dismiss`.
 
 ## Scroll a wide schedule
 

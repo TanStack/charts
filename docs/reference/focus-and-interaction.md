@@ -21,7 +21,7 @@ With no custom focus strategy:
 - `Enter` and Space toggle an enabled sticky tooltip and call `onSelect` for
   the focused point
 - a click focuses and selects the nearest point, or selects `null`
-- the default focus-filtered marker follows the primary point
+- the renderer's focus ring follows the primary point
 
 `maxFocusDistance` defaults to `48` scene pixels. Set `tabIndex` to control
 normal tab-order participation while keeping keyboard handling enabled. Set
@@ -32,9 +32,11 @@ normal tab-order participation while keeping keyboard handling enabled. Set
 Use a preset for built-in focus behavior:
 
 ```ts
+import { tooltip } from '@tanstack/charts/tooltip'
+
 const groupedDownloads = defineChart(definition, {
   focus: 'group-x',
-  tooltip: true,
+  tooltip,
 })
 ```
 
@@ -52,117 +54,6 @@ points with the same `group` value are reduced to one member in grouped focus.
 The equivalent `focusX`, `focusY`, `focusNearestX`, and `focusNearestY`
 strategy objects remain available from `@tanstack/charts/focus` for composition
 or direct strategy use.
-
-## Focus-filtered marks
-
-`whenFocused(mark, { match })` turns an ordinary mark into transient focus
-presentation. It uses the chart's existing focus state and never participates
-in pointer hit testing.
-
-```ts
-import { bandX, lineY, whenFocused } from '@tanstack/charts'
-
-const marks = [
-  whenFocused(
-    bandX(rows, {
-      x: 'date',
-      fill: '#64748b',
-      fillOpacity: 0.14,
-      inset: -6,
-    }),
-    { match: 'x' },
-  ),
-  lineY(rows, { x: 'date', y: 'value', color: 'series' }),
-]
-```
-
-| Match     | Visible rows                                     |
-| --------- | ------------------------------------------------ |
-| `primary` | The primary focused datum                        |
-| `group`   | Datums represented by the complete focused group |
-| `key`     | The primary point's stable key                   |
-| `x`       | Rows sharing the primary semantic x value        |
-| `y`       | Rows sharing the primary semantic y value        |
-| `series`  | Rows sharing the primary series/group identity   |
-
-Mark order controls layering. A leading filtered mark paints below ordinary
-marks; a later one paints above them. Supplying any custom focus-filtered mark
-replaces the implicit default marker. SVG toggles matching scene nodes; Canvas
-repaints only its focus layers.
-
-## Inline mark states
-
-Use `states` when focus should change an existing dot, bar, rect/cell, line,
-area, or text mark. Later matching states override earlier properties:
-
-```ts
-dot(rows, {
-  x: 'date',
-  y: 'value',
-  fill: '#2563eb',
-  r: 3,
-  states: [
-    {
-      when: { focus: 'primary' },
-      style: {
-        r: ({ datum }) => (datum.priority ? 9 : 7),
-        fill: ({ point }) => point.color,
-        stroke: 'Canvas',
-        strokeWidth: 2,
-      },
-      transition: { duration: 140, easing: 'ease-out' },
-    },
-    {
-      when: { focus: 'unmatched' },
-      style: { opacity: 0.25 },
-    },
-  ],
-})
-```
-
-`when` accepts a focus selector or a callback. Style callbacks receive one
-object with `datum`, `index`, `data`, `point`, `focus`, `pointer`, and
-`matches(match)`. Selectors may also restrict `source` or `pinned` state.
-
-State styles are presentation-only. They can change paint, opacity, dot
-radius, bar inset/corner radius, and text size or offset. Data, keys, channels,
-layout, and scale values remain stable. Use `whenFocused` for additional
-transient geometry such as a band or rule.
-
-```ts
-type ChartMarkStateValue<TDatum, TValue> =
-  TValue | ((context: ChartMarkStateContext<TDatum>) => TValue)
-
-interface ChartMarkStateContext<TDatum> {
-  datum: TDatum
-  index: number
-  data: readonly TDatum[]
-  point: ChartPoint<TDatum>
-  focus: ChartFocusState<TDatum>
-  pointer: ChartTooltipPosition | null
-  matches: (match: ChartFocusMatch) => boolean
-}
-
-interface ChartMarkStateSelector {
-  focus: ChartFocusMatch | 'unmatched'
-  source?: ChartFocusSource | readonly ChartFocusSource[]
-  pinned?: boolean
-}
-
-interface ChartMarkState<TDatum, TStyle extends ChartMarkStateStyle<TDatum>> {
-  when:
-    | ChartMarkStateSelector
-    | ((context: ChartMarkStateContext<TDatum>) => boolean)
-  style: TStyle
-  transition?: ChartAnimationOptions
-}
-```
-
-`ChartMarkStateStyle` is the complete presentation vocabulary. Mark options
-narrow it to `ChartDotStateStyle`, `ChartBarStateStyle`,
-`ChartRectStateStyle`, `ChartLineStateStyle`, `ChartAreaStateStyle`, or
-`ChartTextStateStyle`, preventing layout or unsupported geometry properties
-from entering a state.
 
 ## Disabling chart-owned focus
 
@@ -211,10 +102,11 @@ keyboard navigation. `navigation` returns the ordered keyboard task set.
 
 ## Tooltips
 
-Set `tooltip: true` for the native accessible tooltip. The default is a
-structured label-value table. Grouped focus adds a shared-axis heading and one
-color swatch and value row per series. Visible axis labels are reused. Numbers
-use browser locale formatting; dates use stable UTC ISO formatting.
+Import `tooltip` from `@tanstack/charts/tooltip` and place it on the definition
+for the native accessible tooltip. The default is a structured label-value
+table. Grouped focus adds a shared-axis heading and one color swatch and value
+row per series. Visible axis labels are reused. Numbers use browser locale
+formatting; dates use stable UTC ISO formatting.
 
 ```ts
 interface ChartTooltipOptions<
@@ -223,7 +115,7 @@ interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
-  portal?: boolean
+  portal?: ChartTooltipPortalInput
   items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
   sort?: ChartTooltipSort<TDatum, TXValue, TYValue>
   anchor?: ChartTooltipAnchor<TDatum, TXValue, TYValue>
@@ -241,19 +133,19 @@ interface ChartTooltipOptions<
 }
 ```
 
-| Option        | Default        | Meaning                                                 |
-| ------------- | -------------- | ------------------------------------------------------- |
-| `className`   | None           | Class appended after `ts-chart-tooltip`                 |
-| `portal`      | `false`        | Escapes clipping through top-layer or fixed positioning |
-| `items`       | Automatic x/y  | Ordered rows for a single focused point                 |
-| `sort`        | `color-domain` | Grouped row order                                       |
-| `anchor`      | `point`        | Preset, per-axis coordinates, or coordinate resolver    |
-| `placement`   | `auto`         | Fixed or ordered fallback box placements                |
-| `offset`      | `10`           | Scene-pixel gap between anchor and box                  |
-| `content`     | Automatic rows | Returns a safe title and structured rows                |
-| `format`      | None           | Replaces content with primary-point text                |
-| `formatGroup` | None           | Replaces content with focused-group text                |
-| `sticky`      | `true`         | Enables activation-to-pin and text selection            |
+| Option        | Default        | Meaning                                              |
+| ------------- | -------------- | ---------------------------------------------------- |
+| `className`   | None           | Class appended after `ts-chart-tooltip`              |
+| `portal`      | None           | Optional top-layer or fixed-position transport       |
+| `items`       | Automatic x/y  | Ordered rows for a single focused point              |
+| `sort`        | `color-domain` | Grouped row order                                    |
+| `anchor`      | `point`        | Preset, per-axis coordinates, or coordinate resolver |
+| `placement`   | `auto`         | Fixed or ordered fallback box placements             |
+| `offset`      | `10`           | Scene-pixel gap between anchor and box               |
+| `content`     | Automatic rows | Returns a safe title and structured rows             |
+| `format`      | None           | Replaces content with primary-point text             |
+| `formatGroup` | None           | Replaces content with focused-group text             |
+| `sticky`      | `true`         | Enables activation-to-pin and text selection         |
 
 Formatting precedence is `content`, `formatGroup`, `format`, then the default.
 The text formatters do not parse HTML, and newlines are preserved. `className`
@@ -265,28 +157,31 @@ is appended to `ts-chart-tooltip`.
 shorthands, a configured channel, a scalar datum field, or derived text:
 
 ```ts
-const tooltip = {
-  items: [
-    {
-      channel: 'y',
-      label: 'Revenue',
-      text: (point) => currency(point.yValue),
-    },
-    {
-      field: 'volume',
-      label: 'Volume',
-      text: (point) => compact(point.datum.volume),
-    },
-    {
-      id: 'change',
-      label: 'Change',
-      text: (point) =>
-        point.datum.change == null ? null : percent(point.datum.change),
-    },
-    'x',
-    'group',
-  ],
-}
+const detailedDefinition = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    items: [
+      {
+        channel: 'y',
+        label: 'Revenue',
+        text: (point) => currency(point.yValue),
+      },
+      {
+        field: 'volume',
+        label: 'Volume',
+        text: (point) => compact(point.datum.volume),
+      },
+      {
+        id: 'change',
+        label: 'Change',
+        text: (point) =>
+          point.datum.change == null ? null : percent(point.datum.change),
+      },
+      'x',
+      'group',
+    ],
+  },
+})
 ```
 
 Array order is row order. A nullish datum field or nullish `text` result omits
@@ -306,8 +201,8 @@ grouped structure belongs in `content`.
 - `pointer` follows the current pointer and falls back to the point for
   keyboard focus.
 - `group-center` uses the center of the focused points' bounding box.
-- `{ x, y }` selects each coordinate independently from the point, pointer,
-  focused value, group center, or a plot edge/center.
+- `{ x, y }` chooses each coordinate from point, pointer, semantic value,
+  group center, or a plot edge.
 - A resolver receives the focused points plus `{ focus, pointer, plot,
 surface, scales }` and returns scene coordinates. A nullish or non-finite
   result falls back to the primary point.
@@ -320,20 +215,25 @@ it uses the least-overflowing candidate and shifts it inside. `auto` uses
 `top`, `bottom`, `right`, then `left`.
 
 ```ts
-const tooltip = {
-  anchor: { x: 'plot-center', y: 'plot-top' },
-  placement: ['top', 'right', 'left', 'bottom'],
-  offset: 12,
-}
+const groupedDefinition = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    anchor: { x: 'plot-center', y: 'plot-top' },
+    placement: ['top', 'right', 'left', 'bottom'],
+    offset: 12,
+  },
+})
 ```
 
-Set `portal: true` when an ancestor clips overflow or creates an incompatible
-stacking context. The host opens the tooltip as a manual Popover in the browser
-top layer where supported, while retaining its chart DOM ancestry. If Popover
-is unavailable or fails, it moves the tooltip directly under the chart's
-`ownerDocument` body with fixed high-stack positioning. Both paths map the
-scene anchor to viewport coordinates, reposition during scroll, resize, and
-content resize, and collide against the viewport instead of the chart box.
+Import `portal` from `@tanstack/charts/tooltip/portal` and assign it to the
+tooltip's `portal` option when an ancestor clips overflow or creates an
+incompatible stacking context. The host opens the tooltip as a manual Popover
+in the browser top layer where supported, while retaining its chart DOM
+ancestry. If Popover is unavailable or fails, it moves the tooltip directly
+under the chart's `ownerDocument` body with fixed high-stack positioning. Both
+paths map the scene anchor to viewport coordinates, reposition during scroll,
+resize, and content resize, and collide against the viewport instead of the
+chart box.
 
 Clicking, Enter, or Space pins the tooltip. The next activation unpins it.
 `Escape` unpins and clears focus. Set `sticky: false` to disable pinning. A

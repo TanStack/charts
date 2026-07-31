@@ -65,7 +65,7 @@ pnpm changeset
 ```
 
 Choose the release impact and write the summary that should appear in the
-changelog. All ten public Charts packages form one fixed release group, so one
+changelog. All eleven public Charts packages form one fixed release group, so one
 package change advances every package to the same version. Documentation,
 tests, benchmarks, and build-only changes do not need a changeset unless they
 alter the published package contract.
@@ -87,9 +87,9 @@ Every push to `main` starts the release workflow:
    publisher checks npm and builds fresh, consumer-tested tarballs only when
    the coordinated version is unpublished.
 4. npm trusted publishing uses the workflow's OIDC identity to publish core
-   before the nine adapters with provenance. The repository has no long-lived
-   npm token.
-5. After all ten registry entries report the expected integrity and
+   before compact scales and the nine adapters with provenance. The repository
+   has no long-lived npm token.
+5. After all eleven registry entries report the expected integrity and
    attestations, the workflow creates one annotated `vX.Y.Z` tag and GitHub
    release from the root changelog.
 
@@ -104,4 +104,4 @@ preflight resumes finalization without republishing existing versions.
 
 Changing the repository name or
 `.github/workflows/release.yml` requires updating the trusted-publisher
-configuration for all ten packages on npm.
+configuration for all eleven packages on npm.

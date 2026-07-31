@@ -1,6 +1,6 @@
 {
   "name": "@tanstack/charts",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "private": false,
   "license": "MIT",
   "repository": {
@@ -22,12 +22,12 @@
     "@types/d3-shape": "^3.1.8",
     "d3-array": "3.2.4",
     "d3-geo": "3.1.1",
-    "d3-scale": "4.0.2",
     "d3-shape": "3.2.0"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.2",
-    "@types/d3-scale": "^4.0.9"
+    "@types/d3-scale": "^4.0.9",
+    "d3-scale": "4.0.2"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -57,7 +57,7 @@
     "./link": "./src/link.ts",
     "./mark/scale-values": "./src/mark-with-scale-values.ts",
     "./polar": "./src/polar.ts",
-    "./portable": "./src/portable.ts",
+    "./universal": "./src/universal.ts",
     "./reconcile": "./src/reconcile.ts",
     "./rect": "./src/rect.ts",
     "./renderer": "./src/renderer.ts",
@@ -82,7 +82,9 @@
     "./transform/window": "./src/transform-window.ts",
     "./text": "./src/text.ts",
     "./tick": "./src/tick.ts",
-    "./types": "./src/portable-types.ts",
+    "./tooltip": "./src/tooltip.ts",
+    "./tooltip/portal": "./src/tooltip-portal.ts",
+    "./types": "./src/universal-types.ts",
     "./vector": "./src/vector.ts"
   },
   "publishConfig": {
@@ -197,9 +199,9 @@
         "types": "./dist/polar.d.ts",
         "import": "./dist/polar.js"
       },
-      "./portable": {
-        "types": "./dist/portable.d.ts",
-        "import": "./dist/portable.js"
+      "./universal": {
+        "types": "./dist/universal.d.ts",
+        "import": "./dist/universal.js"
       },
       "./reconcile": {
         "types": "./dist/reconcile.d.ts",
@@ -297,9 +299,17 @@
         "types": "./dist/tick.d.ts",
         "import": "./dist/tick.js"
       },
+      "./tooltip": {
+        "types": "./dist/tooltip.d.ts",
+        "import": "./dist/tooltip.js"
+      },
+      "./tooltip/portal": {
+        "types": "./dist/tooltip-portal.d.ts",
+        "import": "./dist/tooltip-portal.js"
+      },
       "./types": {
-        "types": "./dist/portable-types.d.ts",
-        "import": "./dist/portable-types.js"
+        "types": "./dist/universal-types.d.ts",
+        "import": "./dist/universal-types.js"
       },
       "./vector": {
         "types": "./dist/vector.d.ts",

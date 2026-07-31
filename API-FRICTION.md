@@ -190,13 +190,15 @@ Each entry records:
 | F-152 | Version bumps invalidated workspace bundle evidence      | Tooling/Release | resolved   |
 | F-153 | Changesets left release-facing version claims behind     | Tooling/Release | resolved   |
 | F-154 | Root barrels crossed the browser host boundary           | API/Tooling     | resolved   |
-| F-155 | Conformance monitoring blocked unrelated changes         | Tooling         | resolved   |
-| F-156 | Focus presentation was fixed to one renderer marker      | API             | resolved   |
-| F-157 | Axis scale and presentation controls were interleaved    | API             | resolved   |
-| F-158 | Responsive tick labels had no collision policy           | API             | resolved   |
-| F-159 | Tooltip anchors could not fix coordinates independently  | API             | resolved   |
-| F-160 | Focus styling required duplicate marks                   | API             | resolved   |
-| F-161 | Cross-row transforms lacked a public ownership boundary  | API             | resolved   |
+| F-155 | Optional tooltip code burdened every chart consumer      | API             | resolved   |
+| F-156 | Releases stranded manual Unreleased migration notes      | Tooling/Release | monitoring |
+| F-157 | Conformance monitoring blocked unrelated changes         | Tooling         | resolved   |
+| F-158 | Focus presentation was fixed to one renderer marker      | API             | resolved   |
+| F-159 | Axis scale and presentation controls were interleaved    | API             | resolved   |
+| F-160 | Responsive tick labels had no collision policy           | API             | resolved   |
+| F-161 | Tooltip anchors could not fix coordinates independently  | API             | resolved   |
+| F-162 | Focus styling required duplicate marks                   | API             | resolved   |
+| F-163 | Cross-row transforms lacked a public ownership boundary  | API             | resolved   |
 
 ## Findings
 
@@ -498,7 +500,8 @@ Each entry records:
 
 - Status: resolved
 - Severity: high
-- Observed in: strict migration of fixtures, sandbox, and Stats
+- Observed in: strict migration of fixtures, sandbox, and Stats, followed by
+  the 15 KiB representative React bundle target
 - Friction: `scaleUtc`, `scaleTime`, `scaleLog`, `scaleSymlog`, `scaleSqrt`,
   `configuredScale`, `ChartScaleTransform`, and inferred scale types remain
   exported beside native `d3-scale` values. Their names are easier for both
@@ -506,13 +509,18 @@ Each entry records:
   longer consumes inferred axis options.
 - Decision: remove the legacy inferred scale and transform surface after its
   historical tests and bundle fixtures have been relabeled or deleted. Keep
-  D3 imports visibly sourced from `d3-scale`.
+  D3 imports visibly sourced from `d3-scale` for its complete semantics. Offer
+  the deliberately smaller linear, band, point, and ordinal subset only from
+  exact `@tanstack/charts-scales/*` entries, with no root export. The compact
+  package is a constrained bundle option, not a second general-purpose scale
+  API.
 - Verification: the obsolete scale, radius, color, curve, transform, and
   spatial wrappers and subpaths are gone; the inferred-scale builder and its
   tests are deleted; fixtures and histogram benchmarks use direct `d3.bin`;
-  repository search finds only direct D3 imports in product definitions.
-  TypeScript, the standard test suite, both four-test Octane matrices, and
-  every bundle budget pass.
+  differential tests cover the compact subset against D3; packed-consumer
+  checks resolve every exact entry. The complete compact family is 1,877 gzip
+  bytes, and a representative compact React line is 14,227 gzip bytes without
+  retaining `d3-scale`, `d3-format`, or `d3-interpolate`.
 
 ### F-016 — Stats animated export still renders through Plot
 
@@ -1098,7 +1106,10 @@ Each entry records:
   consumers are byte-locked. Optional features have isolated gzip budgets;
   comparison and exploratory kernels remain measurement-only. Baseline
   changes require an explicit reviewed command, including decreases, so saved
-  bytes cannot become silent future headroom.
+  bytes cannot become silent future headroom. Input-boundary checks use only
+  modules with retained output bytes, so an imported-but-eliminated module
+  cannot create a false pass or failure. The compact React line has a hard
+  15 KiB ceiling; tooltip and portal are measured as separate increments.
 - Verification: repeated builds match the exact minified and gzip baseline.
   `pnpm bundle:check` passes the locked consumers and the tightened histogram,
   facet, curve, time, transform, spatial, arrow, frame, link, and tick feature
@@ -1109,8 +1120,12 @@ Each entry records:
   now locked rather than hidden inside unused ceiling headroom. The canonical
   byte lock runs on pinned Ubuntu 24.04 and Node 24.18.0; this prevents runner
   and compressor upgrades from masquerading as library-size changes. The
-  current canonical baseline records the unchanged source tree under that
-  environment.
+  bundle-reduction work locks the compact scene at 6,711 gzip bytes and its
+  React consumer at 14,227. Tooltip adds 3,381 bytes and portal adds another 806. Retained-output assertions prove the base excludes tooltip, portal,
+  React tooltip composition, and the D3 scale/format/interpolate stack.
+  Replacing the core-owned D3 ordinal default required reviewed 0.05 KiB
+  adjustments to the tick and polar-composition feature ceilings; all other
+  policy changes are exact locks or new isolated budgets.
 
 ### F-041 — Bounded segments and caps required custom marks
 
@@ -1147,9 +1162,12 @@ Each entry records:
   `items` array.
 - Current decision: ordered items use one uniformly typed
   `text(point, context)` callback, preserving contextual datum and coordinate
-  types for every item kind. For a separately hoisted complete tooltip object,
-  document an explicit `ChartTooltipOptions` annotation as a normal
-  type-introduction boundary; never recommend a cast.
+  types for every item kind. The extension form
+  `{ use: tooltip, format(point) {} }` remains inside `defineChart`, so the
+  definition supplies contextual datum and coordinate types at the exact
+  option location. For a separately hoisted complete tooltip object, document
+  an explicit `ChartTooltipOptions` annotation as a normal type-introduction
+  boundary; never recommend a cast.
 - Follow-up: if raw-host examples repeat this pattern, add a small
   definition-correlated options helper rather than weakening callback types.
 
@@ -3218,14 +3236,15 @@ Each entry records:
   contexts could clip it or place it below adjacent UI. Escaping those
   boundaries required rebuilding focus, placement, collision, pinning, and
   cleanup in an application-owned overlay.
-- Decision: add definition-owned `tooltip.portal`. The host opens the tooltip
-  itself as a manual Popover in the browser top layer where supported, keeping
-  its chart DOM ancestry and inherited styling. If Popover is unavailable or
-  fails, the tooltip moves directly under the `ownerDocument` body with fixed
-  high-stack positioning. Both paths map scene anchors to client coordinates,
-  collide against the viewport, and reposition on scroll, viewport resize,
-  chart resize, and tooltip content resize. Local positioning remains the
-  default. Documentation calls out the fallback's CSS inheritance boundary.
+- Decision: make portal transport an exact opt-in extension imported from
+  `@tanstack/charts/tooltip/portal` and installed as the nested `portal` option
+  on `{ use: tooltip }`. It opens the tooltip as a manual Popover in the
+  browser top layer where supported, keeping its chart DOM ancestry and
+  inherited styling. If Popover is unavailable or fails, the tooltip moves
+  directly under the `ownerDocument` body with fixed high-stack positioning.
+  Both paths map scene anchors to client coordinates, collide against the
+  viewport, and reposition on scroll, viewport resize, chart resize, and
+  tooltip content resize. Local positioning remains the default.
 - Verification: DOM-host regressions cover top-layer and fixed fallback
   parenting, client-coordinate mapping, viewport collision,
   scroll/resize/content repositioning, local-to-portal updates, renderer
@@ -3233,10 +3252,11 @@ Each entry records:
   composition regression exercises a pinned custom body inside the portaled
   surface and removes it on unmount. Catalog case 35 passes its real-Chromium
   quick profile, including both widths and every interaction step. The primary
-  suite passes 2,459 tests, all framework matrices pass, and type, docs,
+  suite passes 3,003 tests, all framework matrices pass, and type, docs,
   packed-consumer, seven-adapter, formatting, and bundle gates pass. The
-  reviewed bundle change is 1,486 gzip bytes for the DOM host and 1,947 for the
-  React adapter; it adds no bundled dependency.
+  portal transport is absent from retained base and tooltip-only graphs. Its
+  isolated kernel is 1,580 gzip bytes and its measured increment on the
+  representative React tooltip consumer is 806 bytes.
 
 ### F-134 — Demo fixtures modeled charts instead of source data
 
@@ -3681,22 +3701,86 @@ Each entry records:
   platform-neutral, but the root value barrel made bundlers traverse DOM hosts,
   adapters, reconciliation, and SVG surfaces. Its type graph also declared
   `Element`, `HTMLElement`, and `SVGSVGElement`, so a non-DOM consumer could
-  not select the portable contracts as one supported entry.
+  not select the universal contracts as one supported entry.
 - Decision: preserve the existing browser-oriented root API and add
-  `@tanstack/charts/portable` for common authoring/runtime values plus
-  `@tanstack/charts/types` for portable contracts. DOM surface, renderer, host,
-  and render-context types now live behind an internal module while retaining
-  their existing root re-exports. Do not conditionally change the root until a
-  native host can test one coherent platform contract.
+  `@tanstack/charts/universal` for common authoring/runtime values plus
+  `@tanstack/charts/types` for universal contracts. The name describes the
+  supported cross-runtime surface while the browser-first root remains the
+  normal web entry. DOM surface, renderer, host, and render-context types now
+  live behind an internal module while retaining their existing root
+  re-exports. Definition inputs retain DOM-free extension token contracts while
+  the generic tooltip and portal token interfaces are exported for host-adapter
+  authors. Typed DOM tooltip and portal lifecycles remain in the DOM module. Do
+  not conditionally change the root until a native host can test one coherent
+  platform contract.
 - Verification: root typechecking and 61 focused core tests pass. The packed
   package gate resolves both new entries from `dist`, compiles their
-  declarations with Web Worker rather than DOM globals, and proves the
-  portable bundle excludes the root, adapters, Canvas, DOM host/text, browser
-  export, reconciliation, renderer, and SVG surface modules. That full
-  portable barrel measures 55.26 kB minified and 17.04 kB gzip; granular
+  declarations, including tooltip definition inputs and direct generic-token
+  imports, with Web Worker rather than DOM globals. Type regressions reject
+  swapping tooltip and portal tokens.
+  The packed bundle proof excludes the root, adapters, Canvas, DOM host/text,
+  browser export, reconciliation, renderer, and SVG surface modules. That full
+  universal barrel measures 53.95 kB minified and 16.60 kB gzip; granular
   subpaths remain the bundle-sensitive option.
 
-### F-155 — Conformance monitoring blocked unrelated changes
+### F-155 — Optional tooltip code burdened every chart consumer
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: reducing the representative React line consumer from 25.11 KiB
+  to 13.89 KiB gzip
+- Friction: the renderer statically owned native tooltip DOM, formatting,
+  placement, pinning, portal transport, and observers. React's base entries
+  also statically owned `react-dom` portal composition and the default rich
+  body. A chart with no tooltip paid for all of it, and tree shaking could not
+  cross the host's built-in branches.
+- Decision: keep focus and pin policy in the host, but move tooltip rendering
+  behind the `ChartTooltipExtension` lifecycle and exact
+  `@tanstack/charts/tooltip` token. Move viewport transport behind the nested
+  portal extension. Move React rich-body composition to drop-in Chart,
+  CanvasChart, and RendererChart exports from
+  `@tanstack/react-charts/tooltip`. Base entries export only erased extension
+  types and never import those runtime modules.
+- Verification: the representative compact React line is 14,227 gzip bytes.
+  Native tooltip adds 3,381 bytes; portal adds 806 more. Retained-output graph
+  checks prove base renderer and React entries contain none of the tooltip,
+  portal, or React rich-body modules. Core, Lit, React, export, declaration,
+  packed-package, and lifecycle tests cover creation, update, disable,
+  transport switching, custom bodies, and cleanup.
+
+### F-156 — Releases stranded manual Unreleased migration notes
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: rebasing the tooltip and compact-scale release onto the
+  Changesets-based `0.0.2` release flow, then landing the universal-entry rename
+  after the `0.1.0` version pull request had merged and published
+- Friction: the root changelog held the complete human- and agent-readable
+  migration under `## Unreleased`, while Changesets generated package sections
+  and prepended the new version without consuming that section. The resulting
+  release would leave the migration under an obsolete heading instead of the
+  version users were upgrading to. A later feature branch exposed the inverse
+  race: its pending universal-entry note merged into the already-published
+  `0.1.0` section after the version pull request had consumed `## Unreleased`,
+  even though its remaining changeset correctly targeted `0.2.0`.
+- Decision: when synchronizing a new root release, move the body of
+  `## Unreleased` into the generated version section and remove the pending
+  heading. Package-specific changesets retain the core, React, and compact-scale
+  migration instructions in their published package changelogs. A feature pull
+  request that crosses a published version boundary must re-establish
+  `## Unreleased`, keep the published section immutable, and describe migration
+  from the package version that actually reached npm.
+- Verification: the focused changelog synchronization regression moves pending
+  breaking-change notes under the generated version, removes `## Unreleased`,
+  preserves earlier releases, and includes the migration in extracted GitHub
+  release notes. The universal follow-up restores its note under
+  `## Unreleased`, leaves the published `0.1.0` section accurate, and reports a
+  single minor `@tanstack/charts` release from `0.1.0` to `0.2.0`; the docs,
+  bundle, changelog-consumption, and release-artifact gates pass.
+
+### F-157 — Conformance monitoring blocked unrelated changes
 
 - Status: resolved
 - Severity: high
@@ -3721,7 +3805,7 @@ Each entry records:
   execution. The main CI contract rejects any conformance dependency while
   retaining every exact-revision catalog publication guard.
 
-### F-156 — Focus presentation was fixed to one renderer marker
+### F-158 — Focus presentation was fixed to one renderer marker
 
 - Status: resolved
 - Severity: high
@@ -3739,7 +3823,7 @@ Each entry records:
   preserve the cached base layer while painting underlays and overlays, and
   renderer tests verify pointer/keyboard source and pinned state.
 
-### F-157 — Axis scale and presentation controls were interleaved
+### F-159 — Axis scale and presentation controls were interleaved
 
 - Status: resolved
 - Severity: high
@@ -3758,7 +3842,7 @@ Each entry records:
   representative-mark entry; the reviewed universal baseline and isolated
   ceilings record that cost.
 
-### F-158 — Responsive tick labels had no collision policy
+### F-160 — Responsive tick labels had no collision policy
 
 - Status: resolved
 - Severity: high
@@ -3779,7 +3863,7 @@ Each entry records:
   adds 0.25 kB gzip to the isolated facet bundle (18.65 kB total), covered by
   its reviewed 18.8 kB ceiling without changing any exact universal baseline.
 
-### F-159 — Tooltip anchors could not fix coordinates independently
+### F-161 — Tooltip anchors could not fix coordinates independently
 
 - Status: resolved
 - Severity: medium
@@ -3794,7 +3878,7 @@ Each entry records:
 - Verification: renderer tests cover mixed plot-center/plot-top anchoring,
   keyboard pointer fallback, and the complete typed callback context.
 
-### F-160 — Focus styling required duplicate marks
+### F-162 — Focus styling required duplicate marks
 
 - Status: resolved
 - Severity: high
@@ -3819,7 +3903,7 @@ Each entry records:
   plumbing adds 71 gzip bytes; the complete SVG DOM host adds 994 gzip bytes,
   recorded in the reviewed universal bundle baseline.
 
-### F-161 — Cross-row transforms lacked a public ownership boundary
+### F-163 — Cross-row transforms lacked a public ownership boundary
 
 - Status: resolved
 - Severity: high

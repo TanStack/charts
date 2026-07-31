@@ -142,10 +142,10 @@ resource-aware SVG serializer. A Canvas gradient needs measurable node bounds;
 path-only geometry with no point bounds should use an explicit paint instead.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/heatmap-labeled/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/heatmap-labeled/?theme=system&height=480"
   title="Theme-aware labeled heatmap with a quantitative color legend"
   loading="lazy"
-  style="width: 100%; height: 360px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## HTML tooltip styling
@@ -155,16 +155,19 @@ Give it a class through `tooltip.className` and style that class in application
 CSS:
 
 ```ts
-const tooltip = {
-  className: 'revenue-tooltip',
-}
+import { tooltip } from '@tanstack/charts/tooltip'
+
+const definition = defineChart(baseDefinition, {
+  tooltip: { use: tooltip, className: 'revenue-tooltip' },
+})
 ```
 
-With `portal: true`, the preferred manual-Popover path keeps the element under
-the chart in the DOM, so inheritance and scoped selectors continue to work. If
-Popover is unavailable or fails, the fixed fallback moves the element under
-the chart's `ownerDocument` body. Use a document-level selector for its class
-and put required fallback tokens on that class or a shared document ancestor.
+With the `portal` extension, the preferred manual-Popover path keeps the
+element under the chart in the DOM, so inheritance and scoped selectors
+continue to work. If Popover is unavailable or fails, the fixed fallback moves
+the element under the chart's `ownerDocument` body. Use a document-level
+selector for its class and put required fallback tokens on that class or a
+shared document ancestor.
 
 Every framework adapter can compose native application content with the
 default rows. See [Tooltips and Focus](./tooltips-and-focus.md).

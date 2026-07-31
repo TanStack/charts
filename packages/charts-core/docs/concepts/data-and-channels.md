@@ -380,12 +380,12 @@ still use the source dataset's field names. This example imports `d3-scale`
 directly. Install it and `@types/d3-scale`.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/scatter-bubble/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/scatter-bubble/?theme=system&height=480"
   title="Bubble scatterplot with color and radius channels built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 For every built-in channel, see the relevant [Mark Reference](../reference/marks/line-and-area.md). For inference rules and custom datum unions, see [TypeScript](../guides/typescript.md).

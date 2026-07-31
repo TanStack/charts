@@ -44,20 +44,29 @@ implementation plan or compatibility promise.
 
 ### Bundle size
 
-- State metadata plumbing adds 245 minified / 71 gzip bytes to a static line
-  scene. Representative marks add 606 / 203 bytes.
-- The SVG DOM host adds 2,929 minified / 994 gzip bytes; the React adapter adds
-  2,925 / 1,016 bytes. These include the shared state resolver, prefix index,
-  transition handling, and SVG integration.
-- The exact Ubuntu comparison matrix increases by 998-1,132 gzip bytes across
-  line, bar, area, and scatter consumers. The tracked comparison baseline now
-  records those CI-produced measurements.
-- Symmetric implicit stacking puts the isolated `areaX` + static SVG entry at
-  19.66 kB gzip. Its reviewed ceiling moves from 18.35 to 19.8 kB. Host-derived
-  ceilings move by the measured state-engine cost, with roughly 0.15 kB
-  headroom.
-- Exact universal baselines were updated only after the source audit. The full
-  bundle policy remains the release gate.
+- Against the compact-scales and opt-in-tooltip `main` baseline, the complete
+  core authoring work adds 1.38 kB gzip to a static D3-scale line scene and
+  1.37 kB to the equivalent compact-scale scene. A React compact-scale line is
+  16.59 kB gzip, up 2.69 kB; the additional host cost covers focus filtering,
+  inline state resolution and transitions, and the richer axis model.
+- Representative marks add 3.33 kB gzip because that entry exercises the
+  state-capable mark metadata plus native stack/group layout. The renderer-
+  neutral host remains 10.04 kB, while the SVG DOM host is 14.00 kB and the
+  Canvas host is 15.18 kB.
+- Tooltip remains opt-in after the merge. The extension adds 3.52 kB gzip to a
+  React compact-scale line; portal transport adds another 0.79 kB. Static,
+  compact-scale, renderer-neutral, and adapter entries enforce that tooltip and
+  portal modules are absent unless selected.
+- Every transform family now has an isolated gzip ceiling and a retained-input
+  boundary. Numeric and 2D bins may retain `d3-array`; row stacks may retain
+  `d3-shape`; all other families reject those dependencies and every granular
+  entry rejects unrelated transform families.
+- Static line, compact-scale line, and tooltip kernels also reject transform
+  modules. This makes root-export tree shaking a release gate rather than a
+  one-time observation.
+- Exact universal baselines are refreshed only after the source audit. The
+  reviewed ceilings retain narrow headroom, and the full bundle policy remains
+  the release gate.
 
 ### General transform boundary
 
@@ -103,9 +112,11 @@ implementation plan or compatibility promise.
   are 1.30 kB, 2D bins 2.75 kB, and cumulative 1.03 kB. The full
   advanced reducer set is 0.42 kB gzip and is absent unless imported.
 - Keeping advanced reducers outside the shared string switch reduced a complete
-  histogram from the first-pass 18.75 kB gzip to 18.63 kB, below its 18.7 kB
-  ceiling. The comparable direct-D3 histogram is 17.41 kB. Locked non-transform
-  entries remain byte-identical, showing the root exports still tree-shake.
+  histogram from the first-pass 18.75 kB gzip to 18.37 kB on the merged compact
+  core, below its 18.7 kB ceiling. The comparable direct-D3 histogram is 17.09
+  kB. Retained-input checks prove transform code is absent from locked
+  non-transform consumers and that each granular entry keeps only its intended
+  family and shared internals.
 
 ## 1. Focus presentation
 

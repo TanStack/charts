@@ -112,10 +112,10 @@ Use `d3-brush` and `d3-selection` as optional direct dependencies when their
 controller semantics fit. The chart library does not bundle them.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/89-brush-range-selection/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/89-brush-range-selection/?theme=system&height=480"
   title="Monthly-snapped brush with pointer and keyboard range selection"
   loading="lazy"
-  style="width: 100%; height: 440px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## Zoom and pan

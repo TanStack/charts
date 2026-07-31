@@ -39,7 +39,7 @@ server-rendered application charts.
 <a id="status"></a>
 
 > [!IMPORTANT]
-> TanStack Charts `0.0.2` is pre-alpha. Its API may change between releases,
+> TanStack Charts `0.1.0` is pre-alpha. Its API may change between releases,
 > and it is not ready for production use.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
@@ -69,6 +69,7 @@ or dropping down to a separate API.
 ```tsx
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
 
 const revenue = [
@@ -94,7 +95,7 @@ const revenueChart = defineChart({
     grid: true,
     axis: { label: 'Revenue' },
   },
-  tooltip: true,
+  tooltip,
 })
 
 export function RevenueChart() {

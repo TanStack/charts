@@ -10,10 +10,11 @@ pnpm add @tanstack/charts @tanstack/svelte-charts svelte d3-scale
 ```svelte
 <script lang="ts">
   import { defineChart } from '@tanstack/charts'
+  import { tooltip } from '@tanstack/charts/tooltip'
   import { Chart } from '@tanstack/svelte-charts'
 
   const definition = $derived(
-    defineChart(createRevenueChart(rows), { tooltip: true }),
+    defineChart(createRevenueChart(rows), { tooltip }),
   )
 </script>
 

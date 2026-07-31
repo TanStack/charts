@@ -122,6 +122,8 @@ barY(rows, {
 `group()` creates a secondary band scale inside the primary categorical band.
 Use `group({ padding: 0.2 })` for the common spacing control, or pass
 `group({ scale })` when subgroup order is fixed application state.
+`GroupOptions` is the reusable configuration shape for those `padding` and
+`scale` controls.
 
 An explicit `z` supplies subgroup identity. If `z` is omitted, a discrete
 `color` channel may supply identity after grouped geometry has been selected.

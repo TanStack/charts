@@ -7,6 +7,11 @@ import type {
   ChartSvgRenderer,
   ChartTextMeasurer,
   ChartTooltipBodyContext,
+  ChartTooltipExtensionToken,
+  ChartTooltipOptions,
+  ChartTooltipPlacement,
+  ChartTooltipPortalExtensionToken,
+  ChartTooltipPortalOptions,
   ChartTooltipPosition,
   ChartValue,
   RenderChartOptions,
@@ -72,6 +77,80 @@ export interface ChartTooltipBodyTarget<
   TYValue extends ChartValue = ChartValue,
 > extends ChartTooltipBodyContext<TDatum, TXValue, TYValue> {
   element: HTMLElement
+}
+
+export interface ChartTooltipExtension extends ChartTooltipExtensionToken {
+  create: <TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
+    context: ChartTooltipExtensionContext<TDatum, TXValue, TYValue>,
+  ) => ChartTooltipExtensionInstance<TDatum, TXValue, TYValue>
+}
+
+export interface ChartTooltipExtensionContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  container: HTMLElement
+  dismiss: () => void
+  bodyChange: () =>
+    | ((
+        target: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null,
+      ) => void)
+    | undefined
+}
+
+export interface ChartTooltipPaintContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  point: ChartPoint<TDatum, TXValue, TYValue>
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  scene: ChartScene<TDatum, TXValue, TYValue>
+  surface: ChartSurface<TDatum, TXValue, TYValue>
+  pointer: ChartTooltipPosition | null
+  focus: ChartFocusState<TDatum, TXValue, TYValue>
+  pinned: boolean
+}
+
+export interface ChartTooltipExtensionInstance<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  update: (options: ChartTooltipOptions<TDatum, TXValue, TYValue>) => void
+  paint: (context: ChartTooltipPaintContext<TDatum, TXValue, TYValue>) => void
+  hide: () => void
+  contains: (target: EventTarget | null) => boolean
+  destroy: () => void
+}
+
+export interface ChartTooltipPortalExtension extends ChartTooltipPortalExtensionToken {
+  create: (
+    context: ChartTooltipPortalExtensionContext,
+    options: ChartTooltipPortalOptions,
+  ) => ChartTooltipPortalExtensionInstance
+}
+
+export interface ChartTooltipPortalExtensionContext {
+  container: HTMLElement
+  element: HTMLElement
+  schedulePosition: () => void
+}
+
+export interface ChartTooltipPortalPositionContext {
+  scene: ChartScene<any, any, any>
+  surface: ChartSurface<any, any, any>
+  anchor: ChartTooltipPosition
+  placement?: 'auto' | ChartTooltipPlacement | readonly ChartTooltipPlacement[]
+  offset?: number
+}
+
+export interface ChartTooltipPortalExtensionInstance {
+  update: (options: ChartTooltipPortalOptions) => void
+  position: (context: ChartTooltipPortalPositionContext) => boolean
+  hide: () => void
+  destroy: () => void
 }
 
 export interface ChartRenderContext<

@@ -7,6 +7,8 @@ import {
   whenFocused,
 } from '@tanstack/charts'
 import type { ChartHostOptions } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
 import type {
@@ -76,7 +78,8 @@ const configuredDefinition = (input: ConformanceInput) =>
     keyboard: true,
     focus: 'group-x',
     tooltip: {
-      portal: true,
+      use: tooltip,
+      portal,
       anchor: 'group-center',
       placement: ['top', 'right', 'left', 'bottom'],
       sort: 'color-domain',

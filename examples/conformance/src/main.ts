@@ -36,7 +36,7 @@ import './styles.css'
 
 const app = requireApp()
 const basePath = import.meta.env.BASE_URL
-const chartHeight = 360
+const chartHeight = 480
 const casesById = new Map(conformanceCases.map((entry) => [entry.id, entry]))
 const families = [
   ...new Set(conformanceCases.map((entry) => entry.family)),

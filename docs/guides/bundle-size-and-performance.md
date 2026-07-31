@@ -24,6 +24,11 @@ import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { renderChartImage } from '@tanstack/charts/export'
 import { focusX } from '@tanstack/charts/focus'
 import { d3Curve } from '@tanstack/charts/d3/shape'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal } from '@tanstack/charts/tooltip/portal'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { groupBy } from '@tanstack/charts/transform/group'
+import { window } from '@tanstack/charts/transform/window'
 ```
 
 Canvas is opt-in. The default core and every default framework entry remain
@@ -48,6 +53,31 @@ boundary data and `topojson-client` remain application dependencies; importing
 
 Your bundler must honor ESM exports and tree shaking. Avoid namespace imports
 when a named or subpath import communicates the real dependency.
+
+Tooltip rendering is also opt-in. A definition imports `tooltip`; viewport
+layering additionally imports `portal` and nests it under the tooltip options:
+
+```ts
+const interactive = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    portal,
+  },
+})
+```
+
+The locked compact React line consumer must remain at or below 16.8 kB gzip.
+Its retained-module gate rejects tooltip, portal, `d3-scale`, `d3-format`,
+`d3-interpolate`, `d3-color`, transforms, and sibling compact-scale entries.
+Separate incremental gates limit tooltip and portal growth.
+
+Transforms are root exports for convenience, but their granular subpaths are
+the smallest contract for reusable preparation code. Ordinary line, compact-
+scale, and tooltip-only bundle fixtures reject every transform module. Each
+transform family has its own gzip ceiling and rejects unrelated families.
+Numeric and 2D bins intentionally use `d3-array`; row stacking uses `d3-shape`;
+grouping, calendar bins, windows, cumulative values, ranks, normalization,
+selection, and advanced reducers do not retain either dependency.
 
 ## Import D3 by capability
 

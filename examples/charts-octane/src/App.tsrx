@@ -7,6 +7,7 @@ import {
 } from './charts'
 import type { IndustriesRow, IndustryHistoryMode } from './charts'
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/octane-charts'
 import type { ChartPoint } from '@tanstack/octane-charts'
 
@@ -31,7 +32,7 @@ export function App() {
       {
         animate: { duration: 500, easing: 'ease-out' },
         focus: 'group-x',
-        tooltip: { formatGroup: formatHistoryGroup },
+        tooltip: { use: tooltip, formatGroup: formatHistoryGroup },
       },
     ),
   )
@@ -41,6 +42,7 @@ export function App() {
       {
         animate: { duration: 500, easing: 'ease-in-out' },
         tooltip: {
+          use: tooltip,
           format: (point) =>
             `${point.yValue}: ${point.xValue.toLocaleString()}`,
         },

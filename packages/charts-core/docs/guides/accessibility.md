@@ -120,10 +120,10 @@ values and a familiar navigation surface. Selection state should be shared
 semantically, rather than inferred from DOM nodes.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/82-chart-table-selection/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/82-chart-table-selection/?theme=system&height=480"
   title="Accessible linked chart and data table selection"
   loading="lazy"
-  style="width: 100%; height: 440px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## Testing checklist

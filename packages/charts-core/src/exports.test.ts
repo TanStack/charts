@@ -24,10 +24,10 @@ describe('public package exports', () => {
     ).toBe(true)
   })
 
-  it('keeps the portable barrel aligned with root authoring exports', async () => {
-    const [root, portable] = await Promise.all([
+  it('keeps the universal barrel aligned with root authoring exports', async () => {
+    const [root, universal] = await Promise.all([
       import('@tanstack/charts'),
-      import('@tanstack/charts/portable'),
+      import('@tanstack/charts/universal'),
     ])
     const browserOnlyRootValues = new Set([
       'createChartAdapter',
@@ -36,10 +36,23 @@ describe('public package exports', () => {
       'resolveChartAdapterLayout',
     ])
 
-    expect(Object.keys(portable).sort()).toEqual(
+    expect(Object.keys(universal).sort()).toEqual(
       Object.keys(root)
         .filter((name) => !browserOnlyRootValues.has(name))
         .sort(),
     )
+  })
+
+  it('keeps tooltip capabilities on exact subpaths', async () => {
+    const [root, tooltipModule, portalModule] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/tooltip'),
+      import('@tanstack/charts/tooltip/portal'),
+    ])
+
+    expect(root).not.toHaveProperty('tooltip')
+    expect(root).not.toHaveProperty('portal')
+    expect(tooltipModule.tooltip.id).toBe('tooltip')
+    expect(portalModule.portal.id).toBe('portal')
   })
 })

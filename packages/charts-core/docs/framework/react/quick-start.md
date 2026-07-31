@@ -23,6 +23,7 @@ Definitions are ordinary framework-independent TypeScript:
 ```tsx
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
 
 interface AlphabetRow {
@@ -62,7 +63,7 @@ const letterFrequencyChart = defineChart({
       ticks: { format: (value) => percent.format(value) },
     },
   },
-  tooltip: true,
+  tooltip,
 })
 
 export function LetterFrequencyChart() {
@@ -137,7 +138,7 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
         nice: true,
       },
       animate: true,
-      tooltip: true,
+      tooltip,
     })
   }, [rows, accent])
 
@@ -179,18 +180,44 @@ The native tooltip is optional. Grouped focus, formatting, keyboard behavior,
 and application-owned interaction are documented in
 [Focus and interaction](../../reference/focus-and-interaction.md).
 
+## Render React tooltip content
+
+Keep `Chart` from `@tanstack/react-charts` when the native tooltip is enough.
+To pass `renderTooltipBody`, switch the component import to the optional React
+tooltip entry:
+
+```tsx
+import { Chart } from '@tanstack/react-charts/tooltip'
+
+;<Chart
+  definition={letterFrequencyChart}
+  height={320}
+  ariaLabel="English letter frequencies"
+  renderTooltipBody={({ defaultBody, pinned, dismiss }) => (
+    <>
+      {defaultBody}
+      {pinned ? <button onClick={dismiss}>Close</button> : null}
+    </>
+  )}
+/>
+```
+
+Existing `renderTooltipBody` users should migrate the component import from
+`@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. The definition
+still uses `tooltip` from `@tanstack/charts/tooltip`.
+
 ## Example
 
 This catalog example uses multiple line layers and endpoint labels through the
 same React adapter:
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/02-multi-line-end-labels/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/02-multi-line-end-labels/?theme=system&height=480"
   title="Multi-line chart with endpoint labels"
   loading="lazy"
   width="100%"
-  height="360"
-  style="width: 100%; height: 360px; border: 0"
+  height="480"
+  style="width: 100%; height: 480px; border: 0"
 ></iframe>
 
 Continue with the [React adapter](./adapter.md) for lifecycle and SSR, the
