@@ -53,7 +53,7 @@ Each entry records:
 | F-015 | Legacy scale helpers compete with the D3-first API       | API             | resolved   |
 | F-016 | Stats animated export still renders through Plot         | Integration/API | open       |
 | F-017 | React migration rebuilt a static definition              | Documentation   | resolved   |
-| F-018 | Stats derivations still invalidate dynamic input         | Application     | monitoring |
+| F-018 | Stats derivations still invalidate dynamic input         | Application     | resolved   |
 | F-019 | Custom tooltip formatting leaked float artifacts         | Application     | resolved   |
 | F-020 | Axis focus could not select a single nearest point       | API             | resolved   |
 | F-021 | Native tooltips only accept plain text                   | API             | resolved   |
@@ -62,7 +62,7 @@ Each entry records:
 | F-024 | Co-located benchmark cases defeated tree shaking         | Tooling         | resolved   |
 | F-025 | Bundle maintenance clobbered comparison reports          | Tooling         | resolved   |
 | F-026 | Facet summaries omitted the overall result               | Tooling         | resolved   |
-| F-027 | Pnpm validation attempted an interactive purge           | Tooling         | resolved   |
+| F-027 | Pnpm validation attempted an interactive purge           | Tooling         | monitoring |
 | F-028 | Field channels accepted incompatible value types         | API             | resolved   |
 | F-029 | Dynamic hosts allowed omitted input                      | API             | resolved   |
 | F-030 | Heterogeneous dynamic marks erased datum types           | API             | resolved   |
@@ -139,7 +139,7 @@ Each entry records:
 | F-101 | Page errors could age into retryable timeouts            | Tooling         | resolved   |
 | F-102 | AI recipes hid direct D3 dependency ownership            | Docs/Tooling    | resolved   |
 | F-103 | Mixed valid and unknown filters narrowed benchmark scope | Tooling         | resolved   |
-| F-104 | Catalog embeds lacked a production-safe contract         | Tooling         | monitoring |
+| F-104 | Catalog embeds lacked a production-safe contract         | Tooling         | resolved   |
 | F-105 | Competing documentation roots drifted                    | Docs/Tooling    | resolved   |
 | F-106 | Build-context theme looked fully resolved                | Documentation   | resolved   |
 | F-107 | Authored SVG tab indexes were ignored                    | API             | resolved   |
@@ -154,7 +154,7 @@ Each entry records:
 | F-116 | Build context was mistaken for resolved plot geometry    | Documentation   | resolved   |
 | F-117 | Non-Cartesian examples duplicated coordinate engines     | API             | resolved   |
 | F-118 | Serialized SVG discarded interaction semantics           | API/Application | monitoring |
-| F-119 | Catalog hosting crossed repository ownership             | Tooling         | monitoring |
+| F-119 | Catalog hosting crossed repository ownership             | Tooling         | resolved   |
 | F-120 | Key-only focus collapsed duplicate observations          | API             | resolved   |
 | F-121 | SVG callback was not a rendering-pipeline boundary       | API             | resolved   |
 | F-122 | Dense scene aggregation overflowed the call stack        | API             | resolved   |
@@ -170,11 +170,12 @@ Each entry records:
 | F-132 | Factory unions disrupt D3's generic inference            | API             | monitoring |
 | F-133 | Clipped ancestors trapped native tooltips                | API             | resolved   |
 | F-134 | Demo fixtures modeled charts instead of source data      | Docs/Tooling    | resolved   |
-| F-135 | Published release lacked a repository baseline marker    | Tooling/Release | monitoring |
+| F-135 | Published release lacked a repository baseline marker    | Tooling/Release | resolved   |
 | F-136 | Comparison conflated workspace and published source      | Tooling/Docs    | resolved   |
-| F-137 | Latest docs installed an incompatible published API      | Docs/Release    | monitoring |
+| F-137 | Latest docs installed an incompatible published API      | Docs/Release    | resolved   |
 | F-138 | Publisher pin predated explicit trust permissions        | Tooling/Release | resolved   |
 | F-139 | Top-level entries bypassed tarball validation            | Tooling/Release | resolved   |
+| F-140 | Behavior config could erase responsive datum inference   | API             | monitoring |
 
 ## Findings
 
@@ -522,7 +523,7 @@ Each entry records:
 
 ### F-018 — Stats derivations still invalidate dynamic input
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
 - Owner: Application
 - Observed in: TanStack Stats default-renderer cutover
@@ -530,13 +531,18 @@ Each entry records:
   arrays and accessor functions during its application render. Those values
   are legitimate chart inputs, so new identities cause a redraw even when an
   unrelated parent update leaves their semantics unchanged.
-- Current decision: keep equality honest in the chart runtime. Memoize the
-  Stats derivation pipeline or add a narrow application revision key if render
-  diagnostics show avoidable redraws; do not hide unstable application input
-  behind generic deep equality in TanStack Charts.
-- Follow-up: expose or instrument render reasons in the Stats canary, then
-  measure parent-only updates before promoting this from a migration concern
-  into API work.
+- Decision: keep equality honest in the chart runtime and use definition
+  identity as the application reactivity boundary. TanStack.com now caches the
+  definition behind a narrow semantic revision object that includes every
+  scene-relevant value while excluding parent-only legend, export, and
+  playback state. Do not hide unstable application values behind generic deep
+  equality in TanStack Charts.
+- Verification: TanStack.com PR
+  [#1083](https://github.com/TanStack/tanstack.com/pull/1083) implements the
+  revision boundary for `NPMStatsChart`. A review regression confirmed that
+  unrelated parent state no longer recreates the definition. The site's 135
+  tests, typecheck, lint, and production build pass, and the deployed npm
+  stats route renders its TanStack chart without browser errors or warnings.
 
 ### F-019 — Custom tooltip formatting leaked float artifacts
 
@@ -743,10 +749,11 @@ Each entry records:
 
 ### F-027 — Pnpm validation attempted an interactive purge
 
-- Status: resolved
+- Status: monitoring
 - Severity: low
 - Owner: Tooling
-- Observed in: Octane showcase demo validation
+- Observed in: Octane showcase demo validation and the `0.0.1`
+  release-evidence audit
 - Friction: `pnpm exec prettier` attempted to remove and reinstall the existing
   workspace modules, then aborted because validation ran without a TTY. The
   already-installed Prettier, TypeScript, Vite, and Vitest binaries worked
@@ -760,12 +767,18 @@ Each entry records:
   mixing a CI install with a non-CI `pnpm exec` correctly reports the install
   as incompatible.
 - Verification: repeated `pnpm exec prettier`, TypeScript, Vitest, Vite,
-  benchmark, bundle, catalog, and conformance commands now run
+  benchmark, bundle, catalog, and conformance commands had run
   non-interactively without requesting a module purge. The polar/geo task
   reproduced the warning after a CI install followed by a non-CI exec;
   `pnpm_config_verify_deps_before_run=warn` identified the changed global
   virtual-store setting, and consistently using `CI=true` restored all
-  documented commands without another purge.
+  documented commands without another purge. The release-evidence worktree
+  reproduced the non-TTY abort with pinned pnpm `11.15.1`; its already-installed
+  Prettier `3.9.6` binary verified the changed Markdown without mutating the
+  install.
+- Follow-up: identify why the current worktree install mode differs from the
+  non-CI validation mode, then make documented checks preserve that mode
+  without an implicit purge.
 
 ### F-028 — Field channels accepted incompatible value types
 
@@ -2430,7 +2443,7 @@ Each entry records:
 
 ### F-104 — Catalog embeds lacked a production-safe contract
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: Tooling/Integration
 - Observed in: integrating catalog iframes into the TanStack Charts
@@ -2442,7 +2455,7 @@ Each entry records:
   already interactive iframe. The intended production origin and base path
   were described but not exercised by the build gate.
 - Decision: publish one versioned embed contract in the schema-v3
-  `catalog.json`; fix the production route at
+  `catalog.json`, retain it in schema v4, and fix the production route at
   `https://tanstack.com/charts/catalog/`; parse explicit query defaults and
   bounds; remove root and body width/background constraints in local embed
   mode; derive the exact parent origin from the HTTP(S) referrer; and accept a
@@ -2457,13 +2470,13 @@ Each entry records:
   pixels when height is omitted, reports one exact-origin/source versioned
   ready event, accepts the trusted theme command, and ignores a wrong-case
   command. Typecheck and catalog metadata validation pass.
-- Follow-up: TanStack.com currently sends `X-Frame-Options: DENY` outside its
-  existing Stats embed and drops raw Markdown iframes whose host is not on its
-  external-media allowlist. The Charts site worktree now validates exact
-  catalog embed URLs, preserves authored iframe metadata, forwards trusted
-  theme changes, and exempts only valid catalog embed paths from the deny
-  header. Keep this finding in monitoring until that site change and the
-  generated catalog are deployed together at the production path.
+- Production verification: the public schema-v4 manifest identifies release
+  `15dcb156a32db361678f4cffeb116a2bd0fc0e79`; its response revision header
+  identifies artifact `630ed0d13d512288b8e33f3817c80b76e25d6173`. The embed
+  responds with 200 and no `X-Frame-Options`; normal catalog pages retain
+  `X-Frame-Options: DENY`. A live browser rendered the requested dark theme,
+  exact 420-pixel chart height, expanded source, and chart without errors or
+  warnings.
 
 ### F-105 — Competing documentation roots drifted
 
@@ -2759,7 +2772,7 @@ Each entry records:
 
 ### F-119 — Catalog hosting crossed repository ownership
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: Tooling/Integration
 - Observed in: publishing the executable catalog at
@@ -2789,15 +2802,16 @@ Each entry records:
   Main-branch CI uploads the validated artifact and publishes only
   `catalog.json` and `assets/*.js` to `catalog-dist`. The publication workflow
   pins every third-party action to a full commit SHA, as required by the
-  repository's Actions policy. The TanStack.com consumer accepts the existing
-  schema-v2 publication and the schema-v4 replacement through separate strict
-  validators, applies their respective 5 MiB and 6 MiB limits, fetches complete
-  v4 source closures, excludes harness source, and renders dataset provenance
-  without raw rows. Its focused catalog tests pass 67 cases with site
-  typechecking and lint.
-- Follow-up: land and deploy the TanStack.com consumer before publishing the
-  schema-v4 artifact, then verify the production routes before removing
-  schema-v2 compatibility.
+  repository's Actions policy. TanStack.com PR
+  [#1082](https://github.com/TanStack/tanstack.com/pull/1082) deployed the
+  schema-v4 consumer before the release artifact, and PR
+  [#1083](https://github.com/TanStack/tanstack.com/pull/1083) removed the
+  schema-v2 validator and compatibility path after production verification.
+  The public manifest now exposes 100 cases, 430 assets, and 25 datasets at
+  release `15dcb156` with Observable Plot, Recharts, and ECharts comparison
+  counts of 68, 21, and 11. Every asset matches its declared byte count and
+  SHA-256 hash. The list, legacy redirect, detail, opt-in comparison, manifest,
+  and embed routes pass live HTTP and browser checks.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 
@@ -3236,7 +3250,7 @@ Each entry records:
 
 ### F-135 — The published release had no repository baseline marker
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: Tooling/Release
 - Observed in: generating the post-`0.0.0` release changelog
@@ -3253,9 +3267,11 @@ Each entry records:
   repository commit. The published core README, React README, and core
   chart-definitions documentation are byte-identical to their `58ee1e2`
   sources. The corrected changelog contains exactly the nine commits in
-  `58ee1e2..a91106c`.
-- Follow-up: verify the `0.0.1` tag, GitHub release, and package provenance all
-  identify the exact release commit, then resolve this finding.
+  `58ee1e2..a91106c`. Annotated tag object `7dca671` peels to release merge
+  `15dcb156`; the public GitHub release uses that tag; and release workflow
+  `30592985603` verified all ten npm packages' signatures and SLSA claims
+  against the exact package PURL, tarball digest, repository, workflow, tag,
+  and commit.
 
 ### F-136 — Comparison conflated workspace and published source
 
@@ -3281,7 +3297,7 @@ Each entry records:
 
 ### F-137 — Latest docs installed an incompatible published API
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: Documentation/Release
 - Observed in: final public documentation audit before `0.0.1`
@@ -3292,14 +3308,15 @@ Each entry records:
 - Decision: keep the temporary unreleased-source distinction until `0.0.1`,
   then make the README, installation, overview, quick-start, comparison, and
   marketing copy describe the coordinated core and adapter release.
-- Verification: the `0.0.1` release-candidate documentation no longer directs
-  people to wait for another release. Core and adapter installation commands
-  match the intended tarballs, the React commands include React DOM and its
-  types, executable examples pass the documentation contract, and generated
-  mirrors remain synchronized.
-- Follow-up: after publication, install every `0.0.1` package from npm, verify
-  the documented entry points and peers, then resolve this finding. Keep future
-  public documentation deployments coupled to the npm release they describe.
+- Verification: all ten packages resolve from npm at `latest=0.0.1`; every
+  adapter depends exactly on `@tanstack/charts@0.0.1`; and registry peers match
+  the installation documentation. The release workflow installed every exact
+  package, verified packed entry points, declarations, runtime imports,
+  signatures, and provenance, and ran all adapter gates. TanStack.com pins
+  core and React to `0.0.1`, and its live landing page, overview, quick start,
+  installation, and comparison pages render the released copy and package
+  names without the former `0.0.0` warning. Keep future public documentation
+  deployments coupled to the npm release they describe.
 
 ### F-138 — The publisher pin predated explicit trust permissions
 
@@ -3325,7 +3342,9 @@ Each entry records:
   and signature verification to a post-publish job without OIDC. That job
   requires npm to verify every release package's attestation bundle and then
   matches the fetched bundles before checking their exact package, digest,
-  repository, workflow, tag, and commit claims.
+  repository, workflow, tag, and commit claims. Release workflow
+  `30592985603` completed that OIDC publication and independent verification
+  successfully for all ten packages.
 
 ### F-139 — Top-level package entries bypassed tarball validation
 
@@ -3346,5 +3365,29 @@ Each entry records:
 - Verification: a focused regression reproduces and rejects the missing
   `./src/index.ts` entry, covers every validated field, and accepts entries
   present in the archive. The rebuilt Svelte tarball contains its
-  `./dist/index.js` entry, and the focused package and release-artifact gates
-  pass.
+  `./dist/index.js` entry. The public `@tanstack/svelte-charts@0.0.1` tarball
+  retains that entry, and the package, release-artifact, signature, and
+  provenance gates pass.
+
+### F-140 — Behavior config could erase responsive datum inference
+
+- Status: monitoring
+- Severity: medium
+- Owner: API
+- Observed in: migrating TanStack.com's `SkillSparkline` to `0.0.1`
+- Friction: placing a responsive builder and a tooltip formatter typed as
+  `ChartPoint<SparkRect>` in one `defineChart` call erased the inferred datum
+  type and failed overload resolution. The chart could not compile without
+  weakening the formatter type or adding a cast.
+- Current decision: preserve inference with the public two-step form: create
+  the responsive definition first, then call
+  `defineChart(responsiveDefinition, behavior)`. This keeps the formatter
+  typed without a cast, hidden import, or duplicated datum declaration.
+- Verification: TanStack.com PR
+  [#1083](https://github.com/TanStack/tanstack.com/pull/1083) uses the two-step
+  form. Exact `0.0.1` package typechecking, lint, 135 site tests, and the
+  production build pass; the live Intent registry renders 12 TanStack charts
+  without browser errors or warnings.
+- Follow-up: add a focused type regression for the single-call form and decide
+  whether its overload can retain builder datum inference without making
+  behavior ownership ambiguous.
