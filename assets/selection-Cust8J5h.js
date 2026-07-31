@@ -1,0 +1,1 @@
+function e(e,t=0){let n=Math.abs(t%2)*4;return e.slice(n,n+4)}export{e as t};

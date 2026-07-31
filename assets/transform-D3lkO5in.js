@@ -1,0 +1,1 @@
+function e(e){let t=new Map;for(let n of e){if(n.body_mass_g===null)continue;let e=t.get(n.species);e?e.push(n.body_mass_g):t.set(n.species,[n.body_mass_g])}return[...t].map(([e,t])=>{let n=t.reduce((e,t)=>e+t,0)/t.length,r=t.reduce((e,t)=>e+(t-n)**2,0)/Math.max(1,t.length-1),i=Math.sqrt(r);return{species:e,mean:n,low:n-i,high:n+i}})}export{e as t};

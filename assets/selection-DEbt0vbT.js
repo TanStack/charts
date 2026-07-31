@@ -1,0 +1,1 @@
+var e=[`Manufacturing`,`Construction`,`Finance`];function t(t,n=0){let r=Math.abs(n)%2,i=Date.UTC(2e3,r),a=Date.UTC(2003,r);return t.filter(t=>t.date.getTime()>=i&&t.date.getTime()<a&&e.some(e=>e===t.industry))}export{t};

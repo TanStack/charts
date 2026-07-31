@@ -1,1 +1,0 @@
-var e=[`Baseline`,`Variant`,`Experimental`],t=[[2,4,8,14,20,18,12,7,3,2],[1,3,6,10,14,17,17,13,7,2],[2,6,13,18,17,13,10,6,3,2]];function n(n=0){return e.flatMap((e,r)=>(t[r]??[]).flatMap((t,i)=>Array.from({length:t},(a,o)=>({id:`${e}:${i}:${o}`,group:e,value:i*10+1+8*(o+.5)/t+((o+i+r+n)%3-1)*.1}))))}export{n,e as t};

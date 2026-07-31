@@ -1,1 +1,0 @@
-var e=new Date(Date.UTC(2026,0,4));function t(t=0){return Array.from({length:98},(n,r)=>({id:`day:${r}`,date:new Date(e.getTime()+r*864e5),count:4+(r*17+Math.floor(r/7)*11+r%7*5+t*7)%76}))}export{e as n,t};

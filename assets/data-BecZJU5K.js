@@ -1,1 +1,0 @@
-function e(e=0){let t=[];for(let n=0;n<8;n++)for(let r=0;r<8;r++){let i=1+(r*3+n*5+e)%5;for(let a=0;a<i;a++)t.push({id:`${r}:${n}:${a}`,x:r*10+1+(a*1.9+n*.7+e*.35)%8,y:n*10+1+(a*2.3+r*.55+e*.25)%8})}return t}export{e as t};

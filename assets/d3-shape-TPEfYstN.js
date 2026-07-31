@@ -1,0 +1,1 @@
+import{t as e}from"./line-dvS3oH_U.js";import{t}from"./area-CgpsXp7o.js";function n(n){let r=e().x(e=>e[0]).y(e=>e[1]).curve(n),i=t().x(e=>e[0]).y0(e=>e[1]).y1(e=>e[2]).curve(n);return{line:e=>r(e)??``,area:(e,t)=>i(e.map((e,n)=>[e[0],t[n]?.[1]??e[1],e[1]]))??``}}export{n as t};

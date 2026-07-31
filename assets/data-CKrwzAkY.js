@@ -1,1 +1,0 @@
-import{t as e}from"./data-CRXbHq-n.js";function t(t=0){let n=e(t);return[...new Set(n.map(e=>e.category))].map(e=>({id:e,category:e,desktop:n.find(t=>t.category===e&&t.series===`Desktop`)?.value??0,mobile:n.find(t=>t.category===e&&t.series===`Mobile`)?.value??0}))}export{t};

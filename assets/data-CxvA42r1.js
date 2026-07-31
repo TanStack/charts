@@ -1,1 +1,0 @@
-var e=[`North`,`South`,`West`];function t(t=0){let n=t%2==1;return Array.from({length:60},(t,r)=>{let i=r%e.length,a=e[i]??`North`,o=7+(r*17+i*9)%70,s=8+(r*29+i*7+Math.floor(r/3)*5)%68,c=Math.min(79,o+(n&&r%7==0?3:0)),l=Math.max(2,s-(n&&r%8==0?3:0));return{id:`${a}:${r}`,x:c,y:l,group:a}})}export{e as n,t};

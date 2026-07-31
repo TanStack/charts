@@ -1,1 +1,0 @@
-import{l as e}from"./data-CRXbHq-n.js";var t=[`Atlas`,`Beacon`,`Comet`],n={Atlas:`#2563eb`,Beacon:`#ea580c`,Comet:`#059669`},r=[0,190];function i(t=0){return e(t)}export{r as i,t as n,i as r,n as t};

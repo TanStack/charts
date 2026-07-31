@@ -1,1 +1,0 @@
-import{r as e}from"./group-BvEn68Fk.js";import{t}from"./sum-BpJJqxFM.js";import{t as n}from"./data-CRXbHq-n.js";function r(r=0){return[...e(n(r),e=>t(e,e=>e.value),e=>e.category)].map(([e,t])=>({id:e,category:e,value:t})).sort((e,t)=>t.value-e.value)}export{r as t};

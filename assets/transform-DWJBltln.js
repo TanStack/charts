@@ -1,0 +1,1 @@
+function e(e){return[{id:`value`,label:`Agree`,value:e},{id:`remainder`,label:`Other responses`,value:100-e}]}function t(e,t){let n=e.filter(e=>e.Question===t),r=n.filter(e=>e.Response===`Agree`||e.Response===`Strongly Agree`);return n.length===0?0:Math.round(r.length/n.length*100)}export{e as n,t};

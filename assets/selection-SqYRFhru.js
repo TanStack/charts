@@ -1,0 +1,1 @@
+function e(e,t=0){let n=Math.abs(t%2)*(e.length-300);return e.slice(n,n+300)}export{e as t};

@@ -1,0 +1,1 @@
+function e(e,t=0){let n=Math.abs(t)%2;return e.slice(n,n+36)}export{e as t};

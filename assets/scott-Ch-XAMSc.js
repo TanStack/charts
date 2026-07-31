@@ -1,0 +1,1 @@
+import{t as e}from"./count-C0C7E1st.js";import{t}from"./deviation-r5oQ1lrR.js";function n(n,r,i){let a=e(n),o=t(n);return a&&o?Math.ceil((i-r)*Math.cbrt(a)/(3.49*o)):1}export{n as t};

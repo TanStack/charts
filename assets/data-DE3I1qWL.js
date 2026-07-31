@@ -1,1 +1,0 @@
-import{l as e}from"./data-CRXbHq-n.js";var t=[10,65];function n(t=0){return e(t).filter(e=>e.series===`Atlas`)}export{t as n,n as t};

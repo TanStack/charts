@@ -1,1 +1,0 @@
-var e=[{id:`api`,label:`API`,value:38,fill:`#2563eb`},{id:`worker`,label:`Worker`,value:27,fill:`#7c3aed`},{id:`browser`,label:`Browser`,value:21,fill:`#db2777`},{id:`other`,label:`Other`,value:14,fill:`#f59e0b`}];function t(t=0){return t%2==0?e:e.map(e=>e.id===`api`?{...e,value:32}:e.id===`worker`?{...e,value:30}:e.id===`browser`?{...e,value:24}:e)}export{t};

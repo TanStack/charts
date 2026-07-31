@@ -1,1 +1,0 @@
-var e=1e3,t=e*60,n=t*60,r=n*24,i=r*7,a=r*30,o=r*365;export{e as a,a as i,n,i as o,t as r,o as s,r as t};

@@ -1,1 +1,0 @@
-function e(e=0){let t=2135587861^e*65537;return Array.from({length:420},(e,n)=>{t=Math.imul(t^t>>>16,569420461),t=Math.imul(t^t>>>15,1935289751),t^=t>>>15;let r=((t>>>0)/4294967295-.5)*24;t=Math.imul(t^t>>>16,569420461);let i=((t>>>0)/4294967295-.5)*20,a=n%3;return{id:n,x:([27,53,73][a]??0)+r,y:([66,32,69][a]??0)+i}})}export{e as t};

@@ -1,1 +1,0 @@
-var e=[[`Revenue`,82],[`Services`,28],[`Returns`,-14],[`Infrastructure`,-22],[`People`,-31],[`Other`,9]];function t(t=0){let n=[],r=0;for(let[i,a]of e){let e=a+(i===`Services`?t*3:0),o=r;r+=e,n.push({id:i,label:i,start:o,end:r,kind:e>=0?`increase`:`decrease`})}return n.push({id:`Net`,label:`Net`,start:0,end:r,kind:`total`}),n}export{t};

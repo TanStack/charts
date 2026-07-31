@@ -1,0 +1,1 @@
+var e=[`Strongly Disagree`,`Disagree`,`Neutral`,`Agree`,`Strongly Agree`],t=new Set(e);function n(e){return e.filter(e=>t.has(e.Response))}export{n,e as t};

@@ -1,0 +1,1 @@
+function e(e){let t=[...new Set(e.map(e=>e.longitude))],n=[...new Set(e.map(e=>e.latitude))],r=new Set([0,16,32,48,64,79].map(e=>t[e])),i=new Set([0,15,30,45,59].map(e=>n[e]));return e.filter(e=>r.has(e.longitude)&&i.has(e.latitude))}export{e as t};

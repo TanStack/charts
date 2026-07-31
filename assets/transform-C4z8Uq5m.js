@@ -1,0 +1,1 @@
+function e(e){return e.flatMap(e=>[{id:`${e.Metro}:1980`,Metro:e.Metro,nyt_display:e.nyt_display,year:`1980`,inequality:e.R90_10_1980},{id:`${e.Metro}:2015`,Metro:e.Metro,nyt_display:e.nyt_display,year:`2015`,inequality:e.R90_10_2015}])}export{e as t};

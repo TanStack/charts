@@ -1,0 +1,1 @@
+function e(e,t){var n=0,r=0;return Float64Array.from(e,t===void 0?e=>n+=+e||0:i=>n+=+t(i,r++,e)||0)}function t(e,t){let n=0;if(t===void 0)for(let t of e)(t=+t)&&(n+=t);else{let r=-1;for(let i of e)(i=+t(i,++r,e))&&(n+=i)}return n}export{e as n,t};

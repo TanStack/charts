@@ -1,0 +1,1 @@
+function e(e,t=0){let n=Math.abs(t%2)*3;return e.slice(n,n+3)}export{e as t};

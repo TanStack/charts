@@ -1,0 +1,1 @@
+var e=[{id:`low`,label:`Below 8%`,value:8},{id:`elevated`,label:`8–15%`,value:7},{id:`high`,label:`Above 15%`,value:15}],t=Array.from({length:11},(e,t)=>({id:`tick-${t}`,value:t*3}));export{t as n,e as t};

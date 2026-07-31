@@ -1,1 +1,0 @@
-function e(e,t){var n=0,r=0;return Float64Array.from(e,t===void 0?e=>n+=+e||0:i=>n+=+t(i,r++,e)||0)}export{e as t};

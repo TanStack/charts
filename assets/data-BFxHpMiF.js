@@ -1,1 +1,0 @@
-function e(e=0){let t=e%2==0?72:84;return[{id:`value`,label:`Value`,value:t,fill:`#ef4444`},{id:`remainder`,label:`Remainder`,value:100-t,fill:`#e2e8f0`}]}export{e as t};

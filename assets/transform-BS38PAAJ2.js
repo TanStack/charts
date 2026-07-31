@@ -1,0 +1,1 @@
+function e(e){let t=new Map;for(let n of e){if(n.sex!==`MALE`&&n.sex!==`FEMALE`)continue;let e=t.get(n.species)??{male:0,female:0};e[n.sex===`MALE`?`male`:`female`]+=1,t.set(n.species,e)}return Array.from(t,([e,t])=>({species:e,...t}))}function t(e){return e.map(e=>({...e,male:-e.male}))}export{t as n,e as t};

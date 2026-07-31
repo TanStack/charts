@@ -1,1 +1,0 @@
-var e=[42,57,78,66,84,62,48,58,75,88,69,50,42];function t(t=0){return e.map((e,n)=>{let r=n*30,i=e;return t%2!=0&&(r===0||r===360?i=50:r===60?i=70:r===150?i=76:r===270&&(i=80)),{id:`angle-${r}`,angle:r,radius:i}})}export{t};
