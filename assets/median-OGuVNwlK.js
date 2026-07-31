@@ -1,1 +1,0 @@
-import{t as e}from"./quantile-Dndmvdx9.js";function t(t,n){return e(t,.5,n)}export{t};
