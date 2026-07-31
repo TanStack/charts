@@ -48,6 +48,9 @@ implementation plan or compatibility promise.
 - The SVG DOM host adds 2,929 minified / 994 gzip bytes; the React adapter adds
   2,925 / 1,016 bytes. These include the shared state resolver, prefix index,
   transition handling, and SVG integration.
+- The exact Ubuntu comparison matrix increases by 998-1,132 gzip bytes across
+  line, bar, area, and scatter consumers. The tracked comparison baseline now
+  records those CI-produced measurements.
 - Symmetric implicit stacking puts the isolated `areaX` + static SVG entry at
   19.66 kB gzip. Its reviewed ceiling moves from 18.35 to 19.8 kB. Host-derived
   ceilings move by the measured state-engine cost, with roughly 0.15 kB
