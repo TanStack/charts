@@ -49,10 +49,10 @@ category. A sparse snapped cursor can opt into
 empty space should mean no focus.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/35-grouped-tooltip/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/35-grouped-tooltip/?theme=system&height=480"
   title="Grouped x-axis focus and tooltip across multiple lines"
   loading="lazy"
-  style="width: 100%; height: 360px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## Automatic tooltip mapping

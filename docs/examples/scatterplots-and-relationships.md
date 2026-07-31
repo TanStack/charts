@@ -27,12 +27,12 @@ A fitted line is derived data. Calculate its coefficients in the application,
 then render the raw observations and fitted endpoints as independent layers.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/31-linear-regression/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/31-linear-regression/?theme=system&height=480"
   title="Scatterplot with a prepared linear regression line built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 This separation lets the dot layer preserve every observation while the line
@@ -48,12 +48,12 @@ measure space. Chronological labels and direction arrows make that additional
 ordering visible.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/56-connected-scatter/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/56-connected-scatter/?theme=system&height=480"
   title="Chronologically connected scatterplot with direction cues built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Without an explicit order, connecting points invents a relationship. Keep the
@@ -67,12 +67,12 @@ pairs a current value with the previous value; an identity rule shows where
 those values would be equal.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/60-lag-autocorrelation/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/60-lag-autocorrelation/?theme=system&height=480"
   title="Lag-one autocorrelation scatterplot with an identity reference built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Make the lag length explicit and decide how the first observation is handled.
@@ -86,12 +86,12 @@ matter. A spatial index can make that lookup efficient without changing the
 dot grammar or storing tooltip state inside the mark.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/65-voronoi-nearest-tooltip/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/65-voronoi-nearest-tooltip/?theme=system&height=480"
   title="Scatterplot with two-dimensional nearest-point focus built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 [Tooltips and Focus](../guides/tooltips-and-focus.md) defines the focus and

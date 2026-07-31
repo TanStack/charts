@@ -100,12 +100,12 @@ modules and their matching `@types` packages alongside TanStack Charts.
 [Scales and D3](./concepts/scales-and-d3.md) explains the ownership boundary.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/33-difference-chart/?theme=system&height=380"
+  src="https://tanstack.com/charts/catalog/embed/33-difference-chart/?theme=system&height=480"
   title="Apple close versus moving-average difference chart built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="380"
-  style="width:100%;height:380px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## What TanStack Charts owns

@@ -179,12 +179,12 @@ This calendar heatmap uses typed cells and responsive guide layout through the
 same Octane adapter:
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/25-calendar-heatmap/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/25-calendar-heatmap/?theme=system&height=480"
   title="Calendar heatmap"
   loading="lazy"
   width="100%"
-  height="360"
-  style="width: 100%; height: 360px; border: 0"
+  height="480"
+  style="width: 100%; height: 480px; border: 0"
 ></iframe>
 
 Continue with the [Octane adapter](./adapter.md) for lifecycle and SSR, the

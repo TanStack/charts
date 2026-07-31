@@ -92,10 +92,10 @@ Automatic margins guarantee containment, not collision-free labels. Use
 the same axis space.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/44-framed-scatter/?theme=system&height=320"
+  src="https://tanstack.com/charts/catalog/embed/44-framed-scatter/?theme=system&height=480"
   title="Responsive guide-free framed scatterplot"
   loading="lazy"
-  style="width: 100%; height: 320px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## Text measurement

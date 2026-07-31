@@ -449,8 +449,8 @@ function validateIframes(path, source, cases, embeddedCases, failures) {
       failures.push(`${path} iframe must declare theme=system|light|dark`)
     }
     const height = Number(url.searchParams.get('height'))
-    if (!Number.isFinite(height) || height < 120 || height > 1_200) {
-      failures.push(`${path} iframe height query must be between 120 and 1200`)
+    if (!Number.isFinite(height) || height < 480 || height > 1_200) {
+      failures.push(`${path} iframe height query must be between 480 and 1200`)
     } else if (!new RegExp(`height\\s*:\\s*${height}px`).test(style)) {
       failures.push(
         `${path} iframe CSS height must match its height query (${height}px)`,

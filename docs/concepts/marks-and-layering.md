@@ -254,12 +254,12 @@ This example directly imports `d3-scale`. Install it and `@types/d3-scale` as
 direct dependencies.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/03-temperature-range-band/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/03-temperature-range-band/?theme=system&height=480"
   title="Temperature range band with layered lines built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## Custom marks

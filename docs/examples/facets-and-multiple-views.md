@@ -32,12 +32,12 @@ binning and positional scale. The reader can compare both local shape and
 absolute position without decoding overlapping fills.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/51-faceted-distributions/?theme=system&height=460"
+  src="https://tanstack.com/charts/catalog/embed/51-faceted-distributions/?theme=system&height=480"
   title="Shared-scale faceted cohort distributions built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Use shared domains when position should be directly comparable. Independent
@@ -58,12 +58,12 @@ A scatterplot with marginal histograms combines three roles:
 - The side histogram shows the y distribution.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/57-scatter-marginal-histograms/?theme=system&height=460"
+  src="https://tanstack.com/charts/catalog/embed/57-scatter-marginal-histograms/?theme=system&height=480"
   title="Scatterplot with coordinated x and y marginal histograms built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 All regions can derive from the same raw observations, but they do not share

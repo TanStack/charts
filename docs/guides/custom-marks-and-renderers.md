@@ -133,10 +133,10 @@ Use `ChartMarkPointX` and `ChartMarkPointY` for the interaction contract and
 chart code should rely on definition inference instead.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/38-contour-topography/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/38-contour-topography/?theme=system&height=480"
   title="Topographic contours rendered through a custom mark"
   loading="lazy"
-  style="width: 100%; height: 400px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## Custom scales and legends

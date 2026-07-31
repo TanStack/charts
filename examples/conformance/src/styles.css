@@ -588,6 +588,7 @@ input {
 
 .source > div {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin-top: 8px;
 }
@@ -661,6 +662,7 @@ input {
 }
 
 .source-file {
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel);
@@ -681,7 +683,8 @@ input {
 }
 
 .source-file pre {
-  max-height: 440px;
+  width: 100%;
+  max-height: 280px;
   margin: 0;
   border: 0;
   border-top: 1px solid var(--border);

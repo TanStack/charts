@@ -395,12 +395,12 @@ const logChart = defineChart({
 This source imports `d3-scale` directly, so install `d3-scale` and `@types/d3-scale` as direct dependencies.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/53-log-scale-scatter/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/53-log-scale-scatter/?theme=system&height=480"
   title="Flare class sizes and hierarchy depth using an explicit D3 logarithmic x scale"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 For chart-side scale, guide, and color types, see [Scales, Guides, and Color Reference](../reference/scales-guides-and-color.md).

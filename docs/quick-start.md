@@ -94,12 +94,12 @@ const host = mountChart(container, options)
 `initialWidth` is the deterministic fallback for server output, hidden containers, and the first frame before measurement. Once visible, the host uses `ResizeObserver` to follow the container.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/01-line-gaps/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/01-line-gaps/?theme=system&height=480"
   title="Line chart with missing-value gaps built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="360"
-  style="width:100%;height:360px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## 4. Update the chart

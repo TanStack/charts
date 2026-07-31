@@ -64,10 +64,10 @@ incompatible independent scales cannot be presented as one shared outer axis;
 choose the option that matches the comparison.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/facets-anscombe/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/facets-anscombe/?theme=system&height=480"
   title="Anscombe quartet rendered as responsive small multiples"
   loading="lazy"
-  style="width: 100%; height: 440px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## Share domains intentionally

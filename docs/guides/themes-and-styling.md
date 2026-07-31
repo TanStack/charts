@@ -142,10 +142,10 @@ resource-aware SVG serializer. A Canvas gradient needs measurable node bounds;
 path-only geometry with no point bounds should use an explicit paint instead.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/heatmap-labeled/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/heatmap-labeled/?theme=system&height=480"
   title="Theme-aware labeled heatmap with a quantitative color legend"
   loading="lazy"
-  style="width: 100%; height: 360px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## HTML tooltip styling

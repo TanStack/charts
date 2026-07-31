@@ -29,12 +29,12 @@ original magnitudes are not directly comparable. Direct end labels reduce the
 work of matching line colors to a separate legend.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/55-indexed-multi-line/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/55-indexed-multi-line/?theme=system&height=480"
   title="Indexed multi-series performance lines with direct end labels built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Prepare the indexed values in the application, state the baseline, and retain
@@ -51,12 +51,12 @@ rolling values in the application, keep the original time domain, and name the
 window in surrounding text or a legend.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/19-moving-average-line/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/19-moving-average-line/?theme=system&height=480"
   title="Multi-series moving-average time chart built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Changing interpolation only changes the path between observations. It does not
@@ -71,12 +71,12 @@ local variation. The band is context for the observed series; it is not a
 confidence interval unless the underlying calculation actually defines one.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/22-bollinger-band/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/22-bollinger-band/?theme=system&height=480"
   title="Time-series line with a Bollinger volatility band built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Represent the interval with explicit lower and upper channels. This keeps range
@@ -91,12 +91,12 @@ minimum and maximum in data preparation makes the intent auditable and avoids
 placing a text label on every observation.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/58-select-extrema/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/58-select-extrema/?theme=system&height=480"
   title="Time-series line with selected minimum and maximum annotations built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Layer dots and text over the same scales rather than baking labels into a line
