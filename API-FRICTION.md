@@ -179,6 +179,7 @@ Each entry records:
 | F-141 | Vitest followed pnpm workspace symlinks                  | Tooling         | resolved   |
 | F-142 | Package verification reinstalled during release builds   | Tooling/Release | resolved   |
 | F-143 | The `ci` script name collided with pnpm's clean install  | Tooling/Docs    | resolved   |
+| F-144 | Action pin checks accepted invalid commit lengths        | Tooling         | resolved   |
 
 ## Findings
 
@@ -3456,3 +3457,21 @@ Each entry records:
 - Verification: `pnpm run validate` resolves the `charts-workspace:ci` Nx
   target, while contributor docs no longer instruct maintainers to invoke
   pnpm's clean-install command.
+
+### F-144 — Action pin checks accepted invalid commit lengths
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: the first pull-request run of the split Nx workflow
+- Friction: the action-pin contract accepted hashes between 40 and 64
+  characters but GitHub required the repository's SHA-1 action revisions to
+  contain exactly 40. A 41-character `actions/cache` revision therefore
+  passed local validation and caused every CI partition to fail during shared
+  setup before project commands ran. The test also ignored external actions
+  nested in the local composite setup action.
+- Decision: pin `actions/cache@v5.0.4` to its exact 40-character commit and
+  validate both workflows and the shared composite action with an exact-length
+  contract.
+- Verification: the focused CI and release workflow contracts reject the
+  previous 41-character revision and accept every current action pin.

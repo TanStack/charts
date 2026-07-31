@@ -35,7 +35,7 @@ describe('release workflow contract', () => {
       /ref:\s*\${{ github\.event\.workflow_run\.head_sha }}/,
     )
     assert.match(version, /persist-credentials:\s*true/)
-    assert.match(version, /changesets\/action@[0-9a-f]{40,64}/)
+    assert.match(version, /changesets\/action@[0-9a-f]{40}/)
     assert.match(version, /version:\s*pnpm changeset:version/)
     assert.match(version, /createGithubReleases:\s*false/)
     assert.match(version, /contents:\s*write/)
@@ -88,7 +88,7 @@ describe('release workflow contract', () => {
     assert.match(validate, /node scripts\/verify-ci-success\.mjs/)
     assert.match(validate, /node scripts\/build-release-artifacts\.mjs/)
     assert.match(validate, /node scripts\/publish-release\.mjs --check/)
-    assert.match(validate, /actions\/upload-artifact@[0-9a-f]{40,64}/)
+    assert.match(validate, /actions\/upload-artifact@[0-9a-f]{40}/)
     assert.match(validate, /name:\s*charts-release-\${{ github\.ref_name }}/)
     assert.match(validate, /path:\s*\.release-artifacts/)
     assert.doesNotMatch(validate, /actions\/download-artifact@/)
@@ -109,7 +109,7 @@ describe('release workflow contract', () => {
     assert.match(publish, /if:\s*needs\.validate\.result == 'success'/)
     assert.match(publish, /ref:\s*\${{ github\.sha }}/)
     assert.match(publish, /persist-credentials:\s*false/)
-    assert.match(publish, /actions\/download-artifact@[0-9a-f]{40,64}/)
+    assert.match(publish, /actions\/download-artifact@[0-9a-f]{40}/)
     assert.match(publish, /name:\s*charts-release-\${{ github\.ref_name }}/)
     assert.match(publish, /path:\s*\.release-artifacts/)
     assert.match(publish, /node scripts\/verify-release-revision\.mjs/)
@@ -131,7 +131,7 @@ describe('release workflow contract', () => {
     assert.deepEqual(needs(verify), ['publish'])
     assert.match(verify, /ref:\s*\${{ github\.sha }}/)
     assert.match(verify, /persist-credentials:\s*false/)
-    assert.match(verify, /actions\/download-artifact@[0-9a-f]{40,64}/)
+    assert.match(verify, /actions\/download-artifact@[0-9a-f]{40}/)
     assert.match(verify, /node scripts\/verify-published-release\.mjs/)
     assert.doesNotMatch(verify, /id-token:\s*write/)
     assert.doesNotMatch(verify, /contents:\s*write/)
@@ -224,7 +224,7 @@ function assertPinnedExternalActions(source) {
     if (action.startsWith('./')) continue
     assert.match(
       action,
-      /@[0-9a-f]{40,64}$/,
+      /@[0-9a-f]{40}$/,
       `${action} must be pinned to an immutable commit`,
     )
   }

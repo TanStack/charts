@@ -13,6 +13,10 @@ const workflow = await readFile(
   ),
   'utf8',
 )
+const setupAction = await readFile(
+  resolve(import.meta.dirname, '../.github/actions/setup/action.yml'),
+  'utf8',
+)
 
 describe('CI workflow contract', () => {
   test('uses a read-only default and cancels stale validation runs', () => {
@@ -23,6 +27,10 @@ describe('CI workflow contract', () => {
     assert.doesNotMatch(workflow, /secrets\.|NX_CLOUD_ACCESS_TOKEN/)
     assert.match(workflow, /concurrency:[\s\S]*cancel-in-progress:\s*true/)
     assertPinnedExternalActions(workflow)
+  })
+
+  test('pins every external action used by shared setup', () => {
+    assertPinnedExternalActions(setupAction)
   })
 
   test('runs static, bundle, comparison, conformance, and stress partitions independently', () => {
@@ -52,7 +60,7 @@ describe('CI workflow contract', () => {
     const staticChecks = job('static')
     assert.match(staticChecks, /fetch-depth:\s*0/)
     assert.match(staticChecks, /persist-credentials:\s*false/)
-    assert.match(staticChecks, /nrwl\/nx-set-shas@[0-9a-f]{40,64}/)
+    assert.match(staticChecks, /nrwl\/nx-set-shas@[0-9a-f]{40}/)
     assert.match(staticChecks, /if:\s*github\.event_name == 'pull_request'/)
     assert.match(staticChecks, /run:\s*pnpm ci:pr/)
     assert.match(staticChecks, /if:\s*github\.event_name != 'pull_request'/)
@@ -288,7 +296,7 @@ function assertPinnedExternalActions(source) {
     if (action.startsWith('./')) continue
     assert.match(
       action,
-      /@[0-9a-f]{40,64}$/,
+      /@[0-9a-f]{40}$/,
       `${action} must be pinned to an immutable commit`,
     )
   }

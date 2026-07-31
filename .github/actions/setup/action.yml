@@ -14,7 +14,7 @@ runs:
       uses: TanStack/config/.github/setup@e4b48f16568324f76f467aa4c2aac2f05db632c3
 
     - name: Restore Nx cache
-      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7d # v5.0.4
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
       with:
         path: .nx/cache
         key: ${{ runner.os }}-nx-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.job }}-${{ github.sha }}
@@ -25,7 +25,7 @@ runs:
     - name: Restore Playwright
       if: inputs.playwright == 'true'
       id: playwright-cache
-      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7d # v5.0.4
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
       with:
         path: ~/.cache/ms-playwright
         key: ${{ runner.os }}-playwright-1.62.0
