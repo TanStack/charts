@@ -3,25 +3,23 @@ title: Compare Libraries
 description: Compare current TanStack Charts workspace source with pinned Chart.js, Apache ECharts, Recharts, and Observable Plot packages.
 ---
 
-TanStack Charts `0.0.1` is a pre-alpha release. Its results on this page measure
-the workspace implementation prepared for `0.0.1`, not the earlier published
-`0.0.0` artifact. This comparison records architectural differences and
-reproducible evidence without turning untested behavior into a checkmark.
+TanStack Charts `0.0.2` is a pre-alpha release. Its results on this page measure
+the exact workspace source included in this release and pinned competitor
+packages. This comparison records architectural differences and reproducible
+evidence without turning untested behavior into a checkmark.
 
 ## Tested versions
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `99c08eb` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `5c36a38` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The TanStack product implementation ends at commit
-`a91106c`; the measured workspace revision is `99c08eb`, which adds the
-comparison fixture correction and tracked baseline for `0.0.1`.
+at page render time. The measured TanStack workspace revision is `5c36a38`.
 
 ## Capability matrix
 
@@ -52,7 +50,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-07-30`.
+Baseline date: `2026-07-31`.
 
 Each range covers 12 independently built, minified browser consumers: line,
 bar, area, and scatter at basic, interactive, and advanced tiers. Full size is
@@ -61,10 +59,10 @@ that lane externalizes React and React DOM.
 
 | Library         | Full cold-page gzip | React externalized |
 | --------------- | ------------------: | -----------------: |
-| TanStack Charts |     24.19–28.20 KiB |                  — |
+| TanStack Charts |     24.20–28.22 KiB |                  — |
 | Chart.js        |     44.70–58.21 KiB |                  — |
 | Apache ECharts  |   153.10–173.18 KiB |                  — |
-| Recharts        |   153.00–168.18 KiB |   94.88–109.87 KiB |
+| Recharts        |   153.08–168.27 KiB |   94.96–109.96 KiB |
 | Observable Plot |     83.34–91.94 KiB |                  — |
 
 The tracked baseline distinguishes the TanStack workspace revision from
@@ -111,10 +109,10 @@ Canvas composition while keeping D3 and state ownership explicit.
 
 ## Evidence and reproduction
 
-- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.0.1/benchmarks/comparison/README.md)
-- [Tracked bundle baseline](https://github.com/TanStack/charts/blob/v0.0.1/benchmarks/comparison/bundle-baseline.json)
-- [Stress protocol](https://github.com/TanStack/charts/blob/v0.0.1/benchmarks/comparison/stress/README.md)
-- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.0.1/benchmarks/conformance/README.md)
+- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.0.2/benchmarks/comparison/README.md)
+- [Tracked bundle baseline](https://github.com/TanStack/charts/blob/v0.0.2/benchmarks/comparison/bundle-baseline.json)
+- [Stress protocol](https://github.com/TanStack/charts/blob/v0.0.2/benchmarks/comparison/stress/README.md)
+- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.0.2/benchmarks/conformance/README.md)
 
 ```sh
 pnpm benchmark:size

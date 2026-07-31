@@ -16,7 +16,11 @@ import {
   createCatalogSourceModules,
 } from './catalog-source-files.mjs'
 import { conformanceArtifactStem } from './benchmark/conformance-artifacts.mjs'
-import { assertKnownFilterValues } from './benchmark/filters.mjs'
+import {
+  assertKnownFilterValues,
+  parseShard,
+  selectShard,
+} from './benchmark/filters.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const conformanceDirectory = resolve(root, 'benchmarks/conformance')
@@ -111,6 +115,7 @@ if (!profile) {
 }
 const sizeOnly = process.argv.includes('--size-only')
 const caseFilter = csvOption('--case')
+const shard = parseShard(optionValue('--shard'))
 
 await Promise.all([
   mkdir(bundleDirectory, { recursive: true }),
@@ -126,8 +131,9 @@ assertKnownFilterValues(
   allCases.map((entry) => entry.id),
   'case',
 )
-const selectedCases = allCases.filter(
-  (entry) => !caseFilter || caseFilter.has(entry.id),
+const selectedCases = selectShard(
+  allCases.filter((entry) => !caseFilter || caseFilter.has(entry.id)),
+  shard,
 )
 if (!selectedCases.length) {
   throw new Error('The case filter did not match a conformance case.')
@@ -195,7 +201,9 @@ const result = {
   createdAt: new Date().toISOString(),
   profile: profileName,
   filters: {
-    cases: caseFilter ? selectedCases.map((entry) => entry.id).sort() : [],
+    cases:
+      caseFilter || shard ? selectedCases.map((entry) => entry.id).sort() : [],
+    shard: shard ? `${shard.index}/${shard.total}` : null,
   },
   environment: {
     node: process.version,
@@ -259,6 +267,19 @@ await Promise.all([
   writeFile(resolve(resultDirectory, `${artifactStem}.md`), markdown),
 ])
 console.log(markdown)
+
+const failedVisuals = visualChecks.filter((check) => check.status === 'fail')
+const failedBehaviors = behaviorChecks.filter(
+  (check) => check.status === 'fail',
+)
+if (failedVisuals.length || failedBehaviors.length) {
+  throw new Error(
+    `Conformance failed for ${failedVisuals.length} visual and ${failedBehaviors.length} interaction checks: ${[
+      ...failedVisuals.map((check) => `visual:${check.caseId}`),
+      ...failedBehaviors.map((check) => `interaction:${check.caseId}`),
+    ].join(', ')}`,
+  )
+}
 
 async function readCases() {
   const entries = await readdir(casesDirectory, { withFileTypes: true })

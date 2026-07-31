@@ -73,7 +73,6 @@ const definition = () => {
       domain: includedIndustries,
       range: colors,
     },
-    margin: { right: 160 },
   })
 }
 

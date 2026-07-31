@@ -53,7 +53,6 @@ const definition = (_input: ConformanceInput) => {
       range: colors,
       legend: colorLegend({ label: 'Industry' }),
     },
-    margin: { left: 64 },
   })
 }
 

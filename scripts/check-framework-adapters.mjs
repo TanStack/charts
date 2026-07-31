@@ -17,6 +17,7 @@ import ts from 'typescript'
 import { build as viteBuild } from 'vite'
 import solid from 'vite-plugin-solid'
 import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const execFileAsync = promisify(execFile)
 const root = resolve(import.meta.dirname, '..')
@@ -40,19 +41,30 @@ const standardPackages = [
   ['lit-charts'],
   ['alpine-charts'],
 ]
+let pnpmQueue = Promise.resolve()
 
 try {
   await mkdir(tarballDirectory, { recursive: true })
-  for (const [directory, jsxImportSource] of standardPackages) {
-    await buildStandardPackage(directory, jsxImportSource)
-  }
-  await buildSolidPackage()
-  await buildSveltePackage()
-  await buildAngularPackage()
+  await runWithConcurrency(
+    [
+      ...standardPackages.map(
+        ([directory, jsxImportSource]) =>
+          () =>
+            buildStandardPackage(directory, jsxImportSource),
+      ),
+      buildSolidPackage,
+      buildSveltePackage,
+      buildAngularPackage,
+    ],
+    4,
+    (operation) => operation(),
+  )
 
-  for (const directory of packageNames) {
-    await verifyPackage(directory)
-  }
+  await runWithConcurrency(
+    packageNames.map((directory) => () => verifyPackage(directory)),
+    4,
+    (operation) => operation(),
+  )
 
   console.log(
     `Framework package gate passed for ${packageNames.length} adapters.`,
@@ -114,8 +126,7 @@ async function buildSolidPackage() {
 }
 
 async function buildSveltePackage() {
-  await run(
-    'pnpm',
+  await runPnpm(
     [
       '--filter',
       '@tanstack/svelte-charts',
@@ -126,8 +137,7 @@ async function buildSveltePackage() {
     ],
     root,
   )
-  await run(
-    'pnpm',
+  await runPnpm(
     [
       '--filter',
       '@tanstack/svelte-charts',
@@ -143,8 +153,7 @@ async function buildSveltePackage() {
 }
 
 async function buildAngularPackage() {
-  await run(
-    'pnpm',
+  await runPnpm(
     [
       '--filter',
       '@tanstack/angular-charts',
@@ -219,8 +228,7 @@ async function verifyPackage(directory) {
     tarballDirectory,
     `${directory}-${manifest.version}.tgz`,
   )
-  const { stdout } = await run(
-    'pnpm',
+  const { stdout } = await runPnpm(
     ['pack', '--out', tarball, '--json'],
     packageRoot,
   )
@@ -331,6 +339,12 @@ async function run(command, args, cwd) {
     env: { ...process.env, CI: 'true' },
     maxBuffer: 20 * 1024 * 1024,
   })
+}
+
+function runPnpm(args, cwd) {
+  const operation = pnpmQueue.then(() => run('pnpm', args, cwd))
+  pnpmQueue = operation.catch(() => undefined)
+  return operation
 }
 
 function formatDiagnostics(diagnostics) {

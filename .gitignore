@@ -6,6 +6,8 @@ dist
 .benchmark-output
 .catalog-artifact
 .release-artifacts
+.nx/cache
+.nx/workspace-data
 coverage
 *.log
 tanstack.com-parity/

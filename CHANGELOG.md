@@ -1,5 +1,76 @@
 # Changelog
 
+## 0.0.2
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#12](https://github.com/TanStack/charts/pull/12) [`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3) - Keep long Cartesian axis titles contained on compact charts.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5c36a38`](https://github.com/TanStack/charts/commit/5c36a3866d71ad94cbcc934272e2cd7a868065f3)]:
+  - @tanstack/charts@0.0.2
+
 ## 0.0.1 (2026-07-30)
 
 `0.0.1` is the first coordinated update after the public `0.0.0` release. The
