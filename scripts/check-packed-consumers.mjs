@@ -801,7 +801,7 @@ async function verifyDeclarations() {
       marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
       x: {
         scale: scaleBand<string>().domain(rows.map((row) => row.category)),
-        ticks: width < 480 ? 3 : 5,
+        axis: { ticks: { count: width < 480 ? 3 : 5 } },
       },
       y: { scale: scaleLinear().domain([0, 8]) },
     }))

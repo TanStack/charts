@@ -49,6 +49,16 @@ Map each visible layer independently:
 Then assign explicit scales and guides. Complex charts are usually several
 ordinary marks sharing a coordinate system, not one specialized chart type.
 
+For the current breaking API:
+
+- move axis presentation under `axis`;
+- use `axis: false` to hide one axis while retaining its scale;
+- move candidate count and formatting under `axis.ticks`;
+- move rotation and thinning under `axis.tickLabels`;
+- use a single bar/area value as stack length, explicit endpoints to opt out,
+  and `layout: group()` for side-by-side bars;
+- replace renderer-specific focus decoration with `whenFocused`.
+
 See [Marks and Layering](../concepts/marks-and-layering.md) and the
 [Example Gallery](../examples/index.md).
 

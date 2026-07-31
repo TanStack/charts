@@ -8,16 +8,17 @@
   "support": "composed",
   "features": [
     "stacked bars",
-    "D3 stack intervals",
+    "stack transform",
     "categorical color inference",
     "monthly time intervals",
-    "explicit lower and upper bounds"
+    "implicit lower and upper bounds"
   ],
   "geometry": [
     {
-      "role": "rect",
+      "role": "bar",
       "count": 69,
-      "maxCount": 72
+      "maxCount": 72,
+      "rendererRoles": { "observable-plot": "rect", "tanstack": "bar" }
     },
     {
       "role": "rule",

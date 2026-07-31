@@ -81,16 +81,21 @@ export const createIndustryChart = (input: IndustryChartInput) =>
       ],
       x: {
         scale: scaleUtc,
-        ticks: width < 680 ? 4 : 7,
-        format: input.compactTime ? formatMonth : formatYear,
+        axis: {
+          ticks: {
+            count: width < 680 ? 4 : 7,
+            format: input.compactTime ? formatMonth : formatYear,
+          },
+        },
       },
       y: {
         scale: scaleLinear,
         nice: 4,
-        ticks: 4,
-        format: compactNumber,
         grid: true,
-        label: 'Unemployed (thousands)',
+        axis: {
+          ticks: { count: 4, format: compactNumber },
+          label: 'Unemployed (thousands)',
+        },
       },
       color: {
         domain: industryNames,
@@ -149,11 +154,8 @@ export const createSparklineChart = <TDatum>(input: SparkInput<TDatum>) => {
         r: 3.25,
       }),
     ],
-    x: { scale: scaleUtc, guide: false },
-    y: {
-      scale: scaleLinear,
-      guide: false,
-    },
+    x: { scale: scaleUtc },
+    y: { scale: scaleLinear },
     guides: false,
     gradients: [
       {
@@ -194,13 +196,21 @@ export const createRatingsHeatmap = (input: { rows: readonly SimpsonsRow[] }) =>
     ],
     x: {
       scale: () => scaleBand<number>().paddingInner(0.03),
-      format: (value) => (value % 5 === 0 ? `${value}` : ''),
-      label: 'Episode',
+      axis: {
+        ticks: {
+          format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
+        },
+        label: 'Episode',
+      },
     },
     y: {
       scale: () => scaleBand<number>().paddingInner(0.03),
-      format: (value) => (value % 5 === 0 ? `${value}` : ''),
-      label: 'Season',
+      axis: {
+        ticks: {
+          format: (value: number) => (value % 5 === 0 ? `${value}` : ''),
+        },
+        label: 'Season',
+      },
     },
     color: {
       scale: scaleSequential<string>,
@@ -246,13 +256,16 @@ export const createCarEconomyChart = (input: {
       x: {
         scale: scaleLinear,
         nice: true,
-        ticks: 3,
-        format: (value) => `${value} mpg`,
         grid: true,
+        axis: {
+          ticks: { count: 3, format: (value: number) => `${value} mpg` },
+        },
       },
       y: {
         scale: () => scaleBand<number>().paddingInner(0.2),
-        format: (value) => `${value} cyl`,
+        axis: {
+          ticks: { format: (value: number) => `${value} cyl` },
+        },
       },
       color: {
         scale: scaleSequential<string>,
@@ -322,16 +335,14 @@ export const createPenguinChart = (input: PenguinChartInput) =>
       x: {
         scale: scaleLinear,
         nice: true,
-        ticks: 3,
         grid: true,
-        label: 'Bill length (mm)',
+        axis: { ticks: { count: 3 }, label: 'Bill length (mm)' },
       },
       y: {
         scale: scaleLinear,
         nice: true,
-        ticks: 3,
         grid: true,
-        label: 'Bill depth (mm)',
+        axis: { ticks: { count: 3 }, label: 'Bill depth (mm)' },
       },
       color: {
         range: ['#ff625a', '#8579ff', '#45d49c'],
@@ -362,9 +373,8 @@ export const createSurveyStackChart = (input: {
     },
     y: {
       scale: scaleLinear,
-      ticks: 3,
       grid: true,
-      label: 'Responses',
+      axis: { ticks: { count: 3 }, label: 'Responses' },
     },
     color: {
       domain: surveyResponses,

@@ -78,6 +78,7 @@ export async function createLlmsIndex(root) {
     '',
     'Authoring rules:',
     '',
+    '- Use TanStack data transforms for common group, bin, window, cumulative, rank, normalize, select, and row-stack preparation.',
     '- Use exact @tanstack/charts-scales/* entries for compact linear, band, point, or ordinal scales. Use direct, granular d3-* imports when full D3 semantics are required; never import the d3 umbrella.',
     '- Let TanStack Charts own responsive pixel ranges. Scale factories infer domains from mark channels; configured instances preserve application-owned domains.',
     '- Keep data in its application shape. Map fields or accessors into marks instead of creating a library-owned series model.',

@@ -21,14 +21,22 @@ parsed input list. This distinguishes code that contributes bytes from a
 zero-byte re-export. The compact-scale fixtures require their exact subpaths
 and reject sibling scale implementations. The React base rejects tooltip and
 portal code, the tooltip consumer rejects portal code, and the portal consumer
-may add only its transport module over the tooltip consumer.
+may add only its transport module over the tooltip consumer. Ordinary line,
+compact-scale, and tooltip kernels also reject all transform modules.
 
 The compact linear scene and React consumer are both locked and budgeted. The
-scene has a 7 KiB gzip ceiling. The React line consumer has a 15 KiB ceiling
-with React and React DOM external. `d3-array` tick helpers are allowed only in
-the compact linear path; categorical compact-scale kernels reject every D3
-runtime input. All compact fixtures reject `d3-scale`, `d3-format`,
+scene has an 8.1 KiB gzip ceiling. The React line consumer has a 16.8 KiB
+ceiling with React and React DOM external. `d3-array` tick helpers are allowed
+only in the compact linear path; categorical compact-scale kernels reject
+every D3 runtime input. All compact fixtures reject `d3-scale`, `d3-format`,
 `d3-interpolate`, `d3-color`, and `internmap`.
+
+Every public transform family has an isolated budget and retained-input
+allowlist. Numeric and 2D bins may retain `d3-array`, and row stacks may retain
+`d3-shape`. Other transform entries reject those dependencies, while every
+granular entry rejects unrelated transform families. The suite fixture proves
+the common families still compose without pulling calendar bins or advanced
+reducers into the default set.
 
 Non-cartesian capability subpaths follow the same policy. Polar and geographic
 entries measure complete scenes through static SVG: a minimal arc, D3 pie,

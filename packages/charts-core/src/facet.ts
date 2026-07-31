@@ -1,5 +1,6 @@
 import { channelValues } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
+import { resolveGuideMargins } from './guide-layout'
 import { valueKey } from './scales'
 import { createChartScene } from './scene'
 import type {
@@ -127,6 +128,18 @@ export function facet<TDatum>(
           ),
         )
         assertOuterAxes(id, definitions, guideScenes)
+        const margin = resolveOuterMargin({
+          id,
+          entries,
+          definitions,
+          chart,
+          columns,
+          rows,
+          gap,
+          labelHeight,
+          initial: maxSceneMargins(guideScenes),
+          layout,
+        })
 
         return renderOuterAxes({
           id,
@@ -140,12 +153,83 @@ export function facet<TDatum>(
           showLabel,
           label: options.label,
           theme,
-          margin: maxSceneMargins(guideScenes),
+          margin,
           layout,
         })
       },
     }
   })
+}
+
+function resolveOuterMargin<TDatum>(options: {
+  id: string
+  entries: readonly FacetEntry<TDatum>[]
+  definitions: readonly StaticChartDefinition<TDatum>[]
+  chart: ChartBounds
+  columns: number
+  rows: number
+  gap: number
+  labelHeight: number
+  initial: ChartMargin
+  layout: Parameters<typeof createChartScene>[2]
+}): ChartMargin {
+  const {
+    id,
+    entries,
+    definitions,
+    chart,
+    columns,
+    rows,
+    gap,
+    labelHeight,
+    layout,
+  } = options
+  let margin = options.initial
+
+  for (let pass = 0; pass < 4; pass += 1) {
+    const plotWidth = cellSize(
+      Math.max(1, chart.width - margin.left - margin.right),
+      gap,
+      columns,
+    )
+    const plotHeight = cellSize(
+      Math.max(
+        1,
+        chart.height - margin.top - margin.bottom - labelHeight * rows,
+      ),
+      gap,
+      rows,
+    )
+    const measured = entries.map((entry, index) => {
+      const scene = createFacetScene(
+        id,
+        entry,
+        {
+          ...definitions[index]!,
+          marks: definitions[index]!.marks.map(withoutMarkRendering),
+          margin: 0,
+        },
+        { width: plotWidth, height: plotHeight },
+        layout,
+      )
+      const axes = scene.nodes.find(
+        (node): node is SceneGroup =>
+          node.kind === 'group' && node.key === 'axes',
+      )
+      return axes
+        ? resolveGuideMargins(
+            axes,
+            { x: 0, y: 0, width: plotWidth, height: plotHeight },
+            { measureText: layout?.measureText },
+          )
+        : { top: 0, right: 0, bottom: 0, left: 0 }
+    })
+    const next = maxMargins([margin, ...measured])
+    if (sameMargin(margin, next)) return next
+    margin = next
+  }
+
+  return margin
 }
 
 interface CellRenderOptions<TDatum> {
@@ -548,10 +632,67 @@ function sameAxis(
   right: StaticChartDefinition['x'],
 ): boolean {
   if (left === null || right === null) return left === right
+  const leftAxis = left?.axis
+  const rightAxis = right?.axis
+  if (leftAxis === false || rightAxis === false) return leftAxis === rightAxis
+  const leftTicks = leftAxis?.ticks
+  const rightTicks = rightAxis?.ticks
+  const leftLabels = leftAxis?.tickLabels
+  const rightLabels = rightAxis?.tickLabels
+  const leftLabel = leftAxis?.label
+  const rightLabel = rightAxis?.label
   return (
-    left?.label === right?.label &&
-    left?.labelOffset === right?.labelOffset &&
-    left?.tickRotate === right?.tickRotate
+    leftAxis?.line === rightAxis?.line &&
+    sameAxisTicks(leftTicks, rightTicks) &&
+    sameAxisTickLabels(leftLabels, rightLabels) &&
+    (typeof leftLabel === 'string' ? leftLabel : leftLabel?.text) ===
+      (typeof rightLabel === 'string' ? rightLabel : rightLabel?.text) &&
+    (typeof leftLabel === 'object' ? leftLabel.offset : undefined) ===
+      (typeof rightLabel === 'object' ? rightLabel.offset : undefined)
+  )
+}
+
+function sameAxisTicks(
+  left: Exclude<
+    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    false
+  >['ticks'],
+  right: Exclude<
+    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    false
+  >['ticks'],
+): boolean {
+  if (left === false || right === false) return left === right
+  return (
+    left?.count === right?.count &&
+    left?.spacing === right?.spacing &&
+    left?.size === right?.size &&
+    left?.padding === right?.padding &&
+    sameValues(left?.values ?? [], right?.values ?? [])
+  )
+}
+
+function sameAxisTickLabels(
+  left: Exclude<
+    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    false
+  >['tickLabels'],
+  right: Exclude<
+    NonNullable<NonNullable<StaticChartDefinition['x']>['axis']>,
+    false
+  >['tickLabels'],
+): boolean {
+  if (left === false || right === false) return left === right
+  if (left?.rotate !== right?.rotate) return false
+  const leftThin = left?.thin
+  const rightThin = right?.thin
+  if (typeof leftThin !== 'object' || typeof rightThin !== 'object') {
+    return leftThin === rightThin
+  }
+  return (
+    leftThin.minGap === rightThin.minGap &&
+    leftThin.priority === rightThin.priority &&
+    sameValues(leftThin.keep ?? [], rightThin.keep ?? [])
   )
 }
 
@@ -616,14 +757,27 @@ function offsetPoints<TDatum>(
 }
 
 function maxSceneMargins(scenes: readonly ChartScene[]): ChartMargin {
-  return scenes.reduce(
+  return maxMargins(scenes.map((scene) => scene.margin))
+}
+
+function maxMargins(margins: readonly ChartMargin[]): ChartMargin {
+  return margins.reduce(
     (margin, scene) => ({
-      top: Math.max(margin.top, scene.margin.top),
-      right: Math.max(margin.right, scene.margin.right),
-      bottom: Math.max(margin.bottom, scene.margin.bottom),
-      left: Math.max(margin.left, scene.margin.left),
+      top: Math.max(margin.top, scene.top),
+      right: Math.max(margin.right, scene.right),
+      bottom: Math.max(margin.bottom, scene.bottom),
+      left: Math.max(margin.left, scene.left),
     }),
     { top: 0, right: 0, bottom: 0, left: 0 },
+  )
+}
+
+function sameMargin(left: ChartMargin, right: ChartMargin): boolean {
+  return (
+    Math.abs(left.top - right.top) < 0.25 &&
+    Math.abs(left.right - right.right) < 0.25 &&
+    Math.abs(left.bottom - right.bottom) < 0.25 &&
+    Math.abs(left.left - right.left) < 0.25
   )
 }
 

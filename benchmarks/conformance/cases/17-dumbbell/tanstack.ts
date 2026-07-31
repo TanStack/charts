@@ -32,7 +32,7 @@ const definition = (input: ConformanceInput) => {
     x: {
       scale: scaleLinear,
       grid: true,
-      label: '90th/10th percentile wage ratio',
+      axis: { label: '90th/10th percentile wage ratio' },
     },
     y: {
       scale: () => scaleBand<string>().padding(0.22),

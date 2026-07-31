@@ -25,14 +25,10 @@ const definition = (input: ConformanceInput) => {
         radius: 3,
       }),
     ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Share price ($)',
-    },
+    x: { scale: scaleLinear, grid: true, axis: { label: 'Share price ($)' } },
     y: {
       scale: () => scaleBand<Date>().paddingInner(0.16),
-      format: (value) => date.format(value),
+      axis: { ticks: { format: (value) => date.format(value) } },
     },
     color: {
       range: colors,

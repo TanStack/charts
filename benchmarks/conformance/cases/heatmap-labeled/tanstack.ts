@@ -48,14 +48,14 @@ const definition = (_input: ConformanceInput) =>
         .domain(episodeDomain)
         .paddingInner(0.04)
         .paddingOuter(0.02),
-      label: 'Episode',
+      axis: { label: 'Episode' },
     },
     y: {
       scale: scaleBand<number>()
         .domain(seasonDomain)
         .paddingInner(0.04)
         .paddingOuter(0.02),
-      label: 'Season',
+      axis: { label: 'Season' },
     },
     color: {
       scale: () => scaleLinear<string>().range(ratingColors),

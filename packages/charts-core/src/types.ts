@@ -109,6 +109,111 @@ export type OptionChannelOutput<
 export type VisualChannel<TDatum, TValue> =
   TValue | ChannelAccessor<TDatum, TValue>
 
+export interface ChartMarkStateContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  datum: TDatum
+  index: number
+  data: readonly TDatum[]
+  point: ChartPoint<TDatum, TXValue, TYValue>
+  focus: ChartFocusState<TDatum, TXValue, TYValue>
+  pointer: ChartTooltipPosition | null
+  matches: (match: ChartFocusMatch) => boolean
+}
+
+export type ChartMarkStateValue<TDatum, TValue> =
+  TValue | ((context: ChartMarkStateContext<TDatum>) => TValue)
+
+export interface ChartMarkStateStyle<TDatum = unknown> {
+  fill?: ChartMarkStateValue<TDatum, string>
+  fillOpacity?: ChartMarkStateValue<TDatum, number>
+  stroke?: ChartMarkStateValue<TDatum, string>
+  strokeOpacity?: ChartMarkStateValue<TDatum, number>
+  strokeWidth?: ChartMarkStateValue<TDatum, number>
+  opacity?: ChartMarkStateValue<TDatum, number>
+  strokeDasharray?: ChartMarkStateValue<TDatum, string>
+  r?: ChartMarkStateValue<TDatum, number>
+  radius?: ChartMarkStateValue<TDatum, number>
+  inset?: ChartMarkStateValue<TDatum, number>
+  fontSize?: ChartMarkStateValue<TDatum, number>
+  fontWeight?: ChartMarkStateValue<TDatum, number>
+  dx?: ChartMarkStateValue<TDatum, number>
+  dy?: ChartMarkStateValue<TDatum, number>
+  rotate?: ChartMarkStateValue<TDatum, number>
+}
+
+export type ChartDotStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  | 'fill'
+  | 'fillOpacity'
+  | 'stroke'
+  | 'strokeOpacity'
+  | 'strokeWidth'
+  | 'opacity'
+  | 'r'
+>
+
+export type ChartBarStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  | 'fill'
+  | 'fillOpacity'
+  | 'stroke'
+  | 'strokeWidth'
+  | 'opacity'
+  | 'radius'
+  | 'inset'
+>
+
+export type ChartRectStateStyle<TDatum = unknown> = ChartBarStateStyle<TDatum>
+
+export type ChartLineStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  'stroke' | 'strokeOpacity' | 'strokeWidth' | 'strokeDasharray' | 'opacity'
+>
+
+export type ChartAreaStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  | 'fill'
+  | 'fillOpacity'
+  | 'stroke'
+  | 'strokeOpacity'
+  | 'strokeWidth'
+  | 'opacity'
+>
+
+export type ChartTextStateStyle<TDatum = unknown> = Pick<
+  ChartMarkStateStyle<TDatum>,
+  | 'fill'
+  | 'fillOpacity'
+  | 'stroke'
+  | 'strokeWidth'
+  | 'opacity'
+  | 'fontSize'
+  | 'fontWeight'
+  | 'dx'
+  | 'dy'
+  | 'rotate'
+>
+
+export interface ChartMarkStateSelector {
+  focus: ChartFocusMatch | 'unmatched'
+  source?: ChartFocusSource | readonly ChartFocusSource[]
+  pinned?: boolean
+}
+
+export interface ChartMarkState<
+  TDatum = unknown,
+  TStyle extends ChartMarkStateStyle<TDatum> = ChartMarkStateStyle<TDatum>,
+> {
+  when:
+    | ChartMarkStateSelector
+    | ((context: ChartMarkStateContext<TDatum>) => boolean)
+  style: TStyle
+  transition?: ChartAnimationOptions
+}
+
 export interface ChartSize {
   width: number
   height: number
@@ -151,21 +256,47 @@ export interface ChartLayoutOptions {
   measureText?: ChartTextMeasurer
 }
 
-export interface ChartAxisGuideOptions<TValue extends ChartValue = any> {
-  /** Whether to render this axis, its ticks, title, and grid lines. */
-  guide?: boolean
-  ticks?: number
+export interface ChartAxisTickOptions<TValue extends ChartValue = any> {
+  /** Preferred semantic candidate count. The scale may choose a nearby count. */
+  count?: number
+  /** Preferred pixels between semantic candidates. */
+  spacing?: number
+  /** Exact semantic candidates. */
+  values?: readonly TValue[]
+  /** Length of the visible tick stub in pixels. */
+  size?: number
+  /** Gap between the tick stub and label in pixels. */
+  padding?: number
   format?: (value: TValue) => string
-  grid?: boolean
-  label?: string
-  reverse?: boolean
-  tickRotate?: number
-  labelOffset?: number
 }
 
-export interface ChartAxisOptions<
+export interface ChartAxisTickLabelThinOptions<
   TValue extends ChartValue = any,
-> extends ChartAxisGuideOptions<TValue> {
+> {
+  minGap?: number
+  priority?: 'ends'
+  /** Values whose labels must remain visible even when they collide. */
+  keep?: readonly TValue[]
+}
+
+export interface ChartAxisTickLabelOptions<TValue extends ChartValue = any> {
+  rotate?: number
+  thin?: boolean | ChartAxisTickLabelThinOptions<TValue>
+}
+
+export interface ChartAxisLabelOptions {
+  text: string
+  offset?: number | 'auto'
+}
+
+export interface ChartAxisPresentationOptions<TValue extends ChartValue = any> {
+  line?: boolean
+  ticks?: false | ChartAxisTickOptions<TValue>
+  tickLabels?: false | ChartAxisTickLabelOptions<TValue>
+  label?: string | ChartAxisLabelOptions
+}
+
+export interface ChartAxisOptions<TValue extends ChartValue = any> {
   /**
    * A D3 scale factory infers its domain from materialized mark channels.
    * A scale instance retains its configured domain.
@@ -173,6 +304,11 @@ export interface ChartAxisOptions<
   scale: ChartScale | ChartScaleInput<TValue>
   /** Applies D3 nicening after an inferred or configured domain is resolved. */
   nice?: boolean | number
+  reverse?: boolean
+  /** Grid lines use semantic tick candidates before label thinning. */
+  grid?: boolean
+  /** Axis presentation. False keeps the scale but omits the visible axis. */
+  axis?: false | ChartAxisPresentationOptions<TValue>
 }
 
 export interface ChartColorOptions {
@@ -339,6 +475,7 @@ type ChartYOptionsForMarks<TMarks extends AnyChartMarks> =
       : never
 
 interface ChartSpecBase {
+  /** Omit all Cartesian axes and grids. */
   guides?: boolean
   color?: ChartColorOptions
   gradients?: readonly ChartLinearGradient[]
@@ -516,6 +653,7 @@ export interface MarkRenderContext {
   scales: Readonly<Record<string, ResolvedScale>>
   theme: ChartTheme
   color: (value: ChartKey | null | undefined) => string
+  colors: ResolvedColorScale
   layout: ChartLayoutOptions
 }
 
@@ -543,6 +681,13 @@ export interface InitializedMark<
 > {
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
+  /** The mark uses a discrete color channel as inferred series identity. */
+  seriesFromColor?: boolean
+  focus?: ChartFocusFilter
+  states?: {
+    data: readonly unknown[]
+    definitions: readonly ChartMarkState<any>[]
+  }
   layoutLabels?: (context: MarkRenderContext) => readonly SceneLabel[]
   render: (context: MarkRenderContext) => MarkScene<TDatum, TXValue, TYValue>
 }
@@ -611,6 +756,16 @@ export interface SceneGroup extends SceneNodeBase {
   translateX?: number
   translateY?: number
   clip?: ChartBounds
+  focus?: {
+    match: ChartFocusMatch
+    points: readonly ChartPoint[]
+    placement: 'under' | 'over'
+  }
+  states?: {
+    data: readonly unknown[]
+    definitions: readonly ChartMarkState<any>[]
+    points: readonly ChartPoint[]
+  }
 }
 
 export interface SceneRule extends SceneNodeBase {
@@ -647,6 +802,8 @@ export interface SceneRect extends SceneNodeBase {
   width: number
   height: number
   radius?: number
+  /** Applied inset retained for absolute inline-state overrides. */
+  inset?: number
 }
 
 export interface SceneLabel extends SceneNodeBase {
@@ -786,11 +943,59 @@ export interface ChartTooltipPosition {
   y: number
 }
 
-export interface ChartTooltipAnchorContext {
+export type ChartFocusSource =
+  'pointer' | 'keyboard' | 'programmatic' | 'restored'
+
+export interface ChartFocusState<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  primary: ChartPoint<TDatum, TXValue, TYValue>
+  group: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  source: ChartFocusSource
+  pinned: boolean
+}
+
+export type ChartFocusMatch = 'primary' | 'group' | 'key' | 'x' | 'y' | 'series'
+
+export interface ChartFocusFilter {
+  match?: ChartFocusMatch
+}
+
+export type ChartTooltipXAnchor =
+  | 'point'
+  | 'pointer'
+  | 'value'
+  | 'group-center'
+  | 'plot-left'
+  | 'plot-center'
+  | 'plot-right'
+
+export type ChartTooltipYAnchor =
+  | 'point'
+  | 'pointer'
+  | 'value'
+  | 'group-center'
+  | 'plot-top'
+  | 'plot-center'
+  | 'plot-bottom'
+
+export interface ChartTooltipAxisAnchor {
+  x: ChartTooltipXAnchor
+  y: ChartTooltipYAnchor
+}
+
+export interface ChartTooltipAnchorContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  focus: ChartFocusState<TDatum, TXValue, TYValue>
   pointer: ChartTooltipPosition | null
-  chart: ChartBounds
-  width: number
-  height: number
+  plot: ChartBounds
+  surface: ChartSize
+  scales: Readonly<Record<string, ResolvedScale>>
 }
 
 export type ChartTooltipAnchor<
@@ -801,9 +1006,10 @@ export type ChartTooltipAnchor<
   | 'point'
   | 'pointer'
   | 'group-center'
+  | ChartTooltipAxisAnchor
   | ((
       points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-      context: ChartTooltipAnchorContext,
+      context: ChartTooltipAnchorContext<TDatum, TXValue, TYValue>,
     ) => ChartTooltipPosition | null | undefined)
 
 export type ChartTooltipSort<

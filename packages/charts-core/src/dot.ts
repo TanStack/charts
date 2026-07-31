@@ -6,6 +6,7 @@ import {
   isChartKey,
   isChartValue,
   isNonnegativeFiniteNumber,
+  markStates,
 } from './mark'
 import { resolveNumericScale } from './scale-input'
 import { valueKey } from './scales'
@@ -13,6 +14,8 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkState,
+  ChartDotStateStyle,
   ChartNumericScale,
   ChartPoint,
   ChartValue,
@@ -34,6 +37,7 @@ export interface DotOptions<TDatum> {
   stroke?: string
   strokeOpacity?: number
   strokeWidth?: number
+  states?: readonly ChartMarkState<TDatum, ChartDotStateStyle<TDatum>>[]
 }
 
 export function dot<TDatum>(
@@ -86,6 +90,7 @@ export function dot<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
         y: { scale: 'y', values: yValues.filter(isChartValue) },

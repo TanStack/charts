@@ -224,6 +224,19 @@ describe('Canvas renderer', () => {
     const container = document.createElement('div')
     const renderer = createCanvasChartRenderer({ pixelRatio: 2 })
     const surface = renderer.mount(container, () => {})
+    const point = {
+      key: 'focus:dot',
+      markId: 'focus',
+      group: null,
+      groupLabel: 'focus',
+      datum: { id: 'dot' },
+      datumIndex: 0,
+      xValue: 1,
+      yValue: 2,
+      x: 50,
+      y: 30,
+      color: '#ff0000',
+    }
     surface.render(
       scene([
         {
@@ -234,6 +247,29 @@ describe('Canvas renderer', () => {
           radius: 5,
           style: { fill: '#ff0000' },
         },
+        {
+          kind: 'group',
+          key: 'focus',
+          children: [
+            {
+              kind: 'dot',
+              key: point.key,
+              x: 50,
+              y: 30,
+              radius: 5,
+              style: {
+                fill: 'Canvas',
+                stroke: '#ff0000',
+                strokeWidth: 2.5,
+              },
+            },
+          ],
+          focus: {
+            match: 'primary',
+            points: [point],
+            placement: 'over',
+          },
+        },
       ]),
       renderOptions(),
     )
@@ -242,13 +278,13 @@ describe('Canvas renderer', () => {
     if (!base || !focus) throw new Error('Expected both contexts')
     const baseOperations = [...base.operations]
 
-    surface.paintFocus(
-      {
+    surface.paintFocus({
+      primary: {
         key: 'dot',
         markId: 'dots',
         group: null,
         groupLabel: 'dots',
-        datum: { id: 'dot' },
+        datum: point.datum,
         datumIndex: 0,
         xValue: 1,
         yValue: 2,
@@ -256,8 +292,10 @@ describe('Canvas renderer', () => {
         y: 30,
         color: '#ff0000',
       },
-      [],
-    )
+      group: [],
+      source: 'pointer',
+      pinned: false,
+    })
 
     expect(base.operations).toEqual(baseOperations)
     expect(focus.operations).toContain('clearRect:0,0,100,60')
@@ -265,6 +303,141 @@ describe('Canvas renderer', () => {
     expect(focus.operations).toEqual(
       expect.arrayContaining([expect.stringMatching(/^stroke:.*:2\.5:1$/)]),
     )
+    surface.destroy()
+  })
+
+  it('repaints inline mark states and restores the base Canvas scene', () => {
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer.mount(container, () => {})
+    const point = {
+      key: 'dots:null:a',
+      markId: 'dots',
+      group: null,
+      groupLabel: 'dots',
+      datum: { id: 'a' },
+      datumIndex: 0,
+      xValue: 1,
+      yValue: 2,
+      x: 50,
+      y: 30,
+      color: '#2563eb',
+    }
+    surface.render(
+      scene([
+        {
+          kind: 'group',
+          key: 'states:dots',
+          states: {
+            data: [point.datum],
+            points: [point],
+            definitions: [
+              {
+                when: { focus: 'primary' },
+                style: { r: 9, fill: '#f97316' },
+                transition: { duration: 0 },
+              },
+            ],
+          },
+          children: [
+            {
+              kind: 'dot',
+              key: point.key,
+              x: 50,
+              y: 30,
+              radius: 5,
+              style: { fill: '#2563eb' },
+            },
+          ],
+        },
+      ]),
+      renderOptions(),
+    )
+    const fake = contexts.get(surface.canvas)
+    if (!fake) throw new Error('Expected scene context')
+
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(fake.operations).toContain('arc:50,30,9')
+
+    const restoreStart = fake.operations.length
+    surface.paintFocus(null)
+    const restored = fake.operations.slice(restoreStart)
+    expect(restored).toContain('arc:50,30,5')
+    surface.destroy()
+  })
+
+  it('paints leading focus marks below the cached base scene', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    const datum = { id: 'band' }
+    const point = {
+      key: 'focus:band',
+      markId: 'focus',
+      group: null,
+      groupLabel: 'focus',
+      datum,
+      datumIndex: 0,
+      xValue: 'A',
+      yValue: 0,
+      x: 25,
+      y: 30,
+      color: '#94a3b8',
+    }
+    surface.render(
+      scene([
+        {
+          kind: 'group',
+          key: 'focus',
+          children: [
+            {
+              kind: 'rect',
+              key: point.key,
+              x: 10,
+              y: 0,
+              width: 30,
+              height: 60,
+              style: { fill: '#94a3b8', fillOpacity: 0.16 },
+            },
+          ],
+          focus: {
+            match: 'x',
+            points: [point],
+            placement: 'under',
+          },
+        },
+        {
+          kind: 'dot',
+          key: 'dot',
+          x: 25,
+          y: 30,
+          radius: 5,
+          style: { fill: '#ff0000' },
+        },
+      ]),
+      renderOptions(),
+    )
+    const base = contexts.get(surface.canvas)
+    const under = contexts.get(surface.focusUnderCanvas)
+    if (!base || !under) throw new Error('Expected base and underlay contexts')
+    const baseOperations = [...base.operations]
+
+    surface.paintFocus({
+      primary: {
+        ...point,
+        key: 'dot',
+        markId: 'dots',
+      },
+      group: [],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    expect(base.operations).toEqual(baseOperations)
+    expect(under.operations).toContain('rect:10,0,30,60')
     surface.destroy()
   })
 

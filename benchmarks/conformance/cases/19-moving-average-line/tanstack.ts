@@ -1,15 +1,20 @@
-import { defineChart, lineY, ruleY } from '@tanstack/charts'
-import { mean } from 'd3-array'
+import { defineChart, lineY, ruleY, window } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { sfTemperatures } from '@charts-poc/demo-data/sf-temperatures'
-import type { SfTemperaturesRow } from '@charts-poc/demo-data/sf-temperatures'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 
 const windowSize = 14
 
 const definition = (_input: ConformanceInput) => {
-  const rows = trailingMeans(sfTemperatures)
+  const rows = window(sfTemperatures, {
+    size: windowSize,
+    partial: false,
+    outputs: {
+      high: { value: 'high', reduce: 'mean' },
+      low: { value: 'low', reduce: 'mean' },
+    },
+  })
 
   return defineChart({
     marks: [
@@ -30,14 +35,11 @@ const definition = (_input: ConformanceInput) => {
         strokeDasharray: '4 4',
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Date',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Date' } },
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Fourteen-day average temperature (°F)',
+      axis: { label: 'Fourteen-day average temperature (°F)' },
     },
   })
 }
@@ -46,21 +48,3 @@ export const mount: ConformanceMount = tanstackMount(
   definition,
   'Fourteen-day average high and low temperature in San Francisco',
 )
-
-function trailingMeans(
-  rows: readonly SfTemperaturesRow[],
-): readonly SfTemperaturesRow[] {
-  const output: SfTemperaturesRow[] = []
-
-  for (let index = windowSize - 1; index < rows.length; index++) {
-    const row = rows[index]
-    if (!row) continue
-    const window = rows.slice(index - windowSize + 1, index + 1)
-    const high = mean(window, (point) => point.high)
-    const low = mean(window, (point) => point.low)
-    if (high === undefined || low === undefined) continue
-    output.push({ date: row.date, high, low })
-  }
-
-  return output
-}

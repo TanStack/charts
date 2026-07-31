@@ -49,17 +49,20 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: scaleUtc,
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          timeZone: 'UTC',
-        }),
+      axis: {
+        ticks: {
+          format: (value) =>
+            value.toLocaleDateString(undefined, {
+              month: 'short',
+              timeZone: 'UTC',
+            }),
+        },
+      },
     },
     y: {
       scale: scaleLinear,
-      ticks: 5,
       grid: true,
-      label: 'Unemployed (thousands)',
+      axis: { ticks: { count: 5 }, label: 'Unemployed (thousands)' },
     },
     color: {
       domain: axisPointerIndustries,

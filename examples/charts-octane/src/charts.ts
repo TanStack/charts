@@ -108,20 +108,23 @@ export function createIndustryHistoryChart(
         zoomed && zoomStart && zoomEnd
           ? scaleUtc().domain([zoomStart, zoomEnd])
           : scaleUtc,
-      ticks: width < 520 ? 4 : 7,
-      label: 'Month',
+      axis: { ticks: { count: width < 520 ? 4 : 7 }, label: 'Month' },
     },
     y: {
       scale:
         mode === 'share' ? scaleLinear().domain([0, 1]).nice(5) : scaleLinear,
       nice: 5,
-      ticks: 5,
       grid: true,
-      label:
-        mode === 'share'
-          ? 'Share of selected industries'
-          : 'Unemployed (thousands)',
-      format: mode === 'share' ? formatPercent : formatNumber,
+      axis: {
+        ticks: {
+          count: 5,
+          format: mode === 'share' ? formatPercent : formatNumber,
+        },
+        label:
+          mode === 'share'
+            ? 'Share of selected industries'
+            : 'Unemployed (thousands)',
+      },
     },
     color: {
       scale: scaleOrdinal<string, string>()
@@ -163,14 +166,15 @@ export function createRankingChart(metric: RankingMetric, accent: string) {
       x: {
         scale: scaleLinear,
         nice: ticks,
-        ticks,
         grid: true,
-        label:
-          width < 420
-            ? undefined
-            : metric === 'economy (mpg)'
-              ? 'Fuel economy (mpg)'
-              : 'Power (hp)',
+        axis: {
+          label:
+            width < 420
+              ? undefined
+              : metric === 'economy (mpg)'
+                ? 'Fuel economy (mpg)'
+                : 'Power (hp)',
+        },
       },
       y: {
         scale: () => scaleBand<string>().paddingInner(0.24).paddingOuter(0.12),

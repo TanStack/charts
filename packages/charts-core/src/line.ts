@@ -5,6 +5,7 @@ import {
   isChartKey,
   isChartValue,
   isFiniteNumber,
+  markStates,
   visualValue,
 } from './mark'
 import { valueKey } from './scales'
@@ -12,6 +13,8 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkState,
+  ChartLineStateStyle,
   ChartPoint,
   ChartValue,
   SceneNode,
@@ -33,6 +36,7 @@ export interface LineYOptions<TDatum> {
   strokeDasharray?: string
   points?: boolean
   curve?: ChartCurve
+  states?: readonly ChartMarkState<TDatum, ChartLineStateStyle<TDatum>>[]
 }
 
 interface LineRow<TDatum> {
@@ -92,6 +96,8 @@ export function lineY<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
+      seriesFromColor: options.z === undefined && options.color !== undefined,
       channels: {
         x: {
           scale: 'x',

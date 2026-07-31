@@ -53,14 +53,14 @@ import { scaleLinear, scaleUtc } from 'd3-scale'
 const x = {
   scale: scaleUtc,
   nice: true,
-  label: 'Date',
+  axis: { label: 'Date' },
 }
 
 const y = {
   scale: scaleLinear,
   nice: true,
-  label: 'Revenue',
   grid: true,
+  axis: { label: 'Revenue' },
 }
 ```
 
@@ -113,37 +113,84 @@ Scale copies make one configured scale safe to reuse across responsive scenes.
 interface ChartAxisOptions<TValue extends ChartValue> {
   scale: ChartScale | ConfiguredScaleLike<TValue> | ChartScaleFactory<TValue>
   nice?: boolean | number
-  guide?: boolean
-  ticks?: number
-  format?: (value: TValue) => string
-  grid?: boolean
-  label?: string
   reverse?: boolean
-  tickRotate?: number
-  labelOffset?: number
+  grid?: boolean
+  axis?:
+    | false
+    | {
+        line?: boolean
+        ticks?:
+          | false
+          | {
+              count?: number
+              spacing?: number
+              values?: readonly TValue[]
+              size?: number
+              padding?: number
+              format?: (value: TValue) => string
+            }
+        tickLabels?:
+          | false
+          | {
+              rotate?: number
+              thin?:
+                | boolean
+                | {
+                    minGap?: number
+                    priority?: 'ends'
+                    keep?: readonly TValue[]
+                  }
+            }
+        label?: string | { text: string; offset?: number | 'auto' }
+      }
 }
 ```
 
-| Option        | Default                                 | Meaning                                                                  |
-| ------------- | --------------------------------------- | ------------------------------------------------------------------------ |
-| `scale`       | Required                                | D3 factory, configured instance, or advanced `ChartScale`.               |
-| `nice`        | `false`                                 | Nice the resolved domain using the responsive or supplied tick count.    |
-| `guide`       | `true` for a non-null axis              | Renders the axis, ticks, title, and requested grid.                      |
-| `ticks`       | Responsive target                       | Suggested tick count passed to the scale. It is not a guaranteed count.  |
-| `format`      | Scale formatter, then string conversion | Formats tick values. Its value type is inferred from the marks.          |
-| `grid`        | `false` for x; `true` for y             | Draws grid rules at tick positions.                                      |
-| `label`       | None                                    | Axis title.                                                              |
-| `reverse`     | `false`                                 | Reverses the responsive pixel range without changing the caller's scale. |
-| `tickRotate`  | `0`                                     | Rotates tick labels in degrees.                                          |
-| `labelOffset` | Automatic                               | Overrides the title's distance from the axis.                            |
+| Option    | Default                     | Meaning                                                                  |
+| --------- | --------------------------- | ------------------------------------------------------------------------ |
+| `scale`   | Required                    | D3 factory, configured instance, or advanced `ChartScale`.               |
+| `nice`    | `false`                     | Nice the resolved domain using the responsive or supplied tick count.    |
+| `reverse` | `false`                     | Reverses the responsive pixel range without changing the caller's scale. |
+| `grid`    | `false` for x; `true` for y | Draws grid rules from semantic tick candidates.                          |
+| `axis`    | Inferred axis               | Axis line, tick candidates, labels, and title; `false` hides the axis.   |
 
 Set an axis to `null` only when no mark uses that positional scale. To keep the
-scale while hiding its guide, use `guide: false`.
+scale while hiding its axis, use `axis: false`. Grid visibility remains
+independent.
 
-Without an explicit `ticks`, the responsive target is
+Without an explicit `axis.ticks` policy, the responsive target is
 `clamp(2, floor(chart.width / 92), 8)` for x and
 `clamp(2, floor(chart.height / 48), 7)` for y. The configured scale may return
 a different number of ticks.
+
+`count`, `spacing`, and `values` are mutually exclusive candidate policies.
+`count` is a scale hint, `spacing` derives that hint from the final axis length,
+and `values` supplies exact semantic candidates. Grid lines and tick stubs use
+these candidates before label thinning.
+
+Tick labels are horizontal and collision-thinned by default. Rotation is
+explicit and independent:
+
+```ts
+const x = {
+  scale: scaleUtc,
+  axis: {
+    ticks: { spacing: 80, size: 0 },
+    tickLabels: {
+      rotate: -35,
+      thin: {
+        minGap: 8,
+        priority: 'ends',
+        keep: [launchDate],
+      },
+    },
+  },
+}
+```
+
+`thin: false` renders every candidate label. `keep` is a hard guarantee:
+kept values render even if they collide with one another. A kept value outside
+the candidate set adds only a label, not a tick stub or grid line.
 
 ## Automatic guide layout
 

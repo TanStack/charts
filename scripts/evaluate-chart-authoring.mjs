@@ -214,7 +214,6 @@ function workspaceFiles(entry, renderer) {
         }
       : {
           '@tanstack/charts': chartsPackageVersion,
-          'd3-array': '3.2.4',
           'd3-scale': '4.0.2',
         }
 
@@ -378,14 +377,13 @@ the relevant primitives, not a complete implementation.
   return `# Routed TanStack Charts notes
 
 Pinned packages: \`@tanstack/charts@${chartsPackageVersion}\`,
-\`d3-array@3.2.4\`, and
 \`d3-scale@4.0.2\`.
 
 This offline synopsis is pinned from the package README and task-oriented
 recipes shipped with the local package.
 
-- Marks consume application-owned rows; keep D3 transforms beside the
-  definition.
+- Marks consume materialized rows; keep TanStack data transforms beside the
+  definition and memoize them through application reactivity.
 - \`defineChart({ marks, x, y, animate: false, keyboard: false })\` creates a
   static definition. Chart behavior belongs to the definition.
 - Each materialized positional dimension requires a D3 scale factory or
@@ -395,13 +393,13 @@ recipes shipped with the local package.
   host with \`destroy()\`.
 ${
   entry.id === 'bar-vertical-sorted'
-    ? `- Use granular \`rollups\` and \`sum\` from \`d3-array\` to aggregate the raw rows.
+    ? `- Use \`groupBy\` from \`@tanstack/charts\` with a named \`sum\` output to aggregate the raw rows.
 - \`barY(rows, { x, y, key, fill, inset })\` renders vertical bars.
 - Sort the aggregated rows from largest to smallest, then use a \`scaleBand\`
   factory to infer that category order.
 - Use a configured \`scaleLinear().domain([0, 140])\` instance for the required
   fixed y domain.`
-    : `- Use granular \`bin\` from \`d3-array\`. D3 treats a threshold array as interior cuts, so set the first and last boundaries as the bin domain and pass only the interior boundaries to \`thresholds\`.
+    : `- Use \`binX\` from \`@tanstack/charts\`. Its threshold array is the complete boundary sequence, including the outer boundaries.
 - \`rect(rows, { x1, x2, y1, y2, key, fill, inset })\` renders interval rectangles.
 - Use configured \`scaleLinear\` instances for the required x domain
   \`[20, 90]\` and y domain \`[0, 80]\`.`

@@ -29,6 +29,142 @@ const measureText: ChartTextMeasurer = (text, options) => {
 }
 
 describe('automatic scene guide layout', () => {
+  it('keeps grid candidates when tick stubs are removed', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 2, 3])],
+        x: {
+          scale: scaleLinear().domain([0, 2]),
+          grid: true,
+          axis: { ticks: { count: 3, size: 0 } },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 3]),
+          grid: true,
+          axis: { ticks: { count: 4, size: 0 } },
+        },
+      }),
+      { width: 480, height: 260 },
+      { measureText },
+    )
+    const keys = flatten(scene.nodes).map((node) => node.key)
+
+    expect(keys.some((key) => key.startsWith('x-grid:'))).toBe(true)
+    expect(keys.some((key) => key.startsWith('y-grid:'))).toBe(true)
+    expect(keys.some((key) => key.startsWith('x-tick-rule:'))).toBe(false)
+    expect(keys.some((key) => key.startsWith('y-tick-rule:'))).toBe(false)
+    expect(keys.some((key) => key.startsWith('x-tick-label:'))).toBe(true)
+    expect(keys.some((key) => key.startsWith('y-tick-label:'))).toBe(true)
+  })
+
+  it('thins colliding labels independently from rotation and explicit opt-out', () => {
+    const categories = Array.from(
+      { length: 12 },
+      (_value, index) => `Long category ${index + 1}`,
+    )
+    const definition = defineChart({
+      marks: [
+        lineY(
+          categories.map((category, value) => ({ category, value })),
+          { x: 'category', y: 'value' },
+        ),
+      ],
+      x: {
+        scale: scaleBand<string>().domain(categories),
+        axis: { tickLabels: { rotate: -30 } },
+      },
+      y: { scale: scaleLinear().domain([0, categories.length]) },
+    })
+    const narrow = createChartScene(
+      definition,
+      { width: 320, height: 260 },
+      { measureText },
+    )
+    const wide = createChartScene(
+      definition,
+      { width: 1_200, height: 260 },
+      { measureText },
+    )
+    const all = createChartScene(
+      {
+        ...definition,
+        x: {
+          ...definition.x,
+          axis: { tickLabels: { rotate: -30, thin: false } },
+        },
+      },
+      { width: 320, height: 260 },
+      { measureText },
+    )
+    const labels = (scene: ReturnType<typeof createChartScene>) =>
+      flatten(scene.nodes).filter(
+        (node): node is SceneLabel =>
+          node.kind === 'label' && node.key.startsWith('x-tick-label:'),
+      )
+
+    expect(labels(narrow).length).toBeLessThan(labels(wide).length)
+    expect(labels(all)).toHaveLength(categories.length)
+    expect(labels(narrow).every((label) => label.rotate === -30)).toBe(true)
+  })
+
+  it('hard-keeps exact labels without adding tick stubs or grid lines', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([0, 10])],
+        x: {
+          scale: scaleLinear().domain([0, 10]),
+          grid: true,
+          axis: {
+            ticks: { values: [0, 10], size: 0 },
+            tickLabels: { thin: { keep: [5] } },
+          },
+        },
+        y: { scale: scaleLinear().domain([0, 10]), axis: false },
+      }),
+      { width: 320, height: 180 },
+      { measureText },
+    )
+    const keys = flatten(scene.nodes).map((node) => node.key)
+
+    expect(keys).toContain('x-tick-label:number:5')
+    expect(keys).not.toContain('x-tick-rule:number:5')
+    expect(keys).not.toContain('x-grid:number:5')
+    expect(keys.filter((key) => key.startsWith('x-grid:'))).toHaveLength(2)
+  })
+
+  it('uses axis length for spacing-based semantic candidates', () => {
+    const definition = defineChart({
+      marks: [lineY([0, 100])],
+      x: {
+        scale: scaleLinear().domain([0, 100]),
+        axis: { ticks: { spacing: 80 } },
+      },
+      y: { scale: scaleLinear().domain([0, 100]) },
+    })
+    const narrow = createChartScene(definition, { width: 240, height: 180 })
+    const wide = createChartScene(definition, { width: 960, height: 180 })
+
+    expect(narrow.scales.x.ticks.length).toBeLessThan(
+      wide.scales.x.ticks.length,
+    )
+  })
+
+  it('rejects competing semantic tick policies', () => {
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [lineY([0, 10])],
+          x: {
+            scale: scaleLinear().domain([0, 10]),
+            axis: { ticks: { count: 3, spacing: 80 } },
+          },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        }),
+        { width: 320, height: 180 },
+      ),
+    ).toThrow(/only one candidate policy/)
+  })
+
   it('grows with guide content and stacks titles outside tick labels', () => {
     const short = sceneWithYFormat((value) => String(value))
     const long = sceneWithYFormat(
@@ -77,13 +213,9 @@ describe('automatic scene guide layout', () => {
       ],
       x: {
         scale: scaleBand().domain(domain).padding(0.1),
-        tickRotate: -35,
-        label: 'Package',
+        axis: { tickLabels: { rotate: -35 }, label: 'Package' },
       },
-      y: {
-        scale: scaleLinear().domain([0, 3]),
-        label: 'Downloads',
-      },
+      y: { scale: scaleLinear().domain([0, 3]), axis: { label: 'Downloads' } },
     })
     const narrow = createChartScene(
       definition,
@@ -126,7 +258,9 @@ describe('automatic scene guide layout', () => {
       marks: [lineY([1, 2, 3])],
       x: {
         scale: scaleLinear().domain([0, 2]),
-        label: '← more disagree · Number of responses · more agree →',
+        axis: {
+          label: '← more disagree · Number of responses · more agree →',
+        },
       },
       y: { scale: scaleLinear().domain([0, 3]) },
     })
@@ -221,11 +355,13 @@ describe('automatic scene guide layout', () => {
   it('treats numeric margin sides as locks', () => {
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
-      x: { scale: scaleLinear().domain([0, 2]), label: 'Index' },
+      x: { scale: scaleLinear().domain([0, 2]), axis: { label: 'Index' } },
       y: {
         scale: scaleLinear().domain([0, 3]),
-        label: 'Value',
-        format: () => 'A deliberately long tick label',
+        axis: {
+          ticks: { format: () => 'A deliberately long tick label' },
+          label: 'Value',
+        },
       },
       margin: { left: 7 },
     })
@@ -344,11 +480,11 @@ describe('automatic scene guide layout', () => {
       marks: [createMark(initialize)],
       x: {
         scale: scaleLinear().domain([0, 1]),
-        label: 'Horizontal axis',
+        axis: { label: 'Horizontal axis' },
       },
       y: {
         scale: scaleLinear().domain([0, 1]),
-        label: 'Vertical axis',
+        axis: { label: 'Vertical axis' },
       },
     })
 
@@ -461,22 +597,19 @@ describe('automatic scene guide layout', () => {
   it('controls x and y guide visibility independently', () => {
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
-      x: {
-        scale: scaleLinear().domain([0, 2]),
-        label: 'Horizontal',
-      },
+      x: { scale: scaleLinear().domain([0, 2]), axis: { label: 'Horizontal' } },
       y: {
         scale: scaleLinear().domain([0, 3]),
-        label: 'Vertical',
         grid: true,
+        axis: { label: 'Vertical' },
       },
     })
     const sceneFor = (x: boolean, y: boolean) =>
       createChartScene(
         {
           ...definition,
-          x: { ...definition.x, guide: x },
-          y: { ...definition.y, guide: y },
+          x: { ...definition.x, axis: x ? definition.x.axis : false },
+          y: { ...definition.y, axis: y ? definition.y.axis : false },
         },
         { width: 480, height: 260 },
         { measureText },
@@ -504,7 +637,7 @@ describe('automatic scene guide layout', () => {
       false,
     )
     expect(flatten(neither.nodes).some((node) => node.key === 'grid')).toBe(
-      false,
+      true,
     )
   })
 })
@@ -513,14 +646,10 @@ function sceneWithYFormat(format: (value: unknown) => string) {
   return createChartScene(
     defineChart({
       marks: [lineY([1, 2, 3])],
-      x: {
-        scale: scaleLinear().domain([0, 2]),
-        label: 'Release',
-      },
+      x: { scale: scaleLinear().domain([0, 2]), axis: { label: 'Release' } },
       y: {
         scale: scaleLinear().domain([0, 3]),
-        label: 'Downloads',
-        format,
+        axis: { ticks: { format }, label: 'Downloads' },
       },
     }),
     { width: 640, height: 320 },

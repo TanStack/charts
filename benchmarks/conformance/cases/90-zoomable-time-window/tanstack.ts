@@ -63,19 +63,22 @@ const definition = (input: ZoomChartInput) => {
     ],
     x: {
       scale: scaleForWindow(input.window),
-      label: 'Date',
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          timeZone: 'UTC',
-        }),
+      axis: {
+        ticks: {
+          format: (value) =>
+            value.toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              timeZone: 'UTC',
+            }),
+        },
+        label: 'Date',
+      },
     },
     y: {
       scale: scaleLinear,
-      ticks: 4,
       grid: true,
-      label: 'AAPL close ($)',
+      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
     },
     margin: { top: 56, right: 24, bottom: 44, left: 58 },
   })

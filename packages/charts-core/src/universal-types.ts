@@ -2,18 +2,79 @@ export type { AreaYOptions } from './area'
 export type { AreaXCurve, AreaXOptions } from './area-x'
 export type { ArrowOptions } from './arrow'
 export type { BarXOptions, BarYOptions } from './bar'
+export type { BandXOptions, BandYOptions } from './band'
 export type { DotOptions } from './dot'
 export type { FacetAxes, FacetOptions } from './facet'
 export type { FrameOptions } from './frame'
+export type { GroupLayout, GroupOptions } from './group'
 export type { HexagonOptions } from './hexagon'
 export type { LineYOptions } from './line'
 export type { LinkOptions } from './link'
 export type { ColorGradientLegendOptions, ColorLegendOptions } from './legend'
 export type { CellOptions, RectOptions } from './rect'
 export type { RuleXOptions, RuleYOptions } from './rule'
+export type {
+  StackLayout,
+  StackOffset,
+  StackOptions,
+  StackOrder,
+} from './stack'
 export type { TextAnchor, TextOptions } from './text'
 export type { TickXOptions, TickYOptions } from './tick'
 export type { VectorAnchor, VectorOptions } from './vector'
+export type {
+  TransformAccessor,
+  TransformAccessorContext,
+  TransformField,
+  TransformGroupRow,
+  TransformGroupSpec,
+  TransformKey,
+  TransformLineage,
+  TransformOrder,
+  TransformOrderOptions,
+  TransformValue,
+  TransformValueOutput,
+} from './transform'
+export type { BinOptions, BinXDatum, BinYDatum } from './transform-bin'
+export type { BinXYDatum, BinXYOptions } from './transform-bin-xy'
+export type {
+  BinTimeDatum,
+  BinTimeOptions,
+  TimeIntervalLike,
+} from './transform-bin-time'
+export type { CumulativeDatum, CumulativeOptions } from './transform-cumulative'
+export type { GroupByDatum, GroupByOptions } from './transform-group'
+export type {
+  NormalizeBasis,
+  NormalizeContext,
+  NormalizeDatum,
+  NormalizeOptions,
+} from './transform-normalize'
+export type {
+  TransformNumericReducer,
+  TransformOutputRow,
+  TransformOutputSpec,
+  TransformOutputs,
+  TransformReduceContext,
+  TransformReducer,
+} from './transform-reduce'
+export type { RankDatum, RankOptions, RankTies } from './transform-rank'
+export type {
+  SelectContext,
+  SelectMethod,
+  SelectOptions,
+} from './transform-select'
+export type {
+  StackRowsXDatum,
+  StackRowsXOptions,
+  StackRowsYDatum,
+  StackRowsYOptions,
+} from './transform-stack'
+export type {
+  WindowAnchor,
+  WindowDatum,
+  WindowOptions,
+} from './transform-window'
 export type {
   Channel,
   ChannelAccessor,
@@ -26,7 +87,11 @@ export type {
   MarkScene,
   MaterializedChannel,
   ChartAxisOptions,
-  ChartAxisGuideOptions,
+  ChartAxisLabelOptions,
+  ChartAxisPresentationOptions,
+  ChartAxisTickLabelOptions,
+  ChartAxisTickLabelThinOptions,
+  ChartAxisTickOptions,
   ChartAxisValue,
   ChartAnimationOptions,
   ChartBounds,
@@ -43,9 +108,13 @@ export type {
   ChartCurve,
   ChartDefinition,
   ChartDefinitionOptions,
+  ChartFocusFilter,
+  ChartFocusMatch,
   ChartExtensionInput,
   ChartFocusMode,
   ChartFocusPreset,
+  ChartFocusSource,
+  ChartFocusState,
   ChartFocusStrategy,
   ChartGradientStop,
   ChartKey,
@@ -56,6 +125,17 @@ export type {
   ChartLinearGradient,
   ChartMark,
   ChartMarkDatum,
+  ChartMarkState,
+  ChartMarkStateContext,
+  ChartMarkStateSelector,
+  ChartMarkStateStyle,
+  ChartMarkStateValue,
+  ChartAreaStateStyle,
+  ChartBarStateStyle,
+  ChartDotStateStyle,
+  ChartLineStateStyle,
+  ChartRectStateStyle,
+  ChartTextStateStyle,
   ChartMarkX,
   ChartMarkY,
   ChartPoint,
@@ -86,6 +166,7 @@ export type {
   ChartTooltipContent,
   ChartTooltipContentContext,
   ChartTooltipAnchor,
+  ChartTooltipAxisAnchor,
   ChartTooltipAnchorContext,
   ChartTooltipChannelItem,
   ChartTooltipDatumItem,
@@ -100,6 +181,8 @@ export type {
   ChartTooltipPortalExtensionToken,
   ChartTooltipPortalOptions,
   ChartTooltipPosition,
+  ChartTooltipXAnchor,
+  ChartTooltipYAnchor,
   ChartTooltipRow,
   ChartTooltipSort,
   ChartValue,

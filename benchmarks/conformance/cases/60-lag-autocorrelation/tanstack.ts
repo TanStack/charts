@@ -1,5 +1,4 @@
-import { defineChart, dot, lineY } from '@tanstack/charts'
-import { pairs } from 'd3-array'
+import { defineChart, dot, first, lineY, window } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
@@ -43,12 +42,12 @@ const definition = () => {
     x: {
       scale: scaleLinear().domain(closeDomain),
       grid: true,
-      label: 'Previous close (USD)',
+      axis: { label: 'Previous close (USD)' },
     },
     y: {
       scale: scaleLinear().domain(closeDomain),
       grid: true,
-      label: 'Current close (USD)',
+      axis: { label: 'Current close (USD)' },
     },
   })
 }
@@ -59,8 +58,10 @@ export const mount = tanstackMount(
 )
 
 function lagPairs(rows: readonly AaplRow[]): readonly LagPoint[] {
-  return pairs(rows, (previous, current) => ({
-    ...current,
-    PreviousClose: previous.Close,
-  }))
+  return window(rows, {
+    size: 2,
+    orderBy: 'Date',
+    partial: false,
+    outputs: { PreviousClose: { value: 'Close', reduce: first } },
+  })
 }

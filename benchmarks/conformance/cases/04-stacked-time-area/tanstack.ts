@@ -1,9 +1,6 @@
 import { areaY, colorLegend, defineChart, ruleY } from '@tanstack/charts'
-import { group } from 'd3-array'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import { stack } from 'd3-shape'
 import { industries } from '@charts-poc/demo-data/industries'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 import { tanstackMount } from '../../shared/mount'
 
@@ -20,45 +17,28 @@ const colors = [
   '#bab0ab',
 ]
 
-interface WideTimePoint {
-  date: Date
-  byIndustry: ReadonlyMap<string, IndustriesRow>
-}
-
-interface StackedIndustryPoint extends IndustriesRow {
-  y1: number
-  y2: number
-}
-
-const definition = (_input: ConformanceInput) => {
-  const rows = stackRows(industries)
-
-  return defineChart({
+const definition = (_input: ConformanceInput) =>
+  defineChart({
     marks: [
-      areaY(rows, {
+      areaY(industries, {
         x: 'date',
-        y1: 'y1',
-        y2: 'y2',
+        y: 'unemployed',
         color: 'industry',
         fillOpacity: 0.78,
       }),
       ruleY([0]),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Month',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Month' } },
     y: {
       scale: scaleLinear,
-      label: 'Unemployed (thousands)',
       grid: true,
+      axis: { label: 'Unemployed (thousands)' },
     },
     color: {
       range: colors,
       legend: colorLegend({ label: 'Industry' }),
     },
   })
-}
 
 export const mount: ConformanceMount = tanstackMount(
   definition,
@@ -72,32 +52,3 @@ export const mount: ConformanceMount = tanstackMount(
       })} · ${datum.unemployed.toLocaleString('en-US')} thousand unemployed`,
   },
 )
-
-function stackRows(
-  rows: readonly IndustriesRow[],
-): readonly StackedIndustryPoint[] {
-  const industryNames = Array.from(new Set(rows.map((row) => row.industry)))
-  const wideRows = Array.from(
-    group(rows, (row) => row.date.getTime()).values(),
-    toWideRow,
-  )
-
-  return stack<WideTimePoint, string>()
-    .keys(industryNames)
-    .value((row, industry) => row.byIndustry.get(industry)?.unemployed ?? 0)(
-      wideRows,
-    )
-    .flatMap((series) =>
-      series.flatMap((point): readonly StackedIndustryPoint[] => {
-        const source = point.data.byIndustry.get(series.key)
-        return source ? [{ ...source, y1: point[0], y2: point[1] }] : []
-      }),
-    )
-}
-
-function toWideRow(rows: IndustriesRow[]): WideTimePoint {
-  return {
-    date: rows[0]?.date ?? new Date(0),
-    byIndustry: new Map(rows.map((row) => [row.industry, row] as const)),
-  }
-}

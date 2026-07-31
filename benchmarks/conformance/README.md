@@ -16,7 +16,8 @@ Each case owns:
 - an agent creation task and maintenance task.
 
 The reference may use its built-in transforms. TanStack receives the same raw
-rows and injects the granular D3 primitive when transformation is needed.
+rows and uses TanStack's data transforms or a granular D3 primitive when
+transformation is needed.
 Precomputing both sides would hide the bundle and authoring tradeoff being
 measured.
 
@@ -309,7 +310,8 @@ reject 1/8 while TanStack Charts rejects 8/8.
 Keep adding Plot cases while they can be expressed as one of:
 
 1. a recipe over existing marks;
-2. granular D3 preparation supplied by the consumer;
+2. a TanStack data transform or granular D3 preparation supplied by the
+   consumer;
 3. a tree-shakeable optional mark with an isolated entry point.
 
 Every optional addition must receive its own bundle measurement. The locked

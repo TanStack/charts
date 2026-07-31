@@ -12,14 +12,14 @@ evidence without turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `2be6729` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `e997c89` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `2be6729`.
+at page render time. The measured TanStack workspace revision is `e997c89`.
 
 ## Capability matrix
 
@@ -59,7 +59,7 @@ that lane externalizes React and React DOM.
 
 | Library         | Full cold-page gzip | React externalized |
 | --------------- | ------------------: | -----------------: |
-| TanStack Charts |     23.68–28.06 KiB |                  — |
+| TanStack Charts |     26.62–32.17 KiB |                  — |
 | Chart.js        |     44.70–58.21 KiB |                  — |
 | Apache ECharts  |   153.10–173.18 KiB |                  — |
 | Recharts        |   153.08–168.27 KiB |   94.96–109.96 KiB |
@@ -93,11 +93,12 @@ authoring.
 TanStack deliberately keeps several responsibilities outside the default
 runtime:
 
-| Responsibility                                      | Owner                                      |
-| --------------------------------------------------- | ------------------------------------------ |
-| Binning, stacking, statistics, and spatial layouts  | Application code using granular D3 modules |
-| Brush, zoom, scrubber, and editor state             | Application state and optional D3 behavior |
-| Data fetching, cleaning, filtering, and persistence | The application's data and state layers    |
+| Responsibility                                      | Owner                                                |
+| --------------------------------------------------- | ---------------------------------------------------- |
+| Binning, grouping, stacking, and statistics         | Hoistable TanStack transforms or granular D3 modules |
+| Spatial layouts                                     | Application code using a suitable layout library     |
+| Brush, zoom, scrubber, and editor state             | Application state and optional D3 behavior           |
+| Data fetching, cleaning, filtering, and persistence | The application's data and state layers              |
 
 Choose Chart.js when Canvas-first standard charts and its plugin ecosystem fit
 the application. Choose Apache ECharts for a broad built-in controller and

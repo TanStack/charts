@@ -43,11 +43,7 @@ const definition = (input: ConformanceInput) => {
     x: {
       scale: () => scaleBand<string>().padding(0.22),
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Body mass (g)',
-    },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Body mass (g)' } },
   })
 }
 

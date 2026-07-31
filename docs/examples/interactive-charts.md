@@ -16,6 +16,8 @@ selection, or product record.
 | Reader task                                                  | Start with                                     |
 | ------------------------------------------------------------ | ---------------------------------------------- |
 | Inspect one point or a same-x group                          | Native chart focus and tooltip                 |
+| Paint a band, rule, or mark only for the active datum/group  | `whenFocused` around an ordinary mark          |
+| Resize, recolor, or fade existing marks during focus         | Inline mark `states`                           |
 | Keep rich framework detail open, including another chart     | Pinned composed tooltip body                   |
 | Navigate a wide schedule without changing its semantic scale | Native horizontal scrolling                    |
 | Crop and pan a continuous domain                             | Controlled zoom and viewport state             |
@@ -24,6 +26,56 @@ selection, or product record.
 [Interactions and Selections](../guides/interactions-and-selections.md) defines
 the controlled gesture loop. [Tooltips and Focus](../guides/tooltips-and-focus.md)
 defines the native inspection path.
+
+## Compare focus marks
+
+A focused dot can resize and restyle the existing pointer target:
+
+```ts
+dot(rows, {
+  x: 'Date',
+  y: 'Close',
+  r: 3,
+  fill: '#2563eb',
+  states: [
+    {
+      when: { focus: 'primary' },
+      style: { r: 7, stroke: 'Canvas', strokeWidth: 2 },
+      transition: { duration: 140, easing: 'ease-out' },
+    },
+  ],
+})
+```
+
+<iframe
+  src="https://tanstack.com/charts/catalog/embed/34-pointer-tooltip/?theme=system&height=480"
+  title="Focused dot emphasizing the nearest Apple closing price"
+  loading="lazy"
+  width="100%"
+  height="480"
+  style="width:100%;height:480px;border:0;"
+></iframe>
+
+A focused band emphasizes the shared x value for every series. Its position
+before the lines places it underneath them:
+
+```ts
+marks: [
+  whenFocused(
+    bandX(dates, {
+      x: 'date',
+      fill: '#64748b',
+      fillOpacity: 0.14,
+      inset: 3,
+    }),
+    { match: 'x' },
+  ),
+  lineY(rows, { x: 'date', y: 'unemployed', color: 'industry' }),
+]
+```
+
+[Open the grouped focus example](https://tanstack.com/charts/catalog/35-grouped-tooltip/)
+to inspect its live chart and complete source.
 
 ## Pin rich nested detail
 

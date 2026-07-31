@@ -11,6 +11,7 @@ import type {
 } from './dom-types'
 import type {
   ChartAnimationOptions,
+  ChartFocusSource,
   ChartFocusMode,
   ChartFocusStrategy,
   ChartPoint,
@@ -46,6 +47,7 @@ export function mountChartRenderer<
   let options = initialOptions
   let scene!: ChartScene<TDatum, TXValue, TYValue>
   let focusedPoint: ChartPoint<TDatum, TXValue, TYValue> | null = null
+  let focusSource: ChartFocusSource = 'pointer'
   let pointerPosition: ChartTooltipPosition | null = null
   let pinnedKey: string | null = null
   let observer: ResizeObserver | undefined
@@ -101,6 +103,7 @@ export function mountChartRenderer<
     focusedPoint = nextFocusedPoint
     if (!nextFocusedPoint) pinnedKey = null
     if (previousFocusedPoint) {
+      focusSource = 'restored'
       const nextFocusedPoints = nextFocusedPoint
         ? focusPointsForPoint(nextFocusedPoint)
         : []
@@ -212,7 +215,17 @@ export function mountChartRenderer<
     point: ChartPoint<TDatum, TXValue, TYValue> | null,
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) => {
-    surface?.paintFocus(point, points)
+    surface?.paintFocus(
+      point
+        ? {
+            primary: point,
+            group: points,
+            source: focusSource,
+            pinned: pinnedKey !== null,
+          }
+        : null,
+      pointerPosition,
+    )
     paintTooltip(point, points)
   }
 
@@ -225,6 +238,7 @@ export function mountChartRenderer<
   }
   const handlePointerMove = (event: PointerEvent) => {
     if (pinnedKey) return
+    focusSource = 'pointer'
     updateFocus(
       pointsAtPointer(event.clientX, event.clientY),
       tooltipTracksPointer(),
@@ -248,6 +262,7 @@ export function mountChartRenderer<
       return
     }
     const points = pointsAtPointer(event.clientX, event.clientY)
+    focusSource = 'pointer'
     const point = points[0] ?? null
     let pinChanged = false
     if (tooltipIsSticky()) {
@@ -290,6 +305,7 @@ export function mountChartRenderer<
     if (point === undefined) return
     event.preventDefault()
     pointerPosition = null
+    focusSource = 'keyboard'
     updateFocus(point ? focusPointsForPoint(point) : [])
   }
   const handleFocus = (event: FocusEvent) => {
@@ -307,6 +323,7 @@ export function mountChartRenderer<
         ? focus.navigation(scene.points)[0]
         : pointFromSceneOrder(scene.points, null, 'Home')
       pointerPosition = null
+      focusSource = 'keyboard'
       updateFocus(point ? focusPointsForPoint(point) : [])
     }
   }
@@ -458,6 +475,12 @@ export function mountChartRenderer<
       scene,
       surface,
       pointer: pointerPosition,
+      focus: {
+        primary: point,
+        group: points,
+        source: focusSource,
+        pinned: pinnedKey !== null,
+      },
       pinned: pinnedKey !== null,
     })
   }
@@ -488,7 +511,12 @@ export function mountChartRenderer<
   function tooltipTracksPointer() {
     const input = resolveTooltipInput(options.definition.tooltip)
     const anchor = input?.options.anchor
-    return anchor === 'pointer' || typeof anchor === 'function'
+    return (
+      anchor === 'pointer' ||
+      typeof anchor === 'function' ||
+      (typeof anchor === 'object' &&
+        (anchor.x === 'pointer' || anchor.y === 'pointer'))
+    )
   }
 }
 

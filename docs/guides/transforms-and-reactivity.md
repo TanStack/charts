@@ -1,79 +1,109 @@
 ---
 title: Transforms and Reactivity
-description: Transform raw observations beside a memoized chart definition using each framework's native reactivity.
+description: Derive typed rows once and memoize them where the data is owned.
 ---
 
-Keep raw observations in their application shape. Put grouping, binning,
-stacking, ranking, rolling statistics, and interval construction beside the
-chart definition so the analytical path remains visible.
+TanStack transforms are eager, deterministic data utilities. Their results can
+feed a chart, table, export, test, or another transform.
 
-## Choose the execution boundary
-
-| Work                                           | Location                               |
-| ---------------------------------------------- | -------------------------------------- |
-| A value derived from one row                   | Channel accessor                       |
-| A chart-specific cross-row transform           | Ordinary function beside `defineChart` |
-| Reused or expensive derived data               | Framework memo or computed state       |
-| A surface-responsive transform                 | Definition builder using surface size  |
-| Exact plot-pixel collision or placement        | Custom mark render phase               |
-| Querying, permissions, or business aggregation | Application or server                  |
-
-## Transform and memoize together
-
-```tsx
-function LatencyChart({ observations }: Props) {
-  const definition = useMemo(() => {
-    const histogram = binLatency(observations)
-
-    return defineChart({
-      marks: [
-        rect(histogram, {
-          x1: 'x1',
-          x2: 'x2',
-          y1: () => 0,
-          y2: 'count',
-          inset: 1,
-        }),
-      ],
-      x: { scale: scaleLinear },
-      y: { scale: scaleLinear, nice: true },
-    })
-  }, [observations])
-
-  return <Chart definition={definition} ariaLabel="Request latency" />
-}
+```text
+source rows → data transforms → mark channels → mark layout
 ```
 
-The imported data remains raw. The adjacent transform defines thresholds,
-derived row shape, and source observations retained for interaction. The chart
-derives positional domains from the materialized interval endpoints.
+Use a channel accessor for a one-row calculation, a data transform for reusable
+cross-row work, and `layout: stack()` or `layout: group()` when geometry belongs
+only to one mark.
 
-## Responsive transforms
-
-Keep surface-dependent layout inside the builder. Captured data remains stable
-while Charts rebuilds for a new size:
+## Hoist the calculation
 
 ```ts
-const definition = useMemo(
-  () =>
-    defineChart(({ width, height }) => {
-      const columns = Math.max(
-        1,
-        Math.floor(Math.sqrt((total * width) / Math.max(1, height))),
-      )
-      return buildWaffleSpec(layoutWaffleCells(segments, columns), columns)
-    }),
-  [segments, total],
+const daily = groupBy(orders, {
+  by: {
+    region: 'region',
+    day: ({ datum }) => utcDay.floor(datum.createdAt),
+  },
+  outputs: {
+    revenue: { value: 'amount', reduce: 'sum' },
+    orders: { reduce: 'count' },
+    averageOrder: { value: 'amount', reduce: 'mean' },
+  },
+})
+
+const trends = window(daily, {
+  by: 'region',
+  orderBy: 'day',
+  size: 28,
+  partial: false,
+  outputs: {
+    revenue28d: { value: 'revenue', reduce: 'sum' },
+    averageOrder28d: { value: 'averageOrder', reduce: 'mean' },
+  },
+})
+
+lineY(trends, { x: 'day', y: 'revenue28d', color: 'region' })
+```
+
+Unlike a mark-options transform, both intermediate datasets are normal typed
+rows. Group fields are named and row transforms remain flat.
+
+## Use callbacks and escape hatches
+
+Field names and object-bag callbacks are interchangeable:
+
+```ts
+const summaries = groupBy(rows, {
+  by: { region: 'region', profitable: ({ datum }) => datum.margin > 0 },
+  outputs: {
+    p90: { value: 'latency', reduce: quantile(0.9) },
+    custom: {
+      reduce: ({ data, group }) => domainCalculation(data, group),
+    },
+  },
+})
+```
+
+For transforms outside the built-ins, use an ordinary function:
+
+```ts
+const active = rows.filter((row) => row.active)
+const enriched = active.map(enrichRow)
+const summaries = groupBy(enriched, options)
+```
+
+This is the escape hatch and the composition model. There is no pipeline
+protocol to learn.
+
+## Memoize at the owner
+
+```tsx
+const histogram = useMemo(
+  () => binX(observations, { value: 'latency', thresholds: 24 }),
+  [observations],
 )
 ```
 
-Exact inner plot bounds are not available until guides are measured; use a
-custom mark when an algorithm requires them.
+Use `computed`, `createMemo`, `$derived`, or the equivalent application
+primitive. TanStack Charts does not add a cache or reactive graph.
 
-Derived rows should preserve source observations needed by tooltips and
-selection. Drop or explicitly handle incomplete reducer output instead of
-casting it.
+## Keep geometry separate
 
-TanStack Charts accepts D3 output directly and does not require a
-library-owned series shape. Install each granular `d3-*` module imported by
-application source.
+Color can infer stack series for stack-capable marks. Grouping remains an
+explicit geometric choice:
+
+```ts
+barY(rows, { x: 'quarter', y: 'revenue', color: 'product' })
+
+barY(rows, {
+  x: 'quarter',
+  y: 'revenue',
+  color: 'product',
+  layout: group(),
+})
+```
+
+Use `stackRowsX` or `stackRowsY` when stack endpoints must be reused outside
+that mark.
+
+Granular imports such as `@tanstack/charts/transform/group` and
+`@tanstack/charts/transform/window` keep unrelated transform families out of
+bundle-sensitive code.

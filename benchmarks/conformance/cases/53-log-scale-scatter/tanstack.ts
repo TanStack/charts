@@ -32,13 +32,9 @@ const definition = (input: ConformanceInput) => {
     x: {
       scale: scaleLog().domain([200, 30_000]),
       grid: true,
-      label: 'Class size',
+      axis: { label: 'Class size' },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Hierarchy depth',
-    },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Hierarchy depth' } },
   })
 }
 

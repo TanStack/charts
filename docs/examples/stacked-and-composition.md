@@ -24,16 +24,24 @@ values remain available elsewhere.
 | Which subgroup values must be compared precisely across groups? | Grouped bars or aligned small multiples |
 | Do contributions extend in positive and negative directions?    | Diverging stack around an explicit zero |
 
-Prepare explicit interval endpoints for every stacked row. The application
-owns series order, offset, normalization, and the denominator behind every
-proportion. [Scales and D3](../concepts/scales-and-d3.md) defines that
-preparation boundary.
+Single-value bar and area channels stack implicitly. Use `layout: stack()`
+when the order or offset must be explicit; supply interval endpoints when the
+application has already computed them.
 
 ## Preserve totals with a stacked area
 
-A stacked area combines a shared ordered x domain with explicit lower and upper
-boundaries for every series. The top boundary carries the total; the thickness
-of each layer carries its contribution.
+A stacked area combines a shared ordered x domain with one length per series.
+The top boundary carries the total; the thickness of each layer carries its
+contribution.
+
+```ts
+areaY(rows, {
+  x: 'date',
+  y: 'value',
+  color: 'series',
+  layout: stack({ order: ['Core', 'Services'] }),
+})
+```
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/04-stacked-time-area/?theme=system&height=480"
@@ -49,9 +57,8 @@ values appear to move substantially and breaks the reader's spatial memory.
 When one series needs precise comparison, place it on the shared baseline or
 give it a separate aligned view.
 
-The prepared rows should retain original values for tooltips and selection,
-even when marks consume `y1` and `y2` interval channels. See
-[Data and Channels](../concepts/data-and-channels.md).
+The original value remains available to tooltips and selection while the mark
+derives its stack endpoints.
 
 ## Compare proportional mix
 
@@ -72,8 +79,8 @@ Format the quantitative guide as a percentage and state the denominator. Keep
 raw totals available in a tooltip, table, or companion view when the reader may
 otherwise mistake stable share for stable volume.
 
-Normalize within each x group before rendering. Do not normalize the complete
-dataset once and then divide it into time slices.
+Use `layout: stack({ offset: 'normalize' })`. Normalization is resolved
+independently at each x position.
 
 ## Emphasize changing shape
 
@@ -90,9 +97,10 @@ but the displaced baseline makes precise values and totals difficult to read.
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
-Treat offset and layer order as analytical parameters. Keep them deterministic
-across revisions, preserve stable series colors, and provide exact values
-through [Tooltips and Focus](../guides/tooltips-and-focus.md).
+Use `offset: 'center'` or `offset: 'wiggle'` and an explicit order when the
+composition depends on them. Keep those values stable across revisions,
+preserve series colors, and provide exact values through
+[Tooltips and Focus](../guides/tooltips-and-focus.md).
 
 Use an ordinary stacked area when totals or baselines are part of the question.
 

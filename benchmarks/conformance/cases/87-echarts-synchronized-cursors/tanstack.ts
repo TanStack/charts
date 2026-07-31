@@ -74,18 +74,23 @@ const definition = (input: SynchronizedViewInput) => {
     ],
     x: {
       scale: scaleUtc,
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          timeZone: 'UTC',
-        }),
+      axis: {
+        ticks: {
+          format: (value) =>
+            value.toLocaleDateString(undefined, {
+              month: 'short',
+              timeZone: 'UTC',
+            }),
+        },
+      },
     },
     y: {
       scale: scaleLinear().domain(synchronizedCursorYDomains[input.view]),
-      ticks: 4,
       grid: true,
-      label: input.view === 'current' ? '2020 travelers' : '2019 travelers',
-      format: formatTravelers,
+      axis: {
+        ticks: { count: 4, format: formatTravelers },
+        label: input.view === 'current' ? '2020 travelers' : '2019 travelers',
+      },
     },
     margin: {
       top: 16,

@@ -31,14 +31,11 @@ const definition = () => {
         strokeWidth: 2.25,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Month',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Month' } },
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Unemployed people by industry (thousands)',
+      axis: { label: 'Unemployed people by industry (thousands)' },
     },
   })
 }

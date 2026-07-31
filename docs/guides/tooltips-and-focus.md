@@ -191,6 +191,20 @@ const definition = defineChart({
 })
 ```
 
+Coordinates can be selected independently. This follows the focused x value
+while fixing the tooltip to the top of the plot:
+
+```ts
+const fixedYDefinition = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    anchor: { x: 'value', y: 'plot-top' },
+    placement: 'bottom',
+    offset: 12,
+  },
+})
+```
+
 A custom resolver covers event ranges, maps, and application-specific
 reference positions:
 
@@ -198,19 +212,19 @@ reference positions:
 const customAnchorDefinition = defineChart(definition, {
   tooltip: {
     use: tooltip,
-    anchor: (_points, { chart }) => ({
-      x: chart.x + chart.width,
-      y: chart.y,
+    anchor: (_points, { focus, pointer, plot, surface, scales }) => ({
+      x: scales.x.map(focus.primary.xValue),
+      y: plot.y,
     }),
     placement: 'bottom-left',
   },
 })
 ```
 
-Resolvers and placement use scene pixels. A nullish or non-finite custom
+Resolvers receive complete focus, pointer, plot, surface, and resolved-scale
+state. Resolvers and placement use scene pixels. A nullish or non-finite custom
 anchor falls back to the primary point. A placement list uses the first fit,
-then the least-overflowing candidate. Every result shifts inside the chart
-surface.
+then the least-overflowing candidate.
 
 ## Escaping clipped containers
 

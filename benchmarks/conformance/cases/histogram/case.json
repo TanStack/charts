@@ -19,6 +19,6 @@
   },
   "ai": {
     "create": "Create a histogram directly from the cars economy (mpg) field using fixed five-mpg boundaries from 5 through 50.",
-    "maintain": "Change the threshold boundaries while retaining the imported rows and keeping the Plot and granular D3 transforms semantically equivalent."
+    "maintain": "Change the threshold boundaries while retaining the imported rows and keeping the Plot and TanStack transforms semantically equivalent."
   }
 }

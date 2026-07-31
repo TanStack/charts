@@ -1,9 +1,17 @@
 import { reconcileChartSvg } from './reconcile'
 import { renderChartSvg } from './svg'
-import type { ChartRenderer, ChartSurface } from './dom-types'
+import { focusedNodeKeys } from './focus-layer'
+import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
 import type {
+  ChartRenderer,
+  ChartSurface,
+  ChartSurfaceRenderOptions,
+} from './dom-types'
+import type {
+  ChartFocusState,
   ChartPoint,
   ChartScene,
+  SceneGroup,
   ChartSvgRenderer,
   ChartValue,
 } from './types'
@@ -20,6 +28,9 @@ export function createSvgChartRenderer<
     prerender: renderSvg,
     mount(container) {
       let cancelAnimation = () => {}
+      let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
+      let renderOptions: ChartSurfaceRenderOptions | undefined
+      let stateTransition: ChartSurfaceRenderOptions['animation']
       const svgElement = () => {
         const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
         if (!svg) {
@@ -35,19 +46,39 @@ export function createSvgChartRenderer<
         get element() {
           return svgElement()
         },
-        render(scene, options) {
+        render(nextScene, options) {
           cancelAnimation()
           cancelAnimation = reconcileChartSvg(
             container,
-            renderSvg(scene, options),
+            renderSvg(nextScene, options),
             options.animation,
           )
+          scene = nextScene
+          renderOptions = options
+          stateTransition = undefined
         },
         clientToScene(scene, clientX, clientY) {
           return clientToScene(svgElement(), scene, clientX, clientY)
         },
-        paintFocus(point) {
-          paintSvgFocus(svgElement(), point)
+        paintFocus(focus, pointer) {
+          if (!scene || !renderOptions) return
+          const resolved = resolveMarkStateScene(scene, focus, pointer)
+          const previousTransition = stateTransition
+          if (resolved.scene !== scene || previousTransition) {
+            cancelAnimation()
+            cancelAnimation = reconcileChartSvg(
+              container,
+              renderSvg(resolved.scene, renderOptions),
+              resolveMarkStateTransition(
+                resolved.transition ?? previousTransition,
+                container,
+              ),
+            )
+          }
+          stateTransition = focus
+            ? (resolved.transition ?? previousTransition)
+            : undefined
+          paintSvgFocus(svgElement(), resolved.scene, focus)
         },
         destroy() {
           cancelAnimation()
@@ -77,15 +108,39 @@ function clientToScene(
   }
 }
 
-function paintSvgFocus(svg: SVGSVGElement, point: ChartPoint | null): void {
-  const focus = svg.querySelector<SVGCircleElement>('[data-ts-chart-focus]')
-  if (!focus) return
-  if (point) {
-    focus.setAttribute('cx', String(point.x))
-    focus.setAttribute('cy', String(point.y))
-    focus.setAttribute('stroke', point.color)
-    focus.setAttribute('visibility', 'visible')
-  } else {
-    focus.setAttribute('visibility', 'hidden')
+function paintSvgFocus(
+  svg: SVGSVGElement,
+  scene: ChartScene,
+  focus: ChartFocusState | null,
+): void {
+  const sceneLayers = collectFocusLayers(scene.nodes)
+  const elements = svg.querySelectorAll<SVGGElement>('[data-ts-focus-layer]')
+  elements.forEach((element, index) => {
+    const layer = sceneLayers[index]
+    const visible = layer ? focusedNodeKeys(layer, focus) : new Set<string>()
+    element.setAttribute(
+      'visibility',
+      focus && visible.size ? 'visible' : 'hidden',
+    )
+    element.querySelectorAll<SVGElement>('[data-ts-key]').forEach((child) => {
+      const key = child.dataset.tsKey
+      child.setAttribute(
+        'visibility',
+        key && visible.has(key) ? 'visible' : 'hidden',
+      )
+    })
+  })
+}
+
+function collectFocusLayers(nodes: ChartScene['nodes']): SceneGroup[] {
+  const layers: SceneGroup[] = []
+  for (const node of nodes) {
+    if (node.kind !== 'group') continue
+    if (node.focus) {
+      layers.push(node)
+    } else {
+      layers.push(...collectFocusLayers(node.children))
+    }
   }
+  return layers
 }

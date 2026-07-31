@@ -48,7 +48,36 @@ const retainedInputGroups = {
   ],
   tooltipExtension: [/(?:^|\/)packages\/charts-core\/src\/tooltip\.ts$/u],
   tooltipPortal: [/(?:^|\/)packages\/charts-core\/src\/tooltip-portal\.ts$/u],
+  transformRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/transform(?:-[^/]+)?\.ts$/u,
+  ],
+  transformBin: [/(?:^|\/)packages\/charts-core\/src\/transform-bin\.ts$/u],
+  transformBinXY: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-bin-xy\.ts$/u,
+  ],
+  transformBinTime: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-bin-time\.ts$/u,
+  ],
+  transformGroup: [/(?:^|\/)packages\/charts-core\/src\/transform-group\.ts$/u],
+  transformWindow: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-window\.ts$/u,
+  ],
+  transformCumulative: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-cumulative\.ts$/u,
+  ],
+  transformRank: [/(?:^|\/)packages\/charts-core\/src\/transform-rank\.ts$/u],
+  transformNormalize: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-normalize\.ts$/u,
+  ],
+  transformSelect: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-select\.ts$/u,
+  ],
+  transformStack: [/(?:^|\/)packages\/charts-core\/src\/transform-stack\.ts$/u],
+  transformReduce: [
+    /(?:^|\/)packages\/charts-core\/src\/transform-reduce\.ts$/u,
+  ],
   d3Array: [/(?:^|\/)node_modules\/d3-array\//u],
+  d3Shape: [/(?:^|\/)node_modules\/d3-shape\//u],
   d3ScaleRuntime: [
     /(?:^|\/)node_modules\/d3-scale\//u,
     /(?:^|\/)node_modules\/d3-format\//u,
@@ -57,42 +86,143 @@ const retainedInputGroups = {
     /(?:^|\/)node_modules\/internmap\//u,
   ],
 }
+const granularTransformInputGroups = [
+  'transformBin',
+  'transformBinXY',
+  'transformBinTime',
+  'transformGroup',
+  'transformWindow',
+  'transformCumulative',
+  'transformRank',
+  'transformNormalize',
+  'transformSelect',
+  'transformStack',
+  'transformReduce',
+]
 const entries = [
   measured('Core host', 'benchmarks/entries/core.ts'),
-  locked('D3-scale line scene', 'benchmarks/entries/charts-core.ts'),
+  budgeted(
+    'Granular data transform suite',
+    'benchmarks/entries/charts-transform-suite.ts',
+    6.35,
+    {
+      inputBoundary: transformSuiteBoundary(),
+    },
+  ),
+  budgeted(
+    'Transform: numeric bin',
+    'benchmarks/entries/charts-transform-bin.ts',
+    3.05,
+    {
+      inputBoundary: granularTransformBoundary('transformBin', {
+        allowD3Array: true,
+      }),
+    },
+  ),
+  budgeted(
+    'Transform: 2D bin',
+    'benchmarks/entries/charts-transform-bin-xy.ts',
+    2.9,
+    {
+      inputBoundary: granularTransformBoundary('transformBinXY', {
+        allowD3Array: true,
+      }),
+    },
+  ),
+  budgeted(
+    'Transform: calendar bin',
+    'benchmarks/entries/charts-transform-bin-time.ts',
+    1.45,
+    { inputBoundary: granularTransformBoundary('transformBinTime') },
+  ),
+  budgeted(
+    'Transform: group',
+    'benchmarks/entries/charts-transform-group.ts',
+    1.05,
+    {
+      inputBoundary: granularTransformBoundary('transformGroup'),
+    },
+  ),
+  budgeted(
+    'Transform: window',
+    'benchmarks/entries/charts-transform-window.ts',
+    1.35,
+    { inputBoundary: granularTransformBoundary('transformWindow') },
+  ),
+  budgeted(
+    'Transform: cumulative',
+    'benchmarks/entries/charts-transform-cumulative.ts',
+    1.2,
+    { inputBoundary: granularTransformBoundary('transformCumulative') },
+  ),
+  budgeted(
+    'Transform: rank',
+    'benchmarks/entries/charts-transform-rank.ts',
+    0.9,
+    {
+      inputBoundary: granularTransformBoundary('transformRank'),
+    },
+  ),
+  budgeted(
+    'Transform: normalize',
+    'benchmarks/entries/charts-transform-normalize.ts',
+    0.95,
+    { inputBoundary: granularTransformBoundary('transformNormalize') },
+  ),
+  budgeted(
+    'Transform: select',
+    'benchmarks/entries/charts-transform-select.ts',
+    0.9,
+    { inputBoundary: granularTransformBoundary('transformSelect') },
+  ),
+  budgeted(
+    'Transform: stack',
+    'benchmarks/entries/charts-transform-stack.ts',
+    2.1,
+    {
+      inputBoundary: granularTransformBoundary('transformStack', {
+        allowD3Shape: true,
+      }),
+    },
+  ),
+  budgeted(
+    'Transform: advanced reducers',
+    'benchmarks/entries/charts-transform-reduce.ts',
+    0.55,
+    { inputBoundary: granularTransformBoundary('transformReduce') },
+  ),
+  locked('D3-scale line scene', 'benchmarks/entries/charts-core.ts', {
+    inputBoundary: { forbid: ['transformRuntime', 'tooltipRuntime'] },
+  }),
   locked('D3-scale line + static SVG', 'benchmarks/entries/charts-svg.ts', {
     rendererBoundary: 'svg',
   }),
   budgeted(
     'D3-scale UTC line + static SVG',
     'benchmarks/entries/charts-time-svg.ts',
-    19.5,
+    20.9,
   ),
   budgeted(
     'D3-scale histogram + static SVG',
     'benchmarks/entries/charts-histogram-svg.ts',
-    16.15,
+    18.7,
   ),
   budgeted(
     'D3-scale facets + static SVG',
     'benchmarks/entries/charts-facet-svg.ts',
-    16.85,
+    18.8,
   ),
   budgeted(
     'D3-scale arrows + static SVG',
     'benchmarks/entries/charts-arrow-svg.ts',
-    15,
+    16.35,
   ),
   budgeted(
     'D3-scale areaX + static SVG',
     'benchmarks/entries/charts-area-x-svg.ts',
-    17,
+    19.8,
   ),
-  budgeted(
-    'Frame + static SVG',
-    'benchmarks/entries/charts-frame-svg.ts',
-    6.55,
-  ),
+  budgeted('Frame + static SVG', 'benchmarks/entries/charts-frame-svg.ts', 7.9),
   budgeted(
     'Custom mark scale-value factory',
     'benchmarks/entries/charts-mark-scale-values.ts',
@@ -101,47 +231,47 @@ const entries = [
   budgeted(
     'D3-scale hexagons + static SVG',
     'benchmarks/entries/charts-hexagon-svg.ts',
-    14.9,
+    16.3,
   ),
   budgeted(
     'D3-scale link + static SVG',
     'benchmarks/entries/charts-link-svg.ts',
-    14.85,
+    16.25,
   ),
   budgeted(
     'D3-scale ticks + static SVG',
     'benchmarks/entries/charts-tick-svg.ts',
-    15.25,
+    16.6,
   ),
   budgeted(
     'D3-scale vectors + static SVG',
     'benchmarks/entries/charts-vector-svg.ts',
-    15.1,
+    16.45,
   ),
   budgeted(
     'D3 geo shape + static SVG',
     'benchmarks/entries/charts-geo-svg.ts',
-    12.4,
+    13.85,
   ),
   budgeted(
     'Polar arc + static SVG',
     'benchmarks/entries/charts-polar-arc-svg.ts',
-    10.35,
+    11.75,
   ),
   budgeted(
     'D3 pie + polar arc + static SVG',
     'benchmarks/entries/charts-polar-pie-svg.ts',
-    10.8,
+    12.2,
   ),
   budgeted(
     'Polar gauge composition + static SVG',
     'benchmarks/entries/charts-polar-gauge-svg.ts',
-    19.1,
+    20.55,
   ),
   budgeted(
     'Polar line + scatter composition + static SVG',
     'benchmarks/entries/charts-polar-line-scatter-svg.ts',
-    20.35,
+    21.8,
   ),
   locked('Representative marks', 'benchmarks/entries/charts-representative.ts'),
   measured(
@@ -195,7 +325,7 @@ const entries = [
   lockedBudgeted(
     'Compact-scale line scene',
     'benchmarks/entries/charts-compact-linear-scene.ts',
-    7,
+    8.1,
     {
       inputBoundary: {
         require: ['compactLinear'],
@@ -205,6 +335,7 @@ const entries = [
           'compactBandKernel',
           'tooltipRuntime',
           'tooltipPortal',
+          'transformRuntime',
           'd3ScaleRuntime',
         ],
       },
@@ -213,7 +344,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    15,
+    16.8,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -225,6 +356,7 @@ const entries = [
           'compactBandKernel',
           'tooltipRuntime',
           'tooltipPortal',
+          'transformRuntime',
           'd3ScaleRuntime',
         ],
       },
@@ -245,6 +377,7 @@ const entries = [
           'compactBandKernel',
           'compactOrdinal',
           'reactTooltipBridge',
+          'transformRuntime',
           'd3Array',
           'd3ScaleRuntime',
         ],
@@ -266,6 +399,7 @@ const entries = [
           'compactBandKernel',
           'compactOrdinal',
           'reactTooltipBridge',
+          'transformRuntime',
           'd3Array',
           'd3ScaleRuntime',
         ],
@@ -320,7 +454,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    35.45,
+    40.5,
   ),
   locked(
     'Custom-scale line scene',
@@ -346,27 +480,27 @@ const entries = [
   budgeted(
     'D3 curved line scene',
     'benchmarks/entries/charts-d3-curved-line-scene.ts',
-    16,
+    17.45,
   ),
   budgeted(
     'D3 time-scale line scene',
     'benchmarks/entries/charts-d3-time-scene.ts',
-    18.35,
+    19.8,
   ),
   budgeted(
     'Direct D3 monotone + TanStack SVG',
     'benchmarks/entries/charts-d3-curve-svg.ts',
-    17.1,
+    18.5,
   ),
   budgeted(
     'Direct D3 transforms + TanStack histogram',
     'benchmarks/entries/charts-d3-transform-histogram.ts',
-    16.15,
+    17.5,
   ),
   budgeted(
     'Direct D3 time + TanStack UTC line',
     'benchmarks/entries/charts-d3-time-svg.ts',
-    19.5,
+    20.9,
   ),
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
@@ -540,7 +674,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    36.75,
+    41.5,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),
@@ -657,6 +791,31 @@ if (args.has('--update-baseline')) {
 
 function measured(label, entry, options = {}) {
   return createEntry(label, entry, { kind: 'measure' }, options)
+}
+
+function granularTransformBoundary(
+  required,
+  { allowD3Array = false, allowD3Shape = false } = {},
+) {
+  return {
+    require: [required],
+    forbid: [
+      ...granularTransformInputGroups.filter((group) => group !== required),
+      ...(allowD3Array ? [] : ['d3Array']),
+      'd3ScaleRuntime',
+      ...(allowD3Shape ? [] : ['d3Shape']),
+    ],
+  }
+}
+
+function transformSuiteBoundary() {
+  const required = granularTransformInputGroups.filter(
+    (group) => group !== 'transformBinTime' && group !== 'transformReduce',
+  )
+  return {
+    require: required,
+    forbid: ['transformBinTime', 'transformReduce', 'd3ScaleRuntime'],
+  }
 }
 
 function locked(label, entry, options = {}) {

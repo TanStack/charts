@@ -43,13 +43,13 @@ const definition = (input: BenchmarkInput) =>
             ? [xMinimum(input), xMaximum(input)]
             : [0, Math.max(1, input.rows.length - 1)],
         ),
-        ticks: 6,
         grid: true,
+        axis: { ticks: { count: 6 } },
       },
       y: {
         scale: scaleLinear().domain([0, BENCHMARK_ADVANCED ? 200 : 100]),
-        ticks: 5,
         grid: true,
+        axis: { ticks: { count: 5 } },
       },
       color: BENCHMARK_INTERACTIVE
         ? {

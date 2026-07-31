@@ -1,15 +1,18 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { scaleBand, scaleOrdinal, scaleRadial } from 'd3-scale'
+import { scaleBand, scaleLinear, scaleOrdinal, scaleRadial } from 'd3-scale'
 import { curveMonotoneX, curveStep } from 'd3-shape'
 import { areaY } from './area'
+import { areaX } from './area-x'
 import { barX, barY } from './bar'
 import { d3Curve } from './d3-shape'
 import { dot } from './dot'
+import { group } from './group'
 import { colorLegend } from './legend'
 import { lineY } from './line'
 import { cell } from './rect'
 import { ruleX, ruleY } from './rule'
 import { createChartScene, defineChart } from './scene'
+import { stack } from './stack'
 import { renderChartSvg } from './svg'
 import { renderChartSvgWithResources } from './svg-resources'
 import { text } from './text'
@@ -262,8 +265,20 @@ describe('core marks and categorical scales', () => {
 
   it('uses an injected D3 band scale for grouped bar geometry', () => {
     const data = [
-      { id: 'a:query', category: 'A', series: 'Query', value: 12 },
-      { id: 'a:router', category: 'A', series: 'Router', value: 8 },
+      {
+        id: 'a:query',
+        category: 'A',
+        series: 'Query',
+        start: 0,
+        end: 12,
+      },
+      {
+        id: 'a:router',
+        category: 'A',
+        series: 'Router',
+        start: 0,
+        end: 8,
+      },
     ]
     const groupScale = scaleBand<string>()
       .domain(['Query', 'Router'])
@@ -273,9 +288,10 @@ describe('core marks and categorical scales', () => {
         marks: [
           barY(data, {
             x: 'category',
-            y: 'value',
+            y1: 'start',
+            y2: 'end',
             z: 'series',
-            groupScale,
+            layout: group({ scale: groupScale }),
             key: 'id',
           }),
         ],
@@ -319,7 +335,7 @@ describe('core marks and categorical scales', () => {
             x: 'category',
             y: 'value',
             z: 'series',
-            groupScale: () => scaleBand<string>().padding(0.2),
+            layout: group({ scale: () => scaleBand<string>().padding(0.2) }),
             key: 'id',
           }),
         ],
@@ -336,7 +352,7 @@ describe('core marks and categorical scales', () => {
     )
   })
 
-  it('uses color as the subgroup channel when groupScale is explicit and z is omitted', () => {
+  it('uses color as the subgroup channel when grouped layout is explicit and z is omitted', () => {
     const data = [
       { id: 'a:query', category: 'A', series: 'Query', value: 12 },
       { id: 'a:router', category: 'A', series: 'Router', value: 8 },
@@ -352,7 +368,7 @@ describe('core marks and categorical scales', () => {
             x: 'category',
             y: 'value',
             color: 'series',
-            groupScale: () => scaleBand<string>().padding(0.2),
+            layout: group({ scale: () => scaleBand<string>().padding(0.2) }),
           }),
         ],
         ...bandXAxes(['A'], [0, 12]),
@@ -367,7 +383,7 @@ describe('core marks and categorical scales', () => {
             x: 'value',
             y: 'category',
             color: 'series',
-            groupScale: () => scaleBand<string>().padding(0.2),
+            layout: group({ scale: () => scaleBand<string>().padding(0.2) }),
           }),
         ],
         ...bandYAxes([0, 12], ['A']),
@@ -424,7 +440,9 @@ describe('core marks and categorical scales', () => {
             y: 'value',
             z: 'series',
             color: 'status',
-            groupScale: scaleBand<string>().domain(['Left', 'Right']),
+            layout: group({
+              scale: scaleBand<string>().domain(['Left', 'Right']),
+            }),
           }),
         ],
         ...bandXAxes(['A'], [0, 12]),
@@ -555,6 +573,191 @@ describe('core marks and categorical scales', () => {
     expect(horizontal.scales.x.domain).toEqual([0, 20])
   })
 
+  it('implicitly stacks bar lengths and preserves raw values with computed extents', () => {
+    const rows = [
+      { id: 'a:query', category: 'A', series: 'Query', value: 12 },
+      { id: 'a:router', category: 'A', series: 'Router', value: 8 },
+      { id: 'b:query', category: 'B', series: 'Query', value: -4 },
+      { id: 'b:router', category: 'B', series: 'Router', value: 6 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            color: 'series',
+            key: 'id',
+          }),
+        ],
+        ...bandXAxes(['A', 'B'], [-4, 20]),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      scene.points.map(({ group, yValue, y1Value, y2Value }) => ({
+        group,
+        yValue,
+        y1Value,
+        y2Value,
+      })),
+    ).toEqual([
+      { group: 'Query', yValue: 12, y1Value: 0, y2Value: 12 },
+      { group: 'Router', yValue: 8, y1Value: 12, y2Value: 20 },
+      { group: 'Query', yValue: -4, y1Value: -4, y2Value: 0 },
+      { group: 'Router', yValue: 6, y1Value: 0, y2Value: 6 },
+    ])
+    expect(scene.scales.y.domain).toEqual([-4, 20])
+  })
+
+  it('configures implicit stacks through the stack layout', () => {
+    const rows = [
+      { category: 'A', series: 'Query', value: 1 },
+      { category: 'A', series: 'Router', value: 3 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            layout: stack({ offset: 'normalize', order: 'descending' }),
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 1]),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      scene.points.map(({ yValue, y1Value, y2Value }) => ({
+        yValue,
+        y1Value,
+        y2Value,
+      })),
+    ).toEqual([
+      { yValue: 1, y1Value: 0.75, y2Value: 1 },
+      { yValue: 3, y1Value: 0, y2Value: 0.75 },
+    ])
+  })
+
+  it('shares implicit stack semantics with areaY', () => {
+    const rows = [
+      { date: 1, series: 'Query', value: 2 },
+      { date: 2, series: 'Query', value: 3 },
+      { date: 1, series: 'Router', value: 4 },
+      { date: 2, series: 'Router', value: 5 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          areaY(rows, {
+            x: 'date',
+            y: 'value',
+            z: 'series',
+            color: 'series',
+          }),
+        ],
+        ...linearAxes([1, 2], [0, 8]),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      scene.points.map(({ yValue, y1Value, y2Value }) => ({
+        yValue,
+        y1Value,
+        y2Value,
+      })),
+    ).toEqual([
+      { yValue: 2, y1Value: 0, y2Value: 2 },
+      { yValue: 3, y1Value: 0, y2Value: 3 },
+      { yValue: 4, y1Value: 2, y2Value: 6 },
+      { yValue: 5, y1Value: 3, y2Value: 8 },
+    ])
+  })
+
+  it('transposes implicit stack semantics for areaX', () => {
+    const rows = [
+      { position: 1, series: 'Query', value: 2 },
+      { position: 2, series: 'Query', value: 3 },
+      { position: 1, series: 'Router', value: 4 },
+      { position: 2, series: 'Router', value: 5 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          areaX(rows, {
+            x: 'value',
+            y: 'position',
+            color: 'series',
+          }),
+        ],
+        ...linearAxes([0, 8], [1, 2]),
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(
+      scene.points.map(({ xValue, x1Value, x2Value }) => ({
+        xValue,
+        x1Value,
+        x2Value,
+      })),
+    ).toEqual([
+      { xValue: 2, x1Value: 0, x2Value: 2 },
+      { xValue: 3, x1Value: 0, x2Value: 3 },
+      { xValue: 4, x1Value: 2, x2Value: 6 },
+      { xValue: 5, x1Value: 3, x2Value: 8 },
+    ])
+  })
+
+  it('rejects a stack layout combined with authored endpoints', () => {
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [
+            areaY([{ x: 1, start: 0, end: 2 }], {
+              x: 'x',
+              y1: 'start',
+              y2: 'end',
+              layout: stack(),
+            }),
+          ],
+          ...linearAxes([0, 2], [0, 2]),
+        }),
+        { width: 480, height: 260 },
+      ),
+    ).toThrow(/explicit y1 or y2 endpoints/)
+  })
+
+  it('rejects continuous color as inferred stack identity', () => {
+    const rows = [
+      { category: 'A', value: 1, intensity: 0.2 },
+      { category: 'A', value: 2, intensity: 0.8 },
+    ]
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [
+            barY(rows, {
+              x: 'category',
+              y: 'value',
+              color: 'intensity',
+            }),
+          ],
+          ...bandXAxes(['A'], [0, 3]),
+          color: {
+            scale: () => scaleLinear<string>().range(['white', 'black']),
+          },
+        }),
+        { width: 480, height: 260 },
+      ),
+    ).toThrow(/continuous color channel cannot infer series identity/)
+  })
+
   it('renders interval areas, visual accessors, gradients, and dashed lines', () => {
     const data = [
       {
@@ -673,8 +876,11 @@ describe('core marks and categorical scales', () => {
     const svg = renderChartSvg(scene, { ariaLabel: 'Composite chart' })
 
     expect(nodes.some((node) => node.kind === 'area')).toBe(true)
-    expect(nodes.filter((node) => node.kind === 'dot')).toHaveLength(2)
-    expect(nodes.filter((node) => node.kind === 'dot')).toMatchObject([
+    const baseDots = nodes.filter(
+      (node) => node.kind === 'dot' && !node.key.startsWith('default-focus:'),
+    )
+    expect(baseDots).toHaveLength(2)
+    expect(baseDots).toMatchObject([
       { style: { stroke: 'black', strokeOpacity: 0.28 } },
       { style: { stroke: 'black', strokeOpacity: 0.28 } },
     ])

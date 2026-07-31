@@ -44,12 +44,12 @@ const definition = () =>
     x: {
       scale: scaleLinear,
       grid: true,
-      label: 'Miles driven per person',
+      axis: { label: 'Miles driven per person' },
     },
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Cost of gasoline ($ per gallon)',
+      axis: { label: 'Cost of gasoline ($ per gallon)' },
     },
   })
 

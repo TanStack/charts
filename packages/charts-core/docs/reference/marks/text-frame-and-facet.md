@@ -48,6 +48,7 @@ function text<TDatum>(
 | `rotate`     | `VisualChannel<TDatum, number>`      | No transform                       | Rotation in degrees around the final label origin |
 | `dx`         | `VisualChannel<TDatum, number>`      | `0`                                | Horizontal pixel offset                           |
 | `dy`         | `VisualChannel<TDatum, number>`      | `0`                                | Vertical pixel offset                             |
+| `states`     | `readonly ChartMarkState[]`          | None                               | Focus-driven presentation overrides               |
 
 Labels use a middle baseline. Null or undefined text skips the row; the default
 for a null datum is an empty string. Invalid x/y values also skip the row.

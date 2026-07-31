@@ -70,7 +70,7 @@ const definition = defineChart({
   x: {
     scale: scaleLinear,
     nice: true,
-    label: 'Weekly downloads',
+    axis: { label: 'Weekly downloads' },
   },
   y: {
     scale: () => scaleBand<string>().padding(0.1),
@@ -87,9 +87,9 @@ margin: {
 ```
 
 `margin: 0` locks every side and is appropriate for guide-free sparklines.
-Automatic margins guarantee containment, not collision-free labels. Use
-`ticks`, `tickRotate`, or a different representation when labels compete for
-the same axis space.
+Axis labels thin automatically after candidate generation and optional
+rotation. Use `axis.ticks.spacing`, `axis.tickLabels.rotate`, hard-kept labels,
+or a different representation when labels compete for the same axis space.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/44-framed-scatter/?theme=system&height=480"

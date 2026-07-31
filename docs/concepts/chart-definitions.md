@@ -38,8 +38,8 @@ const letterFrequencies = defineChart({
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Frequency',
     grid: true,
+    axis: { label: 'Frequency' },
   },
 })
 ```
@@ -59,7 +59,7 @@ const productRanking = defineChart({
     x: {
       scale: scaleLinear,
       nice: true,
-      ticks: width < 480 ? 4 : 7,
+      axis: { ticks: { count: width < 480 ? 4 : 7 } },
     },
     y: {
       scale: () => scaleBand<string>().padding(0.1),
@@ -110,7 +110,7 @@ function ProductRanking({ rows, metric }: Props) {
         x: {
           scale: scaleLinear,
           nice: true,
-          ticks: width < 480 ? 4 : 7,
+          axis: { ticks: { count: width < 480 ? 4 : 7 } },
         },
         y: {
           scale: () => scaleBand<string>().padding(0.1),

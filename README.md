@@ -92,8 +92,8 @@ const revenueChart = defineChart({
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Revenue',
     grid: true,
+    axis: { label: 'Revenue' },
   },
   tooltip,
 })

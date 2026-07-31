@@ -1,5 +1,5 @@
 import { weather } from '@charts-poc/demo-data/weather'
-import { barY, defineChart } from '@tanstack/charts'
+import { barY, defineChart, group } from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
@@ -27,7 +27,7 @@ const definition = (input: ConformanceInput) => {
         y2: 'precipitation',
         z: () => 'stack',
         fill: '#8884d8',
-        groupScale,
+        layout: group({ scale: groupScale }),
         inset: 1,
       }),
       barY(rows, {
@@ -36,7 +36,7 @@ const definition = (input: ConformanceInput) => {
         y2: (row) => row.precipitation + row.wind,
         z: () => 'stack',
         fill: '#82ca9d',
-        groupScale,
+        layout: group({ scale: groupScale }),
         inset: 1,
       }),
       barY(rows, {
@@ -44,19 +44,15 @@ const definition = (input: ConformanceInput) => {
         y: 'temp_max',
         z: () => 'independent',
         fill: '#ffc658',
-        groupScale,
+        layout: group({ scale: groupScale }),
         inset: 1,
       }),
     ],
     x: {
       scale: () => scaleBand<Date>().paddingInner(0.1).paddingOuter(0.05),
-      format: (value) => dateFormat.format(value),
+      axis: { ticks: { format: (value) => dateFormat.format(value) } },
     },
-    y: {
-      scale: scaleLinear,
-      ticks: 5,
-      grid: true,
-    },
+    y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 5 } } },
     margin: { top: 20, right: 20, bottom: 50, left: 80 },
   })
 }

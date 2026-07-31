@@ -91,12 +91,12 @@ coordinate system.
 Pass the Canvas root or an ancestor containing it to the same
 `renderChartImage` or `downloadChartImage` functions. The exporter draws the
 base scene layer at the requested dimensions and scale. Set
-`includeFocus: true` to composite the focus overlay; it is excluded by
+`includeFocus: true` to composite the focus layers; they are excluded by
 default.
 
-Canvas focus is painted on a separate overlay so pointer movement does not
-repaint the base scene. Applications that need only the raw base bitmap may
-also call `toBlob()` or `toDataURL()` on
+Canvas focus is painted on underlay and overlay canvases so pointer movement
+does not repaint the base scene. Applications that need only the raw base
+bitmap may also call `toBlob()` or `toDataURL()` on
 `CanvasChartSurface.canvas`. Unlike SVG serialization, Canvas export does not
 retain vector geometry, accessible markup, or independently styleable nodes.
 
@@ -129,7 +129,7 @@ needs embedded or inlined assets.
 - Fonts and external resources are portable.
 - Focus decoration is included only when meaningful.
 - Raster scale is chosen for the target medium.
-- A Canvas export intentionally includes or excludes the focus overlay.
+- A Canvas export intentionally includes or excludes focus layers.
 
 See [Rendering and Export](../reference/rendering-and-export.md) for every
 function and option.

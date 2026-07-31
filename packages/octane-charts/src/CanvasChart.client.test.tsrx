@@ -58,9 +58,18 @@ describe('Octane Canvas adapter client', () => {
       target.innerHTML = await renderServerHydrationFixture()
       const host = target.querySelector('.ts-chart-host')
       const surface = target.querySelector('.ts-chart-canvas')
+      const focusUnderCanvas = target.querySelector(
+        '.ts-chart-canvas__focus-under',
+      )
       const sceneCanvas = target.querySelector('.ts-chart-canvas__scene')
       const focusCanvas = target.querySelector('.ts-chart-canvas__focus')
-      if (!host || !surface || !sceneCanvas || !focusCanvas) {
+      if (
+        !host ||
+        !surface ||
+        !focusUnderCanvas ||
+        !sceneCanvas ||
+        !focusCanvas
+      ) {
         throw new Error('Expected the server-rendered Canvas chart shell')
       }
 
@@ -71,6 +80,9 @@ describe('Octane Canvas adapter client', () => {
 
       expect(target.querySelector('.ts-chart-host')).toBe(host)
       expect(target.querySelector('.ts-chart-canvas')).toBe(surface)
+      expect(target.querySelector('.ts-chart-canvas__focus-under')).toBe(
+        focusUnderCanvas,
+      )
       expect(target.querySelector('.ts-chart-canvas__scene')).toBe(sceneCanvas)
       expect(target.querySelector('.ts-chart-canvas__focus')).toBe(focusCanvas)
       expect(target.querySelector('svg')).toBeNull()
@@ -117,7 +129,7 @@ describe('Octane Canvas adapter client', () => {
     }
     const context = onRender.mock.calls.at(-1)?.[0]
     expect(context?.surface.element).toBe(surface)
-    expect(target.querySelectorAll('canvas')).toHaveLength(2)
+    expect(target.querySelectorAll('canvas')).toHaveLength(3)
     expect(target.querySelector('svg')).toBeNull()
 
     vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({

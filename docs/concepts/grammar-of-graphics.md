@@ -137,13 +137,13 @@ const axes = {
   x: {
     scale: scaleUtc,
     nice: true,
-    label: 'Month',
+    axis: { label: 'Month' },
   },
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Revenue',
     grid: true,
+    axis: { label: 'Revenue' },
   },
 }
 ```
@@ -159,10 +159,14 @@ Axis guide options live next to their scale:
 ```ts
 const y = {
   scale: revenueScale,
-  label: 'Monthly revenue',
-  format: (value: number) => `$${Math.round(value / 1_000)}k`,
-  ticks: 5,
   grid: true,
+  axis: {
+    label: 'Monthly revenue',
+    ticks: {
+      count: 5,
+      format: (value: number) => `$${Math.round(value / 1_000)}k`,
+    },
+  },
 }
 ```
 
@@ -272,7 +276,7 @@ const composedChart = defineChart({
   ],
   x: {
     scale: () => scaleBand<Date>().padding(0.12),
-    label: 'Date',
+    axis: { label: 'Date' },
   },
   y: {
     scale: scaleLinear,

@@ -10,6 +10,7 @@ import {
   colorLegend,
   d3Curve,
   defineChart,
+  group as groupBars,
   lineY,
   rect,
   ruleX,
@@ -130,20 +131,23 @@ export function createIndustryHistoryChart(
         zoomed && zoomStart && zoomEnd
           ? scaleUtc().domain([zoomStart, zoomEnd])
           : scaleUtc,
-      ticks: width < 520 ? 4 : 7,
-      label: 'Month',
+      axis: { ticks: { count: width < 520 ? 4 : 7 }, label: 'Month' },
     },
     y: {
       scale:
         mode === 'share' ? scaleLinear().domain([0, 1]).nice(5) : scaleLinear,
       nice: 5,
-      ticks: 5,
       grid: true,
-      label:
-        mode === 'share'
-          ? 'Share of selected industries'
-          : 'Unemployed (thousands)',
-      format: mode === 'share' ? formatPercent : formatNumber,
+      axis: {
+        ticks: {
+          count: 5,
+          format: mode === 'share' ? formatPercent : formatNumber,
+        },
+        label:
+          mode === 'share'
+            ? 'Share of selected industries'
+            : 'Unemployed (thousands)',
+      },
     },
     color: {
       scale: scaleOrdinal<string, string>()
@@ -178,7 +182,7 @@ export function createPenguinChart(
             x: 'species',
             ...(stacked
               ? { y1: 'countStart', y2: 'countEnd' }
-              : { y: 'penguins', groupScale }),
+              : { y: 'penguins', layout: groupBars({ scale: groupScale }) }),
             color: 'sex',
             inset: 1,
             radius: stacked ? 0 : 2,
@@ -191,7 +195,7 @@ export function createPenguinChart(
             y: 'species',
             ...(stacked
               ? { x1: 'countStart', x2: 'countEnd' }
-              : { x: 'penguins', groupScale }),
+              : { x: 'penguins', layout: groupBars({ scale: groupScale }) }),
             color: 'sex',
             inset: 1,
             radius: stacked ? 0 : 2,
@@ -200,22 +204,20 @@ export function createPenguinChart(
     x: vertical
       ? {
           scale: categoryScale,
-          tickRotate: width < 620 ? -28 : 0,
+          axis: { tickLabels: { rotate: width < 620 ? -28 : 0 } },
         }
       : {
           scale: scaleLinear,
           nice: 5,
-          ticks: 5,
           grid: true,
-          label: 'Penguins',
+          axis: { ticks: { count: 5 }, label: 'Penguins' },
         },
     y: vertical
       ? {
           scale: scaleLinear,
           nice: 5,
-          ticks: 5,
           grid: true,
-          label: 'Penguins',
+          axis: { ticks: { count: 5 }, label: 'Penguins' },
         }
       : {
           scale: categoryScale,
@@ -239,16 +241,12 @@ export const downloadsChart = defineChart({
       stroke: 'var(--ts-chart-1, #2563eb)',
     }),
   ],
-  x: {
-    scale: scaleUtc,
-    ticks: 6,
-  },
+  x: { scale: scaleUtc, axis: { ticks: { count: 6 } } },
   y: {
     scale: scaleLinear,
     nice: 5,
-    label: 'Daily downloads',
-    ticks: 5,
     grid: true,
+    axis: { ticks: { count: 5 }, label: 'Daily downloads' },
   },
 })
 
@@ -271,16 +269,11 @@ export const downloadAreaChart = defineChart({
       stroke: 'var(--ts-chart-4, #8b5cf6)',
     }),
   ],
-  x: {
-    scale: scaleUtc,
-    nice: 7,
-    ticks: 7,
-  },
+  x: { scale: scaleUtc, nice: 7, axis: { ticks: { count: 7 } } },
   y: {
     scale: scaleLinear,
     nice: 5,
-    label: 'Daily downloads',
-    ticks: 5,
+    axis: { ticks: { count: 5 }, label: 'Daily downloads' },
   },
 })
 
@@ -304,16 +297,11 @@ export const horsepowerChart = defineChart({
       radius: 2,
     }),
   ],
-  x: {
-    scale: scaleLinear,
-    nice: 7,
-    label: 'Power (hp)',
-  },
+  x: { scale: scaleLinear, nice: 7, axis: { label: 'Power (hp)' } },
   y: {
     scale: scaleLinear,
     nice: 5,
-    label: 'Cars',
-    ticks: 5,
+    axis: { ticks: { count: 5 }, label: 'Cars' },
   },
   color: {
     scale: () =>
@@ -358,14 +346,15 @@ export function createRankingChart(metric: RankingMetric, accent: string) {
       x: {
         scale: scaleLinear,
         nice: ticks,
-        ticks,
         grid: true,
-        label:
-          width < 420
-            ? undefined
-            : metric === 'economy (mpg)'
-              ? 'Fuel economy (mpg)'
-              : 'Power (hp)',
+        axis: {
+          label:
+            width < 420
+              ? undefined
+              : metric === 'economy (mpg)'
+                ? 'Fuel economy (mpg)'
+                : 'Power (hp)',
+        },
       },
       y: {
         scale: () => scaleBand<string>().paddingInner(0.24).paddingOuter(0.12),

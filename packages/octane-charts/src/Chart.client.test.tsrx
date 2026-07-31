@@ -111,7 +111,7 @@ describe('Octane Chart adapter client', () => {
 		expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[0]);
 		expect(
 			target
-				.querySelector('[data-ts-chart-focus]')
+				.querySelector('[data-ts-focus-layer]')
 				?.getAttribute('visibility'),
 		).toBe('visible');
 

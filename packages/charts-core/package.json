@@ -37,6 +37,7 @@
     "./area-x": "./src/area-x.ts",
     "./arrow": "./src/arrow.ts",
     "./bar": "./src/bar.ts",
+    "./band": "./src/band.ts",
     "./canvas": "./src/canvas.ts",
     "./d3/area-x": "./src/d3-area-x.ts",
     "./d3/shape": "./src/d3-shape.ts",
@@ -45,8 +46,10 @@
     "./export": "./src/export.ts",
     "./facet": "./src/facet.ts",
     "./focus": "./src/focus.ts",
+    "./focus/mark": "./src/focus-mark.ts",
     "./focus/disabled": "./src/focus-disabled.ts",
     "./frame": "./src/frame.ts",
+    "./group": "./src/group.ts",
     "./geo": "./src/geo.ts",
     "./hexagon": "./src/hexagon.ts",
     "./legend": "./src/legend.ts",
@@ -64,6 +67,19 @@
     "./svg": "./src/svg.ts",
     "./svg/renderer": "./src/svg-surface.ts",
     "./svg/resources": "./src/svg-resources.ts",
+    "./stack": "./src/stack.ts",
+    "./transform": "./src/transform.ts",
+    "./transform/bin": "./src/transform-bin.ts",
+    "./transform/bin-time": "./src/transform-bin-time.ts",
+    "./transform/bin-xy": "./src/transform-bin-xy.ts",
+    "./transform/cumulative": "./src/transform-cumulative.ts",
+    "./transform/group": "./src/transform-group.ts",
+    "./transform/normalize": "./src/transform-normalize.ts",
+    "./transform/rank": "./src/transform-rank.ts",
+    "./transform/reduce": "./src/transform-reduce.ts",
+    "./transform/select": "./src/transform-select.ts",
+    "./transform/stack": "./src/transform-stack.ts",
+    "./transform/window": "./src/transform-window.ts",
     "./text": "./src/text.ts",
     "./tick": "./src/tick.ts",
     "./tooltip": "./src/tooltip.ts",
@@ -103,6 +119,10 @@
         "types": "./dist/bar.d.ts",
         "import": "./dist/bar.js"
       },
+      "./band": {
+        "types": "./dist/band.d.ts",
+        "import": "./dist/band.js"
+      },
       "./canvas": {
         "types": "./dist/canvas.d.ts",
         "import": "./dist/canvas.js"
@@ -135,6 +155,10 @@
         "types": "./dist/focus.d.ts",
         "import": "./dist/focus.js"
       },
+      "./focus/mark": {
+        "types": "./dist/focus-mark.d.ts",
+        "import": "./dist/focus-mark.js"
+      },
       "./focus/disabled": {
         "types": "./dist/focus-disabled.d.ts",
         "import": "./dist/focus-disabled.js"
@@ -142,6 +166,10 @@
       "./frame": {
         "types": "./dist/frame.d.ts",
         "import": "./dist/frame.js"
+      },
+      "./group": {
+        "types": "./dist/group.d.ts",
+        "import": "./dist/group.js"
       },
       "./geo": {
         "types": "./dist/geo.d.ts",
@@ -210,6 +238,58 @@
       "./svg/resources": {
         "types": "./dist/svg-resources.d.ts",
         "import": "./dist/svg-resources.js"
+      },
+      "./stack": {
+        "types": "./dist/stack.d.ts",
+        "import": "./dist/stack.js"
+      },
+      "./transform": {
+        "types": "./dist/transform.d.ts",
+        "import": "./dist/transform.js"
+      },
+      "./transform/bin": {
+        "types": "./dist/transform-bin.d.ts",
+        "import": "./dist/transform-bin.js"
+      },
+      "./transform/bin-time": {
+        "types": "./dist/transform-bin-time.d.ts",
+        "import": "./dist/transform-bin-time.js"
+      },
+      "./transform/bin-xy": {
+        "types": "./dist/transform-bin-xy.d.ts",
+        "import": "./dist/transform-bin-xy.js"
+      },
+      "./transform/cumulative": {
+        "types": "./dist/transform-cumulative.d.ts",
+        "import": "./dist/transform-cumulative.js"
+      },
+      "./transform/group": {
+        "types": "./dist/transform-group.d.ts",
+        "import": "./dist/transform-group.js"
+      },
+      "./transform/normalize": {
+        "types": "./dist/transform-normalize.d.ts",
+        "import": "./dist/transform-normalize.js"
+      },
+      "./transform/rank": {
+        "types": "./dist/transform-rank.d.ts",
+        "import": "./dist/transform-rank.js"
+      },
+      "./transform/reduce": {
+        "types": "./dist/transform-reduce.d.ts",
+        "import": "./dist/transform-reduce.js"
+      },
+      "./transform/select": {
+        "types": "./dist/transform-select.d.ts",
+        "import": "./dist/transform-select.js"
+      },
+      "./transform/stack": {
+        "types": "./dist/transform-stack.d.ts",
+        "import": "./dist/transform-stack.js"
+      },
+      "./transform/window": {
+        "types": "./dist/transform-window.d.ts",
+        "import": "./dist/transform-window.js"
       },
       "./text": {
         "types": "./dist/text.d.ts",

@@ -4,12 +4,13 @@
   "id": "34-pointer-tooltip",
   "title": "Pointer-selected tooltip",
   "family": "interaction",
-  "intent": "Reveal an Apple closing-price observation on pointer proximity while keeping the chart keyboard-focusable and the original AAPL fields intact.",
+  "intent": "Emphasize and reveal an Apple closing-price observation on pointer proximity while keeping the chart keyboard-focusable and the original AAPL fields intact.",
   "support": "native",
   "features": [
     "pointer interaction",
     "tooltip",
     "nearest point",
+    "focus-filtered dot",
     "typed formatter",
     "keyboard focus"
   ],
@@ -32,6 +33,7 @@
             { "path": "tooltip.text", "includes": "Apple" }
           ]
         },
+        { "type": "screenshot", "name": "focused-dot-open" },
         { "type": "pointerLeave" },
         {
           "type": "assert",

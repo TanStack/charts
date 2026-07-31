@@ -45,15 +45,14 @@ const definition = () => {
         dx: 5,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Month',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Month' } },
     y: {
       scale: scaleLinear,
       grid: true,
-      format: formatIndex,
-      label: 'Change from January 2008',
+      axis: {
+        ticks: { format: formatIndex },
+        label: 'Change from January 2008',
+      },
     },
     color: {
       range: colors,

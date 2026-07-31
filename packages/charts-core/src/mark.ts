@@ -7,6 +7,8 @@ import type {
   InitializedMark,
   MarkInitializeContext,
   ChartMark,
+  ChartMarkState,
+  ChartMarkStateStyle,
   VisualChannel,
 } from './types'
 
@@ -42,6 +44,18 @@ export function createMark<
   ) => InitializedMark<TDatum, TXValue, TYValue>,
 ): ChartMark<TDatum, TXValue, TYValue> {
   return { initialize }
+}
+
+export function markStates<TDatum, TStyle extends ChartMarkStateStyle<TDatum>>(
+  data: readonly TDatum[],
+  definitions: readonly ChartMarkState<TDatum, TStyle>[] | undefined,
+): InitializedMark['states'] {
+  return definitions?.length
+    ? {
+        data,
+        definitions: definitions as readonly ChartMarkState<any>[],
+      }
+    : undefined
 }
 
 export function visualValue<TDatum, TValue>(

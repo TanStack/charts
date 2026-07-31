@@ -43,14 +43,11 @@ const definition = (_input: ConformanceInput) => {
         fillOpacity: 0.85,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Month',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Month' } },
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Unemployed (thousands)',
+      axis: { label: 'Unemployed (thousands)' },
     },
     color: {
       range: colors,

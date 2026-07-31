@@ -11,8 +11,7 @@
     "minimum selection",
     "maximum selection",
     "direct annotations",
-    "d3-array least",
-    "d3-array greatest"
+    "TanStack select"
   ],
   "geometry": [
     { "role": "line", "count": 1 },

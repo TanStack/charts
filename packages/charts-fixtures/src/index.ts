@@ -50,16 +50,12 @@ export const downloadsChart = defineChart({
       stroke: 'var(--ts-chart-1, #2563eb)',
     }),
   ],
-  x: {
-    scale: scaleUtc,
-    ticks: 6,
-  },
+  x: { scale: scaleUtc, axis: { ticks: { count: 6 } } },
   y: {
     scale: scaleLinear,
     nice: 5,
-    label: 'Daily downloads',
-    ticks: 5,
     grid: true,
+    axis: { ticks: { count: 5 }, label: 'Daily downloads' },
   },
 })
 
@@ -82,16 +78,11 @@ export const downloadAreaChart = defineChart({
       stroke: 'var(--ts-chart-4, #8b5cf6)',
     }),
   ],
-  x: {
-    scale: scaleUtc,
-    nice: 7,
-    ticks: 7,
-  },
+  x: { scale: scaleUtc, nice: 7, axis: { ticks: { count: 7 } } },
   y: {
     scale: scaleLinear,
     nice: 5,
-    label: 'Daily downloads',
-    ticks: 5,
+    axis: { ticks: { count: 5 }, label: 'Daily downloads' },
   },
 })
 
@@ -118,14 +109,13 @@ export const horsepowerChart = defineChart({
   x: {
     scale: scaleLinear,
     nice: 7,
-    label: 'Power (hp)',
     grid: false,
+    axis: { label: 'Power (hp)' },
   },
   y: {
     scale: scaleLinear,
     nice: 5,
-    label: 'Cars',
-    ticks: 5,
+    axis: { ticks: { count: 5 }, label: 'Cars' },
   },
   color: {
     scale: () =>
@@ -181,14 +171,16 @@ export const createRankingChart = (input: RankingInput) =>
       x: {
         scale: scaleLinear,
         nice: xTicks,
-        label:
-          width < 420
-            ? undefined
-            : input.metric === 'economy (mpg)'
-              ? 'Fuel economy (mpg)'
-              : 'Power (hp)',
         grid: true,
-        ticks: xTicks,
+        axis: {
+          ticks: { count: xTicks },
+          label:
+            width < 420
+              ? undefined
+              : input.metric === 'economy (mpg)'
+                ? 'Fuel economy (mpg)'
+                : 'Power (hp)',
+        },
       },
       y: {
         scale: () => scaleBand<string>().paddingInner(0.24).paddingOuter(0.12),

@@ -97,12 +97,16 @@ const definition = (input: EditableChartInput) => {
       x: {
         scale: scaleUtc().domain(editableDomain),
         grid: true,
-        format: (value) =>
-          value.toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            timeZone: 'UTC',
-          }),
+        axis: {
+          ticks: {
+            format: (value: Date) =>
+              value.toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'UTC',
+              }),
+          },
+        },
       },
       y: {
         scale: scaleBand<string>()

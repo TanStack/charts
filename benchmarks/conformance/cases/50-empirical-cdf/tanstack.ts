@@ -1,6 +1,5 @@
 import { cars } from '@charts-poc/demo-data/cars'
-import { d3Curve, defineChart, lineY } from '@tanstack/charts'
-import { rank } from 'd3-array'
+import { d3Curve, defineChart, lineY, rank } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { curveStepAfter } from 'd3-shape'
 import { tanstackMount } from '../../shared/mount'
@@ -8,10 +7,6 @@ import type { CarsRow } from '@charts-poc/demo-data/cars'
 import type { ConformanceInput } from '../../types'
 
 type CarWithEconomy = CarsRow & { 'economy (mpg)': number }
-
-type EmpiricalPoint = CarWithEconomy & {
-  probability: number
-}
 
 const completeCars = cars.filter(
   (row): row is CarWithEconomy => row['economy (mpg)'] !== null,
@@ -26,10 +21,10 @@ const definition = (input: ConformanceInput) => {
   const source = completeCars
     .slice(input.revision * 8)
     .sort((left, right) => left['economy (mpg)'] - right['economy (mpg)'])
-  const ranks = rank(source.map((row) => row['economy (mpg)']))
-  const rows: readonly EmpiricalPoint[] = source.map((row, index) => ({
+  const ranked = rank(source, { value: 'economy (mpg)', order: 'ascending' })
+  const rows = ranked.map((row) => ({
     ...row,
-    probability: ((ranks[index] ?? 0) + 1) / source.length,
+    probability: row.rank / source.length,
   }))
 
   return defineChart({
@@ -45,13 +40,15 @@ const definition = (input: ConformanceInput) => {
     x: {
       scale: scaleLinear,
       grid: true,
-      label: 'Fuel economy (mpg)',
+      axis: { label: 'Fuel economy (mpg)' },
     },
     y: {
       scale: scaleLinear().domain([0, 1]),
       grid: true,
-      label: 'Cumulative proportion',
-      format: (value) => percent.format(value),
+      axis: {
+        ticks: { format: (value) => percent.format(value) },
+        label: 'Cumulative proportion',
+      },
     },
   })
 }

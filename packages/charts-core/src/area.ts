@@ -5,13 +5,17 @@ import {
   isChartKey,
   isChartValue,
   isFiniteNumber,
+  markStates,
   visualValue,
 } from './mark'
 import { valueKey } from './scales'
+import { stackValues } from './stack-internal'
 import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkState,
+  ChartAreaStateStyle,
   ChartPoint,
   ChartValue,
   ChartCurve,
@@ -19,6 +23,7 @@ import type {
   SceneNode,
   VisualChannel,
 } from './types'
+import type { StackLayout } from './stack'
 
 export interface AreaYOptions<TDatum> {
   id?: string
@@ -34,6 +39,8 @@ export interface AreaYOptions<TDatum> {
   stroke?: VisualChannel<TDatum, string>
   strokeWidth?: number
   curve?: ChartCurve
+  layout?: StackLayout
+  states?: readonly ChartMarkState<TDatum, ChartAreaStateStyle<TDatum>>[]
 }
 
 export function areaY<TDatum>(
@@ -55,17 +62,13 @@ export function areaY<TDatum>(
   return createMark(({ markIndex }) => {
     const id = options.id ?? `area-y-${markIndex}`
     const xValues = channelValues(data, options.x, (_datum, index) => index)
-    const y2 = options.y2 ?? options.y
-    const yValues =
-      typeof y2 === 'number'
-        ? data.map(() => y2)
-        : channelValues(data, y2, (datum) =>
+    const rawY = options.y ?? options.y2
+    const rawYValues =
+      typeof rawY === 'number'
+        ? data.map(() => rawY)
+        : channelValues(data, rawY, (datum) =>
             typeof datum === 'number' ? datum : undefined,
           )
-    const y1Values =
-      typeof options.y1 === 'number'
-        ? data.map(() => options.y1 as number)
-        : channelValues(data, options.y1, () => 0)
     const zValues = channelValues(data, options.z, () => null)
     const colorValues =
       options.color === undefined
@@ -75,6 +78,25 @@ export function areaY<TDatum>(
       options.z === undefined && options.color !== undefined
         ? colorValues
         : zValues
+    const explicitExtent = options.y1 !== undefined || options.y2 !== undefined
+    if (explicitExtent && options.layout) {
+      throw new TypeError(
+        'An area with explicit y1 or y2 endpoints cannot also configure a stack layout',
+      )
+    }
+    const stacked = explicitExtent
+      ? undefined
+      : stackValues(xValues, rawYValues, groupValues, options.layout)
+    const y1Values = explicitExtent
+      ? typeof options.y1 === 'number'
+        ? data.map(() => options.y1 as number)
+        : channelValues(data, options.y1, () => 0)
+      : stacked!.starts
+    const y2Values = explicitExtent
+      ? typeof options.y2 === 'number'
+        ? data.map(() => options.y2 as number)
+        : channelValues(data, options.y2 ?? options.y, () => undefined)
+      : stacked!.ends
     const keys = inferredKeyValues(data, options.key, {
       groups: groupValues,
       candidates: [xValues],
@@ -91,12 +113,14 @@ export function areaY<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
+      seriesFromColor: options.z === undefined && options.color !== undefined,
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
         y: {
           scale: 'y',
           values: [
-            ...yValues.filter(isFiniteNumber),
+            ...y2Values.filter(isFiniteNumber),
             ...y1Values.filter(isFiniteNumber),
           ],
           includeZero: options.y1 === undefined,
@@ -160,18 +184,20 @@ export function areaY<TDatum>(
 
           for (const datumIndex of indices) {
             const xValue = xValues[datumIndex]
-            const yValue = yValues[datumIndex]
+            const yValue = rawYValues[datumIndex]
             const y1Value = y1Values[datumIndex]
+            const y2Value = y2Values[datumIndex]
             if (
               !isChartValue(xValue) ||
               !isFiniteNumber(yValue) ||
-              !isFiniteNumber(y1Value)
+              !isFiniteNumber(y1Value) ||
+              !isFiniteNumber(y2Value)
             ) {
               flush()
               continue
             }
             const x = scales.x.map(xValue)
-            const y = scales.y.map(yValue)
+            const y = scales.y.map(y2Value)
             top.push([x, y])
             bottom.push([x, scales.y.map(y1Value)])
             const key = `${id}:${groupKey}:${valueKey(keys[datumIndex])}`
@@ -185,7 +211,7 @@ export function areaY<TDatum>(
               xValue,
               yValue,
               y1Value,
-              y2Value: yValue,
+              y2Value,
               yInterval: 'difference',
               x,
               y,

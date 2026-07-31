@@ -52,13 +52,11 @@ const definition = (input: ConformanceInput) =>
       ],
       x: {
         scale: () => scaleBand<Date>().paddingInner(0.1).paddingOuter(0.05),
-        format: (value) => dateFormat.format(value),
+        axis: {
+          ticks: { format: (value: Date) => dateFormat.format(value) },
+        },
       },
-      y: {
-        scale: scaleLinear,
-        ticks: 5,
-        grid: true,
-      },
+      y: { scale: scaleLinear, grid: true, axis: { ticks: { count: 5 } } },
       margin: { top: 20, right: 20, bottom: 50, left: 80 },
     }
   })

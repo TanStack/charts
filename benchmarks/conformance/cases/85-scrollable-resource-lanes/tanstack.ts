@@ -64,7 +64,7 @@ const definition = (input: ConformanceInput) => {
       x: {
         scale: scaleUtc().domain(resourceTimelineDomain),
         grid: true,
-        ticks: Math.max(6, Math.floor(width / 84)),
+        axis: { ticks: { count: Math.max(6, Math.floor(width / 84)) } },
       },
       y: {
         scale: scaleBand<string>()
@@ -72,7 +72,7 @@ const definition = (input: ConformanceInput) => {
           .paddingInner(0.08)
           .paddingOuter(0.04),
         grid: false,
-        guide: false,
+        axis: false,
       },
       color: {
         domain: timelineStatuses,

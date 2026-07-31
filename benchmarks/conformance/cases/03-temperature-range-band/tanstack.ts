@@ -27,15 +27,8 @@ const definition = (input: ConformanceInput) => {
         strokeWidth: 1.75,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Week',
-    },
-    y: {
-      scale: scaleLinear,
-      label: 'Temperature (°F)',
-      grid: true,
-    },
+    x: { scale: scaleUtc, axis: { label: 'Week' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Temperature (°F)' } },
   })
 }
 

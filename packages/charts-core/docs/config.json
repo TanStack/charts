@@ -305,6 +305,10 @@
           "to": "reference/chart-spec"
         },
         {
+          "label": "Data Transforms",
+          "to": "reference/transforms"
+        },
+        {
           "label": "Scales, Guides, and Color",
           "to": "reference/scales-guides-and-color"
         },

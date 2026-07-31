@@ -48,15 +48,11 @@ const definition = (input: ChartTableInput) => {
           ]
         : []),
     ],
-    x: {
-      scale: scaleLinear,
-      label: 'Flipper length (mm)',
-    },
+    x: { scale: scaleLinear, axis: { label: 'Flipper length (mm)' } },
     y: {
       scale: scaleLinear,
-      ticks: 5,
       grid: true,
-      label: 'Body mass (g)',
+      axis: { ticks: { count: 5 }, label: 'Body mass (g)' },
     },
     margin: { top: 16, right: 24, bottom: 42, left: 62 },
   })

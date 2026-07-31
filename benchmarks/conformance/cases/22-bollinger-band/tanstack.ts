@@ -1,5 +1,4 @@
-import { areaY, defineChart, lineY } from '@tanstack/charts'
-import { deviation, mean } from 'd3-array'
+import { areaY, defineChart, deviation, lineY, window } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
@@ -35,15 +34,8 @@ const definition = (input: ConformanceInput) => {
         strokeWidth: 2.25,
       }),
     ],
-    x: {
-      scale: scaleUtc,
-      label: 'Date',
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Apple close (USD)',
-    },
+    x: { scale: scaleUtc, axis: { label: 'Date' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Apple close (USD)' } },
   })
 }
 
@@ -55,23 +47,20 @@ export const mount: ConformanceMount = tanstackMount(
 function bollingerIntervals(
   rows: readonly AaplRow[],
 ): readonly BollingerPoint[] {
-  const output: BollingerPoint[] = []
-
-  for (let index = windowSize - 1; index < rows.length; index++) {
-    const row = rows[index]
-    if (!row) continue
-    const window = rows.slice(index - windowSize + 1, index + 1)
-    const meanClose = mean(window, (point) => point.Close)
-    if (meanClose === undefined) continue
-    const spread =
-      (deviation(window, (point) => point.Close) ?? 0) * deviationMultiplier
-    output.push({
+  return window(rows, {
+    size: windowSize,
+    orderBy: 'Date',
+    partial: false,
+    outputs: {
+      meanClose: { value: 'Close', reduce: 'mean' },
+      closeDeviation: { value: 'Close', reduce: deviation },
+    },
+  }).map(({ closeDeviation, ...row }) => {
+    const spread = closeDeviation * deviationMultiplier
+    return {
       ...row,
-      meanClose,
-      lowerClose: meanClose - spread,
-      upperClose: meanClose + spread,
-    })
-  }
-
-  return output
+      lowerClose: row.meanClose - spread,
+      upperClose: row.meanClose + spread,
+    }
+  })
 }

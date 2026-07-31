@@ -1,3 +1,4 @@
+import { scaleBand } from 'd3-scale'
 import {
   channelValues,
   createMark,
@@ -5,22 +6,29 @@ import {
   isChartKey,
   isChartValue,
   isFiniteNumber,
+  markStates,
   visualValue,
 } from './mark'
 import { resolveScaleInput } from './scale-input'
 import { valueKey } from './scales'
+import { stackValues } from './stack-internal'
 import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkState,
+  ChartBarStateStyle,
   ChartPoint,
-  ChartScaleInput,
   ChartValue,
   OptionChannelOutput,
   ResolvedScale,
   SceneNode,
   VisualChannel,
 } from './types'
+import type { GroupLayout } from './group'
+import type { StackLayout } from './stack'
+
+type BarLayout = GroupLayout | StackLayout
 
 export interface BarYOptions<TDatum> {
   id?: string
@@ -33,11 +41,11 @@ export interface BarYOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
-  /** Optional D3 band scale that positions z, or color when z is omitted, within each x band. */
-  groupScale?: ChartScaleInput<any>
+  layout?: BarLayout
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
   radius?: number
+  states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
 
 export interface BarXOptions<TDatum> {
@@ -51,11 +59,11 @@ export interface BarXOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
-  /** Optional D3 band scale that positions z, or color when z is omitted, within each y band. */
-  groupScale?: ChartScaleInput<any>
+  layout?: BarLayout
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
   radius?: number
+  states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
 
 export function barY<TDatum>(
@@ -77,22 +85,44 @@ export function barY<TDatum>(
   return createMark(({ markIndex }) => {
     const id = options.id ?? `bar-y-${markIndex}`
     const xValues = channelValues(data, options.x, (_datum, index) => index)
-    const yValues = numericChannelValues(
+    const rawYValues = numericChannelValues(
       data,
-      options.y2 ?? options.y,
+      options.y ?? options.y2,
       (datum) => (typeof datum === 'number' ? datum : undefined),
     )
-    const y1Values = numericChannelValues(data, options.y1, () => 0)
     const zValues = channelValues(data, options.z, () => null)
     const colorValues =
       options.color === undefined
         ? zValues
         : channelValues(data, options.color, () => null)
-    const groupValues =
-      options.groupScale !== undefined &&
-      options.z === undefined &&
-      options.color !== undefined
+    const seriesValues =
+      options.z === undefined && options.color !== undefined
         ? colorValues
+        : zValues
+    const explicitExtent = options.y1 !== undefined || options.y2 !== undefined
+    if (explicitExtent && options.layout?.type === 'stack') {
+      throw new TypeError(
+        'A bar with explicit y1 or y2 endpoints cannot also configure a stack layout',
+      )
+    }
+    const grouped = options.layout?.type === 'group'
+    const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
+    const stacked =
+      !explicitExtent && !grouped
+        ? stackValues(xValues, rawYValues, seriesValues, stackLayout, 'index')
+        : undefined
+    const y1Values = explicitExtent
+      ? numericChannelValues(data, options.y1, () => 0)
+      : (stacked?.starts ?? data.map(() => 0))
+    const y2Values = explicitExtent
+      ? numericChannelValues(data, options.y2 ?? options.y, () => undefined)
+      : grouped
+        ? rawYValues
+        : stacked!.ends
+    const duplicatePositions = hasDuplicateValues(xValues)
+    const groupValues =
+      grouped || (!explicitExtent && duplicatePositions)
+        ? seriesValues
         : zValues
     const keys = inferredKeyValues(data, options.key, {
       groups: groupValues,
@@ -103,12 +133,17 @@ export function barY<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
+      seriesFromColor:
+        options.z === undefined &&
+        options.color !== undefined &&
+        (grouped || duplicatePositions),
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
         y: {
           scale: 'y',
           values: [
-            ...yValues.filter(isFiniteNumber),
+            ...y2Values.filter(isFiniteNumber),
             ...y1Values.filter(isFiniteNumber),
           ],
           includeZero: options.y1 === undefined,
@@ -123,7 +158,7 @@ export function barY<TDatum>(
           scales.x.bandwidth ||
           inferBandwidth(scales.x, xValues, chart.width, data.length)
         const groupScale = resolveGroupScale(
-          options.groupScale,
+          options.layout?.type === 'group' ? options.layout : undefined,
           groupValues,
           totalBandwidth,
         )
@@ -134,12 +169,14 @@ export function barY<TDatum>(
 
         data.forEach((datum, datumIndex) => {
           const xValue = xValues[datumIndex]
-          const yValue = yValues[datumIndex]
+          const yValue = rawYValues[datumIndex]
           const y1Value = y1Values[datumIndex]
+          const y2Value = y2Values[datumIndex]
           if (
             !isChartValue(xValue) ||
             !isFiniteNumber(yValue) ||
-            !isFiniteNumber(y1Value)
+            !isFiniteNumber(y1Value) ||
+            !isFiniteNumber(y2Value)
           )
             return
           const group = groupValues[datumIndex] ?? null
@@ -154,7 +191,7 @@ export function barY<TDatum>(
           )
           const center = scales.x.map(xValue)
           const baselinePosition = scales.y.map(y1Value)
-          const valuePosition = scales.y.map(yValue)
+          const valuePosition = scales.y.map(y2Value)
           const x = center - totalBandwidth / 2 + groupOffset + inset
           const y = Math.min(baselinePosition, valuePosition)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
@@ -166,6 +203,7 @@ export function barY<TDatum>(
             width: Math.max(0, groupBandwidth - inset * 2),
             height: Math.abs(baselinePosition - valuePosition),
             radius: options.radius,
+            inset,
             style: {
               fill,
               fillOpacity: options.fillOpacity,
@@ -181,7 +219,7 @@ export function barY<TDatum>(
             xValue,
             yValue,
             y1Value,
-            y2Value: yValue,
+            y2Value,
             yInterval: 'difference',
             x: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
             y: valuePosition,
@@ -224,23 +262,45 @@ export function barX<TDatum>(
 
   return createMark(({ markIndex }) => {
     const id = options.id ?? `bar-x-${markIndex}`
-    const xValues = numericChannelValues(
+    const rawXValues = numericChannelValues(
       data,
-      options.x2 ?? options.x,
+      options.x ?? options.x2,
       (datum) => (typeof datum === 'number' ? datum : undefined),
     )
-    const x1Values = numericChannelValues(data, options.x1, () => 0)
     const yValues = channelValues(data, options.y, (_datum, index) => index)
     const zValues = channelValues(data, options.z, () => null)
     const colorValues =
       options.color === undefined
         ? zValues
         : channelValues(data, options.color, () => null)
-    const groupValues =
-      options.groupScale !== undefined &&
-      options.z === undefined &&
-      options.color !== undefined
+    const seriesValues =
+      options.z === undefined && options.color !== undefined
         ? colorValues
+        : zValues
+    const explicitExtent = options.x1 !== undefined || options.x2 !== undefined
+    if (explicitExtent && options.layout?.type === 'stack') {
+      throw new TypeError(
+        'A bar with explicit x1 or x2 endpoints cannot also configure a stack layout',
+      )
+    }
+    const grouped = options.layout?.type === 'group'
+    const stackLayout = options.layout?.type === 'stack' ? options.layout : {}
+    const stacked =
+      !explicitExtent && !grouped
+        ? stackValues(yValues, rawXValues, seriesValues, stackLayout, 'index')
+        : undefined
+    const x1Values = explicitExtent
+      ? numericChannelValues(data, options.x1, () => 0)
+      : (stacked?.starts ?? data.map(() => 0))
+    const x2Values = explicitExtent
+      ? numericChannelValues(data, options.x2 ?? options.x, () => undefined)
+      : grouped
+        ? rawXValues
+        : stacked!.ends
+    const duplicatePositions = hasDuplicateValues(yValues)
+    const groupValues =
+      grouped || (!explicitExtent && duplicatePositions)
+        ? seriesValues
         : zValues
     const keys = inferredKeyValues(data, options.key, {
       groups: groupValues,
@@ -251,11 +311,16 @@ export function barX<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
+      seriesFromColor:
+        options.z === undefined &&
+        options.color !== undefined &&
+        (grouped || duplicatePositions),
       channels: {
         x: {
           scale: 'x',
           values: [
-            ...xValues.filter(isFiniteNumber),
+            ...x2Values.filter(isFiniteNumber),
             ...x1Values.filter(isFiniteNumber),
           ],
           includeZero: options.x1 === undefined,
@@ -271,7 +336,7 @@ export function barX<TDatum>(
           scales.y.bandwidth ||
           inferBandwidth(scales.y, yValues, chart.height, data.length)
         const groupScale = resolveGroupScale(
-          options.groupScale,
+          options.layout?.type === 'group' ? options.layout : undefined,
           groupValues,
           totalBandwidth,
         )
@@ -281,12 +346,14 @@ export function barX<TDatum>(
         const points: ChartPoint<TDatum>[] = []
 
         data.forEach((datum, datumIndex) => {
-          const xValue = xValues[datumIndex]
+          const xValue = rawXValues[datumIndex]
           const x1Value = x1Values[datumIndex]
+          const x2Value = x2Values[datumIndex]
           const yValue = yValues[datumIndex]
           if (
             !isFiniteNumber(xValue) ||
             !isFiniteNumber(x1Value) ||
+            !isFiniteNumber(x2Value) ||
             !isChartValue(yValue)
           )
             return
@@ -301,7 +368,7 @@ export function barX<TDatum>(
             resolvedColor,
           )
           const baselinePosition = scales.x.map(x1Value)
-          const valuePosition = scales.x.map(xValue)
+          const valuePosition = scales.x.map(x2Value)
           const center = scales.y.map(yValue)
           const y = center - totalBandwidth / 2 + groupOffset + inset
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
@@ -313,6 +380,7 @@ export function barX<TDatum>(
             width: Math.abs(baselinePosition - valuePosition),
             height: Math.max(0, groupBandwidth - inset * 2),
             radius: options.radius,
+            inset,
             style: {
               fill,
               fillOpacity: options.fillOpacity,
@@ -328,7 +396,7 @@ export function barX<TDatum>(
             xValue,
             yValue,
             x1Value,
-            x2Value: xValue,
+            x2Value,
             xInterval: 'difference',
             x: valuePosition,
             y: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
@@ -354,32 +422,52 @@ export function barX<TDatum>(
 }
 
 function resolveGroupScale(
-  source: ChartScaleInput<any> | undefined,
+  source: GroupLayout | undefined,
   values: readonly unknown[],
   bandwidth: number,
 ) {
   if (!source) return undefined
-  const scale = resolveScaleInput(source, { values })
+  const scale = resolveScaleInput(
+    source.scale ??
+      (() =>
+        scaleBand<ChartKey>().padding(
+          Number.isFinite(source.padding) ? Math.max(0, source.padding!) : 0.1,
+        )),
+    { values },
+  )
   scale.range([0, bandwidth])
   const groupBandwidth = scale.bandwidth?.()
   if (groupBandwidth === undefined) {
-    throw new TypeError('A bar groupScale must be a D3 band scale')
+    throw new TypeError('A grouped bar layout requires a D3 band scale')
   }
   return {
     bandwidth: groupBandwidth,
     map(value: ChartKey | null) {
       if (value === null) {
-        throw new TypeError('A bar with groupScale requires a z or color value')
+        throw new TypeError(
+          'A grouped bar requires an explicit z channel or a discrete color channel',
+        )
       }
       const position = scale(value)
       if (position === undefined || !Number.isFinite(position)) {
         throw new TypeError(
-          `Bar group value "${String(value)}" is outside the groupScale domain`,
+          `Bar group value "${String(value)}" is outside the group layout scale domain`,
         )
       }
       return position
     },
   }
+}
+
+function hasDuplicateValues(values: readonly unknown[]) {
+  const seen = new Set<string>()
+  for (const value of values) {
+    if (!isChartValue(value)) continue
+    const identity = valueKey(value)
+    if (seen.has(identity)) return true
+    seen.add(identity)
+  }
+  return false
 }
 
 function inferBandwidth(

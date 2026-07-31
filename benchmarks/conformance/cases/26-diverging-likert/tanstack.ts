@@ -26,8 +26,10 @@ const definition = () =>
     x: {
       scale: scaleLinear,
       grid: true,
-      label: '← more disagree · Number of responses · more agree →',
-      format: (value) => `${Math.abs(value)}`,
+      axis: {
+        ticks: { format: (value) => `${Math.abs(value)}` },
+        label: '← more disagree · Number of responses · more agree →',
+      },
     },
     y: {
       scale: () => scaleBand<string>().paddingInner(0.14).paddingOuter(0.08),

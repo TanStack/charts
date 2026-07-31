@@ -9,6 +9,7 @@ import type {
 } from './dom-types'
 import type {
   ChartPoint,
+  ChartFocusState,
   ChartScene,
   ChartTooltipChannelItem,
   ChartTooltipContent,
@@ -139,6 +140,7 @@ function createTooltipExtension<
       nextContext.scene,
       nextContext.pointer,
       options,
+      nextContext.focus,
     )
     position()
     tooltipElement.style.removeProperty('visibility')
@@ -735,6 +737,12 @@ function resolveTooltipAnchor(
   scene: ChartScene,
   pointer: { x: number; y: number } | null,
   options?: ChartTooltipOptions<any, any, any>,
+  focus: ChartFocusState = {
+    primary: point,
+    group: points,
+    source: 'programmatic' as const,
+    pinned: false,
+  },
 ): { x: number; y: number } {
   const fallback = { x: point.x, y: point.y }
   const anchor = options?.anchor ?? 'point'
@@ -753,15 +761,79 @@ function resolveTooltipAnchor(
     }
     return { x: (x1 + x2) / 2, y: (y1 + y2) / 2 }
   }
+  if (typeof anchor === 'object') {
+    return {
+      x: resolveTooltipCoordinate(
+        'x',
+        anchor.x,
+        point,
+        points,
+        scene,
+        pointer,
+        fallback.x,
+      ),
+      y: resolveTooltipCoordinate(
+        'y',
+        anchor.y,
+        point,
+        points,
+        scene,
+        pointer,
+        fallback.y,
+      ),
+    }
+  }
   const resolved = anchor(points, {
+    focus,
     pointer,
-    chart: scene.chart,
-    width: scene.width,
-    height: scene.height,
+    plot: scene.chart,
+    surface: { width: scene.width, height: scene.height },
+    scales: scene.scales,
   })
   return resolved && Number.isFinite(resolved.x) && Number.isFinite(resolved.y)
     ? resolved
     : fallback
+}
+
+function resolveTooltipCoordinate(
+  axis: 'x' | 'y',
+  source: string,
+  point: ChartPoint,
+  points: readonly ChartPoint[],
+  scene: ChartScene,
+  pointer: { x: number; y: number } | null,
+  fallback: number,
+): number {
+  if (source === 'point') return axis === 'x' ? point.x : point.y
+  if (source === 'pointer') return pointer?.[axis] ?? fallback
+  if (source === 'value') {
+    const value = axis === 'x' ? point.xValue : point.yValue
+    const position = scene.scales[axis]?.map(value)
+    return position !== undefined && Number.isFinite(position)
+      ? position
+      : fallback
+  }
+  if (source === 'group-center') {
+    let minimum = axis === 'x' ? point.x : point.y
+    let maximum = minimum
+    for (const candidate of points) {
+      const position = axis === 'x' ? candidate.x : candidate.y
+      minimum = Math.min(minimum, position)
+      maximum = Math.max(maximum, position)
+    }
+    return (minimum + maximum) / 2
+  }
+  const plot = scene.chart
+  if (axis === 'x') {
+    if (source === 'plot-left') return plot.x
+    if (source === 'plot-center') return plot.x + plot.width / 2
+    if (source === 'plot-right') return plot.x + plot.width
+  } else {
+    if (source === 'plot-top') return plot.y
+    if (source === 'plot-center') return plot.y + plot.height / 2
+    if (source === 'plot-bottom') return plot.y + plot.height
+  }
+  return fallback
 }
 
 function chartValueEqual(left: ChartValue, right: ChartValue) {

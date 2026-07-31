@@ -139,7 +139,7 @@ interface ChartTooltipOptions<
 | `portal`      | None           | Optional top-layer or fixed-position transport       |
 | `items`       | Automatic x/y  | Ordered rows for a single focused point              |
 | `sort`        | `color-domain` | Grouped row order                                    |
-| `anchor`      | `point`        | Point, pointer, group center, or coordinate resolver |
+| `anchor`      | `point`        | Preset, per-axis coordinates, or coordinate resolver |
 | `placement`   | `auto`         | Fixed or ordered fallback box placements             |
 | `offset`      | `10`           | Scene-pixel gap between anchor and box               |
 | `content`     | Automatic rows | Returns a safe title and structured rows             |
@@ -201,9 +201,11 @@ grouped structure belongs in `content`.
 - `pointer` follows the current pointer and falls back to the point for
   keyboard focus.
 - `group-center` uses the center of the focused points' bounding box.
-- A resolver receives the focused points plus pointer, chart bounds, width,
-  and height, and returns scene coordinates. A nullish or non-finite result
-  falls back to the primary point.
+- `{ x, y }` chooses each coordinate from point, pointer, semantic value,
+  group center, or a plot edge.
+- A resolver receives the focused points plus `{ focus, pointer, plot,
+surface, scales }` and returns scene coordinates. A nullish or non-finite
+  result falls back to the primary point.
 
 `placement` accepts `auto`, one placement, or an ordered fallback list. The
 placements are `top`, `top-right`, `right`, `bottom-right`, `bottom`,
@@ -216,7 +218,7 @@ it uses the least-overflowing candidate and shifts it inside. `auto` uses
 const groupedDefinition = defineChart(definition, {
   tooltip: {
     use: tooltip,
-    anchor: 'group-center',
+    anchor: { x: 'plot-center', y: 'plot-top' },
     placement: ['top', 'right', 'left', 'bottom'],
     offset: 12,
   },

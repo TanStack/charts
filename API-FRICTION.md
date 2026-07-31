@@ -193,7 +193,13 @@ Each entry records:
 | F-155 | Optional tooltip code burdened every chart consumer      | API             | resolved   |
 | F-156 | Releases stranded manual Unreleased migration notes      | Tooling/Release | monitoring |
 | F-157 | Conformance monitoring blocked unrelated changes         | Tooling         | resolved   |
-| F-158 | Sankey widths required a custom scene renderer           | API             | resolved   |
+| F-158 | Focus presentation was fixed to one renderer marker      | API             | resolved   |
+| F-159 | Axis scale and presentation controls were interleaved    | API             | resolved   |
+| F-160 | Responsive tick labels had no collision policy           | API             | resolved   |
+| F-161 | Tooltip anchors could not fix coordinates independently  | API             | resolved   |
+| F-162 | Focus styling required duplicate marks                   | API             | resolved   |
+| F-163 | Cross-row transforms lacked a public ownership boundary  | API             | resolved   |
+| F-164 | Sankey widths required a custom scene renderer           | API             | resolved   |
 
 ## Findings
 
@@ -380,11 +386,11 @@ Each entry records:
   scale with an authored string range/interpolator; bare D3 defaults are
   numeric or empty and fail instead of becoming invalid CSS paint.
 - Group inference: when `z` is omitted, connected line and area marks use
-  `color` to partition paths because one row-level color channel necessarily
-  identifies those paths. A grouped bar does the same only when `groupScale`
-  requests subgroup geometry. Explicit `z` remains authoritative and can
-  differ from `color`; point marks never change geometry merely because they
-  have a color channel.
+  discrete `color` to partition paths because one row-level color channel
+  necessarily identifies those paths. Bars use it as series identity after
+  stacked or explicit grouped geometry is known. Continuous color cannot infer
+  a series. Explicit `z` remains authoritative and can differ from `color`;
+  color never selects stacked versus grouped geometry.
 - Legend behavior: `colorLegend` uses swatches for categorical scales, a
   gradient for continuous and sequential scales, and exact stepped bins and
   boundaries for quantize, quantile, and threshold scales.
@@ -459,14 +465,19 @@ Each entry records:
   thick and shifted each away from its categorical tick.
 - Expected: the supplied D3 band scale completely owns bar position and
   thickness. Series or color identity must not silently change geometry.
-- Decision: bars fill the primary scale bandwidth by default, with no implicit
-  inset. `z` remains series identity and a color fallback. True side-by-side
-  bars inject a secondary D3 band scale through `groupScale`; TanStack copies
-  it and supplies the primary bandwidth as its responsive range.
-- Verification: focused tests cover exact band starts, widths, centers,
-  source-scale immutability, non-positional `z`, and injected grouped scales.
-  Stats grouped and stacked snapshots now match Plot rectangle geometry in
-  both orientations.
+- Decision: a single quantitative bar channel is a length and stacks
+  implicitly at repeated positions. Explicit endpoints opt out of stacking but
+  remain compatible with orthogonal `layout: group()` positioning. Side-by-side
+  geometry requires `layout: group()`, optionally with a copied D3 band scale.
+  `z` supplies series identity; discrete `color` may infer identity only after
+  geometry is selected. `layout: stack()` exposes order, reversal, diverging,
+  normalization, centering, and wiggle offsets for bars and areas while
+  preserving the default implicit stack.
+- Verification: focused tests cover implicit diverging bars, normalized and
+  ordered stacks, area stacks, explicit endpoints with grouping, explicit
+  grouping, source-scale immutability, and continuous-color rejection. Catalog
+  conformance case 72 passes with explicit stacked endpoints adjacent to an
+  independent grouped bar.
 
 ### F-014 — Responsive nicing duplicates layout calculations
 
@@ -673,10 +684,11 @@ Each entry records:
   entire 320px surface.
 - Decision: make omitted margin sides automatic. Solve the minimum guide bounds
   from formatted text, anchors, and rotations; treat numeric sides as hard
-  overrides; expose resolved bounds for aligned application UI. Keep label
-  containment separate from tick collision. Content-dependent examples omit
-  margin locks, and axis titles use the same compact 10px typography as ticks
-  below 360px.
+  overrides; expose resolved bounds for aligned application UI. Candidate
+  generation now precedes rotated-label collision thinning, while containment
+  remains a separate constraint. The final thinned bounds feed the iterative
+  margin solver. Content-dependent examples omit margin locks, and axis titles
+  use the same compact 10px typography as ticks below 360px.
 - Verification: six guide-bound tests cover deterministic measurement, anchors,
   baselines, rotation, translated groups, and all four sides. Five scene-layout
   tests cover long labels and titles, rotated endpoints, narrow-to-wide
@@ -1870,10 +1882,9 @@ Each entry records:
   four bars without temporal context.
 - Expected: compact and nested charts can independently show or hide each axis
   guide without custom rendering.
-- Decision: add per-axis guide visibility at the narrow axis configuration
-  layer while retaining `guides: false` as the positionless-chart shorthand.
-  The option must not add a universal dependency or affect charts that keep
-  both guides.
+- Decision: use `axis: false` at the narrow scale configuration layer while
+  retaining `guides: false` as the positionless-chart shorthand. Grid
+  visibility is independent from axis visibility.
 - Verification: scene-layout tests cover x-only, y-only, both, and neither,
   including automatic margins and grid suppression. The nested-tooltip case
   retains period labels while hiding its y guide. The full 79-case matrix
@@ -3795,7 +3806,139 @@ Each entry records:
   execution. The main CI contract rejects any conformance dependency while
   retaining every exact-revision catalog publication guard.
 
-### F-158 — Sankey widths required a custom scene renderer
+### F-158 — Focus presentation was fixed to one renderer marker
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: implementing the background-highlight feedback in issue #9
+- Friction: the host could paint only one hardcoded point marker. A focused
+  category band, rule, active bar, or custom effect required renderer-specific
+  DOM mutation or a second interaction loop.
+- Decision: `whenFocused` filters an ordinary mark from the centralized
+  `ChartFocusState`. Matching supports primary, group, key, x, y, and series.
+  Mark order owns under/over placement; filtered marks infer scales but do not
+  add hit targets. Custom surfaces receive primary, group, source, and pinned
+  state.
+- Verification: SVG tests filter band geometry by semantic x, Canvas tests
+  preserve the cached base layer while painting underlays and overlays, and
+  renderer tests verify pointer/keyboard source and pinned state.
+
+### F-159 — Axis scale and presentation controls were interleaved
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: grid-without-tick-stubs feedback in issue #9
+- Friction: flat scale, axis, tick, title, and grid options coupled visibility.
+  Hiding the guide also removed grid lines; hiding stubs retained their
+  geometry in layout.
+- Decision: keep `scale`, `nice`, `reverse`, and `grid` at the scale layer and
+  nest baseline, ticks, tick labels, and title under `axis`. `axis: false`
+  retains the scale, and `axis.ticks.size: 0` omits stub nodes and their space.
+- Verification: scene-layout tests cover independent grid and axis visibility,
+  zero-size stub omission, formatter placement, title offsets, and mutually
+  exclusive candidate policies. The combined issue #9 foundation adds 1,340
+  gzip bytes to the locked line scene and 2,883 gzip bytes to the
+  representative-mark entry; the reviewed universal baseline and isolated
+  ceilings record that cost.
+
+### F-160 — Responsive tick labels had no collision policy
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: responsive-axis-label feedback in issue #9
+- Friction: authors could choose a tick count or rotation, but neither
+  guaranteed readable labels as length changed. There was no way to hard-keep
+  important interior labels.
+- Decision: generate semantic candidates from exactly one of count, pixel
+  spacing, or explicit values; then rotate and collision-thin labels. Thinning
+  defaults on, categorical x softly prioritizes ends, and `keep` hard-retains
+  exact labels without adding grid lines or stubs.
+- Verification: tests cover width-dependent candidate counts, rotated thinning,
+  the `thin: false` matrix, soft ends, hard interior retention, and kept
+  label-only values through iterative automatic margins. Shared facet axes
+  remeasure after their final cell width changes the thinning result; the
+  320-pixel Anscombe case keeps its right edge label contained. That convergence
+  adds 0.25 kB gzip to the isolated facet bundle (18.65 kB total), covered by
+  its reviewed 18.8 kB ceiling without changing any exact universal baseline.
+
+### F-161 — Tooltip anchors could not fix coordinates independently
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: fixed-tooltip-placement feedback in issue #9
+- Friction: point, pointer, and group-center presets moved both coordinates.
+  Fixing a grouped tooltip to the plot top while following a value on x
+  required duplicated plot-bound calculations in a callback.
+- Decision: accept `{ x, y }` anchors with point, pointer, value, group-center,
+  and plot-edge choices per coordinate. Callback context exposes complete
+  focus, pointer, plot, surface, and resolved-scale state.
+- Verification: renderer tests cover mixed plot-center/plot-top anchoring,
+  keyboard pointer fallback, and the complete typed callback context.
+
+### F-162 — Focus styling required duplicate marks
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: issue #9 pointer and grouped-tooltip examples
+- Friction: enlarging or recoloring an existing focused dot required a second
+  `whenFocused(dot(...))` with duplicated data, position channels, key policy,
+  and paint. That replacement geometry could not interpolate from the base
+  mark and made callback-dependent presentation repeat channel logic.
+- Decision: supported marks accept ordered inline `states`. A state selects
+  centralized focus by primary, group, key, x, y, series, unmatched, source,
+  pinned state, or a callback. Style callbacks receive one object containing
+  datum, index, data, point, focus, pointer, and a focus matcher. State styles
+  change presentation only; `whenFocused` remains the composition for new
+  transient geometry.
+- Verification: SVG tests cover callback context, ordered active/unmatched
+  overrides, paint and radius transitions, and restoration. Canvas tests cover
+  equivalent repaint and restoration. Public type tests preserve the source
+  datum throughout the single-object callback, and catalog cases 34 and 35
+  exercise primary and grouped state styles. The complexity audit replaced a
+  quadratic node/point scan with a per-mark prefix index. Static line-scene
+  plumbing adds 71 gzip bytes; the complete SVG DOM host adds 994 gzip bytes,
+  recorded in the reviewed universal bundle baseline.
+
+### F-163 — Cross-row transforms lacked a public ownership boundary
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: replacing manual histogram, grouped-reducer, rolling-average,
+  extrema, and stack preparation in the issue #9 authoring pass
+- Friction: canonical docs assigned every transform to application code while a
+  private legacy package exposed a different options-rewriting transform model.
+  Authors had no public typed path for common reductions, no consistent source
+  lineage, and no clear distinction between reusable stack rows and mark-local
+  stack/group layout. The first public pass then exposed opaque `key` tuples,
+  nested `datum.datum` paths, input-order-only windows, and implicit reducer
+  defaults. Real heatmap, cumulative histogram, ECDF, bump, Bollinger, and
+  temporal aggregation cases still required one-off D3 glue.
+- Decision: expose eager data-first grouping, numeric and temporal binning,
+  two-dimensional binning, window, cumulative, rank, normalize, select, and
+  stack-row helpers. Group fields are named. One-to-one transforms extend flat
+  input rows. Windowed operations accept explicit ordering. Every output names
+  its reducer. Common reductions use compact string names; descriptive,
+  dispersion, endpoint, change, ratio, and quantile reducers are separately
+  tree-shakeable functions. Ordinary functions
+  are the custom composition escape hatch; there is no `transformData`
+  protocol or hidden reactive graph. `stack()` and `group()` remain mark
+  layouts.
+- Verification: focused unit and type tests cover callback inference, named
+  compound groups, aligned grouped and two-dimensional bins, calendar-aligned
+  empty periods, ordered rolling and cumulative lineage, ranks, quantiles,
+  normalization, selection, and shared stack semantics. Conformance consumers
+  use flat rows directly. Each transform family has a packed granular entry and
+  independent bundle measurement; ordinary mark entries remain protected by
+  exact baselines. The private legacy transform export and its 402 lines of
+  duplicate implementation/tests remain removed.
+
+### F-164 — Sankey widths required a custom scene renderer
 
 - Status: resolved
 - Severity: medium

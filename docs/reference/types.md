@@ -104,6 +104,14 @@ are available from the root entry point. The four `ChartMarkPoint*` and
 `ChartMarkX` and `ChartMarkY` remain exported as deprecated aliases of the
 point extractors. New code should use the explicit names.
 
+Stateful mark presentation uses `ChartMarkStateContext` as one object bag for
+the datum, index, data, point, focus, pointer, and matching helper. A
+`ChartMarkStateSelector` handles the common declarative cases, while callbacks
+can return any `ChartMarkStateValue`. `ChartMarkStateStyle` is the complete
+style vocabulary; `ChartDotStateStyle`, `ChartBarStateStyle`,
+`ChartRectStateStyle`, `ChartLineStateStyle`, `ChartAreaStateStyle`, and
+`ChartTextStateStyle` narrow it to properties each mark can render.
+
 ## Definitions
 
 | Type                     | Purpose                                                                       |
@@ -156,33 +164,38 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 
 ## Scale, guide, color, and theme types
 
-| Type                       | Purpose                                                      |
-| -------------------------- | ------------------------------------------------------------ |
-| `ChartAxisOptions`         | Required positional scale and optional guide behavior        |
-| `ChartAxisGuideOptions`    | Guide behavior without the scale field                       |
-| `ChartScaleFactory`        | Creates a positional scale with a mark-inferred domain       |
-| `ChartScaleInput`          | Factory or configured positional scale instance              |
-| `InferableScaleLike`       | Domain-configurable scale returned by a factory              |
-| `ConfiguredScaleLike`      | Callable, copyable positional scale contract                 |
-| `ChartNumericScale`        | Radius mapper, configured instance, or inferred factory spec |
-| `ChartNumericScaleOptions` | Inferred or configured radius scale with optional nicening   |
-| `ChartScale`               | Custom positional scale extension                            |
-| `ChartScaleResolveContext` | Values, responsive range, guide options, and hints           |
-| `ChartScaleResolver`       | Function form of custom scale resolution                     |
-| `ChartColorOptions`        | Factory, configured/custom color scale, hints, and legend    |
-| `ChartColorScaleFactory`   | Creates a color scale with a channel-inferred domain         |
-| `ConfiguredColorScaleLike` | Callable and copyable color scale contract                   |
-| `InferableColorScaleLike`  | Domain-configurable color scale returned by a factory        |
-| `ChartColorScale`          | Custom color scale extension                                 |
-| `ChartColorScaleContext`   | Observed values, hints, and theme                            |
-| `ResolvedColorScale`       | Resolved mapping and optional stepped legend boundaries      |
-| `ResolvedColorScaleKind`   | Categorical, continuous, quantile, quantize, or threshold    |
-| `ChartColorLegend`         | Legend layout and scene rendering                            |
-| `ChartColorLegendContext`  | Resolved colors, chart bounds, theme, and width              |
-| `ChartTheme`               | Foreground, muted, grid, background, and palette             |
-| `ChartLinearGradient`      | Named linear-gradient resource                               |
-| `ChartGradientStop`        | Gradient offset, color, and optional opacity                 |
-| `ChartCurve`               | Line and y-area path generation                              |
+| Type                            | Purpose                                                      |
+| ------------------------------- | ------------------------------------------------------------ |
+| `ChartAxisOptions`              | Required positional scale and optional guide behavior        |
+| `ChartAxisGuideOptions`         | Guide behavior without the scale field                       |
+| `ChartAxisPresentationOptions`  | Axis line, ticks, tick labels, and title presentation        |
+| `ChartAxisTickOptions`          | Candidate values, density, formatting, size, and padding     |
+| `ChartAxisTickLabelOptions`     | Optional rotation and collision-aware thinning               |
+| `ChartAxisTickLabelThinOptions` | Minimum gap, end priority, and labels that must be kept      |
+| `ChartAxisLabelOptions`         | Axis title text and explicit or measured offset              |
+| `ChartScaleFactory`             | Creates a positional scale with a mark-inferred domain       |
+| `ChartScaleInput`               | Factory or configured positional scale instance              |
+| `InferableScaleLike`            | Domain-configurable scale returned by a factory              |
+| `ConfiguredScaleLike`           | Callable, copyable positional scale contract                 |
+| `ChartNumericScale`             | Radius mapper, configured instance, or inferred factory spec |
+| `ChartNumericScaleOptions`      | Inferred or configured radius scale with optional nicening   |
+| `ChartScale`                    | Custom positional scale extension                            |
+| `ChartScaleResolveContext`      | Values, responsive range, guide options, and hints           |
+| `ChartScaleResolver`            | Function form of custom scale resolution                     |
+| `ChartColorOptions`             | Factory, configured/custom color scale, hints, and legend    |
+| `ChartColorScaleFactory`        | Creates a color scale with a channel-inferred domain         |
+| `ConfiguredColorScaleLike`      | Callable and copyable color scale contract                   |
+| `InferableColorScaleLike`       | Domain-configurable color scale returned by a factory        |
+| `ChartColorScale`               | Custom color scale extension                                 |
+| `ChartColorScaleContext`        | Observed values, hints, and theme                            |
+| `ResolvedColorScale`            | Resolved mapping and optional stepped legend boundaries      |
+| `ResolvedColorScaleKind`        | Categorical, continuous, quantile, quantize, or threshold    |
+| `ChartColorLegend`              | Legend layout and scene rendering                            |
+| `ChartColorLegendContext`       | Resolved colors, chart bounds, theme, and width              |
+| `ChartTheme`                    | Foreground, muted, grid, background, and palette             |
+| `ChartLinearGradient`           | Named linear-gradient resource                               |
+| `ChartGradientStop`             | Gradient offset, color, and optional opacity                 |
+| `ChartCurve`                    | Line and y-area path generation                              |
 
 See [Scales, guides, and color](./scales-guides-and-color.md).
 
@@ -210,6 +223,10 @@ See [DOM host](./dom-host.md) and
 | `ChartFocusStrategy`                  | Pointer resolution, grouping, and keyboard ordering                    |
 | `ChartFocusPreset`                    | Built-in nearest and grouped axis focus names                          |
 | `ChartFocusMode`                      | Focus preset or custom strategy                                        |
+| `ChartFocusState`                     | Primary, group, source, and pinned interaction state                   |
+| `ChartFocusSource`                    | Pointer, keyboard, programmatic, or restored source                    |
+| `ChartFocusFilter`                    | Focus-filtered mark matching configuration                             |
+| `ChartFocusMatch`                     | Primary, group, key, x, y, or series matching                          |
 | `ChartSpatialIndex`                   | Nearest-point query                                                    |
 | `ChartSpatialIndexFactory`            | Builds an index from current scene points                              |
 | `ChartExtensionInput`                 | Generic bare-token or `{ use, ...options }` extension input            |
@@ -218,7 +235,7 @@ See [DOM host](./dom-host.md) and
 | `ChartTooltipExtension`               | Tooltip lifecycle implementation                                       |
 | `ChartTooltipExtensionContext`        | Container, dismissal, and adapter-body bridge given to a tooltip       |
 | `ChartTooltipExtensionInstance`       | Tooltip update, paint, hide, containment, and destroy lifecycle        |
-| `ChartTooltipPaintContext`            | Focused points, scene, surface, pointer, and pinned state              |
+| `ChartTooltipPaintContext`            | Focus, points, scene, surface, pointer, and pinned state               |
 | `ChartTooltipOptions`                 | Native tooltip content, ordering, anchoring, and pinning               |
 | `ChartTooltipPortalInput`             | Portal extension token or configured transport options                 |
 | `ChartTooltipPortalExtensionToken`    | Environment-neutral contract implemented by host portal extensions     |
@@ -233,8 +250,11 @@ See [DOM host](./dom-host.md) and
 | `ChartTooltipDatumItem`               | Scalar datum-field row                                                 |
 | `ChartTooltipDerivedItem`             | Row derived from the complete focused point                            |
 | `ChartTooltipSort`                    | Group row ordering                                                     |
-| `ChartTooltipAnchor`                  | Point, pointer, group-center, or custom scene anchor                   |
-| `ChartTooltipAnchorContext`           | Pointer position, chart bounds, and surface size                       |
+| `ChartTooltipAnchor`                  | Preset, independent axis coordinates, or custom scene anchor           |
+| `ChartTooltipAxisAnchor`              | Independent x and y anchor sources                                     |
+| `ChartTooltipXAnchor`                 | Point, pointer, value, group, or plot x source                         |
+| `ChartTooltipYAnchor`                 | Point, pointer, value, group, or plot y source                         |
+| `ChartTooltipAnchorContext`           | Focus, pointer, plot, surface, and resolved scales                     |
 | `ChartTooltipPlacement`               | Tooltip box placement around its anchor                                |
 | `ChartTooltipPosition`                | Scene-pixel x/y coordinate                                             |
 | `ChartDefinitionOptions`              | Focus, tooltip, animation, keyboard, and spatial policy                |

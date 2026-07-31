@@ -1,4 +1,11 @@
-import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import {
+  bandX,
+  defineChart,
+  dot,
+  lineY,
+  mountChart,
+  whenFocused,
+} from '@tanstack/charts'
 import type { ChartHostOptions } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
@@ -16,8 +23,19 @@ const colors = ['#2563eb', '#f97316', '#10b981']
 
 const definition = (input: ConformanceInput) => {
   const rows = selectGroupedTooltipData(industries, input.revision)
+  const dates = rows.filter((row) => row.industry === industryNames[0])
   return defineChart({
     marks: [
+      whenFocused(
+        bandX(dates, {
+          x: 'date',
+          fill: '#64748b',
+          fillOpacity: 0.14,
+          inset: 3,
+          radius: 4,
+        }),
+        { match: 'x' },
+      ),
       lineY(rows, {
         x: 'date',
         y: 'unemployed',
@@ -28,13 +46,24 @@ const definition = (input: ConformanceInput) => {
         y: 'unemployed',
         color: 'industry',
         r: 2.5,
+        states: [
+          {
+            when: { focus: 'group' },
+            style: { r: 5, stroke: 'Canvas', strokeWidth: 1.5 },
+            transition: { duration: 140, easing: 'ease-out' },
+          },
+          {
+            when: { focus: 'unmatched' },
+            style: { opacity: 0.3 },
+          },
+        ],
       }),
     ],
     x: { scale: scaleUtc },
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Unemployed (thousands)',
+      axis: { label: 'Unemployed (thousands)' },
     },
     color: {
       domain: industryNames,

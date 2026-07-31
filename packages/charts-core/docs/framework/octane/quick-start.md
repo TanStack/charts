@@ -57,9 +57,11 @@ const letterFrequencyChart = defineChart({
   y: {
     scale: scaleLinear,
     nice: true,
-    label: 'Frequency',
-    format: (value) => percent.format(value),
     grid: true,
+    axis: {
+      label: 'Frequency',
+      ticks: { format: (value) => percent.format(value) },
+    },
   },
   tooltip,
 })

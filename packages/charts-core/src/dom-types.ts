@@ -1,6 +1,7 @@
 import type {
   ChartAnimationOptions,
   ChartDefinition,
+  ChartFocusState,
   ChartPoint,
   ChartScene,
   ChartSvgRenderer,
@@ -38,8 +39,8 @@ export interface ChartSurface<
     clientY: number,
   ) => { x: number; y: number } | null
   paintFocus: (
-    point: ChartPoint<TDatum, TXValue, TYValue> | null,
-    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
+    pointer?: ChartTooltipPosition | null,
   ) => void
   destroy: () => void
 }
@@ -108,6 +109,7 @@ export interface ChartTooltipPaintContext<
   scene: ChartScene<TDatum, TXValue, TYValue>
   surface: ChartSurface<TDatum, TXValue, TYValue>
   pointer: ChartTooltipPosition | null
+  focus: ChartFocusState<TDatum, TXValue, TYValue>
   pinned: boolean
 }
 

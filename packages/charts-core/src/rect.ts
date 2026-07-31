@@ -5,6 +5,7 @@ import {
   inferredKeyValues,
   isChartKey,
   isChartValue,
+  markStates,
 } from './mark'
 import { valueKey } from './scales'
 import type {
@@ -12,6 +13,8 @@ import type {
   ChannelOutput,
   ChartKey,
   ChartMark,
+  ChartMarkState,
+  ChartRectStateStyle,
   ChartPoint,
   ChartValue,
   SceneNode,
@@ -34,6 +37,7 @@ export interface RectOptions<TDatum> {
   strokeWidth?: number
   inset?: number
   radius?: number
+  states?: readonly ChartMarkState<TDatum, ChartRectStateStyle<TDatum>>[]
 }
 
 export type CellOptions<TDatum> = Omit<
@@ -133,6 +137,7 @@ export function rect<TDatum>(
 
     return {
       id,
+      states: markStates(data, options.states),
       channels: {
         x: {
           scale: 'x',
@@ -195,6 +200,7 @@ export function rect<TDatum>(
             width: Math.max(0, width - inset * 2),
             height: Math.max(0, height - inset * 2),
             radius: options.radius,
+            inset,
             style: {
               fill: color,
               fillOpacity: options.fillOpacity,

@@ -54,7 +54,7 @@ const definition = () =>
     y: {
       scale: scaleLinear,
       grid: true,
-      label: 'Speed of light (km/s minus 299,000)',
+      axis: { label: 'Speed of light (km/s minus 299,000)' },
     },
   })
 

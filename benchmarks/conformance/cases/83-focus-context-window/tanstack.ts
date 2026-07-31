@@ -63,13 +63,9 @@ const detailDefinition = (input: DetailInput) => {
     ],
     x: {
       scale: scaleUtc().domain([input.window.start, input.window.end]),
-      label: 'Selected time window',
+      axis: { label: 'Selected time window' },
     },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Close ($)',
-    },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Close ($)' } },
     margin: detailMargin,
   })
 }
@@ -87,17 +83,18 @@ const overviewDefinition = (input: ConformanceInput) => {
     ],
     x: {
       scale: scaleUtc().domain(fullDomain),
-      ticks: 4,
-      format: (value) =>
-        value.toLocaleDateString(undefined, {
-          month: 'short',
-          timeZone: 'UTC',
-        }),
+      axis: {
+        ticks: {
+          count: 4,
+          format: (value) =>
+            value.toLocaleDateString(undefined, {
+              month: 'short',
+              timeZone: 'UTC',
+            }),
+        },
+      },
     },
-    y: {
-      scale: scaleLinear,
-      guide: false,
-    },
+    y: { scale: scaleLinear, axis: false },
     margin: overviewMargin,
   })
 }

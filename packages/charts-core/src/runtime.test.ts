@@ -321,8 +321,12 @@ describe('dynamic chart runtime', () => {
     const first = host.getScene().points[0]
     expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe('c')
     expect(
-      container.querySelector('[data-ts-chart-focus]')?.getAttribute('cx'),
-    ).toBe(String(host.getScene().points.at(-1)?.x))
+      Number(
+        container
+          .querySelector('[data-ts-focus-layer] circle[visibility="visible"]')
+          ?.getAttribute('cx'),
+      ),
+    ).toBeCloseTo(host.getScene().points.at(-1)?.x ?? Number.NaN)
 
     if (!first) throw new Error('Expected first point')
     container
@@ -528,14 +532,13 @@ describe('dynamic chart runtime', () => {
             key: 'id',
           }),
         ],
-        x: {
-          ...bandXAxes(['A'], [0, 12]).x,
-          label: 'Period',
-        },
+        x: { ...bandXAxes(['A'], [0, 12]).x, axis: { label: 'Period' } },
         y: {
           ...linearAxes([0, 1], [0, 12]).y,
-          label: 'Downloads',
-          format: (value) => `${value}k`,
+          axis: {
+            ticks: { format: (value) => `${value}k` },
+            label: 'Downloads',
+          },
         },
         focus: 'group-x',
         tooltip: {
@@ -622,8 +625,10 @@ describe('dynamic chart runtime', () => {
         x: bandXAxes(['A'], [0, 20]).x,
         y: {
           ...linearAxes([0, 1], [0, 20]).y,
-          label: 'Change',
-          format: (value) => `${value} units`,
+          axis: {
+            ticks: { format: (value) => `${value} units` },
+            label: 'Change',
+          },
         },
         tooltip: tooltipExtension,
       }),
@@ -646,13 +651,10 @@ describe('dynamic chart runtime', () => {
     const container = document.createElement('div')
     const definition = defineChart({
       marks: [lineY([{ x: 0, y: 4, note: 'Released' }], { x: 'x', y: 'y' })],
-      x: {
-        ...linearAxes([0, 1], [0, 4]).x,
-        label: 'Week',
-      },
+      x: { ...linearAxes([0, 1], [0, 4]).x, axis: { label: 'Week' } },
       y: {
         ...linearAxes([0, 1], [0, 4]).y,
-        format: (value) => `${value}k`,
+        axis: { ticks: { format: (value) => `${value}k` } },
       },
     })
     const host = mountChart(container, {
@@ -1267,7 +1269,7 @@ describe('dynamic chart runtime', () => {
 
     expect(measureBounds).not.toHaveBeenCalled()
     expect(query).not.toHaveBeenCalledWith('svg.ts-chart')
-    expect(query).not.toHaveBeenCalledWith('[data-ts-chart-focus]')
+    expect(query).not.toHaveBeenCalledWith('[data-ts-focus-layer]')
     expect(readStyle).toHaveBeenCalledTimes(2)
 
     host.update({ ...options, width: 640 })
@@ -1283,11 +1285,13 @@ describe('dynamic chart runtime', () => {
     const spacious = textMeasurer(1.2)
     const definition = defineChart({
       marks: [lineY([1, 2, 3])],
-      x: { ...linearAxes([0, 2], [0, 3]).x, label: 'Release' },
+      x: { ...linearAxes([0, 2], [0, 3]).x, axis: { label: 'Release' } },
       y: {
         ...linearAxes([0, 2], [0, 3]).y,
-        label: 'Downloads',
-        format: () => 'Long formatted tick',
+        axis: {
+          ticks: { format: () => 'Long formatted tick' },
+          label: 'Downloads',
+        },
       },
     })
     const container = document.createElement('div')

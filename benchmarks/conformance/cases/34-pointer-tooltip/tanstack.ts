@@ -25,14 +25,21 @@ const definition = (input: ConformanceInput) => {
         y: 'Close',
         fill: '#2563eb',
         r: 3,
+        states: [
+          {
+            when: { focus: 'primary' },
+            style: {
+              r: 7,
+              stroke: 'Canvas',
+              strokeWidth: 2,
+            },
+            transition: { duration: 140, easing: 'ease-out' },
+          },
+        ],
       }),
     ],
     x: { scale: scaleUtc },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      label: 'Apple close (USD)',
-    },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Apple close (USD)' } },
   })
 }
 

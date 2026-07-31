@@ -77,16 +77,24 @@ const categoricalSpec: ChartSpec<readonly [typeof categoricalMark]> = {
   marks: [categoricalMark],
   x: {
     scale: scaleBand<string>().domain(['Alpha']),
-    format: (value) => {
-      expectTypeOf(value).toEqualTypeOf<string>()
-      return value
+    axis: {
+      ticks: {
+        format: (value) => {
+          expectTypeOf(value).toEqualTypeOf<string>()
+          return value
+        },
+      },
     },
   },
   y: {
     scale: scaleLinear().domain([0, 4]),
-    format: (value) => {
-      expectTypeOf(value).toEqualTypeOf<number>()
-      return value.toLocaleString()
+    axis: {
+      ticks: {
+        format: (value) => {
+          expectTypeOf(value).toEqualTypeOf<number>()
+          return value.toLocaleString()
+        },
+      },
     },
   },
 }
@@ -94,9 +102,13 @@ const staticDefinition = defineChart({
   marks: [categoricalMark],
   x: {
     scale: scaleBand<string>().domain(['Alpha']),
-    format: (value) => {
-      expectTypeOf(value).toEqualTypeOf<string>()
-      return value
+    axis: {
+      ticks: {
+        format: (value) => {
+          expectTypeOf(value).toEqualTypeOf<string>()
+          return value
+        },
+      },
     },
   },
   y: { scale: scaleLinear().domain([0, 4]) },
@@ -105,9 +117,13 @@ const numericDefinition = defineChart({
   marks: [numericMark],
   x: {
     scale: scaleLinear().domain([0, 4]),
-    format: (value) => {
-      expectTypeOf(value).toEqualTypeOf<number>()
-      return value.toLocaleString()
+    axis: {
+      ticks: {
+        format: (value) => {
+          expectTypeOf(value).toEqualTypeOf<number>()
+          return value.toLocaleString()
+        },
+      },
     },
   },
   y: { scale: scaleLinear().domain([0, 4]) },
@@ -116,9 +132,13 @@ const temporalDefinition = defineChart({
   marks: [temporalMark],
   x: {
     scale: scaleUtc().domain(rows.map((row) => row.date)),
-    format: (value) => {
-      expectTypeOf(value).toEqualTypeOf<Date>()
-      return value.toISOString()
+    axis: {
+      ticks: {
+        format: (value) => {
+          expectTypeOf(value).toEqualTypeOf<Date>()
+          return value.toISOString()
+        },
+      },
     },
   },
   y: { scale: scaleLinear().domain([0, 4]) },
@@ -390,8 +410,10 @@ if (false) {
           yValue: number
         }>()
         expectTypeOf(context.pointer?.x).toEqualTypeOf<number | undefined>()
-        expectTypeOf(context.chart.width).toEqualTypeOf<number>()
-        return context.pointer ?? { x: context.chart.x, y: context.chart.y }
+        expectTypeOf(context.plot.width).toEqualTypeOf<number>()
+        expectTypeOf(context.focus.primary.datum).toEqualTypeOf<Row>()
+        expectTypeOf(context.scales.x?.map).toBeFunction()
+        return context.pointer ?? { x: context.plot.x, y: context.plot.y }
       },
       placement: ['top', 'bottom-right'],
       offset: 12,
@@ -740,6 +762,34 @@ if (false) {
 }
 
 describe('public type contracts', () => {
+  it('types inline state callbacks from one context object', () => {
+    dot(rows, {
+      x: 'value',
+      y: 'value',
+      states: [
+        {
+          when: ({ datum, index, data, point, focus, pointer, matches }) => {
+            expectTypeOf(datum).toEqualTypeOf<Row>()
+            expectTypeOf(index).toEqualTypeOf<number>()
+            expectTypeOf(data).toEqualTypeOf<readonly Row[]>()
+            expectTypeOf(point.datum).toEqualTypeOf<Row>()
+            expectTypeOf(focus.primary.datum).toEqualTypeOf<Row>()
+            expectTypeOf(pointer).toEqualTypeOf<{
+              x: number
+              y: number
+            } | null>()
+            expectTypeOf(matches).toBeFunction()
+            return matches('primary')
+          },
+          style: {
+            fill: ({ datum }) => (datum.enabled ? '#2563eb' : '#94a3b8'),
+            r: ({ index }) => index + 4,
+          },
+        },
+      ],
+    })
+  })
+
   it('preserves precise datum unions through heterogeneous definitions', () => {
     type InferredDatum = NonNullable<typeof heterogeneousDefinition.__datum>
 
