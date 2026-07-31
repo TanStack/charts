@@ -1,9 +1,9 @@
 {
   "schemaVersion": 4,
-  "revision": "d5f11d2586e6f0924fe5e847a5f3db793ee83318",
+  "revision": "32480c404116166e8e15ba3093750b9f9e28a5e4",
   "source": {
     "repo": "tanstack/charts",
-    "ref": "d5f11d2586e6f0924fe5e847a5f3db793ee83318",
+    "ref": "32480c404116166e8e15ba3093750b9f9e28a5e4",
     "pathRoot": "benchmarks/conformance/"
   },
   "runtime": {
@@ -40,7 +40,7 @@
       "height": {
         "minimum": 120,
         "maximum": 1200,
-        "default": 360
+        "default": 480
       },
       "revision": {
         "minimum": 0,
