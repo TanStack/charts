@@ -186,6 +186,7 @@ Each entry records:
 | F-148 | Publisher failure returned before its workers settled    | Tooling/Release | resolved   |
 | F-149 | Release checks could stall or accept an unbound tag      | Tooling/Release | resolved   |
 | F-150 | Nx worktree caches followed the common Git directory     | Tooling         | monitoring |
+| F-151 | Artifact actions targeted deprecated Node 20             | Tooling         | resolved   |
 
 ## Findings
 
@@ -3602,3 +3603,16 @@ Each entry records:
 - Verification: the full 17-target validation graph passes with both
   directories scoped to the active worktree. Ordinary clones and GitHub
   Actions retain `.nx/cache` and `.nx/workspace-data`.
+
+### F-151 — Artifact actions targeted deprecated Node 20
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: the final split-CI pull-request matrix
+- Friction: GitHub forced the pinned v4 artifact actions onto Node 24 and
+  emitted a deprecation annotation in every artifact-producing shard.
+- Decision: pin the official Node 24 releases of `upload-artifact` v6 and
+  `download-artifact` v7 by exact commit.
+- Verification: workflow contracts require immutable action revisions; the
+  final GitHub matrix exercises every upload path before merge.
