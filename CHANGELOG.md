@@ -458,10 +458,12 @@ catalog artifact.
   routes load only TanStack code; competitor code remains opt-in.
 
 TanStack.com deployed and verified the schema-v4 consumer before release, then
-retired its schema-v2 compatibility path in commit `c4687bf`. The public
-manifest identifies Charts release `15dcb156`, contains 100 cases, 430
-hash-verified assets, and 25 datasets, and serves the list, detail, comparison,
-and embed routes from the native site.
+retired its schema-v2 compatibility path in commit `c4687bf`. During `0.0.1`
+production verification, the public manifest identified tagged release
+`15dcb156`, contained 100 cases, 430 hash-verified assets, and 25 datasets, and
+served the list, detail, comparison, and embed routes from the native site.
+Later catalog publications intentionally advance with `main`; the `v0.0.1`
+Git tag and published `0.0.1` npm versions remain immutable.
 
 ## Documentation, comparison, and lineage
 
