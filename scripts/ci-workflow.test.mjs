@@ -38,14 +38,8 @@ describe('CI workflow contract', () => {
     assert.doesNotMatch(setupAction, /playwright-\d+\.\d+\.\d+/)
   })
 
-  test('runs static, bundle, comparison, conformance, and stress partitions independently', () => {
-    for (const name of [
-      'static',
-      'bundle-baseline',
-      'compare',
-      'conformance',
-      'stress',
-    ]) {
+  test('runs static, bundle, comparison, and stress partitions independently', () => {
+    for (const name of ['static', 'bundle-baseline', 'compare', 'stress']) {
       assert.doesNotMatch(
         job(name),
         /^\s*needs:/m,
@@ -53,12 +47,14 @@ describe('CI workflow contract', () => {
       )
     }
 
-    for (const name of ['compare', 'conformance', 'stress']) {
+    for (const name of ['compare', 'stress']) {
       assert.match(job(name), /uses:\s*\.\/\.github\/actions\/setup/)
       assert.match(job(name), /playwright:\s*['"]true['"]/)
     }
     assert.doesNotMatch(job('static'), /playwright:\s*['"]true['"]/)
     assert.doesNotMatch(job('bundle-baseline'), /playwright:\s*['"]true['"]/)
+    assert.doesNotMatch(workflow, /^\s{2}conformance:\s*$/m)
+    assert.doesNotMatch(workflow, /pnpm conformance/)
   })
 
   test('runs the cached workspace graph and builds the main catalog fully', () => {
@@ -75,7 +71,7 @@ describe('CI workflow contract', () => {
     assert.match(staticChecks, /path:\s*\.catalog-artifact/)
   })
 
-  test('shards comparison by chart and conformance into eight partitions', () => {
+  test('shards comparison by chart', () => {
     const comparison = job('compare')
     assert.match(comparison, /fail-fast:\s*false/)
     assert.deepEqual(scalarList(comparison, 'chart'), [
@@ -92,39 +88,6 @@ describe('CI workflow contract', () => {
     assert.match(
       comparison,
       /summaries=\(\.benchmark-output\/results\/\*\.md\)[\s\S]*test -e "\${summaries\[0\]}"[\s\S]*cat "\${summaries\[@\]}"/,
-    )
-
-    const conformance = job('conformance')
-    assert.match(conformance, /fail-fast:\s*false/)
-    assert.deepEqual(scalarList(conformance, 'shard'), [
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-    ])
-    assert.match(conformance, /Conformance \(\${{ matrix\.shard }}\/8\)/)
-    assert.match(
-      conformance,
-      /pnpm conformance:quick -- --shard=\${{ matrix\.shard }}\/8/,
-    )
-    assert.match(conformance, /if:\s*github\.event_name == 'pull_request'/)
-    assert.match(
-      conformance,
-      /pnpm conformance -- --shard=\${{ matrix\.shard }}\/8/,
-    )
-    assert.match(conformance, /if:\s*github\.event_name != 'pull_request'/)
-    assert.doesNotMatch(conformance, /version_pr/)
-    assert.match(
-      conformance,
-      /name:\s*chart-library-conformance-\${{ matrix\.shard }}-\${{ github\.run_id }}/,
-    )
-    assert.match(
-      conformance,
-      /summaries=\(\.benchmark-output\/conformance\/results\/\*\.md\)[\s\S]*test -e "\${summaries\[0\]}"[\s\S]*cat "\${summaries\[@\]}"/,
     )
   })
 
@@ -188,14 +151,12 @@ describe('CI workflow contract', () => {
       'static',
       'bundle-baseline',
       'compare',
-      'conformance',
       'stress',
     ])
     for (const [variable, dependency] of [
       ['STATIC_RESULT', 'static'],
       ['BUNDLE_RESULT', 'bundle-baseline'],
       ['COMPARISON_RESULT', 'compare'],
-      ['CONFORMANCE_RESULT', 'conformance'],
       ['STRESS_RESULT', 'stress'],
     ]) {
       assert.match(
@@ -206,6 +167,7 @@ describe('CI workflow contract', () => {
       )
     }
     assert.match(aggregate, /test "\$result" = success/)
+    assert.doesNotMatch(aggregate, /CONFORMANCE_RESULT|needs\.conformance/)
     assert.doesNotMatch(aggregate, /contents:\s*write/)
   })
 

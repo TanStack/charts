@@ -190,6 +190,7 @@ Each entry records:
 | F-152 | Version bumps invalidated workspace bundle evidence      | Tooling/Release | resolved   |
 | F-153 | Changesets left release-facing version claims behind     | Tooling/Release | resolved   |
 | F-154 | Root barrels crossed the browser host boundary           | API/Tooling     | resolved   |
+| F-155 | Conformance monitoring blocked unrelated changes         | Tooling         | resolved   |
 
 ## Findings
 
@@ -2816,13 +2817,15 @@ Each entry records:
   headers, cache policy, and content delivery behavior.
 - Decision: treat the catalog as generated structured content. Charts CI builds
   schema-v4 `catalog.json` plus only the recursively allowlisted implementation
-  modules, then replaces the generated `catalog-dist` branch after validation
-  and the unfiltered conformance matrix. TanStack.com's existing content
-  pipeline reads that branch, verifies hashes and limits, renders native routes
-  and embeds, and serves modules below an artifact-commit namespace. Charts
-  source and dependencies remain out of the site repository and default site
-  bundle. The previous Worker, staging tree, deployment scripts, credentials,
-  and route ownership are removed from the Charts workflow.
+  modules, then replaces the generated `catalog-dist` branch after the static,
+  package, bundle, comparison, and stress gates pass. Conformance is independent
+  regression monitoring rather than an artifact-integrity gate. TanStack.com's
+  existing content pipeline reads that branch, verifies hashes and limits,
+  renders native routes and embeds, and serves modules below an artifact-commit
+  namespace. Charts source and dependencies remain out of the site repository
+  and default site bundle. The previous Worker, staging tree, deployment
+  scripts, credentials, and route ownership are removed from the Charts
+  workflow.
 - Verification: the artifact generator records an exact Charts revision,
   deterministic SHA-256 allowlist, safe repository source paths, recursive
   imports, debug-only comparison roots, and role-aware authored-source
@@ -3681,3 +3684,28 @@ Each entry records:
   export, reconciliation, renderer, and SVG surface modules. That full
   portable barrel measures 55.26 kB minified and 17.04 kB gzip; granular
   subpaths remain the bundle-sensitive option.
+
+### F-155 — Conformance monitoring blocked unrelated changes
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: the first pull-request and main runs after release automation
+  was simplified
+- Friction: every pull request ran all 100 paired cases in the quick profile,
+  then every main commit reran all 100 in the standard profile. Release-only PR
+  `#17` therefore consumed 15.9 conformance runner-minutes before merge and
+  21.6 after merge despite changing no chart source. The eight shards also
+  repeated the complete TypeScript program and 27 type-protection probes. npm
+  publication did not wait on either run, so the cost added no release gate.
+- Decision: move conformance into a read-only monitoring workflow. Run one
+  deterministic standard shard nightly, all eight standard shards weekly, all
+  eight on manual request by default, and all eight for a pull request carrying
+  the `full-conformance` label. Manual dispatch may select one exact shard for
+  reproduction. Normal pull-request, main, catalog, and release paths do not
+  wait on conformance.
+- Verification: workflow contracts require deterministic eight-day rotation,
+  complete weekly and labeled-PR matrices, exact manual shard selection,
+  read-only permissions, immutable action pins, and standard-profile browser
+  execution. The main CI contract rejects any conformance dependency while
+  retaining every exact-revision catalog publication guard.
