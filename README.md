@@ -316,10 +316,11 @@ pnpm conformance:quick
 These measurements are development evidence, not release claims. See each
 suite's README for its protocol, output, and limitations.
 
-Pull requests first gate formatting, types, tests, packed exports and
-declarations, locked bundles, comparison bundles, and catalog metadata.
-Browser comparison, all 100 conformance cases, and the quick five-library stress
-matrix then run as separate artifact-producing jobs.
+Pull requests gate formatting, types, tests, packed exports and declarations,
+locked bundles, comparison bundles, catalog metadata, browser comparison, and
+the quick five-library stress matrix. Conformance is monitored separately with
+a rotating nightly shard, a complete weekly matrix, manual runs, and an
+opt-in `full-conformance` pull-request label.
 
 ## License
 
