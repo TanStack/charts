@@ -2470,10 +2470,11 @@ Each entry records:
   pixels when height is omitted, reports one exact-origin/source versioned
   ready event, accepts the trusted theme command, and ignores a wrong-case
   command. Typecheck and catalog metadata validation pass.
-- Production verification: the public schema-v4 manifest identifies release
-  `15dcb156a32db361678f4cffeb116a2bd0fc0e79`; its response revision header
-  identifies artifact `630ed0d13d512288b8e33f3817c80b76e25d6173`. The embed
-  responds with 200 and no `X-Frame-Options`; normal catalog pages retain
+- Production verification: during the `0.0.1` audit, the public schema-v4
+  manifest identified release `15dcb156a32db361678f4cffeb116a2bd0fc0e79`;
+  its response revision header identified artifact
+  `630ed0d13d512288b8e33f3817c80b76e25d6173`. The embed responded with 200 and
+  no `X-Frame-Options`; normal catalog pages retained
   `X-Frame-Options: DENY`. A live browser rendered the requested dark theme,
   exact 420-pixel chart height, expanded source, and chart without errors or
   warnings.
@@ -2807,11 +2808,13 @@ Each entry records:
   schema-v4 consumer before the release artifact, and PR
   [#1083](https://github.com/TanStack/tanstack.com/pull/1083) removed the
   schema-v2 validator and compatibility path after production verification.
-  The public manifest now exposes 100 cases, 430 assets, and 25 datasets at
-  release `15dcb156` with Observable Plot, Recharts, and ECharts comparison
-  counts of 68, 21, and 11. Every asset matches its declared byte count and
-  SHA-256 hash. The list, legacy redirect, detail, opt-in comparison, manifest,
-  and embed routes pass live HTTP and browser checks.
+  The verified `0.0.1` publication exposed 100 cases, 430 assets, and 25
+  datasets at release `15dcb156` with Observable Plot, Recharts, and ECharts
+  comparison counts of 68, 21, and 11. Every asset matched its declared byte
+  count and SHA-256 hash. The list, legacy redirect, detail, opt-in comparison,
+  manifest, and embed routes passed live HTTP and browser checks. Later
+  catalog publications intentionally identify the current `main` commit
+  rather than remaining pinned to an npm release tag.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 
