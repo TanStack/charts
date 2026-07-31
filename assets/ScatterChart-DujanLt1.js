@@ -1,0 +1,1 @@
+import{r as e}from"./rolldown-runtime-QTnfLwEv.js";import{I as t,Wr as n}from"./client-YP_jvK5l.js";import{t as r}from"./CartesianChart-D7L23ven.js";var i=e(n()),a=[`item`],o=(0,i.forwardRef)((e,n)=>i.createElement(r,{chartName:`ScatterChart`,defaultTooltipEventType:`item`,validateTooltipEventTypes:a,tooltipPayloadSearcher:t,categoricalChartProps:e,ref:n}));export{o as t};
