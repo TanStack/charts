@@ -1,5 +1,23 @@
 # @tanstack/charts
 
+## 0.3.0
+
+### Minor Changes
+
+- [#15](https://github.com/TanStack/charts/pull/15) [`d9404fa`](https://github.com/TanStack/charts/commit/d9404fa6143cc199b0e224658dfac45e0a10deb7) - Replace the flat axis guide options with composable axis, grid, tick, and
+  responsive label configuration. Add shared focus-layer marks, animated inline
+  mark states, coordinate-based tooltip anchoring, and unified stack/group
+  layouts with inferred stacking.
+  Add data-first group, numeric/calendar/two-dimensional bin, window, cumulative,
+  rank, normalize, select, and row-stack transforms. Results use named group
+  fields, flat row extension, explicit reducers and ordering, source lineage,
+  object-bag callbacks, ordinary-function escape hatches, and granular entry
+  points.
+
+- [#16](https://github.com/TanStack/charts/pull/16) [`1cb4167`](https://github.com/TanStack/charts/commit/1cb41675e5bf443f255d66d23b455188cecf9b1f) - Allow `link` marks to resolve stroke width and opacity per datum and configure
+  their line caps. This supports proportional D3 Sankey links through native mark
+  composition instead of a custom scene renderer.
+
 ## 0.2.0
 
 ### Minor Changes
