@@ -315,9 +315,9 @@ not a complete rendered chart.
 | Custom-scale line scene, no renderer                    |             5.82 KiB | Exact byte lock; not a complete chart                    |
 | D3-scale line with static SVG                           |            14.54 KiB | Exact byte lock                                          |
 | Mounted basic line, bar, area, or scatter               |      23.68–24.70 KiB | Checked four-chart comparison baseline                   |
-| Mounted chart with legend and pointer tooltip           |      25.26–25.91 KiB | Checked four-chart comparison baseline                   |
+| Mounted chart with legend and pointer tooltip           |      25.27–25.92 KiB | Checked four-chart comparison baseline                   |
 | Advanced two-series composition                         |      25.27–28.06 KiB | Checked four-chart comparison baseline                   |
-| React line consumer, D3 scales, React externalized      | 21,283 B / 20.78 KiB | Exact byte lock                                          |
+| React line consumer, D3 scales, React externalized      | 21,281 B / 20.78 KiB | Exact byte lock                                          |
 | React line consumer, compact scales, React externalized | 14,227 B / 13.89 KiB | Exact byte lock                                          |
 | TanStack Stats parity surface                           |            35.35 KiB | Isolated measurement under a 35.45 KiB capability budget |
 
@@ -335,7 +335,7 @@ variable point size.
 
 | Gzip comparison            |           Basic |     Interactive |        Advanced |
 | -------------------------- | --------------: | --------------: | --------------: |
-| TanStack Charts            | 23.68–24.70 KiB | 25.26–25.91 KiB | 25.27–28.06 KiB |
+| TanStack Charts            | 23.68–24.70 KiB | 25.27–25.92 KiB | 25.27–28.06 KiB |
 | Chart.js                   |      1.89–2.12× |      2.07–2.29× |      2.02–2.08× |
 | Observable Plot            |      3.45–3.87× |      3.29–3.63× |      3.23–3.30× |
 | Recharts, React external   |      3.85–4.07× |      4.24–4.30× |      3.89–4.29× |
