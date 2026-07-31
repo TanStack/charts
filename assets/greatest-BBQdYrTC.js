@@ -1,1 +1,0 @@
-import{t as e}from"./ascending-T0YRA00y.js";function t(t,n=e){let r,i=!1;if(n.length===1){let a;for(let o of t){let t=n(o);(i?e(t,a)>0:e(t,t)===0)&&(r=o,a=t,i=!0)}}else for(let e of t)(i?n(e,r)>0:n(e,e)===0)&&(r=e,i=!0);return r}export{t};

@@ -1,1 +1,0 @@
-import{r as e}from"./stack-BqMdGxlI.js";function t(t,n){if((i=t.length)>0){for(var r,i,a=0,o=t[0].length,s;a<o;++a){for(s=r=0;r<i;++r)s+=t[r][a][1]||0;if(s)for(r=0;r<i;++r)t[r][a][1]/=s}e(t,n)}}export{t};

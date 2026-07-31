@@ -1,1 +1,0 @@
-import{r as e}from"./stack-BqMdGxlI.js";function t(t,n){if(!(!((s=t.length)>0)||!((o=(a=t[n[0]]).length)>0))){for(var r=0,i=1,a,o,s;i<o;++i){for(var c=0,l=0,u=0;c<s;++c){for(var d=t[n[c]],f=d[i][1]||0,p=(f-(d[i-1][1]||0))/2,m=0;m<c;++m){var h=t[n[m]],g=h[i][1]||0,_=h[i-1][1]||0;p+=g-_}l+=f,u+=p*f}a[i-1][1]+=a[i-1][0]=r,l&&(r-=u/l)}a[i-1][1]+=a[i-1][0]=r,e(t,n)}}export{t};

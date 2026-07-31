@@ -1,0 +1,1 @@
+function e(e={}){return{type:`group`,...e}}export{e as t};

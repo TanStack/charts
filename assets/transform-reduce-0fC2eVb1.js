@@ -1,0 +1,1 @@
+function e({values:e}){if(e.length<2)return NaN;let t=e.reduce((e,t)=>e+t,0)/e.length;return e.reduce((e,n)=>e+(n-t)**2,0)/(e.length-1)}function t(t){return Math.sqrt(e(t))}function n({values:e}){return e[0]??NaN}export{n,t};

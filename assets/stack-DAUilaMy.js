@@ -1,0 +1,1 @@
+function e(e={}){return{type:`stack`,...e}}export{e as t};
