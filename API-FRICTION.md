@@ -181,6 +181,7 @@ Each entry records:
 | F-143 | The `ci` script name collided with pnpm's clean install  | Tooling/Docs    | resolved   |
 | F-144 | Action pin checks accepted invalid commit lengths        | Tooling         | resolved   |
 | F-145 | Changesets included private workspaces in version plans  | Tooling/Release | resolved   |
+| F-146 | Octane hydration used a unit-test timeout                | Tooling         | resolved   |
 
 ## Findings
 
@@ -3509,3 +3510,18 @@ Each entry records:
 - Verification: the release workflow contract locks both settings, and
   `changeset status` reports only the ten public packages for the compact-axis
   patch.
+
+### F-146 — Octane hydration used a unit-test timeout
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: parallel Ubuntu static checks
+- Friction: the Octane Canvas hydration regression creates a Vite SSR server,
+  compiles the server fixture, renders it, hydrates it, and closes the server.
+  Under the full parallel CI graph that integration path took 5.4 seconds and
+  exceeded Vitest's generic five-second unit-test limit.
+- Decision: give only that cold SSR integration test a 15-second timeout.
+  Ordinary Octane client tests retain the five-second default.
+- Verification: the focused Octane client suite covers all seven client tests;
+  pull-request static checks remain the parallel Linux gate.
