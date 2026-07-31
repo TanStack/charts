@@ -44,7 +44,7 @@ implementation plan or compatibility promise.
 ### Bundle size
 
 - State metadata plumbing adds 245 minified / 71 gzip bytes to a static line
-  scene. Representative marks add 584 / 204 bytes.
+  scene. Representative marks add 606 / 203 bytes.
 - The SVG DOM host adds 2,929 minified / 994 gzip bytes; the React adapter adds
   2,925 / 1,016 bytes. These include the shared state resolver, prefix index,
   transition handling, and SVG integration.
