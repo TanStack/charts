@@ -1,17 +1,21 @@
 import { defineChart } from '@tanstack/charts'
 import { createMarkWithScaleValues } from '@tanstack/charts/mark/scale-values'
 import { sankey, sankeyLeft, sankeyLinkHorizontal } from 'd3-sankey'
-import { basicFlowLinks, basicFlowNodes } from './data'
+import { basicSankeyData } from './model'
 import { tanstackMount } from '../../shared/mount'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { SankeyGraph, SankeyLink, SankeyNode } from 'd3-sankey'
-import type { BasicFlowLink, BasicFlowNode } from './data'
+import type { ConformanceInput } from '../../types'
+import type { BasicFlowLink, BasicFlowNode } from './model'
 
-export const basicSankeyDefinition = () =>
-  defineChart({
-    marks: [basicSankey(basicFlowNodes, basicFlowLinks)],
+export const basicSankeyDefinition = (input: ConformanceInput) => {
+  const { nodes, links } = basicSankeyData(input.revision)
+
+  return defineChart({
+    marks: [basicSankey(nodes, links)],
     margin: 0,
   })
+}
 
 function basicSankey(
   nodes: readonly BasicFlowNode[],

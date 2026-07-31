@@ -3263,12 +3263,13 @@ Each entry records:
   normalization helpers accept the imported source rows instead of reaching
   through a hidden fixture. Cases 85 and 92 retain authored interaction state
   as explicitly named `scenario.ts`, not observation data.
-- Sankey-update evidence: the Apple income-statement case was initially added
-  with chart-shaped nodes and links in a case-local `data.ts`. Adding bounded
-  revision updates made the leaf ranges, seeded variation, and conserved
-  subtotal derivation application logic rather than a raw observation fixture.
-  That logic now lives in open-by-default `model.ts`, and both TanStack Charts
-  and Recharts consume the same deterministic result.
+- Sankey-update evidence: both new Sankey cases were initially added with
+  chart-shaped nodes and links in case-local `data.ts` modules. Adding revision
+  updates made the bounded split and the Apple leaf ranges, seeded variation,
+  and conserved subtotal derivation application logic rather than raw
+  observation fixtures. That logic now lives in open-by-default `model.ts`
+  modules, and both TanStack Charts and Recharts consume the same deterministic
+  results.
 - Framework-example evidence: the React and Octane showcases no longer import
   the synthetic Stats parity fixture. They import pinned industries, penguins,
   cars, and downloads subpaths directly; their time-window selection, D3 stack
@@ -3294,10 +3295,12 @@ Each entry records:
   assertions, and mean frame-relative geometry similarity is 96.7%. Root unit
   tests, typecheck, docs sync, production builds, packed consumers, bundle
   budgets, and all seven framework adapter package gates pass.
-  The Sankey regression additionally checks exact initial values, declared
+  The Sankey regressions additionally check the Basic example's total of 10
+  across five splits plus the Apple example's exact initial values, declared
   leaf bounds, deterministic repeated revisions, and conservation across four
-  revisions. Its full 320/640/960 light/dark initial-and-update conformance
-  matrix passes with clean strict types and 95.8% mean geometry similarity.
+  revisions. Both cases' full 320/640/960 light/dark initial-and-update
+  conformance matrices pass with clean strict types; the Basic case has 99.9%
+  mean geometry similarity and the Apple case has 95.8%.
 
 ### F-135 — The published release had no repository baseline marker
 

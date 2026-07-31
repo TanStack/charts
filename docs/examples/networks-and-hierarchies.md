@@ -45,7 +45,8 @@ short name.
 ></iframe>
 
 Use this version as the starting point when the structure matters more than
-styling. Its four explicit links preserve a 60/40 split through both paths.
+styling. Its four explicit links start with a 60/40 split. **Update data**
+varies that split while preserving a total flow of 10 through both paths.
 
 ## Customize a Sankey
 

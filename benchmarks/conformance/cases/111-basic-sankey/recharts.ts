@@ -1,15 +1,14 @@
 import { createElement } from 'react'
 import { Sankey } from 'recharts'
-import { basicFlowLinks, basicFlowNodes } from './data'
+import { basicSankeyData } from './model'
 import { rechartsMount } from '../../shared/recharts-mount'
 import type { ConformanceInput } from '../../types'
 import type { LinkProps, NodeProps } from 'recharts/types/chart/Sankey'
 
 function chart(input: ConformanceInput) {
+  const { nodes, links } = basicSankeyData(input.revision)
   const layout = responsiveLayout(input.width, input.height)
-  const nodeIndexes = new Map(
-    basicFlowNodes.map((node, index) => [node.id, index]),
-  )
+  const nodeIndexes = new Map(nodes.map((node, index) => [node.id, index]))
   const renderLink = ({
     sourceX,
     sourceY,
@@ -34,7 +33,7 @@ function chart(input: ConformanceInput) {
       strokeLinecap: 'butt',
     })
   const renderNode = ({ x, y, width, height, index }: NodeProps) => {
-    const node = basicFlowNodes[index]
+    const node = nodes[index]
     if (!node) return createElement('g')
     const labelOnRight = index !== 0
 
@@ -73,8 +72,8 @@ function chart(input: ConformanceInput) {
     width: input.width,
     height: input.height,
     data: {
-      nodes: basicFlowNodes.map((node) => ({ ...node })),
-      links: basicFlowLinks.map((link) => ({
+      nodes: nodes.map((node) => ({ ...node })),
+      links: links.map((link) => ({
         source: requiredNodeIndex(nodeIndexes, link.source),
         target: requiredNodeIndex(nodeIndexes, link.target),
         value: link.value,

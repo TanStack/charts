@@ -1,8 +1,8 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { basicFlowLinks, basicFlowNodes } from './data'
+import { basicFlowNodes, basicSankeyData } from './model'
 import { basicSankeyDefinition } from './tanstack'
-import type { BasicFlowNode } from './data'
+import type { BasicFlowNode } from './model'
 import type { SceneNode } from '@tanstack/charts'
 
 describe('basic Sankey composition', () => {
@@ -10,16 +10,18 @@ describe('basic Sankey composition', () => {
     { width: 320, height: 240 },
     { width: 768, height: 500 },
   ])('lays out a minimal flow inside $width×$height', (size) => {
+    const input = { ...size, revision: 0 }
+    const { links: flowLinks } = basicSankeyData(input.revision)
     const runtime = createChartRuntime<BasicFlowNode, string, number>()
-    const scene = runtime.render(basicSankeyDefinition(), size)
+    const scene = runtime.render(basicSankeyDefinition(input), size)
     const nodes = flatten(scene.nodes)
     const links = nodes.filter((node) => node.kind === 'polyline' && node.path)
     const rectangles = nodes.filter((node) => node.kind === 'rect')
     const labels = nodes.filter((node) => node.kind === 'label')
 
-    expect(links).toHaveLength(basicFlowLinks.length)
+    expect(links).toHaveLength(flowLinks.length)
     expect(links.map((link) => link.style?.lineCap)).toEqual(
-      Array.from({ length: basicFlowLinks.length }, () => 'butt'),
+      Array.from({ length: flowLinks.length }, () => 'butt'),
     )
     expect(new Set(links.map((link) => link.style?.stroke))).toEqual(
       new Set(['currentColor']),
@@ -42,19 +44,35 @@ describe('basic Sankey composition', () => {
     }
   })
 
-  it('conserves value through both paths', () => {
-    for (const node of basicFlowNodes) {
-      const incoming = basicFlowLinks
-        .filter((link) => link.target === node.id)
-        .reduce((total, link) => total + link.value, 0)
-      const outgoing = basicFlowLinks
-        .filter((link) => link.source === node.id)
-        .reduce((total, link) => total + link.value, 0)
+  it('updates the split while conserving a total of 10', () => {
+    const pathAValues = [0, 1, 2, 3, 4].map((revision) => {
+      const { links } = basicSankeyData(revision)
 
-      if (incoming > 0 && outgoing > 0) {
-        expect(incoming).toBe(outgoing)
+      for (const node of basicFlowNodes) {
+        const incoming = links
+          .filter((link) => link.target === node.id)
+          .reduce((total, link) => total + link.value, 0)
+        const outgoing = links
+          .filter((link) => link.source === node.id)
+          .reduce((total, link) => total + link.value, 0)
+
+        if (incoming > 0 && outgoing > 0) {
+          expect(incoming).toBe(outgoing)
+        }
       }
-    }
+
+      expect(
+        links
+          .filter((link) => link.source === 'input')
+          .reduce((total, link) => total + link.value, 0),
+      ).toBe(10)
+
+      return links.find(
+        (link) => link.source === 'input' && link.target === 'path-a',
+      )?.value
+    })
+
+    expect(pathAValues).toEqual([6, 7, 5, 3, 4])
   })
 })
 
