@@ -12,16 +12,16 @@ reproducible evidence without turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `99c08eb` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `268c283` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The TanStack product implementation ends at commit
-`a91106c`; the measured workspace revision is `99c08eb`, which adds the
-comparison fixture correction and tracked baseline for `0.0.1`.
+at page render time. The TanStack results measure workspace revision
+`268c283`, the last commit that changed core source or another transitive
+TanStack comparison input.
 
 ## Capability matrix
 
@@ -52,7 +52,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-07-30`.
+Baseline date: `2026-07-31`.
 
 Each range covers 12 independently built, minified browser consumers: line,
 bar, area, and scatter at basic, interactive, and advanced tiers. Full size is
@@ -61,10 +61,10 @@ that lane externalizes React and React DOM.
 
 | Library         | Full cold-page gzip | React externalized |
 | --------------- | ------------------: | -----------------: |
-| TanStack Charts |     24.19–28.20 KiB |                  — |
+| TanStack Charts |     23.68–28.06 KiB |                  — |
 | Chart.js        |     44.70–58.21 KiB |                  — |
 | Apache ECharts  |   153.10–173.18 KiB |                  — |
-| Recharts        |   153.00–168.18 KiB |   94.88–109.87 KiB |
+| Recharts        |   153.08–168.27 KiB |   94.96–109.96 KiB |
 | Observable Plot |     83.34–91.94 KiB |                  — |
 
 The tracked baseline distinguishes the TanStack workspace revision from
