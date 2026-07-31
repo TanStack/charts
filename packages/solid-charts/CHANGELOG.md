@@ -1,5 +1,12 @@
 # @tanstack/solid-charts
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
 ## 0.3.0
 
 ### Patch Changes

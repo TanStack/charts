@@ -1,5 +1,98 @@
 # Changelog
 
+## 0.3.1
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#25](https://github.com/TanStack/charts/pull/25) [`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31) - Remove incidental `d3-array` usage from nearest-point lookup, quantile legend
+  thresholds, and compact numeric ticks. These paths now use package-owned
+  implementations with D3 parity coverage, and compact scales no longer have a
+  production D3 dependency.
+
+  Numeric-bin and stack transforms, polar and curve features, and geo features
+  continue to own their tree-shakable `d3-array`, `d3-shape`, or `d3-geo`
+  implementations as normal dependencies. No peer dependency, caller-supplied
+  capability, or public API migration is required.
+
+### @tanstack/charts-scales
+
+#### Patch Changes
+
+- [#25](https://github.com/TanStack/charts/pull/25) [`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31) - Remove incidental `d3-array` usage from nearest-point lookup, quantile legend
+  thresholds, and compact numeric ticks. These paths now use package-owned
+  implementations with D3 parity coverage, and compact scales no longer have a
+  production D3 dependency.
+
+  Numeric-bin and stack transforms, polar and curve features, and geo features
+  continue to own their tree-shakable `d3-array`, `d3-shape`, or `d3-geo`
+  implementations as normal dependencies. No peer dependency, caller-supplied
+  capability, or public API migration is required.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c422a2c`](https://github.com/TanStack/charts/commit/c422a2ce45799d4edd63fdbde7ecb31daa3dae31)]:
+  - @tanstack/charts@0.3.1
+
 ## 0.3.0
 
 ### @tanstack/charts
