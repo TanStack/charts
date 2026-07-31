@@ -18,13 +18,18 @@ export const catalogBasePath = '/charts/catalog/'
 
 const bannedChartLibraryHosts = new Set([
   'ag-grid.com',
+  'apexcharts.com',
+  'bklit.com',
   'chartjs.org',
+  'commerce.nearform.com',
   'echarts.apache.org',
+  'highcharts.com',
   'nivo.rocks',
   'observablehq.com',
   'plotly.com',
   'recharts.github.io',
   'recharts.org',
+  'tradingview.github.io',
 ])
 
 const allowedChartLibraryLinks = new Map([
@@ -619,18 +624,34 @@ async function validateComparisonEvidence(
     }
   }
 
+  const capabilityHeadings = {
+    'Multi-series composition': 'Multi-series',
+    'Canvas output': 'Canvas or WebGL output',
+  }
   for (const capability of comparisonCapabilityCoverage) {
-    const expected = [
-      capability.capability,
-      ...chartLibraries.map((library) => {
-        const implementation = capability.implementations[library.id]
-        return formatComparisonImplementation(implementation)
-      }),
-    ]
-    if (!rows.some((row) => sameStrings(row, expected))) {
-      failures.push(
-        `comparison.md capability row is stale: ${capability.capability}`,
-      )
+    const heading =
+      capabilityHeadings[capability.capability] ?? capability.capability
+    const header = rows.find(
+      (row) => row[0] === 'Library' && row.includes(heading),
+    )
+    const column = header?.indexOf(heading) ?? -1
+    for (const library of chartLibraries) {
+      const implementation = capability.implementations[library.id]
+      const expected = formatComparisonImplementation(implementation)
+      const libraryCell = `[${library.label}](`
+      if (
+        !header ||
+        !rows.some(
+          (row) =>
+            row.length === header.length &&
+            row[0].startsWith(libraryCell) &&
+            row[column] === expected,
+        )
+      ) {
+        failures.push(
+          `comparison.md capability cell is stale: ${library.label} / ${capability.capability}`,
+        )
+      }
     }
   }
 

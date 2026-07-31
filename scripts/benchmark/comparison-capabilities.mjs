@@ -8,11 +8,32 @@ export const comparisonChartTypes = ['line', 'bar', 'area', 'scatter']
 export const comparisonTiers = ['basic', 'interactive', 'advanced']
 
 export const comparisonOfficialSources = {
+  'ag-charts': 'https://www.ag-grid.com/charts/javascript/installation/',
+  'ag-charts-license': 'https://www.ag-grid.com/charts/javascript/licensing/',
+  'ag-charts-modules':
+    'https://www.ag-grid.com/charts/javascript/module-registry/',
+  apexcharts: 'https://apexcharts.com/docs/installation/',
+  'apexcharts-bundle-survey':
+    'https://apexcharts.com/blog/state-of-javascript-charting-2026/',
+  'apexcharts-license': 'https://apexcharts.com/license/community/',
+  bklit: 'https://bklit.com/docs/installation',
+  'bklit-license': 'https://github.com/bklit/bklit-ui#license',
   chartjs: 'https://www.chartjs.org/docs/latest/',
   echarts:
     'https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/',
+  highcharts:
+    'https://www.highcharts.com/docs/getting-started/system-requirements',
+  'highcharts-license': 'https://shop.highcharts.com/license-16.0.pdf',
+  'lightweight-charts': 'https://tradingview.github.io/lightweight-charts/',
+  nivo: 'https://nivo.rocks/about/',
   recharts: 'https://recharts.github.io/en-US/',
   'observable-plot': 'https://observablehq.com/plot/features/plots',
+  plotly: 'https://plotly.com/javascript/',
+  'plotly-bundle-size': 'https://plotly.com/graphs/',
+  uplot: 'https://github.com/leeoniya/uPlot',
+  'vega-lite': 'https://vega.github.io/vega-lite/',
+  victory: 'https://commerce.nearform.com/open-source/victory/',
+  visx: 'https://github.com/airbnb/visx',
 }
 
 export function formatComparisonImplementation(implementation) {

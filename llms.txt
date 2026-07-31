@@ -5,7 +5,7 @@ TanStack Charts is a framework-agnostic, type-safe visualization grammar with th
 Read the canonical pages below. Each concept is documented once; guides and examples link back to its owner page.
 
 - docs/overview.md — Overview: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
-- docs/comparison.md — Compare Libraries: Compare current TanStack Charts workspace source with pinned Chart.js, Apache ECharts, Recharts, and Observable Plot packages.
+- docs/comparison.md — Compare Libraries: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
 - docs/installation.md — Installation: Install TanStack Charts, a framework adapter, and the granular D3 modules used by your charts.
 - docs/quick-start.md — Quick Start: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 - docs/framework/react/quick-start.md — React Quick Start: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
