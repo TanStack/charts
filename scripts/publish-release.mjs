@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { execFile } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 import { promisify } from 'node:util'
 import {
@@ -7,6 +7,7 @@ import {
   validateReleaseArtifacts,
 } from './release-artifacts.mjs'
 import { validateTrustedPublishingNpmVersion } from './release-security.mjs'
+import { releaseStatus } from './release-status.mjs'
 import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const execFileAsync = promisify(execFile)
@@ -19,38 +20,31 @@ assert.deepEqual(
   'Usage: node scripts/publish-release.mjs [--check]',
 )
 
-const { artifacts, manifest, version } =
-  await validateReleaseArtifacts(repositoryRoot)
-
 if (checkOnly) {
+  const { artifacts, version } = await validateReleaseArtifacts(repositoryRoot)
   console.log(
     `Release artifact contract passed for ${artifacts.length} packages at ${version}.`,
   )
   process.exit(0)
 }
 
-assert.equal(
-  process.env.GITHUB_ACTIONS,
-  'true',
-  'Publishing is restricted to GitHub Actions',
-)
-assert.equal(
-  process.env.GITHUB_REF_TYPE,
-  'tag',
-  'Publishing requires a tag event',
-)
-assert.equal(
-  process.env.GITHUB_REF_NAME,
-  manifest.tag,
-  `Expected release tag ${manifest.tag}`,
-)
-assert.match(
-  process.env.GITHUB_SHA ?? '',
-  /^[0-9a-f]{40}$/,
-  'Publishing requires an exact GitHub revision',
-)
-validateTrustedPublishingNpmVersion((await runNpm(['--version'])).stdout)
+validatePublishEnvironment(process.env)
 
+const status = await releaseStatus({ repositoryRoot })
+if (status.reason === 'released') {
+  console.log(`No unpublished packages for ${status.tag}.`)
+  process.exit(0)
+}
+assert.ok(
+  status.reason === 'publish' || status.reason === 'finalize',
+  `Changesets invoked publishing with release status ${status.reason}`,
+)
+
+validateTrustedPublishingNpmVersion((await runNpm(['--version'])).stdout)
+await buildReleaseArtifacts()
+
+const { artifacts, manifest, version } =
+  await validateReleaseArtifacts(repositoryRoot)
 const states = new Map()
 await Promise.all(
   artifacts.map(async (artifact) => {
@@ -64,6 +58,21 @@ await Promise.all(
   }),
 )
 
+const unpublishedArtifacts = artifacts.filter(
+  (artifact) => states.get(artifact.name) === 'missing',
+)
+if (status.reason === 'finalize') {
+  assert.equal(
+    unpublishedArtifacts.length,
+    0,
+    `${manifest.tag} cannot finalize with unpublished packages`,
+  )
+  console.log(
+    `Verified ${manifest.tag} registry integrity and attestations before finalization.`,
+  )
+  process.exit(0)
+}
+
 const coreArtifact = artifacts.find(
   (artifact) => artifact.name === '@tanstack/charts',
 )
@@ -76,6 +85,9 @@ await runWithConcurrency(
 )
 
 console.log(`Published ${manifest.tag} with verified integrity and provenance.`)
+for (const artifact of unpublishedArtifacts) {
+  console.log(`New tag: ${artifact.name}@${version}`)
+}
 
 async function publishArtifact(artifact) {
   if (states.get(artifact.name) === 'published') {
@@ -94,6 +106,7 @@ async function publishArtifact(artifact) {
   ])
   const registry = await waitForRegistryPackage(artifact, version)
   validateRegistryPackage(artifact, registry)
+  states.set(artifact.name, 'published')
   console.log(`Published: ${artifact.name}@${version}`)
 }
 
@@ -167,5 +180,58 @@ function runNpm(args) {
     cwd: repositoryRoot,
     env: { ...process.env },
     maxBuffer: 20 * 1024 * 1024,
+  })
+}
+
+function validatePublishEnvironment(env) {
+  assert.equal(env.GITHUB_ACTIONS, 'true', 'Publishing requires GitHub Actions')
+  assert.equal(env.GITHUB_EVENT_NAME, 'push', 'Publishing requires a push')
+  assert.equal(env.GITHUB_REF_TYPE, 'branch', 'Publishing requires a branch')
+  assert.equal(env.GITHUB_REF_NAME, 'main', 'Publishing requires main')
+  assert.equal(
+    env.GITHUB_REF,
+    'refs/heads/main',
+    'Publishing requires refs/heads/main',
+  )
+  assert.equal(
+    env.GITHUB_REPOSITORY,
+    'TanStack/charts',
+    'Publishing requires TanStack/charts',
+  )
+  assert.match(
+    env.GITHUB_SHA ?? '',
+    /^[0-9a-f]{40}$/,
+    'Publishing requires an exact GitHub revision',
+  )
+  assert.equal(
+    env.RELEASE_REVISION,
+    env.GITHUB_SHA,
+    'Release revision differs from GITHUB_SHA',
+  )
+}
+
+function buildReleaseArtifacts() {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(
+      process.execPath,
+      [resolve(repositoryRoot, 'scripts/build-release-artifacts.mjs')],
+      {
+        cwd: repositoryRoot,
+        env: { ...process.env, CI: 'true' },
+        stdio: 'inherit',
+      },
+    )
+    child.once('error', reject)
+    child.once('exit', (code, signal) => {
+      if (code === 0) {
+        resolvePromise()
+        return
+      }
+      reject(
+        new Error(
+          `Release artifact build exited with ${code ?? `signal ${signal ?? 'unknown'}`}`,
+        ),
+      )
+    })
   })
 }

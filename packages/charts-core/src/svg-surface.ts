@@ -3,14 +3,16 @@ import { renderChartSvg } from './svg'
 import { focusedNodeKeys } from './focus-layer'
 import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
 import type {
+  ChartRenderer,
+  ChartSurface,
+  ChartSurfaceRenderOptions,
+} from './dom-types'
+import type {
   ChartFocusState,
   ChartPoint,
-  ChartRenderer,
   ChartScene,
   SceneGroup,
-  ChartSurface,
   ChartSvgRenderer,
-  ChartSurfaceRenderOptions,
   ChartValue,
 } from './types'
 

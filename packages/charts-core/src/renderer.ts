@@ -4,19 +4,21 @@ import { findNearestPoint } from './scene'
 import { sceneHasMarkStates } from './mark-state'
 import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
 import type {
+  ChartRendererHost,
+  ChartRendererHostOptions,
+  ChartSurface,
+  ChartTooltipBodyTarget,
+} from './dom-types'
+import type {
   ChartAnimationOptions,
   ChartFocusMode,
   ChartFocusSource,
   ChartFocusState,
   ChartFocusStrategy,
   ChartPoint,
-  ChartRendererHost,
-  ChartRendererHostOptions,
   ChartRuntime,
   ChartScene,
   ChartSpatialIndex,
-  ChartSurface,
-  ChartTooltipBodyTarget,
   ChartTooltipContent,
   ChartTooltipContentContext,
   ChartTooltipChannelItem,

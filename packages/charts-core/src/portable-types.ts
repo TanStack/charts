@@ -1,56 +1,27 @@
-export { areaY } from './area'
 export type { AreaYOptions } from './area'
-export { arrow } from './arrow'
+export type { AreaXCurve, AreaXOptions } from './area-x'
 export type { ArrowOptions } from './arrow'
-export { createChartAdapter, resolveChartAdapterLayout } from './adapter'
-export { createChartRendererAdapter } from './adapter-renderer'
-export type {
-  ChartAdapter,
-  ChartAdapterLayout,
-  ChartAdapterLayoutOptions,
-} from './adapter'
-export { barX, barY } from './bar'
 export type { BarXOptions, BarYOptions } from './bar'
-export { bandX, bandY } from './band'
 export type { BandXOptions, BandYOptions } from './band'
-export { d3Curve } from './d3-shape'
-export { dot } from './dot'
 export type { DotOptions } from './dot'
-export { facet, facetChart } from './facet'
 export type { FacetAxes, FacetOptions } from './facet'
-export { frame } from './frame'
 export type { FrameOptions } from './frame'
-export { whenFocused } from './focus-mark'
-export { group } from './group'
 export type { GroupLayout, GroupOptions } from './group'
-export { hexagon } from './hexagon'
 export type { HexagonOptions } from './hexagon'
-export { mountChart } from './dom'
-export { lineY } from './line'
 export type { LineYOptions } from './line'
-export { link } from './link'
 export type { LinkOptions } from './link'
-export { colorGradientLegend, colorLegend } from './legend'
 export type { ColorGradientLegendOptions, ColorLegendOptions } from './legend'
-export { createMark } from './mark'
-export { cell, rect } from './rect'
 export type { CellOptions, RectOptions } from './rect'
-export { createChartRuntime, isDynamicChartDefinition } from './runtime'
-export {
-  createChartScene,
-  defaultChartTheme,
-  defineChart,
-  findNearestPoint,
-} from './scene'
-export { renderChartSvg } from './svg'
-export { stack } from './stack'
+export type { RuleXOptions, RuleYOptions } from './rule'
 export type {
   StackLayout,
   StackOffset,
   StackOptions,
   StackOrder,
 } from './stack'
-export { transformData } from './transform'
+export type { TextAnchor, TextOptions } from './text'
+export type { TickXOptions, TickYOptions } from './tick'
+export type { VectorAnchor, VectorOptions } from './vector'
 export type {
   DataTransform,
   DataTransformContext,
@@ -62,18 +33,8 @@ export type {
   TransformValue,
   TransformValueOutput,
 } from './transform'
-export { groupBy } from './transform-group'
-export type { GroupByDatum, GroupByOptions } from './transform-group'
-export { binX, binY } from './transform-bin'
 export type { BinKey, BinOptions, BinXDatum, BinYDatum } from './transform-bin'
-export { window } from './transform-window'
-export type {
-  WindowAnchor,
-  WindowDatum,
-  WindowKey,
-  WindowOptions,
-} from './transform-window'
-export { normalize } from './transform-normalize'
+export type { GroupByDatum, GroupByOptions } from './transform-group'
 export type {
   NormalizeBasis,
   NormalizeContext,
@@ -81,19 +42,6 @@ export type {
   NormalizeKey,
   NormalizeOptions,
 } from './transform-normalize'
-export { select } from './transform-select'
-export type {
-  SelectContext,
-  SelectMethod,
-  SelectOptions,
-} from './transform-select'
-export { stackRowsX, stackRowsY } from './transform-stack'
-export type {
-  StackRowsXDatum,
-  StackRowsXOptions,
-  StackRowsYDatum,
-  StackRowsYOptions,
-} from './transform-stack'
 export type {
   TransformNumericReducer,
   TransformOutputRow,
@@ -102,28 +50,23 @@ export type {
   TransformReduceContext,
   TransformReducer,
 } from './transform-reduce'
-export { ruleX, ruleY } from './rule'
-export type { RuleXOptions, RuleYOptions } from './rule'
-export { text } from './text'
-export type { TextAnchor, TextOptions } from './text'
-export { tickX, tickY } from './tick'
-export type { TickXOptions, TickYOptions } from './tick'
-export { vector } from './vector'
-export type { VectorAnchor, VectorOptions } from './vector'
 export type {
-  ChartHost,
-  ChartHostCommonOptions,
-  ChartHostOptions,
-  ChartRenderContext,
-  ChartRenderer,
-  ChartRendererHost,
-  ChartRendererHostCommonOptions,
-  ChartRendererHostOptions,
-  ChartRendererRenderContext,
-  ChartSurface,
-  ChartSurfaceRenderOptions,
-  ChartTooltipBodyTarget,
-} from './dom-types'
+  SelectContext,
+  SelectMethod,
+  SelectOptions,
+} from './transform-select'
+export type {
+  StackRowsXDatum,
+  StackRowsXOptions,
+  StackRowsYDatum,
+  StackRowsYOptions,
+} from './transform-stack'
+export type {
+  WindowAnchor,
+  WindowDatum,
+  WindowKey,
+  WindowOptions,
+} from './transform-window'
 export type {
   Channel,
   ChannelAccessor,
@@ -157,9 +100,9 @@ export type {
   ChartCurve,
   ChartDefinition,
   ChartDefinitionOptions,
-  ChartFocusMode,
   ChartFocusFilter,
   ChartFocusMatch,
+  ChartFocusMode,
   ChartFocusPreset,
   ChartFocusSource,
   ChartFocusState,
@@ -246,7 +189,4 @@ export type {
   SceneRule,
   SceneStyle,
   StaticChartDefinition,
-} from './portable-types'
-export { areaX } from './area-x'
-export type { AreaXCurve, AreaXOptions } from './area-x'
-export { d3AreaXCurve } from './d3-area-x'
+} from './types'

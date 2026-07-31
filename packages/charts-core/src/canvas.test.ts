@@ -7,7 +7,8 @@ import {
 } from './canvas'
 import { lineY } from './line'
 import { defineChart } from './scene'
-import type { ChartScene, ChartSurfaceRenderOptions, SceneNode } from './types'
+import type { ChartSurfaceRenderOptions } from './dom-types'
+import type { ChartScene, SceneNode } from './types'
 
 interface FakeCanvasContext {
   operations: string[]
