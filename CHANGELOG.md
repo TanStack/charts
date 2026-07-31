@@ -66,6 +66,11 @@ require the chart-definition migration above.
 
 ### Added
 
+- Added environment-safe `@tanstack/charts/universal` and
+  `@tanstack/charts/types` entry points for cross-runtime chart definitions,
+  scene compilation, and extension contracts. The existing `@tanstack/charts`
+  root remains the browser-oriented entry point.
+
 - Added the optional compact scale package:
 
   ```sh
