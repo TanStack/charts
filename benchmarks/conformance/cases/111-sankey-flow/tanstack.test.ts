@@ -1,17 +1,26 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { flowLinks, flowNodes, incomeStatementTitle, linkColors } from './data'
+import {
+  incomeStatementData,
+  incomeStatementTitle,
+  incomeStatementValueRanges,
+  leafFlowNodeIds,
+  linkColors,
+} from './model'
 import { sankeyDefinition } from './tanstack'
-import type { FlowNode } from './data'
+import type { FlowNode } from './model'
 import type { SceneNode } from '@tanstack/charts'
 
 describe('Apple income statement Sankey composition', () => {
   it.each([
-    { width: 320, height: 240 },
-    { width: 768, height: 500 },
-  ])('lays out every node and link inside $width×$height', (size) => {
+    { width: 320, height: 240, revision: 0 },
+    { width: 768, height: 500, revision: 1 },
+  ])('lays out every node and link inside $width×$height', (input) => {
+    const { nodes: flowNodes, links: flowLinks } = incomeStatementData(
+      input.revision,
+    )
     const runtime = createChartRuntime<FlowNode, string, number>()
-    const scene = runtime.render(sankeyDefinition(), size)
+    const scene = runtime.render(sankeyDefinition(input), input)
     const nodes = flatten(scene.nodes)
     const links = nodes.filter((node) => node.kind === 'polyline' && node.path)
     const rectangles = nodes.filter((node) => node.kind === 'rect')
@@ -48,18 +57,68 @@ describe('Apple income statement Sankey composition', () => {
     }
   })
 
-  it('conserves value through every intermediate subtotal', () => {
-    for (const node of flowNodes) {
-      const incoming = flowLinks
-        .filter((link) => link.target === node.id)
-        .reduce((total, link) => total + link.value, 0)
-      const outgoing = flowLinks
-        .filter((link) => link.source === node.id)
-        .reduce((total, link) => total + link.value, 0)
+  it.each([0, 1, 2, 7])(
+    'conserves every intermediate subtotal at revision %s',
+    (revision) => {
+      const { nodes, links } = incomeStatementData(revision)
 
-      if (incoming > 0 && outgoing > 0) {
-        expect(incoming).toBeCloseTo(outgoing, 6)
+      for (const node of nodes) {
+        const incoming = links
+          .filter((link) => link.target === node.id)
+          .reduce((total, link) => total + link.value, 0)
+        const outgoing = links
+          .filter((link) => link.source === node.id)
+          .reduce((total, link) => total + link.value, 0)
+
+        if (incoming > 0 && outgoing > 0) {
+          expect(incoming).toBeCloseTo(outgoing, 6)
+        }
       }
+    },
+  )
+
+  it('retains the supplied FY22 values at revision zero', () => {
+    expect(
+      incomeStatementData(0).nodes.map((node) => [node.id, node.displayValue]),
+    ).toEqual([
+      ['iphone', '$205.5B'],
+      ['macbook', '$40.2B'],
+      ['ipad', '$29.3B'],
+      ['wearables', '$41.2B'],
+      ['products', '$316.2B'],
+      ['services', '$78.2B'],
+      ['revenue', '$394.3B'],
+      ['gross-profit', '$170.9B'],
+      ['cost-of-revenue', '$223.5B'],
+      ['operating-profit', '$119.5B'],
+      ['operating-expenses', '$51.4B'],
+      ['product-costs', '$201.4B'],
+      ['service-costs', '$22.1B'],
+      ['net-profit', '$99.8B'],
+      ['tax', '$19.3B'],
+      ['other', '$0.3B'],
+      ['research-development', '$26.3B'],
+      ['selling-general-administrative', '$25.1B'],
+    ])
+  })
+
+  it('updates every leaf inside its declared range', () => {
+    const initial = incomeStatementData(0)
+    const updated = incomeStatementData(1)
+    const repeated = incomeStatementData(1)
+    const initialValues = new Map(
+      initial.nodes.map((node) => [node.id, node.value]),
+    )
+    const updatedValues = new Map(
+      updated.nodes.map((node) => [node.id, node.value]),
+    )
+
+    expect(repeated).toEqual(updated)
+    for (const id of leafFlowNodeIds) {
+      const range = incomeStatementValueRanges[id]
+      expect(updatedValues.get(id)).toBeGreaterThanOrEqual(range.min)
+      expect(updatedValues.get(id)).toBeLessThanOrEqual(range.max)
+      expect(updatedValues.get(id)).not.toBe(initialValues.get(id))
     }
   })
 })

@@ -2,16 +2,16 @@ import { defineChart } from '@tanstack/charts'
 import { createMarkWithScaleValues } from '@tanstack/charts/mark/scale-values'
 import { sankey, sankeyLeft, sankeyLinkHorizontal } from 'd3-sankey'
 import {
-  flowLinks,
-  flowNodes,
+  incomeStatementData,
   incomeStatementTitle,
   linkColors,
   toneColors,
-} from './data'
+} from './model'
 import { tanstackMount } from '../../shared/mount'
 import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import type { SankeyGraph, SankeyLink, SankeyNode } from 'd3-sankey'
-import type { FlowLink, FlowNode, FlowTone } from './data'
+import type { FlowLink, FlowNode, FlowTone } from './model'
+import type { ConformanceInput } from '../../types'
 
 const toneDomain = [
   'Neutral',
@@ -19,15 +19,18 @@ const toneDomain = [
   'Cost',
 ] as const satisfies readonly FlowTone[]
 
-export const sankeyDefinition = () =>
-  defineChart({
-    marks: [sankeyFlow(flowNodes, flowLinks)],
+export const sankeyDefinition = (input: ConformanceInput) => {
+  const { nodes, links } = incomeStatementData(input.revision)
+
+  return defineChart({
+    marks: [sankeyFlow(nodes, links)],
     color: {
       domain: toneDomain,
       range: toneDomain.map((tone) => toneColors[tone]),
     },
     margin: 0,
   })
+}
 
 function sankeyFlow(nodes: readonly FlowNode[], links: readonly FlowLink[]) {
   return createMarkWithScaleValues<FlowNode, string, number, never, never>(

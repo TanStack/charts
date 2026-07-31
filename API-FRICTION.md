@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 ## Triage rule
 
@@ -3263,6 +3263,12 @@ Each entry records:
   normalization helpers accept the imported source rows instead of reaching
   through a hidden fixture. Cases 85 and 92 retain authored interaction state
   as explicitly named `scenario.ts`, not observation data.
+- Sankey-update evidence: the Apple income-statement case was initially added
+  with chart-shaped nodes and links in a case-local `data.ts`. Adding bounded
+  revision updates made the leaf ranges, seeded variation, and conserved
+  subtotal derivation application logic rather than a raw observation fixture.
+  That logic now lives in open-by-default `model.ts`, and both TanStack Charts
+  and Recharts consume the same deterministic result.
 - Framework-example evidence: the React and Octane showcases no longer import
   the synthetic Stats parity fixture. They import pinned industries, penguins,
   cars, and downloads subpaths directly; their time-window selection, D3 stack
@@ -3288,6 +3294,10 @@ Each entry records:
   assertions, and mean frame-relative geometry similarity is 96.7%. Root unit
   tests, typecheck, docs sync, production builds, packed consumers, bundle
   budgets, and all seven framework adapter package gates pass.
+  The Sankey regression additionally checks exact initial values, declared
+  leaf bounds, deterministic repeated revisions, and conservation across four
+  revisions. Its full 320/640/960 light/dark initial-and-update conformance
+  matrix passes with clean strict types and 95.8% mean geometry similarity.
 
 ### F-135 — The published release had no repository baseline marker
 

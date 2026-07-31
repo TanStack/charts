@@ -12,6 +12,7 @@
     "responsive node positioning",
     "proportional link width",
     "direct value labels",
+    "deterministic data updates",
     "profit and cost color",
     "custom mark"
   ],
@@ -26,6 +27,6 @@
   },
   "ai": {
     "create": "Recreate the Apple FY22 income statement as a responsive Sankey diagram using explicit node and link records, the official d3-sankey layout, a centered title, direct two-line value labels, neutral revenue paths, green profit paths, and red cost paths.",
-    "maintain": "Change statement values while preserving unique IDs, flow conservation at every intermediate subtotal, left-aligned sink depths, responsive bounds, semantic profit and cost colors, flat link caps, direct labels, and the direct d3-sankey dependency."
+    "maintain": "Change statement values through the bounded revision model while preserving unique IDs, flow conservation at every intermediate subtotal, left-aligned sink depths, responsive bounds, semantic profit and cost colors, flat link caps, direct labels, and the direct d3-sankey dependency."
   }
 }
