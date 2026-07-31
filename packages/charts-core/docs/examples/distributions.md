@@ -29,12 +29,12 @@ stable when comparing revisions or groups; otherwise a changed binning decision
 can look like a changed distribution.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/histogram/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/histogram/?theme=system&height=480"
   title="Fixed-threshold quantitative histogram built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 The prepared rows should carry each bin's lower bound, upper bound, and count or
@@ -50,12 +50,12 @@ compact and comparable, but it does not reveal modes, gaps, or sample size on
 its own.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/15-boxplot/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/15-boxplot/?theme=system&height=480"
   title="Grouped boxplot with quartiles, whiskers, medians, and outliers built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Prepare one summary row per group and a separate outlier dataset. Compose
@@ -70,12 +70,12 @@ or below each observed value. It avoids bin-width decisions and supports direct
 percentile comparisons.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/50-empirical-cdf/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/50-empirical-cdf/?theme=system&height=480"
   title="Empirical cumulative distribution step chart built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Use a step curve because the empirical proportion changes at observations, not
@@ -89,12 +89,12 @@ shape that a boxplot can hide, but its appearance depends on density bandwidth
 and sampling.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/63-violin-distributions/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/63-violin-distributions/?theme=system&height=480"
   title="Mirrored violin distributions with median indicators built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="440"
-  style="width:100%;height:440px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Render the mirrored interval with an area mark and add the median as an

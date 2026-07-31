@@ -1,4 +1,5 @@
 import { defineChart, mountChart, rect } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { scaleBand, scaleUtc } from 'd3-scale'
 import { timelineStatusColors } from './colors'
 import {
@@ -114,6 +115,7 @@ export const mount: ConformanceMount = (container, input) => {
       animate: false,
       keyboard: true,
       tooltip: {
+        use: tooltip,
         format: (point) =>
           `${point.datum.resource} · ${point.datum.label} · ${
             point.datum.status

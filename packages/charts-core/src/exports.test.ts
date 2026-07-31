@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import packageJson from '../package.json'
 
+const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
+
 describe('public package exports', () => {
   it('resolves every manifest capability subpath', async () => {
     const specifiers = Object.keys(packageJson.exports).map((subpath) =>
@@ -13,6 +15,44 @@ describe('public package exports', () => {
     )
 
     expect(modules).toHaveLength(specifiers.length)
-    expect(modules.every((module) => Object.keys(module).length > 0)).toBe(true)
+    expect(
+      modules.every(
+        (module, index) =>
+          typeOnlySpecifiers.has(specifiers[index]!) ||
+          Object.keys(module).length > 0,
+      ),
+    ).toBe(true)
+  })
+
+  it('keeps the universal barrel aligned with root authoring exports', async () => {
+    const [root, universal] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/universal'),
+    ])
+    const browserOnlyRootValues = new Set([
+      'createChartAdapter',
+      'createChartRendererAdapter',
+      'mountChart',
+      'resolveChartAdapterLayout',
+    ])
+
+    expect(Object.keys(universal).sort()).toEqual(
+      Object.keys(root)
+        .filter((name) => !browserOnlyRootValues.has(name))
+        .sort(),
+    )
+  })
+
+  it('keeps tooltip capabilities on exact subpaths', async () => {
+    const [root, tooltipModule, portalModule] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/tooltip'),
+      import('@tanstack/charts/tooltip/portal'),
+    ])
+
+    expect(root).not.toHaveProperty('tooltip')
+    expect(root).not.toHaveProperty('portal')
+    expect(tooltipModule.tooltip.id).toBe('tooltip')
+    expect(portalModule.portal.id).toBe('portal')
   })
 })

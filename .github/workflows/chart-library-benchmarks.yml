@@ -9,11 +9,6 @@ on:
     - cron: '17 7 * * 1'
   workflow_dispatch:
     inputs:
-      version_pr:
-        description: Run the pull-request validation profile
-        required: false
-        type: boolean
-        default: false
       upload_bundle_baseline_candidate:
         description: Upload exact comparison bundle measurements
         required: false
@@ -124,59 +119,6 @@ jobs:
           path: .benchmark-output/results
           if-no-files-found: error
 
-  conformance:
-    name: Conformance (${{ matrix.shard }}/8)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        shard:
-          - 1
-          - 2
-          - 3
-          - 4
-          - 5
-          - 6
-          - 7
-          - 8
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - name: Setup
-        uses: ./.github/actions/setup
-        with:
-          playwright: 'true'
-
-      - name: Run pull-request conformance shard
-        if: github.event_name == 'pull_request' || inputs.version_pr
-        run: pnpm conformance:quick -- --shard=${{ matrix.shard }}/8
-
-      - name: Run production conformance shard
-        if: github.event_name != 'pull_request' && !inputs.version_pr
-        run: pnpm conformance -- --shard=${{ matrix.shard }}/8
-
-      - name: Publish conformance summary
-        if: success()
-        run: |
-          summaries=(.benchmark-output/conformance/results/*.md)
-          test -e "${summaries[0]}"
-          cat "${summaries[@]}" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload conformance
-        if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: chart-library-conformance-${{ matrix.shard }}-${{ github.run_id }}
-          path: |
-            .benchmark-output/conformance/results
-            .benchmark-output/conformance/screenshots
-          if-no-files-found: error
-
   stress:
     name: Stress (${{ matrix.name }})
     runs-on: ubuntu-24.04
@@ -209,11 +151,11 @@ jobs:
         run: pnpm exec vitest run benchmarks/comparison/stress
 
       - name: Run quick stress shard
-        if: github.event_name == 'pull_request' || github.event_name == 'push' || inputs.version_pr
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: pnpm benchmark:stress:quick -- --workload=${{ matrix.workloads }}
 
       - name: Run standard stress shard
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.version_pr)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: pnpm benchmark:stress:standard -- --workload=${{ matrix.workloads }}
 
       - name: Publish stress summary
@@ -238,7 +180,6 @@ jobs:
       - static
       - bundle-baseline
       - compare
-      - conformance
       - stress
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -249,14 +190,12 @@ jobs:
           STATIC_RESULT: ${{ needs.static.result }}
           BUNDLE_RESULT: ${{ needs.bundle-baseline.result }}
           COMPARISON_RESULT: ${{ needs.compare.result }}
-          CONFORMANCE_RESULT: ${{ needs.conformance.result }}
           STRESS_RESULT: ${{ needs.stress.result }}
         run: |
           for result in \
             "$STATIC_RESULT" \
             "$BUNDLE_RESULT" \
             "$COMPARISON_RESULT" \
-            "$CONFORMANCE_RESULT" \
             "$STRESS_RESULT"
           do
             test "$result" = success

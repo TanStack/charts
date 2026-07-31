@@ -9,6 +9,7 @@ import {
   type SceneNode,
 } from '@tanstack/charts'
 import { focusX } from '@tanstack/charts/focus'
+import { tooltip } from '@tanstack/charts/tooltip'
 import type { BenchmarkHandle, BenchmarkInput } from '../../types'
 import { createFrameOperation } from '../../stress/operation'
 import {
@@ -36,6 +37,7 @@ export function mountDefinition<TDatum>(
     keyboard: interactive,
     tooltip: BENCHMARK_GROUPED_X_FOCUS
       ? {
+          use: tooltip,
           formatGroup(points: readonly ChartPoint<TDatum>[]) {
             const x = points[0]?.xValue
             return [
@@ -46,7 +48,9 @@ export function mountDefinition<TDatum>(
             ].join('\n')
           },
         }
-      : interactive,
+      : interactive
+        ? tooltip
+        : false,
     ...(BENCHMARK_GROUPED_X_FOCUS
       ? {
           focus: focusX,

@@ -17,7 +17,6 @@ export type {
   ChartProps,
   ChartDefinition,
   ChartPoint,
-  ChartTooltipBodyRenderContext,
 } from '@tanstack/react-charts'
 ```
 
@@ -32,6 +31,24 @@ import { Chart as RendererChart } from '@tanstack/react-charts/core'
 `CanvasChart` selects the optional built-in renderer. `RendererChart` requires
 a `renderer` prop. The default `Chart` remains SVG-based, so importing the
 default adapter does not pull Canvas into its module graph.
+
+The base entries render the native tooltip without the React tooltip-body
+bridge. Import from the optional tooltip entry when passing
+`renderTooltipBody`:
+
+```tsx
+import {
+  Chart,
+  CanvasChart,
+  RendererChart,
+  type ChartTooltipBodyRenderContext,
+} from '@tanstack/react-charts/tooltip'
+```
+
+Existing `renderTooltipBody` users should move the default component import
+from `@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. For Canvas
+or an application renderer, replace the aliased `Chart` import from `/canvas`
+or `/core` with `CanvasChart` or `RendererChart` from `/tooltip`.
 
 Use the re-exported definition and point types only when an application API
 needs an explicit annotation. Ordinary component use is inferred.
@@ -139,17 +156,19 @@ The React adapter's `className` intentionally owns the outer element instead.
 
 ## Tooltip body composition
 
-`renderTooltipBody` mounts React content into the native tooltip surface. Its
-context provides `points`, `content`, `defaultBody`, `pinned`, and `dismiss`.
-Composing `defaultBody` keeps the core title, rows, formatting, and swatches;
-arbitrary React content can sit beside it.
+The components from `@tanstack/react-charts/tooltip` accept
+`renderTooltipBody`, which mounts React content into the native tooltip
+surface. Its context provides `points`, `content`, `defaultBody`, `pinned`,
+and `dismiss`. Composing `defaultBody` keeps the core title, rows, formatting,
+and swatches; arbitrary React content can sit beside it.
 
 The shared host owns a stable body mount target and releases it when the
 tooltip is hidden, custom rendering is disabled, or the chart is destroyed.
 React owns the rendered component lifecycle. A custom body is inert while
 transient, so display-only content can remain visible but controls should
-render only while `pinned` is true. Definition `tooltip.portal: true` promotes
-the whole surface above clipped ancestors without changing this React API.
+render only while `pinned` is true. Adding the `portal` extension to the
+tooltip options promotes the whole surface above clipped ancestors without
+changing this React API.
 
 ## Definition identity
 

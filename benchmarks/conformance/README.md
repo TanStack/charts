@@ -122,13 +122,13 @@ numeric `revision`. Width always follows the iframe container:
 
 ```html
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/01-line-gaps/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/01-line-gaps/?theme=system&height=480"
   title="Line chart with gaps"
   width="640"
-  height="360"
+  height="480"
   loading="lazy"
   referrerpolicy="strict-origin-when-cross-origin"
-  style="display: block; width: 100%; height: 360px; border: 0"
+  style="display: block; width: 100%; height: 480px; border: 0"
 ></iframe>
 ```
 
@@ -141,7 +141,7 @@ messages only to the exact HTTP(S) origin derived from `document.referrer`:
   version: 1,
   status: 'ready' | 'resize' | 'error',
   caseId: '01-line-gaps',
-  height: 360,
+  height: 480,
 }
 ```
 
@@ -187,13 +187,15 @@ pnpm catalog:build
 pnpm catalog:loading:check
 ```
 
-Main-branch CI publishes a new generated commit only after validation and the
-unfiltered standard conformance matrix pass. TanStack.com's existing content
-pipeline reads that branch and verifies the schema, revision, module allowlist,
-sizes, and hashes before serving it. It composes `site.assetBasePath`, the
-resolved `catalog-dist` commit SHA, and each relative module path into the
-immutable asset URL. A rollback points `catalog-dist` back to a prior generated
-commit; the catalog has no mutable runtime state.
+Main-branch CI publishes a new generated commit only after the static,
+package, bundle, comparison, and stress gates pass. Conformance runs
+independently as nightly rotating, weekly complete, manual, and labeled-PR
+monitoring. TanStack.com's existing content pipeline reads the generated branch
+and verifies the schema, revision, module allowlist, sizes, and hashes before
+serving it. It composes `site.assetBasePath`, the resolved `catalog-dist` commit
+SHA, and each relative module path into the immutable asset URL. A rollback
+points `catalog-dist` back to a prior generated commit; the catalog has no
+mutable runtime state.
 
 ## What is and is not equivalent
 

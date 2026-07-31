@@ -35,6 +35,7 @@ const allowedChartLibraryLinks = new Map([
 const publicEntryPaths = [
   'README.md',
   'packages/charts-core/README.md',
+  'packages/charts-scales/README.md',
   'packages/preact-charts/README.md',
   'packages/react-charts/README.md',
   'packages/vue-charts/README.md',
@@ -448,8 +449,8 @@ function validateIframes(path, source, cases, embeddedCases, failures) {
       failures.push(`${path} iframe must declare theme=system|light|dark`)
     }
     const height = Number(url.searchParams.get('height'))
-    if (!Number.isFinite(height) || height < 120 || height > 1_200) {
-      failures.push(`${path} iframe height query must be between 120 and 1200`)
+    if (!Number.isFinite(height) || height < 480 || height > 1_200) {
+      failures.push(`${path} iframe height query must be between 480 and 1200`)
     } else if (!new RegExp(`height\\s*:\\s*${height}px`).test(style)) {
       failures.push(
         `${path} iframe CSS height must match its height query (${height}px)`,
@@ -471,6 +472,7 @@ async function validateDocumentedTanStackImports(
 ) {
   const packages = [
     ['packages/charts-core', '@tanstack/charts'],
+    ['packages/charts-scales', '@tanstack/charts-scales'],
     ['packages/preact-charts', '@tanstack/preact-charts'],
     ['packages/react-charts', '@tanstack/react-charts'],
     ['packages/vue-charts', '@tanstack/vue-charts'],
@@ -539,6 +541,7 @@ async function validateDocumentedTanStackImports(
 async function validateApiCoverage(repositoryRoot, markdownSources, failures) {
   const packages = [
     ['charts-core', '@tanstack/charts', 'reference/'],
+    ['charts-scales', '@tanstack/charts-scales', 'reference/'],
     ['react-charts', '@tanstack/react-charts', 'framework/react/'],
     ['preact-charts', '@tanstack/preact-charts', 'framework/preact/'],
     ['vue-charts', '@tanstack/vue-charts', 'framework/vue/'],

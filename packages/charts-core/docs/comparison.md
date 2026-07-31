@@ -3,7 +3,7 @@ title: Compare Libraries
 description: Compare current TanStack Charts workspace source with pinned Chart.js, Apache ECharts, Recharts, and Observable Plot packages.
 ---
 
-TanStack Charts `0.0.2` is a pre-alpha release. Its results on this page measure
+TanStack Charts `0.1.0` is a pre-alpha release. Its results on this page measure
 the exact workspace source included in this release and pinned competitor
 packages. This comparison records architectural differences and reproducible
 evidence without turning untested behavior into a checkmark.
@@ -12,14 +12,14 @@ evidence without turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `5c36a38` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `2be6729` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `5c36a38`.
+at page render time. The measured TanStack workspace revision is `2be6729`.
 
 ## Capability matrix
 
@@ -59,7 +59,7 @@ that lane externalizes React and React DOM.
 
 | Library         | Full cold-page gzip | React externalized |
 | --------------- | ------------------: | -----------------: |
-| TanStack Charts |     24.20–28.22 KiB |                  — |
+| TanStack Charts |     23.68–28.06 KiB |                  — |
 | Chart.js        |     44.70–58.21 KiB |                  — |
 | Apache ECharts  |   153.10–173.18 KiB |                  — |
 | Recharts        |   153.08–168.27 KiB |   94.96–109.96 KiB |
@@ -109,10 +109,10 @@ Canvas composition while keeping D3 and state ownership explicit.
 
 ## Evidence and reproduction
 
-- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.0.2/benchmarks/comparison/README.md)
-- [Tracked bundle baseline](https://github.com/TanStack/charts/blob/v0.0.2/benchmarks/comparison/bundle-baseline.json)
-- [Stress protocol](https://github.com/TanStack/charts/blob/v0.0.2/benchmarks/comparison/stress/README.md)
-- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.0.2/benchmarks/conformance/README.md)
+- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.1.0/benchmarks/comparison/README.md)
+- [Tracked bundle baseline](https://github.com/TanStack/charts/blob/v0.1.0/benchmarks/comparison/bundle-baseline.json)
+- [Stress protocol](https://github.com/TanStack/charts/blob/v0.1.0/benchmarks/comparison/stress/README.md)
+- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.1.0/benchmarks/conformance/README.md)
 
 ```sh
 pnpm benchmark:size

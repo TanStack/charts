@@ -2,12 +2,8 @@ import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
 import { resolveChartAdapterLayout } from './adapter-shared'
 import type { ChartAdapter } from './adapter-shared'
-import type {
-  ChartRendererHost,
-  ChartRendererHostOptions,
-  ChartRuntime,
-  ChartValue,
-} from './types'
+import type { ChartRendererHost, ChartRendererHostOptions } from './dom-types'
+import type { ChartRuntime, ChartValue } from './types'
 
 export function createChartRendererAdapter<
   TDatum,

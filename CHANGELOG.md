@@ -1,5 +1,212 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes
+
+#### Universal entry
+
+Replace `@tanstack/charts/portable` imports from `0.1.0` with
+`@tanstack/charts/universal`. The browser-oriented `@tanstack/charts` root and
+the environment-safe `@tanstack/charts/types` entry remain unchanged.
+
+## 0.1.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#8](https://github.com/TanStack/charts/pull/8) [`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9) - Add environment-safe `/portable` and `/types` entry points while preserving
+  the existing browser-oriented root exports.
+
+- Make native tooltips and tooltip portals explicit extensions. Import `tooltip`
+  from `@tanstack/charts/tooltip`; replace `tooltip: true` with `tooltip`, dynamic
+  booleans with `enabled ? tooltip : false`, and configured objects with
+  `{ use: tooltip, ...options }`. Complete definition values use
+  `ChartTooltipInput`; `ChartTooltipOptions` remains the options-only type.
+
+  Import `portal` from `@tanstack/charts/tooltip/portal`; replace `portal: true`
+  with `portal`, omit `portal: false`, and replace dynamic booleans with
+  `enabled ? portal : undefined` inside the configured tooltip object.
+
+### @tanstack/charts-scales
+
+#### Minor Changes
+
+- Add compact callable linear, band, point, and ordinal scales through the exact
+  `@tanstack/charts-scales/linear`, `/band`, `/point`, and `/ordinal` entries.
+  There is no package root export. Compact linear scales are numeric and two-stop;
+  use `d3-scale` for time, transformed, piecewise, nonnumeric, locale-aware, and
+  other full D3 behavior. Unsupported D3 behavior does not warn or fall back at
+  runtime.
+
+### @tanstack/react-charts
+
+#### Minor Changes
+
+- Move React tooltip-body composition to `@tanstack/react-charts/tooltip`.
+  Consumers using `renderTooltipBody` must migrate root `Chart` to `Chart`,
+  `/canvas` `Chart` to `CanvasChart`, and `/core` `Chart` to `RendererChart` from
+  that entry. Move wrapper types to the matching `ChartProps`, `CanvasChartProps`,
+  or `RendererChartProps` names and their `CommonProps` counterparts.
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`5d143d9`](https://github.com/TanStack/charts/commit/5d143d9c9ed7c2613f3e1b50a9d794ea3c9616b9)]:
+  - @tanstack/charts@0.1.0
+
+This section documents migration from `0.0.2` and supersedes tooltip examples
+in the historical release entries below.
+
+### Breaking changes
+
+#### Tooltip extensions
+
+Tooltips and tooltip portals are now explicit extensions:
+
+```ts
+import { tooltip, type ChartTooltipInput } from '@tanstack/charts/tooltip'
+import { portal } from '@tanstack/charts/tooltip/portal'
+
+interface Datum {
+  value: number
+}
+
+const configuredTooltip = {
+  use: tooltip,
+  portal,
+  format(point) {
+    return String(point.datum.value)
+  },
+} satisfies ChartTooltipInput<Datum>
+```
+
+Apply these replacements to chart definition options:
+
+| `0.0.2` input      | `0.1.0` input                           |
+| ------------------ | --------------------------------------- |
+| `tooltip: true`    | `tooltip`                               |
+| `tooltip: false`   | `tooltip: false`                        |
+| `tooltip: enabled` | `tooltip: enabled ? tooltip : false`    |
+| `tooltip: options` | `tooltip: { use: tooltip, ...options }` |
+| `portal: true`     | `portal`                                |
+| `portal: false`    | Omit `portal`                           |
+| `portal: enabled`  | `portal: enabled ? portal : undefined`  |
+
+`portal` remains a property of a configured tooltip object. `ChartTooltipOptions`
+still describes only the options after `use`; it does not contain the extension
+discriminator. Type a complete value assigned to `definition.tooltip` as
+`ChartTooltipInput`, or wrap reusable `ChartTooltipOptions` with
+`{ use: tooltip, ...options }`. The object containing `use: tooltip` is the
+contextual typing boundary for inline tooltip callbacks.
+
+#### React tooltip bodies
+
+React consumers that provide `renderTooltipBody` must move the component and
+matching prop-type imports to `@tanstack/react-charts/tooltip`:
+
+| `0.0.2` import                          | `0.1.0` component | `0.1.0` prop types                               |
+| --------------------------------------- | ----------------- | ------------------------------------------------ |
+| `@tanstack/react-charts` `Chart`        | `Chart`           | `ChartProps`, `ChartCommonProps`                 |
+| `@tanstack/react-charts/canvas` `Chart` | `CanvasChart`     | `CanvasChartProps`, `CanvasChartCommonProps`     |
+| `@tanstack/react-charts/core` `Chart`   | `RendererChart`   | `RendererChartProps`, `RendererChartCommonProps` |
+
+Do not rename `/canvas` or `/core` imports to `/tooltip` while retaining the
+name `Chart`; that name selects the default SVG component in the new entry. The
+base React entries retain native tooltips without including React DOM's portal
+runtime. Other framework adapters retain their existing entry points and only
+require the chart-definition migration above.
+
+### Added
+
+- Added the optional compact scale package:
+
+  ```sh
+  pnpm add @tanstack/charts-scales
+  ```
+
+  Import one exact family; there is no `@tanstack/charts-scales` root export:
+
+  ```ts
+  import { scaleLinear } from '@tanstack/charts-scales/linear'
+  import { scaleBand } from '@tanstack/charts-scales/band'
+  import { scalePoint } from '@tanstack/charts-scales/point'
+  import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+  ```
+
+  These scales are documented subsets, not complete D3 replacements. Compact
+  linear scales are numeric and two-stop. Use `d3-scale` for time, UTC, log,
+  power, symlog, radial, sequential, diverging, quantile, quantize, threshold,
+  piecewise or nonnumeric interpolation, locale-aware format specifiers, and
+  other full D3 behavior. Unsupported D3 behavior does not trigger a runtime
+  warning or automatic fallback. See [Scales and D3](docs/concepts/scales-and-d3.md#compact-scales)
+  for the compatibility boundary.
+
+### Bundle impact
+
+- The representative compact React line consumer is 14,227 bytes gzip
+  (13.89 KiB), down from 25,708 bytes gzip (25.11 KiB). React, the React JSX
+  runtime, and React DOM are external in both measurements.
+- Opting into the tooltip extension produces 17,608 bytes gzip, an increase of
+  3,381 bytes.
+- Adding the portal extension produces 18,414 bytes gzip, another 806 bytes.
+
 ## 0.0.2
 
 ### @tanstack/charts

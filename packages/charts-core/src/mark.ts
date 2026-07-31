@@ -1,4 +1,4 @@
-import { valueKey } from './scales'
+import { isChartKey, valueKey } from './scales'
 import type {
   Channel,
   ChannelAccessor,
@@ -14,9 +14,7 @@ declare const process: { env: { NODE_ENV?: string } } | undefined
 
 const warnedKeyFallbacks = new WeakSet<object>()
 
-export function isChartKey(value: unknown): value is ChartKey {
-  return typeof value === 'string' || typeof value === 'number'
-}
+export { isChartKey }
 
 export function isChartValue(value: unknown): value is ChartValue {
   return (

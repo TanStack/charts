@@ -43,6 +43,9 @@ importers:
       '@tanstack/charts-d3':
         specifier: workspace:*
         version: link:packages/charts-core-d3
+      '@tanstack/charts-scales':
+        specifier: workspace:*
+        version: link:packages/charts-scales
       '@tanstack/octane-charts':
         specifier: workspace:*
         version: link:packages/octane-charts
@@ -510,9 +513,6 @@ importers:
       d3-geo:
         specifier: 3.1.1
         version: 3.1.1
-      d3-scale:
-        specifier: 4.0.2
-        version: 4.0.2
       d3-shape:
         specifier: 3.2.0
         version: 3.2.0
@@ -523,6 +523,9 @@ importers:
       '@types/d3-scale':
         specifier: ^4.0.9
         version: 4.0.9
+      d3-scale:
+        specifier: 4.0.2
+        version: 4.0.2
 
   packages/charts-core-d3:
     dependencies:
@@ -585,6 +588,22 @@ importers:
       '@types/d3-shape':
         specifier: ^3.1.8
         version: 3.1.8
+
+  packages/charts-scales:
+    dependencies:
+      d3-array:
+        specifier: 3.2.4
+        version: 3.2.4
+    devDependencies:
+      '@types/d3-array':
+        specifier: ^3.2.2
+        version: 3.2.2
+      '@types/d3-scale':
+        specifier: ^4.0.9
+        version: 4.0.9
+      d3-scale:
+        specifier: 4.0.2
+        version: 4.0.2
 
   packages/core: {}
 

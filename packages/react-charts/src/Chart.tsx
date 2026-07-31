@@ -7,13 +7,13 @@ import type {
   ChartRendererRenderContext,
   ChartSvgRenderer,
   ChartTextMeasurer,
+  ChartTooltipBodyTarget,
   ChartValue,
   ChartDefinition,
 } from '@tanstack/charts'
 import {
   RendererChartImplementation,
-  type ChartTooltipBodyRenderContext,
-  type RendererChartProps,
+  type RendererChartImplementationProps,
 } from './RendererChart'
 
 export interface ChartCommonProps<
@@ -43,9 +43,6 @@ export interface ChartCommonProps<
   ) => void
   onSelect?: (point: ChartPoint<TDatum, TXValue, TYValue> | null) => void
   onRender?: (context: ChartRenderContext<TDatum, TXValue, TYValue>) => void
-  renderTooltipBody?: (
-    context: ChartTooltipBodyRenderContext<TDatum, TXValue, TYValue>,
-  ) => React.ReactNode
 }
 
 export type ChartProps<
@@ -56,11 +53,29 @@ export type ChartProps<
   definition: ChartDefinition<TDatum, TXValue, TYValue>
 }
 
+export type ChartImplementationProps<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartProps<TDatum, TXValue, TYValue> & {
+  onTooltipBodyChange?: (
+    target: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null,
+  ) => void
+}
+
 export function Chart<
   TDatum,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >(props: ChartProps<TDatum, TXValue, TYValue>) {
+  return <ChartImplementation {...props} />
+}
+
+export function ChartImplementation<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(props: ChartImplementationProps<TDatum, TXValue, TYValue>) {
   const renderSvg = props.renderSvg ?? renderChartSvg
   const renderer = React.useMemo(
     () => createSvgChartRenderer<TDatum, TXValue, TYValue>(renderSvg),
@@ -82,7 +97,11 @@ export function Chart<
       })
     }
   }, [props.onRender])
-  const rendererProps: RendererChartProps<TDatum, TXValue, TYValue> = {
+  const rendererProps: RendererChartImplementationProps<
+    TDatum,
+    TXValue,
+    TYValue
+  > = {
     ...props,
     renderer,
     onRender,

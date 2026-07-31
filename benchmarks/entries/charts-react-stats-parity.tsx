@@ -2,6 +2,7 @@ import { Chart } from '@tanstack/react-charts'
 import { useMemo } from 'react'
 import { defineChart } from '@tanstack/charts'
 import { focusX, focusY } from '@tanstack/charts/focus'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import {
   createStatsHistoryInput,
@@ -15,7 +16,7 @@ export function HistoryChart() {
     () =>
       defineChart(createStatsHistoryChart(createStatsHistoryInput('stream')), {
         focus: focusX,
-        tooltip: true,
+        tooltip,
       }),
     [],
   )
@@ -33,7 +34,7 @@ export function RankingChart() {
     () =>
       defineChart(
         createStatsLatestChart(createStatsLatestInput('horizontal', true)),
-        { focus: focusY, tooltip: true },
+        { focus: focusY, tooltip },
       ),
     [],
   )

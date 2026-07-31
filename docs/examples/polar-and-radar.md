@@ -86,60 +86,60 @@ const donutChart = defineChart({
 ```
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/76-pie/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/76-pie/?theme=system&height=480"
   title="English letter-frequency pie chart built from D3 pie intervals and TanStack radial arcs"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/77-donut/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/77-donut/?theme=system&height=480"
   title="English letter-frequency donut chart built from D3 pie intervals and TanStack radial arcs"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 The same primitives cover labels, center content, padding, rounded corners,
 and concentric rings:
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/93-labeled-pie/?theme=system&height=380"
+  src="https://tanstack.com/charts/catalog/embed/93-labeled-pie/?theme=system&height=480"
   title="English letter-frequency pie chart with native radial labels and leader rules"
   loading="lazy"
   width="100%"
-  height="380"
-  style="width:100%;height:380px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/94-center-donut/?theme=system&height=380"
+  src="https://tanstack.com/charts/catalog/embed/94-center-donut/?theme=system&height=480"
   title="English letter-frequency donut chart with native center value"
   loading="lazy"
   width="100%"
-  height="380"
-  style="width:100%;height:380px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/95-rounded-donut/?theme=system&height=380"
+  src="https://tanstack.com/charts/catalog/embed/95-rounded-donut/?theme=system&height=480"
   title="Rounded English letter-frequency donut chart with padded arcs"
   loading="lazy"
   width="100%"
-  height="380"
-  style="width:100%;height:380px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/96-nested-donut/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/96-nested-donut/?theme=system&height=480"
   title="Nested Flare package-size donut chart"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Keep `pie().sort(null)` when source order is semantic. Stable arc keys must
@@ -221,21 +221,21 @@ const gauge = defineChart({
 ```
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/78-gauge/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/78-gauge/?theme=system&height=480"
   title="Survey agreement gauge composed from D3 pie intervals and TanStack radial arcs"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/98-needle-gauge/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/98-needle-gauge/?theme=system&height=480"
   title="County unemployment gauge with radial ticks, needle, hub, and value label"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Bound the input before layout and expose the exact value outside the arc. Arc
@@ -374,21 +374,21 @@ const radar = defineChart({
 ```
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/75-radar/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/75-radar/?theme=system&height=480"
   title="Normalized decathlon radar profile with polygon guides built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="440"
-  style="width:100%;height:440px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/99-comparative-radar/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/99-comparative-radar/?theme=system&height=480"
   title="Normalized USA and Great Britain decathlon radar profiles"
   loading="lazy"
   width="100%"
-  height="440"
-  style="width:100%;height:440px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Use radar for a small, fixed set of compatible dimensions. Keep every domain
@@ -529,21 +529,21 @@ const polarScatterChart = defineChart({
 ```
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/106-polar-line/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/106-polar-line/?theme=system&height=480"
   title="Seattle daily high temperatures through 2012 on a polar line"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/107-polar-scatter/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/107-polar-scatter/?theme=system&height=480"
   title="Surface wind observations by derived direction and speed"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## Radial magnitude and hierarchy
@@ -552,30 +552,30 @@ const polarScatterChart = defineChart({
 sectors, concentric radial bars, and hierarchy rings remain one primitive.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/97-rose/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/97-rose/?theme=system&height=480"
   title="English letter-frequency rose with equal angles and variable radii"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/100-radial-bars/?theme=system&height=420"
+  src="https://tanstack.com/charts/catalog/embed/100-radial-bars/?theme=system&height=480"
   title="Concentric English letter-frequency radial bars"
   loading="lazy"
   width="100%"
-  height="420"
-  style="width:100%;height:420px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/101-sunburst/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/101-sunburst/?theme=system&height=480"
   title="Flare analytics hierarchy sunburst rendered with native radial arcs"
   loading="lazy"
   width="100%"
-  height="440"
-  style="width:100%;height:440px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## Coordinate and bundle boundary

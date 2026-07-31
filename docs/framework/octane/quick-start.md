@@ -23,6 +23,7 @@ Definitions are framework-independent and can be shared with any adapter:
 ```tsx
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/octane-charts'
 
 interface AlphabetRow {
@@ -60,7 +61,7 @@ const letterFrequencyChart = defineChart({
     format: (value) => percent.format(value),
     grid: true,
   },
-  tooltip: true,
+  tooltip,
 })
 
 export function LetterFrequencyChart() {
@@ -132,7 +133,7 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
         nice: true,
       },
       animate: true,
-      tooltip: true,
+      tooltip,
     })
   })
 
@@ -178,12 +179,12 @@ This calendar heatmap uses typed cells and responsive guide layout through the
 same Octane adapter:
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/25-calendar-heatmap/?theme=system&height=360"
+  src="https://tanstack.com/charts/catalog/embed/25-calendar-heatmap/?theme=system&height=480"
   title="Calendar heatmap"
   loading="lazy"
   width="100%"
-  height="360"
-  style="width: 100%; height: 360px; border: 0"
+  height="480"
+  style="width: 100%; height: 480px; border: 0"
 ></iframe>
 
 Continue with the [Octane adapter](./adapter.md) for lifecycle and SSR, the

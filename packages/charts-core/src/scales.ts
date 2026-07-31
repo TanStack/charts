@@ -1,4 +1,3 @@
-import { scaleOrdinal } from 'd3-scale'
 import { validateInferredLogDomain } from './scale-input'
 import type {
   ChartColorScaleFactory,
@@ -78,20 +77,23 @@ export function createColorScale(
     })
   }
   const range = options?.range?.length ? options.range : theme.palette
-  const ordinal = scaleOrdinal<ChartKey, string>()
-    .domain(
-      (options?.domain ?? values).filter(
-        (value): value is ChartKey =>
-          typeof value === 'string' || typeof value === 'number',
-      ),
-    )
-    .range(range)
-  const domain = ordinal.domain()
+  const domain = uniqueChartKeys(options?.domain ?? values)
+  const mappedKeys = domain.map(valueKey)
   const map = (value: ChartKey | null | undefined) => {
     if (value == null) return range[0] ?? 'currentColor'
-    return ordinal(value)
+    let index = mappedKeys.indexOf(valueKey(value))
+    if (index < 0) index = mappedKeys.push(valueKey(value)) - 1
+    return range[index % range.length] ?? 'currentColor'
   }
   return { type: 'ordinal', kind: 'categorical', domain, range, map }
+}
+
+function uniqueChartKeys(values: readonly unknown[]): ChartKey[] {
+  return [...new Set(values.filter(isChartKey))]
+}
+
+export function isChartKey(value: unknown): value is ChartKey {
+  return typeof value === 'string' || typeof value === 'number'
 }
 
 function isColorScaleFactory(
@@ -104,10 +106,7 @@ function inferColorDomain(
   scale: InferableColorScaleLike<any, any>,
   values: readonly unknown[],
 ): ChartKey[] {
-  const observed = values.filter(
-    (value): value is ChartKey =>
-      typeof value === 'string' || typeof value === 'number',
-  )
+  const observed = values.filter(isChartKey)
   const quantiles = scale.quantiles
   const thresholds = scale.thresholds
   if (quantiles) {
@@ -150,15 +149,7 @@ function inferColorDomain(
     )
   }
 
-  const domain: ChartKey[] = []
-  const seen = new Set<string>()
-  for (const value of observed) {
-    const key = `${typeof value}:${String(value)}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    domain.push(value)
-  }
-  return domain
+  return uniqueChartKeys(observed)
 }
 
 function quantitativeColorValues(values: readonly ChartKey[]): number[] {

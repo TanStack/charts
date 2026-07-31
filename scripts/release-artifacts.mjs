@@ -213,7 +213,10 @@ function validatePackedManifest(packageInfo, packedManifest, packedFiles) {
     )
   }
 
-  if (manifest.name !== '@tanstack/charts') {
+  if (
+    manifest.name !== '@tanstack/charts' &&
+    manifest.name !== '@tanstack/charts-scales'
+  ) {
     assert.equal(
       packedManifest.dependencies?.['@tanstack/charts'],
       manifest.version,

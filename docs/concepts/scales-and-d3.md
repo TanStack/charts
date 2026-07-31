@@ -3,13 +3,15 @@ title: Scales and D3
 description: Understand the explicit boundary between TanStack Charts and granular D3 scales, transforms, shapes, and interaction algorithms.
 ---
 
-TanStack Charts uses D3 as an explicit algorithm layer:
+TanStack Charts uses an explicit algorithm layer:
 
 - **Your application** imports and configures the D3 modules required by a chart.
 - **D3** supplies battle-tested scales, array transforms, shape interpolation, time utilities, and spatial algorithms.
+- **TanStack compact scales** cover the common numeric and categorical scale subset when bundle size matters more than D3's complete semantics.
 - **TanStack Charts** supplies the typed grammar, responsive ranges, guide layout, scene compilation, rendering, reconciliation, and lifecycle.
 
-There is no second scale or transform language to learn. There is also no hidden D3 umbrella import.
+Both scale implementations use callable, copyable scale objects. There is no
+hidden D3 umbrella import.
 
 ## Direct dependency ownership
 
@@ -25,6 +27,37 @@ Omit any module the application does not import. A bar chart that only imports `
 This rule also applies when definitions live in framework component source.
 The adapter mounts a definition; it does not own the D3 imports used to author
 it.
+
+## Compact scales
+
+For numeric linear, band, point, and ordinal mappings, install the optional
+compact package:
+
+```sh
+pnpm add @tanstack/charts-scales
+```
+
+Import one exact family:
+
+```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+```
+
+There is intentionally no `@tanstack/charts-scales` root export. Each factory
+fits the same callable, `domain`, `range`, and `copy` contract consumed by
+TanStack Charts.
+
+The compact linear scale is numeric and two-stop. It supports mapping,
+`invert`, `clamp`, `nice`, ticks, basic numeric tick formatting, and copying.
+The categorical families support D3-compatible domain interning, padding,
+alignment, rounding, bandwidth, unknown values, and copying.
+
+Use `d3-scale` for time, UTC, log, power, symlog, radial, sequential,
+diverging, quantile, quantize, and threshold scales; piecewise or nonnumeric
+interpolation; locale-aware format specifiers; and other full D3 behavior.
 
 ## Capability map
 
@@ -362,12 +395,12 @@ const logChart = defineChart({
 This source imports `d3-scale` directly, so install `d3-scale` and `@types/d3-scale` as direct dependencies.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/53-log-scale-scatter/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/53-log-scale-scatter/?theme=system&height=480"
   title="Flare class sizes and hierarchy depth using an explicit D3 logarithmic x scale"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 For chart-side scale, guide, and color types, see [Scales, Guides, and Color Reference](../reference/scales-guides-and-color.md).

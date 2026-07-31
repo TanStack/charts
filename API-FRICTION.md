@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 ## Triage rule
 
@@ -182,13 +182,17 @@ Each entry records:
 | F-144 | Action pin checks accepted invalid commit lengths        | Tooling         | resolved   |
 | F-145 | Changesets included private workspaces in version plans  | Tooling/Release | resolved   |
 | F-146 | Octane hydration used a unit-test timeout                | Tooling         | resolved   |
-| F-147 | Bot-authored version PRs lacked an automatic CI trigger  | Tooling/Release | resolved   |
+| F-147 | Release automation duplicated validated work             | Tooling/Release | resolved   |
 | F-148 | Publisher failure returned before its workers settled    | Tooling/Release | resolved   |
 | F-149 | Release checks could stall or accept an unbound tag      | Tooling/Release | resolved   |
 | F-150 | Nx worktree caches followed the common Git directory     | Tooling         | monitoring |
 | F-151 | Artifact actions targeted deprecated Node 20             | Tooling         | resolved   |
 | F-152 | Version bumps invalidated workspace bundle evidence      | Tooling/Release | resolved   |
 | F-153 | Changesets left release-facing version claims behind     | Tooling/Release | resolved   |
+| F-154 | Root barrels crossed the browser host boundary           | API/Tooling     | resolved   |
+| F-155 | Optional tooltip code burdened every chart consumer      | API             | resolved   |
+| F-156 | Releases stranded manual Unreleased migration notes      | Tooling/Release | monitoring |
+| F-157 | Conformance monitoring blocked unrelated changes         | Tooling         | resolved   |
 
 ## Findings
 
@@ -485,7 +489,8 @@ Each entry records:
 
 - Status: resolved
 - Severity: high
-- Observed in: strict migration of fixtures, sandbox, and Stats
+- Observed in: strict migration of fixtures, sandbox, and Stats, followed by
+  the 15 KiB representative React bundle target
 - Friction: `scaleUtc`, `scaleTime`, `scaleLog`, `scaleSymlog`, `scaleSqrt`,
   `configuredScale`, `ChartScaleTransform`, and inferred scale types remain
   exported beside native `d3-scale` values. Their names are easier for both
@@ -493,13 +498,18 @@ Each entry records:
   longer consumes inferred axis options.
 - Decision: remove the legacy inferred scale and transform surface after its
   historical tests and bundle fixtures have been relabeled or deleted. Keep
-  D3 imports visibly sourced from `d3-scale`.
+  D3 imports visibly sourced from `d3-scale` for its complete semantics. Offer
+  the deliberately smaller linear, band, point, and ordinal subset only from
+  exact `@tanstack/charts-scales/*` entries, with no root export. The compact
+  package is a constrained bundle option, not a second general-purpose scale
+  API.
 - Verification: the obsolete scale, radius, color, curve, transform, and
   spatial wrappers and subpaths are gone; the inferred-scale builder and its
   tests are deleted; fixtures and histogram benchmarks use direct `d3.bin`;
-  repository search finds only direct D3 imports in product definitions.
-  TypeScript, the standard test suite, both four-test Octane matrices, and
-  every bundle budget pass.
+  differential tests cover the compact subset against D3; packed-consumer
+  checks resolve every exact entry. The complete compact family is 1,877 gzip
+  bytes, and a representative compact React line is 14,227 gzip bytes without
+  retaining `d3-scale`, `d3-format`, or `d3-interpolate`.
 
 ### F-016 — Stats animated export still renders through Plot
 
@@ -1084,7 +1094,10 @@ Each entry records:
   consumers are byte-locked. Optional features have isolated gzip budgets;
   comparison and exploratory kernels remain measurement-only. Baseline
   changes require an explicit reviewed command, including decreases, so saved
-  bytes cannot become silent future headroom.
+  bytes cannot become silent future headroom. Input-boundary checks use only
+  modules with retained output bytes, so an imported-but-eliminated module
+  cannot create a false pass or failure. The compact React line has a hard
+  15 KiB ceiling; tooltip and portal are measured as separate increments.
 - Verification: repeated builds match the exact minified and gzip baseline.
   `pnpm bundle:check` passes the locked consumers and the tightened histogram,
   facet, curve, time, transform, spatial, arrow, frame, link, and tick feature
@@ -1095,8 +1108,12 @@ Each entry records:
   now locked rather than hidden inside unused ceiling headroom. The canonical
   byte lock runs on pinned Ubuntu 24.04 and Node 24.18.0; this prevents runner
   and compressor upgrades from masquerading as library-size changes. The
-  current canonical baseline records the unchanged source tree under that
-  environment.
+  bundle-reduction work locks the compact scene at 6,711 gzip bytes and its
+  React consumer at 14,227. Tooltip adds 3,381 bytes and portal adds another 806. Retained-output assertions prove the base excludes tooltip, portal,
+  React tooltip composition, and the D3 scale/format/interpolate stack.
+  Replacing the core-owned D3 ordinal default required reviewed 0.05 KiB
+  adjustments to the tick and polar-composition feature ceilings; all other
+  policy changes are exact locks or new isolated budgets.
 
 ### F-041 — Bounded segments and caps required custom marks
 
@@ -1133,9 +1150,12 @@ Each entry records:
   `items` array.
 - Current decision: ordered items use one uniformly typed
   `text(point, context)` callback, preserving contextual datum and coordinate
-  types for every item kind. For a separately hoisted complete tooltip object,
-  document an explicit `ChartTooltipOptions` annotation as a normal
-  type-introduction boundary; never recommend a cast.
+  types for every item kind. The extension form
+  `{ use: tooltip, format(point) {} }` remains inside `defineChart`, so the
+  definition supplies contextual datum and coordinate types at the exact
+  option location. For a separately hoisted complete tooltip object, document
+  an explicit `ChartTooltipOptions` annotation as a normal type-introduction
+  boundary; never recommend a cast.
 - Follow-up: if raw-host examples repeat this pattern, add a small
   definition-correlated options helper rather than weakening callback types.
 
@@ -2815,13 +2835,15 @@ Each entry records:
   headers, cache policy, and content delivery behavior.
 - Decision: treat the catalog as generated structured content. Charts CI builds
   schema-v4 `catalog.json` plus only the recursively allowlisted implementation
-  modules, then replaces the generated `catalog-dist` branch after validation
-  and the unfiltered conformance matrix. TanStack.com's existing content
-  pipeline reads that branch, verifies hashes and limits, renders native routes
-  and embeds, and serves modules below an artifact-commit namespace. Charts
-  source and dependencies remain out of the site repository and default site
-  bundle. The previous Worker, staging tree, deployment scripts, credentials,
-  and route ownership are removed from the Charts workflow.
+  modules, then replaces the generated `catalog-dist` branch after the static,
+  package, bundle, comparison, and stress gates pass. Conformance is independent
+  regression monitoring rather than an artifact-integrity gate. TanStack.com's
+  existing content pipeline reads that branch, verifies hashes and limits,
+  renders native routes and embeds, and serves modules below an artifact-commit
+  namespace. Charts source and dependencies remain out of the site repository
+  and default site bundle. The previous Worker, staging tree, deployment
+  scripts, credentials, and route ownership are removed from the Charts
+  workflow.
 - Verification: the artifact generator records an exact Charts revision,
   deterministic SHA-256 allowlist, safe repository source paths, recursive
   imports, debug-only comparison roots, and role-aware authored-source
@@ -3203,14 +3225,15 @@ Each entry records:
   contexts could clip it or place it below adjacent UI. Escaping those
   boundaries required rebuilding focus, placement, collision, pinning, and
   cleanup in an application-owned overlay.
-- Decision: add definition-owned `tooltip.portal`. The host opens the tooltip
-  itself as a manual Popover in the browser top layer where supported, keeping
-  its chart DOM ancestry and inherited styling. If Popover is unavailable or
-  fails, the tooltip moves directly under the `ownerDocument` body with fixed
-  high-stack positioning. Both paths map scene anchors to client coordinates,
-  collide against the viewport, and reposition on scroll, viewport resize,
-  chart resize, and tooltip content resize. Local positioning remains the
-  default. Documentation calls out the fallback's CSS inheritance boundary.
+- Decision: make portal transport an exact opt-in extension imported from
+  `@tanstack/charts/tooltip/portal` and installed as the nested `portal` option
+  on `{ use: tooltip }`. It opens the tooltip as a manual Popover in the
+  browser top layer where supported, keeping its chart DOM ancestry and
+  inherited styling. If Popover is unavailable or fails, the tooltip moves
+  directly under the `ownerDocument` body with fixed high-stack positioning.
+  Both paths map scene anchors to client coordinates, collide against the
+  viewport, and reposition on scroll, viewport resize, chart resize, and
+  tooltip content resize. Local positioning remains the default.
 - Verification: DOM-host regressions cover top-layer and fixed fallback
   parenting, client-coordinate mapping, viewport collision,
   scroll/resize/content repositioning, local-to-portal updates, renderer
@@ -3218,10 +3241,11 @@ Each entry records:
   composition regression exercises a pinned custom body inside the portaled
   surface and removes it on unmount. Catalog case 35 passes its real-Chromium
   quick profile, including both widths and every interaction step. The primary
-  suite passes 2,459 tests, all framework matrices pass, and type, docs,
+  suite passes 3,003 tests, all framework matrices pass, and type, docs,
   packed-consumer, seven-adapter, formatting, and bundle gates pass. The
-  reviewed bundle change is 1,486 gzip bytes for the DOM host and 1,947 for the
-  React adapter; it adds no bundled dependency.
+  portal transport is absent from retained base and tooltip-only graphs. Its
+  isolated kernel is 1,580 gzip bytes and its measured increment on the
+  representative React tooltip consumer is 806 bytes.
 
 ### F-134 — Demo fixtures modeled charts instead of source data
 
@@ -3362,22 +3386,18 @@ Each entry records:
   request completed two-factor authentication but returned an opaque HTTP 400
   instead of identifying the missing `--allow-publish` permission.
 - Decision: configure trust with npm `11.18.0`, give each public package an
-  explicit publish permission, and keep npm installation outside the
-  OIDC-enabled job. The release checks that Node's bundled npm meets the
-  trusted-publishing minimum instead of replacing the CLI while a job can mint
-  identity tokens.
+  explicit publish permission, and use the repository's standard Changesets
+  workflow without an npm token. The publisher checks that Node's bundled npm
+  meets the trusted-publishing minimum before requesting OIDC-backed
+  publication.
 - Verification: `npm trust list` reports the exact `TanStack/charts`
   repository, `release.yml` workflow, and `createPackage` permission for core
-  and all nine public framework adapters. The workflow has one OIDC-enabled
-  job; it checks out the exact release SHA, downloads already-checked
-  artifacts, installs no dependencies, revalidates the protected remote tag
-  and main immediately before publishing, and delegates package installation
-  and signature verification to a post-publish job without OIDC. That job
-  requires npm to verify every release package's attestation bundle and then
-  matches the fetched bundles before checking their exact package, digest,
-  repository, workflow, tag, and commit claims. Release workflow
-  `30592985603` completed that OIDC publication and independent verification
-  successfully for all ten packages.
+  and all nine public framework adapters. Release workflow `30592985603`
+  completed OIDC publication for all ten `0.0.1` packages. The current
+  publisher builds checked tarballs for an unpublished or unfinished release,
+  waits for matching registry integrity and attestations, and the workflow
+  contract grants `id-token: write` once without `NPM_TOKEN` or
+  `NODE_AUTH_TOKEN`.
 
 ### F-139 — Top-level package entries bypassed tarball validation
 
@@ -3537,23 +3557,28 @@ Each entry records:
 - Verification: the focused Octane client suite covers all seven client tests;
   pull-request static checks remain the parallel Linux gate.
 
-### F-147 — Bot-authored version PRs lacked an automatic CI trigger
+### F-147 — Release automation duplicated validated work
 
 - Status: resolved
 - Severity: high
 - Owner: Tooling/Release
-- Observed in: hardening the automated Changesets release path
-- Friction: the built-in workflow token can create and update the Changesets
-  version pull request, but relying on that mutation to start pull-request CI
-  leaves validation subject to GitHub's bot-event suppression and approval
-  behavior.
-- Decision: use the action's `pullRequestNumber` output to resolve the exact
-  version branch, then explicitly dispatch the full chart workflow on that
-  ref with the job's narrowly scoped `actions: write` permission. A typed
-  dispatch input selects the same quick browser profile as ordinary pull
-  requests.
-- Verification: the release workflow contract requires the Changesets output,
-  exact PR-head lookup, and explicit branch-scoped workflow dispatch.
+- Observed in: the `0.0.2` release and comparison with Query, Router, Virtual,
+  Form, Store, Pacer, and the TanStack repository template
+- Friction: the built-in workflow token intentionally does not start
+  pull-request Actions for the generated Changesets PR. The previous workaround
+  explicitly dispatched 22 checks that took 2 minutes 46 seconds, even though
+  Charts has no required status-check or review rule. Merging that mechanical
+  PR then ran the complete main workflow for another 4 minutes 12 seconds
+  before a tag dispatch started four more release jobs.
+- Decision: use the standard TanStack push-to-main Changesets job. Pending
+  changesets create or update the mergeable version PR immediately. With no
+  pending changesets, the same job preflights npm, builds the checked package
+  tarballs, publishes through OIDC, and finalizes the aggregate tag and release.
+  Main browser and catalog CI remains independent.
+- Verification: the repository ruleset protects main only from deletion and
+  non-fast-forward updates. PR `#13` merged without a review or required check.
+  Workflow contracts reject the removed `version_pr` dispatch path and require
+  one branch-scoped Changesets release job with registry-aware finalization.
 
 ### F-148 — Publisher failure returned before its workers settled
 
@@ -3654,3 +3679,117 @@ Each entry records:
 - Verification: focused tests cover version-heading discovery, complete
   replacement, idempotency, and missing-version rejection. Generated package
   docs remain outputs of `pnpm docs:sync`, never hand-edited sources.
+
+### F-154 — Root barrels crossed the browser host boundary
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: isolating the React Native host proof from the core package
+- Friction: shared chart definitions and scene compilation are
+  platform-neutral, but the root value barrel made bundlers traverse DOM hosts,
+  adapters, reconciliation, and SVG surfaces. Its type graph also declared
+  `Element`, `HTMLElement`, and `SVGSVGElement`, so a non-DOM consumer could
+  not select the universal contracts as one supported entry.
+- Decision: preserve the existing browser-oriented root API and add
+  `@tanstack/charts/universal` for common authoring/runtime values plus
+  `@tanstack/charts/types` for universal contracts. The name describes the
+  supported cross-runtime surface while the browser-first root remains the
+  normal web entry. DOM surface, renderer, host, and render-context types now
+  live behind an internal module while retaining their existing root
+  re-exports. Definition inputs retain DOM-free extension token contracts while
+  the generic tooltip and portal token interfaces are exported for host-adapter
+  authors. Typed DOM tooltip and portal lifecycles remain in the DOM module. Do
+  not conditionally change the root until a native host can test one coherent
+  platform contract.
+- Verification: root typechecking and 61 focused core tests pass. The packed
+  package gate resolves both new entries from `dist`, compiles their
+  declarations, including tooltip definition inputs and direct generic-token
+  imports, with Web Worker rather than DOM globals. Type regressions reject
+  swapping tooltip and portal tokens.
+  The packed bundle proof excludes the root, adapters, Canvas, DOM host/text,
+  browser export, reconciliation, renderer, and SVG surface modules. That full
+  universal barrel measures 53.95 kB minified and 16.60 kB gzip; granular
+  subpaths remain the bundle-sensitive option.
+
+### F-155 — Optional tooltip code burdened every chart consumer
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: reducing the representative React line consumer from 25.11 KiB
+  to 13.89 KiB gzip
+- Friction: the renderer statically owned native tooltip DOM, formatting,
+  placement, pinning, portal transport, and observers. React's base entries
+  also statically owned `react-dom` portal composition and the default rich
+  body. A chart with no tooltip paid for all of it, and tree shaking could not
+  cross the host's built-in branches.
+- Decision: keep focus and pin policy in the host, but move tooltip rendering
+  behind the `ChartTooltipExtension` lifecycle and exact
+  `@tanstack/charts/tooltip` token. Move viewport transport behind the nested
+  portal extension. Move React rich-body composition to drop-in Chart,
+  CanvasChart, and RendererChart exports from
+  `@tanstack/react-charts/tooltip`. Base entries export only erased extension
+  types and never import those runtime modules.
+- Verification: the representative compact React line is 14,227 gzip bytes.
+  Native tooltip adds 3,381 bytes; portal adds 806 more. Retained-output graph
+  checks prove base renderer and React entries contain none of the tooltip,
+  portal, or React rich-body modules. Core, Lit, React, export, declaration,
+  packed-package, and lifecycle tests cover creation, update, disable,
+  transport switching, custom bodies, and cleanup.
+
+### F-156 — Releases stranded manual Unreleased migration notes
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: rebasing the tooltip and compact-scale release onto the
+  Changesets-based `0.0.2` release flow, then landing the universal-entry rename
+  after the `0.1.0` version pull request had merged and published
+- Friction: the root changelog held the complete human- and agent-readable
+  migration under `## Unreleased`, while Changesets generated package sections
+  and prepended the new version without consuming that section. The resulting
+  release would leave the migration under an obsolete heading instead of the
+  version users were upgrading to. A later feature branch exposed the inverse
+  race: its pending universal-entry note merged into the already-published
+  `0.1.0` section after the version pull request had consumed `## Unreleased`,
+  even though its remaining changeset correctly targeted `0.2.0`.
+- Decision: when synchronizing a new root release, move the body of
+  `## Unreleased` into the generated version section and remove the pending
+  heading. Package-specific changesets retain the core, React, and compact-scale
+  migration instructions in their published package changelogs. A feature pull
+  request that crosses a published version boundary must re-establish
+  `## Unreleased`, keep the published section immutable, and describe migration
+  from the package version that actually reached npm.
+- Verification: the focused changelog synchronization regression moves pending
+  breaking-change notes under the generated version, removes `## Unreleased`,
+  preserves earlier releases, and includes the migration in extracted GitHub
+  release notes. The universal follow-up restores its note under
+  `## Unreleased`, leaves the published `0.1.0` section accurate, and reports a
+  single minor `@tanstack/charts` release from `0.1.0` to `0.2.0`; the docs,
+  bundle, changelog-consumption, and release-artifact gates pass.
+
+### F-157 — Conformance monitoring blocked unrelated changes
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: the first pull-request and main runs after release automation
+  was simplified
+- Friction: every pull request ran all 100 paired cases in the quick profile,
+  then every main commit reran all 100 in the standard profile. Release-only PR
+  `#17` therefore consumed 15.9 conformance runner-minutes before merge and
+  21.6 after merge despite changing no chart source. The eight shards also
+  repeated the complete TypeScript program and 27 type-protection probes. npm
+  publication did not wait on either run, so the cost added no release gate.
+- Decision: move conformance into a read-only monitoring workflow. Run one
+  deterministic standard shard nightly, all eight standard shards weekly, all
+  eight on manual request by default, and all eight for a pull request carrying
+  the `full-conformance` label. Manual dispatch may select one exact shard for
+  reproduction. Normal pull-request, main, catalog, and release paths do not
+  wait on conformance.
+- Verification: workflow contracts require deterministic eight-day rotation,
+  complete weekly and labeled-PR matrices, exact manual shard selection,
+  read-only permissions, immutable action pins, and standard-profile browser
+  execution. The main CI contract rejects any conformance dependency while
+  retaining every exact-revision catalog publication guard.

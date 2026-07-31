@@ -3,6 +3,8 @@ import type { TemplateResult } from 'lit'
 import { describe, expect, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
 import type { ChartTooltipContent } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from 'd3-scale'
 import { Chart } from './index'
 import type { ChartProps } from './index'
@@ -74,7 +76,8 @@ describe('Lit adapter', () => {
     const tooltipDefinition = defineChart(definition, {
       maxFocusDistance: 1_000,
       tooltip: {
-        portal: true,
+        use: tooltip,
+        portal: tooltipPortal,
         content: () => ({
           title: 'First',
           color: 'red;position:fixed;inset:0',

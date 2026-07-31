@@ -24,6 +24,9 @@ import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { renderChartImage } from '@tanstack/charts/export'
 import { focusX } from '@tanstack/charts/focus'
 import { d3Curve } from '@tanstack/charts/d3/shape'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { portal } from '@tanstack/charts/tooltip/portal'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 ```
 
 Canvas is opt-in. The default core and every default framework entry remain
@@ -48,6 +51,23 @@ boundary data and `topojson-client` remain application dependencies; importing
 
 Your bundler must honor ESM exports and tree shaking. Avoid namespace imports
 when a named or subpath import communicates the real dependency.
+
+Tooltip rendering is also opt-in. A definition imports `tooltip`; viewport
+layering additionally imports `portal` and nests it under the tooltip options:
+
+```ts
+const interactive = defineChart(definition, {
+  tooltip: {
+    use: tooltip,
+    portal,
+  },
+})
+```
+
+The locked compact React line consumer must remain at or below 15 kB gzip.
+Its retained-module gate rejects tooltip, portal, `d3-scale`, `d3-format`,
+`d3-interpolate`, `d3-color`, and sibling compact-scale entries. Separate
+incremental gates limit tooltip and portal growth.
 
 ## Import D3 by capability
 

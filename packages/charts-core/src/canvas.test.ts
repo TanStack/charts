@@ -7,7 +7,9 @@ import {
 } from './canvas'
 import { lineY } from './line'
 import { defineChart } from './scene'
-import type { ChartScene, ChartSurfaceRenderOptions, SceneNode } from './types'
+import { tooltip } from './tooltip'
+import type { ChartSurfaceRenderOptions } from './dom-types'
+import type { ChartScene, SceneNode } from './types'
 
 interface FakeCanvasContext {
   operations: string[]
@@ -361,7 +363,7 @@ describe('Canvas renderer', () => {
       definition: {
         ...definition,
         maxFocusDistance: 1_000,
-        tooltip: true,
+        tooltip,
       },
       width: 480,
       height: 260,

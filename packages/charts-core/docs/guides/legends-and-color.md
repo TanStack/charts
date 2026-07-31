@@ -110,10 +110,10 @@ from the SVG accessibility tree; essential category meaning should also be
 available through direct labels, surrounding HTML, or a table.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/bar-grouped/?theme=system&height=380"
+  src="https://tanstack.com/charts/catalog/embed/bar-grouped/?theme=system&height=480"
   title="Grouped bars with a responsive categorical color legend"
   loading="lazy"
-  style="width: 100%; height: 380px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## Explicit gradient legend

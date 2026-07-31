@@ -284,12 +284,12 @@ const composedChart = defineChart({
 This source imports `d3-scale` and `d3-shape` directly, so add those modules and their matching `@types` packages as direct dependencies. `d3Curve` is the small bridge from a D3 curve factory to the mark curve contract.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/70-composed-chart/?theme=system&height=400"
+  src="https://tanstack.com/charts/catalog/embed/70-composed-chart/?theme=system&height=480"
   title="Layered Seattle weather area, bars, line, and wind points built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="400"
-  style="width:100%;height:400px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## Definitions compile the grammar

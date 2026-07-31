@@ -78,12 +78,12 @@ relationship. Direct labels make a small hierarchy readable without requiring
 hover.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/36-hierarchy-tree/?theme=system&height=460"
+  src="https://tanstack.com/charts/catalog/embed/36-hierarchy-tree/?theme=system&height=480"
   title="Directly labeled tidy Flare toolkit hierarchy built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Validate the hierarchy before layout:
@@ -106,12 +106,12 @@ answers local spatial adjacency; it does not imply a business or causal
 relationship unless the data model defines one.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/37-delaunay-network/?theme=system&height=440"
+  src="https://tanstack.com/charts/catalog/embed/37-delaunay-network/?theme=system&height=480"
   title="Delaunay spatial adjacency network built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="440"
-  style="width:100%;height:440px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Deduplicate undirected edges during preparation and retain the source node IDs
@@ -130,12 +130,12 @@ already meaningful. It also introduces motion, stochastic initialization, and
 collision policy that can make comparison unstable.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/40-force-directed-network/?theme=system&height=460"
+  src="https://tanstack.com/charts/catalog/embed/40-force-directed-network/?theme=system&height=480"
   title="Force-directed Les Misérables character network built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="460"
-  style="width:100%;height:460px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 Run the simulation outside the renderer and feed settled coordinates to the

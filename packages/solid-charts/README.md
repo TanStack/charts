@@ -8,9 +8,10 @@ pnpm add @tanstack/charts @tanstack/solid-charts solid-js d3-scale
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/solid-charts'
 
-const interactiveDefinition = defineChart(definition, { tooltip: true })
+const interactiveDefinition = defineChart(definition, { tooltip })
 
 ;<Chart definition={interactiveDefinition} ariaLabel="Revenue by month" />
 ```

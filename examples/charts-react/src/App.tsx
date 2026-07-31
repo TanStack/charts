@@ -16,10 +16,12 @@ import {
   type PenguinCount,
 } from './charts'
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart, type ChartPoint } from '@tanstack/react-charts'
 
 const interactiveDownloadsChart = defineChart(downloadsChart, {
   tooltip: {
+    use: tooltip,
     placement: ['top', 'right', 'left', 'bottom'],
     items: [
       {
@@ -33,12 +35,13 @@ const interactiveDownloadsChart = defineChart(downloadsChart, {
 })
 const interactiveHorsepowerChart = defineChart(horsepowerChart, {
   tooltip: {
+    use: tooltip,
     format: (point) =>
       `${point.datum.x0?.toFixed(0)}–${point.datum.x1?.toFixed(0)} hp · ${point.datum.length} cars`,
   },
 })
 const interactiveDownloadAreaChart = defineChart(downloadAreaChart, {
-  tooltip: true,
+  tooltip,
 })
 
 export function App() {
@@ -66,6 +69,7 @@ export function App() {
         {
           animate: { duration: 420, easing: 'ease-in-out' },
           tooltip: {
+            use: tooltip,
             format: (point) =>
               `${point.yValue}: ${point.xValue.toLocaleString()}`,
           },
@@ -80,7 +84,7 @@ export function App() {
         {
           animate: { duration: 500, easing: 'ease-out' },
           focus: 'group-x',
-          tooltip: { formatGroup: formatIndustryGroup },
+          tooltip: { use: tooltip, formatGroup: formatIndustryGroup },
         },
       ),
     [historyMode, historyZoomed, industryWindow],
@@ -90,7 +94,7 @@ export function App() {
       defineChart(createPenguinChart(barOrientation, barsStacked), {
         animate: { duration: 500, easing: 'ease-out' },
         focus: barOrientation === 'vertical' ? 'group-x' : 'group-y',
-        tooltip: { format: formatPenguinPoint },
+        tooltip: { use: tooltip, format: formatPenguinPoint },
       }),
     [barOrientation, barsStacked],
   )

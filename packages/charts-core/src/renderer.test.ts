@@ -3,12 +3,14 @@ import { scaleBand, scaleLinear } from 'd3-scale'
 import { lineY } from './line'
 import { mountChartRenderer } from './renderer'
 import { defineChart } from './scene'
+import { tooltip as tooltipExtension } from './tooltip'
+import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartRenderer,
-  ChartScene,
   ChartSurface,
   ChartSurfaceRenderOptions,
-} from './types'
+} from './dom-types'
+import type { ChartScene } from './types'
 
 interface Datum {
   id: string
@@ -47,7 +49,7 @@ describe('renderer-neutral chart host', () => {
       definition: {
         ...definition,
         maxFocusDistance: 1_000,
-        tooltip: true,
+        tooltip: tooltipExtension,
       },
       renderer: fake.renderer,
       width: 480,
@@ -136,6 +138,7 @@ describe('renderer-neutral chart host', () => {
     const pointerDefinition = defineChart(definition, {
       maxFocusDistance: 1_000,
       tooltip: {
+        use: tooltipExtension,
         anchor: 'pointer',
         placement: ['top', 'bottom-right'],
         offset: 12,
@@ -179,6 +182,7 @@ describe('renderer-neutral chart host', () => {
     const customDefinition = defineChart(definition, {
       maxFocusDistance: 1_000,
       tooltip: {
+        use: tooltipExtension,
         anchor(_points, context) {
           pointers.push(context.pointer)
           return { x: 300, y: 120 }
@@ -217,6 +221,7 @@ describe('renderer-neutral chart host', () => {
           navigation: (points) => points,
         },
         tooltip: {
+          use: tooltipExtension,
           sort: (left, right) => right.yValue - left.yValue,
           anchor(points) {
             anchorGroups.push(points.map((point) => point.datum.id))
@@ -282,7 +287,8 @@ describe('renderer-neutral chart host', () => {
       definition: defineChart(definition, {
         maxFocusDistance: 1_000,
         tooltip: {
-          portal: true,
+          use: tooltipExtension,
+          portal: portalExtension,
           anchor: () => ({ x: 240, y: 130 }),
           placement: ['right', 'left'],
           offset: 10,
@@ -388,7 +394,7 @@ describe('renderer-neutral chart host', () => {
     vi.spyOn(second.element, 'getBoundingClientRect').mockReturnValue(bounds)
     const portalDefinition = defineChart(definition, {
       maxFocusDistance: 1_000,
-      tooltip: { portal: true },
+      tooltip: { use: tooltipExtension, portal: portalExtension },
     })
     const firstHost = mountChartRenderer(firstContainer, {
       definition: portalDefinition,
@@ -472,11 +478,11 @@ describe('renderer-neutral chart host', () => {
     }
     const portalDefinition = defineChart(definition, {
       maxFocusDistance: 1_000,
-      tooltip: { portal: true },
+      tooltip: { use: tooltipExtension, portal: portalExtension },
     })
     const localDefinition = defineChart(definition, {
       maxFocusDistance: 1_000,
-      tooltip: true,
+      tooltip: tooltipExtension,
     })
     const host = mountChartRenderer(container, {
       ...common,
@@ -541,7 +547,7 @@ describe('renderer-neutral chart host', () => {
     const options = {
       definition: defineChart(definition, {
         maxFocusDistance: 1_000,
-        tooltip: { portal: true },
+        tooltip: { use: tooltipExtension, portal: portalExtension },
       }),
       renderer: first.renderer,
       width: 480,
@@ -621,7 +627,8 @@ describe('renderer-neutral chart host', () => {
       definition: defineChart(definition, {
         maxFocusDistance: 1_000,
         tooltip: {
-          portal: true,
+          use: tooltipExtension,
+          portal: portalExtension,
           anchor: () => ({ x: 240, y: 130 }),
           placement: 'top',
           offset: 10,
@@ -687,7 +694,7 @@ describe('renderer-neutral chart host', () => {
       definition: {
         ...definition,
         maxFocusDistance: 1_000,
-        tooltip: true,
+        tooltip: tooltipExtension,
         animate: true,
       },
       renderer: first.renderer,

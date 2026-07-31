@@ -1,0 +1,124 @@
+name: Conformance monitoring
+
+on:
+  pull_request:
+    types:
+      - opened
+      - labeled
+      - synchronize
+      - reopened
+      - ready_for_review
+  schedule:
+    - cron: '43 7 * * *'
+    - cron: '13 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      shard:
+        description: Standard conformance scope
+        required: true
+        type: choice
+        default: full
+        options:
+          - full
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
+          - '6'
+          - '7'
+          - '8'
+
+permissions:
+  contents: read
+
+jobs:
+  select:
+    name: Select conformance shards
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+       contains(github.event.pull_request.labels.*.name, 'full-conformance') &&
+       (github.event.action != 'labeled' || github.event.label.name == 'full-conformance'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    outputs:
+      mode: ${{ steps.selection.outputs.mode }}
+      shards: ${{ steps.selection.outputs.shards }}
+
+    steps:
+      - id: selection
+        name: Resolve scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          REQUESTED_SHARD: ${{ inputs.shard }}
+        run: |
+          if [ "$EVENT_NAME" = schedule ] && [ "$EVENT_SCHEDULE" = '43 7 * * *' ]; then
+            epoch_day=$(( $(date -u +%s) / 86400 ))
+            shard=$(( epoch_day % 8 + 1 ))
+            mode=nightly
+            shards="[$shard]"
+          elif [ "$EVENT_NAME" = workflow_dispatch ] && [ "$REQUESTED_SHARD" != full ]; then
+            mode=manual
+            shards="[$REQUESTED_SHARD]"
+          elif [ "$EVENT_NAME" = schedule ]; then
+            mode=weekly
+            shards='[1,2,3,4,5,6,7,8]'
+          elif [ "$EVENT_NAME" = pull_request ]; then
+            mode=label
+            shards='[1,2,3,4,5,6,7,8]'
+          else
+            mode=manual
+            shards='[1,2,3,4,5,6,7,8]'
+          fi
+
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "shards=$shards" >> "$GITHUB_OUTPUT"
+          echo "Mode: $mode; shards: $shards; revision: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+
+  conformance:
+    name: Conformance (${{ matrix.shard }}/8, ${{ needs.select.outputs.mode }})
+    needs: select
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    concurrency:
+      group: charts-conformance-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}-${{ matrix.shard }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.select.outputs.shards) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          playwright: 'true'
+
+      - name: Run standard conformance shard
+        run: pnpm conformance -- --shard=${{ matrix.shard }}/8
+
+      - name: Publish conformance summary
+        if: success()
+        run: |
+          summaries=(.benchmark-output/conformance/results/*.md)
+          test -e "${summaries[0]}"
+          cat "${summaries[@]}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload conformance
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: chart-library-conformance-${{ needs.select.outputs.mode }}-${{ matrix.shard }}-${{ github.run_id }}
+          path: |
+            .benchmark-output/conformance/results
+            .benchmark-output/conformance/screenshots
+          if-no-files-found: error
+          retention-days: 14

@@ -44,10 +44,10 @@ Choose bucket count from the task and available resolution. A test fixture's
 grid or threshold count is not a universal default.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/73-many-point-scatter/?theme=system&height=380"
+  src="https://tanstack.com/charts/catalog/embed/73-many-point-scatter/?theme=system&height=480"
   title="Stable-key many-point scatterplot performance case"
   loading="lazy"
-  style="width: 100%; height: 380px; border: 0;"
+  style="width: 100%; height: 480px; border: 0;"
 ></iframe>
 
 ## When raw output is still useful

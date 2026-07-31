@@ -6,10 +6,8 @@ import type {
   ChartHost,
   ChartHostOptions,
   ChartRendererHostOptions,
-  ChartRuntime,
-  ChartSvgRenderer,
-  ChartValue,
-} from './types'
+} from './dom-types'
+import type { ChartRuntime, ChartSvgRenderer, ChartValue } from './types'
 
 export function mountChart<
   TDatum,

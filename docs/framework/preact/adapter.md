@@ -11,11 +11,12 @@ pnpm add @tanstack/charts @tanstack/preact-charts preact d3-scale
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
+import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/preact-charts'
 
 export function RevenueChart() {
   const definition = useMemo(
-    () => defineChart(createRevenueChart(rows), { tooltip: true }),
+    () => defineChart(createRevenueChart(rows), { tooltip }),
     [rows],
   )
 

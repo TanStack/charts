@@ -48,9 +48,10 @@ in both transient and pinned states. The transient body is inert; gate controls
 on `pinned`. The nested chart receives its own accessible label, definition,
 runtime, and framework cleanup.
 
-Set definition `tooltip.portal: true` to escape clipped ancestors and use
-viewport collision handling. Move focus intentionally when the body contains
-controls, preserve Escape, and wire a close button to `dismiss`.
+Add the `portal` extension to the definition's tooltip options to escape
+clipped ancestors and use viewport collision handling. Move focus intentionally
+when the body contains controls, preserve Escape, and wire a close button to
+`dismiss`.
 
 ## Scroll a wide schedule
 

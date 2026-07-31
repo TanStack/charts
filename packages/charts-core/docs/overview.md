@@ -3,7 +3,7 @@ title: Overview
 description: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
 ---
 
-TanStack Charts `0.0.2` is a pre-alpha release. Its API may change between
+TanStack Charts `0.1.0` is a pre-alpha release. Its API may change between
 releases.
 
 TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and JavaScript. Give each mark its natural data, map fields or accessors to visual channels, and supply the D3 scales that define the meaning of each axis. TanStack Charts compiles that declaration into a responsive, keyed scene and renders accessible SVG by default, with Canvas available as an opt-in surface.
@@ -100,12 +100,12 @@ modules and their matching `@types` packages alongside TanStack Charts.
 [Scales and D3](./concepts/scales-and-d3.md) explains the ownership boundary.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/33-difference-chart/?theme=system&height=380"
+  src="https://tanstack.com/charts/catalog/embed/33-difference-chart/?theme=system&height=480"
   title="Apple close versus moving-average difference chart built with TanStack Charts"
   loading="lazy"
   width="100%"
-  height="380"
-  style="width:100%;height:380px;border:0;"
+  height="480"
+  style="width:100%;height:480px;border:0;"
 ></iframe>
 
 ## What TanStack Charts owns
@@ -142,9 +142,9 @@ The normal path is intentionally short:
 - Omit `width` to follow the chart container.
 - Omit `margin` to measure axes, tick labels, rotation, and titles automatically.
 - Supply `ariaLabel`; keyboard focus is enabled by default.
-- Add `tooltip: true` to the definition when a native value tooltip is enough.
+- Add the `tooltip` extension when a native value tooltip is enough.
 - Let built-in marks infer stable identity from IDs or unique positions; supply
-  `key` when that identity is unavailable or can change.
+  a stable `key` when that identity is unavailable or can change.
 - Let field names, datum types, scales, interaction points, and adapters infer without casts.
 - Use inherited `currentColor` and the `--ts-chart-*` CSS variables for automatic theme integration.
 
