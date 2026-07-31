@@ -22,7 +22,7 @@ implementation range.
 
 [Compare the audited product range.](https://github.com/TanStack/charts/compare/58ee1e28e469f8ab28f99877a6e0abc3958977a4...a91106c34d654ea625a2f540f647222bd72bc0fc)
 
-### Release scope and gates
+### Release scope and verification
 
 - `0.0.1` publishes `@tanstack/charts` and the React, Octane, Preact, Vue,
   Solid, Svelte, Angular, Lit, and Alpine adapters as one versioned set. Every
@@ -34,13 +34,18 @@ implementation range.
   fixture now configures behavior on the definition instead of the removed
   host boundary, and the refreshed baseline passed the full pull-request
   validation, comparison, conformance, and stress workflow.
-- The tanstack.com schema-v4 catalog consumer must be deployed and verified
-  before the Charts release reaches `main`, because the successful main-branch
-  workflow publishes the schema-v4 artifact to `catalog-dist`. Keep schema-v2
-  compatibility until the production catalog and embed routes are verified.
-- The release commit must pass the same package, documentation, bundle,
-  comparison, catalog, stress, and conformance gates before its tag, GitHub
-  release, and npm provenance identify that exact revision.
+- TanStack.com deployed the schema-v4 catalog consumer before the Charts
+  release reached `main`. After the release artifact was live and verified,
+  TanStack.com commit `c4687bf` removed schema-v2 compatibility, pinned the
+  site to the exact `0.0.1` packages, and published the final landing-page
+  copy.
+- Release merge `15dcb156a32db361678f4cffeb116a2bd0fc0e79` passed the
+  package, documentation, bundle, comparison, catalog, stress, and conformance
+  gates in main workflow `30591789823`. Annotated tag `v0.0.1`, the GitHub
+  release, release workflow `30592985603`, and all ten npm provenance
+  statements identify that exact merge. The release workflow reran formatting,
+  documentation, type, test, and release-artifact checks before publication
+  and registry verification.
 - `@charts-poc/demo-data` remains private. It is a catalog, example, and
   validation fixture package, not a production dependency or release target.
 - `@tanstack/charts-d3` remains a private superseded experiment and is not a
@@ -452,8 +457,11 @@ catalog artifact.
 - Loading checks preserve the existing contract: the normal catalog and embed
   routes load only TanStack code; competitor code remains opt-in.
 
-The artifact cannot replace the production schema-v2 feed until tanstack.com
-has deployed and verified its schema-v4 consumer.
+TanStack.com deployed and verified the schema-v4 consumer before release, then
+retired its schema-v2 compatibility path in commit `c4687bf`. The public
+manifest identifies Charts release `15dcb156`, contains 100 cases, 430
+hash-verified assets, and 25 datasets, and serves the list, detail, comparison,
+and embed routes from the native site.
 
 ## Documentation, comparison, and lineage
 
