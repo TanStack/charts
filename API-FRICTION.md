@@ -201,6 +201,7 @@ Each entry records:
 | F-163 | Cross-row transforms lacked a public ownership boundary  | API             | resolved   |
 | F-164 | Sankey widths required a custom scene renderer           | API             | resolved   |
 | F-165 | Incidental D3 utilities leaked into core paths           | API/Tooling     | resolved   |
+| F-166 | Grouped tooltip order diverged from mark position        | API             | resolved   |
 
 ## Findings
 
@@ -3986,3 +3987,17 @@ Each entry records:
   every `d3-*` module plus `internmap` from compact consumers, while selected
   transform, polar, geo, and curve features retain their owned D3
   implementation.
+
+### F-166 — Grouped tooltip order diverged from mark position
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: reviewing the default grouped-tooltip row order
+- Friction: the default followed the color domain, so a tooltip could list
+  series in an order unrelated to the marks under the pointer.
+- Decision: default to visual order. X-grouped rows follow y position from top
+  to bottom; y-grouped rows follow x position from left to right. Preserve
+  `color-domain`, `focus`, and custom comparators as explicit policies.
+- Verification: runtime tests cover both axes with input and color-domain order
+  opposed to the rendered mark order.

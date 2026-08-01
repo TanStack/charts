@@ -478,6 +478,20 @@ function orderTooltipPoints<
 ) {
   if (sort === 'focus') return [...points]
   if (typeof sort === 'function') return [...points].sort(sort)
+  if (sort !== 'color-domain') {
+    const first = points[0]
+    const sharedX =
+      first !== undefined &&
+      points.every((point) => chartValueEqual(point.xValue, first.xValue))
+    const sharedY =
+      first !== undefined &&
+      points.every((point) => chartValueEqual(point.yValue, first.yValue))
+    return [...points].sort((left, right) =>
+      sharedY && !sharedX
+        ? left.x - right.x || left.y - right.y
+        : left.y - right.y || left.x - right.x,
+    )
+  }
   return [...points].sort(
     (left, right) =>
       colorOrder(scene, left.group) - colorOrder(scene, right.group),

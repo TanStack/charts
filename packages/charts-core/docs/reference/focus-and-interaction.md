@@ -138,7 +138,7 @@ interface ChartTooltipOptions<
 | `className`   | None           | Class appended after `ts-chart-tooltip`              |
 | `portal`      | None           | Optional top-layer or fixed-position transport       |
 | `items`       | Automatic x/y  | Ordered rows for a single focused point              |
-| `sort`        | `color-domain` | Grouped row order                                    |
+| `sort`        | `visual`       | Grouped row order                                    |
 | `anchor`      | `point`        | Preset, per-axis coordinates, or coordinate resolver |
 | `placement`   | `auto`         | Fixed or ordered fallback box placements             |
 | `offset`      | `10`           | Scene-pixel gap between anchor and box               |
@@ -191,7 +191,9 @@ label and text, the opposite-axis item formats values, and the group item
 formats series names. `sort` orders those generated series rows. Additional
 grouped structure belongs in `content`.
 
-`sort` accepts `color-domain`, `focus`, or a typed point comparator.
+`sort` accepts `visual`, `color-domain`, `focus`, or a typed point comparator.
+Visual order follows the marks across the screen: top-to-bottom for an x-group
+and left-to-right for a y-group.
 
 ### Anchor and placement
 
