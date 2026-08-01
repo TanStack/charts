@@ -1,5 +1,13 @@
 # @tanstack/charts
 
+## 0.4.0
+
+### Minor Changes
+
+- [#30](https://github.com/TanStack/charts/pull/30) [`d563eba`](https://github.com/TanStack/charts/commit/d563eba5d295dc3ddf60eecd2d8a9bd418aaf635) - Order grouped tooltip rows by rendered mark position by default: top-to-bottom
+  for x groups and left-to-right for y groups. Add `visual` as an explicit sort
+  policy while preserving color-domain, focus, and custom comparator ordering.
+
 ## 0.3.1
 
 ### Patch Changes
