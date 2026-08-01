@@ -1,0 +1,52 @@
+name: Bootstrap missing npm package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Exact missing fixed-set package@version to publish
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: charts-npm-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  bootstrap:
+    name: Bootstrap npm package
+    if: github.repository == 'TanStack/charts' && github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: npm-bootstrap
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout exact main revision
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Build and identify the sole missing package
+        id: prepare
+        env:
+          BOOTSTRAP_PACKAGE_SPEC: ${{ inputs.package }}
+          RELEASE_REVISION: ${{ github.sha }}
+        run: node scripts/bootstrap-release-package.mjs prepare
+
+      - name: Publish the confirmed package
+        if: steps.prepare.outputs.publish_needed == 'true'
+        env:
+          BOOTSTRAP_PACKAGE_SPEC: ${{ inputs.package }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_BOOTSTRAP_TOKEN }}
+          RELEASE_REVISION: ${{ github.sha }}
+        run: node scripts/bootstrap-release-package.mjs publish

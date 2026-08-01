@@ -268,11 +268,17 @@ function pointsPath(
 }
 
 function scopedId(prefix: string, id: string) {
-  return prefix ? `${prefix}-${sanitizeId(id)}` : sanitizeId(id)
+  const encodedId = encodeResourceId(id)
+  return prefix ? `${prefix}-${encodedId}` : encodedId
 }
 
-function sanitizeId(value: string) {
-  return value.replaceAll(/[^a-zA-Z0-9_-]/g, '')
+function encodeResourceId(value: string) {
+  if (!value) return '_'
+  return Array.from(value, (character) =>
+    /^[a-zA-Z0-9-]$/.test(character)
+      ? character
+      : `_x${character.codePointAt(0)!.toString(16)}_`,
+  ).join('')
 }
 
 function stableId(value: string) {

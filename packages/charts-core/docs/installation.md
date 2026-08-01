@@ -18,7 +18,7 @@ Then add one adapter if the application needs it:
 pnpm add @tanstack/react-charts react react-dom
 
 # React Native
-pnpm add @tanstack/react-native-charts react react-native react-native-svg
+pnpm add @tanstack/react-native-charts react@^19.2.3 react-native@^0.86.0 react-native-svg@^15.15.4
 
 # Preact
 pnpm add @tanstack/preact-charts preact
@@ -80,7 +80,7 @@ pnpm exec expo install react-native-svg
 Bare React Native 0.86 applications install the renderer directly:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/react-native-charts d3-scale react-native-svg
+pnpm add @tanstack/charts @tanstack/react-native-charts d3-scale react-native-svg@^15.15.4
 ```
 
 Run `bundle exec pod install` from `ios/` after adding it to a bare iOS
@@ -97,7 +97,7 @@ Packed tarballs are typechecked and bundled through default bare React Native
 and Expo Metro configurations on iOS and Android. The workspace Expo 57
 fixture also renders in Expo Go on an iOS simulator. Bare-native and Android
 simulators, physical devices, gestures, visual parity, and screen readers are
-not yet support claims.
+not currently supported.
 
 ## Install the D3 modules you import
 
