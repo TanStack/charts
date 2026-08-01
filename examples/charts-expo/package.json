@@ -1,0 +1,28 @@
+{
+  "name": "@charts-poc/expo-example",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "bundle": "expo export --platform all --output-dir dist --clear"
+  },
+  "dependencies": {
+    "@tanstack/charts": "workspace:*",
+    "@tanstack/react-native-charts": "workspace:*",
+    "d3-scale": "4.0.2",
+    "expo": "~57.0.9",
+    "react": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-svg": "15.15.4"
+  },
+  "devDependencies": {
+    "@types/d3-scale": "^4.0.9",
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

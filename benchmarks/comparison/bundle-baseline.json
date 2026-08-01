@@ -1,8 +1,8 @@
 {
   "schemaVersion": 3,
-  "generatedAt": "2026-08-01T17:40:25.541Z",
+  "generatedAt": "2026-08-01T18:25:10.144Z",
   "packageVersions": {
-    "tanstack": "0.3.1",
+    "tanstack": "0.4.0",
     "chartjs": "4.5.1",
     "echarts": "6.1.0",
     "recharts": "3.10.1",
@@ -11,7 +11,7 @@
   "sources": {
     "tanstack": {
       "kind": "workspace",
-      "revision": "d563eba5d295dc3ddf60eecd2d8a9bd418aaf635"
+      "revision": "1a8b888822bb94be75b6416979d671a04218fe02"
     },
     "chartjs": {
       "kind": "package",

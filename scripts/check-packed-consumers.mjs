@@ -19,6 +19,7 @@ import { compile as compileOctane } from 'octane/compiler'
 import { build, transform } from 'esbuild'
 import ts from 'typescript'
 import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
+import { verifyPackedReactNativeConsumers } from './packed-react-native-consumers.mjs'
 
 const execFileAsync = promisify(execFile)
 const root = resolve(import.meta.dirname, '..')
@@ -31,12 +32,14 @@ const buildWorkspace = resolve(temporaryRoot, 'build')
 const tarballDirectory = artifactDirectory ?? resolve(temporaryRoot, 'tarballs')
 const fixtureDirectory = resolve(temporaryRoot, 'consumer')
 
-const packages = [
+const webPackages = [
   packageConfig('charts-scales', 'scale'),
   packageConfig('charts-core', 'core'),
   packageConfig('react-charts', 'react'),
   packageConfig('octane-charts', 'octane'),
 ]
+const nativePackage = packageConfig('react-native-charts', 'react-native')
+const packages = [...webPackages, nativePackage]
 
 try {
   await mkdir(resolve(buildWorkspace, 'packages'), { recursive: true })
@@ -72,11 +75,21 @@ try {
   await verifyEsmRuntime()
   await verifyDeclarations()
   const bundles = await verifyProductionBundles()
+  const nativeBundles = await verifyPackedReactNativeConsumers({
+    repositoryRoot: root,
+    temporaryRoot,
+    tarballs,
+  })
 
   console.log('Packed exports, declarations, and runtime gate passed.')
-  console.log('| Consumer | Minified | Gzip |')
+  console.log('| Consumer | Bytes | Gzip |')
   console.log('| --- | ---: | ---: |')
   for (const bundle of bundles) {
+    console.log(
+      `| ${bundle.label} | ${formatBytes(bundle.bytes)} | ${formatBytes(bundle.gzip)} |`,
+    )
+  }
+  for (const bundle of nativeBundles) {
     console.log(
       `| ${bundle.label} | ${formatBytes(bundle.bytes)} | ${formatBytes(bundle.gzip)} |`,
     )
@@ -158,7 +171,7 @@ function validateManifest(packageInfo) {
       published.types?.startsWith('./dist/'),
       `${manifest.name} published export ${key} requires declarations`,
     )
-    for (const condition of ['import', 'browser', 'node']) {
+    for (const condition of ['import', 'browser', 'node', 'react-native']) {
       if (published[condition] === undefined) continue
       assert.ok(
         published[condition].startsWith('./dist/'),
@@ -207,7 +220,10 @@ async function buildRuntime(packageInfo) {
     platform: 'neutral',
     target: 'es2022',
     jsx: 'automatic',
-    jsxImportSource: packageInfo.kind === 'react' ? 'react' : undefined,
+    jsxImportSource:
+      packageInfo.kind === 'react' || packageInfo.kind === 'react-native'
+        ? 'react'
+        : undefined,
     legalComments: 'none',
     logLevel: 'silent',
   })
@@ -288,19 +304,23 @@ async function buildDeclarations(packageInfo) {
       ),
     ),
   ]
+  const isReactNative = packageInfo.kind === 'react-native'
   const options = {
     allowArbitraryExtensions: true,
     declaration: true,
     declarationMap: false,
     emitDeclarationOnly: true,
     jsx: ts.JsxEmit.ReactJSX,
-    lib: ['lib.es2022.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
+    customConditions: isReactNative ? ['react-native'] : undefined,
+    lib: isReactNative
+      ? ['lib.es2022.d.ts']
+      : ['lib.es2022.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
     module: ts.ModuleKind.ESNext,
     moduleResolution: ts.ModuleResolutionKind.Bundler,
     noEmitOnError: true,
     outDir: outputRoot,
     rootDir: sourceRoot,
-    skipLibCheck: false,
+    skipLibCheck: isReactNative,
     strict: true,
     target: ts.ScriptTarget.ES2022,
     verbatimModuleSyntax: true,
@@ -500,7 +520,7 @@ function publishedSpecifiers(packageInfo) {
 }
 
 async function verifyInstalledManifests() {
-  for (const packageInfo of packages) {
+  for (const packageInfo of webPackages) {
     const installedPath = resolve(
       fixtureDirectory,
       'node_modules',
@@ -530,7 +550,7 @@ async function verifyInstalledManifests() {
 }
 
 async function verifyEsmRuntime() {
-  const publishedSubpaths = packages.flatMap(publishedSpecifiers)
+  const publishedSubpaths = webPackages.flatMap(publishedSpecifiers)
   const source = `
     import assert from 'node:assert/strict'
     import { realpathSync } from 'node:fs'
@@ -669,7 +689,7 @@ async function verifyEsmRuntime() {
 }
 
 async function verifyDeclarations() {
-  const namespaceImports = packages
+  const namespaceImports = webPackages
     .flatMap(publishedSpecifiers)
     .map(
       (specifier, index) =>

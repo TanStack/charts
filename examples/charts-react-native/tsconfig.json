@@ -1,0 +1,9 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "lib": ["es2022"],
+    "types": ["react", "react-native"]
+  },
+  "include": ["App.tsx", "App.granular.tsx", "RevenueChart.tsx"],
+  "exclude": ["node_modules"]
+}

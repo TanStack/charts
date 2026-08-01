@@ -1,0 +1,52 @@
+{
+  "name": "@tanstack/react-native-charts",
+  "version": "0.4.0",
+  "private": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TanStack/charts.git",
+    "directory": "packages/react-native-charts"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./tooltip": "./src/tooltip-entry.ts"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "react-native": "./dist/index.native.js",
+        "import": "./dist/index.js"
+      },
+      "./tooltip": {
+        "types": "./dist/tooltip-entry.d.ts",
+        "react-native": "./dist/tooltip-entry.native.js",
+        "import": "./dist/tooltip-entry.js"
+      }
+    }
+  },
+  "dependencies": {
+    "@tanstack/charts": "workspace:*"
+  },
+  "devDependencies": {
+    "react": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-svg": "15.15.5"
+  },
+  "peerDependencies": {
+    "react": "^19.2.3",
+    "react-native": "^0.86.0",
+    "react-native-svg": ">=15.15.4 <16"
+  }
+}

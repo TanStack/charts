@@ -6,6 +6,7 @@ dist
 .benchmark-output
 .catalog-artifact
 .release-artifacts
+.expo/
 .nx/cache
 .nx/workspace-data
 coverage

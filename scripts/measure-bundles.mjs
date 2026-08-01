@@ -27,6 +27,29 @@ const rendererBoundaryModules = {
     'packages/charts-core/src/svg.ts',
     'packages/react-charts/src/Chart.tsx',
   ],
+  native: [
+    'packages/react-native-charts/src/Chart.tsx',
+    'packages/react-native-charts/src/FocusOverlay.tsx',
+    'packages/react-native-charts/src/SvgScene.tsx',
+    'packages/react-native-charts/src/Tooltip.tsx',
+  ],
+  browser: [
+    'packages/charts-core/src/adapter.ts',
+    'packages/charts-core/src/adapter-renderer.ts',
+    'packages/charts-core/src/canvas.ts',
+    'packages/charts-core/src/dom.ts',
+    'packages/charts-core/src/dom-text.ts',
+    'packages/charts-core/src/export.ts',
+    'packages/charts-core/src/reconcile.ts',
+    'packages/charts-core/src/renderer.ts',
+    'packages/charts-core/src/svg-renderer.ts',
+    'packages/charts-core/src/svg-resources.ts',
+    'packages/charts-core/src/svg-surface.ts',
+    'packages/charts-core/src/svg.ts',
+    'packages/react-charts/src/CanvasChart.tsx',
+    'packages/react-charts/src/Chart.tsx',
+    'packages/react-charts/src/RendererChart.tsx',
+  ],
 }
 const retainedInputGroups = {
   compactLinear: [/(?:^|\/)packages\/charts-scales\/src\/linear\.ts$/u],
@@ -76,6 +99,10 @@ const retainedInputGroups = {
   transformReduce: [
     /(?:^|\/)packages\/charts-core\/src\/transform-reduce\.ts$/u,
   ],
+  nativeTooltip: [
+    /(?:^|\/)packages\/react-native-charts\/src\/Tooltip\.tsx$/u,
+    /(?:^|\/)packages\/react-native-charts\/src\/tooltip-entry\.ts$/u,
+  ],
   d3Array: [/(?:^|\/)node_modules\/d3-array\//u],
   d3Shape: [/(?:^|\/)node_modules\/d3-shape\//u],
   d3ScaleRuntime: [
@@ -100,6 +127,14 @@ const granularTransformInputGroups = [
   'transformSelect',
   'transformStack',
   'transformReduce',
+]
+const nativeExternals = [
+  'react',
+  'react/jsx-runtime',
+  'react-native',
+  'react-native/*',
+  'react-native-svg',
+  'react-native-svg/*',
 ]
 const entries = [
   measured('Core host', 'benchmarks/entries/core.ts', {
@@ -330,6 +365,58 @@ const entries = [
     external: ['react', 'react/jsx-runtime', 'react-dom'],
     inputBoundary: { forbid: ['d3GeometryRuntime'] },
   }),
+  measured(
+    'React Native SVG host',
+    'benchmarks/entries/charts-react-native.ts',
+    {
+      external: nativeExternals,
+      rendererBoundary: 'native',
+      inputBoundary: {
+        forbid: [
+          'nativeTooltip',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+      platform: 'neutral',
+      conditions: ['react-native', 'import'],
+    },
+  ),
+  measured(
+    'React Native SVG host + tooltip',
+    'benchmarks/entries/charts-react-native-tooltip.ts',
+    {
+      external: nativeExternals,
+      rendererBoundary: 'native',
+      inputBoundary: {
+        require: ['nativeTooltip'],
+        forbid: ['tooltipRuntime', 'tooltipPortal', 'd3Runtime'],
+        addedFrom: 'React Native SVG host',
+        allowAdded: ['nativeTooltip'],
+      },
+      platform: 'neutral',
+      conditions: ['react-native', 'import'],
+    },
+  ),
+  measured(
+    'React Native line consumer',
+    'benchmarks/entries/charts-react-native-line.ts',
+    {
+      external: nativeExternals,
+      rendererBoundary: 'native',
+      inputBoundary: {
+        forbid: [
+          'nativeTooltip',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      platform: 'neutral',
+      conditions: ['react-native', 'import'],
+    },
+  ),
   lockedBudgeted(
     'Compact-scale line scene',
     'benchmarks/entries/charts-compact-linear-scene.ts',
@@ -703,6 +790,8 @@ for (const {
   policy,
   rendererBoundary,
   inputBoundary,
+  platform,
+  conditions,
 } of entries) {
   const outfile = resolve(
     outputDirectory,
@@ -714,13 +803,14 @@ for (const {
     bundle: true,
     minify: true,
     treeShaking: true,
-    platform: 'browser',
+    platform: platform ?? 'browser',
     format: 'esm',
     target: 'es2022',
     legalComments: 'none',
     logLevel: 'silent',
     external,
     alias,
+    conditions,
     metafile: true,
   })
   const retainedInputs = collectRetainedInputs(result.metafile)
@@ -871,6 +961,8 @@ function createEntry(label, entry, policy, options) {
     alias: options.alias,
     rendererBoundary: options.rendererBoundary,
     inputBoundary: options.inputBoundary,
+    platform: options.platform,
+    conditions: options.conditions,
   }
 }
 
@@ -879,6 +971,9 @@ function assertRendererBoundary(label, inputs, boundary) {
   const paths = inputs.map((input) => input.replaceAll('\\', '/'))
   const canvas = matchingModules(paths, rendererBoundaryModules.canvas)
   const svg = matchingModules(paths, rendererBoundaryModules.svg)
+  const native = matchingModules(paths, rendererBoundaryModules.native)
+  const browser = matchingModules(paths, rendererBoundaryModules.browser)
+  const reactDom = paths.filter((input) => input.includes('/react-dom/'))
   const failures = []
 
   if (boundary === 'neutral') {
@@ -890,6 +985,14 @@ function assertRendererBoundary(label, inputs, boundary) {
   } else if (boundary === 'svg') {
     if (!svg.length) failures.push('did not include the SVG renderer')
     if (canvas.length) failures.push(`included Canvas: ${canvas.join(', ')}`)
+  } else if (boundary === 'native') {
+    if (!native.length) failures.push('did not include the native SVG host')
+    if (browser.length) {
+      failures.push(`included browser modules: ${browser.join(', ')}`)
+    }
+    if (reactDom.length) {
+      failures.push(`included react-dom: ${reactDom.join(', ')}`)
+    }
   } else {
     failures.push(`uses unknown renderer boundary ${boundary}`)
   }

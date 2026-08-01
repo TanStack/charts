@@ -1,0 +1,35 @@
+{
+  "name": "@charts-poc/react-native-example",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "bundle:android": "react-native bundle --entry-file index.js --platform android --dev false --minify true --bundle-output ../../.bundle-output/react-native-chart.android.js --sourcemap-output ../../.bundle-output/react-native-chart.android.map",
+    "bundle:ios": "react-native bundle --entry-file index.js --platform ios --dev false --minify true --bundle-output ../../.bundle-output/react-native-chart.ios.js --sourcemap-output ../../.bundle-output/react-native-chart.ios.map",
+    "start": "react-native start"
+  },
+  "dependencies": {
+    "@tanstack/charts": "workspace:*",
+    "@tanstack/react-native-charts": "workspace:*",
+    "d3-scale": "4.0.2",
+    "react": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-svg": "15.15.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "20.1.0",
+    "@react-native-community/cli-platform-android": "20.1.0",
+    "@react-native-community/cli-platform-ios": "20.1.0",
+    "@react-native/babel-preset": "0.86.2",
+    "@react-native/metro-config": "0.86.2",
+    "@react-native/typescript-config": "0.86.2",
+    "@types/d3-scale": "^4.0.9",
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "engines": {
+    "node": ">=22.11.0"
+  }
+}

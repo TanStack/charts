@@ -142,7 +142,7 @@ describe('keyed SVG reconciliation', () => {
     const cancelFrame = vi
       .spyOn(window, 'cancelAnimationFrame')
       .mockImplementation((handle) => {
-        callbacks.delete(handle)
+        if (typeof handle === 'number') callbacks.delete(handle)
       })
     reconcileChartSvg(
       container,

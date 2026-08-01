@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-07-31
+Last updated: 2026-08-01
 
 ## Triage rule
 
@@ -202,6 +202,14 @@ Each entry records:
 | F-164 | Sankey widths required a custom scene renderer           | API             | resolved   |
 | F-165 | Incidental D3 utilities leaked into core paths           | API/Tooling     | resolved   |
 | F-166 | Grouped tooltip order diverged from mark position        | API             | resolved   |
+| F-167 | D3 declarations require a browser image global           | Tooling         | monitoring |
+| F-168 | Native interaction copied DOM-renderer policy            | API             | monitoring |
+| F-169 | CSS theme defaults reach the native scene compiler       | API             | monitoring |
+| F-170 | Text measurement omits native typography                 | API             | monitoring |
+| F-171 | Packed declarations assume one platform global set       | Tooling         | resolved   |
+| F-172 | Metro skipped the fixture-owned Babel runtime            | Tooling         | resolved   |
+| F-173 | Metro retained the complete universal barrel             | API/Tooling     | monitoring |
+| F-174 | OIDC release cannot claim a new npm package name         | Tooling         | monitoring |
 
 ## Findings
 
@@ -3178,7 +3186,9 @@ Each entry records:
   widths. The cross-library fixtures now configure tooltip, keyboard, focus,
   and animation on each definition through the typed `defineChart` overload;
   a typed host-options boundary prevents behavior from drifting back to
-  adapter props.
+  adapter props. The React Native `/universal` fixture keeps behavior on its
+  directly authored one-argument definition; the two-argument form remains
+  reserved for decorating an existing definition.
 
 ### F-131 — Stable identity repeated inferable key channels
 
@@ -3712,21 +3722,22 @@ Each entry records:
   `@tanstack/charts/universal` for common authoring/runtime values plus
   `@tanstack/charts/types` for universal contracts. The name describes the
   supported cross-runtime surface while the browser-first root remains the
-  normal web entry. DOM surface, renderer, host, and render-context types now
-  live behind an internal module while retaining their existing root
-  re-exports. Definition inputs retain DOM-free extension token contracts while
-  the generic tooltip and portal token interfaces are exported for host-adapter
-  authors. Typed DOM tooltip and portal lifecycles remain in the DOM module. Do
-  not conditionally change the root until a native host can test one coherent
-  platform contract.
-- Verification: root typechecking and 61 focused core tests pass. The packed
-  package gate resolves both new entries from `dist`, compiles their
+  normal web entry. `/portable` was an early pre-1.0 name and is intentionally
+  not restored; `/universal` is the sole cross-runtime barrel. DOM surface,
+  renderer, host, and render-context types now live behind an internal module
+  while retaining their existing root re-exports. Definition inputs retain
+  DOM-free extension token contracts while the generic tooltip and portal token
+  interfaces are exported for host-adapter authors. Typed DOM tooltip and
+  portal lifecycles remain in the DOM module. Do not conditionally change the
+  root until a native host can test one coherent platform contract.
+- Verification: root typechecking and focused core tests pass. The packed
+  package gate resolves `/universal` and `/types` from `dist` and compiles their
   declarations, including tooltip definition inputs and direct generic-token
   imports, with Web Worker rather than DOM globals. Type regressions reject
   swapping tooltip and portal tokens.
   The packed bundle proof excludes the root, adapters, Canvas, DOM host/text,
   browser export, reconciliation, renderer, and SVG surface modules. That full
-  universal barrel measures 53.95 kB minified and 16.60 kB gzip; granular
+  universal barrel measures 84.30 kB minified and 26.55 kB gzip; granular
   subpaths remain the bundle-sensitive option.
 
 ### F-155 — Optional tooltip code burdened every chart consumer
@@ -3735,7 +3746,7 @@ Each entry records:
 - Severity: high
 - Owner: API
 - Observed in: reducing the representative React line consumer from 25.11 KiB
-  to 13.89 KiB gzip
+  to 13.89 KiB gzip and restacking the React Native host proof
 - Friction: the renderer statically owned native tooltip DOM, formatting,
   placement, pinning, portal transport, and observers. React's base entries
   also statically owned `react-dom` portal composition and the default rich
@@ -3747,13 +3758,22 @@ Each entry records:
   portal extension. Move React rich-body composition to drop-in Chart,
   CanvasChart, and RendererChart exports from
   `@tanstack/react-charts/tooltip`. Base entries export only erased extension
-  types and never import those runtime modules.
+  types and never import those runtime modules. Apply the same boundary to the
+  native host: its branded renderer token and implementation live at
+  `@tanstack/react-native-charts/tooltip`, while the base package imports only
+  the erased native extension contract. A string host brand accepts duplicate
+  package copies and custom native renderers without accepting the DOM token.
 - Verification: the representative compact React line is 14,227 gzip bytes.
   Native tooltip adds 3,381 bytes; portal adds 806 more. Retained-output graph
   checks prove base renderer and React entries contain none of the tooltip,
-  portal, or React rich-body modules. Core, Lit, React, export, declaration,
-  packed-package, and lifecycle tests cover creation, update, disable,
-  transport switching, custom bodies, and cleanup.
+  portal, or React rich-body modules. The React Native base host is 10,468 gzip
+  bytes and adding its tooltip subpath costs 1,990 bytes; retained-input checks
+  prove both the base host and line consumer omit `Tooltip.tsx`, all native
+  entries omit web tooltip and portal code, and the base host retains no D3
+  runtime. Core, Lit,
+  React, native, export, declaration, packed-package, and lifecycle tests cover
+  creation, update, disable, host ownership, transport switching, custom
+  bodies, and cleanup.
 
 ### F-156 — Releases stranded manual Unreleased migration notes
 
@@ -4001,3 +4021,207 @@ Each entry records:
   `color-domain`, `focus`, and custom comparators as explicit policies.
 - Verification: runtime tests cover both axes with input and color-domain order
   opposed to the rendered mark order.
+
+### F-167 — D3 declarations require a browser image global
+
+- Status: monitoring
+- Severity: medium
+- Owner: Tooling
+- Observed in: strict DOM-free React Native consumer typecheck
+- Friction: after Charts' DOM types were removed from the selected declaration
+  graph, `skipLibCheck: false` with native libraries still failed in
+  `@types/d3-array`. Its `blurImage` signature references the browser global
+  `ImageData`, even though the chart consumer does not import or call that API.
+- Current decision: keep the strict configuration as a sentinel. Do not add a
+  fake `ImageData` declaration, enable DOM libraries, or weaken the package's
+  runtime boundary to conceal an upstream declaration issue. The normal
+  React Native configuration passes.
+- Verification: the native type gate accepts only the two known
+  `@types/d3-array` diagnostics or a clean result after the upstream
+  declaration is fixed. It rejects every other diagnostic.
+
+### F-168 — Native interaction copied DOM-renderer policy
+
+- Status: monitoring
+- Severity: high
+- Owner: API
+- Observed in: restacking the React Native focus, selection, and tooltip proof
+  after tooltip rendering moved behind an extension token
+- Friction: focus preset resolution, stable-point restoration, navigation
+  order, tooltip content construction, anchor resolution, and placement math
+  are pure behavior but remain private across the DOM renderer and tooltip
+  implementation. The native proof reproduced them to exercise realistic
+  interaction. The
+  extension split also made configured tooltip options require a host-owned
+  token; importing the web token would pull DOM implementation into Metro.
+  Restacking onto 0.3.0 also required the duplicate native resolver to learn
+  the new per-axis anchors and focus-aware custom-anchor context before its
+  strict type gate passed again. The scene compiler now also emits authored or
+  default focus layers and inline mark-state metadata. Rendering those groups
+  directly made inactive focus marks permanently visible in the native scene.
+  The duplicate tooltip path also sorted display rows before choosing its
+  primary point, so a non-first focused series changed formatter and anchor
+  context. Scene restoration compared only semantic point identity, leaving
+  overlays, tooltips, and external callbacks attached to old point objects
+  after responsive geometry changed. Callback prop identity could also
+  retrigger restoration and incorrectly change the focus source.
+  Restacking onto the visual grouped-tooltip ordering change then exposed the
+  same drift again: the DOM host defaulted to visual order while the native
+  copy still used color-domain order.
+- Current decision: keep the duplication confined to the private proof. The
+  native adapter exports a branded extension from its optional `/tooltip`
+  subpath, accepts duplicate package copies and custom native implementations,
+  and rejects tokens owned by another host. The environment-neutral `/types`
+  entry exposes the generic token contract so an adapter does not need a hidden
+  core import. That generic contract means the wrong host token is rejected at
+  native render time rather than by the shared definition type; production
+  typing may need a host-refined definition. A definition becomes host-specific
+  when decorated with a tooltip token, while applications can still share the
+  chart spec and options before that platform step. A supported native package
+  still requires extracting renderer-neutral interaction and tooltip state,
+  with the DOM and native hosts consuming the same implementation. The proof
+  omits shared focus-layer groups from its base scene and uses a generic native
+  overlay; authored focus marks and inline mark states remain unsupported until
+  scene-state resolution is shared. It now preserves the original primary and
+  focus group independently from sorted tooltip rows, refreshes restored point
+  objects and callbacks, and keeps callback refs out of restoration effect
+  dependencies.
+- Verification: focused native tests cover strategy selection, grouping,
+  restoration, navigation, axis and custom anchors, supported default content,
+  placement, and extension ownership. The native type and Metro gates use the
+  native token without web tooltip modules, and retained-input gates prove the
+  base native entry does not include the optional tooltip implementation.
+  Browser portal tokens fail explicitly instead of being ignored. The default
+  native tooltip still lacks the complete `items` formatting contract. A
+  regression verifies inactive focus-layer paint is absent from the native
+  scene. Component regressions cover a primary point that sorts after another
+  series, restored coordinates and callbacks after resize, and stable focus
+  source when only callback props change. A grouped-tooltip regression now
+  verifies visual default order and explicit color-domain order in both hosts.
+
+### F-169 — CSS theme defaults reach the native scene compiler
+
+- Status: monitoring
+- Severity: high
+- Owner: API
+- Observed in: React Native paint resolution
+- Friction: the shared default theme contains `currentColor`, system CSS names,
+  and CSS custom properties. The native proof can resolve final paint strings
+  and their fallbacks, but a dynamic chart builder still receives the web
+  default theme before the host sees the scene.
+- Current decision: the private host resolves final paints explicitly and
+  never evaluates application CSS. Before release, runtime construction needs
+  an additive platform-default-theme option used both by dynamic build context
+  and final theme merging. Structured paint references may be warranted if
+  more host semantics appear.
+- Verification: native paint and full-scene tests contain no unresolved CSS
+  variable or `currentColor` output. Device themes and dynamic native-theme
+  builders remain unverified.
+
+### F-170 — Text measurement omits native typography
+
+- Status: monitoring
+- Severity: high
+- Owner: API
+- Observed in: React Native SVG labels and automatic guide layout
+- Friction: `ChartTextMeasureOptions` carries size and weight but not font
+  family, style, stretch, letter spacing, direction, locale, or font-scale
+  policy. The native painter accepts a `fontFamily`, while the shared layout
+  cannot ask a native measurer for the same font.
+- Current decision: expose the existing injected measurer in the proof and do
+  not claim text parity. Production work must complete the typography contract
+  and decide how native asynchronous measurement feeds deterministic scene
+  layout without hidden mounted views.
+- Verification: injected-measurer core tests pass. No iOS or Android font-scale
+  and clipping matrix has been run.
+
+### F-171 — Packed declarations assume one platform global set
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: making the React Native package publishable
+- Friction: the existing packed fixture compiles web packages under DOM
+  libraries. Loading React Native declarations in that same TypeScript program
+  introduces incompatible duplicate globals. Removing DOM libraries makes the
+  web contracts invalid and also exposes F-167.
+- Decision: build and pack the native adapter in the release artifact matrix,
+  but keep its declarations and consumers outside the DOM fixture's TypeScript
+  program. The package publishes compiled ESM and declarations with `types`,
+  `react-native`, and `import` conditions. A native-specific gate deploys clean
+  bare React Native and Expo dependency trees, installs the packed core and
+  adapter tarballs, and runs each platform's normal Metro configuration.
+- Verification: the staged package emits both root and optional-tooltip
+  declarations, contains no source or tests, and retains no `workspace:`
+  ranges. Node resolution selects the import build normally and the native
+  shims under `--conditions=react-native`. Bare React Native 0.86.2 with
+  `react-native-svg` 15.15.5 and Expo 57 with Expo's 15.15.4 build both
+  typecheck and produce iOS and Android bundles. All four source maps resolve
+  the adapter and `/universal` from installed `dist`, include the native
+  conditional entries, exclude workspace source and guarded browser modules,
+  and retain only F-167's two known strict dependency diagnostics. Separately,
+  the workspace Expo 57 fixture boots in Expo Go on an iOS simulator and
+  renders its chart under Hermes; the packed artifact has not been run on that
+  simulator.
+
+### F-172 — Metro skipped the fixture-owned Babel runtime
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: rebuilding the React Native POC after removing redundant root
+  dependencies
+- Friction: the example correctly declared `@babel/runtime`, but Metro resolved
+  React Native from pnpm's physical store path and searched that path's
+  ancestors instead of the example's `node_modules`. Production bundling
+  failed on `@babel/runtime/helpers/interopRequireDefault` unless the dependency
+  was duplicated at the workspace root.
+- Decision: configure Metro's `resolver.nodeModulesPaths` with the example and
+  workspace module roots. Keep Babel ownership in the example rather than
+  masking the monorepo resolution boundary with a root dependency.
+- Verification: all ten blank, RNSVG, core, granular full-chart, and universal
+  full-chart production bundles complete for iOS and Android. The universal
+  variants require `/universal`, and source-map checks exclude every guarded
+  browser implementation module.
+
+### F-173 — Metro retained the complete universal barrel
+
+- Status: monitoring
+- Severity: medium
+- Owner: API/Tooling
+- Observed in: measuring the documented React Native minimum usage through
+  `@tanstack/charts/universal`
+- Friction: Metro 0.84 retained every runtime module re-exported by the broad
+  barrel, even though the fixture imported only `defineChart` and `lineY`. The
+  result included unused marks, data-transform families, and the
+  environment-neutral static SVG string serializer. Against the same granular
+  full-chart fixture, `/universal` added 119.06 KiB minified and 28.91 KiB gzip
+  on both iOS and Android, plus 102 modules per platform.
+- Current decision: keep `/universal` as the ergonomic cross-runtime authoring
+  entry and make the full-chart Metro proof exercise it. Keep the native host's
+  own imports granular, publish granular entries as the bundle-sensitive path,
+  and do not describe the broad barrel as cost-equivalent under Metro.
+- Verification: the iOS and Android full-chart bundles require
+  `packages/charts-core/src/universal.ts`, measure 103.00 and 103.05 KiB gzip over
+  blank respectively, and exclude DOM hosts, browser adapters, Canvas,
+  reconciliation, SVG resources/surface, web tooltip code, and `react-dom`.
+
+### F-174 — OIDC release cannot claim a new npm package name
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling
+- Observed in: adding `@tanstack/react-native-charts` to the fixed release set
+- Friction: the package name is not present in the npm registry, while the
+  aggregate release uses npm trusted publishing. npm configures that trust from
+  an existing package's settings, so the normal tokenless workflow cannot be
+  authorized for this package before its registry entry exists.
+- Current decision: keep the package in release artifacts and the fixed
+  changeset, but require a maintainer-controlled direct public publish of the
+  checked `0.4.0` tarball. Configure the repository's release workflow as the
+  trusted publisher immediately afterward; the aggregate changeset can then
+  publish `0.5.0` through OIDC.
+- Verification: `npm view @tanstack/react-native-charts` currently returns
+  `E404`. Close this entry only after the public package exists, its trusted
+  publisher names the repository release workflow, and an aggregate release
+  publishes it without a long-lived write token.
