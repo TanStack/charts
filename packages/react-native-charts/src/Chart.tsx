@@ -25,6 +25,7 @@ import { NativeChartFocusOverlay } from './FocusOverlay'
 import {
   adjacentFocusPoint,
   createNativeChartFocusModel,
+  samePointIdentity,
   samePointReferences,
 } from './interaction'
 import { resolveNativePaint, type NativePaintResolver } from './paint'
@@ -174,8 +175,17 @@ export function Chart<
     if (!focusModel || !previous) return
     const restored = focusModel.restore(previous)
     if (restored) {
+      const next = focusModel.group(restored)
+      const current = focusedPointsRef.current
+      if (sameFocusedPointValues(next, current)) {
+        if (!samePointReferences(next, current)) {
+          focusedPointsRef.current = next
+          setFocusedPoints(next)
+        }
+        return
+      }
       setFocusSource('restored')
-      commitFocus(focusModel.group(restored))
+      commitFocus(next)
     } else {
       setPinnedKey(null)
       commitFocus([])
@@ -362,6 +372,48 @@ export function Chart<
       ) : null}
     </View>
   )
+}
+
+function sameFocusedPointValues<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  left: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  right: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+) {
+  return (
+    left.length === right.length &&
+    left.every((point, index) => {
+      const current = right[index]
+      return (
+        current !== undefined &&
+        samePointIdentity(point, current) &&
+        Object.is(point.group, current.group) &&
+        point.groupLabel === current.groupLabel &&
+        sameChartValue(point.xValue, current.xValue) &&
+        sameChartValue(point.yValue, current.yValue) &&
+        sameChartValue(point.x1Value, current.x1Value) &&
+        sameChartValue(point.x2Value, current.x2Value) &&
+        sameChartValue(point.y1Value, current.y1Value) &&
+        sameChartValue(point.y2Value, current.y2Value) &&
+        point.xInterval === current.xInterval &&
+        point.yInterval === current.yInterval &&
+        Object.is(point.x, current.x) &&
+        Object.is(point.y, current.y) &&
+        point.color === current.color
+      )
+    })
+  )
+}
+
+function sameChartValue(
+  left: ChartValue | undefined,
+  right: ChartValue | undefined,
+) {
+  return left instanceof Date && right instanceof Date
+    ? left.getTime() === right.getTime()
+    : Object.is(left, right)
 }
 
 function resolveNativeTooltipInput<

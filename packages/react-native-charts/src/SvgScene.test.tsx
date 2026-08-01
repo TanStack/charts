@@ -52,6 +52,43 @@ describe('React Native SVG scene renderer', () => {
     expect(resolveNativeLineJoin('miter-clip')).toBe('miter')
     expect(resolveNativeLineJoin('round')).toBe('round')
   })
+
+  it('keeps distinct authored gradient ids distinct after encoding', () => {
+    const collisionScene = scene()
+    collisionScene.gradients = ['a.b', 'a:b', 'ab', '', 'a)b'].map((id) => ({
+      id,
+      stops: [{ offset: 0, color: '#2563eb' }],
+    }))
+    collisionScene.nodes = collisionScene.gradients.map((gradient, index) => ({
+      kind: 'rect' as const,
+      key: gradient.id,
+      x: index * 10,
+      y: 0,
+      width: 10,
+      height: 10,
+      style: { fill: `url(#${gradient.id})` },
+    }))
+
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={collisionScene}
+        color="#111827"
+        idPrefix="native-one"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toContain('id="native-one-a_x2e_b"')
+    expect(markup).toContain('url(#native-one-a_x2e_b)')
+    expect(markup).toContain('id="native-one-a_x3a_b"')
+    expect(markup).toContain('url(#native-one-a_x3a_b)')
+    expect(markup).toContain('id="native-one-ab"')
+    expect(markup).toContain('url(#native-one-ab)')
+    expect(markup).toContain('id="native-one-_"')
+    expect(markup).toContain('url(#native-one-_)')
+    expect(markup).toContain('id="native-one-a_x29_b"')
+    expect(markup).toContain('url(#native-one-a_x29_b)')
+  })
 })
 
 function scene(): ChartScene {

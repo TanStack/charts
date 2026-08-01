@@ -19,7 +19,7 @@ npx expo install react-native-svg
 Bare React Native applications can install it directly:
 
 ```sh
-npm install react-native-svg
+npm install react-native-svg@^15.15.4
 ```
 
 Run `bundle exec pod install` from `ios/` after adding it to a bare iOS
@@ -51,8 +51,8 @@ export function RevenueChart() {
 }
 ```
 
-The package is tested with Expo 57 / React Native 0.86 and
-`react-native-svg` 15.15.x. The workspace fixture also renders in Expo Go on an
-iOS simulator. It remains experimental: bare-native and Android simulators,
+The bare fixture uses React Native 0.86.2 with `react-native-svg` 15.15.5. The
+Expo 57 fixture uses `react-native-svg` 15.15.4 and renders in Expo Go on an iOS
+simulator. It remains experimental: bare-native and Android simulators,
 physical devices, gestures, accessibility, release builds, and performance
 still need validation.

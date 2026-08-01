@@ -251,6 +251,48 @@ describe('React Native Chart', () => {
     }
   })
 
+  it('does not re-emit focus for an equivalent inline definition', async () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    let focusEvents = 0
+
+    function InlineDefinitionChart() {
+      const [, rerender] = React.useReducer((value) => value + 1, 0)
+      const inlineDefinition = defineChart({
+        marks: [lineY(data, { x: 'month', y: 'value' })],
+        x: { scale: scaleLinear().domain([1, 2]) },
+        y: { scale: scaleLinear().domain([8, 12]) },
+      })
+      return (
+        <Chart
+          definition={inlineDefinition}
+          accessibilityLabel="Revenue"
+          width={480}
+          height={260}
+          onFocusChange={(point) => {
+            if (!point) return
+            focusEvents += 1
+            if (focusEvents < 3) rerender()
+          }}
+        />
+      )
+    }
+
+    try {
+      await React.act(() => root.render(<InlineDefinitionChart />))
+      const chart = container.firstElementChild
+      if (!chart) throw new Error('Expected the native chart root to render.')
+
+      await React.act(() => {
+        chart.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+      })
+
+      expect(focusEvents).toBe(1)
+    } finally {
+      await React.act(() => root.unmount())
+    }
+  })
+
   it('rejects browser tooltip portal extensions', () => {
     const portalDefinition = defineChart({
       marks: [lineY(data, { x: 'month', y: 'value' })],

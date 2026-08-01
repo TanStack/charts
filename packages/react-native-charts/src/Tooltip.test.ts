@@ -15,10 +15,27 @@ import {
 } from './Tooltip'
 import type { NativeChartTooltipRenderContext } from './Tooltip'
 
-vi.mock('react-native', () => ({
-  Text: 'span',
-  View: 'div',
-}))
+vi.mock('react-native', async () => {
+  const ReactModule = await import('react')
+  return {
+    Text: 'span',
+    View: ({
+      children,
+      style,
+      ...rest
+    }: React.HTMLAttributes<HTMLDivElement> & { style?: unknown }) =>
+      ReactModule.createElement(
+        'div',
+        {
+          ...rest,
+          style: (Array.isArray(style)
+            ? Object.assign({}, ...style.filter(Boolean))
+            : style) as React.CSSProperties,
+        },
+        children,
+      ),
+  }
+})
 
 describe('native tooltip model', () => {
   it('builds the supported shared-axis default content', () => {

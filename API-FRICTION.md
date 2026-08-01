@@ -210,6 +210,7 @@ Each entry records:
 | F-172 | Metro skipped the fixture-owned Babel runtime            | Tooling         | resolved   |
 | F-173 | Metro retained the complete universal barrel             | API/Tooling     | monitoring |
 | F-174 | OIDC release cannot claim a new npm package name         | Tooling         | monitoring |
+| F-175 | Native SVG resource normalization collapsed authored IDs | Application     | resolved   |
 
 ## Findings
 
@@ -4065,6 +4066,10 @@ Each entry records:
   overlays, tooltips, and external callbacks attached to old point objects
   after responsive geometry changed. Callback prop identity could also
   retrigger restoration and incorrectly change the focus source.
+  An equivalent definition authored inline could rebuild the same scene after
+  a parent callback update; restoration then treated the new point objects as
+  another focus change, called the parent again, and could sustain an update
+  loop.
   Restacking onto the visual grouped-tooltip ordering change then exposed the
   same drift again: the DOM host defaulted to visual order while the native
   copy still used color-domain order.
@@ -4084,8 +4089,9 @@ Each entry records:
   overlay; authored focus marks and inline mark states remain unsupported until
   scene-state resolution is shared. It now preserves the original primary and
   focus group independently from sorted tooltip rows, refreshes restored point
-  objects and callbacks, and keeps callback refs out of restoration effect
-  dependencies.
+  objects, re-emits callbacks when public point values or geometry change,
+  silently refreshes equivalent point references, and keeps callback refs out
+  of restoration effect dependencies.
 - Verification: focused native tests cover strategy selection, grouping,
   restoration, navigation, axis and custom anchors, supported default content,
   placement, and extension ownership. The native type and Metro gates use the
@@ -4096,8 +4102,10 @@ Each entry records:
   regression verifies inactive focus-layer paint is absent from the native
   scene. Component regressions cover a primary point that sorts after another
   series, restored coordinates and callbacks after resize, and stable focus
-  source when only callback props change. A grouped-tooltip regression now
-  verifies visual default order and explicit color-domain order in both hosts.
+  source when only callback props change. An inline-definition regression
+  verifies an equivalent restored scene does not re-emit focus into the
+  parent. A grouped-tooltip regression now verifies visual default order and
+  explicit color-domain order in both hosts.
 
 ### F-169 — CSS theme defaults reach the native scene compiler
 
@@ -4196,15 +4204,21 @@ Each entry records:
   result included unused marks, data-transform families, and the
   environment-neutral static SVG string serializer. Against the same granular
   full-chart fixture, `/universal` added 119.06 KiB minified and 28.91 KiB gzip
-  on both iOS and Android, plus 102 modules per platform.
+  on both iOS and Android, plus 102 modules per platform. The esbuild boundary
+  policy also classified that environment-neutral serializer as browser-only,
+  contradicting the Metro contract whenever a native fixture retained it.
 - Current decision: keep `/universal` as the ergonomic cross-runtime authoring
   entry and make the full-chart Metro proof exercise it. Keep the native host's
   own imports granular, publish granular entries as the bundle-sensitive path,
-  and do not describe the broad barrel as cost-equivalent under Metro.
+  and do not describe the broad barrel as cost-equivalent under Metro. Keep the
+  static serializer in the SVG capability group, but remove it from the
+  browser-only rejection group.
 - Verification: the iOS and Android full-chart bundles require
   `packages/charts-core/src/universal.ts`, measure 103.00 and 103.05 KiB gzip over
   blank respectively, and exclude DOM hosts, browser adapters, Canvas,
   reconciliation, SVG resources/surface, web tooltip code, and `react-dom`.
+  A native-plus-universal boundary fixture retains both the native host and the
+  static serializer at 11.37 KiB gzip and passes the browser-module rejection.
 
 ### F-174 — OIDC release cannot claim a new npm package name
 
@@ -4217,11 +4231,29 @@ Each entry records:
   an existing package's settings, so the normal tokenless workflow cannot be
   authorized for this package before its registry entry exists.
 - Current decision: keep the package in release artifacts and the fixed
-  changeset, but require a maintainer-controlled direct public publish of the
-  checked `0.4.0` tarball. Configure the repository's release workflow as the
-  trusted publisher immediately afterward; the aggregate changeset can then
-  publish `0.5.0` through OIDC.
+  changeset. Bootstrap the sole missing fixed-set package from a dedicated,
+  protected GitHub-hosted workflow using a short-lived granular token and npm
+  provenance. The workflow builds and validates release artifacts, publishes
+  only the missing tarball, and verifies its registry integrity and
+  attestations. Configure `release.yml` as the trusted publisher immediately
+  afterward; the aggregate changeset can then publish `0.5.0` through OIDC.
 - Verification: `npm view @tanstack/react-native-charts` currently returns
   `E404`. Close this entry only after the public package exists, its trusted
   publisher names the repository release workflow, and an aggregate release
   publishes it without a long-lived write token.
+
+### F-175 — Native SVG resource normalization collapsed authored IDs
+
+- Status: resolved
+- Severity: medium
+- Owner: Application
+- Observed in: pre-publication review of custom native scene gradients
+- Friction: the native SVG host removed every character outside an allowlist
+  from authored gradient IDs. Distinct public IDs such as `a.b`, `a:b`, and
+  `ab` therefore addressed the same native SVG resource.
+- Decision: preserve letters, digits, and hyphens, and encode every other code
+  point with an unambiguous SVG-safe escape. The escape marker itself is
+  encoded, so an authored string cannot collide with an encoded character.
+- Verification: the native scene regression renders the formerly colliding
+  IDs plus empty and delimiter-containing IDs, and checks matching definition
+  IDs and paint references.
