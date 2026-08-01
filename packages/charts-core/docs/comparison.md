@@ -3,7 +3,7 @@ title: Compare Libraries
 description: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
 ---
 
-TanStack Charts `0.3.1` is a pre-alpha release. Its results on this page measure
+TanStack Charts `0.4.0` is a pre-alpha release. Its results on this page measure
 the exact workspace source included in this release and pinned competitor
 packages. This comparison records architectural differences and reproducible
 evidence without turning untested behavior into a checkmark.
@@ -169,10 +169,10 @@ Canvas composition while keeping D3 and state ownership explicit.
 
 ## Evidence and reproduction
 
-- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.3.1/benchmarks/comparison/README.md)
-- [Tracked bundle baseline](https://github.com/TanStack/charts/blob/v0.3.1/benchmarks/comparison/bundle-baseline.json)
-- [Stress protocol](https://github.com/TanStack/charts/blob/v0.3.1/benchmarks/comparison/stress/README.md)
-- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.3.1/benchmarks/conformance/README.md)
+- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.4.0/benchmarks/comparison/README.md)
+- [Tracked bundle baseline](https://github.com/TanStack/charts/blob/v0.4.0/benchmarks/comparison/bundle-baseline.json)
+- [Stress protocol](https://github.com/TanStack/charts/blob/v0.4.0/benchmarks/comparison/stress/README.md)
+- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.4.0/benchmarks/conformance/README.md)
 
 ```sh
 pnpm benchmark:size

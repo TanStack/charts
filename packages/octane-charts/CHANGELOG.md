@@ -1,5 +1,12 @@
 # @tanstack/octane-charts
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [[`d563eba`](https://github.com/TanStack/charts/commit/d563eba5d295dc3ddf60eecd2d8a9bd418aaf635)]:
+  - @tanstack/charts@0.4.0
+
 ## 0.3.1
 
 ### Patch Changes
