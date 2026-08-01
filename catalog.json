@@ -1,9 +1,9 @@
 {
   "schemaVersion": 4,
-  "revision": "f7d041fae8b4df6bf381e5b35765574f8273c9f7",
+  "revision": "e08e12c6303c4393de7232a22f2b1669c9cc7feb",
   "source": {
     "repo": "tanstack/charts",
-    "ref": "f7d041fae8b4df6bf381e5b35765574f8273c9f7",
+    "ref": "e08e12c6303c4393de7232a22f2b1669c9cc7feb",
     "pathRoot": "benchmarks/conformance/"
   },
   "runtime": {
