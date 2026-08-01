@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-01
+Last updated: 2026-08-02
 
 ## Triage rule
 
@@ -226,6 +226,9 @@ Each entry records:
 | F-188 | Paired interaction assertions assumed equal timing        | Tooling         | monitoring |
 | F-189 | The motion spike exposed duplicate configuration surfaces | API             | resolved   |
 | F-190 | Static conformance sampled active motion                  | Tooling         | resolved   |
+| F-191 | Axis tick styling and edge alignment required shell work  | API/Application | monitoring |
+| F-192 | SVG letterboxing shifted pointer hit testing              | API             | resolved   |
+| F-193 | Fixed catalog height hid compact responsive examples      | Tooling/App     | resolved   |
 
 ## Findings
 
@@ -4742,3 +4745,78 @@ Each entry records:
 - Verification: the quick 112–117 browser matrix passes all six visual cases,
   the focus/crosshair scenario, both revisions, and 320/640px viewports. Mean
   final-frame geometry similarity is 94.2%, with clean strict types.
+
+### F-191 — Axis tick styling and edge alignment required shell work
+
+- Status: monitoring
+- Severity: low
+- Owner: API/Application
+- Observed in: matching the token activity calendar to a supplied visual
+  reference
+- Friction: the reference required larger, quieter month labels than the
+  default axis typography. Axis presentation exposes tick values, formatting,
+  spacing, thinning, size, and padding, but not label font size or opacity. The
+  example therefore needed a shell-scoped `.ts-chart__axes text` rule to reach
+  the requested presentation. It also needed the first label to align with the
+  painted calendar's leading edge, while every unrotated band tick label
+  currently uses a middle anchor with no per-tick anchor or offset. The shell
+  measures the first cell after each render and adjusts only that generated
+  label; the final label stays at its month position so the preceding gap does
+  not widen. The cell mark also defaults to a 0.75-pixel inset, so omitting the
+  authored inset still recessed the first and final columns from a flush scale
+  range.
+- Current decision: keep the override local to the application shell and avoid
+  expanding the public axis API from one styling and edge-alignment case. Use
+  an explicit zero cell inset with zero band outer padding and horizontal chart
+  margins when flush calendar edges are intended.
+  Revisit if production migrations or unrelated examples repeat the need for
+  authored tick-label typography or per-tick anchoring.
+- Verification: browser inspection at gallery widths confirms twelve 13px
+  month labels, with Aug starting at the first cell edge and Jul retaining its
+  normal month position, 364 approximately square daily cells, and no
+  application, page, or overlay errors. Workspace typecheck and the focused
+  quick conformance matrix pass initial and updated data at 320px and 640px.
+
+### F-192 — SVG letterboxing shifted pointer hit testing
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: daily token usage calendar tooltip verification
+- Friction: the SVG surface converted browser pointer coordinates with the
+  element's complete bounding rectangle. When the responsive viewport and
+  scene had different aspect ratios, SVG's default `xMidYMid meet` transform
+  added letterboxing that the conversion ignored. A 640-by-480 scene in the
+  604-by-480 gallery viewport therefore resolved calendar cells roughly one
+  weekday row below the pointer near the top of the chart.
+- Decision: convert client coordinates through the inverse SVG screen matrix.
+  This delegates view-box, aspect-ratio, CSS transform, and viewport placement
+  semantics to the browser instead of duplicating them with bounding-rectangle
+  arithmetic. Preserve out-of-scene coordinates for overflowing marks and
+  retain the previous bounds conversion only for incomplete DOM
+  implementations such as jsdom, which do not expose `getScreenCTM`.
+- Verification: unit regressions reproduce the gallery dimensions and its
+  13.5-pixel vertical letterbox, verify the exact scene coordinate, and cover
+  the incomplete-DOM fallback. Browser conformance forces a mismatched SVG
+  viewport and proves the hovered cell retains its expected tooltip. The SVG
+  surface, renderer, and workspace tests pass; the reviewed shared-path cost is
+  recorded in the updated universal bundle baseline.
+
+### F-193 — Fixed catalog height hid compact responsive examples
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling/Application
+- Observed in: calendar heatmap responsive sizing
+- Friction: the calendar could derive a compact height from its available width
+  and preserve square day cells, but the catalog renderer retained a generic
+  480-pixel minimum height. The resulting blank panel made the example appear
+  fixed-height even after its SVG had correctly shrunk.
+- Decision: keep the global catalog sizing contract unchanged for charts that
+  need the full benchmark height. The calendar shell temporarily sets its host
+  minimum height to the width-derived chart height and restores the previous
+  value when destroyed. Width remains fully fluid; no example-specific maximum
+  is imposed.
+- Verification: shell tests cover fluid 320- and 960-pixel widths plus teardown.
+  Browser measurements confirm square day cells at each width, with no
+  horizontal overflow or fixed maximum-width behavior.

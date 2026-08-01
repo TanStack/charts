@@ -182,7 +182,7 @@ same Octane adapter:
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/25-calendar-heatmap/?theme=system&height=480"
-  title="Calendar heatmap"
+  title="Precipitation calendar heatmap"
   loading="lazy"
   width="100%"
   height="480"

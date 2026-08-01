@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "order": 1130,
+  "id": "112-token-usage-calendar",
+  "title": "Token use calendar heatmap",
+  "family": "time",
+  "intent": "Show twelve months of token activity in contribution-style week columns, with recent usage emerging in the right half and quiet days kept visually consistent.",
+  "support": "native",
+  "features": [
+    "calendar time bin transform",
+    "calendar layout",
+    "cell mark",
+    "two band scales",
+    "categorical intensity color scale",
+    "keyboard focus and tooltip"
+  ],
+  "geometry": [{ "role": "cell", "count": 364 }],
+  "source": {
+    "title": "D3 calendar time intervals",
+    "url": "https://d3js.org/d3-time"
+  },
+  "ai": {
+    "create": "Create a deterministic twelve-month token-activity panel from August through July. Aggregate raw usage events with binTimeX and utcDay, place days in Sunday-based week columns and weekday rows, keep the first half mostly quiet, and build recent intensity in the right half. Keep the visible tooltip to a compact token total and date, and render every zero-usage day with one consistent neutral color.",
+    "maintain": "Preserve the explicit UTC day domain, 364 complete daily cells, transform lineage, deterministic revisions, Sunday week alignment, twelve month labels, weekday order, accessible color meaning, late-timeline activity shape, and consistent zero-usage treatment."
+  }
+}
