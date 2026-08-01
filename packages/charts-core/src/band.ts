@@ -77,6 +77,7 @@ export function bandX<
 
     return {
       id,
+      focusAffinity: 'x',
       channels: {
         x: { scale: 'x', values: values.filter(isChartValue) },
         color: { scale: 'color', values: colorValues.filter(isChartKey) },
@@ -101,12 +102,14 @@ export function bandX<
           )
           const group = zValues[index] ?? null
           const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
+          const left = x - width / 2 + inset
+          const paintedWidth = Math.max(0, width - inset * 2)
           nodes.push({
             kind: 'rect',
             key,
-            x: x - width / 2 + inset,
+            x: left,
             y: chart.y,
-            width: Math.max(0, width - inset * 2),
+            width: paintedWidth,
             height: chart.height,
             radius: resolved.radius,
             style: { fill, fillOpacity: resolved.fillOpacity },
@@ -122,6 +125,13 @@ export function bandX<
             yValue: 0,
             x,
             y: chart.y + chart.height / 2,
+            hitRegion: {
+              kind: 'rect',
+              x: left,
+              y: chart.y,
+              width: paintedWidth,
+              height: chart.height,
+            },
             color: fill,
           })
         })
@@ -170,6 +180,7 @@ export function bandY<
 
     return {
       id,
+      focusAffinity: 'y',
       channels: {
         y: { scale: 'y', values: values.filter(isChartValue) },
         color: { scale: 'color', values: colorValues.filter(isChartKey) },
@@ -194,13 +205,15 @@ export function bandY<
           )
           const group = zValues[index] ?? null
           const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
+          const top = y - height / 2 + inset
+          const paintedHeight = Math.max(0, height - inset * 2)
           nodes.push({
             kind: 'rect',
             key,
             x: chart.x,
-            y: y - height / 2 + inset,
+            y: top,
             width: chart.width,
-            height: Math.max(0, height - inset * 2),
+            height: paintedHeight,
             radius: resolved.radius,
             style: { fill, fillOpacity: resolved.fillOpacity },
           })
@@ -215,6 +228,13 @@ export function bandY<
             yValue,
             x: chart.x + chart.width / 2,
             y,
+            hitRegion: {
+              kind: 'rect',
+              x: chart.x,
+              y: top,
+              width: chart.width,
+              height: paintedHeight,
+            },
             color: fill,
           })
         })

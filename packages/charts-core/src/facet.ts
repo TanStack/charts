@@ -753,7 +753,27 @@ function offsetPoints<TDatum>(
     key: `${id}:${identity}:${point.key}`,
     x: point.x + x,
     y: point.y + y,
+    ...(point.hitRegion
+      ? { hitRegion: offsetHitRegion(point.hitRegion, x, y) }
+      : {}),
   }))
+}
+
+function offsetHitRegion(
+  region: NonNullable<ChartPoint['hitRegion']>,
+  x: number,
+  y: number,
+): NonNullable<ChartPoint['hitRegion']> {
+  switch (region.kind) {
+    case 'rect':
+    case 'circle':
+      return { ...region, x: region.x + x, y: region.y + y }
+    case 'polygon':
+      return {
+        ...region,
+        points: region.points.map((point) => [point[0] + x, point[1] + y]),
+      }
+  }
 }
 
 function maxSceneMargins(scenes: readonly ChartScene[]): ChartMargin {

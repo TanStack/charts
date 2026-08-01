@@ -744,6 +744,15 @@ const entries = [
     'benchmarks/entries/d3-delaunay-kernel.ts',
     7.3,
   ),
+  measured(
+    'Anchor-only pointer resolver baseline',
+    'benchmarks/entries/charts-pointer-anchor-kernel.ts',
+  ),
+  budgeted(
+    'Geometry pointer resolver kernel',
+    'benchmarks/entries/charts-pointer-geometry-kernel.ts',
+    1,
+  ),
   budgeted(
     'D3 brush controller kernel',
     'benchmarks/entries/d3-brush-kernel.ts',

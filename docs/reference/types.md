@@ -137,6 +137,10 @@ The complete overloads and runtime rules are in
 | `MarkScene`             | Mark-owned scene nodes and optional interaction points                        |
 | `ChartScene`            | Complete renderer-neutral output                                              |
 | `ChartPoint`            | Typed interaction target                                                      |
+| `ChartHitRegion`        | Rectangle, circle, or polygon interaction geometry union                      |
+| `ChartRectHitRegion`    | Painted rectangular interaction bounds                                        |
+| `ChartCircleHitRegion`  | Painted circular interaction bounds                                           |
+| `ChartPolygonHitRegion` | Painted polygon interaction vertices                                          |
 | `ChartTick`             | Semantic value, formatted label, and pixel position                           |
 | `ResolvedScale`         | Final positional scale                                                        |
 | `ResolvedColorScale`    | Final color scale                                                             |
@@ -227,6 +231,7 @@ See [DOM host](./dom-host.md) and
 | `ChartFocusSource`                    | Pointer, keyboard, programmatic, or restored source                    |
 | `ChartFocusFilter`                    | Focus-filtered mark matching configuration                             |
 | `ChartFocusMatch`                     | Primary, group, key, x, y, or series matching                          |
+| `ChartFocusAffinity`                  | Mark fallback axis after exact hit-region containment                  |
 | `ChartSpatialIndex`                   | Nearest-point query                                                    |
 | `ChartSpatialIndexFactory`            | Builds an index from current scene points                              |
 | `ChartExtensionInput`                 | Generic bare-token or `{ use, ...options }` extension input            |

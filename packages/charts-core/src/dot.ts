@@ -90,6 +90,7 @@ export function dot<TDatum>(
 
     return {
       id,
+      focusAffinity: 'xy',
       states: markStates(data, options.states),
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
@@ -145,6 +146,7 @@ export function dot<TDatum>(
             yValue,
             x,
             y,
+            hitRegion: { kind: 'circle', x, y, radius },
             color,
           })
         })

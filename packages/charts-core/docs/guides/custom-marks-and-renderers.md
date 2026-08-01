@@ -111,6 +111,37 @@ Each point should retain:
 - resolved pixel coordinates;
 - group identity and color.
 
+For a large painted mark, set `hitRegion` on each emitted point and declare
+the mark's off-shape fallback once with `focusAffinity`:
+
+```ts
+return {
+  id,
+  focusAffinity: 'x',
+  channels,
+  render(context) {
+    return {
+      nodes,
+      points: nodes.map((node, index) => ({
+        ...interactionPoint(index),
+        hitRegion: {
+          kind: 'rect',
+          x: node.x,
+          y: node.y,
+          width: node.width,
+          height: node.height,
+        },
+      })),
+    }
+  },
+}
+```
+
+Use `x` for vertically oriented marks, `y` for horizontal marks, `xy` for
+ordinary two-dimensional proximity, and `geometry` when only exact
+containment should focus the mark. The default resolver checks containment
+across every mark before applying any fallback.
+
 Omit points for decorative geometry. Do not invent fake interactive data for a
 frame, grid, or threshold that should not receive focus.
 

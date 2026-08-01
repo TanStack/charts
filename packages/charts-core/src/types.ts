@@ -683,6 +683,8 @@ export interface InitializedMark<
   channels: Readonly<Record<string, MaterializedChannel>>
   /** The mark uses a discrete color channel as inferred series identity. */
   seriesFromColor?: boolean
+  /** Natural pointer fallback after exact hit-region containment. */
+  focusAffinity?: ChartFocusAffinity
   focus?: ChartFocusFilter
   states?: {
     data: readonly unknown[]
@@ -700,6 +702,27 @@ export interface MarkScene<
   nodes: readonly SceneNode[]
   points?: readonly ChartPoint<TDatum, TXValue, TYValue>[]
 }
+
+export interface ChartRectHitRegion extends ChartBounds {
+  kind: 'rect'
+}
+
+export interface ChartCircleHitRegion {
+  kind: 'circle'
+  x: number
+  y: number
+  radius: number
+}
+
+export interface ChartPolygonHitRegion {
+  kind: 'polygon'
+  points: readonly (readonly [number, number])[]
+}
+
+export type ChartHitRegion =
+  ChartRectHitRegion | ChartCircleHitRegion | ChartPolygonHitRegion
+
+export type ChartFocusAffinity = 'x' | 'y' | 'xy' | 'geometry'
 
 export interface ChartPoint<
   TDatum = unknown,
@@ -722,6 +745,10 @@ export interface ChartPoint<
   yInterval?: 'range' | 'difference'
   x: number
   y: number
+  /** Optional painted geometry used by the default pointer-distance resolver. */
+  hitRegion?: ChartHitRegion
+  /** Resolved mark-level pointer fallback after exact geometry containment. */
+  focusAffinity?: ChartFocusAffinity
   color: string
 }
 

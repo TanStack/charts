@@ -131,8 +131,9 @@ function findNearestPoint<
 ```
 
 Coordinates are in scene pixels. `maxDistance` defaults to `Infinity`.
-The function performs a linear scan of the scene's interaction points. For a
-large point set, supply a spatial index to the DOM or framework host; see
+The function performs a linear scan of the scene's interaction points, using
+hit-region containment and mark affinity before anchor distance. For a large
+point set, supply a spatial index to the DOM or framework host; see
 [Focus and interaction](./focus-and-interaction.md#spatial-indexes).
 
 ## `ChartScene`

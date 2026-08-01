@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite --host --port 5183 --strictPort"
+    "dev": "vite --host --port 5183 --strictPort",
+    "dev:interaction-geometry": "vite --host --port 5183 --strictPort --open '/?lab=interaction-geometry'"
   },
   "dependencies": {
     "@charts-poc/demo-data": "workspace:*",

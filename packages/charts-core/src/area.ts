@@ -113,6 +113,7 @@ export function areaY<TDatum>(
 
     return {
       id,
+      focusAffinity: 'x',
       states: markStates(data, options.states),
       seriesFromColor: options.z === undefined && options.color !== undefined,
       channels: {

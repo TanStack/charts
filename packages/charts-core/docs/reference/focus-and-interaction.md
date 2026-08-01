@@ -27,6 +27,36 @@ With no custom focus strategy:
 normal tab-order participation while keeping keyboard handling enabled. Set
 `keyboard: false` to remove keyboard navigation and force tab index `-1`.
 
+### Interaction geometry
+
+When neither `focus` nor `spatialIndex` is supplied, pointer resolution has two
+stages:
+
+1. The topmost scene point whose `hitRegion` contains the pointer wins. Point
+   order follows paint order.
+2. If no region contains the pointer, `focusAffinity` ranks the fallback.
+   `x` and `y` compare distance from that axis boundary first and use complete
+   geometry distance to break ties; `xy` compares complete geometry distance;
+   `geometry` has no off-shape fallback.
+
+`maxFocusDistance` applies to that primary boundary distance, not necessarily
+to the point used as the tooltip and keyboard anchor. Points without either
+field retain anchor-based two-dimensional distance.
+
+`ChartPoint.hitRegion` accepts painted rectangles, circles, and polygons.
+Built-in marks declare these natural defaults:
+
+| Mark                     | Hit region | Fallback |
+| ------------------------ | ---------- | -------- |
+| `barY`                   | Rectangle  | `x`      |
+| `barX`                   | Rectangle  | `y`      |
+| `lineY`, `areaY`         | None       | `x`      |
+| `rect`, `dot`, `hexagon` | Shape      | `xy`     |
+| `bandX`                  | Rectangle  | `x`      |
+| `bandY`                  | Rectangle  | `y`      |
+
+An explicit focus preset or custom strategy replaces this default resolver.
+
 ## Focus modes
 
 Use a preset for built-in focus behavior:
@@ -283,6 +313,11 @@ The host rebuilds the index when the scene or definition changes. The index
 owns its search algorithm and must apply `maxDistance`.
 Use the granular spatial primitive appropriate to the data; the boundary is
 described in [Scales and D3](../concepts/scales-and-d3.md).
+
+Supplying an index also replaces default hit-region containment and affinity
+ranking; the host does not add a linear safety scan after an indexed query. An
+index that wants identical geometry semantics should index the region bounds
+and perform exact shape checks on its candidates.
 
 A custom `focus` strategy takes precedence over `spatialIndex` for pointer
 resolution.

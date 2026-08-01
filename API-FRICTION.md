@@ -211,6 +211,7 @@ Each entry records:
 | F-173 | Metro retained the complete universal barrel             | API/Tooling     | monitoring |
 | F-174 | OIDC release cannot claim a new npm package name         | Tooling         | monitoring |
 | F-175 | Native SVG resource normalization collapsed authored IDs | Application     | resolved   |
+| F-176 | Large marks were focused by distant anchor points        | API             | monitoring |
 
 ## Findings
 
@@ -4257,3 +4258,64 @@ Each entry records:
 - Verification: the native scene regression renders the formerly colliding
   IDs plus empty and delimiter-containing IDs, and checks matching definition
   IDs and paint references.
+
+### F-176 — Large marks were focused by distant anchor points
+
+- Status: monitoring
+- Severity: high
+- Owner: API
+- Observed in: stacked-bar tooltip report and interaction-geometry lab
+- Friction: vertical bars emit their value endpoint as the interaction anchor,
+  and the default resolver measured `maxFocusDistance` only from that anchor.
+  A pointer inside a tall bar could therefore select an adjacent endpoint less
+  than 48 pixels away. Raising the threshold retained the wrong two-dimensional
+  ranking, while chart-wide nearest-x made off-bar selection too permissive.
+  Pure x fallback also tied every segment in one stack and selected the bottom
+  segment when the pointer was above the stack.
+- Current decision: use a two-stage mark contract rather than infer a strategy
+  from chart composition. Interaction points may expose their painted
+  rectangle, circle, or polygon, while the mark declares its natural off-shape
+  fallback as `x`, `y`, `xy`, or `geometry`. Exact containment wins across all
+  marks before fallback ranking. Axis fallback compares its declared axis
+  first, then uses full painted-geometry distance to break ties. Overlapping
+  contained shapes resolve topmost-first in paint order. Points without either
+  field retain legacy point-distance behavior. Explicit focus strategies and
+  custom spatial indexes continue to own their complete search semantics.
+- Verification: focused tests cover containment priority, x/y/xy/geometry
+  fallback, rectangle/circle/polygon shapes, built-in bar affinity, reversed
+  rectangles, paint-order overlap, stack-edge selection, spatial-index
+  ownership, and legacy tie order. The twelve-case sandbox compares before and
+  after behavior for stacked and horizontal bars, line/area, bubbles, cells,
+  financial intervals, timelines, pie and annular sectors, radar, maps, and
+  Sankey geometry. The full unit matrix passes 675 tests across 123 files;
+  typecheck, documentation, packed-consumer, framework-adapter, formatting, and
+  sandbox production-build gates also pass.
+
+  On Node 24 arm64 on an Apple M4 Pro, the optimized resolver improves the
+  original POC's median
+  query time from 116.7 to 23.8 microseconds for 10k ordinary points, 62.2 to
+  27.1 for contained rectangles, 210.5 to 127.0 for stacked fallback, 64.5 to
+  25.7 for circles, and 132.9 to 79.5 for 2k polygons. On an exact-target point
+  fixture, production, optimized geometry, Observable Plot 0.6.17, D3 quadtree,
+  cold D3 Delaunay, and coherent Delaunay take 13.9, 25.2, 41.4, 2.8, 8.6, and
+  2.8 microseconds. Quadtree and Delaunay construction take 1.76 and 2.47
+  milliseconds for 10k points. A source-equivalent Vega cached-bounds pass
+  takes 9.8 microseconds versus 23.8 for the generic rectangle resolver, but
+  deliberately excludes Vega's subsequent Canvas path test.
+
+  The isolated resolver grows from 157 minified / 153 gzip bytes to 1,955 / 869
+  bytes, a 716-byte gzip feature cost beneath a new 1 kB ceiling. The D3
+  quadtree and Delaunay kernels are 1,971 and 7,308 gzip bytes before geometry
+  refinement. The complete DOM host remains 685 gzip bytes above the
+  pre-feature lock rather than silently accepting a new baseline.
+  [Observable Plot](https://observablehq.com/plot/interactions/pointer)
+  documents point-only dead spots and dominant-axis modes;
+  [D3 quadtree](https://d3js.org/d3-quadtree#quadtree_find) and
+  [D3 Delaunay](https://d3js.org/d3-delaunay/delaunay#delaunay_find) establish
+  indexed point lookup and its build/rebuild tradeoff; Vega's
+  [reverse visitor](https://github.com/vega/vega/blob/main/packages/vega-scenegraph/src/util/visit.js)
+  and [Canvas picker](https://github.com/vega/vega/blob/main/packages/vega-scenegraph/src/util/canvas/pick.js)
+  establish topmost traversal, cached-bounds rejection, and exact path tests.
+
+- Follow-up: verify rounded corners and true paths, negative bars, animation,
+  and SVG/Canvas parity before resolving this entry.

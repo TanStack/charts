@@ -137,6 +137,7 @@ export function rect<TDatum>(
 
     return {
       id,
+      focusAffinity: 'xy',
       states: markStates(data, options.states),
       channels: {
         x: {
@@ -192,13 +193,17 @@ export function rect<TDatum>(
           const color =
             options.fill ?? resolveColor(colorValues[datumIndex] ?? null)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
+          const paintedX = left + inset
+          const paintedY = top + inset
+          const paintedWidth = Math.max(0, width - inset * 2)
+          const paintedHeight = Math.max(0, height - inset * 2)
           nodes.push({
             kind: 'rect',
             key,
-            x: left + inset,
-            y: top + inset,
-            width: Math.max(0, width - inset * 2),
-            height: Math.max(0, height - inset * 2),
+            x: paintedX,
+            y: paintedY,
+            width: paintedWidth,
+            height: paintedHeight,
             radius: options.radius,
             inset,
             style: {
@@ -228,6 +233,13 @@ export function rect<TDatum>(
             yInterval: 'range',
             x: left + width / 2,
             y: top + height / 2,
+            hitRegion: {
+              kind: 'rect',
+              x: paintedX,
+              y: paintedY,
+              width: paintedWidth,
+              height: paintedHeight,
+            },
             color,
           })
         })

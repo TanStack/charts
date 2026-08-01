@@ -84,6 +84,7 @@ export function hexagon<TDatum>(
 
     return {
       id,
+      focusAffinity: 'xy',
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
         y: { scale: 'y', values: yValues.filter(isChartValue) },
@@ -151,6 +152,7 @@ export function hexagon<TDatum>(
             yValue,
             x,
             y,
+            hitRegion: { kind: 'polygon', points: vertices },
             color: fill,
           })
         })

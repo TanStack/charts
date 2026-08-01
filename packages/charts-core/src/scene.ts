@@ -236,6 +236,11 @@ function createChartSceneWithScaleResolver<
         children: rendered.nodes,
       })
     } else {
+      const markPoints = (rendered.points ?? []).map((point) =>
+        point.focusAffinity || !mark.focusAffinity
+          ? point
+          : { ...point, focusAffinity: mark.focusAffinity },
+      ) as readonly ChartPoint<TDatum, TXValue, TYValue>[]
       if (mark.states) {
         markNodes.push({
           kind: 'group',
@@ -244,19 +249,13 @@ function createChartSceneWithScaleResolver<
           states: {
             data: mark.states.data,
             definitions: mark.states.definitions,
-            points: rendered.points ?? [],
+            points: markPoints,
           },
         })
       } else {
         for (const node of rendered.nodes) markNodes.push(node)
       }
-      for (const point of (rendered.points ?? []) as readonly ChartPoint<
-        TDatum,
-        TXValue,
-        TYValue
-      >[]) {
-        points.push(point)
-      }
+      for (const point of markPoints) points.push(point)
     }
   })
   const nodes: SceneNode[] = [

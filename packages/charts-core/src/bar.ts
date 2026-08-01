@@ -133,6 +133,7 @@ export function barY<TDatum>(
 
     return {
       id,
+      focusAffinity: 'x',
       states: markStates(data, options.states),
       seriesFromColor:
         options.z === undefined &&
@@ -194,14 +195,16 @@ export function barY<TDatum>(
           const valuePosition = scales.y.map(y2Value)
           const x = center - totalBandwidth / 2 + groupOffset + inset
           const y = Math.min(baselinePosition, valuePosition)
+          const width = Math.max(0, groupBandwidth - inset * 2)
+          const height = Math.abs(baselinePosition - valuePosition)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           nodes.push({
             kind: 'rect',
             key,
             x,
             y,
-            width: Math.max(0, groupBandwidth - inset * 2),
-            height: Math.abs(baselinePosition - valuePosition),
+            width,
+            height,
             radius: options.radius,
             inset,
             style: {
@@ -223,6 +226,7 @@ export function barY<TDatum>(
             yInterval: 'difference',
             x: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
             y: valuePosition,
+            hitRegion: { kind: 'rect', x, y, width, height },
             color: fill,
           })
         })
@@ -311,6 +315,7 @@ export function barX<TDatum>(
 
     return {
       id,
+      focusAffinity: 'y',
       states: markStates(data, options.states),
       seriesFromColor:
         options.z === undefined &&
@@ -371,14 +376,17 @@ export function barX<TDatum>(
           const valuePosition = scales.x.map(x2Value)
           const center = scales.y.map(yValue)
           const y = center - totalBandwidth / 2 + groupOffset + inset
+          const x = Math.min(baselinePosition, valuePosition)
+          const width = Math.abs(baselinePosition - valuePosition)
+          const height = Math.max(0, groupBandwidth - inset * 2)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           nodes.push({
             kind: 'rect',
             key,
-            x: Math.min(baselinePosition, valuePosition),
+            x,
             y,
-            width: Math.abs(baselinePosition - valuePosition),
-            height: Math.max(0, groupBandwidth - inset * 2),
+            width,
+            height,
             radius: options.radius,
             inset,
             style: {
@@ -400,6 +408,7 @@ export function barX<TDatum>(
             xInterval: 'difference',
             x: valuePosition,
             y: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
+            hitRegion: { kind: 'rect', x, y, width, height },
             color: fill,
           })
         })
