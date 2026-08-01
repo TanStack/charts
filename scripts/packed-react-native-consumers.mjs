@@ -197,17 +197,14 @@ async function installConsumer(consumerRoot, repositoryRoot) {
     'pnpm',
     [
       'install',
-      '--offline',
+      '--prefer-offline',
       '--ignore-scripts',
       '--frozen-lockfile=false',
       '--store-dir',
       resolve(modulesState.storeDir, '..'),
     ],
     consumerRoot,
-    {
-      CI: 'true',
-      npm_config_offline: 'true',
-    },
+    { CI: 'true' },
   )
 }
 
