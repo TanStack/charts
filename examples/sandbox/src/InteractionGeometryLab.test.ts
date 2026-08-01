@@ -17,7 +17,7 @@ describe('interaction geometry source disclosure', () => {
     expect(markup.match(/class="hit-region-proof__source"/g)).toHaveLength(
       proofCases.length * 2,
     )
-    expect(proofCases).toHaveLength(12)
+    expect(proofCases).toHaveLength(14)
     expect(markup).toContain('const stackedSeries = [')
     expect(markup).toContain('polarGuideMark(&#x27;polar-sector-guides&#x27;)')
     expect(markup).toContain(
@@ -92,6 +92,40 @@ describe('interaction geometry proof gallery', () => {
     expect(nearestPoint(scene.points, bottom.x, below + 12, 48)?.datum.id).toBe(
       'october-disease',
     )
+  })
+
+  it('keeps the large rectangle and polygon stress fixtures intact', () => {
+    const rectangleProof = proofCases.find(
+      (candidate) => candidate.id === 'dense-rectangles',
+    )
+    const polygonProof = proofCases.find(
+      (candidate) => candidate.id === 'complex-polygons',
+    )
+    expect(rectangleProof).toBeDefined()
+    expect(polygonProof).toBeDefined()
+    if (!rectangleProof || !polygonProof) return
+
+    const rectangleScene = createChartScene(rectangleProof.after, {
+      width: 1_120,
+      height: 320,
+    })
+    const polygonScene = createChartScene(polygonProof.after, {
+      width: 1_120,
+      height: 320,
+    })
+
+    expect(rectangleScene.points).toHaveLength(4_098)
+    expect(polygonScene.points).toHaveLength(2_050)
+    expect(
+      polygonScene.points.reduce(
+        (total, point) =>
+          total +
+          (point.hitRegion?.kind === 'polygon'
+            ? point.hitRegion.points.length
+            : 0),
+        0,
+      ),
+    ).toBe(13_318)
   })
 })
 

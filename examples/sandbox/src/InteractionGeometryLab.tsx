@@ -42,6 +42,10 @@ interface ProofCase {
   id: string
   title: string
   affinity: ChartFocusAffinity
+  stress?: {
+    geometryLabel: string
+    height: number
+  }
   explanation: string
   beforeExpected: string
   afterExpected: string
@@ -86,20 +90,25 @@ export function InteractionGeometryLab() {
         <p>
           Each comparison uses the same pointer position and 48px threshold.
           Before measures from a mark’s anchor point. After tests its painted
-          shape first, then uses the mark’s natural interaction axis.
+          shape first, then uses the mark’s natural interaction axis. The final
+          two comparisons scale that contract to thousands of regions.
         </p>
       </header>
 
       <div className="hit-region-proof__gallery">
         {proofCases.map((proof) => (
           <section
-            className="hit-region-proof__case"
+            className={`hit-region-proof__case${proof.stress ? ' hit-region-proof__case--stress' : ''}`}
             key={proof.id}
             data-proof-case={proof.id}
           >
             <header className="hit-region-proof__case-header">
               <h2>{proof.title}</h2>
-              <code>fallback: {proof.affinity}</code>
+              <code>
+                {proof.stress
+                  ? `${proof.stress.geometryLabel} · fallback: ${proof.affinity}`
+                  : `fallback: ${proof.affinity}`}
+              </code>
             </header>
             <p className="hit-region-proof__case-description">
               {proof.explanation}
@@ -166,8 +175,8 @@ function ProofChart({
       <div className="hit-region-proof__chart">
         <Chart
           definition={mode === 'before' ? proof.before : proof.after}
-          height={230}
-          initialWidth={520}
+          height={proof.stress?.height ?? 230}
+          initialWidth={proof.stress ? 1120 : 520}
           ariaLabel={`${proof.title}: ${mode}`}
           onFocusChange={(point) => setFocused(point?.datum ?? null)}
           onRender={onRender}
@@ -690,6 +699,108 @@ function createProofCases(): ProofCase[] {
   )
   // source:sankey:end
 
+  // source:dense-rectangles:start
+  const denseRectangleGrid = Array.from({ length: 4_096 }, (_, index) => {
+    const columns = 128
+    const rows = 32
+    const column = index % columns
+    const row = Math.floor(index / columns)
+    const columnWidth = 0.36 / columns
+    const rowHeight = 0.9 / rows
+    return {
+      id: `dense-cell-${index}`,
+      label: `Dense cell ${index + 1}`,
+      x1: 0.62 + column * columnWidth,
+      x2: 0.62 + (column + 0.82) * columnWidth,
+      y1: 0.05 + row * rowHeight,
+      y2: 0.05 + (row + 0.82) * rowHeight,
+      color: index % 2 ? '#d4d4d4' : '#e5e5e5',
+    }
+  }) satisfies ProofDatum[]
+  const denseRectangles = [
+    {
+      id: 'dense-giant-rectangle',
+      label: 'Giant rectangle across 4,098 regions',
+      x1: 0.03,
+      x2: 0.58,
+      y1: 0.06,
+      y2: 0.94,
+      probe: [0.57, 0.5],
+      color: '#404040',
+    },
+    {
+      id: 'dense-rectangle-decoy',
+      label: 'Closest micro-cell',
+      x1: 0.584,
+      x2: 0.604,
+      y1: 0.47,
+      y2: 0.53,
+      color: '#a3a3a3',
+    },
+    ...denseRectangleGrid,
+  ] satisfies ProofDatum[]
+  const denseRectangleBase = baseDefinition(
+    [normalizedRectMark('dense-rectangles', denseRectangles, 'xy')],
+    scaleLinear().domain([0, 1]),
+    scaleLinear().domain([0, 1]),
+  )
+  // source:dense-rectangles:end
+
+  // source:complex-polygons:start
+  const regularPolygon = (
+    x: number,
+    y: number,
+    radius: number,
+    vertices: number,
+    wobble = 0,
+    verticalRatio = 1,
+  ) =>
+    Array.from({ length: vertices }, (_, index) => {
+      const angle = (index / vertices) * Math.PI * 2
+      const adjustedRadius =
+        radius * (1 + Math.sin(index * 17) * Math.max(0, wobble))
+      return [
+        x + Math.cos(angle) * adjustedRadius,
+        y + Math.sin(angle) * adjustedRadius * verticalRatio,
+      ] as const
+    })
+  const polygonCloud = Array.from({ length: 2_048 }, (_, index) => {
+    const columns = 64
+    const rows = 32
+    const column = index % columns
+    const row = Math.floor(index / columns)
+    const x = 0.64 + ((column + 0.5) / columns) * 0.34
+    const y = 0.06 + ((row + 0.5) / rows) * 0.88
+    return {
+      id: `cloud-polygon-${index}`,
+      label: `Cloud polygon ${index + 1}`,
+      polygon: regularPolygon(x, y, 0.0022, 6, 0, 3),
+      color: index % 2 ? '#a3a3a3' : '#d4d4d4',
+    }
+  }) satisfies ProofDatum[]
+  const complexPolygons = [
+    {
+      id: 'complex-giant-polygon',
+      label: '1,024-vertex contour across 13,318 vertices',
+      polygon: regularPolygon(0.31, 0.5, 0.26, 1_024, 0.03),
+      probe: [0.56, 0.5],
+      color: '#404040',
+    },
+    {
+      id: 'complex-polygon-decoy',
+      label: 'Closest six-vertex polygon',
+      polygon: regularPolygon(0.59, 0.5, 0.014, 6),
+      color: '#a3a3a3',
+    },
+    ...polygonCloud,
+  ] satisfies ProofDatum[]
+  const complexPolygonBase = baseDefinition(
+    [normalizedPolygonMark('complex-polygons', complexPolygons)],
+    scaleLinear().domain([0, 1]),
+    scaleLinear().domain([0, 1]),
+  )
+  // source:complex-polygons:end
+
   return [
     makeCase({
       id: 'stacked-bars',
@@ -822,6 +933,33 @@ function createProofCases(): ProofCase[] {
       afterExpected: 'Wide Sankey / network link',
       base: sankeyBase,
       probe: normalizedDatumProbe('wide-link'),
+    }),
+    makeCase({
+      id: 'dense-rectangles',
+      title: 'Stress: thousands of rectangles',
+      affinity: 'xy',
+      stress: { geometryLabel: '4,098 rectangles', height: 320 },
+      explanation:
+        'A giant region sits behind 4,097 later-painted rectangles. The exact pass must reject every unrelated boundary before finding the containing shape.',
+      beforeExpected: 'Closest micro-cell',
+      afterExpected: 'Giant rectangle across 4,098 regions',
+      base: denseRectangleBase,
+      probe: normalizedDatumProbe('dense-giant-rectangle'),
+    }),
+    makeCase({
+      id: 'complex-polygons',
+      title: 'Stress: thousands of complex polygons',
+      affinity: 'geometry',
+      stress: {
+        geometryLabel: '2,050 polygons · 13,318 vertices',
+        height: 320,
+      },
+      explanation:
+        'A 1,024-vertex contour sits behind 2,049 later-painted polygons, forcing a worst-direction containment scan without an axis shortcut.',
+      beforeExpected: 'Closest six-vertex polygon',
+      afterExpected: '1,024-vertex contour across 13,318 vertices',
+      base: complexPolygonBase,
+      probe: normalizedDatumProbe('complex-giant-polygon'),
     }),
   ]
 }

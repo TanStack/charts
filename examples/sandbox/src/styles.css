@@ -211,6 +211,15 @@
   gap: 18px;
 }
 
+.hit-region-proof__case--stress .hit-region-proof__grid {
+  grid-template-columns: 1fr;
+}
+
+.hit-region-proof__case--stress .hit-region-proof__chart > svg,
+.hit-region-proof__case--stress .hit-region-proof__chart > div:first-child {
+  min-height: 320px;
+}
+
 .hit-region-proof__card {
   min-width: 0;
   padding: 15px;

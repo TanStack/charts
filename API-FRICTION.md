@@ -4284,10 +4284,11 @@ Each entry records:
 - Verification: focused tests cover containment priority, x/y/xy/geometry
   fallback, rectangle/circle/polygon shapes, built-in bar affinity, reversed
   rectangles, paint-order overlap, stack-edge selection, spatial-index
-  ownership, and legacy tie order. The twelve-case sandbox compares before and
+  ownership, and legacy tie order. The fourteen-case sandbox compares before and
   after behavior for stacked and horizontal bars, line/area, bubbles, cells,
   financial intervals, timelines, pie and annular sectors, radar, maps, and
-  Sankey geometry. The full unit matrix passes 675 tests across 123 files;
+  Sankey geometry, then stress-tests 4,098 rectangles and 2,050 polygons with
+  13,318 total vertices. The full unit matrix passes 678 tests across 123 files;
   typecheck, documentation, packed-consumer, framework-adapter, formatting, and
   sandbox production-build gates also pass.
 
