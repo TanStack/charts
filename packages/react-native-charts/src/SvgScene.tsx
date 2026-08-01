@@ -252,9 +252,11 @@ function resolveScenePaint(
   resolvePaint: NativePaintResolver,
   color: ColorValue,
 ) {
-  const match = /^url\(#([^)]+)\)$/.exec(value)
+  const match = /^url\(#([\s\S]*)\)$/.exec(value)
   const id = match?.[1]
-  if (id && gradientIds.has(id)) return `url(#${scopedId(idPrefix, id)})`
+  if (id !== undefined && gradientIds.has(id)) {
+    return `url(#${scopedId(idPrefix, id)})`
+  }
   return resolvePaint(value, { color })
 }
 

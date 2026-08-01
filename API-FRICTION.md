@@ -4254,5 +4254,6 @@ Each entry records:
 - Decision: preserve letters, digits, and hyphens, and encode every other code
   point with an unambiguous SVG-safe escape. The escape marker itself is
   encoded, so an authored string cannot collide with an encoded character.
-- Verification: the native scene regression renders all three formerly
-  colliding IDs and checks distinct definition IDs and paint references.
+- Verification: the native scene regression renders the formerly colliding
+  IDs plus empty and delimiter-containing IDs, and checks matching definition
+  IDs and paint references.

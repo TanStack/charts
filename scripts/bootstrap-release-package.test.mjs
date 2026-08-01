@@ -27,7 +27,7 @@ describe('npm package bootstrap', () => {
     expect(selection).toEqual({ artifact: artifacts[1], publishNeeded: true })
   })
 
-  it('rejects zero-confirmation and multiple-missing publication', () => {
+  it('rejects publication when multiple fixed packages are missing', () => {
     expect(() =>
       selectBootstrapCandidate({
         artifacts,
@@ -38,6 +38,19 @@ describe('npm package bootstrap', () => {
         ]),
       }),
     ).toThrow(/exactly one missing fixed-set package/)
+  })
+
+  it('rejects a confirmation outside the fixed release set', () => {
+    expect(() =>
+      selectBootstrapCandidate({
+        artifacts,
+        expectedSpec: '@tanstack/unknown-charts@0.4.0',
+        registryPackages: new Map([
+          ['@tanstack/charts', registry(artifacts[0])],
+          ['@tanstack/react-native-charts', null],
+        ]),
+      }),
+    ).toThrow(/is not the exact fixed-set package and version/)
   })
 
   it('rejects a confirmation that differs from the missing package', () => {

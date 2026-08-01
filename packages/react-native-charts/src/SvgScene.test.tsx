@@ -55,7 +55,7 @@ describe('React Native SVG scene renderer', () => {
 
   it('keeps distinct authored gradient ids distinct after encoding', () => {
     const collisionScene = scene()
-    collisionScene.gradients = ['a.b', 'a:b', 'ab'].map((id) => ({
+    collisionScene.gradients = ['a.b', 'a:b', 'ab', '', 'a)b'].map((id) => ({
       id,
       stops: [{ offset: 0, color: '#2563eb' }],
     }))
@@ -84,6 +84,10 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).toContain('url(#native-one-a_x3a_b)')
     expect(markup).toContain('id="native-one-ab"')
     expect(markup).toContain('url(#native-one-ab)')
+    expect(markup).toContain('id="native-one-_"')
+    expect(markup).toContain('url(#native-one-_)')
+    expect(markup).toContain('id="native-one-a_x29_b"')
+    expect(markup).toContain('url(#native-one-a_x29_b)')
   })
 })
 
