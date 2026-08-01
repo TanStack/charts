@@ -201,10 +201,9 @@ Each entry records:
 | F-163 | Cross-row transforms lacked a public ownership boundary  | API             | resolved   |
 | F-164 | Sankey widths required a custom scene renderer           | API             | resolved   |
 | F-165 | Incidental D3 utilities leaked into core paths           | API/Tooling     | resolved   |
-| F-166 | Conditional Plot paint filtered ordinary cells           | Tooling/Docs    | resolved   |
-| F-167 | Axis tick styling and edge alignment required shell work | API/Application | monitoring |
-| F-168 | SVG letterboxing shifted pointer hit testing             | API             | resolved   |
-| F-169 | Fixed catalog height hid compact responsive examples     | Tooling/App     | resolved   |
+| F-166 | Axis tick styling and edge alignment required shell work | API/Application | monitoring |
+| F-167 | SVG letterboxing shifted pointer hit testing             | API             | resolved   |
+| F-168 | Fixed catalog height hid compact responsive examples     | Tooling/App     | resolved   |
 
 ## Findings
 
@@ -3991,27 +3990,7 @@ Each entry records:
   transform, polar, geo, and curve features retain their owned D3
   implementation.
 
-### F-166 — Conditional Plot paint filtered ordinary cells
-
-- Status: resolved
-- Severity: low
-- Owner: Tooling/Documentation
-- Observed in: daily token usage calendar conformance reference
-- Friction: one `Plot.cell` mark returned an amber stroke for missing telemetry
-  and `null` for ordinary days. Plot treated the null paint channel as a row
-  filter, so the reference emitted only the four missing cells instead of the
-  complete 182-day calendar. The failure first appeared as a geometry and
-  paint mismatch rather than an obvious authoring error.
-- Decision: keep all shared channels on the cell mark. The final application
-  removed the synthetic missing-telemetry state because its zero-token tooltip
-  made the extra gray category confusing. This remains a reference-authoring
-  concern and does not justify inference or a workaround in the TanStack Charts
-  API.
-- Verification: the focused model and shell tests render all 364 cells with one
-  neutral zero-usage category, while the TanStack Charts and Observable Plot
-  references retain matching color domains and accessible descriptions.
-
-### F-167 — Axis tick styling and edge alignment required shell work
+### F-166 — Axis tick styling and edge alignment required shell work
 
 - Status: monitoring
 - Severity: low
@@ -4042,7 +4021,7 @@ Each entry records:
   application, page, or overlay errors. Workspace typecheck and the focused
   quick conformance matrix pass initial and updated data at 320px and 640px.
 
-### F-168 — SVG letterboxing shifted pointer hit testing
+### F-167 — SVG letterboxing shifted pointer hit testing
 
 - Status: resolved
 - Severity: high
@@ -4068,7 +4047,7 @@ Each entry records:
   70–81 gzip bytes across the locked DOM and React consumers, recorded in the
   updated universal bundle baseline.
 
-### F-169 — Fixed catalog height hid compact responsive examples
+### F-168 — Fixed catalog height hid compact responsive examples
 
 - Status: resolved
 - Severity: low
