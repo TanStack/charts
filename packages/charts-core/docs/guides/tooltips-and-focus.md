@@ -99,10 +99,12 @@ const definition = defineChart({
 ```
 
 Array order is row order. A nullish field or `text` result omits the row.
-Grouped focus keeps its shared-axis heading and series rows; order those rows
-with `sort: 'color-domain'`, `sort: 'focus'`, or a typed comparator. Use
-channel items to format their heading, series names, and values. Use `content`
-when a grouped tooltip needs additional columns or nested sections.
+Grouped focus keeps its shared-axis heading and series rows. By default, rows
+follow the marks top-to-bottom for an x-group and left-to-right for a y-group.
+Override that with `sort: 'color-domain'`, `sort: 'focus'`, or a typed
+comparator. Use channel items to format their heading, series names, and values.
+Use `content` when a grouped tooltip needs additional columns or nested
+sections.
 
 Customize plaintext content with typed formatters:
 

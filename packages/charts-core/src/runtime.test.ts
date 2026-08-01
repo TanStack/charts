@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import { mountChart } from './dom'
-import { barY } from './bar'
+import { barX, barY } from './bar'
 import { lineY } from './line'
 import { rect } from './rect'
 import { createChartRuntime } from './runtime'
 import { defineChart } from './scene'
 import { renderChartSvgWithResources } from './svg-resources'
 import { focusX } from './focus'
-import { bandXAxes, linearAxes, utcXAxes } from './test-scales'
+import { bandXAxes, bandYAxes, linearAxes, utcXAxes } from './test-scales'
 import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
@@ -518,8 +518,8 @@ describe('dynamic chart runtime', () => {
 
   it('renders grouped tooltip rows with scale labels, formatting, and swatches', () => {
     const data = [
-      { id: 'a:query', period: 'A', series: 'Query', value: 12 },
-      { id: 'a:router', period: 'A', series: 'Router', value: 8 },
+      { id: 'a:query', period: 'A', series: 'Query', value: 8 },
+      { id: 'a:router', period: 'A', series: 'Router', value: 12 },
     ]
     const container = document.createElement('div')
     const host = mountChart(container, {
@@ -546,7 +546,6 @@ describe('dynamic chart runtime', () => {
           anchor: 'group-center',
           placement: 'right',
           offset: 0,
-          sort: (left, right) => left.yValue - right.yValue,
         },
       }),
       width: 480,
@@ -563,14 +562,14 @@ describe('dynamic chart runtime', () => {
     expect(tooltip?.querySelector('div')?.textContent).toBe('Period: A')
     expect(rows).toHaveLength(2)
     expect(rows?.[0]?.textContent).toContain('Router')
-    expect(rows?.[0]?.textContent).toContain('8')
+    expect(rows?.[0]?.textContent).toContain('12')
     expect(rows?.[1]?.textContent).toContain('Query')
-    expect(rows?.[1]?.textContent).toContain('12')
+    expect(rows?.[1]?.textContent).toContain('8')
     expect(tooltip?.querySelectorAll('.ts-chart-tooltip__swatch')).toHaveLength(
       2,
     )
     expect(tooltip?.getAttribute('aria-label')).toBe(
-      'Period: A\nRouter: 8\nQuery: 12',
+      'Period: A\nRouter: 12\nQuery: 8',
     )
     const focusedPoints = host.getScene().points
     expect(Number.parseFloat(tooltip?.style.left ?? '')).toBeCloseTo(
@@ -579,6 +578,45 @@ describe('dynamic chart runtime', () => {
     expect(Number.parseFloat(tooltip?.style.top ?? '')).toBeCloseTo(
       ((focusedPoints[0]?.y ?? 0) + (focusedPoints[1]?.y ?? 0)) / 2,
     )
+    host.destroy()
+  })
+
+  it('orders y-grouped tooltip rows left-to-right by default', () => {
+    const data = [
+      { id: 'a:long', category: 'A', series: 'Long', value: 12 },
+      { id: 'a:short', category: 'A', series: 'Short', value: 4 },
+    ]
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          barX(data, {
+            x: 'value',
+            y: 'category',
+            z: 'series',
+            key: 'id',
+            layout: { type: 'group' },
+          }),
+        ],
+        ...bandYAxes([0, 12], ['A']),
+        focus: 'group-y',
+        tooltip: { use: tooltipExtension },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Grouped horizontal bars',
+    })
+    const svg = container.querySelector('svg')
+    if (!svg) throw new Error('Expected SVG')
+
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+
+    const rows = container.querySelectorAll('.ts-chart-tooltip__row')
+    expect(rows).toHaveLength(2)
+    expect(rows[0]?.textContent).toContain('Short')
+    expect(rows[0]?.textContent).toContain('4')
+    expect(rows[1]?.textContent).toContain('Long')
+    expect(rows[1]?.textContent).toContain('12')
     host.destroy()
   })
 

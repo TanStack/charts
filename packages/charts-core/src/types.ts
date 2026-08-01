@@ -1017,6 +1017,7 @@ export type ChartTooltipSort<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > =
+  | 'visual'
   | 'color-domain'
   | 'focus'
   | ((

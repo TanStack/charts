@@ -12,14 +12,14 @@ evidence without turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `c422a2c` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `d563eba` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `c422a2c`.
+at page render time. The measured TanStack workspace revision is `d563eba`.
 
 ## Capability matrix
 
@@ -90,7 +90,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-07-31`.
+Baseline date: `2026-08-01`.
 
 Controlled ranges cover 12 independently built, minified browser consumers:
 line, bar, area, and scatter at basic, interactive, and advanced tiers. Only
@@ -106,7 +106,7 @@ Vega-Lite, AG Charts, and uPlot main exports were read from Bundlephobia on July
 
 | Library            | Bundle size                            | React externalized | Evidence                                                   |
 | ------------------ | -------------------------------------- | -----------------: | ---------------------------------------------------------- |
-| TanStack Charts    | 26.58–32.08 KiB                        |                  — | Controlled suite                                           |
+| TanStack Charts    | 26.65–32.14 KiB                        |                  — | Controlled suite                                           |
 | D3                 | 90 KB gzip                             |                  — | External main export                                       |
 | Chart.js           | 44.70–58.21 KiB                        |                  — | Controlled suite                                           |
 | Apache ECharts     | 153.10–173.18 KiB                      |                  — | Controlled suite                                           |
