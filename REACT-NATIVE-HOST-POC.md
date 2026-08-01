@@ -124,7 +124,7 @@ external in the native entries.
 | Entry                              | Minified |     Gzip |
 | ---------------------------------- | -------: | -------: |
 | React Native SVG host              | 26.95 kB | 10.22 kB |
-| React Native SVG host with tooltip | 32.50 kB | 12.10 kB |
+| React Native SVG host with tooltip | 32.71 kB | 12.17 kB |
 | React Native line consumer         | 49.18 kB | 19.03 kB |
 | Shared line scene                  | 38.17 kB | 14.82 kB |
 | Existing React web adapter         | 39.98 kB | 14.57 kB |
@@ -133,7 +133,7 @@ external in the native entries.
 The native host entry includes the host plus every shared runtime and D3 module
 reachable from exporting `Chart`; it is not isolated adapter-only overhead.
 The base host and line consumer omit `Tooltip.tsx`. Importing the tooltip
-subpath adds 5.55 kB minified and 1.88 kB gzip. The native line consumer
+subpath adds 5.76 kB minified and 1.94 kB gzip. The native line consumer
 additionally includes the line mark and D3 scale code while leaving platform
 peers external. It is the closest comparison to the existing React line entry,
 but the two platforms do not have identical runtime baselines. The native
@@ -148,12 +148,12 @@ granular entries.
 
 | Platform | Full `/universal` chart minified JS delta | `react-native-svg` gzip delta | Core line gzip delta | Full `/universal` chart gzip delta | Full chart module delta |
 | -------- | ----------------------------------------: | ----------------------------: | -------------------: | ---------------------------------: | ----------------------: |
-| iOS      |                                434.28 KiB |                     27.75 KiB |            38.95 KiB |                         102.94 KiB |                     384 |
-| Android  |                                434.42 KiB |                     27.69 KiB |            38.94 KiB |                         102.99 KiB |                     384 |
+| iOS      |                                434.49 KiB |                     27.75 KiB |            38.94 KiB |                         103.00 KiB |                     384 |
+| Android  |                                434.64 KiB |                     27.69 KiB |            38.94 KiB |                         103.05 KiB |                     384 |
 
-The full iOS bundle was 1,328,782 bytes and 319,792 bytes gzip, versus 884,080
-and 214,381 for blank. Android was 1,334,298 and 320,860, versus 889,448 and
-215,395 for blank. Compared with the otherwise identical granular fixture,
+The full iOS bundle was 1,328,999 bytes and 319,853 bytes gzip, versus 884,080
+and 214,383 for blank. Android was 1,334,515 and 320,921, versus 889,448 and
+215,397 for blank. Compared with the otherwise identical granular fixture,
 `/universal` retains another 119.06 KiB minified and 28.91 KiB gzip on both iOS
 and Android, plus 102 modules per platform under this Metro version.
 
@@ -313,7 +313,7 @@ files rather than workspace source.
 
 ## Verification performed
 
-- 21 focused POC tests cover every scene primitive, gradients, clips, paint
+- 22 focused POC tests cover every scene primitive, gradients, clips, paint
   resolution, focus modes, point and callback restoration, tooltip ordering,
   placement, chart compilation, extension ownership, inactive focus layers,
   and no-speculative-size behavior. Component mapping tests use React DOM with
@@ -332,6 +332,11 @@ files rather than workspace source.
 - Packed bare React Native and Expo consumers produce iOS and Android bundles
   without workspace aliases. Their source maps include the native conditional
   entries and exclude workspace source and guarded browser modules.
+- The workspace Expo 57 fixture boots in Expo Go on an iOS simulator and
+  renders its axes and line. Expo logs identify the Hermes engine, bytecode
+  transform, and running application. The packed artifact is compiled
+  separately; this smoke does not claim that the tarball itself ran in the
+  simulator.
 - Source-map gates prove the full native entries do not include guarded browser
   implementation files, including the web tooltip and portal runtimes.
 - Retained-input gates prove the base native host and line consumer omit the
@@ -353,14 +358,15 @@ local spike command rather than a mandatory CI gate.
 
 Not performed:
 
-- simulator or physical-device rendering;
+- bare React Native or Android simulator rendering, and physical-device
+  rendering;
 - native component interaction tests;
 - visual comparison against the conformance corpus;
-- Hermes execution or profiling;
+- Hermes release-mode execution or profiling;
 - 1k/10k-point interaction and memory tests;
 - release application binary comparison;
 - VoiceOver and TalkBack validation;
-- Expo prebuild, simulator, or device validation;
+- Expo prebuild or dev-client validation;
 - motion, export, or Skia implementation.
 
 ## Production path

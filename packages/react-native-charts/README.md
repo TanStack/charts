@@ -52,6 +52,7 @@ export function RevenueChart() {
 ```
 
 The package is tested with Expo 57 / React Native 0.86 and
-`react-native-svg` 15.15.x. It remains experimental: simulator and physical
-device visual, gesture, accessibility, and performance validation are still in
-progress.
+`react-native-svg` 15.15.x. The workspace fixture also renders in Expo Go on an
+iOS simulator. It remains experimental: bare-native and Android simulators,
+physical devices, gestures, accessibility, release builds, and performance
+still need validation.

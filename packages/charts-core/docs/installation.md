@@ -94,8 +94,10 @@ import { tooltip } from '@tanstack/react-native-charts/tooltip'
 ```
 
 Packed tarballs are typechecked and bundled through default bare React Native
-and Expo Metro configurations on iOS and Android. Simulator, physical-device,
-gesture, visual, and screen-reader validation is not yet a support claim.
+and Expo Metro configurations on iOS and Android. The workspace Expo 57
+fixture also renders in Expo Go on an iOS simulator. Bare-native and Android
+simulators, physical devices, gestures, visual parity, and screen readers are
+not yet support claims.
 
 ## Install the D3 modules you import
 

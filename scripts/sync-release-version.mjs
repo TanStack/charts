@@ -9,7 +9,7 @@ export const releaseVersionSources = [
   { path: 'MARKETING.md', references: 6 },
   { path: 'docs/overview.md', references: 1 },
   { path: 'docs/installation.md', references: 1 },
-  { path: 'docs/comparison.md', references: 5 },
+  { path: 'docs/comparison.md', references: 6 },
 ]
 
 export function changelogVersions(source) {

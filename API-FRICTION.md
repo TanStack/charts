@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-07-31
+Last updated: 2026-08-01
 
 ## Triage rule
 
@@ -202,14 +202,14 @@ Each entry records:
 | F-164 | Sankey widths required a custom scene renderer           | API             | resolved   |
 | F-165 | Incidental D3 utilities leaked into core paths           | API/Tooling     | resolved   |
 | F-166 | Grouped tooltip order diverged from mark position        | API             | resolved   |
-| F-166 | D3 declarations require a browser image global           | Tooling         | monitoring |
-| F-167 | Native interaction copied DOM-renderer policy            | API             | monitoring |
-| F-168 | CSS theme defaults reach the native scene compiler       | API             | monitoring |
-| F-169 | Text measurement omits native typography                 | API             | monitoring |
-| F-170 | Packed declarations assume one platform global set       | Tooling         | resolved   |
-| F-171 | Metro skipped the fixture-owned Babel runtime            | Tooling         | resolved   |
-| F-172 | Metro retained the complete universal barrel             | API/Tooling     | monitoring |
-| F-173 | OIDC release cannot claim a new npm package name         | Tooling         | monitoring |
+| F-167 | D3 declarations require a browser image global           | Tooling         | monitoring |
+| F-168 | Native interaction copied DOM-renderer policy            | API             | monitoring |
+| F-169 | CSS theme defaults reach the native scene compiler       | API             | monitoring |
+| F-170 | Text measurement omits native typography                 | API             | monitoring |
+| F-171 | Packed declarations assume one platform global set       | Tooling         | resolved   |
+| F-172 | Metro skipped the fixture-owned Babel runtime            | Tooling         | resolved   |
+| F-173 | Metro retained the complete universal barrel             | API/Tooling     | monitoring |
+| F-174 | OIDC release cannot claim a new npm package name         | Tooling         | monitoring |
 
 ## Findings
 
@@ -3767,7 +3767,7 @@ Each entry records:
   Native tooltip adds 3,381 bytes; portal adds 806 more. Retained-output graph
   checks prove base renderer and React entries contain none of the tooltip,
   portal, or React rich-body modules. The React Native base host is 10,468 gzip
-  bytes and adding its tooltip subpath costs 1,923 bytes; retained-input checks
+  bytes and adding its tooltip subpath costs 1,990 bytes; retained-input checks
   prove both the base host and line consumer omit `Tooltip.tsx`, all native
   entries omit web tooltip and portal code, and the base host retains no D3
   runtime. Core, Lit,
@@ -4022,7 +4022,7 @@ Each entry records:
 - Verification: runtime tests cover both axes with input and color-domain order
   opposed to the rendered mark order.
 
-### F-166 — D3 declarations require a browser image global
+### F-167 — D3 declarations require a browser image global
 
 - Status: monitoring
 - Severity: medium
@@ -4040,7 +4040,7 @@ Each entry records:
   `@types/d3-array` diagnostics or a clean result after the upstream
   declaration is fixed. It rejects every other diagnostic.
 
-### F-167 — Native interaction copied DOM-renderer policy
+### F-168 — Native interaction copied DOM-renderer policy
 
 - Status: monitoring
 - Severity: high
@@ -4065,6 +4065,9 @@ Each entry records:
   overlays, tooltips, and external callbacks attached to old point objects
   after responsive geometry changed. Callback prop identity could also
   retrigger restoration and incorrectly change the focus source.
+  Restacking onto the visual grouped-tooltip ordering change then exposed the
+  same drift again: the DOM host defaulted to visual order while the native
+  copy still used color-domain order.
 - Current decision: keep the duplication confined to the private proof. The
   native adapter exports a branded extension from its optional `/tooltip`
   subpath, accepts duplicate package copies and custom native implementations,
@@ -4093,9 +4096,10 @@ Each entry records:
   regression verifies inactive focus-layer paint is absent from the native
   scene. Component regressions cover a primary point that sorts after another
   series, restored coordinates and callbacks after resize, and stable focus
-  source when only callback props change.
+  source when only callback props change. A grouped-tooltip regression now
+  verifies visual default order and explicit color-domain order in both hosts.
 
-### F-168 — CSS theme defaults reach the native scene compiler
+### F-169 — CSS theme defaults reach the native scene compiler
 
 - Status: monitoring
 - Severity: high
@@ -4114,7 +4118,7 @@ Each entry records:
   variable or `currentColor` output. Device themes and dynamic native-theme
   builders remain unverified.
 
-### F-169 — Text measurement omits native typography
+### F-170 — Text measurement omits native typography
 
 - Status: monitoring
 - Severity: high
@@ -4131,7 +4135,7 @@ Each entry records:
 - Verification: injected-measurer core tests pass. No iOS or Android font-scale
   and clipping matrix has been run.
 
-### F-170 — Packed declarations assume one platform global set
+### F-171 — Packed declarations assume one platform global set
 
 - Status: resolved
 - Severity: medium
@@ -4140,7 +4144,7 @@ Each entry records:
 - Friction: the existing packed fixture compiles web packages under DOM
   libraries. Loading React Native declarations in that same TypeScript program
   introduces incompatible duplicate globals. Removing DOM libraries makes the
-  web contracts invalid and also exposes F-166.
+  web contracts invalid and also exposes F-167.
 - Decision: build and pack the native adapter in the release artifact matrix,
   but keep its declarations and consumers outside the DOM fixture's TypeScript
   program. The package publishes compiled ESM and declarations with `types`,
@@ -4155,9 +4159,12 @@ Each entry records:
   typecheck and produce iOS and Android bundles. All four source maps resolve
   the adapter and `/universal` from installed `dist`, include the native
   conditional entries, exclude workspace source and guarded browser modules,
-  and retain only F-166's two known strict dependency diagnostics.
+  and retain only F-167's two known strict dependency diagnostics. Separately,
+  the workspace Expo 57 fixture boots in Expo Go on an iOS simulator and
+  renders its chart under Hermes; the packed artifact has not been run on that
+  simulator.
 
-### F-171 — Metro skipped the fixture-owned Babel runtime
+### F-172 — Metro skipped the fixture-owned Babel runtime
 
 - Status: resolved
 - Severity: medium
@@ -4177,7 +4184,7 @@ Each entry records:
   variants require `/universal`, and source-map checks exclude every guarded
   browser implementation module.
 
-### F-172 — Metro retained the complete universal barrel
+### F-173 — Metro retained the complete universal barrel
 
 - Status: monitoring
 - Severity: medium
@@ -4195,11 +4202,11 @@ Each entry records:
   own imports granular, publish granular entries as the bundle-sensitive path,
   and do not describe the broad barrel as cost-equivalent under Metro.
 - Verification: the iOS and Android full-chart bundles require
-  `packages/charts-core/src/universal.ts`, measure 102.94 and 102.99 KiB gzip over
+  `packages/charts-core/src/universal.ts`, measure 103.00 and 103.05 KiB gzip over
   blank respectively, and exclude DOM hosts, browser adapters, Canvas,
   reconciliation, SVG resources/surface, web tooltip code, and `react-dom`.
 
-### F-173 — OIDC release cannot claim a new npm package name
+### F-174 — OIDC release cannot claim a new npm package name
 
 - Status: monitoring
 - Severity: high
@@ -4211,9 +4218,9 @@ Each entry records:
   authorized for this package before its registry entry exists.
 - Current decision: keep the package in release artifacts and the fixed
   changeset, but require a maintainer-controlled direct public publish of the
-  checked `0.3.1` tarball. Configure the repository's release workflow as the
+  checked `0.4.0` tarball. Configure the repository's release workflow as the
   trusted publisher immediately afterward; the aggregate changeset can then
-  publish `0.4.0` through OIDC.
+  publish `0.5.0` through OIDC.
 - Verification: `npm view @tanstack/react-native-charts` currently returns
   `E404`. Close this entry only after the public package exists, its trusted
   publisher names the repository release workflow, and an aggregate release

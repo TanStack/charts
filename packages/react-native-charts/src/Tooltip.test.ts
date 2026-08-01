@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import type { ColorValue } from 'react-native'
 import { describe, expect, it, vi } from 'vitest'
 import type {
   ChartPoint,
@@ -12,6 +13,7 @@ import {
   placeNativeTooltip,
   resolveNativeTooltipAnchor,
 } from './Tooltip'
+import type { NativeChartTooltipRenderContext } from './Tooltip'
 
 vi.mock('react-native', () => ({
   Text: 'span',
@@ -163,12 +165,59 @@ describe('native tooltip model', () => {
       scales: currentScene.scales,
     })
   })
+
+  it('orders grouped points visually unless color-domain order is requested', () => {
+    const right = point('alpha', 'Alpha', 4, { x: 80, xValue: 8, y: 20 })
+    const left = point('beta', 'Beta', 4, { x: 20, xValue: 2, y: 20 })
+    const focusedPoints = [right, left]
+    const currentScene = scene(focusedPoints)
+    const visualRender = vi.fn<
+      (
+        context: NativeChartTooltipRenderContext<unknown, number, number>,
+      ) => React.ReactNode
+    >(() => null)
+    const colorRender = vi.fn<
+      (
+        context: NativeChartTooltipRenderContext<unknown, number, number>,
+      ) => React.ReactNode
+    >(() => null)
+    const sharedProps = {
+      scene: currentScene,
+      width: 100,
+      height: 60,
+      points: focusedPoints,
+      pointer: null,
+      focusSource: 'keyboard' as const,
+      pinned: true,
+      color: '#111827',
+      resolvePaint: (value: ColorValue) => value,
+      dismiss: vi.fn(),
+    }
+
+    renderToStaticMarkup(
+      React.createElement(NativeChartTooltip<unknown, number, number>, {
+        ...sharedProps,
+        render: visualRender,
+      }),
+    )
+    renderToStaticMarkup(
+      React.createElement(NativeChartTooltip<unknown, number, number>, {
+        ...sharedProps,
+        options: { sort: 'color-domain' },
+        render: colorRender,
+      }),
+    )
+
+    expect(visualRender.mock.calls[0]?.[0].points).toEqual([left, right])
+    expect(colorRender.mock.calls[0]?.[0].points).toEqual([right, left])
+  })
 })
 
 function point(
   key: string,
   groupLabel: string,
   yValue: number,
+  position: { x?: number; xValue?: number; y?: number } = {},
 ): ChartPoint<unknown, number, number> {
   return {
     key,
@@ -177,10 +226,10 @@ function point(
     groupLabel,
     datum: null,
     datumIndex: 0,
-    xValue: 1,
+    xValue: position.xValue ?? 1,
     yValue,
-    x: 20,
-    y: yValue * 4,
+    x: position.x ?? 20,
+    y: position.y ?? yValue * 4,
     color: key === 'alpha' ? '#2563eb' : '#f97316',
   }
 }
