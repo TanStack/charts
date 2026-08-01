@@ -206,9 +206,10 @@ Each entry records:
 | F-167 | Native interaction copied DOM-renderer policy            | API             | monitoring |
 | F-168 | CSS theme defaults reach the native scene compiler       | API             | monitoring |
 | F-169 | Text measurement omits native typography                 | API             | monitoring |
-| F-170 | Packed declarations assume one platform global set       | Tooling         | monitoring |
+| F-170 | Packed declarations assume one platform global set       | Tooling         | resolved   |
 | F-171 | Metro skipped the fixture-owned Babel runtime            | Tooling         | resolved   |
 | F-172 | Metro retained the complete universal barrel             | API/Tooling     | monitoring |
+| F-173 | OIDC release cannot claim a new npm package name         | Tooling         | monitoring |
 
 ## Findings
 
@@ -4132,19 +4133,29 @@ Each entry records:
 
 ### F-170 — Packed declarations assume one platform global set
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
 - Owner: Tooling
-- Observed in: evaluating a release gate for the private React Native package
+- Observed in: making the React Native package publishable
 - Friction: the existing packed fixture compiles web packages under DOM
   libraries. Loading React Native declarations in that same TypeScript program
   introduces incompatible duplicate globals. Removing DOM libraries makes the
   web contracts invalid and also exposes F-166.
-- Current decision: keep the private proof out of the publishable-package
-  matrix. Its source package, native consumer, isolated bundle, Metro bundles,
-  and no-browser source-map boundary are checked separately.
-- Follow-up: add a native-specific build, pack, install, declaration, Metro,
-  and platform-condition fixture before making the package publishable.
+- Decision: build and pack the native adapter in the release artifact matrix,
+  but keep its declarations and consumers outside the DOM fixture's TypeScript
+  program. The package publishes compiled ESM and declarations with `types`,
+  `react-native`, and `import` conditions. A native-specific gate deploys clean
+  bare React Native and Expo dependency trees, installs the packed core and
+  adapter tarballs, and runs each platform's normal Metro configuration.
+- Verification: the staged package emits both root and optional-tooltip
+  declarations, contains no source or tests, and retains no `workspace:`
+  ranges. Node resolution selects the import build normally and the native
+  shims under `--conditions=react-native`. Bare React Native 0.86.2 with
+  `react-native-svg` 15.15.5 and Expo 57 with Expo's 15.15.4 build both
+  typecheck and produce iOS and Android bundles. All four source maps resolve
+  the adapter and `/universal` from installed `dist`, include the native
+  conditional entries, exclude workspace source and guarded browser modules,
+  and retain only F-166's two known strict dependency diagnostics.
 
 ### F-171 — Metro skipped the fixture-owned Babel runtime
 
@@ -4187,3 +4198,23 @@ Each entry records:
   `packages/charts-core/src/universal.ts`, measure 102.94 and 102.99 KiB gzip over
   blank respectively, and exclude DOM hosts, browser adapters, Canvas,
   reconciliation, SVG resources/surface, web tooltip code, and `react-dom`.
+
+### F-173 — OIDC release cannot claim a new npm package name
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling
+- Observed in: adding `@tanstack/react-native-charts` to the fixed release set
+- Friction: the package name is not present in the npm registry, while the
+  aggregate release uses npm trusted publishing. npm configures that trust from
+  an existing package's settings, so the normal tokenless workflow cannot be
+  authorized for this package before its registry entry exists.
+- Current decision: keep the package in release artifacts and the fixed
+  changeset, but require a maintainer-controlled direct public publish of the
+  checked `0.3.1` tarball. Configure the repository's release workflow as the
+  trusted publisher immediately afterward; the aggregate changeset can then
+  publish `0.4.0` through OIDC.
+- Verification: `npm view @tanstack/react-native-charts` currently returns
+  `E404`. Close this entry only after the public package exists, its trusted
+  publisher names the repository release workflow, and an aggregate release
+  publishes it without a long-lived write token.

@@ -17,6 +17,9 @@ Then add one adapter if the application needs it:
 # React
 pnpm add @tanstack/react-charts react react-dom
 
+# React Native
+pnpm add @tanstack/react-native-charts react react-native react-native-svg
+
 # Preact
 pnpm add @tanstack/preact-charts preact
 
@@ -46,21 +49,53 @@ The adapters intentionally do not replace the core package. Definitions and mark
 
 ## Framework compatibility
 
-| Adapter package            | Framework peers                          |
-| -------------------------- | ---------------------------------------- |
-| `@tanstack/react-charts`   | React and React DOM `^19.0.0`            |
-| `@tanstack/preact-charts`  | Preact `>=10`                            |
-| `@tanstack/vue-charts`     | Vue `>=3.5`                              |
-| `@tanstack/solid-charts`   | Solid `>=1.8`                            |
-| `@tanstack/svelte-charts`  | Svelte `^5.20.0`                         |
-| `@tanstack/angular-charts` | Angular core and platform browser `>=19` |
-| `@tanstack/lit-charts`     | Lit `>=3.1.3`                            |
-| `@tanstack/alpine-charts`  | Alpine `>=3.15`                          |
-| `@tanstack/octane-charts`  | Octane `^0.1.13`                         |
+| Adapter package                 | Framework peers                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------- |
+| `@tanstack/react-charts`        | React and React DOM `^19.0.0`                                                   |
+| `@tanstack/react-native-charts` | React `^19.2.3`, React Native `^0.86.0`, and `react-native-svg` `>=15.15.4 <16` |
+| `@tanstack/preact-charts`       | Preact `>=10`                                                                   |
+| `@tanstack/vue-charts`          | Vue `>=3.5`                                                                     |
+| `@tanstack/solid-charts`        | Solid `>=1.8`                                                                   |
+| `@tanstack/svelte-charts`       | Svelte `^5.20.0`                                                                |
+| `@tanstack/angular-charts`      | Angular core and platform browser `>=19`                                        |
+| `@tanstack/lit-charts`          | Lit `>=3.1.3`                                                                   |
+| `@tanstack/alpine-charts`       | Alpine `>=3.15`                                                                 |
+| `@tanstack/octane-charts`       | Octane `^0.1.13`                                                                |
 
 These ranges are the package peer contracts. Use the selected framework's
 normal renderer or application package beside the adapter when the application
 needs browser mounting or server rendering.
+
+## React Native and Expo
+
+The React Native adapter is experimental and renders through
+`react-native-svg`. Expo 57 applications can install the package and the SVG
+version selected by Expo:
+
+```sh
+pnpm add @tanstack/charts @tanstack/react-native-charts d3-scale
+pnpm exec expo install react-native-svg
+```
+
+Bare React Native 0.86 applications install the renderer directly:
+
+```sh
+pnpm add @tanstack/charts @tanstack/react-native-charts d3-scale react-native-svg
+```
+
+Run `bundle exec pod install` from `ios/` after adding it to a bare iOS
+application. Import shared definitions through the universal entry and choose
+the native host explicitly:
+
+```tsx
+import { defineChart, lineY } from '@tanstack/charts/universal'
+import { Chart } from '@tanstack/react-native-charts'
+import { tooltip } from '@tanstack/react-native-charts/tooltip'
+```
+
+Packed tarballs are typechecked and bundled through default bare React Native
+and Expo Metro configurations on iOS and Android. Simulator, physical-device,
+gesture, visual, and screen-reader validation is not yet a support claim.
 
 ## Install the D3 modules you import
 

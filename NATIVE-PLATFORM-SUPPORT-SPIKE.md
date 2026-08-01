@@ -206,33 +206,32 @@ cross-runtime consumers opt into `@tanstack/charts/universal` and
 
 As of this research, React Native 0.86 is current stable. React Native 0.82
 made the New Architecture mandatory. Set the initial support floor to React
-Native 0.85 and test Expo SDK 56 / React Native 0.85 plus bare React Native
-0.86. Supporting 0.82–0.84 later requires adding those CI lanes; a nominal
-floor without tests is not support. Version-one product scope is iOS and
-Android. Renderer dependencies may also run on macOS, Windows, web, or TV, but
-those platforms need their own input, accessibility, packaging, and
-conformance gates.
+Native 0.86 and test Expo SDK 57 plus bare React Native 0.86. Supporting older
+minors later requires adding those CI lanes; a nominal floor without tests is
+not support. Version-one product scope is iOS and Android. Renderer
+dependencies may also run on macOS, Windows, web, or TV, but those platforms
+need their own input, accessibility, packaging, and conformance gates.
 [React Native versions](https://reactnative.dev/versions.html) ·
 [React Native 0.82](https://reactnative.dev/blog/2025/10/08/react-native-0.82) ·
-[Expo SDK 56](https://docs.expo.dev/versions/v56.0.0/)
+[Expo SDK 57](https://docs.expo.dev/versions/v57.0.0/)
 
 The two supported dependency lanes differ:
 
-| Dependency         | Expo SDK 56 / RN 0.85                        | Bare RN 0.86                                          |
+| Dependency         | Expo SDK 57 / RN 0.86                        | Bare RN 0.86                                          |
 | ------------------ | -------------------------------------------- | ----------------------------------------------------- |
 | `react-native-svg` | Expo-pinned 15.15.4                          | current compatible 15.15.x                            |
 | Skia               | Expo-pinned 2.6.2                            | current compatible 2.x                                |
-| Reanimated         | Expo-pinned 4.3.1                            | 4.4+ line that declares RN 0.86 support               |
+| Reanimated         | Expo-pinned 4.5.1                            | matching RN 0.86-compatible line                      |
 | Worklets           | managed with the Expo/Reanimated combination | matching line from the Reanimated compatibility table |
-| Gesture Handler    | Expo-pinned ~2.31.1                          | current RN 0.86-compatible line                       |
+| Gesture Handler    | Expo-pinned ~2.32.0                          | current RN 0.86-compatible line                       |
 
 Reanimated 4 is New-Architecture-only. Expo configures its supported plugin
 combination; bare apps must install the matching Worklets package and plugin.
 Gesture Handler also requires `GestureHandlerRootView`.
-[Expo Reanimated](https://docs.expo.dev/versions/v56.0.0/sdk/reanimated/) ·
-[Expo Gesture Handler](https://docs.expo.dev/versions/v56.0.0/sdk/gesture-handler/) ·
-[Expo SVG](https://docs.expo.dev/versions/v56.0.0/sdk/svg/) ·
-[Expo Skia](https://docs.expo.dev/versions/v56.0.0/sdk/skia/) ·
+[Expo Reanimated](https://docs.expo.dev/versions/v57.0.0/sdk/reanimated/) ·
+[Expo Gesture Handler](https://docs.expo.dev/versions/v57.0.0/sdk/gesture-handler/) ·
+[Expo SVG](https://docs.expo.dev/versions/v57.0.0/sdk/svg/) ·
+[Expo Skia](https://docs.expo.dev/versions/v57.0.0/sdk/skia/) ·
 [Reanimated compatibility](https://docs.swmansion.com/react-native-reanimated/docs/guides/compatibility/)
 
 D3 is not expected to be the blocker. The imported `d3-array`, `d3-scale`,
@@ -554,12 +553,13 @@ SVG chart does not acquire or autolink unrelated native modules. Do not use
 `optionalDependencies`. The base implementation and declaration graph must
 have no static reference to optional peers.
 
-Package exports need explicit `browser`, `react-native`, and `default`
-conditions, with `browser` before `react-native`, plus matching type
-declarations. Once an export matches, Metro does not append `.native` or `.web`
-to that target. Test resolution through Metro/Expo, Vite or Webpack, Jest, and
-TypeScript. An export target cannot point into another package, so a browser
-re-export needs a local shim and declared dependency or peer.
+The native-only preview needs explicit `types`, `react-native`, and `import`
+conditions. A future entry that serves different browser and native
+implementations would also need an explicit `browser` condition before
+`react-native`. Once an export matches, Metro does not append `.native` or
+`.web` to that target. Test resolution through Metro/Expo, Node, and
+TypeScript. An export target cannot point into another package, so any future
+browser re-export needs a local shim and declared dependency or peer.
 [Metro package exports](https://metrobundler.dev/docs/package-exports/)
 
 ## NativeScript
@@ -782,8 +782,8 @@ count from intuition.
 
 ### Stop conditions
 
-Pause a public native package if any of these remain unresolved after the
-proof:
+Do not claim supported native parity if any of these remain unresolved after
+the proof:
 
 - text measurement causes repeated layout oscillation or materially wrong
   guides, or the measuring and painting stacks disagree on shaped text;
@@ -835,8 +835,8 @@ Ongoing maintenance is material:
 
 ## Recommended first commitment
 
-Fund a two-week, two-engineer device and shared-behavior proof rather than
-announce the private package.
+Fund a two-week, two-engineer device and shared-behavior proof before treating
+the experimental package as supported.
 
 Engineer A:
 

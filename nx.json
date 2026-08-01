@@ -61,11 +61,14 @@
       "{workspaceRoot}/docs/**/*",
       "{workspaceRoot}/packages/charts-core/**/*",
       "{workspaceRoot}/packages/*-charts/**/*",
+      "{workspaceRoot}/examples/charts-react-native/**/*",
+      "{workspaceRoot}/examples/charts-expo/**/*",
       "!{workspaceRoot}/packages/*/dist/**/*",
       "{workspaceRoot}/scripts/*package*.mjs",
       "{workspaceRoot}/scripts/*release*.mjs",
       "{workspaceRoot}/scripts/check-framework-adapters.mjs",
       "{workspaceRoot}/scripts/check-packed-consumers.mjs",
+      "{workspaceRoot}/scripts/packed-react-native-consumers.mjs",
       "{workspaceRoot}/scripts/packed-markdown-links.mjs"
     ],
     "testSolid": [

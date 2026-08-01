@@ -6,6 +6,7 @@ const tsc = resolve(root, 'node_modules/typescript/bin/tsc')
 const passingConfigs = [
   'packages/react-native-charts/tsconfig.json',
   'examples/charts-react-native/tsconfig.json',
+  'examples/charts-expo/tsconfig.json',
 ]
 
 for (const config of passingConfigs) {

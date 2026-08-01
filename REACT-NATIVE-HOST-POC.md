@@ -36,7 +36,7 @@ production support.
 
 ## Implemented proof
 
-The private `@tanstack/react-native-charts` package includes:
+The publishable experimental `@tanstack/react-native-charts` package includes:
 
 - a generic React Native `Chart` component that owns `createChartRuntime`;
 - responsive sizing from explicit dimensions, aspect ratio, or `onLayout`;
@@ -52,7 +52,9 @@ The private `@tanstack/react-native-charts` package includes:
   custom anchors, collision-aware placement, custom content, and a custom
   React body;
 - an optional injected text measurer;
-- a Metro fixture using React Native 0.86.0 and `react-native-svg` 15.15.5;
+- a bare Metro fixture using React Native 0.86.2 and `react-native-svg`
+  15.15.5;
+- an Expo 57 Metro fixture using Expo's `react-native-svg` 15.15.4;
 - source-map checks that reject browser renderer code in iOS and Android
   bundles.
 
@@ -245,10 +247,10 @@ Prerequisite changes delivered by the universal-barrel PR:
 - mechanical split between universal and DOM host types, with root re-exports
   preserved.
 
-This proof adds a separate private React Native package, base component
-contract, and optional tooltip subpath.
+This proof adds a separate React Native package, base component contract, and
+optional tooltip subpath.
 
-Additive changes likely required before release:
+Additive changes likely required before a supported release:
 
 - a shared, renderer-neutral interaction state module;
 - a shared tooltip content/anchor/placement model;
@@ -263,8 +265,8 @@ Changes to avoid:
 - making string prerendering optional inside that renderer contract;
 - importing React Native from the core package;
 - shipping CSS tokens to native and silently substituting arbitrary colors;
-- claiming compatibility outside the tested React Native 0.86.0 and
-  `react-native-svg` 15.15.5 pair;
+- claiming compatibility outside the tested Expo 57 and bare React Native
+  0.86.2 lanes or the `react-native-svg` 15.15.4–15.15.5 pair;
 - adding Skia before an on-device density/performance crossover is measured.
 
 The root type API remains compatible. Consumers that want a DOM-free
@@ -273,10 +275,13 @@ replace browser-root imports with `@tanstack/charts/universal`; granular entries
 remain the bundle-sensitive option. Neither path changes existing published
 web behavior.
 
-The private package is not publishable as it stands. Metro resolves its
-workspace source, and the package has no production build or published export
-map. A native-specific build, declaration, tarball, install,
-conditional-export, and Metro-consumer gate is part of productionization.
+The package now ships compiled ESM and declarations for the root and optional
+tooltip entries. Published exports put `types` first, select explicit native
+shims through the `react-native` condition, and retain `import` fallbacks. The
+release gate builds and packs the adapter with the fixed package set, then
+installs the core and native tarballs into isolated bare React Native and Expo
+consumers. Their default Metro configurations must resolve installed `dist`
+files rather than workspace source.
 
 ## Pros and cons
 
@@ -303,8 +308,8 @@ conditional-export, and Metro-consumer gate is part of productionization.
   and two platform-specific failure surfaces.
 - Current interaction and tooltip ownership must be refactored out of mature
   DOM host implementations without regressing web behavior.
-- A publishable native package needs a separate packed-declaration gate because
-  React Native and DOM global declarations conflict in the current web fixture.
+- The native package needs its separate packed-declaration program because
+  React Native and DOM global declarations conflict in one TypeScript program.
 
 ## Verification performed
 
@@ -315,12 +320,18 @@ conditional-export, and Metro-consumer gate is part of productionization.
   native modules mocked; they are structural tests, not native renderer tests.
 - The native package and the normal React Native application configuration
   typecheck.
+- Packed root and tooltip declarations typecheck in isolated bare and Expo
+  consumers. Normal and `react-native` conditional resolution both select the
+  installed `dist` files.
 - The repository-wide typecheck passes with the native dependency graph.
 - The prerequisite PR's packed gate validates the supported environment-safe
   entries without changing the browser root.
 - Existing locked web bundle baselines remain unchanged.
 - Production Metro bundles complete for iOS and Android, and the full-chart
   variants must resolve `/universal`.
+- Packed bare React Native and Expo consumers produce iOS and Android bundles
+  without workspace aliases. Their source maps include the native conditional
+  entries and exclude workspace source and guarded browser modules.
 - Source-map gates prove the full native entries do not include guarded browser
   implementation files, including the web tooltip and portal runtimes.
 - Retained-input gates prove the base native host and line consumer omit the
@@ -335,9 +346,10 @@ only those two known errors, or a clean result after the upstream declaration
 is fixed. The POC does not add a fake global or pull DOM libraries into native
 to hide the upstream declaration problem.
 
-The isolated esbuild boundary runs in `pnpm validate`. GitHub runs the native
-declaration check as a separate workflow step. The ten-build iOS/Android Metro
-measurement remains a local spike command rather than a mandatory CI gate.
+The isolated esbuild boundary and packed bare/Expo Metro gate run in
+`pnpm validate`. GitHub also runs the source native declaration check as a
+separate workflow step. The ten-build comparative Metro measurement remains a
+local spike command rather than a mandatory CI gate.
 
 Not performed:
 
@@ -348,25 +360,26 @@ Not performed:
 - 1k/10k-point interaction and memory tests;
 - release application binary comparison;
 - VoiceOver and TalkBack validation;
-- Expo managed-workflow validation;
+- Expo prebuild, simulator, or device validation;
 - motion, export, or Skia implementation.
 
 ## Production path
 
-### Phase 1: shared behavior and a releasable SVG host
+### Phase 1: shared behavior and a supported SVG host
 
 Extract interaction and tooltip policy, add native theme ownership, complete
-the typography contract, replace the proof's responder policy, and add a
-native-specific package gate. Keep the package scoped to the tested RN/RNSVG
-pair.
+the typography contract, and replace the proof's responder policy. Maintain
+the native-specific package gate and keep the package scoped to tested
+RN/RNSVG lanes.
 
 Estimated effort: 3–5 engineering weeks.
 
 ### Phase 2: device confidence
 
-Add bare and Expo fixtures, iOS and Android release builds, a platform-neutral
-definition corpus, screenshot/geometry comparison, VoiceOver/TalkBack flows,
-binary-size measurement, and sustained interaction benchmarks.
+Add generated native projects for bare and Expo applications, iOS and Android
+release builds, a platform-neutral definition corpus, screenshot/geometry
+comparison, VoiceOver/TalkBack flows, binary-size measurement, and sustained
+interaction benchmarks.
 
 Estimated effort: 3–5 engineering weeks.
 
@@ -387,7 +400,7 @@ not schedule commitments.
 
 Proceed to Phase 1 if a real React Native product is planned. The architecture
 is sound and the JavaScript cost is reasonable for a charting package. Keep the
-package private if the immediate goal is only optional ecosystem coverage.
+published package experimental until the device-confidence work is complete.
 
 Do not start a NativeScript adapter in parallel. The earlier
 [native platform support spike](./NATIVE-PLATFORM-SUPPORT-SPIKE.md) remains the
@@ -399,6 +412,8 @@ interaction surface were exercised.
 
 - [React Native 0.86 release](https://reactnative.dev/blog/2026/06/11/react-native-0.86)
 - [React Native version support status](https://reactnative.dev/versions.html)
+- [Expo SDK version matrix](https://docs.expo.dev/versions/latest/)
+- [Expo 57 SVG renderer](https://docs.expo.dev/versions/v57.0.0/sdk/svg/)
 - [React Native layout events](https://reactnative.dev/docs/layoutevent)
 - [React Native accessibility](https://reactnative.dev/docs/accessibility)
 - [`react-native-svg` support and compatibility](https://github.com/software-mansion/react-native-svg)
