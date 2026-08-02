@@ -70,6 +70,21 @@ describe('release version synchronization', () => {
     ).toBe(synced)
   })
 
+  it('does not treat a dependency version as the release version', () => {
+    const source =
+      'TanStack Charts `0.6.0`; tag /v0.6.0/; Observable Plot `0.6.17`.'
+
+    expect(
+      syncReleaseVersionReference(
+        source,
+        '0.6.0',
+        '0.6.1',
+        'docs/comparison.md',
+        2,
+      ),
+    ).toBe('TanStack Charts `0.6.1`; tag /v0.6.1/; Observable Plot `0.6.17`.')
+  })
+
   it('rejects a release-facing file with no recognized version', () => {
     expect(() =>
       syncReleaseVersionReference(

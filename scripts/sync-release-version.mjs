@@ -27,8 +27,10 @@ export function syncReleaseVersionReference(
   path,
   expectedReferences,
 ) {
-  const previousReferences = source.split(previousVersion).length - 1
-  const currentReferences = source.split(version).length - 1
+  const previousPattern = releaseVersionPattern(previousVersion)
+  const currentPattern = releaseVersionPattern(version)
+  const previousReferences = [...source.matchAll(previousPattern)].length
+  const currentReferences = [...source.matchAll(currentPattern)].length
   const expectedCount = `${expectedReferences} ${
     expectedReferences === 1 ? 'reference' : 'references'
   }`
@@ -51,7 +53,12 @@ export function syncReleaseVersionReference(
     0,
     `${path} mixes release versions ${previousVersion} and ${version}`,
   )
-  return source.replaceAll(previousVersion, version)
+  return source.replace(previousPattern, version)
+}
+
+function releaseVersionPattern(version) {
+  const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(?<![0-9.])${escaped}(?![0-9A-Za-z.-])`, 'g')
 }
 
 export async function syncReleaseVersion({

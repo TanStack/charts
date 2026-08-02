@@ -230,6 +230,7 @@ Each entry records:
 | F-192 | SVG letterboxing shifted pointer hit testing              | API             | resolved   |
 | F-193 | Fixed catalog height hid compact responsive examples      | Tooling/App     | resolved   |
 | F-194 | Behavior runs omitted the interactive input               | Tooling         | resolved   |
+| F-195 | Release versions matched dependency substrings            | Tooling         | resolved   |
 
 ## Findings
 
@@ -4842,3 +4843,21 @@ Each entry records:
   passes at 320 and 640 pixels across both revisions; reverting the runtime fix
   makes the same scenario report Aug 5 or Aug 6. Static visual measurements and
   public catalog mounts retain their original dimensions.
+
+### F-195 — Release version matching collided with dependency versions
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: releasing 0.6.1 after the SVG pointer fix
+- Friction: the release synchronizer counted versions with raw substring
+  matching. Observable Plot's documented `0.6.17` version therefore counted as
+  an existing `0.6.1` release reference and stopped the Changesets workflow
+  before it could create the version pull request.
+- Decision: count and replace complete version tokens while still accepting the
+  repository's `v0.6.1` tag references. Ignore longer semantic versions and
+  prerelease suffixes that merely share a prefix.
+- Verification: the release-version unit regression advances TanStack Charts
+  from 0.6.0 to 0.6.1 while leaving Observable Plot 0.6.17 unchanged. The
+  release workflow can create the 0.6.1 version pull request from the same
+  changeset.
