@@ -1,5 +1,12 @@
 # @tanstack/charts
 
+## 0.6.3
+
+### Patch Changes
+
+- [#49](https://github.com/TanStack/charts/pull/49) [`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921) - Keep the built-in primary focus ring when authored focus marks are present, and
+  add `focusRing: false` for charts that replace the indicator explicitly.
+
 ## 0.6.2
 
 ### Patch Changes

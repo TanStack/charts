@@ -1,5 +1,84 @@
 # Changelog
 
+## 0.6.3
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#49](https://github.com/TanStack/charts/pull/49) [`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921) - Keep the built-in primary focus ring when authored focus marks are present, and
+  add `focusRing: false` for charts that replace the indicator explicitly.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`e4b5249`](https://github.com/TanStack/charts/commit/e4b5249ceca9910d990aefc9f8777a8d28e63921)]:
+  - @tanstack/charts@0.6.3
+
 ## 0.6.2
 
 ### @tanstack/charts
