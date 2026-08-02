@@ -13,13 +13,14 @@ import type {
   ChannelOutput,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartPoint,
   ChartValue,
   SceneNode,
   VisualChannel,
 } from './types'
 
-export interface ArrowOptions<TDatum> {
+export interface ArrowOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x1: Channel<TDatum, ChartValue | null | undefined>
   y1: Channel<TDatum, ChartValue | null | undefined>
@@ -177,5 +178,5 @@ export function arrow<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }

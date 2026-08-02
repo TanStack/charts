@@ -224,7 +224,9 @@ renderers emit directly comparable boxes. Geometry expectations may similarly
 declare `maxCount` when excess primitives are a semantic failure.
 
 Every visual assertion runs once on initial data and again after a same-shape
-revision update.
+revision update. When a renderer exposes `driver.settle`, the static visual
+inspection waits for it; temporal behavior remains the interaction scenario's
+responsibility.
 
 Interaction cases additionally declare renderer-independent semantic
 scenarios. Each implementation exposes a benchmark-only driver that maps a
@@ -249,8 +251,8 @@ comparison.
 
 ## Current scope
 
-The executable corpus contains 100 paired cases: 68 sourced from Observable
-Plot, 21 from Recharts, and 11 from Apache ECharts. It spans the common
+The executable corpus contains 108 paired cases: 74 sourced from Observable
+Plot, 23 from Recharts, and 11 from Apache ECharts. It spans the common
 cartesian vocabulary plus the high-value catalog beyond it:
 
 - lines, areas, bars, intervals, heatmaps, histograms, facets, and framed
@@ -268,6 +270,8 @@ cartesian vocabulary plus the high-value catalog beyond it:
 - regional and world choropleths, proportional symbols, orthographic globe
   and graticule layers, projected routes, 177 real country boundaries, 51 US
   state/DC boundaries, and a four-projection atlas gallery.
+- staggered entrances, tween and physical-spring updates, definition-local
+  timing, cross-chart geometry morphing, and animated focus/crosshair state.
 
 Shared facet guides, guide suppression, Plot-style tooltip mapping, exact
 difference crossings, and responsive fixed-pixel spatial preparation are

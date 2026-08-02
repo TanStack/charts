@@ -13,6 +13,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartNumericScale,
   ChartPoint,
   ChartValue,
@@ -21,7 +22,7 @@ import type {
   VisualChannel,
 } from './types'
 
-export interface HexagonOptions<TDatum> {
+export interface HexagonOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, ChartValue | null | undefined>
@@ -168,5 +169,5 @@ export function hexagon<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }

@@ -8,6 +8,7 @@ import type {
   ChartBounds,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartMargin,
   ChartPoint,
   ChartScene,
@@ -23,7 +24,7 @@ import type {
 
 export type FacetAxes = 'outer' | 'cell'
 
-export interface FacetOptions<TDatum> {
+export interface FacetOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   by: Channel<TDatum, ChartKey>
   chart: (data: readonly TDatum[], key: ChartKey) => ChartSpec
@@ -158,7 +159,7 @@ export function facet<TDatum>(
         })
       },
     }
-  })
+  }, options.motion)
 }
 
 function resolveOuterMargin<TDatum>(options: {

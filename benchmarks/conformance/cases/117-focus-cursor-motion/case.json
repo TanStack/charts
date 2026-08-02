@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "order": 1180,
+  "id": "117-focus-cursor-motion",
+  "title": "Focus and crosshair motion",
+  "family": "motion",
+  "intent": "Animate primary, grouped, and unmatched mark states while a labeled momentum-preserving crosshair follows pointer and keyboard focus.",
+  "support": "native",
+  "features": [
+    "primary focus spring",
+    "grouped focus spring",
+    "unmatched de-emphasis",
+    "crosshair spring",
+    "crosshair axis labels",
+    "pointer retargeting",
+    "keyboard focus"
+  ],
+  "geometry": [
+    { "role": "line", "count": 3 },
+    { "role": "dot", "count": 21 }
+  ],
+  "interactionScenarios": [
+    {
+      "id": "focus-and-crosshair-retarget",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": { "anchor": "period:Mon" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focused", "equals": "Alpha:Mon" },
+            { "path": "groupSize", "equals": 3 },
+            { "path": "crosshairVisible", "equals": true },
+            { "path": "crosshairXLabel", "equals": "Mon" },
+            { "path": "crosshairYLabel", "equals": "46" },
+            { "path": "crosshairFinite", "equals": true }
+          ]
+        },
+        {
+          "type": "pointerMove",
+          "target": { "anchor": "period:Sat" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focused", "equals": "Alpha:Sat" },
+            { "path": "groupSize", "equals": 3 },
+            { "path": "crosshairVisible", "equals": true },
+            { "path": "crosshairXLabel", "equals": "Sat" },
+            { "path": "crosshairYLabel", "equals": "84" },
+            { "path": "crosshairFinite", "equals": true }
+          ]
+        },
+        { "type": "wait", "durationMs": 1200 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "crosshairSettled", "equals": true },
+            { "path": "focusMotionState", "equals": "finished" }
+          ]
+        },
+        { "type": "screenshot", "name": "grouped-focus-crosshair" }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Motion animate",
+    "url": "https://motion.dev/docs/animate"
+  },
+  "ai": {
+    "create": "Create a grouped line chart where the primary datum, its shared-x group, the focused series, unmatched marks, and an external crosshair with axis labels all animate distinctly.",
+    "maintain": "Keep focus semantics in mark states, preserve spring velocity and label alignment during rapid pointer retargeting, and support the same focus movement from the keyboard."
+  }
+}

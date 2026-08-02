@@ -33,7 +33,11 @@ const definition = (input: ConformanceInput) => {
               stroke: 'Canvas',
               strokeWidth: 2,
             },
-            transition: { duration: 140, easing: 'ease-out' },
+            transition: {
+              type: 'tween',
+              duration: 140,
+              easing: 'ease-out',
+            },
           },
         ],
       }),

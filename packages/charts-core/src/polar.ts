@@ -24,6 +24,11 @@ import type {
   ChartBounds,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
+  ChartMotionContext,
+  ChartMotionDefinition,
+  ChartMotionTiming,
+  ChartMotionTransition,
   ChartNumericScale,
   ChartPoint,
   ChartTheme,
@@ -85,6 +90,7 @@ interface InitializedPolarMark<
   includeZeroRadius: boolean
   requiresAngleScale: boolean
   requiresRadiusScale: boolean
+  motion?: ChartMotionDefinition<any>
   render: (
     context: PolarMarkRenderContext,
   ) => MarkScene<TDatum, TAngle, TRadius>
@@ -109,6 +115,7 @@ export interface PolarMark<
   initialize: (
     context: PolarMarkInitializeContext,
   ) => InitializedPolarMark<TDatum, TAngle, TRadius>
+  motion?: ChartMotionDefinition<any>
   readonly __datum?: TDatum
   readonly __angle?: TAngle
   readonly __radius?: TRadius
@@ -130,7 +137,7 @@ export interface PolarGuideScene {
   foreground?: readonly SceneNode[]
 }
 
-type AnyPolarMark = PolarMark<unknown, any, any>
+type AnyPolarMark = PolarMark<any, any, any>
 
 type PolarMarkDatum<TMark> =
   TMark extends PolarMark<infer TDatum, any, any> ? TDatum : never
@@ -143,7 +150,7 @@ type PolarMarkRadius<TMark> =
 
 export interface PolarOptions<
   TMarks extends readonly AnyPolarMark[] = readonly AnyPolarMark[],
-> {
+> extends ChartMarkMotionOptions<PolarMarkDatum<TMarks[number]>> {
   id?: string
   className?: string
   marks: TMarks
@@ -170,11 +177,35 @@ export function polar<const TMarks extends readonly AnyPolarMark[]>(
 export function polar(
   options: PolarOptions,
 ): ChartMark<any, any, any, never, never> {
+  let childMotions = new Map<string, ChartMotionDefinition>()
+  const authoredMotion =
+    options.motion !== undefined ||
+    options.marks.some((mark) => mark.motion !== undefined)
+      ? (context: ChartMotionContext) => {
+          const parent = resolvePolarMotion(options.motion, context)
+          const childId = [...childMotions.keys()]
+            .filter(
+              (candidate) =>
+                context.markId === candidate ||
+                context.markId?.startsWith(`${candidate}:`),
+            )
+            .sort((left, right) => right.length - left.length)[0]
+          const child = childId
+            ? resolvePolarMotion(childMotions.get(childId), context)
+            : undefined
+          return mergePolarMotion(parent, child)
+        }
+      : undefined
   return createMarkWithScaleValues<any, any, any, never, never>(
     ({ markIndex }) => {
       const id = options.id ?? `polar-${markIndex}`
       const marks = options.marks.map((mark, polarMarkIndex) =>
         mark.initialize({ markIndex: polarMarkIndex, parentId: id }),
+      )
+      childMotions = new Map(
+        marks.flatMap((mark) =>
+          mark.motion === undefined ? [] : [[mark.id, mark.motion]],
+        ),
       )
 
       return {
@@ -240,10 +271,13 @@ export function polar(
         },
       }
     },
+    authoredMotion,
   )
 }
 
-export interface RadialArcOptions<TDatum> {
+export interface RadialArcOptions<
+  TDatum,
+> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   className?: string
   startAngle?: Channel<TDatum, number | null | undefined>
@@ -414,10 +448,10 @@ export function radialArc<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }
 
-interface RadialPathOptions<TDatum> {
+interface RadialPathOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   className?: string
   angle?: number | Channel<TDatum, ChartValue | null | undefined>
@@ -594,7 +628,7 @@ export function radialLine<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }
 
 export interface RadialAreaOptions<TDatum> extends RadialPathOptions<TDatum> {
@@ -771,7 +805,7 @@ export function radialArea<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }
 
 export interface RadialDotOptions<TDatum> extends RadialPathOptions<TDatum> {
@@ -938,10 +972,12 @@ export function radialText<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }
 
-export interface RadialRuleOptions<TDatum> {
+export interface RadialRuleOptions<
+  TDatum,
+> extends ChartMarkMotionOptions<never> {
   id?: string
   className?: string
   angle?: number | Channel<TDatum, ChartValue | null | undefined>
@@ -1082,7 +1118,7 @@ export function radialRule<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }
 
 export function radialDot<TDatum>(
@@ -1217,7 +1253,7 @@ export function radialDot<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }
 
 export interface PolarGuideLabelContext {
@@ -1576,8 +1612,43 @@ function createPolarMark<
   initialize: (
     context: PolarMarkInitializeContext,
   ) => InitializedPolarMark<TDatum, TAngle, TRadius>,
+  motion?: ChartMotionDefinition<TDatum>,
 ): PolarMark<TDatum, TAngle, TRadius> {
-  return { initialize }
+  if (motion === undefined) return { initialize }
+  return {
+    motion,
+    initialize(context) {
+      return { ...initialize(context), motion }
+    },
+  }
+}
+
+function resolvePolarMotion(
+  definition: ChartMotionDefinition | undefined,
+  context: ChartMotionContext,
+) {
+  return typeof definition === 'function' ? definition(context) : definition
+}
+
+function mergePolarMotion(
+  parent: ChartMotionTiming | undefined,
+  child: ChartMotionTiming | undefined,
+): ChartMotionTiming | undefined {
+  if (!parent) return child
+  if (!child) return parent
+  return {
+    delay: child.delay ?? parent.delay,
+    transition: mergePolarTransition(parent.transition, child.transition),
+  }
+}
+
+function mergePolarTransition(
+  parent: ChartMotionTransition | undefined,
+  child: ChartMotionTransition | undefined,
+): ChartMotionTransition | undefined {
+  if (!parent) return child
+  if (!child) return parent
+  return parent.type === child.type ? { ...parent, ...child } : child
 }
 
 function groupIndices(

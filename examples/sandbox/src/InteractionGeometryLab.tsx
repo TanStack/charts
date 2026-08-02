@@ -238,7 +238,7 @@ const animatedDestinationBase = baseDefinition(
         {
           when: { focus: 'primary' },
           style: { inset: 8, radius: 10, fill: '#171717' },
-          transition: { duration: 700, easing: 'ease-out' },
+          transition: { type: 'tween', duration: 700, easing: 'ease-out' },
         },
       ],
     }),

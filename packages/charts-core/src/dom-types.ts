@@ -38,6 +38,8 @@ export interface ChartSurface<
     clientX: number,
     clientY: number,
   ) => { x: number; y: number } | null
+  /** Renderer-owned point geometry while a scene transition is active. */
+  getPresentationPoints?: () => readonly ChartPoint<any, any, any>[] | undefined
   /**
    * Paints focus and may return a destination scene for interaction during a
    * transition. A returned scene preserves the rendered scene's layout.

@@ -16,6 +16,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartMarkState,
   ChartBarStateStyle,
   ChartPoint,
@@ -30,7 +31,7 @@ import type { StackLayout } from './stack'
 
 type BarLayout = GroupLayout | StackLayout
 
-export interface BarYOptions<TDatum> {
+export interface BarYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, number | null | undefined>
@@ -48,7 +49,7 @@ export interface BarYOptions<TDatum> {
   states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
 
-export interface BarXOptions<TDatum> {
+export interface BarXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, number | null | undefined>
   x1?: number | Channel<TDatum, number | null | undefined>
@@ -243,7 +244,7 @@ export function barY<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }
 
 export function barX<TDatum>(
@@ -423,7 +424,7 @@ export function barX<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }
 
 function resolveGroupScale(

@@ -21,6 +21,7 @@ and application-owned interaction.
 | Dynamic scene compilation and runtime behavior              | [Runtime and scene](./runtime-and-scene.md)               |
 | Pointer focus, keyboard navigation, tooltips, and selection | [Focus and interaction](./focus-and-interaction.md)       |
 | SVG, Canvas, custom rendering, reconciliation, and export   | [Rendering and export](./rendering-and-export.md)         |
+| Optional tween and spring motion                            | [Motion](./motion.md)                                     |
 | Custom marks, renderers, scales, and indexes                | [Custom extensions](./custom-extensions.md)               |
 | Public generic and scene types                              | [Types](./types.md)                                       |
 
@@ -89,6 +90,7 @@ capabilities and individual marks independently tree-shakeable.
 | `@tanstack/charts/line`              | `lineY`                                                                                                                                                                        |
 | `@tanstack/charts/link`              | `link`                                                                                                                                                                         |
 | `@tanstack/charts/mark/scale-values` | `createMarkWithScaleValues`                                                                                                                                                    |
+| `@tanstack/charts/motion`            | `motion`, `ChartMotionOptions`, and renderer-neutral motion types                                                                                                              |
 | `@tanstack/charts/polar`             | `polar`, radial arc/line/area/dot marks, and radial/angle guides                                                                                                               |
 | `@tanstack/charts/universal`         | Common root authoring, runtime, scene, and static SVG values without browser hosts or adapters                                                                                 |
 | `@tanstack/charts/reconcile`         | `reconcileChartSvg`                                                                                                                                                            |
@@ -101,6 +103,7 @@ capabilities and individual marks independently tree-shakeable.
 | `@tanstack/charts/svg/renderer`      | `createSvgChartRenderer`, `svgChartRenderer`                                                                                                                                   |
 | `@tanstack/charts/svg/resources`     | `renderChartSvgWithResources`                                                                                                                                                  |
 | `@tanstack/charts/stack`             | `stack`, `StackLayout`, `StackOptions`, `StackOrder`, `StackOffset`                                                                                                            |
+| `@tanstack/charts/spring`            | `createChartSpring` and scalar spring types                                                                                                                                    |
 | `@tanstack/charts/text`              | `text`                                                                                                                                                                         |
 | `@tanstack/charts/tick`              | `tickX`, `tickY`                                                                                                                                                               |
 | `@tanstack/charts/types`             | Universal definition, mark, scene, runtime, focus, and tooltip-model types                                                                                                     |

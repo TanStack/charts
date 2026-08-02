@@ -13,13 +13,14 @@ import type {
   ChartCurve,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartPoint,
   ChartValue,
   SceneNode,
   VisualChannel,
 } from './types'
 
-export interface LinkOptions<TDatum> {
+export interface LinkOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x1: Channel<TDatum, ChartValue | null | undefined>
   y1: Channel<TDatum, ChartValue | null | undefined>
@@ -212,5 +213,5 @@ export function link<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }

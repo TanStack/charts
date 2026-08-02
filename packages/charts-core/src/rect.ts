@@ -13,6 +13,7 @@ import type {
   ChannelOutput,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartMarkState,
   ChartRectStateStyle,
   ChartPoint,
@@ -20,7 +21,7 @@ import type {
   SceneNode,
 } from './types'
 
-export interface RectOptions<TDatum> {
+export interface RectOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   x1?: Channel<TDatum, ChartValue | null | undefined>
@@ -248,7 +249,7 @@ export function rect<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }
 
 export function cell<

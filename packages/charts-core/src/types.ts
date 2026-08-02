@@ -211,7 +211,11 @@ export interface ChartMarkState<
     | ChartMarkStateSelector
     | ((context: ChartMarkStateContext<TDatum>) => boolean)
   style: TStyle
-  transition?: ChartAnimationOptions
+  transition?: ChartMarkStateTransition
+}
+
+export type ChartMarkStateTransition = ChartMotionTransition & {
+  respectReducedMotion?: boolean
 }
 
 export interface ChartSize {
@@ -268,6 +272,7 @@ export interface ChartAxisTickOptions<TValue extends ChartValue = any> {
   /** Gap between the tick stub and label in pixels. */
   padding?: number
   format?: (value: TValue) => string
+  motion?: ChartMotionDefinition
 }
 
 export interface ChartAxisTickLabelThinOptions<
@@ -282,11 +287,13 @@ export interface ChartAxisTickLabelThinOptions<
 export interface ChartAxisTickLabelOptions<TValue extends ChartValue = any> {
   rotate?: number
   thin?: boolean | ChartAxisTickLabelThinOptions<TValue>
+  motion?: ChartMotionDefinition
 }
 
 export interface ChartAxisLabelOptions {
   text: string
   offset?: number | 'auto'
+  motion?: ChartMotionDefinition
 }
 
 export interface ChartAxisPresentationOptions<TValue extends ChartValue = any> {
@@ -294,6 +301,7 @@ export interface ChartAxisPresentationOptions<TValue extends ChartValue = any> {
   ticks?: false | ChartAxisTickOptions<TValue>
   tickLabels?: false | ChartAxisTickLabelOptions<TValue>
   label?: string | ChartAxisLabelOptions
+  motion?: ChartMotionDefinition
 }
 
 export interface ChartAxisOptions<TValue extends ChartValue = any> {
@@ -484,6 +492,77 @@ interface ChartSpecBase {
   theme?: Partial<ChartTheme>
 }
 
+export type ChartMotionPhase = 'enter' | 'update' | 'exit'
+
+export type ChartMotionRole =
+  | 'area'
+  | 'arc'
+  | 'arrow'
+  | 'axis'
+  | 'axis-label'
+  | 'band'
+  | 'bar'
+  | 'dot'
+  | 'facet'
+  | 'frame'
+  | 'geo'
+  | 'grid'
+  | 'hexagon'
+  | 'line'
+  | 'link'
+  | 'mark'
+  | 'rect'
+  | 'rule'
+  | 'text'
+  | 'tick'
+  | 'tick-label'
+  | 'vector'
+
+export interface ChartMotionContext<TDatum = unknown> {
+  phase: ChartMotionPhase
+  role: ChartMotionRole
+  key: string
+  markId?: string
+  seriesKey: string
+  seriesIndex: number
+  datumIndex: number
+  datumCount: number
+  datum: TDatum | undefined
+  point: ChartPoint<TDatum> | undefined
+  axis?: 'x' | 'y'
+}
+
+export interface ChartMotionTweenTransition {
+  type: 'tween'
+  duration?: number
+  easing?: ChartAnimationOptions['easing']
+}
+
+export interface ChartMotionSpringTransition {
+  type: 'spring'
+  stiffness?: number
+  damping?: number
+  mass?: number
+  restSpeed?: number
+  restDelta?: number
+}
+
+export type ChartMotionTransition =
+  ChartMotionTweenTransition | ChartMotionSpringTransition
+
+export interface ChartMotionTiming {
+  delay?: number
+  transition?: ChartMotionTransition
+}
+
+export type ChartMotionDefinition<TDatum = unknown> =
+  | ChartMotionTiming
+  | ((context: ChartMotionContext<TDatum>) => ChartMotionTiming | undefined)
+
+export interface ChartMarkMotionOptions<TDatum = unknown> {
+  motion?: ChartMotionDefinition<TDatum>
+}
+
 interface StoredChartSpec extends ChartSpecBase {
   marks: readonly ChartMark<unknown, any, any>[]
   x?: ChartAxisOptions<any> | null
@@ -525,6 +604,8 @@ export interface ChartDefinitionOptions<
   focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
   spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
   animate?: boolean | ChartAnimationOptions
+  /** Renderer-neutral motion defaults. An optional motion implementation consumes them. */
+  motion?: ChartMotionDefinition<NoInfer<TDatum>>
   keyboard?: boolean
   tooltip?:
     | false
@@ -536,6 +617,7 @@ interface StoredChartDefinitionOptions {
   focus?: ChartFocusMode<any, any, any>
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
   animate?: boolean | ChartAnimationOptions
+  motion?: ChartMotionDefinition<any>
   keyboard?: boolean
   tooltip?: false | ChartTooltipInput<any, any, any>
 }
@@ -668,6 +750,7 @@ export interface ChartMark<
   initialize: (
     context: MarkInitializeContext,
   ) => InitializedMark<TDatum, TXPointValue, TYPointValue>
+  motion?: ChartMotionDefinition<any>
   readonly __xValue?: TXPointValue
   readonly __yValue?: TYPointValue
   readonly __xScaleValue?: TXScaleValue

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "order": 1170,
+  "id": "116-geometry-morph",
+  "title": "Cross-chart geometry morph",
+  "family": "motion",
+  "intent": "Stress keyed spring motion by morphing the same data between bars, a rose, a donut, and packed bubbles.",
+  "support": "native",
+  "features": [
+    "cross-chart morphing",
+    "normalized path topology",
+    "physical spring transition",
+    "per-datum staggering",
+    "mid-flight interruption",
+    "momentum preservation"
+  ],
+  "geometry": [
+    {
+      "role": "area",
+      "rendererRoles": { "observable-plot": "bar" },
+      "count": 6
+    }
+  ],
+  "source": {
+    "title": "Motion animate",
+    "url": "https://motion.dev/docs/animate"
+  },
+  "ai": {
+    "create": "Create a motion lab where stable keyed data morphs between Cartesian bars, radial rose sectors, donut sectors, and packed bubbles using a shared path topology.",
+    "maintain": "Keep every datum keyed across modes, preserve the fixed path sample count, and verify that an interrupted spring carries path-token velocity into the next chart form."
+  }
+}

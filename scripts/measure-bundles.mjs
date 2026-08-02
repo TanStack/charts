@@ -69,6 +69,8 @@ const retainedInputGroups = {
   ],
   tooltipExtension: [/(?:^|\/)packages\/charts-core\/src\/tooltip\.ts$/u],
   tooltipPortal: [/(?:^|\/)packages\/charts-core\/src\/tooltip-portal\.ts$/u],
+  motionRuntime: [/(?:^|\/)packages\/charts-core\/src\/motion\.ts$/u],
+  springRuntime: [/(?:^|\/)packages\/charts-core\/src\/spring\.ts$/u],
   transformRuntime: [
     /(?:^|\/)packages\/charts-core\/src\/transform(?:-[^/]+)?\.ts$/u,
   ],
@@ -311,7 +313,7 @@ const entries = [
   budgeted(
     'Polar line + scatter composition + static SVG',
     'benchmarks/entries/charts-polar-line-scatter-svg.ts',
-    21.8,
+    22.1,
   ),
   locked('Representative marks', 'benchmarks/entries/charts-representative.ts'),
   measured(
@@ -428,7 +430,7 @@ const entries = [
   lockedBudgeted(
     'Compact-scale line scene',
     'benchmarks/entries/charts-compact-linear-scene.ts',
-    8.1,
+    8.2,
     {
       inputBoundary: {
         require: ['compactLinear'],
@@ -482,6 +484,42 @@ const entries = [
           'reactTooltipBridge',
           'transformRuntime',
           'd3Runtime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'Motion SVG renderer',
+    'benchmarks/entries/charts-motion-svg-renderer.ts',
+    10.6,
+    {
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['motionRuntime', 'springRuntime'],
+        forbid: [
+          'tooltipExtension',
+          'tooltipPortal',
+          'transformRuntime',
+          'd3Array',
+          'd3ScaleRuntime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'Spring physics kernel',
+    'benchmarks/entries/charts-spring-kernel.ts',
+    1.5,
+    {
+      inputBoundary: {
+        require: ['springRuntime'],
+        forbid: [
+          'motionRuntime',
+          'tooltipExtension',
+          'tooltipPortal',
+          'transformRuntime',
+          'd3Array',
+          'd3ScaleRuntime',
         ],
       },
     },
@@ -611,7 +649,7 @@ const entries = [
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    31.6,
+    31.8,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
