@@ -313,8 +313,8 @@ function isDemoDatasetPayload(module) {
 function isCatalogSourceModule(module) {
   const value = normalizePath(module)
   return (
-    /\/benchmarks\/conformance\/(?:cases|shared)\/.+\.ts\?raw$/.test(value) &&
-    !value.endsWith('.test.ts?raw')
+    /\/benchmarks\/conformance\/(?:cases|shared)\/.+\.tsx?\?raw$/.test(value) &&
+    !/\.test\.tsx?\?raw$/.test(value)
   )
 }
 
