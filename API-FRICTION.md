@@ -231,6 +231,8 @@ Each entry records:
 | F-193 | Fixed catalog height hid compact responsive examples      | Tooling/App     | resolved   |
 | F-194 | Behavior runs omitted the interactive input               | Tooling         | resolved   |
 | F-195 | Release versions matched dependency substrings            | Tooling         | resolved   |
+| F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
+| F-197 | Workspace validation omitted comparison provenance        | Tooling         | resolved   |
 
 ## Findings
 
@@ -4868,3 +4870,41 @@ Each entry records:
   from 0.6.0 to 0.6.1 while leaving Observable Plot 0.6.17 unchanged. The
   release workflow can create the 0.6.1 version pull request from the same
   changeset.
+
+### F-196 — Focus decorations suppressed the primary indicator
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: issue #33 focused-band composition
+- Friction: adding any `whenFocused` mark removed the built-in primary-point
+  ring from the complete chart. A category highlight or crosshair therefore
+  also removed the indicator that identified the point owned by the tooltip
+  and keyboard focus.
+- Decision: compose the built-in ring with authored focus layers by default.
+  Add definition `focusRing: false` for charts whose authored geometry
+  deliberately replaces the primary indicator.
+- Verification: scene and SVG regressions retain both a focused category band
+  and one primary ring, Canvas paints authored underlays and the default
+  overlay together, facets retain synchronized authored bands plus one shared
+  ring, and an explicit opt-out omits the ring. Removing the implicit
+  focus-layer scan reduces the ten locked universal bundles by 109–110
+  minified bytes and 22–48 gzip bytes; the reviewed exact baseline records the
+  decrease.
+
+### F-197 — Workspace validation omitted comparison provenance
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: issue #33 release validation
+- Friction: `pnpm run validate` passed the locked universal bundle policy but
+  did not run the separate comparison baseline gate. Because the focus fix
+  changed a core comparison input, pull-request CI correctly rejected the
+  stale workspace revision even though local validation was green.
+- Decision: refresh the comparison evidence whenever a change advances one of
+  its tracked TanStack inputs, and run `pnpm benchmark:check` alongside the
+  workspace validation before release.
+- Verification: the 60-case comparison baseline records revision `e4b5249`
+  and package version 0.6.2, the canonical comparison page identifies the same
+  revision, and `pnpm benchmark:check` passes locally and in pull-request CI.

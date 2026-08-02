@@ -27,6 +27,9 @@ With no custom focus strategy:
 `maxFocusDistance` defaults to `48` scene pixels. Set `tabIndex` to control
 normal tab-order participation while keeping keyboard handling enabled. Set
 `keyboard: false` to remove keyboard navigation and force tab index `-1`.
+Authored `whenFocused` marks compose with the primary-point ring. Set
+definition `focusRing: false` only when authored focus geometry replaces that
+indicator.
 
 ### Interaction geometry
 

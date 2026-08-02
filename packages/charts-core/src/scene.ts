@@ -208,7 +208,6 @@ function createChartSceneWithScaleResolver<
   const markNodes: SceneNode[] = []
   const points: ChartPoint<TDatum, TXValue, TYValue>[] = []
   const firstBaseMarkIndex = initialized.findIndex((mark) => !mark.focus)
-  let hasFocusLayers = initialized.some((mark) => mark.focus)
 
   initialized.forEach((mark, markIndex) => {
     const rendered = mark.render({
@@ -224,7 +223,6 @@ function createChartSceneWithScaleResolver<
       rendered.nodes,
       rendered.points,
     )
-    hasFocusLayers ||= containsFocusLayer(rendered.nodes)
     if (mark.focus) {
       markNodes.push({
         kind: 'group',
@@ -283,7 +281,7 @@ function createChartSceneWithScaleResolver<
     nodes.push(axisNodes)
   }
   if (legend) nodes.push(legend.render({ colors, chart, theme, width }))
-  if (!hasFocusLayers && points.length) {
+  if (definition.focusRing !== false && points.length) {
     nodes.push({
       kind: 'group',
       key: 'default-focus',
@@ -372,14 +370,6 @@ function collectRenderedPoints(
   }
   visit(nodes)
   return points
-}
-
-function containsFocusLayer(nodes: readonly SceneNode[]): boolean {
-  return nodes.some(
-    (node) =>
-      node.kind === 'group' &&
-      (node.focus !== undefined || containsFocusLayer(node.children)),
-  )
 }
 
 function collectScaleChannels(

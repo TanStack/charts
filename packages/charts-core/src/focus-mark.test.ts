@@ -69,7 +69,7 @@ describe('focus-filtered marks', () => {
           node.kind === 'group' &&
           node.className?.includes('focus-layer--default'),
       ),
-    ).toBe(false)
+    ).toBe(true)
   })
 
   it('shows only ordinary mark geometry matching the focused x value', () => {
@@ -89,7 +89,9 @@ describe('focus-filtered marks', () => {
       pinned: false,
     })
 
-    const layer = container.querySelector<SVGGElement>('[data-ts-focus-layer]')
+    const layer = container.querySelector<SVGGElement>(
+      '.ts-chart__marks [data-ts-focus-layer]',
+    )
     expect(layer?.getAttribute('visibility')).toBe('visible')
     const visibleRects = [...(layer?.querySelectorAll('rect') ?? [])].filter(
       (rect) => rect.getAttribute('visibility') === 'visible',
@@ -99,9 +101,39 @@ describe('focus-filtered marks', () => {
       visibleRects.every((rect) => Number(rect.getAttribute('height')) > 0),
     ).toBe(true)
 
+    const defaultLayer = container.querySelector<SVGGElement>(
+      '.ts-chart__focus-layer--default',
+    )
+    expect(defaultLayer?.getAttribute('visibility')).toBe('visible')
+    expect(
+      defaultLayer?.querySelectorAll('circle[visibility="visible"]'),
+    ).toHaveLength(1)
+
     surface.paintFocus(null)
     expect(layer?.getAttribute('visibility')).toBe('hidden')
+    expect(defaultLayer?.getAttribute('visibility')).toBe('hidden')
     surface.destroy()
+  })
+
+  it('allows the built-in primary-point ring to be disabled explicitly', () => {
+    const rows = [{ category: 'A', value: 12 }]
+    const resolved = createChartScene(
+      defineChart({
+        marks: [barY(rows, { x: 'category', y: 'value' })],
+        x: { scale: scaleBand<string>().domain(['A']) },
+        y: { scale: scaleLinear().domain([0, 20]) },
+        focusRing: false,
+      }),
+      { width: 240, height: 160 },
+    )
+
+    expect(
+      resolved.nodes.some(
+        (node) =>
+          node.kind === 'group' &&
+          node.className?.includes('focus-layer--default'),
+      ),
+    ).toBe(false)
   })
 })
 
