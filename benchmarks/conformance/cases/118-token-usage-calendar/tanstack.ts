@@ -89,5 +89,4 @@ export const mount = withTokenActivityShell(
       portal,
     },
   ),
-  { interactive: true },
 )

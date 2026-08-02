@@ -31,7 +31,7 @@ session-level token events into a complete twelve-month UTC day domain, then
 maps Sunday weeks to columns and weekdays to rows.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/112-token-usage-calendar/?theme=system&height=480"
+  src="https://tanstack.com/charts/catalog/embed/118-token-usage-calendar/?theme=system&height=480"
   title="Token use calendar heatmap built with TanStack Charts"
   loading="lazy"
   width="100%"

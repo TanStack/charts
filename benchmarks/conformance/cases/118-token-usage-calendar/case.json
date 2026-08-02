@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "order": 1130,
-  "id": "112-token-usage-calendar",
+  "order": 1190,
+  "id": "118-token-usage-calendar",
   "title": "Token use calendar heatmap",
   "family": "time",
   "intent": "Show twelve months of token activity in contribution-style week columns, with recent usage emerging in the right half and quiet days kept visually consistent.",
@@ -12,9 +12,34 @@
     "cell mark",
     "two band scales",
     "categorical intensity color scale",
-    "keyboard focus and tooltip"
+    "keyboard focus and tooltip",
+    "letterboxed interaction viewport"
   ],
   "geometry": [{ "role": "cell", "count": 364 }],
+  "interactionScenarios": [
+    {
+      "id": "letterboxed-cell-tooltip",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": { "anchor": "date:2025-08-03" }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focus.date", "equals": "2025-08-03" },
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.text", "includes": "Aug 3" }
+          ]
+        },
+        { "type": "pointerLeave" },
+        {
+          "type": "assert",
+          "assertions": [{ "path": "tooltip.visible", "equals": false }]
+        }
+      ]
+    }
+  ],
   "source": {
     "title": "D3 calendar time intervals",
     "url": "https://d3js.org/d3-time"

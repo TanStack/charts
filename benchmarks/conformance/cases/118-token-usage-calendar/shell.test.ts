@@ -27,8 +27,13 @@ describe('token activity shell', () => {
     }
     const container = document.createElement('div')
     container.style.minHeight = '480px'
-    const mount = withTokenActivityShell(mountChart, { interactive: true })
-    const handle = mount(container, { width: 320, height: 180, revision: 0 })
+    const mount = withTokenActivityShell(mountChart)
+    const handle = mount(container, {
+      width: 320,
+      height: 180,
+      revision: 0,
+      interactive: true,
+    })
     const labels = container.querySelectorAll('text')
     const shell = container.querySelector<HTMLElement>('.token-activity-shell')
 
@@ -43,7 +48,12 @@ describe('token activity shell', () => {
     expect(labels[1]?.getAttribute('x')).toBe('92')
     expect(labels[1]?.getAttribute('text-anchor')).toBe('middle')
 
-    handle.update({ width: 960, height: 240, revision: 1 })
+    handle.update({
+      width: 960,
+      height: 240,
+      revision: 1,
+      interactive: true,
+    })
     expect(inputs[1]?.interactive).toBe(true)
     expect(inputs[1]?.width).toBe(960)
     expect(inputs[1]?.height).toBe(calendarChartHeight(960))

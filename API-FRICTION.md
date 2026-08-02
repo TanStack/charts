@@ -229,6 +229,7 @@ Each entry records:
 | F-191 | Axis tick styling and edge alignment required shell work  | API/Application | monitoring |
 | F-192 | SVG letterboxing shifted pointer hit testing              | API             | resolved   |
 | F-193 | Fixed catalog height hid compact responsive examples      | Tooling/App     | resolved   |
+| F-194 | Behavior runs omitted the interactive input               | Tooling         | resolved   |
 
 ## Findings
 
@@ -4820,3 +4821,24 @@ Each entry records:
 - Verification: shell tests cover fluid 320- and 960-pixel widths plus teardown.
   Browser measurements confirm square day cells at each width, with no
   horizontal overflow or fixed maximum-width behavior.
+
+### F-194 — Behavior runs omitted the interactive input
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: automating the SVG letterbox pointer regression
+- Friction: `ConformanceInput` exposed an `interactive` flag and catalog embeds
+  supplied it, but the browser behavior runner did not. Examples therefore had
+  to force interactive behavior at definition setup and could not scope a
+  viewport mismatch to semantic interaction checks without affecting static
+  visual measurements.
+- Decision: mark behavior-run inputs as interactive and expose a separate
+  `behavior` flag for interaction-only layout. Remove the token calendar's
+  duplicated always-interactive shell option.
+- Verification: the pointer-tooltip scenario creates a 120-pixel SVG viewport
+  mismatch only during the token calendar's behavior runs, targets the painted
+  Aug 3 cell, and asserts the exact focused date and tooltip. The fixed runtime
+  passes at 320 and 640 pixels across both revisions; reverting the runtime fix
+  makes the same scenario report Aug 5 or Aug 6. Static visual measurements and
+  public catalog mounts retain their original dimensions.

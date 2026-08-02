@@ -84,6 +84,10 @@ describe('SVG surface coordinates', () => {
     vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue(
       DOMRect.fromRect({ x: 10, y: 20, width: 320, height: 240 }),
     )
+    Object.defineProperty(svg, 'getScreenCTM', {
+      configurable: true,
+      value: vi.fn(() => null),
+    })
 
     expect(surface.clientToScene(scene, 170, 140)).toEqual({ x: 320, y: 240 })
 
