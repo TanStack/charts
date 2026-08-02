@@ -1,0 +1,1 @@
+import{t as e}from"./penguins-D7nxr56v.js";var t=e.filter(r);function n(e){return t.slice(e*8,e*8+320).sort((e,t)=>t.body_mass_g-e.body_mass_g)}function r(e){return e.culmen_length_mm!==null&&e.culmen_depth_mm!==null&&e.body_mass_g!==null}export{n as t};

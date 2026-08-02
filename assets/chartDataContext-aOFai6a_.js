@@ -1,1 +1,0 @@
-import{r as e}from"./rolldown-runtime-QTnfLwEv.js";import{F as t,Ln as n,P as r,Wr as i,sr as a}from"./client--K1lg1Uh.js";var o=e(i()),s=e=>{var t=e.chartData,i=a(),s=n();return(0,o.useEffect)(()=>s?()=>{}:(i(r(t)),()=>{i(r(void 0))}),[t,i,s]),null},c=e=>{var n=e.computedData,i=a();return(0,o.useEffect)(()=>(i(t(n)),()=>{i(r(void 0))}),[n,i]),null};export{c as n,s as t};

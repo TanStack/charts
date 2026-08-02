@@ -1,0 +1,18 @@
+import{r as e}from"./rolldown-runtime-QTnfLwEv.js";import{Cr as t,Ir as n,Or as r,Vr as i,fr as a,gr as o,hn as s,vn as c}from"./RechartsWrapper-DXht-42S.js";import{r as l}from"./client-CHggH-hM.js";var u=e(l()),d,f,p,m,h,g,_;function v(){return v=Object.assign?Object.assign.bind():function(e){for(var t=1;t<arguments.length;t++){var n=arguments[t];for(var r in n)({}).hasOwnProperty.call(n,r)&&(e[r]=n[r])}return e},v.apply(null,arguments)}function y(e,t){return t||=e.slice(0),Object.freeze(Object.defineProperties(e,{raw:{value:Object.freeze(t)}}))}var b=(e,n)=>t(n-e)*Math.min(Math.abs(n-e),359.999),x=e=>{var t=e.cx,n=e.cy,r=e.radius,i=e.angle,a=e.sign,o=e.isExternal,l=e.cornerRadius,u=e.cornerIsExternal,d=l*(o?1:-1)+r,f=Math.asin(l/d)/s,p=u?i:i+a*f,m=c(t,n,d,p),h=c(t,n,r,p),g=u?i-a*f:i;return{center:m,circleTangency:h,lineTangency:c(t,n,d*Math.cos(f*s),g),theta:f}},S=e=>{var t=e.cx,n=e.cy,i=e.innerRadius,a=e.outerRadius,o=e.startAngle,s=e.endAngle,l=b(o,s),u=o+l,m=c(t,n,a,o),h=c(t,n,a,u),g=r(d||=y([`M `,`,`,`
+    A `,`,`,`,0,
+    `,`,`,`,
+    `,`,`,`
+  `]),m.x,m.y,a,a,+(Math.abs(l)>180),+(o>u),h.x,h.y);if(i>0){var _=c(t,n,i,o),v=c(t,n,i,u);g+=r(f||=y([`L `,`,`,`
+            A `,`,`,`,0,
+            `,`,`,`,
+            `,`,`,` Z`]),v.x,v.y,i,i,+(Math.abs(l)>180),+(o<=u),_.x,_.y)}else g+=r(p||=y([`L `,`,`,` Z`]),t,n);return g},C=e=>{var n=e.cx,i=e.cy,a=e.innerRadius,o=e.outerRadius,s=e.cornerRadius,c=e.forceCornerRadius,l=e.cornerIsExternal,u=e.startAngle,d=e.endAngle,f=t(d-u),p=x({cx:n,cy:i,radius:o,angle:u,sign:f,cornerRadius:s,cornerIsExternal:l}),v=p.circleTangency,b=p.lineTangency,C=p.theta,w=x({cx:n,cy:i,radius:o,angle:d,sign:-f,cornerRadius:s,cornerIsExternal:l}),T=w.circleTangency,E=w.lineTangency,D=w.theta,O=l?Math.abs(u-d):Math.abs(u-d)-C-D;if(O<0)return c?r(m||=y([`M `,`,`,`
+        a`,`,`,`,0,0,1,`,`,0
+        a`,`,`,`,0,0,1,`,`,0
+      `]),b.x,b.y,s,s,s*2,s,s,-s*2):S({cx:n,cy:i,innerRadius:a,outerRadius:o,startAngle:u,endAngle:d});var k=r(h||=y([`M `,`,`,`
+    A`,`,`,`,0,0,`,`,`,`,`,`
+    A`,`,`,`,0,`,`,`,`,`,`,`,`
+    A`,`,`,`,0,0,`,`,`,`,`,`
+  `]),b.x,b.y,s,s,+(f<0),v.x,v.y,o,o,+(O>180),+(f<0),T.x,T.y,s,s,+(f<0),E.x,E.y);if(a>0){var A=x({cx:n,cy:i,radius:a,angle:u,sign:f,isExternal:!0,cornerRadius:s,cornerIsExternal:l}),j=A.circleTangency,M=A.lineTangency,N=A.theta,P=x({cx:n,cy:i,radius:a,angle:d,sign:-f,isExternal:!0,cornerRadius:s,cornerIsExternal:l}),F=P.circleTangency,I=P.lineTangency,L=P.theta,R=l?Math.abs(u-d):Math.abs(u-d)-N-L;if(R<0&&s===0)return`${k}L${n},${i}Z`;k+=r(g||=y([`L`,`,`,`
+      A`,`,`,`,0,0,`,`,`,`,`,`
+      A`,`,`,`,0,`,`,`,`,`,`,`,`
+      A`,`,`,`,0,0,`,`,`,`,`,`Z`]),I.x,I.y,s,s,+(f<0),F.x,F.y,a,a,+(R>180),+(f>0),j.x,j.y,s,s,+(f<0),M.x,M.y)}else k+=r(_||=y([`L`,`,`,`Z`]),n,i);return k},w={cx:0,cy:0,innerRadius:0,outerRadius:0,startAngle:0,endAngle:0,cornerRadius:0,forceCornerRadius:!1,cornerIsExternal:!1},T=e=>{var t=a(e,w),r=t.cx,s=t.cy,c=t.innerRadius,l=t.outerRadius,d=t.cornerRadius,f=t.forceCornerRadius,p=t.cornerIsExternal,m=t.startAngle,h=t.endAngle,g=t.className;if(l<c||m===h)return null;var _=i(`recharts-sector`,g),y=l-c,b=o(d,y,0,!0),x=b>0&&Math.abs(m-h)<360?C({cx:r,cy:s,innerRadius:c,outerRadius:l,cornerRadius:Math.min(b,y/2),forceCornerRadius:f,cornerIsExternal:p,startAngle:m,endAngle:h}):S({cx:r,cy:s,innerRadius:c,outerRadius:l,startAngle:m,endAngle:h});return u.createElement(`path`,v({},n(t),{className:_,d:x}))};export{T as t};
