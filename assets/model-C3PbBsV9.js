@@ -1,0 +1,1 @@
+var e=[`Mon`,`Tue`,`Wed`,`Thu`,`Fri`,`Sat`,`Sun`],t=[`Alpha`,`Beta`,`Gamma`],n={Alpha:[46,62,55,78,69,84,74],Beta:[72,58,67,52,64,48,57],Gamma:[31,44,39,56,47,61,68]},r=t.flatMap(t=>e.map((e,r)=>({id:`${t}:${e}`,period:e,series:t,value:n[t][r]??0})));export{r as n,t as r,e as t};

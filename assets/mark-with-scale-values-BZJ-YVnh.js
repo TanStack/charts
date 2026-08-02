@@ -1,0 +1,1 @@
+function e(e,t){return t===void 0?{initialize:e}:{initialize:e,motion:t}}export{e as t};

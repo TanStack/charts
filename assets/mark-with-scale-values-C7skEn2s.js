@@ -1,1 +1,0 @@
-function e(e){return{initialize:e}}export{e as t};
