@@ -4244,10 +4244,11 @@ Each entry records:
   integrity
   `sha512-TucVraXke74k5zo1qDr7XIrycOIO4JewrAwsU49BvH03nH7Rg4AnrRxuGazrPT72rcVBcjD9lYvdhCK2vMk4dQ==`.
   `npm trust list` names `TanStack/charts` and `release.yml`. Release run
-  `30732992167` published all 12 fixed-set packages at `0.5.0` and verified
-  their integrity and provenance; independent registry reads confirmed
-  `latest=0.5.0`, integrity, and attestations for every package. The temporary
-  npm login was revoked and no bootstrap environment secret remains.
+  `30732992167` first published all 12 fixed-set packages at `0.5.0`. Follow-up
+  trusted release run `30733331380` published `0.5.1`; independent registry
+  reads confirmed `latest=0.5.1`, integrity, and attestations for every package.
+  The temporary npm login was revoked and no bootstrap environment secret
+  remains.
 
 ### F-175 — Native SVG resource normalization collapsed authored IDs
 
