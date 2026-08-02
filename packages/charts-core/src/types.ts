@@ -602,6 +602,8 @@ export interface ChartDefinitionOptions<
 > {
   maxFocusDistance?: number
   focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
+  /** Shows the built-in primary-point focus ring. Defaults to true. */
+  focusRing?: boolean
   spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
   animate?: boolean | ChartAnimationOptions
   /** Renderer-neutral motion defaults. An optional motion implementation consumes them. */
@@ -615,6 +617,7 @@ export interface ChartDefinitionOptions<
 interface StoredChartDefinitionOptions {
   maxFocusDistance?: number
   focus?: ChartFocusMode<any, any, any>
+  focusRing?: boolean
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
   animate?: boolean | ChartAnimationOptions
   motion?: ChartMotionDefinition<any>

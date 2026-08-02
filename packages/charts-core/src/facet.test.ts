@@ -457,7 +457,7 @@ describe('facets', () => {
     const visibleBands = visibleLayers.flatMap((layer) => [
       ...layer.querySelectorAll<SVGRectElement>('rect[visibility="visible"]'),
     ])
-    expect(visibleLayers).toHaveLength(2)
+    expect(visibleLayers).toHaveLength(3)
     expect(visibleBands).toHaveLength(2)
     expect(
       new Set(visibleBands.map((band) => band.getAttribute('x'))).size,
@@ -518,7 +518,7 @@ describe('facets', () => {
     const visibleBands = visibleLayers.flatMap((layer) => [
       ...layer.querySelectorAll<SVGRectElement>('rect[visibility="visible"]'),
     ])
-    expect(visibleLayers).toHaveLength(2)
+    expect(visibleLayers).toHaveLength(3)
     expect(visibleBands).toHaveLength(2)
     expect(
       visibleBands.every((band) => Number(band.getAttribute('height')) > 0),

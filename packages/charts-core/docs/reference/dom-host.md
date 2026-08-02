@@ -116,6 +116,7 @@ The definition owns these chart behaviors:
 | ------------------ | ------------------------- | -------------------------------------------------------- |
 | `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus   |
 | `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy        |
+| `focusRing`        | `true`                    | Built-in primary-point focus indicator                   |
 | `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                           |
 | `animate`          | `false`                   | Keyed attribute, enter, and exit animation               |
 | `keyboard`         | `true`                    | Keyboard focus and navigation                            |

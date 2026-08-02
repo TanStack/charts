@@ -231,6 +231,7 @@ Each entry records:
 | F-193 | Fixed catalog height hid compact responsive examples      | Tooling/App     | resolved   |
 | F-194 | Behavior runs omitted the interactive input               | Tooling         | resolved   |
 | F-195 | Release versions matched dependency substrings            | Tooling         | resolved   |
+| F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
 
 ## Findings
 
@@ -4868,3 +4869,24 @@ Each entry records:
   from 0.6.0 to 0.6.1 while leaving Observable Plot 0.6.17 unchanged. The
   release workflow can create the 0.6.1 version pull request from the same
   changeset.
+
+### F-196 — Focus decorations suppressed the primary indicator
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: issue #33 focused-band composition
+- Friction: adding any `whenFocused` mark removed the built-in primary-point
+  ring from the complete chart. A category highlight or crosshair therefore
+  also removed the indicator that identified the point owned by the tooltip
+  and keyboard focus.
+- Decision: compose the built-in ring with authored focus layers by default.
+  Add definition `focusRing: false` for charts whose authored geometry
+  deliberately replaces the primary indicator.
+- Verification: scene and SVG regressions retain both a focused category band
+  and one primary ring, Canvas paints authored underlays and the default
+  overlay together, facets retain synchronized authored bands plus one shared
+  ring, and an explicit opt-out omits the ring. Removing the implicit
+  focus-layer scan reduces the ten locked universal bundles by 109–110
+  minified bytes and 22–48 gzip bytes; the reviewed exact baseline records the
+  decrease.
