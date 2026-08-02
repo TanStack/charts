@@ -4229,16 +4229,17 @@ Each entry records:
 - Severity: high
 - Owner: Tooling
 - Observed in: adding `@tanstack/react-native-charts` to the fixed release set
-- Friction: the package name is not present in the npm registry, while the
-  aggregate release uses npm trusted publishing. npm configures that trust from
-  an existing package's settings, so the normal tokenless workflow cannot be
-  authorized for this package before its registry entry exists.
+- Friction: the package name was not yet present in the npm registry when the
+  adapter was added, while the aggregate release used npm trusted publishing.
+  npm configures that trust from an existing package's settings, so the normal
+  tokenless workflow could not be authorized before its registry entry existed.
 - Resolution: keep the package in release artifacts and the fixed changeset.
   The protected bootstrap workflow proved the exact-main artifact and
   sole-missing-package contract, but npm required interactive 2FA for the
-  available session token. Bootstrap `0.4.0` locally from the same validated
-  tarball without provenance, then configure `release.yml` as the trusted
-  publisher before merging the aggregate version PR.
+  available session token. We bootstrapped `0.4.0` locally from a separately
+  rebuilt and validated artifact without provenance, then configured
+  `release.yml` as the trusted publisher before merging the aggregate version
+  PR.
 - Verification: `@tanstack/react-native-charts@0.4.0` is public with registry
   integrity
   `sha512-TucVraXke74k5zo1qDr7XIrycOIO4JewrAwsU49BvH03nH7Rg4AnrRxuGazrPT72rcVBcjD9lYvdhCK2vMk4dQ==`.
