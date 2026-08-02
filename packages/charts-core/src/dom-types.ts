@@ -41,7 +41,7 @@ export interface ChartSurface<
   paintFocus: (
     focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
     pointer?: ChartTooltipPosition | null,
-  ) => void
+  ) => ChartScene<any, any, any> | void
   destroy: () => void
 }
 

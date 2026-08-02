@@ -48,6 +48,23 @@ category. A sparse snapped cursor can opt into
 `maxFocusDistance: Number.POSITIVE_INFINITY`; keep the finite default when
 empty space should mean no focus.
 
+Default `primary` and `group` presentation follows the canonical focused scene
+points. Equal x/y/series values in another facet do not implicitly paint a
+second focus marker. To synchronize a visual cursor across facets without
+turning those mirrors into additional selected data, add an ordinary focus
+mark with `whenFocused(..., { match: 'x' })` or `match: 'y'`. The tooltip and
+focus callback still receive the resolver's primary point or explicit focus
+group.
+
+```ts
+whenFocused(bandX(rows, { x: 'date' }), { match: 'x' })
+whenFocused(bandY(rows, { y: 'value' }), { match: 'y' })
+```
+
+These are presentation filters, not alternate selection strategies. The first
+paints a vertical band wherever the focused x value exists; the second paints a
+horizontal band wherever the focused y value exists.
+
 <iframe
   src="https://tanstack.com/charts/catalog/embed/35-grouped-tooltip/?theme=system&height=480"
   title="Grouped x-axis focus and tooltip across multiple lines"
@@ -161,8 +178,8 @@ const pointDefinition = defineChart(definition, {
 })
 ```
 
-Pointer anchoring is useful when a dense mark has a large hit region. Keyboard
-focus falls back to the primary point:
+Pointer anchoring is useful when a dense mark has a large interactive
+primitive. Keyboard focus falls back to the primary point:
 
 ```ts
 const pointerDefinition = defineChart(definition, {
@@ -441,7 +458,9 @@ Do not supply a pointer-only strategy.
 
 Linear nearest-point search is deliberately small. For many independently
 focusable points, pass a `ChartSpatialIndexFactory` built with an optional
-spatial dependency. The host rebuilds the index when scene points change.
+spatial dependency. The factory also receives the resolved scene when it needs
+primitive bounds rather than point anchors. The host rebuilds the index when
+the scene changes.
 
 See [Large Data](./large-data.md) before adding an index: when many rows share
 the same pixels, a bounded representation is usually more useful than faster

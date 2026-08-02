@@ -113,7 +113,6 @@ export function areaY<TDatum>(
 
     return {
       id,
-      focusAffinity: 'x',
       states: markStates(data, options.states),
       seriesFromColor: options.z === undefined && options.color !== undefined,
       channels: {
@@ -133,7 +132,6 @@ export function areaY<TDatum>(
       },
       render: ({ scales, color: resolveColor }) => {
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
 
         for (const [groupKey, indices] of groups) {
           const firstIndex = indices[0]
@@ -160,6 +158,7 @@ export function areaY<TDatum>(
                 )
           let top: (readonly [number, number])[] = []
           let bottom: (readonly [number, number])[] = []
+          let segmentPoints: ChartPoint<TDatum>[] = []
           let segmentIndex = 0
 
           const flush = () => {
@@ -171,6 +170,7 @@ export function areaY<TDatum>(
               key: `${id}:${groupKey}:segment:${segmentIndex}`,
               points: [...top, ...lower],
               path,
+              interaction: { points: segmentPoints, affinity: 'x' },
               style: {
                 fill,
                 fillOpacity: options.fillOpacity ?? 0.2,
@@ -180,6 +180,7 @@ export function areaY<TDatum>(
             })
             top = []
             bottom = []
+            segmentPoints = []
             segmentIndex += 1
           }
 
@@ -202,7 +203,7 @@ export function areaY<TDatum>(
             top.push([x, y])
             bottom.push([x, scales.y.map(y1Value)])
             const key = `${id}:${groupKey}:${valueKey(keys[datumIndex])}`
-            points.push({
+            const point: ChartPoint<TDatum> = {
               key,
               markId: id,
               group,
@@ -217,7 +218,8 @@ export function areaY<TDatum>(
               x,
               y,
               color: fill,
-            })
+            }
+            segmentPoints.push(point)
           }
           flush()
         }
@@ -232,7 +234,6 @@ export function areaY<TDatum>(
               children: nodes,
             },
           ],
-          points,
         }
       },
     }

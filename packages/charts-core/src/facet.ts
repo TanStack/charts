@@ -281,15 +281,8 @@ function renderCellAxes<TDatum>(options: CellRenderOptions<TDatum>) {
       layout,
     )
     const identity = valueKey(entry.key)
-    for (const point of offsetPoints(
-      id,
-      identity,
-      scene.points,
-      x,
-      y + labelHeight,
-    )) {
-      points.push(point)
-    }
+    const offset = offsetScene(id, identity, scene, x, y + labelHeight)
+    points.push(...offset.points)
     return facetCell({
       id,
       identity,
@@ -301,7 +294,7 @@ function renderCellAxes<TDatum>(options: CellRenderOptions<TDatum>) {
       showLabel,
       label,
       theme,
-      nodes: scene.nodes,
+      nodes: offset.nodes,
     })
   })
   return facetScene(id, children, points)
@@ -368,9 +361,8 @@ function renderOuterAxes<TDatum>(options: OuterRenderOptions<TDatum>) {
     )
     const identity = valueKey(entry.key)
     deepestPlotBottom = Math.max(deepestPlotBottom, plotY + plotHeight)
-    for (const point of offsetPoints(id, identity, scene.points, x, plotY)) {
-      points.push(point)
-    }
+    const offset = offsetScene(id, identity, scene, x, plotY)
+    points.push(...offset.points)
 
     if (axis && column === 0) {
       const yChildren = axis.children.filter(
@@ -426,7 +418,7 @@ function renderOuterAxes<TDatum>(options: OuterRenderOptions<TDatum>) {
       showLabel,
       label,
       theme,
-      nodes: scene.nodes.filter((node) => node.key !== 'axes'),
+      nodes: offset.nodes.filter((node) => node.key !== 'axes'),
     })
   })
 
@@ -741,39 +733,112 @@ function mergeTheme<TDatum>(
   }
 }
 
-function offsetPoints<TDatum>(
+function offsetScene<TDatum>(
   id: string,
   identity: string,
-  points: readonly ChartPoint<TDatum>[],
+  scene: ChartScene<TDatum>,
   x: number,
   y: number,
-): ChartPoint<TDatum>[] {
-  return points.map((point) => ({
-    ...point,
-    key: `${id}:${identity}:${point.key}`,
-    x: point.x + x,
-    y: point.y + y,
-    ...(point.hitRegion
-      ? { hitRegion: offsetHitRegion(point.hitRegion, x, y) }
-      : {}),
-  }))
+): { nodes: readonly SceneNode[]; points: readonly ChartPoint<TDatum>[] } {
+  const prefix = `${id}:${identity}`
+  const pointMap = new Map<ChartPoint, ChartPoint<TDatum>>()
+  const mapPoint = (point: ChartPoint): ChartPoint<TDatum> => {
+    const existing = pointMap.get(point)
+    if (existing) return existing
+    const mapped = {
+      ...point,
+      key: `${id}:${identity}:${point.key}`,
+      x: point.x + x,
+      y: point.y + y,
+    } as ChartPoint<TDatum>
+    pointMap.set(point, mapped)
+    return mapped
+  }
+  const points = scene.points.map(mapPoint)
+  return {
+    nodes: mapScenePoints(
+      withoutDefaultFocusLayers(scene.nodes),
+      mapPoint,
+      prefix,
+    ),
+    points,
+  }
 }
 
-function offsetHitRegion(
-  region: NonNullable<ChartPoint['hitRegion']>,
-  x: number,
-  y: number,
-): NonNullable<ChartPoint['hitRegion']> {
-  switch (region.kind) {
-    case 'rect':
-    case 'circle':
-      return { ...region, x: region.x + x, y: region.y + y }
-    case 'polygon':
+function withoutDefaultFocusLayers(
+  nodes: readonly SceneNode[],
+): readonly SceneNode[] {
+  return nodes.flatMap((node): readonly SceneNode[] => {
+    if (node.kind !== 'group') return [node]
+    if (
+      node.focus &&
+      node.className?.includes('ts-chart__focus-layer--default')
+    ) {
+      return []
+    }
+    return [
+      {
+        ...node,
+        children: withoutDefaultFocusLayers(node.children),
+      },
+    ]
+  })
+}
+
+function mapScenePoints(
+  nodes: readonly SceneNode[],
+  mapPoint: (point: ChartPoint) => ChartPoint,
+  prefix: string,
+  prefixKeys = false,
+): readonly SceneNode[] {
+  return nodes.map((node): SceneNode => {
+    const shouldPrefixKeys =
+      prefixKeys ||
+      (node.kind === 'group' &&
+        (node.focus !== undefined || node.className === 'ts-chart__marks'))
+    const key = shouldPrefixKeys ? `${prefix}:${node.key}` : node.key
+    if (node.kind === 'group') {
       return {
-        ...region,
-        points: region.points.map((point) => [point[0] + x, point[1] + y]),
+        ...node,
+        key,
+        children: mapScenePoints(
+          node.children,
+          mapPoint,
+          prefix,
+          shouldPrefixKeys,
+        ),
+        ...(node.focus
+          ? {
+              focus: {
+                ...node.focus,
+                points: node.focus.points.map(mapPoint),
+              },
+            }
+          : {}),
+        ...(node.states
+          ? {
+              states: {
+                ...node.states,
+                points: node.states.points.map(mapPoint),
+              },
+            }
+          : {}),
       }
-  }
+    }
+    if (node.kind === 'label' || !node.interaction) {
+      return shouldPrefixKeys ? { ...node, key } : node
+    }
+    return {
+      ...node,
+      key,
+      interaction: node.interaction.point
+        ? { ...node.interaction, point: mapPoint(node.interaction.point) }
+        : {
+            ...node.interaction,
+            points: node.interaction.points.map(mapPoint),
+          },
+    }
+  })
 }
 
 function maxSceneMargins(scenes: readonly ChartScene[]): ChartMargin {

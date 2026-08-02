@@ -751,7 +751,7 @@ const entries = [
   budgeted(
     'Geometry pointer resolver kernel',
     'benchmarks/entries/charts-pointer-geometry-kernel.ts',
-    1,
+    2,
   ),
   budgeted(
     'D3 brush controller kernel',

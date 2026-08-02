@@ -299,7 +299,8 @@ pnpm dev:conformance
 
 The sandbox opens its existing integrated data dashboard by default. The
 interaction-geometry command opens a before-and-after lab for exercising
-painted hit regions and mark-level focus fallback across chart families.
+scene-owned interaction geometry, paint order, transforms, clipping, and
+natural focus fallback across chart families.
 
 The repository includes three complementary benchmark suites:
 

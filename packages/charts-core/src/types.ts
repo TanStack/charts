@@ -683,8 +683,6 @@ export interface InitializedMark<
   channels: Readonly<Record<string, MaterializedChannel>>
   /** The mark uses a discrete color channel as inferred series identity. */
   seriesFromColor?: boolean
-  /** Natural pointer fallback after exact hit-region containment. */
-  focusAffinity?: ChartFocusAffinity
   focus?: ChartFocusFilter
   states?: {
     data: readonly unknown[]
@@ -702,25 +700,6 @@ export interface MarkScene<
   nodes: readonly SceneNode[]
   points?: readonly ChartPoint<TDatum, TXValue, TYValue>[]
 }
-
-export interface ChartRectHitRegion extends ChartBounds {
-  kind: 'rect'
-}
-
-export interface ChartCircleHitRegion {
-  kind: 'circle'
-  x: number
-  y: number
-  radius: number
-}
-
-export interface ChartPolygonHitRegion {
-  kind: 'polygon'
-  points: readonly (readonly [number, number])[]
-}
-
-export type ChartHitRegion =
-  ChartRectHitRegion | ChartCircleHitRegion | ChartPolygonHitRegion
 
 export type ChartFocusAffinity = 'x' | 'y' | 'xy' | 'geometry'
 
@@ -745,12 +724,23 @@ export interface ChartPoint<
   yInterval?: 'range' | 'difference'
   x: number
   y: number
-  /** Optional painted geometry used by the default pointer-distance resolver. */
-  hitRegion?: ChartHitRegion
-  /** Resolved mark-level pointer fallback after exact geometry containment. */
-  focusAffinity?: ChartFocusAffinity
   color: string
 }
+
+/** Semantic focus data attached to the scene primitive that paints it. */
+export type SceneInteraction =
+  | {
+      point: ChartPoint
+      points?: never
+      /** Natural pointer fallback after exact geometry containment. */
+      affinity?: ChartFocusAffinity
+    }
+  | {
+      point?: never
+      points: readonly ChartPoint[]
+      /** Natural pointer fallback after exact geometry containment. */
+      affinity?: ChartFocusAffinity
+    }
 
 export interface ChartTick {
   value: ChartValue
@@ -777,6 +767,11 @@ interface SceneNodeBase {
   ariaHidden?: boolean
 }
 
+interface InteractiveSceneNodeBase extends SceneNodeBase {
+  /** Interaction semantics for this primitive's rendered geometry. */
+  interaction?: SceneInteraction
+}
+
 export interface SceneGroup extends SceneNodeBase {
   kind: 'group'
   children: readonly SceneNode[]
@@ -795,7 +790,7 @@ export interface SceneGroup extends SceneNodeBase {
   }
 }
 
-export interface SceneRule extends SceneNodeBase {
+export interface SceneRule extends InteractiveSceneNodeBase {
   kind: 'rule'
   x1: number
   y1: number
@@ -803,26 +798,26 @@ export interface SceneRule extends SceneNodeBase {
   y2: number
 }
 
-export interface ScenePolyline extends SceneNodeBase {
+export interface ScenePolyline extends InteractiveSceneNodeBase {
   kind: 'polyline'
   points: readonly (readonly [number, number])[]
   path?: string
 }
 
-export interface SceneArea extends SceneNodeBase {
+export interface SceneArea extends InteractiveSceneNodeBase {
   kind: 'area'
   points: readonly (readonly [number, number])[]
   path?: string
 }
 
-export interface SceneDot extends SceneNodeBase {
+export interface SceneDot extends InteractiveSceneNodeBase {
   kind: 'dot'
   x: number
   y: number
   radius: number
 }
 
-export interface SceneRect extends SceneNodeBase {
+export interface SceneRect extends InteractiveSceneNodeBase {
   kind: 'rect'
   x: number
   y: number
@@ -831,6 +826,8 @@ export interface SceneRect extends SceneNodeBase {
   radius?: number
   /** Applied inset retained for absolute inline-state overrides. */
   inset?: number
+  /** Axes affected by `inset`; bars use only their categorical axis. */
+  insetAxis?: 'x' | 'y' | 'xy'
 }
 
 export interface SceneLabel extends SceneNodeBase {
@@ -1188,6 +1185,7 @@ export type ChartSpatialIndexFactory<
   TYValue extends ChartValue = ChartValue,
 > = (
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  scene: ChartScene<TDatum, TXValue, TYValue>,
 ) => ChartSpatialIndex<TDatum, TXValue, TYValue>
 
 export interface ChartRuntime<

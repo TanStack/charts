@@ -246,6 +246,7 @@ export function createCanvasChartRenderer<
             resolver,
             root,
           )
+          return resolved.scene
         },
         destroy() {
           if (destroyed) return

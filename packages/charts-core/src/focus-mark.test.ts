@@ -1,12 +1,13 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
 import { bandX } from './band'
-import { barY } from './bar'
+import { barX, barY } from './bar'
 import { dot } from './dot'
 import { whenFocused } from './focus-mark'
 import { lineY } from './line'
 import { createChartScene, defineChart } from './scene'
 import { svgChartRenderer } from './svg-surface'
+import type { ChartScene, ChartValue } from './types'
 
 describe('focus-filtered marks', () => {
   const rows = [
@@ -186,6 +187,103 @@ describe('inline mark states', () => {
     expect(active?.getAttribute('fill')).toBe('#64748b')
     expect(inactive?.hasAttribute('opacity')).toBe(false)
     surface.destroy()
+  })
+
+  it('applies bar inset states only along the categorical axis', () => {
+    const vertical = createChartScene(
+      defineChart({
+        marks: [
+          barY([{ id: 'vertical', category: 'A', value: 8 }], {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            inset: 12,
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { inset: 2 },
+                transition: { duration: 0 },
+              },
+            ],
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A']) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      }),
+      { width: 240, height: 180 },
+    )
+    const horizontal = createChartScene(
+      defineChart({
+        marks: [
+          barX([{ id: 'horizontal', category: 'A', value: 8 }], {
+            x: 'value',
+            y: 'category',
+            key: 'id',
+            inset: 12,
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { inset: 2 },
+                transition: { duration: 0 },
+              },
+            ],
+          }),
+        ],
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: { scale: scaleBand<string>().domain(['A']) },
+      }),
+      { width: 240, height: 180 },
+    )
+
+    const inspect = <
+      TDatum,
+      TXValue extends ChartValue,
+      TYValue extends ChartValue,
+    >(
+      resolved: ChartScene<TDatum, TXValue, TYValue>,
+    ) => {
+      const primary = resolved.points[0]
+      if (!primary) throw new Error('Expected a bar point')
+      const container = document.createElement('div')
+      const surface = svgChartRenderer.mount(container, () => {})
+      surface.render(resolved, { ariaLabel: 'Stateful bar' })
+      const read = () => {
+        const rect = [
+          ...container.querySelectorAll<SVGRectElement>('rect'),
+        ].find((candidate) => candidate.dataset.tsKey === primary.key)
+        if (!rect) throw new Error('Expected a bar rectangle')
+        return {
+          x: Number(rect.getAttribute('x')),
+          y: Number(rect.getAttribute('y')),
+          width: Number(rect.getAttribute('width')),
+          height: Number(rect.getAttribute('height')),
+        }
+      }
+      const before = read()
+      surface.paintFocus({
+        primary,
+        group: [primary],
+        source: 'pointer',
+        pinned: false,
+      })
+      const after = read()
+      surface.destroy()
+      return { before, after }
+    }
+
+    const verticalState = inspect(vertical)
+    expect(verticalState.after.x).toBe(verticalState.before.x - 10)
+    expect(verticalState.after.width).toBe(verticalState.before.width + 20)
+    expect(verticalState.after.y).toBe(verticalState.before.y)
+    expect(verticalState.after.height).toBe(verticalState.before.height)
+
+    const horizontalState = inspect(horizontal)
+    expect(horizontalState.after.x).toBe(horizontalState.before.x)
+    expect(horizontalState.after.width).toBe(horizontalState.before.width)
+    expect(horizontalState.after.y).toBe(horizontalState.before.y - 10)
+    expect(horizontalState.after.height).toBe(
+      horizontalState.before.height + 20,
+    )
   })
 
   it('applies series states to line geometry through the point index', () => {

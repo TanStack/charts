@@ -84,7 +84,6 @@ export function hexagon<TDatum>(
 
     return {
       id,
-      focusAffinity: 'xy',
       channels: {
         x: { scale: 'x', values: xValues.filter(isChartValue) },
         y: { scale: 'y', values: yValues.filter(isChartValue) },
@@ -92,7 +91,6 @@ export function hexagon<TDatum>(
       },
       render: ({ scales, color: resolveColor }) => {
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
 
         data.forEach((datum, datumIndex) => {
           const xValue = xValues[datumIndex]
@@ -128,20 +126,7 @@ export function hexagon<TDatum>(
               y + Math.sin(angle) * radius,
             ] as const
           })
-
-          nodes.push({
-            kind: 'area',
-            key,
-            points: vertices,
-            style: {
-              fill,
-              fillOpacity: options.fillOpacity,
-              stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth,
-            },
-          })
-          points.push({
+          const point: ChartPoint<TDatum> = {
             key,
             markId: id,
             group,
@@ -152,8 +137,21 @@ export function hexagon<TDatum>(
             yValue,
             x,
             y,
-            hitRegion: { kind: 'polygon', points: vertices },
             color: fill,
+          }
+
+          nodes.push({
+            kind: 'area',
+            key,
+            points: vertices,
+            interaction: { point },
+            style: {
+              fill,
+              fillOpacity: options.fillOpacity,
+              stroke,
+              strokeOpacity: options.strokeOpacity,
+              strokeWidth: options.strokeWidth,
+            },
           })
         })
 
@@ -167,7 +165,6 @@ export function hexagon<TDatum>(
               children: nodes,
             },
           ],
-          points,
         }
       },
     }

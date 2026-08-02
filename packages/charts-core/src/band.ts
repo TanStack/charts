@@ -77,7 +77,6 @@ export function bandX<
 
     return {
       id,
-      focusAffinity: 'x',
       channels: {
         x: { scale: 'x', values: values.filter(isChartValue) },
         color: { scale: 'color', values: colorValues.filter(isChartKey) },
@@ -88,7 +87,6 @@ export function bandX<
           inferBandwidth(scales.x, values, chart.width, data.length)
         const inset = Number.isFinite(resolved.inset) ? resolved.inset! : 0
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
         data.forEach((datum, index) => {
           const xValue = values[index]
           if (!isChartValue(xValue)) return
@@ -104,17 +102,7 @@ export function bandX<
           const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
           const left = x - width / 2 + inset
           const paintedWidth = Math.max(0, width - inset * 2)
-          nodes.push({
-            kind: 'rect',
-            key,
-            x: left,
-            y: chart.y,
-            width: paintedWidth,
-            height: chart.height,
-            radius: resolved.radius,
-            style: { fill, fillOpacity: resolved.fillOpacity },
-          })
-          points.push({
+          const point: ChartPoint<TDatum> = {
             key,
             markId: id,
             group,
@@ -125,17 +113,21 @@ export function bandX<
             yValue: 0,
             x,
             y: chart.y + chart.height / 2,
-            hitRegion: {
-              kind: 'rect',
-              x: left,
-              y: chart.y,
-              width: paintedWidth,
-              height: chart.height,
-            },
             color: fill,
+          }
+          nodes.push({
+            kind: 'rect',
+            key,
+            x: left,
+            y: chart.y,
+            width: paintedWidth,
+            height: chart.height,
+            radius: resolved.radius,
+            interaction: { point, affinity: 'x' },
+            style: { fill, fillOpacity: resolved.fillOpacity },
           })
         })
-        return { nodes, points }
+        return { nodes }
       },
     }
   }) as ChartMark<
@@ -180,7 +172,6 @@ export function bandY<
 
     return {
       id,
-      focusAffinity: 'y',
       channels: {
         y: { scale: 'y', values: values.filter(isChartValue) },
         color: { scale: 'color', values: colorValues.filter(isChartKey) },
@@ -191,7 +182,6 @@ export function bandY<
           inferBandwidth(scales.y, values, chart.height, data.length)
         const inset = Number.isFinite(resolved.inset) ? resolved.inset! : 0
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
         data.forEach((datum, index) => {
           const yValue = values[index]
           if (!isChartValue(yValue)) return
@@ -207,17 +197,7 @@ export function bandY<
           const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
           const top = y - height / 2 + inset
           const paintedHeight = Math.max(0, height - inset * 2)
-          nodes.push({
-            kind: 'rect',
-            key,
-            x: chart.x,
-            y: top,
-            width: chart.width,
-            height: paintedHeight,
-            radius: resolved.radius,
-            style: { fill, fillOpacity: resolved.fillOpacity },
-          })
-          points.push({
+          const point: ChartPoint<TDatum> = {
             key,
             markId: id,
             group,
@@ -228,17 +208,21 @@ export function bandY<
             yValue,
             x: chart.x + chart.width / 2,
             y,
-            hitRegion: {
-              kind: 'rect',
-              x: chart.x,
-              y: top,
-              width: chart.width,
-              height: paintedHeight,
-            },
             color: fill,
+          }
+          nodes.push({
+            kind: 'rect',
+            key,
+            x: chart.x,
+            y: top,
+            width: chart.width,
+            height: paintedHeight,
+            radius: resolved.radius,
+            interaction: { point, affinity: 'y' },
+            style: { fill, fillOpacity: resolved.fillOpacity },
           })
         })
-        return { nodes, points }
+        return { nodes }
       },
     }
   }) as ChartMark<

@@ -874,10 +874,12 @@ describe('core marks and categorical scales', () => {
     )
     const nodes = flatten(scene.nodes)
     const svg = renderChartSvg(scene, { ariaLabel: 'Composite chart' })
+    const marks = scene.nodes.find((node) => node.key === 'marks')
+    if (marks?.kind !== 'group') throw new Error('Expected mark group')
 
     expect(nodes.some((node) => node.kind === 'area')).toBe(true)
-    const baseDots = nodes.filter(
-      (node) => node.kind === 'dot' && !node.key.startsWith('default-focus:'),
+    const baseDots = flatten(marks.children).filter(
+      (node) => node.kind === 'dot',
     )
     expect(baseDots).toHaveLength(2)
     expect(baseDots).toMatchObject([

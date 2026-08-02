@@ -89,10 +89,10 @@ describe('native mark and channel scene', () => {
 
     expect(scene.points.map((point) => point.datum)).toEqual(values)
     expect(scene.points.map((point) => point.xValue)).toEqual([0, 1, 2])
+    const marks = scene.nodes.find((node) => node.key === 'marks')
+    if (marks?.kind !== 'group') throw new Error('Expected mark group')
     expect(
-      flatten(scene.nodes).filter(
-        (node) => node.kind === 'dot' && !node.key.startsWith('default-focus:'),
-      ),
+      flatten(marks.children).filter((node) => node.kind === 'dot'),
     ).toHaveLength(3)
   })
 

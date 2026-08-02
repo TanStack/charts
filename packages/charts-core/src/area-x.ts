@@ -138,7 +138,6 @@ export function areaX<TDatum>(
       },
       render: ({ scales, color: resolveColor }) => {
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
 
         for (const [groupKey, indices] of groups) {
           const firstIndex = indices[0]
@@ -165,6 +164,7 @@ export function areaX<TDatum>(
                 )
           let right: (readonly [number, number])[] = []
           let left: (readonly [number, number])[] = []
+          let segmentPoints: ChartPoint<TDatum>[] = []
           let segmentIndex = 0
 
           const flush = () => {
@@ -176,6 +176,7 @@ export function areaX<TDatum>(
               key: `${id}:${groupKey}:segment:${segmentIndex}`,
               points: [...right, ...lower],
               path,
+              interaction: { points: segmentPoints, affinity: 'y' },
               style: {
                 fill,
                 fillOpacity: options.fillOpacity ?? 0.2,
@@ -185,6 +186,7 @@ export function areaX<TDatum>(
             })
             right = []
             left = []
+            segmentPoints = []
             segmentIndex += 1
           }
 
@@ -207,7 +209,7 @@ export function areaX<TDatum>(
             right.push([x, y])
             left.push([scales.x.map(x1Value), y])
             const key = `${id}:${groupKey}:${valueKey(keys[datumIndex])}`
-            points.push({
+            const point: ChartPoint<TDatum> = {
               key,
               markId: id,
               group,
@@ -222,7 +224,8 @@ export function areaX<TDatum>(
               x,
               y,
               color: fill,
-            })
+            }
+            segmentPoints.push(point)
           }
           flush()
         }
@@ -237,7 +240,6 @@ export function areaX<TDatum>(
               children: nodes,
             },
           ],
-          points,
         }
       },
     }

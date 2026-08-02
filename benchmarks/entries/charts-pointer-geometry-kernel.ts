@@ -1,1 +1,1 @@
-export { nearestPoint } from '../../packages/charts-core/src/nearest'
+export { nearestScenePoint } from '../../packages/charts-core/src/nearest'

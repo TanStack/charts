@@ -1,11 +1,31 @@
 import { performance } from 'node:perf_hooks'
 import { Delaunay } from 'd3-delaunay'
 import { quadtree } from 'd3-quadtree'
-import { nearestPoint } from '../../packages/charts-core/src/nearest'
+import { nearestScenePoint } from '../../packages/charts-core/src/nearest'
 import type {
-  ChartPoint,
+  ChartFocusAffinity,
+  ChartPoint as CoreChartPoint,
+  ChartScene,
   ChartValue,
+  SceneNode,
 } from '../../packages/charts-core/src/types'
+
+type BenchmarkHitRegion =
+  | { kind: 'rect'; x: number; y: number; width: number; height: number }
+  | { kind: 'circle'; x: number; y: number; radius: number }
+  | {
+      kind: 'polygon'
+      points: readonly (readonly [number, number])[]
+    }
+
+type ChartPoint<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = CoreChartPoint<TDatum, TXValue, TYValue> & {
+  hitRegion?: BenchmarkHitRegion
+  focusAffinity?: ChartFocusAffinity
+}
 
 interface Datum {
   index: number
@@ -43,6 +63,11 @@ type Resolver = (
 ) => ChartPoint<Datum, number, number> | null
 
 type Implementation = readonly [label: string, resolver: Resolver]
+
+const benchmarkSceneCache = new WeakMap<
+  readonly ChartPoint<Datum, number, number>[],
+  ChartScene<Datum, number, number>
+>()
 
 const densePoints = Array.from({ length: 10_000 }, (_, index) =>
   point(index, index % 1_000, Math.floor(index / 1_000) * 20),
@@ -141,7 +166,7 @@ const cases: readonly PointerCase[] = [
 const implementations: readonly Implementation[] = [
   ['anchor-only baseline', anchorNearestPoint],
   ['unoptimized POC', pocNearestPoint],
-  ['optimized geometry', nearestPoint],
+  ['scene geometry', sceneNearestPoint],
 ] as const
 
 const comparisonCase: PointerCase = {
@@ -196,14 +221,14 @@ const delaunayIndex = Delaunay.from(
 let delaunayCursor = 0
 const comparisonImplementations: readonly Implementation[] = [
   ['current prod · linear anchor', anchorNearestPoint],
-  ['new geometry · point-only', nearestPoint],
+  ['new geometry · point-only', sceneNearestPoint],
   ['Observable Plot 0.6.17 · pointer kernel', plotPointerNearestPoint],
   ['D3 quadtree 3.0.1 · indexed', quadtreeNearestPoint],
   ['D3 Delaunay 6.0.4 · cold start', delaunayNearestPoint],
   ['D3 Delaunay 6.0.4 · coherent start', coherentDelaunayNearestPoint],
 ] as const
 const rectangleComparisonImplementations: readonly Implementation[] = [
-  ['new geometry · generic rect', nearestPoint],
+  ['new geometry · generic rect', sceneNearestPoint],
   ['Vega 5.2.1 · bounds-only lower bound', vegaBoundsNearestPoint],
 ] as const
 const collectGarbage = (globalThis as { gc?: () => void }).gc
@@ -414,6 +439,48 @@ function pointWithinDistance(
   const dx = point.x - x
   const dy = point.y - y
   return dx * dx + dy * dy <= Math.max(0, maxDistance) ** 2 ? point : null
+}
+
+function sceneNearestPoint(
+  points: readonly ChartPoint<Datum, number, number>[],
+  x: number,
+  y: number,
+  maxDistance: number,
+) {
+  let scene = benchmarkSceneCache.get(points)
+  if (!scene) {
+    const nodes: SceneNode[] = []
+    for (const point of points) {
+      const region = point.hitRegion
+      if (!region) continue
+      const interaction = {
+        point,
+        affinity: point.focusAffinity,
+      }
+      nodes.push(
+        region.kind === 'rect'
+          ? { ...region, key: point.key, interaction }
+          : region.kind === 'circle'
+            ? {
+                kind: 'dot',
+                key: point.key,
+                x: region.x,
+                y: region.y,
+                radius: region.radius,
+                interaction,
+              }
+            : {
+                kind: 'area',
+                key: point.key,
+                points: region.points,
+                interaction,
+              },
+      )
+    }
+    scene = { nodes, points } as unknown as ChartScene<Datum, number, number>
+    benchmarkSceneCache.set(points, scene)
+  }
+  return nearestScenePoint(scene, x, y, maxDistance)
 }
 
 // Vega's Canvas picker traverses the scene in reverse paint order and first
@@ -636,7 +703,7 @@ function verifyEquivalentResults() {
         query.y,
         query.maxDistance,
       )
-      const optimized = nearestPoint(
+      const optimized = sceneNearestPoint(
         benchmark.points,
         query.x,
         query.y,
@@ -679,7 +746,7 @@ function verifyComparisonResults() {
 
 function verifyRectangleComparisonResults() {
   for (const query of rectangleComparisonCase.queries) {
-    const reference = nearestPoint(
+    const reference = sceneNearestPoint(
       rectangleComparisonCase.points,
       query.x,
       query.y,
@@ -727,7 +794,7 @@ function printScenarioComparisons(
   console.log('\nCurrent production vs new geometry · median query time')
   for (const { benchmark, measurements } of scenarios) {
     const current = percentile(measurements.get('anchor-only baseline')!, 0.5)
-    const optimized = percentile(measurements.get('optimized geometry')!, 0.5)
+    const optimized = percentile(measurements.get('scene geometry')!, 0.5)
     const maximum = Math.max(current, optimized)
     const currentWidth = Math.max(1, Math.round((current / maximum) * 36))
     const optimizedWidth = Math.max(1, Math.round((optimized / maximum) * 36))

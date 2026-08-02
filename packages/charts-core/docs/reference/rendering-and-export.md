@@ -428,7 +428,10 @@ interface ChartSurface<
     clientX: number,
     clientY: number,
   ) => { x: number; y: number } | null
-  paintFocus: (focus: ChartFocusState<TDatum, TXValue, TYValue> | null) => void
+  paintFocus: (
+    focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
+    pointer?: ChartTooltipPosition | null,
+  ) => ChartScene | void
   destroy: () => void
 }
 
@@ -458,7 +461,7 @@ interface ChartRenderer<
 | `ChartSurface.element`  | Expose the accessible, focusable root used by shared keyboard and focus handling                           |
 | `render()`              | Paint the complete scene and apply accessible name, class, tab index, ID prefix, and optional animation    |
 | `clientToScene()`       | Convert viewport client coordinates to scene coordinates, or return `null` when conversion is unavailable  |
-| `paintFocus()`          | Paint or clear the complete focus state: primary, group, source, and pinned status                         |
+| `paintFocus()`          | Paint or clear focus and optionally return the resolved destination scene used for subsequent pointer hits |
 | `destroy()`             | Release renderer-owned animation, observers, listeners, and resources                                      |
 
 `requestRender()` asks the shared host to rebuild and repaint on its next
@@ -466,6 +469,12 @@ animation frame; ordinary requests proceed only when responsive width changed.
 `requestRender(true)` forces the work when renderer state changed without a
 width or chart-option change, such as device-pixel ratio or resolved theme
 colors. Requests made before the same frame are coalesced.
+
+When focus activates inline mark-state geometry, return the resolved scene that
+the surface paints. The host uses that destination scene for subsequent
+pointer resolution while the renderer animates toward it. Returning `void`
+keeps the base scene as the interaction source and remains valid for renderers
+that do not resolve alternate scene geometry.
 
 The shared host continues to own runtime updates, responsive sizing, text
 measurement, focus resolution, keyboard behavior, native tooltips, selection,

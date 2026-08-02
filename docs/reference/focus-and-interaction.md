@@ -4,9 +4,10 @@ description: Configure pointer focus, grouped focus, keyboard navigation, native
 ---
 
 The DOM host and framework adapters provide point-level interaction from each
-mark's emitted `ChartPoint` values. The defaults cover nearest-point pointer
-focus, linear keyboard navigation, activation, and an optional native tooltip.
-Definitions own these policies; adapters only mount them and report events.
+mark's emitted `ChartPoint` values and rendered scene primitives. The defaults
+cover geometry-aware pointer focus, linear keyboard navigation, activation,
+and an optional native tooltip. Definitions own these policies; adapters only
+mount them and report events.
 
 ## Default behavior
 
@@ -32,28 +33,48 @@ normal tab-order participation while keeping keyboard handling enabled. Set
 When neither `focus` nor `spatialIndex` is supplied, pointer resolution has two
 stages:
 
-1. The topmost scene point whose `hitRegion` contains the pointer wins. Point
-   order follows paint order.
-2. If no region contains the pointer, `focusAffinity` ranks the fallback.
-   `x` and `y` compare distance from that axis boundary first and use complete
-   geometry distance to break ties; `xy` compares complete geometry distance;
-   `geometry` has no off-shape fallback.
+1. The topmost interactive scene primitive containing the pointer wins. The
+   resolver traverses the final scene in reverse paint order and applies nested
+   translations and clips.
+2. If no primitive contains the pointer, its `interaction.affinity` ranks the
+   fallback. `x` and `y` compare distance from that axis boundary first and use
+   complete geometry distance to break ties; `xy` compares complete geometry
+   distance; `geometry` has no off-shape fallback.
 
 `maxFocusDistance` applies to that primary boundary distance, not necessarily
-to the point used as the tooltip and keyboard anchor. Points without either
-field retain anchor-based two-dimensional distance.
+to the point used as the tooltip and keyboard anchor. A semantic point that is
+not attached to a scene primitive retains anchor-based two-dimensional
+distance.
 
-`ChartPoint.hitRegion` accepts painted rectangles, circles, and polygons.
-Built-in marks declare these natural defaults:
+The primitive is the geometry source of truth: `rect` includes its rounded
+corners, `dot` uses its radius, `area` uses its polygon, and `polyline` and
+`rule` use their stroked paths. Its `interaction` attaches either one semantic
+point or the ordered points represented by a continuous primitive. Groups and
+labels cannot carry interaction metadata.
 
-| Mark                     | Hit region | Fallback |
-| ------------------------ | ---------- | -------- |
-| `barY`                   | Rectangle  | `x`      |
-| `barX`                   | Rectangle  | `y`      |
-| `lineY`, `areaY`         | None       | `x`      |
-| `rect`, `dot`, `hexagon` | Shape      | `xy`     |
-| `bandX`                  | Rectangle  | `x`      |
-| `bandY`                  | Rectangle  | `y`      |
+Built-in marks attach these natural defaults:
+
+| Mark                     | Scene primitive       | Fallback |
+| ------------------------ | --------------------- | -------- |
+| `barY`                   | Rounded rectangle     | `x`      |
+| `barX`                   | Rounded rectangle     | `y`      |
+| `lineY`                  | Stroked polyline      | `x`      |
+| `areaY`                  | Filled area           | `x`      |
+| `areaX`                  | Filled area           | `y`      |
+| `rect`, `dot`, `hexagon` | Rect, circle, polygon | `xy`     |
+| `bandX`                  | Rounded rectangle     | `x`      |
+| `bandY`                  | Rounded rectangle     | `y`      |
+
+Facet layout rewrites the primitive's attached point references while leaving
+the primitive in local coordinates. The resolver therefore observes the same
+post-layout translations and clips as SVG and Canvas instead of maintaining a
+second geometry copy. Inline mark states similarly return a resolved scene to
+the host; during a transition, pointer selection intentionally follows that
+destination scene rather than interpolating a second hit-test scene.
+
+For curved `polyline` and `area` nodes, the current resolver uses the
+primitive's structured point geometry. Exact picking against an optional
+authored SVG path string remains a separate refinement.
 
 An explicit focus preset or custom strategy replaces this default resolver.
 
@@ -296,7 +317,7 @@ reports `null`; Enter and Space do nothing until a point is focused.
 
 ## Spatial indexes
 
-The default nearest-point lookup scans all interaction points. Dense charts can
+The default lookup scans the cached scene targets linearly. Dense charts can
 inject an index:
 
 ```ts
@@ -306,18 +327,21 @@ type ChartSpatialIndexFactory<
   TYValue extends ChartValue = ChartValue,
 > = (
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+  scene: ChartScene<TDatum, TXValue, TYValue>,
 ) => ChartSpatialIndex<TDatum, TXValue, TYValue>
 ```
 
 The host rebuilds the index when the scene or definition changes. The index
-owns its search algorithm and must apply `maxDistance`.
+owns its search algorithm and must apply `maxDistance`. Existing point-only
+factories can ignore the second argument; geometry-aware indexes can traverse
+the resolved scene and use primitive bounds as their acceleration layer.
 Use the granular spatial primitive appropriate to the data; the boundary is
 described in [Scales and D3](../concepts/scales-and-d3.md).
 
-Supplying an index also replaces default hit-region containment and affinity
+Supplying an index also replaces default primitive containment and affinity
 ranking; the host does not add a linear safety scan after an indexed query. An
-index that wants identical geometry semantics should index the region bounds
-and perform exact shape checks on its candidates.
+index that wants identical geometry semantics should index scene-primitive
+bounds and perform exact shape checks on its candidates.
 
 A custom `focus` strategy takes precedence over `spatialIndex` for pointer
 resolution.
