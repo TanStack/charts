@@ -232,6 +232,7 @@ Each entry records:
 | F-194 | Behavior runs omitted the interactive input               | Tooling         | resolved   |
 | F-195 | Release versions matched dependency substrings            | Tooling         | resolved   |
 | F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
+| F-197 | Workspace validation omitted comparison provenance        | Tooling         | resolved   |
 
 ## Findings
 
@@ -4890,3 +4891,20 @@ Each entry records:
   focus-layer scan reduces the ten locked universal bundles by 109–110
   minified bytes and 22–48 gzip bytes; the reviewed exact baseline records the
   decrease.
+
+### F-197 — Workspace validation omitted comparison provenance
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: issue #33 release validation
+- Friction: `pnpm run validate` passed the locked universal bundle policy but
+  did not run the separate comparison baseline gate. Because the focus fix
+  changed a core comparison input, pull-request CI correctly rejected the
+  stale workspace revision even though local validation was green.
+- Decision: refresh the comparison evidence whenever a change advances one of
+  its tracked TanStack inputs, and run `pnpm benchmark:check` alongside the
+  workspace validation before release.
+- Verification: the 60-case comparison baseline records revision `e4b5249`
+  and package version 0.6.2, the canonical comparison page identifies the same
+  revision, and `pnpm benchmark:check` passes locally and in pull-request CI.
