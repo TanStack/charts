@@ -87,7 +87,6 @@ export function bandX<
           inferBandwidth(scales.x, values, chart.width, data.length)
         const inset = Number.isFinite(resolved.inset) ? resolved.inset! : 0
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
         data.forEach((datum, index) => {
           const xValue = values[index]
           if (!isChartValue(xValue)) return
@@ -101,17 +100,9 @@ export function bandX<
           )
           const group = zValues[index] ?? null
           const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
-          nodes.push({
-            kind: 'rect',
-            key,
-            x: x - width / 2 + inset,
-            y: chart.y,
-            width: Math.max(0, width - inset * 2),
-            height: chart.height,
-            radius: resolved.radius,
-            style: { fill, fillOpacity: resolved.fillOpacity },
-          })
-          points.push({
+          const left = x - width / 2 + inset
+          const paintedWidth = Math.max(0, width - inset * 2)
+          const point: ChartPoint<TDatum> = {
             key,
             markId: id,
             group,
@@ -123,9 +114,20 @@ export function bandX<
             x,
             y: chart.y + chart.height / 2,
             color: fill,
+          }
+          nodes.push({
+            kind: 'rect',
+            key,
+            x: left,
+            y: chart.y,
+            width: paintedWidth,
+            height: chart.height,
+            radius: resolved.radius,
+            interaction: { point, affinity: 'x' },
+            style: { fill, fillOpacity: resolved.fillOpacity },
           })
         })
-        return { nodes, points }
+        return { nodes }
       },
     }
   }) as ChartMark<
@@ -180,7 +182,6 @@ export function bandY<
           inferBandwidth(scales.y, values, chart.height, data.length)
         const inset = Number.isFinite(resolved.inset) ? resolved.inset! : 0
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
         data.forEach((datum, index) => {
           const yValue = values[index]
           if (!isChartValue(yValue)) return
@@ -194,17 +195,9 @@ export function bandY<
           )
           const group = zValues[index] ?? null
           const key = `${id}:${valueKey(group)}:${valueKey(keys[index])}`
-          nodes.push({
-            kind: 'rect',
-            key,
-            x: chart.x,
-            y: y - height / 2 + inset,
-            width: chart.width,
-            height: Math.max(0, height - inset * 2),
-            radius: resolved.radius,
-            style: { fill, fillOpacity: resolved.fillOpacity },
-          })
-          points.push({
+          const top = y - height / 2 + inset
+          const paintedHeight = Math.max(0, height - inset * 2)
+          const point: ChartPoint<TDatum> = {
             key,
             markId: id,
             group,
@@ -216,9 +209,20 @@ export function bandY<
             x: chart.x + chart.width / 2,
             y,
             color: fill,
+          }
+          nodes.push({
+            kind: 'rect',
+            key,
+            x: chart.x,
+            y: top,
+            width: chart.width,
+            height: paintedHeight,
+            radius: resolved.radius,
+            interaction: { point, affinity: 'y' },
+            style: { fill, fillOpacity: resolved.fillOpacity },
           })
         })
-        return { nodes, points }
+        return { nodes }
       },
     }
   }) as ChartMark<

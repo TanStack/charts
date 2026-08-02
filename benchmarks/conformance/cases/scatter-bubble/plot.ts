@@ -1,22 +1,13 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
 import * as Plot from '@observablehq/plot'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
+import { bubbleRows } from './model'
 
 const groupRange = ['#2563eb', '#f97316', '#10b981']
-const completePenguins = penguins.filter(
-  (row) =>
-    row.culmen_length_mm !== null &&
-    row.culmen_depth_mm !== null &&
-    row.body_mass_g !== null,
-)
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const rows = completePenguins.slice(
-      nextInput.revision * 8,
-      nextInput.revision * 8 + 320,
-    )
+    const rows = bubbleRows(nextInput.revision)
 
     return Plot.plot({
       width: nextInput.width,

@@ -111,6 +111,39 @@ Each point should retain:
 - resolved pixel coordinates;
 - group identity and color.
 
+For a large painted mark, create the semantic point once and attach that same
+object to the scene primitive that paints it:
+
+```ts
+import type { SceneRect } from '@tanstack/charts'
+
+const point = interactionPoint(index)
+const node: SceneRect = {
+  kind: 'rect',
+  key: point.key,
+  x,
+  y,
+  width,
+  height,
+  interaction: { point, affinity: 'x' },
+}
+
+return { nodes: [node], points: [point] }
+```
+
+Use `x` for vertically oriented marks, `y` for horizontal marks, `xy` for
+ordinary two-dimensional proximity, and `geometry` when only exact
+containment should focus the mark. The default resolver checks containment
+across every mark before applying any fallback. A continuous `polyline` or
+`area` may attach all of the semantic samples it represents with
+`interaction: { points, affinity }`; containment selects the closest sample
+within that primitive.
+
+Keep primitive coordinates local when returning translated groups. Scene
+traversal applies nested translation, clipping, facets, and paint order after
+layout. Do not calculate a second set of global hit bounds beside the rendered
+node.
+
 Omit points for decorative geometry. Do not invent fake interactive data for a
 frame, grid, or threshold that should not receive focus.
 
@@ -170,6 +203,10 @@ coordinate conversion, focus painting, and cleanup. The host retains sizing,
 runtime, keyboard, tooltip, selection, and focus-strategy behavior. Keep
 `prerender` deterministic and make `mount` adopt compatible server markup.
 
+If `paintFocus` resolves and paints inline mark-state geometry, return that
+destination `ChartScene`. The host will use it for subsequent pointer hits;
+returning nothing preserves base-scene interaction for simpler renderers.
+
 Use `ChartRendererRenderContext.surface` instead of assuming `onRender` exposes
 an SVG element. Framework consumers pass `renderer` through
 `@tanstack/react-charts/core` or `@tanstack/octane-charts/core`.
@@ -205,8 +242,9 @@ navigation. Its generic types must remain identical to the chart points it
 receives.
 
 A `ChartSpatialIndexFactory` builds optional nearest-point acceleration from
-scene points. Return original typed points from the index. Do not erase them to
-`unknown` and cast them back in callbacks.
+scene points and receives the complete resolved scene as its second argument.
+Return original typed points from the index. Do not erase them to `unknown` and
+cast them back in callbacks.
 
 ## Extension checklist
 

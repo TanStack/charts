@@ -154,7 +154,6 @@ export function rect<TDatum>(
       },
       render: ({ scales, color: resolveColor }) => {
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
         const inset = Math.max(0, options.inset ?? 0.75)
 
         data.forEach((datum, datumIndex) => {
@@ -192,26 +191,13 @@ export function rect<TDatum>(
           const color =
             options.fill ?? resolveColor(colorValues[datumIndex] ?? null)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          nodes.push({
-            kind: 'rect',
-            key,
-            x: left + inset,
-            y: top + inset,
-            width: Math.max(0, width - inset * 2),
-            height: Math.max(0, height - inset * 2),
-            radius: options.radius,
-            inset,
-            style: {
-              fill: color,
-              fillOpacity: options.fillOpacity,
-              stroke: options.stroke,
-              strokeWidth: options.strokeWidth,
-            },
-          })
-
+          const paintedX = left + inset
+          const paintedY = top + inset
+          const paintedWidth = Math.max(0, width - inset * 2)
+          const paintedHeight = Math.max(0, height - inset * 2)
           const pointXValue = isChartValue(xValue) ? xValue : x2Value
           const pointYValue = isChartValue(yValue) ? yValue : y2Value
-          points.push({
+          const point: ChartPoint<TDatum> = {
             key,
             markId: id,
             group,
@@ -229,6 +215,23 @@ export function rect<TDatum>(
             x: left + width / 2,
             y: top + height / 2,
             color,
+          }
+          nodes.push({
+            kind: 'rect',
+            key,
+            x: paintedX,
+            y: paintedY,
+            width: paintedWidth,
+            height: paintedHeight,
+            radius: options.radius,
+            inset,
+            interaction: { point },
+            style: {
+              fill: color,
+              fillOpacity: options.fillOpacity,
+              stroke: options.stroke,
+              strokeWidth: options.strokeWidth,
+            },
           })
         })
 
@@ -242,7 +245,6 @@ export function rect<TDatum>(
               children: nodes,
             },
           ],
-          points,
         }
       },
     }

@@ -222,12 +222,14 @@ function applyStateStyle(
     case 'rect': {
       const nextInset = Math.max(0, inset ?? output.inset ?? 0)
       const amount = nextInset - (output.inset ?? 0)
+      const insetX = output.insetAxis !== 'y' ? amount : 0
+      const insetY = output.insetAxis !== 'x' ? amount : 0
       output = {
         ...output,
-        x: output.x + amount + dx,
-        y: output.y + amount + dy,
-        width: Math.max(0, output.width - amount * 2),
-        height: Math.max(0, output.height - amount * 2),
+        x: output.x + insetX + dx,
+        y: output.y + insetY + dy,
+        width: Math.max(0, output.width - insetX * 2),
+        height: Math.max(0, output.height - insetY * 2),
         radius: radius ?? output.radius,
         inset: nextInset,
       }

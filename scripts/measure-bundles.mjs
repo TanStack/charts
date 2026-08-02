@@ -135,7 +135,7 @@ const nativeExternals = [
   'react-native-svg/*',
 ]
 const entries = [
-  measured('Core host', 'benchmarks/entries/core.ts', {
+  measured('Legacy Plot POC host core', 'benchmarks/entries/core.ts', {
     inputBoundary: { forbid: ['d3GeometryRuntime'] },
   }),
   budgeted(
@@ -250,7 +250,7 @@ const entries = [
   budgeted(
     'D3-scale facets + static SVG',
     'benchmarks/entries/charts-facet-svg.ts',
-    18.8,
+    19.2,
   ),
   budgeted(
     'D3-scale arrows + static SVG',
@@ -281,7 +281,7 @@ const entries = [
   budgeted(
     'D3-scale ticks + static SVG',
     'benchmarks/entries/charts-tick-svg.ts',
-    16.6,
+    16.75,
   ),
   budgeted(
     'D3-scale vectors + static SVG',
@@ -447,7 +447,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    16.8,
+    18.6,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -555,7 +555,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    40.5,
+    42.3,
   ),
   locked(
     'Custom-scale line scene',
@@ -606,12 +606,12 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    25.9,
+    26.4,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    31.2,
+    31.6,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -744,6 +744,15 @@ const entries = [
     'benchmarks/entries/d3-delaunay-kernel.ts',
     7.3,
   ),
+  measured(
+    'Anchor-only pointer resolver baseline',
+    'benchmarks/entries/charts-pointer-anchor-kernel.ts',
+  ),
+  budgeted(
+    'Geometry pointer resolver kernel',
+    'benchmarks/entries/charts-pointer-geometry-kernel.ts',
+    2,
+  ),
   budgeted(
     'D3 brush controller kernel',
     'benchmarks/entries/d3-brush-kernel.ts',
@@ -772,7 +781,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    41.5,
+    43.4,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),

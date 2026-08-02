@@ -211,6 +211,8 @@ Each entry records:
 | F-173 | Metro retained the complete universal barrel             | API/Tooling     | monitoring |
 | F-174 | OIDC release cannot claim a new npm package name         | Tooling         | monitoring |
 | F-175 | Native SVG resource normalization collapsed authored IDs | Application     | resolved   |
+| F-176 | Large marks were focused by distant anchor points        | API             | monitoring |
+| F-177 | Bubble overlap inherited incidental source order         | Application     | resolved   |
 
 ## Findings
 
@@ -4257,3 +4259,127 @@ Each entry records:
 - Verification: the native scene regression renders the formerly colliding
   IDs plus empty and delimiter-containing IDs, and checks matching definition
   IDs and paint references.
+
+### F-176 — Large marks were focused by distant anchor points
+
+- Status: monitoring
+- Severity: high
+- Owner: API
+- Observed in: stacked-bar tooltip report and interaction-geometry lab
+- Friction: vertical bars emit their value endpoint as the interaction anchor,
+  and the default resolver measured `maxFocusDistance` only from that anchor.
+  A pointer inside a tall bar could therefore select an adjacent endpoint less
+  than 48 pixels away. Raising the threshold retained the wrong two-dimensional
+  ranking, while chart-wide nearest-x made off-bar selection too permissive.
+  Pure x fallback also tied every segment in one stack and selected the bottom
+  segment when the pointer was above the stack.
+- Current decision: use a two-stage scene contract rather than infer a strategy
+  from chart composition or copy geometry onto `ChartPoint`. A resolved `rect`,
+  `dot`, `area`, `polyline`, or `rule` attaches its semantic point or points and
+  natural `x`, `y`, `xy`, or `geometry` fallback. The default resolver collects
+  those targets from the final scene in paint order, accumulating facet and
+  group translations and clips. Exact containment wins across all marks before
+  fallback ranking; axis fallback uses visible primitive bounds first and full
+  geometry distance to break ties. Inline mark states return their destination
+  scene to the host, which intentionally uses that scene during animation.
+  Points not attached to a primitive retain legacy point-distance behavior.
+  Explicit focus strategies and custom spatial indexes continue to own their
+  complete search semantics; the spatial-index factory now receives the final
+  scene as a backward-compatible second argument so bounds, quadtrees, or
+  Delaunay can remain optional acceleration layers without copying geometry
+  onto points. Facet layout also scopes the final primitive and focus-layer
+  keys. Default `primary`/`group` presentation matches canonical focused points
+  instead of treating equal x/y/series tuples in another panel as the same
+  point; `whenFocused(..., { match: "x" })` or `match: "y"` remains the
+  explicit synchronized-cursor contract.
+- Verification: focused tests cover containment priority, x/y/xy/geometry
+  fallback, rounded/reversed rectangles, circles, polygons, rules and lines,
+  built-in bar affinity, paint-order overlap, stack-edge selection, nested
+  translation, partial and complete clipping, destination-state scene
+  selection, spatial-index ownership, legacy tie order, duplicate-valued facet
+  identity, explicit synchronized x/y facet bands, and axis-correct animated
+  bar insets. The sandbox adds default-primary, x-synchronized, and
+  y-synchronized facet focus modes with contextual source, plus a live
+  destination-animation contract before twenty-four chart-family, grouped-bar,
+  clipping, polar, facet, and large-geometry comparisons. The lab now includes
+  dense scatter, pre-binned hexagon, nested-bubble paint-order, and richer
+  Sankey/network probes; its twenty-eight proof families split evenly between
+  labelled SVG and Canvas cards, and the destination-animation contract renders
+  in both so attribute interpolation and buffer crossfading share the same
+  picking semantics. Four composed cases verify that built-in bars, areas,
+  lines, rectangles, and dots contribute their natural affinity per primitive
+  without a chart-wide setting, including topmost containment when unlike marks
+  overlap. Facet coverage includes plain, grouped, stacked, and bubble marks.
+  Three mixed-mark cases now include an additional native `group-x` or
+  `group-y` tooltip card. This exposed that grouped tooltips are not an
+  independent presentation option: each grouped preset replaces the default
+  scene-containment resolver with nearest-axis selection as well as returning
+  the focus group. The lab keeps those cards separate and labelled rather than
+  claiming that geometry-first primary selection and axis grouping currently
+  compose.
+  The full unit matrix passes 745 tests across 131 files;
+  typecheck, documentation,
+  formatting, packed-consumer, seven-adapter, sandbox production-build, and
+  live browser checks also pass.
+
+  On Node 24 arm64 on an Apple M4 Pro, the cached scene resolver improves the
+  unoptimized POC's median query time from 113.5 to 14.2 microseconds for 10k
+  ordinary points, 62.5 to 16.4 for contained rectangles, 210.6 to 118.0 for
+  stacked fallback, 64.5 to 16.2 for circles, and 126.2 to 71.8 for 2k
+  polygons. On an exact-target point fixture, production, scene geometry,
+  Observable Plot 0.6.17, D3 quadtree, cold D3 Delaunay, and coherent Delaunay
+  take 13.7, 13.7, 41.4, 2.6, 8.7, and 3.0 microseconds. Quadtree and Delaunay
+  construction take 1.92 and 2.53 milliseconds for 10k points. A
+  source-equivalent Vega cached-bounds pass takes 10.0 microseconds versus 15.2
+  for the generic rectangle resolver, but deliberately excludes Vega's
+  subsequent Canvas path test.
+
+  The isolated scene resolver is 5,010 minified / 2,005 gzip bytes versus 157 /
+  153 for the anchor-only kernel: a 1,852-byte gzip feature cost under an
+  explicit 2 KiB ceiling. Against the pre-feature product lock, the complete
+  DOM host adds 1,840 gzip bytes, the React line consumer adds 1,859, and the
+  native host adds 1,824. These shared-host costs and the related aggregate
+  fixture ceilings were reviewed and accepted because painted-geometry
+  interaction is the default contract across DOM, Canvas, and native charts;
+  the exact locked baselines now record that decision while the isolated 2 kB
+  ceiling continues to constrain the resolver itself. A final size audit removed
+  redundant built-in `MarkScene.points` arrays and explicit default `xy`
+  affinity fields while retaining the optional point list for custom-mark
+  compatibility. Against the immediate pre-audit build, that saves 119
+  minified / 58 gzip / 67 Brotli bytes in the representative-marks entry and 24
+  / 10 / 39 bytes in the D3-line scene. The interactive host is unchanged
+  because it does not bundle those mark encoders. Packing cached interaction
+  targets into tuples was rejected after the same 10k stacked-fallback fixture
+  regressed from about 118 to 294 microseconds per query; the larger but
+  optimizer-friendly object shape remains.
+  [Observable Plot](https://observablehq.com/plot/interactions/pointer)
+  documents point-only dead spots and dominant-axis modes;
+  [D3 quadtree](https://d3js.org/d3-quadtree#quadtree_find) and
+  [D3 Delaunay](https://d3js.org/d3-delaunay/delaunay#delaunay_find) establish
+  indexed point lookup and its build/rebuild tradeoff; Vega's
+  [reverse visitor](https://github.com/vega/vega/blob/main/packages/vega-scenegraph/src/util/visit.js)
+  and [Canvas picker](https://github.com/vega/vega/blob/main/packages/vega-scenegraph/src/util/canvas/pick.js)
+  establish topmost traversal, cached-bounds rejection, and exact path tests.
+
+- Follow-up: exact picking against optional authored SVG path strings and an
+  interpolated mid-transition scene remain separate refinements. Verify full
+  SVG/Canvas parity before resolving this entry.
+
+### F-177 — Bubble overlap inherited incidental source order
+
+- Status: resolved
+- Severity: medium
+- Owner: Application
+- Observed in: Palmer penguin bubble-scatter conformance pair
+- Friction: translucent bubbles deliberately use paint order to resolve
+  overlapping containment, but the conformance rows retained incidental source
+  order. A smaller observation could therefore be painted behind and become
+  difficult to target even though it remained visually perceptible.
+- Decision: share one typed row selector between the Plot and TanStack cases,
+  filter complete channel values with a type predicate, and paint larger body
+  masses first so smaller bubbles remain visible and targetable on top. Keep
+  the library's generic paint-order policy unchanged because authored scene
+  order can be semantically meaningful.
+- Verification: the model regression covers the initial 320-row fixture and
+  asserts monotonically descending body mass for the paired renderers' shared
+  row selector.

@@ -195,9 +195,10 @@ for the contract.
 ## Spatial indexes
 
 `ChartSpatialIndexFactory` replaces the default linear pointer lookup without
-changing scene compilation. Build the index from supplied points and return
-the nearest point within the requested distance. The host recreates it when
-the scene or factory changes.
+changing scene compilation. Build a point-only index from its first argument,
+or use its second `scene` argument to index resolved primitive bounds. Return
+the nearest original point within the requested distance. The host recreates
+the index when the scene or factory changes.
 
 See [Spatial indexes](./focus-and-interaction.md#spatial-indexes). The
 appropriate granular spatial primitive can be brought through the boundary

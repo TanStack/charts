@@ -1,22 +1,13 @@
-import { penguins } from '@charts-poc/demo-data/penguins'
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
 import { scaleLinear, scaleSqrt } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
+import { bubbleRows } from './model'
 
 const groupRange = ['#2563eb', '#f97316', '#10b981']
-const completePenguins = penguins.filter(
-  (row) =>
-    row.culmen_length_mm !== null &&
-    row.culmen_depth_mm !== null &&
-    row.body_mass_g !== null,
-)
 
 const definition = (input: ConformanceInput) => {
-  const rows = completePenguins.slice(
-    input.revision * 8,
-    input.revision * 8 + 320,
-  )
+  const rows = bubbleRows(input.revision)
 
   return defineChart({
     marks: [

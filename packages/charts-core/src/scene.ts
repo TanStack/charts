@@ -1,7 +1,7 @@
 import { createColorScale, valueKey } from './scales'
 import { resolveConfiguredScale } from './configured-scale'
 import { measureSceneLabelBounds } from './guide-layout'
-import { nearestPoint } from './nearest'
+import { nearestScenePoint } from './nearest'
 import type {
   DynamicChartDefinition,
   InitializedMark,
@@ -207,7 +207,7 @@ function createChartSceneWithScaleResolver<
   const markNodes: SceneNode[] = []
   const points: ChartPoint<TDatum, TXValue, TYValue>[] = []
   const firstBaseMarkIndex = initialized.findIndex((mark) => !mark.focus)
-  const hasFocusMarks = initialized.some((mark) => mark.focus)
+  let hasFocusLayers = initialized.some((mark) => mark.focus)
 
   initialized.forEach((mark, markIndex) => {
     const rendered = mark.render({
@@ -219,6 +219,11 @@ function createChartSceneWithScaleResolver<
       colors,
       layout,
     })
+    const renderedPoints = collectRenderedPoints(
+      rendered.nodes,
+      rendered.points,
+    )
+    hasFocusLayers ||= containsFocusLayer(rendered.nodes)
     if (mark.focus) {
       markNodes.push({
         kind: 'group',
@@ -227,7 +232,7 @@ function createChartSceneWithScaleResolver<
         ariaHidden: true,
         focus: {
           match: mark.focus.match ?? 'primary',
-          points: rendered.points ?? [],
+          points: renderedPoints,
           placement:
             firstBaseMarkIndex < 0 || markIndex < firstBaseMarkIndex
               ? 'under'
@@ -236,6 +241,11 @@ function createChartSceneWithScaleResolver<
         children: rendered.nodes,
       })
     } else {
+      const markPoints = renderedPoints as readonly ChartPoint<
+        TDatum,
+        TXValue,
+        TYValue
+      >[]
       if (mark.states) {
         markNodes.push({
           kind: 'group',
@@ -244,19 +254,13 @@ function createChartSceneWithScaleResolver<
           states: {
             data: mark.states.data,
             definitions: mark.states.definitions,
-            points: rendered.points ?? [],
+            points: markPoints,
           },
         })
       } else {
         for (const node of rendered.nodes) markNodes.push(node)
       }
-      for (const point of (rendered.points ?? []) as readonly ChartPoint<
-        TDatum,
-        TXValue,
-        TYValue
-      >[]) {
-        points.push(point)
-      }
+      for (const point of markPoints) points.push(point)
     }
   })
   const nodes: SceneNode[] = [
@@ -278,12 +282,7 @@ function createChartSceneWithScaleResolver<
     nodes.push(axisNodes)
   }
   if (legend) nodes.push(legend.render({ colors, chart, theme, width }))
-  if (!hasFocusMarks && points.length) {
-    const focusPoints = points.map((point) => ({
-      ...point,
-      key: `default-focus:${point.key}`,
-      markId: 'default-focus',
-    }))
+  if (!hasFocusLayers && points.length) {
     nodes.push({
       kind: 'group',
       key: 'default-focus',
@@ -291,10 +290,10 @@ function createChartSceneWithScaleResolver<
       ariaHidden: true,
       focus: {
         match: 'primary',
-        points: focusPoints,
+        points,
         placement: 'over',
       },
-      children: focusPoints.map((point) => ({
+      children: points.map((point) => ({
         kind: 'dot',
         key: point.key,
         x: point.x,
@@ -333,7 +332,47 @@ export function findNearestPoint<
   y: number,
   maxDistance = Infinity,
 ): ChartPoint<TDatum, TXValue, TYValue> | null {
-  return nearestPoint(scene.points, x, y, maxDistance)
+  return nearestScenePoint(scene, x, y, maxDistance)
+}
+
+function collectRenderedPoints(
+  nodes: readonly SceneNode[],
+  emitted: readonly ChartPoint[] | undefined,
+): readonly ChartPoint[] {
+  const points = emitted ? [...emitted] : []
+  const seen = new Set(points)
+  const visit = (children: readonly SceneNode[]) => {
+    for (const node of children) {
+      if (node.kind === 'group') {
+        if (!node.focus) visit(node.children)
+        continue
+      }
+      if (node.kind === 'label' || !node.interaction) continue
+      const interaction = node.interaction
+      if (interaction.point) {
+        if (!seen.has(interaction.point)) {
+          seen.add(interaction.point)
+          points.push(interaction.point)
+        }
+      } else {
+        for (const point of interaction.points) {
+          if (seen.has(point)) continue
+          seen.add(point)
+          points.push(point)
+        }
+      }
+    }
+  }
+  visit(nodes)
+  return points
+}
+
+function containsFocusLayer(nodes: readonly SceneNode[]): boolean {
+  return nodes.some(
+    (node) =>
+      node.kind === 'group' &&
+      (node.focus !== undefined || containsFocusLayer(node.children)),
+  )
 }
 
 function collectScaleChannels(

@@ -16,6 +16,7 @@ import type {
   ChartRuntime,
   ChartScene,
   ChartValue,
+  RenderChartOptions,
   SceneNode,
   SceneStyle,
 } from './types'
@@ -41,6 +42,26 @@ export interface CanvasChartRenderer<
   TYValue extends ChartValue = ChartValue,
 > extends ChartRenderer<TDatum, TXValue, TYValue> {
   mount: (
+    container: HTMLElement,
+    requestRender: (force?: boolean) => void,
+  ) => CanvasChartSurface<TDatum, TXValue, TYValue>
+}
+
+interface UniversalCanvasChartRenderer {
+  readonly id: string
+  prerender: <
+    TDatum = unknown,
+    TXValue extends ChartValue = ChartValue,
+    TYValue extends ChartValue = ChartValue,
+  >(
+    scene: ChartScene<TDatum, TXValue, TYValue>,
+    options: RenderChartOptions,
+  ) => string
+  mount: <
+    TDatum = unknown,
+    TXValue extends ChartValue = ChartValue,
+    TYValue extends ChartValue = ChartValue,
+  >(
     container: HTMLElement,
     requestRender: (force?: boolean) => void,
   ) => CanvasChartSurface<TDatum, TXValue, TYValue>
@@ -118,12 +139,22 @@ export function createCanvasChartRenderer<
 >(
   rendererOptions: CanvasChartRendererOptions = {},
 ): CanvasChartRenderer<TDatum, TXValue, TYValue> {
-  const renderer: CanvasChartRenderer<TDatum, TXValue, TYValue> = {
+  return createUniversalCanvasChartRenderer(rendererOptions)
+}
+
+function createUniversalCanvasChartRenderer(
+  rendererOptions: CanvasChartRendererOptions = {},
+): UniversalCanvasChartRenderer {
+  const renderer: UniversalCanvasChartRenderer = {
     id: 'canvas',
     prerender(scene, options) {
       return renderCanvasShell(scene, options)
     },
-    mount(container, requestRender) {
+    mount<
+      TDatum = unknown,
+      TXValue extends ChartValue = ChartValue,
+      TYValue extends ChartValue = ChartValue,
+    >(container: HTMLElement, requestRender: (force?: boolean) => void) {
       const document = container.ownerDocument
       const view = document.defaultView
       const root = findOrCreateRoot(container)
@@ -246,6 +277,7 @@ export function createCanvasChartRenderer<
             resolver,
             root,
           )
+          return resolved.scene
         },
         destroy() {
           if (destroyed) return
@@ -266,7 +298,7 @@ export function createCanvasChartRenderer<
   return renderer
 }
 
-export const canvasChartRenderer = createCanvasChartRenderer()
+export const canvasChartRenderer = createUniversalCanvasChartRenderer()
 
 export function mountCanvasChart<
   TDatum,

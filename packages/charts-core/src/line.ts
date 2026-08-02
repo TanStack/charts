@@ -115,7 +115,6 @@ export function lineY<TDatum>(
       render: ({ scales, color: resolveColor }) => {
         const groups = groupRows(rows)
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
 
         for (const [groupKey, groupRows] of groups) {
           const firstRow = groupRows[0]
@@ -129,6 +128,7 @@ export function lineY<TDatum>(
           )
           const children: SceneNode[] = []
           let segment: (readonly [number, number])[] = []
+          let segmentPoints: ChartPoint<TDatum>[] = []
           let segmentIndex = 0
 
           const flushSegment = () => {
@@ -138,6 +138,7 @@ export function lineY<TDatum>(
               key: `${id}:${groupKey}:segment:${segmentIndex}`,
               points: segment,
               path: options.curve?.line(segment),
+              interaction: { points: segmentPoints, affinity: 'x' },
               style: {
                 fill: 'none',
                 stroke: color,
@@ -149,6 +150,7 @@ export function lineY<TDatum>(
               },
             })
             segment = []
+            segmentPoints = []
             segmentIndex += 1
           }
 
@@ -173,7 +175,7 @@ export function lineY<TDatum>(
               y,
               color,
             }
-            points.push(point)
+            segmentPoints.push(point)
             segment.push([x, y])
 
             if (options.points) {
@@ -198,7 +200,7 @@ export function lineY<TDatum>(
           })
         }
 
-        return { nodes, points }
+        return { nodes }
       },
     }
   })

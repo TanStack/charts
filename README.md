@@ -293,8 +293,14 @@ Run a local example:
 pnpm dev:charts-react
 pnpm dev:charts-octane
 pnpm dev:sandbox
+pnpm dev:interaction-geometry
 pnpm dev:conformance
 ```
+
+The sandbox opens its existing integrated data dashboard by default. The
+interaction-geometry command opens a before-and-after lab for exercising
+scene-owned interaction geometry, paint order, transforms, clipping, and
+natural focus fallback across chart families.
 
 The repository includes three complementary benchmark suites:
 
@@ -309,6 +315,7 @@ The repository includes three complementary benchmark suites:
 ```sh
 pnpm bundle:check
 pnpm performance
+pnpm performance:pointer
 pnpm benchmark:check
 pnpm benchmark:stress:quick
 pnpm conformance:quick

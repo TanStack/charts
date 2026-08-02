@@ -446,12 +446,13 @@ if (false) {
         }
       },
     },
-    spatialIndex(points) {
+    spatialIndex(points, scene) {
       expectTypeOf(points).items.toMatchTypeOf<{
         datum: Row
         xValue: string
         yValue: number
       }>()
+      expectTypeOf(scene.points).toEqualTypeOf<typeof points>()
       return {
         findNearest: () => points[0] ?? null,
       }

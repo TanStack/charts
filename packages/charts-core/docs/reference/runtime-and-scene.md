@@ -131,8 +131,12 @@ function findNearestPoint<
 ```
 
 Coordinates are in scene pixels. `maxDistance` defaults to `Infinity`.
-The function performs a linear scan of the scene's interaction points. For a
-large point set, supply a spatial index to the DOM or framework host; see
+The function caches a paint-ordered interaction target list for the scene,
+checks primitive containment first, and then applies each target's natural
+axis or geometric affinity. Scene traversal accumulates group translation and
+clipping, so the resolver and renderer consume the same post-layout tree.
+Semantic points not attached to primitives retain legacy anchor distance. For
+a large point set, supply a spatial index to the DOM or framework host; see
 [Focus and interaction](./focus-and-interaction.md#spatial-indexes).
 
 ## `ChartScene`
@@ -171,7 +175,8 @@ interface ChartScene<
 ## Scene nodes
 
 Every scene node has a stable `key`, optional `className`, optional
-`SceneStyle`, and optional `ariaHidden`.
+`SceneStyle`, and optional `ariaHidden`. Geometric primitives may also attach
+a `SceneInteraction`; groups and labels cannot.
 
 | `kind`     | Geometry                                                   |
 | ---------- | ---------------------------------------------------------- |
@@ -185,6 +190,29 @@ Every scene node has a stable `key`, optional `className`, optional
 
 `SceneStyle` supports fill, fill opacity, stroke, stroke opacity, stroke width,
 overall opacity, line cap, line join, and dash array.
+
+`SceneRect.inset` retains the resolved inset for absolute inline-state
+overrides. Its optional `insetAxis` is `x`, `y`, or `xy`; vertical and
+horizontal bars use only their categorical axis, while ordinary rectangles use
+both axes. Renderers consume the already-resolved rectangle geometry.
+
+```ts
+type SceneInteraction =
+  | {
+      point: ChartPoint
+      points?: never
+      affinity?: 'x' | 'y' | 'xy' | 'geometry'
+    }
+  | {
+      point?: never
+      points: readonly ChartPoint[]
+      affinity?: 'x' | 'y' | 'xy' | 'geometry'
+    }
+```
+
+Attach the exact point object returned in `MarkScene.points`. A continuous
+primitive can attach several points, allowing one rendered line or area to
+choose its nearest semantic sample without duplicating the primitive geometry.
 
 Custom marks should return the smallest honest scene tree and stable keys. The
 full initialization and render contracts are in

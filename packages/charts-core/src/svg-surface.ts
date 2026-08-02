@@ -79,6 +79,7 @@ export function createSvgChartRenderer<
             ? (resolved.transition ?? previousTransition)
             : undefined
           paintSvgFocus(svgElement(), resolved.scene, focus)
+          return resolved.scene
         },
         destroy() {
           cancelAnimation()

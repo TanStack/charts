@@ -101,7 +101,6 @@ export function dot<TDatum>(
       },
       render: ({ scales, color: resolveColor }) => {
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
 
         data.forEach((datum, datumIndex) => {
           const xValue = xValues[datumIndex]
@@ -120,21 +119,7 @@ export function dot<TDatum>(
           const x = scales.x.map(xValue)
           const y = scales.y.map(yValue)
           const key = `${id}:${groupKey}:${valueKey(keys[datumIndex])}`
-          nodes.push({
-            kind: 'dot',
-            key,
-            x,
-            y,
-            radius,
-            style: {
-              fill: color,
-              fillOpacity: options.fillOpacity,
-              stroke: options.stroke,
-              strokeOpacity: options.strokeOpacity,
-              strokeWidth: options.strokeWidth,
-            },
-          })
-          points.push({
+          const point: ChartPoint<TDatum> = {
             key,
             markId: id,
             group,
@@ -146,6 +131,21 @@ export function dot<TDatum>(
             x,
             y,
             color,
+          }
+          nodes.push({
+            kind: 'dot',
+            key,
+            x,
+            y,
+            radius,
+            interaction: { point },
+            style: {
+              fill: color,
+              fillOpacity: options.fillOpacity,
+              stroke: options.stroke,
+              strokeOpacity: options.strokeOpacity,
+              strokeWidth: options.strokeWidth,
+            },
           })
         })
 
@@ -159,7 +159,6 @@ export function dot<TDatum>(
               children: nodes,
             },
           ],
-          points,
         }
       },
     }

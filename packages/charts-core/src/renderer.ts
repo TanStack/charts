@@ -46,6 +46,7 @@ export function mountChartRenderer<
 ): ChartRendererHost<TDatum, TXValue, TYValue> {
   let options = initialOptions
   let scene!: ChartScene<TDatum, TXValue, TYValue>
+  let interactionScene!: ChartScene<TDatum, TXValue, TYValue>
   let focusedPoint: ChartPoint<TDatum, TXValue, TYValue> | null = null
   let focusSource: ChartFocusSource = 'pointer'
   let pointerPosition: ChartTooltipPosition | null = null
@@ -75,6 +76,7 @@ export function mountChartRenderer<
     if (refreshText && !options.measureText) domText.refresh()
     const previousFocusedPoint = focusedPoint
     scene = createScene()
+    interactionScene = scene
     if (!surface) {
       surface = options.renderer.mount(container, scheduleRender)
     } else if (surface.renderer !== options.renderer) {
@@ -96,7 +98,7 @@ export function mountChartRenderer<
         : undefined,
     })
     hasRendered = true
-    spatialIndex = options.definition.spatialIndex?.(scene.points)
+    spatialIndex = options.definition.spatialIndex?.(scene.points, scene)
     const nextFocusedPoint = previousFocusedPoint
       ? restoreFocusedPoint(scene.points, previousFocusedPoint)
       : null
@@ -215,7 +217,7 @@ export function mountChartRenderer<
     point: ChartPoint<TDatum, TXValue, TYValue> | null,
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) => {
-    surface?.paintFocus(
+    const paintedScene = surface?.paintFocus(
       point
         ? {
             primary: point,
@@ -226,6 +228,7 @@ export function mountChartRenderer<
         : null,
       pointerPosition,
     )
+    interactionScene = paintedScene ?? scene
     paintTooltip(point, points)
   }
 
@@ -434,7 +437,7 @@ export function mountChartRenderer<
     }
     const point = spatialIndex
       ? spatialIndex.findNearest(x, y, maxDistance)
-      : findNearestPoint(scene, x, y, maxDistance)
+      : findNearestPoint(interactionScene, x, y, maxDistance)
     return point ? [point] : []
   }
 

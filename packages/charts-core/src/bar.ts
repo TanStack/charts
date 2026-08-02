@@ -165,7 +165,6 @@ export function barY<TDatum>(
         const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
         const inset = Math.max(0, options.inset ?? 0)
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
 
         data.forEach((datum, datumIndex) => {
           const xValue = xValues[datumIndex]
@@ -194,22 +193,10 @@ export function barY<TDatum>(
           const valuePosition = scales.y.map(y2Value)
           const x = center - totalBandwidth / 2 + groupOffset + inset
           const y = Math.min(baselinePosition, valuePosition)
+          const width = Math.max(0, groupBandwidth - inset * 2)
+          const height = Math.abs(baselinePosition - valuePosition)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          nodes.push({
-            kind: 'rect',
-            key,
-            x,
-            y,
-            width: Math.max(0, groupBandwidth - inset * 2),
-            height: Math.abs(baselinePosition - valuePosition),
-            radius: options.radius,
-            inset,
-            style: {
-              fill,
-              fillOpacity: options.fillOpacity,
-            },
-          })
-          points.push({
+          const point: ChartPoint<TDatum> = {
             key,
             markId: id,
             group,
@@ -224,6 +211,22 @@ export function barY<TDatum>(
             x: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
             y: valuePosition,
             color: fill,
+          }
+          nodes.push({
+            kind: 'rect',
+            key,
+            x,
+            y,
+            width,
+            height,
+            radius: options.radius,
+            inset,
+            insetAxis: 'x',
+            interaction: { point, affinity: 'x' },
+            style: {
+              fill,
+              fillOpacity: options.fillOpacity,
+            },
           })
         })
 
@@ -237,7 +240,6 @@ export function barY<TDatum>(
               children: nodes,
             },
           ],
-          points,
         }
       },
     }
@@ -343,7 +345,6 @@ export function barX<TDatum>(
         const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
         const inset = Math.max(0, options.inset ?? 0)
         const nodes: SceneNode[] = []
-        const points: ChartPoint<TDatum>[] = []
 
         data.forEach((datum, datumIndex) => {
           const xValue = rawXValues[datumIndex]
@@ -371,22 +372,11 @@ export function barX<TDatum>(
           const valuePosition = scales.x.map(x2Value)
           const center = scales.y.map(yValue)
           const y = center - totalBandwidth / 2 + groupOffset + inset
+          const x = Math.min(baselinePosition, valuePosition)
+          const width = Math.abs(baselinePosition - valuePosition)
+          const height = Math.max(0, groupBandwidth - inset * 2)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
-          nodes.push({
-            kind: 'rect',
-            key,
-            x: Math.min(baselinePosition, valuePosition),
-            y,
-            width: Math.abs(baselinePosition - valuePosition),
-            height: Math.max(0, groupBandwidth - inset * 2),
-            radius: options.radius,
-            inset,
-            style: {
-              fill,
-              fillOpacity: options.fillOpacity,
-            },
-          })
-          points.push({
+          const point: ChartPoint<TDatum> = {
             key,
             markId: id,
             group,
@@ -401,6 +391,22 @@ export function barX<TDatum>(
             x: valuePosition,
             y: center - totalBandwidth / 2 + groupOffset + groupBandwidth / 2,
             color: fill,
+          }
+          nodes.push({
+            kind: 'rect',
+            key,
+            x,
+            y,
+            width,
+            height,
+            radius: options.radius,
+            inset,
+            insetAxis: 'y',
+            interaction: { point, affinity: 'y' },
+            style: {
+              fill,
+              fillOpacity: options.fillOpacity,
+            },
           })
         })
 
@@ -414,7 +420,6 @@ export function barX<TDatum>(
               children: nodes,
             },
           ],
-          points,
         }
       },
     }

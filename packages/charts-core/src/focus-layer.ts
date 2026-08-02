@@ -96,18 +96,14 @@ export function matchesFocusPoint(
     )
   }
   if (match === 'group') {
-    return focus.group.some((point) => sameSemanticPoint(candidate, point))
+    return focus.group.some((point) => sameFocusedPoint(candidate, point))
   }
-  return sameSemanticPoint(candidate, focus.primary)
+  return sameFocusedPoint(candidate, focus.primary)
 }
 
-function sameSemanticPoint(left: ChartPoint, right: ChartPoint) {
-  return (
-    left.datum === right.datum ||
-    (sameValue(left.xValue, right.xValue) &&
-      sameValue(left.yValue, right.yValue) &&
-      sameValue(left.group, right.group))
-  )
+function sameFocusedPoint(left: ChartPoint, right: ChartPoint) {
+  if (left === right || left.key === right.key) return true
+  return isReference(left.datum) && left.datum === right.datum
 }
 
 function sameValue(left: unknown, right: unknown) {
@@ -119,6 +115,12 @@ function keysRelate(left: string, right: string) {
     left === right ||
     left.startsWith(`${right}:`) ||
     right.startsWith(`${left}:`)
+  )
+}
+
+function isReference(value: unknown) {
+  return (
+    (typeof value === 'object' && value !== null) || typeof value === 'function'
   )
 }
 

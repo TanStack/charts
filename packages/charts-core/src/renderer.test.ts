@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { lineY } from './line'
 import { mountChartRenderer } from './renderer'
-import { defineChart } from './scene'
+import { defineChart, findNearestPoint } from './scene'
 import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
@@ -10,7 +10,7 @@ import type {
   ChartSurface,
   ChartSurfaceRenderOptions,
 } from './dom-types'
-import type { ChartScene, ChartTooltipAnchorContext } from './types'
+import type { ChartPoint, ChartScene, ChartTooltipAnchorContext } from './types'
 
 interface Datum {
   id: string
@@ -137,6 +137,103 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
     expect(fake.destroy).toHaveBeenCalledOnce()
     expect(container.childElementCount).toBe(0)
+  })
+
+  it('lets a spatial index fully own pointer resolution', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const findNearest = vi.fn()
+    const spatialIndex = vi.fn(
+      (points: readonly ChartPoint<Datum, number, number>[]) => {
+        findNearest.mockReturnValue(points[1] ?? null)
+        return { findNearest }
+      },
+    )
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, { spatialIndex }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Indexed chart',
+      onFocusChange,
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 0,
+        clientY: 0,
+      }),
+    )
+
+    const firstPoint = host.getScene().points[0]!
+    expect(spatialIndex).toHaveBeenCalledWith(
+      host.getScene().points,
+      host.getScene(),
+    )
+    expect(findNearest).toHaveBeenCalledWith(firstPoint.x, firstPoint.y, 48)
+    expect(onFocusChange).toHaveBeenLastCalledWith(host.getScene().points[1])
+    host.destroy()
+  })
+
+  it('resolves pointers against the destination scene returned by focus paint', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, { maxFocusDistance: 1 }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Destination-scene interaction',
+      onFocusChange,
+    })
+    const baseScene = host.getScene()
+    const first = baseScene.points[0]!
+    const second = baseScene.points[1]!
+    const movedX = 310
+    const movedY = 190
+    const destinationScene: ChartScene<Datum, number, number> = {
+      ...baseScene,
+      nodes: [
+        {
+          kind: 'rect',
+          key: 'moved-first',
+          x: movedX - 20,
+          y: movedY - 20,
+          width: 40,
+          height: 40,
+          interaction: { point: first, affinity: 'xy' },
+        },
+      ],
+    }
+
+    expect(findNearestPoint(baseScene, movedX, movedY, 1)).toBe(second)
+    fake.paintFocus.mockReturnValue(destinationScene)
+    fake.clientToScene.mockReturnValueOnce({ x: first.x, y: first.y })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: first.x,
+        clientY: first.y,
+      }),
+    )
+    expect(onFocusChange).toHaveBeenLastCalledWith(first)
+
+    onFocusChange.mockClear()
+    fake.clientToScene.mockReturnValue({ x: movedX, y: movedY })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: movedX,
+        clientY: movedY,
+      }),
+    )
+
+    expect(onFocusChange).not.toHaveBeenCalled()
+    expect(fake.paintFocus).toHaveBeenCalledOnce()
+    host.destroy()
   })
 
   it('anchors to the pointer, follows placement fallbacks, and clears pointer state for keyboard focus', () => {

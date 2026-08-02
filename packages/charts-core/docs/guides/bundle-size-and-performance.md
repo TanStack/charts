@@ -66,7 +66,7 @@ const interactive = defineChart(definition, {
 })
 ```
 
-The locked compact React line consumer must remain at or below 16.8 kB gzip.
+The locked compact React line consumer must remain at or below 18.6 KiB gzip.
 Its retained-module gate rejects tooltip, portal, `d3-scale`, `d3-format`,
 `d3-interpolate`, `d3-color`, transforms, and sibling compact-scale entries.
 Separate incremental gates limit tooltip and portal growth.

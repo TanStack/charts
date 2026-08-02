@@ -744,7 +744,7 @@ Measured by `pnpm bundle` with esbuild minification and Node gzip. These are loc
 
 | Bundle                                  |  Minified |      Gzip |
 | --------------------------------------- | --------: | --------: |
-| Core host                               |   6.97 kB |   2.85 kB |
+| Legacy Plot POC host core               |   6.97 kB |   2.85 kB |
 | Native `lineY` scene                    |   7.46 kB |   3.06 kB |
 | Native `lineY` plus static SVG          |   9.75 kB |   3.93 kB |
 | Native DOM host                         |   9.59 kB |   3.90 kB |

@@ -41,7 +41,7 @@ export function createNativeChartFocusModel<
   definition: ChartDefinition<TDatum, TXValue, TYValue>,
 ): NativeChartFocusModel<TDatum, TXValue, TYValue> {
   const strategy = resolveFocusStrategy(definition.focus)
-  const spatialIndex = definition.spatialIndex?.(scene.points)
+  const spatialIndex = definition.spatialIndex?.(scene.points, scene)
   const maxDistance = definition.maxFocusDistance ?? 48
   const navigation =
     strategy?.navigation(scene.points) ?? sceneOrder(scene.points)

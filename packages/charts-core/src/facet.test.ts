@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { scaleLinear } from 'd3-scale'
+import { scaleBand, scaleLinear } from 'd3-scale'
+import { bandX, bandY } from './band'
+import { barY } from './bar'
 import { facet, facetChart } from './facet'
+import { whenFocused } from './focus-mark'
 import { measureSceneLabelBounds } from './guide-layout'
 import { lineY } from './line'
 import { createMark } from './mark'
 import { createChartScene } from './scene'
 import { renderChartSvg } from './svg'
+import { svgChartRenderer } from './svg-surface'
 import { linearAxes } from './test-scales'
 import type { SceneNode } from './types'
 
@@ -40,6 +44,13 @@ describe('facets', () => {
     ).toHaveLength(2)
     expect(scene.points).toHaveLength(4)
     expect(new Set(scene.points.map((point) => point.key)).size).toBe(4)
+    expect(
+      flatten(scene.nodes).filter(
+        (node) =>
+          node.kind === 'group' &&
+          node.className?.includes('ts-chart__focus-layer--default'),
+      ),
+    ).toHaveLength(1)
     expect(scene.points[2]?.x).toBeGreaterThan(scene.points[0]?.x ?? 0)
     expect(svg).toContain('transform="translate(')
     expect(svg).toContain('Alpha')
@@ -336,6 +347,186 @@ describe('facets', () => {
     expect(nestedLabels).toEqual(
       expect.arrayContaining(['North', 'South', 'A', 'B']),
     )
+  })
+
+  it('paints one primary marker when facet points share every channel value', () => {
+    const data = ['North', 'South'].flatMap((panel) =>
+      [72, 88].map((value, x) => ({ panel, x, value })),
+    )
+    const scene = createChartScene(
+      facetChart(data, {
+        by: 'panel',
+        columns: 2,
+        axes: 'cell',
+        chart: (rows) => ({
+          marks: [barY(rows, { x: 'x', y: 'value' })],
+          x: { scale: scaleBand<number>().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+          guides: false,
+          margin: 0,
+        }),
+      }),
+      { width: 640, height: 260 },
+    )
+    const focusLayers = flatten(scene.nodes).filter(
+      (node) => node.kind === 'group' && node.focus,
+    )
+    const primary = scene.points.find(
+      (point) => point.datum.panel === 'North' && point.datum.x === 1,
+    )
+    expect(primary).toBeDefined()
+    expect(focusLayers).toHaveLength(1)
+    if (!primary) return
+
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Default faceted focus' })
+    surface.paintFocus({
+      primary,
+      group: [primary],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    const visibleLayers = [
+      ...container.querySelectorAll<SVGGElement>(
+        '[data-ts-focus-layer][visibility="visible"]',
+      ),
+    ]
+    const visibleMarkers = visibleLayers.flatMap((layer) =>
+      [...layer.querySelectorAll<SVGElement>('[visibility="visible"]')].filter(
+        (node) => node.matches('circle, rect'),
+      ),
+    )
+    expect(visibleLayers).toHaveLength(1)
+    expect(visibleMarkers).toHaveLength(1)
+    expect(visibleMarkers[0]?.dataset.tsKey).toContain('string:North')
+    surface.destroy()
+  })
+
+  it('synchronizes facet cursors only through an explicit x focus mark', () => {
+    const data = ['North', 'South'].flatMap((panel) =>
+      [72, 88].map((value, x) => ({ panel, x, value })),
+    )
+    const scene = createChartScene(
+      facetChart(data, {
+        by: 'panel',
+        columns: 2,
+        axes: 'cell',
+        chart: (rows) => ({
+          marks: [
+            whenFocused(
+              bandX(rows, {
+                x: 'x',
+                fill: '#d4d4d4',
+                inset: 4,
+              }),
+              { match: 'x' },
+            ),
+            barY(rows, { x: 'x', y: 'value' }),
+          ],
+          x: { scale: scaleBand<number>().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+          guides: false,
+          margin: 0,
+        }),
+      }),
+      { width: 640, height: 260 },
+    )
+    const primary = scene.points.find(
+      (point) => point.datum.panel === 'North' && point.datum.x === 1,
+    )
+    expect(primary).toBeDefined()
+    if (!primary) return
+
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Synchronized faceted focus' })
+    surface.paintFocus({
+      primary,
+      group: [primary],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    const visibleLayers = [
+      ...container.querySelectorAll<SVGGElement>(
+        '[data-ts-focus-layer][visibility="visible"]',
+      ),
+    ]
+    const visibleBands = visibleLayers.flatMap((layer) => [
+      ...layer.querySelectorAll<SVGRectElement>('rect[visibility="visible"]'),
+    ])
+    expect(visibleLayers).toHaveLength(2)
+    expect(visibleBands).toHaveLength(2)
+    expect(
+      new Set(visibleBands.map((band) => band.getAttribute('x'))).size,
+    ).toBe(1)
+    surface.destroy()
+  })
+
+  it('synchronizes facet cursors only through an explicit y focus mark', () => {
+    const data = ['North', 'South'].flatMap((panel) =>
+      [72, 88].map((value, x) => ({ panel, x, value })),
+    )
+    const scene = createChartScene(
+      facetChart(data, {
+        by: 'panel',
+        columns: 2,
+        axes: 'cell',
+        chart: (rows) => ({
+          marks: [
+            whenFocused(
+              bandY(rows, {
+                y: 'value',
+                fill: '#d4d4d4',
+                inset: -4,
+              }),
+              { match: 'y' },
+            ),
+            barY(rows, { x: 'x', y: 'value' }),
+          ],
+          x: { scale: scaleBand<number>().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+          guides: false,
+          margin: 0,
+        }),
+      }),
+      { width: 640, height: 260 },
+    )
+    const primary = scene.points.find(
+      (point) => point.datum.panel === 'North' && point.datum.value === 88,
+    )
+    expect(primary).toBeDefined()
+    if (!primary) return
+
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Y-synchronized faceted focus' })
+    surface.paintFocus({
+      primary,
+      group: [primary],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    const visibleLayers = [
+      ...container.querySelectorAll<SVGGElement>(
+        '[data-ts-focus-layer][visibility="visible"]',
+      ),
+    ]
+    const visibleBands = visibleLayers.flatMap((layer) => [
+      ...layer.querySelectorAll<SVGRectElement>('rect[visibility="visible"]'),
+    ])
+    expect(visibleLayers).toHaveLength(2)
+    expect(visibleBands).toHaveLength(2)
+    expect(
+      visibleBands.every((band) => Number(band.getAttribute('height')) > 0),
+    ).toBe(true)
+    expect(
+      new Set(visibleBands.map((band) => band.getAttribute('y'))).size,
+    ).toBe(1)
+    surface.destroy()
   })
 
   it('retains complete cell axes when independent scales are explicit', () => {
