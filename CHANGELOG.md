@@ -1,5 +1,84 @@
 # Changelog
 
+## 0.5.0
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
+### @tanstack/react-native-charts
+
+#### Minor Changes
+
+- [#11](https://github.com/TanStack/charts/pull/11) [`710ffec`](https://github.com/TanStack/charts/commit/710ffecbad98810a6dacc47a46c64f9d8c0bf366) - Add the experimental React Native SVG host with responsive scene rendering,
+  focus, selection, accessibility actions, and an optional native tooltip entry.
+  Ship compiled ESM and declarations, and verify the packed package in bare React
+  Native and Expo Metro consumers.
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.5.0
+
 ## 0.4.0
 
 ### @tanstack/charts
