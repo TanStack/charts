@@ -4,6 +4,7 @@ import { barY } from './bar'
 import { dot } from './dot'
 import { lineY } from './line'
 import { motion } from './motion'
+import { mountChartRenderer } from './renderer'
 import { createChartScene, defineChart } from './scene'
 import { chartSceneSource } from './scene-source'
 import { renderChartSvg } from './svg'
@@ -70,6 +71,62 @@ describe('SVG motion', () => {
     ).toBe(false)
     adoptedSurface.destroy()
     request.mockRestore()
+  })
+
+  it('is the sole animation owner when the definition also enables animate', () => {
+    const makeDefinition = (value: number) =>
+      defineChart({
+        animate: { duration: 1, easing: 'linear' },
+        motion: {
+          transition: { type: 'tween', duration: 100, easing: 'linear' },
+        },
+        marks: [
+          barY([{ id: 'a', category: 'A', value }], {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+          }),
+        ],
+        x: { scale: scaleBand().domain(['A']) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+        guides: false,
+      })
+    const firstDefinition = makeDefinition(20)
+    const nextDefinition = makeDefinition(80)
+    const firstScene = createChartScene(firstDefinition, {
+      width: 300,
+      height: 200,
+    })
+    const nextScene = createChartScene(nextDefinition, {
+      width: 300,
+      height: 200,
+    })
+    const container = document.createElement('div')
+    const renderer = motion({ initial: false })
+    const options = {
+      definition: firstDefinition,
+      renderer,
+      width: 300,
+      height: 200,
+      ariaLabel: 'Single animation owner',
+    }
+    const frames = installFrames()
+    const host = mountChartRenderer(container, options)
+
+    host.update({ ...options, definition: nextDefinition })
+    frames.run(0)
+    frames.run(50)
+
+    const rectangle = container.querySelector<SVGRectElement>(
+      'g.ts-chart__bar-y > rect',
+    )
+    expect(Number(rectangle?.getAttribute('y'))).toBeCloseTo(
+      ((firstScene.points[0]?.y ?? 0) + (nextScene.points[0]?.y ?? 0)) / 2,
+    )
+
+    frames.run(100)
+    host.destroy()
+    frames.restore()
   })
 
   it('grows bars from their semantic baseline with bounded datum timing', () => {

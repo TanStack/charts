@@ -135,8 +135,10 @@ const host = mountChartRenderer(container, {
 })
 ```
 
-Choose either `animate` with the default SVG host or `motion()` as the renderer
-for a chart. Do not enable both.
+Each host has one animation owner. The default SVG renderer uses `animate`.
+When `motion()` is the renderer, it ignores `animate` and uses motion
+declarations from the definition. A `motion` declaration configures the motion
+renderer; it does not select it.
 
 Motion declarations can live on the chart, a mark, an axis, its ticks, tick
 labels, or axis label. A callback can specialize `enter`, `update`, and `exit`
