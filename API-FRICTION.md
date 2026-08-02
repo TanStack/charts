@@ -209,7 +209,7 @@ Each entry records:
 | F-171 | Packed declarations assume one platform global set       | Tooling         | resolved   |
 | F-172 | Metro skipped the fixture-owned Babel runtime            | Tooling         | resolved   |
 | F-173 | Metro retained the complete universal barrel             | API/Tooling     | monitoring |
-| F-174 | OIDC release cannot claim a new npm package name         | Tooling         | monitoring |
+| F-174 | OIDC release cannot claim a new npm package name         | Tooling         | resolved   |
 | F-175 | Native SVG resource normalization collapsed authored IDs | Application     | resolved   |
 | F-176 | Large marks were focused by distant anchor points        | API             | monitoring |
 | F-177 | Bubble overlap inherited incidental source order         | Application     | resolved   |
@@ -4225,25 +4225,30 @@ Each entry records:
 
 ### F-174 — OIDC release cannot claim a new npm package name
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: Tooling
 - Observed in: adding `@tanstack/react-native-charts` to the fixed release set
-- Friction: the package name is not present in the npm registry, while the
-  aggregate release uses npm trusted publishing. npm configures that trust from
-  an existing package's settings, so the normal tokenless workflow cannot be
-  authorized for this package before its registry entry exists.
-- Current decision: keep the package in release artifacts and the fixed
-  changeset. Bootstrap the sole missing fixed-set package from a dedicated,
-  protected GitHub-hosted workflow using a short-lived granular token and npm
-  provenance. The workflow builds and validates release artifacts, publishes
-  only the missing tarball, and verifies its registry integrity and
-  attestations. Configure `release.yml` as the trusted publisher immediately
-  afterward; the aggregate changeset can then publish `0.5.0` through OIDC.
-- Verification: `npm view @tanstack/react-native-charts` currently returns
-  `E404`. Close this entry only after the public package exists, its trusted
-  publisher names the repository release workflow, and an aggregate release
-  publishes it without a long-lived write token.
+- Friction: the package name was not yet present in the npm registry when the
+  adapter was added, while the aggregate release used npm trusted publishing.
+  npm configures that trust from an existing package's settings, so the normal
+  tokenless workflow could not be authorized before its registry entry existed.
+- Resolution: keep the package in release artifacts and the fixed changeset.
+  The protected bootstrap workflow proved the exact-main artifact and
+  sole-missing-package contract, but npm required interactive 2FA for the
+  available session token. We bootstrapped `0.4.0` locally from a separately
+  rebuilt and validated artifact without provenance, then configured
+  `release.yml` as the trusted publisher before merging the aggregate version
+  PR.
+- Verification: `@tanstack/react-native-charts@0.4.0` is public with registry
+  integrity
+  `sha512-TucVraXke74k5zo1qDr7XIrycOIO4JewrAwsU49BvH03nH7Rg4AnrRxuGazrPT72rcVBcjD9lYvdhCK2vMk4dQ==`.
+  `npm trust list` names `TanStack/charts` and `release.yml`. Release run
+  `30732992167` first published all 12 fixed-set packages at `0.5.0`. Follow-up
+  trusted release run `30733331380` published `0.5.1`; independent registry
+  reads confirmed `latest=0.5.1`, integrity, and attestations for every package.
+  The temporary npm login was revoked and no bootstrap environment secret
+  remains.
 
 ### F-175 — Native SVG resource normalization collapsed authored IDs
 
