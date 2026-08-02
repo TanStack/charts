@@ -1,5 +1,14 @@
 # @tanstack/charts
 
+## 0.6.0
+
+### Minor Changes
+
+- [#41](https://github.com/TanStack/charts/pull/41) [`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7) - Add the optional `motion()` SVG renderer with tween and physical spring
+  transitions, definition-local chart, mark, datum, guide, and focus timing,
+  retained interruption velocity, reduced-motion handling, and aligned
+  presentation geometry. Add the standalone `createChartSpring` sampler.
+
 ## 0.5.1
 
 ### Patch Changes
