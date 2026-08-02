@@ -26,12 +26,17 @@ import { createChartSpring } from '@tanstack/charts/spring'
 import { renderChartImage } from '@tanstack/charts/export'
 import { focusX } from '@tanstack/charts/focus'
 import { d3Curve } from '@tanstack/charts/d3/shape'
+import { scenePath } from '@tanstack/charts/scene/path'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { groupBy } from '@tanstack/charts/transform/group'
 import { window } from '@tanstack/charts/transform/window'
 ```
+
+`scenePath` is only needed when a custom mark authors curved geometry. Built-in
+D3 curve adapters record their geometry internally; straight marks do not run
+the path recorder or allocate flattened contours.
 
 Canvas is opt-in. The default core and every default framework entry remain
 SVG-based. Canvas enters the module graph only through

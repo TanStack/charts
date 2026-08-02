@@ -134,11 +134,13 @@ export function lineY<TDatum>(
 
           const flushSegment = () => {
             if (!segment.length) return
+            const pathGeometry = options.curve?.geometry?.line(segment)
             children.push({
               kind: 'polyline',
               key: `${id}:${groupKey}:segment:${segmentIndex}`,
               points: segment,
-              path: options.curve?.line(segment),
+              path: pathGeometry?.data ?? options.curve?.line(segment),
+              pathGeometry,
               interaction: { points: segmentPoints, affinity: 'x' },
               style: {
                 fill: 'none',

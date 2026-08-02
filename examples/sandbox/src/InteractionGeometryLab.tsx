@@ -1,11 +1,14 @@
 import * as React from 'react'
 import {
+  areaX,
   areaY,
   bandX,
   bandY,
   barX,
   barY,
   createMark,
+  d3AreaXCurve,
+  d3Curve,
   defineChart,
   dot,
   facet,
@@ -13,6 +16,7 @@ import {
   hexagon,
   lineY,
   rect,
+  scenePath,
   stack,
   whenFocused,
   type ChartFocusAffinity,
@@ -26,6 +30,7 @@ import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
 import { Chart as CanvasChart } from '@tanstack/react-charts/canvas'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { curveBasis } from 'd3-shape'
 import proofSource from './InteractionGeometryLab.tsx?raw'
 
 export interface ProofDatum {
@@ -74,8 +79,23 @@ interface ProofCase {
 
 type ProofRenderer = 'svg' | 'canvas'
 
+interface CurvedPathCase {
+  id: string
+  title: string
+  renderer: ProofRenderer
+  renderedGeometry: string
+  interactionGeometry: string
+  definitionName: string
+  definition: StaticChartDefinition<ProofDatum, number, number>
+  source: string
+  probe: (
+    scene: ChartScene<ProofDatum, number, number>,
+  ) => { x: number; y: number } | null
+}
+
 const canvasProofIds = new Set<string>([
   'grouped-horizontal-bars',
+  'curved-horizontal-stack',
   'line-area',
   'mixed-horizontal-bars-dots',
   'mixed-area-line-dots',
@@ -263,6 +283,63 @@ export const animatedDestinationDefinition = defineChart(
 )
 // source:animated-destination:end
 
+// source:curved-line-limit:start
+const curvedLineDatum = {
+  id: 'authored-curved-line',
+  label: 'Authored cubic line',
+  probe: [0.5, 0.2325],
+} satisfies ProofDatum
+
+const curvedLineBase = baseDefinition(
+  [authoredCurveMark('authored-curved-line', curvedLineDatum, 'line')],
+  scaleLinear().domain([0, 1]),
+  scaleLinear().domain([0, 1]),
+)
+
+const curvedLineDefinition = curvedPathDefinition(curvedLineBase)
+// source:curved-line-limit:end
+
+// source:curved-area-limit:start
+const curvedAreaDatum = {
+  id: 'authored-curved-area',
+  label: 'Authored curved area',
+  probe: [0.5, 0.38],
+} satisfies ProofDatum
+
+const curvedAreaBase = baseDefinition(
+  [authoredCurveMark('authored-curved-area', curvedAreaDatum, 'area')],
+  scaleLinear().domain([0, 1]),
+  scaleLinear().domain([0, 1]),
+)
+
+const curvedAreaDefinition = curvedPathDefinition(curvedAreaBase)
+// source:curved-area-limit:end
+
+export const curvedPathLimitCases = [
+  {
+    id: 'curved-line-path',
+    title: 'Cubic line · SVG',
+    renderer: 'svg',
+    renderedGeometry: 'Cubic Bézier stroke',
+    interactionGeometry: 'Recorded subpixel contour',
+    definitionName: 'curvedLineDefinition',
+    definition: curvedLineDefinition,
+    source: sourceSection('curved-line-limit'),
+    probe: normalizedDatumProbe('authored-curved-line'),
+  },
+  {
+    id: 'curved-area-path',
+    title: 'Curved area · Canvas',
+    renderer: 'canvas',
+    renderedGeometry: 'Cubic filled boundary',
+    interactionGeometry: 'Recorded subpixel contour',
+    definitionName: 'curvedAreaDefinition',
+    definition: curvedAreaDefinition,
+    source: sourceSection('curved-area-limit'),
+    probe: normalizedDatumProbe('authored-curved-area'),
+  },
+] satisfies readonly CurvedPathCase[]
+
 export const facetFocusDefinitions = {
   primary: interactiveDefinition(facetedBase),
   x: interactiveDefinition(synchronizedXFacetedBase),
@@ -283,21 +360,22 @@ export function InteractionGeometryLab() {
           its natural interaction axis. Facets, nested transforms, and clips
           prove that interaction follows layout without copied hit bounds. Every
           card names its renderer, the proof families are split evenly between
-          SVG and Canvas, the first two sections make facet focus scope, axis
-          synchronization, and destination-scene animation explicit, and the
-          final comparisons scale the geometry contract to thousands of shapes.
-          Built-in marks attach their natural affinity automatically; mixed-mark
-          charts therefore resolve each rendered primitive independently without
-          a chart-level affinity setting. Selected mixed cases add a third
-          grouped-focus card: it uses the existing group-x or group-y preset to
-          return every series at the shared axis value and render them as native
-          tooltip rows.
+          SVG and Canvas, and the opening sections make facet scope,
+          destination-scene animation, and the authored-path approximation
+          explicit. The final comparisons scale the geometry contract to
+          thousands of shapes. Built-in marks attach their natural affinity
+          automatically; mixed-mark charts therefore resolve each rendered
+          primitive independently without a chart-level affinity setting.
+          Selected mixed cases add a third grouped-focus card: it uses the
+          existing group-x or group-y preset to return every series at the
+          shared axis value and render them as native tooltip rows.
         </p>
       </header>
 
       <div className="hit-region-proof__gallery">
         <FacetFocusModes />
         <AnimatedDestinationCase />
+        <CurvedPathLimits />
         {proofCases.map((proof) => (
           <section
             className={`hit-region-proof__case${proof.stress ? ' hit-region-proof__case--stress' : ''}`}
@@ -333,6 +411,123 @@ export function InteractionGeometryLab() {
         ))}
       </div>
     </main>
+  )
+}
+
+function CurvedPathLimits() {
+  return (
+    <section
+      className="hit-region-proof__case"
+      data-interaction-contract="authored-path-geometry"
+    >
+      <header className="hit-region-proof__case-header">
+        <h2>Authored curves share render and interaction geometry</h2>
+        <code>svg + canvas · resolved path</code>
+      </header>
+      <p className="hit-region-proof__case-description">
+        The dark curve and its subpixel interaction contour now come from one
+        typed <code>scenePath</code>. The dashed chord or polygon shows the old
+        source-point approximation. Each fixed probe lies on or inside the
+        painted curve but outside that approximation, proving SVG and Canvas now
+        resolve the authored path itself.
+      </p>
+      <div
+        className="hit-region-proof__grid"
+        aria-label="Resolved curved SVG and Canvas path interaction geometry"
+      >
+        {curvedPathLimitCases.map((proof) => (
+          <CurvedPathLimitChart proof={proof} key={proof.id} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function CurvedPathLimitChart({ proof }: { proof: CurvedPathCase }) {
+  const [focused, setFocused] = React.useState<ProofDatum | null>(null)
+  const [probe, setProbe] = React.useState<{ x: number; y: number } | null>(
+    null,
+  )
+  const source = React.useMemo(
+    () =>
+      [
+        proof.source,
+        ...sourceHelpers(proof.source),
+        chartComponentSource(proof.renderer, proof.definitionName),
+      ].join('\n\n'),
+    [proof],
+  )
+  const onFocusChange = React.useCallback(
+    (point: ChartPoint<ProofDatum, number, number> | null) => {
+      setFocused(point?.datum ?? null)
+    },
+    [],
+  )
+  const onRender = React.useCallback(
+    (context: { scene: ChartScene<ProofDatum, number, number> }) => {
+      const next = proof.probe(context.scene)
+      if (!next) return
+      setProbe((current) =>
+        current && current.x === next.x && current.y === next.y
+          ? current
+          : next,
+      )
+    },
+    [proof],
+  )
+  const chartProps = {
+    definition: proof.definition,
+    height: 230,
+    initialWidth: 520,
+    ariaLabel: `${proof.title}: authored path and structured interaction geometry`,
+    onFocusChange,
+    onRender,
+  }
+
+  return (
+    <article
+      className="hit-region-proof__card"
+      data-curved-path-case={proof.id}
+      data-curved-path-renderer={proof.renderer}
+    >
+      <div className="hit-region-proof__card-header">
+        <span className="hit-region-proof__badge">{proof.title}</span>
+        <span className="hit-region-proof__distance">path = hit geometry</span>
+      </div>
+      <div className="hit-region-proof__chart">
+        {proof.renderer === 'canvas' ? (
+          <CanvasChart {...chartProps} />
+        ) : (
+          <Chart {...chartProps} />
+        )}
+        {probe ? (
+          <div
+            className="hit-region-proof__probe"
+            data-curved-path-probe={proof.id}
+            style={{ left: probe.x, top: probe.y }}
+            aria-hidden="true"
+          >
+            <span />
+          </div>
+        ) : null}
+      </div>
+      <dl className="hit-region-proof__result">
+        <div>
+          <dt>Shared geometry</dt>
+          <dd>{`${proof.renderedGeometry} → ${proof.interactionGeometry}`}</dd>
+        </div>
+        <div>
+          <dt>Live focus</dt>
+          <dd data-curved-path-result={proof.id}>
+            {focused?.label ?? 'Hover the fixed probe'}
+          </dd>
+        </div>
+      </dl>
+      <SourceDisclosure
+        source={source}
+        label={`resolved path · ${proof.renderer}`}
+      />
+    </article>
   )
 }
 
@@ -801,6 +996,12 @@ function sourceHelpers(source: string) {
   if (source.includes('polarGuideMark(')) {
     helpers.unshift(sourceSection('polar-guide-mark'))
   }
+  if (source.includes('authoredCurveMark(')) {
+    helpers.unshift(sourceSection('authored-curve-mark'))
+  }
+  if (source.includes('curvedPathDefinition(')) {
+    helpers.push(sourceSection('curved-path-definition'))
+  }
   return helpers
 }
 
@@ -1136,6 +1337,82 @@ function createProofCases(): ProofCase[] {
     scaleLinear().domain([0, 220]),
   )
   // source:line-area:end
+
+  // source:curved-vertical-stack:start
+  const curvedVerticalStackRows = ['lower', 'upper'].flatMap((series) =>
+    [30, 30, 110, 30, 30].map((lower, x) => {
+      const value = series === 'lower' ? lower : 50
+      return {
+        id: `curved-v-${series}-${x}`,
+        label: `Curved vertical ${series} layer · ${value}`,
+        x,
+        y: value,
+        series,
+        probe:
+          series === 'upper' && x === 2
+            ? ([0.5, 1 - 105 / 180] as const)
+            : undefined,
+      }
+    }),
+  ) satisfies ProofDatum[]
+  const curvedVerticalStackBase = baseDefinition(
+    [
+      areaY(curvedVerticalStackRows, {
+        id: 'curved-vertical-stack',
+        x: 'x',
+        y: 'y',
+        z: 'series',
+        color: 'series',
+        key: 'id',
+        layout: stack({ order: ['lower', 'upper'] }),
+        curve: d3Curve(curveBasis),
+        fillOpacity: 0.62,
+        stroke: '#171717',
+        strokeWidth: 2,
+      }),
+    ],
+    scaleLinear().domain([0, 4]),
+    scaleLinear().domain([0, 180]),
+  )
+  // source:curved-vertical-stack:end
+
+  // source:curved-horizontal-stack:start
+  const curvedHorizontalStackRows = ['lower', 'upper'].flatMap((series) =>
+    [30, 30, 110, 30, 30].map((lower, y) => {
+      const value = series === 'lower' ? lower : 50
+      return {
+        id: `curved-h-${series}-${y}`,
+        label: `Curved horizontal ${series} layer · ${value}`,
+        x: value,
+        y,
+        series,
+        probe:
+          series === 'upper' && y === 2
+            ? ([105 / 180, 0.5] as const)
+            : undefined,
+      }
+    }),
+  ) satisfies ProofDatum[]
+  const curvedHorizontalStackBase = baseDefinition(
+    [
+      areaX(curvedHorizontalStackRows, {
+        id: 'curved-horizontal-stack',
+        x: 'x',
+        y: 'y',
+        z: 'series',
+        color: 'series',
+        key: 'id',
+        layout: stack({ order: ['lower', 'upper'] }),
+        curve: d3AreaXCurve(curveBasis),
+        fillOpacity: 0.62,
+        stroke: '#171717',
+        strokeWidth: 2,
+      }),
+    ],
+    scaleLinear().domain([0, 180]),
+    scaleLinear().domain([0, 4]),
+  )
+  // source:curved-horizontal-stack:end
 
   // source:bubbles:start
   const bubbles = [
@@ -2335,6 +2612,28 @@ function createProofCases(): ProofCase[] {
       probe: (scene) => pointAtValue(scene, 'middle', 'y', 8),
     }),
     makeCase({
+      id: 'curved-vertical-stack',
+      title: 'Curved vertical stacked areas',
+      affinity: 'x',
+      explanation:
+        'The recorded basis-spline boundary identifies the upper painted layer where the old straight source polygon still classified the pointer as lower. X affinity then selects the authored sample in that layer.',
+      beforeExpected: 'Curved vertical lower layer · 110',
+      afterExpected: 'Curved vertical upper layer · 50',
+      base: curvedVerticalStackBase,
+      probe: normalizedDatumProbe('curved-v-upper-2'),
+    }),
+    makeCase({
+      id: 'curved-horizontal-stack',
+      title: 'Curved horizontal stacked areas',
+      affinity: 'y',
+      explanation:
+        'Horizontal stacks use the same resolved path contract: the spline chooses the rendered layer first, then Y affinity selects the semantic sample in that layer.',
+      beforeExpected: 'Curved horizontal lower layer · 110',
+      afterExpected: 'Curved horizontal upper layer · 50',
+      base: curvedHorizontalStackBase,
+      probe: normalizedDatumProbe('curved-h-upper-2'),
+    }),
+    makeCase({
       id: 'bubbles',
       title: 'Scatterplots and bubbles',
       affinity: 'xy',
@@ -2622,6 +2921,24 @@ function interactiveDefinition(
   })
 }
 
+// source:curved-path-definition:start
+function curvedPathDefinition(
+  base: StaticChartDefinition<ProofDatum, number, number>,
+) {
+  return defineChart(base, {
+    maxFocusDistance: 48,
+    animate: false,
+    tooltip: {
+      use: tooltip,
+      className: 'hit-region-proof__tooltip',
+      sticky: false,
+      placement: ['top', 'right', 'left', 'bottom'],
+      format: (point) => point.datum.label,
+    },
+  })
+}
+// source:curved-path-definition:end
+
 function groupedInteractiveDefinition(
   base: StaticChartDefinition<ProofDatum, number, number>,
   axis: 'x' | 'y',
@@ -2639,6 +2956,138 @@ function groupedInteractiveDefinition(
     },
   })
 }
+
+// source:authored-curve-mark:start
+function authoredCurveMark(
+  id: string,
+  datum: ProofDatum,
+  kind: 'line' | 'area',
+) {
+  return createMark<ProofDatum, number, number>(() => ({
+    id,
+    channels: {},
+    render: ({ chart }) => {
+      const mapPoint = ([x, y]: readonly [number, number]) =>
+        [chart.x + x * chart.width, chart.y + y * chart.height] as const
+      const normalizedPoints =
+        kind === 'line'
+          ? ([
+              [0.12, 0.78],
+              [0.88, 0.78],
+            ] as const)
+          : ([
+              [0.12, 0.72],
+              [0.88, 0.72],
+              [0.88, 0.9],
+              [0.12, 0.9],
+            ] as const)
+      const points = normalizedPoints.map(mapPoint)
+      const anchor = mapPoint(kind === 'line' ? [0.5, 0.78] : [0.5, 0.81])
+      const point: ChartPoint<ProofDatum, number, number> = {
+        key: datum.id,
+        markId: id,
+        group: null,
+        groupLabel: id,
+        datum,
+        datumIndex: 0,
+        xValue: 0.5,
+        yValue: kind === 'line' ? 0.78 : 0.81,
+        x: anchor[0],
+        y: anchor[1],
+        color: '#171717',
+      }
+      const nodes: SceneNode[] = []
+
+      if (kind === 'line') {
+        const [start, end] = points
+        const control1 = mapPoint([0.12, 0.05])
+        const control2 = mapPoint([0.88, 0.05])
+        nodes.push({
+          kind: 'polyline',
+          key: datum.id,
+          points,
+          pathGeometry: scenePath((path) => {
+            path.moveTo(start[0], start[1])
+            path.bezierCurveTo(
+              control1[0],
+              control1[1],
+              control2[0],
+              control2[1],
+              end[0],
+              end[1],
+            )
+          }),
+          interaction: { point, affinity: 'geometry' },
+          style: {
+            fill: 'none',
+            stroke: '#171717',
+            strokeWidth: 10,
+            lineCap: 'round',
+          },
+        })
+      } else {
+        const [topLeft, topRight, bottomRight, bottomLeft] = points
+        const control1 = mapPoint([0.12, 0.06])
+        const control2 = mapPoint([0.88, 0.06])
+        nodes.push({
+          kind: 'area',
+          key: datum.id,
+          points,
+          pathGeometry: scenePath((path) => {
+            path.moveTo(bottomLeft[0], bottomLeft[1])
+            path.lineTo(topLeft[0], topLeft[1])
+            path.bezierCurveTo(
+              control1[0],
+              control1[1],
+              control2[0],
+              control2[1],
+              topRight[0],
+              topRight[1],
+            )
+            path.lineTo(bottomRight[0], bottomRight[1])
+            path.closePath()
+          }),
+          interaction: { point, affinity: 'geometry' },
+          style: {
+            fill: '#525252',
+            fillOpacity: 0.55,
+            stroke: '#171717',
+            strokeWidth: 3,
+          },
+        })
+      }
+
+      nodes.push({
+        kind: kind === 'line' ? 'polyline' : 'area',
+        key: `${datum.id}:structured-geometry`,
+        points,
+        style: {
+          fill: 'none',
+          stroke: '#a3a3a3',
+          strokeWidth: 2,
+          strokeDasharray: '5 5',
+        },
+      })
+      points.forEach(([x, y], index) => {
+        nodes.push({
+          kind: 'dot',
+          key: `${datum.id}:structured-point:${index}`,
+          x,
+          y,
+          radius: 5,
+          style: {
+            fill: '#ffffff',
+            stroke: '#737373',
+            strokeWidth: 2,
+          },
+        })
+      })
+
+      return { nodes }
+    },
+  }))
+}
+// source:authored-curve-mark:end
 
 // source:normalized-rect-mark:start
 function normalizedRectMark(

@@ -165,12 +165,14 @@ export function areaY<TDatum>(
           const flush = () => {
             if (!top.length) return
             const lower = [...bottom].reverse()
-            const path = options.curve?.area(top, bottom)
+            const pathGeometry = options.curve?.geometry?.area(top, bottom)
+            const path = pathGeometry?.data ?? options.curve?.area(top, bottom)
             nodes.push({
               kind: 'area',
               key: `${id}:${groupKey}:segment:${segmentIndex}`,
               points: [...top, ...lower],
               path,
+              pathGeometry,
               interaction: { points: segmentPoints, affinity: 'x' },
               style: {
                 fill,

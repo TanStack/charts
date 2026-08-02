@@ -75,9 +75,12 @@ second geometry copy. Inline mark states similarly return a resolved scene to
 the host; during a transition, pointer selection intentionally follows that
 destination scene rather than interpolating a second hit-test scene.
 
-For curved `polyline` and `area` nodes, the current resolver uses the
-primitive's structured point geometry. Exact picking against an optional
-authored SVG path string remains a separate refinement.
+Curved `polyline` and `area` nodes can carry `pathGeometry` recorded from the
+same commands used to paint them. Built-in D3 curve adapters attach that
+geometry automatically, and custom marks can create it with `scenePath` from
+`@tanstack/charts/scene/path`. Opaque authored `path: string` values remain
+compatible but fall back to their structured `points`; core does not parse a
+second copy of arbitrary SVG path syntax.
 
 An explicit focus preset or custom strategy replaces this default resolver.
 

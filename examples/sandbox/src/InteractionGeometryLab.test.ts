@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createChartScene, findNearestPoint } from '@tanstack/charts'
-import type { SceneNode } from '@tanstack/charts'
+import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import { focusX, focusY } from '@tanstack/charts/focus'
 import {
   animatedDestinationDefinition,
+  curvedPathLimitCases,
   facetFocusDefinitions,
   InteractionGeometryLab,
   legacyPointFocus,
@@ -19,21 +20,24 @@ describe('interaction geometry source disclosure', () => {
     const groupedProofs = proofCases.filter((proof) => proof.grouped)
 
     expect(markup.match(/class="hit-region-proof__source"/g)).toHaveLength(
-      proofCases.length * 2 + groupedProofs.length + 5,
+      proofCases.length * 2 + groupedProofs.length + 7,
     )
     expect(groupedProofs).toHaveLength(3)
-    expect(proofCases).toHaveLength(28)
+    expect(proofCases).toHaveLength(30)
     expect(
       proofCases.filter((proof) => proof.renderer === 'canvas'),
-    ).toHaveLength(14)
+    ).toHaveLength(15)
     expect(proofCases.filter((proof) => proof.renderer === 'svg')).toHaveLength(
-      14,
+      15,
     )
-    expect(markup.match(/data-proof-renderer="canvas"/g)).toHaveLength(30)
-    expect(markup.match(/data-proof-renderer="svg"/g)).toHaveLength(29)
+    expect(markup.match(/data-proof-renderer="canvas"/g)).toHaveLength(32)
+    expect(markup.match(/data-proof-renderer="svg"/g)).toHaveLength(31)
     expect(markup.match(/data-animation-renderer=/g)).toHaveLength(2)
     expect(markup).toContain('data-animation-renderer="svg"')
     expect(markup).toContain('data-animation-renderer="canvas"')
+    expect(markup.match(/data-curved-path-case=/g)).toHaveLength(2)
+    expect(markup).toContain('data-curved-path-renderer="svg"')
+    expect(markup).toContain('data-curved-path-renderer="canvas"')
     expect(markup).toContain('class="ts-chart-canvas__scene"')
     expect(markup).toContain('&lt;CanvasChart')
     expect(markup).toContain('&lt;Chart')
@@ -86,6 +90,13 @@ describe('interaction geometry source disclosure', () => {
     expect(markup).toContain(
       'transition: { type: &#x27;tween&#x27;, duration: 700, easing: &#x27;ease-out&#x27; }',
     )
+    expect(markup).toContain(
+      'authoredCurveMark(&#x27;authored-curved-line&#x27;, curvedLineDatum, &#x27;line&#x27;)',
+    )
+    expect(markup).toContain(
+      'authoredCurveMark(&#x27;authored-curved-area&#x27;, curvedAreaDatum, &#x27;area&#x27;)',
+    )
+    expect(markup).toContain('pathGeometry: scenePath((path) =&gt; {')
     expect(markup).not.toContain('packages/charts-core/src/nearest.ts')
   })
 })
@@ -184,6 +195,38 @@ describe('intentional interaction contracts', () => {
     expect(middle).not.toBeNull()
     expect(middle?.node.width).toBeLessThan(250)
   })
+
+  it('resolves authored curves in both SVG and Canvas examples', () => {
+    expect(curvedPathLimitCases.map((proof) => proof.renderer)).toEqual([
+      'svg',
+      'canvas',
+    ])
+
+    for (const proof of curvedPathLimitCases) {
+      const scene = createChartScene(proof.definition, {
+        width: 520,
+        height: 230,
+      })
+      const probe = proof.probe(scene)
+      const target = flatten(scene.nodes).find(
+        (node) =>
+          (node.kind === 'polyline' || node.kind === 'area') &&
+          node.interaction !== undefined,
+      )
+
+      expect(probe).not.toBeNull()
+      expect(target?.kind === 'polyline' || target?.kind === 'area').toBe(true)
+      if (!probe || !target || target.kind === 'group') continue
+      if (target.kind !== 'polyline' && target.kind !== 'area') continue
+
+      expect(target.pathGeometry?.data).toContain('C')
+      expect(target.pathGeometry?.contours[0]?.points.length).toBeGreaterThan(
+        target.points.length,
+      )
+      expect(target.points).toHaveLength(proof.renderer === 'svg' ? 2 : 4)
+      expect(findNearestPoint(scene, probe.x, probe.y, 48)).not.toBeNull()
+    }
+  })
 })
 
 describe('interaction geometry proof gallery', () => {
@@ -252,6 +295,64 @@ describe('interaction geometry proof gallery', () => {
     ).toBe('october-disease')
   })
 
+  it('selects the painted side of each curved stack boundary', () => {
+    for (const { id, orientation } of [
+      { id: 'curved-vertical-stack', orientation: 'vertical' },
+      { id: 'curved-horizontal-stack', orientation: 'horizontal' },
+    ] as const) {
+      const proof = proofCases.find((candidate) => candidate.id === id)
+      expect(proof).toBeDefined()
+      if (!proof) continue
+
+      const scene = createChartScene(proof.after, { width: 520, height: 230 })
+      const lower = flatten(scene.nodes).find(
+        (node) =>
+          node.kind === 'area' &&
+          node.interaction !== undefined &&
+          interactionPoints(node).some(
+            (point) => (point.datum as ProofDatum).series === 'lower',
+          ),
+      )
+      const sample = scene.points.find(
+        (point) =>
+          point.datum.series === 'upper' &&
+          (orientation === 'vertical'
+            ? point.datum.x === 2
+            : point.datum.y === 2),
+      )
+      expect(lower?.kind).toBe('area')
+      expect(sample).toBeDefined()
+      if (!lower || lower.kind !== 'area' || !sample) continue
+
+      const contour = lower.pathGeometry?.contours[0]
+      expect(contour).toBeDefined()
+      if (!contour) continue
+
+      const boundary =
+        orientation === 'vertical'
+          ? Math.min(...contourIntersections(contour.points, sample.x, 'x'))
+          : Math.max(...contourIntersections(contour.points, sample.y, 'y'))
+      const probes =
+        orientation === 'vertical'
+          ? [
+              { x: sample.x, y: boundary + 4, series: 'lower' },
+              { x: sample.x, y: boundary, series: 'upper' },
+              { x: sample.x, y: boundary - 4, series: 'upper' },
+            ]
+          : [
+              { x: boundary - 4, y: sample.y, series: 'lower' },
+              { x: boundary, y: sample.y, series: 'upper' },
+              { x: boundary + 4, y: sample.y, series: 'upper' },
+            ]
+
+      for (const probe of probes) {
+        expect(
+          findNearestPoint(scene, probe.x, probe.y, 48)?.datum.series,
+        ).toBe(probe.series)
+      }
+    }
+  })
+
   it('keeps the large rectangle and polygon stress fixtures intact', () => {
     const rectangleProof = proofCases.find(
       (candidate) => candidate.id === 'dense-rectangles',
@@ -289,6 +390,47 @@ function flatten(nodes: readonly SceneNode[]): SceneNode[] {
   return nodes.flatMap((node) =>
     node.kind === 'group' ? [node, ...flatten(node.children)] : [node],
   )
+}
+
+function interactionPoints(
+  node: Extract<SceneNode, { kind: 'area' }>,
+): readonly ChartPoint[] {
+  const interaction = node.interaction
+  if (!interaction) return []
+  return interaction.point ? [interaction.point] : interaction.points
+}
+
+function contourIntersections(
+  points: readonly (readonly [number, number])[],
+  coordinate: number,
+  axis: 'x' | 'y',
+): number[] {
+  const intersections: number[] = []
+  for (let index = 0; index < points.length; index += 1) {
+    const start = points[index]
+    const end = points[(index + 1) % points.length]
+    if (!start || !end) continue
+    const primaryStart = axis === 'x' ? start[0] : start[1]
+    const primaryEnd = axis === 'x' ? end[0] : end[1]
+    if (
+      coordinate < Math.min(primaryStart, primaryEnd) ||
+      coordinate > Math.max(primaryStart, primaryEnd)
+    ) {
+      continue
+    }
+    if (primaryStart === primaryEnd) {
+      intersections.push(axis === 'x' ? start[1] : start[0])
+      intersections.push(axis === 'x' ? end[1] : end[0])
+      continue
+    }
+    const amount = (coordinate - primaryStart) / (primaryEnd - primaryStart)
+    intersections.push(
+      axis === 'x'
+        ? start[1] + (end[1] - start[1]) * amount
+        : start[0] + (end[0] - start[0]) * amount,
+    )
+  }
+  return intersections
 }
 
 function findRect(

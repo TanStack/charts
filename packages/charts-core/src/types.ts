@@ -1,5 +1,57 @@
+import type { scenePathInteraction } from './scene-path-internal'
+
 export type ChartValue = number | string | Date
 export type ChartKey = string | number
+
+export interface ScenePathContext {
+  moveTo: (x: number, y: number) => void
+  lineTo: (x: number, y: number) => void
+  quadraticCurveTo: (
+    controlX: number,
+    controlY: number,
+    x: number,
+    y: number,
+  ) => void
+  bezierCurveTo: (
+    control1X: number,
+    control1Y: number,
+    control2X: number,
+    control2Y: number,
+    x: number,
+    y: number,
+  ) => void
+  closePath: () => void
+}
+
+export interface ScenePathContour {
+  readonly points: readonly (readonly [number, number])[]
+  readonly closed: boolean
+}
+
+type ScenePathInteraction = (
+  geometry: ScenePathGeometry,
+  operation: 0 | 1 | 2 | 3,
+  x: number,
+  y: number,
+  radius: number,
+) => number
+
+/** One authored path plus its derived, subpixel interaction acceleration. */
+export interface ScenePathGeometry {
+  readonly data: string
+  readonly contours: readonly ScenePathContour[]
+  readonly bounds: ChartBounds | null
+  readonly tolerance: number
+  readonly [scenePathInteraction]: ScenePathInteraction
+}
+
+export interface ChartCurveGeometry {
+  line: (points: readonly (readonly [number, number])[]) => ScenePathGeometry
+  area: (
+    top: readonly (readonly [number, number])[],
+    bottom: readonly (readonly [number, number])[],
+  ) => ScenePathGeometry
+}
 
 export interface ChartCurve {
   line: (points: readonly (readonly [number, number])[]) => string
@@ -7,6 +59,8 @@ export interface ChartCurve {
     top: readonly (readonly [number, number])[],
     bottom: readonly (readonly [number, number])[],
   ) => string
+  /** Optional shared scene geometry used by renderers and interaction. */
+  geometry?: ChartCurveGeometry
 }
 
 export interface ChartScaleResolveContext {
@@ -818,13 +872,13 @@ export type SceneInteraction =
   | {
       point: ChartPoint
       points?: never
-      /** Natural pointer fallback after exact geometry containment. */
+      /** Natural pointer fallback after painted-geometry containment. */
       affinity?: ChartFocusAffinity
     }
   | {
       point?: never
       points: readonly ChartPoint[]
-      /** Natural pointer fallback after exact geometry containment. */
+      /** Natural pointer fallback after painted-geometry containment. */
       affinity?: ChartFocusAffinity
     }
 
@@ -888,12 +942,14 @@ export interface ScenePolyline extends InteractiveSceneNodeBase {
   kind: 'polyline'
   points: readonly (readonly [number, number])[]
   path?: string
+  pathGeometry?: ScenePathGeometry
 }
 
 export interface SceneArea extends InteractiveSceneNodeBase {
   kind: 'area'
   points: readonly (readonly [number, number])[]
   path?: string
+  pathGeometry?: ScenePathGeometry
 }
 
 export interface SceneDot extends InteractiveSceneNodeBase {

@@ -2,7 +2,6 @@ import { createChartRuntime } from './runtime'
 import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint } from './scene'
 import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
-import { nearestPoint } from './nearest'
 import type {
   ChartRendererHost,
   ChartRendererHostOptions,
@@ -432,18 +431,22 @@ export function mountChartRenderer<
     y: number,
     maxDistance: number,
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
-    const points = interactionPoints()
+    const presentationPoints = interactionPoints()
     const focus = resolveFocusStrategy(options.definition.focus)
     if (focus) {
-      return focus.resolve(points, x, y, maxDistance)
+      return focus.resolve(presentationPoints, x, y, maxDistance)
     }
     const point =
-      points !== interactionScene.points
-        ? nearestPoint(points, x, y, maxDistance)
-        : spatialIndex && interactionScene === scene
-          ? spatialIndex.findNearest(x, y, maxDistance)
-          : findNearestPoint(interactionScene, x, y, maxDistance)
-    return point ? [point] : []
+      spatialIndex && interactionScene === scene
+        ? spatialIndex.findNearest(x, y, maxDistance)
+        : findNearestPoint(interactionScene, x, y, maxDistance)
+    if (!point) return []
+    if (presentationPoints === interactionScene.points) return [point]
+
+    // Interaction identity comes from the destination scene so animation
+    // cannot temporarily fall back to anchor-only picking. Presentation
+    // points only move the focus marker and tooltip with the rendered frame.
+    return [restoreFocusedPoint(presentationPoints, point) ?? point]
   }
 
   function interactionPoints() {

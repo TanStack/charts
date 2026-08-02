@@ -71,4 +71,16 @@ describe('public package exports', () => {
     expect(shape).toHaveProperty('d3Curve')
     expect(areaX).toHaveProperty('d3AreaXCurve')
   })
+
+  it('keeps typed scene paths available from barrels and an exact subpath', async () => {
+    const [root, universal, path] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/universal'),
+      import('@tanstack/charts/scene/path'),
+    ])
+
+    expect(root).toHaveProperty('scenePath')
+    expect(universal).toHaveProperty('scenePath')
+    expect(path).toHaveProperty('scenePath')
+  })
 })

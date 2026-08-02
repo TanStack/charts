@@ -197,6 +197,10 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `ChartLinearGradient`           | Named linear-gradient resource                               |
 | `ChartGradientStop`             | Gradient offset, color, and optional opacity                 |
 | `ChartCurve`                    | Line and y-area path generation                              |
+| `ChartCurveGeometry`            | Resolved line and y-area path geometry                       |
+| `ScenePathContext`              | Typed commands accepted by `scenePath`                       |
+| `ScenePathContour`              | Derived interaction contour for one subpath                  |
+| `ScenePathGeometry`             | Rendered path data and subpixel interaction acceleration     |
 
 See [Scales, guides, and color](./scales-guides-and-color.md).
 
@@ -228,7 +232,7 @@ See [DOM host](./dom-host.md) and
 | `ChartFocusSource`                    | Pointer, keyboard, programmatic, or restored source                    |
 | `ChartFocusFilter`                    | Focus-filtered mark matching configuration                             |
 | `ChartFocusMatch`                     | Primary, group, key, x, y, or series matching                          |
-| `ChartFocusAffinity`                  | Primitive fallback axis after exact geometry containment               |
+| `ChartFocusAffinity`                  | Primitive fallback axis after painted-geometry containment             |
 | `ChartSpatialIndex`                   | Nearest-point query                                                    |
 | `ChartSpatialIndexFactory`            | Builds an index from current scene points and resolved scene           |
 | `ChartExtensionInput`                 | Generic bare-token or `{ use, ...options }` extension input            |

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { barX, barY } from './bar'
 import { nearestPoint, nearestScenePoint } from './nearest'
 import { createChartScene, defineChart } from './scene'
+import { scenePath } from './scene-path'
 import type {
   ChartFocusAffinity,
   ChartPoint,
@@ -192,6 +193,86 @@ describe('scene interaction geometry', () => {
 
     expect(nearestScenePoint(scene, 100, 100, 0)?.key).toBe('line')
     expect(nearestScenePoint(scene, 102, 100, 0)).toBeNull()
+  })
+
+  it('targets a cubic stroke where its source-point chord does not reach', () => {
+    const curved = point('curved-line', 100, 180)
+    const scene = testScene(
+      [
+        {
+          kind: 'polyline',
+          key: curved.key,
+          points: [
+            [20, 180],
+            [180, 180],
+          ],
+          pathGeometry: scenePath((path) => {
+            path.moveTo(20, 180)
+            path.bezierCurveTo(20, 20, 180, 20, 180, 180)
+          }),
+          interaction: { point: curved, affinity: 'geometry' },
+          style: { strokeWidth: 8 },
+        },
+      ],
+      [curved],
+    )
+
+    expect(nearestScenePoint(scene, 100, 60, 0)?.key).toBe('curved-line')
+    expect(nearestScenePoint(scene, 100, 90, 48)).toBeNull()
+  })
+
+  it('uses the curved shared boundary to select the proper stacked area', () => {
+    const lower = point('lower-curve', 100, 120)
+    const upper = point('upper-curve', 100, 20)
+    const lowerGeometry = scenePath((path) => {
+      path.moveTo(20, 200)
+      path.lineTo(20, 120)
+      path.bezierCurveTo(20, 40, 180, 40, 180, 120)
+      path.lineTo(180, 200)
+      path.closePath()
+    })
+    const upperGeometry = scenePath((path) => {
+      path.moveTo(20, 120)
+      path.lineTo(20, 20)
+      path.lineTo(180, 20)
+      path.lineTo(180, 120)
+      path.bezierCurveTo(180, 40, 20, 40, 20, 120)
+      path.closePath()
+    })
+    const scene = testScene(
+      [
+        {
+          kind: 'area',
+          key: lower.key,
+          points: [
+            [20, 120],
+            [180, 120],
+            [180, 200],
+            [20, 200],
+          ],
+          pathGeometry: lowerGeometry,
+          interaction: { point: lower, affinity: 'x' },
+        },
+        {
+          kind: 'area',
+          key: upper.key,
+          points: [
+            [20, 20],
+            [180, 20],
+            [180, 120],
+            [20, 120],
+          ],
+          pathGeometry: upperGeometry,
+          interaction: { point: upper, affinity: 'x' },
+        },
+      ],
+      [lower, upper],
+    )
+
+    // The straight polygons call this upper; the rendered curved boundary
+    // places the pointer inside the lower layer.
+    expect(nearestScenePoint(scene, 100, 80, 0)?.key).toBe('lower-curve')
+    expect(nearestScenePoint(scene, 100, 40, 0)?.key).toBe('upper-curve')
   })
 
   it('respects rounded corners from the rendered rectangle', () => {

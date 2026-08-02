@@ -233,6 +233,7 @@ Each entry records:
 | F-195 | Release versions matched dependency substrings            | Tooling         | resolved   |
 | F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
 | F-197 | Workspace validation omitted comparison provenance        | Tooling         | resolved   |
+| F-198 | D3 curve context types overstate built-in requirements    | Tooling         | resolved   |
 
 ## Findings
 
@@ -4303,9 +4304,9 @@ Each entry records:
   `dot`, `area`, `polyline`, or `rule` attaches its semantic point or points and
   natural `x`, `y`, `xy`, or `geometry` fallback. The default resolver collects
   those targets from the final scene in paint order, accumulating facet and
-  group translations and clips. Exact containment wins across all marks before
-  fallback ranking; axis fallback uses visible primitive bounds first and full
-  geometry distance to break ties. Inline mark states return their destination
+  group translations and clips. Painted-geometry containment wins across all
+  marks before fallback ranking; axis fallback uses visible primitive bounds
+  first and full geometry distance to break ties. Inline mark states return their destination
   scene to the host, which intentionally uses that scene during animation.
   Points not attached to a primitive retain legacy point-distance behavior.
   Explicit focus strategies and custom spatial indexes continue to own their
@@ -4328,7 +4329,7 @@ Each entry records:
   destination-animation contract before twenty-four chart-family, grouped-bar,
   clipping, polar, facet, and large-geometry comparisons. The lab now includes
   dense scatter, pre-binned hexagon, nested-bubble paint-order, and richer
-  Sankey/network probes; its twenty-eight proof families split evenly between
+  Sankey/network probes; its thirty proof families split evenly between
   labelled SVG and Canvas cards, and the destination-animation contract renders
   in both so attribute interpolation and buffer crossfading share the same
   picking semantics. Four composed cases verify that built-in bars, areas,
@@ -4341,33 +4342,56 @@ Each entry records:
   scene-containment resolver with nearest-axis selection as well as returning
   the focus group. The lab keeps those cards separate and labelled rather than
   claiming that geometry-first primary selection and axis grouping currently
-  compose.
-  The full unit matrix passes 745 tests across 131 files;
+  compose. Two dedicated cards render an authored cubic line in SVG and a
+  curved filled area in Canvas while overlaying the old structured chord or
+  polygon. Their fixed probes land on or inside the painted curve but outside
+  that approximation and now focus successfully through a typed `scenePath`.
+  The same recorder powers `d3Curve` and `d3AreaXCurve`: each resolved scene
+  primitive owns the rendered path data plus a subpixel contour derived from
+  the same commands. Two additional before/after families exercise vertical
+  and horizontal curved stacked areas where the old straight/source-point
+  model chooses the lower layer and the rendered spline correctly chooses the
+  upper layer before x or y affinity selects its semantic sample. Their fixed
+  probes sit visibly inside the upper fill; regressions additionally sample
+  both sides of the recorded boundary and define the shared edge as the
+  later-painted upper layer. After the motion renderer landed on `main`, a host
+  regression caught interpolated presentation points bypassing scene geometry.
+  Selection now keeps destination-scene identity while the matching
+  presentation point moves the marker and tooltip with the rendered frame.
+  The full DOM unit matrix passes 807 tests across 138 files;
   typecheck, documentation,
   formatting, packed-consumer, seven-adapter, sandbox production-build, and
   live browser checks also pass.
 
-  On Node 24 arm64 on an Apple M4 Pro, the cached scene resolver improves the
-  unoptimized POC's median query time from 113.5 to 14.2 microseconds for 10k
-  ordinary points, 62.5 to 16.4 for contained rectangles, 210.6 to 118.0 for
-  stacked fallback, 64.5 to 16.2 for circles, and 126.2 to 71.8 for 2k
-  polygons. On an exact-target point fixture, production, scene geometry,
-  Observable Plot 0.6.17, D3 quadtree, cold D3 Delaunay, and coherent Delaunay
-  take 13.7, 13.7, 41.4, 2.6, 8.7, and 3.0 microseconds. Quadtree and Delaunay
-  construction take 1.92 and 2.53 milliseconds for 10k points. A
-  source-equivalent Vega cached-bounds pass takes 10.0 microseconds versus 15.2
-  for the generic rectangle resolver, but deliberately excludes Vega's
-  subsequent Canvas path test.
+  On Node 24 arm64 on an Apple M4 Pro, two consecutive runs put the cached scene
+  resolver at 15.1–15.6 microseconds for 10k ordinary points, 16.0–23.9 for
+  contained rectangles, 123.3–128.6 for stacked x fallback, 16.6–18.2 for
+  circles, and 73.6–78.3 for 2k polygons. The corresponding unoptimized POC
+  takes 121.2–126.3, 65.6–86.8, 225.7–233.2, 68.5–69.0, and 134.4–135.4
+  microseconds. On an exact-target point fixture, production and scene geometry
+  both take about 14.2–14.3 microseconds; Observable Plot 0.6.17 takes
+  42.2–43.2, D3 quadtree 2.9, cold D3 Delaunay 9.1, and coherent Delaunay
+  3.0–3.1. Quadtree and Delaunay construction take 2.29–2.42 and 2.67–2.79
+  milliseconds for 10k points. A source-equivalent Vega cached-bounds pass
+  takes 10.5–10.6 microseconds versus 15.2–15.5 for the generic rectangle
+  resolver, but deliberately excludes Vega's subsequent Canvas path test.
+  Recorded cubic containment measures 3.7–3.8 microseconds per query versus
+  3.5 for the same targets' structured polygons, a 0.2–0.3-microsecond median
+  cost for render-consistent curve ownership.
 
-  The isolated scene resolver is 5,010 minified / 2,005 gzip bytes versus 157 /
-  153 for the anchor-only kernel: a 1,852-byte gzip feature cost under an
-  explicit 2 KiB ceiling. Against the pre-feature product lock, the complete
-  DOM host adds 1,840 gzip bytes, the React line consumer adds 1,859, and the
-  native host adds 1,824. These shared-host costs and the related aggregate
-  fixture ceilings were reviewed and accepted because painted-geometry
-  interaction is the default contract across DOM, Canvas, and native charts;
-  the exact locked baselines now record that decision while the isolated 2 kB
-  ceiling continues to constrain the resolver itself. A final size audit removed
+  The isolated scene resolver is 5.25 kB minified / 2.08 kB gzip versus 0.15 /
+  0.15 kB for the anchor-only kernel: about a 1.93 kB gzip feature cost. Path
+  winding, stroke, and contour-distance code now lives behind the opaque
+  `scenePath` capability, so straight charts do not retain the recorder's
+  interaction math. Against `origin/main`'s locked fixtures, a straight line
+  scene adds 30 gzip bytes, static SVG 42, representative marks 58, the default
+  DOM host 141, the React adapter 136, and a React line consumer 164. Moving
+  curve-specific math out of the host reduced the earlier post-merge DOM delta
+  from 294 to 141 gzip bytes. The compact React consumer is 18.63 kB gzip;
+  combining this feature with `main`'s later SVG pointer fix required reviewing
+  its product ceiling at 18.7 kB. The reviewed 2.1, 18.7, 26.6, and 31.9 kB gzip
+  ceilings plus exact fixture locks record these costs, and `bundle:check`
+  passes. A prior size audit removed
   redundant built-in `MarkScene.points` arrays and explicit default `xy`
   affinity fields while retaining the optional point list for custom-mark
   compatibility. Against the immediate pre-audit build, that saves 119
@@ -4386,9 +4410,11 @@ Each entry records:
   and [Canvas picker](https://github.com/vega/vega/blob/main/packages/vega-scenegraph/src/util/canvas/pick.js)
   establish topmost traversal, cached-bounds rejection, and exact path tests.
 
-- Follow-up: exact picking against optional authored SVG path strings and an
-  interpolated mid-transition scene remain separate refinements. Verify full
-  SVG/Canvas parity before resolving this entry.
+- Follow-up: opaque authored SVG path strings intentionally retain structured
+  point fallback; authors who need render-consistent curved interaction can use
+  `scenePath`. Parsing arbitrary SVG strings and using an interpolated
+  mid-transition scene remain separate refinements. Verify full SVG/Canvas
+  parity before resolving this entry.
 
 ### F-177 — Bubble overlap inherited incidental source order
 
@@ -4908,3 +4934,23 @@ Each entry records:
 - Verification: the 60-case comparison baseline records revision `e4b5249`
   and package version 0.6.2, the canonical comparison page identifies the same
   revision, and `pnpm benchmark:check` passes locally and in pull-request CI.
+
+### F-198 — D3 curve context types overstate built-in requirements
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: recording D3 line and area curves as resolved scene geometry
+- Friction: `CurveFactory` accepts the full Canvas or `d3-path` context type,
+  while the built-in D3 Cartesian curves exercised here call only `moveTo`,
+  `lineTo`, `bezierCurveTo`, and `closePath`. Passing the smaller typed
+  `ScenePathContext` therefore requires an assertion even though it implements
+  the complete runtime surface used by those built-in factories.
+- Resolution: isolate the assertion in the D3 adapter boundary instead of
+  weakening the public scene-path builder or pretending it is a Canvas
+  context. Document the adapter as a bridge for D3's built-in Cartesian curves;
+  custom marks use the assertion-free `scenePath` API.
+- Verification: parity tests compare recorded line and area strings with D3's
+  native generator output for basis, bump, cardinal, Catmull-Rom, linear,
+  monotone, natural, and step families; strict typecheck passes with no
+  assertion outside the adapter boundary.

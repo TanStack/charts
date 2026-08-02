@@ -7,6 +7,7 @@ import {
 } from './canvas'
 import { lineY } from './line'
 import { defineChart } from './scene'
+import { scenePath } from './scene-path'
 import { tooltip } from './tooltip'
 import type { ChartSurfaceRenderOptions } from './dom-types'
 import type { ChartScene, SceneNode } from './types'
@@ -18,17 +19,19 @@ interface FakeCanvasContext {
 }
 
 const contexts = new Map<HTMLCanvasElement, FakeCanvasContext>()
+const constructedPaths: string[] = []
 let getContextSpy: ReturnType<typeof vi.spyOn>
 let originalPath: typeof Path2D | undefined
 
 beforeEach(() => {
   contexts.clear()
+  constructedPaths.length = 0
   originalPath = window.Path2D
   Object.defineProperty(window, 'Path2D', {
     configurable: true,
     value: class {
       constructor(data?: string) {
-        void data
+        if (data) constructedPaths.push(data)
       }
     },
   })
@@ -112,7 +115,11 @@ describe('Canvas renderer', () => {
         kind: 'polyline',
         key: 'curved-line',
         points: [],
-        path: 'M0,0C10,20,20,20,30,0',
+        path: 'M0,0L30,0',
+        pathGeometry: scenePath((path) => {
+          path.moveTo(0, 0)
+          path.bezierCurveTo(10, 20, 20, 20, 30, 0)
+        }),
         style: {
           fill: 'none',
           stroke: '#334455',
@@ -212,6 +219,8 @@ describe('Canvas renderer', () => {
     )
     expect(fake.operations).toContain('fill:path')
     expect(fake.operations).toContain('stroke:path')
+    expect(constructedPaths).toContain('M0,0C10,20,20,20,30,0')
+    expect(constructedPaths).not.toContain('M0,0L30,0')
     expect(fake.operations).toContain('arc:50,30,5')
     expect(fake.operations).toContain('arcTo')
     expect(fake.operations).toContain('fillText:Canvas,0,0')

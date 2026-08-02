@@ -23,6 +23,7 @@ export {
   defineChart,
   findNearestPoint,
 } from './scene'
+export { scenePath } from './scene-path'
 export { renderChartSvg } from './svg'
 export { stack } from './stack'
 export { binX, binY } from './transform-bin'

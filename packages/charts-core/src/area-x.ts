@@ -20,6 +20,7 @@ import type {
   ChartPoint,
   ChartValue,
   OptionChannelOutput,
+  ScenePathGeometry,
   SceneNode,
   VisualChannel,
 } from './types'
@@ -30,6 +31,12 @@ export interface AreaXCurve {
     right: readonly (readonly [number, number])[],
     left: readonly (readonly [number, number])[],
   ) => string
+  geometry?: {
+    areaX: (
+      right: readonly (readonly [number, number])[],
+      left: readonly (readonly [number, number])[],
+    ) => ScenePathGeometry
+  }
 }
 
 export interface AreaXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
@@ -171,12 +178,14 @@ export function areaX<TDatum>(
           const flush = () => {
             if (!right.length) return
             const lower = [...left].reverse()
-            const path = options.curve?.areaX(right, left)
+            const pathGeometry = options.curve?.geometry?.areaX(right, left)
+            const path = pathGeometry?.data ?? options.curve?.areaX(right, left)
             nodes.push({
               kind: 'area',
               key: `${id}:${groupKey}:segment:${segmentIndex}`,
               points: [...right, ...lower],
               path,
+              pathGeometry,
               interaction: { points: segmentPoints, affinity: 'y' },
               style: {
                 fill,

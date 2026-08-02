@@ -236,7 +236,7 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 
-  it('resolves pointer focus against renderer presentation geometry', () => {
+  it('selects destination geometry and presents the matching animated point', () => {
     const fake = createFakeRenderer()
     const container = document.createElement('div')
     const onFocusChange = vi.fn()
@@ -265,8 +265,10 @@ describe('renderer-neutral chart host', () => {
       }),
     )
 
-    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[1])
-    expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.x).toBe(first.x)
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[0])
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.x).toBe(
+      first.x + 100,
+    )
     host.destroy()
   })
 

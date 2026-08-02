@@ -449,7 +449,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    18.6,
+    18.7,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -644,12 +644,12 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    26.5,
+    26.6,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    31.8,
+    31.9,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -789,7 +789,7 @@ const entries = [
   budgeted(
     'Geometry pointer resolver kernel',
     'benchmarks/entries/charts-pointer-geometry-kernel.ts',
-    2,
+    2.1,
   ),
   budgeted(
     'D3 brush controller kernel',

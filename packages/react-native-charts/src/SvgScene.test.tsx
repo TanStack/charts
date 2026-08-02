@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import { scenePath } from '@tanstack/charts/scene/path'
 import type { ChartScene, SceneNode } from '@tanstack/charts/types'
 import { resolveNativePaint } from './paint'
 import { NativeChartScene, resolveNativeLineJoin } from './SvgScene'
@@ -120,7 +121,11 @@ function scene(): ChartScene {
       kind: 'polyline',
       key: 'curved-line',
       points: [],
-      path: 'M0,0C10,20,20,20,30,0',
+      path: 'M0,0L30,0',
+      pathGeometry: scenePath((path) => {
+        path.moveTo(0, 0)
+        path.bezierCurveTo(10, 20, 20, 20, 30, 0)
+      }),
       style: {
         fill: 'none',
         stroke: '#334455',
