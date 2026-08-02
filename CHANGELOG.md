@@ -1,5 +1,86 @@
 # Changelog
 
+## 0.6.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#41](https://github.com/TanStack/charts/pull/41) [`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7) - Add the optional `motion()` SVG renderer with tween and physical spring
+  transitions, definition-local chart, mark, datum, guide, and focus timing,
+  retained interruption velocity, reduced-motion handling, and aligned
+  presentation geometry. Add the standalone `createChartSpring` sampler.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`515da25`](https://github.com/TanStack/charts/commit/515da25d87b2c2eb4ded774ce45e4050e03bf5e7)]:
+  - @tanstack/charts@0.6.0
+
 ## 0.5.1
 
 ### @tanstack/charts
