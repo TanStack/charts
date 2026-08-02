@@ -30,7 +30,8 @@
           "type": "assert",
           "assertions": [
             { "path": "tooltip.visible", "equals": true },
-            { "path": "tooltip.text", "includes": "Apple" }
+            { "path": "tooltip.text", "includes": "Apple" },
+            { "path": "focus.dates", "includes": "2013-05-23" }
           ]
         },
         { "type": "screenshot", "name": "focused-dot-open" },

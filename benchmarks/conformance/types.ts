@@ -35,6 +35,8 @@ export interface ConformanceInput {
   height: number
   revision: number
   interactive?: boolean
+  /** True only for semantic browser scenarios, not catalog or visual mounts. */
+  behavior?: boolean
 }
 
 export interface ConformanceHandle {

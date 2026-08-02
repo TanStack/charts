@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-01
+Last updated: 2026-08-02
 
 ## Triage rule
 
@@ -226,7 +226,14 @@ Each entry records:
 | F-188 | Paired interaction assertions assumed equal timing        | Tooling         | monitoring |
 | F-189 | The motion spike exposed duplicate configuration surfaces | API             | resolved   |
 | F-190 | Static conformance sampled active motion                  | Tooling         | resolved   |
-| F-191 | D3 curve context types overstate built-in requirements    | Tooling         | resolved   |
+| F-191 | Axis tick styling and edge alignment required shell work  | API/Application | monitoring |
+| F-192 | SVG letterboxing shifted pointer hit testing              | API             | resolved   |
+| F-193 | Fixed catalog height hid compact responsive examples      | Tooling/App     | resolved   |
+| F-194 | Behavior runs omitted the interactive input               | Tooling         | resolved   |
+| F-195 | Release versions matched dependency substrings            | Tooling         | resolved   |
+| F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
+| F-197 | Workspace validation omitted comparison provenance        | Tooling         | resolved   |
+| F-198 | D3 curve context types overstate built-in requirements    | Tooling         | resolved   |
 
 ## Findings
 
@@ -4351,7 +4358,7 @@ Each entry records:
   regression caught interpolated presentation points bypassing scene geometry.
   Selection now keeps destination-scene identity while the matching
   presentation point moves the marker and tooltip with the rendered frame.
-  The full DOM unit matrix passes 796 tests across 135 files;
+  The full DOM unit matrix passes 807 tests across 138 files;
   typecheck, documentation,
   formatting, packed-consumer, seven-adapter, sandbox production-build, and
   live browser checks also pass.
@@ -4377,11 +4384,12 @@ Each entry records:
   winding, stroke, and contour-distance code now lives behind the opaque
   `scenePath` capability, so straight charts do not retain the recorder's
   interaction math. Against `origin/main`'s locked fixtures, a straight line
-  scene adds 29 gzip bytes, static SVG 46, representative marks 56, the default
-  DOM host 137, the React adapter 138, and a React line consumer 157. Moving
-  curve-specific math out of the host reduced the post-merge DOM delta from 294
-  to 137 gzip bytes and restored the compact React consumer to 18.58 kB gzip,
-  below its 18.6 kB product ceiling. The reviewed 2.1, 26.6, and 31.9 kB gzip
+  scene adds 30 gzip bytes, static SVG 42, representative marks 58, the default
+  DOM host 141, the React adapter 136, and a React line consumer 164. Moving
+  curve-specific math out of the host reduced the earlier post-merge DOM delta
+  from 294 to 141 gzip bytes. The compact React consumer is 18.63 kB gzip;
+  combining this feature with `main`'s later SVG pointer fix required reviewing
+  its product ceiling at 18.7 kB. The reviewed 2.1, 18.7, 26.6, and 31.9 kB gzip
   ceilings plus exact fixture locks record these costs, and `bundle:check`
   passes. A prior size audit removed
   redundant built-in `MarkScene.points` arrays and explicit default `xy`
@@ -4742,13 +4750,20 @@ Each entry records:
   reduced-motion handling, and resize motion. Keep semantic timing in chart,
   mark, datum, axis, label, and focus definitions. Keep the SVG driver and
   reconciler integration internal. Retain the scalar physics sampler as the
-  separate `@tanstack/charts/spring` capability.
+  separate `@tanstack/charts/spring` capability. Retain the lightweight
+  `animate` path for the default SVG renderer, but enforce one animation owner
+  per host: `motion()` ignores legacy animation options and reads declarative
+  motion policy from the chart definition. A definition-level `motion`
+  declaration configures that renderer; it does not select it.
 - Verification: all catalog, POC, packed-consumer, and unit-test callers use
   `motion()`. The public `/motion` entry exports one value plus its option and
   renderer-neutral definition types; legacy aliases and low-level driver types
   no longer appear in the package contract. Documentation covers the one-path
   setup, override cascade, renderer compatibility, accessibility behavior, and
-  migration from duration-only focus transitions.
+  migration from duration-only focus transitions. The motion renderer
+  integration test mounts a definition containing both legacy `animate` and a
+  conflicting definition-level motion duration, then verifies that the
+  host-level motion renderer owns the transition timing.
 
 ### F-190 — Static conformance sampled active motion
 
@@ -4768,7 +4783,159 @@ Each entry records:
   the focus/crosshair scenario, both revisions, and 320/640px viewports. Mean
   final-frame geometry similarity is 94.2%, with clean strict types.
 
-### F-191 — D3 curve context types overstate built-in requirements
+### F-191 — Axis tick styling and edge alignment required shell work
+
+- Status: monitoring
+- Severity: low
+- Owner: API/Application
+- Observed in: matching the token activity calendar to a supplied visual
+  reference
+- Friction: the reference required larger, quieter month labels than the
+  default axis typography. Axis presentation exposes tick values, formatting,
+  spacing, thinning, size, and padding, but not label font size or opacity. The
+  example therefore needed a shell-scoped `.ts-chart__axes text` rule to reach
+  the requested presentation. It also needed the first label to align with the
+  painted calendar's leading edge, while every unrotated band tick label
+  currently uses a middle anchor with no per-tick anchor or offset. The shell
+  measures the first cell after each render and adjusts only that generated
+  label; the final label stays at its month position so the preceding gap does
+  not widen. The cell mark also defaults to a 0.75-pixel inset, so omitting the
+  authored inset still recessed the first and final columns from a flush scale
+  range.
+- Current decision: keep the override local to the application shell and avoid
+  expanding the public axis API from one styling and edge-alignment case. Use
+  an explicit zero cell inset with zero band outer padding and horizontal chart
+  margins when flush calendar edges are intended.
+  Revisit if production migrations or unrelated examples repeat the need for
+  authored tick-label typography or per-tick anchoring.
+- Verification: browser inspection at gallery widths confirms twelve 13px
+  month labels, with Aug starting at the first cell edge and Jul retaining its
+  normal month position, 364 approximately square daily cells, and no
+  application, page, or overlay errors. Workspace typecheck and the focused
+  quick conformance matrix pass initial and updated data at 320px and 640px.
+
+### F-192 — SVG letterboxing shifted pointer hit testing
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: daily token usage calendar tooltip verification
+- Friction: the SVG surface converted browser pointer coordinates with the
+  element's complete bounding rectangle. When the responsive viewport and
+  scene had different aspect ratios, SVG's default `xMidYMid meet` transform
+  added letterboxing that the conversion ignored. A 640-by-480 scene in the
+  604-by-480 gallery viewport therefore resolved calendar cells roughly one
+  weekday row below the pointer near the top of the chart.
+- Decision: convert client coordinates through the inverse SVG screen matrix.
+  This delegates view-box, aspect-ratio, CSS transform, and viewport placement
+  semantics to the browser instead of duplicating them with bounding-rectangle
+  arithmetic. Preserve out-of-scene coordinates for overflowing marks and
+  retain the previous bounds conversion only for incomplete DOM
+  implementations such as jsdom, which do not expose `getScreenCTM`.
+- Verification: unit regressions reproduce the gallery dimensions and its
+  13.5-pixel vertical letterbox, verify the exact scene coordinate, and cover
+  the incomplete-DOM fallback. Browser conformance forces a mismatched SVG
+  viewport and proves the hovered cell retains its expected tooltip. The SVG
+  surface, renderer, and workspace tests pass; the reviewed shared-path cost is
+  recorded in the updated universal bundle baseline.
+
+### F-193 — Fixed catalog height hid compact responsive examples
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling/Application
+- Observed in: calendar heatmap responsive sizing
+- Friction: the calendar could derive a compact height from its available width
+  and preserve square day cells, but the catalog renderer retained a generic
+  480-pixel minimum height. The resulting blank panel made the example appear
+  fixed-height even after its SVG had correctly shrunk.
+- Decision: keep the global catalog sizing contract unchanged for charts that
+  need the full benchmark height. The calendar shell temporarily sets its host
+  minimum height to the width-derived chart height and restores the previous
+  value when destroyed. Width remains fully fluid; no example-specific maximum
+  is imposed.
+- Verification: shell tests cover fluid 320- and 960-pixel widths plus teardown.
+  Browser measurements confirm square day cells at each width, with no
+  horizontal overflow or fixed maximum-width behavior.
+
+### F-194 — Behavior runs omitted the interactive input
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: automating the SVG letterbox pointer regression
+- Friction: `ConformanceInput` exposed an `interactive` flag and catalog embeds
+  supplied it, but the browser behavior runner did not. Examples therefore had
+  to force interactive behavior at definition setup and could not scope a
+  viewport mismatch to semantic interaction checks without affecting static
+  visual measurements.
+- Decision: mark behavior-run inputs as interactive and expose a separate
+  `behavior` flag for interaction-only layout. Remove the token calendar's
+  duplicated always-interactive shell option.
+- Verification: the pointer-tooltip scenario creates a 120-pixel SVG viewport
+  mismatch only during the token calendar's behavior runs, targets the painted
+  Aug 3 cell, and asserts the exact focused date and tooltip. The fixed runtime
+  passes at 320 and 640 pixels across both revisions; reverting the runtime fix
+  makes the same scenario report Aug 5 or Aug 6. Static visual measurements and
+  public catalog mounts retain their original dimensions.
+
+### F-195 — Release version matching collided with dependency versions
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: releasing 0.6.1 after the SVG pointer fix
+- Friction: the release synchronizer counted versions with raw substring
+  matching. Observable Plot's documented `0.6.17` version therefore counted as
+  an existing `0.6.1` release reference and stopped the Changesets workflow
+  before it could create the version pull request.
+- Decision: count and replace complete version tokens while still accepting the
+  repository's `v0.6.1` tag references. Ignore longer semantic versions and
+  prerelease suffixes that merely share a prefix.
+- Verification: the release-version unit regression advances TanStack Charts
+  from 0.6.0 to 0.6.1 while leaving Observable Plot 0.6.17 unchanged. The
+  release workflow can create the 0.6.1 version pull request from the same
+  changeset.
+
+### F-196 — Focus decorations suppressed the primary indicator
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: issue #33 focused-band composition
+- Friction: adding any `whenFocused` mark removed the built-in primary-point
+  ring from the complete chart. A category highlight or crosshair therefore
+  also removed the indicator that identified the point owned by the tooltip
+  and keyboard focus.
+- Decision: compose the built-in ring with authored focus layers by default.
+  Add definition `focusRing: false` for charts whose authored geometry
+  deliberately replaces the primary indicator.
+- Verification: scene and SVG regressions retain both a focused category band
+  and one primary ring, Canvas paints authored underlays and the default
+  overlay together, facets retain synchronized authored bands plus one shared
+  ring, and an explicit opt-out omits the ring. Removing the implicit
+  focus-layer scan reduces the ten locked universal bundles by 109–110
+  minified bytes and 22–48 gzip bytes; the reviewed exact baseline records the
+  decrease.
+
+### F-197 — Workspace validation omitted comparison provenance
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: issue #33 release validation
+- Friction: `pnpm run validate` passed the locked universal bundle policy but
+  did not run the separate comparison baseline gate. Because the focus fix
+  changed a core comparison input, pull-request CI correctly rejected the
+  stale workspace revision even though local validation was green.
+- Decision: refresh the comparison evidence whenever a change advances one of
+  its tracked TanStack inputs, and run `pnpm benchmark:check` alongside the
+  workspace validation before release.
+- Verification: the 60-case comparison baseline records revision `e4b5249`
+  and package version 0.6.2, the canonical comparison page identifies the same
+  revision, and `pnpm benchmark:check` passes locally and in pull-request CI.
+
+### F-198 — D3 curve context types overstate built-in requirements
 
 - Status: resolved
 - Severity: low

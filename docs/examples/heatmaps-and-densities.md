@@ -13,6 +13,7 @@ per raw observation.
 
 | Reader question                                               | Start with                  |
 | ------------------------------------------------------------- | --------------------------- |
+| How does daily activity vary by week and weekday?             | Token use calendar heatmap  |
 | How many observations fall in each quantitative x-y interval? | Binned quantitative heatmap |
 | What smooth regions enclose similar point density?            | Density contours            |
 | Where are dense clusters while retaining local bin shape?     | Hexagonal bins              |
@@ -21,6 +22,35 @@ per raw observation.
 [Data and Channels](../concepts/data-and-channels.md) explains interval and
 color channels. [Legends and Color](../guides/legends-and-color.md) covers
 continuous color meaning and accessible legend design.
+
+## Bin events into a calendar
+
+A contribution-style calendar exposes both long-term activity and weekday
+rhythm without drawing one long daily time axis. This example aggregates raw,
+session-level token events into a complete twelve-month UTC day domain, then
+maps Sunday weeks to columns and weekdays to rows.
+
+<iframe
+  src="https://tanstack.com/charts/catalog/embed/118-token-usage-calendar/?theme=system&height=480"
+  title="Token use calendar heatmap built with TanStack Charts"
+  loading="lazy"
+  width="100%"
+  height="480"
+  style="width:100%;height:480px;border:0;"
+></iframe>
+
+The example uses `binTimeX` with D3's `utcDay` interval and an explicit
+twelve-month domain. Each output row contains the day interval, the summed token
+count, the session count, and source lineage. Empty bins become real zero-value
+days and share one consistent neutral treatment.
+
+Calendar placement is a second, explicit step: `utcSunday.count` produces the
+week column and `date.getUTCDay()` selects the row. A categorical usage scale
+creates contribution-style levels, while the accessible chart description and
+cell color explain the zero-to-high usage range. The compact focus tooltip keeps
+the visible detail to the exact token total and date. Keep all calendar
+calculations in one time basis—UTC here—to avoid moving events between days
+around daylight-saving transitions.
 
 ## Aggregate into quantitative cells
 

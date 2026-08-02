@@ -168,14 +168,20 @@ describe('intentional interaction contracts', () => {
     expect(primaryLayers.every((node) => node.focus?.match === 'primary')).toBe(
       true,
     )
-    expect(synchronizedXLayers).toHaveLength(2)
-    expect(synchronizedXLayers.every((node) => node.focus?.match === 'x')).toBe(
-      true,
-    )
-    expect(synchronizedYLayers).toHaveLength(2)
-    expect(synchronizedYLayers.every((node) => node.focus?.match === 'y')).toBe(
-      true,
-    )
+    expect(synchronizedXLayers).toHaveLength(3)
+    expect(
+      synchronizedXLayers.filter((node) => node.focus?.match === 'x'),
+    ).toHaveLength(2)
+    expect(
+      synchronizedXLayers.filter((node) => node.focus?.match === 'primary'),
+    ).toHaveLength(1)
+    expect(synchronizedYLayers).toHaveLength(3)
+    expect(
+      synchronizedYLayers.filter((node) => node.focus?.match === 'y'),
+    ).toHaveLength(2)
+    expect(
+      synchronizedYLayers.filter((node) => node.focus?.match === 'primary'),
+    ).toHaveLength(1)
   })
 
   it('keeps the animated case on a deliberately tight fallback threshold', () => {

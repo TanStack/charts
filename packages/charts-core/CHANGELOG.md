@@ -1,5 +1,20 @@
 # @tanstack/charts
 
+## 0.6.2
+
+### Patch Changes
+
+- [#47](https://github.com/TanStack/charts/pull/47) [`0eeec7d`](https://github.com/TanStack/charts/commit/0eeec7dbe62d362839820b953a731ae0596206ee) - Clarify that each chart host has one animation owner: the default SVG renderer
+  uses `animate`, while `motion()` ignores it and uses definition-level motion
+  declarations.
+
+## 0.6.1
+
+### Patch Changes
+
+- [#44](https://github.com/TanStack/charts/pull/44) [`24e65e7`](https://github.com/TanStack/charts/commit/24e65e743ff2897a78f726c3f07d8a5819bb4c7d) - Correct SVG pointer hit testing when the rendered viewport and chart scene use
+  different aspect ratios.
+
 ## 0.6.0
 
 ### Minor Changes

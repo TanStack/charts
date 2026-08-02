@@ -379,7 +379,7 @@ describe('Canvas renderer', () => {
     surface.destroy()
   })
 
-  it('paints leading focus marks below the cached base scene', () => {
+  it('composes authored focus underlays with the default indicator', () => {
     const container = document.createElement('div')
     const surface = createCanvasChartRenderer().mount(container, () => {})
     const datum = { id: 'band' }
@@ -426,12 +426,34 @@ describe('Canvas renderer', () => {
           radius: 5,
           style: { fill: '#ff0000' },
         },
+        {
+          kind: 'group',
+          key: 'default-focus',
+          children: [
+            {
+              kind: 'dot',
+              key: 'dot',
+              x: 25,
+              y: 30,
+              radius: 5,
+              style: { stroke: '#ff0000', strokeWidth: 2.5 },
+            },
+          ],
+          focus: {
+            match: 'primary',
+            points: [{ ...point, key: 'dot', markId: 'dots' }],
+            placement: 'over',
+          },
+        },
       ]),
       renderOptions(),
     )
     const base = contexts.get(surface.canvas)
     const under = contexts.get(surface.focusUnderCanvas)
-    if (!base || !under) throw new Error('Expected base and underlay contexts')
+    const over = contexts.get(surface.focusCanvas)
+    if (!base || !under || !over) {
+      throw new Error('Expected base and focus contexts')
+    }
     const baseOperations = [...base.operations]
 
     surface.paintFocus({
@@ -447,6 +469,7 @@ describe('Canvas renderer', () => {
 
     expect(base.operations).toEqual(baseOperations)
     expect(under.operations).toContain('rect:10,0,30,60')
+    expect(over.operations).toContain('arc:25,30,5')
     surface.destroy()
   })
 
