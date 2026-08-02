@@ -1,8 +1,8 @@
 {
   "schemaVersion": 3,
-  "generatedAt": "2026-08-01T18:25:10.144Z",
+  "generatedAt": "2026-08-02T05:01:56.196Z",
   "packageVersions": {
-    "tanstack": "0.4.0",
+    "tanstack": "0.5.1",
     "chartjs": "4.5.1",
     "echarts": "6.1.0",
     "recharts": "3.10.1",
@@ -11,7 +11,7 @@
   "sources": {
     "tanstack": {
       "kind": "workspace",
-      "revision": "1a8b888822bb94be75b6416979d671a04218fe02"
+      "revision": "76bcdbb409eab0ba3dfb4957c48af7525d1d34be"
     },
     "chartjs": {
       "kind": "package",
@@ -44,88 +44,88 @@
   },
   "bundles": {
     "tanstack-line-basic": {
-      "minifiedBytes": 72327,
-      "gzipBytes": 27384,
-      "brotliBytes": 24255,
-      "incrementalGzipBytes": 27384,
-      "incrementalBrotliBytes": 24255
+      "minifiedBytes": 77731,
+      "gzipBytes": 29252,
+      "brotliBytes": 25924,
+      "incrementalGzipBytes": 29252,
+      "incrementalBrotliBytes": 25924
     },
     "tanstack-line-interactive": {
-      "minifiedBytes": 77498,
-      "gzipBytes": 29036,
-      "brotliBytes": 25644,
-      "incrementalGzipBytes": 29036,
-      "incrementalBrotliBytes": 25644
+      "minifiedBytes": 82902,
+      "gzipBytes": 30892,
+      "brotliBytes": 27271,
+      "incrementalGzipBytes": 30892,
+      "incrementalBrotliBytes": 27271
     },
     "tanstack-line-advanced": {
-      "minifiedBytes": 84679,
-      "gzipBytes": 31379,
-      "brotliBytes": 27617,
-      "incrementalGzipBytes": 31379,
-      "incrementalBrotliBytes": 27617
+      "minifiedBytes": 90087,
+      "gzipBytes": 33239,
+      "brotliBytes": 29277,
+      "incrementalGzipBytes": 33239,
+      "incrementalBrotliBytes": 29277
     },
     "tanstack-bar-basic": {
-      "minifiedBytes": 79330,
-      "gzipBytes": 30040,
-      "brotliBytes": 26485,
-      "incrementalGzipBytes": 30040,
-      "incrementalBrotliBytes": 26485
+      "minifiedBytes": 84742,
+      "gzipBytes": 31923,
+      "brotliBytes": 28231,
+      "incrementalGzipBytes": 31923,
+      "incrementalBrotliBytes": 28231
     },
     "tanstack-bar-interactive": {
-      "minifiedBytes": 83360,
-      "gzipBytes": 31257,
-      "brotliBytes": 27474,
-      "incrementalGzipBytes": 31257,
-      "incrementalBrotliBytes": 27474
+      "minifiedBytes": 88768,
+      "gzipBytes": 33128,
+      "brotliBytes": 29177,
+      "incrementalGzipBytes": 33128,
+      "incrementalBrotliBytes": 29177
     },
     "tanstack-bar-advanced": {
-      "minifiedBytes": 83699,
-      "gzipBytes": 31398,
-      "brotliBytes": 27656,
-      "incrementalGzipBytes": 31398,
-      "incrementalBrotliBytes": 27656
+      "minifiedBytes": 89107,
+      "gzipBytes": 33278,
+      "brotliBytes": 29318,
+      "incrementalGzipBytes": 33278,
+      "incrementalBrotliBytes": 29318
     },
     "tanstack-area-basic": {
-      "minifiedBytes": 76136,
-      "gzipBytes": 28832,
-      "brotliBytes": 25473,
-      "incrementalGzipBytes": 28832,
-      "incrementalBrotliBytes": 25473
+      "minifiedBytes": 81540,
+      "gzipBytes": 30721,
+      "brotliBytes": 27245,
+      "incrementalGzipBytes": 30721,
+      "incrementalBrotliBytes": 27245
     },
     "tanstack-area-interactive": {
-      "minifiedBytes": 81311,
-      "gzipBytes": 30514,
-      "brotliBytes": 26891,
-      "incrementalGzipBytes": 30514,
-      "incrementalBrotliBytes": 26891
+      "minifiedBytes": 86719,
+      "gzipBytes": 32425,
+      "brotliBytes": 28562,
+      "incrementalGzipBytes": 32425,
+      "incrementalBrotliBytes": 28562
     },
     "tanstack-area-advanced": {
-      "minifiedBytes": 88678,
-      "gzipBytes": 32908,
-      "brotliBytes": 29053,
-      "incrementalGzipBytes": 32908,
-      "incrementalBrotliBytes": 29053
+      "minifiedBytes": 94086,
+      "gzipBytes": 34707,
+      "brotliBytes": 30628,
+      "incrementalGzipBytes": 34707,
+      "incrementalBrotliBytes": 30628
     },
     "tanstack-scatter-basic": {
-      "minifiedBytes": 72032,
-      "gzipBytes": 27293,
-      "brotliBytes": 24225,
-      "incrementalGzipBytes": 27293,
-      "incrementalBrotliBytes": 24225
+      "minifiedBytes": 77406,
+      "gzipBytes": 29153,
+      "brotliBytes": 25829,
+      "incrementalGzipBytes": 29153,
+      "incrementalBrotliBytes": 25829
     },
     "tanstack-scatter-interactive": {
-      "minifiedBytes": 77203,
-      "gzipBytes": 28957,
-      "brotliBytes": 25489,
-      "incrementalGzipBytes": 28957,
-      "incrementalBrotliBytes": 25489
+      "minifiedBytes": 82577,
+      "gzipBytes": 30800,
+      "brotliBytes": 27172,
+      "incrementalGzipBytes": 30800,
+      "incrementalBrotliBytes": 27172
     },
     "tanstack-scatter-advanced": {
-      "minifiedBytes": 77219,
-      "gzipBytes": 28962,
-      "brotliBytes": 25534,
-      "incrementalGzipBytes": 28962,
-      "incrementalBrotliBytes": 25534
+      "minifiedBytes": 82593,
+      "gzipBytes": 30805,
+      "brotliBytes": 27196,
+      "incrementalGzipBytes": 30805,
+      "incrementalBrotliBytes": 27196
     },
     "chartjs-line-basic": {
       "minifiedBytes": 137909,
