@@ -3,7 +3,7 @@ title: Overview
 description: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
 ---
 
-TanStack Charts `0.5.0` is a pre-alpha release. Its API may change between
+TanStack Charts `0.5.1` is a pre-alpha release. Its API may change between
 releases.
 
 TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and JavaScript. Give each mark its natural data, map fields or accessors to visual channels, and supply the D3 scales that define the meaning of each axis. TanStack Charts compiles that declaration into a responsive, keyed scene and renders accessible SVG by default, with Canvas available as an opt-in surface.
