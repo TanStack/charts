@@ -3,7 +3,7 @@ title: Installation
 description: Install TanStack Charts, a framework adapter, and the granular D3 modules used by your charts.
 ---
 
-TanStack Charts `0.5.0` publishes the framework-agnostic core and every adapter
+TanStack Charts `0.5.1` publishes the framework-agnostic core and every adapter
 listed below. Install the core in each application that authors chart
 definitions:
 
