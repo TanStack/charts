@@ -25,11 +25,11 @@ may add only its transport module over the tooltip consumer. Ordinary line,
 compact-scale, and tooltip kernels also reject all transform modules.
 
 The compact linear scene and React consumer are both locked and budgeted. The
-scene has an 8.1 KiB gzip ceiling. The React line consumer has an 18.6 KiB
-ceiling with React and React DOM external. `d3-array` tick helpers are allowed
-only in the compact linear path; categorical compact-scale kernels reject
-every D3 runtime input. All compact fixtures reject `d3-scale`, `d3-format`,
-`d3-interpolate`, `d3-color`, and `internmap`.
+scene has an 8.1 KiB gzip ceiling. The React compact-scale line consumer has an
+18.6 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
+allowed only in the compact linear path; categorical compact-scale kernels
+reject every D3 runtime input. All compact fixtures reject `d3-scale`,
+`d3-format`, `d3-interpolate`, `d3-color`, and `internmap`.
 
 Painted-geometry interaction is part of the default scene and host contract
 across DOM, Canvas, and native rendering. Its isolated resolver has a 2 KiB

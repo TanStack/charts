@@ -176,6 +176,24 @@ describe('scene interaction geometry', () => {
     expect(nearestScenePoint(lineScene, 100, 154, 48)).toBeNull()
   })
 
+  it('keeps one-point polylines selectable', () => {
+    const linePoint = point('line', 100, 100)
+    const scene = testScene(
+      [
+        {
+          kind: 'polyline',
+          key: linePoint.key,
+          points: [[100, 100]],
+          interaction: { point: linePoint, affinity: 'geometry' },
+        },
+      ],
+      [linePoint],
+    )
+
+    expect(nearestScenePoint(scene, 100, 100, 0)?.key).toBe('line')
+    expect(nearestScenePoint(scene, 102, 100, 0)).toBeNull()
+  })
+
   it('respects rounded corners from the rendered rectangle', () => {
     const rounded = point('rounded', 100, 100)
     const scene = testScene(
@@ -396,8 +414,6 @@ function expectBarUsesScenePrimitive<
 
   expect(rectNode?.kind).toBe('rect')
   if (rectNode?.kind !== 'rect') throw new Error('Expected bar rectangle')
-  expect(rectNode.interaction).toEqual({
-    point,
-    affinity: expectedAffinity,
-  })
+  expect(rectNode.interaction?.point).toBe(point)
+  expect(rectNode.interaction?.affinity).toBe(expectedAffinity)
 }

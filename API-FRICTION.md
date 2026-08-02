@@ -4334,11 +4334,11 @@ Each entry records:
   for the generic rectangle resolver, but deliberately excludes Vega's
   subsequent Canvas path test.
 
-  The isolated scene resolver is 4,952 minified / 1,981 gzip bytes versus 157 /
-  153 for the anchor-only kernel: a 1,828-byte gzip feature cost under an
-  explicit 2 kB ceiling. Against the pre-feature product lock, the complete
-  DOM host adds 1,816 gzip bytes, the React line consumer adds 1,833, and the
-  native host adds 1,801. These shared-host costs and the related aggregate
+  The isolated scene resolver is 5,010 minified / 2,005 gzip bytes versus 157 /
+  153 for the anchor-only kernel: a 1,852-byte gzip feature cost under an
+  explicit 2 KiB ceiling. Against the pre-feature product lock, the complete
+  DOM host adds 1,840 gzip bytes, the React line consumer adds 1,859, and the
+  native host adds 1,824. These shared-host costs and the related aggregate
   fixture ceilings were reviewed and accepted because painted-geometry
   interaction is the default contract across DOM, Canvas, and native charts;
   the exact locked baselines now record that decision while the isolated 2 kB

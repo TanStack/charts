@@ -1,7 +1,12 @@
+import { lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 import { App } from './App'
-import { InteractionGeometryLab } from './InteractionGeometryLab'
+
+const InteractionGeometryLab = lazy(async () => {
+  const module = await import('./InteractionGeometryLab')
+  return { default: module.InteractionGeometryLab }
+})
 
 const lab = new URLSearchParams(window.location.search).get('lab')
 const showInteractionGeometryLab = lab === 'interaction-geometry'
@@ -10,5 +15,11 @@ if (showInteractionGeometryLab) {
 }
 
 createRoot(document.getElementById('root')!).render(
-  showInteractionGeometryLab ? <InteractionGeometryLab /> : <App />,
+  showInteractionGeometryLab ? (
+    <Suspense fallback={null}>
+      <InteractionGeometryLab />
+    </Suspense>
+  ) : (
+    <App />
+  ),
 )

@@ -228,9 +228,7 @@ export function mountChartRenderer<
         : null,
       pointerPosition,
     )
-    interactionScene =
-      (paintedScene as ChartScene<TDatum, TXValue, TYValue> | undefined) ??
-      scene
+    interactionScene = paintedScene ?? scene
     paintTooltip(point, points)
   }
 

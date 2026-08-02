@@ -44,6 +44,13 @@ describe('facets', () => {
     ).toHaveLength(2)
     expect(scene.points).toHaveLength(4)
     expect(new Set(scene.points.map((point) => point.key)).size).toBe(4)
+    expect(
+      flatten(scene.nodes).filter(
+        (node) =>
+          node.kind === 'group' &&
+          node.className?.includes('ts-chart__focus-layer--default'),
+      ),
+    ).toHaveLength(1)
     expect(scene.points[2]?.x).toBeGreaterThan(scene.points[0]?.x ?? 0)
     expect(svg).toContain('transform="translate(')
     expect(svg).toContain('Alpha')
@@ -453,8 +460,8 @@ describe('facets', () => {
     expect(visibleLayers).toHaveLength(2)
     expect(visibleBands).toHaveLength(2)
     expect(
-      new Set(visibleBands.map((band) => band.getAttribute('x'))),
-    ).toHaveLength(1)
+      new Set(visibleBands.map((band) => band.getAttribute('x'))).size,
+    ).toBe(1)
     surface.destroy()
   })
 
@@ -517,8 +524,8 @@ describe('facets', () => {
       visibleBands.every((band) => Number(band.getAttribute('height')) > 0),
     ).toBe(true)
     expect(
-      new Set(visibleBands.map((band) => band.getAttribute('y'))),
-    ).toHaveLength(1)
+      new Set(visibleBands.map((band) => band.getAttribute('y'))).size,
+    ).toBe(1)
     surface.destroy()
   })
 

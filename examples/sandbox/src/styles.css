@@ -220,7 +220,7 @@
 }
 
 .hit-region-proof__case--stress .hit-region-proof__chart > svg,
-.hit-region-proof__case--stress .hit-region-proof__chart > div:first-child {
+.hit-region-proof__case--stress .hit-region-proof__chart > .ts-chart-canvas {
   min-height: 320px;
 }
 
@@ -281,7 +281,7 @@
 }
 
 .hit-region-proof__chart > svg,
-.hit-region-proof__chart > div:first-child {
+.hit-region-proof__chart > .ts-chart-canvas {
   min-height: 230px;
 }
 

@@ -424,6 +424,10 @@ function squaredDistanceToPolyline(
   closed: boolean,
 ) {
   if (!points.length) return Infinity
+  if (points.length === 1) {
+    const point = points[0]!
+    return (point[0] - x) ** 2 + (point[1] - y) ** 2
+  }
   let distance = Infinity
   const segmentCount = closed ? points.length : Math.max(0, points.length - 1)
   for (let index = 0; index < segmentCount; index += 1) {

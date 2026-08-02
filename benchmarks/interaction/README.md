@@ -81,7 +81,7 @@ and [Canvas picker](https://github.com/vega/vega/blob/main/packages/vega-scenegr
 
 `pnpm bundle:check` reports isolated anchor-only and geometry resolver entries
 beside the existing D3 quadtree and Delaunay kernels. The geometry resolver has
-a 2 kB gzip ceiling; the historical anchor-only entry stays unbudgeted so the
+a 2 KiB gzip ceiling; the historical anchor-only entry stays unbudgeted so the
 comparison remains visible without treating removed behavior as a product.
 
 The command exposes explicit garbage collection and rotates implementation

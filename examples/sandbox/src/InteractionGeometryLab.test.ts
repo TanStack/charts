@@ -1,16 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import {
-  createChartScene,
-  findNearestPoint,
-} from '../../../packages/charts-core/src/scene'
-import type { ChartPoint, SceneNode } from '@tanstack/charts'
+import { createChartScene, findNearestPoint } from '@tanstack/charts'
+import type { SceneNode } from '@tanstack/charts'
 import { focusX, focusY } from '@tanstack/charts/focus'
 import {
   animatedDestinationDefinition,
   facetFocusDefinitions,
   InteractionGeometryLab,
+  legacyPointFocus,
   proofCases,
   type ProofDatum,
 } from './InteractionGeometryLab'
@@ -193,7 +191,12 @@ describe('interaction geometry proof gallery', () => {
       expect(probe).not.toBeNull()
       if (!probe) return
 
-      const before = legacyNearest(scene.points, probe.x, probe.y, 48)
+      const before = legacyPointFocus.resolve(
+        scene.points,
+        probe.x,
+        probe.y,
+        48,
+      )[0]
       const after = findNearestPoint(scene, probe.x, probe.y, 48)
 
       expect(before?.datum.label ?? 'Nothing focused yet').toBe(
@@ -312,22 +315,4 @@ function findRect(
     if (matches) return { node, offsetX, offsetY }
   }
   return null
-}
-
-function legacyNearest<TDatum>(
-  points: readonly ChartPoint<TDatum, number, number>[],
-  x: number,
-  y: number,
-  maxDistance: number,
-) {
-  let result: ChartPoint<TDatum, number, number> | undefined
-  let distance = Number.POSITIVE_INFINITY
-  for (const point of points) {
-    const candidate = (point.x - x) ** 2 + (point.y - y) ** 2
-    if (candidate < distance) {
-      result = point
-      distance = candidate
-    }
-  }
-  return distance <= maxDistance ** 2 ? result : null
 }

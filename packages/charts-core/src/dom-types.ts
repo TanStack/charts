@@ -38,10 +38,14 @@ export interface ChartSurface<
     clientX: number,
     clientY: number,
   ) => { x: number; y: number } | null
+  /**
+   * Paints focus and may return a destination scene for interaction during a
+   * transition. A returned scene preserves the rendered scene's layout.
+   */
   paintFocus: (
     focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
     pointer?: ChartTooltipPosition | null,
-  ) => ChartScene<any, any, any> | void
+  ) => ChartScene<TDatum, TXValue, TYValue> | void
   destroy: () => void
 }
 

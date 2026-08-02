@@ -91,28 +91,29 @@ const canvasProofIds = new Set<string>([
   'complex-polygons',
 ])
 
-const legacyPointFocus: ChartFocusStrategy<ProofDatum, number, number> = {
-  resolve(points, x, y, maxDistance) {
-    let nearest: ChartPoint<ProofDatum, number, number> | undefined
-    let nearestDistance = Number.POSITIVE_INFINITY
-    for (const point of points) {
-      const distance = (point.x - x) ** 2 + (point.y - y) ** 2
-      if (distance < nearestDistance) {
-        nearest = point
-        nearestDistance = distance
+export const legacyPointFocus: ChartFocusStrategy<ProofDatum, number, number> =
+  {
+    resolve(points, x, y, maxDistance) {
+      let nearest: ChartPoint<ProofDatum, number, number> | undefined
+      let nearestDistance = Number.POSITIVE_INFINITY
+      for (const point of points) {
+        const distance = (point.x - x) ** 2 + (point.y - y) ** 2
+        if (distance < nearestDistance) {
+          nearest = point
+          nearestDistance = distance
+        }
       }
-    }
-    return nearest && nearestDistance <= Math.max(0, maxDistance) ** 2
-      ? [nearest]
-      : []
-  },
-  group(_points, point) {
-    return [point]
-  },
-  navigation(points) {
-    return points
-  },
-}
+      return nearest && nearestDistance <= Math.max(0, maxDistance) ** 2
+        ? [nearest]
+        : []
+    },
+    group(_points, point) {
+      return [point]
+    },
+    navigation(points) {
+      return points
+    },
+  }
 
 // source:faceted-bars:start
 const facetedBars = ['North', 'South'].flatMap((panel) =>
