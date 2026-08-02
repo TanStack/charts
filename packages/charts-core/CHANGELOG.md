@@ -1,5 +1,13 @@
 # @tanstack/charts
 
+## 0.6.2
+
+### Patch Changes
+
+- [#47](https://github.com/TanStack/charts/pull/47) [`0eeec7d`](https://github.com/TanStack/charts/commit/0eeec7dbe62d362839820b953a731ae0596206ee) - Clarify that each chart host has one animation owner: the default SVG renderer
+  uses `animate`, while `motion()` ignores it and uses definition-level motion
+  declarations.
+
 ## 0.6.1
 
 ### Patch Changes
