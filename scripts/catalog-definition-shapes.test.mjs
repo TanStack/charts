@@ -11,6 +11,7 @@ const casesDirectory = path.resolve(
 const responsiveDefinitions = [
   '111-basic-sankey/tanstack.ts',
   '111-sankey-flow/tanstack.ts',
+  '118-token-usage-calendar/tanstack.ts',
   '29-waterfall/tanstack.ts',
   '41-waffle-unit-chart/tanstack.ts',
   '43-hexbin-density/tanstack.ts',
@@ -64,7 +65,7 @@ describe('catalog definition shapes', () => {
     expect(classification.parameterless).toEqual([])
     expect(classification.static).toBe(98)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
-    expect(classification.static + classification.responsive.length).toBe(110)
+    expect(classification.static + classification.responsive.length).toBe(111)
   })
 })
 

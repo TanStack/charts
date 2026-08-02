@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "order": 250,
   "id": "25-calendar-heatmap",
-  "title": "Calendar heatmap",
+  "title": "Precipitation calendar heatmap",
   "family": "time",
   "intent": "Show Seattle daily precipitation across calendar weeks while retaining weekday rhythm and dry days.",
   "support": "native",

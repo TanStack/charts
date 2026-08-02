@@ -2510,6 +2510,8 @@ async function runBehaviorImplementation(
               width,
               height: 360,
               revision,
+              interactive: true,
+              behavior: true,
             })
             globalThis.__conformanceBehavior = {
               container,

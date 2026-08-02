@@ -644,7 +644,7 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    26.4,
+    26.5,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',

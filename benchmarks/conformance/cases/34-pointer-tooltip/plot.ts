@@ -6,6 +6,7 @@ import { selectPointerTooltipData } from './selection'
 
 export const mount: ConformanceMount = (container, input) => {
   let rows = selectPointerTooltipData(aapl, input.revision)
+  let targetDate: string | null = null
   const handle = mountObservablePlot(container, input, (nextInput) => {
     rows = selectPointerTooltipData(aapl, nextInput.revision)
     return Plot.plot({
@@ -55,6 +56,7 @@ export const mount: ConformanceMount = (container, input) => {
               '[aria-label="dot"] circle',
             )[index]
       if (!circle) return null
+      targetDate = date
       const bounds = circle.getBoundingClientRect()
       const svg = container.querySelector('svg')
       const resolved = {
@@ -69,17 +71,21 @@ export const mount: ConformanceMount = (container, input) => {
       const style =
         tooltip &&
         container.ownerDocument.defaultView?.getComputedStyle(tooltip)
+      const visible = Boolean(
+        tooltip &&
+        bounds &&
+        bounds.width > 0 &&
+        bounds.height > 0 &&
+        style?.display !== 'none' &&
+        style?.visibility !== 'hidden' &&
+        style?.opacity !== '0',
+      )
       return {
+        focus: {
+          dates: visible && targetDate ? [targetDate] : [],
+        },
         tooltip: {
-          visible: Boolean(
-            tooltip &&
-            bounds &&
-            bounds.width > 0 &&
-            bounds.height > 0 &&
-            style?.display !== 'none' &&
-            style?.visibility !== 'hidden' &&
-            style?.opacity !== '0',
-          ),
+          visible,
           text: tooltip?.textContent?.trim() ?? '',
         },
       }

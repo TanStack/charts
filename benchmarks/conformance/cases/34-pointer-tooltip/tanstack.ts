@@ -98,10 +98,19 @@ export function mount(
         .points.find((candidate) => dateKey(candidate.datum.Date) === date)
       const svg = container.querySelector('svg')
       if (!point || !svg) return null
-      const bounds = svg.getBoundingClientRect()
+      const matrix = svg.getScreenCTM()
+      if (!matrix) {
+        const bounds = svg.getBoundingClientRect()
+        const scene = host.getScene()
+        return {
+          x: bounds.left + (point.x / scene.width) * bounds.width,
+          y: bounds.top + (point.y / scene.height) * bounds.height,
+          focusElement: svg,
+        }
+      }
       return {
-        x: bounds.left + (point.x / host.getScene().width) * bounds.width,
-        y: bounds.top + (point.y / host.getScene().height) * bounds.height,
+        x: matrix.a * point.x + matrix.c * point.y + matrix.e,
+        y: matrix.b * point.x + matrix.d * point.y + matrix.f,
         focusElement: svg,
       }
     },

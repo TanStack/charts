@@ -16,8 +16,8 @@ export const catalogArtifactTotalSizeLimit = 6 * 1024 * 1024
 export const catalogBuildGraphPath = '.vite/catalog-graph.json'
 export const catalogBuildGraphSchemaVersion = 1
 export const expectedCatalogImplementationCounts = Object.freeze({
-  tanstack: 108,
-  'observable-plot': 74,
+  tanstack: 109,
+  'observable-plot': 75,
   recharts: 23,
   echarts: 11,
 })
