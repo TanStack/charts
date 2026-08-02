@@ -11,12 +11,13 @@ export const catalogBasePath = '/charts/catalog/'
 export const catalogOrigin = 'https://tanstack.com'
 export const catalogArtifactFileLimit = 1_000
 export const catalogArtifactFileSizeLimit = 1024 * 1024
+export const catalogArtifactManifestSizeLimit = 1152 * 1024
 export const catalogArtifactTotalSizeLimit = 6 * 1024 * 1024
 export const catalogBuildGraphPath = '.vite/catalog-graph.json'
 export const catalogBuildGraphSchemaVersion = 1
 export const expectedCatalogImplementationCounts = Object.freeze({
-  tanstack: 102,
-  'observable-plot': 68,
+  tanstack: 108,
+  'observable-plot': 74,
   recharts: 23,
   echarts: 11,
 })

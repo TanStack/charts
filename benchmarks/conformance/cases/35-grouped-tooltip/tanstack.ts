@@ -50,7 +50,11 @@ const definition = (input: ConformanceInput) => {
           {
             when: { focus: 'group' },
             style: { r: 5, stroke: 'Canvas', strokeWidth: 1.5 },
-            transition: { duration: 140, easing: 'ease-out' },
+            transition: {
+              type: 'tween',
+              duration: 140,
+              easing: 'ease-out',
+            },
           },
           {
             when: { focus: 'unmatched' },

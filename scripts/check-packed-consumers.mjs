@@ -570,6 +570,8 @@ async function verifyEsmRuntime() {
       renderChartSvg,
     } from '@tanstack/charts'
     import { canvasChartRenderer } from '@tanstack/charts/canvas'
+    import { motion } from '@tanstack/charts/motion'
+    import { createChartSpring } from '@tanstack/charts/spring'
     import { tooltip } from '@tanstack/charts/tooltip'
     import { portal } from '@tanstack/charts/tooltip/portal'
     import { Chart as ReactChart } from '@tanstack/react-charts'
@@ -599,6 +601,8 @@ async function verifyEsmRuntime() {
     assert.equal(compactScaleOrdinal(['a'], ['red'])('a'), 'red')
     assert.equal(tooltip.id, 'tooltip')
     assert.equal(portal.id, 'portal')
+    assert.equal(motion().id, 'svg:svg-motion')
+    assert.equal(createChartSpring().sample(0).value, 0)
 
     const rows = [
       { id: 'a', x: 0, y: 2 },
@@ -722,6 +726,11 @@ async function verifyDeclarations() {
       type ChartTooltipBodyTarget,
     } from '@tanstack/charts'
     import { canvasChartRenderer } from '@tanstack/charts/canvas'
+    import { motion, type ChartMotionOptions } from '@tanstack/charts/motion'
+    import {
+      createChartSpring,
+      type ChartSpringOptions,
+    } from '@tanstack/charts/spring'
     import { lineY } from '@tanstack/charts/line'
     import { tooltip } from '@tanstack/charts/tooltip'
     import { portal } from '@tanstack/charts/tooltip/portal'
@@ -751,6 +760,18 @@ async function verifyDeclarations() {
       category: string
       value: number
     }
+    const motionOptions: ChartMotionOptions = {
+      transition: {
+        type: 'spring',
+        stiffness: 170,
+        damping: 14,
+        mass: 1,
+      },
+    }
+    const motionRenderer = motion<Row, number, number>(motionOptions)
+    const springOptions: ChartSpringOptions = { stiffness: 170, damping: 14 }
+    const spring = createChartSpring(springOptions)
+    void [motionRenderer, spring]
     type Equal<TLeft, TRight> =
       (<T>() => T extends TLeft ? 1 : 2) extends
       (<T>() => T extends TRight ? 1 : 2)
@@ -1282,6 +1303,8 @@ async function verifyProductionBundles() {
     ],
     tooltipExtension: ['/@tanstack/charts/dist/tooltip.js'],
     tooltipPortal: ['/@tanstack/charts/dist/tooltip-portal.js'],
+    motion: ['/@tanstack/charts/dist/motion.js'],
+    spring: ['/@tanstack/charts/dist/spring.js'],
     reactTooltip: ['/@tanstack/react-charts/dist/tooltip.js'],
     d3GeometryRuntime: ['/d3-geo/', '/d3-shape/'],
     d3Runtime: ['/d3-', '/internmap/'],
@@ -1330,7 +1353,7 @@ async function verifyProductionBundles() {
       external: [],
       rendererBoundary: 'neutral',
       inputBoundary: {
-        forbid: ['tooltip', 'tooltipPortal'],
+        forbid: ['tooltip', 'tooltipPortal', 'motion'],
       },
       source: `
         export { mountChartRenderer } from '@tanstack/charts/renderer'
@@ -1356,6 +1379,7 @@ async function verifyProductionBundles() {
           'tooltipPortal',
           'reactTooltip',
           'd3GeometryRuntime',
+          'motion',
         ],
       },
       source: `
@@ -1381,7 +1405,7 @@ async function verifyProductionBundles() {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'neutral',
       inputBoundary: {
-        forbid: ['tooltip', 'tooltipPortal', 'reactTooltip'],
+        forbid: ['tooltip', 'tooltipPortal', 'reactTooltip', 'motion'],
       },
       source: `
         export { Chart } from '@tanstack/react-charts/core'
@@ -1394,7 +1418,7 @@ async function verifyProductionBundles() {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'canvas',
       inputBoundary: {
-        forbid: ['tooltip', 'tooltipPortal', 'reactTooltip'],
+        forbid: ['tooltip', 'tooltipPortal', 'reactTooltip', 'motion'],
       },
       source: `
         export { Chart } from '@tanstack/react-charts/canvas'
@@ -1476,6 +1500,31 @@ async function verifyProductionBundles() {
       },
       source: `
         export { tooltip } from '@tanstack/charts/tooltip'
+      `,
+    },
+    {
+      label: 'Motion SVG renderer',
+      filename: 'motion.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['motion'],
+        forbid: ['tooltipExtension', 'tooltipPortal', 'd3Runtime'],
+      },
+      source: `
+        export { motion } from '@tanstack/charts/motion'
+      `,
+    },
+    {
+      label: 'Spring physics kernel',
+      filename: 'spring.ts',
+      external: [],
+      inputBoundary: {
+        require: ['spring'],
+        forbid: ['motion', 'tooltipExtension', 'tooltipPortal', 'd3Runtime'],
+      },
+      source: `
+        export { createChartSpring } from '@tanstack/charts/spring'
       `,
     },
     {

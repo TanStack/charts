@@ -13,6 +13,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartMarkState,
   ChartTextStateStyle,
   MarkRenderContext,
@@ -26,7 +27,7 @@ import type {
 
 export type TextAnchor = 'start' | 'middle' | 'end'
 
-export interface TextOptions<TDatum> {
+export interface TextOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, ChartValue | null | undefined>
@@ -187,5 +188,5 @@ export function text<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }

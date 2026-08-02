@@ -2,6 +2,7 @@ import { createChartRuntime } from './runtime'
 import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint } from './scene'
 import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
+import { nearestPoint } from './nearest'
 import type {
   ChartRendererHost,
   ChartRendererHostOptions,
@@ -431,14 +432,27 @@ export function mountChartRenderer<
     y: number,
     maxDistance: number,
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
+    const points = interactionPoints()
     const focus = resolveFocusStrategy(options.definition.focus)
     if (focus) {
-      return focus.resolve(scene.points, x, y, maxDistance)
+      return focus.resolve(points, x, y, maxDistance)
     }
-    const point = spatialIndex
-      ? spatialIndex.findNearest(x, y, maxDistance)
-      : findNearestPoint(interactionScene, x, y, maxDistance)
+    const point =
+      points !== interactionScene.points
+        ? nearestPoint(points, x, y, maxDistance)
+        : spatialIndex && interactionScene === scene
+          ? spatialIndex.findNearest(x, y, maxDistance)
+          : findNearestPoint(interactionScene, x, y, maxDistance)
     return point ? [point] : []
+  }
+
+  function interactionPoints() {
+    return (surface?.getPresentationPoints?.() ??
+      interactionScene.points) as readonly ChartPoint<
+      TDatum,
+      TXValue,
+      TYValue
+    >[]
   }
 
   function focusPointsForPoint(
@@ -446,7 +460,7 @@ export function mountChartRenderer<
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
     return (
       resolveFocusStrategy(options.definition.focus)?.group(
-        scene.points,
+        interactionPoints(),
         point,
       ) ?? [point]
     )

@@ -85,9 +85,11 @@ accessible.
 
 ## Motion
 
-Animation respects `prefers-reduced-motion` by default. Keep
-`respectReducedMotion: true` unless an application has a stronger accessible
-motion policy.
+The default SVG tween and optional `motion()` renderer respect
+`prefers-reduced-motion` by default. Keep `respectReducedMotion: true` unless
+an application has a stronger accessible motion policy. Reduced motion snaps
+entrance, update, and focus-state changes to final geometry without scheduling
+animation frames.
 
 Motion should explain continuity between states. It should not:
 
@@ -96,8 +98,8 @@ Motion should explain continuity between states. It should not:
 - move the focus target away from keyboard users;
 - encode the only evidence of a change.
 
-See [Dynamic Data and Animation](./dynamic-data-and-animation.md) for transition
-semantics.
+See [Dynamic Data and Animation](./dynamic-data-and-animation.md) for the
+lightweight tween and optional spring renderer boundaries.
 
 ## Tooltips are supplemental
 

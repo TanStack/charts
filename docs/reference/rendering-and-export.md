@@ -19,6 +19,7 @@ Renderer code stays behind explicit entry points:
 | -------------------------------- | ----------------------------------------------------- |
 | Default vanilla SVG host         | `mountChart` from `@tanstack/charts/dom`              |
 | Vanilla Canvas host              | `mountCanvasChart` from `@tanstack/charts/canvas`     |
+| Tween and spring SVG renderer    | `motion` from `@tanstack/charts/motion`               |
 | Renderer-neutral host            | `mountChartRenderer` from `@tanstack/charts/renderer` |
 | Default React SVG component      | `Chart` from `@tanstack/react-charts`                 |
 | Default Preact SVG component     | `Chart` from `@tanstack/preact-charts`                |
@@ -35,8 +36,9 @@ Renderer code stays behind explicit entry points:
 | Octane custom-renderer component | `Chart` from `@tanstack/octane-charts/core`           |
 
 The default package and adapter entries do not import Canvas. Applications pay
-for it only when they import a Canvas entry. The `/core` adapter entries accept
-an explicit `renderer` without choosing one for the application.
+for it only when they import a Canvas entry. Motion is likewise isolated behind
+`@tanstack/charts/motion`. The `/core` adapter entries accept an explicit
+`renderer` without choosing one for the application.
 
 ## `renderChartSvg`
 

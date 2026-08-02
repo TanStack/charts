@@ -76,7 +76,7 @@ Supply `key` when the inferred value is not the entity's identity or can
 change independently of it. Stable identity preserves surviving SVG elements,
 focused points, and transition continuity.
 
-## Animation
+## Lightweight SVG tweening
 
 `animate` accepts `true` or:
 
@@ -92,6 +92,94 @@ nodes reconcile by key. If an update interrupts a transition, it begins from
 the geometry currently painted on screen.
 
 Static SVG, server rendering, and `createChartScene` do not include animation.
+
+Use this path when a small default-SVG tween is enough. It has no spring
+solver, definition-local timing cascade, entrance choreography, or retained
+velocity.
+
+## Optional tween and spring motion
+
+Use `motion()` when animation quality is part of the chart contract:
+
+```ts
+import { motion } from '@tanstack/charts/motion'
+import { mountChartRenderer } from '@tanstack/charts/renderer'
+
+const definition = defineChart({
+  motion: {
+    transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+  },
+  marks: [
+    lineY(rows, {
+      x: 'date',
+      y: 'actual',
+      key: 'id',
+    }),
+    lineY(rows, {
+      x: 'date',
+      y: 'forecast',
+      key: 'id',
+      motion: { transition: { type: 'spring', mass: 1.25 } },
+    }),
+  ],
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear },
+})
+
+const host = mountChartRenderer(container, {
+  definition,
+  renderer: motion(),
+  width: 640,
+  height: 360,
+  ariaLabel: 'Actual and forecast revenue',
+})
+```
+
+Choose either `animate` with the default SVG host or `motion()` as the renderer
+for a chart. Do not enable both.
+
+Motion declarations can live on the chart, a mark, an axis, its ticks, tick
+labels, or axis label. A callback can specialize `enter`, `update`, and `exit`
+by series or datum:
+
+```ts
+barY(rows, {
+  x: 'month',
+  y: 'revenue',
+  key: 'id',
+  motion(context) {
+    if (context.phase === 'enter') {
+      return { delay: context.datumIndex * 35 }
+    }
+    if (context.datum?.status === 'forecast') {
+      return { transition: { type: 'tween', duration: 240 } }
+    }
+  },
+})
+```
+
+Same-type partial transitions inherit omitted properties. Springs use physical
+`stiffness`, `damping`, and `mass`; duration is not a spring parameter. Rapid
+retargeting preserves the currently painted value and velocity. Keyed
+interaction points move with the presentation geometry rather than jumping to
+the next scene.
+
+Spring updates always retarget immediately; a returned update delay is ignored
+so incoming momentum cannot freeze. Use delays for spring enter/exit
+choreography or any tween phase.
+
+The renderer grows entering bars from their semantic baseline, reveals entering
+line groups, staggers bar entrances, morphs compatible numeric SVG geometry,
+and fades incompatible keyed topology. Authored delay replaces automatic
+staggering for that target.
+
+`motion()` respects reduced motion and does not animate resize-only updates by
+default. It adopts server-rendered SVG without replaying entrance motion.
+Static SVG and Canvas accept the same definitions but paint the final state.
+
+See the [Motion reference](../reference/motion.md) for the complete cascade,
+types, focus-state transitions, compatibility limits, and standalone spring
+sampler.
 
 ## Streaming
 

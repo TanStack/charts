@@ -84,7 +84,7 @@ describe('interaction geometry source disclosure', () => {
       'normalizedPolygonMark(&#x27;sankey&#x27;, sankey)',
     )
     expect(markup).toContain(
-      'transition: { duration: 700, easing: &#x27;ease-out&#x27; }',
+      'transition: { type: &#x27;tween&#x27;, duration: 700, easing: &#x27;ease-out&#x27; }',
     )
     expect(markup).not.toContain('packages/charts-core/src/nearest.ts')
   })

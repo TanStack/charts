@@ -334,7 +334,7 @@ describe('Canvas renderer', () => {
               {
                 when: { focus: 'primary' },
                 style: { r: 9, fill: '#f97316' },
-                transition: { duration: 0 },
+                transition: { type: 'tween', duration: 0 },
               },
             ],
           },

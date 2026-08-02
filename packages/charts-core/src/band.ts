@@ -12,6 +12,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartPoint,
   ChartValue,
   OptionChannelOutput,
@@ -20,7 +21,7 @@ import type {
   VisualChannel,
 } from './types'
 
-export interface BandXOptions<TDatum> {
+export interface BandXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
@@ -32,7 +33,7 @@ export interface BandXOptions<TDatum> {
   radius?: number
 }
 
-export interface BandYOptions<TDatum> {
+export interface BandYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   y?: Channel<TDatum, ChartValue | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
@@ -127,10 +128,20 @@ export function bandX<
             style: { fill, fillOpacity: resolved.fillOpacity },
           })
         })
-        return { nodes }
+        return {
+          nodes: [
+            {
+              kind: 'group',
+              key: id,
+              className: 'ts-chart__band ts-chart__band-x',
+              ariaHidden: true,
+              children: nodes,
+            },
+          ],
+        }
       },
     }
-  }) as ChartMark<
+  }, resolved.motion) as ChartMark<
     TDatum,
     OptionChannelOutput<TDatum, TOptions, 'x', number>,
     number,
@@ -222,10 +233,20 @@ export function bandY<
             style: { fill, fillOpacity: resolved.fillOpacity },
           })
         })
-        return { nodes }
+        return {
+          nodes: [
+            {
+              kind: 'group',
+              key: id,
+              className: 'ts-chart__band ts-chart__band-y',
+              ariaHidden: true,
+              children: nodes,
+            },
+          ],
+        }
       },
     }
-  }) as ChartMark<
+  }, resolved.motion) as ChartMark<
     TDatum,
     number,
     OptionChannelOutput<TDatum, TOptions, 'y', number>,

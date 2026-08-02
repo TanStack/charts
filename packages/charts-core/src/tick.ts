@@ -11,6 +11,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartPoint,
   ChartValue,
   OptionChannelOutput,
@@ -18,7 +19,7 @@ import type {
   VisualChannel,
 } from './types'
 
-export interface TickXOptions<TDatum> {
+export interface TickXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x: Channel<TDatum, ChartValue | null | undefined>
   y: Channel<TDatum, ChartValue | null | undefined>
@@ -32,7 +33,7 @@ export interface TickXOptions<TDatum> {
   inset?: number
 }
 
-export interface TickYOptions<TDatum> {
+export interface TickYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x: Channel<TDatum, ChartValue | null | undefined>
   y: Channel<TDatum, ChartValue | null | undefined>
@@ -179,5 +180,5 @@ function tick<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }

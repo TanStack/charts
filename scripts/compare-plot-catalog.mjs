@@ -1434,6 +1434,12 @@ async function compareVisuals(
             }
             forceLayout(referenceContainer)
             forceLayout(tanstackContainer)
+            await Promise.all([
+              referenceHandle.driver?.settle?.(),
+              tanstackHandle.driver?.settle?.(),
+            ])
+            forceLayout(referenceContainer)
+            forceLayout(tanstackContainer)
 
             const referenceInspection = inspect(
               referenceContainer,
@@ -1452,6 +1458,12 @@ async function compareVisuals(
             const updatedInput = { ...input, revision: 1 }
             referenceHandle.update(updatedInput)
             tanstackHandle.update(updatedInput)
+            forceLayout(referenceContainer)
+            forceLayout(tanstackContainer)
+            await Promise.all([
+              referenceHandle.driver?.settle?.(),
+              tanstackHandle.driver?.settle?.(),
+            ])
             forceLayout(referenceContainer)
             forceLayout(tanstackContainer)
             const updatedReferenceInspection = inspect(
@@ -3579,6 +3591,7 @@ function renderMarkdown(result) {
     `- A reference may use its built-in transforms; Charts uses the equivalent TanStack data transform or granular D3 primitive.`,
     `- Bundles are isolated per case and renderer. The gallery bundle is never measured.`,
     `- Timings exclude module loading and animations and include forced layout.`,
+    `- Static visual inspection waits for an implementation's optional settle hook; temporal assertions run in interaction scenarios.`,
     `- Reference updates follow that library's native lifecycle; Charts updates reconcile the existing SVG.`,
     `- Initial and revised data are checked at ${result.protocol.variants.map((variant) => `${variant.width}px ${variant.theme}`).join(', ')}.`,
     `- Bounding-box similarity is diagnostic unless a case declares a minimum floor. Required geometry count ranges, corresponding data-mark paints, guide assertions, containment, accessible naming, and side-by-side screenshots are the review gates.`,

@@ -68,6 +68,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/reference/runtime-and-scene.md — Runtime and Scene: Compile object and responsive chart definitions into renderer-neutral scenes.
 - docs/reference/focus-and-interaction.md — Focus and Interaction: Configure pointer focus, grouped focus, keyboard navigation, native tooltips, selection, and spatial indexes.
 - docs/reference/rendering-and-export.md — Rendering and Export: Render chart scenes through the default SVG renderer, the optional Canvas renderer, or a custom surface, then export supported output.
+- docs/reference/motion.md — Motion: Optional SVG tween and spring motion, definition-local timing, interruption behavior, reduced motion, and the standalone spring sampler.
 - docs/reference/custom-extensions.md — Custom Extensions: Extend TanStack Charts with custom marks, distinct scale values, curves, scales, color, legends, text measurement, spatial indexes, and renderers.
 - docs/reference/types.md — Types: Public TypeScript types, inference rules, channels, definitions, scenes, hosts, focus, rendering, and custom extension contracts.
 - docs/framework/react/reference/chart.md — React Chart: Complete prop and type reference for the @tanstack/react-charts Chart component.

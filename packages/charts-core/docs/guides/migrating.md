@@ -58,6 +58,11 @@ For the current breaking API:
 - use a single bar/area value as stack length, explicit endpoints to opt out,
   and `layout: group()` for side-by-side bars;
 - replace renderer-specific focus decoration with `whenFocused`.
+- replace duration-only spring approximations with
+  `motion({ transition: { type: 'spring', ... } })` and put chart-, mark-,
+  datum-, or guide-specific policy on the definition;
+- add `type: 'tween'` to focus-state transitions that previously supplied only
+  `duration` and `easing`.
 
 See [Marks and Layering](../concepts/marks-and-layering.md) and the
 [Example Gallery](../examples/index.md).

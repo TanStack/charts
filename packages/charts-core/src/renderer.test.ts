@@ -236,6 +236,40 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 
+  it('resolves pointer focus against renderer presentation geometry', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    let presentation: ChartScene<Datum, number, number>['points'] | undefined
+    fake.surface.getPresentationPoints = () => presentation
+    const host = mountChartRenderer(container, {
+      definition: { ...definition, maxFocusDistance: 20 },
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Moving chart',
+      onFocusChange,
+    })
+    const [first, second] = host.getScene().points
+    if (!first || !second) throw new Error('Expected two points')
+    presentation = [
+      { ...first, x: first.x + 100, y: first.y + 100 },
+      { ...second, x: first.x, y: first.y },
+    ]
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[1])
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.x).toBe(first.x)
+    host.destroy()
+  })
+
   it('anchors to the pointer, follows placement fallbacks, and clears pointer state for keyboard focus', () => {
     const fake = createFakeRenderer()
     fake.clientToScene.mockReturnValue({ x: 20, y: 20 })

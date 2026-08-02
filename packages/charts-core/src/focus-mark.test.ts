@@ -137,7 +137,7 @@ describe('inline mark states', () => {
                   },
                   fill: ({ datum }) => datum.color,
                 },
-                transition: { duration: 0 },
+                transition: { type: 'tween', duration: 0 },
               },
               {
                 when: { focus: 'unmatched' },
@@ -202,7 +202,7 @@ describe('inline mark states', () => {
               {
                 when: { focus: 'primary' },
                 style: { inset: 2 },
-                transition: { duration: 0 },
+                transition: { type: 'tween', duration: 0 },
               },
             ],
           }),
@@ -224,7 +224,7 @@ describe('inline mark states', () => {
               {
                 when: { focus: 'primary' },
                 style: { inset: 2 },
-                transition: { duration: 0 },
+                transition: { type: 'tween', duration: 0 },
               },
             ],
           }),

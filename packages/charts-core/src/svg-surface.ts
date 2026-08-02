@@ -9,6 +9,7 @@ import type {
 } from './dom-types'
 import type {
   ChartFocusState,
+  ChartMarkStateTransition,
   ChartPoint,
   ChartScene,
   SceneGroup,
@@ -30,7 +31,7 @@ export function createSvgChartRenderer<
       let cancelAnimation = () => {}
       let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
       let renderOptions: ChartSurfaceRenderOptions | undefined
-      let stateTransition: ChartSurfaceRenderOptions['animation']
+      let stateTransition: ChartMarkStateTransition | undefined
       const svgElement = () => {
         const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
         if (!svg) {

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "order": 1160,
+  "id": "115-definition-motion",
+  "title": "Definition-owned motion",
+  "family": "motion",
+  "intent": "Exercise inherited chart motion with mark, datum, axis, tick, and label overrides authored beside their definitions.",
+  "support": "native",
+  "features": [
+    "definition-owned motion",
+    "chart transition defaults",
+    "per-mark transition",
+    "per-datum staggering",
+    "axis and label transitions",
+    "mixed spring and tween",
+    "mid-flight interruption"
+  ],
+  "geometry": [
+    { "role": "bar", "count": 6 },
+    { "role": "line", "count": 1 }
+  ],
+  "source": {
+    "title": "Motion transition orchestration",
+    "url": "https://motion.dev/docs/animate"
+  },
+  "ai": {
+    "create": "Create a composed bar and line chart whose motion defaults live on the chart definition and whose marks, data, axes, ticks, and labels override those defaults locally.",
+    "maintain": "Keep motion configuration renderer-neutral, preserve spring momentum on interrupted mark updates, and keep guide transitions as local definition overrides."
+  }
+}

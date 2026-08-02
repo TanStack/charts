@@ -10,6 +10,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartValue,
   OptionChannelOutput,
   SceneNode,
@@ -17,7 +18,7 @@ import type {
   WidenChartValue,
 } from './types'
 
-export interface RuleYOptions<TDatum> {
+export interface RuleYOptions<TDatum> extends ChartMarkMotionOptions<never> {
   id?: string
   y?: Channel<TDatum, ChartValue | null | undefined>
   color?: Channel<TDatum, ChartKey | null | undefined>
@@ -27,7 +28,7 @@ export interface RuleYOptions<TDatum> {
   strokeDasharray?: string
 }
 
-export interface RuleXOptions<TDatum> {
+export interface RuleXOptions<TDatum> extends ChartMarkMotionOptions<never> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   color?: Channel<TDatum, ChartKey | null | undefined>
@@ -118,7 +119,7 @@ export function ruleY<TDatum>(
         ],
       }),
     }
-  })
+  }, options.motion)
 }
 
 export function ruleX<TDatum>(
@@ -196,5 +197,5 @@ export function ruleX<TDatum>(
         ],
       }),
     }
-  })
+  }, options.motion)
 }

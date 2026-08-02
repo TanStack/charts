@@ -55,6 +55,7 @@
     "./legend": "./src/legend.ts",
     "./line": "./src/line.ts",
     "./link": "./src/link.ts",
+    "./motion": "./src/motion.ts",
     "./mark/scale-values": "./src/mark-with-scale-values.ts",
     "./polar": "./src/polar.ts",
     "./universal": "./src/universal.ts",
@@ -68,6 +69,7 @@
     "./svg/renderer": "./src/svg-surface.ts",
     "./svg/resources": "./src/svg-resources.ts",
     "./stack": "./src/stack.ts",
+    "./spring": "./src/spring.ts",
     "./transform": "./src/transform.ts",
     "./transform/bin": "./src/transform-bin.ts",
     "./transform/bin-time": "./src/transform-bin-time.ts",
@@ -190,6 +192,14 @@
       "./link": {
         "types": "./dist/link.d.ts",
         "import": "./dist/link.js"
+      },
+      "./motion": {
+        "types": "./dist/motion.d.ts",
+        "import": "./dist/motion.js"
+      },
+      "./spring": {
+        "types": "./dist/spring.d.ts",
+        "import": "./dist/spring.js"
       },
       "./mark/scale-values": {
         "types": "./dist/mark-with-scale-values.d.ts",

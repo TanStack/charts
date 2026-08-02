@@ -1,7 +1,7 @@
 import { createMark } from './mark'
-import type { ChartMark } from './types'
+import type { ChartMark, ChartMarkMotionOptions } from './types'
 
-export interface FrameOptions {
+export interface FrameOptions extends ChartMarkMotionOptions<never> {
   id?: string
   fill?: string
   fillOpacity?: number
@@ -53,5 +53,5 @@ export function frame(
         }
       },
     }
-  })
+  }, options.motion)
 }

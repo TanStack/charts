@@ -49,6 +49,8 @@
     "conformance:size": "node scripts/compare-plot-catalog.mjs --size-only",
     "performance": "node scripts/measure-rendering.mjs",
     "performance:pointer": "node --expose-gc scripts/measure-pointer-resolution.mjs",
+    "motion:poc": "node scripts/record-motion-poc.mjs",
+    "motion:update:poc": "node scripts/record-motion-update-poc.mjs",
     "react-native:poc:bundle": "node scripts/measure-react-native-poc.mjs",
     "react-native:poc:types": "node scripts/check-react-native-types.mjs",
     "package:check": "nx run charts-workspace:package-check",
