@@ -99,7 +99,15 @@ export function mount(
       const svg = container.querySelector('svg')
       if (!point || !svg) return null
       const matrix = svg.getScreenCTM()
-      if (!matrix) return null
+      if (!matrix) {
+        const bounds = svg.getBoundingClientRect()
+        const scene = host.getScene()
+        return {
+          x: bounds.left + (point.x / scene.width) * bounds.width,
+          y: bounds.top + (point.y / scene.height) * bounds.height,
+          focusElement: svg,
+        }
+      }
       return {
         x: matrix.a * point.x + matrix.c * point.y + matrix.e,
         y: matrix.b * point.x + matrix.d * point.y + matrix.f,

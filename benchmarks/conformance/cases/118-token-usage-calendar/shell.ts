@@ -15,6 +15,7 @@ export function withTokenActivityShell(
 ): ConformanceMount {
   return (container, input) => {
     let currentInput = input
+    let targetDateKey: string | null = null
     const previousMinHeight = container.style.minHeight
     const document = container.ownerDocument
     const shell = document.createElement('div')
@@ -56,6 +57,7 @@ export function withTokenActivityShell(
 
     const driver: ConformanceTestDriver = {
       resolveTarget(target) {
+        targetDateKey = null
         if (target.view && target.view !== 'main') return null
         const dateKey = target.anchor.startsWith('date:')
           ? target.anchor.slice('date:'.length)
@@ -64,6 +66,7 @@ export function withTokenActivityShell(
         const index = days.findIndex((day) => day.dateKey === dateKey)
         const cell = calendarCells(chartSurface, days.length)[index]
         if (!cell) return null
+        targetDateKey = days[index]?.dateKey ?? null
         const bounds = cell.getBoundingClientRect()
         const chart = chartSurface.querySelector<SVGSVGElement>('svg')
         const resolved = {
@@ -75,7 +78,7 @@ export function withTokenActivityShell(
       readState() {
         const days = tokenUsageCalendar(currentInput.revision)
         if (chartSurface.querySelector('svg.ts-chart')) {
-          return tanstackInteractionState(document, days)
+          return tanstackInteractionState(document, days, targetDateKey)
         }
         const cells = calendarCells(chartSurface, days.length)
         const index = cells.findIndex((cell) => cell.matches(':hover'))
@@ -87,6 +90,7 @@ export function withTokenActivityShell(
     return {
       driver,
       update(nextInput) {
+        targetDateKey = null
         currentInput = nextInput
         resizeShell(container, shell, chartSurface, nextInput)
         chart.update(chartInput(nextInput))
@@ -150,13 +154,16 @@ function calendarCells(
     ),
   ]
   if (tanstack.length === expectedCount) return tanstack
-  const plot = [...chartSurface.querySelectorAll<SVGRectElement>('svg rect')]
+  const plot = [
+    ...chartSurface.querySelectorAll<SVGRectElement>('.token-usage-cells rect'),
+  ]
   return plot.length === expectedCount ? plot : []
 }
 
 function tanstackInteractionState(
   document: Document,
   days: readonly TokenUsageDay[],
+  targetDateKey: string | null,
 ) {
   const tooltip = document.querySelector<HTMLElement>('.ts-chart-tooltip')
   const bounds = tooltip?.getBoundingClientRect()
@@ -172,9 +179,11 @@ function tanstackInteractionState(
     style?.opacity !== '0',
   )
   const text = visible ? (tooltip?.textContent?.trim() ?? '') : ''
-  const day = visible
-    ? days.find((candidate) => text.includes(formatTokenUsage(candidate)))
-    : undefined
+  const targetDay = days.find((day) => day.dateKey === targetDateKey)
+  const day =
+    visible && targetDay && text.includes(formatTokenUsage(targetDay))
+      ? targetDay
+      : undefined
   return interactionState(day, text)
 }
 

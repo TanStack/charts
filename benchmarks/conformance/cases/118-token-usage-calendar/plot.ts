@@ -46,6 +46,7 @@ const mountPlot: ConformanceMount = (container, input) =>
       },
       marks: [
         Plot.cell(days, {
+          className: 'token-usage-cells',
           x: 'week',
           y: 'weekday',
           fill: 'level',
