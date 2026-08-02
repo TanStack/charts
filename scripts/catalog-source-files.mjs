@@ -15,8 +15,9 @@ export async function createCatalogSourceModules(conformanceDirectory) {
         }
         if (
           !entry.isFile() ||
-          !entry.name.endsWith('.ts') ||
-          entry.name.endsWith('.test.ts')
+          !/\.tsx?$/.test(entry.name) ||
+          entry.name.endsWith('.test.ts') ||
+          entry.name.endsWith('.test.tsx')
         ) {
           return
         }

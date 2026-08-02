@@ -18,9 +18,13 @@ const implementationModules = import.meta.glob([
 const sourceModules = import.meta.glob(
   [
     './cases/**/*.ts',
+    './cases/**/*.tsx',
     './shared/**/*.ts',
+    './shared/**/*.tsx',
     '!./cases/**/*.test.ts',
+    '!./cases/**/*.test.tsx',
     '!./shared/**/*.test.ts',
+    '!./shared/**/*.test.tsx',
   ],
   {
     query: '?raw',

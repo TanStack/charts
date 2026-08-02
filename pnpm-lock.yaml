@@ -440,6 +440,9 @@ importers:
       '@tanstack/charts':
         specifier: workspace:*
         version: link:../../packages/charts-core
+      '@tanstack/react-charts':
+        specifier: workspace:*
+        version: link:../../packages/react-charts
       d3-array:
         specifier: 3.2.4
         version: 3.2.4
@@ -452,6 +455,12 @@ importers:
       d3-shape:
         specifier: 3.2.0
         version: 3.2.0
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: 19.2.3
+        version: 19.2.3(react@19.2.3)
     devDependencies:
       '@types/d3-array':
         specifier: ^3.2.2
@@ -465,6 +474,12 @@ importers:
       '@types/d3-shape':
         specifier: ^3.1.8
         version: 3.1.8
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.17)
       vite:
         specifier: ^8.0.16
         version: 8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)(terser@5.49.0)(yaml@2.9.0)

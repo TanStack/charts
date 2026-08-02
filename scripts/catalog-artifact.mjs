@@ -609,8 +609,8 @@ function assertCatalogSourcePath(sourcePath, label) {
   assert(
     isSafeRepositoryPath(sourcePath) &&
       (sourcePath.startsWith('cases/') || sourcePath.startsWith('shared/')) &&
-      sourcePath.endsWith('.ts') &&
-      !sourcePath.endsWith('.test.ts') &&
+      /\.tsx?$/.test(sourcePath) &&
+      !/\.test\.tsx?$/.test(sourcePath) &&
       !sourcePath.includes('\\') &&
       !sourcePath.includes('?') &&
       !sourcePath.includes('#'),
@@ -619,7 +619,9 @@ function assertCatalogSourcePath(sourcePath, label) {
 }
 
 function isCatalogHarnessSourcePath(sourcePath) {
-  return /^shared\/(?:mount|recharts-mount|echarts-mount)\.ts$/.test(sourcePath)
+  return /^shared\/(?:mount|react-mount|recharts-mount|echarts-mount)\.tsx?$/.test(
+    sourcePath,
+  )
 }
 
 function assertExactKeys(value, expectedKeys, label) {

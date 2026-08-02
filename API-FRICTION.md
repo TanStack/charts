@@ -213,6 +213,7 @@ Each entry records:
 | F-175 | Native SVG resource normalization collapsed authored IDs | Application     | resolved   |
 | F-176 | Large marks were focused by distant anchor points        | API             | monitoring |
 | F-177 | Bubble overlap inherited incidental source order         | Application     | resolved   |
+| F-178 | Custom-template examples exposed DOM mutation plumbing   | Docs/Tooling    | resolved   |
 
 ## Findings
 
@@ -4383,3 +4384,33 @@ Each entry records:
 - Verification: the model regression covers the initial 320-row fixture and
   asserts monotonically descending body mass for the paired renderers' shared
   row selector.
+
+### F-178 — Custom-template examples exposed DOM mutation plumbing
+
+- Status: resolved
+- Severity: high
+- Owner: Documentation/Tooling
+- Observed in: catalog review of the axis-pointer tooltip, interactive legend,
+  linked data table, focus/context window, pinned nested-chart tooltip,
+  streaming controls, synchronized and free cursors, range brush, and time zoom
+- Friction: the public TanStack examples assembled application-owned legends,
+  tables, tooltip rows, buttons, and nested chart containers with long
+  `createElement`, mutation, and listener blocks. The chart grammar remained
+  visible, but the surrounding composition was unfamiliar copy-paste material
+  for the primary React audience and obscured the adapter's intended ownership
+  boundary.
+- Decision: render application-owned composition with React and
+  `@tanstack/react-charts`, while keeping chart-only examples and the direct
+  `mountChart` lifecycle framework-neutral. A small conformance-only React
+  mount adapter translates the benchmark's mount, update, driver, and destroy
+  contract without entering authored-source totals. Catalog source discovery,
+  artifact validation, and raw-source publication now follow `.tsx` support
+  modules and classify the React bridge as harness code.
+- Verification: the focused TypeScript build reports zero diagnostics; source
+  loader, artifact, source-file, and source-view suites pass; and the
+  schema-v4 catalog build publishes all 102 cases with valid recursive source
+  closures. Chromium quick-profile checks pass visual and semantic interaction
+  scenarios for all ten migrated cases at 320px and 640px across both data
+  revisions. Their authored-source ratios remain 0.80–1.17× of the selected
+  references, and the measured isolated bundles include React rather than
+  silently treating it as benchmark-external infrastructure.

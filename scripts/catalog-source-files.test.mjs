@@ -33,14 +33,28 @@ describe('catalog source files', () => {
         path.join(directory, 'cases', 'example', 'tanstack.test.ts'),
         'throw new Error("not source")\n',
       ),
+      writeFile(
+        path.join(directory, 'cases', 'example', 'view.tsx'),
+        'export const chart = <svg />\n',
+      ),
+      writeFile(
+        path.join(directory, 'cases', 'example', 'view.test.tsx'),
+        'throw new Error("not source")\n',
+      ),
       writeFile(path.join(directory, 'cases', 'example', 'case.json'), '{}\n'),
     ])
 
     const modules = await createCatalogSourceModules(directory)
 
-    expect(Object.keys(modules)).toEqual(['./cases/example/tanstack.ts'])
+    expect(Object.keys(modules).sort()).toEqual([
+      './cases/example/tanstack.ts',
+      './cases/example/view.tsx',
+    ])
     await expect(modules['./cases/example/tanstack.ts']()).resolves.toBe(
       'export const chart = true\n',
+    )
+    await expect(modules['./cases/example/view.tsx']()).resolves.toBe(
+      'export const chart = <svg />\n',
     )
   })
 

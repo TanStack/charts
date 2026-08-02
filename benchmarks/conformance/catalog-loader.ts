@@ -123,7 +123,8 @@ export async function loadCatalogSourceClosure(
         continue
       }
       const dependency = candidates.find(
-        (candidate) => candidate in modules && !candidate.endsWith('.test.ts'),
+        (candidate) =>
+          candidate in modules && !/\.test\.tsx?$/u.test(candidate),
       )
       if (!dependency) continue
       await visit(dependency)
@@ -211,7 +212,13 @@ function sourcePathCandidates(importer: string, specifier: string): string[] {
   }
 
   const base = normalizeSourcePath(parts.join('/'))
-  return [base, `${base}.ts`, `${base}/index.ts`]
+  return [
+    base,
+    `${base}.ts`,
+    `${base}.tsx`,
+    `${base}/index.ts`,
+    `${base}/index.tsx`,
+  ]
 }
 
 function normalizeSourcePath(path: string): string {
@@ -241,7 +248,7 @@ function catalogSourceKind(
 }
 
 function isImplementationEntryPath(path: string): boolean {
-  return /\/(?:tanstack|plot|recharts|echarts)\.ts$/u.test(path)
+  return /\/(?:tanstack|plot|recharts|echarts)\.tsx?$/u.test(path)
 }
 
 function isFixtureSourcePath(path: string): boolean {
@@ -249,7 +256,9 @@ function isFixtureSourcePath(path: string): boolean {
 }
 
 function isHarnessSourcePath(path: string): boolean {
-  return /^\.\/shared\/(?:mount|recharts-mount|echarts-mount)\.ts$/u.test(path)
+  return /^\.\/shared\/(?:mount|react-mount|recharts-mount|echarts-mount)\.tsx?$/u.test(
+    path,
+  )
 }
 
 function displaySourcePath(path: string, caseDirectory: string): string {

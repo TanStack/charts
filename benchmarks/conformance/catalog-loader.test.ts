@@ -113,6 +113,35 @@ describe('loadCatalogSourceClosure', () => {
     })
   })
 
+  it('follows TSX views and records the React mount as harness code', async () => {
+    const entrySource = "export { mount } from './view'\n"
+    const viewSource =
+      "import { reactMount } from '../../shared/react-mount'\nexport const mount = reactMount(() => null)\n"
+    const harnessSource = 'export const reactMount = () => {}\n'
+    const modules = {
+      './cases/example/tanstack.ts': async () => entrySource,
+      './cases/example/view.tsx': async () => viewSource,
+      './shared/react-mount.ts': async () => harnessSource,
+    }
+
+    const closure = await loadCatalogSourceClosure(
+      modules,
+      './cases/example/tanstack.ts',
+    )
+
+    expect(closure.files.map(({ kind, path }) => ({ kind, path }))).toEqual([
+      { kind: 'entry', path: 'tanstack.ts' },
+      { kind: 'support', path: 'view.tsx' },
+    ])
+    expect(closure.harnessFiles).toEqual([
+      {
+        path: 'shared/react-mount.ts',
+        lines: 1,
+        bytes: countCatalogSourceBytes(harnessSource),
+      },
+    ])
+  })
+
   it('reports pinned demo datasets imported by transitive source files', async () => {
     const modules = {
       './cases/example/tanstack.ts': async () =>
