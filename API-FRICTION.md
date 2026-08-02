@@ -4409,8 +4409,10 @@ Each entry records:
 - Verification: the focused TypeScript build reports zero diagnostics; source
   loader, artifact, source-file, and source-view suites pass; and the
   schema-v4 catalog build publishes all 102 cases with valid recursive source
-  closures. Chromium quick-profile checks pass visual and semantic interaction
-  scenarios for all ten migrated cases at 320px and 640px across both data
-  revisions. Their authored-source ratios remain 0.80–1.17× of the selected
-  references, and the measured isolated bundles include React rather than
-  silently treating it as benchmark-external infrastructure.
+  closures. The definition-shape check follows migrated `view.tsx` modules, and
+  the loading graph accepts their lazy `.tsx?raw` source entries. Chromium
+  quick-profile checks pass visual and semantic interaction scenarios for all
+  ten migrated cases at 320px and 640px across both data revisions. Their
+  authored-source ratios remain 0.80–1.17× of the selected references, and the
+  measured isolated bundles include React rather than silently treating it as
+  benchmark-external infrastructure.

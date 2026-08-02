@@ -26,9 +26,23 @@ const responsiveDefinitions = [
 describe('catalog definition shapes', () => {
   it('uses static definitions unless the chart reads build context', async () => {
     const entries = await readdir(casesDirectory, { withFileTypes: true })
-    const files = entries
+    const caseDirectories = entries
       .filter((entry) => entry.isDirectory())
-      .map((entry) => path.join(casesDirectory, entry.name, 'tanstack.ts'))
+      .map((entry) => path.join(casesDirectory, entry.name))
+    const files = (
+      await Promise.all(
+        caseDirectories.map(async (directory) => {
+          const caseEntries = await readdir(directory, { withFileTypes: true })
+          return caseEntries
+            .filter(
+              (entry) =>
+                entry.isFile() &&
+                (entry.name === 'tanstack.ts' || entry.name === 'view.tsx'),
+            )
+            .map((entry) => path.join(directory, entry.name))
+        }),
+      )
+    ).flat()
 
     const classification = {
       parameterless: [],
@@ -60,7 +74,6 @@ function classifyDefinitions(relativePath, source, classification) {
     source,
     ts.ScriptTarget.Latest,
     true,
-    ts.ScriptKind.TS,
   )
 
   function visit(node) {
