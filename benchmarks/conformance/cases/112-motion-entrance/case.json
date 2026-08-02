@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "order": 1130,
+  "id": "112-motion-entrance",
+  "title": "Staggered entrance motion",
+  "family": "motion",
+  "intent": "Tune the entrance timing of a composed bar and line chart, including a per-datum exception and independent line timing.",
+  "support": "native",
+  "features": [
+    "animated SVG renderer",
+    "bar growth from baseline",
+    "bounded staggering",
+    "line reveal",
+    "per-datum timing",
+    "per-series timing",
+    "replayable entrance"
+  ],
+  "geometry": [
+    { "role": "bar", "count": 8 },
+    { "role": "line", "count": 1 }
+  ],
+  "source": {
+    "title": "Bklit UI Bar Chart",
+    "url": "https://bklit.com/docs/components/bar-chart"
+  },
+  "ai": {
+    "create": "Create a composed bar and line chart whose bars grow from the semantic baseline with bounded staggering, whose line reveals independently, and whose timing controls can be replayed without remounting the catalog page.",
+    "maintain": "Preserve the eight stable datum keys, baseline growth, independent line timing, featured-datum override, reduced-motion behavior, and direct @tanstack/charts/motion renderer boundary."
+  }
+}

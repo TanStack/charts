@@ -170,8 +170,8 @@ interface AreaXCurve {
 ```
 
 The optional bridges `d3Curve` from `@tanstack/charts/d3/shape` and
-`d3AreaXCurve` from `@tanstack/charts/d3/area-x` adapt a supplied curve factory
-to these contracts. D3 module ownership and granular imports are documented in
+`d3AreaXCurve` from `@tanstack/charts/d3/area-x` adapt a built-in Cartesian
+`d3-shape` curve factory to these contracts. D3 module ownership and granular imports are documented in
 [Scales and D3](../concepts/scales-and-d3.md).
 
 The D3 adapters attach resolved geometry automatically. A custom scene path can

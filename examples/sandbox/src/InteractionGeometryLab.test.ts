@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createChartScene, findNearestPoint } from '@tanstack/charts'
-import type { SceneNode } from '@tanstack/charts'
+import type { ChartPoint, SceneNode } from '@tanstack/charts'
 import { focusX, focusY } from '@tanstack/charts/focus'
 import {
   animatedDestinationDefinition,
@@ -88,7 +88,7 @@ describe('interaction geometry source disclosure', () => {
       'normalizedPolygonMark(&#x27;sankey&#x27;, sankey)',
     )
     expect(markup).toContain(
-      'transition: { duration: 700, easing: &#x27;ease-out&#x27; }',
+      'transition: { type: &#x27;tween&#x27;, duration: 700, easing: &#x27;ease-out&#x27; }',
     )
     expect(markup).toContain(
       'authoredCurveMark(&#x27;authored-curved-line&#x27;, curvedLineDatum, &#x27;line&#x27;)',
@@ -289,6 +289,64 @@ describe('interaction geometry proof gallery', () => {
     ).toBe('october-disease')
   })
 
+  it('selects the painted side of each curved stack boundary', () => {
+    for (const { id, orientation } of [
+      { id: 'curved-vertical-stack', orientation: 'vertical' },
+      { id: 'curved-horizontal-stack', orientation: 'horizontal' },
+    ] as const) {
+      const proof = proofCases.find((candidate) => candidate.id === id)
+      expect(proof).toBeDefined()
+      if (!proof) continue
+
+      const scene = createChartScene(proof.after, { width: 520, height: 230 })
+      const lower = flatten(scene.nodes).find(
+        (node) =>
+          node.kind === 'area' &&
+          node.interaction !== undefined &&
+          interactionPoints(node).some(
+            (point) => (point.datum as ProofDatum).series === 'lower',
+          ),
+      )
+      const sample = scene.points.find(
+        (point) =>
+          point.datum.series === 'upper' &&
+          (orientation === 'vertical'
+            ? point.datum.x === 2
+            : point.datum.y === 2),
+      )
+      expect(lower?.kind).toBe('area')
+      expect(sample).toBeDefined()
+      if (!lower || lower.kind !== 'area' || !sample) continue
+
+      const contour = lower.pathGeometry?.contours[0]
+      expect(contour).toBeDefined()
+      if (!contour) continue
+
+      const boundary =
+        orientation === 'vertical'
+          ? Math.min(...contourIntersections(contour.points, sample.x, 'x'))
+          : Math.max(...contourIntersections(contour.points, sample.y, 'y'))
+      const probes =
+        orientation === 'vertical'
+          ? [
+              { x: sample.x, y: boundary + 4, series: 'lower' },
+              { x: sample.x, y: boundary, series: 'upper' },
+              { x: sample.x, y: boundary - 4, series: 'upper' },
+            ]
+          : [
+              { x: boundary - 4, y: sample.y, series: 'lower' },
+              { x: boundary, y: sample.y, series: 'upper' },
+              { x: boundary + 4, y: sample.y, series: 'upper' },
+            ]
+
+      for (const probe of probes) {
+        expect(
+          findNearestPoint(scene, probe.x, probe.y, 48)?.datum.series,
+        ).toBe(probe.series)
+      }
+    }
+  })
+
   it('keeps the large rectangle and polygon stress fixtures intact', () => {
     const rectangleProof = proofCases.find(
       (candidate) => candidate.id === 'dense-rectangles',
@@ -326,6 +384,47 @@ function flatten(nodes: readonly SceneNode[]): SceneNode[] {
   return nodes.flatMap((node) =>
     node.kind === 'group' ? [node, ...flatten(node.children)] : [node],
   )
+}
+
+function interactionPoints(
+  node: Extract<SceneNode, { kind: 'area' }>,
+): readonly ChartPoint[] {
+  const interaction = node.interaction
+  if (!interaction) return []
+  return interaction.point ? [interaction.point] : interaction.points
+}
+
+function contourIntersections(
+  points: readonly (readonly [number, number])[],
+  coordinate: number,
+  axis: 'x' | 'y',
+): number[] {
+  const intersections: number[] = []
+  for (let index = 0; index < points.length; index += 1) {
+    const start = points[index]
+    const end = points[(index + 1) % points.length]
+    if (!start || !end) continue
+    const primaryStart = axis === 'x' ? start[0] : start[1]
+    const primaryEnd = axis === 'x' ? end[0] : end[1]
+    if (
+      coordinate < Math.min(primaryStart, primaryEnd) ||
+      coordinate > Math.max(primaryStart, primaryEnd)
+    ) {
+      continue
+    }
+    if (primaryStart === primaryEnd) {
+      intersections.push(axis === 'x' ? start[1] : start[0])
+      intersections.push(axis === 'x' ? end[1] : end[0])
+      continue
+    }
+    const amount = (coordinate - primaryStart) / (primaryEnd - primaryStart)
+    intersections.push(
+      axis === 'x'
+        ? start[1] + (end[1] - start[1]) * amount
+        : start[0] + (end[0] - start[0]) * amount,
+    )
+  }
+  return intersections
 }
 
 function findRect(

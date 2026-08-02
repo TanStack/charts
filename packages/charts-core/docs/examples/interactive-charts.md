@@ -41,7 +41,7 @@ dot(rows, {
     {
       when: { focus: 'primary' },
       style: { r: 7, stroke: 'Canvas', strokeWidth: 2 },
-      transition: { duration: 140, easing: 'ease-out' },
+      transition: { type: 'tween', duration: 140, easing: 'ease-out' },
     },
   ],
 })

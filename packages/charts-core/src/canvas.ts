@@ -12,6 +12,7 @@ import type {
 import type {
   ChartAnimationOptions,
   ChartBounds,
+  ChartMarkStateTransition,
   ChartPoint,
   ChartRuntime,
   ChartScene,
@@ -176,7 +177,7 @@ function createUniversalCanvasChartRenderer(
       let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
       let pixelRatio = 1
       let cancelAnimation = () => {}
-      let stateTransition: ChartAnimationOptions | undefined
+      let stateTransition: ChartMarkStateTransition | undefined
       let destroyed = false
 
       const surface: CanvasChartSurface<TDatum, TXValue, TYValue> = {

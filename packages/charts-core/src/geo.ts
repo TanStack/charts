@@ -22,6 +22,7 @@ import type {
   ChartBounds,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartNumericScale,
   ChartPoint,
   SceneNode,
@@ -49,7 +50,9 @@ export type GeoProjectionInput<TDatum> =
     ) => GeoProjection | GeoStreamWrapper | null)
   | GeoProjectionDescriptor
 
-export interface GeoShapeOptions<TDatum extends GeoPermissibleObjects> {
+export interface GeoShapeOptions<
+  TDatum extends GeoPermissibleObjects,
+> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   className?: string
   projection: GeoProjectionInput<TDatum>
@@ -207,6 +210,7 @@ export function geoShape<TDatum extends GeoPermissibleObjects>(
         },
       }
     },
+    options.motion,
   )
 }
 

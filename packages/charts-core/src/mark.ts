@@ -7,6 +7,7 @@ import type {
   InitializedMark,
   MarkInitializeContext,
   ChartMark,
+  ChartMotionDefinition,
   ChartMarkState,
   ChartMarkStateStyle,
   VisualChannel,
@@ -42,8 +43,9 @@ export function createMark<
   initialize: (
     context: MarkInitializeContext,
   ) => InitializedMark<TDatum, TXValue, TYValue>,
+  motion?: ChartMotionDefinition<TDatum>,
 ): ChartMark<TDatum, TXValue, TYValue> {
-  return { initialize }
+  return motion === undefined ? { initialize } : { initialize, motion }
 }
 
 export function markStates<TDatum, TStyle extends ChartMarkStateStyle<TDatum>>(

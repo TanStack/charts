@@ -14,6 +14,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartMarkState,
   ChartAreaStateStyle,
   ChartPoint,
@@ -25,7 +26,7 @@ import type {
 } from './types'
 import type { StackLayout } from './stack'
 
-export interface AreaYOptions<TDatum> {
+export interface AreaYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, number | null | undefined>
@@ -239,5 +240,5 @@ export function areaY<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }

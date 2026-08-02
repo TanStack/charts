@@ -232,7 +232,7 @@ See [DOM host](./dom-host.md) and
 | `ChartFocusSource`                    | Pointer, keyboard, programmatic, or restored source                    |
 | `ChartFocusFilter`                    | Focus-filtered mark matching configuration                             |
 | `ChartFocusMatch`                     | Primary, group, key, x, y, or series matching                          |
-| `ChartFocusAffinity`                  | Primitive fallback axis after exact geometry containment               |
+| `ChartFocusAffinity`                  | Primitive fallback axis after painted-geometry containment             |
 | `ChartSpatialIndex`                   | Nearest-point query                                                    |
 | `ChartSpatialIndexFactory`            | Builds an index from current scene points and resolved scene           |
 | `ChartExtensionInput`                 | Generic bare-token or `{ use, ...options }` extension input            |

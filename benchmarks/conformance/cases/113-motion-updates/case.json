@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "order": 1140,
+  "id": "113-motion-updates",
+  "title": "Interrupted spring updates",
+  "family": "motion",
+  "intent": "Compare tweens and physical springs while keyed data is reordered, inserted, removed, and interrupted.",
+  "support": "native",
+  "features": [
+    "keyed enter, update, and exit",
+    "reordering",
+    "mid-flight interruption",
+    "presentation-aware hit testing",
+    "physical spring parameters",
+    "rest-based spring settling",
+    "per-datum timing",
+    "per-series timing"
+  ],
+  "geometry": [
+    { "role": "bar", "count": 8 },
+    { "role": "line", "count": 1 }
+  ],
+  "source": {
+    "title": "Motion spring",
+    "url": "https://motion.dev/docs/spring"
+  },
+  "ai": {
+    "create": "Create a keyed composed bar and line chart that can compare tweens with physical springs and can accept a second target while the first transition is still running.",
+    "maintain": "Preserve stable datum identity, value and velocity continuity, rest-based spring settling, presentation-aware pointer resolution, incompatible-topology fallback, and the separate @tanstack/charts/motion and @tanstack/charts/spring boundaries."
+  }
+}

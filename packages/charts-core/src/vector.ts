@@ -13,6 +13,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartPoint,
   ChartValue,
   OptionChannelOutput,
@@ -22,7 +23,7 @@ import type {
 
 export type VectorAnchor = 'start' | 'middle' | 'end'
 
-export interface VectorOptions<TDatum> {
+export interface VectorOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x: Channel<TDatum, ChartValue | null | undefined>
   y: Channel<TDatum, ChartValue | null | undefined>
@@ -179,5 +180,5 @@ export function vector<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }

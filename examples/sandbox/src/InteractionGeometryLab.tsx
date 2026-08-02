@@ -258,7 +258,7 @@ const animatedDestinationBase = baseDefinition(
         {
           when: { focus: 'primary' },
           style: { inset: 8, radius: 10, fill: '#171717' },
-          transition: { duration: 700, easing: 'ease-out' },
+          transition: { type: 'tween', duration: 700, easing: 'ease-out' },
         },
       ],
     }),
@@ -1350,7 +1350,7 @@ function createProofCases(): ProofCase[] {
         series,
         probe:
           series === 'upper' && x === 2
-            ? ([0.5, 1 - 95 / 180] as const)
+            ? ([0.5, 1 - 105 / 180] as const)
             : undefined,
       }
     }),
@@ -1388,7 +1388,7 @@ function createProofCases(): ProofCase[] {
         series,
         probe:
           series === 'upper' && y === 2
-            ? ([102 / 180, 0.5] as const)
+            ? ([105 / 180, 0.5] as const)
             : undefined,
       }
     }),

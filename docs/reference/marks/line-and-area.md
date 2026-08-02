@@ -196,8 +196,8 @@ import { d3AreaXCurve } from '@tanstack/charts/d3/area-x'
 import { d3Curve } from '@tanstack/charts/d3/shape'
 ```
 
-They accept a supplied curve factory and return the corresponding TanStack
-contract. These adapters also record the rendered curve as scene-owned,
+They accept a built-in Cartesian `d3-shape` curve factory and return the
+corresponding TanStack contract. These adapters also record the rendered curve as scene-owned,
 subpixel interaction geometry. Curved stacked areas therefore resolve the
 painted layer first and then apply their natural x or y affinity to choose a
 semantic sample. Which granular D3 module to install and why these algorithms

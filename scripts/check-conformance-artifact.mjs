@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadCatalogSourceClosure } from '../benchmarks/conformance/catalog-loader.ts'
 import {
-  catalogArtifactFileSizeLimit,
+  catalogArtifactManifestSizeLimit,
   expectedCatalogImplementationCounts,
   validateCatalogArtifactManifest,
 } from './catalog-artifact.mjs'
@@ -21,7 +21,7 @@ const artifactDirectory = path.join(rootDirectory, '.catalog-artifact')
 const catalogPath = path.join(artifactDirectory, 'catalog.json')
 const catalogSource = await fs.readFile(catalogPath, 'utf8')
 
-if (Buffer.byteLength(catalogSource) > catalogArtifactFileSizeLimit) {
+if (Buffer.byteLength(catalogSource) > catalogArtifactManifestSizeLimit) {
   throw new Error('catalog.json exceeds the artifact file-size limit')
 }
 

@@ -14,6 +14,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartMarkState,
   ChartAreaStateStyle,
   ChartPoint,
@@ -38,7 +39,7 @@ export interface AreaXCurve {
   }
 }
 
-export interface AreaXOptions<TDatum> {
+export interface AreaXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, number | null | undefined>
   x1?: number | Channel<TDatum, number | null | undefined>
@@ -252,5 +253,5 @@ export function areaX<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }

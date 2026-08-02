@@ -21,6 +21,8 @@ Capability subpaths make optional boundaries explicit:
 import { mountChart } from '@tanstack/charts/dom'
 import { mountCanvasChart } from '@tanstack/charts/canvas'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
+import { motion } from '@tanstack/charts/motion'
+import { createChartSpring } from '@tanstack/charts/spring'
 import { renderChartImage } from '@tanstack/charts/export'
 import { focusX } from '@tanstack/charts/focus'
 import { d3Curve } from '@tanstack/charts/d3/shape'
@@ -55,6 +57,13 @@ the same for `d3-geo`. Import `pie`, configured scales, projections, and curve
 factories from their granular D3 modules as the chart requires them. Political
 boundary data and `topojson-client` remain application dependencies; importing
 `geoShape` does not bundle an atlas.
+
+Tween and spring SVG motion is one optional renderer entry. Importing
+`@tanstack/charts/motion` includes both transition models, retained geometry,
+and the SVG reconciler. There is no separate tween-only adapter. The scalar
+physics sampler remains available independently from `@tanstack/charts/spring`.
+Core definitions can contain inert `motion` policy without importing either
+runtime.
 
 Your bundler must honor ESM exports and tree shaking. Avoid namespace imports
 when a named or subpath import communicates the real dependency.

@@ -6,8 +6,8 @@ import type {
   ChartValue,
   SceneInteraction,
   SceneNode,
-  ScenePathContour,
 } from './types'
+import { scenePathInteraction } from './scene-path-internal'
 
 type GeometricSceneNode = Exclude<SceneNode, { kind: 'group' | 'label' }>
 type InteractiveSceneNode = GeometricSceneNode & {
@@ -244,22 +244,21 @@ function containsTarget(target: SceneInteractionTarget, x: number, y: number) {
     case 'area': {
       const geometry = node.pathGeometry
       return geometry
-        ? containsPathContours(
-            geometry.contours,
-            localX,
-            localY,
-            geometry.tolerance,
-          )
+        ? geometry[scenePathInteraction](geometry, 0, localX, localY, 0) === 1
         : containsPolygon(node.points, localX, localY)
     }
     case 'polyline': {
       const geometry = node.pathGeometry
-      return (
-        (geometry
-          ? squaredDistanceToContours(geometry.contours, localX, localY, false)
-          : squaredDistanceToPolyline(node.points, localX, localY, false)) <=
-        (strokeRadius(node) + (geometry?.tolerance ?? 0)) ** 2
-      )
+      return geometry
+        ? geometry[scenePathInteraction](
+            geometry,
+            1,
+            localX,
+            localY,
+            strokeRadius(node),
+          ) === 1
+        : squaredDistanceToPolyline(node.points, localX, localY, false) <=
+            strokeRadius(node) ** 2
     }
     case 'rule':
       return (
@@ -286,7 +285,13 @@ function distanceToTarget(
   const { node } = target
   let distance: number
   if ((node.kind === 'area' || node.kind === 'polyline') && node.pathGeometry) {
-    distance = distanceToPathGeometry(node, node.pathGeometry, localX, localY)
+    distance = node.pathGeometry[scenePathInteraction](
+      node.pathGeometry,
+      node.kind === 'area' ? 2 : 3,
+      localX,
+      localY,
+      node.kind === 'polyline' ? strokeRadius(node) : 0,
+    )
   } else {
     switch (node.kind) {
       case 'rect':
@@ -336,27 +341,6 @@ function distanceToTarget(
   return target.clip
     ? Math.max(distance, squaredDistanceToBounds(target.clip, x, y))
     : distance
-}
-
-function distanceToPathGeometry(
-  node: Extract<GeometricSceneNode, { kind: 'area' | 'polyline' }>,
-  geometry: NonNullable<typeof node.pathGeometry>,
-  x: number,
-  y: number,
-) {
-  const raw = squaredDistanceToContours(
-    geometry.contours,
-    x,
-    y,
-    node.kind === 'area',
-  )
-  const amount = Math.max(
-    0,
-    Math.sqrt(raw) -
-      (node.kind === 'polyline' ? strokeRadius(node) : 0) -
-      geometry.tolerance,
-  )
-  return amount * amount
 }
 
 function boundsForNode(node: GeometricSceneNode): ChartBounds | null {
@@ -467,62 +451,6 @@ function containsPolygon(
     }
   }
   return inside
-}
-
-function containsPathContours(
-  contours: readonly ScenePathContour[],
-  x: number,
-  y: number,
-  tolerance: number,
-) {
-  if (
-    squaredDistanceToContours(contours, x, y, true) <=
-    tolerance * tolerance
-  ) {
-    return true
-  }
-  let winding = 0
-  for (const contour of contours) {
-    const points = contour.points
-    for (
-      let index = 0, previous = points.length - 1;
-      index < points.length;
-      previous = index++
-    ) {
-      const start = points[previous]!
-      const end = points[index]!
-      const side =
-        (end[0] - start[0]) * (y - start[1]) -
-        (x - start[0]) * (end[1] - start[1])
-      if (start[1] <= y) {
-        if (end[1] > y && side > 0) winding += 1
-      } else if (end[1] <= y && side < 0) {
-        winding -= 1
-      }
-    }
-  }
-  return winding !== 0
-}
-
-function squaredDistanceToContours(
-  contours: readonly ScenePathContour[],
-  x: number,
-  y: number,
-  forceClosed: boolean,
-) {
-  let distance = Infinity
-  for (const contour of contours) {
-    distance = Math.min(
-      distance,
-      squaredDistanceToPolyline(
-        contour.points,
-        x,
-        y,
-        forceClosed || contour.closed,
-      ),
-    )
-  }
-  return distance
 }
 
 function squaredDistanceToPolyline(

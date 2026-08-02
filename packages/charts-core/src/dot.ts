@@ -14,6 +14,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartMarkState,
   ChartDotStateStyle,
   ChartNumericScale,
@@ -23,7 +24,7 @@ import type {
   SceneNode,
 } from './types'
 
-export interface DotOptions<TDatum> {
+export interface DotOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, ChartValue | null | undefined>
@@ -162,5 +163,5 @@ export function dot<TDatum>(
         }
       },
     }
-  })
+  }, options.motion)
 }

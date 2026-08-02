@@ -3,6 +3,7 @@ import type {
   ChartAnimationOptions,
   ChartFocusMatch,
   ChartFocusState,
+  ChartMarkStateTransition,
   ChartMarkState,
   ChartMarkStateContext,
   ChartMarkStateSelector,
@@ -16,7 +17,7 @@ import type {
 
 export interface ResolvedMarkState<TScene extends ChartScene = ChartScene> {
   scene: TScene
-  transition?: ChartAnimationOptions
+  transition?: ChartMarkStateTransition
 }
 
 export function resolveMarkStateScene<TScene extends ChartScene>(
@@ -25,7 +26,7 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
   pointer: ChartTooltipPosition | null = null,
 ): ResolvedMarkState<TScene> {
   if (!focus || !sceneHasMarkStates(scene.nodes)) return { scene }
-  let transition: ChartAnimationOptions | undefined
+  let transition: ChartMarkStateTransition | undefined
 
   const visit = (
     nodes: readonly SceneNode[],
@@ -80,10 +81,10 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
 }
 
 export function resolveMarkStateTransition(
-  transition: ChartAnimationOptions | undefined,
+  transition: ChartMarkStateTransition | undefined,
   element: Element,
 ): ChartAnimationOptions | undefined {
-  if (!transition) return undefined
+  if (!transition || transition.type !== 'tween') return undefined
   if (
     (transition.respectReducedMotion ?? true) &&
     element.ownerDocument.defaultView?.matchMedia?.(
@@ -92,7 +93,7 @@ export function resolveMarkStateTransition(
   ) {
     return undefined
   }
-  const { resize: _resize, ...resolved } = transition
+  const { type: _type, ...resolved } = transition
   return resolved
 }
 
@@ -111,9 +112,9 @@ function resolveNodeState(
   definitions: readonly ChartMarkState<any>[],
   focus: ChartFocusState,
   pointer: ChartTooltipPosition | null,
-): { node: SceneNode; transition?: ChartAnimationOptions } {
+): { node: SceneNode; transition?: ChartMarkStateTransition } {
   let output = node
-  let transition: ChartAnimationOptions | undefined
+  let transition: ChartMarkStateTransition | undefined
 
   for (const definition of definitions) {
     const context = matchingContext(
@@ -305,10 +306,14 @@ function createPointLookup(points: readonly ChartPoint[]): PointLookup {
 }
 
 function mergeTransition(
-  current: ChartAnimationOptions | undefined,
-  next: ChartAnimationOptions,
-): ChartAnimationOptions {
-  if (!current) return next
+  current: ChartMarkStateTransition | undefined,
+  next: ChartMarkStateTransition,
+): ChartMarkStateTransition {
+  if (!current || current.type !== next.type) return next
+  if (current.type === 'spring' && next.type === 'spring') {
+    return { ...current, ...next }
+  }
+  if (current.type !== 'tween' || next.type !== 'tween') return next
   return {
     ...current,
     ...next,

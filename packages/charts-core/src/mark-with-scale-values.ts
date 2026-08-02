@@ -1,5 +1,6 @@
 import type {
   ChartMark,
+  ChartMotionDefinition,
   ChartValue,
   InitializedMark,
   MarkInitializeContext,
@@ -26,6 +27,7 @@ export function createMarkWithScaleValues<
   initialize: (
     context: MarkInitializeContext,
   ) => InitializedMark<TDatum, TXPointValue, TYPointValue>,
+  motion?: ChartMotionDefinition<TDatum>,
 ): ChartMark<TDatum, TXPointValue, TYPointValue, TXScaleValue, TYScaleValue> {
-  return { initialize }
+  return motion === undefined ? { initialize } : { initialize, motion }
 }

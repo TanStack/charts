@@ -13,6 +13,7 @@ import type {
   Channel,
   ChartKey,
   ChartMark,
+  ChartMarkMotionOptions,
   ChartMarkState,
   ChartLineStateStyle,
   ChartPoint,
@@ -23,7 +24,7 @@ import type {
   OptionChannelOutput,
 } from './types'
 
-export interface LineYOptions<TDatum> {
+export interface LineYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   x?: Channel<TDatum, ChartValue | null | undefined>
   y?: Channel<TDatum, number | null | undefined>
@@ -205,7 +206,7 @@ export function lineY<TDatum>(
         return { nodes }
       },
     }
-  })
+  }, options.motion)
 }
 
 function groupRows<TDatum>(

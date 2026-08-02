@@ -2,6 +2,7 @@ import { createColorScale, valueKey } from './scales'
 import { resolveConfiguredScale } from './configured-scale'
 import { measureSceneLabelBounds } from './guide-layout'
 import { nearestScenePoint } from './nearest'
+import { chartSceneSource } from './scene-source'
 import type {
   DynamicChartDefinition,
   InitializedMark,
@@ -319,6 +320,12 @@ function createChartSceneWithScaleResolver<
     colors,
     gradients: definition.gradients ?? [],
     theme,
+    [chartSceneSource]: [definition, initialized],
+  } as ChartScene<TDatum, TXValue, TYValue> & {
+    [chartSceneSource]: readonly [
+      StaticChartDefinition<TDatum, TXValue, TYValue>,
+      readonly InitializedMark[],
+    ]
   }
 }
 

@@ -333,6 +333,10 @@
           "to": "reference/rendering-and-export"
         },
         {
+          "label": "Motion",
+          "to": "reference/motion"
+        },
+        {
           "label": "Custom Extensions",
           "to": "reference/custom-extensions"
         },

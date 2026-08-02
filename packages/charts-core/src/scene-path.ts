@@ -4,6 +4,7 @@ import type {
   ScenePathContour,
   ScenePathGeometry,
 } from './types'
+import { scenePathInteraction } from './scene-path-internal'
 
 const pathTolerance = 0.25
 const maxSubdivisionDepth = 12
@@ -126,6 +127,9 @@ class ScenePathRecorder implements ScenePathContext {
     this.contour.closed = true
     this.currentX = this.startX
     this.currentY = this.startY
+    // A later drawing command continues from the closed subpath's start, but
+    // it must not replace the already-recorded closing segment.
+    this.contour = undefined
   }
 
   result(): ScenePathGeometry {
@@ -138,6 +142,7 @@ class ScenePathRecorder implements ScenePathContext {
       contours,
       bounds: pathBounds(contours),
       tolerance: pathTolerance,
+      [scenePathInteraction]: pathInteraction,
     }
   }
 
@@ -149,10 +154,67 @@ class ScenePathRecorder implements ScenePathContext {
 
   private requiredContour(): MutableContour {
     if (this.contour) return this.contour
-    this.moveTo(this.currentX, this.currentY)
-    if (!this.contour) throw new TypeError('Expected an active path contour')
+    this.contour = {
+      points: [[this.currentX, this.currentY]],
+      closed: false,
+    }
+    this.contours.push(this.contour)
+    this.startX = this.currentX
+    this.startY = this.currentY
     return this.contour
   }
+}
+
+const pathInteraction: ScenePathGeometry[typeof scenePathInteraction] = (
+  geometry,
+  operation,
+  x,
+  y,
+  radius,
+) => {
+  if (operation === 0) {
+    if (
+      squaredDistanceToContours(geometry.contours, x, y, true) <=
+      geometry.tolerance * geometry.tolerance
+    ) {
+      return 1
+    }
+    let winding = 0
+    for (const contour of geometry.contours) {
+      const points = contour.points
+      for (
+        let index = 0, previous = points.length - 1;
+        index < points.length;
+        previous = index++
+      ) {
+        const start = points[previous]!
+        const end = points[index]!
+        const side =
+          (end[0] - start[0]) * (y - start[1]) -
+          (x - start[0]) * (end[1] - start[1])
+        if (start[1] <= y) {
+          if (end[1] > y && side > 0) winding += 1
+        } else if (end[1] <= y && side < 0) {
+          winding -= 1
+        }
+      }
+    }
+    return winding === 0 ? 0 : 1
+  }
+  if (operation === 1) {
+    return Number(
+      squaredDistanceToContours(geometry.contours, x, y, false) <=
+        (radius + geometry.tolerance) ** 2,
+    )
+  }
+  const raw = squaredDistanceToContours(
+    geometry.contours,
+    x,
+    y,
+    operation === 2,
+  )
+  const amount = Math.max(0, Math.sqrt(raw) - radius - geometry.tolerance)
+  return amount * amount
 }
 
 function appendFlattenedCubic(
@@ -256,4 +318,68 @@ function pathBounds(contours: readonly ScenePathContour[]): ChartBounds | null {
   return Number.isFinite(minX)
     ? { x: minX, y: minY, width: maxX - minX, height: maxY - minY }
     : null
+}
+
+function squaredDistanceToContours(
+  contours: readonly ScenePathContour[],
+  x: number,
+  y: number,
+  forceClosed: boolean,
+) {
+  let distance = Infinity
+  for (const contour of contours) {
+    distance = Math.min(
+      distance,
+      squaredDistanceToPolyline(
+        contour.points,
+        x,
+        y,
+        forceClosed || contour.closed,
+      ),
+    )
+  }
+  return distance
+}
+
+function squaredDistanceToPolyline(
+  points: readonly (readonly [number, number])[],
+  x: number,
+  y: number,
+  closed: boolean,
+) {
+  if (!points.length) return Infinity
+  if (points.length === 1) {
+    const point = points[0]!
+    return (point[0] - x) ** 2 + (point[1] - y) ** 2
+  }
+  let distance = Infinity
+  const segmentCount = closed ? points.length : points.length - 1
+  for (let index = 0; index < segmentCount; index += 1) {
+    const start = points[index]!
+    const end = points[(index + 1) % points.length]!
+    distance = Math.min(
+      distance,
+      squaredDistanceToSegment(start[0], start[1], end[0], end[1], x, y),
+    )
+  }
+  return distance
+}
+
+function squaredDistanceToSegment(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  x: number,
+  y: number,
+) {
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const length = dx * dx + dy * dy
+  const amount = length
+    ? Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / length))
+    : 0
+  const offsetX = x - (x1 + amount * dx)
+  const offsetY = y - (y1 + amount * dy)
+  return offsetX * offsetX + offsetY * offsetY
 }

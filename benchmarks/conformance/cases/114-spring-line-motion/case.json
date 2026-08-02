@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "order": 1150,
+  "id": "114-spring-line-motion",
+  "title": "Spring line updates",
+  "family": "motion",
+  "intent": "Show a basic two-series line chart with tween or physical spring updates and momentum-preserving interruption.",
+  "support": "native",
+  "features": [
+    "line morphing",
+    "physical spring transition",
+    "mid-flight interruption",
+    "per-series transition",
+    "tween comparison"
+  ],
+  "geometry": [{ "role": "line", "count": 2 }],
+  "source": {
+    "title": "Motion spring",
+    "url": "https://motion.dev/docs/spring"
+  },
+  "ai": {
+    "create": "Create a basic two-series line chart that can switch between tween and physical spring updates, including an interrupted target reversal.",
+    "maintain": "Keep both series keyed, preserve value and velocity on spring interruption, and let the comparison series use a distinct transition."
+  }
+}

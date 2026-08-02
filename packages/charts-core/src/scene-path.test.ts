@@ -37,6 +37,33 @@ describe('scenePath', () => {
     expect(geometry.contours[0]?.points.length).toBeGreaterThan(4)
   })
 
+  it('continues from a closed subpath without replacing its closing edge', () => {
+    const geometry = scenePath((path) => {
+      path.moveTo(0, 0)
+      path.lineTo(10, 0)
+      path.closePath()
+      path.lineTo(20, 0)
+    })
+
+    expect(geometry.data).toBe('M0,0L10,0ZL20,0')
+    expect(geometry.contours).toEqual([
+      {
+        points: [
+          [0, 0],
+          [10, 0],
+        ],
+        closed: true,
+      },
+      {
+        points: [
+          [0, 0],
+          [20, 0],
+        ],
+        closed: false,
+      },
+    ])
+  })
+
   it('keeps sampled cubic points within its declared hit tolerance', () => {
     const curves = [
       [20, 180, 20, 20, 180, 20, 180, 180],

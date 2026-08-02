@@ -431,14 +431,31 @@ export function mountChartRenderer<
     y: number,
     maxDistance: number,
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
+    const presentationPoints = interactionPoints()
     const focus = resolveFocusStrategy(options.definition.focus)
     if (focus) {
-      return focus.resolve(scene.points, x, y, maxDistance)
+      return focus.resolve(presentationPoints, x, y, maxDistance)
     }
-    const point = spatialIndex
-      ? spatialIndex.findNearest(x, y, maxDistance)
-      : findNearestPoint(interactionScene, x, y, maxDistance)
-    return point ? [point] : []
+    const point =
+      spatialIndex && interactionScene === scene
+        ? spatialIndex.findNearest(x, y, maxDistance)
+        : findNearestPoint(interactionScene, x, y, maxDistance)
+    if (!point) return []
+    if (presentationPoints === interactionScene.points) return [point]
+
+    // Interaction identity comes from the destination scene so animation
+    // cannot temporarily fall back to anchor-only picking. Presentation
+    // points only move the focus marker and tooltip with the rendered frame.
+    return [restoreFocusedPoint(presentationPoints, point) ?? point]
+  }
+
+  function interactionPoints() {
+    return (surface?.getPresentationPoints?.() ??
+      interactionScene.points) as readonly ChartPoint<
+      TDatum,
+      TXValue,
+      TYValue
+    >[]
   }
 
   function focusPointsForPoint(
@@ -446,7 +463,7 @@ export function mountChartRenderer<
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
     return (
       resolveFocusStrategy(options.definition.focus)?.group(
-        scene.points,
+        interactionPoints(),
         point,
       ) ?? [point]
     )
