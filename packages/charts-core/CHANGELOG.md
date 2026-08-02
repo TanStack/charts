@@ -1,5 +1,12 @@
 # @tanstack/charts
 
+## 0.6.1
+
+### Patch Changes
+
+- [#44](https://github.com/TanStack/charts/pull/44) [`24e65e7`](https://github.com/TanStack/charts/commit/24e65e743ff2897a78f726c3f07d8a5819bb4c7d) - Correct SVG pointer hit testing when the rendered viewport and chart scene use
+  different aspect ratios.
+
 ## 0.6.0
 
 ### Minor Changes
