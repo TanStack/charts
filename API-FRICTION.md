@@ -4722,13 +4722,20 @@ Each entry records:
   reduced-motion handling, and resize motion. Keep semantic timing in chart,
   mark, datum, axis, label, and focus definitions. Keep the SVG driver and
   reconciler integration internal. Retain the scalar physics sampler as the
-  separate `@tanstack/charts/spring` capability.
+  separate `@tanstack/charts/spring` capability. Retain the lightweight
+  `animate` path for the default SVG renderer, but enforce one animation owner
+  per host: `motion()` ignores legacy animation options and reads declarative
+  motion policy from the chart definition. A definition-level `motion`
+  declaration configures that renderer; it does not select it.
 - Verification: all catalog, POC, packed-consumer, and unit-test callers use
   `motion()`. The public `/motion` entry exports one value plus its option and
   renderer-neutral definition types; legacy aliases and low-level driver types
   no longer appear in the package contract. Documentation covers the one-path
   setup, override cascade, renderer compatibility, accessibility behavior, and
-  migration from duration-only focus transitions.
+  migration from duration-only focus transitions. The motion renderer
+  integration test mounts a definition containing both legacy `animate` and a
+  conflicting definition-level motion duration, then verifies that the
+  host-level motion renderer owns the transition timing.
 
 ### F-190 — Static conformance sampled active motion
 
