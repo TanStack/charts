@@ -4336,9 +4336,13 @@ Each entry records:
 
   The isolated scene resolver is 4,952 minified / 1,981 gzip bytes versus 157 /
   153 for the anchor-only kernel: a 1,828-byte gzip feature cost under an
-  explicit 2 kB ceiling. The complete DOM host is 1,816 gzip bytes above the
-  pre-feature product lock, which remains unchanged for reviewer approval
-  rather than silently accepting a new baseline. A final size audit removed
+  explicit 2 kB ceiling. Against the pre-feature product lock, the complete
+  DOM host adds 1,816 gzip bytes, the React line consumer adds 1,833, and the
+  native host adds 1,801. These shared-host costs and the related aggregate
+  fixture ceilings were reviewed and accepted because painted-geometry
+  interaction is the default contract across DOM, Canvas, and native charts;
+  the exact locked baselines now record that decision while the isolated 2 kB
+  ceiling continues to constrain the resolver itself. A final size audit removed
   redundant built-in `MarkScene.points` arrays and explicit default `xy`
   affinity fields while retaining the optional point list for custom-mark
   compatibility. Against the immediate pre-audit build, that saves 119
