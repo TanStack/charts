@@ -6,6 +6,7 @@ import type {
   ChartValue,
   SceneInteraction,
   SceneNode,
+  ScenePathContour,
 } from './types'
 
 type GeometricSceneNode = Exclude<SceneNode, { kind: 'group' | 'label' }>
@@ -240,13 +241,26 @@ function containsTarget(target: SceneInteractionTarget, x: number, y: number) {
       const radius = Math.max(0, node.radius)
       return dx * dx + dy * dy <= radius * radius
     }
-    case 'area':
-      return containsPolygon(node.points, localX, localY)
-    case 'polyline':
+    case 'area': {
+      const geometry = node.pathGeometry
+      return geometry
+        ? containsPathContours(
+            geometry.contours,
+            localX,
+            localY,
+            geometry.tolerance,
+          )
+        : containsPolygon(node.points, localX, localY)
+    }
+    case 'polyline': {
+      const geometry = node.pathGeometry
       return (
-        squaredDistanceToPolyline(node.points, localX, localY, false) <=
-        strokeRadius(node) ** 2
+        (geometry
+          ? squaredDistanceToContours(geometry.contours, localX, localY, false)
+          : squaredDistanceToPolyline(node.points, localX, localY, false)) <=
+        (strokeRadius(node) + (geometry?.tolerance ?? 0)) ** 2
       )
+    }
     case 'rule':
       return (
         squaredDistanceToSegment(
@@ -271,48 +285,78 @@ function distanceToTarget(
   const localY = y - target.offsetY
   const { node } = target
   let distance: number
-  switch (node.kind) {
-    case 'rect':
-      distance = node.radius
-        ? squaredDistanceToRoundedRect(node, localX, localY)
-        : squaredDistanceToBounds(node, localX, localY)
-      break
-    case 'dot': {
-      const dx = localX - node.x
-      const dy = localY - node.y
-      const amount = Math.max(
-        0,
-        Math.sqrt(dx * dx + dy * dy) - Math.max(0, node.radius),
-      )
-      distance = amount * amount
-      break
-    }
-    case 'area':
-      distance = squaredDistanceToPolyline(node.points, localX, localY, true)
-      break
-    case 'polyline': {
-      const raw = squaredDistanceToPolyline(node.points, localX, localY, false)
-      const amount = Math.max(0, Math.sqrt(raw) - strokeRadius(node))
-      distance = amount * amount
-      break
-    }
-    case 'rule': {
-      const raw = squaredDistanceToSegment(
-        node.x1,
-        node.y1,
-        node.x2,
-        node.y2,
-        localX,
-        localY,
-      )
-      const amount = Math.max(0, Math.sqrt(raw) - strokeRadius(node))
-      distance = amount * amount
-      break
+  if ((node.kind === 'area' || node.kind === 'polyline') && node.pathGeometry) {
+    distance = distanceToPathGeometry(node, node.pathGeometry, localX, localY)
+  } else {
+    switch (node.kind) {
+      case 'rect':
+        distance = node.radius
+          ? squaredDistanceToRoundedRect(node, localX, localY)
+          : squaredDistanceToBounds(node, localX, localY)
+        break
+      case 'dot': {
+        const dx = localX - node.x
+        const dy = localY - node.y
+        const amount = Math.max(
+          0,
+          Math.sqrt(dx * dx + dy * dy) - Math.max(0, node.radius),
+        )
+        distance = amount * amount
+        break
+      }
+      case 'area':
+        distance = squaredDistanceToPolyline(node.points, localX, localY, true)
+        break
+      case 'polyline': {
+        const raw = squaredDistanceToPolyline(
+          node.points,
+          localX,
+          localY,
+          false,
+        )
+        const amount = Math.max(0, Math.sqrt(raw) - strokeRadius(node))
+        distance = amount * amount
+        break
+      }
+      case 'rule': {
+        const raw = squaredDistanceToSegment(
+          node.x1,
+          node.y1,
+          node.x2,
+          node.y2,
+          localX,
+          localY,
+        )
+        const amount = Math.max(0, Math.sqrt(raw) - strokeRadius(node))
+        distance = amount * amount
+        break
+      }
     }
   }
   return target.clip
     ? Math.max(distance, squaredDistanceToBounds(target.clip, x, y))
     : distance
+}
+
+function distanceToPathGeometry(
+  node: Extract<GeometricSceneNode, { kind: 'area' | 'polyline' }>,
+  geometry: NonNullable<typeof node.pathGeometry>,
+  x: number,
+  y: number,
+) {
+  const raw = squaredDistanceToContours(
+    geometry.contours,
+    x,
+    y,
+    node.kind === 'area',
+  )
+  const amount = Math.max(
+    0,
+    Math.sqrt(raw) -
+      (node.kind === 'polyline' ? strokeRadius(node) : 0) -
+      geometry.tolerance,
+  )
+  return amount * amount
 }
 
 function boundsForNode(node: GeometricSceneNode): ChartBounds | null {
@@ -328,11 +372,19 @@ function boundsForNode(node: GeometricSceneNode): ChartBounds | null {
         height: radius * 2,
       }
     }
-    case 'area':
-      return boundsFromPoints(node.points)
+    case 'area': {
+      const geometry = node.pathGeometry
+      const bounds = geometry ? geometry.bounds : boundsFromPoints(node.points)
+      return bounds && geometry
+        ? expandBounds(bounds, geometry.tolerance)
+        : bounds
+    }
     case 'polyline': {
-      const bounds = boundsFromPoints(node.points)
-      return bounds ? expandBounds(bounds, strokeRadius(node)) : null
+      const geometry = node.pathGeometry
+      const bounds = geometry ? geometry.bounds : boundsFromPoints(node.points)
+      return bounds
+        ? expandBounds(bounds, strokeRadius(node) + (geometry?.tolerance ?? 0))
+        : null
     }
     case 'rule':
       return expandBounds(
@@ -415,6 +467,62 @@ function containsPolygon(
     }
   }
   return inside
+}
+
+function containsPathContours(
+  contours: readonly ScenePathContour[],
+  x: number,
+  y: number,
+  tolerance: number,
+) {
+  if (
+    squaredDistanceToContours(contours, x, y, true) <=
+    tolerance * tolerance
+  ) {
+    return true
+  }
+  let winding = 0
+  for (const contour of contours) {
+    const points = contour.points
+    for (
+      let index = 0, previous = points.length - 1;
+      index < points.length;
+      previous = index++
+    ) {
+      const start = points[previous]!
+      const end = points[index]!
+      const side =
+        (end[0] - start[0]) * (y - start[1]) -
+        (x - start[0]) * (end[1] - start[1])
+      if (start[1] <= y) {
+        if (end[1] > y && side > 0) winding += 1
+      } else if (end[1] <= y && side < 0) {
+        winding -= 1
+      }
+    }
+  }
+  return winding !== 0
+}
+
+function squaredDistanceToContours(
+  contours: readonly ScenePathContour[],
+  x: number,
+  y: number,
+  forceClosed: boolean,
+) {
+  let distance = Infinity
+  for (const contour of contours) {
+    distance = Math.min(
+      distance,
+      squaredDistanceToPolyline(
+        contour.points,
+        x,
+        y,
+        forceClosed || contour.closed,
+      ),
+    )
+  }
+  return distance
 }
 
 function squaredDistanceToPolyline(

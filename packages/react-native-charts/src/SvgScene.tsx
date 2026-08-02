@@ -121,7 +121,11 @@ function renderSceneNode(
         <Path
           key={node.key}
           {...style}
-          d={node.path ?? pointsPath(node.points, false)}
+          d={
+            node.pathGeometry?.data ??
+            node.path ??
+            pointsPath(node.points, false)
+          }
           vectorEffect="non-scaling-stroke"
         />
       )
@@ -130,7 +134,11 @@ function renderSceneNode(
         <Path
           key={node.key}
           {...style}
-          d={node.path ?? pointsPath(node.points, true)}
+          d={
+            node.pathGeometry?.data ??
+            node.path ??
+            pointsPath(node.points, true)
+          }
           vectorEffect="non-scaling-stroke"
         />
       )

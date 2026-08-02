@@ -151,20 +151,20 @@ export function link<TDatum>(
             lineCap: options.lineCap ?? ('round' as const),
             lineJoin: 'round' as const,
           }
+          const curvePoints = [
+            [x1, y1],
+            [x2, y2],
+          ] as const
+          const pathGeometry = options.curve?.geometry?.line(curvePoints)
 
           nodes.push(
             options.curve
               ? {
                   kind: 'polyline',
                   key,
-                  points: [
-                    [x1, y1],
-                    [x2, y2],
-                  ],
-                  path: options.curve.line([
-                    [x1, y1],
-                    [x2, y2],
-                  ]),
+                  points: curvePoints,
+                  path: pathGeometry?.data ?? options.curve.line(curvePoints),
+                  pathGeometry,
                   style,
                 }
               : {

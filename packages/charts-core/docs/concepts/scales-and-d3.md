@@ -290,7 +290,11 @@ lineY(rows, {
 })
 ```
 
-`d3Curve` adapts a D3 curve factory to the small line-and-area curve contract. Importing it is explicit so a straight chart does not need the shape path.
+`d3Curve` adapts a D3 curve factory to the small line-and-area curve contract.
+It records the rendered path and a subpixel interaction contour from the same
+D3 context calls, so curved lines and stacked areas target their painted
+geometry. Importing it is explicit so a straight chart does not need the shape
+path.
 
 Horizontal `areaX` marks use the separate `d3AreaXCurve` bridge from `@tanstack/charts/d3/area-x`.
 

@@ -137,7 +137,9 @@ real; ordinary custom marks should use `createMark`.
 
 ## Curves
 
-`ChartCurve` supplies precomputed path data for line and y-oriented area marks:
+`ChartCurve` supplies path data for line and y-oriented area marks. Its optional
+geometry companion lets the renderer and pointer resolver consume one resolved
+curve instead of independently approximating the source points:
 
 ```ts
 interface ChartCurve {
@@ -146,6 +148,7 @@ interface ChartCurve {
     top: readonly (readonly [number, number])[],
     bottom: readonly (readonly [number, number])[],
   ): string
+  geometry?: ChartCurveGeometry
 }
 ```
 
@@ -157,6 +160,12 @@ interface AreaXCurve {
     right: readonly (readonly [number, number])[],
     left: readonly (readonly [number, number])[],
   ): string
+  geometry?: {
+    areaX(
+      right: readonly (readonly [number, number])[],
+      left: readonly (readonly [number, number])[],
+    ): ScenePathGeometry
+  }
 }
 ```
 
@@ -164,6 +173,34 @@ The optional bridges `d3Curve` from `@tanstack/charts/d3/shape` and
 `d3AreaXCurve` from `@tanstack/charts/d3/area-x` adapt a supplied curve factory
 to these contracts. D3 module ownership and granular imports are documented in
 [Scales and D3](../concepts/scales-and-d3.md).
+
+The D3 adapters attach resolved geometry automatically. A custom scene path can
+do the same without maintaining a separate SVG string and hit polygon:
+
+```ts
+import { scenePath } from '@tanstack/charts/scene/path'
+
+const geometry = scenePath((path) => {
+  path.moveTo(20, 160)
+  path.bezierCurveTo(20, 20, 180, 20, 180, 160)
+  path.closePath()
+})
+
+const node = {
+  kind: 'area' as const,
+  key: 'curved-region',
+  points: [
+    [20, 160],
+    [180, 160],
+  ],
+  pathGeometry: geometry,
+}
+```
+
+`scenePath` records the rendered path data and derives a subpixel contour from
+the same commands. An opaque legacy `path: string` remains supported, but its
+interaction fallback uses `points` because core deliberately does not retain a
+general SVG path parser.
 
 ## Custom positional scales
 

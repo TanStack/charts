@@ -71,6 +71,7 @@ function renderNode(
       return `<line${common} x1="${number(node.x1)}" y1="${number(node.y1)}" x2="${number(node.x2)}" y2="${number(node.y2)}"/>`
     case 'polyline': {
       const path =
+        node.pathGeometry?.data ??
         node.path ??
         node.points
           .map(
@@ -82,6 +83,7 @@ function renderNode(
     }
     case 'area': {
       const path =
+        node.pathGeometry?.data ??
         node.path ??
         `${node.points
           .map(

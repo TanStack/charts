@@ -42,6 +42,7 @@ export {
   defineChart,
   findNearestPoint,
 } from './scene'
+export { scenePath } from './scene-path'
 export { renderChartSvg } from './svg'
 export { stack } from './stack'
 export type {
@@ -184,6 +185,7 @@ export type {
   ChartColorLegend,
   ChartColorLegendContext,
   ChartCurve,
+  ChartCurveGeometry,
   ChartDefinition,
   ChartDefinitionOptions,
   ChartExtensionInput,
@@ -278,6 +280,9 @@ export type {
   SceneGroup,
   SceneLabel,
   SceneNode,
+  ScenePathContext,
+  ScenePathContour,
+  ScenePathGeometry,
   ScenePolyline,
   SceneRect,
   SceneRule,

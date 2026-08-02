@@ -2,6 +2,7 @@ import { performance } from 'node:perf_hooks'
 import { Delaunay } from 'd3-delaunay'
 import { quadtree } from 'd3-quadtree'
 import { nearestScenePoint } from '../../packages/charts-core/src/nearest'
+import { scenePath } from '../../packages/charts-core/src/scene-path'
 import type {
   ChartFocusAffinity,
   ChartPoint as CoreChartPoint,
@@ -188,6 +189,13 @@ const rectangleComparisonCase: PointerCase = {
   }),
   repetitions: 16,
 }
+const curvedAreaComparison = createCurvedAreaComparison(2_000)
+const curvedAreaComparisonCase: PointerCase = {
+  label: '2k curved areas · contained probe',
+  points: curvedAreaComparison.points,
+  queries: curvedAreaComparison.queries,
+  repetitions: 8,
+}
 const vegaRectItems: readonly VegaRectItem[] = rectangles.map((point) => {
   if (point.hitRegion?.kind !== 'rect') {
     throw new Error('Expected rectangle benchmark geometry')
@@ -231,11 +239,24 @@ const rectangleComparisonImplementations: readonly Implementation[] = [
   ['new geometry · generic rect', sceneNearestPoint],
   ['Vega 5.2.1 · bounds-only lower bound', vegaBoundsNearestPoint],
 ] as const
+const curvedAreaComparisonImplementations: readonly Implementation[] = [
+  [
+    'structured polygon',
+    (_points, x, y, maxDistance) =>
+      nearestScenePoint(curvedAreaComparison.structured, x, y, maxDistance),
+  ],
+  [
+    'recorded cubic path',
+    (_points, x, y, maxDistance) =>
+      nearestScenePoint(curvedAreaComparison.curved, x, y, maxDistance),
+  ],
+] as const
 const collectGarbage = (globalThis as { gc?: () => void }).gc
 
 verifyEquivalentResults()
 verifyComparisonResults()
 verifyRectangleComparisonResults()
+verifyCurvedAreaComparisonResults()
 console.log(`Pointer resolution · ${process.version} · ${process.arch}`)
 console.log(
   'Production is a speed baseline; geometry rows intentionally add semantics it cannot return.',
@@ -259,6 +280,24 @@ for (const benchmark of cases) {
   }
 }
 printScenarioComparisons(scenarioMeasurements)
+
+console.log('\nCurved-area containment · identical targets on this fixture')
+console.log('| Resolver | Median / query | p95 / query |')
+console.log('| --- | ---: | ---: |')
+const curvedAreaComparisonMeasurements = measure(
+  curvedAreaComparisonCase,
+  curvedAreaComparisonImplementations,
+)
+for (const [label] of curvedAreaComparisonImplementations) {
+  const samples = curvedAreaComparisonMeasurements.get(label)!
+  console.log(
+    `| ${label} | ${formatDuration(percentile(samples, 0.5))} | ${formatDuration(percentile(samples, 0.95))} |`,
+  )
+}
+printAsciiDurations(
+  curvedAreaComparisonMeasurements,
+  curvedAreaComparisonImplementations,
+)
 
 console.log('\nPoint-only comparison · identical targets on this fixture')
 console.log('| Resolver | Median / query | p95 / query |')
@@ -694,6 +733,60 @@ function ordered(left: number, right: number): readonly [number, number] {
   return left <= right ? [left, right] : [right, left]
 }
 
+function createCurvedAreaComparison(count: number) {
+  const points = Array.from({ length: count }, (_, index) => {
+    const x = (index % 100) * 20
+    const y = Math.floor(index / 100) * 20
+    return point(index, x + 8, y + 8)
+  })
+  const structuredNodes: SceneNode[] = []
+  const curvedNodes: SceneNode[] = []
+  for (const chartPoint of points) {
+    const index = chartPoint.datum.index
+    const x = (index % 100) * 20
+    const y = Math.floor(index / 100) * 20
+    const points = [
+      [x, y + 8],
+      [x + 16, y + 8],
+      [x + 16, y + 16],
+      [x, y + 16],
+    ] as const
+    const interaction = { point: chartPoint, affinity: 'geometry' } as const
+    const structured = {
+      kind: 'area',
+      key: chartPoint.key,
+      points,
+      interaction,
+    } as const
+    structuredNodes.push(structured)
+    curvedNodes.push({
+      ...structured,
+      pathGeometry: scenePath((path) => {
+        path.moveTo(x, y + 8)
+        path.bezierCurveTo(x + 4, y - 2, x + 12, y + 18, x + 16, y + 8)
+        path.lineTo(x + 16, y + 16)
+        path.lineTo(x, y + 16)
+        path.closePath()
+      }),
+    })
+  }
+  return {
+    points,
+    queries: queries(64, (index) => {
+      const target = points[(index * 613) % points.length]!
+      return { x: target.x, y: target.y + 6, maxDistance: 48 }
+    }),
+    structured: {
+      nodes: structuredNodes,
+      points,
+    } as unknown as ChartScene<Datum, number, number>,
+    curved: {
+      nodes: curvedNodes,
+      points,
+    } as unknown as ChartScene<Datum, number, number>,
+  }
+}
+
 function verifyEquivalentResults() {
   for (const benchmark of cases) {
     for (const query of benchmark.queries) {
@@ -714,6 +807,28 @@ function verifyEquivalentResults() {
           `Pointer resolver changed ${benchmark.label}: ${String(reference?.key)} !== ${String(optimized?.key)}`,
         )
       }
+    }
+  }
+}
+
+function verifyCurvedAreaComparisonResults() {
+  for (const query of curvedAreaComparisonCase.queries) {
+    const structured = nearestScenePoint(
+      curvedAreaComparison.structured,
+      query.x,
+      query.y,
+      query.maxDistance,
+    )
+    const curved = nearestScenePoint(
+      curvedAreaComparison.curved,
+      query.x,
+      query.y,
+      query.maxDistance,
+    )
+    if (structured?.key !== curved?.key) {
+      throw new Error(
+        `Curved-area comparison changed the target: ${String(structured?.key)} !== ${String(curved?.key)}`,
+      )
     }
   }
 }

@@ -64,6 +64,7 @@
     "./rule": "./src/rule.ts",
     "./runtime": "./src/runtime.ts",
     "./scene": "./src/scene.ts",
+    "./scene/path": "./src/scene-path.ts",
     "./svg": "./src/svg.ts",
     "./svg/renderer": "./src/svg-surface.ts",
     "./svg/resources": "./src/svg-resources.ts",
@@ -226,6 +227,10 @@
       "./scene": {
         "types": "./dist/scene.d.ts",
         "import": "./dist/scene.js"
+      },
+      "./scene/path": {
+        "types": "./dist/scene-path.d.ts",
+        "import": "./dist/scene-path.js"
       },
       "./svg": {
         "types": "./dist/svg.d.ts",

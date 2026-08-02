@@ -6,6 +6,7 @@ import type { SceneNode } from '@tanstack/charts'
 import { focusX, focusY } from '@tanstack/charts/focus'
 import {
   animatedDestinationDefinition,
+  curvedPathLimitCases,
   facetFocusDefinitions,
   InteractionGeometryLab,
   legacyPointFocus,
@@ -19,21 +20,24 @@ describe('interaction geometry source disclosure', () => {
     const groupedProofs = proofCases.filter((proof) => proof.grouped)
 
     expect(markup.match(/class="hit-region-proof__source"/g)).toHaveLength(
-      proofCases.length * 2 + groupedProofs.length + 5,
+      proofCases.length * 2 + groupedProofs.length + 7,
     )
     expect(groupedProofs).toHaveLength(3)
-    expect(proofCases).toHaveLength(28)
+    expect(proofCases).toHaveLength(30)
     expect(
       proofCases.filter((proof) => proof.renderer === 'canvas'),
-    ).toHaveLength(14)
+    ).toHaveLength(15)
     expect(proofCases.filter((proof) => proof.renderer === 'svg')).toHaveLength(
-      14,
+      15,
     )
-    expect(markup.match(/data-proof-renderer="canvas"/g)).toHaveLength(30)
-    expect(markup.match(/data-proof-renderer="svg"/g)).toHaveLength(29)
+    expect(markup.match(/data-proof-renderer="canvas"/g)).toHaveLength(32)
+    expect(markup.match(/data-proof-renderer="svg"/g)).toHaveLength(31)
     expect(markup.match(/data-animation-renderer=/g)).toHaveLength(2)
     expect(markup).toContain('data-animation-renderer="svg"')
     expect(markup).toContain('data-animation-renderer="canvas"')
+    expect(markup.match(/data-curved-path-case=/g)).toHaveLength(2)
+    expect(markup).toContain('data-curved-path-renderer="svg"')
+    expect(markup).toContain('data-curved-path-renderer="canvas"')
     expect(markup).toContain('class="ts-chart-canvas__scene"')
     expect(markup).toContain('&lt;CanvasChart')
     expect(markup).toContain('&lt;Chart')
@@ -86,6 +90,13 @@ describe('interaction geometry source disclosure', () => {
     expect(markup).toContain(
       'transition: { duration: 700, easing: &#x27;ease-out&#x27; }',
     )
+    expect(markup).toContain(
+      'authoredCurveMark(&#x27;authored-curved-line&#x27;, curvedLineDatum, &#x27;line&#x27;)',
+    )
+    expect(markup).toContain(
+      'authoredCurveMark(&#x27;authored-curved-area&#x27;, curvedAreaDatum, &#x27;area&#x27;)',
+    )
+    expect(markup).toContain('pathGeometry: scenePath((path) =&gt; {')
     expect(markup).not.toContain('packages/charts-core/src/nearest.ts')
   })
 })
@@ -177,6 +188,38 @@ describe('intentional interaction contracts', () => {
     expect(animatedDestinationDefinition.maxFocusDistance).toBe(12)
     expect(middle).not.toBeNull()
     expect(middle?.node.width).toBeLessThan(250)
+  })
+
+  it('resolves authored curves in both SVG and Canvas examples', () => {
+    expect(curvedPathLimitCases.map((proof) => proof.renderer)).toEqual([
+      'svg',
+      'canvas',
+    ])
+
+    for (const proof of curvedPathLimitCases) {
+      const scene = createChartScene(proof.definition, {
+        width: 520,
+        height: 230,
+      })
+      const probe = proof.probe(scene)
+      const target = flatten(scene.nodes).find(
+        (node) =>
+          (node.kind === 'polyline' || node.kind === 'area') &&
+          node.interaction !== undefined,
+      )
+
+      expect(probe).not.toBeNull()
+      expect(target?.kind === 'polyline' || target?.kind === 'area').toBe(true)
+      if (!probe || !target || target.kind === 'group') continue
+      if (target.kind !== 'polyline' && target.kind !== 'area') continue
+
+      expect(target.pathGeometry?.data).toContain('C')
+      expect(target.pathGeometry?.contours[0]?.points.length).toBeGreaterThan(
+        target.points.length,
+      )
+      expect(target.points).toHaveLength(proof.renderer === 'svg' ? 2 : 4)
+      expect(findNearestPoint(scene, probe.x, probe.y, 48)).not.toBeNull()
+    }
   })
 })
 

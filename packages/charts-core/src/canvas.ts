@@ -618,8 +618,9 @@ function paintNode(
         strokeCurrentPath(painter, state, boundsForNode(node))
         return
       case 'polyline': {
-        if (node.path) {
-          const path = pathFromData(painter, node.path)
+        const pathData = node.pathGeometry?.data ?? node.path
+        if (pathData) {
+          const path = pathFromData(painter, pathData)
           paintPath(painter, path, state, boundsForNode(node))
         } else {
           beginPointPath(context, node.points, false)
@@ -628,8 +629,9 @@ function paintNode(
         return
       }
       case 'area': {
-        if (node.path) {
-          const path = pathFromData(painter, node.path)
+        const pathData = node.pathGeometry?.data ?? node.path
+        if (pathData) {
+          const path = pathFromData(painter, pathData)
           paintPath(painter, path, state, boundsForNode(node))
         } else {
           beginPointPath(context, node.points, true)
@@ -974,7 +976,7 @@ function boundsForNode(node: Exclude<SceneNode, { kind: 'group' | 'label' }>) {
       ])
     case 'polyline':
     case 'area':
-      return boundsFromPoints(node.points)
+      return node.pathGeometry?.bounds ?? boundsFromPoints(node.points)
     case 'dot':
       return {
         x: node.x - node.radius,

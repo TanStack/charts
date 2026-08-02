@@ -172,6 +172,7 @@ interface ChartCurve {
     top: readonly (readonly [number, number])[],
     bottom: readonly (readonly [number, number])[],
   ): string
+  geometry?: ChartCurveGeometry
 }
 
 interface AreaXCurve {
@@ -179,6 +180,12 @@ interface AreaXCurve {
     right: readonly (readonly [number, number])[],
     left: readonly (readonly [number, number])[],
   ): string
+  geometry?: {
+    areaX(
+      right: readonly (readonly [number, number])[],
+      left: readonly (readonly [number, number])[],
+    ): ScenePathGeometry
+  }
 }
 ```
 
@@ -190,9 +197,16 @@ import { d3Curve } from '@tanstack/charts/d3/shape'
 ```
 
 They accept a supplied curve factory and return the corresponding TanStack
-contract. Which granular D3 module to install and why these algorithms remain
-injected is documented once in
+contract. These adapters also record the rendered curve as scene-owned,
+subpixel interaction geometry. Curved stacked areas therefore resolve the
+painted layer first and then apply their natural x or y affinity to choose a
+semantic sample. Which granular D3 module to install and why these algorithms
+remain injected is documented once in
 [Scales and D3](../../concepts/scales-and-d3.md).
+
+Custom marks can create the same shared geometry with `scenePath` from
+`@tanstack/charts/scene/path`. Opaque `path: string` values remain compatible
+and fall back to their structured `points` for interaction.
 
 ## Layering area and line
 

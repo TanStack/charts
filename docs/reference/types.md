@@ -197,6 +197,10 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `ChartLinearGradient`           | Named linear-gradient resource                               |
 | `ChartGradientStop`             | Gradient offset, color, and optional opacity                 |
 | `ChartCurve`                    | Line and y-area path generation                              |
+| `ChartCurveGeometry`            | Resolved line and y-area path geometry                       |
+| `ScenePathContext`              | Typed commands accepted by `scenePath`                       |
+| `ScenePathContour`              | Derived interaction contour for one subpath                  |
+| `ScenePathGeometry`             | Rendered path data and subpixel interaction acceleration     |
 
 See [Scales, guides, and color](./scales-guides-and-color.md).
 
