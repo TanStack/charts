@@ -1,5 +1,11 @@
 # @tanstack/charts
 
+## 0.6.4
+
+### Patch Changes
+
+- [#51](https://github.com/TanStack/charts/pull/51) [`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95) - Accept configured D3 scale instances for union-valued axes.
+
 ## 0.6.3
 
 ### Patch Changes
