@@ -33,7 +33,7 @@ export function resolveScaleInput<TValue extends ChartValue>(
       'A scale factory must return a copyable scale with domain and range methods',
     )
   }
-  const scale = created.copy()
+  const scale = created.copy() as ConfiguredScaleLike<TValue>
 
   if (infer) {
     const domain = inferScaleDomain(scale, options.values, options.includeZero)
@@ -47,9 +47,9 @@ export function resolveScaleInput<TValue extends ChartValue>(
   return scale
 }
 
-export function isScaleFactory<TValue extends ChartValue>(
-  source: ChartScaleInput<TValue>,
-): source is ChartScaleFactory<TValue> {
+export function isScaleFactory(
+  source: Function,
+): source is ChartScaleFactory<ChartValue> {
   return typeof source === 'function' && !('copy' in source)
 }
 

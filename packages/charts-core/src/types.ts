@@ -48,7 +48,9 @@ export type ChartScaleFactory<TValue extends ChartValue> = Function & {
 }
 
 export type ChartScaleInput<TValue extends ChartValue> =
-  ConfiguredScaleLike<TValue> | ChartScaleFactory<TValue>
+  TValue extends ChartValue
+    ? ConfiguredScaleLike<TValue> | ChartScaleFactory<TValue>
+    : never
 
 export interface ChartNumericScaleOptions {
   scale: ChartScaleInput<number>

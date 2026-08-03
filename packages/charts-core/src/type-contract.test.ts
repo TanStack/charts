@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { scaleBand, scaleLinear, scaleUtc } from 'd3-scale'
+import { scaleBand, scaleLinear, scaleTime, scaleUtc } from 'd3-scale'
 import { barX, barY } from './bar'
 import type { BarYOptions } from './bar'
 import { mountChart } from './dom'
@@ -141,6 +141,12 @@ const temporalDefinition = defineChart({
       },
     },
   },
+  y: { scale: scaleLinear().domain([0, 4]) },
+})
+const unionPositionMark = rows.length > 0 ? temporalMark : categoricalMark
+const unionPositionDefinition = defineChart({
+  marks: [unionPositionMark],
+  x: { scale: scaleTime().domain(rows.map((row) => row.date)) },
   y: { scale: scaleLinear().domain([0, 4]) },
 })
 const implicitIndexDefinition = defineChart({
@@ -686,6 +692,16 @@ if (false) {
   }
   void invalidTemporalSpec
 
+  const invalidUnionPositionSpec: ChartSpec<
+    readonly [typeof unionPositionMark]
+  > = {
+    marks: [unionPositionMark],
+    // @ts-expect-error The string | Date axis has no numeric scale branch.
+    x: { scale: scaleLinear().domain([0, 1]) },
+    y: { scale: scaleLinear().domain([0, 4]) },
+  }
+  void invalidUnionPositionSpec
+
   // @ts-expect-error Static definitions infer and enforce the mark-to-scale contract.
   defineChart({
     marks: [categoricalMark],
@@ -893,6 +909,9 @@ describe('public type contracts', () => {
     expectTypeOf<
       NonNullable<typeof temporalDefinition.__xValue>
     >().toEqualTypeOf<Date>()
+    expectTypeOf<
+      NonNullable<typeof unionPositionDefinition.__xValue>
+    >().toEqualTypeOf<string | Date>()
     expectTypeOf<
       NonNullable<typeof heterogeneousDefinition.__xValue>
     >().toEqualTypeOf<Date | number>()
