@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Preact%20Charts&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Preact%20Charts"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Preact%20Charts"
+      alt="TanStack Preact Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # `@tanstack/preact-charts`
 
 Preact lifecycle adapter for `@tanstack/charts`.

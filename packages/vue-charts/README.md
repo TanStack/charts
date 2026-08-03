@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Vue%20Charts&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Vue%20Charts"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Vue%20Charts"
+      alt="TanStack Vue Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # `@tanstack/vue-charts`
 
 Vue lifecycle adapter for `@tanstack/charts`.
