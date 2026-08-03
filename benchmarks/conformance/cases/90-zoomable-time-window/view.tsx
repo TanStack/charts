@@ -18,6 +18,7 @@ import {
   initialZoomWindow,
   selectZoomRows,
   visibleZoomData,
+  visibleZoomDataWithNeighbors,
   zoomDateFromAnchor,
   zoomDateKey,
   zoomFullDomain,
@@ -69,19 +70,20 @@ const ZoomableTimeWindowExample = forwardRef<
   })
   const [state, setState] = useState(stateRef.current)
   const [scene, setScene] = useState<ChartScene<AaplRow> | null>(null)
-  const rows = visibleZoomData(zoomRows, state.window)
+  const visibleRows = visibleZoomData(zoomRows, state.window)
+  const lineRows = visibleZoomDataWithNeighbors(zoomRows, state.window)
   const definition = useMemo(
     () =>
       defineChart(
         defineChart({
           marks: [
-            lineY(rows, {
+            lineY(lineRows, {
               x: 'Date',
               y: 'Close',
               stroke: color,
               strokeWidth: 2.5,
             }),
-            dot(rows, {
+            dot(visibleRows, {
               x: 'Date',
               y: 'Close',
               fill: color,
@@ -109,6 +111,7 @@ const ZoomableTimeWindowExample = forwardRef<
             grid: true,
             axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
           },
+          clip: true,
           margin: { top: 56, right: 24, bottom: 44, left: 58 },
         }),
         { animate: false, keyboard: false, focus: focusDisabled },
