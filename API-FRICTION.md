@@ -233,6 +233,7 @@ Each entry records:
 | F-195 | Release versions matched dependency substrings            | Tooling         | resolved   |
 | F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
 | F-197 | Workspace validation omitted comparison provenance        | Tooling         | resolved   |
+| F-198 | Union-valued axes rejected configured D3 scales           | API             | resolved   |
 
 ## Findings
 
@@ -4908,3 +4909,19 @@ Each entry records:
 - Verification: the 60-case comparison baseline records revision `e4b5249`
   and package version 0.6.2, the canonical comparison page identifies the same
   revision, and `pnpm benchmark:check` passes locally and in pull-request CI.
+
+### F-198 — Union-valued axes rejected configured D3 scales
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: issue #34 configured D3 scale instance repro
+- Friction: an axis inferred as `string | Date` required one configured scale
+  to accept both members. A documented `scaleTime().domain(...)` instance was
+  therefore rejected even though it correctly served the temporal branch.
+- Decision: distribute `ChartScaleInput` over axis-value unions so each
+  configured scale retains its exact input contract. Keep runtime validation
+  unchanged and narrow the copied scale only after that validation succeeds.
+- Verification: the public type regression accepts a configured D3 time scale
+  for a `string | Date` axis, rejects an unrelated numeric scale, and the full
+  workspace typecheck plus configured-scale runtime tests pass.
