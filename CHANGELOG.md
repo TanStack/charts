@@ -1,5 +1,83 @@
 # Changelog
 
+## 0.6.4
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#51](https://github.com/TanStack/charts/pull/51) [`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95) - Accept configured D3 scale instances for union-valued axes.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
 ## 0.6.3
 
 ### @tanstack/charts
