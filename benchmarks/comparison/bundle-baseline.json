@@ -1,8 +1,8 @@
 {
   "schemaVersion": 3,
-  "generatedAt": "2026-08-02T21:03:04.476Z",
+  "generatedAt": "2026-08-03T05:36:45.402Z",
   "packageVersions": {
-    "tanstack": "0.6.2",
+    "tanstack": "0.6.3",
     "chartjs": "4.5.1",
     "echarts": "6.1.0",
     "recharts": "3.10.1",
@@ -11,7 +11,7 @@
   "sources": {
     "tanstack": {
       "kind": "workspace",
-      "revision": "e4b5249ceca9910d990aefc9f8777a8d28e63921"
+      "revision": "3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95"
     },
     "chartjs": {
       "kind": "package",
@@ -116,16 +116,16 @@
     "tanstack-scatter-interactive": {
       "minifiedBytes": 82948,
       "gzipBytes": 30973,
-      "brotliBytes": 27313,
+      "brotliBytes": 27317,
       "incrementalGzipBytes": 30973,
-      "incrementalBrotliBytes": 27313
+      "incrementalBrotliBytes": 27317
     },
     "tanstack-scatter-advanced": {
       "minifiedBytes": 82964,
       "gzipBytes": 30979,
-      "brotliBytes": 27318,
+      "brotliBytes": 27329,
       "incrementalGzipBytes": 30979,
-      "incrementalBrotliBytes": 27318
+      "incrementalBrotliBytes": 27329
     },
     "chartjs-line-basic": {
       "minifiedBytes": 137909,
