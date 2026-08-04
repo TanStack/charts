@@ -104,12 +104,9 @@ container CSS for palette variables, inherited color, and typography.
 
 ## Gradients and clipping
 
-Gradients are opt-in SVG resources. Declare them on the chart and render with
-the resource-aware SVG renderer:
+Gradients are opt-in resources. Declare them on the chart:
 
 ```ts
-import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
-
 const definition = defineChart({
   marks,
   x,
@@ -130,16 +127,16 @@ const definition = defineChart({
 })
 ```
 
-Use `url(#area-fill)` as the mark paint and pass
-`renderSvg: renderChartSvgWithResources` to the host or adapter. `idPrefix`
-scopes resource and clip IDs when several charts share a document.
+Use `url(#area-fill)` as the mark paint. Default SVG hosts emit and scope the
+resource; `idPrefix` keeps resource and clip IDs distinct when several charts
+share a document.
 
 Set `clip: true` when marks should be clipped to the resolved plot rectangle.
 Clipping is a geometry policy, not a substitute for correct scale domains.
 
-Canvas consumes the same declared gradients and group clips without the
-resource-aware SVG serializer. A Canvas gradient needs measurable node bounds;
-path-only geometry with no point bounds should use an explicit paint instead.
+Canvas consumes the same declared gradients and group clips. A Canvas gradient
+needs measurable node bounds; path-only geometry with no point bounds should
+use an explicit paint instead.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/heatmap-labeled/?theme=system&height=480"

@@ -70,8 +70,9 @@ resource prefix from Octane's `useId()` when `idPrefix` is absent.
 `tabIndex` defaults to `0` on both targets. `keyboard: false` forces it to
 `-1`.
 
-Pass `renderChartSvgWithResources` on both targets for gradients and clipping;
-see [Rendering and export](../../reference/rendering-and-export.md#resource-aware-svg).
+The default SVG renderer emits gradients and clipping on both targets. Custom
+serializers must preserve the same resources; see
+[Rendering and export](../../reference/rendering-and-export.md#svg-resources).
 
 ## Sizing and layout
 

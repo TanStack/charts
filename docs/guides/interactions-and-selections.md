@@ -46,6 +46,58 @@ Every application-owned gesture follows the same loop:
 Do not mutate SVG geometry directly and then attempt to reconcile application
 state afterward.
 
+## Controlled point inspection
+
+Use the chart's interaction controller when the application owns pointer
+timing but still wants the definition's focus strategy, focus marks, and
+tooltip. Long-press inspection is one example:
+
+```tsx
+let interaction: ChartInteractionController<Row, Date, number> | undefined
+
+const definition = defineChart({
+  marks: [lineY(rows, { x: 'date', y: 'value', key: 'id' })],
+  x: { scale: scaleUtc() },
+  y: { scale: scaleLinear() },
+  focus: 'nearest-x',
+  pointer: false,
+  tooltip,
+})
+
+const chart = (
+  <Chart
+    definition={definition}
+    ariaLabel="Portfolio history"
+    onRender={(context) => {
+      interaction = context.interaction
+    }}
+  />
+)
+
+function inspect(clientX: number, clientY: number) {
+  interaction?.setControlledFocus(interaction.resolvePointer(clientX, clientY))
+}
+
+function stopInspecting() {
+  interaction?.setControlledFocus(null)
+}
+```
+
+`resolvePointer` uses the current renderer presentation, including an active
+motion or viewport transform, and returns the scene position, primary point,
+and complete focus group. `setControlledFocus` paints the same definition-owned
+focus and tooltip as native pointer input. Pass `{ pinned: true }` when the
+configured sticky tooltip should accept interaction.
+
+For a drag that does not require a nearby datum, use
+`interaction.clientToScene(clientX, clientY)`. It applies the renderer's full
+client-to-scene transform without coupling viewport movement to point focus.
+
+`pointer: false` disables automatic pointer move, leave, and click handling. It
+does not disable keyboard navigation. Controlled focus has separate ownership,
+so unrelated mouse-leave and focus-out events cannot clear it. The stable
+controller is available as `host.interaction` and in every `onRender` context.
+
 ## Invert configured scales
 
 Copy the same configured D3 scale onto the resolved plot range:
@@ -74,7 +126,7 @@ D3 ownership and official interaction-module links.
 
 ## Disable competing datum focus
 
-When a gesture owns the chart surface, disable native focus explicitly:
+When a gesture has no datum inspection at all, disable native focus explicitly:
 
 ```ts
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
@@ -91,9 +143,10 @@ mountChart(element, {
 })
 ```
 
-This prevents a brush or free cursor from competing with the host's point
-marker and tooltip. It does not remove keyboard accessibility from the
-application-owned controls.
+This prevents a brush from competing with the host's point marker and tooltip.
+Use `pointer: false` plus the interaction controller when the application owns
+the gesture but the chart should still own datum focus. `focusDisabled` does
+not remove keyboard accessibility from application-owned controls.
 
 ## Brush selection
 

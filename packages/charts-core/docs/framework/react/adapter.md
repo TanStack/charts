@@ -97,9 +97,9 @@ stable through hydration.
 `tabIndex` defaults to `0` on both server and client. `keyboard: false` forces
 it to `-1`.
 
-For resource-aware gradients or clipping, pass the same renderer on both
-server and client. See
-[Rendering and export](../../reference/rendering-and-export.md#resource-aware-svg).
+The default SVG renderer emits gradients and clipping on both server and
+client. Custom serializers must preserve the same resources. See
+[Rendering and export](../../reference/rendering-and-export.md#svg-resources).
 
 ## Sizing and layout
 

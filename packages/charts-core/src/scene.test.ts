@@ -1,12 +1,25 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { bandX, bandY } from './band'
 import { mountChart } from './dom'
+import { frame } from './frame'
 import { lineY } from './line'
 import { colorLegend } from './legend'
 import { createMark } from './mark'
-import { createChartScene, defineChart, findNearestPoint } from './scene'
+import {
+  createChartScene,
+  defineChart,
+  findNearestPoint,
+  viewportInteractionPoints,
+} from './scene'
 import { renderChartSvg } from './svg'
 import { linearAxes, utcXAxes } from './test-scales'
-import type { ChartDefinition, ChartPoint, SceneNode } from './types'
+import { text } from './text'
+import type {
+  ChartDefinition,
+  ChartPoint,
+  ChartScene,
+  SceneNode,
+} from './types'
 
 describe('native mark and channel scene', () => {
   it('groups one flat arbitrary dataset through a z channel', () => {
@@ -197,6 +210,499 @@ describe('native mark and channel scene', () => {
       datum,
     )
     expect(findNearestPoint(scene, 0, 0, 8)).toBeNull()
+  })
+
+  it('translates one clipped content path while guides stay fixed', () => {
+    const rows = [0, 10, 20, 30].map((x) => ({ id: String(x), x, y: x / 3 }))
+    const makeScene = (translate: number) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            lineY(rows, {
+              id: 'history',
+              x: 'x',
+              y: 'y',
+              key: 'id',
+            }),
+          ],
+          x: {
+            scale: linearAxes([0, 30], [0, 10]).x.scale,
+            viewport: { domain: [10, 20], translate },
+            grid: true,
+          },
+          y: { ...linearAxes([0, 30], [0, 10]).y, grid: true },
+        }),
+        { width: 480, height: 260 },
+      )
+
+    const settled = makeScene(0)
+    const dragged = makeScene(40)
+    const settledMarks = settled.nodes.find((node) => node.key === 'marks')
+    const draggedMarks = dragged.nodes.find((node) => node.key === 'marks')
+    if (settledMarks?.kind !== 'group' || draggedMarks?.kind !== 'group') {
+      throw new Error('Expected mark groups')
+    }
+    const settledClip = settledMarks.children[0]
+    const draggedClip = draggedMarks.children[0]
+    const settledContent =
+      settledClip?.kind === 'group' ? settledClip.children[0] : undefined
+    const draggedContent =
+      draggedClip?.kind === 'group' ? draggedClip.children[0] : undefined
+    if (
+      settledClip?.kind !== 'group' ||
+      draggedClip?.kind !== 'group' ||
+      settledContent?.kind !== 'group' ||
+      draggedContent?.kind !== 'group'
+    ) {
+      throw new Error('Expected clipped viewport content groups')
+    }
+    const settledLine = flatten(settledContent.children).find(
+      (node) => node.kind === 'polyline',
+    )
+    const draggedLine = flatten(draggedContent.children).find(
+      (node) => node.kind === 'polyline',
+    )
+    if (settledLine?.kind !== 'polyline' || draggedLine?.kind !== 'polyline') {
+      throw new Error('Expected history paths')
+    }
+
+    expect(settledMarks.clip).toBeUndefined()
+    expect(draggedMarks.clip).toBeUndefined()
+    expect(settledClip.clip).toEqual(settled.chart)
+    expect(draggedClip.clip).toEqual(dragged.chart)
+    expect(settledContent.key).toBe('viewport-content:history')
+    expect(settledContent.translateX).toBe(0)
+    expect(draggedContent.translateX).toBe(40)
+    expect(draggedLine.path).toBe(settledLine.path)
+    expect(draggedLine.points).toEqual(settledLine.points)
+    expect(dragged.points.map((point) => point.x)).toEqual(
+      settled.points.map((point) => point.x + 40),
+    )
+    expect(dragged.nodes.find((node) => node.key === 'grid')).toEqual(
+      settled.nodes.find((node) => node.key === 'grid'),
+    )
+    expect(dragged.nodes.find((node) => node.key === 'axes')).toEqual(
+      settled.nodes.find((node) => node.key === 'axes'),
+    )
+
+    const visiblePoints = viewportInteractionPoints(dragged)
+    expect(visiblePoints.length).toBeLessThan(dragged.points.length)
+    expect(
+      visiblePoints.every(
+        (point) =>
+          point.x >= dragged.chart.x &&
+          point.x <= dragged.chart.x + dragged.chart.width,
+      ),
+    ).toBe(true)
+    expect(viewportInteractionPoints(dragged, visiblePoints)).toBe(
+      visiblePoints,
+    )
+
+    const visible = dragged.points.find((point) => point.datum.x === 10)!
+    expect(findNearestPoint(dragged, visible.x, visible.y, 1)?.datum).toBe(
+      visible.datum,
+    )
+    const interaction = draggedLine.interaction
+    expect(interaction?.points).toBeDefined()
+    if (!interaction?.points) return
+    expect(interaction.points[0]?.x).toBe(dragged.points[0]?.x)
+    expect(draggedLine.points[0]?.[0]).toBe(settled.points[0]?.x)
+
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvg(dragged, {
+      ariaLabel: 'Paged history',
+      idPrefix: 'history',
+    })
+    const marks = container.querySelector<SVGGElement>('g.ts-chart__marks')
+    const viewportClip = marks?.querySelector<SVGGElement>(
+      'g.ts-chart__viewport-clip',
+    )
+    const clip = viewportClip?.querySelector('clipPath rect')
+    expect(settledLine.points[0]?.[0]).toBeLessThan(settled.chart.x)
+    expect(settledLine.points.at(-1)?.[0]).toBeGreaterThan(
+      settled.chart.x + settled.chart.width,
+    )
+    expect(marks?.getAttribute('clip-path')).toBeNull()
+    expect(viewportClip?.getAttribute('clip-path')).toMatch(
+      /^url\(#history-ts-chart-clip-/,
+    )
+    expect(Number(clip?.getAttribute('x'))).toBeCloseTo(dragged.chart.x)
+    expect(Number(clip?.getAttribute('width'))).toBeCloseTo(dragged.chart.width)
+    expect(marks?.querySelector('g.ts-chart__viewport-content path')).not.toBe(
+      null,
+    )
+    expect(marks?.querySelector('[data-ts-key="axes"]')).toBeNull()
+  })
+
+  it('translates only marks that depend on the viewport axis', () => {
+    const history = [0, 5, 10].map((x) => ({ id: String(x), x, y: x }))
+    const axes = linearAxes([0, 10], [0, 10])
+    const xScene = createChartScene(
+      defineChart({
+        marks: [
+          frame({ id: 'plot-frame' }),
+          bandY([{ id: 'target-y', y: 5 }], {
+            id: 'target-y',
+            y: 'y',
+            key: 'id',
+            height: 2,
+          }),
+          lineY(history, { id: 'history-x', x: 'x', y: 'y', key: 'id' }),
+        ],
+        x: {
+          scale: axes.x.scale,
+          viewport: { domain: [2, 8], translate: 36 },
+        },
+        y: axes.y,
+        guides: false,
+      }),
+      { width: 480, height: 260 },
+    )
+    const yScene = createChartScene(
+      defineChart({
+        marks: [
+          frame({ id: 'plot-frame' }),
+          bandX([{ id: 'target-x', x: 5 }], {
+            id: 'target-x',
+            x: 'x',
+            key: 'id',
+            width: 2,
+          }),
+          lineY(history, { id: 'history-y', x: 'x', y: 'y', key: 'id' }),
+        ],
+        x: axes.x,
+        y: {
+          scale: axes.y.scale,
+          viewport: { domain: [2, 8], translate: -24 },
+        },
+        guides: false,
+      }),
+      { width: 480, height: 260 },
+    )
+    const settled = (axis: 'x' | 'y') =>
+      createChartScene(
+        defineChart({
+          marks: [
+            frame({ id: 'plot-frame' }),
+            axis === 'x'
+              ? bandY([{ id: 'target-y', y: 5 }], {
+                  id: 'target-y',
+                  y: 'y',
+                  key: 'id',
+                  height: 2,
+                })
+              : bandX([{ id: 'target-x', x: 5 }], {
+                  id: 'target-x',
+                  x: 'x',
+                  key: 'id',
+                  width: 2,
+                }),
+            lineY(history, {
+              id: `history-${axis}`,
+              x: 'x',
+              y: 'y',
+              key: 'id',
+            }),
+          ],
+          x:
+            axis === 'x'
+              ? {
+                  scale: axes.x.scale,
+                  viewport: { domain: [2, 8], translate: 0 },
+                }
+              : axes.x,
+          y:
+            axis === 'y'
+              ? {
+                  scale: axes.y.scale,
+                  viewport: { domain: [2, 8], translate: 0 },
+                }
+              : axes.y,
+          guides: false,
+        }),
+        { width: 480, height: 260 },
+      )
+
+    const inspect = (
+      scene: ChartScene,
+      translatedAxis: 'x' | 'y',
+      fixedClass: string,
+    ) => {
+      const nodes = flatten(scene.nodes)
+      const content = nodes.find(
+        (node) =>
+          node.kind === 'group' &&
+          node.className?.includes('ts-chart__viewport-content'),
+      )
+      if (content?.kind !== 'group') {
+        throw new Error('Expected axis-specific viewport content')
+      }
+      const translated = flatten(content.children)
+      expect(
+        translated.some(
+          (node) =>
+            node.kind === 'group' && node.className?.includes('ts-chart__line'),
+        ),
+      ).toBe(true)
+      expect(
+        translated.some(
+          (node) =>
+            node.kind === 'group' && node.className?.includes(fixedClass),
+        ),
+      ).toBe(false)
+      expect(
+        nodes.some(
+          (node) =>
+            node.kind === 'group' && node.className?.includes(fixedClass),
+        ),
+      ).toBe(true)
+      expect(
+        nodes.some(
+          (node) =>
+            node.kind === 'group' &&
+            node.className?.includes('ts-chart__frame'),
+        ),
+      ).toBe(true)
+      expect(
+        translated.some(
+          (node) =>
+            node.kind === 'group' &&
+            node.className?.includes('ts-chart__frame'),
+        ),
+      ).toBe(false)
+      expect(content.translateX).toBe(translatedAxis === 'x' ? 36 : undefined)
+      expect(content.translateY).toBe(translatedAxis === 'y' ? -24 : undefined)
+    }
+
+    inspect(xScene, 'x', 'ts-chart__band-y')
+    inspect(yScene, 'y', 'ts-chart__band-x')
+    const fixedNode = (scene: ChartScene, className: string) =>
+      flatten(scene.nodes).find(
+        (node) => node.kind === 'group' && node.className?.includes(className),
+      )
+    expect(fixedNode(xScene, 'ts-chart__band-y')).toEqual(
+      fixedNode(settled('x'), 'ts-chart__band-y'),
+    )
+    expect(fixedNode(yScene, 'ts-chart__band-x')).toEqual(
+      fixedNode(settled('y'), 'ts-chart__band-x'),
+    )
+    expect(fixedNode(xScene, 'ts-chart__frame')).toEqual(
+      fixedNode(settled('x'), 'ts-chart__frame'),
+    )
+  })
+
+  it('keeps per-mark viewport group keys stable as siblings change', () => {
+    const rows = [0, 5, 10].map((x) => ({ id: String(x), x, y: x }))
+    const makeScene = (withLeadingMarks: boolean) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            ...(withLeadingMarks
+              ? [
+                  lineY(rows, { id: 'history-a', x: 'x', y: 'y', key: 'id' }),
+                  frame({ id: 'plot-frame' }),
+                ]
+              : []),
+            lineY(rows, { id: 'history-b', x: 'x', y: 'y', key: 'id' }),
+          ],
+          x: {
+            scale: linearAxes([0, 10], [0, 10]).x.scale,
+            viewport: { domain: [2, 8], translate: 12 },
+          },
+          y: linearAxes([0, 10], [0, 10]).y,
+          guides: false,
+        }),
+        { width: 480, height: 260 },
+      )
+    const keys = (scene: ChartScene) =>
+      flatten(scene.nodes)
+        .filter(
+          (node) =>
+            node.kind === 'group' &&
+            node.className?.includes('ts-chart__viewport-content'),
+        )
+        .map((node) => node.key)
+
+    expect(keys(makeScene(true))).toEqual([
+      'viewport-content:history-a',
+      'viewport-content:history-b',
+    ])
+    expect(keys(makeScene(false))).toEqual(['viewport-content:history-b'])
+  })
+
+  it('lets custom marks declare fixed or content viewport ownership', () => {
+    const annotation = (
+      id: string,
+      ownership: 'fixed' | 'content',
+      contributesDomain: boolean,
+    ) =>
+      createMark<never, number, number>(() => ({
+        id,
+        channels: {
+          x: { scale: 'x', values: contributesDomain ? [0, 10] : [] },
+        },
+        viewport: { x: ownership },
+        render: ({ chart }) => ({
+          nodes: [
+            {
+              kind: 'group',
+              key: id,
+              className: id,
+              children: [
+                {
+                  kind: 'rule',
+                  key: `${id}:rule`,
+                  x1: chart.x,
+                  x2: chart.x + chart.width,
+                  y1: chart.y,
+                  y2: chart.y,
+                },
+              ],
+            },
+          ],
+        }),
+      }))
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          annotation('fixed-annotation', 'fixed', true),
+          annotation('content-annotation', 'content', false),
+        ],
+        x: {
+          scale: linearAxes([0, 10], [0, 1]).x.scale,
+          viewport: { domain: [2, 8], translate: 20 },
+        },
+        y: linearAxes([0, 10], [0, 1]).y,
+        guides: false,
+      }),
+      { width: 480, height: 260 },
+    )
+    const marks = resolved.nodes.find((node) => node.key === 'marks')
+    if (marks?.kind !== 'group') throw new Error('Expected marks')
+    const content = flatten(marks.children).find(
+      (node) =>
+        node.kind === 'group' && node.className === 'content-annotation',
+    )
+    const fixed = flatten(marks.children).find(
+      (node) => node.kind === 'group' && node.className === 'fixed-annotation',
+    )
+    const viewport = flatten(marks.children).find(
+      (node) =>
+        node.kind === 'group' &&
+        node.className?.includes('ts-chart__viewport-content'),
+    )
+    if (viewport?.kind !== 'group') throw new Error('Expected viewport group')
+
+    expect(content).toBeDefined()
+    expect(fixed).toBeDefined()
+    expect(flatten(viewport.children)).toContain(content)
+    expect(flatten(viewport.children)).not.toContain(fixed)
+    expect(viewport.translateX).toBe(20)
+  })
+
+  it('keeps fixed mark points interactive outside another mark viewport', () => {
+    const fixed = createMark<never, number, number>(() => ({
+      id: 'fixed-annotation',
+      channels: {},
+      viewport: { x: 'fixed', y: 'fixed' },
+      render: ({ chart }) => {
+        const point: ChartPoint<never, number, number> = {
+          key: 'fixed-annotation:point',
+          markId: 'fixed-annotation',
+          group: null,
+          groupLabel: 'fixed-annotation',
+          datum: undefined as never,
+          datumIndex: 0,
+          xValue: 0,
+          yValue: 5,
+          x: chart.x - 20,
+          y: chart.y + chart.height / 2,
+          color: 'currentColor',
+        }
+        return {
+          points: [point],
+          nodes: [
+            {
+              kind: 'dot',
+              key: point.key,
+              x: point.x,
+              y: point.y,
+              radius: 4,
+              interaction: { point },
+            },
+          ],
+        }
+      },
+    }))
+    const rows = [0, 5, 10].map((x) => ({ id: String(x), x, y: x }))
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          lineY(rows, { id: 'history', x: 'x', y: 'y', key: 'id' }),
+          fixed,
+        ],
+        x: {
+          scale: linearAxes([0, 10], [0, 10]).x.scale,
+          viewport: { domain: [4, 6] },
+        },
+        y: linearAxes([0, 10], [0, 10]).y,
+        guides: false,
+      }),
+      { width: 400, height: 200 },
+    )
+    const fixedPoint = resolved.points.find(
+      (point) => point.markId === 'fixed-annotation',
+    )
+    if (!fixedPoint) throw new Error('Expected fixed annotation point')
+    const visible = viewportInteractionPoints(resolved)
+    const focusLayers = flatten(resolved.nodes).filter(
+      (node) =>
+        node.kind === 'group' &&
+        node.className?.includes('ts-chart__focus-layer--default'),
+    )
+    const fixedFocus = focusLayers.find(
+      (node) => node.key === 'default-focus:fixed-annotation',
+    )
+    const historyFocus = focusLayers.find(
+      (node) => node.key === 'default-focus:history',
+    )
+
+    expect(fixedPoint.x).toBeLessThan(resolved.chart.x)
+    expect(visible).toContain(fixedPoint)
+    expect(fixedFocus?.kind === 'group' && fixedFocus.clip).toBeUndefined()
+    expect(historyFocus?.kind === 'group' && historyFocus.clip).toEqual(
+      resolved.chart,
+    )
+  })
+
+  it('does not let auto-clipped off-window labels inflate layout margins', () => {
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          text(
+            [
+              {
+                id: 'offscreen',
+                x: -100,
+                y: 0.5,
+                label: 'A very long historical annotation outside the window',
+              },
+            ],
+            { x: 'x', y: 'y', text: 'label', key: 'id', anchor: 'end' },
+          ),
+        ],
+        x: {
+          scale: linearAxes([-100, 100], [0, 1]).x.scale,
+          viewport: { domain: [0, 1] },
+        },
+        y: linearAxes([-100, 100], [0, 1]).y,
+        guides: false,
+      }),
+      { width: 400, height: 200 },
+    )
+
+    expect(resolved.margin).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
+    expect(resolved.chart).toEqual({ x: 0, y: 0, width: 400, height: 200 })
   })
 
   it('renders escaped, complete SVG without a DOM', () => {

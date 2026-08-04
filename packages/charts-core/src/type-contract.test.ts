@@ -17,7 +17,9 @@ import { createChartScene, defineChart } from './scene'
 import { tooltip } from './tooltip'
 import { portal } from './tooltip-portal'
 import type {
+  ChartAxisOptions,
   ChartDefinition,
+  ChartAxisViewportOptions,
   ChartFocusStrategy,
   ChartMark,
   ChartMarkPointX,
@@ -33,6 +35,7 @@ import type {
   ChartSpecYValue,
   ChartSvgRenderer,
   ChartValue,
+  ResolvedScaleViewport,
 } from './types'
 
 interface Row {
@@ -324,6 +327,39 @@ const customScale: ChartScale = {
 }
 
 if (false) {
+  const numericViewport: ChartAxisViewportOptions<number> = {
+    domain: [0, 10],
+  }
+  const temporalViewport: ChartAxisViewportOptions<Date> = {
+    domain: [new Date(0), new Date(10)],
+  }
+  const mixedViewport: ChartAxisViewportOptions = {
+    // @ts-expect-error A viewport tuple cannot mix numeric and temporal values.
+    domain: [0, new Date(10)],
+  }
+  const categoricalAxis: ChartAxisOptions<string> = {
+    scale: scaleBand<string>(),
+    // @ts-expect-error Categorical axes cannot configure a continuous viewport.
+    viewport: { domain: ['Alpha', 'Beta'] },
+  }
+  const unionTemporalAxis: ChartAxisOptions<string | Date> = {
+    scale: scaleUtc(),
+    viewport: { domain: [new Date(0), new Date(10)] },
+  }
+  const mixedResolvedViewport: ResolvedScaleViewport = {
+    contentDomain: [0, 10],
+    // @ts-expect-error A resolved viewport also requires a homogeneous domain.
+    domain: [0, new Date(10)],
+    translate: 0,
+    map: () => 0,
+  }
+  void numericViewport
+  void temporalViewport
+  void mixedViewport
+  void categoricalAxis
+  void unionTemporalAxis
+  void mixedResolvedViewport
+
   expectTypeOf(positionlessDefinition).toMatchTypeOf<
     ChartDefinition<Row, number, number>
   >()
@@ -342,7 +378,6 @@ if (false) {
     marks: [positionlessMark],
     x: { scale: scaleLinear() },
   })
-
   const container = document.createElement('div')
   const categoricalFocus: ChartFocusStrategy<Row, string, number> = {
     resolve(points) {

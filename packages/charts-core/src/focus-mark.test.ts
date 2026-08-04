@@ -1,13 +1,13 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
-import { bandX } from './band'
+import { bandX, bandY } from './band'
 import { barX, barY } from './bar'
 import { dot } from './dot'
 import { whenFocused } from './focus-mark'
 import { lineY } from './line'
 import { createChartScene, defineChart } from './scene'
 import { svgChartRenderer } from './svg-surface'
-import type { ChartScene, ChartValue } from './types'
+import type { ChartScene, ChartValue, SceneNode } from './types'
 
 describe('focus-filtered marks', () => {
   const rows = [
@@ -47,6 +47,111 @@ describe('focus-filtered marks', () => {
       { width: 480, height: 260 },
     )
   }
+
+  it('supports fixed pixel sizes before inset on continuous and band scales', () => {
+    const xScene = createChartScene(
+      defineChart({
+        marks: [bandX([{ x: 5 }], { x: 'x', width: 1 })],
+        x: { scale: scaleLinear().domain([0, 10]) },
+      }),
+      { width: 240, height: 160 },
+    )
+    const yScene = createChartScene(
+      defineChart({
+        marks: [bandY([{ y: 5 }], { y: 'y', height: 2 })],
+        y: { scale: scaleLinear().domain([0, 10]) },
+      }),
+      { width: 240, height: 160 },
+    )
+    const categorical = createChartScene(
+      defineChart({
+        marks: [
+          bandX([{ category: 'A' }], {
+            x: 'category',
+            width: 10,
+            inset: 2,
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A']) },
+      }),
+      { width: 240, height: 160 },
+    )
+    const zero = createChartScene(
+      defineChart({
+        marks: [bandY([{ y: 5 }], { y: 'y', height: 0 })],
+        y: { scale: scaleLinear().domain([0, 10]) },
+      }),
+      { width: 240, height: 160 },
+    )
+
+    const xRect = findFirstRect(xScene.nodes)
+    const yRect = findFirstRect(yScene.nodes)
+    expect(xRect?.width).toBe(1)
+    expect(yRect?.height).toBe(2)
+    expect(findFirstRect(categorical.nodes)?.width).toBe(6)
+    expect(findFirstRect(zero.nodes)?.height).toBe(0)
+  })
+
+  it('uses presented viewport points for focus, state, and interaction refs', () => {
+    const history = [0, 1, 2, 3].map((x) => ({ id: String(x), x, y: x }))
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          whenFocused(bandX(history, { x: 'x', key: 'id', width: 1 }), {
+            match: 'x',
+          }),
+          dot(history, {
+            x: 'x',
+            y: 'y',
+            key: 'id',
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { r: 6 },
+              },
+            ],
+          }),
+        ],
+        x: {
+          scale: scaleLinear().domain([0, 3]),
+          viewport: { domain: [1, 2], translate: 25 },
+        },
+        y: { scale: scaleLinear().domain([0, 3]) },
+        guides: false,
+        clip: true,
+      }),
+      { width: 360, height: 220 },
+    )
+    const nodes = flattenNodes(resolved.nodes)
+    const content = nodes.find(
+      (node) =>
+        node.kind === 'group' &&
+        node.className?.includes('ts-chart__viewport-content'),
+    )
+    const focusLayer = nodes.find(
+      (node) => node.kind === 'group' && node.focus !== undefined,
+    )
+    const stateLayer = nodes.find(
+      (node) => node.kind === 'group' && node.states !== undefined,
+    )
+    const firstDot = nodes.find((node) => node.kind === 'dot')
+    if (
+      content?.kind !== 'group' ||
+      focusLayer?.kind !== 'group' ||
+      stateLayer?.kind !== 'group' ||
+      firstDot?.kind !== 'dot' ||
+      !firstDot.interaction?.point
+    ) {
+      throw new Error('Expected viewport focus and state geometry')
+    }
+
+    expect(focusLayer.focus?.points.map((point) => point.x)).toEqual(
+      resolved.points.map((point) => point.x),
+    )
+    expect(stateLayer.states?.points).toEqual(resolved.points)
+    expect(firstDot.interaction.point).toBe(resolved.points[0])
+    expect(firstDot.x + (content.translateX ?? 0)).toBe(resolved.points[0]?.x)
+  })
 
   it('keeps focus effects out of hit testing and preserves mark order', () => {
     const resolved = scene()
@@ -136,6 +241,25 @@ describe('focus-filtered marks', () => {
     ).toBe(false)
   })
 })
+
+function flattenNodes(nodes: readonly SceneNode[]): SceneNode[] {
+  return nodes.flatMap((node) =>
+    node.kind === 'group' ? [node, ...flattenNodes(node.children)] : [node],
+  )
+}
+
+function findFirstRect(
+  nodes: readonly SceneNode[],
+): Extract<SceneNode, { kind: 'rect' }> | undefined {
+  for (const node of nodes) {
+    if (node.kind === 'rect') return node
+    if (node.kind === 'group') {
+      const nested = findFirstRect(node.children)
+      if (nested) return nested
+    }
+  }
+  return undefined
+}
 
 describe('inline mark states', () => {
   const rows = [

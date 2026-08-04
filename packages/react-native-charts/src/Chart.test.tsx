@@ -12,28 +12,42 @@ import {
   type NativeChartTooltipExtension,
 } from './tooltip-entry'
 
+interface MockNativeViewProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'style'
+> {
+  style?: unknown
+  onStartShouldSetResponder?: () => boolean
+  onMoveShouldSetResponder?: () => boolean
+}
+
+const nativeViewState = vi.hoisted(() => ({
+  props: null as MockNativeViewProps | null,
+}))
+
 vi.mock('react-native', async () => {
   const ReactModule = await import('react')
   return {
     Text: 'span',
-    View: ReactModule.forwardRef<
-      HTMLDivElement,
-      React.HTMLAttributes<HTMLDivElement> & { style?: unknown }
-    >(function MockView({ children, onBlur, onFocus, style }, ref) {
-      const resolvedStyle = Array.isArray(style)
-        ? Object.assign({}, ...style.filter(Boolean))
-        : style
-      return ReactModule.createElement(
-        'div',
-        {
-          ref,
-          onBlur,
-          onFocus,
-          style: resolvedStyle as React.CSSProperties,
-        },
-        children,
-      )
-    }),
+    View: ReactModule.forwardRef<HTMLDivElement, MockNativeViewProps>(
+      function MockView(props, ref) {
+        nativeViewState.props = props
+        const { children, onBlur, onFocus, style } = props
+        const resolvedStyle = Array.isArray(style)
+          ? Object.assign({}, ...style.filter(Boolean))
+          : style
+        return ReactModule.createElement(
+          'div',
+          {
+            ref,
+            onBlur,
+            onFocus,
+            style: resolvedStyle as React.CSSProperties,
+          },
+          children,
+        )
+      },
+    ),
   }
 })
 
@@ -94,6 +108,26 @@ describe('React Native Chart', () => {
     )
 
     expect(markup).not.toContain('<svg')
+  })
+
+  it('declines native responder capture when pointer interaction is disabled', () => {
+    nativeViewState.props = null
+    const pointerDisabledDefinition = defineChart(definition, {
+      pointer: false,
+    })
+
+    renderToStaticMarkup(
+      <Chart
+        definition={pointerDisabledDefinition}
+        accessibilityLabel="Revenue"
+        width={480}
+        height={260}
+      />,
+    )
+
+    const responderProps = nativeViewState.props as MockNativeViewProps | null
+    expect(responderProps?.onStartShouldSetResponder?.()).toBe(false)
+    expect(responderProps?.onMoveShouldSetResponder?.()).toBe(false)
   })
 
   it('rejects tooltip extensions owned by another host', () => {

@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { scaleLinear } from 'd3-scale'
+import { lineY } from '@tanstack/charts/line'
+import { createChartScene, defineChart } from '@tanstack/charts/scene'
 import type {
   ChartDefinition,
   ChartPoint,
@@ -62,6 +65,55 @@ describe('native focus model', () => {
     )
 
     expect(model.restore(previous)).toBe(restored)
+  })
+
+  it('limits viewport geometry, navigation, restoration, and indexes to visible points', () => {
+    const rows = [0, 1, 2, 3].map((x) => ({ id: String(x), x, y: x }))
+    const chartDefinition = (translate: number) =>
+      defineChart({
+        marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
+        x: {
+          scale: scaleLinear().domain([0, 3]),
+          viewport: { domain: [1, 2], translate },
+        },
+        y: { scale: scaleLinear().domain([0, 3]) },
+        guides: false,
+      })
+    const settled = createChartScene(chartDefinition(0), {
+      width: 480,
+      height: 260,
+    })
+    const settledOne = settled.points.find((point) => point.datum.x === 1)
+    const settledTwo = settled.points.find((point) => point.datum.x === 2)
+    if (!settledOne || !settledTwo) throw new Error('Expected history points')
+    const scene = createChartScene(
+      chartDefinition((settledTwo.x - settledOne.x) / 4),
+      { width: 480, height: 260 },
+    )
+    const visible = scene.points.find((point) => point.datum.x === 1)
+    const excluded = scene.points.find((point) => point.datum.x === 2)
+    if (!visible || !excluded) throw new Error('Expected presented points')
+    const right = scene.chart.x + scene.chart.width
+    const progress = (right - visible.x) / (excluded.x - visible.x)
+    const model = createNativeChartFocusModel(scene, chartDefinition(0))
+
+    expect(
+      model.resolve(right, visible.y + (excluded.y - visible.y) * progress)[0]
+        ?.datum.x,
+    ).toBe(1)
+    expect(model.navigation.map((point) => point.datum.x)).toEqual([1])
+    expect(model.restore(excluded)).toBeNull()
+
+    let indexed: readonly (typeof scene.points)[number][] = []
+    const indexedDefinition = defineChart(chartDefinition(0), {
+      spatialIndex(points) {
+        indexed = points
+        return { findNearest: () => excluded }
+      },
+    })
+    const indexedModel = createNativeChartFocusModel(scene, indexedDefinition)
+    expect(indexed.map((point) => point.datum.x)).toEqual([1])
+    expect(indexedModel.resolve(right, visible.y)).toEqual([])
   })
 })
 

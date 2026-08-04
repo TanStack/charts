@@ -18,6 +18,8 @@ import {
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart, type ChartPoint } from '@tanstack/react-charts'
+import { LiveCharts } from './LiveCharts'
+import { PagedHistoryChart } from './PagedHistoryChart'
 
 const interactiveDownloadsChart = defineChart(downloadsChart, {
   tooltip: {
@@ -121,6 +123,10 @@ export function App() {
       </header>
 
       <div className="demo__grid">
+        <LiveCharts />
+
+        <PagedHistoryChart />
+
         <section className="chart-card chart-card--feature">
           <div className="chart-card__header">
             <div>

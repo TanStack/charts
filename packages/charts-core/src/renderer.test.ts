@@ -71,6 +71,7 @@ describe('renderer-neutral chart host', () => {
       container,
       scene: host.getScene(),
       surface: fake.surface,
+      interaction: host.interaction,
     })
     expect(query).not.toHaveBeenCalledWith('svg')
     expect(query).not.toHaveBeenCalledWith('svg.ts-chart')
@@ -137,6 +138,126 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
     expect(fake.destroy).toHaveBeenCalledOnce()
     expect(container.childElementCount).toBe(0)
+  })
+
+  it('delegates controlled client coordinate conversion to the mounted surface', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const position = { x: 37, y: 91 }
+    fake.clientToScene.mockReturnValue(position)
+    const host = mountChartRenderer(container, {
+      definition,
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Controlled coordinate conversion',
+    })
+
+    expect(host.interaction.clientToScene(123, 45)).toEqual(position)
+    expect(fake.clientToScene).toHaveBeenLastCalledWith(
+      host.getScene(),
+      123,
+      45,
+    )
+
+    host.destroy()
+    expect(host.interaction.clientToScene(123, 45)).toBeNull()
+  })
+
+  it('lets applications resolve and present focus while automatic pointer behavior is disabled', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const onFocusGroupChange = vi.fn()
+    const onSelect = vi.fn()
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        pointer: false,
+        focus: 'nearest-x',
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Controlled pointer chart',
+      onFocusChange,
+      onFocusGroupChange,
+      onSelect,
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 123,
+        clientY: 45,
+      }),
+    )
+    fake.element.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: 123,
+        clientY: 45,
+      }),
+    )
+    expect(fake.clientToScene).not.toHaveBeenCalled()
+    expect(onFocusChange).not.toHaveBeenCalled()
+    expect(onSelect).not.toHaveBeenCalled()
+
+    const resolved = host.interaction.resolvePointer(123, 45)
+    expect(resolved).toMatchObject({
+      position: {
+        x: host.getScene().points[0]?.x,
+        y: host.getScene().points[0]?.y,
+      },
+      point: { datum: data[0] },
+    })
+    expect(resolved?.points).toHaveLength(1)
+    expect(onFocusChange).not.toHaveBeenCalled()
+
+    host.interaction.setControlledFocus(resolved, { pinned: true })
+    expect(onFocusChange).toHaveBeenLastCalledWith(resolved?.point)
+    expect(onFocusGroupChange).toHaveBeenLastCalledWith(resolved?.points)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      source: 'pointer',
+      pinned: true,
+    })
+    expect(fake.paintFocus.mock.calls.at(-1)?.[1]).toEqual(resolved?.position)
+    expect(
+      container.querySelector<HTMLElement>('.ts-chart-tooltip')?.hidden,
+    ).toBe(false)
+    expect(onSelect).not.toHaveBeenCalled()
+
+    fake.element.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
+    fake.element.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+    expect(onFocusChange).not.toHaveBeenLastCalledWith(null)
+
+    host.interaction.setControlledFocus(host.getScene().points[1]!)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      source: 'programmatic',
+      pinned: false,
+    })
+    expect(onFocusChange).toHaveBeenLastCalledWith(host.getScene().points[1])
+
+    host.interaction.setControlledFocus(null)
+    expect(onFocusChange).toHaveBeenLastCalledWith(null)
+    expect(onFocusGroupChange).toHaveBeenLastCalledWith([])
+    expect(fake.paintFocus).toHaveBeenLastCalledWith(null, null)
+    expect(
+      container.querySelector<HTMLElement>('.ts-chart-tooltip')?.hidden,
+    ).toBe(true)
+
+    fake.element.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }),
+    )
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      source: 'keyboard',
+    })
+    expect(onFocusChange).toHaveBeenLastCalledWith(host.getScene().points[0])
+
+    host.destroy()
+    expect(host.interaction.resolvePointer(123, 45)).toBeNull()
+    host.interaction.setControlledFocus(host.getScene().points[0]!)
   })
 
   it('lets a spatial index fully own pointer resolution', () => {
@@ -267,6 +388,216 @@ describe('renderer-neutral chart host', () => {
 
     expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(data[1])
     expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.x).toBe(first.x)
+    host.destroy()
+  })
+
+  it('builds spatial indexes from destination geometry during presentation', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    let presentation: ChartScene<Datum, number, number>['points'] | undefined
+    fake.surface.getPresentationPoints = () => presentation
+    fake.clientToScene.mockImplementation(
+      (_scene, clientX: number, clientY: number) => ({
+        x: clientX,
+        y: clientY,
+      }),
+    )
+    const spatialIndex = (
+      points: readonly ChartPoint<Datum, number, number>[],
+    ) => ({
+      findNearest(x: number, y: number, maxDistance = 0) {
+        return (
+          points.find(
+            (point) =>
+              (point.x - x) ** 2 + (point.y - y) ** 2 <= maxDistance ** 2,
+          ) ?? null
+        )
+      },
+    })
+    const makeDefinition = (x: number) =>
+      defineChart(
+        {
+          marks: [
+            lineY([{ id: 'moving', x, y: 4 }], {
+              x: 'x',
+              y: 'y',
+              key: 'id',
+            }),
+          ],
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 8]) },
+          guides: false,
+          maxFocusDistance: 1,
+        },
+        { spatialIndex },
+      )
+    const options = {
+      definition: makeDefinition(0),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Indexed presentation geometry',
+    }
+    const host = mountChartRenderer(container, options)
+    presentation = host.getScene().points
+
+    host.update({ ...options, definition: makeDefinition(1) })
+    const destination = host.getScene().points[0]
+    if (!destination) throw new Error('Expected a destination point')
+    presentation = undefined
+
+    expect(
+      host.interaction.resolvePointer(destination.x, destination.y)?.points[0],
+    ).toBe(destination)
+    host.destroy()
+  })
+
+  it('re-resolves a stationary pointer when presentation geometry advances', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    let presentation: ChartScene<Datum, number, number>['points'] | undefined
+    let publish:
+      | ((points: ChartScene<Datum, number, number>['points']) => void)
+      | undefined
+    const unsubscribe = vi.fn()
+    fake.surface.getPresentationPoints = () => presentation
+    fake.surface.subscribePresentationPoints = (listener) => {
+      publish = listener
+      return unsubscribe
+    }
+    const host = mountChartRenderer(container, {
+      definition: { ...definition, maxFocusDistance: 20 },
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Advancing presentation geometry',
+      onFocusChange,
+    })
+    const [first, second] = host.getScene().points
+    if (!first || !second || !publish) {
+      throw new Error('Expected presentation subscription')
+    }
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: first.x,
+        clientY: first.y,
+      }),
+    )
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(first.datum)
+
+    presentation = [
+      { ...first, x: first.x + 100, y: first.y + 100 },
+      { ...second, x: first.x, y: first.y },
+    ]
+    publish(presentation)
+
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(second.datum)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.x).toBe(first.x)
+
+    host.destroy()
+    expect(unsubscribe).toHaveBeenCalledOnce()
+  })
+
+  it('keeps controlled pointer focus aligned with presentation geometry', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    let presentation: ChartScene<Datum, number, number>['points'] | undefined
+    let publish:
+      | ((points: ChartScene<Datum, number, number>['points']) => void)
+      | undefined
+    fake.surface.getPresentationPoints = () => presentation
+    fake.surface.subscribePresentationPoints = (listener) => {
+      publish = listener
+      return () => {}
+    }
+    const controlledDefinition = defineChart(definition, {
+      pointer: false,
+      maxFocusDistance: 20,
+    })
+    const options = {
+      definition: controlledDefinition,
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Controlled moving chart',
+      onFocusChange,
+    }
+    const host = mountChartRenderer(container, options)
+    const [first, second] = host.getScene().points
+    if (!first || !second || !publish) {
+      throw new Error('Expected presentation subscription')
+    }
+
+    const resolved = host.interaction.resolvePointer(first.x, first.y)
+    host.interaction.setControlledFocus(resolved)
+    expect(onFocusChange).toHaveBeenLastCalledWith(first)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      source: 'pointer',
+    })
+
+    host.update({ ...options, width: 481 })
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      source: 'pointer',
+    })
+
+    presentation = [
+      { ...first, x: first.x + 100, y: first.y + 100 },
+      { ...second, x: first.x, y: first.y },
+    ]
+    publish(presentation)
+
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum).toBe(second.datum)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toMatchObject({
+      primary: { datum: second.datum, x: first.x, y: first.y },
+      source: 'pointer',
+      pinned: false,
+    })
+
+    host.destroy()
+  })
+
+  it('repaints controlled focus when same-key presentation geometry changes', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    let presentation: ChartScene<Datum, number, number>['points'] | undefined
+    let publish:
+      | ((points: ChartScene<Datum, number, number>['points']) => void)
+      | undefined
+    fake.surface.getPresentationPoints = () => presentation
+    fake.surface.subscribePresentationPoints = (listener) => {
+      publish = listener
+      return () => {}
+    }
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, { pointer: false }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Same-key presentation focus',
+      onFocusChange,
+    })
+    const [first, second] = host.getScene().points
+    if (!first || !second || !publish) {
+      throw new Error('Expected presentation subscription')
+    }
+
+    host.interaction.setControlledFocus(first)
+    expect(onFocusChange).toHaveBeenCalledOnce()
+    fake.paintFocus.mockClear()
+
+    const movedFirst = { ...first, x: first.x + 24, y: first.y + 16 }
+    presentation = [movedFirst, second]
+    publish(presentation)
+
+    expect(fake.paintFocus).toHaveBeenCalledOnce()
+    expect(fake.paintFocus.mock.calls[0]?.[0]?.primary).toEqual(movedFirst)
+    expect(onFocusChange).toHaveBeenCalledOnce()
+
     host.destroy()
   })
 
@@ -415,6 +746,261 @@ describe('renderer-neutral chart host', () => {
     })
     expect(anchorContext?.focus.primary.datum).toBe(data[0])
     expect(anchorContext?.focus.group).toHaveLength(1)
+    host.destroy()
+  })
+
+  it('anchors value-based tooltips in viewport presentation coordinates', () => {
+    const history = [0, 1, 2, 3].map((x) => ({ id: String(x), x, y: x }))
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart({
+        marks: [lineY(history, { x: 'x', y: 'y', key: 'id' })],
+        x: {
+          scale: scaleLinear().domain([0, 3]),
+          viewport: { domain: [1, 2], translate: 30 },
+        },
+        y: { scale: scaleLinear().domain([0, 3]) },
+        guides: false,
+        tooltip: {
+          use: tooltipExtension,
+          anchor: { x: 'value', y: 'plot-top' },
+          placement: 'bottom',
+          offset: 0,
+        },
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Viewport tooltip',
+    })
+    const point = host
+      .getScene()
+      .points.find((candidate) => candidate.datum.x === 1)
+    if (!point) throw new Error('Expected a visible history point')
+
+    host.interaction.setControlledFocus(point)
+
+    const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+    expect(host.getScene().scales.x.viewport?.map(point.xValue)).toBe(point.x)
+    expect(tooltip?.style.left).toBe(`${point.x}px`)
+    host.destroy()
+  })
+
+  it('re-resolves a stationary pointer when viewport content moves beneath it', () => {
+    const history = [0, 1, 2, 3].map((x) => ({ id: String(x), x, y: x }))
+    const makeDefinition = (translate: number) =>
+      defineChart({
+        marks: [lineY(history, { x: 'x', y: 'y', key: 'id' })],
+        x: {
+          scale: scaleLinear().domain([0, 3]),
+          viewport: { domain: [1, 2], translate },
+        },
+        y: { scale: scaleLinear().domain([0, 3]) },
+        guides: false,
+        focus: 'nearest-x',
+        maxFocusDistance: 1,
+      })
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const options = {
+      definition: makeDefinition(0),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Moving viewport focus',
+      onFocusChange,
+    }
+    const host = mountChartRenderer(container, options)
+    const points = host.getScene().points
+    const firstVisible = points.find((point) => point.datum.x === 1)
+    const previous = points.find((point) => point.datum.x === 0)
+    if (!firstVisible || !previous) throw new Error('Expected history points')
+    const pageWidth = firstVisible.x - previous.x
+    fake.clientToScene.mockReturnValue({
+      x: firstVisible.x,
+      y: firstVisible.y,
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 100,
+        clientY: 100,
+      }),
+    )
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum.x).toBe(1)
+
+    host.update({ ...options, definition: makeDefinition(pageWidth) })
+
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum.x).toBe(0)
+    host.destroy()
+  })
+
+  it('limits keyboard navigation to presented viewport points', () => {
+    const history = [0, 1, 2, 3].map((x) => ({ id: String(x), x, y: x }))
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const host = mountChartRenderer(container, {
+      definition: defineChart({
+        marks: [lineY(history, { x: 'x', y: 'y', key: 'id' })],
+        x: {
+          scale: scaleLinear().domain([0, 3]),
+          viewport: { domain: [1, 2] },
+        },
+        y: { scale: scaleLinear().domain([0, 3]) },
+        guides: false,
+        focus: 'nearest-x',
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Viewport keyboard focus',
+      onFocusChange,
+    })
+
+    fake.element.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum.x).toBe(1)
+    fake.element.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'End' }),
+    )
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum.x).toBe(2)
+    host.destroy()
+  })
+
+  it('retains geometry-aware line hits when a viewport filters no points', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const host = mountChartRenderer(container, {
+      definition: defineChart({
+        marks: [
+          lineY(
+            [
+              { id: 'start', x: 0, y: 0 },
+              { id: 'end', x: 1, y: 1 },
+            ],
+            { x: 'x', y: 'y', key: 'id' },
+          ),
+        ],
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          viewport: { domain: [0, 1] },
+        },
+        y: { scale: scaleLinear().domain([0, 1]) },
+        guides: false,
+        maxFocusDistance: 0,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Viewport line geometry',
+      onFocusChange,
+    })
+    const [start, end] = host.getScene().points
+    if (!start || !end) throw new Error('Expected line endpoints')
+    fake.clientToScene.mockReturnValue({
+      x: (start.x + end.x) / 2,
+      y: (start.y + end.y) / 2,
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientX: 1, clientY: 1 }),
+    )
+
+    expect(onFocusChange.mock.calls.at(-1)?.[0]).toBeDefined()
+    host.destroy()
+  })
+
+  it('keeps clipped line geometry but excludes offscreen semantic anchors', () => {
+    const history = [0, 1, 2, 3].map((x) => ({ id: String(x), x, y: x }))
+    const makeDefinition = (translate: number) =>
+      defineChart({
+        marks: [lineY(history, { x: 'x', y: 'y', key: 'id' })],
+        x: {
+          scale: scaleLinear().domain([0, 3]),
+          viewport: { domain: [1, 2], translate },
+        },
+        y: { scale: scaleLinear().domain([0, 3]) },
+        guides: false,
+        maxFocusDistance: 0,
+      })
+    const initial = mountChartRenderer(document.createElement('div'), {
+      definition: makeDefinition(0),
+      renderer: createFakeRenderer('measure').renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Measure viewport',
+    })
+    const initialPoints = initial.getScene().points
+    const one = initialPoints.find((point) => point.datum.x === 1)
+    const two = initialPoints.find((point) => point.datum.x === 2)
+    if (!one || !two) throw new Error('Expected adjacent history points')
+    const translate = (two.x - one.x) / 4
+    initial.destroy()
+
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const host = mountChartRenderer(container, {
+      definition: makeDefinition(translate),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Filtered viewport geometry',
+      onFocusChange,
+    })
+    const scene = host.getScene()
+    const visible = scene.points.find((point) => point.datum.x === 1)
+    const excluded = scene.points.find((point) => point.datum.x === 2)
+    if (!visible || !excluded) throw new Error('Expected presented points')
+    const right = scene.chart.x + scene.chart.width
+    const progress = (right - visible.x) / (excluded.x - visible.x)
+    fake.clientToScene.mockReturnValue({
+      x: right,
+      y: visible.y + (excluded.y - visible.y) * progress,
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientX: 1, clientY: 1 }),
+    )
+
+    expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum.x).toBe(1)
+    host.destroy()
+  })
+
+  it('uses a configured spatial index with an active viewport', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const findNearest = vi.fn()
+    const spatialIndex = vi.fn((points: readonly ChartPoint<Datum>[]) => {
+      findNearest.mockImplementation(() => points[0] ?? null)
+      return { findNearest }
+    })
+    const viewportDefinition = defineChart({
+      marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
+      x: {
+        scale: scaleLinear().domain([0, 1]),
+        viewport: { domain: [0, 1] },
+      },
+      y: { scale: scaleLinear().domain([0, 8]) },
+      guides: false,
+    })
+    const host = mountChartRenderer(container, {
+      definition: defineChart(viewportDefinition, { spatialIndex }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Viewport spatial index',
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientX: 1, clientY: 1 }),
+    )
+
+    expect(spatialIndex).toHaveBeenCalledOnce()
+    expect(findNearest).toHaveBeenCalledOnce()
     host.destroy()
   })
 

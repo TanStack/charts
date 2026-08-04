@@ -87,9 +87,9 @@ does not return or own them.
 ## Definition behavior
 
 `ChartDefinitionOptions<TDatum, TXValue, TYValue>` contains `focus`,
-`focusRing`, `maxFocusDistance`, `spatialIndex`, `animate`, `keyboard`, and
-`tooltip`. These options belong to both static and responsive definitions.
-Hosts and framework adapters do not override them.
+`focusRing`, `maxFocusDistance`, `spatialIndex`, `animate`, `pointer`,
+`keyboard`, and `tooltip`. These options belong to both static and responsive
+definitions. Hosts and framework adapters do not override them.
 
 Tooltip placement policy stays with the definition. Add the `portal` extension
 when the surface must escape clipped chart ancestors. Framework-only content

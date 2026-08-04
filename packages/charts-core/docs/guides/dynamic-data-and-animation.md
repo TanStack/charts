@@ -193,4 +193,37 @@ For high-rate data:
 4. Keep viewport state controlled.
 5. Coalesce upstream work when only the latest state matters.
 
+For a scrolling trace, keep enough overscan before the visible x-domain to
+cover the largest expected update batch, enable `clip`, and use a rolling path
+contract:
+
+```ts
+const definition = defineChart({
+  motion: {
+    path: {
+      update: 'rolling',
+      x: 'shift',
+      y: 'reproject',
+      fallback: 'snap',
+    },
+    transition: { type: 'tween', duration: sampleInterval, easing: 'linear' },
+  },
+  marks,
+})
+```
+
+The keyed retained window moves as one affine path. `y: 'reproject'` keeps that
+motion valid while a continuous y-domain changes. A failed rolling invariant
+snaps instead of occasionally becoming a different interpolation. Set
+`fallback: 'morph'` only when path interpolation is intentional. A valid update
+that arrives during another roll composes from the transform currently painted
+on screen.
+
+Keep `viewport.translate` at zero on both the previous and target scene during
+a rolling update. A nonzero transient viewport translation makes the rolling
+contract fail and uses its configured fallback. Commit the viewport domain and
+reset the translation before applying the next live-data window. Keep plot
+margins fixed and prefer linear segments so appending a sample cannot recompute
+a visible curve tangent.
+
 The final definition passed to `host.update` is applied synchronously.

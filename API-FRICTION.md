@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-02
+Last updated: 2026-08-04
 
 ## Triage rule
 
@@ -234,6 +234,11 @@ Each entry records:
 | F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
 | F-197 | Workspace validation omitted comparison provenance        | Tooling         | resolved   |
 | F-198 | Union-valued axes rejected configured D3 scales           | API             | resolved   |
+| F-199 | Rolling paths morphed samples instead of shifting them    | API             | resolved   |
+| F-200 | Motion ignored authored SVG clips                         | API             | resolved   |
+| F-201 | Paged history required overlaid chart hosts               | API             | resolved   |
+| F-202 | Long-press focus duplicated host pointer geometry         | API             | resolved   |
+| F-203 | Focus cursor width depended on private band inference     | API             | resolved   |
 
 ## Findings
 
@@ -4925,3 +4930,172 @@ Each entry records:
 - Verification: the public type regression accepts a configured D3 time scale
   for a `string | Date` axis, rejects an unrelated numeric scale, and the full
   workspace typecheck plus configured-scale runtime tests pass.
+
+### F-199 — Rolling paths morphed samples instead of shifting them
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: Liveline-inspired streaming React examples
+- Friction: a fixed-length rolling line retained keyed samples, but SVG path
+  interpolation matched commands by array position. Each old y-value therefore
+  bent toward the following sample instead of the trace translating left.
+  Stable datum keys already preserved interaction points but could not change
+  the single path element's interpolation strategy.
+- Decision: add one first-principles rolling object contract,
+  `motion.path: { update: 'rolling', x: 'shift', y, fallback }`, with fixed or
+  affine-reprojected y geometry and an explicit snap-or-morph fallback. Validate
+  the retained key window, balanced batch, stable semantic values, uniform x
+  displacement, stable primitive kind and plot bounds, required clipping,
+  structured path geometry, clip-edge coverage, and the absence of transient x
+  or y viewport translation before installing the target path and animating one
+  matrix to identity. Invalid rolling updates snap by default instead of
+  silently becoming a different interpolation.
+- Follow-up evidence: while a rolling path translated correctly, its SVG focus
+  circles snapped to destination coordinates and an active tooltip received no
+  updates as presentation points advanced. The surface could expose current
+  presentation geometry but had no notification contract for the shared host.
+- Follow-up decision: animate keyed focus-layer geometry with its owning data
+  points and add optional `ChartSurface.subscribePresentationPoints()`. The
+  shared host now re-resolves a stationary pointer or restores pinned and
+  keyboard focus against each published presentation frame, keeping tooltip
+  anchors and focus markers aligned without chart-specific wiring.
+- Follow-up evidence: entering and exiting point dots still used independent
+  fades, snap fallback retained removed presentation points until its nominal
+  duration, and applying an inline focus state cancelled the active data
+  transform.
+- Follow-up decision: associate both previous and target semantic points with
+  each rolling plan. Retained and entering dots, default focus circles,
+  exiting dots, and presentation points now share the path transform and
+  timing; snap removes stale geometry and points in the same commit. Focus
+  layers remain live during data motion, while inline mark-state geometry and
+  style retain the latest request across back-to-back updates and reconcile
+  when data motion becomes idle instead of taking over its transform.
+- Verification: pure planner tests cover valid batches and every rejected
+  invariant, including nonzero x or y viewport translation. Integration tests
+  hold target line and area path data constant while x translation and affine y
+  reprojection animate through one matrix, verify matching presentation points,
+  compose an interrupted A-to-B-to-C update from the currently painted
+  transform, keep retained, entering, and exiting point and focus decorations
+  aligned, keep an authored focus band on the same trajectory, retain a
+  deferred inline focus state across back-to-back rolls, and verify snap removes
+  old DOM and presentation points without scheduling a frame. The live
+  dynamic-y example uses the rolling object contract, clipped overscan, a stable
+  semantic area baseline, and fixed plot margins. The complete motion SVG
+  renderer measures 14.17 KiB gzip under its reviewed 14.4 KiB ceiling.
+
+### F-200 — Motion ignored authored SVG clips
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: Liveline-inspired streaming React examples
+- Friction: the definitions correctly set `clip: true`, but `motion()` used the
+  resource-free SVG serializer. Translated line and area geometry therefore
+  painted through the y-axis labels and beyond the plot instead of being
+  clipped to `scene.chart`. There was no public way to combine the motion
+  renderer with the resource-aware serializer.
+- Decision: make resource-aware SVG serialization the default and use it from
+  `motion()` for both prerendering and updates. SVG hosts now consume clips and
+  gradients already declared in the renderer-neutral scene.
+- Verification: the streaming motion regression asserts that the marks group
+  references a generated clip path whose rectangle exactly matches the
+  resolved chart x, y, width, and height. The running React examples expose
+  three distinct scoped clip paths and keep linear shifted marks inside each
+  plot while guides remain outside. The static SVG line consumer measures
+  17.75 KiB gzip; the reviewed universal baseline records its 1,743-byte gzip
+  increase from making scene resources part of the default renderer.
+
+### F-201 — Paged history required overlaid chart hosts
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: iOS-style paged history React example
+- Friction: stationary guides over a continuously swiped line required two
+  overlaid chart hosts, duplicated scale definitions, manual width measurement,
+  CSS clipping, and pixel offsets. Focus geometry belonged to one host while
+  the visible coordinates belonged to the other.
+- Decision: add a continuous axis `viewport` with a committed semantic domain
+  and transient scene-pixel translation. Resolve guides against the viewport
+  domain and place viewport content in clipped layers per mark and per owned
+  axis. Infer ownership from materialized channels and let custom marks override
+  each axis as `content` or `fixed`, keeping guides and unrelated annotations
+  stationary. Remap scene, node-interaction, focus-layer, and mark-state point
+  references to presented coordinates. Expose the full content domain and
+  presented mapper on the resolved scale. Preserve complete scene points for
+  rendering and diagnostics while `viewportInteractionPoints` and the optional
+  `findNearestPoint` candidate list limit focus and keyboard navigation to
+  clipped content anchors inside the plot while retaining points from
+  fixed-ownership marks outside it.
+- Verification: type tests constrain `ChartContinuousDomain` to homogeneous
+  numeric or Date endpoints. Configured-scale tests require continuous,
+  invertible, unclamped scales with independently configurable domain and range,
+  reject categorical, quantize, getter-only, and clamped configured scales,
+  reject an authored viewport on an opaque custom resolver, accept a custom
+  resolver that returns its own complete viewport, and cover positive,
+  reversed, and negative same-sign logarithmic domains. Scene,
+  SVG, focus, and renderer tests assert screen-direction translation,
+  per-mark/per-axis clips, fixed guides and annotations, explicit custom-mark
+  ownership, presented point references, candidate filtering, and tooltip/focus
+  continuity. The paged example renders its complete history as one line and
+  area in one chart host while the application owns only drag policy and page
+  settling. The locked D3-scale line scene measures 16.18 KiB gzip, a reviewed
+  1,233-byte increase for the default viewport-capable scene contract.
+
+### F-202 — Long-press focus duplicated host pointer geometry
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: iOS-style paged history React example
+- Friction: delaying focus until a touch hold required the application to read
+  SVG bounds, convert client coordinates, search scene points, position a
+  cursor, and render a second tooltip. The chart already owned all of that
+  logic, but its pointer handling was all-or-nothing and not callable.
+- Decision: expose one stable `ChartInteractionController` on the host and
+  render context. `clientToScene()` exposes renderer-correct drag geometry,
+  `resolvePointer()` applies the current presentation and configured focus
+  strategy, and `setControlledFocus()` paints or clears the same focus marks
+  and tooltip as native input. Definition `pointer: false` disables automatic
+  pointer move, leave, and click without disabling keyboard focus, and
+  controlled focus has separate ownership from pointer and keyboard focus.
+  Share SVG client-to-scene conversion between normal and motion surfaces.
+  Keep that surface capability optional for existing custom renderers; the
+  controller returns `null` when it is absent. Passing a pointer resolution to
+  `setControlledFocus()` infers pointer source unless explicitly overridden,
+  while a raw point defaults to programmatic source.
+- Follow-up evidence: the host rebuilt a configured spatial index from the
+  transition-start presentation points immediately after a data update. Motion
+  correctly bypassed that index while presentation points were active, but
+  re-enabled the stale index when the transition settled.
+- Follow-up decision: build spatial indexes from the destination scene's
+  visible points. Presentation points remain authoritative during motion and
+  the destination index becomes authoritative only after they settle.
+- Verification: renderer tests cover resolution, focus groups, clearing,
+  pinning, pointer opt-out, ownership boundaries, presentation updates, and
+  controller identity, including inferred pointer source across a scene update
+  and destination spatial-index resolution after presentation geometry clears.
+  Every DOM framework adapter forwards the controller in `onRender`, and the
+  paged example delegates its long-press cursor and tooltip to the definition
+  without application SVG math. The locked DOM host measures 18.39 KiB gzip;
+  its reviewed 2,583-byte increase includes the default viewport and controlled
+  interaction contracts.
+
+### F-203 — Focus cursor width depended on private band inference
+
+- Status: resolved
+- Severity: low
+- Owner: API
+- Observed in: iOS-style paged history React example
+- Friction: a one-pixel definition-owned cursor could use a focused `bandX`,
+  but its width was always inferred from sample spacing. Producing a precise
+  cursor with `inset` required the application to duplicate the mark's private
+  `0.8` bandwidth factor. `ruleX` could paint the right geometry but emits no
+  focus-match points.
+- Decision: add explicit scene-pixel `width` to `bandX` and `height` to
+  `bandY`. Explicit dimensions replace scale or inferred bandwidth before
+  applying `inset`; existing definitions retain inferred sizing.
+- Verification: mark tests assert fixed one- and two-pixel continuous bands,
+  and the paged history definition expresses its cursor as `width: 1` without
+  responsive sample-spacing math.

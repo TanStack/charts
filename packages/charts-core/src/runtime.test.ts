@@ -1122,7 +1122,11 @@ describe('dynamic chart runtime', () => {
       'Router',
     )
     expect(onRender).toHaveBeenCalledWith(
-      expect.objectContaining({ container, svg }),
+      expect.objectContaining({
+        container,
+        svg,
+        interaction: host.interaction,
+      }),
     )
     host.destroy()
   })

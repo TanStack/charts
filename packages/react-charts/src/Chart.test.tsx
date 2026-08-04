@@ -4,7 +4,10 @@ import { createRoot, hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
-import type { ChartDefinition } from '@tanstack/charts'
+import type {
+  ChartDefinition,
+  ChartInteractionController,
+} from '@tanstack/charts'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal'
@@ -155,6 +158,15 @@ if (false) {
       onSelect={(point) => {
         expectTypeOf(point?.xValue).toEqualTypeOf<number | undefined>()
         expectTypeOf(point?.yValue).toEqualTypeOf<number | undefined>()
+      }}
+      onRender={({ interaction }) => {
+        const resolved = interaction.resolvePointer(0, 0)
+        expectTypeOf(resolved?.point.datum).toEqualTypeOf<
+          (typeof data)[number] | undefined
+        >()
+        expectTypeOf(resolved?.point.xValue).toEqualTypeOf<number | undefined>()
+        interaction.setControlledFocus(resolved, { source: 'pointer' })
+        interaction.setControlledFocus(resolved?.point ?? null)
       }}
     />
   )
@@ -342,6 +354,83 @@ describe('React adapter', () => {
     expect(
       target.querySelector('[data-ts-focus-layer]')?.getAttribute('visibility'),
     ).toBe('visible')
+
+    await act(async () => root.unmount())
+  })
+
+  it('exposes controlled focus through the SVG render context', async () => {
+    const controlledDefinition = defineChart(definition, {
+      pointer: false,
+      focus: 'nearest-x',
+      maxFocusDistance: 1_000,
+    })
+    const target = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const root = createRoot(target)
+    let interaction:
+      | ChartInteractionController<(typeof data)[number], number, number>
+      | undefined
+
+    await act(async () => {
+      root.render(
+        <Chart
+          definition={controlledDefinition}
+          width={480}
+          height={260}
+          ariaLabel="Controlled revenue"
+          onFocusChange={onFocusChange}
+          onRender={(context) => {
+            interaction = context.interaction
+          }}
+        />,
+      )
+    })
+
+    const svg = target.querySelector('svg')
+    if (!svg || !interaction) {
+      throw new Error('Expected a controlled SVG chart')
+    }
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    await act(async () => {
+      svg.dispatchEvent(
+        new MouseEvent('pointermove', {
+          bubbles: true,
+          clientX: 52,
+          clientY: 200,
+        }),
+      )
+    })
+    expect(onFocusChange).not.toHaveBeenCalled()
+
+    const resolved = interaction.resolvePointer(52, 200)
+    expect(resolved?.point.datum).toBe(data[0])
+    await act(async () => {
+      interaction?.setControlledFocus(resolved, { source: 'pointer' })
+    })
+
+    expect(onFocusChange).toHaveBeenLastCalledWith(resolved?.point)
+    expect(
+      target.querySelector('[data-ts-focus-layer]')?.getAttribute('visibility'),
+    ).toBe('visible')
+
+    await act(async () => {
+      interaction?.setControlledFocus(null)
+    })
+    expect(onFocusChange).toHaveBeenLastCalledWith(null)
+    expect(
+      target.querySelector('[data-ts-focus-layer]')?.getAttribute('visibility'),
+    ).toBe('hidden')
 
     await act(async () => root.unmount())
   })

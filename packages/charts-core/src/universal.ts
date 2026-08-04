@@ -22,6 +22,7 @@ export {
   defaultChartTheme,
   defineChart,
   findNearestPoint,
+  viewportInteractionPoints,
 } from './scene'
 export { renderChartSvg } from './svg'
 export { stack } from './stack'

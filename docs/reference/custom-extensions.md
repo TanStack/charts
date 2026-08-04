@@ -41,6 +41,7 @@ interface InitializedMark<
 > {
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
+  viewport?: Readonly<Partial<Record<'x' | 'y', 'content' | 'fixed'>>>
   layoutLabels?(context: MarkRenderContext): readonly SceneLabel[]
   render(context: MarkRenderContext): MarkScene<TDatum, TXValue, TYValue>
 }
@@ -59,6 +60,22 @@ interface MaterializedChannel {
 Use `scale: 'x'`, `scale: 'y'`, or `scale: 'color'` for shared chart scales.
 `includeZero` is a hint available to a custom scale resolver. Filter invalid
 values before materializing them.
+
+`viewport` overrides presentation ownership independently for x and y. Without
+an override, a mark is viewport content on an axis when one of its materialized
+channels uses that axis. `'content'` forces the mark into that axis's clipped,
+translated layer even when no channel establishes the relationship. `'fixed'`
+keeps the mark stationary on that axis even when a channel contributes to its
+domain. This ownership does not change scale-domain contribution.
+
+The exported `ChartContinuousDomain<TValue>` type represents viewport state as
+either `readonly [number, number]` or `readonly [Date, Date]`, narrowed by the
+mark and axis value type. Numeric and temporal endpoints cannot be mixed.
+
+Render nodes and points with `context.scales[axis].map`. The scene compiler
+applies the mark's viewport translation and remaps its interaction-point
+references. `scale.viewport?.map` is for consumers that need the final
+presented coordinate outside mark rendering.
 
 The render context provides final geometry and shared presentation:
 
@@ -99,6 +116,8 @@ interface MarkScene<
   order is stable.
 - Materialize every value needed to establish scale domains before rendering.
 - Map through `context.scales`; do not recalculate responsive ranges.
+- Declare `viewport` ownership when channel inference does not match the
+  mark's content or fixed annotation behavior.
 - Give each scene node and point a deterministic key.
 - Emit finite geometry only.
 - Preserve the original datum and index in every interaction point.
@@ -229,6 +248,5 @@ to the compatibility host or adapt it with `createSvgChartRenderer` from
 `@tanstack/charts/svg/renderer`. Preserve the SVG root, stable DOM keys,
 accessible name, coordinate system, and focus marker expected by that adapter.
 
-Resource-aware SVG is already available through
-`renderChartSvgWithResources`; see
-[Rendering and export](./rendering-and-export.md#resource-aware-svg).
+Default SVG serialization already preserves declared gradients and group
+clips; see [Rendering and export](./rendering-and-export.md#svg-resources).
