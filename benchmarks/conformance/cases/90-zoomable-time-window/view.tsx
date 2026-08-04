@@ -56,7 +56,7 @@ const zoomRows = selectZoomRows(aapl)
 const ZoomableTimeWindowExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function ZoomableTimeWindowExample({ input }, ref) {
+>(function ZoomableTimeWindowExample({ input, idPrefix }, ref) {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const interactionRef = useRef<SVGRectElement>(null)
   const sceneRef = useRef<ChartScene<AaplRow> | null>(null)
@@ -162,6 +162,18 @@ const ZoomableTimeWindowExample = forwardRef<
     ? `${zoomDateKey(state.window.start)} → ${zoomDateKey(state.window.end)} · ${formatSpan(zoomSpanDays(state.window))} days`
     : 'Focus chart to zoom'
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix}
+        definition={definition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Time series with a wheel-zoomable and pannable time viewport"
+      />
+    )
+  }
+
   return (
     <div
       ref={surfaceRef}
@@ -169,6 +181,7 @@ const ZoomableTimeWindowExample = forwardRef<
       style={{ position: 'relative', width: input.width, height: input.height }}
     >
       <Chart
+        idPrefix={idPrefix}
         definition={definition}
         width={input.width}
         height={input.height}
@@ -264,6 +277,7 @@ const ZoomableTimeWindowExample = forwardRef<
   )
 })
 
+export const catalogComponent = ZoomableTimeWindowExample
 export const mount = reactMount(ZoomableTimeWindowExample)
 
 function scaleForWindow(window: ZoomWindow) {

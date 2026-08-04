@@ -1,7 +1,7 @@
 import { arrow, defineChart } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { citywages } from '@charts-poc/demo-data/citywages'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 const metroChanges = citywages.filter(
   (row) =>
@@ -45,7 +45,9 @@ const definition = () => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Metro population and wage inequality, 1980–2015',
 )
+
+export const mount = catalogCase.mount

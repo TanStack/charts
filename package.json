@@ -28,6 +28,8 @@
     "catalog:build": "nx run charts-workspace:catalog-build",
     "catalog:check": "nx run charts-workspace:catalog-check",
     "catalog:loading:check": "nx run charts-workspace:catalog-loading-check",
+    "react-catalog:check": "nx run charts-workspace:react-catalog-check",
+    "react-catalog:sync": "node scripts/sync-react-charts-catalog.mjs",
     "dev:charts-react": "pnpm --filter @charts-poc/react-example dev",
     "dev:charts-octane": "pnpm --filter @charts-poc/octane-example dev",
     "dev:conformance": "pnpm --filter @charts-poc/conformance-example dev",

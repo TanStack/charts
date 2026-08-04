@@ -3,6 +3,8 @@ import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
+import type { ConformanceInput } from '../../types'
 
 interface ExtremumAnnotation extends AaplRow {
   label: string
@@ -13,12 +15,16 @@ interface ExtremumAnnotation extends AaplRow {
 
 const annotationColor = '#dc2626'
 
-const definition = () => {
+const definition = (input: ConformanceInput) => {
   const annotations = selectExtrema(aapl)
+  const rows = samplePreviewData(aapl, input, 80, [
+    (row) => row.Date.getTime(),
+    (row) => row.Close,
+  ])
 
   return defineChart({
     marks: [
-      lineY(aapl, {
+      lineY(rows, {
         x: 'Date',
         y: 'Close',
         stroke: '#2563eb',

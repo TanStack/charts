@@ -3,6 +3,7 @@ import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { updateStages as stages } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type {
   ChartDefinition,
   ChartRenderer,
@@ -314,6 +315,22 @@ function springRegime(settings: UpdateSettings) {
   if (ratio > 1.01) return 'overdamped'
   return 'critical'
 }
+
+export const catalogCase = tanstackCase(
+  (input) =>
+    chartDefinition(
+      stages[Math.abs(input.revision) % stages.length] ?? stages[0],
+      {
+        duration: 1_100,
+        easing: undefined,
+        spring: false,
+        stiffness: 170,
+        damping: 14,
+        mass: 1,
+      },
+    ),
+  'Keyed actuals and targets during interrupted updates',
+)
 
 function springTransition(
   settings: UpdateSettings,

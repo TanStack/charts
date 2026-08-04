@@ -3,7 +3,7 @@ import { decathlon } from '@charts-poc/demo-data/decathlon'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { decathlonEvents, selectRepresentativeDecathletes } from './selection'
 import { normalizeDecathlonResults } from './transform'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 const colors = [
   '#2563eb',
@@ -30,6 +30,7 @@ const definition = () =>
       dot(rows, {
         x: 'event',
         y: 'relativePerformance',
+        key: (row) => `${row.Country}:${row.event}`,
         color: 'Country',
         r: 2.75,
       }),
@@ -48,7 +49,9 @@ const definition = () =>
     },
   })
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Parallel coordinates model comparison',
 )
+
+export const mount = catalogCase.mount

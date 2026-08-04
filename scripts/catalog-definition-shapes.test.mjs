@@ -17,6 +17,7 @@ const responsiveDefinitions = [
   '43-hexbin-density/tanstack.ts',
   '52-beeswarm-dodge/tanstack.ts',
   '70-composed-chart/tanstack.ts',
+  '75-radar/tanstack.ts',
   '85-scrollable-resource-lanes/tanstack.ts',
   '92-editable-event-range/tanstack.ts',
   '93-labeled-pie/tanstack.ts',
@@ -63,7 +64,7 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification.parameterless).toEqual([])
-    expect(classification.static).toBe(98)
+    expect(classification.static).toBe(97)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
     expect(classification.static + classification.responsive.length).toBe(111)
   })

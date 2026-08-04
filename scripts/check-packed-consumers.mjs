@@ -31,11 +31,33 @@ const temporaryRoot = await mkdtemp(
 const buildWorkspace = resolve(temporaryRoot, 'build')
 const tarballDirectory = artifactDirectory ?? resolve(temporaryRoot, 'tarballs')
 const fixtureDirectory = resolve(temporaryRoot, 'consumer')
+const standaloneCatalogDirectory = resolve(
+  temporaryRoot,
+  'standalone-catalog-consumer',
+)
+const catalogD3Dependencies = [
+  'd3-array',
+  'd3-brush',
+  'd3-contour',
+  'd3-delaunay',
+  'd3-force',
+  'd3-format',
+  'd3-geo',
+  'd3-hexbin',
+  'd3-hierarchy',
+  'd3-sankey',
+  'd3-scale',
+  'd3-selection',
+  'd3-shape',
+  'd3-time',
+  'd3-zoom',
+]
 
 const webPackages = [
   packageConfig('charts-scales', 'scale'),
   packageConfig('charts-core', 'core'),
   packageConfig('react-charts', 'react'),
+  packageConfig('react-charts-catalog', 'react-catalog'),
   packageConfig('octane-charts', 'octane'),
 ]
 const nativePackage = packageConfig('react-native-charts', 'react-native')
@@ -71,6 +93,7 @@ try {
   }
 
   await installFixture(tarballs)
+  await verifyStandaloneCatalogConsumer(tarballs)
   await verifyInstalledManifests()
   await verifyEsmRuntime()
   await verifyDeclarations()
@@ -209,19 +232,49 @@ async function copyPackageFiles(packageInfo) {
 async function buildRuntime(packageInfo) {
   const sourceRoot = resolve(packageInfo.sourceDirectory, 'src')
   const outputRoot = resolve(packageInfo.stageDirectory, 'dist')
-  const entryPoints = (await walk(sourceRoot)).filter(isRuntimeSource)
+  const entryPoints =
+    packageInfo.kind === 'react-catalog'
+      ? [
+          ...new Set(
+            Object.values(packageInfo.manifest.exports).map((entry) =>
+              resolve(packageInfo.sourceDirectory, entry),
+            ),
+          ),
+        ]
+      : (await walk(sourceRoot)).filter(isRuntimeSource)
+  const isReactCatalog = packageInfo.kind === 'react-catalog'
 
   await build({
     entryPoints,
     outdir: outputRoot,
     outbase: sourceRoot,
-    bundle: false,
+    bundle: isReactCatalog,
+    splitting: isReactCatalog,
+    external: isReactCatalog
+      ? [
+          'react',
+          'react/*',
+          'react-dom',
+          'react-dom/*',
+          '@tanstack/charts',
+          '@tanstack/charts/*',
+          '@tanstack/react-charts',
+          '@tanstack/react-charts/*',
+          ...catalogD3Dependencies.flatMap((dependency) => [
+            dependency,
+            `${dependency}/*`,
+          ]),
+        ]
+      : undefined,
     format: 'esm',
     platform: 'neutral',
+    mainFields: isReactCatalog ? ['module', 'main'] : undefined,
     target: 'es2022',
     jsx: 'automatic',
     jsxImportSource:
-      packageInfo.kind === 'react' || packageInfo.kind === 'react-native'
+      packageInfo.kind === 'react' ||
+      packageInfo.kind === 'react-catalog' ||
+      packageInfo.kind === 'react-native'
         ? 'react'
         : undefined,
     legalComments: 'none',
@@ -297,13 +350,16 @@ async function compileOctaneEntry(source, filename, mode, outfile) {
 async function buildDeclarations(packageInfo) {
   const sourceRoot = resolve(packageInfo.sourceDirectory, 'src')
   const outputRoot = resolve(packageInfo.stageDirectory, 'dist')
-  const rootNames = [
-    ...new Set(
-      Object.values(packageInfo.manifest.exports).map((entry) =>
-        resolve(packageInfo.sourceDirectory, entry),
-      ),
-    ),
-  ]
+  const rootNames =
+    packageInfo.kind === 'react-catalog'
+      ? [resolve(sourceRoot, 'index.ts')]
+      : [
+          ...new Set(
+            Object.values(packageInfo.manifest.exports).map((entry) =>
+              resolve(packageInfo.sourceDirectory, entry),
+            ),
+          ),
+        ]
   const isReactNative = packageInfo.kind === 'react-native'
   const options = {
     allowArbitraryExtensions: true,
@@ -337,6 +393,22 @@ async function buildDeclarations(packageInfo) {
   const result = program.emit()
   if (result.emitSkipped) {
     throw new Error(`Declaration emit was skipped for ${packageInfo.name}`)
+  }
+
+  if (packageInfo.kind === 'react-catalog') {
+    const declaration = `import type { ComponentType } from 'react'
+import type { CatalogChartProps } from '../index.js'
+declare const CatalogChart: ComponentType<CatalogChartProps>
+export default CatalogChart
+`
+    for (const [key, conditions] of Object.entries(
+      packageInfo.manifest.publishConfig.exports,
+    )) {
+      if (!key.startsWith('./cases/')) continue
+      const target = resolve(packageInfo.stageDirectory, conditions.types)
+      await mkdir(dirname(target), { recursive: true })
+      await writeFile(target, declaration)
+    }
   }
 
   if (packageInfo.kind === 'octane') {
@@ -413,6 +485,12 @@ async function packPackage(packageInfo) {
       )
     }
   }
+  if (packageInfo.kind === 'react-catalog') {
+    assert.ok(
+      files.has('THIRD_PARTY_NOTICES.md'),
+      `${packageInfo.name} omitted third-party notices`,
+    )
+  }
   await verifyPackedMarkdownLinks(packageInfo, files)
   return tarball
 }
@@ -441,14 +519,16 @@ async function installFixture(tarballs) {
   await mkdir(fixtureDirectory, { recursive: true })
   const coreTarball = fileDependency(tarballs.get('@tanstack/charts'))
   const scalesTarball = fileDependency(tarballs.get('@tanstack/charts-scales'))
+  const reactTarball = fileDependency(tarballs.get('@tanstack/react-charts'))
   const dependencies = {
     '@tanstack/charts': coreTarball,
     '@tanstack/charts-scales': scalesTarball,
     '@tanstack/octane-charts': fileDependency(
       tarballs.get('@tanstack/octane-charts'),
     ),
-    '@tanstack/react-charts': fileDependency(
-      tarballs.get('@tanstack/react-charts'),
+    '@tanstack/react-charts': reactTarball,
+    '@tanstack/react-charts-catalog': fileDependency(
+      tarballs.get('@tanstack/react-charts-catalog'),
     ),
     '@types/d3-array': installedDependency('@types/d3-array'),
     '@types/d3-geo': installedDependency('@types/d3-geo'),
@@ -479,14 +559,38 @@ async function installFixture(tarballs) {
       coreTarball,
     )}\n  '@tanstack/charts-scales': ${JSON.stringify(
       scalesTarball,
+    )}\n  '@tanstack/react-charts': ${JSON.stringify(
+      reactTarball,
     )}\n  'd3-array': ${JSON.stringify(
       installedDependency('d3-array'),
+    )}\n  'd3-brush': ${JSON.stringify(
+      installedDependency('d3-brush'),
+    )}\n  'd3-contour': ${JSON.stringify(
+      installedDependency('d3-contour'),
+    )}\n  'd3-delaunay': ${JSON.stringify(
+      installedDependency('d3-delaunay'),
+    )}\n  'd3-force': ${JSON.stringify(
+      installedDependency('d3-force'),
+    )}\n  'd3-format': ${JSON.stringify(
+      installedDependency('d3-format'),
+    )}\n  'd3-hexbin': ${JSON.stringify(
+      installedDependency('d3-hexbin'),
+    )}\n  'd3-hierarchy': ${JSON.stringify(
+      installedDependency('d3-hierarchy'),
+    )}\n  'd3-sankey': ${JSON.stringify(
+      installedDependency('d3-sankey'),
     )}\n  'd3-geo': ${JSON.stringify(
       installedDependency('d3-geo'),
     )}\n  'd3-scale': ${JSON.stringify(
       installedDependency('d3-scale'),
+    )}\n  'd3-selection': ${JSON.stringify(
+      installedDependency('d3-selection'),
     )}\n  'd3-shape': ${JSON.stringify(
       installedDependency('d3-shape'),
+    )}\n  'd3-time': ${JSON.stringify(
+      installedDependency('d3-time'),
+    )}\n  'd3-zoom': ${JSON.stringify(
+      installedDependency('d3-zoom'),
     )}\n  '@types/d3-shape': ${JSON.stringify(
       installedDependency('@types/d3-shape'),
     )}\n  '@types/d3-geo': ${JSON.stringify(
@@ -501,6 +605,101 @@ async function installFixture(tarballs) {
       CI: 'true',
       npm_config_offline: 'true',
     },
+  )
+}
+
+async function verifyStandaloneCatalogConsumer(tarballs) {
+  await mkdir(standaloneCatalogDirectory, { recursive: true })
+  const coreTarball = fileDependency(tarballs.get('@tanstack/charts'))
+  const reactTarball = fileDependency(tarballs.get('@tanstack/react-charts'))
+  const catalogTarball = fileDependency(
+    tarballs.get('@tanstack/react-charts-catalog'),
+  )
+  await writeFile(
+    resolve(standaloneCatalogDirectory, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'standalone-react-charts-catalog-consumer',
+        private: true,
+        type: 'module',
+        dependencies: {
+          '@tanstack/react-charts-catalog': catalogTarball,
+          react: installedDependency('react'),
+          'react-dom': installedDependency('react-dom'),
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  )
+  await writeFile(
+    resolve(standaloneCatalogDirectory, 'pnpm-workspace.yaml'),
+    `packages:\n  - '.'\noverrides:\n  '@tanstack/charts': ${JSON.stringify(
+      coreTarball,
+    )}\n  '@tanstack/react-charts': ${JSON.stringify(
+      reactTarball,
+    )}\n  '@types/d3-geo': ${JSON.stringify(
+      installedDependency('@types/d3-geo'),
+    )}\n  '@types/d3-shape': ${JSON.stringify(
+      installedDependency('@types/d3-shape'),
+    )}\n  'd3-array': ${JSON.stringify(
+      installedDependency('d3-array'),
+    )}\n  'd3-brush': ${JSON.stringify(
+      installedDependency('d3-brush'),
+    )}\n  'd3-contour': ${JSON.stringify(
+      installedDependency('d3-contour'),
+    )}\n  'd3-delaunay': ${JSON.stringify(
+      installedDependency('d3-delaunay'),
+    )}\n  'd3-force': ${JSON.stringify(
+      installedDependency('d3-force'),
+    )}\n  'd3-format': ${JSON.stringify(
+      installedDependency('d3-format'),
+    )}\n  'd3-hexbin': ${JSON.stringify(
+      installedDependency('d3-hexbin'),
+    )}\n  'd3-hierarchy': ${JSON.stringify(
+      installedDependency('d3-hierarchy'),
+    )}\n  'd3-sankey': ${JSON.stringify(
+      installedDependency('d3-sankey'),
+    )}\n  'd3-geo': ${JSON.stringify(
+      installedDependency('d3-geo'),
+    )}\n  'd3-scale': ${JSON.stringify(
+      installedDependency('d3-scale'),
+    )}\n  'd3-selection': ${JSON.stringify(
+      installedDependency('d3-selection'),
+    )}\n  'd3-shape': ${JSON.stringify(
+      installedDependency('d3-shape'),
+    )}\n  'd3-time': ${JSON.stringify(
+      installedDependency('d3-time'),
+    )}\n  'd3-zoom': ${JSON.stringify(installedDependency('d3-zoom'))}\n`,
+  )
+  await run(
+    'pnpm',
+    ['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'],
+    standaloneCatalogDirectory,
+    {
+      CI: 'true',
+      npm_config_offline: 'true',
+    },
+  )
+  const runtimeCheck = resolve(standaloneCatalogDirectory, 'runtime-check.mjs')
+  await writeFile(
+    runtimeCheck,
+    `import assert from 'node:assert/strict'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import GroupedBars from '@tanstack/react-charts-catalog/cases/59-grouped-reducer-bars'
+
+const html = renderToStaticMarkup(
+  createElement(GroupedBars, { initialWidth: 480, height: 270 }),
+)
+assert.match(html, /<svg/)
+assert.match(html, /<rect/)
+`,
+  )
+  await run(
+    'node',
+    ['--disallow-code-generation-from-strings', runtimeCheck],
+    standaloneCatalogDirectory,
   )
 }
 
@@ -584,7 +783,13 @@ async function verifyEsmRuntime() {
     const canonicalRoot = pathToFileURL(${JSON.stringify(`${root}${sep}`)}).href
     const installedRoot = realpathSync('./node_modules')
     const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
-    for (const specifier of ${JSON.stringify(publishedSubpaths)}) {
+    const publishedSpecifiers = ${JSON.stringify(publishedSubpaths)}
+    const catalogCasePrefix = '@tanstack/react-charts-catalog/cases/'
+    const catalogCaseSpecifiers = publishedSpecifiers.filter((specifier) =>
+      specifier.startsWith(catalogCasePrefix),
+    )
+    let renderedCatalogCases = 0
+    for (const specifier of publishedSpecifiers) {
       const resolved = import.meta.resolve(specifier)
       const resolvedPath = realpathSync(fileURLToPath(resolved))
       assert.ok(resolvedPath.startsWith(installedRoot), resolvedPath)
@@ -594,7 +799,34 @@ async function verifyEsmRuntime() {
       if (!typeOnlySpecifiers.has(specifier)) {
         assert.ok(Object.keys(module).length > 0, specifier)
       }
+      if (specifier.startsWith('@tanstack/react-charts-catalog/cases/')) {
+        const html = renderToStaticMarkup(
+          createElement(module.default, {
+            initialWidth: 480,
+            height: 270,
+            idPrefix: specifier.slice(specifier.lastIndexOf('/') + 1),
+          }),
+        )
+        assert.match(html, /<svg/)
+        assert.match(html, /viewBox="0 0 480 /)
+        renderedCatalogCases += 1
+      }
     }
+    const { catalogCases } = await import('@tanstack/react-charts-catalog')
+    assert.equal(catalogCases.length, 109)
+    assert.equal(renderedCatalogCases, catalogCases.length)
+    assert.deepEqual(
+      catalogCases.map(({ id }) => id).sort(),
+      catalogCaseSpecifiers
+        .map((specifier) => specifier.slice(catalogCasePrefix.length))
+        .sort(),
+    )
+    assert.deepEqual(
+      catalogCases.map(({ order }) => order),
+      catalogCases
+        .map(({ order }) => order)
+        .sort((left, right) => left - right),
+    )
     assert.equal(compactScaleLinear([0, 1], [0, 10])(0.5), 5)
     assert.equal(compactScaleBand(['a', 'b'], [0, 10]).domain().length, 2)
     assert.equal(compactScalePoint(['a', 'b'], [0, 10]).bandwidth(), 0)
@@ -689,7 +921,11 @@ async function verifyEsmRuntime() {
   `
   const runtimeCheck = resolve(fixtureDirectory, 'runtime-check.mjs')
   await writeFile(runtimeCheck, source)
-  await run('node', [runtimeCheck], fixtureDirectory)
+  await run(
+    'node',
+    ['--disallow-code-generation-from-strings', runtimeCheck],
+    fixtureDirectory,
+  )
 }
 
 async function verifyDeclarations() {
@@ -746,14 +982,28 @@ async function verifyDeclarations() {
     import { Chart as ReactChart } from '@tanstack/react-charts'
     import { Chart as ReactCanvasChart } from '@tanstack/react-charts/canvas'
     import { Chart as ReactRendererChart } from '@tanstack/react-charts/core'
+    import CatalogSankey from '@tanstack/react-charts-catalog/cases/111-basic-sankey'
+    import {
+      catalogCases,
+      type CatalogCaseId,
+      type CatalogChartProps,
+    } from '@tanstack/react-charts-catalog'
     import { Chart as OctaneChart } from '@tanstack/octane-charts'
     import { Chart as OctaneCanvasChart } from '@tanstack/octane-charts/canvas'
     import { Chart as OctaneRendererChart } from '@tanstack/octane-charts/core'
     import { extent, max } from 'd3-array'
     import { scaleBand, scaleLinear } from 'd3-scale'
     import { curveMonotoneX } from 'd3-shape'
+    import { createElement as createReactElement } from 'react'
     ${namespaceImports}
     void [extent, max, curveMonotoneX]
+    const catalogCaseId: CatalogCaseId = catalogCases[0].id
+    const catalogChartProps: CatalogChartProps = {
+      initialWidth: 480,
+      height: 270,
+      idPrefix: catalogCaseId,
+    }
+    createReactElement(CatalogSankey, catalogChartProps)
 
     interface Row {
       id: string

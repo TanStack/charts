@@ -2,12 +2,13 @@ import { defineChart, lineY, ruleY, window } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { sfTemperatures } from '@charts-poc/demo-data/sf-temperatures'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput, ConformanceMount } from '../../types'
+import { samplePreviewData } from '../../shared/preview'
+import type { ConformanceInput } from '../../types'
 
 const windowSize = 14
 
-const definition = (_input: ConformanceInput) => {
-  const rows = window(sfTemperatures, {
+const definition = (input: ConformanceInput) => {
+  const completeRows = window(sfTemperatures, {
     size: windowSize,
     partial: false,
     outputs: {
@@ -15,6 +16,11 @@ const definition = (_input: ConformanceInput) => {
       low: { value: 'low', reduce: 'mean' },
     },
   })
+  const rows = samplePreviewData(completeRows, input, 80, [
+    (row) => row.date.getTime(),
+    (row) => row.low,
+    (row) => row.high,
+  ])
 
   return defineChart({
     marks: [
@@ -44,7 +50,7 @@ const definition = (_input: ConformanceInput) => {
   })
 }
 
-export const mount: ConformanceMount = tanstackMount(
+export const mount = tanstackMount(
   definition,
   'Fourteen-day average high and low temperature in San Francisco',
 )

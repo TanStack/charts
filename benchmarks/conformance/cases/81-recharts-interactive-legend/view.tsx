@@ -33,7 +33,7 @@ const seriesColors: Readonly<Record<LegendSeriesId, string>> = {
 const InteractiveLegendExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function InteractiveLegendExample({ input }, ref) {
+>(function InteractiveLegendExample({ input, idPrefix }, ref) {
   const viewRef = useRef<HTMLDivElement>(null)
   const chartSurfaceRef = useRef<HTMLDivElement>(null)
   const [visibleSeries, setVisibleSeries] = useState(initialVisibleSeries)
@@ -115,6 +115,18 @@ const InteractiveLegendExample = forwardRef<
     [visibleSeries],
   )
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix}
+        definition={definition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Manufacturing and construction unemployment chart"
+      />
+    )
+  }
+
   return (
     <div
       ref={viewRef}
@@ -130,6 +142,7 @@ const InteractiveLegendExample = forwardRef<
     >
       <div ref={chartSurfaceRef} style={{ minHeight: 0 }}>
         <Chart
+          idPrefix={idPrefix}
           definition={definition}
           width={input.width}
           height={Math.max(96, input.height - 62)}
@@ -214,6 +227,7 @@ const InteractiveLegendExample = forwardRef<
   )
 })
 
+export const catalogComponent = InteractiveLegendExample
 export const mount = reactMount(InteractiveLegendExample)
 
 function center(element: HTMLElement | SVGElement) {

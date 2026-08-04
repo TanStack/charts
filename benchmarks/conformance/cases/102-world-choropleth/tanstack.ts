@@ -2,8 +2,15 @@ import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
 import { geoEqualEarth } from 'd3-geo'
 import { scaleThreshold } from 'd3-scale'
-import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
-import { learningPovertyCountries } from '../../shared/transforms/learning-poverty'
+import {
+  previewWorldLand,
+  worldLand,
+  worldSphere,
+} from '../../shared/fixtures/country-atlas'
+import {
+  learningPovertyCountries,
+  previewLearningPovertyCountries,
+} from '../../shared/transforms/learning-poverty'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
@@ -16,24 +23,33 @@ const projection = {
   type: geoEqualEarth,
   fit: 'sphere' as const,
 }
+const previewProjection = {
+  type: () => geoEqualEarth().precision(2),
+  fit: 'sphere' as const,
+}
 
 const definition = (input: ConformanceInput) =>
   defineChart({
     marks: [
-      geoShape([worldLand], {
-        projection,
+      geoShape([input.preview ? previewWorldLand : worldLand], {
+        projection: input.preview ? previewProjection : projection,
         fill: '#e2e8f0',
         stroke: '#ffffff',
         strokeWidth: 0.5,
       }),
-      geoShape(learningPovertyCountries, {
-        projection,
-        color: (country) => country.properties['Learning Poverty'],
-        stroke: '#ffffff',
-        strokeWidth: 0.5,
-      }),
+      geoShape(
+        input.preview
+          ? previewLearningPovertyCountries
+          : learningPovertyCountries,
+        {
+          projection: input.preview ? previewProjection : projection,
+          color: (country) => country.properties['Learning Poverty'],
+          stroke: '#ffffff',
+          strokeWidth: 0.5,
+        },
+      ),
       geoShape([worldSphere], {
-        projection,
+        projection: input.preview ? previewProjection : projection,
         fill: 'none',
         stroke: 'currentColor',
         strokeOpacity: 0.35,

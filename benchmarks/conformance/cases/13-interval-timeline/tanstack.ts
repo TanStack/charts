@@ -1,7 +1,7 @@
 import { aapl } from '@charts-poc/demo-data/aapl'
 import { barX, colorLegend, defineChart } from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const colors = ['#10b981', '#ef4444']
@@ -37,7 +37,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Apple daily open-to-close price ranges',
   {
@@ -45,3 +45,5 @@ export const mount = tanstackMount(
       `${date.format(point.datum.Date)} · Open $${point.datum.Open.toFixed(2)} · Close $${point.datum.Close.toFixed(2)}`,
   },
 )
+
+export const mount = catalogCase.mount

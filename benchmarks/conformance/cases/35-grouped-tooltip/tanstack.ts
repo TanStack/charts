@@ -6,7 +6,7 @@ import {
   mountChart,
   whenFocused,
 } from '@tanstack/charts'
-import type { ChartHostOptions } from '@tanstack/charts'
+import type { ChartHostOptions, ChartTooltipOptions } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear, scaleUtc } from 'd3-scale'
@@ -18,6 +18,7 @@ import type {
 } from '../../types'
 import { industryNames, selectGroupedTooltipData } from './selection'
 import type { GroupedTooltipDatum } from './selection'
+import { tanstackCase } from '../../shared/mount'
 
 const colors = ['#2563eb', '#f97316', '#10b981']
 
@@ -76,6 +77,22 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
+const interactiveTooltip: ChartTooltipOptions<GroupedTooltipDatum> = {
+  portal,
+  anchor: 'group-center',
+  placement: ['top', 'right', 'left', 'bottom'],
+  sort: 'color-domain',
+}
+
+const catalogDefinition = (input: ConformanceInput) =>
+  defineChart(definition(input), { focus: 'group-x' })
+
+export const catalogCase = tanstackCase(
+  catalogDefinition,
+  'Grouped industry unemployment tooltip',
+  interactiveTooltip,
+)
+
 const configuredDefinition = (input: ConformanceInput) =>
   defineChart(definition(input), {
     animate: false,
@@ -83,10 +100,7 @@ const configuredDefinition = (input: ConformanceInput) =>
     focus: 'group-x',
     tooltip: {
       use: tooltip,
-      portal,
-      anchor: 'group-center',
-      placement: ['top', 'right', 'left', 'bottom'],
-      sort: 'color-domain',
+      ...interactiveTooltip,
     },
   })
 

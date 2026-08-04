@@ -4,7 +4,7 @@ import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { arc } from 'd3-shape'
 import { selectRadialBarData } from './selection'
 import { radialBarLayout } from './transform'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { RadialBarLayoutDatum } from './transform'
 import type { ConformanceInput } from '../../types'
 
@@ -50,7 +50,9 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Concentric letter frequency bars',
 )
+
+export const mount = catalogCase.mount

@@ -111,15 +111,20 @@ or direct strategy use.
 
 ## Disabling chart-owned focus
 
+Set `focus: false` to disable native pointer and keyboard point focus. The
+scene keeps its semantic points but omits the generated default focus layer,
+and the DOM host forces the chart surface out of the tab order. Explicit
+focus-only marks remain available to custom renderers and programmatic paint.
+
 ```ts
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
 ```
 
 `focusDisabled` resolves, groups, and navigates to no points. Use it when an
 application owns gestures, selection paint, accessibility, and task semantics
-outside the native focus layer. It does not remove the rendered focus node or
-other DOM listeners; set definition `keyboard: false` and omit its `tooltip`
-as appropriate for the application-owned interaction.
+outside the native resolver but still needs the rendered focus layer. Set
+definition `keyboard: false` and omit its `tooltip` as appropriate for that
+application-owned interaction.
 
 ## Custom focus strategies
 

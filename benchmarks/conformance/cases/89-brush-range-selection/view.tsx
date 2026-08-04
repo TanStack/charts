@@ -64,7 +64,7 @@ const brushMonthFormatter = new Intl.DateTimeFormat('en-US', {
 const BrushRangeExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function BrushRangeExample({ input }, ref) {
+>(function BrushRangeExample({ input, idPrefix }, ref) {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const groupRef = useRef<SVGGElement>(null)
   const sceneRef = useRef<ChartScene<AaplRow> | null>(null)
@@ -169,6 +169,18 @@ const BrushRangeExample = forwardRef<
   const summary = brushRangeSummary(brushRows, brushState.range)
   const status = `${brushShortDate(brushState.range.start)} → ${brushShortDate(brushState.range.end)} · ${summary.count} AAPL closes · avg $${summary.average.toFixed(1)}`
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix}
+        definition={definition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Time series with a draggable horizontal range brush"
+      />
+    )
+  }
+
   return (
     <div
       ref={surfaceRef}
@@ -178,6 +190,7 @@ const BrushRangeExample = forwardRef<
       style={{ position: 'relative', width: input.width, height: input.height }}
     >
       <Chart
+        idPrefix={idPrefix}
         definition={definition}
         width={input.width}
         height={input.height}
@@ -230,6 +243,7 @@ const BrushRangeExample = forwardRef<
   )
 })
 
+export const catalogComponent = BrushRangeExample
 export const mount = reactMount(BrushRangeExample)
 
 function createBrushController(

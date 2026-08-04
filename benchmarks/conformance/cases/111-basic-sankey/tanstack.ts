@@ -4,7 +4,7 @@ import { scaleLinear } from 'd3-scale'
 import { curveBumpX } from 'd3-shape'
 import { responsiveLayout } from './layout'
 import { basicSankeyData } from './model'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { SankeyGraph, SankeyLink, SankeyNode } from 'd3-sankey'
 import type { ConformanceInput } from '../../types'
 import type { BasicFlowLink, BasicFlowNode } from './model'
@@ -177,9 +177,11 @@ function resolvedNodeBounds(node: SankeyNode<BasicFlowNode, BasicFlowLink>) {
   return { x0, x1, y0, y1 }
 }
 
-export const mount = tanstackMount(basicSankeyDefinition, 'Basic Sankey', {
+export const catalogCase = tanstackCase(basicSankeyDefinition, 'Basic Sankey', {
   format: ({ datum }) =>
     datum.kind === 'node'
       ? `${datum.label} · ${datum.value}`
       : `${datum.sourceLabel} → ${datum.targetLabel} · ${datum.value}`,
 })
+
+export const mount = catalogCase.mount
