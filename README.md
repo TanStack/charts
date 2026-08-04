@@ -49,8 +49,9 @@ or dropping down to a separate API.
 
 - **Keep your data as it is.** Marks consume arrays, objects, tuples, and
   iterables directly. Different layers can use different datum types.
-- **Bring native D3 primitives.** Use D3 scales, curves, transforms, and layout
-  output instead of relearning a parallel math API.
+- **Start with compact scales.** Use the small linear, band, point, and ordinal
+  entries for common charts, then add a granular D3 module when a chart needs
+  time, nonlinear, piecewise, or spatial semantics.
 - **Build from common to custom.** Layer built-in marks or implement a custom
   mark against the same public scene protocol.
 - **Get the application runtime too.** Responsive layout, automatic guide
@@ -67,8 +68,9 @@ or dropping down to a separate API.
 <!-- docs-example: root-readme-quick-look typecheck -->
 
 ```tsx
-import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
 
@@ -106,10 +108,11 @@ export function RevenueChart() {
 ```
 
 Marks consume the original rows, channels describe their visual encodings, and
-D3 scale factories infer domains from those channels. A configured scale
+compact scale factories infer domains from those channels. A configured scale
 instance keeps its authored domain. TanStack assigns responsive pixel ranges,
 compiles a renderer-neutral keyed scene, and hands that scene to the selected
-host.
+host. Replace only the scale that needs fuller semantics with its direct
+`d3-scale` counterpart.
 
 Definitions are framework-independent. The same `revenueChart` can render
 through React, Preact, Vue, Solid, Svelte, Angular, Lit, Alpine, Octane, the
@@ -133,6 +136,7 @@ bounded representation.
 | Package                                                           | Role                                  |
 | ----------------------------------------------------------------- | ------------------------------------- |
 | [`@tanstack/charts`](./packages/charts-core)                      | Framework-neutral grammar and runtime |
+| [`@tanstack/charts-scales`](./packages/charts-scales)             | Compact linear and categorical scales |
 | [`@tanstack/react-charts`](./packages/react-charts)               | React adapter                         |
 | [`@tanstack/react-native-charts`](./packages/react-native-charts) | Experimental React Native SVG adapter |
 | [`@tanstack/preact-charts`](./packages/preact-charts)             | Preact adapter                        |
@@ -153,11 +157,13 @@ superseded backend experiment.
 
 TanStack Charts deliberately splits ownership:
 
-| D3 owns                                                      | TanStack Charts owns                                                                          |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| Scales, shapes, transforms, color, spatial math, and layouts | Marks, channels, responsive ranges, guide layout, scene compilation, rendering, and lifecycle |
+| Layer                   | Owns                                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| TanStack compact scales | Common numeric linear, categorical band and point, and categorical ordinal mappings           |
+| Granular D3 modules     | Temporal, nonlinear, piecewise, spatial, layout, and other specialized algorithms             |
+| TanStack Charts         | Marks, channels, responsive ranges, guide layout, scene compilation, rendering, and lifecycle |
 
-This boundary keeps D3 visible and replaceable at the algorithm level while
+This boundary keeps specialized algorithms visible and replaceable while
 giving applications a consistent runtime. There is no global registry,
 library-owned dataframe, or chart-type configuration model.
 
@@ -191,7 +197,7 @@ pattern.
 | [`docs/comparison.md`](./docs/comparison.md)                                     | Pinned capability and bundle comparison                  |
 | [`docs/quick-start.md`](./docs/quick-start.md)                                   | First complete framework-agnostic chart                  |
 | [`docs/concepts/grammar-of-graphics.md`](./docs/concepts/grammar-of-graphics.md) | Marks, channels, scales, and composition                 |
-| [`docs/concepts/scales-and-d3.md`](./docs/concepts/scales-and-d3.md)             | The D3 dependency and ownership boundary                 |
+| [`docs/concepts/scales-and-d3.md`](./docs/concepts/scales-and-d3.md)             | Compact scale path and D3 upgrade boundary               |
 | [`docs/examples/index.md`](./docs/examples/index.md)                             | Curated chart-family and interaction examples            |
 | [`docs/guides/ai-authoring.md`](./docs/guides/ai-authoring.md)                   | Deterministic authoring and validation for coding agents |
 | [`docs/reference/index.md`](./docs/reference/index.md)                           | Complete public API map                                  |

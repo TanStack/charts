@@ -21,7 +21,7 @@ ordinary categorical chart with decorative shapes.
 The application chooses the projection and spatial sampling policy. The
 opt-in `@tanstack/charts/geo` entry uses `d3-geo` to turn GeoJSON into shared
 scene paths and interaction points. See
-[Scales and D3](../concepts/scales-and-d3.md).
+[Scales](../concepts/scales-and-d3.md).
 
 ## Compare regional aggregates
 

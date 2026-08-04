@@ -24,7 +24,7 @@ become less legible than a matrix, grouped summary, or searchable table.
 | Must many entities be compared by attributes, not connections? | A table, facets, or quantitative chart |
 
 Layout, traversal, grouping, and collision handling belong to data
-preparation. [Scales and D3](../concepts/scales-and-d3.md) routes those
+preparation. [Scales](../concepts/scales-and-d3.md) routes those
 algorithms to the official D3 documentation while TanStack Charts renders the
 typed result.
 

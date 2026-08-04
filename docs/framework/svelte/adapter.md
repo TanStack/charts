@@ -4,7 +4,7 @@ description: Render and hydrate TanStack Charts with Svelte 5.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/svelte-charts svelte d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/svelte-charts svelte
 ```
 
 ```svelte

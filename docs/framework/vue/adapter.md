@@ -4,7 +4,7 @@ description: Render and hydrate TanStack Charts with Vue 3.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/vue-charts vue d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/vue-charts vue
 ```
 
 ```vue

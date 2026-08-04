@@ -339,7 +339,7 @@ owns its search algorithm and must apply `maxDistance`. Existing point-only
 factories can ignore the second argument; geometry-aware indexes can traverse
 the resolved scene and use primitive bounds as their acceleration layer.
 Use the granular spatial primitive appropriate to the data; the boundary is
-described in [Scales and D3](../concepts/scales-and-d3.md).
+described in [Scales](../concepts/scales-and-d3.md).
 
 Supplying an index also replaces default primitive containment and affinity
 ranking; the host does not add a linear safety scan after an indexed query. An

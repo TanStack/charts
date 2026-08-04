@@ -3,7 +3,7 @@
 Preact lifecycle adapter for `@tanstack/charts`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/preact-charts preact d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/preact-charts preact
 ```
 
 ```tsx

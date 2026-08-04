@@ -163,7 +163,7 @@ interface AreaXCurve {
 The optional bridges `d3Curve` from `@tanstack/charts/d3/shape` and
 `d3AreaXCurve` from `@tanstack/charts/d3/area-x` adapt a supplied curve factory
 to these contracts. D3 module ownership and granular imports are documented in
-[Scales and D3](../concepts/scales-and-d3.md).
+[Scales](../concepts/scales-and-d3.md).
 
 ## Custom positional scales
 
@@ -171,7 +171,7 @@ A custom `ChartScale` resolves semantic values and the responsive range into a
 complete mapping and tick set. This is an unchecked math boundary; prefer a
 configured callable scale when possible.
 
-See [Advanced custom scales](./scales-guides-and-color.md#advanced-custom-scales)
+See [Custom scales](./scales-guides-and-color.md#custom-scales)
 for the exact context and return type.
 
 ## Custom color scales and legends
@@ -202,7 +202,7 @@ the index when the scene or factory changes.
 
 See [Spatial indexes](./focus-and-interaction.md#spatial-indexes). The
 appropriate granular spatial primitive can be brought through the boundary
-described in [Scales and D3](../concepts/scales-and-d3.md).
+described in [Scales](../concepts/scales-and-d3.md).
 
 ## Custom focus and gestures
 

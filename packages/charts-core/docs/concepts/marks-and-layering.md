@@ -193,8 +193,9 @@ Clipping applies to the chart’s mark group, not axes or legends. Leave it off 
 ## Complete range-band composition
 
 ```ts
-import { scaleLinear, scaleUtc } from 'd3-scale'
+import { scaleUtc } from 'd3-scale'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 interface DailyTemperature {
   date: Date
@@ -249,8 +250,9 @@ const temperatureChart = defineChart({
 })
 ```
 
-This example directly imports `d3-scale`. Install it and `@types/d3-scale` as
-direct dependencies.
+The numeric y axis uses the lightweight linear scale. The x axis upgrades to
+D3 UTC so spacing and ticks preserve elapsed time; install `d3-scale` and
+`@types/d3-scale` for that mapping.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/03-temperature-range-band/?theme=system&height=480"

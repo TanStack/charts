@@ -192,7 +192,7 @@ import { d3Curve } from '@tanstack/charts/d3/shape'
 They accept a supplied curve factory and return the corresponding TanStack
 contract. Which granular D3 module to install and why these algorithms remain
 injected is documented once in
-[Scales and D3](../../concepts/scales-and-d3.md).
+[Scales](../../concepts/scales-and-d3.md).
 
 ## Layering area and line
 

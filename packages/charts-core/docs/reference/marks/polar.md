@@ -1,6 +1,6 @@
 ---
 title: Polar Marks
-description: Reference for the opt-in polar container, radial marks, guides, D3 scale factories, and D3-backed geometry.
+description: Reference for the opt-in polar container, radial marks, guides, injected scale factories, and D3-backed geometry.
 ---
 
 Polar marks are available only from the capability subpath:
@@ -48,7 +48,7 @@ function polar(options: PolarOptions): ChartMark
 The default angular range is a complete circle. Angles use D3's radial
 convention: zero is at twelve o'clock and positive values move clockwise.
 
-`PolarAngleOptions` and `PolarRadiusOptions` accept D3 factories with
+`PolarAngleOptions` and `PolarRadiusOptions` accept compatible factories with
 mark-inferred domains or configured instances with fixed domains. `nice`
 applies after inference. TanStack supplies responsive ranges without mutating
 an instance. An omitted `wrap` closes a complete revolution without adding a

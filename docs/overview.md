@@ -6,7 +6,12 @@ description: Learn what TanStack Charts provides, how its grammar works, and whe
 TanStack Charts `0.6.4` is a pre-alpha release. Its API may change between
 releases.
 
-TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and JavaScript. Give each mark its natural data, map fields or accessors to visual channels, and supply the D3 scales that define the meaning of each axis. TanStack Charts compiles that declaration into a responsive, keyed scene and renders accessible SVG by default, with Canvas available as an opt-in surface.
+TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and
+JavaScript. Give each mark its natural data, map fields or accessors to visual
+channels, and use compact scales to define common numeric and categorical
+axes. TanStack Charts compiles that declaration into a responsive, keyed scene
+and renders accessible SVG by default, with Canvas available as an opt-in
+surface.
 
 TanStack Charts builds on the grammar-of-graphics tradition established by
 [Leland Wilkinson](https://doi.org/10.1007/0-387-28695-0) and developed through
@@ -15,7 +20,8 @@ projects such as [ggplot2](https://ggplot2.tidyverse.org/),
 [Observable Plot](https://observablehq.com/plot/). Observable Plot is the
 closest API influence for mark-local data, channels, and layered composition.
 TanStack Charts applies those ideas to typed application infrastructure with
-explicit D3 primitives, responsive scene compilation, and framework lifecycle.
+explicit scale and algorithm boundaries, responsive scene compilation, and
+framework lifecycle.
 
 The library is designed for two equally important authors:
 
@@ -31,59 +37,58 @@ Native adapter consumes definitions from the universal entry.
 <!-- docs-example: overview typecheck -->
 
 ```ts
-import { mean } from 'd3-array'
-import { scaleLinear, scaleUtc } from 'd3-scale'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 interface ClosingPrice {
-  Date: Date
+  day: number
   Close: number
 }
 
 const observations: readonly ClosingPrice[] = [
-  { Date: new Date('2013-05-13T00:00:00Z'), Close: 64.96 },
-  { Date: new Date('2013-05-14T00:00:00Z'), Close: 63.41 },
-  { Date: new Date('2013-05-15T00:00:00Z'), Close: 61.26 },
-  { Date: new Date('2013-05-16T00:00:00Z'), Close: 62.08 },
-  { Date: new Date('2013-05-17T00:00:00Z'), Close: 61.89 },
-  { Date: new Date('2013-05-20T00:00:00Z'), Close: 63.28 },
-  { Date: new Date('2013-05-21T00:00:00Z'), Close: 62.81 },
-  { Date: new Date('2013-05-22T00:00:00Z'), Close: 63.05 },
+  { day: 1, Close: 64.96 },
+  { day: 2, Close: 63.41 },
+  { day: 3, Close: 61.26 },
+  { day: 4, Close: 62.08 },
+  { day: 5, Close: 61.89 },
+  { day: 6, Close: 63.28 },
+  { day: 7, Close: 62.81 },
+  { day: 8, Close: 63.05 },
 ]
 
 const rows = observations.flatMap((row, index) => {
   if (index < 2) return []
-  const average = mean(
-    observations.slice(index - 2, index + 1),
-    (observation) => observation.Close,
-  )
-  return average === undefined ? [] : [{ ...row, average }]
+  const window = observations.slice(index - 2, index + 1)
+  const average =
+    window.reduce((total, observation) => total + observation.Close, 0) /
+    window.length
+  return [{ ...row, average }]
 })
 
 const closingPriceChart = defineChart({
   marks: [
     areaY(rows, {
-      x: 'Date',
+      x: 'day',
       y1: 'average',
       y2: 'Close',
       fill: '#2563eb',
       fillOpacity: 0.18,
     }),
     lineY(rows, {
-      x: 'Date',
+      x: 'day',
       y: 'Close',
       stroke: '#2563eb',
     }),
     lineY(rows, {
-      x: 'Date',
+      x: 'day',
       y: 'average',
       stroke: '#64748b',
     }),
   ],
   x: {
-    scale: scaleUtc,
+    scale: scaleLinear,
     nice: true,
-    axis: { label: 'Date' },
+    axis: { label: 'Trading day' },
   },
   y: {
     scale: scaleLinear,
@@ -94,20 +99,12 @@ const closingPriceChart = defineChart({
 })
 ```
 
-The rolling average is an ordinary, visible data transform. The direct
-`d3-array` and `d3-scale` imports are application dependencies. Install those
-modules and their matching `@types` packages alongside TanStack Charts.
-[Installation](./installation.md) lists the exact packages, and
-[Scales and D3](./concepts/scales-and-d3.md) explains the ownership boundary.
-
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/33-difference-chart/?theme=system&height=480"
-  title="Apple close versus moving-average difference chart built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+The rolling average is an ordinary, visible data transform. Both axes use the
+compact numeric scale, and their factories infer domains from the materialized
+channels. When the horizontal values become real calendar dates, replace only
+the x scale with D3's `scaleUtc`; the compact y scale and chart definition stay
+unchanged. [Scales](./concepts/scales-and-d3.md) defines that upgrade
+boundary.
 
 ## What TanStack Charts owns
 
@@ -128,13 +125,14 @@ TanStack Charts owns the parts that make a declarative chart reliable inside an 
 TanStack Charts keeps data preparation explicit and spatial algorithms outside
 the rendering runtime.
 
-| Responsibility                                                                                         | Owner                                                   |
-| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
-| Common group, bin, window, normalize, select, and row-stack transforms                                 | TanStack's eager data-transform helpers                 |
-| Scale choice, fixed semantic domains, interpolation, specialized statistics, and spatial algorithms    | Your application using the granular D3 modules it needs |
-| Fetching, cleaning, profiling, and exploratory analysis                                                | Your data layer, server, or AI workflow                 |
-| Mark-channel domain inference, responsive ranges, guide layout, scenes, rendering, and chart lifecycle | TanStack Charts                                         |
-| Page controls, queries, filters, persistence, memoization, and application state                       | Your application                                        |
+| Responsibility                                                                                         | Owner                                                      |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| Common numeric and categorical scale mappings                                                          | `@tanstack/charts-scales`                                  |
+| Common group, bin, window, normalize, select, and row-stack transforms                                 | TanStack's eager data-transform helpers                    |
+| Temporal, nonlinear, piecewise, spatial, and other specialized algorithms                              | Your application using only the granular D3 modules needed |
+| Fetching, cleaning, profiling, and exploratory analysis                                                | Your data layer, server, or AI workflow                    |
+| Mark-channel domain inference, responsive ranges, guide layout, scenes, rendering, and chart lifecycle | TanStack Charts                                            |
+| Page controls, queries, filters, persistence, memoization, and application state                       | Your application                                           |
 
 Prepared data can come from TanStack transforms, D3, SQL, a server, or
 ordinary TypeScript; marks consume it without requiring a special series
@@ -148,6 +146,8 @@ The normal path is intentionally short:
 - Omit `margin` to measure axes, tick labels, rotation, and titles automatically.
 - Supply `ariaLabel`; keyboard focus is enabled by default.
 - Add the `tooltip` extension when a native value tooltip is enough.
+- Start with compact linear, band, point, and ordinal scales; upgrade only the
+  scale that needs fuller D3 semantics.
 - Let built-in marks infer stable identity from IDs or unique positions; supply
   a stable `key` when that identity is unavailable or can change.
 - Let field names, datum types, scales, interaction points, and adapters infer without casts.
@@ -160,6 +160,7 @@ Every automatic behavior has an explicit escape hatch. The [Guides](./guides/res
 | Package                         | Use it for                                                       |
 | ------------------------------- | ---------------------------------------------------------------- |
 | `@tanstack/charts`              | Definitions, marks, scenes, SVG, Canvas, export, and vanilla DOM |
+| `@tanstack/charts-scales`       | Compact linear, band, point, and ordinal scales                  |
 | `@tanstack/react-charts`        | React `<Chart>`                                                  |
 | `@tanstack/react-native-charts` | Experimental React Native SVG `<Chart>`                          |
 | `@tanstack/preact-charts`       | Preact `<Chart>`                                                 |
@@ -176,7 +177,7 @@ All packages are ESM and tree-shakeable. Built-in marks and optional capabilitie
 ## Where to go next
 
 - [Compare Libraries](./comparison.md) — evaluate Chart.js, Apache ECharts, Recharts, Observable Plot, and TanStack Charts against the pinned evidence.
-- [Installation](./installation.md) — install the core, an adapter, and only the D3 modules your charts import.
+- [Installation](./installation.md) — install the core, compact scales, an adapter, and any advanced D3 modules your charts import.
 - [Quick Start](./quick-start.md) — define, mount, update, and destroy a responsive chart.
 - [Grammar of Graphics](./concepts/grammar-of-graphics.md) — understand how data, marks, channels, scales, and layers fit together.
 - [Choosing a Chart](./guides/choosing-a-chart.md) — start from the analytical question.

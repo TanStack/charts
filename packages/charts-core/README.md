@@ -2,36 +2,35 @@
 
 A chart grammar for TypeScript and JavaScript. Marks consume your data
 directly, channels describe visual encodings, and the engine compiles them into
-a renderer-neutral keyed scene. D3 supplies battle-tested algorithms; TanStack
-supplies the grammar, scene compiler, responsive range adapter, rendering, and
-lifecycle.
+a renderer-neutral keyed scene. TanStack's compact scales cover common numeric
+and categorical mappings. Granular D3 modules remain available for temporal,
+nonlinear, piecewise, spatial, and other specialized algorithms.
 
 TanStack Charts is an independent implementation for typed application
 infrastructure. Project lineage is recorded in the repository
 [`ACKNOWLEDGEMENTS.md`](https://github.com/TanStack/charts/blob/main/ACKNOWLEDGEMENTS.md).
 
-Install TanStack Charts with the granular D3 modules your chart imports as
-direct application dependencies. Strict package managers do not expose
-TanStack Charts' transitive dependencies for application imports:
+Install the grammar and compact scales for the common path:
 
 ```sh
-pnpm add @tanstack/charts d3-scale d3-shape
-pnpm add -D @types/d3-scale @types/d3-shape
+pnpm add @tanstack/charts @tanstack/charts-scales
 ```
 
-Omit any D3 module and matching type package that your chart does not use.
+The scale package has no root export. Import only the required `/linear`,
+`/band`, `/point`, or `/ordinal` entry.
 
 <!-- docs-example: core-readme-definition typecheck -->
 
 ```ts
-import { scaleLinear, scaleOrdinal, scaleUtc } from 'd3-scale'
-import { curveMonotoneX } from 'd3-shape'
-import { colorLegend, d3Curve, defineChart, lineY } from '@tanstack/charts'
+import { colorLegend, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scalePoint } from '@tanstack/charts-scales/point'
 import { tooltip } from '@tanstack/charts/tooltip'
 
 interface DownloadRow {
   id: string
-  date: Date
+  month: string
   downloads: number
   package: string
 }
@@ -39,20 +38,26 @@ interface DownloadRow {
 const data: readonly DownloadRow[] = [
   {
     id: 'query-jan',
-    date: new Date('2026-01-01T00:00:00Z'),
+    month: 'Jan',
     downloads: 1_200_000,
     package: 'Query',
   },
   {
     id: 'query-feb',
-    date: new Date('2026-02-01T00:00:00Z'),
+    month: 'Feb',
     downloads: 1_480_000,
     package: 'Query',
   },
   {
     id: 'router-jan',
-    date: new Date('2026-01-01T00:00:00Z'),
+    month: 'Jan',
     downloads: 420_000,
+    package: 'Router',
+  },
+  {
+    id: 'router-feb',
+    month: 'Feb',
+    downloads: 510_000,
     package: 'Router',
   },
 ]
@@ -60,18 +65,17 @@ const data: readonly DownloadRow[] = [
 const downloads = defineChart({
   marks: [
     lineY(data, {
-      x: 'date',
+      x: 'month',
       y: 'downloads',
       z: 'package',
-      curve: d3Curve(curveMonotoneX),
     }),
   ],
-  x: { scale: scaleUtc, nice: true },
+  x: { scale: () => scalePoint<string>().padding(0.4) },
   y: {
     scale: scaleLinear,
     nice: true,
     grid: true,
-    axis: { label: 'Weekly downloads' },
+    axis: { label: 'Monthly downloads' },
   },
   color: {
     scale: () =>
@@ -83,6 +87,42 @@ const downloads = defineChart({
 })
 ```
 
+Factories ask Charts to infer domains from materialized mark channels. Pass a
+configured compact instance when a semantic domain must remain fixed. Charts
+copies either form and owns its responsive positional range.
+
+## Add D3 for advanced scale semantics
+
+Upgrade one scale at a time. A continuous calendar axis needs D3, while its
+numeric axis can stay compact:
+
+```sh
+pnpm add d3-scale
+pnpm add -D @types/d3-scale
+```
+
+```ts
+import { defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleUtc } from 'd3-scale'
+
+const history = [
+  { date: new Date('2026-01-01T00:00:00Z'), downloads: 1_200_000 },
+  { date: new Date('2026-02-01T00:00:00Z'), downloads: 1_480_000 },
+]
+
+const historicalDownloads = defineChart({
+  marks: [lineY(history, { x: 'date', y: 'downloads' })],
+  x: { scale: scaleUtc, nice: true },
+  y: { scale: scaleLinear, nice: true },
+})
+```
+
+Use D3 for time and UTC, log, power, symlog, radial, sequential, diverging,
+quantile, quantize, threshold, piecewise, or nonnumeric interpolation. Declare
+only the granular D3 modules and matching type packages imported by application
+source.
+
 Use the vanilla host directly:
 
 ```ts
@@ -91,7 +131,7 @@ import { mountChart } from '@tanstack/charts/dom'
 const options = {
   definition: downloads,
   height: 320,
-  ariaLabel: 'Weekly package downloads',
+  ariaLabel: 'Monthly package downloads',
 }
 
 const host = mountChart(element, options)
@@ -119,14 +159,14 @@ import { Chart } from '@tanstack/react-charts'
 ;<Chart
   definition={downloads}
   height={320}
-  ariaLabel="Weekly package downloads"
+  ariaLabel="Monthly package downloads"
 />
 ```
 
 ## Type inference
 
 Mark data drives the public types. Field channels include only compatible datum
-keys, built-in marks with unambiguous positional semantics constrain their D3
+keys, built-in marks with unambiguous positional semantics constrain their
 scales and axis formatters, and interaction callbacks retain the original
 datum type. `ChartPoint.xValue` and `yValue` retain the inferred channel types,
 including `Date`; conditional definitions expose honest unions for normal
@@ -150,12 +190,13 @@ ordinary bundles.
 - Marks: `lineY`, `areaX`, `areaY`, `barX`, `barY`, `dot`, `rect`, `cell`,
   `ruleX`, `ruleY`, `text`, `arrow`, `frame`, `hexagon`, `link`, `tickX`,
   `tickY`, `vector`, and responsive `facet` composition
-- Scales: D3 factories with inferred domains or configured D3 instances with
-  application-owned domains, copied through responsive range adapters
+- Scales: compact factories with inferred domains or configured instances with
+  application-owned domains, plus direct D3 scales for advanced semantics
 - Guides: responsive axes, grids, labels, categorical legends, and gradient
   legends
-- Data preparation: direct `d3-array` and `d3-shape` output, server-prepared
-  intervals, and application-derived rows flow into ordinary marks
+- Data preparation: TanStack transforms, direct granular D3 output,
+  server-prepared intervals, and application-derived rows flow into ordinary
+  marks
 - Runtime: object and responsive definitions, definition-identity updates,
   responsive measurement, keyed
   reconciliation, interruptible animation, pointer and keyboard focus, point
@@ -172,8 +213,8 @@ ordinary bundles.
 - Optional gradients and clipping from `@tanstack/charts/svg/resources`
 
 Every built-in mark, renderer, and chart-owned optional capability has a
-subpath export. D3 algorithms stay visibly imported from their granular
-`d3-*` packages. Importing `@tanstack/charts/line` cannot pull in bars, DOM
+subpath export. Compact scale families and D3 algorithms stay visibly imported
+from exact package entries. Importing `@tanstack/charts/line` cannot pull in bars, DOM
 interaction, React, or export. Set `guides: false` and `margin: 0` for
 sparklines.
 
@@ -185,8 +226,9 @@ overhang, and axis titles. The solve may resolve guide scales more than once,
 but marks render once against the final plot rectangle.
 
 ```ts
-import { scaleBand, scaleLinear } from 'd3-scale'
 import { barX, defineChart } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 const rankingRows = [
   { package: 'Query', downloads: 1_480_000 },
@@ -223,15 +265,14 @@ supply `measureText` on the host, adapter, runtime, or `createChartScene`
 layout options. Its returned `x` and `y` are the painted box offsets relative
 to the requested anchor and baseline.
 
-Definitions accept D3 factories for inferred domains and configured instances
-for application-owned domains. `createChartScene` rejects missing positional
-scales. TanStack copies each scale, applies the responsive pixel range, and
-centers D3 band output without mutating the source. Named D3 imports keep each
-capability tree-shakeable:
+Definitions accept scale factories for inferred domains and configured
+instances for application-owned domains. `createChartScene` rejects missing
+positional scales. TanStack copies each scale, applies the responsive pixel
+range, and centers band output without mutating the source:
 
 ```ts
 import { createChartScene, defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 const values = [32, 48, 41, 57]
 const definition = defineChart({
@@ -251,7 +292,7 @@ canonical documentation published on the TanStack website:
 
 - [Compare Libraries](./docs/comparison.md)
 - [Grammar of Graphics](./docs/concepts/grammar-of-graphics.md)
-- [Scales and D3](./docs/concepts/scales-and-d3.md)
+- [Scales](./docs/concepts/scales-and-d3.md)
 - [Guides](./docs/guides/choosing-a-chart.md)
 - [Example Gallery](./docs/examples/index.md)
 - [API Reference](./docs/reference/index.md)

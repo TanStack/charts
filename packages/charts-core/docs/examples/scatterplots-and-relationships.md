@@ -38,7 +38,7 @@ then render the raw observations and fitted endpoints as independent layers.
 This separation lets the dot layer preserve every observation while the line
 layer consumes only the model output. See
 [Marks and Layering](../concepts/marks-and-layering.md) for composition and
-[Scales and D3](../concepts/scales-and-d3.md) for the application-owned
+[Scales](../concepts/scales-and-d3.md) for the application-owned
 statistics boundary.
 
 ## Connect observations only when order matters
@@ -102,7 +102,7 @@ when focused data also changes application state.
 
 - Use quantitative scales with intentional domains on both axes. Use a
   logarithmic scale only when multiplicative distance is the intended reading;
-  see [Scales and D3](../concepts/scales-and-d3.md).
+  see [Scales](../concepts/scales-and-d3.md).
 - Map magnitude through an area-preserving radial scale when point size carries
   a third quantitative value.
 - Control opacity or aggregate spatially before thousands of overlapping dots

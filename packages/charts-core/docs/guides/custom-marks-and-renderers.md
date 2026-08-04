@@ -174,14 +174,14 @@ chart code should rely on definition inference instead.
 
 ## Custom scales and legends
 
-Configured callable D3 scales are the normal path. `ChartScale`,
+Configured callable scales are the normal path. `ChartScale`,
 `ChartColorScale`, and `ChartColorLegend` exist for context-aware adapters that
 need chart range, theme, or responsive legend geometry.
 
 Keep specialized scale dependencies in the module that uses them. A line-only
 bundle must not pay for a custom scale registered elsewhere.
 
-See [Scales and D3](../concepts/scales-and-d3.md) and
+See [Scales](../concepts/scales-and-d3.md) and
 [Legends and Color](./legends-and-color.md).
 
 ## Custom renderer

@@ -33,7 +33,7 @@ time makes it difficult to tell whether a visual difference is a renderer
 regression or a changed calculation.
 
 Move or simplify transforms only after parity is measured. The dependency
-boundary is explained in [Scales and D3](../concepts/scales-and-d3.md).
+boundary is explained in [Scales](../concepts/scales-and-d3.md).
 
 ## Translate to the grammar
 

@@ -14,8 +14,9 @@ Pass a complete spec when the chart does not need its resolved surface size:
 <!-- docs-example: static-definition typecheck -->
 
 ```ts
-import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 interface AlphabetRow {
   letter: string

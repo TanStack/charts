@@ -3,7 +3,7 @@
 Alpine directive adapter for `@tanstack/charts`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/alpine-charts alpinejs d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/alpine-charts alpinejs
 ```
 
 ```ts

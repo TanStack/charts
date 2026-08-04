@@ -50,7 +50,7 @@ Each entry records:
 | F-012 | Render callbacks omit diagnostic metrics                  | API             | monitoring |
 | F-013 | Bar series identity also changed bar geometry             | API             | resolved   |
 | F-014 | Responsive nicing duplicates layout calculations          | API             | resolved   |
-| F-015 | Legacy scale helpers compete with the D3-first API        | API             | resolved   |
+| F-015 | Legacy scale helpers obscured explicit scale choices      | API/Docs        | resolved   |
 | F-016 | Stats animated export still renders through Plot          | Integration/API | open       |
 | F-017 | React migration rebuilt a static definition               | Documentation   | resolved   |
 | F-018 | Stats derivations still invalidate dynamic input          | Application     | resolved   |
@@ -534,31 +534,41 @@ Each entry records:
 - Verification: factory scale tests cover default and explicit nicing;
   definitions no longer duplicate private inner-size calculations.
 
-### F-015 — Legacy scale helpers compete with the D3-first API
+### F-015 — Legacy scale helpers obscured explicit scale choices
 
 - Status: resolved
 - Severity: high
-- Observed in: strict migration of fixtures, sandbox, and Stats, followed by
-  the 15 KiB representative React bundle target
+- Owner: API/Documentation
+- Observed in: strict migration of fixtures, sandbox, and Stats; the compact
+  React bundle target; and the compact-first documentation audit
 - Friction: `scaleUtc`, `scaleTime`, `scaleLog`, `scaleSymlog`, `scaleSqrt`,
-  `configuredScale`, `ChartScaleTransform`, and inferred scale types remain
+  `configuredScale`, `ChartScaleTransform`, and inferred scale types remained
   exported beside native `d3-scale` values. Their names are easier for both
   humans and agents to select accidentally even though the strict compiler no
-  longer consumes inferred axis options.
+  longer consumes inferred axis options. After those helpers were removed, the
+  documentation overcorrected by presenting `d3-scale` as the default even for
+  ordinary numeric and categorical charts, leaving the dependency-free compact
+  scales buried as a bundle-only alternative.
 - Decision: remove the legacy inferred scale and transform surface after its
-  historical tests and bundle fixtures have been relabeled or deleted. Keep
-  D3 imports visibly sourced from `d3-scale` for its complete semantics. Offer
-  the deliberately smaller linear, band, point, and ordinal subset only from
-  exact `@tanstack/charts-scales/*` entries, with no root export. The compact
-  package is a constrained bundle option, not a second general-purpose scale
-  API.
+  historical tests and bundle fixtures have been relabeled or deleted. Make
+  exact `@tanstack/charts-scales/linear`, `/band`, `/point`, and `/ordinal`
+  entries the documented default for the subset they implement, with no root
+  export. Upgrade only the mapping that needs temporal, nonlinear, radial,
+  interpolated, statistical, or other complete D3 semantics, and keep that
+  import visibly sourced from `d3-scale`. Compact and D3 scales may coexist in
+  one definition. Keep `ChartScale` as the final extension for mappings neither
+  callable implementation can express.
 - Verification: the obsolete scale, radius, color, curve, transform, and
   spatial wrappers and subpaths are gone; the inferred-scale builder and its
   tests are deleted; fixtures and histogram benchmarks use direct `d3.bin`;
   differential tests cover the compact subset against D3; packed-consumer
   checks resolve every exact entry. The complete compact family is 1,877 gzip
   bytes, and a representative compact React line is 14,227 gzip bytes without
-  retaining `d3-scale`, `d3-format`, or `d3-interpolate`.
+  retaining `d3-scale`, `d3-format`, or `d3-interpolate`. The canonical scale
+  concept, reference, navigation, import map, and generated authoring rules now
+  teach compact-first selection, per-scale D3 upgrades, factory-versus-instance
+  ownership, categorical dates versus elapsed time, and the final custom-scale
+  boundary.
 
 ### F-016 — Stats animated export still renders through Plot
 
