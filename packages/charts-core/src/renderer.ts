@@ -11,6 +11,7 @@ import {
   resolveChartCursorFocus,
   resolveChartCursorPresentation,
   resolveChartFocusStrategy,
+  resolveChartPointerFocus,
   restoreChartFocusPoint,
   sameChartPointIdentity,
 } from './cursor'
@@ -890,9 +891,15 @@ export function mountChartRenderer<
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
     const points = interactionPoints()
     const focus = resolveRendererFocusStrategy(options.definition.focus)
-    if (focus) {
-      return focus.resolve(points, { x, y, maxDistance })
-    }
+    const focused = resolveChartPointerFocus(
+      interactionScene,
+      focus,
+      x,
+      y,
+      maxDistance,
+      points,
+    )
+    if (focused) return focused
     const presentationPoints = surface?.getPresentationPoints?.()
     const candidate =
       presentationPoints !== undefined

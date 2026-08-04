@@ -95,7 +95,10 @@ For curved `polyline` and `area` nodes, the current resolver uses the
 primitive's structured point geometry. Exact picking against an optional
 authored SVG path string remains a separate refinement.
 
-An explicit focus preset or custom strategy replaces this default resolver.
+Built-in axis focus modes compose painted containment with axis snapping. When
+the pointer is inside an interactive primitive, the topmost painted mark seeds
+the primary point. Outside painted geometry, the configured axis mode uses its
+normal nearest-axis fallback. A custom strategy replaces this host behavior.
 
 ## Focus modes
 
@@ -110,20 +113,22 @@ const groupedDownloads = defineChart(definition, {
 })
 ```
 
-| Preset      | Pointer resolution                                 | Group returned to callbacks and tooltip                               | Keyboard navigation                     |
-| ----------- | -------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------- |
-| `nearest`   | Nearest point in two dimensions                    | Primary point only                                                    | Every point                             |
-| `nearest-x` | Nearest x coordinate, then nearest y               | Primary point only                                                    | Every point                             |
-| `nearest-y` | Nearest y coordinate, then nearest x               | Primary point only                                                    | Every point                             |
-| `group-x`   | Nearest x coordinate, then nearest y within that x | One point per group sharing the semantic x value; nearest point first | One representative per semantic x value |
-| `group-y`   | Nearest y coordinate, then nearest x within that y | One point per group sharing the semantic y value; nearest point first | One representative per semantic y value |
+| Preset      | Pointer resolution                                                     | Group returned to callbacks and tooltip                               | Keyboard navigation                     |
+| ----------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------- |
+| `nearest`   | Nearest painted geometry or point in two dimensions                    | Primary point only                                                    | Every point                             |
+| `nearest-x` | Containing painted mark; otherwise nearest x, then nearest y           | Primary point only                                                    | Every point                             |
+| `nearest-y` | Containing painted mark; otherwise nearest y, then nearest x           | Primary point only                                                    | Every point                             |
+| `group-x`   | Containing painted mark; otherwise nearest x, then nearest y at that x | One point per group sharing the semantic x value; primary point first | One representative per semantic x value |
+| `group-y`   | Containing painted mark; otherwise nearest y, then nearest x at that y | One point per group sharing the semantic y value; primary point first | One representative per semantic y value |
 
 Grouping compares semantic values, including dates by timestamp. Duplicate
 points with the same `group` value are reduced to one member in grouped focus.
 
 The equivalent `focusX`, `focusY`, `focusNearestX`, and `focusNearestY`
 strategy objects remain available from `@tanstack/charts/focus` for composition
-or direct strategy use.
+or direct strategy use. The exact exported objects receive the same host-level
+containment behavior as their presets. A strategy that wraps or copies one of
+them is custom and owns its complete pointer resolution.
 
 ## Crosshair guides
 
@@ -213,9 +218,16 @@ host-facing entry.
 That host entry uses `createFocusChartCursorState` and
 `createFreeChartCursorState` to publish state, then
 `resolveChartCursorPresentation` and `resolveChartCursorFocus` to project it
-into each scene. `resolveChartFocusStrategy` converts a built-in focus name to
-the grouping strategy used by the local host. `resolveFocusPresentation`
-finally produces renderer-neutral underlay and overlay nodes.
+into each scene. `resolveChartPointerFocus` composes built-in axis focus with
+painted containment and returns `undefined` for default nearest focus so a host
+can apply its spatial index or renderer geometry. `resolveChartFocusStrategy`
+converts a built-in focus name to its grouping strategy.
+`resolveFocusPresentation` finally produces renderer-neutral underlay and
+overlay nodes. An empty array from `resolveChartPointerFocus` means an explicit
+strategy found no target. Pass `scene.points` (the default) as its final
+argument to enable painted containment. A distinct array explicitly signals
+active renderer presentation points and preserves anchor resolution while
+those interpolated points are authoritative.
 
 Use the same controller in several browser or React Native definitions to
 synchronize by semantic value rather than pixel position. In `focus` mode,

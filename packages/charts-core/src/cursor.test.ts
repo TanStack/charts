@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { scaleBand, scaleLinear, scaleUtc } from 'd3-scale'
 import { facetChart } from './facet'
+import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
 import {
   createChartCursor,
   createFocusChartCursorState,
@@ -8,6 +9,7 @@ import {
   resolveChartCursorFocus,
   resolveChartCursorPresentation,
   resolveChartFocusStrategy,
+  resolveChartPointerFocus,
   sameChartValue,
 } from './cursor'
 import { lineY } from './line'
@@ -16,6 +18,9 @@ import type {
   ChartCursorBinding,
   ChartCursorState,
   ChartDefinition,
+  ChartFocusMode,
+  ChartPoint,
+  ChartScene,
 } from './types'
 
 interface NumericRow {
@@ -42,6 +47,57 @@ function numericScene(width = 320, height = 180) {
 }
 
 describe('chart cursor controller', () => {
+  it('composes containment with every built-in axis focus mode', () => {
+    const xScene = axisContainmentScene('x')
+    const yScene = axisContainmentScene('y')
+    const cases: readonly {
+      mode: ChartFocusMode<NumericRow, number, number>
+      scene: ChartScene<NumericRow, number, number>
+      x: number
+      y: number
+      grouped: boolean
+    }[] = [
+      { mode: 'nearest-x', scene: xScene, x: 50, y: 80, grouped: false },
+      { mode: focusNearestX, scene: xScene, x: 50, y: 80, grouped: false },
+      { mode: 'group-x', scene: xScene, x: 50, y: 80, grouped: true },
+      { mode: focusX, scene: xScene, x: 50, y: 80, grouped: true },
+      { mode: 'nearest-y', scene: yScene, x: 80, y: 50, grouped: false },
+      { mode: focusNearestY, scene: yScene, x: 80, y: 50, grouped: false },
+      { mode: 'group-y', scene: yScene, x: 80, y: 50, grouped: true },
+      { mode: focusY, scene: yScene, x: 80, y: 50, grouped: true },
+    ]
+
+    for (const testCase of cases) {
+      const focused = resolveChartPointerFocus(
+        testCase.scene,
+        testCase.mode,
+        testCase.x,
+        testCase.y,
+        0,
+      )
+      expect(focused?.[0]?.datum.id).toBe('target')
+      expect(focused).toHaveLength(testCase.grouped ? 2 : 1)
+    }
+
+    expect(
+      resolveChartPointerFocus(xScene, 'group-x', 52, 160, 3)?.[0]?.datum.id,
+    ).toBe('first')
+    expect(resolveChartPointerFocus(xScene, 'group-x', 54, 160, 3)).toEqual([])
+    expect(
+      resolveChartPointerFocus(xScene, 'nearest', 50, 80, 0),
+    ).toBeUndefined()
+    expect(
+      resolveChartPointerFocus(
+        xScene,
+        'group-x',
+        50,
+        80,
+        1,
+        xScene.points.slice(),
+      )?.[0]?.datum.id,
+    ).toBe('first')
+  })
+
   it('publishes synchronous external-store updates and supports functional updates', () => {
     const controller = createChartCursor<number, number>()
     const first = vi.fn()
@@ -504,6 +560,82 @@ describe('focus cursor semantics', () => {
     ).toBe(first)
   })
 })
+
+function axisContainmentScene(axis: 'x' | 'y') {
+  const base = numericScene()
+  const first = axisPoint(
+    'first',
+    0,
+    axis === 'x' ? 50 : 100,
+    axis === 'x' ? 100 : 50,
+    axis === 'x' ? 1 : 100,
+    axis === 'x' ? 100 : 1,
+  )
+  const target = axisPoint(
+    'target',
+    1,
+    axis === 'x' ? 50 : 60,
+    axis === 'x' ? 60 : 50,
+    axis === 'x' ? 1 : 60,
+    axis === 'x' ? 60 : 1,
+  )
+  return {
+    ...base,
+    points: [first, target],
+    nodes:
+      axis === 'x'
+        ? [
+            sceneRectangle(first, 40, 100, 20, 40, 'x'),
+            sceneRectangle(target, 40, 60, 20, 40, 'x'),
+          ]
+        : [
+            sceneRectangle(first, 100, 40, 40, 20, 'y'),
+            sceneRectangle(target, 60, 40, 40, 20, 'y'),
+          ],
+  } satisfies ChartScene<NumericRow, number, number>
+}
+
+function axisPoint(
+  id: string,
+  datumIndex: number,
+  x: number,
+  y: number,
+  xValue: number,
+  yValue: number,
+): ChartPoint<NumericRow, number, number> {
+  return {
+    key: id,
+    markId: 'axis-test',
+    group: id,
+    groupLabel: id,
+    datum: { id, x: xValue, y: yValue },
+    datumIndex,
+    xValue,
+    yValue,
+    x,
+    y,
+    color: 'currentColor',
+  }
+}
+
+function sceneRectangle(
+  point: ChartPoint<NumericRow, number, number>,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  affinity: 'x' | 'y',
+) {
+  return {
+    kind: 'rect' as const,
+    key: point.key,
+    x,
+    y,
+    width,
+    height,
+    interaction: { point, affinity },
+  }
+}
 
 if (false) {
   interface CategoricalRow {

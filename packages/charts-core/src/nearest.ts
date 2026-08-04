@@ -75,16 +75,8 @@ export function nearestScenePoint<
     return nearestPoint(points, x, y, maxDistance)
   }
 
-  // Painted containment is authoritative and follows actual reverse paint order.
-  for (let targetIndex = index.targets.length; targetIndex--;) {
-    const target = index.targets[targetIndex]!
-    if (containsBounds(target.bounds, x, y) && containsTarget(target, x, y)) {
-      const point = bestInteractionPoint(target.node.interaction, x, y, allowed)
-      if (point) {
-        return point as ChartPoint<TDatum, TXValue, TYValue>
-      }
-    }
-  }
+  const contained = findContainingScenePoint(scene, x, y, points)
+  if (contained) return contained.point
 
   let resultPoint: ChartPoint | undefined
   let resultInteraction: SceneInteraction | undefined
@@ -139,6 +131,41 @@ export function nearestScenePoint<
       ? bestInteractionPoint(resultInteraction, x, y, allowed)
       : undefined)
   return (result as ChartPoint<TDatum, TXValue, TYValue> | undefined) ?? null
+}
+
+/** Returns the topmost painted interaction target containing a scene point. */
+export function findContainingScenePoint<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+  x: number,
+  y: number,
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[] = scene.points,
+): Readonly<{
+  point: ChartPoint<TDatum, TXValue, TYValue> | null
+}> | null {
+  const index = interactionIndex(scene)
+  const allowed =
+    points === scene.points ? undefined : new Set<ChartPoint>(points)
+  // Painted containment is authoritative and follows actual reverse paint order.
+  for (let targetIndex = index.targets.length; targetIndex--;) {
+    const target = index.targets[targetIndex]!
+    if (containsBounds(target.bounds, x, y) && containsTarget(target, x, y)) {
+      const interaction = target.node.interaction
+      const point = bestInteractionPoint(interaction, x, y, allowed)
+      const hasSemanticPoint = interaction.point
+        ? true
+        : interaction.points.length > 0
+      if (point || !allowed || !hasSemanticPoint) {
+        return {
+          point: point as ChartPoint<TDatum, TXValue, TYValue> | null,
+        }
+      }
+    }
+  }
+  return null
 }
 
 function interactionIndex(scene: ChartScene): SceneInteractionIndex {

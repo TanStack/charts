@@ -1,4 +1,5 @@
 import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
+import { findContainingScenePoint } from './nearest'
 import { valueKey } from './scales'
 import type {
   ChartCursorBinding,
@@ -219,6 +220,42 @@ export function resolveChartFocusStrategy<
     case 'nearest':
       return undefined
   }
+}
+
+/**
+ * Resolves explicit pointer focus, or returns undefined for default nearest
+ * focus. An empty array means the explicit strategy found no target. A points
+ * array distinct from scene.points preserves presentation-point resolution.
+ */
+export function resolveChartPointerFocus<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+  focusMode: ChartFocusMode<TDatum, TXValue, TYValue> | undefined,
+  x: number,
+  y: number,
+  maxDistance: number,
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[] = scene.points,
+): readonly ChartPoint<TDatum, TXValue, TYValue>[] | undefined {
+  const strategy = resolveChartFocusStrategy(focusMode)
+  if (!strategy) return undefined
+  if (
+    points === scene.points &&
+    (strategy === focusNearestX ||
+      strategy === focusNearestY ||
+      strategy === focusX ||
+      strategy === focusY)
+  ) {
+    const contained = findContainingScenePoint(scene, x, y)
+    if (contained) {
+      return contained.point
+        ? strategy.group(points, { point: contained.point })
+        : []
+    }
+  }
+  return strategy.resolve(points, { x, y, maxDistance })
 }
 
 export function sameChartPointIdentity<

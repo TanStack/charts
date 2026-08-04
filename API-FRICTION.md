@@ -211,7 +211,7 @@ Each entry records:
 | F-173 | Metro retained the complete universal barrel              | API/Tooling     | monitoring |
 | F-174 | OIDC release cannot claim a new npm package name          | Tooling         | resolved   |
 | F-175 | Native SVG resource normalization collapsed authored IDs  | Application     | resolved   |
-| F-176 | Large marks were focused by distant anchor points         | API             | monitoring |
+| F-176 | Large marks were focused by distant anchor points         | API             | resolved   |
 | F-177 | Bubble overlap inherited incidental source order          | Application     | resolved   |
 | F-178 | Custom-template examples exposed DOM mutation plumbing    | Docs/Tooling    | resolved   |
 | F-179 | Animation clocks drift at fixed frame indices             | Tooling         | monitoring |
@@ -4234,12 +4234,12 @@ Each entry records:
   `type: 'none'` outer facet scale, and require each focus guide's authoritative
   projector to accept a semantic value before painting it. Granular production
   fixtures measure the application cursor controller at 0.56 kB minified and
-  0.34 kB gzip and the complete adapter-facing host policy at 10.36 kB and
-  3.76 kB. Retained-input gates reject platform renderers, tooltip code, and D3
-  from both entries and reject focus-presentation policy from the application
-  entry. Physical-device and screen-reader verification remain outside the
-  release gate, so this entry remains monitoring for the other duplicated
-  native interaction policy.
+  0.34 kB gzip and the complete adapter-facing host policy, including
+  scene-aware pointer focus, at 13.92 kB and 5.08 kB. Retained-input gates
+  reject platform renderers, tooltip code, and D3 from both entries and reject
+  focus-presentation policy from the application entry. Physical-device and
+  screen-reader verification remain outside the release gate, so this entry
+  remains monitoring for the other duplicated native interaction policy.
 
 ### F-169 — CSS theme defaults reach the native scene compiler
 
@@ -4399,7 +4399,7 @@ Each entry records:
 
 ### F-176 — Large marks were focused by distant anchor points
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: API
 - Observed in: stacked-bar tooltip report and interaction-geometry lab
@@ -4410,7 +4410,7 @@ Each entry records:
   ranking, while chart-wide nearest-x made off-bar selection too permissive.
   Pure x fallback also tied every segment in one stack and selected the bottom
   segment when the pointer was above the stack.
-- Current decision: use a two-stage scene contract rather than infer a strategy
+- Decision: use a two-stage scene contract rather than infer a strategy
   from chart composition or copy geometry onto `ChartPoint`. A resolved `rect`,
   `dot`, `area`, `polyline`, or `rule` attaches its semantic point or points and
   natural `x`, `y`, `xy`, or `geometry` fallback. The default resolver collects
@@ -4420,15 +4420,19 @@ Each entry records:
   geometry distance to break ties. Inline mark states return their destination
   scene to the host, which intentionally uses that scene during animation.
   Points not attached to a primitive retain legacy point-distance behavior.
-  Explicit focus strategies and custom spatial indexes continue to own their
-  complete search semantics; the spatial-index factory now receives the final
-  scene as a backward-compatible second argument so bounds, quadtrees, or
-  Delaunay can remain optional acceleration layers without copying geometry
-  onto points. Facet layout also scopes the final primitive and focus-layer
-  keys. Default `primary`/`group` presentation matches canonical focused points
-  instead of treating equal x/y/series tuples in another panel as the same
-  point; `whenFocused(..., { match: "x" })` or `match: "y"` remains the
-  explicit synchronized-cursor contract.
+  Built-in `nearest-x`, `nearest-y`, `group-x`, and `group-y` modes, including
+  their exact exported strategy identities, use the same exact containment to
+  seed the primary point before applying singleton or semantic-axis grouping.
+  Outside painted geometry they retain their previous axis fallback and
+  `maxFocusDistance` behavior. Custom focus strategies and custom spatial
+  indexes continue to own their complete search semantics; the spatial-index
+  factory receives the final scene as a backward-compatible second argument so
+  bounds, quadtrees, or Delaunay can remain optional acceleration layers
+  without copying geometry onto points. Facet layout also scopes the final
+  primitive and focus-layer keys. Default `primary`/`group` presentation
+  matches canonical focused points instead of treating equal x/y/series tuples
+  in another panel as the same point; `whenFocused(..., { match: "x" })` or
+  `match: "y"` remains the explicit synchronized-cursor contract.
 - Verification: focused tests cover containment priority, x/y/xy/geometry
   fallback, rounded/reversed rectangles, circles, polygons, rules and lines,
   built-in bar affinity, paint-order overlap, stack-edge selection, nested
@@ -4447,14 +4451,13 @@ Each entry records:
   lines, rectangles, and dots contribute their natural affinity per primitive
   without a chart-wide setting, including topmost containment when unlike marks
   overlap. Facet coverage includes plain, grouped, stacked, and bubble marks.
-  Three mixed-mark cases now include an additional native `group-x` or
-  `group-y` tooltip card. This exposed that grouped tooltips are not an
-  independent presentation option: each grouped preset replaces the default
-  scene-containment resolver with nearest-axis selection as well as returning
-  the focus group. The lab keeps those cards separate and labelled rather than
-  claiming that geometry-first primary selection and axis grouping currently
-  compose.
-  The full unit matrix passes 745 tests across 131 files;
+  Three mixed-mark cases include an additional native `group-x` or `group-y`
+  tooltip card. The stacked-bar band-cursor conformance case closes the gap
+  those cards exposed: hovering the middle of a stack segment now selects that
+  painted segment first, then returns its full semantic axis group. Focused
+  DOM, motion-presentation, custom-strategy, React Native, x/y preset, and
+  exported-strategy regressions cover the composed contract.
+  The full unit matrix passes 838 tests across 138 files;
   typecheck, documentation,
   formatting, packed-consumer, seven-adapter, sandbox production-build, and
   live browser checks also pass.
@@ -4479,7 +4482,10 @@ Each entry records:
   fixture ceilings were reviewed and accepted because painted-geometry
   interaction is the default contract across DOM, Canvas, and native charts;
   the exact locked baselines now record that decision while the isolated 2 kB
-  ceiling continues to constrain the resolver itself. A final size audit removed
+  ceiling continues to constrain the resolver itself. Composing containment
+  with built-in axis focus adds 267 minified / 100 gzip bytes to the DOM host
+  and 105 gzip bytes to the React compact-scale consumer, which remains below
+  its locked 23 KiB product ceiling at 22.99 KiB. A final size audit removed
   redundant built-in `MarkScene.points` arrays and explicit default `xy`
   affinity fields while retaining the optional point list for custom-mark
   compatibility. Against the immediate pre-audit build, that saves 119
@@ -4499,8 +4505,7 @@ Each entry records:
   establish topmost traversal, cached-bounds rejection, and exact path tests.
 
 - Follow-up: exact picking against optional authored SVG path strings and an
-  interpolated mid-transition scene remain separate refinements. Verify full
-  SVG/Canvas parity before resolving this entry.
+  interpolated mid-transition scene remain separate refinements.
 
 ### F-177 — Bubble overlap inherited incidental source order
 

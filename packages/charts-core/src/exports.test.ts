@@ -75,6 +75,7 @@ describe('public package exports', () => {
       'resolveChartCursorFocus',
       'resolveChartCursorPresentation',
       'resolveChartFocusStrategy',
+      'resolveChartPointerFocus',
       'resolveFocusPresentation',
     ])
   })

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "order": 1200,
+  "id": "119-stacked-bar-band-cursor",
+  "title": "Stacked bars with band and rule cursors",
+  "family": "interaction",
+  "intent": "Track one stacked-bar category with a full-height x band and the focused segment endpoint with a dotted y rule.",
+  "support": "native",
+  "features": [
+    "stacked bars",
+    "focused x band",
+    "dotted y crosshair",
+    "mixed cursor presentation",
+    "two-pixel bar outset"
+  ],
+  "geometry": [{ "role": "bar", "count": 24 }],
+  "interactionScenarios": [
+    {
+      "id": "band-and-rule-follow-stack",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "period:Nov:cause:wounds"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focus.period", "equals": "Nov" },
+            { "path": "focus.cause", "equals": "wounds" },
+            { "path": "focus.groupSize", "equals": 3 },
+            { "path": "cursor.bandVisible", "equals": true },
+            { "path": "cursor.yRuleVisible", "equals": true },
+            { "path": "cursor.yRuleDotted", "equals": true },
+            {
+              "path": "cursor.leftOutset",
+              "approx": 2,
+              "tolerance": 0.05
+            },
+            {
+              "path": "cursor.rightOutset",
+              "approx": 2,
+              "tolerance": 0.05
+            },
+            {
+              "path": "cursor.widthDelta",
+              "approx": 4,
+              "tolerance": 0.05
+            },
+            { "path": "cursor.ySettled", "equals": true }
+          ]
+        },
+        { "type": "screenshot", "name": "stacked-band-and-rule-cursors" },
+        { "type": "pointerLeave", "view": "main" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focus.period", "equals": null },
+            { "path": "cursor.bandVisible", "equals": false },
+            { "path": "cursor.yRuleVisible", "equals": false }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Observable Plot pointer interaction",
+    "url": "https://observablehq.com/plot/interactions/pointer"
+  },
+  "ai": {
+    "create": "Create stacked Crimean War bars where the selected month paints an x band exactly two pixels beyond both bar edges and the selected segment paints a dotted horizontal y rule.",
+    "maintain": "Keep the band as a focused underlay, the y rule as a renderer-native crosshair, and verify their exact geometry after pointer movement across responsive sizes and themes."
+  }
+}

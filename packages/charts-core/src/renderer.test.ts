@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { barY } from './bar'
 import { createChartCursor } from './cursor'
 import { lineY } from './line'
 import { mountChartRenderer } from './renderer'
 import { defineChart, findNearestPoint } from './scene'
+import { stack } from './stack'
 import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
@@ -11,7 +13,12 @@ import type {
   ChartSurface,
   ChartSurfaceRenderOptions,
 } from './dom-types'
-import type { ChartPoint, ChartScene, ChartTooltipAnchorContext } from './types'
+import type {
+  ChartPoint,
+  ChartScene,
+  ChartTooltipAnchorContext,
+  SceneNode,
+} from './types'
 
 interface Datum {
   id: string
@@ -297,12 +304,108 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 
+  it('uses painted containment to seed built-in grouped axis focus', () => {
+    const rows: readonly Datum[] = [
+      { id: 'disease', x: 0, y: 100 },
+      { id: 'wounds', x: 0, y: 40 },
+      { id: 'other', x: 0, y: 20 },
+    ]
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusGroupChange = vi.fn()
+    const host = mountChartRenderer(container, {
+      definition: defineChart({
+        marks: [
+          barY(rows, {
+            x: 'x',
+            y: 'y',
+            z: 'id',
+            key: 'id',
+            layout: stack({ order: rows.map((row) => row.id) }),
+          }),
+        ],
+        x: { scale: scaleBand<number>().domain([0]) },
+        y: { scale: scaleLinear().domain([0, 160]) },
+        guides: false,
+        margin: 0,
+        focus: 'group-x',
+        maxFocusDistance: 0,
+      }),
+      renderer: fake.renderer,
+      width: 320,
+      height: 200,
+      ariaLabel: 'Stacked focus chart',
+      onFocusGroupChange,
+    })
+    const target = host
+      .getScene()
+      .points.find((point) => point.datum.id === 'wounds')
+    const targetRect = target
+      ? flattenSceneNodes(host.getScene().nodes).find(
+          (node) => node.kind === 'rect' && node.interaction?.point === target,
+        )
+      : undefined
+    if (!target || targetRect?.kind !== 'rect') {
+      throw new Error('Expected the wounds stack segment')
+    }
+    fake.clientToScene.mockReturnValue({
+      x: targetRect.x + targetRect.width / 2,
+      y: targetRect.y + targetRect.height / 2,
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientX: 0, clientY: 0 }),
+    )
+
+    const focused = onFocusGroupChange.mock.calls.at(-1)?.[0] as
+      readonly ChartPoint<Datum, number, number>[] | undefined
+    expect(focused).toHaveLength(3)
+    expect(focused?.[0]?.datum.id).toBe('wounds')
+    host.destroy()
+  })
+
+  it('keeps custom focus strategies in control of pointer resolution', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const resolve = vi.fn(
+      (points: readonly ChartPoint<Datum, number, number>[]) =>
+        points[1] ? [points[1]] : [],
+    )
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        focus: {
+          resolve,
+          group: (_points, point) => [point],
+          navigation: (points) => points,
+        },
+        maxFocusDistance: 1_000,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Custom focus chart',
+      onFocusChange,
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientX: 0, clientY: 0 }),
+    )
+
+    expect(resolve).toHaveBeenCalledOnce()
+    expect(onFocusChange).toHaveBeenLastCalledWith(host.getScene().points[1])
+    host.destroy()
+  })
+
   it('resolves pointers against the destination scene returned by focus paint', () => {
     const fake = createFakeRenderer()
     const container = document.createElement('div')
     const onFocusChange = vi.fn()
     const host = mountChartRenderer(container, {
-      definition: defineChart(definition, { maxFocusDistance: 1 }),
+      definition: defineChart(definition, {
+        focus: 'nearest-x',
+        maxFocusDistance: 1,
+      }),
       renderer: fake.renderer,
       width: 480,
       height: 260,
@@ -363,7 +466,11 @@ describe('renderer-neutral chart host', () => {
     let presentation: ChartScene<Datum, number, number>['points'] | undefined
     fake.surface.getPresentationPoints = () => presentation
     const host = mountChartRenderer(container, {
-      definition: { ...definition, maxFocusDistance: 20 },
+      definition: {
+        ...definition,
+        focus: 'nearest-x',
+        maxFocusDistance: 20,
+      },
       renderer: fake.renderer,
       width: 480,
       height: 260,
@@ -2441,6 +2548,14 @@ function restoreProperty(
 ) {
   if (descriptor) Object.defineProperty(target, key, descriptor)
   else Reflect.deleteProperty(target, key)
+}
+
+function flattenSceneNodes(nodes: readonly SceneNode[]): SceneNode[] {
+  return nodes.flatMap((node) =>
+    node.kind === 'group'
+      ? [node, ...flattenSceneNodes(node.children)]
+      : [node],
+  )
 }
 
 interface FakeRenderer {
