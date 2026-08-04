@@ -39,6 +39,9 @@
     "./bar": "./src/bar.ts",
     "./band": "./src/band.ts",
     "./canvas": "./src/canvas.ts",
+    "./crosshair": "./src/crosshair.ts",
+    "./cursor": "./src/cursor-public.ts",
+    "./cursor/host": "./src/cursor-host.ts",
     "./d3/area-x": "./src/d3-area-x.ts",
     "./d3/shape": "./src/d3-shape.ts",
     "./dom": "./src/dom.ts",
@@ -128,6 +131,18 @@
       "./canvas": {
         "types": "./dist/canvas.d.ts",
         "import": "./dist/canvas.js"
+      },
+      "./crosshair": {
+        "types": "./dist/crosshair.d.ts",
+        "import": "./dist/crosshair.js"
+      },
+      "./cursor": {
+        "types": "./dist/cursor-public.d.ts",
+        "import": "./dist/cursor-public.js"
+      },
+      "./cursor/host": {
+        "types": "./dist/cursor-host.d.ts",
+        "import": "./dist/cursor-host.js"
       },
       "./d3/area-x": {
         "types": "./dist/d3-area-x.d.ts",

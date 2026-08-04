@@ -58,17 +58,23 @@ describe('Octane Canvas adapter client', () => {
       target.innerHTML = await renderServerHydrationFixture()
       const host = target.querySelector('.ts-chart-host')
       const surface = target.querySelector('.ts-chart-canvas')
+      const backgroundCanvas = target.querySelector(
+        '.ts-chart-canvas__background',
+      )
       const focusUnderCanvas = target.querySelector(
         '.ts-chart-canvas__focus-under',
       )
       const sceneCanvas = target.querySelector('.ts-chart-canvas__scene')
       const focusCanvas = target.querySelector('.ts-chart-canvas__focus')
+      const baseCanvas = target.querySelector('.ts-chart-canvas__base')
       if (
         !host ||
         !surface ||
+        !backgroundCanvas ||
         !focusUnderCanvas ||
         !sceneCanvas ||
-        !focusCanvas
+        !focusCanvas ||
+        !baseCanvas
       ) {
         throw new Error('Expected the server-rendered Canvas chart shell')
       }
@@ -80,11 +86,15 @@ describe('Octane Canvas adapter client', () => {
 
       expect(target.querySelector('.ts-chart-host')).toBe(host)
       expect(target.querySelector('.ts-chart-canvas')).toBe(surface)
+      expect(target.querySelector('.ts-chart-canvas__background')).toBe(
+        backgroundCanvas,
+      )
       expect(target.querySelector('.ts-chart-canvas__focus-under')).toBe(
         focusUnderCanvas,
       )
       expect(target.querySelector('.ts-chart-canvas__scene')).toBe(sceneCanvas)
       expect(target.querySelector('.ts-chart-canvas__focus')).toBe(focusCanvas)
+      expect(target.querySelector('.ts-chart-canvas__base')).toBe(baseCanvas)
       expect(target.querySelector('svg')).toBeNull()
 
       await act(() => root?.unmount())
@@ -129,7 +139,7 @@ describe('Octane Canvas adapter client', () => {
     }
     const context = onRender.mock.calls.at(-1)?.[0]
     expect(context?.surface.element).toBe(surface)
-    expect(target.querySelectorAll('canvas')).toHaveLength(3)
+    expect(target.querySelectorAll('canvas')).toHaveLength(5)
     expect(target.querySelector('svg')).toBeNull()
 
     vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({

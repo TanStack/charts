@@ -59,7 +59,9 @@ downloadChartSvg(chartContainer, 'quarterly-revenue.svg', {
 
 The target may be the chart SVG or an ancestor containing `svg.ts-chart`.
 Focus decoration is omitted by default; set `includeFocus: true` when it is
-part of the intended artifact.
+part of the intended artifact. This includes authored `whenFocused` geometry,
+the primary focus ring, and the currently painted crosshair or controlled
+cursor guide.
 
 ## Export PNG, JPEG, or WebP
 
@@ -89,16 +91,20 @@ coordinate system.
 ## Export a Canvas chart
 
 Pass the Canvas root or an ancestor containing it to the same
-`renderChartImage` or `downloadChartImage` functions. The exporter draws the
-base scene layer at the requested dimensions and scale. Set
-`includeFocus: true` to composite the focus layers; they are excluded by
-default.
+`renderChartImage` or `downloadChartImage` functions. Without focus, the
+exporter draws the stable base bitmap at the requested dimensions and scale.
+Set `includeFocus: true` to composite the live background, focus underlay,
+ordinary scene, and focus overlay layers in that order. Crosshair guides use
+the same underlay and overlay canvases.
 
 Canvas focus is painted on underlay and overlay canvases so pointer movement
 does not repaint the base scene. Applications that need only the raw base
 bitmap may also call `toBlob()` or `toDataURL()` on
-`CanvasChartSurface.canvas`. Unlike SVG serialization, Canvas export does not
-retain vector geometry, accessible markup, or independently styleable nodes.
+`CanvasChartSurface.canvas`; it contains the chart background and ordinary
+scene but no transient focus. `backgroundCanvas`, `focusUnderCanvas`,
+`sceneCanvas`, and `focusCanvas` expose the modeled live layers. Unlike
+SVG serialization, Canvas export does not retain vector geometry, accessible
+markup, or independently styleable nodes.
 
 ## Theme and resource policy
 

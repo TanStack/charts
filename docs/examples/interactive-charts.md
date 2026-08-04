@@ -16,7 +16,9 @@ selection, or product record.
 | Reader task                                                  | Start with                                     |
 | ------------------------------------------------------------ | ---------------------------------------------- |
 | Inspect one point or a same-x group                          | Native chart focus and tooltip                 |
-| Paint a band, rule, or mark only for the active datum/group  | `whenFocused` around an ordinary mark          |
+| Follow focus with one rule or crosshair                      | Data-less `crosshair` mark                     |
+| Paint existing geometry for the active datum/group           | `whenFocused` around an ordinary mark          |
+| Synchronize focus or free coordinates between charts         | Shared `createChartCursor` controller          |
 | Resize, recolor, or fade existing marks during focus         | Inline mark `states`                           |
 | Keep rich framework detail open, including another chart     | Pinned composed tooltip body                   |
 | Navigate a wide schedule without changing its semantic scale | Native horizontal scrolling                    |
@@ -76,6 +78,35 @@ marks: [
 
 [Open the grouped focus example](https://tanstack.com/charts/catalog/35-grouped-tooltip/)
 to inspect its live chart and complete source.
+
+## Follow focus with a crosshair
+
+A crosshair is one dynamic guide driven by the existing focus state. It is not
+one hidden rule per datum:
+
+```ts
+marks: [
+  lineY(rows, { x: 'date', y: 'value' }),
+  crosshair({
+    x: { label: true },
+    y: false,
+    strokeDasharray: '4 4',
+  }),
+]
+```
+
+It follows pointer and keyboard focus, stays out of hit testing, and renders
+through SVG, Canvas, motion, and native focus presentation. Put it before the
+first ordinary mark to paint underneath, or after to paint above. Use
+`maxFocusDistance: Number.POSITIVE_INFINITY` only when the guide should remain
+snapped across the complete plot.
+
+For synchronized charts or a free two-dimensional cursor, create one
+controller from `@tanstack/charts/cursor` and bind it through definition
+`cursor`. Focus mode shares semantic x/y values and local charts map them to
+their own pixels. Free mode shares controlled coordinates without selecting a
+datum. The complete state and inversion examples are in
+[Interactions and Selections](../guides/interactions-and-selections.md#cursors-and-crosshairs).
 
 ## Pin and expand rich detail
 
@@ -212,6 +243,7 @@ Application-owned interaction state should be semantic:
 - Scroll offset
 - Playback index
 - Pinned datum key
+- Shared cursor x/y value
 
 Pixel geometry is derived from `scene.chart` and copied configured scales on
 each render. This keeps state valid after responsive layout, font changes, and

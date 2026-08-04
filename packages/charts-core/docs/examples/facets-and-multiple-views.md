@@ -112,6 +112,35 @@ Do not query one SVG for a pixel and apply that pixel directly to another view.
 Different margins, widths, orientations, and scales can represent the same
 semantic value at different coordinates.
 
+For focus-driven cursors, `createChartCursor` provides that application-owned
+state without an overlay or callback relay:
+
+```ts
+import { createChartCursor } from '@tanstack/charts/cursor'
+
+const sharedDate = createChartCursor<Date, number>()
+const cursor = {
+  controller: sharedDate,
+  mode: 'focus' as const,
+  match: 'x' as const,
+  pin: true,
+}
+
+const current = defineChart(currentSpec, { cursor })
+const previous = defineChart(previousSpec, { cursor })
+```
+
+Pointer, responder, keyboard, or accessibility focus in either browser or
+React Native chart stores the semantic date. Every subscriber maps that date
+through its own x scale, resolves its local focus group, and paints its own
+`crosshair({ y: false })`. Widths, margins, and y domains can differ. A pinned
+cursor remains shared until another activation, an escape action, or a
+programmatic clear dismisses it.
+
+Use `anchor: 'value'` when setting a controller programmatically for semantic
+sync. Normalized or scene anchors intentionally share relative or local pixel
+coordinates instead.
+
 ## Production checks
 
 - Use one repeated encoding for true facets; use named views when roles differ.

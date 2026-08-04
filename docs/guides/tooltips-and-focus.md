@@ -1,6 +1,6 @@
 ---
 title: Tooltips and Focus
-description: Configure grouped focus, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
+description: Configure grouped focus, crosshairs, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
 ---
 
 The DOM host provides a small automatic path for the common case:
@@ -64,6 +64,41 @@ whenFocused(bandY(rows, { y: 'value' }), { match: 'y' })
 These are presentation filters, not alternate selection strategies. The first
 paints a vertical band wherever the focused x value exists; the second paints a
 horizontal band wherever the focused y value exists.
+
+Use the data-less `crosshair` mark when one renderer-native guide should follow
+the active focus instead of revealing authored geometry for a matching datum:
+
+```ts
+import { crosshair } from '@tanstack/charts/crosshair'
+
+const definition = defineChart({
+  marks: [
+    lineY(rows, { x: 'date', y: 'value', color: 'series' }),
+    crosshair({
+      x: { label: true },
+      y: false,
+      strokeDasharray: '4 4',
+    }),
+  ],
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear },
+  focus: 'group-x',
+  maxFocusDistance: Number.POSITIVE_INFINITY,
+  tooltip,
+})
+```
+
+The vertical rule follows `focus.primary.x` for pointer and keyboard focus.
+The x label uses the resolved axis tick label when possible. The tooltip still
+receives the complete x group. Keep the finite distance default when empty
+space should clear focus; Infinity is an explicit continuous-snapping policy.
+
+`crosshair` defaults to both axes with no labels or marker. Its rules are
+clipped to the plot and its labels are clamped to the surface. It does not
+change nearest-point selection, add hit targets, or suppress the primary focus
+ring. Use `focusRing: false` only when an enabled crosshair marker replaces the
+ring. See [Focus and Interaction](../reference/focus-and-interaction.md#controlled-cursors)
+when the cursor must be shared between charts or follow free coordinates.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/35-grouped-tooltip/?theme=system&height=480"
@@ -500,6 +535,9 @@ search over every raw point.
 - Use native focus for datum inspection.
 - Choose two-dimensional, nearest-axis, or grouped-axis semantics explicitly.
 - Keep a finite distance unless continuous snapping is intended.
+- Use `crosshair` for a single focus-driven guide; use `whenFocused` to reveal
+  existing data-bound geometry.
+- Share semantic cursor state through `createChartCursor`, not copied pixels.
 - Use native plaintext formatting for the 90% case.
 - Use the `portal` extension where clipped ancestors or stacking contexts can
   hide the tooltip.

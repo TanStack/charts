@@ -2,6 +2,8 @@ import type { ColorValue } from 'react-native'
 
 export interface NativePaintContext {
   color: ColorValue
+  /** Native equivalent of the browser `Canvas` system color. */
+  canvas?: ColorValue
 }
 
 export type NativePaintResolver = (
@@ -11,14 +13,16 @@ export type NativePaintResolver = (
 
 export function resolveNativePaint(
   paint: string,
-  { color }: NativePaintContext,
+  context: NativePaintContext,
 ): ColorValue {
+  const { color, canvas } = context
   const value = paint.trim()
   if (value === 'currentColor' || value === 'CanvasText') return color
+  if (value === 'Canvas') return canvas ?? color
   if (!value.startsWith('var(') || !value.endsWith(')')) return value
 
   const fallback = cssVariableFallback(value)
-  return fallback ? resolveNativePaint(fallback, { color }) : color
+  return fallback ? resolveNativePaint(fallback, context) : color
 }
 
 export function resolveNativeSolidPaint(

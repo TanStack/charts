@@ -1,9 +1,19 @@
 import { createChartRuntime } from './runtime'
 import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint, viewportInteractionPoints } from './scene'
-import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
 import { focusDisabled } from './focus-disabled'
 import { nearestPoint } from './nearest'
+import {
+  chartPointFromNavigationOrder,
+  chartPointFromSceneOrder,
+  createFocusChartCursorState,
+  createFreeChartCursorState,
+  resolveChartCursorFocus,
+  resolveChartCursorPresentation,
+  resolveChartFocusStrategy,
+  restoreChartFocusPoint,
+  sameChartPointIdentity,
+} from './cursor'
 import type {
   ChartInteractionController,
   ChartPointerResolution,
@@ -15,8 +25,12 @@ import type {
 } from './dom-types'
 import type {
   ChartAnimationOptions,
-  ChartFocusSource,
+  ChartCursorBinding,
+  ChartCursorController,
+  ChartCursorPresentation,
+  ChartCursorState,
   ChartFocusMode,
+  ChartFocusSource,
   ChartFocusStrategy,
   ChartPoint,
   ChartRuntime,
@@ -72,6 +86,18 @@ export function mountChartRenderer<
     ChartTooltipExtensionInstance<TDatum, TXValue, TYValue> | undefined
   let suppressNextSurfaceFocus = false
   let spatialIndex: ChartSpatialIndex<TDatum, TXValue, TYValue> | undefined
+  let cursorController: ChartCursorController<TXValue, TYValue> | undefined
+  let cursorMode: ChartCursorBinding['mode'] | undefined
+  let cursorMatch: 'x' | 'y' | 'xy' | undefined
+  let renderedCursorBinding:
+    ChartCursorBinding<TDatum, TXValue, TYValue> | undefined
+  let unsubscribeCursor: (() => void) | undefined
+  let publishedCursorController:
+    ChartCursorController<TXValue, TYValue> | undefined
+  let publishedCursorState: ChartCursorState<TXValue, TYValue> | undefined
+  let cursorPresentation: ChartCursorPresentation<TXValue, TYValue> | null =
+    null
+  let hasCursorPresentation = false
   const previousPosition = container.style.position
   const view = container.ownerDocument.defaultView
   const computedPosition = view?.getComputedStyle(container).position
@@ -84,6 +110,8 @@ export function mountChartRenderer<
     if (destroyed) return
     if (refreshText && !options.measureText) domText.refresh()
     const previousFocusedPoint = focusedPoint
+    const previousCursorPresentation = cursorPresentation
+    const previousCursorBinding = renderedCursorBinding
     scene = createScene()
     interactionScene = scene
     if (!surface) {
@@ -107,7 +135,8 @@ export function mountChartRenderer<
         className: options.className,
         tabIndex:
           options.definition.keyboard === false ||
-          options.definition.focus === false
+          options.definition.focus === false ||
+          options.definition.cursor?.mode === 'free'
             ? -1
             : (options.tabIndex ?? 0),
         idPrefix: options.idPrefix,
@@ -127,33 +156,55 @@ export function mountChartRenderer<
             viewportInteractionPoints(scene, scene.points),
             { scene },
           )
-    const trackedPointer =
-      (focusOwner === 'pointer' ||
-        (focusOwner === 'controlled' && focusSource === 'pointer')) &&
-      pinnedKey === null
-        ? pointerPosition
-        : null
-    const nextFocusedPoints = trackedPointer
-      ? resolvePointerFocus(trackedPointer.x, trackedPointer.y, maxDistance())
-      : previousFocusedPoint
-        ? (() => {
-            const restored = restoreFocusedPoint(
-              presentedPoints,
-              previousFocusedPoint,
-            )
-            return restored
-              ? focusPointsForPoint(restored, presentedPoints)
-              : []
-          })()
-        : []
-    const nextFocusedPoint = nextFocusedPoints[0] ?? null
-    focusedPoint = nextFocusedPoint
-    if (!nextFocusedPoint) pinnedKey = null
-    if (previousFocusedPoint || nextFocusedPoint) {
-      if (!trackedPointer) focusSource = 'restored'
-      paintFocus(nextFocusedPoint, nextFocusedPoints)
-      options.onFocusChange?.(nextFocusedPoint)
-      options.onFocusGroupChange?.(nextFocusedPoints)
+    const nextCursorBinding = cursorBinding()
+    renderedCursorBinding = nextCursorBinding
+    if (nextCursorBinding) {
+      applyCursorState(true)
+    } else if (previousCursorBinding) {
+      cursorPresentation = null
+      focusedPoint = null
+      pinnedKey = null
+      pointerPosition = null
+      focusOwner = null
+      paintFocus(null, [])
+      if (previousFocusedPoint) {
+        options.onFocusChange?.(null)
+        options.onFocusGroupChange?.([])
+      }
+    } else {
+      cursorPresentation = null
+      const trackedPointer =
+        (focusOwner === 'pointer' ||
+          (focusOwner === 'controlled' && focusSource === 'pointer')) &&
+        pinnedKey === null
+          ? pointerPosition
+          : null
+      const nextFocusedPoints = trackedPointer
+        ? resolvePointerFocus(trackedPointer.x, trackedPointer.y, maxDistance())
+        : previousFocusedPoint
+          ? (() => {
+              const restored = restoreChartFocusPoint(
+                presentedPoints,
+                previousFocusedPoint,
+              )
+              return restored
+                ? focusPointsForPoint(restored, presentedPoints)
+                : []
+            })()
+          : []
+      const nextFocusedPoint = nextFocusedPoints[0] ?? null
+      focusedPoint = nextFocusedPoint
+      if (!nextFocusedPoint) pinnedKey = null
+      if (
+        previousFocusedPoint ||
+        nextFocusedPoint ||
+        previousCursorPresentation
+      ) {
+        if (!trackedPointer) focusSource = 'restored'
+        paintFocus(nextFocusedPoint, nextFocusedPoints)
+        options.onFocusChange?.(nextFocusedPoint)
+        options.onFocusGroupChange?.(nextFocusedPoints)
+      }
     }
     const onRender = options.onRender
     if (onRender) {
@@ -220,12 +271,123 @@ export function mountChartRenderer<
     scheduleRender(true)
   }
 
+  const cursorBinding = ():
+    ChartCursorBinding<TDatum, TXValue, TYValue> | undefined =>
+    options.definition.cursor
+
+  const cursorIsPinned = () =>
+    cursorBinding()?.controller.getState()?.pinned === true
+
+  const interactionIsPinned = () => pinnedKey !== null || cursorIsPinned()
+
+  const configureCursorController = () => {
+    const nextBinding = cursorBinding()
+    if (nextBinding) hasCursorPresentation = true
+    const nextController = nextBinding?.controller
+    const nextMode = nextBinding?.mode
+    const nextMatch =
+      nextBinding?.mode === 'focus' ? (nextBinding.match ?? 'xy') : undefined
+    if (
+      nextController === cursorController &&
+      nextMode === cursorMode &&
+      nextMatch === cursorMatch
+    ) {
+      return
+    }
+    const previousController = cursorController
+    const controllerChanged = nextController !== previousController
+    if (controllerChanged) unsubscribeCursor?.()
+    if (previousController) clearPublishedCursor(previousController)
+    publishedCursorController = undefined
+    publishedCursorState = undefined
+    cursorController = nextController
+    cursorMode = nextMode
+    cursorMatch = nextMatch
+    if (controllerChanged) {
+      unsubscribeCursor = nextController?.subscribe(() => {
+        if (!destroyed && hasRendered) applyCursorState(false)
+      })
+    }
+  }
+
+  const applyCursorState = (notifyRestored: boolean) => {
+    const binding = cursorBinding()
+    if (!binding) {
+      cursorPresentation = null
+      return
+    }
+    const state = binding.controller.getState()
+    if (
+      state?.source !== 'pointer' ||
+      binding.controller !== publishedCursorController ||
+      state !== publishedCursorState
+    ) {
+      pointerPosition = null
+    }
+    cursorPresentation = resolveChartCursorPresentation(scene, binding, state)
+    const previous = focusedPoint
+    if (binding.mode === 'focus') {
+      const focus = resolveRendererFocusStrategy(options.definition.focus)
+      const points = resolveChartCursorFocus(
+        interactionPoints(),
+        binding,
+        state,
+        focus,
+      )
+      const point = points[0] ?? null
+      if (state) focusSource = state.source
+      pinnedKey = state?.pinned && point ? point.key : null
+      focusedPoint = point
+      paintFocus(point, points)
+      if (
+        !sameChartPointIdentity(previous, point) ||
+        (notifyRestored && (previous !== null || point !== null))
+      ) {
+        options.onFocusChange?.(point)
+        options.onFocusGroupChange?.(points)
+      }
+      return
+    }
+
+    pinnedKey = null
+    focusedPoint = null
+    paintFocus(null, [])
+    if (previous) {
+      options.onFocusChange?.(null)
+      options.onFocusGroupChange?.([])
+    }
+  }
+
+  const publishFocusCursor = (
+    points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    pinned = interactionIsPinned(),
+  ) => {
+    const binding = cursorBinding()
+    if (binding?.mode !== 'focus') return false
+    const point = points[0]
+    if (!point) {
+      clearPublishedCursor(binding.controller)
+      return true
+    }
+    publishCursor(
+      binding.controller,
+      createFocusChartCursorState(scene, binding, {
+        primary: point,
+        group: points,
+        source: focusSource,
+        pinned,
+      }),
+    )
+    return true
+  }
+
   const updateFocus = (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
     forcePaint = false,
   ) => {
     const point = points[0] ?? null
-    if (samePointIdentity(point, focusedPoint)) {
+    if (publishFocusCursor(points)) return
+    if (sameChartPointIdentity(point, focusedPoint)) {
       focusedPoint = point
       if (forcePaint) paintFocus(point, points)
       return
@@ -237,14 +399,16 @@ export function mountChartRenderer<
   }
 
   const dismissTooltip = () => {
-    if (!focusedPoint && !pinnedKey) return
+    const binding = cursorBinding()
+    if (!focusedPoint && !pinnedKey && !binding?.controller.getState()) return
     const restoreFocus = Boolean(
       tooltipInstance?.contains(container.ownerDocument.activeElement),
     )
     pinnedKey = null
     pointerPosition = null
     focusOwner = null
-    updateFocus([])
+    if (binding) clearCursor(binding.controller)
+    else updateFocus([])
     const element = surface?.element
     if (
       restoreFocus &&
@@ -264,17 +428,17 @@ export function mountChartRenderer<
     paintingFocus = true
     let paintedScene: ChartScene<TDatum, TXValue, TYValue> | void
     try {
-      paintedScene = surface?.paintFocus(
-        point
-          ? {
-              primary: point,
-              group: points,
-              source: focusSource,
-              pinned: pinnedKey !== null,
-            }
-          : null,
-        pointerPosition,
-      )
+      const focus = point
+        ? {
+            primary: point,
+            group: points,
+            source: focusSource,
+            pinned: interactionIsPinned(),
+          }
+        : null
+      paintedScene = hasCursorPresentation
+        ? surface?.paintFocus(focus, pointerPosition, cursorPresentation)
+        : surface?.paintFocus(focus, pointerPosition)
     } finally {
       paintingFocus = false
     }
@@ -337,7 +501,7 @@ export function mountChartRenderer<
         controlledOptions.source ??
         (resolution === null ? 'programmatic' : 'pointer')
       const points = interactionPoints()
-      const point = restoreFocusedPoint(points, targetPoint)
+      const point = restoreChartFocusPoint(points, targetPoint)
       pointerPosition = resolution?.position ?? null
       if (!point) {
         pinnedKey = null
@@ -348,8 +512,11 @@ export function mountChartRenderer<
 
       const focusPoints = focusPointsForPoint(point, points)
       pinnedKey =
-        controlledOptions.pinned && tooltipIsSticky() ? point.key : null
-      if (samePointIdentity(point, focusedPoint)) {
+        controlledOptions.pinned &&
+        (tooltipIsSticky() || cursorBinding()?.pin === true)
+          ? point.key
+          : null
+      if (sameChartPointIdentity(point, focusedPoint)) {
         focusedPoint = point
         paintFocus(point, focusPoints)
         return
@@ -357,20 +524,53 @@ export function mountChartRenderer<
       updateFocus(focusPoints)
     },
   }
+
+  const scenePositionAtPointer = (clientX: number, clientY: number) => {
+    const position = surface?.clientToScene?.(scene, clientX, clientY)
+    pointerPosition = position ?? null
+    return position
+  }
+
+  const updateFreeCursorAtPointer = (clientX: number, clientY: number) => {
+    const binding = cursorBinding()
+    if (binding?.mode !== 'free') return false
+    if (cursorIsPinned()) return true
+    const position = scenePositionAtPointer(clientX, clientY)
+    if (!position || !plotContains(scene, position)) {
+      pointerPosition = null
+      clearPublishedCursor(binding.controller)
+      return true
+    }
+    publishCursor(
+      binding.controller,
+      createFreeChartCursorState(scene, binding, position, 'pointer', false),
+    )
+    return true
+  }
+
   const handlePointerMove = (event: PointerEvent) => {
-    if (options.definition.pointer === false || pinnedKey) return
+    if (options.definition.pointer === false || interactionIsPinned()) return
     focusOwner = 'pointer'
     focusSource = 'pointer'
+    if (updateFreeCursorAtPointer(event.clientX, event.clientY)) return
     updateFocus(
       pointsAtPointer(event.clientX, event.clientY),
       tooltipTracksPointer(),
     )
   }
+
+  const handlePointerDown = (event: PointerEvent) => {
+    if (options.definition.pointer === false || interactionIsPinned()) return
+    focusOwner = 'pointer'
+    focusSource = 'pointer'
+    updateFreeCursorAtPointer(event.clientX, event.clientY)
+  }
+
   const clearPointerFocus = ({ relatedTarget }: MouseEvent | PointerEvent) => {
     if (
       options.definition.pointer !== false &&
       focusOwner === 'pointer' &&
-      !pinnedKey &&
+      !interactionIsPinned() &&
       !(
         view &&
         relatedTarget instanceof view.Node &&
@@ -378,7 +578,9 @@ export function mountChartRenderer<
       )
     ) {
       pointerPosition = null
-      updateFocus([])
+      const binding = cursorBinding()
+      if (binding) clearPublishedCursor(binding.controller)
+      else updateFocus([])
       focusOwner = null
     }
   }
@@ -393,10 +595,13 @@ export function mountChartRenderer<
       )
     ) {
       pointerPosition = null
-      updateFocus([])
+      const binding = cursorBinding()
+      if (binding) clearPublishedCursor(binding.controller)
+      else updateFocus([])
       focusOwner = null
     }
   }
+
   const handleClick = (event: MouseEvent) => {
     if (options.definition.pointer === false) return
     const activeTooltip = tooltipInstance
@@ -414,48 +619,88 @@ export function mountChartRenderer<
       return
     }
     focusOwner = 'pointer'
+    const binding = cursorBinding()
+    if (binding?.mode === 'free') {
+      const state = binding.controller.getState()
+      if (!state) {
+        updateFreeCursorAtPointer(event.clientX, event.clientY)
+      }
+      const current = binding.controller.getState()
+      if (binding.pin && current) {
+        if (current.pinned) {
+          clearCursor(binding.controller)
+        } else {
+          publishCursor(binding.controller, { ...current, pinned: true })
+        }
+      }
+      options.onSelect?.(null)
+      return
+    }
     const points = pointsAtPointer(event.clientX, event.clientY)
     focusSource = 'pointer'
     const point = points[0] ?? null
     let pinChanged = false
-    if (tooltipIsSticky()) {
-      if (pinnedKey) {
+    const canPin = tooltipIsSticky() || binding?.pin === true
+    if (canPin) {
+      if (interactionIsPinned()) {
         pinnedKey = null
         pinChanged = true
+        if (binding) clearCursor(binding.controller)
       } else if (point) {
         pinnedKey = point.key
         pinChanged = true
       }
     }
-    updateFocus(points, pinChanged)
+    if (!(binding && canPin && pinChanged && !pinnedKey)) {
+      updateFocus(points, pinChanged)
+    }
     options.onSelect?.(point)
   }
   const handleKeyDown = (event: KeyboardEvent) => {
-    const points = interactionPoints()
-    if (options.definition.keyboard === false || !points.length) return
+    const binding = cursorBinding()
+    if (event.key === 'Escape' && binding?.controller.getState()) {
+      event.preventDefault()
+      dismissTooltip()
+      return
+    }
     if (event.key === 'Escape' && pinnedKey) {
       event.preventDefault()
       dismissTooltip()
       return
     }
+    if (options.definition.keyboard === false || binding?.mode === 'free') {
+      return
+    }
+    const points = interactionPoints()
+    if (!points.length) return
     if (event.key === 'Enter' || event.key === ' ') {
       if (!focusedPoint) return
       event.preventDefault()
-      if (tooltipIsSticky()) {
-        pinnedKey = pinnedKey ? null : focusedPoint.key
-        paintFocus(focusedPoint, focusPointsForPoint(focusedPoint))
+      const point = focusedPoint
+      const canPin = tooltipIsSticky() || binding?.pin === true
+      if (binding?.mode === 'focus' && canPin) {
+        if (interactionIsPinned()) {
+          pinnedKey = null
+          clearCursor(binding.controller)
+        } else {
+          pinnedKey = point.key
+          publishFocusCursor(focusPointsForPoint(point), true)
+        }
+      } else if (tooltipIsSticky()) {
+        pinnedKey = pinnedKey ? null : point.key
+        paintFocus(point, focusPointsForPoint(point))
       }
-      options.onSelect?.(focusedPoint)
+      options.onSelect?.(point)
       return
     }
-    const focus = resolveFocusStrategy(options.definition.focus)
+    const focus = resolveRendererFocusStrategy(options.definition.focus)
     const point = focus
-      ? pointFromNavigationOrder(
+      ? chartPointFromNavigationOrder(
           focus.navigation(points),
           focusedPoint,
           event.key,
         )
-      : pointFromSceneOrder(points, focusedPoint, event.key)
+      : chartPointFromSceneOrder(points, focusedPoint, event.key)
     if (point === undefined) return
     event.preventDefault()
     pointerPosition = null
@@ -470,14 +715,15 @@ export function mountChartRenderer<
     }
     if (
       options.definition.keyboard !== false &&
+      cursorBinding()?.mode !== 'free' &&
       event.target === surface?.element &&
       !focusedPoint
     ) {
-      const focus = resolveFocusStrategy(options.definition.focus)
+      const focus = resolveRendererFocusStrategy(options.definition.focus)
       const points = interactionPoints()
       const point = focus
         ? focus.navigation(points)[0]
-        : pointFromSceneOrder(points, null, 'Home')
+        : chartPointFromSceneOrder(points, null, 'Home')
       pointerPosition = null
       focusOwner = 'keyboard'
       focusSource = 'keyboard'
@@ -485,6 +731,7 @@ export function mountChartRenderer<
     }
   }
   container.addEventListener('pointermove', handlePointerMove)
+  container.addEventListener('pointerdown', handlePointerDown)
   container.addEventListener('pointercancel', clearPointerFocus)
   container.addEventListener('mouseleave', clearPointerFocus)
   container.addEventListener('click', handleClick)
@@ -492,6 +739,7 @@ export function mountChartRenderer<
   container.addEventListener('focusin', handleFocus)
   container.addEventListener('focusout', clearKeyboardFocus)
   fontSet?.addEventListener?.('loadingdone', handleFontLoad)
+  configureCursorController()
   render()
   configureObserver()
 
@@ -529,6 +777,7 @@ export function mountChartRenderer<
         nextOptions.definition.pointer === false &&
         focusOwner === 'pointer'
       options = nextOptions
+      configureCursorController()
       syncTooltip()
       if (pointerDisabled) {
         pointerPosition = null
@@ -543,7 +792,9 @@ export function mountChartRenderer<
           layoutChanged ? 'layout' : sizeChanged ? 'resize' : 'update',
         )
       } else {
-        if (focusedPoint) {
+        if (cursorBinding()) {
+          applyCursorState(false)
+        } else if (focusedPoint) {
           paintFocus(focusedPoint, focusPointsForPoint(focusedPoint))
         }
       }
@@ -554,6 +805,12 @@ export function mountChartRenderer<
       if (destroyed) return
       destroyed = true
       observer?.disconnect()
+      unsubscribeCursor?.()
+      unsubscribeCursor = undefined
+      if (cursorController) clearPublishedCursor(cursorController)
+      cursorController = undefined
+      cursorMode = undefined
+      cursorMatch = undefined
       fontSet?.removeEventListener?.('loadingdone', handleFontLoad)
       if (renderFrame !== undefined) {
         view?.cancelAnimationFrame?.(renderFrame)
@@ -564,6 +821,7 @@ export function mountChartRenderer<
       surface?.destroy()
       runtime.destroy()
       container.removeEventListener('pointermove', handlePointerMove)
+      container.removeEventListener('pointerdown', handlePointerDown)
       container.removeEventListener('pointercancel', clearPointerFocus)
       container.removeEventListener('mouseleave', clearPointerFocus)
       container.removeEventListener('click', handleClick)
@@ -593,13 +851,45 @@ export function mountChartRenderer<
     )
   }
 
+  function publishCursor(
+    controller: ChartCursorController<TXValue, TYValue>,
+    state: ChartCursorState<TXValue, TYValue>,
+  ) {
+    publishedCursorController = controller
+    publishedCursorState = state
+    controller.setState(state)
+  }
+
+  function clearPublishedCursor(
+    controller: ChartCursorController<TXValue, TYValue>,
+  ) {
+    const current = controller.getState()
+    if (
+      controller !== publishedCursorController ||
+      current !== publishedCursorState ||
+      current.pinned
+    ) {
+      return false
+    }
+    publishedCursorController = undefined
+    publishedCursorState = undefined
+    controller.setState(null)
+    return true
+  }
+
+  function clearCursor(controller: ChartCursorController<TXValue, TYValue>) {
+    publishedCursorController = undefined
+    publishedCursorState = undefined
+    controller.setState(null)
+  }
+
   function resolvePointerFocus(
     x: number,
     y: number,
     maxDistance: number,
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
     const points = interactionPoints()
-    const focus = resolveFocusStrategy(options.definition.focus)
+    const focus = resolveRendererFocusStrategy(options.definition.focus)
     if (focus) {
       return focus.resolve(points, { x, y, maxDistance })
     }
@@ -610,7 +900,7 @@ export function mountChartRenderer<
         : spatialIndex && interactionScene === scene
           ? spatialIndex.findNearest(x, y, maxDistance)
           : findNearestPoint(interactionScene, x, y, maxDistance, points)
-    const point = candidate ? restoreFocusedPoint(points, candidate) : null
+    const point = candidate ? restoreChartFocusPoint(points, candidate) : null
     return point ? [point] : []
   }
 
@@ -629,7 +919,7 @@ export function mountChartRenderer<
     points = interactionPoints(),
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
     return (
-      resolveFocusStrategy(options.definition.focus)?.group(points, {
+      resolveRendererFocusStrategy(options.definition.focus)?.group(points, {
         point,
       }) ?? [point]
     )
@@ -645,6 +935,10 @@ export function mountChartRenderer<
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) {
     if (destroyed || renderingSurface || paintingFocus) return
+    if (cursorBinding()) {
+      applyCursorState(false)
+      return
+    }
     const visiblePoints = viewportInteractionPoints(scene, points)
     if (pointerPosition && pinnedKey === null) {
       updateFocus(
@@ -658,7 +952,7 @@ export function mountChartRenderer<
       return
     }
     if (!focusedPoint) return
-    const point = restoreFocusedPoint(visiblePoints, focusedPoint)
+    const point = restoreChartFocusPoint(visiblePoints, focusedPoint)
     updateFocus(point ? focusPointsForPoint(point, visiblePoints) : [], true)
   }
 
@@ -696,9 +990,9 @@ export function mountChartRenderer<
         primary: point,
         group: points,
         source: focusSource,
-        pinned: pinnedKey !== null,
+        pinned: interactionIsPinned(),
       },
-      pinned: pinnedKey !== null,
+      pinned: interactionIsPinned(),
     })
   }
 
@@ -773,73 +1067,11 @@ function resolveTooltipInput<
       }
 }
 
-function samePointIdentity<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  left: ChartPoint<TDatum, TXValue, TYValue> | null,
-  right: ChartPoint<TDatum, TXValue, TYValue> | null,
-) {
-  return (
-    left === right ||
-    (left !== null &&
-      right !== null &&
-      left.key === right.key &&
-      left.markId === right.markId &&
-      left.datumIndex === right.datumIndex)
-  )
-}
-
-function restoreFocusedPoint<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  previous: ChartPoint<TDatum, TXValue, TYValue>,
-) {
-  const matches = points.filter((point) => point.key === previous.key)
-  if (matches.length < 2) return matches[0] ?? null
-
-  const datumType = typeof previous.datum
-  const hasReferenceIdentity =
-    previous.datum !== null &&
-    (datumType === 'object' || datumType === 'function')
-  if (hasReferenceIdentity) {
-    const sameDatum = matches.find((point) => point.datum === previous.datum)
-    if (sameDatum) return sameDatum
-  }
-
-  return (
-    matches.find(
-      (point) =>
-        point.markId === previous.markId &&
-        Object.is(point.group, previous.group) &&
-        chartValueEqual(point.xValue, previous.xValue) &&
-        chartValueEqual(point.yValue, previous.yValue),
-    ) ??
-    matches.find(
-      (point) =>
-        point.markId === previous.markId &&
-        point.datumIndex === previous.datumIndex,
-    ) ??
-    matches[0] ??
-    null
-  )
-}
-
-function chartValueEqual(left: ChartValue, right: ChartValue) {
-  return left instanceof Date && right instanceof Date
-    ? left.getTime() === right.getTime()
-    : Object.is(left, right)
-}
-
 function isPositiveFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
 }
 
-function resolveFocusStrategy<
+function resolveRendererFocusStrategy<
   TDatum,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
@@ -847,19 +1079,19 @@ function resolveFocusStrategy<
   focus: ChartFocusMode<TDatum, TXValue, TYValue> | undefined,
 ): ChartFocusStrategy<TDatum, TXValue, TYValue> | undefined {
   if (focus === false) return focusDisabled
-  if (typeof focus !== 'string') return focus
-  switch (focus) {
-    case 'nearest-x':
-      return focusNearestX
-    case 'nearest-y':
-      return focusNearestY
-    case 'group-x':
-      return focusX
-    case 'group-y':
-      return focusY
-    case 'nearest':
-      return undefined
-  }
+  return resolveChartFocusStrategy(focus)
+}
+
+function plotContains(
+  scene: ChartScene,
+  position: Readonly<{ x: number; y: number }>,
+) {
+  return (
+    position.x >= scene.chart.x &&
+    position.x <= scene.chart.x + scene.chart.width &&
+    position.y >= scene.chart.y &&
+    position.y <= scene.chart.y + scene.chart.height
+  )
 }
 
 function resolveAnimation(
@@ -881,131 +1113,4 @@ function resolveAnimation(
   }
   const { resize: _resize, ...resolved } = configured
   return resolved
-}
-
-function pointFromNavigationOrder<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  current: ChartPoint<TDatum, TXValue, TYValue> | null,
-  key: string,
-): ChartPoint<TDatum, TXValue, TYValue> | null | undefined {
-  const currentIndex = current
-    ? points.findIndex((point) => samePointIdentity(point, current))
-    : -1
-  let nextIndex: number
-  switch (key) {
-    case 'ArrowRight':
-    case 'ArrowDown':
-      nextIndex = Math.min(points.length - 1, currentIndex + 1)
-      break
-    case 'ArrowLeft':
-    case 'ArrowUp':
-      nextIndex = Math.max(0, currentIndex < 0 ? 0 : currentIndex - 1)
-      break
-    case 'Home':
-      nextIndex = 0
-      break
-    case 'End':
-      nextIndex = points.length - 1
-      break
-    default:
-      return undefined
-  }
-  return points[nextIndex] ?? null
-}
-
-function pointFromSceneOrder<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  current: ChartPoint<TDatum, TXValue, TYValue> | null,
-  key: string,
-): ChartPoint<TDatum, TXValue, TYValue> | null | undefined {
-  const direction =
-    key === 'ArrowRight' || key === 'ArrowDown'
-      ? 1
-      : key === 'ArrowLeft' || key === 'ArrowUp'
-        ? -1
-        : key === 'Home'
-          ? 0
-          : key === 'End'
-            ? 2
-            : undefined
-  if (direction === undefined) return undefined
-  if (!points.length) return null
-
-  const currentIndex = current
-    ? points.findIndex((point) => samePointIdentity(point, current))
-    : -1
-  if (!current || currentIndex < 0 || direction === 0 || direction === 2) {
-    return navigationExtreme(points, direction === 2)
-  }
-
-  let candidate: ChartPoint<TDatum, TXValue, TYValue> | null = null
-  let candidateIndex = -1
-  for (let index = 0; index < points.length; index += 1) {
-    const point = points[index]
-    if (!point) continue
-    const relative = compareNavigationPoints(
-      point,
-      index,
-      current,
-      currentIndex,
-    )
-    if ((direction > 0 && relative <= 0) || (direction < 0 && relative >= 0)) {
-      continue
-    }
-    if (
-      !candidate ||
-      direction *
-        compareNavigationPoints(point, index, candidate, candidateIndex) <
-        0
-    ) {
-      candidate = point
-      candidateIndex = index
-    }
-  }
-  return candidate ?? current
-}
-
-function navigationExtreme<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(points: readonly ChartPoint<TDatum, TXValue, TYValue>[], maximum: boolean) {
-  let candidate = points[0] ?? null
-  let candidateIndex = 0
-  for (let index = 1; index < points.length; index += 1) {
-    const point = points[index]
-    if (!point || !candidate) continue
-    const comparison = compareNavigationPoints(
-      point,
-      index,
-      candidate,
-      candidateIndex,
-    )
-    if ((maximum && comparison > 0) || (!maximum && comparison < 0)) {
-      candidate = point
-      candidateIndex = index
-    }
-  }
-  return candidate
-}
-
-function compareNavigationPoints<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  left: ChartPoint<TDatum, TXValue, TYValue>,
-  leftIndex: number,
-  right: ChartPoint<TDatum, TXValue, TYValue>,
-  rightIndex: number,
-) {
-  return left.x - right.x || left.y - right.y || leftIndex - rightIndex
 }

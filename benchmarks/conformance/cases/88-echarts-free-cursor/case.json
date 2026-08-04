@@ -12,7 +12,7 @@
     "two-dimensional crosshair",
     "normalized plot state",
     "semantic fractional target",
-    "case-owned overlay",
+    "renderer-native crosshair",
     "rendered coordinate labels",
     "paired semantic sliders",
     "tap-to-pin cursor"
@@ -183,6 +183,6 @@
   },
   "ai": {
     "create": "Create a free crosshair over selected car horsepower and fuel-economy observations that reports arbitrary plot coordinates without selecting a datum.",
-    "maintain": "Keep cursor movement DOM-only, constrain it to resolved chart bounds, hide it on leave, and preserve one chart render while pointer state changes."
+    "maintain": "Keep free-cursor state semantic, constrain it to resolved chart bounds, hide it on leave, and preserve one chart render while pointer state changes."
   }
 }

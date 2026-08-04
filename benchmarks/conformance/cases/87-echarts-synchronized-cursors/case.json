@@ -12,7 +12,7 @@
     "linked views",
     "semantic date state",
     "independent y domains",
-    "external overlays",
+    "renderer-native crosshairs",
     "shared value summary",
     "keyboard cursor navigation",
     "tap-to-pin cursor"
@@ -247,6 +247,6 @@
   },
   "ai": {
     "create": "Create two vertically aligned current and previous traveler-count views with distinct y domains and a cursor linked by exact semantic date rather than shared pixel coordinates.",
-    "maintain": "Keep source dates as row identity, external overlay ownership, and semantic cursor state stable across resize and source-window revision without programmatically mutating native chart focus."
+    "maintain": "Keep source dates as row identity and semantic cursor state stable across both native crosshairs, resize, and source-window revision."
   }
 }

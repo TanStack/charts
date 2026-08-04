@@ -93,9 +93,14 @@ does not return or own them.
 ## Definition behavior
 
 `ChartDefinitionOptions<TDatum, TXValue, TYValue>` contains `focus`,
-`focusRing`, `maxFocusDistance`, `spatialIndex`, `animate`, `pointer`,
+`focusRing`, `cursor`, `maxFocusDistance`, `spatialIndex`, `animate`, `pointer`,
 `keyboard`, and `tooltip`. These options belong to both static and responsive
 definitions. Hosts and framework adapters do not override them.
+
+`cursor` binds an application-owned controller in focus-snapped or free mode.
+It is behavior, not a mark; add `crosshair(...)` when the cursor should have a
+renderer-native visual guide. See
+[Focus and Interaction](./focus-and-interaction.md#controlled-cursors).
 
 Tooltip placement policy stays with the definition. Add the `portal` extension
 when the surface must escape clipped chart ancestors. Framework-only content

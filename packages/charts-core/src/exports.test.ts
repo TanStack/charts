@@ -56,6 +56,29 @@ describe('public package exports', () => {
     expect(portalModule.portal.id).toBe('portal')
   })
 
+  it('keeps the cursor controller on its exact subpath', async () => {
+    const [root, universal, cursorModule, cursorHostModule] = await Promise.all(
+      [
+        import('@tanstack/charts'),
+        import('@tanstack/charts/universal'),
+        import('@tanstack/charts/cursor'),
+        import('@tanstack/charts/cursor/host'),
+      ],
+    )
+
+    expect(root).not.toHaveProperty('createChartCursor')
+    expect(universal).not.toHaveProperty('createChartCursor')
+    expect(Object.keys(cursorModule)).toEqual(['createChartCursor'])
+    expect(Object.keys(cursorHostModule).sort()).toEqual([
+      'createFocusChartCursorState',
+      'createFreeChartCursorState',
+      'resolveChartCursorFocus',
+      'resolveChartCursorPresentation',
+      'resolveChartFocusStrategy',
+      'resolveFocusPresentation',
+    ])
+  })
+
   it('keeps D3 curve bridges available from barrels and exact subpaths', async () => {
     const [root, universal, shape, areaX] = await Promise.all([
       import('@tanstack/charts'),

@@ -1,13 +1,14 @@
 ---
 title: Focus and Interaction
-description: Configure pointer focus, grouped focus, keyboard navigation, native tooltips, selection, and spatial indexes.
+description: Configure pointer focus, grouped focus, crosshairs, controlled cursors, keyboard navigation, native tooltips, selection, and spatial indexes.
 ---
 
-The DOM host and framework adapters provide point-level interaction from each
-mark's emitted `ChartPoint` values and rendered scene primitives. The defaults
-cover geometry-aware pointer focus, linear keyboard navigation, activation,
-and an optional native tooltip. Definitions own these policies; adapters only
-mount them and report events.
+The DOM hosts, framework adapters, and React Native `Chart` provide point-level
+interaction from each mark's emitted `ChartPoint` values and rendered scene
+primitives. The defaults cover geometry-aware pointer or responder focus,
+linear keyboard or accessibility navigation, activation, and an optional
+native tooltip. Definitions own these policies; adapters mount them and report
+events.
 
 ## Default behavior
 
@@ -123,6 +124,173 @@ points with the same `group` value are reduced to one member in grouped focus.
 The equivalent `focusX`, `focusY`, `focusNearestX`, and `focusNearestY`
 strategy objects remain available from `@tanstack/charts/focus` for composition
 or direct strategy use.
+
+## Crosshair guides
+
+`crosshair` is a data-less presentation mark. It follows the chart's resolved
+focus state without adding scale values or pointer targets:
+
+```ts
+import { crosshair, defineChart, lineY } from '@tanstack/charts'
+
+const definition = defineChart({
+  marks: [
+    lineY(rows, { x: 'date', y: 'value', color: 'series' }),
+    crosshair({
+      x: { label: true },
+      y: false,
+      strokeDasharray: '4 4',
+    }),
+  ],
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear },
+  focus: 'group-x',
+  maxFocusDistance: Number.POSITIVE_INFINITY,
+})
+```
+
+The x guide is vertical and the y guide is horizontal. Both default to
+enabled; labels and the intersection marker default to disabled. Shared rule
+options apply to both axes, and an axis object can override them. A label uses
+the matching resolved tick label when available, falls back to the semantic
+value, and accepts a `format` callback. Labels are clamped to the chart surface
+and rendered with a configurable halo. Rules and the optional marker are
+clipped to the plot.
+
+Pass semantic axis types to `crosshair` when TypeScript should check label
+formatters independently from the surrounding definition:
+
+```ts
+crosshair<Date, number>({
+  x: { label: { format: (value) => value.toISOString() } },
+  y: { label: { format: (value) => value.toFixed(1) } },
+})
+```
+
+Mark order controls placement. Put `crosshair(...)` before the first ordinary
+mark for an underlay, or after it for an overlay. The default primary focus
+ring still composes with the crosshair; set `focusRing: false` only when the
+crosshair marker or other authored geometry deliberately replaces it.
+
+The guide is `aria-hidden`. Pointer and keyboard users reach the same focus
+state through the chart root, callbacks, and optional tooltip. `motion` on the
+crosshair controls its keyed rules, labels, and marker when the definition is
+mounted with the optional motion renderer.
+
+## Controlled cursors
+
+Import `createChartCursor` from the isolated cursor entry when interaction
+state must be shared or set programmatically:
+
+```ts
+import { createChartCursor } from '@tanstack/charts/cursor'
+
+const sharedDate = createChartCursor<Date, number>()
+
+const definition = defineChart({
+  marks: [
+    lineY(rows, { x: 'date', y: 'value' }),
+    crosshair({ x: { label: true }, y: false }),
+  ],
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear },
+  focus: 'group-x',
+  cursor: {
+    controller: sharedDate,
+    mode: 'focus',
+    match: 'x',
+    pin: true,
+  },
+})
+```
+
+`@tanstack/charts/cursor` exposes `createChartCursor` and its public state
+types without renderer or DOM code. Adapter and renderer authors can import
+the platform-neutral projection, focus, and presentation helpers from
+`@tanstack/charts/cursor/host`; application code normally does not need that
+host-facing entry.
+
+That host entry uses `createFocusChartCursorState` and
+`createFreeChartCursorState` to publish state, then
+`resolveChartCursorPresentation` and `resolveChartCursorFocus` to project it
+into each scene. `resolveChartFocusStrategy` converts a built-in focus name to
+the grouping strategy used by the local host. `resolveFocusPresentation`
+finally produces renderer-neutral underlay and overlay nodes.
+
+Use the same controller in several browser or React Native definitions to
+synchronize by semantic value rather than pixel position. In `focus` mode,
+pointer, responder, keyboard, or accessibility focus publishes a
+value-anchored cursor. Each subscribing host maps the value through its own
+scales, resolves its own local point and focus group, and paints its crosshair
+and tooltip. `match` defaults to `xy`; choose `x` or `y` for an axis cursor.
+The originating point's group is retained as the preferred series when more
+than one local point matches. Optional `ChartCursorState.origin` carries
+`{ key, markId, datumIndex }` to retain the local point when equal values
+repeat, including across facets. A unique `key` plus `markId` survives data
+reordering; `datumIndex` disambiguates duplicate keys. A consuming scene
+ignores the tie-breaker when its key and mark do not exist, then resolves from
+the portable semantic `value` and preferred `group`.
+
+`free` mode follows plot coordinates without resolving a datum:
+
+```ts
+const freeCursor = createChartCursor<Date, number>()
+
+const definition = defineChart(baseDefinition, {
+  cursor: {
+    controller: freeCursor,
+    mode: 'free',
+    pin: true,
+    x: {
+      valueAt: ({ scene, position }) =>
+        xScale
+          .copy()
+          .range([scene.chart.x, scene.chart.x + scene.chart.width])
+          .invert(position),
+    },
+    y: {
+      valueAt: ({ scene, position }) =>
+        yScale
+          .copy()
+          .range([scene.chart.y + scene.chart.height, scene.chart.y])
+          .invert(position),
+    },
+  },
+})
+```
+
+The host publishes normalized plot coordinates so the free cursor survives a
+responsive relayout. `valueAt` optionally adds semantic values for labels and
+application state; inversion and precision remain owned by the configured
+scale. Programmatic state may instead use `anchor: 'value'`,
+`anchor: 'normalized'`, or `anchor: 'scene'`. Only the anchor's coordinate
+space is authoritative; the other fields are diagnostics from the host that
+last emitted the state.
+
+`createChartCursor` returns `getState`, `setState`, and `subscribe`. Passing
+`null` clears the cursor, and `setState` accepts a previous-state updater.
+Unpinned host-owned state clears on pointer or responder cancellation, leave,
+and blur. Cleanup is ownership-safe: a host clears only the exact unpinned
+state object it most recently published to that controller. State replaced by
+the application or another host, and pinned state, survives that host's
+cleanup, rebinding, and unmount.
+
+With `pin: true`, click or tap pins. Browser focus cursors toggle through Enter
+or Space and dismiss through Escape; React Native focus cursors expose the
+equivalent activate and escape accessibility actions. A pinned free cursor can
+be toggled by another click or tap, or cleared programmatically.
+
+Free mode deliberately does not invent keyboard datum navigation. When its
+values are part of the reader's task, pair it with a labeled semantic control
+or status output. A focus-mode cursor inherits the chart's existing keyboard
+navigation and accessible tooltip behavior.
+
+Definition cursor bindings have browser and React Native host parity. DOM
+renderer hosts publish pointer and keyboard interaction. React Native `Chart`
+publishes responder gestures and, for focus mode, accessibility navigation,
+activation, and dismissal. Both hosts subscribe to programmatic updates and
+shared controllers. Free mode deliberately remains a coordinate gesture with
+no invented keyboard or accessibility datum order.
 
 ## Disabling chart-owned focus
 
@@ -382,6 +550,10 @@ resolution.
 Brushes, zooming, dragging, scrolling, and selections can listen on a wrapper
 or use `onRender` to attach application behavior. Keep semantic state outside
 the scene and update a dynamic definition by replacing its identity.
+
+Use a definition cursor binding for snapped or free crosshairs. Keep other
+semantic state outside the scene and update a dynamic definition by replacing
+its identity.
 
 For application-timed datum inspection, use the stable controller instead of
 reimplementing coordinate conversion and focus:

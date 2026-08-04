@@ -71,6 +71,10 @@ neutral scene nodes and optional interaction points. Marks may use different
 datum types in the same spec. Their inferred datum types become a union in
 interaction callbacks.
 
+A data-less `crosshair` emits only transient focus-guide presentation. Place it
+before the first ordinary mark for an underlay or after ordinary marks for an
+overlay; it contributes no scale domain values or interaction points.
+
 Built-in marks infer stable keys from a unique primitive top-level `id`, nested
 `data.id`, or mark-owned positional candidate. Supply `key` when none is
 unique. Mark IDs default from layer order; set `id` explicitly when a mark

@@ -58,10 +58,11 @@ The default Node target renders the complete `.ts-chart-host`,
 `.ts-chart-surface`, and accessible SVG at `initialWidth`. The browser target
 hydrates the same structure before mounting the host.
 
-The Canvas entry renders a deterministic named root and three `aria-hidden`
-canvases on the server. It paints no server pixels. The browser adopts the
-elements, paints after mount, and attaches the same focus, keyboard, tooltip,
-and selection host.
+The Canvas entry renders a deterministic named root and five `aria-hidden`
+canvases on the server: one hidden stable base bitmap and four live paint
+layers. It paints no server pixels. The browser adopts the elements, paints
+after mount, and attaches the same focus, keyboard, tooltip, and selection
+host.
 
 Keep data, definitions, scale domains, custom renderers, and dimensions
 deterministic between server and browser. The adapter generates a sanitized

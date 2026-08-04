@@ -43,6 +43,10 @@ start from painted geometry. An interrupted spring carries its sampled value and
 velocity into the new target. A spring has no duration; it finishes when both
 `restSpeed` and `restDelta` are satisfied, with a 10-second safety limit.
 
+Data-less `crosshair` marks use the same keyed focus-motion path. Rapid pointer
+or keyboard retargeting preserves the guide elements and incoming spring
+velocity; labels remain aligned to their moving rules.
+
 Use the renderer-neutral host in vanilla applications:
 
 ```ts
@@ -302,6 +306,8 @@ oscillator. Values and velocities use caller units per second. Seed a new
 - Compatible numeric attributes and path command skeletons interpolate.
 - Incompatible element types or path topology use keyed enter/exit opacity.
 - Stable keys preserve DOM identity, velocity, and presentation points.
+- Crosshair rules, labels, and markers follow the same keyed interruption
+  behavior as focused marks.
 - SVG interaction follows animated presentation geometry for keyed built-in and
   custom marks.
 - Static SVG and Canvas ignore definition motion and paint final geometry.

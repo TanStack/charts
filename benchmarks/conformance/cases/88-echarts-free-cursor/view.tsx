@@ -1,11 +1,14 @@
 import {
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react'
-import { defineChart, dot, lineY } from '@tanstack/charts'
+import { crosshair, defineChart, dot, lineY } from '@tanstack/charts'
+import { createChartCursor } from '@tanstack/charts/cursor'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
 import { Chart } from '@tanstack/react-charts'
 import { cars } from '@charts-poc/demo-data/cars'
@@ -17,7 +20,7 @@ import {
   freeCursorXDomain,
   freeCursorYDomain,
 } from './model'
-import type { ChartScene } from '@tanstack/charts'
+import type { ChartCursorState, ChartScene } from '@tanstack/charts'
 import type { CompleteCar } from './model'
 import type {
   ConformanceGeometryQuery,
@@ -27,24 +30,6 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
-
-interface CursorState {
-  visible: boolean
-  xNormalized: number | null
-  yNormalized: number | null
-  xValue: number | null
-  yValue: number | null
-  pinned: boolean
-}
-
-const clearedCursor: CursorState = {
-  visible: false,
-  xNormalized: null,
-  yNormalized: null,
-  xValue: null,
-  yValue: null,
-  pinned: false,
-}
 
 const configuredXScale = scaleLinear().domain(freeCursorXDomain)
 const configuredYScale = scaleLinear().domain(freeCursorYDomain)
@@ -56,10 +41,13 @@ const FreeCursorExample = forwardRef<
 >(function FreeCursorExample({ input, idPrefix }, ref) {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<ChartScene<CompleteCar> | null>(null)
-  const cursorRef = useRef<CursorState>(clearedCursor)
   const renderCountRef = useRef(0)
-  const [scene, setScene] = useState<ChartScene<CompleteCar> | null>(null)
-  const [cursor, setCursorState] = useState<CursorState>(clearedCursor)
+  const cursor = useMemo(() => createChartCursor<number, number>(), [])
+  const cursorState = useSyncExternalStore(
+    cursor.subscribe,
+    cursor.getState,
+    cursor.getState,
+  )
   const [controls, setControls] = useState({
     x: midpoint(freeCursorXDomain),
     y: midpoint(freeCursorYDomain),
@@ -83,6 +71,30 @@ const FreeCursorExample = forwardRef<
               stroke: '#ffffff',
               strokeWidth: 1,
             }),
+            crosshair<number, number>({
+              id: 'free-cursor-crosshair',
+              stroke: '#64748b',
+              strokeWidth: 1,
+              strokeDasharray: '4 4',
+              x: {
+                label: {
+                  format: (value) => formatCursorValue('HP', value),
+                  fontSize: 10,
+                },
+              },
+              y: {
+                label: {
+                  format: (value) => formatCursorValue('MPG', value),
+                  fontSize: 10,
+                },
+              },
+              marker: {
+                radius: 4,
+                fill: '#ffffff',
+                stroke: '#0f766e',
+                strokeWidth: 2,
+              },
+            }),
           ],
           x: {
             scale: configuredXScale,
@@ -99,75 +111,47 @@ const FreeCursorExample = forwardRef<
           animate: false,
           keyboard: false,
           focus: focusDisabled,
+          cursor: {
+            controller: cursor,
+            mode: 'free',
+            pin: true,
+            x: {
+              valueAt: ({ scene, position }) =>
+                roundCursorValue(
+                  configuredXScale
+                    .copy()
+                    .range([scene.chart.x, scene.chart.x + scene.chart.width])
+                    .invert(position),
+                ),
+            },
+            y: {
+              valueAt: ({ scene, position }) =>
+                roundCursorValue(
+                  configuredYScale
+                    .copy()
+                    .range([scene.chart.y + scene.chart.height, scene.chart.y])
+                    .invert(position),
+                ),
+            },
+          },
         },
       ),
-    [],
+    [cursor],
   )
 
-  const setCursor = (next: CursorState) => {
-    cursorRef.current = next
-    setCursorState(next)
-    if (next.visible && next.xValue !== null && next.yValue !== null) {
-      setControls({ x: next.xValue, y: next.yValue })
-    }
-  }
+  useEffect(() => {
+    const x = cursorState?.value?.x
+    const y = cursorState?.value?.y
+    if (x !== undefined && y !== undefined) setControls({ x, y })
+  }, [cursorState])
+
   const setFromValues = (xValue: number, yValue: number) => {
-    setCursor({
-      visible: true,
-      xNormalized:
-        (xValue - freeCursorXDomain[0]) /
-        (freeCursorXDomain[1] - freeCursorXDomain[0]),
-      yNormalized:
-        1 -
-        (yValue - freeCursorYDomain[0]) /
-          (freeCursorYDomain[1] - freeCursorYDomain[0]),
-      xValue,
-      yValue,
+    setControls({ x: xValue, y: yValue })
+    cursor.setState({
+      anchor: 'value',
+      value: { x: xValue, y: yValue },
+      source: 'programmatic',
       pinned: true,
-    })
-  }
-  const handlePointer = (clientX: number, clientY: number) => {
-    if (cursorRef.current.pinned) return
-    const currentScene = sceneRef.current
-    const surface = surfaceRef.current
-    const svg = surface?.querySelector<SVGSVGElement>('svg.ts-chart')
-    if (!currentScene || !svg) return
-    const bounds = svg.getBoundingClientRect()
-    const sceneX = ((clientX - bounds.left) / bounds.width) * currentScene.width
-    const sceneY =
-      ((clientY - bounds.top) / bounds.height) * currentScene.height
-    if (
-      sceneX < currentScene.chart.x ||
-      sceneX > currentScene.chart.x + currentScene.chart.width ||
-      sceneY < currentScene.chart.y ||
-      sceneY > currentScene.chart.y + currentScene.chart.height
-    ) {
-      setCursor(clearedCursor)
-      return
-    }
-    setCursor({
-      visible: true,
-      xNormalized: (sceneX - currentScene.chart.x) / currentScene.chart.width,
-      yNormalized: (sceneY - currentScene.chart.y) / currentScene.chart.height,
-      xValue: roundCursorValue(
-        configuredXScale
-          .copy()
-          .range([
-            currentScene.chart.x,
-            currentScene.chart.x + currentScene.chart.width,
-          ])
-          .invert(sceneX),
-      ),
-      yValue: roundCursorValue(
-        configuredYScale
-          .copy()
-          .range([
-            currentScene.chart.y + currentScene.chart.height,
-            currentScene.chart.y,
-          ])
-          .invert(sceneY),
-      ),
-      pinned: false,
     })
   }
 
@@ -178,26 +162,22 @@ const FreeCursorExample = forwardRef<
         return resolveTarget(surfaceRef.current, sceneRef.current, target)
       },
       readState() {
-        return interactionState(cursorRef.current, renderCountRef.current)
+        return interactionState(
+          surfaceRef.current,
+          cursor.getState(),
+          renderCountRef.current,
+        )
       },
       geometry(query) {
         return geometry(surfaceRef.current, sceneRef.current, query)
       },
     }),
-    [],
+    [cursor],
   )
 
   const displayX = controls.x
   const displayY = controls.y
   const chartHeight = Math.max(180, input.height - 68)
-  const x =
-    scene && cursor.visible && cursor.xNormalized !== null
-      ? scene.chart.x + scene.chart.width * cursor.xNormalized
-      : null
-  const y =
-    scene && cursor.visible && cursor.yNormalized !== null
-      ? scene.chart.y + scene.chart.height * cursor.yNormalized
-      : null
 
   if (input.preview) {
     return (
@@ -214,9 +194,9 @@ const FreeCursorExample = forwardRef<
   return (
     <div
       onKeyDown={(event) => {
-        if (event.key !== 'Escape' || !cursorRef.current.visible) return
+        if (event.key !== 'Escape' || !cursor.getState()) return
         event.preventDefault()
-        setCursor(clearedCursor)
+        cursor.setState(null)
       }}
       style={{
         display: 'grid',
@@ -226,7 +206,7 @@ const FreeCursorExample = forwardRef<
       }}
     >
       <CursorControls
-        cursor={cursor}
+        cursor={cursorState}
         x={displayX}
         y={displayY}
         onChange={setFromValues}
@@ -234,21 +214,6 @@ const FreeCursorExample = forwardRef<
       <div
         ref={surfaceRef}
         data-conformance-view="main"
-        onPointerMove={(event) => handlePointer(event.clientX, event.clientY)}
-        onPointerDown={(event) => handlePointer(event.clientX, event.clientY)}
-        onMouseLeave={() => {
-          if (!cursorRef.current.pinned) setCursor(clearedCursor)
-        }}
-        onPointerCancel={() => {
-          if (!cursorRef.current.pinned) setCursor(clearedCursor)
-        }}
-        onClick={() => {
-          const current = cursorRef.current
-          if (!current.visible) return
-          setCursor(
-            current.pinned ? clearedCursor : { ...current, pinned: true },
-          )
-        }}
         style={{
           position: 'relative',
           width: input.width,
@@ -264,12 +229,8 @@ const FreeCursorExample = forwardRef<
           onRender={({ scene: nextScene }) => {
             renderCountRef.current += 1
             sceneRef.current = nextScene
-            setScene(nextScene)
           }}
         />
-        {scene ? (
-          <CursorOverlay scene={scene} cursor={cursor} x={x} y={y} />
-        ) : null}
       </div>
     </div>
   )
@@ -284,20 +245,20 @@ function CursorControls({
   x,
   y,
 }: {
-  cursor: CursorState
+  cursor: ChartCursorState<number, number> | null
   onChange: (x: number, y: number) => void
   x: number
   y: number
 }) {
-  const status = cursor.visible
+  const status = cursor
     ? `${formatCursorValue('HP', x)} · ${formatCursorValue('MPG', y)}${cursor.pinned ? ' · pinned' : ''}`
     : 'Move the pointer or adjust horsepower and fuel economy'
   return (
     <div
       role="group"
       aria-label="Free cursor car measurements"
-      data-active={cursor.visible}
-      data-pinned={cursor.pinned}
+      data-active={Boolean(cursor)}
+      data-pinned={cursor?.pinned ?? false}
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
@@ -392,115 +353,6 @@ function CoordinateSlider({
     </label>
   )
 }
-
-function CursorOverlay({
-  cursor,
-  scene,
-  x,
-  y,
-}: {
-  cursor: CursorState
-  scene: ChartScene<CompleteCar>
-  x: number | null
-  y: number | null
-}) {
-  if (x === null || y === null) return null
-  return (
-    <>
-      <svg
-        data-conformance-overlay="free-cursor"
-        aria-hidden="true"
-        viewBox={`0 0 ${scene.width} ${scene.height}`}
-        style={overlayStyle}
-      >
-        <line
-          data-conformance-crosshair="x"
-          x1={x}
-          x2={x}
-          y1={scene.chart.y}
-          y2={scene.chart.y + scene.chart.height}
-          stroke="#64748b"
-          strokeWidth={1}
-          strokeDasharray="4 4"
-        />
-        <line
-          data-conformance-crosshair="y"
-          x1={scene.chart.x}
-          x2={scene.chart.x + scene.chart.width}
-          y1={y}
-          y2={y}
-          stroke="#64748b"
-          strokeWidth={1}
-          strokeDasharray="4 4"
-        />
-        <circle
-          data-conformance-crosshair="marker"
-          cx={x}
-          cy={y}
-          r={4}
-          fill="#ffffff"
-          stroke="#0f766e"
-          strokeWidth={2}
-        />
-      </svg>
-      <CursorBadge
-        axis="x"
-        value={formatCursorValue('HP', cursor.xValue)}
-        left={`${(x / scene.width) * 100}%`}
-        top={`${((scene.chart.y + scene.chart.height + 4) / scene.height) * 100}%`}
-      />
-      <CursorBadge
-        axis="y"
-        value={formatCursorValue('MPG', cursor.yValue)}
-        left={`${Math.max(2, scene.chart.x - 48)}px`}
-        top={`${(y / scene.height) * 100}%`}
-      />
-    </>
-  )
-}
-
-function CursorBadge({
-  axis,
-  left,
-  top,
-  value,
-}: {
-  axis: 'x' | 'y'
-  left: string
-  top: string
-  value: string
-}) {
-  return (
-    <div
-      data-conformance-cursor-badge={axis}
-      style={{
-        position: 'absolute',
-        zIndex: 2,
-        left,
-        top,
-        padding: '2px 5px',
-        borderRadius: 4,
-        background: 'CanvasText',
-        color: 'Canvas',
-        font: '600 10px/1.2 system-ui, sans-serif',
-        pointerEvents: 'none',
-        transform: axis === 'x' ? 'translateX(-50%)' : 'translateY(-50%)',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {value}
-    </div>
-  )
-}
-
-const overlayStyle = {
-  position: 'absolute',
-  inset: 0,
-  width: '100%',
-  height: '100%',
-  overflow: 'visible',
-  pointerEvents: 'none',
-} as const
 
 function resolveTarget(
   surface: HTMLDivElement | null,
@@ -615,17 +467,24 @@ function pointsBounds(
 }
 
 function interactionState(
-  cursor: CursorState,
+  surface: HTMLDivElement | null,
+  cursor: ChartCursorState<number, number> | null,
   renderCount: number,
 ): ConformanceJsonObject {
+  const xRule = surface?.querySelector<SVGLineElement>(
+    '[data-ts-key="free-cursor-crosshair:x-rule"]',
+  )
+  const layer = xRule?.closest<SVGGElement>('[data-ts-focus-guide-layer]')
   return {
     cursor: {
-      visible: cursor.visible,
-      xNormalized: cursor.xNormalized,
-      yNormalized: cursor.yNormalized,
-      xValue: cursor.xValue,
-      yValue: cursor.yValue,
-      pinned: cursor.pinned,
+      visible: Boolean(
+        cursor && xRule && layer?.getAttribute('visibility') !== 'hidden',
+      ),
+      xNormalized: cursor?.normalized?.x ?? null,
+      yNormalized: cursor?.normalized?.y ?? null,
+      xValue: cursor?.value?.x ?? null,
+      yValue: cursor?.value?.y ?? null,
+      pinned: cursor?.pinned ?? false,
       snapped: false,
       datum: null,
     },

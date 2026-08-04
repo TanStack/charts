@@ -79,7 +79,8 @@ const threshold = createMark<ThresholdDatum, never, number>(({ markIndex }) => {
 ```
 
 `initialize` materializes channels for one scene build. `render` receives the
-resolved plot bounds, scales, theme, color resolver, and text layout tools.
+required full `surface` bounds, inner `chart` plot bounds, scales, theme, color
+resolver, and text layout tools.
 When a custom mark emits data labels, an optional `layoutLabels(context)` can
 return those positioned `SceneLabel` nodes before render so unlocked margins
 contain them. Keep that method pure because responsive layout may call it more
@@ -147,6 +148,79 @@ node.
 Omit points for decorative geometry. Do not invent fake interactive data for a
 frame, grid, or threshold that should not receive focus.
 
+## Focus-only anchors
+
+A decorative mark can still support `whenFocused` without becoming a pointer
+target. Return `focusAnchors` beside its nodes:
+
+```ts
+return {
+  nodes: [node],
+  focusAnchors: [
+    {
+      key: node.key,
+      markId: id,
+      group: null,
+      datum,
+      datumIndex: index,
+      yValue: datum.value,
+    },
+  ],
+}
+```
+
+The anchor key must identify the node or keyed group it reveals. Include only
+the semantic axes the geometry owns: a horizontal rule supplies `yValue`; a
+vertical rule supplies `xValue`. `focusAnchors` are read only when the mark is
+wrapped in `whenFocused` and never enter pointer hit testing, tooltip data, or
+keyboard navigation.
+
+## Focus-guide marks
+
+A mark that emits only cursor-driven rules, labels, or markers declares that
+role explicitly:
+
+```ts
+return {
+  id,
+  channels: {},
+  focusGuideOnly: true,
+  render({ chart, surface, scales, theme }) {
+    return {
+      nodes: [],
+      focusGuides: [
+        {
+          key: id,
+          markId: id,
+          chart,
+          surface,
+          x: { style: { stroke: theme.foreground } },
+          projectX: (value) => {
+            const scale = scales.x
+            if (!scale || scale.type === 'none') return undefined
+            const position = scale.map(value)
+            return Number.isFinite(position) ? position : undefined
+          },
+        },
+      ],
+    }
+  },
+}
+```
+
+`focusGuideOnly: true` keeps a guide-only mark from becoming the first ordinary
+mark used to divide underlays from overlays. `MarkScene.focusGuides` accepts
+`MarkFocusGuide`. Its `placement` is optional: omit it for normal mark-order
+placement. An explicit `under` or `over` is reserved for composed nested scenes
+that must retain placement already resolved inside that composition. Authors
+do not need to invent a placement for an ordinary guide mark.
+
+The required `surface` bounds cover the complete chart surface; `chart` covers
+the inner plot. Use `chart` for clipped rules and `surface` for labels that must
+remain visible. A custom renderer receives final `SceneFocusGuide` values after
+the compiler has filled in placement. Pass the scene to
+`resolveFocusPresentation` instead of resolving mark order inside the renderer.
+
 ## Separate point and scale values
 
 Most marks use the same value type for interaction and scale domains. When
@@ -208,6 +282,8 @@ Keep `prerender` deterministic and make `mount` adopt compatible server markup.
 If `paintFocus` resolves and paints inline mark-state geometry, return that
 destination `ChartScene`. The host will use it for subsequent pointer hits;
 returning nothing preserves base-scene interaction for simpler renderers.
+Call `resolveFocusPresentation(scene, focus, pointer, cursor)` to obtain the
+authored and crosshair nodes for the renderer's underlay and overlay surfaces.
 
 If the renderer animates point geometry, implement `getPresentationPoints`
 and `subscribePresentationPoints`. This keeps stationary pointer focus,
@@ -240,6 +316,11 @@ adapter. Preserve:
 The default `renderChartSvg` already emits declared gradients and group clips.
 The compatible `renderChartSvgWithResources` export remains available when an
 explicit resource serializer name is useful.
+
+Mounted SVG surfaces also call the selected serializer when focus guides are
+painted. That call contains a single `focus-guide-layer:under` or
+`focus-guide-layer:over` group in `scene.nodes`; preserve its keyed `<g>` and
+apply the same paint, clipping, and resource-ID rules as the base scene.
 
 ## Custom focus and spatial indexes
 

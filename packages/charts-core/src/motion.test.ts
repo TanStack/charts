@@ -3,6 +3,7 @@ import { scaleBand, scaleLinear } from 'd3-scale'
 import { areaY } from './area'
 import { barY } from './bar'
 import { bandX } from './band'
+import { crosshair } from './crosshair'
 import { dot } from './dot'
 import { whenFocused } from './focus-mark'
 import { lineY } from './line'
@@ -1211,8 +1212,8 @@ describe('SVG motion', () => {
       source: 'pointer',
       pinned: false,
     })
-    frames.run(0)
-    frames.run(80)
+    frames.runAll(0)
+    frames.runAll(80)
     const interruptedRadius = Number(circle(first)?.getAttribute('r'))
     expect(interruptedRadius).toBeGreaterThan(5)
     expect(interruptedRadius).toBeLessThan(12)
@@ -1228,8 +1229,8 @@ describe('SVG motion', () => {
     expect(Number(circle(first)?.getAttribute('r'))).toBeCloseTo(
       interruptedRadius,
     )
-    frames.run(80)
-    frames.run(96)
+    frames.runAll(80)
+    frames.runAll(96)
     expect(Number(circle(first)?.getAttribute('r'))).toBeGreaterThan(
       interruptedRadius,
     )
@@ -1397,6 +1398,222 @@ describe('SVG motion', () => {
 
     expect(onFocusChange.mock.calls.at(-1)?.[0]?.datum.id).toBe('focused')
     host.destroy()
+    frames.restore()
+  })
+
+  it('retargets a persistent crosshair spring without replacing guide elements', () => {
+    const transition = {
+      type: 'spring' as const,
+      stiffness: 160,
+      damping: 16,
+      mass: 1,
+    }
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          dot(
+            [
+              { id: 'a', x: 1, y: 2 },
+              { id: 'b', x: 3, y: 8 },
+            ],
+            {
+              x: 'x',
+              y: 'y',
+              key: 'id',
+              states: [
+                {
+                  when: { focus: 'primary' },
+                  style: { r: 10 },
+                  transition,
+                },
+              ],
+            },
+          ),
+          crosshair({
+            x: { label: true },
+            y: { label: true },
+            marker: true,
+            motion: { transition },
+          }),
+        ],
+        x: { scale: scaleLinear().domain([0, 4]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+        guides: false,
+      }),
+      { width: 320, height: 200 },
+    )
+    const [first, second] = scene.points
+    if (!first || !second) throw new Error('Expected crosshair points')
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Motion crosshair' })
+    const frames = installManagedFrames()
+    surface.paintFocus({
+      primary: first,
+      group: [first],
+      source: 'pointer',
+      pinned: false,
+    })
+    const layer = container.querySelector<SVGGElement>(
+      '[data-ts-focus-guide-layer="over"]',
+    )
+    const xRule = layer?.querySelector<SVGLineElement>(
+      '[data-ts-key$=":x-rule"]',
+    )
+    expect(Number(xRule?.getAttribute('x1'))).toBeCloseTo(first.x)
+
+    surface.paintFocus({
+      primary: second,
+      group: [second],
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(layer?.querySelector('[data-ts-key$=":x-rule"]')).toBe(xRule)
+    expect(layer ? container.contains(layer) : false).toBe(true)
+    frames.runAll(0)
+    frames.runAll(80)
+    const interruptedX = Number(xRule?.getAttribute('x1'))
+    expect(interruptedX).toBeGreaterThan(first.x)
+    expect(interruptedX).toBeLessThan(second.x)
+
+    surface.paintFocus({
+      primary: first,
+      group: [first],
+      source: 'keyboard',
+      pinned: false,
+    })
+    expect(Number(xRule?.getAttribute('x1'))).toBeCloseTo(interruptedX)
+    expect(layer?.querySelector('[data-ts-key$=":x-rule"]')).toBe(xRule)
+    expect(layer ? container.contains(layer) : false).toBe(true)
+    frames.runAll(80)
+    frames.runAll(96)
+    expect(Number(xRule?.getAttribute('x1'))).toBeGreaterThan(interruptedX)
+
+    const root = container.querySelector<SVGSVGElement>('svg.ts-chart')
+    for (let time = 112; time <= 4_000; time += 16) {
+      if (
+        layer?.dataset.tsMotionState === 'finished' &&
+        root?.dataset.tsMotionState === 'finished'
+      ) {
+        break
+      }
+      frames.runAll(time)
+    }
+    expect(layer ? container.contains(layer) : false).toBe(true)
+    expect(container.querySelector('[data-ts-focus-guide-layer="over"]')).toBe(
+      layer,
+    )
+    expect(layer?.getAttribute('visibility')).toBe('visible')
+    expect(layer?.querySelector('[data-ts-key$=":x-rule"]')).toBe(xRule)
+    expect(Number(xRule?.getAttribute('x1'))).toBeCloseTo(first.x)
+    expect(layer?.querySelectorAll('text').length).toBe(4)
+    expect(layer?.querySelector('[data-ts-key$=":marker"]')).not.toBeNull()
+
+    surface.paintFocus(null)
+    expect(layer?.getAttribute('visibility')).toBe('hidden')
+    expect(layer?.querySelector('[data-ts-key$=":x-rule"]')).toBe(xRule)
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('removes a retained focus-guide layer when the next scene drops its crosshair', () => {
+    const data = [
+      { id: 'a', x: 1, y: 2 },
+      { id: 'b', x: 3, y: 8 },
+    ]
+    const definition = (includeCrosshair: boolean) =>
+      defineChart({
+        marks: includeCrosshair
+          ? [dot(data, { x: 'x', y: 'y', key: 'id' }), crosshair()]
+          : [dot(data, { x: 'x', y: 'y', key: 'id' })],
+        x: { scale: scaleLinear().domain([0, 4]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+        guides: false,
+      })
+    const firstScene = createChartScene(definition(true), {
+      width: 320,
+      height: 200,
+    })
+    const nextScene = createChartScene(definition(false), {
+      width: 320,
+      height: 200,
+    })
+    const firstPoint = firstScene.points[0]!
+    const nextPoint = nextScene.points[0]!
+    const container = document.createElement('div')
+    const frames = installManagedFrames()
+    const surface = motion({ initial: false }).mount(container, () => {})
+
+    surface.render(firstScene, { ariaLabel: 'Removable crosshair' })
+    surface.paintFocus({
+      primary: firstPoint,
+      group: [firstPoint],
+      source: 'pointer',
+      pinned: false,
+    })
+    const layer = container.querySelector('[data-ts-focus-guide-layer="over"]')
+    expect(layer).not.toBeNull()
+
+    surface.render(nextScene, { ariaLabel: 'Removed crosshair' })
+    surface.paintFocus({
+      primary: nextPoint,
+      group: [nextPoint],
+      source: 'restored',
+      pinned: false,
+    })
+    for (let time = 0; time <= 2_000 && frames.pending(); time += 16) {
+      frames.runAll(time)
+    }
+
+    expect(layer ? container.contains(layer) : false).toBe(false)
+    expect(container.querySelector('[data-ts-focus-guide-layer]')).toBeNull()
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('animates focus guides without canceling the base scene', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barY(rows, { x: 'category', y: 'value', key: 'id' }),
+          crosshair({ y: false }),
+        ],
+        x: { scale: scaleBand().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+        guides: false,
+      }),
+      { width: 300, height: 200 },
+    )
+    const [first, second] = scene.points
+    if (!first || !second) throw new Error('Expected animated focus points')
+    const container = document.createElement('div')
+    const frames = installManagedFrames()
+    const surface = motion({
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Independent focus motion' })
+    expect(frames.pending()).toBe(1)
+    expect(container.querySelector('svg')?.dataset.tsMotionState).toBe(
+      'running',
+    )
+
+    surface.paintFocus({
+      primary: first,
+      group: [first],
+      source: 'pointer',
+      pinned: false,
+    })
+    surface.paintFocus({
+      primary: second,
+      group: [second],
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(frames.pending()).toBe(2)
+    expect(container.querySelector('svg')?.dataset.tsMotionState).toBe(
+      'running',
+    )
+    surface.destroy()
     frames.restore()
   })
 
@@ -1900,6 +2117,17 @@ function installManagedFrames() {
       if (!next) throw new Error(`No animation frame scheduled at ${time}ms`)
       callbacks.delete(next[0])
       next[1](time)
+    },
+    runAll(time: number) {
+      const pending = [...callbacks.values()]
+      if (!pending.length) {
+        throw new Error(`No animation frame scheduled at ${time}ms`)
+      }
+      callbacks.clear()
+      pending.forEach((callback) => callback(time))
+    },
+    pending() {
+      return callbacks.size
     },
     restore() {
       request.mockRestore()

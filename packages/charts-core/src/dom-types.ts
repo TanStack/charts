@@ -1,5 +1,6 @@
 import type {
   ChartAnimationOptions,
+  ChartCursorPresentation,
   ChartDefinition,
   ChartFocusState,
   ChartPoint,
@@ -98,6 +99,7 @@ export interface ChartSurface<
   paintFocus: (
     focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
     pointer?: ChartTooltipPosition | null,
+    cursor?: ChartCursorPresentation<TXValue, TYValue> | null,
   ) => ChartScene<TDatum, TXValue, TYValue> | void
   destroy: () => void
 }

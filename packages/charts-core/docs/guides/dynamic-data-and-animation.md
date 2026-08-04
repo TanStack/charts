@@ -171,6 +171,11 @@ retargeting preserves the currently painted value and velocity. Keyed
 interaction points move with the presentation geometry rather than jumping to
 the next scene.
 
+A `crosshair` is also keyed focus presentation. With the motion renderer, its
+rules, labels, and marker retain DOM identity and spring velocity while focus
+retargets. Default SVG, Canvas, and native surfaces paint the same guide at its
+current target without importing the browser motion runtime.
+
 Spring updates always retarget immediately; a returned update delay is ignored
 so incoming momentum cannot freeze. Use delays for spring enter/exit
 choreography or any tween phase.

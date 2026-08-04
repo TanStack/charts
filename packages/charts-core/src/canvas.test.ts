@@ -66,8 +66,10 @@ describe('Canvas renderer', () => {
     expect(markup).toContain('aria-label="Dense scatter"')
     expect(markup).toContain('aria-description="One point per request"')
     expect(markup).toContain('tabindex="3"')
+    expect(markup).toContain('ts-chart-canvas__background')
     expect(markup).toContain('ts-chart-canvas__scene')
     expect(markup).toContain('ts-chart-canvas__focus')
+    expect(markup).toContain('ts-chart-canvas__base')
     expect(getContextSpy).not.toHaveBeenCalled()
   })
 
@@ -194,14 +196,33 @@ describe('Canvas renderer', () => {
     const canvas = container.querySelector<HTMLCanvasElement>(
       '.ts-chart-canvas__scene',
     )
-    if (!canvas) throw new Error('Expected scene canvas')
+    const backgroundCanvas = container.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__background',
+    )
+    if (!canvas || !backgroundCanvas) {
+      throw new Error('Expected background and scene canvases')
+    }
     const fake = contexts.get(canvas)
-    if (!fake) throw new Error('Expected scene context')
+    const background = contexts.get(backgroundCanvas)
+    const base = contexts.get(surface.canvas)
+    if (!fake || !background || !base) {
+      throw new Error('Expected background, scene, and base contexts')
+    }
 
+    expect(surface.backgroundCanvas).toBe(backgroundCanvas)
+    expect(surface.sceneCanvas).toBe(canvas)
+    expect(surface.canvas.className).toBe('ts-chart-canvas__base')
+    expect(surface.canvas.style.display).toBe('none')
     expect(canvas.width).toBe(200)
     expect(canvas.height).toBe(120)
     expect(fake.operations).toContain('setTransform:2,0,0,2,0,0')
-    expect(fake.operations).toContain('fillRect:0,0,100,60')
+    expect(background.operations).toContain('fillRect:0,0,100,60')
+    expect(fake.operations).not.toContain('fillRect:0,0,100,60')
+    expect(base.operations).toContain('drawImage:ts-chart-canvas__background')
+    expect(base.operations).toContain('drawImage:ts-chart-canvas__scene')
+    expect(
+      base.operations.indexOf('drawImage:ts-chart-canvas__background'),
+    ).toBeLessThan(base.operations.indexOf('drawImage:ts-chart-canvas__scene'))
     expect(fake.operations).toContain('translate:10,12')
     expect(fake.operations).toContain('clip')
     expect(fake.operations).toContain('setLineDash:2,4')
@@ -220,7 +241,7 @@ describe('Canvas renderer', () => {
     surface.destroy()
   })
 
-  it('uses a separate focus overlay without repainting the base scene', () => {
+  it('keeps the public canvas as a focus-free base bitmap', () => {
     const container = document.createElement('div')
     const renderer = createCanvasChartRenderer({ pixelRatio: 2 })
     const surface = renderer.mount(container, () => {})
@@ -266,6 +287,7 @@ describe('Canvas renderer', () => {
           ],
           focus: {
             match: 'primary',
+            anchors: [point],
             points: [point],
             placement: 'over',
           },
@@ -274,9 +296,19 @@ describe('Canvas renderer', () => {
       renderOptions(),
     )
     const base = contexts.get(surface.canvas)
+    const liveScene = contexts.get(surface.sceneCanvas)
     const focus = contexts.get(surface.focusCanvas)
-    if (!base || !focus) throw new Error('Expected both contexts')
+    if (!base || !liveScene || !focus) {
+      throw new Error('Expected base, scene, and focus contexts')
+    }
     const baseOperations = [...base.operations]
+    const liveSceneOperations = [...liveScene.operations]
+    expect(base.operations).toEqual(
+      expect.arrayContaining([
+        'drawImage:ts-chart-canvas__background',
+        'drawImage:ts-chart-canvas__scene',
+      ]),
+    )
 
     surface.paintFocus({
       primary: {
@@ -298,6 +330,7 @@ describe('Canvas renderer', () => {
     })
 
     expect(base.operations).toEqual(baseOperations)
+    expect(liveScene.operations).toEqual(liveSceneOperations)
     expect(focus.operations).toContain('clearRect:0,0,100,60')
     expect(focus.operations).toContain('arc:50,30,5')
     expect(focus.operations).toEqual(
@@ -306,7 +339,7 @@ describe('Canvas renderer', () => {
     surface.destroy()
   })
 
-  it('repaints inline mark states and restores the base Canvas scene', () => {
+  it('repaints inline mark states only on the live scene layer', () => {
     const container = document.createElement('div')
     const surface = canvasChartRenderer.mount(container, () => {})
     const point = {
@@ -352,8 +385,10 @@ describe('Canvas renderer', () => {
       ]),
       renderOptions(),
     )
-    const fake = contexts.get(surface.canvas)
-    if (!fake) throw new Error('Expected scene context')
+    const base = contexts.get(surface.canvas)
+    const liveScene = contexts.get(surface.sceneCanvas)
+    if (!base || !liveScene) throw new Error('Expected base and scene contexts')
+    const baseOperations = [...base.operations]
 
     surface.paintFocus({
       primary: point,
@@ -361,12 +396,14 @@ describe('Canvas renderer', () => {
       source: 'pointer',
       pinned: false,
     })
-    expect(fake.operations).toContain('arc:50,30,9')
+    expect(liveScene.operations).toContain('arc:50,30,9')
+    expect(base.operations).toEqual(baseOperations)
 
-    const restoreStart = fake.operations.length
+    const restoreStart = liveScene.operations.length
     surface.paintFocus(null)
-    const restored = fake.operations.slice(restoreStart)
+    const restored = liveScene.operations.slice(restoreStart)
     expect(restored).toContain('arc:50,30,5')
+    expect(base.operations).toEqual(baseOperations)
     surface.destroy()
   })
 
@@ -405,6 +442,7 @@ describe('Canvas renderer', () => {
           ],
           focus: {
             match: 'x',
+            anchors: [point],
             points: [point],
             placement: 'under',
           },
@@ -432,6 +470,7 @@ describe('Canvas renderer', () => {
           ],
           focus: {
             match: 'primary',
+            anchors: [{ ...point, key: 'dot', markId: 'dots' }],
             points: [{ ...point, key: 'dot', markId: 'dots' }],
             placement: 'over',
           },
@@ -440,6 +479,7 @@ describe('Canvas renderer', () => {
       renderOptions(),
     )
     const base = contexts.get(surface.canvas)
+    const liveScene = contexts.get(surface.sceneCanvas)
     const under = contexts.get(surface.focusUnderCanvas)
     const over = contexts.get(surface.focusCanvas)
     if (!base || !under || !over) {
@@ -461,6 +501,283 @@ describe('Canvas renderer', () => {
     expect(base.operations).toEqual(baseOperations)
     expect(under.operations).toContain('rect:10,0,30,60')
     expect(over.operations).toContain('arc:25,30,5')
+    surface.destroy()
+  })
+
+  it('paints renderer-native crosshair guides in their under and over layers', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer({ pixelRatio: 2 }).mount(
+      container,
+      () => {},
+    )
+    const datum = { id: 'cursor' }
+    const point = {
+      key: 'dots:null:cursor',
+      markId: 'dots',
+      group: null,
+      groupLabel: 'dots',
+      datum,
+      datumIndex: 0,
+      xValue: 2,
+      yValue: 7,
+      x: 40,
+      y: 25,
+      color: '#dc2626',
+    }
+    const chart: ChartScene = {
+      ...scene(
+        [
+          {
+            kind: 'dot',
+            key: point.key,
+            x: point.x,
+            y: point.y,
+            radius: 3,
+            style: { fill: point.color },
+          },
+        ],
+        [],
+        '#f8fafc',
+      ),
+      focusGuides: [
+        {
+          key: 'crosshair-under',
+          markId: 'crosshair-under',
+          chart: { x: 10, y: 5, width: 80, height: 45 },
+          surface: { x: 0, y: 0, width: 100, height: 60 },
+          placement: 'under',
+          x: {
+            style: {
+              stroke: '#475569',
+              strokeWidth: 2,
+              strokeDasharray: '3 2',
+            },
+            label: {
+              format: (value) => `x=${String(value)}`,
+              offset: 4,
+              fontSize: 10,
+              fontWeight: 600,
+              style: {
+                fill: '#0f172a',
+                stroke: '#ffffff',
+                strokeWidth: 3,
+              },
+            },
+          },
+        },
+        {
+          key: 'crosshair-over',
+          markId: 'crosshair-over',
+          chart: { x: 10, y: 5, width: 80, height: 45 },
+          surface: { x: 0, y: 0, width: 100, height: 60 },
+          placement: 'over',
+          y: {
+            style: { stroke: '#64748b', strokeWidth: 1 },
+            label: {
+              format: (value) => `y=${String(value)}`,
+              offset: 4,
+              fontSize: 10,
+              style: {
+                fill: '#0f172a',
+                stroke: '#ffffff',
+                strokeWidth: 3,
+              },
+            },
+          },
+          marker: {
+            radius: 5,
+            style: { fill: '#ffffff', strokeWidth: 2 },
+          },
+        },
+      ],
+    }
+
+    surface.render(chart, renderOptions())
+    const backgroundCanvas = container.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__background',
+    )
+    const base = contexts.get(surface.canvas)
+    const liveScene = contexts.get(surface.sceneCanvas)
+    const under = contexts.get(surface.focusUnderCanvas)
+    const over = contexts.get(surface.focusCanvas)
+    const background = backgroundCanvas
+      ? contexts.get(backgroundCanvas)
+      : undefined
+    if (
+      !backgroundCanvas ||
+      !background ||
+      !base ||
+      !liveScene ||
+      !under ||
+      !over
+    ) {
+      throw new Error('Expected background, base, scene, and focus contexts')
+    }
+    expect(
+      [...surface.element.querySelectorAll('canvas')].map(
+        (layer) => layer.className,
+      ),
+    ).toEqual([
+      'ts-chart-canvas__background',
+      'ts-chart-canvas__focus-under',
+      'ts-chart-canvas__scene',
+      'ts-chart-canvas__focus',
+      'ts-chart-canvas__base',
+    ])
+    expect(surface.canvas.style.display).toBe('none')
+    expect(background.operations).toContain('fillRect:0,0,100,60')
+    expect(base.operations).toEqual(
+      expect.arrayContaining([
+        'drawImage:ts-chart-canvas__background',
+        'drawImage:ts-chart-canvas__scene',
+      ]),
+    )
+    expect(liveScene.operations).not.toContain('fillRect:0,0,100,60')
+    const backgroundOperations = [...background.operations]
+    const baseOperations = [...base.operations]
+    const liveSceneOperations = [...liveScene.operations]
+    const underStart = under.operations.length
+    const overStart = over.operations.length
+
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    const underPaint = under.operations.slice(underStart)
+    const overPaint = over.operations.slice(overStart)
+    expect(background.operations).toEqual(backgroundOperations)
+    expect(base.operations).toEqual(baseOperations)
+    expect(liveScene.operations).toEqual(liveSceneOperations)
+    expect(underPaint).toEqual(
+      expect.arrayContaining([
+        'clearRect:0,0,100,60',
+        'rect:10,5,80,45',
+        'clip',
+        'moveTo:40,5',
+        'lineTo:40,50',
+        'setLineDash:3,2',
+        'strokeText:x=2,0,0',
+        'fillText:x=2,0,0',
+      ]),
+    )
+    expect(overPaint).toEqual(
+      expect.arrayContaining([
+        'clearRect:0,0,100,60',
+        'rect:10,5,80,45',
+        'clip',
+        'moveTo:10,25',
+        'lineTo:90,25',
+        'arc:40,25,5',
+        'strokeText:y=7,0,0',
+        'fillText:y=7,0,0',
+      ]),
+    )
+    expect(underPaint.indexOf('strokeText:x=2,0,0')).toBeLessThan(
+      underPaint.indexOf('fillText:x=2,0,0'),
+    )
+    expect(overPaint.indexOf('strokeText:y=7,0,0')).toBeLessThan(
+      overPaint.indexOf('fillText:y=7,0,0'),
+    )
+    expect(overPaint).toEqual(
+      expect.arrayContaining([expect.stringMatching(/^stroke:.*:2:1$/)]),
+    )
+
+    const underClearStart = under.operations.length
+    const overClearStart = over.operations.length
+    surface.paintFocus(null)
+    expect(under.operations.slice(underClearStart)).toEqual([
+      'setTransform:2,0,0,2,0,0',
+      'setLineDash:',
+      'clearRect:0,0,100,60',
+    ])
+    expect(over.operations.slice(overClearStart)).toEqual([
+      'setTransform:2,0,0,2,0,0',
+      'setLineDash:',
+      'clearRect:0,0,100,60',
+    ])
+    expect(background.operations).toEqual(backgroundOperations)
+    expect(base.operations).toEqual(baseOperations)
+    expect(liveScene.operations).toEqual(liveSceneOperations)
+    surface.destroy()
+  })
+
+  it('paints a controlled cursor without requiring datum focus', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    const chart: ChartScene = {
+      ...scene([
+        {
+          kind: 'rule',
+          key: 'base-rule',
+          x1: 0,
+          x2: 100,
+          y1: 30,
+          y2: 30,
+          style: { stroke: '#cbd5e1' },
+        },
+      ]),
+      focusGuides: [
+        {
+          key: 'free-cursor',
+          markId: 'free-cursor',
+          chart: { x: 10, y: 5, width: 80, height: 45 },
+          surface: { x: 0, y: 0, width: 100, height: 60 },
+          placement: 'over',
+          x: {
+            style: { stroke: '#334155' },
+            label: {
+              offset: 4,
+              fontSize: 10,
+              style: { fill: '#0f172a' },
+            },
+          },
+          y: {
+            style: { stroke: '#334155' },
+            label: {
+              offset: 4,
+              fontSize: 10,
+              style: { fill: '#0f172a' },
+            },
+          },
+          marker: { radius: 3, style: { fill: '#ffffff' } },
+        },
+      ],
+    }
+    surface.render(chart, renderOptions())
+    const base = contexts.get(surface.canvas)
+    const over = contexts.get(surface.focusCanvas)
+    if (!base || !over) throw new Error('Expected base and focus contexts')
+    const baseOperations = [...base.operations]
+    const paintStart = over.operations.length
+
+    surface.paintFocus(null, null, {
+      state: {
+        anchor: 'value',
+        value: { x: 12, y: 34 },
+        source: 'programmatic',
+        pinned: true,
+      },
+      axes: 'xy',
+      x: { position: 65, normalized: 0.6875, value: 12 },
+      y: { position: 20, normalized: 1 / 3, value: 34 },
+    })
+
+    const paint = over.operations.slice(paintStart)
+    expect(base.operations).toEqual(baseOperations)
+    expect(paint).toEqual(
+      expect.arrayContaining([
+        'moveTo:65,5',
+        'lineTo:65,50',
+        'moveTo:10,20',
+        'lineTo:90,20',
+        'arc:65,20,3',
+        'fillText:12,0,0',
+        'fillText:34,0,0',
+      ]),
+    )
     surface.destroy()
   })
 
@@ -487,7 +804,7 @@ describe('Canvas renderer', () => {
       renderOptions(),
     )
 
-    const fake = contexts.get(surface.canvas)
+    const fake = contexts.get(surface.sceneCanvas)
     if (!fake) throw new Error('Expected scene context')
     expect(
       fake.operations.filter((operation) => operation.startsWith('arc:')),
@@ -498,7 +815,7 @@ describe('Canvas renderer', () => {
     surface.destroy()
   })
 
-  it('crossfades animated scene updates and cancels pending frames', () => {
+  it('crossfades opaque backgrounds and scene marks on one cancelable frame', () => {
     const callbacks: FrameRequestCallback[] = []
     const requestFrame = vi
       .spyOn(window, 'requestAnimationFrame')
@@ -511,32 +828,178 @@ describe('Canvas renderer', () => {
       .mockImplementation(() => {})
     const container = document.createElement('div')
     const surface = canvasChartRenderer.mount(container, () => {})
-    const dotScene = (x: number) =>
-      scene([
-        {
-          kind: 'dot',
-          key: 'dot',
-          x,
-          y: 20,
-          radius: 3,
-          style: { fill: '#2563eb' },
-        },
-      ])
-    surface.render(dotScene(10), renderOptions())
-    const base = contexts.get(surface.canvas)
-    if (!base) throw new Error('Expected scene context')
+    const dotScene = (x: number, background: string) =>
+      scene(
+        [
+          {
+            kind: 'dot',
+            key: 'dot',
+            x,
+            y: 20,
+            radius: 3,
+            style: { fill: '#2563eb' },
+          },
+        ],
+        [],
+        background,
+      )
+    surface.render(dotScene(10, '#ffffff'), renderOptions())
+    const background = contexts.get(surface.backgroundCanvas)
+    const liveScene = contexts.get(surface.sceneCanvas)
+    if (!background || !liveScene) {
+      throw new Error('Expected background and live scene contexts')
+    }
+    const backgroundBefore = [...background.operations]
+    const sceneBefore = [...liveScene.operations]
 
-    surface.render(dotScene(20), {
+    surface.render(dotScene(20, '#111827'), {
       ...renderOptions(),
       animation: { duration: 100 },
     })
+    expect(callbacks).toHaveLength(1)
+    expect(background.operations).toEqual(backgroundBefore)
+    expect(liveScene.operations).toEqual(sceneBefore)
     callbacks.shift()?.(0)
 
     expect(
-      base.operations.filter((operation) => operation === 'drawImage'),
+      background.operations.filter((operation) => operation === 'drawImage'),
     ).toHaveLength(2)
-    surface.render(dotScene(30), renderOptions())
-    expect(cancelFrame).toHaveBeenCalled()
+    expect(
+      liveScene.operations.filter((operation) => operation === 'drawImage'),
+    ).toHaveLength(2)
+    expect(callbacks).toHaveLength(1)
+    surface.render(dotScene(30, '#f8fafc'), renderOptions())
+    expect(cancelFrame).toHaveBeenCalledTimes(1)
+    surface.destroy()
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
+  it('retargets an active background crossfade when focus reapplies mark state', () => {
+    const callbacks: FrameRequestCallback[] = []
+    let nextFrameId = 1
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callbacks.push(callback)
+        return nextFrameId++
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer.mount(container, () => {})
+    const stateScene = (x: number, background: string) => {
+      const point = {
+        key: 'dots:null:a',
+        markId: 'dots',
+        group: null,
+        groupLabel: 'dots',
+        datum: { id: 'a' },
+        datumIndex: 0,
+        xValue: x,
+        yValue: 20,
+        x,
+        y: 20,
+        color: '#2563eb',
+      }
+      return {
+        chart: {
+          ...scene(
+            [
+              {
+                kind: 'group' as const,
+                key: 'states:dots',
+                states: {
+                  data: [point.datum],
+                  points: [point],
+                  definitions: [
+                    {
+                      when: { focus: 'primary' as const },
+                      style: { r: 9, fill: '#f97316' },
+                      transition: { type: 'tween' as const, duration: 100 },
+                    },
+                  ],
+                },
+                children: [
+                  {
+                    kind: 'dot' as const,
+                    key: point.key,
+                    x,
+                    y: 20,
+                    radius: 5,
+                    style: { fill: '#2563eb' },
+                  },
+                ],
+              },
+            ],
+            [],
+            background,
+          ),
+          points: [point],
+        } satisfies ChartScene,
+        point,
+      }
+    }
+    const initial = stateScene(10, '#ffffff')
+    const updated = stateScene(20, '#111827')
+    surface.render(initial.chart, renderOptions())
+    const background = contexts.get(surface.backgroundCanvas)
+    const liveScene = contexts.get(surface.sceneCanvas)
+    const base = contexts.get(surface.canvas)
+    if (!background || !liveScene || !base) {
+      throw new Error('Expected background, scene, and base contexts')
+    }
+
+    surface.render(updated.chart, {
+      ...renderOptions(),
+      animation: { duration: 100 },
+    })
+    expect(callbacks).toHaveLength(1)
+    const backgroundBeforeFocus = [...background.operations]
+    const sceneBeforeFocus = [...liveScene.operations]
+    const baseAfterRender = [...base.operations]
+
+    surface.paintFocus({
+      primary: updated.point,
+      group: [updated.point],
+      source: 'restored',
+      pinned: false,
+    })
+
+    expect(cancelFrame).toHaveBeenCalledTimes(1)
+    expect(callbacks).toHaveLength(2)
+    expect(background.operations).toEqual(backgroundBeforeFocus)
+    expect(liveScene.operations).toEqual(sceneBeforeFocus)
+    expect(base.operations).toEqual(baseAfterRender)
+    expect(
+      [...contexts.values()].some(({ operations }) =>
+        operations.includes('arc:20,20,9'),
+      ),
+    ).toBe(true)
+
+    callbacks.shift()?.(0)
+    expect(background.operations).toEqual(backgroundBeforeFocus)
+    expect(liveScene.operations).toEqual(sceneBeforeFocus)
+
+    callbacks.shift()?.(0)
+    expect(background.operations.slice(backgroundBeforeFocus.length)).toEqual(
+      expect.arrayContaining(['drawImage', 'drawImage']),
+    )
+    expect(liveScene.operations.slice(sceneBeforeFocus.length)).toEqual(
+      expect.arrayContaining(['drawImage', 'drawImage']),
+    )
+    expect(callbacks).toHaveLength(1)
+
+    callbacks.shift()?.(100)
+    expect(
+      background.operations.filter((operation) => operation === 'drawImage'),
+    ).toHaveLength(4)
+    expect(
+      liveScene.operations.filter((operation) => operation === 'drawImage'),
+    ).toHaveLength(4)
+    expect(callbacks).toHaveLength(0)
+    expect(base.operations).toEqual(baseAfterRender)
     surface.destroy()
     requestFrame.mockRestore()
     cancelFrame.mockRestore()
@@ -760,7 +1223,11 @@ function fakeContext(): FakeCanvasContext {
     setLineDash: (values: number[]) =>
       operations.push(`setLineDash:${values.join(',')}`),
     createLinearGradient: () => gradient,
-    drawImage: () => operations.push('drawImage'),
+    drawImage: (source: CanvasImageSource) => {
+      const className =
+        source instanceof HTMLCanvasElement ? source.className : ''
+      operations.push(className ? `drawImage:${className}` : 'drawImage')
+    },
     get fillStyle() {
       return fillStyle
     },

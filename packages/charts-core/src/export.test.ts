@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
+import { scaleLinear } from 'd3-scale'
+import { crosshair } from './crosshair'
+import { dot } from './dot'
 import { renderChartImage, serializeChartSvg } from './export'
 import { lineY } from './line'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
 import { renderChartSvgWithResources } from './svg-resources'
+import { svgChartRenderer } from './svg-surface'
 import { linearAxes } from './test-scales'
 
 describe('optional export', () => {
@@ -85,10 +89,43 @@ describe('optional export', () => {
     readStyle.mockRestore()
   })
 
-  it('exports Canvas scene and optional focus layers through the raster API', async () => {
+  it('includes the currently painted crosshair only when requested', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          dot([{ x: 1, y: 2 }], { x: 'x', y: 'y' }),
+          crosshair({ marker: true }),
+        ],
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleLinear().domain([0, 4]) },
+        guides: false,
+      }),
+      { width: 300, height: 180 },
+    )
+    const point = scene.points[0]
+    if (!point) throw new Error('Expected an export focus point')
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Focused export' })
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'programmatic',
+      pinned: true,
+    })
+
+    expect(serializeChartSvg(container)).not.toContain('ts-chart__crosshair')
+    const focused = serializeChartSvg(container, { includeFocus: true })
+    expect(focused).toContain('ts-chart__crosshair')
+    expect(focused).toContain(`${point.x}`)
+    expect(focused).toContain(`${point.y}`)
+    surface.destroy()
+  })
+
+  it('exports Canvas background, underlay, scene, and overlay in compositing order', async () => {
     const container = document.createElement('div')
     container.innerHTML =
-      '<div class="ts-chart ts-chart-canvas" data-ts-chart-width="400" data-ts-chart-height="200" data-ts-chart-pixel-ratio="2"><canvas class="ts-chart-canvas__focus-under" width="800" height="400"></canvas><canvas class="ts-chart-canvas__scene" width="800" height="400"></canvas><canvas class="ts-chart-canvas__focus" width="800" height="400"></canvas></div>'
+      '<div class="ts-chart ts-chart-canvas" data-ts-chart-width="400" data-ts-chart-height="200" data-ts-chart-pixel-ratio="2"><canvas class="ts-chart-canvas__background" width="800" height="400"></canvas><canvas class="ts-chart-canvas__focus-under" width="800" height="400"></canvas><canvas class="ts-chart-canvas__scene" width="800" height="400"></canvas><canvas class="ts-chart-canvas__focus" width="800" height="400"></canvas><canvas class="ts-chart-canvas__base" width="800" height="400"></canvas></div>'
     const drawImage = vi.fn()
     let output: HTMLCanvasElement | undefined
     const getContext = vi
@@ -115,15 +152,25 @@ describe('optional export', () => {
     expect(blob.type).toBe('image/png')
     expect(output?.width).toBe(600)
     expect(output?.height).toBe(300)
-    expect(drawImage).toHaveBeenCalledTimes(3)
+    expect(drawImage).toHaveBeenCalledTimes(4)
     expect(drawImage.mock.calls[0]?.[0]).toBe(
-      container.querySelector('.ts-chart-canvas__focus-under'),
+      container.querySelector('.ts-chart-canvas__background'),
     )
     expect(drawImage.mock.calls[1]?.[0]).toBe(
-      container.querySelector('.ts-chart-canvas__scene'),
+      container.querySelector('.ts-chart-canvas__focus-under'),
     )
     expect(drawImage.mock.calls[2]?.[0]).toBe(
+      container.querySelector('.ts-chart-canvas__scene'),
+    )
+    expect(drawImage.mock.calls[3]?.[0]).toBe(
       container.querySelector('.ts-chart-canvas__focus'),
+    )
+
+    drawImage.mockClear()
+    await renderChartImage(container, { scale: 1 })
+    expect(drawImage).toHaveBeenCalledTimes(1)
+    expect(drawImage.mock.calls[0]?.[0]).toBe(
+      container.querySelector('.ts-chart-canvas__base'),
     )
     getContext.mockRestore()
     toBlob.mockRestore()
