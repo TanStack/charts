@@ -947,6 +947,17 @@ export interface SceneFocusGuideLabel {
 export interface SceneFocusGuideAxis {
   style: SceneStyle
   label?: SceneFocusGuideLabel
+  /** Categorical band geometry that replaces the axis rule when present. */
+  band?: SceneFocusGuideBand
+}
+
+export interface SceneFocusGuideBand {
+  /** Full categorical scale bandwidth before applying `inset`. */
+  bandwidth: number
+  /** Inset from both categorical band edges. Negative values create an outset. */
+  inset: number
+  radius?: number
+  style: SceneStyle
 }
 
 export interface SceneFocusGuideMarker {

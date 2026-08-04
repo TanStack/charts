@@ -32,16 +32,30 @@ const month = new Intl.DateTimeFormat('en-US', {
 
 const sourceRows = crimeanWar.slice(3, 11)
 
+const revisedMultipliers = [
+  [0.72, 1.5, 1.22],
+  [1.2, 0.65, 0.82],
+  [0.78, 1.3, 1.18],
+  [1.18, 0.72, 0.86],
+  [0.74, 1.28, 1.22],
+  [1.15, 0.7, 0.86],
+  [0.72, 1.35, 1.15],
+  [1.18, 0.68, 0.84],
+] as const
+
 export const stackedCursorPeriods = sourceRows.map((row) =>
   month.format(row.date),
 )
 
-export const stackedCursorRows: readonly StackedCursorRow[] =
-  sourceRows.flatMap((row) => {
+const stackedCursorRevisions = [false, true].map((revised) =>
+  sourceRows.flatMap((row, periodIndex) => {
     const period = month.format(row.date)
     let start = 0
-    return stackedCursorCauses.map((cause) => {
-      const deaths = row[cause]
+    return stackedCursorCauses.map((cause, causeIndex) => {
+      const multiplier = revised
+        ? (revisedMultipliers[periodIndex]?.[causeIndex] ?? 1)
+        : 1
+      const deaths = Math.round(row[cause] * multiplier)
       const result = {
         id: `${period}:${cause}`,
         period,
@@ -53,10 +67,26 @@ export const stackedCursorRows: readonly StackedCursorRow[] =
       start = result.end
       return result
     })
-  })
+  }),
+)
+
+export function stackedCursorRowsForRevision(
+  revision: number,
+): readonly StackedCursorRow[] {
+  const index = Number.isFinite(revision)
+    ? Math.abs(Math.trunc(revision)) % stackedCursorRevisions.length
+    : 0
+  return stackedCursorRevisions[index] ?? stackedCursorRevisions[0]!
+}
+
+export const stackedCursorRows = stackedCursorRowsForRevision(0)
 
 export const stackedCursorMaximum =
-  Math.ceil(Math.max(...stackedCursorRows.map((row) => row.end)) / 500) * 500
+  Math.ceil(
+    Math.max(
+      ...stackedCursorRevisions.flatMap((rows) => rows.map((row) => row.end)),
+    ) / 500,
+  ) * 500
 
 export const stackedCursorBands: readonly StackedCursorBandRow[] =
   stackedCursorPeriods.map((period) => ({

@@ -67,10 +67,14 @@ function placeSvgFocusGuideLayer(
   placement: SvgFocusGuidePlacement,
 ): void {
   if (placement === 'under') {
-    const marks = [...svg.children].find((child) =>
-      child.classList.contains('ts-chart__marks'),
+    const scene = [...svg.children].find(
+      (child) =>
+        child.getAttribute('data-ts-key') === 'grid' ||
+        child.getAttribute('data-ts-key') === 'marks' ||
+        child.classList.contains('ts-chart__grid') ||
+        child.classList.contains('ts-chart__marks'),
     )
-    svg.insertBefore(layer, marks ?? null)
+    svg.insertBefore(layer, scene ?? null)
   } else {
     svg.append(layer)
   }

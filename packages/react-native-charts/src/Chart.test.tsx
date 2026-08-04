@@ -641,6 +641,99 @@ describe('React Native Chart', () => {
     }
   })
 
+  it('renders a categorical cursor band and y rule through clipped focus guides', async () => {
+    const rows = [
+      { id: 'a', category: 'A', value: 8 },
+      { id: 'b', category: 'B', value: 12 },
+    ]
+    let renderedScene:
+      ChartScene<(typeof rows)[number], string, number> | undefined
+    const cursorDefinition = defineChart({
+      marks: [
+        crosshair<string, number>({
+          id: 'category-band',
+          x: {
+            band: {
+              inset: 2,
+              fill: '#facc15',
+              fillOpacity: 0.24,
+            },
+          },
+          y: false,
+        }),
+        barY(rows, {
+          id: 'category-bars',
+          x: 'category',
+          y: 'value',
+          key: 'id',
+          inset: 4,
+          fill: '#2563eb',
+        }),
+        crosshair<string, number>({
+          id: 'value-rule',
+          x: false,
+          y: {
+            stroke: '#64748b',
+            strokeDasharray: '4 4',
+          },
+        }),
+      ],
+      x: { scale: scaleBand<string>().domain(['A', 'B']).padding(0.18) },
+      y: { scale: scaleLinear().domain([0, 12]) },
+      guides: false,
+      focusRing: false,
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      await React.act(() => {
+        root.render(
+          <Chart
+            definition={cursorDefinition}
+            accessibilityLabel="Categorical cursor guides"
+            width={320}
+            height={180}
+            onRender={({ scene }) => {
+              renderedScene = scene
+            }}
+          />,
+        )
+      })
+      await React.act(() => {
+        container.firstElementChild?.dispatchEvent(
+          new FocusEvent('focusin', { bubbles: true }),
+        )
+      })
+
+      const point = renderedScene?.points.find(
+        (candidate) => candidate.datum.id === 'a',
+      )
+      const band = container.querySelector<SVGRectElement>('[fill="#facc15"]')
+      const rule = container.querySelector<SVGLineElement>(
+        'line[stroke="#64748b"]',
+      )
+      if (!renderedScene || !point || !band || !rule) {
+        throw new Error('Expected categorical cursor guides')
+      }
+      const expectedBandWidth = renderedScene.scales.x.bandwidth - 4
+      const expectedBandX = point.x - renderedScene.scales.x.bandwidth / 2 + 2
+
+      expect(Number(band.getAttribute('x'))).toBeCloseTo(expectedBandX)
+      expect(Number(band.getAttribute('width'))).toBeCloseTo(expectedBandWidth)
+      expect(Number(band.getAttribute('y'))).toBeCloseTo(renderedScene.chart.y)
+      expect(Number(band.getAttribute('height'))).toBeCloseTo(
+        renderedScene.chart.height,
+      )
+      expect(band.closest('g[clip-path]')).not.toBeNull()
+      expect(rule.getAttribute('y1')).toBe(rule.getAttribute('y2'))
+      expect(rule.getAttribute('stroke-dasharray')).toBe('4 4')
+      expect(rule.closest('g[clip-path]')).not.toBeNull()
+    } finally {
+      await React.act(() => root.unmount())
+    }
+  })
+
   it('renders and synchronizes a semantic focus cursor across native hosts without recompiling scenes', async () => {
     const rows = [
       { id: 'a-1', series: 'A', month: 1, value: 6 },

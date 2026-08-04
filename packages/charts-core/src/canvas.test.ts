@@ -552,6 +552,11 @@ describe('Canvas renderer', () => {
               strokeWidth: 2,
               strokeDasharray: '3 2',
             },
+            band: {
+              bandwidth: 24,
+              inset: 2,
+              style: { fill: '#facc15', fillOpacity: 0.24 },
+            },
             label: {
               format: (value) => `x=${String(value)}`,
               offset: 4,
@@ -656,9 +661,8 @@ describe('Canvas renderer', () => {
         'clearRect:0,0,100,60',
         'rect:10,5,80,45',
         'clip',
-        'moveTo:40,5',
-        'lineTo:40,50',
-        'setLineDash:3,2',
+        'rect:30,5,20,45',
+        'fill:current',
         'strokeText:x=2,0,0',
         'fillText:x=2,0,0',
       ]),

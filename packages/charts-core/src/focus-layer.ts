@@ -342,16 +342,34 @@ function resolveFocusGuide(
   const children: SceneNode[] = []
 
   if (guide.x && typeof x === 'number' && Number.isFinite(x)) {
-    plotChildren.push({
-      kind: 'rule',
-      key: `${guide.key}:x-rule`,
-      className: 'ts-chart__crosshair-rule ts-chart__crosshair-rule--x',
-      x1: x,
-      x2: x,
-      y1: guide.chart.y,
-      y2: guide.chart.y + guide.chart.height,
-      style: guide.x.style,
-    })
+    if (guide.x.band) {
+      const center = bandCenter(guide, 'x', target.xValue, x)
+      const width = Math.max(0, guide.x.band.bandwidth - guide.x.band.inset * 2)
+      if (width > 0) {
+        plotChildren.push({
+          kind: 'rect',
+          key: `${guide.key}:x-band`,
+          className: 'ts-chart__crosshair-band ts-chart__crosshair-band--x',
+          x: center - guide.x.band.bandwidth / 2 + guide.x.band.inset,
+          y: guide.chart.y,
+          width,
+          height: guide.chart.height,
+          radius: guide.x.band.radius,
+          style: guide.x.band.style,
+        })
+      }
+    } else {
+      plotChildren.push({
+        kind: 'rule',
+        key: `${guide.key}:x-rule`,
+        className: 'ts-chart__crosshair-rule ts-chart__crosshair-rule--x',
+        x1: x,
+        x2: x,
+        y1: guide.chart.y,
+        y2: guide.chart.y + guide.chart.height,
+        style: guide.x.style,
+      })
+    }
     if (guide.x.label && target.xValue !== undefined) {
       children.push(
         ...guideLabels(
@@ -387,16 +405,37 @@ function resolveFocusGuide(
   }
 
   if (guide.y && typeof y === 'number' && Number.isFinite(y)) {
-    plotChildren.push({
-      kind: 'rule',
-      key: `${guide.key}:y-rule`,
-      className: 'ts-chart__crosshair-rule ts-chart__crosshair-rule--y',
-      x1: guide.chart.x,
-      x2: guide.chart.x + guide.chart.width,
-      y1: y,
-      y2: y,
-      style: guide.y.style,
-    })
+    if (guide.y.band) {
+      const center = bandCenter(guide, 'y', target.yValue, y)
+      const height = Math.max(
+        0,
+        guide.y.band.bandwidth - guide.y.band.inset * 2,
+      )
+      if (height > 0) {
+        plotChildren.push({
+          kind: 'rect',
+          key: `${guide.key}:y-band`,
+          className: 'ts-chart__crosshair-band ts-chart__crosshair-band--y',
+          x: guide.chart.x,
+          y: center - guide.y.band.bandwidth / 2 + guide.y.band.inset,
+          width: guide.chart.width,
+          height,
+          radius: guide.y.band.radius,
+          style: guide.y.band.style,
+        })
+      }
+    } else {
+      plotChildren.push({
+        kind: 'rule',
+        key: `${guide.key}:y-rule`,
+        className: 'ts-chart__crosshair-rule ts-chart__crosshair-rule--y',
+        x1: guide.chart.x,
+        x2: guide.chart.x + guide.chart.width,
+        y1: y,
+        y2: y,
+        style: guide.y.style,
+      })
+    }
     if (guide.y.label && target.yValue !== undefined) {
       children.push(
         ...guideLabels(
@@ -472,6 +511,19 @@ function resolveFocusGuide(
     ariaHidden: true,
     children,
   }
+}
+
+function bandCenter(
+  guide: SceneFocusGuide,
+  axis: 'x' | 'y',
+  value: ChartValue | undefined,
+  fallback: number,
+) {
+  const project = axis === 'x' ? guide.projectX : guide.projectY
+  const position = value === undefined ? undefined : project?.(value)
+  return typeof position === 'number' && Number.isFinite(position)
+    ? position
+    : fallback
 }
 
 function guideLabels(label: SceneLabel): readonly SceneLabel[] {

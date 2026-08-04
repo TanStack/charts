@@ -11,13 +11,22 @@
     "focused x band",
     "dotted y crosshair",
     "mixed cursor presentation",
-    "two-pixel bar outset"
+    "two-pixel bar outset",
+    "cursor spring motion",
+    "keyed data updates"
   ],
   "geometry": [{ "role": "bar", "count": 24 }],
   "interactionScenarios": [
     {
       "id": "band-and-rule-follow-stack",
       "steps": [
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "period:Jul:cause:disease"
+          }
+        },
         {
           "type": "pointerMove",
           "target": {
@@ -33,7 +42,15 @@
             { "path": "focus.groupSize", "equals": 3 },
             { "path": "cursor.bandVisible", "equals": true },
             { "path": "cursor.yRuleVisible", "equals": true },
-            { "path": "cursor.yRuleDotted", "equals": true },
+            { "path": "cursor.yRuleDotted", "equals": true }
+          ]
+        },
+        { "type": "wait", "durationMs": 1200 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "cursor.bandWider", "equals": true },
+            { "path": "cursor.bandCentered", "equals": true },
             {
               "path": "cursor.leftOutset",
               "approx": 2,
@@ -49,10 +66,43 @@
               "approx": 4,
               "tolerance": 0.05
             },
-            { "path": "cursor.ySettled", "equals": true }
+            { "path": "cursor.ySettled", "equals": true },
+            { "path": "cursor.motionState", "equals": "finished" }
           ]
         },
         { "type": "screenshot", "name": "stacked-band-and-rule-cursors" },
+        { "type": "update", "revision": 1 },
+        { "type": "wait", "durationMs": 1200 },
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "period:Nov:cause:wounds"
+          }
+        },
+        { "type": "wait", "durationMs": 1200 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focus.period", "equals": "Nov" },
+            { "path": "focus.cause", "equals": "wounds" },
+            { "path": "focus.deaths", "equals": 367 },
+            { "path": "focus.end", "equals": 992 },
+            { "path": "cursor.bandWider", "equals": true },
+            { "path": "cursor.bandCentered", "equals": true },
+            {
+              "path": "cursor.leftOutset",
+              "approx": 2,
+              "tolerance": 0.05
+            },
+            {
+              "path": "cursor.rightOutset",
+              "approx": 2,
+              "tolerance": 0.05
+            },
+            { "path": "cursor.ySettled", "equals": true }
+          ]
+        },
         { "type": "pointerLeave", "view": "main" },
         {
           "type": "assert",
@@ -71,6 +121,6 @@
   },
   "ai": {
     "create": "Create stacked Crimean War bars where the selected month paints an x band exactly two pixels beyond both bar edges and the selected segment paints a dotted horizontal y rule.",
-    "maintain": "Keep the band as a focused underlay, the y rule as a renderer-native crosshair, and verify their exact geometry after pointer movement across responsive sizes and themes."
+    "maintain": "Keep the x band and y rule as stable renderer-native guides, preserve their spring motion and keyed update continuity, and verify the band's exact rendered two-pixel outset across responsive sizes and themes."
   }
 }

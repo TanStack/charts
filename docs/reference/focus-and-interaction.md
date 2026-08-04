@@ -162,6 +162,56 @@ value, and accepts a `format` callback. Labels are clamped to the chart surface
 and rendered with a configurable halo. Rules and the optional marker are
 clipped to the plot.
 
+On a categorical axis, `band` replaces that axis rule with a plot-spanning
+cursor band centered on the focused value:
+
+```ts
+marks: [
+  crosshair({
+    x: {
+      band: {
+        inset: 2,
+        radius: 3,
+        fill: '#64748b',
+        fillOpacity: 0.16,
+      },
+    },
+    y: false,
+  }),
+  barY(rows, {
+    x: 'period',
+    y: 'value',
+    color: 'series',
+    inset: 4,
+  }),
+  crosshair({
+    x: false,
+    y: { strokeDasharray: '4 4' },
+  }),
+]
+```
+
+The first guide is an underlay because it precedes the bars; the second is an
+overlay. With a bar inset of 4 and band inset of 2, the cursor extends exactly
+2 pixels beyond each bar edge. Use separate crosshair marks whenever axes need
+different placement.
+
+| Band option     | Meaning                                                                  |
+| --------------- | ------------------------------------------------------------------------ |
+| `inset`         | Pixels removed from both scale-band edges; negative values create outset |
+| `radius`        | Corner radius                                                            |
+| `fill`          | Fill color; defaults to the chart foreground                             |
+| `fillOpacity`   | Fill opacity; defaults to `0.12`                                         |
+| `stroke`        | Optional outline color                                                   |
+| `strokeOpacity` | Optional outline opacity                                                 |
+| `strokeWidth`   | Optional outline width                                                   |
+| `opacity`       | Opacity applied to the complete band                                     |
+
+`band: true` uses those defaults. Band geometry uses the resolved scale
+bandwidth, spans the plot in the other direction, and remains clipped to the
+plot. A continuous scale or any other axis with zero bandwidth emits no band.
+The axis label can still be enabled because `band` replaces only the rule.
+
 Pass semantic axis types to `crosshair` when TypeScript should check label
 formatters independently from the surrounding definition:
 
@@ -179,8 +229,10 @@ crosshair marker or other authored geometry deliberately replaces it.
 
 The guide is `aria-hidden`. Pointer and keyboard users reach the same focus
 state through the chart root, callbacks, and optional tooltip. `motion` on the
-crosshair controls its keyed rules, labels, and marker when the definition is
-mounted with the optional motion renderer.
+crosshair controls its keyed rules, bands, labels, and marker when the
+definition is mounted with the optional motion renderer. Active guide
+placements remain visible through keyed scene updates so restored focus
+animates from the previous geometry.
 
 ## Controlled cursors
 

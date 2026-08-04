@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { scaleLinear } from 'd3-scale'
+import { scaleBand, scaleLinear } from 'd3-scale'
+import { barX, barY } from './bar'
 import { crosshair } from './crosshair'
 import { dot } from './dot'
 import { facet } from './facet'
 import { resolveFocusPresentation } from './focus-presentation'
+import { group } from './group'
 import { createChartScene, defineChart } from './scene'
 import { linearAxes } from './test-scales'
 import type {
@@ -12,6 +14,7 @@ import type {
   SceneGroup,
   SceneLabel,
   SceneNode,
+  SceneRect,
   SceneRule,
 } from './types'
 
@@ -63,6 +66,138 @@ describe('crosshair', () => {
       under: [],
       over: [],
     })
+  })
+
+  it('resolves a categorical cursor band with exact inset geometry', () => {
+    const rows = [
+      { id: 'a', category: 'A', value: 40 },
+      { id: 'b', category: 'B', value: 70 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          crosshair({
+            id: 'band-cursor',
+            x: {
+              band: {
+                inset: 2,
+                radius: 3,
+                fill: '#64748b',
+                fillOpacity: 0.24,
+              },
+            },
+            y: false,
+          }),
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            inset: 4,
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A', 'B']).padding(0.18) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 320, height: 180 },
+    )
+    const point = scene.points[0]!
+    const presentation = resolveFocusPresentation(scene, focus(point))
+    const band = findNode(presentation.under, 'band-cursor:x-band') as SceneRect
+    const bar = findNode(scene.nodes, point.key) as SceneRect
+
+    expect(band.kind).toBe('rect')
+    expect(band.x).toBeCloseTo(bar.x - 2)
+    expect(band.width).toBeCloseTo(bar.width + 4)
+    expect(band.x + band.width / 2).toBeCloseTo(bar.x + bar.width / 2)
+    expect(band.y).toBe(scene.chart.y)
+    expect(band.height).toBe(scene.chart.height)
+    expect(band.radius).toBe(3)
+    expect(band.style).toMatchObject({
+      fill: '#64748b',
+      fillOpacity: 0.24,
+    })
+    expect(presentation.over).toEqual([])
+
+    const continuous = createChartScene(
+      defineChart({
+        marks: [
+          crosshair({ x: { band: true }, y: false }),
+          dot([{ x: 1, y: 2 }], { x: 'x', y: 'y' }),
+        ],
+        ...linearAxes([0, 2], [0, 4]),
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 160, height: 100 },
+    )
+    expect(
+      resolveFocusPresentation(continuous, focus(continuous.points[0]!)),
+    ).toEqual({ under: [], over: [] })
+  })
+
+  it('centers categorical bands on parent scales for grouped bars', () => {
+    const rows = [
+      { id: 'query', category: 'A', series: 'Query', value: 40 },
+      { id: 'router', category: 'A', series: 'Router', value: 70 },
+    ]
+    const vertical = createChartScene(
+      defineChart({
+        marks: [
+          crosshair({ id: 'x-band', x: { band: true }, y: false }),
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            key: 'id',
+            layout: group(),
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A']).padding(0.18) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 320, height: 180 },
+    )
+    const horizontal = createChartScene(
+      defineChart({
+        marks: [
+          crosshair({ id: 'y-band', x: false, y: { band: true } }),
+          barX(rows, {
+            x: 'value',
+            y: 'category',
+            z: 'series',
+            key: 'id',
+            layout: group(),
+          }),
+        ],
+        x: { scale: scaleLinear().domain([0, 100]) },
+        y: { scale: scaleBand<string>().domain(['A']).padding(0.18) },
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 320, height: 180 },
+    )
+
+    const verticalPoint = vertical.points[1]!
+    const xBand = findNode(
+      resolveFocusPresentation(vertical, focus(verticalPoint)).under,
+      'x-band:x-band',
+    ) as SceneRect
+    const horizontalPoint = horizontal.points[1]!
+    const yBand = findNode(
+      resolveFocusPresentation(horizontal, focus(horizontalPoint)).under,
+      'y-band:y-band',
+    ) as SceneRect
+
+    expect(verticalPoint.x).not.toBeCloseTo(vertical.scales.x.map('A'))
+    expect(xBand.x + xBand.width / 2).toBeCloseTo(vertical.scales.x.map('A'))
+    expect(xBand.width).toBeCloseTo(vertical.scales.x.bandwidth)
+    expect(horizontalPoint.y).not.toBeCloseTo(horizontal.scales.y.map('A'))
+    expect(yBand.y + yBand.height / 2).toBeCloseTo(horizontal.scales.y.map('A'))
+    expect(yBand.height).toBeCloseTo(horizontal.scales.y.bandwidth)
   })
 
   it('uses mark order, axis overrides, labels, marker, and surface clamping', () => {

@@ -256,6 +256,8 @@ Each entry records:
 | F-218 | Paged history required overlaid chart hosts               | API             | resolved   |
 | F-219 | Long-press focus duplicated host pointer geometry         | API             | resolved   |
 | F-220 | Focus cursor width depended on private band inference     | API             | resolved   |
+| F-221 | Focus-filtered bands could not act as cursor geometry     | API             | resolved   |
+| F-222 | Scene updates cleared active motion guide placement       | API             | resolved   |
 
 ## Findings
 
@@ -4457,7 +4459,7 @@ Each entry records:
   painted segment first, then returns its full semantic axis group. Focused
   DOM, motion-presentation, custom-strategy, React Native, x/y preset, and
   exported-strategy regressions cover the composed contract.
-  The full unit matrix passes 838 tests across 138 files;
+  The full unit matrix passes 846 tests across 139 files;
   typecheck, documentation,
   formatting, packed-consumer, seven-adapter, sandbox production-build, and
   live browser checks also pass.
@@ -5640,3 +5642,56 @@ Each entry records:
   focused `ruleX` can now express a one-pixel cursor too. Explicit band
   dimensions remain useful when authored band geometry needs an exact scene-
   pixel width or height.
+
+### F-221 — Focus-filtered bands could not act as cursor geometry
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: stacked-bar band-and-rule cursor conformance case 119
+- Friction: `whenFocused(bandX(...), { match: "x" })` could reveal the band
+  authored for a focused category, but it could not move one stable band with
+  focus. The first case-119 implementation therefore needed a synthetic row
+  for every category and a complete set of hidden band rectangles. That was
+  correct for a data-bound visibility filter but the wrong ownership model for
+  cursor geometry, which should not require duplicated data or participate in
+  the ordinary mark tree.
+- Decision: add `band` to each `crosshair` axis. `band: true` or a
+  `CrosshairBandOptions` object replaces that axis rule with a renderer-native
+  rectangle centered on the focused semantic value. Its full size comes from
+  the resolved categorical scale bandwidth, so grouped marks use the parent
+  category rather than a subgroup's point coordinate. `inset` applies to both
+  edges and may be negative for an outset. The band spans and clips to the plot
+  in the other direction, accepts radius/fill/stroke/opacity paint, remains
+  outside hit testing, and emits no geometry when bandwidth is zero. Mark order
+  continues to own underlay or overlay placement, so a band and an
+  opposite-axis rule can use separate crosshair marks when their placements
+  differ.
+- Verification: the categorical cursor-band unit regression proves exact
+  inset geometry, a 2-pixel outset from bars whose inset differs by 2, paint
+  options, parent-scale centering for x- and y-grouped bars, and no band on a
+  continuous scale. Case 119's
+  `band-and-rule-follow-stack` scenario checks the full three-point x group,
+  exact 2-pixel left/right outset, dotted y rule, responsive revisions, and
+  pointer-leave cleanup.
+
+### F-222 — Scene updates cleared active motion guide placement
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: animating the case-119 band and rule through a data revision
+- Friction: the motion renderer detached persistent focus-guide layers during
+  a scene update, then cleared every recorded visible placement before the
+  host restored focus. The same keyed band and rule therefore became hidden or
+  snapped to the next geometry instead of continuing from their visible
+  positions.
+- Decision: retain each visible under/over placement while the next scene still
+  provides a guide at that placement. Restore the detached keyed layer with its
+  current visibility, then let restored focus animate its geometry. Remove the
+  placement and layer when the next scene no longer provides the guide so the
+  retention rule cannot leave stale cursor paint behind.
+- Verification: focused motion regressions keep the same categorical band and
+  dotted-rule elements while they animate between points, preserve an active
+  guide through a keyed scene update and animate from its prior coordinate,
+  and remove the retained layer when the next scene drops its crosshair.

@@ -7,7 +7,7 @@ import {
   stackedCursorColors,
   stackedCursorMaximum,
   stackedCursorPeriods,
-  stackedCursorRows,
+  stackedCursorRowsForRevision,
 } from './model'
 import type { StackedCursorRow } from './model'
 import type {
@@ -19,7 +19,7 @@ import type {
 
 const ariaLabel = 'Crimean War deaths with x band and y rule cursors'
 
-const render = (input: ConformanceInput) =>
+const render = (input: ConformanceInput, rows: readonly StackedCursorRow[]) =>
   Plot.plot({
     width: input.width,
     height: input.height,
@@ -52,11 +52,11 @@ const render = (input: ConformanceInput) =>
           insetLeft: stackedCursorBandInset,
           insetRight: stackedCursorBandInset,
           fill: '#64748b',
-          fillOpacity: 0.16,
+          fillOpacity: 0.26,
           className: 'stacked-cursor-band',
         }),
       ),
-      Plot.barY(stackedCursorRows, {
+      Plot.barY(rows, {
         x: 'period',
         y1: 'start',
         y2: 'end',
@@ -67,7 +67,7 @@ const render = (input: ConformanceInput) =>
         className: 'stacked-cursor-bars',
       }),
       Plot.ruleY(
-        stackedCursorRows,
+        rows,
         Plot.pointerX({
           px: 'period',
           y: 'end',
@@ -86,7 +86,8 @@ const render = (input: ConformanceInput) =>
 type PlotElement = ReturnType<typeof render> & { value?: unknown }
 
 export const mount: ConformanceMount = (container, input) => {
-  let element = render(input) as PlotElement
+  let rows = stackedCursorRowsForRevision(input.revision)
+  let element = render(input, rows) as PlotElement
   let focused: StackedCursorRow | null = null
 
   const handleInput = (event: Event) => {
@@ -100,7 +101,7 @@ export const mount: ConformanceMount = (container, input) => {
 
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
-      return resolveTarget(container, element, target)
+      return resolveTarget(container, element, rows, target)
     },
     readState() {
       const band = container.querySelector<SVGRectElement>(
@@ -109,27 +110,40 @@ export const mount: ConformanceMount = (container, input) => {
       const yRule = container.querySelector<SVGLineElement>(
         '.stacked-cursor-y-rule line',
       )
-      const bar = focused ? barForRow(container, focused) : null
+      const bar = focused ? barForRow(container, rows, focused) : null
       const bandX = numberAttribute(band, 'x')
       const bandWidth = numberAttribute(band, 'width')
       const barX = numberAttribute(bar, 'x')
-      const barY = numberAttribute(bar, 'y')
       const barWidth = numberAttribute(bar, 'width')
+      const barY = numberAttribute(bar, 'y')
       const ruleY = numberAttribute(yRule, 'y1')
 
       return {
         focus: {
           period: focused?.period ?? null,
           cause: focused?.cause ?? null,
+          deaths: focused?.deaths ?? null,
+          end: focused?.end ?? null,
           groupSize: focused ? stackedCursorCauses.length : 0,
         },
         cursor: {
           bandVisible: band !== null,
           yRuleVisible: yRule !== null,
           yRuleDotted: dashArray(yRule) === '4 4',
+          bandWider: Boolean(
+            bandWidth !== null && barWidth !== null && bandWidth > barWidth,
+          ),
+          bandCentered: Boolean(
+            bandX !== null &&
+            bandWidth !== null &&
+            barX !== null &&
+            barWidth !== null &&
+            Math.abs(bandX + bandWidth / 2 - barX - barWidth / 2) < 0.05,
+          ),
           leftOutset: difference(barX, bandX),
           rightOutset: difference(add(bandX, bandWidth), add(barX, barWidth)),
           widthDelta: difference(bandWidth, barWidth),
+          motionState: 'finished',
           ySettled:
             yRule !== null &&
             barY !== null &&
@@ -155,7 +169,8 @@ export const mount: ConformanceMount = (container, input) => {
   return {
     driver,
     update(nextInput) {
-      const nextElement = render(nextInput) as PlotElement
+      rows = stackedCursorRowsForRevision(nextInput.revision)
+      const nextElement = render(nextInput, rows) as PlotElement
       nextElement.addEventListener('input', handleInput)
       element.removeEventListener('input', handleInput)
       element.replaceWith(nextElement)
@@ -172,16 +187,17 @@ export const mount: ConformanceMount = (container, input) => {
 function resolveTarget(
   container: HTMLElement,
   element: PlotElement,
+  rows: readonly StackedCursorRow[],
   target: ConformanceTarget,
 ) {
   if (target.view && target.view !== 'main') return null
   const identity = target.anchor.match(/^period:(.+):cause:(.+)$/)
   if (!identity) return null
-  const row = stackedCursorRows.find(
+  const row = rows.find(
     (candidate) =>
       candidate.period === identity[1] && candidate.cause === identity[2],
   )
-  const bar = row ? barForRow(container, row) : null
+  const bar = row ? barForRow(container, rows, row) : null
   const svg = chartSvg(element)
   if (!bar || !svg) return null
   const bounds = bar.getBoundingClientRect()
@@ -192,8 +208,12 @@ function resolveTarget(
   }
 }
 
-function barForRow(container: HTMLElement, row: StackedCursorRow) {
-  const index = stackedCursorRows.indexOf(row)
+function barForRow(
+  container: HTMLElement,
+  rows: readonly StackedCursorRow[],
+  row: StackedCursorRow,
+) {
+  const index = rows.indexOf(row)
   return index < 0
     ? null
     : (container.querySelectorAll<SVGRectElement>('.stacked-cursor-bars rect')[
@@ -228,12 +248,20 @@ function numberAttribute(
   return Number.isFinite(number) ? number : null
 }
 
-function add(left: number | null, right: number | null) {
-  return left === null || right === null ? null : left + right
+function difference(
+  left: number | null | undefined,
+  right: number | null | undefined,
+) {
+  return left === null ||
+    left === undefined ||
+    right === null ||
+    right === undefined
+    ? null
+    : left - right
 }
 
-function difference(left: number | null, right: number | null) {
-  return left === null || right === null ? null : left - right
+function add(left: number | null, right: number | null) {
+  return left === null || right === null ? null : left + right
 }
 
 function dashArray(element: SVGLineElement | null) {

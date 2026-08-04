@@ -487,7 +487,15 @@ function createMotionSvgChartRenderer<
           const focusGuideLayers = retainsFocusGuideLayers
             ? detachSvgFocusGuideLayers(svgElement())
             : {}
-          visibleFocusGuides.clear()
+          for (const placement of visibleFocusGuides) {
+            if (
+              !nextScene.focusGuides?.some(
+                (guide) => guide.placement === placement,
+              )
+            ) {
+              visibleFocusGuides.delete(placement)
+            }
+          }
           const revision = ++dataMotionRevision
           stateScene = undefined
           stateTransition = undefined

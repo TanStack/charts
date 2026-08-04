@@ -1516,6 +1516,206 @@ describe('SVG motion', () => {
     frames.restore()
   })
 
+  it('moves a categorical cursor band and dotted rule as persistent guides', () => {
+    const transition = {
+      type: 'spring' as const,
+      stiffness: 210,
+      damping: 22,
+      mass: 0.8,
+    }
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          crosshair({
+            id: 'motion-band',
+            x: {
+              band: {
+                inset: 2,
+                fill: '#64748b',
+                fillOpacity: 0.24,
+              },
+            },
+            y: false,
+            motion: { transition },
+          }),
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            inset: 4,
+          }),
+          crosshair({
+            id: 'motion-rule',
+            x: false,
+            y: { strokeDasharray: '4 4' },
+            motion: { transition },
+          }),
+        ],
+        x: { scale: scaleBand().domain(['A', 'B']).padding(0.18) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 320, height: 200 },
+    )
+    const [first, second] = scene.points
+    if (!first || !second) throw new Error('Expected cursor-band points')
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Motion cursor band' })
+    const frames = installManagedFrames()
+    surface.paintFocus({
+      primary: first,
+      group: [first],
+      source: 'pointer',
+      pinned: false,
+    })
+    const under = container.querySelector<SVGGElement>(
+      '[data-ts-focus-guide-layer="under"]',
+    )
+    const over = container.querySelector<SVGGElement>(
+      '[data-ts-focus-guide-layer="over"]',
+    )
+    const band = under?.querySelector<SVGRectElement>(
+      '[data-ts-key="motion-band:x-band"]',
+    )
+    const rule = over?.querySelector<SVGLineElement>(
+      '[data-ts-key="motion-rule:y-rule"]',
+    )
+    const firstBandX = first.x - scene.scales.x.bandwidth / 2 + 2
+
+    expect(Number(band?.getAttribute('x'))).toBeCloseTo(firstBandX)
+    expect(Number(band?.getAttribute('width'))).toBeCloseTo(
+      scene.scales.x.bandwidth - 4,
+    )
+    expect(Number(rule?.getAttribute('y1'))).toBeCloseTo(first.y)
+
+    surface.paintFocus({
+      primary: second,
+      group: [second],
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(under?.querySelector('[data-ts-key="motion-band:x-band"]')).toBe(
+      band,
+    )
+    expect(over?.querySelector('[data-ts-key="motion-rule:y-rule"]')).toBe(rule)
+    frames.runAll(0)
+    frames.runAll(80)
+
+    const movingBandX = Number(band?.getAttribute('x'))
+    const movingRuleY = Number(rule?.getAttribute('y1'))
+    const secondBandX = second.x - scene.scales.x.bandwidth / 2 + 2
+    expect(movingBandX).toBeGreaterThan(firstBandX)
+    expect(movingBandX).toBeLessThan(secondBandX)
+    expect(movingRuleY).toBeGreaterThan(Math.min(first.y, second.y))
+    expect(movingRuleY).toBeLessThan(Math.max(first.y, second.y))
+    expect(under?.dataset.tsMotionState).toBe('running')
+    expect(over?.dataset.tsMotionState).toBe('running')
+
+    for (let time = 96; time <= 4_000 && frames.pending(); time += 16) {
+      frames.runAll(time)
+    }
+    expect(Number(band?.getAttribute('x'))).toBeCloseTo(secondBandX)
+    expect(Number(rule?.getAttribute('y1'))).toBeCloseTo(second.y)
+    expect(under?.dataset.tsMotionState).toBe('finished')
+    expect(over?.dataset.tsMotionState).toBe('finished')
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('keeps an active focus guide animated through a keyed data update', () => {
+    const transition = {
+      type: 'tween' as const,
+      duration: 100,
+      easing: 'linear' as const,
+    }
+    const makeScene = (value: number) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            crosshair({
+              id: 'update-band',
+              x: { band: { inset: 2 } },
+              y: false,
+              motion: { transition },
+            }),
+            barY([{ id: 'a', category: 'A', value }], {
+              x: 'category',
+              y: 'value',
+              key: 'id',
+              inset: 4,
+            }),
+            crosshair({
+              id: 'update-rule',
+              x: false,
+              y: true,
+              motion: { transition },
+            }),
+          ],
+          x: { scale: scaleBand().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+          guides: false,
+          focusRing: false,
+        }),
+        { width: 300, height: 200 },
+      )
+    const first = makeScene(20)
+    const next = makeScene(80)
+    const firstPoint = first.points[0]!
+    const nextPoint = next.points[0]!
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition,
+    }).mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Updating cursor guide' })
+    surface.paintFocus({
+      primary: firstPoint,
+      group: [firstPoint],
+      source: 'pointer',
+      pinned: false,
+    })
+    const rule = container.querySelector<SVGLineElement>(
+      '[data-ts-key="update-rule:y-rule"]',
+    )
+    const band = container.querySelector<SVGRectElement>(
+      '[data-ts-key="update-band:x-band"]',
+    )
+    expect(Number(rule?.getAttribute('y1'))).toBeCloseTo(firstPoint.y)
+
+    const frames = installManagedFrames()
+    surface.render(next, { ariaLabel: 'Updating cursor guide' })
+    expect(container.querySelector('[data-ts-key="update-rule:y-rule"]')).toBe(
+      rule,
+    )
+    expect(container.querySelector('[data-ts-key="update-band:x-band"]')).toBe(
+      band,
+    )
+    surface.paintFocus({
+      primary: nextPoint,
+      group: [nextPoint],
+      source: 'restored',
+      pinned: false,
+    })
+    expect(Number(rule?.getAttribute('y1'))).toBeCloseTo(firstPoint.y)
+
+    frames.runAll(0)
+    frames.runAll(50)
+    const movingY = Number(rule?.getAttribute('y1'))
+    expect(movingY).toBeGreaterThan(Math.min(firstPoint.y, nextPoint.y))
+    expect(movingY).toBeLessThan(Math.max(firstPoint.y, nextPoint.y))
+    expect(
+      rule?.closest<SVGGElement>('[data-ts-focus-guide-layer]')?.dataset
+        .tsMotionState,
+    ).toBe('running')
+
+    frames.runAll(100)
+    expect(Number(rule?.getAttribute('y1'))).toBeCloseTo(nextPoint.y)
+    surface.destroy()
+    frames.restore()
+  })
+
   it('removes a retained focus-guide layer when the next scene drops its crosshair', () => {
     const data = [
       { id: 'a', x: 1, y: 2 },

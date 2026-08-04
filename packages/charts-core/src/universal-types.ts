@@ -3,6 +3,14 @@ export type { AreaXCurve, AreaXOptions } from './area-x'
 export type { ArrowOptions } from './arrow'
 export type { BarXOptions, BarYOptions } from './bar'
 export type { BandXOptions, BandYOptions } from './band'
+export type {
+  CrosshairAxisOptions,
+  CrosshairBandOptions,
+  CrosshairLabelOptions,
+  CrosshairMarkerOptions,
+  CrosshairOptions,
+  CrosshairRuleOptions,
+} from './crosshair'
 export type { DotOptions } from './dot'
 export type { FacetAxes, FacetChartContext, FacetOptions } from './facet'
 export type { FrameOptions } from './frame'
@@ -234,6 +242,7 @@ export type {
   SceneArea,
   SceneFocusGuide,
   SceneFocusGuideAxis,
+  SceneFocusGuideBand,
   SceneFocusGuideLabel,
   SceneFocusGuideMarker,
   SceneInteraction,

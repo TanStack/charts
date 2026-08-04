@@ -272,7 +272,7 @@ describe('SVG surface coordinates', () => {
     surface.destroy()
   })
 
-  it('renders a datum-free controlled cursor and preserves underlay order', () => {
+  it('renders a datum-free controlled cursor before the static scene', () => {
     const scene = createChartScene(
       defineChart({
         marks: [
@@ -280,8 +280,7 @@ describe('SVG surface coordinates', () => {
           dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' }),
         ],
         x: { scale: scaleLinear().domain([0, 2]) },
-        y: { scale: scaleLinear().domain([0, 2]) },
-        guides: false,
+        y: { scale: scaleLinear().domain([0, 2]), grid: true },
         margin: 0,
       }),
       { width: 200, height: 100 },
@@ -304,8 +303,10 @@ describe('SVG surface coordinates', () => {
     const layer = container.querySelector<SVGGElement>(
       '[data-ts-focus-guide-layer="under"]',
     )
+    const grid = container.querySelector('g.ts-chart__grid')
     const marks = container.querySelector('g.ts-chart__marks')
-    expect(layer?.nextElementSibling).toBe(marks)
+    expect(layer?.nextElementSibling).toBe(grid)
+    expect(grid?.nextElementSibling).toBe(marks)
     expect(layer?.getAttribute('visibility')).toBe('visible')
     expect(
       layer?.querySelector('[data-ts-key$=":x-rule"]')?.getAttribute('x1'),

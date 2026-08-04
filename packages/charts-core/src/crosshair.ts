@@ -5,6 +5,7 @@ import type {
   ChartMarkMotionOptions,
   ChartValue,
   SceneFocusGuideAxis,
+  SceneFocusGuideBand,
   SceneFocusGuideLabel,
   SceneFocusGuideMarker,
   ResolvedScale,
@@ -31,10 +32,25 @@ export interface CrosshairLabelOptions<TValue extends ChartValue = ChartValue> {
   fontWeight?: number
 }
 
+/** Paint for a categorical cursor band that replaces one crosshair rule. */
+export interface CrosshairBandOptions {
+  /** Inset from both scale-band edges. Negative values create an outset. */
+  inset?: number
+  radius?: number
+  fill?: string
+  fillOpacity?: number
+  stroke?: string
+  strokeOpacity?: number
+  strokeWidth?: number
+  opacity?: number
+}
+
 export interface CrosshairAxisOptions<
   TValue extends ChartValue = ChartValue,
 > extends CrosshairRuleOptions {
   label?: boolean | CrosshairLabelOptions<TValue>
+  /** Paints the categorical scale band instead of an axis rule. */
+  band?: boolean | CrosshairBandOptions
 }
 
 export interface CrosshairMarkerOptions {
@@ -108,6 +124,35 @@ function resolveAxis<TValue extends ChartValue>(
   return {
     style: resolveRuleStyle(shared, options, fallbackStroke),
     label: resolveLabel(options?.label, fallbackStroke, scale),
+    band: resolveBand(options?.band, fallbackStroke, scale),
+  }
+}
+
+function resolveBand(
+  input: boolean | CrosshairBandOptions | undefined,
+  fallbackFill: string,
+  scale: ResolvedScale | undefined,
+): SceneFocusGuideBand | undefined {
+  if (!input) return undefined
+  const options = typeof input === 'object' ? input : undefined
+  return {
+    bandwidth: finiteNonnegative(scale?.bandwidth, 0),
+    inset: finite(options?.inset, 0),
+    radius:
+      options?.radius === undefined
+        ? undefined
+        : finiteNonnegative(options.radius, 0),
+    style: {
+      fill: options?.fill ?? fallbackFill,
+      fillOpacity: options?.fillOpacity ?? 0.12,
+      stroke: options?.stroke,
+      strokeOpacity: options?.strokeOpacity,
+      strokeWidth:
+        options?.strokeWidth === undefined
+          ? undefined
+          : finiteNonnegative(options.strokeWidth, 0),
+      opacity: options?.opacity,
+    },
   }
 }
 
@@ -191,4 +236,8 @@ function finiteNonnegative(value: number | undefined, fallback: number) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
     ? value
     : fallback
+}
+
+function finite(value: number | undefined, fallback: number) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }

@@ -6,6 +6,7 @@ export { bandX, bandY } from './band'
 export { crosshair } from './crosshair'
 export type {
   CrosshairAxisOptions,
+  CrosshairBandOptions,
   CrosshairLabelOptions,
   CrosshairMarkerOptions,
   CrosshairOptions,

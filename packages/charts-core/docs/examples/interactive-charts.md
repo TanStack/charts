@@ -86,20 +86,32 @@ one hidden rule per datum:
 
 ```ts
 marks: [
-  lineY(rows, { x: 'date', y: 'value' }),
   crosshair({
-    x: { label: true },
+    x: {
+      band: {
+        inset: 2,
+        radius: 3,
+        fill: '#64748b',
+        fillOpacity: 0.16,
+      },
+    },
     y: false,
-    strokeDasharray: '4 4',
   }),
+  barY(rows, { x: 'period', y: 'value', color: 'series', inset: 4 }),
+  crosshair({ x: false, y: { strokeDasharray: '4 4' } }),
 ]
 ```
 
 It follows pointer and keyboard focus, stays out of hit testing, and renders
-through SVG, Canvas, motion, and native focus presentation. Put it before the
-first ordinary mark to paint underneath, or after to paint above. Use
-`maxFocusDistance: Number.POSITIVE_INFINITY` only when the guide should remain
-snapped across the complete plot.
+through SVG, Canvas, motion, and native focus presentation. The first guide
+uses categorical bandwidth to paint below the bars; with bar inset 4 and band
+inset 2, it extends 2 pixels past each bar edge. The second guide paints the
+dotted y rule above the bars. Set `maxFocusDistance` to
+`Number.POSITIVE_INFINITY` only when the guides should remain snapped across
+the complete plot.
+
+[Open the stacked cursor-band example](https://tanstack.com/charts/catalog/119-stacked-bar-band-cursor/)
+to inspect the live chart and complete source.
 
 For synchronized charts or a free two-dimensional cursor, create one
 controller from `@tanstack/charts/cursor` and bind it through definition

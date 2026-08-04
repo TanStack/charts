@@ -58,6 +58,12 @@ const definition = defineChart({
 This gives pointer and keyboard users one snapped vertical guide. It does not
 create a point, change the focus strategy, or require an SVG overlay.
 
+On a categorical axis, `x: { band: true }` or `y: { band: true }` replaces
+that axis rule with a cursor band sized from the resolved scale bandwidth. A
+band options object controls inset, radius, fill, stroke, and opacity. Use
+separate crosshair marks when the band should paint below the data and the
+other axis rule should paint above it. Zero-bandwidth axes emit no band.
+
 ### Synchronize focus by value
 
 Share one controller between definitions when several browser or React Native

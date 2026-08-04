@@ -63,7 +63,9 @@ whenFocused(bandY(rows, { y: 'value' }), { match: 'y' })
 
 These are presentation filters, not alternate selection strategies. The first
 paints a vertical band wherever the focused x value exists; the second paints a
-horizontal band wherever the focused y value exists.
+horizontal band wherever the focused y value exists. `whenFocused` can only
+reveal geometry already emitted by its authored mark. It cannot move one
+stable band between values.
 
 Use the data-less `crosshair` mark when one renderer-native guide should follow
 the active focus instead of revealing authored geometry for a matching datum:
@@ -73,36 +75,57 @@ import { crosshair } from '@tanstack/charts/crosshair'
 
 const definition = defineChart({
   marks: [
-    lineY(rows, { x: 'date', y: 'value', color: 'series' }),
     crosshair({
-      x: { label: true },
+      x: {
+        band: {
+          inset: 2,
+          radius: 3,
+          fill: '#64748b',
+          fillOpacity: 0.16,
+        },
+      },
       y: false,
-      strokeDasharray: '4 4',
+    }),
+    barY(rows, {
+      x: 'period',
+      y: 'value',
+      color: 'series',
+      inset: 4,
+    }),
+    crosshair({
+      x: false,
+      y: { strokeDasharray: '4 4' },
     }),
   ],
-  x: { scale: scaleUtc },
+  x: { scale: scaleBand },
   y: { scale: scaleLinear },
   focus: 'group-x',
+  focusRing: false,
   maxFocusDistance: Number.POSITIVE_INFINITY,
   tooltip,
 })
 ```
 
-The vertical rule follows `focus.primary.x` for pointer and keyboard focus.
-The x label uses the resolved axis tick label when possible. The tooltip still
-receives the complete x group. Keep the finite distance default when empty
-space should clear focus; Infinity is an explicit continuous-snapping policy.
+The x band follows `focus.primary.x` for pointer and keyboard focus. It uses
+the categorical scale bandwidth, then applies `inset` to both edges. A bar
+inset of 4 and band inset of 2 makes the cursor 2 pixels wider on each side.
+The dotted y rule follows the primary stacked segment endpoint, while the
+tooltip still receives the complete x group. Keep the finite distance default
+when empty space should clear focus; Infinity is an explicit
+continuous-snapping policy.
 
-`crosshair` defaults to both axes with no labels or marker. Its rules are
-clipped to the plot and its labels are clamped to the surface. It does not
-change nearest-point selection, add hit targets, or suppress the primary focus
-ring. Use `focusRing: false` only when an enabled crosshair marker replaces the
-ring. See [Focus and Interaction](../reference/focus-and-interaction.md#controlled-cursors)
-when the cursor must be shared between charts or follow free coordinates.
+`crosshair` defaults to both axis rules with no labels or marker. Setting
+`band: true` or a band options object replaces that axis rule; axes with zero
+bandwidth emit no band. Guides are clipped to the plot and labels are clamped
+to the surface. They do not change nearest-point selection, add hit targets,
+or suppress the primary focus ring. Use `focusRing: false` only when authored
+cursor geometry deliberately replaces the ring. See
+[Focus and Interaction](../reference/focus-and-interaction.md#crosshair-guides)
+for the complete band paint contract and controlled cursor behavior.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/35-grouped-tooltip/?theme=system&height=480"
-  title="Grouped x-axis focus and tooltip across multiple lines"
+  src="https://tanstack.com/charts/catalog/embed/119-stacked-bar-band-cursor/?theme=system&height=480"
+  title="Stacked bars with a categorical x cursor band and dotted y rule"
   loading="lazy"
   style="width: 100%; height: 480px; border: 0;"
 ></iframe>

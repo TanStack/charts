@@ -16,6 +16,7 @@ export type { BandXOptions, BandYOptions } from './band'
 export { crosshair } from './crosshair'
 export type {
   CrosshairAxisOptions,
+  CrosshairBandOptions,
   CrosshairLabelOptions,
   CrosshairMarkerOptions,
   CrosshairOptions,
@@ -325,6 +326,7 @@ export type {
   SceneArea,
   SceneFocusGuide,
   SceneFocusGuideAxis,
+  SceneFocusGuideBand,
   SceneFocusGuideLabel,
   SceneFocusGuideMarker,
   SceneInteraction,
