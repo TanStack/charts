@@ -4822,9 +4822,12 @@ Each entry records:
   bytes to the optional motion renderer; the final identity correction is 525
   and 164 of those bytes. Renderer-boundary checks classify the shared SVG
   guide-layer helper as platform code. The reviewed exact baselines and
-  narrowly raised affected-product ceilings record those costs. The DOM-only
-  serializer remains in the SVG/browser boundary so React Native and static
-  SVG type and bundle gates never traverse DOM interfaces.
+  narrowly raised affected-product ceilings record those costs. The separate
+  cross-library comparison baseline changes exactly the 12 TanStack rows while
+  leaving all 48 external-library rows unchanged, and `pnpm benchmark:check`
+  passes against the recorded input revision. The DOM-only serializer remains
+  in the SVG/browser boundary so React Native and static SVG type and bundle
+  gates never traverse DOM interfaces.
 
 ### F-188 — Paired interaction assertions assumed equal timing
 
