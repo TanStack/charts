@@ -4911,7 +4911,7 @@ Each entry records:
 - Decision: refresh the comparison evidence whenever a change advances one of
   its tracked TanStack inputs, and run `pnpm benchmark:check` alongside the
   workspace validation before release.
-- Verification: the 60-case comparison baseline records revision `e4b5249`
+- Verification: the 60-case comparison baseline records revision `4134429`
   and package version 0.6.2, the canonical comparison page identifies the same
   revision, and `pnpm benchmark:check` passes locally and in pull-request CI.
 
