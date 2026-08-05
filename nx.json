@@ -13,7 +13,9 @@
       "{workspaceRoot}/pnpm-lock.yaml",
       "{workspaceRoot}/pnpm-workspace.yaml",
       "{workspaceRoot}/tsconfig.json",
-      { "env": "CI" }
+      {
+        "env": "CI"
+      }
     ],
     "source": [
       "sharedGlobals",
@@ -103,70 +105,109 @@
   "targetDefaults": {
     "format-check": {
       "cache": true,
-      "inputs": ["format"]
+      "inputs": [
+        "format"
+      ]
     },
     "docs-check": {
       "cache": true,
-      "inputs": ["docs"]
+      "inputs": [
+        "docs"
+      ]
     },
     "typecheck": {
       "cache": true,
-      "inputs": ["source"]
+      "inputs": [
+        "source"
+      ]
     },
     "test-*": {
       "cache": true,
-      "inputs": ["source"]
+      "inputs": [
+        "source"
+      ]
     },
     "test-solid": {
       "cache": true,
-      "inputs": ["testSolid"]
+      "inputs": [
+        "testSolid"
+      ]
     },
     "test-solid-ssr": {
       "cache": true,
-      "inputs": ["testSolid"]
+      "inputs": [
+        "testSolid"
+      ]
     },
     "test-svelte": {
       "cache": true,
-      "inputs": ["testSvelte"]
+      "inputs": [
+        "testSvelte"
+      ]
     },
     "test-svelte-ssr": {
       "cache": true,
-      "inputs": ["testSvelte"]
+      "inputs": [
+        "testSvelte"
+      ]
     },
     "test-octane": {
       "cache": true,
-      "inputs": ["testOctane"]
+      "inputs": [
+        "testOctane"
+      ]
     },
     "test-octane-client": {
       "cache": true,
-      "inputs": ["testOctane"]
+      "inputs": [
+        "testOctane"
+      ]
     },
     "adapters-check": {
       "cache": true,
-      "inputs": ["release"]
+      "inputs": [
+        "release"
+      ]
     },
     "package-check": {
       "cache": true,
-      "inputs": ["release"]
+      "inputs": [
+        "release"
+      ]
     },
     "bundle": {
       "cache": true,
-      "inputs": ["source"],
-      "outputs": ["{workspaceRoot}/.bundle-output"]
+      "inputs": [
+        "source"
+      ],
+      "outputs": [
+        "{workspaceRoot}/.bundle-output"
+      ]
     },
     "bundle-check": {
       "cache": true,
-      "inputs": ["source"],
-      "outputs": ["{workspaceRoot}/.bundle-output"]
+      "inputs": [
+        "source"
+      ],
+      "outputs": [
+        "{workspaceRoot}/.bundle-output"
+      ]
     },
     "benchmark-check": {
       "cache": true,
-      "inputs": ["source", "comparisonRevision"],
-      "outputs": ["{workspaceRoot}/.benchmark-output/results"]
+      "inputs": [
+        "source",
+        "comparisonRevision"
+      ],
+      "outputs": [
+        "{workspaceRoot}/.benchmark-output/results"
+      ]
     },
     "catalog-check": {
       "cache": true,
-      "inputs": ["source"]
+      "inputs": [
+        "source"
+      ]
     },
     "catalog-build": {
       "cache": false
@@ -176,8 +217,13 @@
     },
     "release-artifacts": {
       "cache": true,
-      "inputs": ["release"],
-      "outputs": ["{workspaceRoot}/.release-artifacts"]
+      "inputs": [
+        "release"
+      ],
+      "outputs": [
+        "{workspaceRoot}/.release-artifacts"
+      ]
     }
-  }
+  },
+  "nxCloudId": "6a728964bb91bb09533eb006"
 }
