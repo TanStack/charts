@@ -8,7 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "validate": "nx run charts-workspace:ci --parallel=5",
+    "validate": "nx run charts-workspace:ci && git diff --check",
     "benchmark": "node scripts/compare-chart-libraries.mjs",
     "benchmark:check": "nx run charts-workspace:benchmark-check",
     "benchmark:perf": "node scripts/compare-chart-libraries.mjs --perf-only",

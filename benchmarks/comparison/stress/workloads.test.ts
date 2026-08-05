@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { selectWeightedShard } from '../../../scripts/benchmark/filters.mjs'
 import stressConfig from './workloads.json'
 import type { StressUpdateKind, StressWorkloadId } from './types'
 
@@ -35,6 +36,63 @@ describe('stress workload configuration', () => {
     expect(stressConfig.schemaVersion).toBe(1)
     expect(ids).toEqual(workloadIds)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('balances every workload once from observed CI timings', () => {
+    const evidenceIds = stressConfig.ciSharding.observedGroups.flatMap(
+      ({ workloads }) => workloads,
+    )
+    expect(evidenceIds.length).toBe(workloadIds.length)
+    expect(new Set(evidenceIds).size).toBe(evidenceIds.length)
+    expect([...evidenceIds].sort()).toEqual([...workloadIds].sort())
+
+    const expectedShards = [
+      ['raw-line', 'binned-density', 'viewport-envelope'],
+      ['raw-scatter', 'pixel-envelope', 'top-categories'],
+      ['interactive-scatter', 'histogram-128'],
+      ['stats-multi-series-line', 'rolling-keyed-window', 'dashboard-lines'],
+    ]
+    const currentMaximumSeconds = Math.max(
+      ...stressConfig.ciSharding.observedGroups.map(
+        ({ elapsedSeconds }) => elapsedSeconds,
+      ),
+    )
+
+    for (const profileName of ['standard', 'full'] as const) {
+      for (const group of stressConfig.ciSharding.observedGroups) {
+        const groupWeight = group.workloads.reduce((total, workloadId) => {
+          const workload = stressConfig.workloads.find(
+            ({ id }) => id === workloadId,
+          )
+          expect(workload).toBeDefined()
+          return total + (workload?.ciWeight[profileName] ?? 0)
+        }, 0)
+        expect(groupWeight).toBe(group.elapsedSeconds)
+      }
+
+      const shards = [1, 2, 3, 4].map((index) =>
+        selectWeightedShard(
+          stressConfig.workloads,
+          { index, total: 4 },
+          (workload) => workload.ciWeight[profileName],
+        ),
+      )
+      const shardIds = shards.map((workloads) => workloads.map(({ id }) => id))
+      const selectedIds = shardIds.flat()
+      const shardWeights = shards.map((workloads) =>
+        workloads.reduce(
+          (total, workload) => total + workload.ciWeight[profileName],
+          0,
+        ),
+      )
+
+      expect(shardIds).toEqual(expectedShards)
+      expect(selectedIds.length).toBe(workloadIds.length)
+      expect(new Set(selectedIds).size).toBe(selectedIds.length)
+      expect([...selectedIds].sort()).toEqual([...workloadIds].sort())
+      expect(shardWeights).toEqual([315, 298, 275, 336])
+      expect(Math.max(...shardWeights)).toBeLessThan(currentMaximumSeconds)
+    }
   })
 
   it('defines usable sampling profiles', () => {

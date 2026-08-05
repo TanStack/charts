@@ -2,6 +2,7 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { gzipSync } from 'node:zlib'
 import { basename, dirname, resolve } from 'node:path'
 import { build } from 'esbuild'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const outputDirectory = resolve(root, '.bundle-output')
@@ -836,49 +837,72 @@ const entries = [
 
 await mkdir(outputDirectory, { recursive: true })
 
+const bundleConcurrency = readConcurrency(
+  process.env.BUNDLE_BUILD_CONCURRENCY,
+  4,
+)
+const entryRows = new Array(entries.length)
+await runWithConcurrency(
+  entries,
+  bundleConcurrency,
+  async (
+    {
+      label,
+      entry,
+      external,
+      alias,
+      policy,
+      rendererBoundary,
+      inputBoundary,
+      platform,
+      conditions,
+    },
+    index,
+  ) => {
+    const outfile = resolve(
+      outputDirectory,
+      `${basename(entry, '.ts').replaceAll(/[^a-z0-9-]/gi, '-')}.js`,
+    )
+    const result = await build({
+      entryPoints: [resolve(root, entry)],
+      outfile,
+      bundle: true,
+      minify: true,
+      treeShaking: true,
+      platform: platform ?? 'browser',
+      format: 'esm',
+      target: 'es2022',
+      legalComments: 'none',
+      logLevel: 'silent',
+      external,
+      alias,
+      conditions,
+      metafile: true,
+    })
+    const retainedInputs = collectRetainedInputs(result.metafile)
+    const contents = await readFile(outfile)
+    entryRows[index] = {
+      label,
+      bytes: contents.byteLength,
+      gzip: gzipSync(contents).byteLength,
+      policy,
+      retainedInputs,
+      rendererBoundary,
+      inputBoundary,
+    }
+  },
+)
+
 const rows = []
-for (const {
-  label,
-  entry,
-  external,
-  alias,
-  policy,
-  rendererBoundary,
-  inputBoundary,
-  platform,
-  conditions,
-} of entries) {
-  const outfile = resolve(
-    outputDirectory,
-    `${basename(entry, '.ts').replaceAll(/[^a-z0-9-]/gi, '-')}.js`,
+for (const row of entryRows) {
+  assertRendererBoundary(row.label, row.retainedInputs, row.rendererBoundary)
+  assertRetainedInputBoundary(
+    row.label,
+    row.retainedInputs,
+    row.inputBoundary,
+    rows,
   )
-  const result = await build({
-    entryPoints: [resolve(root, entry)],
-    outfile,
-    bundle: true,
-    minify: true,
-    treeShaking: true,
-    platform: platform ?? 'browser',
-    format: 'esm',
-    target: 'es2022',
-    legalComments: 'none',
-    logLevel: 'silent',
-    external,
-    alias,
-    conditions,
-    metafile: true,
-  })
-  const retainedInputs = collectRetainedInputs(result.metafile)
-  assertRendererBoundary(label, retainedInputs, rendererBoundary)
-  assertRetainedInputBoundary(label, retainedInputs, inputBoundary, rows)
-  const contents = await readFile(outfile)
-  rows.push({
-    label,
-    bytes: contents.byteLength,
-    gzip: gzipSync(contents).byteLength,
-    policy,
-    retainedInputs,
-  })
+  rows.push(row)
 }
 
 for (const [label, directory] of [
@@ -939,6 +963,15 @@ if (args.has('--update-baseline')) {
 
 function measured(label, entry, options = {}) {
   return createEntry(label, entry, { kind: 'measure' }, options)
+}
+
+function readConcurrency(value, fallback) {
+  if (value === undefined) return fallback
+  const parsed = Number(value)
+  if (!Number.isSafeInteger(parsed) || parsed < 1) {
+    throw new Error('BUNDLE_BUILD_CONCURRENCY must be a positive integer.')
+  }
+  return parsed
 }
 
 function granularTransformBoundary(
