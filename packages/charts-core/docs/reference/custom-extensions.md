@@ -90,8 +90,14 @@ interface MarkScene<
 > {
   nodes: readonly SceneNode[]
   points?: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  focusPoints?: readonly ChartPoint[]
 }
 ```
+
+Use `focusPoints` only for presentation geometry wrapped in `whenFocused`
+whose candidates must not become native pointer, keyboard, tooltip, or callback
+targets. Candidate keys must match their scene-node keys. The scene compiler
+uses them only inside the focused presentation layer.
 
 ### Mark requirements
 
@@ -100,6 +106,7 @@ interface MarkScene<
 - Materialize every value needed to establish scale domains before rendering.
 - Map through `context.scales`; do not recalculate responsive ranges.
 - Give each scene node and point a deterministic key.
+- Keep presentation-only `focusPoints` keyed to the nodes they reveal.
 - Emit finite geometry only.
 - Preserve the original datum and index in every interaction point.
 - Use one honest focus coordinate and semantic x/y pair per point.
@@ -196,9 +203,9 @@ for the contract.
 
 `ChartSpatialIndexFactory` replaces the default linear pointer lookup without
 changing scene compilation. Build a point-only index from its first argument,
-or use its second `scene` argument to index resolved primitive bounds. Return
-the nearest original point within the requested distance. The host recreates
-the index when the scene or factory changes.
+or use `context.scene` from its second argument to index resolved primitive
+bounds. Return the nearest original point within the requested distance. The
+host recreates the index when the scene or factory changes.
 
 See [Spatial indexes](./focus-and-interaction.md#spatial-indexes). The
 appropriate granular spatial primitive can be brought through the boundary
@@ -207,8 +214,10 @@ described in [Scales](../concepts/scales-and-d3.md).
 ## Custom focus and gestures
 
 `ChartFocusStrategy` owns pointer resolution, focus grouping, and keyboard task
-order. Rich gestures can instead disable chart-owned focus and maintain
-selection or viewport state in the application.
+order. Its `resolve(points, context)` and `group(points, context)` methods keep
+coordinates and the active point in named context bags. Rich gestures can
+instead disable chart-owned focus and maintain selection or viewport state in
+the application.
 
 See [Focus and interaction](./focus-and-interaction.md).
 

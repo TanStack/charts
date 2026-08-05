@@ -45,7 +45,7 @@ export function createNativeChartFocusModel<
   const spatialIndex =
     definition.focus === false
       ? undefined
-      : definition.spatialIndex?.(scene.points, scene)
+      : definition.spatialIndex?.(scene.points, { scene })
   const maxDistance = definition.maxFocusDistance ?? 48
   const navigation =
     strategy?.navigation(scene.points) ?? sceneOrder(scene.points)
@@ -53,7 +53,7 @@ export function createNativeChartFocusModel<
   return {
     resolve(x, y) {
       if (strategy) {
-        return strategy.resolve(scene.points, x, y, maxDistance)
+        return strategy.resolve(scene.points, { x, y, maxDistance })
       }
       const point = spatialIndex
         ? spatialIndex.findNearest(x, y, maxDistance)
@@ -61,7 +61,7 @@ export function createNativeChartFocusModel<
       return point ? [point] : []
     },
     group(point) {
-      return strategy?.group(scene.points, point) ?? [point]
+      return strategy?.group(scene.points, { point }) ?? [point]
     },
     navigation,
     restore(point) {

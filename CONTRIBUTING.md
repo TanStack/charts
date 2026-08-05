@@ -32,6 +32,11 @@ pnpm package:check
 pnpm bundle:check
 ```
 
+The unit suite inventories callback surfaces from every published package.
+Public callbacks use primary data plus one context/options bag and never exceed
+two arguments. New external-protocol or service-method exceptions require an
+explicit classification in the contract, not a broader allowlist.
+
 Pull-request CI runs the cached Nx target graph, the locked comparison bundle
 gate, and these uncached browser matrices in parallel:
 

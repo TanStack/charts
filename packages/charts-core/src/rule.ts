@@ -11,6 +11,7 @@ import type {
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
+  ChartPoint,
   ChartValue,
   OptionChannelOutput,
   SceneNode,
@@ -79,45 +80,67 @@ export function ruleY<TDatum>(
           values: colorValues.filter(isChartKey),
         },
       },
-      render: ({ scales, chart, theme, color: resolveColor }) => ({
-        nodes: [
-          {
-            kind: 'group',
-            key: id,
-            className: 'ts-chart__rule ts-chart__rule-y',
-            ariaHidden: true,
-            children: data.flatMap((datum, index): SceneNode[] => {
-              const value = values[index]
-              return isChartValue(value)
-                ? [
-                    {
-                      kind: 'rule',
-                      key: `${id}:${valueKey(value)}:${index}`,
-                      x1: chart.x,
-                      x2: chart.x + chart.width,
-                      y1: scales.y.map(value),
-                      y2: scales.y.map(value),
-                      style: {
-                        stroke: visualValue(
-                          options.stroke,
-                          datum,
-                          index,
-                          data,
-                          colorValues[index] == null
-                            ? theme.foreground
-                            : resolveColor(colorValues[index]),
-                        ),
-                        strokeOpacity: options.strokeOpacity ?? 0.5,
-                        strokeWidth: options.strokeWidth,
-                        strokeDasharray: options.strokeDasharray,
-                      },
-                    },
-                  ]
-                : []
-            }),
-          },
-        ],
-      }),
+      render: ({ scales, chart, theme, color: resolveColor }) => {
+        const nodes: SceneNode[] = []
+        const focusPoints: ChartPoint[] = []
+
+        data.forEach((datum, index) => {
+          const value = values[index]
+          if (!isChartValue(value)) return
+
+          const y = scales.y.map(value)
+          const color = visualValue(
+            options.stroke,
+            datum,
+            index,
+            data,
+            colorValues[index] == null
+              ? theme.foreground
+              : resolveColor(colorValues[index]),
+          )
+          const key = `${id}:${valueKey(value)}:${index}`
+          nodes.push({
+            kind: 'rule',
+            key,
+            x1: chart.x,
+            x2: chart.x + chart.width,
+            y1: y,
+            y2: y,
+            style: {
+              stroke: color,
+              strokeOpacity: options.strokeOpacity ?? 0.5,
+              strokeWidth: options.strokeWidth,
+              strokeDasharray: options.strokeDasharray,
+            },
+          })
+          focusPoints.push({
+            key,
+            markId: id,
+            group: null,
+            groupLabel: id,
+            datum,
+            datumIndex: index,
+            xValue: 0,
+            yValue: value,
+            x: chart.x + chart.width / 2,
+            y,
+            color,
+          })
+        })
+
+        return {
+          nodes: [
+            {
+              kind: 'group',
+              key: id,
+              className: 'ts-chart__rule ts-chart__rule-y',
+              ariaHidden: true,
+              children: nodes,
+            },
+          ],
+          focusPoints,
+        }
+      },
     }
   }, options.motion)
 }
@@ -157,45 +180,67 @@ export function ruleX<TDatum>(
           values: colorValues.filter(isChartKey),
         },
       },
-      render: ({ scales, chart, theme, color: resolveColor }) => ({
-        nodes: [
-          {
-            kind: 'group',
-            key: id,
-            className: 'ts-chart__rule ts-chart__rule-x',
-            ariaHidden: true,
-            children: data.flatMap((datum, index): SceneNode[] => {
-              const value = values[index]
-              return isChartValue(value)
-                ? [
-                    {
-                      kind: 'rule',
-                      key: `${id}:${valueKey(value)}:${index}`,
-                      x1: scales.x.map(value),
-                      x2: scales.x.map(value),
-                      y1: chart.y,
-                      y2: chart.y + chart.height,
-                      style: {
-                        stroke: visualValue(
-                          options.stroke,
-                          datum,
-                          index,
-                          data,
-                          colorValues[index] == null
-                            ? theme.foreground
-                            : resolveColor(colorValues[index]),
-                        ),
-                        strokeOpacity: options.strokeOpacity ?? 0.5,
-                        strokeWidth: options.strokeWidth,
-                        strokeDasharray: options.strokeDasharray,
-                      },
-                    },
-                  ]
-                : []
-            }),
-          },
-        ],
-      }),
+      render: ({ scales, chart, theme, color: resolveColor }) => {
+        const nodes: SceneNode[] = []
+        const focusPoints: ChartPoint[] = []
+
+        data.forEach((datum, index) => {
+          const value = values[index]
+          if (!isChartValue(value)) return
+
+          const x = scales.x.map(value)
+          const color = visualValue(
+            options.stroke,
+            datum,
+            index,
+            data,
+            colorValues[index] == null
+              ? theme.foreground
+              : resolveColor(colorValues[index]),
+          )
+          const key = `${id}:${valueKey(value)}:${index}`
+          nodes.push({
+            kind: 'rule',
+            key,
+            x1: x,
+            x2: x,
+            y1: chart.y,
+            y2: chart.y + chart.height,
+            style: {
+              stroke: color,
+              strokeOpacity: options.strokeOpacity ?? 0.5,
+              strokeWidth: options.strokeWidth,
+              strokeDasharray: options.strokeDasharray,
+            },
+          })
+          focusPoints.push({
+            key,
+            markId: id,
+            group: null,
+            groupLabel: id,
+            datum,
+            datumIndex: index,
+            xValue: value,
+            yValue: 0,
+            x,
+            y: chart.y + chart.height / 2,
+            color,
+          })
+        })
+
+        return {
+          nodes: [
+            {
+              kind: 'group',
+              key: id,
+              className: 'ts-chart__rule ts-chart__rule-x',
+              ariaHidden: true,
+              children: nodes,
+            },
+          ],
+          focusPoints,
+        }
+      },
     }
   }, options.motion)
 }

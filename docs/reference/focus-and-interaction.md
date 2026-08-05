@@ -136,14 +136,12 @@ interface ChartFocusStrategy<
 > {
   resolve(
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-    x: number,
-    y: number,
-    maxDistance: number,
+    context: ChartFocusResolveContext,
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[]
 
   group(
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: ChartFocusGroupContext<TDatum, TXValue, TYValue>,
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[]
 
   navigation(
@@ -152,9 +150,10 @@ interface ChartFocusStrategy<
 }
 ```
 
-`resolve` receives scene-pixel pointer coordinates and returns primary point
-first. `group` is called when an existing point is restored or reached through
-keyboard navigation. `navigation` returns the ordered keyboard task set.
+`ChartFocusResolveContext` contains scene-pixel `x`, `y`, and `maxDistance`.
+`resolve` returns the primary point first. `ChartFocusGroupContext` contains
+the point restored or reached through keyboard navigation. `navigation`
+returns the ordered keyboard task set.
 
 `ChartFocusMode` accepts a `ChartFocusPreset` string or a
 `ChartFocusStrategy`.
@@ -184,9 +183,13 @@ interface ChartTooltipOptions<
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
     context: ChartTooltipContentContext,
   ) => ChartTooltipContent
-  format?: (point: ChartPoint<TDatum, TXValue, TYValue>) => string
+  format?: (
+    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: ChartTooltipContentContext,
+  ) => string
   formatGroup?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    context: ChartTooltipContentContext,
   ) => string
   sticky?: boolean
 }
@@ -209,6 +212,11 @@ interface ChartTooltipOptions<
 Formatting precedence is `content`, `formatGroup`, `format`, then the default.
 The text formatters do not parse HTML, and newlines are preserved. `className`
 is appended to `ts-chart-tooltip`.
+
+`ChartTooltipContentContext.pinned` is `false` during transient inspection and
+`true` after activation. `content`, `format`, `formatGroup`, and item `text`
+receive the same context, so either structured or plaintext content can reveal
+additional detail when pinned.
 
 ### Ordered point items
 
@@ -335,14 +343,14 @@ type ChartSpatialIndexFactory<
   TYValue extends ChartValue = ChartValue,
 > = (
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  scene: ChartScene<TDatum, TXValue, TYValue>,
+  context: ChartSpatialIndexFactoryContext<TDatum, TXValue, TYValue>,
 ) => ChartSpatialIndex<TDatum, TXValue, TYValue>
 ```
 
 The host rebuilds the index when the scene or definition changes. The index
-owns its search algorithm and must apply `maxDistance`. Existing point-only
-factories can ignore the second argument; geometry-aware indexes can traverse
-the resolved scene and use primitive bounds as their acceleration layer.
+owns its search algorithm and must apply `maxDistance`. Point-only factories
+can ignore the second argument; geometry-aware indexes can traverse
+`context.scene` and use primitive bounds as their acceleration layer.
 Use the granular spatial primitive appropriate to the data; the boundary is
 described in [Scales](../concepts/scales-and-d3.md).
 

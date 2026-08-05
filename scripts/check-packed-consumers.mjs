@@ -817,15 +817,24 @@ async function verifyEsmRuntime() {
         assert.ok(Object.keys(module).length > 0, specifier)
       }
       if (specifier.startsWith('@tanstack/react-charts-catalog/cases/')) {
+        const caseId = specifier.slice(specifier.lastIndexOf('/') + 1)
         const html = renderToStaticMarkup(
           createElement(module.default, {
             initialWidth: 480,
             height: 270,
-            idPrefix: specifier.slice(specifier.lastIndexOf('/') + 1),
+            idPrefix: caseId,
           }),
         )
+        const expectedViewportWidth =
+          caseId === '84-pinned-nested-chart-tooltip' ? 456 : 480
         assert.match(html, /<svg/)
-        assert.match(html, /viewBox="0 0 480 /)
+        assert.ok(
+          html.includes('viewBox="0 0 ' + expectedViewportWidth + ' '),
+          specifier,
+        )
+        if (caseId === '84-pinned-nested-chart-tooltip') {
+          assert.match(html, /width:480px/)
+        }
         renderedCatalogCases += 1
       }
     }
@@ -1070,7 +1079,7 @@ async function verifyDeclarations() {
           }
           return points
         },
-        group(_points, point) {
+        group(_points, { point }) {
           point.datum.id.toUpperCase()
           point.xValue.toUpperCase()
           point.yValue.toFixed(0)
@@ -1092,11 +1101,20 @@ async function verifyDeclarations() {
       tooltip: {
         use: tooltip,
         portal,
-        format(point) {
+        format(point, context) {
           point.datum.id.toUpperCase()
           point.xValue.toUpperCase()
           point.yValue.toFixed(0)
+          context.pinned.valueOf()
+          context.formatX(point.xValue)
+          context.formatY(point.yValue)
           return point.datum.category
+        },
+        formatGroup(points, context) {
+          context.pinned.valueOf()
+          return points
+            .map((groupPoint) => context.formatY(groupPoint.yValue))
+            .join(', ')
         },
       },
     })
@@ -1350,7 +1368,7 @@ async function verifyDeclarations() {
     })
     const numericFocus: ChartFocusStrategy<Row, number, number> = {
       resolve: (points) => points,
-      group: (_points, point) => [point],
+      group: (_points, { point }) => [point],
       navigation: (points) => points,
     }
     const numericRenderer: ChartSvgRenderer<Row, number, number> = () => ''

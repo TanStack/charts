@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-04
+Last updated: 2026-08-05
 
 ## Triage rule
 
@@ -244,6 +244,13 @@ Each entry records:
 | F-206 | CI repeated unaffected work across every partition        | Tooling         | monitoring |
 | F-207 | Packed consumers serialized independent verification      | Tooling/Release | resolved   |
 | F-208 | Benchmark shards repeated setup and skewed work           | Tooling         | monitoring |
+| F-209 | Dismissal could click through a composed tooltip          | API             | resolved   |
+| F-210 | Recharts point replacement canceled activation events     | Application     | monitoring |
+| F-211 | Structured tooltip rows could not interleave details      | API             | monitoring |
+| F-212 | Paint parity normalized patterns but not gradients        | Tooling         | resolved   |
+| F-213 | Focused rules had no matchable presentation points        | API             | resolved   |
+| F-214 | Callback parameter shapes were inconsistent               | API/Tooling     | resolved   |
+| F-215 | Example keys collapsed distinct source rows               | Application     | resolved   |
 
 ## Findings
 
@@ -687,7 +694,11 @@ Each entry records:
   derived point text; `sort` controls grouped-series order. Point, pointer,
   group-center, and custom anchors combine with fixed or ordered fallback
   placements. `content` remains the escape hatch for application-specific
-  grouped structure without accepting arbitrary DOM. Every framework adapter
+  grouped structure without accepting arbitrary DOM. The shared content
+  context exposes pinned state to `content`, `format`, `formatGroup`, and item
+  `text` callbacks, so either structured or plaintext content can expand from
+  transient summaries to pinned details.
+  Every framework adapter
   adds a native body-composition boundary with the focused points, resolved
   content, native `defaultBody`, pinned state, and a dismissal action. Chart
   behavior remains definition-owned; adapter props, slots, snippets, templates,
@@ -703,7 +714,10 @@ Each entry records:
   Octane adapter tests prove native-body composition and cleanup. Framework
   lifecycle suites additionally cover nested charts, stable body mounting,
   typed and sorted points, transient inertness, pinned dialog semantics, and
-  dismissal. With framework and core packages external, no adapter adds more
+  dismissal. Focused DOM and native tests verify that content, item, point,
+  and group formatters change from `false` while transient to `true` while
+  pinned. With framework and core
+  packages external, no adapter adds more
   than 1.4 kB gzip. No new runtime library was introduced; React DOM is now
   declared as the React adapter's portal peer.
 
@@ -3694,16 +3708,18 @@ Each entry records:
 - Status: monitoring
 - Severity: low
 - Owner: Tooling
-- Observed in: validating Nx from a sandboxed Git worktree
+- Observed in: validating Nx from sandboxed Git worktrees, most recently the
+  expanding pinned energy-tooltip example
 - Friction: Nx resolved its relative cache and workspace-data directories
   through the worktree's common Git checkout. The sandbox could execute every
   target but could not write task metadata outside the active worktree.
 - Current decision: keep the portable repository defaults. In restricted
   worktrees, set `NX_CACHE_DIRECTORY` and `NX_WORKSPACE_DATA_DIRECTORY` to
   absolute paths inside that worktree.
-- Verification: the full 17-target validation graph passes with both
-  directories scoped to the active worktree. Ordinary clones and GitHub
-  Actions retain `.nx/cache` and `.nx/workspace-data`.
+- Verification: the full 17-target validation graph and the energy-tooltip
+  workspace typecheck pass with both directories scoped to the active
+  worktree. Ordinary clones and GitHub Actions retain `.nx/cache` and
+  `.nx/workspace-data`.
 
 ### F-151 — Artifact actions targeted deprecated Node 20
 
@@ -5173,3 +5189,165 @@ Each entry records:
   stress shard completes with zero failures.
 - Follow-up: replace predicted weights with measured per-case and per-workload
   cloud durations after the next complete scheduled runs.
+
+### F-209 — Dismissal could click through a composed tooltip
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: the expanding pinned energy-tooltip catalog example
+- Friction: a framework close button called `dismiss()` during its target-phase
+  click handler. The adapter then unmounted that button before the event
+  reached the chart container, so a live descendant check no longer recognized
+  the event as tooltip-owned. When the portaled tooltip overlapped the chart,
+  the same click immediately pinned the point underneath it.
+- Decision: identify tooltip-owned clicks from the event's immutable composed
+  path, filtering that path to DOM nodes, instead of relying only on parentage
+  after target handlers have run.
+- Verification: a renderer regression unmounts its close button synchronously
+  during dismissal and proves the chart stays unfocused. The paired energy
+  case closes correctly at 320 and 640 pixels across both data revisions.
+
+### F-210 — Recharts point replacement canceled activation events
+
+- Status: monitoring
+- Severity: low
+- Owner: Application
+- Observed in: the Recharts reference for the expanding energy tooltip
+- Friction: showing the transient tooltip rerendered Recharts' custom point
+  elements between pointer movement and mouse activation. Browser click
+  synthesis could then lose the original point target even though the pointer
+  remained at the same semantic datum. The same replacement could disconnect a
+  focused point before a subsequent keyboard event.
+- Current decision: make the behavior scenario explicit about its hover-then-
+  click sequence. The reference resolves activation during document capture,
+  scopes it to the chart bounds, ignores the tooltip subtree, and falls back to
+  the nearest current point geometry within the point hit radius. Keyboard
+  focus stays on a stable listbox root while `aria-activedescendant` identifies
+  the current month option.
+- Verification: the paired behavior matrix passes hover, pointer pin, keyboard
+  pin, Escape, and close scenarios at 320 and 640 pixels across both revisions
+  without unsafe type assertions or renderer internals.
+
+### F-211 — Structured tooltip rows could not interleave custom detail
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: matching the expanding pinned energy tooltip to its source clip
+- Friction: `ChartTooltipContent` can describe only a title and flat rows. The
+  source layout expands a consumption breakdown directly below the Consumption
+  row, then places a generation breakdown below the Generation row, followed by
+  a full-width coverage sentence. The framework renderer therefore had to own
+  and repeat the two summary rows instead of composing `defaultBody` with the
+  inserted detail.
+- Current decision: keep the structured callback stable at two summary rows and
+  let the custom body renderer own non-tabular ordering. Do not expand the
+  generic content schema from one application layout.
+- Verification: the paired case reports two summary rows in both transient and
+  pinned states, then adds four nested consumption segments, six detail rows,
+  and the persistent coverage footer only through the custom renderer.
+
+### F-212 — Paint parity normalized patterns but not gradients
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: the solid-and-hatched generation bars in the expanding energy
+  tooltip comparison
+- Friction: the visual gate resolved an SVG pattern to its backing rectangle
+  color but left an equivalent linear-gradient paint as a raw resource URL.
+  The Recharts pattern and Charts gradient therefore failed paint parity even
+  though both used the same exported-energy color.
+- Decision: resolve a referenced gradient to its first stop color when no
+  pattern rectangle or path exists, preserving the existing solid-color
+  comparison contract.
+- Verification: the paired energy case compares the pattern and gradient fills
+  as the same exported-energy paint while retaining their rendered hatch
+  treatments.
+
+### F-213 — Focused rules had no matchable presentation points
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: the active-month guide in the expanding energy tooltip example
+- Friction: `whenFocused(ruleX(...), { match: "x" })` typechecked and matched
+  the documented focused-rule recipe, but every rule stayed hidden because
+  rules intentionally emit no interaction points. Replacing the rule with a
+  link would have introduced the wrong semantic mark solely to obtain a focus
+  candidate.
+- Decision: let a mark scene expose presentation-only `focusPoints`. Focus
+  layers consume those candidates without adding them to the chart's global
+  interaction points. `ruleX` and `ruleY` now provide candidates keyed to their
+  rendered nodes while the nodes remain interaction-free.
+- Verification: focused-rule regressions reveal exactly one full-span rule for
+  matching x and y values, retain only the underlying data marks in
+  `scene.points`, and keep rule nodes free of interaction metadata. The paired
+  energy case passes its visual, behavior, geometry, and type gates with the
+  native focused `ruleX` guide. After integration with `0.6.5` and the callback
+  context migration, the complete PR adds 109 minified and 41 gzip bytes to the
+  locked line-scene entry and 476 minified and 101 gzip bytes to the
+  representative-marks entry. The Stats parity ceiling moves from 42.3 to 42.5
+  KiB.
+
+### F-214 — Callback parameter shapes were inconsistent
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Tooling
+- Observed in: review of the expanding pinned-tooltip API
+- Friction: `content(points, context)` exposed pinned and formatting state,
+  while sibling `format(point)` and `formatGroup(points)` did not. A full
+  public-surface audit also found authored callbacks with three or four
+  positional parameters and two-argument callbacks whose second parameter was
+  another unlabelled value. Consumers had to remember a different parameter
+  convention for channels, facets, focus strategies, legends, spatial indexes,
+  and tooltips.
+- Decision: public callbacks accept at most two arguments. Primary data or
+  purpose comes first and additional state comes second in a named context or
+  options object; callbacks without a distinct primary payload receive one
+  object. Migrate channels to `(datum, { index, data })`, facet builders to
+  `(data, { key })`, focus resolution and grouping to `(points, context)`,
+  legend measurement to `(itemCount, context)`, spatial factories to
+  `(points, { scene })`, and all tooltip presentation callbacks to the shared
+  `ChartTooltipContentContext`. Keep standard comparators, paired geometry,
+  exact upstream protocols such as D3 threshold generators, and
+  consumer-called service methods as classified exceptions.
+- Verification: the public callback inventory follows exported types,
+  functions, and values into nested package-owned types. It classifies all 527
+  reachable callable surfaces, including Alpine's external directive protocol
+  and Vue's nested tooltip slot, and rejects unclassified surfaces, callback
+  arity above two, or a non-object second callback argument. Failed parameter
+  type resolution preserves the parameter as a fail-closed non-object bag
+  instead of aborting or undercounting the inventory. Focused core, React
+  Native, React, Octane, channel, facet, focus, legend, tooltip, and contract
+  tests cover the migrated shapes, including configured tooltip item labels in
+  React Native callback context; the migration guide records every breaking
+  before-and-after signature. Full type, documentation, package, format,
+  bundle, and comparison gates pass. Against `0.6.5`, the reviewed
+  universal bundle baseline increases by at most 476 minified and 137 gzip
+  bytes. The Stats parity and D3 quadtree ceilings each move by 0.2 KiB; the
+  React compact-line and Delaunay integration ceilings each move by 0.1 KiB.
+  The focused expanding tooltip conformance case retains 99.6% geometry
+  similarity and passes visual, behavior, and type gates at both sizes and
+  themes.
+
+### F-215 — Example keys collapsed distinct source rows
+
+- Status: resolved
+- Severity: medium
+- Owner: Application
+- Observed in: the full conformance matrix for the linear-regression,
+  framed-scatter, and many-point-scatter examples
+- Friction: all three examples keyed car rows with only `name` and `year`. The
+  cars dataset contains same-name, same-year rows with different measurements,
+  so keyed scene reconciliation retained fewer dots than requested: 318 of 320
+  in the first two examples and as few as 297 of 300 in the third.
+- Decision: include each example's plotted channel measurements in its key so
+  distinct source observations remain distinct while keys stay stable across
+  revisions.
+- Verification: the first two examples now retain 320 unique keys and the
+  many-point example retains 300 unique keys for their initial and revised
+  windows. Focused standard conformance passes each example's full 320/640/960
+  light/dark visual matrix.

@@ -231,7 +231,7 @@ function createChartSceneWithScaleResolver<
         ariaHidden: true,
         focus: {
           match: mark.focus.match ?? 'primary',
-          points: renderedPoints,
+          points: rendered.focusPoints ?? renderedPoints,
           placement:
             firstBaseMarkIndex < 0 || markIndex < firstBaseMarkIndex
               ? 'under'
@@ -511,7 +511,12 @@ function resolveSceneLayout(
     if (legend && locks.top === undefined) {
       automatic.top = Math.max(
         automatic.top,
-        legend.height(colors.domain.length, resolved.chart.width, colors),
+        legend.height(colors.domain.length, {
+          colors,
+          chart: resolved.chart,
+          theme,
+          width,
+        }),
       )
     }
     if (!definition.clip) {

@@ -106,7 +106,7 @@ export function mountChartRenderer<
     spatialIndex =
       options.definition.focus === false
         ? undefined
-        : options.definition.spatialIndex?.(scene.points, scene)
+        : options.definition.spatialIndex?.(scene.points, { scene })
     const nextFocusedPoint =
       options.definition.focus === false
         ? null
@@ -272,7 +272,18 @@ export function mountChartRenderer<
     }
   }
   const handleClick = (event: MouseEvent) => {
-    if (tooltipInstance?.contains(event.target)) {
+    const activeTooltip = tooltipInstance
+    const NodeConstructor = container.ownerDocument.defaultView?.Node
+    const originatedInTooltip = NodeConstructor
+      ? event
+          .composedPath()
+          .some(
+            (target) =>
+              target instanceof NodeConstructor &&
+              activeTooltip?.contains(target),
+          )
+      : activeTooltip?.contains(event.target)
+    if (activeTooltip && originatedInTooltip) {
       return
     }
     const points = pointsAtPointer(event.clientX, event.clientY)
@@ -445,7 +456,7 @@ export function mountChartRenderer<
     const points = interactionPoints()
     const focus = resolveFocusStrategy(options.definition.focus)
     if (focus) {
-      return focus.resolve(points, x, y, maxDistance)
+      return focus.resolve(points, { x, y, maxDistance })
     }
     const point =
       points !== interactionScene.points
@@ -471,7 +482,7 @@ export function mountChartRenderer<
     return (
       resolveFocusStrategy(options.definition.focus)?.group(
         interactionPoints(),
-        point,
+        { point },
       ) ?? [point]
     )
   }

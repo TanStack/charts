@@ -539,7 +539,7 @@ describe('facets', () => {
         by: 'group',
         columns: 2,
         axes,
-        chart: (group, key) => ({
+        chart: (group, { key }) => ({
           marks: [lineY(group, { y: 'value' })],
           x: { scale: scaleLinear().domain([0, 1]) },
           y: {

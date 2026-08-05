@@ -5,6 +5,7 @@ import { barX, barY } from './bar'
 import { dot } from './dot'
 import { whenFocused } from './focus-mark'
 import { lineY } from './line'
+import { ruleX, ruleY } from './rule'
 import { createChartScene, defineChart } from './scene'
 import { svgChartRenderer } from './svg-surface'
 import type { ChartScene, ChartValue } from './types'
@@ -112,6 +113,143 @@ describe('focus-filtered marks', () => {
     surface.paintFocus(null)
     expect(layer?.getAttribute('visibility')).toBe('hidden')
     expect(defaultLayer?.getAttribute('visibility')).toBe('hidden')
+    surface.destroy()
+  })
+
+  it('reveals the focused ruleX without adding rules to interaction points', () => {
+    const guides = [{ category: 'A' }, { category: 'B' }]
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          whenFocused(
+            ruleX(guides, {
+              id: 'focused-x',
+              x: 'category',
+              stroke: '#334155',
+            }),
+            { match: 'x' },
+          ),
+          dot(rows, {
+            id: 'points',
+            x: 'category',
+            y: 'value',
+            key: 'id',
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 20]) },
+      }),
+      { width: 480, height: 260 },
+    )
+    const marks = resolved.nodes.find((node) => node.key === 'marks')
+    if (marks?.kind !== 'group') throw new Error('Expected mark group')
+    const layer = marks.children[0]
+    if (layer?.kind !== 'group' || !layer.focus) {
+      throw new Error('Expected rule focus layer')
+    }
+    const ruleGroup = layer.children[0]
+    if (ruleGroup?.kind !== 'group') throw new Error('Expected rule group')
+
+    expect(layer.focus.points).toHaveLength(guides.length)
+    expect(resolved.points).toHaveLength(rows.length)
+    expect(resolved.points.every((point) => point.markId === 'points')).toBe(
+      true,
+    )
+    expect(
+      ruleGroup.children.every(
+        (node) => node.kind === 'rule' && node.interaction === undefined,
+      ),
+    ).toBe(true)
+
+    const primary = resolved.points.find((point) => point.xValue === 'B')
+    if (!primary) throw new Error('Expected a B point')
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(resolved, { ariaLabel: 'Focused x rule' })
+    surface.paintFocus({
+      primary,
+      group: resolved.points.filter((point) => point.xValue === primary.xValue),
+      source: 'pointer',
+      pinned: false,
+    })
+
+    const focusLayer = container.querySelector<SVGGElement>(
+      '.ts-chart__marks [data-ts-focus-layer]',
+    )
+    const visibleRules = [
+      ...(focusLayer?.querySelectorAll<SVGLineElement>('line') ?? []),
+    ].filter((rule) => rule.getAttribute('visibility') === 'visible')
+    expect(focusLayer?.getAttribute('visibility')).toBe('visible')
+    expect(visibleRules).toHaveLength(1)
+    expect(Number(visibleRules[0]?.getAttribute('x1'))).toBeCloseTo(primary.x)
+    expect(visibleRules[0]?.getAttribute('x2')).toBe(
+      visibleRules[0]?.getAttribute('x1'),
+    )
+    expect(Number(visibleRules[0]?.getAttribute('y1'))).toBeCloseTo(
+      resolved.chart.y,
+    )
+    expect(Number(visibleRules[0]?.getAttribute('y2'))).toBeCloseTo(
+      resolved.chart.y + resolved.chart.height,
+    )
+
+    surface.paintFocus(null)
+    expect(focusLayer?.getAttribute('visibility')).toBe('hidden')
+    surface.destroy()
+  })
+
+  it('reveals the focused ruleY across the chart width', () => {
+    const values = [
+      { id: 'low', x: 1, y: 4 },
+      { id: 'high', x: 2, y: 8 },
+    ]
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          whenFocused(
+            ruleY(values, {
+              id: 'focused-y',
+              y: 'y',
+              stroke: '#334155',
+            }),
+            { match: 'y' },
+          ),
+          dot(values, { id: 'points', x: 'x', y: 'y', key: 'id' }),
+        ],
+        x: { scale: scaleLinear().domain([0, 3]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      }),
+      { width: 360, height: 220 },
+    )
+    const primary = resolved.points.find((point) => point.datum.id === 'high')
+    if (!primary) throw new Error('Expected a high point')
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(resolved, { ariaLabel: 'Focused y rule' })
+    surface.paintFocus({
+      primary,
+      group: [primary],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    const focusLayer = container.querySelector<SVGGElement>(
+      '.ts-chart__marks [data-ts-focus-layer]',
+    )
+    const visibleRules = [
+      ...(focusLayer?.querySelectorAll<SVGLineElement>('line') ?? []),
+    ].filter((rule) => rule.getAttribute('visibility') === 'visible')
+    expect(focusLayer?.getAttribute('visibility')).toBe('visible')
+    expect(visibleRules).toHaveLength(1)
+    expect(Number(visibleRules[0]?.getAttribute('y1'))).toBeCloseTo(primary.y)
+    expect(visibleRules[0]?.getAttribute('y2')).toBe(
+      visibleRules[0]?.getAttribute('y1'),
+    )
+    expect(Number(visibleRules[0]?.getAttribute('x1'))).toBeCloseTo(
+      resolved.chart.x,
+    )
+    expect(Number(visibleRules[0]?.getAttribute('x2'))).toBeCloseTo(
+      resolved.chart.x + resolved.chart.width,
+    )
     surface.destroy()
   })
 

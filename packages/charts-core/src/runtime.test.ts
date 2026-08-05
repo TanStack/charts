@@ -15,6 +15,7 @@ import type {
   ChartDefinitionOptions,
   ChartPoint,
   ChartTextMeasurer,
+  ChartTooltipContentContext,
   ChartValue,
 } from './types'
 
@@ -763,7 +764,8 @@ describe('dynamic chart runtime', () => {
     stackHost.destroy()
   })
 
-  it('accepts application fields through structured tooltip content', () => {
+  it('expands structured tooltip content when pinned', () => {
+    const contentPinned = vi.fn()
     const container = document.createElement('div')
     const definition = defineChart({
       marks: [lineY([{ x: 0, y: 4, note: 'Released' }], { x: 'x', y: 'y' })],
@@ -777,22 +779,29 @@ describe('dynamic chart runtime', () => {
       definition: withChartOptions(definition, {
         tooltip: {
           use: tooltipExtension,
-          content: ([point], context) => ({
-            title: point ? context.formatX(point.xValue) : undefined,
-            rows: point
-              ? [
-                  {
-                    label: 'Status',
-                    value: point.datum.note,
-                    color: point.color,
-                  },
-                  {
-                    label: 'Downloads',
-                    value: `${point.yValue}k`,
-                  },
-                ]
-              : [],
-          }),
+          content: ([point], context) => {
+            contentPinned(context.pinned)
+            return {
+              title: point ? context.formatX(point.xValue) : undefined,
+              rows: point
+                ? [
+                    {
+                      label: 'Status',
+                      value: point.datum.note,
+                      color: point.color,
+                    },
+                    ...(context.pinned
+                      ? [
+                          {
+                            label: 'Downloads',
+                            value: `${point.yValue}k`,
+                          },
+                        ]
+                      : []),
+                  ]
+                : [],
+            }
+          },
         },
       }),
       width: 480,
@@ -804,13 +813,86 @@ describe('dynamic chart runtime', () => {
     svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
 
     const tooltip = container.querySelector('.ts-chart-tooltip')
-    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(2)
+    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(1)
     expect(tooltip?.textContent).toContain('Released')
+    expect(tooltip?.textContent).not.toContain('4k')
+    expect(contentPinned).toHaveBeenLastCalledWith(false)
+
+    svg.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+    )
+    expect(contentPinned).toHaveBeenLastCalledWith(true)
+    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(2)
     expect(tooltip?.textContent).toContain('4k')
     host.destroy()
   })
 
+  it.each(['format', 'formatGroup'] as const)(
+    'supplies shared tooltip context to %s while pinning',
+    (formatter) => {
+      const contexts: ChartTooltipContentContext[] = []
+      const data = [{ id: 'released', x: 1, y: 4 }]
+      const definition = defineChart({
+        marks: [lineY(data, { x: 'x', y: 'y', key: 'id' })],
+        x: { ...linearAxes([0, 2], [0, 4]).x, axis: { label: 'Week' } },
+        y: { ...linearAxes([0, 2], [0, 4]).y, axis: { label: 'Downloads' } },
+      })
+      const resolveText = (context: ChartTooltipContentContext) => {
+        contexts.push(context)
+        return context.pinned ? 'Pinned' : 'Transient'
+      }
+      const format = (
+        _point: ChartPoint<(typeof data)[number], number, number>,
+        context: ChartTooltipContentContext,
+      ) => resolveText(context)
+      const formatGroup = (
+        _points: readonly ChartPoint<(typeof data)[number], number, number>[],
+        context: ChartTooltipContentContext,
+      ) => resolveText(context)
+      const container = document.createElement('div')
+      const host = mountChart(container, {
+        definition: withChartOptions(definition, {
+          tooltip:
+            formatter === 'format'
+              ? { use: tooltipExtension, format }
+              : { use: tooltipExtension, formatGroup },
+        }),
+        width: 480,
+        height: 260,
+        ariaLabel: `${formatter} context chart`,
+      })
+      const svg = container.querySelector('svg')
+      if (!svg) throw new Error('Expected SVG')
+
+      svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+      expect(contexts.at(-1)).toMatchObject({
+        pinned: false,
+        xLabel: 'Week',
+        yLabel: 'Downloads',
+      })
+      expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe(
+        'Transient',
+      )
+
+      svg.dispatchEvent(
+        new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+      )
+      expect(contexts.at(-1)).toMatchObject({
+        pinned: true,
+        xLabel: 'Week',
+        yLabel: 'Downloads',
+      })
+      expect(contexts.at(-1)?.formatX(1)).toBe('1')
+      expect(contexts.at(-1)?.formatY(4)).toBe('4')
+      expect(container.querySelector('.ts-chart-tooltip')?.textContent).toBe(
+        'Pinned',
+      )
+      host.destroy()
+    },
+  )
+
   it('orders automatic point items and formats datum fields', () => {
+    const itemPinned = vi.fn()
     const data = [
       {
         id: 'a',
@@ -850,7 +932,10 @@ describe('dynamic chart runtime', () => {
             {
               id: 'change',
               label: 'Change',
-              text: (point) => `${point.datum.change * 100}%`,
+              text: (point, context) => {
+                itemPinned(context.pinned)
+                return context.pinned ? `${point.datum.change * 100}%` : null
+              },
             },
             {
               id: 'empty',
@@ -878,11 +963,19 @@ describe('dynamic chart runtime', () => {
     expect(rows.map((row) => row.textContent)).toEqual([
       'Revenue4.0',
       'Volume1.2k',
-      'Change25%',
       'PeriodA',
       'GroupAtlas',
     ])
     expect(container.querySelector('.ts-chart-tooltip__title')).toBeNull()
+    expect(itemPinned).toHaveBeenLastCalledWith(false)
+
+    svg.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+    )
+    expect(itemPinned).toHaveBeenLastCalledWith(true)
+    expect(container.querySelector('.ts-chart-tooltip')?.textContent).toContain(
+      'Change25%',
+    )
     host.destroy()
   })
 

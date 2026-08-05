@@ -24,7 +24,8 @@ const definition = (input: ConformanceInput) => {
         strokeOpacity: 0.7,
       }),
       dot(scatterRows, {
-        key: (row) => `${row.name}:${row.year}`,
+        key: (row) =>
+          `${row.name}:${row.year}:${row['weight (lb)']}:${row['economy (mpg)']}`,
         x: 'weight (lb)',
         y: 'economy (mpg)',
         fill: '#2563eb',

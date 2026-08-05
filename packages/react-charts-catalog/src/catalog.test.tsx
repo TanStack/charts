@@ -315,7 +315,12 @@ describe('@tanstack/react-charts-catalog', () => {
           idPrefix={`responsive-${id}`}
         />,
       )
-      expect(html, id).toContain('viewBox="0 0 360 ')
+      const expectedViewportWidth =
+        id === '84-pinned-nested-chart-tooltip' ? 336 : 360
+      expect(html, id).toContain(`viewBox="0 0 ${expectedViewportWidth} `)
+      if (id === '84-pinned-nested-chart-tooltip') {
+        expect(html, id).toContain('width:360px')
+      }
     }
   }, 30_000)
 })

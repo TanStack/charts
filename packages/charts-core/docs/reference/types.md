@@ -13,16 +13,28 @@ libraries can import the same definition, mark, scene, runtime, focus, and
 tooltip-model contracts from `@tanstack/charts/types`; DOM host and renderer
 types remain available from the root.
 
+## Callback shape
+
+Public callbacks take at most two arguments: primary data or purpose first,
+then a named context or options object. A callback without a distinct primary
+payload takes one context object. Standard comparators, exact upstream
+protocols, paired geometry, and consumer-called service methods are explicit
+exceptions.
+
 ## Values and channels
 
 ```ts
 type ChartValue = number | string | Date
 type ChartKey = string | number
 
+interface ChannelAccessorContext<TDatum> {
+  index: number
+  data: readonly TDatum[]
+}
+
 type ChannelAccessor<TDatum, TValue> = (
   datum: TDatum,
-  index: number,
-  data: readonly TDatum[],
+  context: ChannelAccessorContext<TDatum>,
 ) => TValue
 
 type Channel<TDatum, TValue> =
@@ -31,13 +43,14 @@ type Channel<TDatum, TValue> =
 type VisualChannel<TDatum, TValue> = TValue | ChannelAccessor<TDatum, TValue>
 ```
 
-The corresponding public type names are `Channel`, `ChannelAccessor`, and
-`VisualChannel`.
+The corresponding public type names are `Channel`, `ChannelAccessor`,
+`ChannelAccessorContext`, and `VisualChannel`.
 
 A `Channel` accepts only datum keys whose declared values are compatible with
-the channel, or an accessor that derives a value from the row, index, and full
-readonly data array. A `VisualChannel` replaces the field-name form with a
-constant: it accepts either one constant value or an accessor.
+the channel, or an accessor that derives a value from the row. Its context
+contains the index and full readonly data array. A `VisualChannel` replaces
+the field-name form with a constant: it accepts either one constant value or
+an accessor.
 
 ```ts
 import { lineY } from '@tanstack/charts'
@@ -134,7 +147,7 @@ The complete overloads and runtime rules are in
 | `InitializedMark`       | Stable ID, materialized channels, optional layout labels, and render function |
 | `MaterializedChannel`   | Values contributed to an optional named scale                                 |
 | `MarkRenderContext`     | Final chart bounds, scales, theme, color resolver, and layout                 |
-| `MarkScene`             | Mark-owned scene nodes and optional interaction points                        |
+| `MarkScene`             | Mark-owned nodes plus optional interaction and presentation-focus points      |
 | `ChartScene`            | Complete renderer-neutral output                                              |
 | `ChartPoint`            | Typed interaction target                                                      |
 | `SceneInteraction`      | Semantic point or points attached to a rendered scene primitive               |
@@ -222,6 +235,8 @@ See [DOM host](./dom-host.md) and
 | Type                                  | Purpose                                                                |
 | ------------------------------------- | ---------------------------------------------------------------------- |
 | `ChartFocusStrategy`                  | Pointer resolution, grouping, and keyboard ordering                    |
+| `ChartFocusResolveContext`            | Pointer coordinates and maximum focus distance                         |
+| `ChartFocusGroupContext`              | Point being grouped or restored                                        |
 | `ChartFocusPreset`                    | Built-in nearest and grouped axis focus names                          |
 | `ChartFocusMode`                      | Focus preset or custom strategy                                        |
 | `ChartFocusState`                     | Primary, group, source, and pinned interaction state                   |
@@ -231,6 +246,7 @@ See [DOM host](./dom-host.md) and
 | `ChartFocusAffinity`                  | Primitive fallback axis after exact geometry containment               |
 | `ChartSpatialIndex`                   | Nearest-point query                                                    |
 | `ChartSpatialIndexFactory`            | Builds an index from current scene points and resolved scene           |
+| `ChartSpatialIndexFactoryContext`     | Resolved scene supplied to an index factory                            |
 | `ChartExtensionInput`                 | Generic bare-token or `{ use, ...options }` extension input            |
 | `ChartTooltipInput`                   | Tooltip extension token or configured extension options                |
 | `ChartTooltipExtensionToken`          | Environment-neutral contract implemented by host tooltip extensions    |
@@ -263,7 +279,7 @@ See [DOM host](./dom-host.md) and
 | `DynamicChartConfig`                  | Responsive builder plus definition-owned behavior                      |
 | `ChartTooltipContent`                 | Safe title and row model for a native tooltip                          |
 | `ChartTooltipRow`                     | Label, formatted value, and optional color swatch                      |
-| `ChartTooltipContentContext`          | Axis labels and value formatters for content callbacks                 |
+| `ChartTooltipContentContext`          | Pinned state, axis labels, and value formatters for tooltip callbacks  |
 | `ChartTooltipBodyContext`             | Focused points, content, pinned state, and dismissal                   |
 | `ChartTooltipBodyTarget`              | Renderer-adapter body mount element plus body context                  |
 
@@ -324,7 +340,7 @@ subpath:
 - `TickXOptions`, `TickYOptions`
 - `TextOptions`, `TextAnchor`
 - `FrameOptions`
-- `FacetOptions`, `FacetAxes`
+- `FacetOptions`, `FacetAxes`, `FacetChartContext`
 - `ColorLegendOptions`, `ColorGradientLegendOptions`
 
 Their public fields and defaults are owned by the

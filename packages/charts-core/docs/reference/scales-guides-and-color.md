@@ -450,14 +450,14 @@ value and throws for a nonnumeric domain.
 
 ```ts
 interface ChartColorLegend {
-  height(itemCount: number, width: number, colors?: ResolvedColorScale): number
+  height(itemCount: number, context: ChartColorLegendContext): number
   render(context: ChartColorLegendContext): SceneNode
 }
 ```
 
-`height` reserves space before chart bounds are finalized. `render` receives
-the resolved colors, chart bounds, theme, and full width. Return one keyed
-[scene node](./runtime-and-scene.md#scene-nodes).
+`height` returns the reserved pixel height before chart bounds are finalized.
+`render` returns one keyed [scene node](./runtime-and-scene.md#scene-nodes).
+Both callbacks receive the resolved colors, chart bounds, theme, and full width.
 
 ## Theme and gradients
 

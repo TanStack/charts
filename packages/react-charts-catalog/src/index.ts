@@ -442,7 +442,7 @@ export const catalogCases = [
   {
     id: '84-pinned-nested-chart-tooltip',
     order: 840,
-    title: 'Pinned penguin tooltip with a nested chart',
+    title: 'Expanding pinned energy tooltip',
     family: 'interaction',
   },
   {
