@@ -1,0 +1,3 @@
+var e=/^([-+]\d{2})?\d{4}(-\d{2}(-\d{2})?)?(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?(Z|[-+]\d{2}:\d{2})?)?$/;function t(t){let n=t.trim();if(!n)return null;if(n===`true`)return!0;if(n===`false`)return!1;if(n===`NaN`)return NaN;let r=Number(n);return Number.isNaN(r)?e.test(n)?new Date(n):t:r}function n(e,t){let n=[],r=[],i=``,a=0,o=!1,s=!1,c=()=>{r.push(i);let e=t?t(r,n.length):r;e!=null&&n.push(e),r=[],i=``,s=!1};for(;a<e.length;){let t=e[a];if(o){if(t!==`"`){i+=t,a+=1;continue}if(e[a+1]===`"`){i+=`"`,a+=2;continue}o=!1,a+=1;continue}if(t===`"`&&!s){o=!0,s=!0,a+=1;continue}if(t===`,`){r.push(i),i=``,s=!1,a+=1;continue}if(t===`
+`||t===`\r`){c(),a+=t===`\r`&&e[a+1]===`
+`?2:1;continue}i+=t,s=!0,a+=1}return(s||r.length)&&c(),n}export{n,t};

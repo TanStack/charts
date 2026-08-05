@@ -1,0 +1,1 @@
+import{t as e}from"./wind-DOro9cO8.js";var t=[48.125,55.125];function n(n=0){let r=t[n%t.length]??t[0];return e.filter(e=>e.latitude===r)}function r(e){return(Math.atan2(e.v,e.u)*(180/Math.PI)+360)%360}function i(e){return Math.hypot(e.u,e.v)}export{n,i as r,r as t};

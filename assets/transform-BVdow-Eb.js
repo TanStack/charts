@@ -1,1 +1,0 @@
-import{t as e}from"./weather-DqQDr8d0.js";var t=[2012,2013];function n(n=0){let r=t[n%t.length]??t[0];return e.filter(e=>e.location===`Seattle`&&e.date.getUTCFullYear()===r)}function r(e){let t=e.date.getUTCFullYear(),n=Date.UTC(t,0,1),r=Date.UTC(t+1,0,1);return(e.date.getTime()-n)/(r-n)*360}export{n,r as t};

@@ -1,1 +1,0 @@
-var e={resolve:()=>[],group:()=>[],navigation:()=>[]};export{e as t};
