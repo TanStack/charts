@@ -59,7 +59,8 @@ const definition = (input: ConformanceInput) => {
   return defineChart({
     marks: [
       dot(scatterRows, {
-        key: (row) => `${row.name}:${row.year}`,
+        key: (row) =>
+          `${row.name}:${row.year}:${row['power (hp)']}:${row['economy (mpg)']}`,
         x: 'power (hp)',
         y: 'economy (mpg)',
         fill: '#93c5fd',

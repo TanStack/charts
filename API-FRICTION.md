@@ -250,6 +250,7 @@ Each entry records:
 | F-212 | Paint parity normalized patterns but not gradients        | Tooling         | resolved   |
 | F-213 | Focused rules had no matchable presentation points        | API             | resolved   |
 | F-214 | Callback parameter shapes were inconsistent               | API/Tooling     | resolved   |
+| F-215 | Example keys collapsed distinct source rows               | Application     | resolved   |
 
 ## Findings
 
@@ -5328,3 +5329,21 @@ Each entry records:
   The focused expanding tooltip conformance case retains 99.6% geometry
   similarity and passes visual, behavior, and type gates at both sizes and
   themes.
+
+### F-215 — Example keys collapsed distinct source rows
+
+- Status: resolved
+- Severity: medium
+- Owner: Application
+- Observed in: the full conformance matrix for the linear-regression and framed
+  scatter examples
+- Friction: both examples keyed car rows with only `name` and `year`. The cars
+  dataset contains two same-year Ford Pinto rows and two same-year Plymouth
+  Reliant rows with different measurements, so keyed scene reconciliation
+  retained 318 of the 320 requested dots.
+- Decision: include each example's plotted x and y measurements in its key so
+  distinct source observations remain distinct while keys stay stable across
+  revisions.
+- Verification: both examples now retain 320 unique keys for their initial and
+  revised 320-row windows, and focused standard conformance passes their full
+  320/640/960 light/dark visual matrix.
