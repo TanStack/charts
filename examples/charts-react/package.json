@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:live": "vite build --config vite.live.config.ts",
+    "build:paged": "vite build --config vite.paged.config.ts",
     "dev": "vite --host --port 5191 --strictPort"
   },
   "dependencies": {

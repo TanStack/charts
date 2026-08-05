@@ -826,7 +826,8 @@ function resolveTooltipCoordinate(
   if (source === 'pointer') return pointer?.[axis] ?? fallback
   if (source === 'value') {
     const value = axis === 'x' ? point.xValue : point.yValue
-    const position = scene.scales[axis]?.map(value)
+    const scale = scene.scales[axis]
+    const position = (scale?.viewport?.map ?? scale?.map)?.(value)
     return position !== undefined && Number.isFinite(position)
       ? position
       : fallback

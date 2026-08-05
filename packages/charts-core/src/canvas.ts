@@ -3,6 +3,7 @@ import { createChartRuntime } from './runtime'
 import { focusedSceneNodes } from './focus-layer'
 import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
 import type {
+  ChartInteractionController,
   ChartRenderer,
   ChartRendererHost,
   ChartRendererHostOptions,
@@ -86,6 +87,7 @@ export interface CanvasChartHost<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
+  readonly interaction: ChartInteractionController<TDatum, TXValue, TYValue>
   update: (options: CanvasChartHostOptions<TDatum, TXValue, TYValue>) => void
   getScene: () => ChartScene<TDatum, TXValue, TYValue>
   destroy: () => void
@@ -326,6 +328,7 @@ export function mountCanvasChart<
   )
 
   return {
+    interaction: host.interaction,
     update(options) {
       host.update(withRenderer(options))
     },

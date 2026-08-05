@@ -143,9 +143,10 @@ Scale copies make one configured scale safe to reuse across responsive scenes.
 
 ```ts
 interface ChartAxisOptions<TValue extends ChartValue> {
-  scale: ChartScale | ConfiguredScaleLike<TValue> | ChartScaleFactory<TValue>
+  scale: ChartScale | ChartScaleInput<TValue>
   nice?: boolean | number
   reverse?: boolean
+  viewport?: ChartAxisViewportOptions<Extract<TValue, ChartContinuousValue>>
   grid?: boolean
   axis?:
     | false
@@ -178,13 +179,46 @@ interface ChartAxisOptions<TValue extends ChartValue> {
 }
 ```
 
-| Option    | Default                     | Meaning                                                                  |
-| --------- | --------------------------- | ------------------------------------------------------------------------ |
-| `scale`   | Required                    | Compact or D3 factory, configured instance, or custom `ChartScale`.      |
-| `nice`    | `false`                     | Nice the resolved domain using the responsive or supplied tick count.    |
-| `reverse` | `false`                     | Reverses the responsive pixel range without changing the caller's scale. |
-| `grid`    | `false` for x; `true` for y | Draws grid rules from semantic tick candidates.                          |
-| `axis`    | Inferred axis               | Axis line, tick candidates, labels, and title; `false` hides the axis.   |
+| Option     | Default                     | Meaning                                                                  |
+| ---------- | --------------------------- | ------------------------------------------------------------------------ |
+| `scale`    | Required                    | Compact or D3 factory, configured instance, or custom `ChartScale`.      |
+| `nice`     | `false`                     | Nice the resolved domain using the responsive or supplied tick count.    |
+| `reverse`  | `false`                     | Reverses the responsive pixel range without changing the caller's scale. |
+| `viewport` | None                        | Commits a continuous semantic window and optional transient translation. |
+| `grid`     | `false` for x; `true` for y | Draws grid rules from semantic tick candidates.                          |
+| `axis`     | Inferred axis               | Axis line, tick candidates, labels, and title; `false` hides the axis.   |
+
+```ts
+type ChartContinuousValue = number | Date
+
+type ChartContinuousDomain<
+  TValue extends ChartContinuousValue = ChartContinuousValue,
+> =
+  | (Extract<TValue, number> extends never ? never : readonly [number, number])
+  | (Extract<TValue, Date> extends never ? never : readonly [Date, Date])
+
+interface ChartAxisViewportOptions<
+  TValue extends ChartContinuousValue = ChartContinuousValue,
+> {
+  domain: ChartContinuousDomain<TValue>
+  translate?: number
+}
+```
+
+`ChartContinuousDomain` keeps numeric and temporal endpoints homogeneous at
+the type boundary. At runtime, a viewport requires two distinct finite values
+and a configured or inferable continuous scale with `invert`, ticks, clamping
+disabled, and independently configurable domain and range behavior. Band,
+ordinal, quantize, clamped, and getter-only scale inputs are rejected. An
+authored `axis.viewport` is also rejected for a custom `ChartScale`.
+Logarithmic content and viewport domains must be finite, nonzero, and stay on
+the same side of zero.
+
+`translate` is applied in screen-direction scene pixels after semantic
+mapping: positive x moves right and positive y moves down, regardless of
+domain order or `reverse`. Guides remain fixed. Viewport-dependent marks are
+clipped and translated per mark and per owned axis; see
+[Continuous viewports](../concepts/layout-axes-and-coordinates.md#continuous-viewports).
 
 Set an axis to `null` only when no mark uses that positional scale. To keep the
 scale while hiding its axis, use `axis: false`. Grid visibility remains
@@ -292,12 +326,24 @@ interface ResolvedScale {
   map(value: unknown): number
   ticks: readonly { value: ChartValue; label: string; position: number }[]
   bandwidth: number
+  viewport?: {
+    contentDomain: readonly ChartValue[]
+    domain: ChartContinuousDomain
+    translate: number
+    map(value: unknown): number
+  }
 }
 ```
 
-A custom scale owns correct domains, finite mapping, ticks, formatting,
-bandwidth, and response to the supplied range. Do not wrap an existing compact
-or D3 scale in `ChartScale`.
+Prefer a compact or D3 scale when it can express the mapping. A custom scale
+owns correct domains, finite mapping, ticks, formatting, bandwidth, and
+response to the supplied range. Do not wrap an existing compact or D3 scale in
+`ChartScale`.
+
+The host cannot apply an authored `axis.viewport` to an opaque custom
+`ChartScale`. A custom resolver can return a complete
+`ResolvedScale.viewport` itself, in which case it owns the content domain,
+committed domain, translation, and presented mapper.
 
 ## Color
 
@@ -479,7 +525,7 @@ interface ChartLinearGradient {
 }
 ```
 
-Coordinates and offsets are normalized from `0` to `1` by the resource-aware
+Coordinates and offsets are normalized from `0` to `1` by the default SVG
 renderer. Omitted coordinates form a vertical gradient from bottom to top.
-Use `renderChartSvgWithResources` and an `idPrefix`; see
-[Rendering and export](./rendering-and-export.md#resource-aware-svg).
+Use an `idPrefix` when charts share a document; see
+[Rendering and export](./rendering-and-export.md#svg-resources).

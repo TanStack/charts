@@ -199,13 +199,19 @@ const host = mountChartRenderer(container, {
 ```
 
 The renderer owns server shell markup, its mounted element, scene painting,
-coordinate conversion, focus painting, and cleanup. The host retains sizing,
-runtime, keyboard, tooltip, selection, and focus-strategy behavior. Keep
-`prerender` deterministic and make `mount` adopt compatible server markup.
+focus painting, and cleanup. It can implement `clientToScene` when controlled
+pointer gestures need client-coordinate conversion; the interaction controller
+returns `null` when that optional capability is absent. The host retains
+sizing, runtime, keyboard, tooltip, selection, and focus-strategy behavior.
+Keep `prerender` deterministic and make `mount` adopt compatible server markup.
 
 If `paintFocus` resolves and paints inline mark-state geometry, return that
 destination `ChartScene`. The host will use it for subsequent pointer hits;
 returning nothing preserves base-scene interaction for simpler renderers.
+
+If the renderer animates point geometry, implement `getPresentationPoints`
+and `subscribePresentationPoints`. This keeps stationary pointer focus,
+keyboard focus, and tooltip anchors aligned with the painted frame.
 
 Use `ChartRendererRenderContext.surface` instead of assuming `onRender` exposes
 an SVG element. Framework consumers pass `renderer` through
@@ -231,9 +237,9 @@ adapter. Preserve:
 - scoped IDs through `idPrefix`;
 - deterministic server output.
 
-Use `renderChartSvgWithResources` from
-`@tanstack/charts/svg/resources` when the only missing behavior is gradients or
-clipping.
+The default `renderChartSvg` already emits declared gradients and group clips.
+The compatible `renderChartSvgWithResources` export remains available when an
+explicit resource serializer name is useful.
 
 ## Custom focus and spatial indexes
 

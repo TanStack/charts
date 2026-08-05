@@ -2,6 +2,8 @@ import { reconcileChartSvg } from './reconcile'
 import { renderChartSvg } from './svg'
 import { focusedNodeKeys } from './focus-layer'
 import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
+import { viewportTranslationChanged } from './scene-point-map'
+import { svgClientToScene } from './svg-coordinates'
 import type {
   ChartRenderer,
   ChartSurface,
@@ -48,18 +50,21 @@ export function createSvgChartRenderer<
           return svgElement()
         },
         render(nextScene, options) {
+          const viewportMoved = Boolean(
+            scene && viewportTranslationChanged(scene, nextScene),
+          )
           cancelAnimation()
           cancelAnimation = reconcileChartSvg(
             container,
             renderSvg(nextScene, options),
-            options.animation,
+            viewportMoved ? undefined : options.animation,
           )
           scene = nextScene
           renderOptions = options
           stateTransition = undefined
         },
         clientToScene(scene, clientX, clientY) {
-          return clientToScene(svgElement(), scene, clientX, clientY)
+          return svgClientToScene(svgElement(), scene, clientX, clientY)
         },
         paintFocus(focus, pointer) {
           if (!scene || !renderOptions) return
@@ -95,36 +100,6 @@ export function createSvgChartRenderer<
 }
 
 export const svgChartRenderer = createSvgChartRenderer()
-
-function clientToScene(
-  element: SVGSVGElement,
-  scene: ChartScene,
-  clientX: number,
-  clientY: number,
-) {
-  const matrix = element.getScreenCTM?.()
-  if (!matrix) {
-    const bounds = element.getBoundingClientRect()
-    if (!bounds.width || !bounds.height) return null
-    return {
-      x: ((clientX - bounds.left) / bounds.width) * scene.width,
-      y: ((clientY - bounds.top) / bounds.height) * scene.height,
-    }
-  }
-
-  let inverse: DOMMatrix
-  try {
-    inverse = matrix.inverse()
-  } catch {
-    return null
-  }
-
-  const x = inverse.a * clientX + inverse.c * clientY + inverse.e
-  const y = inverse.b * clientX + inverse.d * clientY + inverse.f
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return null
-
-  return { x, y }
-}
 
 function paintSvgFocus(
   svg: SVGSVGElement,

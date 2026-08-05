@@ -31,6 +31,12 @@ Authored `whenFocused` marks compose with the primary-point ring. Set
 definition `focusRing: false` only when authored focus geometry replaces that
 indicator.
 
+Set `pointer: false` when the application owns the pointer gesture but still
+wants chart focus, focus marks, and tooltips. Automatic pointer move, leave,
+and click handling stops; keyboard navigation remains independent. Resolve and
+paint application-owned focus through `host.interaction` or the interaction
+controller reported by `onRender`.
+
 ### Interaction geometry
 
 When neither `focus` nor `spatialIndex` is supplied, pointer resolution has two
@@ -74,6 +80,15 @@ post-layout translations and clips as SVG and Canvas instead of maintaining a
 second geometry copy. Inline mark states similarly return a resolved scene to
 the host; during a transition, pointer selection intentionally follows that
 destination scene rather than interpolating a second hit-test scene.
+
+With an active axis viewport, the host calls
+`viewportInteractionPoints(scene, presentationPoints)` before pointer,
+keyboard, custom-focus, or spatial-index resolution. Off-window anchors from
+clipped viewport content remain in `scene.points` but are not focus candidates;
+fixed-ownership mark points remain eligible. Direct scene consumers can pass
+that filtered list as the optional final argument to
+`findNearestPoint(scene, x, y, maxDistance, points)` so primitive hit testing
+uses the same candidate set.
 
 For curved `polyline` and `area` nodes, the current resolver uses the
 primitive's structured point geometry. Exact picking against an optional
@@ -364,10 +379,28 @@ resolution.
 
 ## Application-owned gestures
 
-Brushes, zooming, dragging, scrolling, crosshair overlays, and selections can
-listen on a wrapper or use `onRender` to attach application behavior to the
-live SVG. Keep semantic state outside the scene, update a dynamic definition
-by replacing its identity, and clean up listeners before the next attachment
-or unmount.
+Brushes, zooming, dragging, scrolling, and selections can listen on a wrapper
+or use `onRender` to attach application behavior. Keep semantic state outside
+the scene and update a dynamic definition by replacing its identity.
+
+For application-timed datum inspection, use the stable controller instead of
+reimplementing coordinate conversion and focus:
+
+```ts
+const position = interaction.clientToScene(event.clientX, event.clientY)
+const target = interaction.resolvePointer(event.clientX, event.clientY)
+interaction.setControlledFocus(target)
+interaction.setControlledFocus(null)
+```
+
+The resolution contains the scene position, primary point, and focus group.
+Passing that resolution to `setControlledFocus` infers `source: 'pointer'` and
+re-resolves its held position after scene and presentation updates. Passing a
+raw `ChartPoint` defaults to `source: 'programmatic'`; either source can be
+overridden explicitly. Controlled focus is not cleared by unrelated
+pointer-leave or focus-out events. Pass `{ pinned: true }` to make an enabled
+sticky tooltip interactive.
+
+Clean up application listeners before the next attachment or unmount.
 For a completely independent renderer or interaction layer, use the scene and
 extension contracts in [Custom extensions](./custom-extensions.md).

@@ -18,6 +18,14 @@ export interface ChartScaleResolveContext {
   includeZero: boolean
 }
 
+export type ChartContinuousValue = number | Date
+
+export type ChartContinuousDomain<
+  TValue extends ChartContinuousValue = ChartContinuousValue,
+> =
+  | (Extract<TValue, number> extends never ? never : readonly [number, number])
+  | (Extract<TValue, Date> extends never ? never : readonly [Date, Date])
+
 export interface ChartScale {
   id: string
   resolve: (context: ChartScaleResolveContext) => ResolvedScale
@@ -310,6 +318,25 @@ export interface ChartAxisPresentationOptions<TValue extends ChartValue = any> {
   motion?: ChartMotionDefinition
 }
 
+interface ChartAxisViewportBase {
+  /** Transient output-space displacement applied to chart content, in scene pixels. */
+  translate?: number
+}
+
+export type ChartAxisViewportOptions<
+  TValue extends ChartContinuousValue = ChartContinuousValue,
+> = ChartAxisViewportBase & {
+  /** Committed semantic window used by stationary guides. */
+  domain: ChartContinuousDomain<TValue>
+}
+
+type ChartAxisViewportFor<TValue extends ChartValue> =
+  IsAny<TValue> extends true
+    ? ChartAxisViewportOptions
+    : [Extract<TValue, ChartContinuousValue>] extends [never]
+      ? never
+      : ChartAxisViewportOptions<Extract<TValue, ChartContinuousValue>>
+
 export interface ChartAxisOptions<TValue extends ChartValue = any> {
   /**
    * A D3 scale factory infers its domain from materialized mark channels.
@@ -319,6 +346,8 @@ export interface ChartAxisOptions<TValue extends ChartValue = any> {
   /** Applies D3 nicening after an inferred or configured domain is resolved. */
   nice?: boolean | number
   reverse?: boolean
+  /** A semantic window over the scale's complete configured or inferred domain. */
+  viewport?: ChartAxisViewportFor<TValue>
   /** Grid lines use semantic tick candidates before label thinning. */
   grid?: boolean
   /** Axis presentation. False keeps the scale but omits the visible axis. */
@@ -552,9 +581,20 @@ export interface ChartMotionSpringTransition {
 export type ChartMotionTransition =
   ChartMotionTweenTransition | ChartMotionSpringTransition
 
+export interface ChartRollingPathMotion {
+  update: 'rolling'
+  x: 'shift'
+  y?: 'fixed' | 'reproject'
+  fallback?: 'snap' | 'morph'
+}
+
+export type ChartMotionPath = 'morph' | ChartRollingPathMotion
+
 export interface ChartMotionTiming {
   delay?: number
   transition?: ChartMotionTransition
+  /** How line and area paths move between compatible keyed updates. */
+  path?: ChartMotionPath
 }
 
 export type ChartMotionDefinition<TDatum = unknown> =
@@ -610,6 +650,8 @@ export interface ChartDefinitionOptions<
   animate?: boolean | ChartAnimationOptions
   /** Renderer-neutral motion defaults. An optional motion implementation consumes them. */
   motion?: ChartMotionDefinition<NoInfer<TDatum>>
+  /** Enables chart-owned pointer focus and selection. Defaults to true. */
+  pointer?: boolean
   keyboard?: boolean
   tooltip?:
     | false
@@ -623,6 +665,7 @@ interface StoredChartDefinitionOptions {
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
   animate?: boolean | ChartAnimationOptions
   motion?: ChartMotionDefinition<any>
+  pointer?: boolean
   keyboard?: boolean
   tooltip?: false | ChartTooltipInput<any, any, any>
 }
@@ -715,6 +758,17 @@ export interface MarkInitializeContext {
   markIndex: number
 }
 
+export interface ResolvedScaleViewport {
+  /** Complete domain resolved before applying the semantic viewport. */
+  contentDomain: readonly ChartValue[]
+  /** Committed semantic window mapped into the plot range. */
+  domain: ChartContinuousDomain
+  /** Transient scene-pixel displacement of presented chart content. */
+  translate: number
+  /** Maps a semantic value to its presented coordinate. */
+  map: (value: unknown) => number
+}
+
 export interface ResolvedScale {
   id: string
   type: string
@@ -722,6 +776,7 @@ export interface ResolvedScale {
   map: (value: unknown) => number
   ticks: readonly ChartTick[]
   bandwidth: number
+  viewport?: ResolvedScaleViewport
 }
 
 export interface ResolvedColorScale {
@@ -769,6 +824,8 @@ export interface InitializedMark<
 > {
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
+  /** Overrides channel-inferred ownership of each continuous viewport axis. */
+  viewport?: Readonly<Partial<Record<'x' | 'y', 'content' | 'fixed'>>>
   /** The mark uses a discrete color channel as inferred series identity. */
   seriesFromColor?: boolean
   focus?: ChartFocusFilter

@@ -207,34 +207,24 @@ Renderer-specific tradeoffs:
 - Scene-node `className` values do not create styleable Canvas descendants.
 - Gradients require geometry with measurable bounds.
 
-## Resource-aware SVG
+## SVG resources
 
 ```ts
-import { mountChart } from '@tanstack/charts'
+import { renderChartSvg } from '@tanstack/charts/svg'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 ```
 
-`renderChartSvgWithResources(scene, options)` has the same signature as
-`renderChartSvg` and additionally:
+`renderChartSvg` and the compatible explicit
+`renderChartSvgWithResources(scene, options)` entry both:
 
-- emits declared linear gradients in `<defs>`
-- scopes gradient IDs with sanitized `idPrefix`
-- rewrites matching `url(#gradient-id)` paints
-- emits clip paths for scene groups with `clip` bounds
+- emit declared linear gradients in `<defs>`
+- scope gradient IDs with sanitized `idPrefix`
+- rewrite matching `url(#gradient-id)` paints
+- emit clip paths for scene groups with `clip` bounds
 
-Select it on a vanilla or framework host:
-
-```ts
-const host = mountChart(container, {
-  definition,
-  renderSvg: renderChartSvgWithResources,
-  idPrefix: 'orders',
-  ariaLabel: 'Orders',
-})
-```
-
-Use a stable, document-unique `idPrefix`. Gradient coordinates and stop offsets
-are clamped to `0..1` and emitted as percentages.
+Default SVG hosts and framework adapters use this behavior without a custom
+`renderSvg`. Use a stable, document-unique `idPrefix`. Gradient coordinates and
+stop offsets are clamped to `0..1` and emitted as percentages.
 
 ## `reconcileChartSvg`
 
@@ -425,11 +415,16 @@ interface ChartSurface<
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: ChartSurfaceRenderOptions,
   ) => void
-  clientToScene: (
+  clientToScene?: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     clientX: number,
     clientY: number,
   ) => { x: number; y: number } | null
+  getPresentationPoints?: () =>
+    readonly ChartPoint<TDatum, TXValue, TYValue>[] | undefined
+  subscribePresentationPoints?: (
+    listener: (points: readonly ChartPoint<TDatum, TXValue, TYValue>[]) => void,
+  ) => () => void
   paintFocus: (
     focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
     pointer?: ChartTooltipPosition | null,
@@ -452,25 +447,44 @@ interface ChartRenderer<
     requestRender: (force?: boolean) => void,
   ) => ChartSurface<TDatum, TXValue, TYValue>
 }
+
+interface ChartRendererRenderContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  container: HTMLElement
+  scene: ChartScene<TDatum, TXValue, TYValue>
+  surface: ChartSurface<TDatum, TXValue, TYValue>
+  interaction: ChartInteractionController<TDatum, TXValue, TYValue>
+}
 ```
 
-| Member                  | Responsibility                                                                                             |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `ChartRenderer.id`      | Stable renderer identifier                                                                                 |
-| `prerender()`           | Return deterministic accessible markup for the supplied scene and render options                           |
-| `mount()`               | Adopt or create a surface in the container and connect renderer-owned environment observers                |
-| `ChartSurface.renderer` | Refer to the renderer that created the surface; a different renderer object on update replaces the surface |
-| `ChartSurface.element`  | Expose the accessible, focusable root used by shared keyboard and focus handling                           |
-| `render()`              | Paint the complete scene and apply accessible name, class, tab index, ID prefix, and optional animation    |
-| `clientToScene()`       | Convert viewport client coordinates to scene coordinates, or return `null` when conversion is unavailable  |
-| `paintFocus()`          | Paint or clear focus and optionally return the resolved destination scene used for subsequent pointer hits |
-| `destroy()`             | Release renderer-owned animation, observers, listeners, and resources                                      |
+| Member                          | Responsibility                                                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `ChartRenderer.id`              | Stable renderer identifier                                                                                                     |
+| `prerender()`                   | Return deterministic accessible markup for the supplied scene and render options                                               |
+| `mount()`                       | Adopt or create a surface in the container and connect renderer-owned environment observers                                    |
+| `ChartSurface.renderer`         | Refer to the renderer that created the surface; a different renderer object on update replaces the surface                     |
+| `ChartSurface.element`          | Expose the accessible, focusable root used by shared keyboard and focus handling                                               |
+| `render()`                      | Paint the complete scene and apply accessible name, class, tab index, ID prefix, and optional animation                        |
+| `clientToScene()`               | Optionally convert viewport client coordinates to scene coordinates; the controller returns `null` when omitted or unavailable |
+| `getPresentationPoints()`       | Expose renderer-owned point geometry while a scene transition is active                                                        |
+| `subscribePresentationPoints()` | Notify the host as presentation geometry advances so focus and tooltips remain aligned                                         |
+| `paintFocus()`                  | Paint or clear focus and optionally return the resolved destination scene used for subsequent pointer hits                     |
+| `destroy()`                     | Release renderer-owned animation, observers, listeners, and resources                                                          |
 
 `requestRender()` asks the shared host to rebuild and repaint on its next
 animation frame; ordinary requests proceed only when responsive width changed.
 `requestRender(true)` forces the work when renderer state changed without a
 width or chart-option change, such as device-pixel ratio or resolved theme
 colors. Requests made before the same frame are coalesced.
+
+Animated renderers can expose their current point geometry through
+`getPresentationPoints()` and notify the host through
+`subscribePresentationPoints()`. The host then resolves stationary pointers,
+pinned tooltips, and keyboard focus against the painted positions rather than
+the destination scene.
 
 When focus activates inline mark-state geometry, return the resolved scene that
 the surface paints. The host uses that destination scene for subsequent
@@ -480,8 +494,8 @@ that do not resolve alternate scene geometry.
 
 The shared host continues to own runtime updates, responsive sizing, text
 measurement, focus resolution, keyboard behavior, native tooltips, selection,
-and callbacks. `ChartRendererRenderContext` reports the live `surface` instead
-of assuming an SVG element.
+and callbacks. `ChartRendererRenderContext` reports the live `surface` and the
+stable interaction controller instead of assuming an SVG element.
 
 Use `mountChartRenderer` from `@tanstack/charts/renderer`, or the React and
 Octane `/core` entries, to mount a custom renderer. `RenderChartOptions`,

@@ -104,7 +104,7 @@ has no root export.
 | `@tanstack/charts/renderer`          | `mountChartRenderer`                                                                                                                                                           |
 | `@tanstack/charts/rule`              | `ruleX`, `ruleY`                                                                                                                                                               |
 | `@tanstack/charts/runtime`           | `createChartRuntime`, `isDynamicChartDefinition`                                                                                                                               |
-| `@tanstack/charts/scene`             | `defineChart`, `createChartScene`, `defaultChartTheme`, `findNearestPoint`                                                                                                     |
+| `@tanstack/charts/scene`             | `defineChart`, `createChartScene`, `defaultChartTheme`, `findNearestPoint`, `viewportInteractionPoints`                                                                        |
 | `@tanstack/charts/svg`               | `renderChartSvg`                                                                                                                                                               |
 | `@tanstack/charts/svg/renderer`      | `createSvgChartRenderer`, `svgChartRenderer`                                                                                                                                   |
 | `@tanstack/charts/svg/resources`     | `renderChartSvgWithResources`                                                                                                                                                  |

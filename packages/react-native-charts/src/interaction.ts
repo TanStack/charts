@@ -5,7 +5,10 @@ import {
   focusY,
 } from '@tanstack/charts/focus'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
-import { findNearestPoint } from '@tanstack/charts/scene'
+import {
+  findNearestPoint,
+  viewportInteractionPoints,
+} from '@tanstack/charts/scene'
 import type {
   ChartDefinition,
   ChartFocusMode,
@@ -41,31 +44,32 @@ export function createNativeChartFocusModel<
   scene: ChartScene<TDatum, TXValue, TYValue>,
   definition: ChartDefinition<TDatum, TXValue, TYValue>,
 ): NativeChartFocusModel<TDatum, TXValue, TYValue> {
+  const points = viewportInteractionPoints(scene)
   const strategy = resolveFocusStrategy(definition.focus)
   const spatialIndex =
     definition.focus === false
       ? undefined
-      : definition.spatialIndex?.(scene.points, { scene })
+      : definition.spatialIndex?.(points, { scene })
   const maxDistance = definition.maxFocusDistance ?? 48
-  const navigation =
-    strategy?.navigation(scene.points) ?? sceneOrder(scene.points)
+  const navigation = strategy?.navigation(points) ?? sceneOrder(points)
 
   return {
     resolve(x, y) {
       if (strategy) {
-        return strategy.resolve(scene.points, { x, y, maxDistance })
+        return strategy.resolve(points, { x, y, maxDistance })
       }
       const point = spatialIndex
         ? spatialIndex.findNearest(x, y, maxDistance)
-        : findNearestPoint(scene, x, y, maxDistance)
-      return point ? [point] : []
+        : findNearestPoint(scene, x, y, maxDistance, points)
+      const visible = point ? restoreFocusedPoint(points, point) : null
+      return visible ? [visible] : []
     },
     group(point) {
-      return strategy?.group(scene.points, { point }) ?? [point]
+      return strategy?.group(points, { point }) ?? [point]
     },
     navigation,
     restore(point) {
-      return restoreFocusedPoint(scene.points, point)
+      return restoreFocusedPoint(points, point)
     },
   }
 }

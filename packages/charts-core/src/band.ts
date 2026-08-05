@@ -29,6 +29,7 @@ export interface BandXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
+  width?: number
   inset?: number
   radius?: number
 }
@@ -41,6 +42,7 @@ export interface BandYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
+  height?: number
   inset?: number
   radius?: number
 }
@@ -83,9 +85,10 @@ export function bandX<
         color: { scale: 'color', values: colorValues.filter(isChartKey) },
       },
       render: ({ chart, scales, color }) => {
-        const width =
-          scales.x.bandwidth ||
-          inferBandwidth(scales.x, values, chart.width, data.length)
+        const width = Number.isFinite(resolved.width)
+          ? Math.max(0, resolved.width!)
+          : scales.x.bandwidth ||
+            inferBandwidth(scales.x, values, chart.width, data.length)
         const inset = Number.isFinite(resolved.inset) ? resolved.inset! : 0
         const nodes: SceneNode[] = []
         data.forEach((datum, index) => {
@@ -188,9 +191,10 @@ export function bandY<
         color: { scale: 'color', values: colorValues.filter(isChartKey) },
       },
       render: ({ chart, scales, color }) => {
-        const height =
-          scales.y.bandwidth ||
-          inferBandwidth(scales.y, values, chart.height, data.length)
+        const height = Number.isFinite(resolved.height)
+          ? Math.max(0, resolved.height!)
+          : scales.y.bandwidth ||
+            inferBandwidth(scales.y, values, chart.height, data.length)
         const inset = Number.isFinite(resolved.inset) ? resolved.inset! : 0
         const nodes: SceneNode[] = []
         data.forEach((datum, index) => {

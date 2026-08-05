@@ -144,7 +144,7 @@ The complete overloads and runtime rules are in
 | ----------------------- | ----------------------------------------------------------------------------- |
 | `ChartMark`             | Public initialized-mark factory plus inferred point and scale types           |
 | `MarkInitializeContext` | Mark layer index                                                              |
-| `InitializedMark`       | Stable ID, materialized channels, optional layout labels, and render function |
+| `InitializedMark`       | Stable ID, channels, per-axis viewport ownership, layout, and render function |
 | `MaterializedChannel`   | Values contributed to an optional named scale                                 |
 | `MarkRenderContext`     | Final chart bounds, scales, theme, color resolver, and layout                 |
 | `MarkScene`             | Mark-owned nodes plus optional interaction and presentation-focus points      |
@@ -181,6 +181,7 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | Type                            | Purpose                                                      |
 | ------------------------------- | ------------------------------------------------------------ |
 | `ChartAxisOptions`              | Required positional scale and optional guide behavior        |
+| `ChartAxisViewportOptions`      | Continuous semantic window and transient pixel translation   |
 | `ChartAxisGuideOptions`         | Guide behavior without the scale field                       |
 | `ChartAxisPresentationOptions`  | Axis line, ticks, tick labels, and title presentation        |
 | `ChartAxisTickOptions`          | Candidate values, density, formatting, size, and padding     |
@@ -196,6 +197,9 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `ChartScale`                    | Custom positional scale extension                            |
 | `ChartScaleResolveContext`      | Values, responsive range, guide options, and hints           |
 | `ChartScaleResolver`            | Function form of custom scale resolution                     |
+| `ChartContinuousValue`          | Numeric or Date value accepted by an axis viewport           |
+| `ChartContinuousDomain`         | Homogeneous numeric or Date viewport endpoint tuple          |
+| `ResolvedScaleViewport`         | Content domain, committed window, and presented mapper       |
 | `ChartColorOptions`             | Factory, configured/custom color scale, hints, and legend    |
 | `ChartColorScaleFactory`        | Creates a color scale with a channel-inferred domain         |
 | `ConfiguredColorScaleLike`      | Callable and copyable color scale contract                   |
@@ -215,17 +219,17 @@ See [Scales, guides, and color](./scales-guides-and-color.md).
 
 ## Host and runtime types
 
-| Type                             | Purpose                                                           |
-| -------------------------------- | ----------------------------------------------------------------- |
-| `ChartHostCommonOptions`         | Accessibility, sizing, callbacks, and SVG renderer options        |
-| `ChartHostOptions`               | Common options plus a chart definition                            |
-| `ChartHost`                      | SVG host `update`, `getScene`, and `destroy`                      |
-| `ChartRendererHostCommonOptions` | Renderer-neutral common options plus required renderer            |
-| `ChartRendererHostOptions`       | Renderer-neutral options plus a chart definition                  |
-| `ChartRendererHost`              | Renderer-neutral `update`, `getScene`, and `destroy`              |
-| `ChartRuntime`                   | Repeated static or responsive scene rendering                     |
-| `ChartRenderContext`             | Container, live SVG, and scene reported after DOM render          |
-| `ChartRendererRenderContext`     | Container, live renderer surface, and scene reported after render |
+| Type                             | Purpose                                                             |
+| -------------------------------- | ------------------------------------------------------------------- |
+| `ChartHostCommonOptions`         | Accessibility, sizing, callbacks, and SVG renderer options          |
+| `ChartHostOptions`               | Common options plus a chart definition                              |
+| `ChartHost`                      | SVG host `interaction`, `update`, `getScene`, and `destroy`         |
+| `ChartRendererHostCommonOptions` | Renderer-neutral common options plus required renderer              |
+| `ChartRendererHostOptions`       | Renderer-neutral options plus a chart definition                    |
+| `ChartRendererHost`              | Renderer-neutral `interaction`, `update`, `getScene`, and `destroy` |
+| `ChartRuntime`                   | Repeated static or responsive scene rendering                       |
+| `ChartRenderContext`             | Container, live SVG, scene, and interaction controller              |
+| `ChartRendererRenderContext`     | Container, live surface, scene, and interaction controller          |
 
 See [DOM host](./dom-host.md) and
 [Runtime and scene](./runtime-and-scene.md).
@@ -244,6 +248,9 @@ See [DOM host](./dom-host.md) and
 | `ChartFocusFilter`                    | Focus-filtered mark matching configuration                             |
 | `ChartFocusMatch`                     | Primary, group, key, x, y, or series matching                          |
 | `ChartFocusAffinity`                  | Primitive fallback axis after exact geometry containment               |
+| `ChartInteractionController`          | Resolves client pointers and paints application-owned focus            |
+| `ChartPointerResolution`              | Scene position, primary point, and resolved focus group                |
+| `ChartControlledFocusOptions`         | Source and sticky-tooltip state for controlled focus                   |
 | `ChartSpatialIndex`                   | Nearest-point query                                                    |
 | `ChartSpatialIndexFactory`            | Builds an index from current scene points and resolved scene           |
 | `ChartSpatialIndexFactoryContext`     | Resolved scene supplied to an index factory                            |
@@ -275,7 +282,7 @@ See [DOM host](./dom-host.md) and
 | `ChartTooltipAnchorContext`           | Focus, pointer, plot, surface, and resolved scales                     |
 | `ChartTooltipPlacement`               | Tooltip box placement around its anchor                                |
 | `ChartTooltipPosition`                | Scene-pixel x/y coordinate                                             |
-| `ChartDefinitionOptions`              | Focus, tooltip, animation, keyboard, and spatial policy                |
+| `ChartDefinitionOptions`              | Focus, tooltip, animation, pointer, keyboard, and spatial policy       |
 | `DynamicChartConfig`                  | Responsive builder plus definition-owned behavior                      |
 | `ChartTooltipContent`                 | Safe title and row model for a native tooltip                          |
 | `ChartTooltipRow`                     | Label, formatted value, and optional color swatch                      |

@@ -1,8 +1,10 @@
 import { resolve } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
 import {
+  callbackCategories,
   createClassifications,
   inspectPublicCallableSurfaces,
+  publicCallbackClassifications,
   validatePublicCallableSurfaces,
 } from './public-callback-contract.mjs'
 
@@ -34,6 +36,31 @@ describe('public callback contract', () => {
         .get('@tanstack/vue-charts:src/Chart.ts:ChartComponent.tooltipBody')
         ?.signatures[0]?.map((parameter) => parameter.name),
     ).toEqual(['context'])
+  })
+
+  it('distinguishes live chart service handles from presentation callbacks', () => {
+    const serviceMethods = [
+      '@tanstack/charts:src/dom-types.ts:ChartInteractionController.clientToScene',
+      '@tanstack/charts:src/dom-types.ts:ChartInteractionController.resolvePointer',
+      '@tanstack/charts:src/dom-types.ts:ChartInteractionController.setControlledFocus',
+      '@tanstack/charts:src/dom-types.ts:ChartSurface.subscribePresentationPoints',
+      '@tanstack/charts:src/dom-types.ts:ChartSurface.subscribePresentationPoints.$return',
+      '@tanstack/charts:src/types.ts:ResolvedScaleViewport.map',
+    ]
+    for (const id of serviceMethods) {
+      expect(publicCallbackClassifications.get(id)).toBe(
+        callbackCategories.serviceMethod,
+      )
+    }
+
+    const listener =
+      '@tanstack/charts:src/dom-types.ts:ChartSurface.subscribePresentationPoints.listener'
+    expect(publicCallbackClassifications.get(listener)).toBe(
+      callbackCategories.callback,
+    )
+    expect(
+      inventory.find((surface) => surface.id === listener)?.signatures,
+    ).toEqual([[{ name: 'points', objectBag: false }]])
   })
 
   it('rejects unclassified additions and stale classifications', () => {

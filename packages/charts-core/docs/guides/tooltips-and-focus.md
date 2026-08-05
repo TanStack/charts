@@ -176,6 +176,26 @@ Add `className` to style the native HTML surface. Clicking pins the current
 tooltip for text selection. A later click or Escape unpins it. Set
 `sticky: false` to disable pinning.
 
+## Application-owned pointer timing
+
+Set definition `pointer: false` when the application decides when inspection
+begins, such as after a touch hold. Resolve the event and paint focus through
+the controller exposed by `host.interaction` or `onRender`:
+
+```ts
+const target = interaction.resolvePointer(event.clientX, event.clientY)
+interaction.setControlledFocus(target)
+
+// On release or cancellation
+interaction.setControlledFocus(null)
+```
+
+This keeps focus marks and tooltip content in the definition. The controller
+uses presentation points, so an active path motion or viewport translation
+does not detach the focus marker and tooltip from the painted datum. See
+[Controlled point inspection](./interactions-and-selections.md#controlled-point-inspection)
+for the complete ownership boundary.
+
 ## Anchoring and placement
 
 Point anchoring is the stable default for scatterplots, bars, and keyboard
@@ -241,7 +261,7 @@ const customAnchorDefinition = defineChart(definition, {
   tooltip: {
     use: tooltip,
     anchor: (_points, { focus, pointer, plot, surface, scales }) => ({
-      x: scales.x.map(focus.primary.xValue),
+      x: (scales.x.viewport?.map ?? scales.x.map)(focus.primary.xValue),
       y: plot.y,
     }),
     placement: 'bottom-left',

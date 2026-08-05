@@ -33,8 +33,8 @@ type ChartSpec<TMarks extends readonly ChartMark[]> = {
 | `y`         | Conditional | Required when a mark materializes y; omitted otherwise.                                                            |
 | `guides`    | No          | Set to `false` to suppress both axes, grid lines, titles, and their implicit margins.                              |
 | `color`     | No          | Shared categorical or quantitative color scale and optional legend.                                                |
-| `gradients` | No          | Linear-gradient resources consumed by the resource-aware SVG renderer.                                             |
-| `clip`      | No          | Clips the marks group to the resolved inner chart bounds when the selected renderer supports resources.            |
+| `gradients` | No          | Linear-gradient resources consumed by the default SVG and Canvas renderers.                                        |
+| `clip`      | No          | Clips the marks group to the resolved inner chart bounds in the default SVG and Canvas renderers.                  |
 | `margin`    | No          | Locks all margins with a number or selected sides with a partial object. Omitted sides are measured automatically. |
 | `theme`     | No          | Overrides default foreground, muted, grid, background, or palette tokens.                                          |
 
@@ -118,12 +118,10 @@ guide labels with the scale's tick behavior, `ticks`, `format`, or
 
 ## Clip and gradient resources
 
-`clip` and `gradients` are scene data. Render them with
-`renderChartSvgWithResources`:
+`clip` and `gradients` are scene data consumed by the default SVG and Canvas
+renderers:
 
 ```ts
-import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
-
 const definition = defineChart({
   marks,
   x,
@@ -143,9 +141,9 @@ const definition = defineChart({
 })
 ```
 
-Reference a declared gradient from a mark paint as `url(#revenue)` and select
-the resource-aware renderer on the host or adapter. `idPrefix` scopes generated
-resource IDs when multiple charts share a document. See
+Reference a declared gradient from a mark paint as `url(#revenue)`.
+`idPrefix` scopes generated resource IDs when multiple charts share a
+document. See
 [Rendering and export](./rendering-and-export.md).
 
 ## Theme

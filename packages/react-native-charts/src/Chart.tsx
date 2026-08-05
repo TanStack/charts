@@ -152,7 +152,8 @@ export function Chart<
   const TooltipComponent = tooltipInput?.component
   const tooltipOptions = tooltipInput?.options
   const sticky = Boolean(tooltipInput) && tooltipOptions?.sticky !== false
-  const interactive = Boolean(scene?.points.length)
+  const interactive = Boolean(focusModel?.navigation.length)
+  const pointerInteractive = definition.pointer !== false && interactive
 
   const commitFocus = React.useCallback(
     (points: readonly ChartPoint<TDatum, TXValue, TYValue>[]) => {
@@ -319,7 +320,7 @@ export function Chart<
       onResponderRelease={handleResponderRelease}
       onResponderTerminate={handleResponderTerminate}
       onResponderTerminationRequest={() => true}
-      onStartShouldSetResponder={() => interactive}
+      onStartShouldSetResponder={() => pointerInteractive}
       style={[
         {
           position: 'relative',

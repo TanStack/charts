@@ -22,6 +22,51 @@ export interface ChartSurfaceRenderOptions extends RenderChartOptions {
   animation?: ChartAnimationOptions
 }
 
+export interface ChartPointerResolution<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  /** Pointer position in the chart scene coordinate system. */
+  position: ChartTooltipPosition
+  /** Primary point selected by the definition's focus strategy. */
+  point: ChartPoint<TDatum, TXValue, TYValue>
+  /** Complete focus group, with the primary point first. */
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+}
+
+export interface ChartControlledFocusOptions {
+  /** Semantic input source exposed to focus marks and tooltips. */
+  source?: 'pointer' | 'programmatic'
+  /** Makes an enabled tooltip interactive until focus is cleared. */
+  pinned?: boolean
+}
+
+export interface ChartInteractionController<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  /** Converts browser client coordinates into the chart scene coordinate system. */
+  clientToScene: (
+    clientX: number,
+    clientY: number,
+  ) => ChartTooltipPosition | null
+  /** Resolves browser client coordinates through the current presentation. */
+  resolvePointer: (
+    clientX: number,
+    clientY: number,
+  ) => ChartPointerResolution<TDatum, TXValue, TYValue> | null
+  /** Paints or clears application-owned focus without selecting a point. */
+  setControlledFocus: (
+    target:
+      | ChartPointerResolution<TDatum, TXValue, TYValue>
+      | ChartPoint<TDatum, TXValue, TYValue>
+      | null,
+    options?: ChartControlledFocusOptions,
+  ) => void
+}
+
 export interface ChartSurface<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
@@ -33,13 +78,19 @@ export interface ChartSurface<
     scene: ChartScene<TDatum, TXValue, TYValue>,
     options: ChartSurfaceRenderOptions,
   ) => void
-  clientToScene: (
+  /** Optional client-coordinate conversion used by controlled pointer gestures. */
+  clientToScene?: (
     scene: ChartScene<TDatum, TXValue, TYValue>,
     clientX: number,
     clientY: number,
   ) => { x: number; y: number } | null
   /** Renderer-owned point geometry while a scene transition is active. */
-  getPresentationPoints?: () => readonly ChartPoint<any, any, any>[] | undefined
+  getPresentationPoints?: () =>
+    readonly ChartPoint<TDatum, TXValue, TYValue>[] | undefined
+  /** Notifies the host when renderer-owned point geometry advances. */
+  subscribePresentationPoints?: (
+    listener: (points: readonly ChartPoint<TDatum, TXValue, TYValue>[]) => void,
+  ) => () => void
   /**
    * Paints focus and may return a destination scene for interaction during a
    * transition. A returned scene preserves the rendered scene's layout.
@@ -75,6 +126,7 @@ export interface ChartRendererRenderContext<
   container: HTMLElement
   scene: ChartScene<TDatum, TXValue, TYValue>
   surface: ChartSurface<TDatum, TXValue, TYValue>
+  interaction: ChartInteractionController<TDatum, TXValue, TYValue>
 }
 
 export interface ChartTooltipBodyTarget<
@@ -167,6 +219,7 @@ export interface ChartRenderContext<
   container: HTMLElement
   svg: SVGSVGElement
   scene: ChartScene<TDatum, TXValue, TYValue>
+  interaction: ChartInteractionController<TDatum, TXValue, TYValue>
 }
 
 export interface ChartHostCommonOptions<
@@ -241,6 +294,7 @@ export interface ChartHost<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
+  readonly interaction: ChartInteractionController<TDatum, TXValue, TYValue>
   update: (options: ChartHostOptions<TDatum, TXValue, TYValue>) => void
   getScene: () => ChartScene<TDatum, TXValue, TYValue>
   destroy: () => void
@@ -251,6 +305,7 @@ export interface ChartRendererHost<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
+  readonly interaction: ChartInteractionController<TDatum, TXValue, TYValue>
   update: (options: ChartRendererHostOptions<TDatum, TXValue, TYValue>) => void
   getScene: () => ChartScene<TDatum, TXValue, TYValue>
   destroy: () => void

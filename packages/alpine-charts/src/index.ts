@@ -125,6 +125,7 @@ export function charts(Alpine: AlpineLike) {
                     container: context.container,
                     scene: context.scene,
                     svg,
+                    interaction: context.interaction,
                   })
                 }
               : undefined,

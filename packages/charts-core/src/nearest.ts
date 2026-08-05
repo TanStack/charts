@@ -66,21 +66,23 @@ export function nearestScenePoint<
   x: number,
   y: number,
   maxDistance: number,
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[] = scene.points,
 ): ChartPoint<TDatum, TXValue, TYValue> | null {
   const index = interactionIndex(scene)
+  const allowed =
+    points === scene.points ? undefined : new Set<ChartPoint>(points)
   if (!index.targets.length && !index.attachedPoints.size) {
-    return nearestPoint(scene.points, x, y, maxDistance)
+    return nearestPoint(points, x, y, maxDistance)
   }
 
   // Painted containment is authoritative and follows actual reverse paint order.
   for (let targetIndex = index.targets.length; targetIndex--;) {
     const target = index.targets[targetIndex]!
     if (containsBounds(target.bounds, x, y) && containsTarget(target, x, y)) {
-      return bestInteractionPoint(target.node.interaction, x, y) as ChartPoint<
-        TDatum,
-        TXValue,
-        TYValue
-      > | null
+      const point = bestInteractionPoint(target.node.interaction, x, y, allowed)
+      if (point) {
+        return point as ChartPoint<TDatum, TXValue, TYValue>
+      }
     }
   }
 
@@ -91,6 +93,7 @@ export function nearestScenePoint<
 
   for (const target of index.targets) {
     const interaction = target.node.interaction
+    if (!hasAllowedInteractionPoint(interaction, allowed)) continue
     const affinity = interaction.affinity ?? 'xy'
     if (affinity === 'geometry') continue
     const axis = affinity === 'x' ? 'x' : affinity === 'y' ? 'y' : undefined
@@ -115,7 +118,7 @@ export function nearestScenePoint<
 
   // Plain semantic points remain a backwards-compatible anchor-only target.
   if (resultPrimaryDistance !== 0) {
-    for (const point of scene.points) {
+    for (const point of points) {
       if (index.attachedPoints.has(point)) continue
       const dx = point.x - x
       const dy = point.y - y
@@ -133,7 +136,7 @@ export function nearestScenePoint<
   const result =
     resultPoint ??
     (resultInteraction
-      ? bestInteractionPoint(resultInteraction, x, y)
+      ? bestInteractionPoint(resultInteraction, x, y, allowed)
       : undefined)
   return (result as ChartPoint<TDatum, TXValue, TYValue> | undefined) ?? null
 }
@@ -203,13 +206,17 @@ function bestInteractionPoint(
   interaction: SceneInteraction,
   x: number,
   y: number,
+  allowed?: ReadonlySet<ChartPoint>,
 ): ChartPoint | null {
-  if (interaction.point) return interaction.point
+  if (interaction.point) {
+    return !allowed || allowed.has(interaction.point) ? interaction.point : null
+  }
   const affinity = interaction.affinity ?? 'xy'
   let result: ChartPoint | undefined
   let primaryDistance = Infinity
   let secondaryDistance = Infinity
   for (const point of interaction.points) {
+    if (allowed && !allowed.has(point)) continue
     const dx = point.x - x
     const dy = point.y - y
     const fullDistance = dx * dx + dy * dy
@@ -225,6 +232,16 @@ function bestInteractionPoint(
     }
   }
   return result ?? null
+}
+
+function hasAllowedInteractionPoint(
+  interaction: SceneInteraction,
+  allowed: ReadonlySet<ChartPoint> | undefined,
+) {
+  if (!allowed) return true
+  return interaction.point
+    ? allowed.has(interaction.point)
+    : interaction.points.some((point) => allowed.has(point))
 }
 
 function containsTarget(target: SceneInteractionTarget, x: number, y: number) {

@@ -218,8 +218,10 @@ whenFocused(
 ```
 
 `BandXOptions` and `BandYOptions` provide the positional channel, `z`, `color`,
-`key`, `fill`, `fillOpacity`, `inset`, and `radius`. A negative inset expands
-the resolved band. The helpers are also available from
+`key`, `fill`, `fillOpacity`, `inset`, and `radius`. `bandX.width` and
+`bandY.height` can replace scale or inferred bandwidth with an explicit
+nonnegative scene-pixel size, which is useful for a one-pixel focus cursor. A
+negative inset expands the resolved band. The helpers are also available from
 `@tanstack/charts/band`.
 
 ## `rect`
