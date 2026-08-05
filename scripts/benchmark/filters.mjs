@@ -38,7 +38,8 @@ export function selectWeightedShard(values, shard, weightFor) {
     throw new TypeError('Weighted shard selection requires a weight function.')
   }
 
-  const shardWeights = Array.from({ length: shard.total }, () => 0)
+  const activeShardCount = Math.min(shard.total, values.length)
+  const shardWeights = Array.from({ length: activeShardCount }, () => 0)
   const assignments = new Array(values.length)
   const weightedValues = values.map((value, index) => {
     const weight = weightFor(value, index)

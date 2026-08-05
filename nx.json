@@ -262,7 +262,7 @@
     },
     "catalog-loading-check": {
       "cache": true,
-      "inputs": ["catalogSource"]
+      "inputs": ["catalogSource", "catalogRevision"]
     },
     "release-artifacts": {
       "cache": true,

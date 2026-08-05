@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { bundleBaselineShapeFailures } from './bundle-baseline.mjs'
+import {
+  bundleBaselineBundles,
+  bundleBaselineShapeFailures,
+} from './bundle-baseline.mjs'
 
 const configuration = {
   libraryIds: ['tanstack', 'recharts'],
@@ -41,4 +44,20 @@ describe('bundle baseline shape', () => {
       expect.stringContaining('extra: removed'),
     ])
   })
+
+  it.each([undefined, null, []])(
+    'keeps malformed bundle value %j on the structured validation path',
+    (bundles) => {
+      const malformed = baseline()
+      malformed.bundles = bundles
+
+      const normalized = bundleBaselineBundles(malformed)
+
+      expect(Object.keys(normalized)).toEqual([])
+      expect(normalized['tanstack-line-basic']).toBeUndefined()
+      expect(bundleBaselineShapeFailures(malformed, configuration)).toEqual([
+        expect.stringContaining('bundle baseline cases do not match'),
+      ])
+    },
+  )
 })

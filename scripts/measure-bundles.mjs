@@ -2,6 +2,7 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { gzipSync } from 'node:zlib'
 import { basename, dirname, resolve } from 'node:path'
 import { build } from 'esbuild'
+import { readBundleConcurrency } from './measure-bundles-options.mjs'
 import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const root = resolve(import.meta.dirname, '..')
@@ -837,7 +838,7 @@ const entries = [
 
 await mkdir(outputDirectory, { recursive: true })
 
-const bundleConcurrency = readConcurrency(
+const bundleConcurrency = readBundleConcurrency(
   process.env.BUNDLE_BUILD_CONCURRENCY,
   4,
 )
@@ -963,15 +964,6 @@ if (args.has('--update-baseline')) {
 
 function measured(label, entry, options = {}) {
   return createEntry(label, entry, { kind: 'measure' }, options)
-}
-
-function readConcurrency(value, fallback) {
-  if (value === undefined) return fallback
-  const parsed = Number(value)
-  if (!Number.isSafeInteger(parsed) || parsed < 1) {
-    throw new Error('BUNDLE_BUILD_CONCURRENCY must be a positive integer.')
-  }
-  return parsed
 }
 
 function granularTransformBoundary(

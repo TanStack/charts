@@ -41,6 +41,10 @@ export function bundleBaselineShapeFailures(
   return failures
 }
 
+export function bundleBaselineBundles(baseline) {
+  return recordOrEmpty(baseline?.bundles)
+}
+
 function pushKeySetFailure(failures, label, actualValues, expectedValues) {
   const actual = new Set(actualValues)
   const expected = new Set(expectedValues)
@@ -54,7 +58,11 @@ function pushKeySetFailure(failures, label, actualValues, expectedValues) {
 }
 
 function recordKeys(value) {
+  return Object.keys(recordOrEmpty(value))
+}
+
+function recordOrEmpty(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
-    ? Object.keys(value)
-    : []
+    ? value
+    : {}
 }

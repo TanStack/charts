@@ -77,6 +77,18 @@ describe('benchmark shards', () => {
     expect(shards.flat()).toEqual(expect.arrayContaining(values))
   })
 
+  it('does not allocate empty weighted shards for a huge shard total', () => {
+    const values = ['a', 'b']
+    const total = Number.MAX_SAFE_INTEGER
+
+    expect(selectWeightedShard(values, { index: 1, total }, () => 1)).toEqual([
+      'a',
+    ])
+    expect(
+      selectWeightedShard(values, { index: total, total }, () => 1),
+    ).toEqual([])
+  })
+
   it('rejects invalid weights before assigning a partial shard', () => {
     expect(() =>
       selectWeightedShard([1, 2], { index: 1, total: 2 }, (value) =>

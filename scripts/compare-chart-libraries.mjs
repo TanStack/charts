@@ -8,7 +8,10 @@ import {
   launchBenchmarkBrowser,
   startBenchmarkServer,
 } from './benchmark/browser.mjs'
-import { bundleBaselineShapeFailures } from './benchmark/bundle-baseline.mjs'
+import {
+  bundleBaselineBundles,
+  bundleBaselineShapeFailures,
+} from './benchmark/bundle-baseline.mjs'
 import { chartLibraries } from './benchmark/chart-libraries.mjs'
 import {
   comparisonCapabilityCoverage,
@@ -1171,6 +1174,7 @@ async function checkBundleBaseline(
   }
 
   const failures = []
+  const baselineBundles = bundleBaselineBundles(baseline)
   const expectedTanStackRevision = checkSourceProvenance
     ? tanstackComparisonRevision(root)
     : undefined
@@ -1223,7 +1227,7 @@ async function checkBundleBaseline(
   const actualIds = new Set(bundles.map((bundle) => bundle.id))
   const expectedIds = new Set(
     requireCompleteMatrix
-      ? Object.keys(baseline.bundles)
+      ? Object.keys(baselineBundles)
       : checkedLibraries.flatMap((library) =>
           checkedChartTypes.flatMap((chartType) =>
             checkedTiers.map((tier) => `${library.id}-${chartType}-${tier}`),
@@ -1239,7 +1243,7 @@ async function checkBundleBaseline(
         `${bundle.id}: normal comparison bundle retained ${bundle.stressSupportBytes} bytes of stress-only support`,
       )
     }
-    const expected = baseline.bundles[bundle.id]
+    const expected = baselineBundles[bundle.id]
     if (!expected) {
       failures.push(`${bundle.id}: no baseline; update the bundle baseline`)
       continue

@@ -17,11 +17,11 @@ import {
 } from './catalog-source-files.mjs'
 import { conformanceArtifactStem } from './benchmark/conformance-artifacts.mjs'
 import { estimateConformanceCaseWeight } from './benchmark/conformance-sharding.mjs'
+import { assertKnownFilterValues, parseShard } from './benchmark/filters.mjs'
 import {
-  assertKnownFilterValues,
-  parseShard,
-  selectWeightedShard,
-} from './benchmark/filters.mjs'
+  normalizeTypeDiagnosticPath,
+  selectCatalogCases,
+} from './compare-plot-catalog-helpers.mjs'
 import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const root = resolve(import.meta.dirname, '..')
@@ -133,14 +133,9 @@ assertKnownFilterValues(
   allCases.map((entry) => entry.id),
   'case',
 )
-const selectedCases = selectWeightedShard(
-  allCases.filter((entry) => !caseFilter || caseFilter.has(entry.id)),
-  shard,
-  (entry) => estimateConformanceCaseWeight(entry, profile),
+const selectedCases = selectCatalogCases(allCases, caseFilter, shard, (entry) =>
+  estimateConformanceCaseWeight(entry, profile),
 )
-if (!selectedCases.length) {
-  throw new Error('The case filter did not match a conformance case.')
-}
 
 const typeDiagnostics = await createTypeDiagnostics()
 const typeAudit = await auditTypes(selectedCases, typeDiagnostics.byFile)
@@ -666,6 +661,8 @@ async function createTypeDiagnostics() {
   const byFile = new Map()
   for (const diagnostic of ts.getPreEmitDiagnostics(program)) {
     const sourcePath = diagnostic.file?.fileName
+      ? normalizeTypeDiagnosticPath(diagnostic.file.fileName)
+      : undefined
     if (!sourcePath) continue
     const diagnostics = byFile.get(sourcePath) ?? []
     diagnostics.push(formatTypeDiagnostic(diagnostic))
@@ -700,7 +697,8 @@ async function auditTypes(cases, diagnosticsByFile) {
 
   const audit = new Map()
   for (const [sourcePath, details] of relevantSources) {
-    const sourceDiagnostics = diagnosticsByFile.get(sourcePath) ?? []
+    const sourceDiagnostics =
+      diagnosticsByFile.get(normalizeTypeDiagnosticPath(sourcePath)) ?? []
     const source = details.source
     audit.set(`${details.caseId}:${details.renderer}`, {
       diagnostics: sourceDiagnostics,
@@ -736,7 +734,8 @@ function auditTypeProtection({
   const results = []
 
   for (const { renderer, sourcePath } of baselineEntries) {
-    const diagnostics = byFile.get(sourcePath) ?? []
+    const diagnostics =
+      byFile.get(normalizeTypeDiagnosticPath(sourcePath)) ?? []
     if (diagnostics.length) {
       throw new Error(
         `Valid ${renderer} type baseline failed: ${diagnostics
@@ -747,7 +746,8 @@ function auditTypeProtection({
   }
 
   for (const { probe, renderer, sourcePath } of probeEntries) {
-    const diagnostics = byFile.get(sourcePath) ?? []
+    const diagnostics =
+      byFile.get(normalizeTypeDiagnosticPath(sourcePath)) ?? []
     const setupDiagnostic = diagnostics.find((diagnostic) =>
       [2307, 6053, 7016].includes(diagnostic.code),
     )
