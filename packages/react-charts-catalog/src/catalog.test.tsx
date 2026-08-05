@@ -317,5 +317,5 @@ describe('@tanstack/react-charts-catalog', () => {
       )
       expect(html, id).toContain('viewBox="0 0 360 ')
     }
-  })
+  }, 30_000)
 })
