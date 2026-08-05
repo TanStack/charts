@@ -260,6 +260,9 @@ function createChartSceneWithScaleResolver<
         ? mapScenePointReferences(rendered.nodes, presentPoint)
         : rendered.nodes
     const presentedPoints = renderedPoints.map(presentPoint)
+    const presentedFocusPoints = (rendered.focusPoints ?? renderedPoints).map(
+      presentPoint,
+    )
     const entryNodes: SceneNode[] = []
     if (mark.focus) {
       entryNodes.push({
@@ -269,7 +272,7 @@ function createChartSceneWithScaleResolver<
         ariaHidden: true,
         focus: {
           match: mark.focus.match ?? 'primary',
-          points: presentedPoints,
+          points: presentedFocusPoints,
           placement:
             firstBaseMarkIndex < 0 || markIndex < firstBaseMarkIndex
               ? 'under'
@@ -329,7 +332,7 @@ function createChartSceneWithScaleResolver<
     nodes.push(axisNodes)
   }
   if (legend) nodes.push(legend.render({ colors, chart, theme, width }))
-  if (definition.focusRing !== false) {
+  if (definition.focus !== false && definition.focusRing !== false) {
     for (const entry of defaultFocusEntries) {
       nodes.push({
         kind: 'group',
@@ -649,7 +652,12 @@ function resolveSceneLayout(
     if (legend && locks.top === undefined) {
       automatic.top = Math.max(
         automatic.top,
-        legend.height(colors.domain.length, resolved.chart.width, colors),
+        legend.height(colors.domain.length, {
+          colors,
+          chart: resolved.chart,
+          theme,
+          width,
+        }),
       )
     }
     if (!definition.clip) {

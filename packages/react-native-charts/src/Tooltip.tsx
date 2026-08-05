@@ -10,9 +10,11 @@ import type {
   ChartPoint,
   ChartFocusSource,
   ChartScene,
+  ChartTooltipChannelItem,
   ChartTooltipContent,
   ChartTooltipContentContext,
   ChartTooltipExtensionToken,
+  ChartTooltipItem,
   ChartTooltipOptions,
   ChartTooltipPlacement,
   ChartTooltipPosition,
@@ -80,7 +82,13 @@ export function NativeChartTooltip<
   )
   const point = unorderedPoints[0]
   if (!point) return null
-  const content = createNativeTooltipContent(points, scene, options, point)
+  const content = createNativeTooltipContent(
+    points,
+    scene,
+    pinned,
+    options,
+    point,
+  )
   const sceneAnchor = resolveNativeTooltipAnchor(
     point,
     points,
@@ -214,16 +222,18 @@ export function createNativeTooltipContent<
 >(
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   scene: ChartScene<TDatum, TXValue, TYValue>,
+  pinned = false,
   options?: ChartTooltipOptions<TDatum, TXValue, TYValue>,
   primaryPoint?: ChartPoint<TDatum, TXValue, TYValue>,
 ): ChartTooltipContent | string {
   const point = points[0]
   if (!point) return { rows: [] }
-  const context = createTooltipContentContext(scene)
+  const context = createTooltipContentContext(scene, pinned, options)
   const content = options?.content?.(points, context)
   if (content !== undefined) return content
   const formatted =
-    options?.formatGroup?.(points) ?? options?.format?.(primaryPoint ?? point)
+    options?.formatGroup?.(points, context) ??
+    options?.format?.(primaryPoint ?? point, context)
   if (formatted !== undefined) return formatted
 
   const sharedX =
@@ -252,13 +262,38 @@ export function createNativeTooltipContent<
 
 function createTooltipContentContext(
   scene: ChartScene,
+  pinned: boolean,
+  options?: ChartTooltipOptions<any, any, any>,
 ): ChartTooltipContentContext {
+  const x = findTooltipChannelItem(options?.items, 'x')
+  const y = findTooltipChannelItem(options?.items, 'y')
   return {
-    xLabel: findSceneLabel(scene, 'x-label') ?? 'x',
-    yLabel: findSceneLabel(scene, 'y-label') ?? 'y',
+    pinned,
+    xLabel: x?.label ?? findSceneLabel(scene, 'x-label') ?? 'x',
+    yLabel: y?.label ?? findSceneLabel(scene, 'y-label') ?? 'y',
     formatX: formatValue,
     formatY: formatValue,
   }
+}
+
+function findTooltipChannelItem(
+  items: readonly ChartTooltipItem<any, any, any>[] | undefined,
+  channel: 'x' | 'y',
+): ChartTooltipChannelItem<any, any, any> | undefined {
+  const item = items?.find(
+    (candidate) => tooltipItemChannel(candidate) === channel,
+  )
+  return typeof item === 'object' && 'channel' in item
+    ? (item as ChartTooltipChannelItem<any, any, any>)
+    : undefined
+}
+
+function tooltipItemChannel(item: ChartTooltipItem<any, any, any>) {
+  return typeof item === 'string'
+    ? item
+    : 'channel' in item
+      ? item.channel
+      : undefined
 }
 
 function orderTooltipPoints<

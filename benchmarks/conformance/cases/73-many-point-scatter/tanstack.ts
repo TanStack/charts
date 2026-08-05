@@ -3,16 +3,28 @@ import { cars } from '@charts-poc/demo-data/cars'
 import { scaleLinear, scaleSqrt } from 'd3-scale'
 import { selectManyPointData } from './selection'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { ConformanceInput } from '../../types'
 
 const colors = ['#2563eb', '#7c3aed', '#db2777', '#f97316', '#0f766e']
 
 const definition = (input: ConformanceInput) => {
-  const points = selectManyPointData(cars, input.revision)
+  const points = samplePreviewData(
+    selectManyPointData(cars, input.revision),
+    input,
+    80,
+    [
+      (row) => row['weight (lb)'],
+      (row) => row['0-60 mph (s)'],
+      (row) => row['displacement (cc)'],
+    ],
+  )
 
   return defineChart({
     marks: [
       dot(points, {
+        key: (row) =>
+          `${row.name}:${row.year}:${row['weight (lb)']}:${row['0-60 mph (s)']}:${row['displacement (cc)']}`,
         x: 'weight (lb)',
         y: '0-60 mph (s)',
         color: 'cylinders',

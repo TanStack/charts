@@ -60,11 +60,17 @@ select the optional Canvas renderer; their `/core` entries require an explicit
 The root `@tanstack/charts` entry point exports the common grammar, runtime,
 scene, SVG renderer, browser host, and their public types. The universal entry
 excludes browser hosts and adapters. Granular subpaths keep optional
-capabilities and individual marks independently tree-shakeable.
+capabilities and individual marks independently tree-shakeable. Compact scales
+come from exact `@tanstack/charts-scales/*` entries; that package intentionally
+has no root export.
 
 | Import                               | Public values                                                                                                                                                                  |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `@tanstack/charts`                   | Common marks, legends, D3 curve bridges, `createMark`, `defineChart`, `createChartScene`, `createChartRuntime`, `isDynamicChartDefinition`, `mountChart`, and `renderChartSvg` |
+| `@tanstack/charts-scales/band`       | `scaleBand`, `BandScale`                                                                                                                                                       |
+| `@tanstack/charts-scales/linear`     | `scaleLinear`, `LinearScale`                                                                                                                                                   |
+| `@tanstack/charts-scales/ordinal`    | `scaleOrdinal`, `OrdinalScale`                                                                                                                                                 |
+| `@tanstack/charts-scales/point`      | `scalePoint`, `PointScale`                                                                                                                                                     |
 | `@tanstack/charts/adapter`           | `createChartAdapter`, `resolveChartAdapterLayout`, `ChartAdapter`, `ChartAdapterLayout`, and `ChartAdapterLayoutOptions`                                                       |
 | `@tanstack/charts/adapter/renderer`  | `createChartRendererAdapter`                                                                                                                                                   |
 | `@tanstack/charts/area`              | `areaY`                                                                                                                                                                        |

@@ -58,7 +58,18 @@ export function projectionGalleryData(): readonly ProjectionGalleryDatum[] {
 export function projectionPane(
   bounds: ProjectionPane,
   index: number,
+  preview = false,
 ): ProjectionPane {
+  if (preview) {
+    const leftWidth = Math.floor(bounds.width / 2)
+    return {
+      x: bounds.x + (index === 0 ? 0 : leftWidth),
+      y: bounds.y,
+      width: index === 0 ? leftWidth : bounds.width - leftWidth,
+      height: bounds.height,
+    }
+  }
+
   const leftWidth = Math.floor(bounds.width / 2)
   const topHeight = Math.floor(bounds.height / 2)
   const column = index % 2

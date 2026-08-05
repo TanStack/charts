@@ -116,7 +116,11 @@ describe('intentional interaction contracts', () => {
       if (!probe) continue
 
       const strategy = proof.grouped.axis === 'x' ? focusX : focusY
-      const points = strategy.resolve(scene.points, probe.x, probe.y, 48)
+      const points = strategy.resolve(scene.points, {
+        x: probe.x,
+        y: probe.y,
+        maxDistance: 48,
+      })
 
       expect(proof.grouped.definition.focus).toBe(
         proof.grouped.axis === 'x' ? 'group-x' : 'group-y',
@@ -197,12 +201,11 @@ describe('interaction geometry proof gallery', () => {
       expect(probe).not.toBeNull()
       if (!probe) return
 
-      const before = legacyPointFocus.resolve(
-        scene.points,
-        probe.x,
-        probe.y,
-        48,
-      )[0]
+      const before = legacyPointFocus.resolve(scene.points, {
+        x: probe.x,
+        y: probe.y,
+        maxDistance: 48,
+      })[0]
       const after = findNearestPoint(scene, probe.x, probe.y, 48)
 
       expect(before?.datum.label ?? 'Nothing focused yet').toBe(

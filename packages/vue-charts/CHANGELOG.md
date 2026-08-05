@@ -1,5 +1,19 @@
 # @tanstack/vue-charts
 
+## 0.6.5
+
+### Patch Changes
+
+- Updated dependencies [[`11ba458`](https://github.com/TanStack/charts/commit/11ba4584e6aee639a58e353b5c828b2f3d207f62)]:
+  - @tanstack/charts@0.6.5
+
+## 0.6.4
+
+### Patch Changes
+
+- Updated dependencies [[`3fdff48`](https://github.com/TanStack/charts/commit/3fdff48a76e4f7ff563bc2c0b182c7cb563b5a95)]:
+  - @tanstack/charts@0.6.4
+
 ## 0.6.3
 
 ### Patch Changes

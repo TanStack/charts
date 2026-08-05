@@ -33,7 +33,7 @@ time makes it difficult to tell whether a visual difference is a renderer
 regression or a changed calculation.
 
 Move or simplify transforms only after parity is measured. The dependency
-boundary is explained in [Scales and D3](../concepts/scales-and-d3.md).
+boundary is explained in [Scales](../concepts/scales-and-d3.md).
 
 ## Translate to the grammar
 
@@ -63,6 +63,20 @@ For the current breaking API:
   datum-, or guide-specific policy on the definition;
 - add `type: 'tween'` to focus-state transitions that previously supplied only
   `duration` and `easing`.
+- replace channel `(datum, index, data)` accessors with
+  `(datum, { index, data })`;
+- replace facet `chart(data, key)` builders with `chart(data, { key })`;
+- replace focus `resolve(points, x, y, maxDistance)` and
+  `group(points, point)` implementations with `resolve(points, context)` and
+  `group(points, { point })`;
+- replace spatial-index `(points, scene)` factories with
+  `(points, { scene })`;
+- replace legend `height(itemCount, width, colors)` implementations with
+  `height(itemCount, context)`. The previous `width` value is now
+  `context.chart.width`; and
+- use the second `ChartTooltipContentContext` argument in `format` and
+  `formatGroup` when formatter output depends on pinned state or axis
+  formatting.
 
 See [Marks and Layering](../concepts/marks-and-layering.md) and the
 [Example Gallery](../examples/index.md).

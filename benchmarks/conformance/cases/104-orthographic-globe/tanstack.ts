@@ -3,6 +3,8 @@ import { geoShape } from '@tanstack/charts/geo'
 import { geoOrthographic } from 'd3-geo'
 import {
   worldGraticule,
+  previewWorldGraticule,
+  previewWorldLand,
   worldLand,
   worldSphere,
 } from '../../shared/fixtures/country-atlas'
@@ -21,9 +23,12 @@ const definition = (input: ConformanceInput) =>
         stroke: '#64748b',
         strokeWidth: 1.25,
       }),
-      geoShape([worldGraticule], {
+      geoShape([input.preview ? previewWorldGraticule : worldGraticule], {
         projection: {
-          type: () => geoOrthographic().rotate([0, -30, 20]),
+          type: () =>
+            geoOrthographic()
+              .rotate([0, -30, 20])
+              .precision(input.preview ? 2 : Math.SQRT1_2),
           fit: 'sphere',
         },
         fill: 'none',
@@ -31,9 +36,12 @@ const definition = (input: ConformanceInput) =>
         strokeOpacity: 0.5,
         strokeWidth: 0.75,
       }),
-      geoShape([worldLand], {
+      geoShape([input.preview ? previewWorldLand : worldLand], {
         projection: {
-          type: () => geoOrthographic().rotate([0, -30, 20]),
+          type: () =>
+            geoOrthographic()
+              .rotate([0, -30, 20])
+              .precision(input.preview ? 2 : Math.SQRT1_2),
           fit: 'sphere',
         },
         fill: input.revision % 2 === 0 ? '#22c55e' : '#0d9488',

@@ -6,7 +6,7 @@ Observed difficulty from using the API is tracked separately in
 [`API-FRICTION.md`](./API-FRICTION.md). Production migrations, examples, and
 agent evaluations must update that log when they expose a repeatable problem.
 
-Last updated: 2026-07-30
+Last updated: 2026-08-05
 
 ## Working thesis
 
@@ -68,6 +68,18 @@ These are governing constraints, not optional aspirations.
   should never require migration to a second API.
 - Built-in marks and capabilities use the same public extension contracts
   available to application and ecosystem code.
+
+### Predictable callback shape
+
+- Public callbacks accept at most two arguments.
+- Primary data or purpose comes first. Additional state comes second in a
+  named context or options object.
+- A callback without a distinct primary payload receives one context object.
+- Standard comparators, exact upstream protocols, paired geometry, and
+  consumer-called service methods are classified exceptions rather than
+  accidental precedents.
+- The public callback inventory is a test contract. A new callback must follow
+  this shape or document why an existing external protocol requires otherwise.
 
 ### D3 is the algorithm layer
 

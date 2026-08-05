@@ -149,6 +149,6 @@ Octane owns the returned component lifecycle.
 ## Core boundary
 
 The adapter does not redefine chart grammar or data algorithms. Read
-[Scales and D3](../../concepts/scales-and-d3.md) for injected primitives and
+[Scales](../../concepts/scales-and-d3.md) for injected primitives and
 the [core API reference](../../reference/index.md) for marks, interaction,
 renderers, and extension contracts.

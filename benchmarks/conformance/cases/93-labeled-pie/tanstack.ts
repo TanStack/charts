@@ -9,7 +9,7 @@ import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { scaleLinear } from 'd3-scale'
 import { pie } from 'd3-shape'
 import { selectLabeledPieData } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import type { ConformanceInput } from '../../types'
 
@@ -80,7 +80,9 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Letter frequency pie with labels',
 )
+
+export const mount = catalogCase.mount

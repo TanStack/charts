@@ -4,6 +4,7 @@ import {
   focusX,
   focusY,
 } from '@tanstack/charts/focus'
+import { focusDisabled } from '@tanstack/charts/focus/disabled'
 import {
   findNearestPoint,
   viewportInteractionPoints,
@@ -45,14 +46,17 @@ export function createNativeChartFocusModel<
 ): NativeChartFocusModel<TDatum, TXValue, TYValue> {
   const points = viewportInteractionPoints(scene)
   const strategy = resolveFocusStrategy(definition.focus)
-  const spatialIndex = definition.spatialIndex?.(points, scene)
+  const spatialIndex =
+    definition.focus === false
+      ? undefined
+      : definition.spatialIndex?.(points, { scene })
   const maxDistance = definition.maxFocusDistance ?? 48
   const navigation = strategy?.navigation(points) ?? sceneOrder(points)
 
   return {
     resolve(x, y) {
       if (strategy) {
-        return strategy.resolve(points, x, y, maxDistance)
+        return strategy.resolve(points, { x, y, maxDistance })
       }
       const point = spatialIndex
         ? spatialIndex.findNearest(x, y, maxDistance)
@@ -61,7 +65,7 @@ export function createNativeChartFocusModel<
       return visible ? [visible] : []
     },
     group(point) {
-      return strategy?.group(points, point) ?? [point]
+      return strategy?.group(points, { point }) ?? [point]
     },
     navigation,
     restore(point) {
@@ -133,6 +137,7 @@ function resolveFocusStrategy<
 >(
   focus: ChartFocusMode<TDatum, TXValue, TYValue> | undefined,
 ): ChartFocusStrategy<TDatum, TXValue, TYValue> | undefined {
+  if (focus === false) return focusDisabled
   if (typeof focus !== 'string') return focus
   switch (focus) {
     case 'nearest-x':

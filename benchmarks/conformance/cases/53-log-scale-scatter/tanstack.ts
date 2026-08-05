@@ -2,6 +2,7 @@ import { flare } from '@charts-poc/demo-data/flare'
 import { defineChart, dot } from '@tanstack/charts'
 import { scaleLinear, scaleLog } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { FlareRow } from '@charts-poc/demo-data/flare'
 import type { ConformanceInput } from '../../types'
 
@@ -11,10 +12,15 @@ const definition = (input: ConformanceInput) => {
   const rows = flare
     .filter((row): row is SizedFlareRow => row.size !== null)
     .slice(input.revision * 8, input.revision * 8 + 200)
+  const scatterRows = samplePreviewData(rows, input, 80, [
+    (row) => row.size,
+    (row) => row.name.split('.').length - 1,
+  ])
 
   return defineChart({
     marks: [
-      dot(rows, {
+      dot(scatterRows, {
+        key: 'name',
         x: 'size',
         y: (row) => row.name.split('.').length - 1,
         r: 3.5,

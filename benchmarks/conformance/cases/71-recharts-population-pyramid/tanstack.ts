@@ -2,7 +2,7 @@ import { penguins } from '@charts-poc/demo-data/penguins'
 import { barX, defineChart } from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { countPenguinsBySpecies, divergeMaleCounts } from './transform'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const definition = (input: ConformanceInput) => {
@@ -42,7 +42,9 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Palmer penguins by species and sex',
 )
+
+export const mount = catalogCase.mount

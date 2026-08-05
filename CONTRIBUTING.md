@@ -32,6 +32,11 @@ pnpm package:check
 pnpm bundle:check
 ```
 
+The unit suite inventories callback surfaces from every published package.
+Public callbacks use primary data plus one context/options bag and never exceed
+two arguments. New external-protocol or service-method exceptions require an
+explicit classification in the contract, not a broader allowlist.
+
 Pull-request CI runs the cached Nx target graph, the locked comparison bundle
 gate, and these uncached browser matrices in parallel:
 
@@ -65,7 +70,7 @@ pnpm changeset
 ```
 
 Choose the release impact and write the summary that should appear in the
-changelog. All eleven public Charts packages form one fixed release group, so one
+changelog. All thirteen public Charts packages form one fixed release group, so one
 package change advances every package to the same version. Documentation,
 tests, benchmarks, and build-only changes do not need a changeset unless they
 alter the published package contract.
@@ -86,10 +91,10 @@ Every push to `main` starts the release workflow:
 3. The merge starts the same workflow again. With no pending changesets, the
    publisher checks npm and builds fresh, consumer-tested tarballs only when
    the coordinated version is unpublished.
-4. npm trusted publishing uses the workflow's OIDC identity to publish core
-   before compact scales and the nine adapters with provenance. The repository
-   has no long-lived npm token.
-5. After all eleven registry entries report the expected integrity and
+4. npm trusted publishing uses the workflow's OIDC identity to publish core,
+   then React, before compact scales, the React catalog, and the remaining nine
+   adapters with provenance. The repository has no long-lived npm token.
+5. After all thirteen registry entries report the expected integrity and
    attestations, the workflow creates one annotated `vX.Y.Z` tag and GitHub
    release from the root changelog.
 
@@ -104,4 +109,4 @@ preflight resumes finalization without republishing existing versions.
 
 Changing the repository name or
 `.github/workflows/release.yml` requires updating the trusted-publisher
-configuration for all eleven packages on npm.
+configuration for all thirteen packages on npm.

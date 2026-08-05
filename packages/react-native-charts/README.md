@@ -6,8 +6,7 @@ scene graphs.
 ## Install
 
 ```sh
-npm install @tanstack/react-native-charts @tanstack/charts d3-scale
-npm install --save-dev @types/d3-scale
+npm install @tanstack/react-native-charts @tanstack/charts @tanstack/charts-scales
 ```
 
 Expo applications also need the SDK-compatible SVG renderer:
@@ -28,7 +27,7 @@ application.
 ## Usage
 
 ```tsx
-import { scaleLinear } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { defineChart, lineY } from '@tanstack/charts/universal'
 import { Chart } from '@tanstack/react-native-charts'
 import { tooltip } from '@tanstack/react-native-charts/tooltip'

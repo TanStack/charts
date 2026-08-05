@@ -19,6 +19,7 @@ import {
   timelineStatuses,
 } from './scenario'
 import { timelineDateKey } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type {
   ChartHost,
   ChartPoint,
@@ -82,6 +83,19 @@ const definition = (input: ConformanceInput) => {
     }
   })
 }
+
+export const catalogCase = tanstackCase(
+  definition,
+  'Tasks scheduled across five resource lanes',
+  {
+    format: (point) =>
+      `${point.datum.resource} · ${point.datum.label} · ${
+        point.datum.status
+      } · ${formatTaskDate(point.datum.start)}–${formatTaskDate(
+        point.datum.end,
+      )}`,
+  },
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

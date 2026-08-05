@@ -3,6 +3,7 @@ import { defineChart, dot, lineY } from '@tanstack/charts'
 import { extent, mean } from 'd3-array'
 import { scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
 import type { ConformanceInput } from '../../types'
 
@@ -50,10 +51,16 @@ const definition = (input: ConformanceInput) => {
       'economy (mpg)': intercept + slope * maximumPower,
     },
   ]
+  const scatterRows = samplePreviewData(rows, input, 80, [
+    (row) => row['power (hp)'],
+    (row) => row['economy (mpg)'],
+  ])
 
   return defineChart({
     marks: [
-      dot(rows, {
+      dot(scatterRows, {
+        key: (row) =>
+          `${row.name}:${row.year}:${row['power (hp)']}:${row['economy (mpg)']}`,
         x: 'power (hp)',
         y: 'economy (mpg)',
         fill: '#93c5fd',

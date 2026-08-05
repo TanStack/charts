@@ -32,6 +32,35 @@
       "burstRevisions": 96
     }
   },
+  "ciSharding": {
+    "basis": "Observed scheduled group command durations, distributed to whole-second workload weights. Full preserves the same relative weights until full-profile CI timing exists.",
+    "observedGroups": [
+      {
+        "id": "raw",
+        "elapsedSeconds": 428,
+        "workloads": ["raw-line", "raw-scatter", "interactive-scatter"]
+      },
+      {
+        "id": "transforms",
+        "elapsedSeconds": 401,
+        "workloads": [
+          "stats-multi-series-line",
+          "rolling-keyed-window",
+          "histogram-128"
+        ]
+      },
+      {
+        "id": "envelopes",
+        "elapsedSeconds": 258,
+        "workloads": ["binned-density", "pixel-envelope", "viewport-envelope"]
+      },
+      {
+        "id": "collections",
+        "elapsedSeconds": 137,
+        "workloads": ["top-categories", "dashboard-lines"]
+      }
+    ]
+  },
   "workloads": [
     {
       "id": "raw-line",
@@ -41,6 +70,10 @@
       "chartType": "line",
       "tier": "basic",
       "representation": "raw",
+      "ciWeight": {
+        "standard": 143,
+        "full": 143
+      },
       "sourceCounts": {
         "quick": [10000],
         "standard": [10000, 100000],
@@ -56,6 +89,10 @@
       "chartType": "scatter",
       "tier": "basic",
       "representation": "raw",
+      "ciWeight": {
+        "standard": 143,
+        "full": 143
+      },
       "sourceCounts": {
         "quick": [1000],
         "standard": [1000, 10000],
@@ -71,6 +108,10 @@
       "chartType": "scatter",
       "tier": "interactive",
       "representation": "raw",
+      "ciWeight": {
+        "standard": 142,
+        "full": 142
+      },
       "sourceCounts": {
         "quick": [1000],
         "standard": [1000, 5000],
@@ -89,6 +130,10 @@
       "chartType": "scatter",
       "tier": "basic",
       "representation": "binned-density",
+      "ciWeight": {
+        "standard": 86,
+        "full": 86
+      },
       "variableSize": true,
       "maximumPreparedRows": 2048,
       "sourceCounts": {
@@ -107,6 +152,10 @@
       "chartType": "line",
       "tier": "basic",
       "representation": "pixel-envelope",
+      "ciWeight": {
+        "standard": 86,
+        "full": 86
+      },
       "maximumPreparedRows": 3200,
       "sourceCounts": {
         "quick": [100000],
@@ -123,6 +172,10 @@
       "chartType": "line",
       "tier": "basic",
       "representation": "pixel-envelope",
+      "ciWeight": {
+        "standard": 86,
+        "full": 86
+      },
       "maximumPreparedRows": 3200,
       "sourceCounts": {
         "quick": [100000],
@@ -139,6 +192,10 @@
       "chartType": "line",
       "tier": "interactive",
       "representation": "raw",
+      "ciWeight": {
+        "standard": 134,
+        "full": 134
+      },
       "multiSeries": true,
       "groupedXFocus": true,
       "seriesShape": {
@@ -171,6 +228,10 @@
       "chartType": "scatter",
       "tier": "basic",
       "representation": "raw-window",
+      "ciWeight": {
+        "standard": 134,
+        "full": 134
+      },
       "rollingWindow": true,
       "burst": true,
       "sourceCounts": {
@@ -189,6 +250,10 @@
       "chartType": "bar",
       "tier": "basic",
       "representation": "histogram",
+      "ciWeight": {
+        "standard": 133,
+        "full": 133
+      },
       "maximumPreparedRows": 128,
       "sourceCounts": {
         "quick": [100000],
@@ -205,6 +270,10 @@
       "chartType": "bar",
       "tier": "basic",
       "representation": "top-categories",
+      "ciWeight": {
+        "standard": 69,
+        "full": 69
+      },
       "maximumPreparedRows": 25,
       "sourceCounts": {
         "quick": [100000],
@@ -221,6 +290,10 @@
       "chartType": "line",
       "tier": "basic",
       "representation": "raw",
+      "ciWeight": {
+        "standard": 68,
+        "full": 68
+      },
       "sourceCounts": {
         "quick": [1000],
         "standard": [1000],

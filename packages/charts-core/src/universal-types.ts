@@ -4,7 +4,7 @@ export type { ArrowOptions } from './arrow'
 export type { BarXOptions, BarYOptions } from './bar'
 export type { BandXOptions, BandYOptions } from './band'
 export type { DotOptions } from './dot'
-export type { FacetAxes, FacetOptions } from './facet'
+export type { FacetAxes, FacetChartContext, FacetOptions } from './facet'
 export type { FrameOptions } from './frame'
 export type { GroupLayout, GroupOptions } from './group'
 export type { HexagonOptions } from './hexagon'
@@ -78,6 +78,7 @@ export type {
 export type {
   Channel,
   ChannelAccessor,
+  ChannelAccessorContext,
   ChannelField,
   ChannelOutput,
   DynamicChartDefinition,
@@ -113,10 +114,12 @@ export type {
   ChartDefinitionOptions,
   ChartFocusFilter,
   ChartFocusAffinity,
+  ChartFocusGroupContext,
   ChartFocusMatch,
   ChartExtensionInput,
   ChartFocusMode,
   ChartFocusPreset,
+  ChartFocusResolveContext,
   ChartFocusSource,
   ChartFocusState,
   ChartFocusStrategy,
@@ -168,6 +171,7 @@ export type {
   ChartSize,
   ChartSpatialIndex,
   ChartSpatialIndexFactory,
+  ChartSpatialIndexFactoryContext,
   ChartSpecDatum,
   ChartSpecXValue,
   ChartSpecYValue,

@@ -53,6 +53,7 @@ const widenedDefinition: ChartDefinition<
 const broadFocusDefinition = defineChart(definition, {
   maxFocusDistance: 1_000,
 })
+const focusDisabledDefinition = defineChart(definition, { focus: false })
 
 if (false) {
   const legacyStaticArity = (
@@ -80,7 +81,7 @@ if (false) {
         }>()
         return points
       },
-      group(_points, point) {
+      group(_points, { point }) {
         expectTypeOf(point.xValue).toEqualTypeOf<number>()
         return [point]
       },
@@ -207,6 +208,7 @@ describe('React adapter', () => {
 
     expect(html).toContain('viewBox="0 0 480 240"')
     expect(html).toContain('aspect-ratio:2')
+    expect(html).not.toContain('aspect-ratio:2px')
   })
 
   it('derives proportional initial geometry from an explicit width', () => {
@@ -223,6 +225,7 @@ describe('React adapter', () => {
     expect(html).toContain('viewBox="0 0 900 300"')
     expect(html).toContain('width:900px')
     expect(html).toContain('aspect-ratio:3')
+    expect(html).not.toContain('aspect-ratio:3px')
   })
 
   it.each([0, -2, Number.NaN, Number.POSITIVE_INFINITY])(
@@ -255,6 +258,35 @@ describe('React adapter', () => {
     )
 
     expect(html).toContain('tabindex="4"')
+  })
+
+  it('server-renders focus-disabled markup and hydrates it without replacing the SVG', async () => {
+    const chart = (
+      <Chart
+        definition={focusDisabledDefinition}
+        width={480}
+        height={260}
+        ariaLabel="Static revenue"
+        tabIndex={4}
+      />
+    )
+    const html = renderToString(chart)
+    const target = document.createElement('div')
+    target.innerHTML = html
+    const serverSvg = target.querySelector('svg')
+    let root!: ReturnType<typeof hydrateRoot>
+
+    expect(serverSvg?.getAttribute('tabindex')).toBe('-1')
+    expect(serverSvg?.querySelector('[data-ts-focus-layer]')).toBeNull()
+
+    await act(async () => {
+      root = hydrateRoot(target, chart)
+    })
+
+    expect(target.querySelector('svg')).toBe(serverSvg)
+    expect(serverSvg?.getAttribute('tabindex')).toBe('-1')
+    expect(serverSvg?.querySelector('[data-ts-focus-layer]')).toBeNull()
+    await act(async () => root.unmount())
   })
 
   it('server-renders unique scoped resource IDs for sibling charts', () => {

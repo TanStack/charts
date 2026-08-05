@@ -3,7 +3,7 @@ import { group, max, min, quantileSorted } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { morley } from '@charts-poc/demo-data/morley'
 import type { MorleyRow } from '@charts-poc/demo-data/morley'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 interface BoxSummary {
   Expt: number
@@ -43,6 +43,7 @@ const definition = () =>
       dot(outliers, {
         x: 'Expt',
         y: 'Speed',
+        key: (row) => `${row.Expt}:${row.Run}`,
         fill: '#ffffff',
         stroke: '#2563eb',
         r: 2.5,
@@ -89,7 +90,7 @@ function summarizeBoxplots(rows: readonly MorleyRow[]) {
   return { summaries, outliers }
 }
 
-export const mount = tanstackMount(definition, 'Grouped boxplots', {
+export const catalogCase = tanstackCase(definition, 'Grouped boxplots', {
   format: ({ datum }) =>
     'median' in datum
       ? `Experiment ${datum.Expt} · median ${datum.median.toLocaleString(
@@ -109,3 +110,5 @@ export const mount = tanstackMount(definition, 'Grouped boxplots', {
           },
         )}`,
 })
+
+export const mount = catalogCase.mount

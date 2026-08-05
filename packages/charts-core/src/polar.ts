@@ -495,7 +495,7 @@ export function radialLine<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radiusValues =
       typeof options.radius === 'number'
         ? data.map(() => options.radius as number)
@@ -667,7 +667,7 @@ export function radialArea<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radiusValues =
       typeof options.radius === 'number'
         ? data.map(() => options.radius as number)
@@ -855,7 +855,7 @@ export function radialText<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radiusValues =
       typeof options.radius === 'number'
         ? data.map(() => options.radius as number)
@@ -1017,7 +1017,7 @@ export function radialRule<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radius1Values =
       typeof options.radius1 === 'number'
         ? data.map(() => options.radius1 as number)
@@ -1145,7 +1145,7 @@ export function radialDot<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radiusValues =
       typeof options.radius === 'number'
         ? data.map(() => options.radius as number)

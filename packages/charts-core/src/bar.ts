@@ -14,6 +14,7 @@ import { valueKey } from './scales'
 import { stackValues } from './stack-internal'
 import type {
   Channel,
+  ChannelAccessor,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
@@ -85,7 +86,7 @@ export function barY<TDatum>(
 
   return createMark(({ markIndex }) => {
     const id = options.id ?? `bar-y-${markIndex}`
-    const xValues = channelValues(data, options.x, (_datum, index) => index)
+    const xValues = channelValues(data, options.x, (_datum, { index }) => index)
     const rawYValues = numericChannelValues(
       data,
       options.y ?? options.y2,
@@ -270,7 +271,7 @@ export function barX<TDatum>(
       options.x ?? options.x2,
       (datum) => (typeof datum === 'number' ? datum : undefined),
     )
-    const yValues = channelValues(data, options.y, (_datum, index) => index)
+    const yValues = channelValues(data, options.y, (_datum, { index }) => index)
     const zValues = channelValues(data, options.z, () => null)
     const colorValues =
       options.color === undefined
@@ -502,11 +503,7 @@ function inferBandwidth(
 function numericChannelValues<TDatum>(
   data: readonly TDatum[],
   channel: number | Channel<TDatum, number | null | undefined> | undefined,
-  fallback: (
-    datum: TDatum,
-    index: number,
-    data: readonly TDatum[],
-  ) => number | null | undefined,
+  fallback: ChannelAccessor<TDatum, number | null | undefined>,
 ) {
   return typeof channel === 'number'
     ? data.map(() => channel)

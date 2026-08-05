@@ -4,7 +4,7 @@ description: Render and hydrate TanStack Charts with Solid.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/solid-charts solid-js d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/solid-charts solid-js
 ```
 
 ```tsx

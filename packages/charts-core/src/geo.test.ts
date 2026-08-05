@@ -103,8 +103,11 @@ describe('geoShape', () => {
           strokeWidth: 1,
           strokeDasharray: '3 2',
           opacity: 0.9,
-          anchor: (region) =>
-            region.properties.id === 'west' ? [20, 20] : [75, 20],
+          anchor: (region, { index, data }) => {
+            expect(data).toBe(regions)
+            expect(data[index]).toBe(region)
+            return region.properties.id === 'west' ? [20, 20] : [75, 20]
+          },
         }),
       ],
       margin: 10,

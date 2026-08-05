@@ -728,6 +728,22 @@ describe('native mark and channel scene', () => {
     expect(svg).toContain('data-ts-focus-layer="over"')
   })
 
+  it('keeps semantic points without generated focus geometry when focus is disabled', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 3, 2])],
+        ...linearAxes([0, 2], [0, 3]),
+        focus: false,
+      }),
+      { width: 480, height: 260 },
+    )
+    const svg = renderChartSvg(scene, { ariaLabel: 'Static trend' })
+
+    expect(scene.points).toHaveLength(3)
+    expect(scene.points.map((point) => point.datum)).toEqual([1, 3, 2])
+    expect(svg).not.toContain('data-ts-focus-layer')
+  })
+
   it('inherits shared grid presentation attributes from one group', () => {
     const scene = createChartScene(
       defineChart({

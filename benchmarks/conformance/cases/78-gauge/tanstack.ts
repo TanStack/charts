@@ -3,7 +3,7 @@ import { defineChart } from '@tanstack/charts'
 import { polar, radialArc } from '@tanstack/charts/polar'
 import { pie } from 'd3-shape'
 import { agreementPercent, gaugeSegments } from './transform'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { GaugeDatum } from './transform'
 import type { ConformanceInput } from '../../types'
 
@@ -42,4 +42,9 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(definition, 'Survey agreement share gauge')
+export const catalogCase = tanstackCase(
+  definition,
+  'Survey agreement share gauge',
+)
+
+export const mount = catalogCase.mount

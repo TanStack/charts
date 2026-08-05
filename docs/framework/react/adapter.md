@@ -197,10 +197,10 @@ Callback types are inferred from the definition's marks.
 The adapter does not redefine:
 
 - marks or chart specs
-- D3 scale and transform ownership
+- scale selection and D3 transform ownership
 - tooltip and focus semantics
 - animation and reconciliation
 - custom marks or renderers
 
-Use [Scales and D3](../../concepts/scales-and-d3.md) for the injected primitive
+Use [Scales](../../concepts/scales-and-d3.md) for the injected primitive
 boundary and the [core reference](../../reference/index.md) for those APIs.

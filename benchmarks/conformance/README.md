@@ -251,7 +251,7 @@ comparison.
 
 ## Current scope
 
-The executable corpus contains 108 paired cases: 74 sourced from Observable
+The executable corpus contains 109 paired cases: 75 sourced from Observable
 Plot, 23 from Recharts, and 11 from Apache ECharts. It spans the common
 cartesian vocabulary plus the high-value catalog beyond it:
 

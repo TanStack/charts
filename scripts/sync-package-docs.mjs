@@ -79,13 +79,14 @@ export async function createLlmsIndex(root) {
     'Authoring rules:',
     '',
     '- Use TanStack data transforms for common group, bin, window, cumulative, rank, normalize, select, and row-stack preparation.',
-    '- Use exact @tanstack/charts-scales/* entries for compact linear, band, point, or ordinal scales. Use direct, granular d3-* imports when full D3 semantics are required; never import the d3 umbrella.',
+    '- Start with exact @tanstack/charts-scales/linear, @tanstack/charts-scales/band, @tanstack/charts-scales/point, or @tanstack/charts-scales/ordinal entries. Upgrade only the mapping that needs temporal, nonlinear, radial, interpolated, statistical, or other complete D3 semantics; never import the d3 umbrella.',
+    '- Treat Date values on compact band or point scales as equally spaced categories. Use d3-scale scaleTime or scaleUtc when elapsed-time spacing or calendar-aware ticks matter.',
     '- Let TanStack Charts own responsive pixel ranges. Scale factories infer domains from mark channels; configured instances preserve application-owned domains.',
     '- Keep data in its application shape. Map fields or accessors into marks instead of creating a library-owned series model.',
     '- Memoize the complete definition against captured application values; definition identity is the application update boundary.',
     '- Preserve inferable datum identity across updates; add explicit keys only when IDs or unique positions are unavailable.',
     '- Prefer built-in marks, then composition, then a custom mark or application-owned overlay.',
-    '- Treat docs/concepts/scales-and-d3.md as the sole D3 integration contract and follow its official D3 links for D3 API details.',
+    '- Treat docs/concepts/scales-and-d3.md as the sole scale-selection and D3 integration contract and follow its official D3 links for D3 API details.',
     '- Do not use casts, suppression comments, private imports, or adapter generics to force a chart through TypeScript.',
   )
 

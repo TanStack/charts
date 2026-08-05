@@ -48,7 +48,8 @@ channels and defaults live in the [mark reference](./index.md#mark-reference).
 
 ```ts
 import { areaY, defineChart, lineY, ruleY } from '@tanstack/charts'
-import { scaleLinear, scaleUtc } from 'd3-scale'
+import { scaleUtc } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 const definition = defineChart({
   marks: [
@@ -77,7 +78,7 @@ must retain identity while its order changes.
 
 ## Conditional positional axes
 
-Each axis used by the marks is required. Supply a D3 factory for an inferred
+Each axis used by the marks is required. Supply a compatible factory for an inferred
 domain or a configured instance for a fixed domain:
 
 ```ts

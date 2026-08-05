@@ -62,7 +62,7 @@ export function areaY<TDatum>(
 
   return createMark(({ markIndex }) => {
     const id = options.id ?? `area-y-${markIndex}`
-    const xValues = channelValues(data, options.x, (_datum, index) => index)
+    const xValues = channelValues(data, options.x, (_datum, { index }) => index)
     const rawY = options.y ?? options.y2
     const rawYValues =
       typeof rawY === 'number'

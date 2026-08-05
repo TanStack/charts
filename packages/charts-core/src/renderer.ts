@@ -2,6 +2,7 @@ import { createChartRuntime } from './runtime'
 import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint, viewportInteractionPoints } from './scene'
 import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
+import { focusDisabled } from './focus-disabled'
 import { nearestPoint } from './nearest'
 import type {
   ChartInteractionController,
@@ -105,7 +106,10 @@ export function mountChartRenderer<
         ariaDescription: options.ariaDescription,
         className: options.className,
         tabIndex:
-          options.definition.keyboard === false ? -1 : (options.tabIndex ?? 0),
+          options.definition.keyboard === false ||
+          options.definition.focus === false
+            ? -1
+            : (options.tabIndex ?? 0),
         idPrefix: options.idPrefix,
         animation: hasRendered
           ? resolveAnimation(options.definition.animate, container, reason)
@@ -116,10 +120,13 @@ export function mountChartRenderer<
     }
     hasRendered = true
     const presentedPoints = interactionPoints()
-    spatialIndex = options.definition.spatialIndex?.(
-      viewportInteractionPoints(scene, scene.points),
-      scene,
-    )
+    spatialIndex =
+      options.definition.focus === false
+        ? undefined
+        : options.definition.spatialIndex?.(
+            viewportInteractionPoints(scene, scene.points),
+            { scene },
+          )
     const trackedPointer =
       (focusOwner === 'pointer' ||
         (focusOwner === 'controlled' && focusSource === 'pointer')) &&
@@ -392,7 +399,18 @@ export function mountChartRenderer<
   }
   const handleClick = (event: MouseEvent) => {
     if (options.definition.pointer === false) return
-    if (tooltipInstance?.contains(event.target)) {
+    const activeTooltip = tooltipInstance
+    const NodeConstructor = container.ownerDocument.defaultView?.Node
+    const originatedInTooltip = NodeConstructor
+      ? event
+          .composedPath()
+          .some(
+            (target) =>
+              target instanceof NodeConstructor &&
+              activeTooltip?.contains(target),
+          )
+      : activeTooltip?.contains(event.target)
+    if (activeTooltip && originatedInTooltip) {
       return
     }
     focusOwner = 'pointer'
@@ -583,7 +601,7 @@ export function mountChartRenderer<
     const points = interactionPoints()
     const focus = resolveFocusStrategy(options.definition.focus)
     if (focus) {
-      return focus.resolve(points, x, y, maxDistance)
+      return focus.resolve(points, { x, y, maxDistance })
     }
     const presentationPoints = surface?.getPresentationPoints?.()
     const candidate =
@@ -611,9 +629,9 @@ export function mountChartRenderer<
     points = interactionPoints(),
   ): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
     return (
-      resolveFocusStrategy(options.definition.focus)?.group(points, point) ?? [
+      resolveFocusStrategy(options.definition.focus)?.group(points, {
         point,
-      ]
+      }) ?? [point]
     )
   }
 
@@ -828,6 +846,7 @@ function resolveFocusStrategy<
 >(
   focus: ChartFocusMode<TDatum, TXValue, TYValue> | undefined,
 ): ChartFocusStrategy<TDatum, TXValue, TYValue> | undefined {
+  if (focus === false) return focusDisabled
   if (typeof focus !== 'string') return focus
   switch (focus) {
     case 'nearest-x':

@@ -212,7 +212,7 @@ is accepted only for an unused dimension.
 
 ## Scale ranges and coordinate direction
 
-Scale factories derive domains from marks. Configured D3 instances retain fixed
+Scale factories derive domains from marks. Configured instances retain fixed
 semantic domains. TanStack Charts supplies ranges from `scene.chart`.
 
 For a normal cartesian chart:
@@ -223,7 +223,8 @@ For a normal cartesian chart:
 
 `reverse: true` flips the range. It does not reorder or mutate the source domain.
 
-See [Scales and D3](./scales-and-d3.md) for the complete ownership boundary and pixel-to-value inversion.
+See [Scales](./scales-and-d3.md) for scale selection, responsive ownership, and
+pixel-to-value inversion.
 
 ## Continuous viewports
 
@@ -317,7 +318,7 @@ does not enter a Cartesian consumer. See
 
 ## Band alignment
 
-A D3 band scale returns the start of a band. TanStack Charts centers the resolved positional value:
+A band scale returns the start of a band. TanStack Charts centers the resolved positional value:
 
 ```text
 band start ├──────── bandwidth ────────┤
@@ -337,7 +338,8 @@ barX(rows, {
 })
 ```
 
-The D3 band scale’s `paddingInner` and `paddingOuter` determine category spacing. `inset` removes additional pixels from both bar edges after layout.
+The band scale's `paddingInner` and `paddingOuter` determine category spacing.
+`inset` removes additional pixels from both bar edges after layout.
 
 For side-by-side bars, `layout: group()` subdivides the primary bandwidth. See
 [Bars and Rankings](../examples/bars-and-rankings.md).
@@ -358,7 +360,7 @@ const overlayStyle = {
 }
 ```
 
-DOM pointer coordinates must first be converted into scene coordinates using the rendered SVG bounds. Native focus does this automatically. Application-owned brush and zoom gestures can use copied D3 scales to invert those scene coordinates.
+DOM pointer coordinates must first be converted into scene coordinates using the rendered SVG bounds. Native focus does this automatically. Application-owned brush and zoom gestures can use copied continuous scales to invert those scene coordinates.
 
 ## Clipping and overflow
 
@@ -378,8 +380,9 @@ Automatic margins only reserve space for chart-owned guides and legends. Applica
 ## Complete horizontal ranking
 
 ```ts
-import { scaleBand, scaleLinear } from 'd3-scale'
 import { barX, defineChart, ruleX } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 interface MetroPopulation {
   Metro: string
@@ -432,7 +435,7 @@ const rankingChart = defineChart({
 })
 ```
 
-This source imports `d3-scale` directly, so install `d3-scale` and `@types/d3-scale` as direct dependencies.
+This chart needs only the lightweight linear and band scale entries.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/bar-horizontal-ranking/?theme=system&height=480"

@@ -95,7 +95,7 @@ is a delta, subtotal, or total.
 
 Keep the cumulative calculation in application data preparation and pass the
 prepared interval channels to a ranged bar or rectangle. The ownership boundary
-is described in [Scales and D3](../concepts/scales-and-d3.md), and the geometry
+is described in [Scales](../concepts/scales-and-d3.md), and the geometry
 contracts are in [Bar and Rect Marks](../reference/marks/bar-and-rect.md).
 
 ## Production checks

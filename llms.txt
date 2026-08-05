@@ -6,7 +6,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 
 - docs/overview.md — Overview: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
 - docs/comparison.md — Compare Libraries: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
-- docs/installation.md — Installation: Install TanStack Charts, a framework adapter, and the granular D3 modules used by your charts.
+- docs/installation.md — Installation: Install TanStack Charts, compact scales, a framework adapter, and optional D3 capabilities.
 - docs/quick-start.md — Quick Start: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 - docs/framework/react/quick-start.md — React Quick Start: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
 - docs/framework/react/adapter.md — React Adapter: Understand the thin React lifecycle, SSR, hydration, update, sizing, class, and style behavior around the shared chart host.
@@ -22,7 +22,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/concepts/grammar-of-graphics.md — Grammar of Graphics: Understand TanStack Charts as a composition of data, marks, channels, scales, guides, and layers.
 - docs/concepts/chart-definitions.md — Chart Definitions: Capture application values in memoized definitions and use responsive builders for surface-dependent choices.
 - docs/concepts/data-and-channels.md — Data and Channels: Map typed application data to positions, grouping, color, radius, and stable chart identity.
-- docs/concepts/scales-and-d3.md — Scales and D3: Understand the explicit boundary between TanStack Charts and granular D3 scales, transforms, shapes, and interaction algorithms.
+- docs/concepts/scales-and-d3.md — Scales: Start with compact scales, upgrade individual mappings to D3 when their semantics require it, and keep responsive range ownership clear.
 - docs/concepts/marks-and-layering.md — Marks and Layering: Choose built-in geometric marks, compose them in render order, and preserve stable layer identity.
 - docs/concepts/layout-axes-and-coordinates.md — Layout, Axes, and Coordinates: Learn how responsive ranges, automatic margins, guides, band alignment, and scene coordinates work.
 - docs/guides/choosing-a-chart.md — Choosing a Chart: Choose a visual encoding from the question, data shape, and comparison task before composing TanStack Charts marks.
@@ -39,7 +39,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/guides/large-data.md — Large Data: Choose bounded visual representations, measure preparation separately, preserve analytical invariants, and avoid rendering more detail than pixels can communicate.
 - docs/guides/ssr-and-hydration.md — SSR and Hydration: Render deterministic chart markup on the server, preserve runtime work through hydration, and handle responsive dimensions without mismatches.
 - docs/guides/exporting.md — Exporting: Export accessible chart SVG or browser-rendered raster images while preserving dimensions, styling, and resource identity.
-- docs/guides/bundle-size-and-performance.md — Bundle Size and Performance: Keep each chart proportional to the marks, D3 modules, host capabilities, and data representation it actually uses.
+- docs/guides/bundle-size-and-performance.md — Bundle Size and Performance: Keep each chart proportional to the marks, scales, host capabilities, and data representation it actually uses.
 - docs/guides/typescript.md — TypeScript: Preserve end-to-end inference from chart data and channels through scales, focus callbacks, adapters, and custom extensions.
 - docs/guides/testing-and-debugging.md — Testing and Debugging: Test chart semantics, geometry, interaction, updates, accessibility, and performance without relying on brittle screenshots alone.
 - docs/guides/ai-authoring.md — AI Authoring: Give coding agents a deterministic route from a visualization goal to typed TanStack Charts code, validation, and advanced extension.
@@ -86,16 +86,17 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/reference/marks/rules-links-arrows-vectors-and-ticks.md — Rules, Links, Arrows, Vectors, and Ticks: Reference for ruleX, ruleY, link, arrow, vector, tickX, and tickY geometry, channels, defaults, curves, and focus anchors.
 - docs/reference/marks/text-frame-and-facet.md — Text, Frame, and Facet Marks: Reference for data labels, chart frames, responsive small multiples, shared or per-cell axes, labels, and facet constraints.
 - docs/reference/marks/geo.md — Geo Shape Mark: Reference for projecting GeoJSON with an opt-in D3-backed geoShape mark.
-- docs/reference/marks/polar.md — Polar Marks: Reference for the opt-in polar container, radial marks, guides, D3 scale factories, and D3-backed geometry.
+- docs/reference/marks/polar.md — Polar Marks: Reference for the opt-in polar container, radial marks, guides, injected scale factories, and D3-backed geometry.
 
 Authoring rules:
 
 - Use TanStack data transforms for common group, bin, window, cumulative, rank, normalize, select, and row-stack preparation.
-- Use exact @tanstack/charts-scales/* entries for compact linear, band, point, or ordinal scales. Use direct, granular d3-* imports when full D3 semantics are required; never import the d3 umbrella.
+- Start with exact @tanstack/charts-scales/linear, @tanstack/charts-scales/band, @tanstack/charts-scales/point, or @tanstack/charts-scales/ordinal entries. Upgrade only the mapping that needs temporal, nonlinear, radial, interpolated, statistical, or other complete D3 semantics; never import the d3 umbrella.
+- Treat Date values on compact band or point scales as equally spaced categories. Use d3-scale scaleTime or scaleUtc when elapsed-time spacing or calendar-aware ticks matter.
 - Let TanStack Charts own responsive pixel ranges. Scale factories infer domains from mark channels; configured instances preserve application-owned domains.
 - Keep data in its application shape. Map fields or accessors into marks instead of creating a library-owned series model.
 - Memoize the complete definition against captured application values; definition identity is the application update boundary.
 - Preserve inferable datum identity across updates; add explicit keys only when IDs or unique positions are unavailable.
 - Prefer built-in marks, then composition, then a custom mark or application-owned overlay.
-- Treat docs/concepts/scales-and-d3.md as the sole D3 integration contract and follow its official D3 links for D3 API details.
+- Treat docs/concepts/scales-and-d3.md as the sole scale-selection and D3 integration contract and follow its official D3 links for D3 API details.
 - Do not use casts, suppression comments, private imports, or adapter generics to force a chart through TypeScript.

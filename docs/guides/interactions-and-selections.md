@@ -100,7 +100,7 @@ controller is available as `host.interaction` and in every `onRender` context.
 
 ## Invert configured scales
 
-Copy the same configured D3 scale onto the resolved plot range:
+Copy the same configured continuous scale onto the resolved plot range:
 
 ```ts
 const interactionX = xScale
@@ -120,8 +120,10 @@ const interactionY = yScale
 
 Apply UTC month snapping, numeric rounding, minimum ranges, and domain clamps
 after inversion. Those policies are application semantics, not scale math.
+This date example uses a D3 time scale; the lightweight linear scale supports
+the same copy, range, and inversion flow for numeric gestures.
 
-The [Scales and D3](../concepts/scales-and-d3.md) page is the sole source for
+The [Scales](../concepts/scales-and-d3.md) page is the sole source for
 D3 ownership and official interaction-module links.
 
 ## Disable competing datum focus

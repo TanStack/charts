@@ -24,17 +24,18 @@ export function createChartRuntime<
         return createChartScene(definition, size, layout)
       }
 
-      const spec = definition.chart({
+      const { chart, ...options } = definition
+      const spec = chart({
         width: size.width,
         height: size.height,
         theme: defaultChartTheme,
       })
 
-      return createChartScene(spec, size, layout) as ChartScene<
-        TDatum,
-        TRenderXValue,
-        TRenderYValue
-      >
+      return createChartScene(
+        { ...spec, ...options },
+        size,
+        layout,
+      ) as ChartScene<TDatum, TRenderXValue, TRenderYValue>
     },
     destroy() {},
   }

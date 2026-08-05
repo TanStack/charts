@@ -54,6 +54,26 @@ describe('native focus model', () => {
     expect(calls).toBe(1)
   })
 
+  it('disables focus resolution and spatial indexing when focus is false', () => {
+    const points = [point('alpha', 'alpha', 0, 10, 10, 1, 2)]
+    let indexCalls = 0
+    const model = createNativeChartFocusModel(
+      chartScene(points),
+      definition({
+        focus: false,
+        spatialIndex: () => {
+          indexCalls += 1
+          return { findNearest: () => points[0] ?? null }
+        },
+      }),
+    )
+
+    expect(indexCalls).toBe(0)
+    expect(model.resolve(10, 10)).toEqual([])
+    expect(model.group(points[0]!)).toEqual([])
+    expect(model.navigation).toEqual([])
+  })
+
   it('restores duplicate keys by datum identity after a scene update', () => {
     const datum = { id: 'same' }
     const previous = point('duplicate', 'alpha', 0, 10, 10, 1, 2, datum)

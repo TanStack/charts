@@ -17,7 +17,7 @@ export { d3Curve } from './d3-shape'
 export { dot } from './dot'
 export type { DotOptions } from './dot'
 export { facet, facetChart } from './facet'
-export type { FacetAxes, FacetOptions } from './facet'
+export type { FacetAxes, FacetChartContext, FacetOptions } from './facet'
 export { frame } from './frame'
 export type { FrameOptions } from './frame'
 export { whenFocused } from './focus-mark'
@@ -160,6 +160,7 @@ export type {
 export type {
   Channel,
   ChannelAccessor,
+  ChannelAccessorContext,
   ChannelField,
   ChannelOutput,
   DynamicChartDefinition,
@@ -197,8 +198,10 @@ export type {
   ChartFocusMode,
   ChartFocusFilter,
   ChartFocusAffinity,
+  ChartFocusGroupContext,
   ChartFocusMatch,
   ChartFocusPreset,
+  ChartFocusResolveContext,
   ChartFocusSource,
   ChartFocusState,
   ChartFocusStrategy,
@@ -250,6 +253,7 @@ export type {
   ChartSize,
   ChartSpatialIndex,
   ChartSpatialIndexFactory,
+  ChartSpatialIndexFactoryContext,
   ChartSpecDatum,
   ChartSpecXValue,
   ChartSpecYValue,

@@ -24,10 +24,14 @@ import type {
 
 export type FacetAxes = 'outer' | 'cell'
 
+export interface FacetChartContext {
+  key: ChartKey
+}
+
 export interface FacetOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
   by: Channel<TDatum, ChartKey>
-  chart: (data: readonly TDatum[], key: ChartKey) => ChartSpec
+  chart: (data: readonly TDatum[], context: FacetChartContext) => ChartSpec
   columns?: number
   minWidth?: number
   gap?: number
@@ -88,7 +92,10 @@ export function facet<TDatum>(
         const showLabel = options.label !== false
         const labelHeight = showLabel ? 22 : 0
         const definitions = entries.map((entry) =>
-          mergeTheme<TDatum>(options.chart(entry.data, entry.key), theme),
+          mergeTheme<TDatum>(
+            options.chart(entry.data, { key: entry.key }),
+            theme,
+          ),
         )
 
         if (

@@ -2,7 +2,7 @@ import { defineChart, link } from '@tanstack/charts'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { selectCandleData } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const candleDate = new Intl.DateTimeFormat('en-US', {
@@ -52,7 +52,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Apple daily candlestick chart',
   {
@@ -60,3 +60,5 @@ export const mount = tanstackMount(
       `${candleDate.format(point.datum.Date)} · Open: ${price.format(point.datum.Open)} · High: ${price.format(point.datum.High)} · Low: ${price.format(point.datum.Low)} · Close: ${price.format(point.datum.Close)}`,
   },
 )
+
+export const mount = catalogCase.mount

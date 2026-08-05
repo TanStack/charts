@@ -11,6 +11,8 @@ dist-paged
 .release-artifacts
 .expo/
 .nx/cache
+.nx/prettier-cache
+.nx/typescript
 .nx/workspace-data
 coverage
 *.log
