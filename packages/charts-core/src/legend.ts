@@ -30,10 +30,12 @@ export function colorLegend(
   const minimumItemWidth = Math.max(64, options.itemWidth ?? 110)
   const labelOffset = options.label ? 13 : 0
   return {
-    height(itemCount, width, colors) {
-      if (colors && isQuantitativeLegend(colors.kind)) {
-        return gradient.height(itemCount, width, colors)
+    height(itemCount, context) {
+      const { chart, colors } = context
+      if (isQuantitativeLegend(colors.kind)) {
+        return gradient.height(itemCount, context)
       }
+      const width = chart.width
       const columns = Math.max(1, Math.floor(width / minimumItemWidth))
       return 18 + labelOffset + Math.ceil(itemCount / columns) * 19
     },

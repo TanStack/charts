@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-04
+Last updated: 2026-08-05
 
 ## Triage rule
 
@@ -239,6 +239,7 @@ Each entry records:
 | F-201 | Structured tooltip rows could not interleave details      | API             | monitoring |
 | F-202 | Paint parity normalized patterns but not gradients        | Tooling         | resolved   |
 | F-203 | Focused rules had no matchable presentation points        | API             | resolved   |
+| F-204 | Callback parameter shapes were inconsistent               | API/Tooling     | resolved   |
 
 ## Findings
 
@@ -673,8 +674,9 @@ Each entry records:
   group-center, and custom anchors combine with fixed or ordered fallback
   placements. `content` remains the escape hatch for application-specific
   grouped structure without accepting arbitrary DOM. The shared content
-  context exposes pinned state to both `content` and item `text` callbacks, so
-  the native model can expand from transient summary rows to pinned details.
+  context exposes pinned state to `content`, `format`, `formatGroup`, and item
+  `text` callbacks, so either structured or plaintext content can expand from
+  transient summaries to pinned details.
   Every framework adapter
   adds a native body-composition boundary with the focused points, resolved
   content, native `defaultBody`, pinned state, and a dismissal action. Chart
@@ -691,9 +693,9 @@ Each entry records:
   Octane adapter tests prove native-body composition and cleanup. Framework
   lifecycle suites additionally cover nested charts, stable body mounting,
   typed and sorted points, transient inertness, pinned dialog semantics, and
-  dismissal. Focused DOM tests verify that content and item callbacks change
-  from `false` while transient to `true` while pinned; native coverage confirms
-  that content context matches renderer pin state. With framework and core
+  dismissal. Focused DOM and native tests verify that content, item, point,
+  and group formatters change from `false` while transient to `true` while
+  pinned. With framework and core
   packages external, no adapter adds more
   than 1.4 kB gzip. No new runtime library was introduced; React DOM is now
   declared as the React adapter's portal peer.
@@ -5038,3 +5040,40 @@ Each entry records:
   gzip bytes to the locked line-scene entry and 350 minified and 64 gzip bytes
   to the representative-marks entry; the universal baseline records that cost,
   and the Stats parity ceiling moves from 42.3 to 42.4 KiB.
+
+### F-204 — Callback parameter shapes were inconsistent
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Tooling
+- Observed in: review of the expanding pinned-tooltip API
+- Friction: `content(points, context)` exposed pinned and formatting state,
+  while sibling `format(point)` and `formatGroup(points)` did not. A full
+  public-surface audit also found authored callbacks with three or four
+  positional parameters and two-argument callbacks whose second parameter was
+  another unlabelled value. Consumers had to remember a different parameter
+  convention for channels, facets, focus strategies, legends, spatial indexes,
+  and tooltips.
+- Decision: public callbacks accept at most two arguments. Primary data or
+  purpose comes first and additional state comes second in a named context or
+  options object; callbacks without a distinct primary payload receive one
+  object. Migrate channels to `(datum, { index, data })`, facet builders to
+  `(data, { key })`, focus resolution and grouping to `(points, context)`,
+  legend measurement to `(itemCount, context)`, spatial factories to
+  `(points, { scene })`, and all tooltip presentation callbacks to the shared
+  `ChartTooltipContentContext`. Keep standard comparators, paired geometry,
+  exact upstream protocols such as D3 threshold generators, and
+  consumer-called service methods as classified exceptions.
+- Verification: the public callback inventory follows exported types,
+  functions, and values into nested package-owned types. It classifies all 527
+  reachable callable surfaces, including Alpine's external directive protocol
+  and Vue's nested tooltip slot, and rejects unclassified surfaces, callback
+  arity above two, or a non-object second callback argument. Focused core,
+  React Native, React, Octane, channel, facet, focus, legend, tooltip, and
+  contract tests cover the migrated shapes; the migration guide records every
+  breaking before-and-after signature. Full type, documentation, package,
+  format, bundle, and comparison gates pass. The reviewed universal bundle
+  baseline increases by at most 154 minified and 69 gzip bytes, and the three
+  affected integrated budgets each move by 0.1 KiB. The focused expanding
+  tooltip conformance case retains 99.6% geometry similarity and passes visual,
+  behavior, and type gates at both sizes and themes.

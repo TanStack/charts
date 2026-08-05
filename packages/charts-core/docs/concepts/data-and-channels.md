@@ -42,10 +42,12 @@ dot(rows, {
 Every accessor receives:
 
 ```ts
-;(datum, index, data) => value
+;(datum, { index, data }) => value
 ```
 
-`datum` has the exact source type, `index` is the zero-based position, and `data` is the readonly materialized source array. Accessors are evaluated when the mark initializes; keep expensive cross-row transforms in application code.
+`datum` has the exact source type. The context contains the zero-based `index`
+and readonly materialized `data` array. Accessors are evaluated when the mark
+initializes; keep expensive cross-row transforms in application code.
 
 ## Positional channels
 

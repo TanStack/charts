@@ -99,7 +99,7 @@ export function mountChartRenderer<
         : undefined,
     })
     hasRendered = true
-    spatialIndex = options.definition.spatialIndex?.(scene.points, scene)
+    spatialIndex = options.definition.spatialIndex?.(scene.points, { scene })
     const nextFocusedPoint = previousFocusedPoint
       ? restoreFocusedPoint(scene.points, previousFocusedPoint)
       : null
@@ -446,7 +446,7 @@ export function mountChartRenderer<
     const points = interactionPoints()
     const focus = resolveFocusStrategy(options.definition.focus)
     if (focus) {
-      return focus.resolve(points, x, y, maxDistance)
+      return focus.resolve(points, { x, y, maxDistance })
     }
     const point =
       points !== interactionScene.points
@@ -472,7 +472,7 @@ export function mountChartRenderer<
     return (
       resolveFocusStrategy(options.definition.focus)?.group(
         interactionPoints(),
-        point,
+        { point },
       ) ?? [point]
     )
   }

@@ -230,7 +230,8 @@ export function createNativeTooltipContent<
   const content = options?.content?.(points, context)
   if (content !== undefined) return content
   const formatted =
-    options?.formatGroup?.(points) ?? options?.format?.(primaryPoint ?? point)
+    options?.formatGroup?.(points, context) ??
+    options?.format?.(primaryPoint ?? point, context)
   if (formatted !== undefined) return formatted
 
   const sharedX =

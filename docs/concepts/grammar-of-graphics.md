@@ -122,7 +122,9 @@ dot(rows, {
 })
 ```
 
-Accessors receive `(datum, index, data)` and remain fully typed. Field channels are filtered by the value type the mark accepts, so TypeScript rejects a date field where a numeric bar length is required.
+Accessors receive `(datum, { index, data })` and remain fully typed. Field
+channels are filtered by the value type the mark accepts, so TypeScript rejects
+a date field where a numeric bar length is required.
 
 Channels describe mappings. Constant appearance options such as `stroke: '#2563eb'` or `fillOpacity: 0.2` describe a fixed style. The distinction keeps semantic encodings visible in source.
 

@@ -41,7 +41,7 @@ export function createNativeChartFocusModel<
   definition: ChartDefinition<TDatum, TXValue, TYValue>,
 ): NativeChartFocusModel<TDatum, TXValue, TYValue> {
   const strategy = resolveFocusStrategy(definition.focus)
-  const spatialIndex = definition.spatialIndex?.(scene.points, scene)
+  const spatialIndex = definition.spatialIndex?.(scene.points, { scene })
   const maxDistance = definition.maxFocusDistance ?? 48
   const navigation =
     strategy?.navigation(scene.points) ?? sceneOrder(scene.points)
@@ -49,7 +49,7 @@ export function createNativeChartFocusModel<
   return {
     resolve(x, y) {
       if (strategy) {
-        return strategy.resolve(scene.points, x, y, maxDistance)
+        return strategy.resolve(scene.points, { x, y, maxDistance })
       }
       const point = spatialIndex
         ? spatialIndex.findNearest(x, y, maxDistance)
@@ -57,7 +57,7 @@ export function createNativeChartFocusModel<
       return point ? [point] : []
     },
     group(point) {
-      return strategy?.group(scene.points, point) ?? [point]
+      return strategy?.group(scene.points, { point }) ?? [point]
     },
     navigation,
     restore(point) {

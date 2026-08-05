@@ -214,8 +214,10 @@ described in [Scales and D3](../concepts/scales-and-d3.md).
 ## Custom focus and gestures
 
 `ChartFocusStrategy` owns pointer resolution, focus grouping, and keyboard task
-order. Rich gestures can instead disable chart-owned focus and maintain
-selection or viewport state in the application.
+order. Its `resolve(points, context)` and `group(points, context)` methods keep
+coordinates and the active point in named context bags. Rich gestures can
+instead disable chart-owned focus and maintain selection or viewport state in
+the application.
 
 See [Focus and interaction](./focus-and-interaction.md).
 

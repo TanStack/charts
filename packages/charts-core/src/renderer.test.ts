@@ -168,10 +168,9 @@ describe('renderer-neutral chart host', () => {
     )
 
     const firstPoint = host.getScene().points[0]!
-    expect(spatialIndex).toHaveBeenCalledWith(
-      host.getScene().points,
-      host.getScene(),
-    )
+    expect(spatialIndex).toHaveBeenCalledWith(host.getScene().points, {
+      scene: host.getScene(),
+    })
     expect(findNearest).toHaveBeenCalledWith(firstPoint.x, firstPoint.y, 48)
     expect(onFocusChange).toHaveBeenLastCalledWith(host.getScene().points[1])
     host.destroy()

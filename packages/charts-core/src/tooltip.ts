@@ -105,7 +105,8 @@ function createTooltipExtension<
     const content = options.content?.(points, contentContext)
     const text =
       content === undefined
-        ? (options.formatGroup?.(points) ?? options.format?.(nextContext.point))
+        ? (options.formatGroup?.(points, contentContext) ??
+          options.format?.(nextContext.point, contentContext))
         : undefined
     const resolvedContent =
       content ??

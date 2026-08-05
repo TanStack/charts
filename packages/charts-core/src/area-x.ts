@@ -75,7 +75,7 @@ export function areaX<TDatum>(
         : channelValues(data, rawX, (datum) =>
             typeof datum === 'number' ? datum : undefined,
           )
-    const yValues = channelValues(data, options.y, (_datum, index) => index)
+    const yValues = channelValues(data, options.y, (_datum, { index }) => index)
     const zValues = channelValues(data, options.z, () => null)
     const colorValues =
       options.color === undefined

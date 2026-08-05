@@ -118,8 +118,9 @@ const definition = defineChart({
 ```
 
 Array order is row order. A nullish field or `text` result omits the row.
-Both item `text` and whole-tooltip `content` callbacks receive `pinned`, which
-is `false` during transient inspection and `true` after click, Enter, or Space.
+Item `text`, `content`, `format`, and `formatGroup` callbacks receive `pinned`,
+which is `false` during transient inspection and `true` after click, Enter, or
+Space.
 Use it to keep the transient tooltip compact and reveal detailed rows when the
 same tooltip is pinned.
 Grouped focus keeps its shared-axis heading and series rows. By default, rows
@@ -135,8 +136,9 @@ Customize plaintext content with typed formatters:
 const formattedDefinition = defineChart(definition, {
   tooltip: {
     use: tooltip,
-    format(point) {
-      return `${point.datum.label}: ${point.datum.value.toLocaleString()}`
+    format(point, { pinned }) {
+      const suffix = pinned ? ' · pinned' : ''
+      return `${point.datum.label}: ${point.datum.value.toLocaleString()}${suffix}`
     },
   },
 })
@@ -148,13 +150,13 @@ For grouped focus:
 const groupedDefinition = defineChart(definition, {
   tooltip: {
     use: tooltip,
-    formatGroup(points) {
+    formatGroup(points, { pinned }) {
       const date = points[0]?.xValue
       const heading =
         date instanceof Date ? date.toLocaleDateString() : String(date ?? '')
 
       return [
-        heading,
+        pinned ? `${heading} · pinned` : heading,
         ...points.map(
           (point) =>
             `${point.groupLabel}: ${point.datum.value.toLocaleString()}`,
@@ -166,8 +168,9 @@ const groupedDefinition = defineChart(definition, {
 ```
 
 Formatting precedence is `content`, `formatGroup`, `format`, then the automatic
-content. `content` returns safe title and row data. `format` and `formatGroup`
-return plain text; returning HTML does not create DOM.
+content. All three callbacks receive the same `ChartTooltipContentContext`.
+`content` returns safe title and row data. `format` and `formatGroup` return
+plain text; returning HTML does not create DOM.
 
 Add `className` to style the native HTML surface. Clicking pins the current
 tooltip for text selection. A later click or Escape unpins it. Set

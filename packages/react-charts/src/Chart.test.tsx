@@ -77,7 +77,7 @@ if (false) {
         }>()
         return points
       },
-      group(_points, point) {
+      group(_points, { point }) {
         expectTypeOf(point.xValue).toEqualTypeOf<number>()
         return [point]
       },

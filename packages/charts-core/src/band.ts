@@ -63,7 +63,7 @@ export function bandX<
 
   return createMarkWithScaleValues(({ markIndex }) => {
     const id = resolved.id ?? `band-x-${markIndex}`
-    const values = channelValues(data, resolved.x, (_datum, index) => index)
+    const values = channelValues(data, resolved.x, (_datum, { index }) => index)
     const zValues = channelValues(data, resolved.z, () => null)
     const colorValues =
       resolved.color === undefined
@@ -168,7 +168,7 @@ export function bandY<
 
   return createMark(({ markIndex }) => {
     const id = resolved.id ?? `band-y-${markIndex}`
-    const values = channelValues(data, resolved.y, (_datum, index) => index)
+    const values = channelValues(data, resolved.y, (_datum, { index }) => index)
     const zValues = channelValues(data, resolved.z, () => null)
     const colorValues =
       resolved.color === undefined

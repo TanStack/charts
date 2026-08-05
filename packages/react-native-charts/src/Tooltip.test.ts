@@ -6,6 +6,8 @@ import type {
   ChartPoint,
   ChartScene,
   ChartTooltipAnchorContext,
+  ChartTooltipContentContext,
+  ChartTooltipOptions,
 } from '@tanstack/charts/types'
 import {
   createNativeTooltipContent,
@@ -115,6 +117,52 @@ describe('native tooltip model', () => {
     expect(pinnedStates).toEqual([false, true])
   })
 
+  it.each(['format', 'formatGroup'] as const)(
+    'supplies shared tooltip context to native %s while pinning',
+    (formatter) => {
+      const points = [point('alpha', 'Alpha', 3)]
+      const currentScene = scene(points)
+      const contexts: ChartTooltipContentContext[] = []
+      const resolveText = (context: ChartTooltipContentContext) => {
+        contexts.push(context)
+        return context.pinned ? 'Pinned' : 'Transient'
+      }
+      const format = (
+        _point: ChartPoint<unknown, number, number>,
+        context: ChartTooltipContentContext,
+      ) => resolveText(context)
+      const formatGroup = (
+        _points: readonly ChartPoint<unknown, number, number>[],
+        context: ChartTooltipContentContext,
+      ) => resolveText(context)
+      const options: ChartTooltipOptions<unknown, number, number> =
+        formatter === 'format' ? { format } : { formatGroup }
+
+      expect(
+        createNativeTooltipContent(
+          points,
+          currentScene,
+          false,
+          options,
+          points[0],
+        ),
+      ).toBe('Transient')
+      expect(
+        createNativeTooltipContent(
+          points,
+          currentScene,
+          true,
+          options,
+          points[0],
+        ),
+      ).toBe('Pinned')
+      expect(contexts.map((context) => context.pinned)).toEqual([false, true])
+      expect(contexts[1]).toMatchObject({ xLabel: 'x', yLabel: 'y' })
+      expect(contexts[1]?.formatX(1)).toBe('1')
+      expect(contexts[1]?.formatY(3)).toBe('3')
+    },
+  )
+
   it('resolves axis anchors and supplies focus context to custom anchors', () => {
     const points = [point('alpha', 'Alpha', 3), point('beta', 'Beta', 7)]
     const currentScene = scene(points)
@@ -168,7 +216,10 @@ describe('native tooltip model', () => {
     const focusedPoints = [beta, alpha]
     const currentScene = scene(focusedPoints)
     const format = vi.fn(
-      (focused: ChartPoint<unknown, number, number>) => focused.key,
+      (
+        focused: ChartPoint<unknown, number, number>,
+        _context: ChartTooltipContentContext,
+      ) => focused.key,
     )
     const anchor = vi.fn(
       (
@@ -200,7 +251,10 @@ describe('native tooltip model', () => {
     )
 
     expect(renderedPoints).toEqual([alpha, beta])
-    expect(format).toHaveBeenCalledWith(beta)
+    expect(format).toHaveBeenCalledWith(
+      beta,
+      expect.objectContaining({ pinned: true }),
+    )
     expect(anchor).toHaveBeenCalledWith([alpha, beta], {
       focus: {
         primary: beta,

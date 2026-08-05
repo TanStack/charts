@@ -238,13 +238,14 @@ clipping.
 ## Custom focus and spatial indexes
 
 A `ChartFocusStrategy` owns pointer resolution, grouping, and keyboard
-navigation. Its generic types must remain identical to the chart points it
-receives.
+navigation. Pointer coordinates and the point being grouped arrive through
+the second context bag. Its generic types must remain identical to the chart
+points it receives.
 
 A `ChartSpatialIndexFactory` builds optional nearest-point acceleration from
-scene points and receives the complete resolved scene as its second argument.
-Return original typed points from the index. Do not erase them to `unknown` and
-cast them back in callbacks.
+scene points and receives the complete resolved scene through
+`context.scene`. Return original typed points from the index. Do not erase
+them to `unknown` and cast them back in callbacks.
 
 ## Extension checklist
 

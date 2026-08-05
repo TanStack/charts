@@ -64,10 +64,14 @@ export type ChartScaleResolver = (
   context: ChartScaleResolveContext,
 ) => ResolvedScale
 
+export interface ChannelAccessorContext<TDatum> {
+  index: number
+  data: readonly TDatum[]
+}
+
 export type ChannelAccessor<TDatum, TValue> = (
   datum: TDatum,
-  index: number,
-  data: readonly TDatum[],
+  context: ChannelAccessorContext<TDatum>,
 ) => TValue
 
 export type ChannelField<TDatum, TValue> = {
@@ -394,11 +398,7 @@ export interface ChartColorLegendContext {
 }
 
 export interface ChartColorLegend {
-  height: (
-    itemCount: number,
-    width: number,
-    colors?: ResolvedColorScale,
-  ) => number
+  height: (itemCount: number, context: ChartColorLegendContext) => number
   render: (context: ChartColorLegendContext) => SceneNode
 }
 
@@ -1004,9 +1004,13 @@ export interface ChartTooltipOptions<
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
     context: ChartTooltipContentContext,
   ) => ChartTooltipContent
-  format?: (point: ChartPoint<TDatum, TXValue, TYValue>) => string
+  format?: (
+    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: ChartTooltipContentContext,
+  ) => string
   formatGroup?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    context: ChartTooltipContentContext,
   ) => string
   sticky?: boolean
 }
@@ -1236,17 +1240,29 @@ export interface ChartFocusStrategy<
 > {
   resolve: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-    x: number,
-    y: number,
-    maxDistance: number,
+    context: ChartFocusResolveContext,
   ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
   group: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: ChartFocusGroupContext<TDatum, TXValue, TYValue>,
   ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
   navigation: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
+}
+
+export interface ChartFocusResolveContext {
+  x: number
+  y: number
+  maxDistance: number
+}
+
+export interface ChartFocusGroupContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  point: ChartPoint<TDatum, TXValue, TYValue>
 }
 
 export type ChartFocusPreset =
@@ -1270,13 +1286,21 @@ export interface ChartSpatialIndex<
   ) => ChartPoint<TDatum, TXValue, TYValue> | null
 }
 
+export interface ChartSpatialIndexFactoryContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  scene: ChartScene<TDatum, TXValue, TYValue>
+}
+
 export type ChartSpatialIndexFactory<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = (
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  scene: ChartScene<TDatum, TXValue, TYValue>,
+  context: ChartSpatialIndexFactoryContext<TDatum, TXValue, TYValue>,
 ) => ChartSpatialIndex<TDatum, TXValue, TYValue>
 
 export interface ChartRuntime<

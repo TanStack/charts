@@ -507,7 +507,12 @@ function resolveSceneLayout(
     if (legend && locks.top === undefined) {
       automatic.top = Math.max(
         automatic.top,
-        legend.height(colors.domain.length, resolved.chart.width, colors),
+        legend.height(colors.domain.length, {
+          colors,
+          chart: resolved.chart,
+          theme,
+          width,
+        }),
       )
     }
     if (!definition.clip) {

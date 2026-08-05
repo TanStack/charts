@@ -803,7 +803,7 @@ async function verifyDeclarations() {
           }
           return points
         },
-        group(_points, point) {
+        group(_points, { point }) {
           point.datum.id.toUpperCase()
           point.xValue.toUpperCase()
           point.yValue.toFixed(0)
@@ -825,10 +825,13 @@ async function verifyDeclarations() {
       tooltip: {
         use: tooltip,
         portal,
-        format(point) {
+        format(point, context) {
           point.datum.id.toUpperCase()
           point.xValue.toUpperCase()
           point.yValue.toFixed(0)
+          context.pinned.valueOf()
+          context.formatX(point.xValue)
+          context.formatY(point.yValue)
           return point.datum.category
         },
       },
@@ -1083,7 +1086,7 @@ async function verifyDeclarations() {
     })
     const numericFocus: ChartFocusStrategy<Row, number, number> = {
       resolve: (points) => points,
-      group: (_points, point) => [point],
+      group: (_points, { point }) => [point],
       navigation: (points) => points,
     }
     const numericRenderer: ChartSvgRenderer<Row, number, number> = () => ''
