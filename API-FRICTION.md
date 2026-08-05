@@ -4241,7 +4241,7 @@ Each entry records:
   projector to accept a semantic value before painting it. Granular production
   fixtures measure the application cursor controller at 0.56 kB minified and
   0.34 kB gzip and the complete adapter-facing host extension and session
-  policy, including scene-aware pointer focus, at 9.56 kB and 3.75 kB.
+  policy, including scene-aware pointer focus, at 9.80 kB and 3.84 kB.
   Retained-input gates
   reject platform renderers, tooltip code, and D3 from both entries and reject
   focus-presentation policy from the application entry. Physical-device and
@@ -4827,25 +4827,24 @@ Each entry records:
   canvas while the stable base canvas remains byte-identical.
   The paired Observable Plot/TanStack scenario retains its label, responsive,
   revision, and settled-state coverage without the application-owned overlay.
-  The isolated crosshair entry, including its guide-carried resolver, is 8.67
-  kB minified and 2.91 kB gzip and retains no cursor, platform-renderer,
+  The isolated crosshair entry, including its guide-carried resolver, is 8.69
+  kB minified and 2.92 kB gzip and retains no cursor, platform-renderer,
   tooltip, or D3 runtime. The renderer-neutral
-  scene contract adds 236 minified and 92 gzip bytes to the locked line scene;
-  static SVG adds 275 and 124 bytes. Configurable SVG guide serialization,
+  scene and static-SVG contracts add 188–258 minified and 68–103 gzip bytes to
+  the four locked non-host products. Configurable SVG guide serialization,
   renderer-owned resource copying, stable detachable guide layers, and generic
-  cursor-session orchestration add 8,730–8,740 minified and 2,827–2,916 gzip
+  cursor-session orchestration add 9,020–9,032 minified and 2,698–2,810 gzip
   bytes to the four locked DOM-host products. That reviewed cost is the core
   renderer capability; crosshair semantics and cursor policy remain opt-in.
   Guide
-  interpolation and stable motion identity add 9,810 minified and 3,008 gzip
-  bytes to the optional motion renderer; the final identity correction is 525
-  and 164 of those bytes. Renderer-boundary checks classify the shared SVG
-  guide-layer helper as platform code. The reviewed exact baselines and
+  interpolation and stable motion identity keep the optional motion renderer
+  at 45.93 kB minified and 15.48 kB gzip. Renderer-boundary checks classify the
+  shared SVG guide-layer helper as platform code. The reviewed exact baselines and
   narrowly raised affected-product ceilings record those costs. The separate
   cross-library comparison baseline changes exactly the 12 TanStack rows while
   leaving all 48 external-library rows unchanged. Against the previous main
-  baseline, those controlled consumers add 2,752–2,911 gzip bytes, or
-  8.22–9.90%; the reviewed baseline records that shared renderer capability
+  baseline, those controlled consumers add 2,655–2,827 gzip bytes, or
+  7.43–8.35%; the reviewed baseline records that shared renderer capability
   rather than describing it as within the ordinary 3% drift tolerance.
   `pnpm benchmark:check` passes against the recorded input revision. The
   DOM-only serializer remains
