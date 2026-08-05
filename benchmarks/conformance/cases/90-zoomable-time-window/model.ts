@@ -44,6 +44,31 @@ export function visibleZoomData(rows: readonly AaplRow[], window: ZoomWindow) {
   })
 }
 
+export function visibleZoomDataWithNeighbors(
+  rows: readonly AaplRow[],
+  window: ZoomWindow,
+) {
+  const start = window.start.getTime()
+  const end = window.end.getTime()
+  let firstVisible = -1
+  let lastVisible = -1
+
+  for (let index = 0; index < rows.length; index += 1) {
+    const timestamp = rows[index]!.Date.getTime()
+    if (timestamp < start) continue
+    if (timestamp > end) break
+    if (firstVisible < 0) firstVisible = index
+    lastVisible = index
+  }
+
+  if (firstVisible < 0) return []
+
+  return rows.slice(
+    Math.max(0, firstVisible - 1),
+    Math.min(rows.length, lastVisible + 2),
+  )
+}
+
 export function zoomSpanDays(window: ZoomWindow) {
   return (window.end.getTime() - window.start.getTime()) / millisecondsPerDay
 }
