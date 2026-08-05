@@ -244,7 +244,7 @@ describe('@tanstack/react-charts-catalog', () => {
   })
 
   it('publishes every conformance case in catalog order', () => {
-    expect(catalogCases).toHaveLength(109)
+    expect(catalogCases).toHaveLength(110)
     expect(caseComponents.size).toBe(catalogCases.length)
     expect([...caseComponents.keys()].sort()).toEqual(
       catalogCases.map(({ id }) => id).sort(),

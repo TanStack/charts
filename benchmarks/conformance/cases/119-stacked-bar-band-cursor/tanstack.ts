@@ -8,6 +8,7 @@ import {
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { tanstackCase } from '../../shared/mount'
 import {
   stackedCursorBandInset,
   stackedCursorBarInset,
@@ -34,16 +35,6 @@ const cursorTransition = {
   restDelta: 0.02,
   restSpeed: 0.02,
 }
-
-const renderer = motion<StackedCursorRow, string, number>({
-  initial: false,
-  transition: {
-    type: 'spring',
-    stiffness: 190,
-    damping: 22,
-    mass: 0.85,
-  },
-})
 
 const chartDefinition = (rows: readonly StackedCursorRow[]) =>
   defineChart({
@@ -120,7 +111,21 @@ const chartDefinition = (rows: readonly StackedCursorRow[]) =>
     keyboard: true,
   })
 
+export const catalogCase = tanstackCase(
+  (input) => chartDefinition(stackedCursorRowsForRevision(input.revision)),
+  'Crimean War deaths with x band and y rule cursors',
+)
+
 export const mount: ConformanceMount = (container, input) => {
+  const renderer = motion<StackedCursorRow, string, number>({
+    initial: false,
+    transition: {
+      type: 'spring',
+      stiffness: 190,
+      damping: 22,
+      mass: 0.85,
+    },
+  })
   let focused: readonly ChartPoint<StackedCursorRow, string, number>[] = []
   let rows = stackedCursorRowsForRevision(input.revision)
   const options = (nextInput: ConformanceInput) => {

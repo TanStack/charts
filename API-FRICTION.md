@@ -258,6 +258,7 @@ Each entry records:
 | F-220 | Focus cursor width depended on private band inference     | API             | resolved   |
 | F-221 | Focus-filtered bands could not act as cursor geometry     | API             | resolved   |
 | F-222 | Scene updates cleared active motion guide placement       | API             | resolved   |
+| F-223 | Custom mounts were not React catalog descriptors          | Tooling/App     | resolved   |
 
 ## Findings
 
@@ -5120,7 +5121,7 @@ Each entry records:
   load chart cases.
 - Verification: strict workspace TypeScript and the focused React SSR suite
   pass. The packed-consumer gate imports every published subpath, renders all
-  109 case components through `react-dom/server`, verifies complete SVG view
+  110 case components through `react-dom/server`, verifies complete SVG view
   boxes, catalog order, declarations, and package targets, rejects source files
   and private workspace dependencies, and passes the existing web and React
   Native package consumers.
@@ -5168,7 +5169,7 @@ Each entry records:
 - Verification: scene tests retain semantic points while omitting the generated
   focus layer. DOM, adapter, renderer-neutral, React SSR/hydration, and React
   Native tests cover the disabled focus contract. The catalog test and packed
-  consumer gate server-render all 109 catalog components.
+  consumer gate server-render all 110 catalog components.
 
 ### F-202 — Worker runtimes rejected bundled CSV parsing
 
@@ -5712,3 +5713,23 @@ Each entry records:
   dotted-rule elements while they animate between points, preserve an active
   guide through a keyed scene update and animate from its prior coordinate,
   and remove the retained layer when the next scene drops its crosshair.
+
+### F-223 — Custom conformance mounts were not React catalog descriptors
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling/Application
+- Observed in: publishing stacked-bar cursor conformance case 119
+- Friction: the custom motion mount was a valid conformance implementation,
+  but the React catalog synchronizer could only infer descriptors from a direct
+  `tanstackMount(...)` export. Case 119 therefore passed the conformance catalog
+  while remaining absent from the published React catalog. Its custom renderer,
+  focus driver, and motion settling also made replacing that mount with the
+  standard helper incorrect.
+- Decision: keep the bespoke conformance mount and export a separate
+  `tanstackCase(...)` descriptor built from the same revision-aware chart
+  definition. Synchronize the generated React wrapper and update the explicit
+  catalog-size contracts to 110.
+- Verification: the React catalog synchronizer reports 110 matching cases, the
+  focused catalog suite server-renders every case including case 119, and the
+  workspace TypeScript check passes.
