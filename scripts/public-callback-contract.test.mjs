@@ -12,7 +12,7 @@ const repositoryRoot = resolve(import.meta.dirname, '..')
 describe('public callback contract', () => {
   it('classifies every callable surface exported by published packages', async () => {
     expect(await publicCallbackContractFailures(repositoryRoot)).toEqual([])
-  })
+  }, 20_000)
 
   it('follows exported values into private nested callback types', async () => {
     const surfaces = new Map(

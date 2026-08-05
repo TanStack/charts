@@ -5323,7 +5323,8 @@ Each entry records:
   breaking before-and-after signature. Full type, documentation, package,
   format, bundle, and comparison gates pass. Against `0.6.5`, the reviewed
   universal bundle baseline increases by at most 476 minified and 137 gzip
-  bytes. The Stats parity ceiling moves by 0.2 KiB; the D3 quadtree and Delaunay
-  integration ceilings each move by 0.1 KiB. The focused expanding tooltip
-  conformance case retains 99.6% geometry similarity and passes visual,
-  behavior, and type gates at both sizes and themes.
+  bytes. The Stats parity and D3 quadtree ceilings each move by 0.2 KiB; the
+  React compact-line and Delaunay integration ceilings each move by 0.1 KiB.
+  The focused expanding tooltip conformance case retains 99.6% geometry
+  similarity and passes visual, behavior, and type gates at both sizes and
+  themes.
