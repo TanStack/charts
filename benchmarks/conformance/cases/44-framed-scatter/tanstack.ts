@@ -2,12 +2,17 @@ import { cars } from '@charts-poc/demo-data/cars'
 import { defineChart, dot, frame } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { ConformanceInput } from '../../types'
 
 const definition = (input: ConformanceInput) => {
   const rows = cars
     .filter((row) => row['economy (mpg)'] !== null)
     .slice(input.revision * 8, input.revision * 8 + 320)
+  const scatterRows = samplePreviewData(rows, input, 80, [
+    (row) => row['weight (lb)'],
+    (row) => row['economy (mpg)'],
+  ])
 
   return defineChart({
     marks: [
@@ -18,7 +23,8 @@ const definition = (input: ConformanceInput) => {
         stroke: '#2563eb',
         strokeOpacity: 0.7,
       }),
-      dot(rows, {
+      dot(scatterRows, {
+        key: (row) => `${row.name}:${row.year}`,
         x: 'weight (lb)',
         y: 'economy (mpg)',
         fill: '#2563eb',

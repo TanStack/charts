@@ -17,6 +17,7 @@ const definition = defineChart({
   x: { scale: scaleLinear().domain([0, 1]) },
   y: { scale: scaleLinear().domain([0, 4]) },
 })
+const focusDisabledDefinition = defineChart(definition, { focus: false })
 
 describe('chart adapter controller', () => {
   it('mounts a prerendered dynamic definition', () => {
@@ -104,6 +105,39 @@ describe('chart adapter controller', () => {
 
     expect(adapter.getScene()?.points).toHaveLength(2)
     expect(container.querySelector('svg')).not.toBeNull()
+    adapter.destroy()
+  })
+
+  it('forces a non-focusable SVG prerender when focus is disabled', () => {
+    const adapter = createChartAdapter({
+      definition: focusDisabledDefinition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Static revenue',
+      tabIndex: 4,
+    })
+    const container = document.createElement('div')
+    container.innerHTML = adapter.prerender()
+
+    expect(container.querySelector('svg')?.getAttribute('tabindex')).toBe('-1')
+    expect(container.querySelector('[data-ts-focus-layer]')).toBeNull()
+    adapter.destroy()
+  })
+
+  it('forces a non-focusable renderer prerender when focus is disabled', () => {
+    const adapter = createChartRendererAdapter({
+      definition: focusDisabledDefinition,
+      renderer: createSvgChartRenderer(renderChartSvg),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Static revenue',
+      tabIndex: 4,
+    })
+    const container = document.createElement('div')
+    container.innerHTML = adapter.prerender()
+
+    expect(container.querySelector('svg')?.getAttribute('tabindex')).toBe('-1')
+    expect(container.querySelector('[data-ts-focus-layer]')).toBeNull()
     adapter.destroy()
   })
 

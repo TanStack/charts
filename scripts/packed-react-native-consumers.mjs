@@ -12,6 +12,7 @@ import {
 import { dirname, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import { gzipSync } from 'node:zlib'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -51,7 +52,7 @@ export async function verifyPackedReactNativeConsumers({
     bareConsumerConfig(repositoryRoot),
     expoConsumerConfig(repositoryRoot),
   ]
-  const bundles = []
+  const consumers = []
 
   for (const config of consumerConfigs) {
     const consumerRoot = resolve(consumersRoot, config.name)
@@ -64,10 +65,25 @@ export async function verifyPackedReactNativeConsumers({
       repositoryRoot,
     })
     await installConsumer(consumerRoot, repositoryRoot)
-    await verifyInstalledPackage({ consumerRoot, repositoryRoot })
-    await verifyConsumerTypes({ config, consumerRoot, repositoryRoot })
-    bundles.push(...(await bundleConsumer({ config, consumerRoot })))
+    consumers.push({ config, consumerRoot })
   }
+
+  const bundledConsumers = new Array(consumers.length)
+  await runWithConcurrency(
+    consumers,
+    2,
+    async ({ config, consumerRoot }, index) => {
+      await verifyInstalledPackage({ consumerRoot, repositoryRoot })
+      await verifyConsumerTypes({ config, consumerRoot })
+      bundledConsumers[index] = await bundleConsumer({ config, consumerRoot })
+      const cache = await stat(resolve(consumerRoot, '.metro-cache'))
+      assert.ok(
+        cache.isDirectory(),
+        `${config.name} Metro cache was not isolated`,
+      )
+    },
+  )
+  const bundles = bundledConsumers.flat()
 
   console.log(
     'Packed React Native exports, declarations, bare Metro, and Expo Metro gates passed.',
@@ -83,7 +99,7 @@ function bareConsumerConfig(repositoryRoot) {
     writeConfig: async (consumerRoot) => {
       await writeFile(
         resolve(consumerRoot, 'metro.config.cjs'),
-        "const { getDefaultConfig } = require('@react-native/metro-config')\n\nmodule.exports = getDefaultConfig(__dirname)\n",
+        isolatedMetroConfig('@react-native/metro-config'),
       )
     },
     strictTypes: true,
@@ -96,10 +112,19 @@ function expoConsumerConfig(repositoryRoot) {
     name: 'expo',
     importerPath: 'examples/charts-expo',
     sourceDirectory: resolve(repositoryRoot, 'examples/charts-expo'),
-    writeConfig: async () => {},
+    writeConfig: async (consumerRoot) => {
+      await writeFile(
+        resolve(consumerRoot, 'metro.config.cjs'),
+        isolatedMetroConfig('expo/metro-config'),
+      )
+    },
     strictTypes: false,
     bundle: bundleExpoConsumer,
   }
+}
+
+function isolatedMetroConfig(moduleName) {
+  return `const path = require('node:path')\nconst { getDefaultConfig } = require(${JSON.stringify(moduleName)})\n\nconst config = getDefaultConfig(__dirname)\nconfig.cacheStores = ({ FileStore }) => [\n  new FileStore({ root: path.join(__dirname, '.metro-cache') }),\n]\n\nmodule.exports = config\n`
 }
 
 async function deployConsumer({

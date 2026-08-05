@@ -62,7 +62,7 @@ window in surrounding text or a legend.
 Changing interpolation only changes the path between observations. It does not
 perform smoothing or create evidence between samples. Route rolling windows,
 grouping, and curve selection through
-[Scales and D3](../concepts/scales-and-d3.md).
+[Scales](../concepts/scales-and-d3.md).
 
 ## Add context with an interval
 
@@ -109,7 +109,7 @@ separate layers remain easier to update and extend.
   [Quick Start](../quick-start.md) demonstrates an explicit line gap.
 - Use a temporal scale for dates and define the domain in application data
   semantics, as described in
-  [Scales and D3](../concepts/scales-and-d3.md).
+  [Scales](../concepts/scales-and-d3.md).
 - Preserve row IDs or unique positions across updates, and group series with
   `z`; supply `key` only when the mark cannot infer identity. See
   [Dynamic Data and Animation](../guides/dynamic-data-and-animation.md).

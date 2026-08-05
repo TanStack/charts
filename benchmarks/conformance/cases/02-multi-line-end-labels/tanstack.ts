@@ -2,8 +2,8 @@ import { defineChart, lineY, text } from '@tanstack/charts'
 import { group } from 'd3-array'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
-import type { ConformanceInput, ConformanceMount } from '../../types'
-import { tanstackMount } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
+import { tanstackCase } from '../../shared/mount'
 import { selectMultiLineData } from './selection'
 import type { MultiLineDatum } from './selection'
 
@@ -44,10 +44,12 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount: ConformanceMount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Unemployment by industry with direct end labels',
 )
+
+export const mount = catalogCase.mount
 
 function lastBySeries(
   rows: readonly MultiLineDatum[],

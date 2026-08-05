@@ -5,7 +5,8 @@ import { stack, stackOffsetWiggle, stackOrderInsideOut } from 'd3-shape'
 import { industries } from '@charts-poc/demo-data/industries'
 import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput, ConformanceMount } from '../../types'
+import { samplePreviewSeries } from '../../shared/preview'
+import type { ConformanceInput } from '../../types'
 
 interface WideTimePoint {
   date: Date
@@ -30,8 +31,13 @@ const colors = [
   '#bab0ab',
 ]
 
-const definition = (_input: ConformanceInput) => {
-  const rows = streamIntervals(industries)
+const definition = (input: ConformanceInput) => {
+  const rows = samplePreviewSeries(
+    streamIntervals(industries),
+    input,
+    32,
+    (row) => row.industry,
+  )
 
   return defineChart({
     marks: [
@@ -51,12 +57,14 @@ const definition = (_input: ConformanceInput) => {
     },
     color: {
       range: colors,
-      legend: colorLegend({ label: 'Industry' }),
+      ...(input.preview === true
+        ? {}
+        : { legend: colorLegend({ label: 'Industry' }) }),
     },
   })
 }
 
-export const mount: ConformanceMount = tanstackMount(
+export const mount = tanstackMount(
   definition,
   'Unemployment by industry as a streamgraph',
   {

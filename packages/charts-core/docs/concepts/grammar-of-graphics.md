@@ -17,7 +17,7 @@ with a fixed series model. It is a composition of:
 1. **Data** — the observations or derived rows a mark consumes.
 2. **Marks** — geometric forms such as lines, bars, dots, areas, rules, or text.
 3. **Channels** — mappings from data to position, grouping, color, radius, or identity.
-4. **Scales** — D3 factories or instances that map semantic values into visual coordinates.
+4. **Scales** — callable factories or instances that map semantic values into visual coordinates.
 5. **Guides** — axes, ticks, grids, titles, and legends that explain those mappings.
 6. **Layers** — marks rendered together in declaration order.
 
@@ -26,8 +26,9 @@ The result is one `ChartSpec` compiled into a renderer-neutral scene.
 ## The smallest useful declaration
 
 ```ts
-import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY, defineChart } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 interface LetterFrequency {
   letter: string
@@ -53,7 +54,8 @@ The mark consumes the typed letter-frequency rows directly and maps their
 existing fields to x and y. No universal series wrapper or renamed chart
 fields sit between the source data and the mark.
 
-Because this example imports `d3-scale` directly, add `d3-scale` and `@types/d3-scale` as direct dependencies. [Scales and D3](./scales-and-d3.md) explains why scales remain explicit.
+The lightweight scale package covers these common numeric and categorical
+mappings. [Scales](./scales-and-d3.md) explains when a chart needs D3 instead.
 
 ## Data belongs to marks
 
@@ -132,13 +134,15 @@ Read [Data and Channels](./data-and-channels.md) for missing values, accessors, 
 
 ## Scale factories derive semantic space
 
-Pass a D3 factory when its domain should follow the mark channels:
+Pass a factory when its domain should follow the mark channels:
 
 ```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scalePoint } from '@tanstack/charts-scales/point'
+
 const axes = {
   x: {
-    scale: scaleUtc,
-    nice: true,
+    scale: scalePoint,
     axis: { label: 'Month' },
   },
   y: {
@@ -181,9 +185,10 @@ Omitted margins are measured from the actual guides. See [Layout, Axes, and Coor
 Marks render in array order. Put context behind the primary data and annotations above it:
 
 ```ts
-import { scaleBand, scaleLinear } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
 import { areaY, barY, d3Curve, defineChart, dot, lineY } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 interface WeatherRow {
   location: string
@@ -287,7 +292,11 @@ const composedChart = defineChart({
 })
 ```
 
-This source imports `d3-scale` and `d3-shape` directly, so add those modules and their matching `@types` packages as direct dependencies. `d3Curve` is the small bridge from a D3 curve factory to the mark curve contract.
+The compact band scale treats these dates as equally spaced categories. Use a
+D3 time or UTC scale instead when elapsed time must determine spacing or ticks.
+This example imports `d3-shape` for the curves, so add it and
+`@types/d3-shape` as direct dependencies. `d3Curve` is the bridge from a D3
+curve factory to the mark curve contract.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/70-composed-chart/?theme=system&height=480"

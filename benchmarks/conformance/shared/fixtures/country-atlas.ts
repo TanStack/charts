@@ -1,8 +1,9 @@
 import countriesAtlasJson from 'world-atlas/countries-110m.json'
 import landAtlasJson from 'world-atlas/land-110m.json'
 import detailedLandAtlasJson from 'world-atlas/land-50m.json'
-import { geoGraticule10 } from 'd3-geo'
+import { geoGraticule, geoGraticule10 } from 'd3-geo'
 import { feature } from 'topojson-client'
+import { simplifyPolygonGeometry } from './simplify-geo'
 import type {
   ExtendedFeature,
   ExtendedFeatureCollection,
@@ -26,6 +27,7 @@ export type LandFeature = ExtendedFeature<CountryGeometry, Record<never, never>>
 
 export const worldSphere: GeoSphere = { type: 'Sphere' }
 export const worldGraticule = geoGraticule10()
+export const previewWorldGraticule = geoGraticule().step([30, 30])()
 
 const countriesTopology = atlasTopology(
   countriesAtlasJson,
@@ -76,21 +78,20 @@ export const worldCountryCollection: ExtendedFeatureCollection<CountryFeature> =
   }
 
 export const worldLand = convertLand(landAtlasJson, 'world-atlas land-110m')
+export const previewWorldLand: LandFeature = {
+  ...worldLand,
+  geometry: simplifyPolygonGeometry(worldLand.geometry, 2),
+}
 export const detailedWorldLand = convertLand(
   detailedLandAtlasJson,
   'world-atlas land-50m',
 )
 
 function atlasTopology(value: unknown, label: string): AtlasTopology {
-  if (
-    !isRecord(value) ||
-    value.type !== 'Topology' ||
-    !Array.isArray(value.arcs) ||
-    !isRecord(value.objects)
-  ) {
+  if (!isAtlasTopology(value)) {
     throw new TypeError(`${label} is not valid TopoJSON`)
   }
-  return value as unknown as AtlasTopology
+  return value
 }
 
 function convertLand(value: unknown, label: string): LandFeature {
@@ -118,6 +119,15 @@ function isCountryGeometry(
   geometry: GeoGeometryObjects,
 ): geometry is CountryGeometry {
   return geometry.type === 'Polygon' || geometry.type === 'MultiPolygon'
+}
+
+function isAtlasTopology(value: unknown): value is AtlasTopology {
+  return (
+    isRecord(value) &&
+    value.type === 'Topology' &&
+    Array.isArray(value.arcs) &&
+    isRecord(value.objects)
+  )
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -15,12 +15,11 @@ When marks emit categorical color values and no color scale is supplied,
 TanStack Charts uses the chart theme palette. This is the convenient default
 for a small, stable set of categories.
 
-For persistent product semantics, supply an explicit configured D3 ordinal
-scale:
+For persistent product semantics, supply an explicit configured ordinal scale:
 
 ```ts
-import { scaleOrdinal } from 'd3-scale'
 import { colorLegend, defineChart, lineY } from '@tanstack/charts'
+import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
 
 const series = ['core', 'react', 'octane'] as const
 const color = scaleOrdinal<string, string>()
@@ -85,10 +84,11 @@ const color = {
 }
 ```
 
-`d3-scale-chromatic` and its matching type package are optional direct
-application dependencies. They are never pulled into charts that do not import
-them. The [D3 integration page](../concepts/scales-and-d3.md) owns the install
-and API-reference links.
+`d3-scale` and `d3-scale-chromatic`, with their matching type packages, are
+optional direct application dependencies for these quantitative mappings.
+They are never pulled into charts that do not import them. The
+[scale guide](../concepts/scales-and-d3.md) owns the install and API-reference
+links.
 
 ## Automatic color legend
 
@@ -154,7 +154,7 @@ direct labels help with the primary comparison.
   a meaningful center exists.
 - Do not imply order with an unordered rainbow palette.
 - Do not use color as the only signal for selection, status, or error.
-- Use `unknown` behavior on the D3 scale when unexpected categories must not
+- Use `unknown` behavior on the ordinal scale when unexpected categories must not
   silently join the domain.
 
 See [Themes and Styling](./themes-and-styling.md) and

@@ -3,7 +3,7 @@
 Svelte 5 lifecycle adapter for `@tanstack/charts`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/svelte-charts svelte d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/svelte-charts svelte
 ```
 
 ```svelte

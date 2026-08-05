@@ -2,6 +2,7 @@ import { cell, colorLegend, defineChart } from '@tanstack/charts'
 import { scaleBand } from 'd3-scale'
 import { alphabet } from '@charts-poc/demo-data/alphabet'
 import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
+import type { ConformanceInput } from '../../types'
 import { tanstackMount } from '../../shared/mount'
 
 interface WaffleCell extends AlphabetRow {
@@ -24,7 +25,7 @@ const total = Math.round(
   alphabet.reduce((sum, row) => sum + row.frequency, 0) / unitFrequency,
 )
 
-const definition = () => {
+const definition = (input: ConformanceInput) => {
   return defineChart(({ width, height }) => {
     const columns = Math.max(
       1,
@@ -53,7 +54,9 @@ const definition = () => {
       color: {
         domain: letters,
         range: colors,
-        legend: colorLegend({ label: 'Letter' }),
+        ...(input.preview === true
+          ? {}
+          : { legend: colorLegend({ label: 'Letter' }) }),
       },
     }
   })

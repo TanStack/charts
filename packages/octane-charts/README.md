@@ -2,16 +2,14 @@
 
 Native TSRX lifecycle adapter for `@tanstack/charts`.
 
-Declare the adapter, core grammar, framework peer, and each D3 module used by
-your chart directly:
+Declare the adapter, core grammar, compact scales, and framework peer:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/octane-charts octane d3-scale
-pnpm add -D @types/d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/octane-charts octane
 ```
 
-Add or omit granular `d3-*` modules and their matching type packages with the
-chart's actual imports.
+Add granular `d3-*` modules and their matching type packages only when the
+chart needs scale or algorithm semantics outside the compact set.
 
 ```tsx
 import { defineChart } from '@tanstack/charts'

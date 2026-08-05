@@ -1,17 +1,24 @@
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
 import { scaleLinear, scaleSqrt } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { ConformanceInput } from '../../types'
 import { bubbleRows } from './model'
 
 const groupRange = ['#2563eb', '#f97316', '#10b981']
 
 const definition = (input: ConformanceInput) => {
-  const rows = bubbleRows(input.revision)
+  const rows = samplePreviewData(bubbleRows(input.revision), input, 80, [
+    (row) => row.culmen_length_mm,
+    (row) => row.culmen_depth_mm,
+    (row) => row.body_mass_g,
+  ])
 
   return defineChart({
     marks: [
       dot(rows, {
+        key: (row) =>
+          `${row.species}:${row.island}:${row.culmen_length_mm}:${row.culmen_depth_mm}:${row.flipper_length_mm}:${row.body_mass_g}:${row.sex}`,
         x: 'culmen_length_mm',
         y: 'culmen_depth_mm',
         color: 'species',

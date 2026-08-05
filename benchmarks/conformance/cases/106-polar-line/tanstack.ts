@@ -8,6 +8,7 @@ import {
 import { scaleLinear } from 'd3-scale'
 import { dayOfYearAngle, seattleWeatherYear } from './transform'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { ConformanceInput } from '../../types'
 
 const angleDomain = [0, 360] as const
@@ -18,7 +19,12 @@ const lineColor = '#0f766e'
 const gridColor = '#94a3b8'
 
 const definition = (input: ConformanceInput) => {
-  const rows = seattleWeatherYear(input.revision)
+  const rows = samplePreviewData(
+    seattleWeatherYear(input.revision),
+    input,
+    80,
+    [(row) => dayOfYearAngle(row), (row) => row.temp_max],
+  )
 
   return defineChart({
     marks: [

@@ -80,6 +80,27 @@ describe('dynamic chart runtime', () => {
     runtime.destroy()
   })
 
+  it('applies replacement behavior to responsive definitions', () => {
+    const base = defineChart({
+      focus: 'nearest-x',
+      chart: () => ({
+        marks: [lineY([2, 4, 3])],
+        ...linearAxes([0, 2], [0, 4]),
+      }),
+    })
+    const definition = defineChart(base, { focus: false })
+    const runtime = createChartRuntime<number>()
+
+    const scene = runtime.render(definition, { width: 480, height: 260 })
+    const svg = renderChartSvgWithResources(scene, {
+      ariaLabel: 'Responsive static chart',
+    })
+
+    expect(scene.points).toHaveLength(3)
+    expect(svg).not.toContain('data-ts-focus-layer')
+    runtime.destroy()
+  })
+
   it('uses definition identity as the application update boundary', () => {
     const data = [{ id: 'a', x: 0, y: 4 }]
     const createDefinition = (stroke: string) =>
@@ -192,6 +213,63 @@ describe('dynamic chart runtime', () => {
       tabIndex: 5,
     })
     expect(svg?.getAttribute('tabindex')).toBe('-1')
+    host.destroy()
+  })
+
+  it('disables native focus and spatial indexing when focus is false', () => {
+    const findNearest = vi.fn()
+    const spatialIndex = vi.fn(() => ({ findNearest }))
+    const onFocusChange = vi.fn()
+    const onFocusGroupChange = vi.fn()
+    const definition = defineChart({
+      marks: [lineY([2, 4, 3])],
+      ...linearAxes([0, 2], [0, 4]),
+      focus: false,
+      spatialIndex,
+    })
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Static chart',
+      onFocusChange,
+      onFocusGroupChange,
+    })
+    const svg = container.querySelector('svg')
+    const point = host.getScene().points[0]
+    if (!svg || !point) throw new Error('Expected rendered chart')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    expect(svg.getAttribute('tabindex')).toBe('-1')
+    expect(spatialIndex).not.toHaveBeenCalled()
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    svg.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }),
+    )
+
+    expect(spatialIndex).not.toHaveBeenCalled()
+    expect(findNearest).not.toHaveBeenCalled()
+    expect(onFocusChange).not.toHaveBeenCalled()
+    expect(onFocusGroupChange).not.toHaveBeenCalled()
     host.destroy()
   })
 

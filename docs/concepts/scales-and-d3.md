@@ -1,43 +1,25 @@
 ---
-title: Scales and D3
-description: Understand the explicit boundary between TanStack Charts and granular D3 scales, transforms, shapes, and interaction algorithms.
+title: Scales
+description: Start with compact scales, upgrade individual mappings to D3 when their semantics require it, and keep responsive range ownership clear.
 ---
 
-TanStack Charts uses an explicit algorithm layer:
+TanStack Charts accepts callable, copyable scale factories and instances. Start
+with the exact compact scale entry that matches the mapping. Upgrade only the
+axis, color, or radius mapping whose semantics require D3.
 
-- **Your application** imports and configures the D3 modules required by a chart.
-- **D3** supplies battle-tested scales, array transforms, shape interpolation, time utilities, and spatial algorithms.
-- **TanStack compact scales** cover the common numeric and categorical scale subset when bundle size matters more than D3's complete semantics.
-- **TanStack Charts** supplies the typed grammar, responsive ranges, guide layout, scene compilation, rendering, reconciliation, and lifecycle.
+- **TanStack compact scales** cover numeric linear, categorical band and point,
+  and ordinal mappings without a production D3 dependency.
+- **D3** adds temporal, nonlinear, radial, interpolated, and statistical scale
+  semantics plus optional shape, time, and spatial algorithms.
+- **TanStack Charts** infers factory domains from mark channels, assigns
+  responsive pixel ranges, lays out guides, compiles scenes, and renders them.
 
-Both scale implementations use callable, copyable scale objects. There is no
-hidden D3 umbrella import.
+Compact and D3 scales implement the same chart-facing contract and can be used
+in one definition. There is no hidden D3 umbrella import.
 
-`@tanstack/charts` declares `d3-array`, `d3-shape`, and `d3-geo` because its
-numeric-bin and stack transforms, polar and D3 curve features, and geo features
-own those implementations. They are not peers and require no `use`
-configuration. Bundlers tree-shake unused algorithms and geometry, and exact
-feature subpaths remain available when an application wants a narrower import.
+## Start with compact scales
 
-## Direct dependency ownership
-
-If application source imports a `d3-*` module, declare that module and its matching TypeScript package directly:
-
-```sh
-pnpm add d3-array d3-scale d3-shape
-pnpm add -D @types/d3-array @types/d3-scale @types/d3-shape
-```
-
-Omit any module the application does not import. A bar chart that only imports `d3-scale` should not install or bundle shape, force, geo, zoom, or hierarchy code.
-
-This rule also applies when definitions live in framework component source.
-The adapter mounts a definition; it does not own the D3 imports used to author
-it.
-
-## Compact scales
-
-For numeric linear, band, point, and ordinal mappings, install the optional
-compact package:
+Install the compact package for ordinary numeric and categorical charts:
 
 ```sh
 pnpm add @tanstack/charts-scales
@@ -56,14 +38,77 @@ There is intentionally no `@tanstack/charts-scales` root export. Each factory
 fits the same callable, `domain`, `range`, and `copy` contract consumed by
 TanStack Charts.
 
-The compact linear scale is numeric and two-stop. It supports mapping,
-`invert`, `clamp`, `nice`, ticks, basic numeric tick formatting, and copying.
-The categorical families support D3-compatible domain interning, padding,
-alignment, rounding, bandwidth, unknown values, and copying.
+The compact linear scale has numeric, two-stop domains and ranges. It supports
+mapping, `invert`, `clamp`, `nice`, ticks, basic numeric tick formatting, and
+copying. The categorical families support D3-compatible domain interning,
+padding, alignment, rounding, bandwidth, unknown values, and copying.
 
-Use `d3-scale` for time, UTC, log, power, symlog, radial, sequential,
-diverging, quantile, quantize, and threshold scales; piecewise or nonnumeric
-interpolation; locale-aware format specifiers; and other full D3 behavior.
+Choose the smallest family that preserves the data's meaning:
+
+| Mapping                                                    | Start with                           | Upgrade when                                                                    |
+| ---------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------- |
+| Numeric x or y                                             | `@tanstack/charts-scales/linear`     | The mapping needs piecewise domains, nonnumeric output, or custom interpolation |
+| Categories with width, such as bars                        | `@tanstack/charts-scales/band`       | The mapping needs behavior outside the documented compact band contract         |
+| Categories without width, such as line or dot positions    | `@tanstack/charts-scales/point`      | The values must instead be spaced by elapsed time                               |
+| Stable categorical colors                                  | `@tanstack/charts-scales/ordinal`    | The color mapping is sequential, diverging, quantile, quantize, or threshold    |
+| Dates spaced by elapsed time and calendar-aware ticks      | `d3-scale` `scaleTime` or `scaleUtc` | —                                                                               |
+| Logarithmic, power, symlog, square-root, or radial mapping | The corresponding `d3-scale` family  | —                                                                               |
+
+`scaleBand` and `scalePoint` accept `Date` values as categories. They preserve
+distinct dates and first-seen order, but they do not represent elapsed time. A
+Friday and the following Monday occupy adjacent categorical positions. Use
+`scaleTime` or `scaleUtc` when the weekend must occupy its real temporal span or
+when the axis needs calendar-aware ticks.
+
+An axis formatter does not by itself require a larger scale. Pass
+`Intl.NumberFormat`, `Intl.DateTimeFormat`, or another application formatter to
+the guide. Upgrade to D3 when the scale's own tick, interpolation, or domain
+semantics are required.
+
+## Upgrade one scale at a time
+
+A definition does not need one scale implementation for every mapping. This
+time-series chart upgrades x to D3 while keeping its ordinary numeric y scale
+compact:
+
+```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleUtc } from 'd3-scale'
+
+const chart = defineChart({
+  marks: [lineY(rows, { x: 'date', y: 'value' })],
+  x: { scale: scaleUtc, nice: true },
+  y: { scale: scaleLinear, nice: true },
+})
+```
+
+Add `d3-scale` and `@types/d3-scale` because this source imports `scaleUtc`.
+The compact package ships its own declarations.
+
+## Direct dependency ownership
+
+If application source imports a `d3-*` module, declare that module and its
+matching TypeScript package directly:
+
+```sh
+pnpm add d3-scale
+pnpm add -D @types/d3-scale
+```
+
+Omit every module the application does not import. A chart that upgrades only
+its temporal axis to `d3-scale` should not install or bundle shape, force, geo,
+zoom, or hierarchy code. Apply the same direct-dependency rule when source
+imports `d3-array`, `d3-shape`, or another granular D3 module.
+
+This rule also applies when definitions live in framework component source.
+The adapter mounts a definition; it does not own the D3 imports used to author
+it.
+
+`@tanstack/charts` declares `d3-array`, `d3-shape`, and `d3-geo` because its
+numeric-bin and stack transforms, polar and D3 curve features, and geo features
+own those implementations. They are not peers and require no `use`
+configuration. Bundlers tree-shake unused algorithms and geometry, and exact
+feature subpaths remain available when an application wants a narrower import.
 
 ## Capability map
 
@@ -92,11 +137,12 @@ Use the official D3 pages as the API reference for each algorithm. TanStack Char
 Every materialized positional dimension declares its scale:
 
 ```ts
-import { scaleLinear, scaleUtc } from 'd3-scale'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 const spec = {
   marks,
-  x: { scale: scaleUtc, nice: true },
+  x: { scale: scaleBand },
   y: { scale: scaleLinear, nice: true },
 }
 ```
@@ -117,14 +163,15 @@ chooses the mapping; materialized mark channels supply its domain.
 
 ## Factory domains come from marks
 
-Pass the D3 factory itself when the domain should cover the rendered data:
+Pass the factory itself when the domain should cover the rendered data:
 
 ```ts
-import { scaleLinear, scaleUtc } from 'd3-scale'
+import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 const chart = defineChart({
-  marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: { scale: scaleUtc, nice: true },
+  marks: [lineY(rows, { x: 'month', y: 'value' })],
+  x: { scale: scalePoint },
   y: { scale: scaleLinear, nice: true },
 })
 ```
@@ -132,12 +179,14 @@ const chart = defineChart({
 Continuous factories use the finite extent of their channels. Band and point
 factories use distinct values in first-seen order. Bars and areas include zero
 when they use an implicit zero baseline. Empty channels retain the factory's
-native D3 domain.
+native domain.
 
 Return a scale from a zero-argument factory when it needs configuration before
 domain inference:
 
 ```ts
+import { scaleBand } from '@tanstack/charts-scales/band'
+
 const x = {
   scale: () => scaleBand<string>().padding(0.16),
 }
@@ -150,6 +199,9 @@ Use the axis `nice` option because nicening must happen after inference.
 Pass a scale instance when the domain must not follow the rendered marks:
 
 ```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleUtc } from 'd3-scale'
+
 const normalizedY = {
   scale: scaleLinear().domain([0, 1]),
 }
@@ -166,6 +218,10 @@ Be equally deliberate with:
 - Which categories exist when some are filtered out
 - Whether multiple facets share a domain
 - Whether a color domain must remain stable across sessions
+
+The instance rule is the same for compact and D3 scales. Use the implementation
+that owns the required mapping semantics, then configure the application-owned
+domain on that instance.
 
 ## Responsive ranges belong to TanStack Charts
 
@@ -196,10 +252,10 @@ const y = {
 
 ## Categorical scales and bandwidth
 
-Pass a D3 band-scale factory for categorical positions:
+Pass the compact band-scale factory for categorical positions:
 
 ```ts
-import { scaleBand } from 'd3-scale'
+import { scaleBand } from '@tanstack/charts-scales/band'
 
 const categoryScale = () =>
   scaleBand<string>().paddingInner(0.12).paddingOuter(0.06)
@@ -223,10 +279,10 @@ const chart = defineChart({
 })
 ```
 
-Use a configured D3 color scale for semantic stability:
+Use a configured compact ordinal scale for semantic stability:
 
 ```ts
-import { scaleOrdinal } from 'd3-scale'
+import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
 
 const regionColor = scaleOrdinal(
   ['North', 'South', 'West'],
@@ -253,6 +309,29 @@ const color = {
   scale: () => scaleOrdinal<string, string>().range(['#2563eb', '#f97316']),
 }
 ```
+
+Upgrade the color mapping to `d3-scale` when numeric values need sequential or
+diverging interpolation, or when authored policy needs quantile, quantize, or
+threshold bins. `d3-scale-chromatic` supplies optional color schemes; it is a
+separate direct dependency when imported.
+
+## Full D3 scale semantics
+
+Replace only the compact factory whose contract is insufficient. Import that
+factory directly from `d3-scale`:
+
+- `scaleUtc` and `scaleTime` preserve elapsed-time spacing and calendar ticks.
+- `scaleLog`, `scalePow`, and `scaleSymlog` express nonlinear quantitative
+  comparisons.
+- `scaleSqrt` and `scaleRadial` map magnitude to symbol radius or area.
+- `scaleSequential`, `scaleDiverging`, `scaleQuantile`, `scaleQuantize`, and
+  `scaleThreshold` express quantitative or stepped color policy.
+- D3 `scaleLinear` supports piecewise domains and ranges, nonnumeric range
+  interpolation, custom interpolators, and the rest of the complete D3 linear
+  contract.
+
+The factory-versus-instance and responsive-range rules do not change after an
+upgrade.
 
 ## Radius scales
 
@@ -351,7 +430,8 @@ When the application owns the gesture, disable the native nearest-point focus st
 <!-- docs-example: log-scale typecheck -->
 
 ```ts
-import { scaleLinear, scaleLog } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLog } from 'd3-scale'
 import { defineChart, dot } from '@tanstack/charts'
 
 interface FlareRow {
@@ -397,7 +477,8 @@ const logChart = defineChart({
 })
 ```
 
-This source imports `d3-scale` directly, so install `d3-scale` and `@types/d3-scale` as direct dependencies.
+This chart upgrades only x. Install `d3-scale` and `@types/d3-scale` for
+`scaleLog`; the ordinary numeric y mapping remains compact.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/53-log-scale-scatter/?theme=system&height=480"
@@ -408,4 +489,17 @@ This source imports `d3-scale` directly, so install `d3-scale` and `@types/d3-sc
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
-For chart-side scale, guide, and color types, see [Scales, Guides, and Color Reference](../reference/scales-guides-and-color.md).
+## Custom scales are the final extension
+
+Use `ChartScale` only when neither a compact nor D3 callable scale can express
+the mapping. Its resolver owns the complete domain, finite mapping, ticks,
+formatting, bandwidth, and response to the supplied chart range. A custom scale
+is appropriate for context-aware mappings that need the resolved chart options,
+not as a wrapper around an existing compact or D3 scale.
+
+See
+[Custom Extensions](../reference/custom-extensions.md#custom-positional-scales)
+for the resolver contract.
+
+For chart-side scale, guide, and color types, see
+[Scales, Guides, and Color Reference](../reference/scales-guides-and-color.md).

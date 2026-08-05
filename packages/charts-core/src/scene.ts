@@ -281,7 +281,11 @@ function createChartSceneWithScaleResolver<
     nodes.push(axisNodes)
   }
   if (legend) nodes.push(legend.render({ colors, chart, theme, width }))
-  if (definition.focusRing !== false && points.length) {
+  if (
+    definition.focus !== false &&
+    definition.focusRing !== false &&
+    points.length
+  ) {
     nodes.push({
       kind: 'group',
       key: 'default-focus',

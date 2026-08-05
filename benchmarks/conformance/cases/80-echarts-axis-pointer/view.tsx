@@ -33,7 +33,7 @@ import type { ReactConformanceProps } from '../../shared/react-mount'
 const AxisPointerExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function AxisPointerExample({ input }, ref) {
+>(function AxisPointerExample({ input, idPrefix }, ref) {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<ChartScene<AxisPointerDatum, Date, number> | null>(
     null,
@@ -137,6 +137,19 @@ const AxisPointerExample = forwardRef<
     [input],
   )
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix}
+        definition={definition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Snapped axis pointer with grouped tooltip"
+        ariaDescription="Move across the chart or use the arrow keys to compare all three industries at the nearest month."
+      />
+    )
+  }
+
   return (
     <div
       ref={surfaceRef}
@@ -144,6 +157,7 @@ const AxisPointerExample = forwardRef<
       style={{ position: 'relative', width: input.width, height: input.height }}
     >
       <Chart
+        idPrefix={idPrefix}
         definition={definition}
         width={input.width}
         height={input.height}
@@ -293,6 +307,7 @@ const AxisPointerExample = forwardRef<
   )
 })
 
+export const catalogComponent = AxisPointerExample
 export const mount = reactMount(AxisPointerExample)
 
 function positionTooltip(scene: ChartScene<AxisPointerDatum>, pointX: number) {

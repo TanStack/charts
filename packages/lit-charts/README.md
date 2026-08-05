@@ -3,7 +3,7 @@
 Lit custom-element adapter for `@tanstack/charts`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/lit-charts lit d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/lit-charts lit
 ```
 
 ```ts

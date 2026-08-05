@@ -12,6 +12,7 @@ export const releasePackageConfigs = [
   ['charts-core', '@tanstack/charts'],
   ['charts-scales', '@tanstack/charts-scales'],
   ['react-charts', '@tanstack/react-charts'],
+  ['react-charts-catalog', '@tanstack/react-charts-catalog'],
   ['react-native-charts', '@tanstack/react-native-charts'],
   ['octane-charts', '@tanstack/octane-charts'],
   ['preact-charts', '@tanstack/preact-charts'],

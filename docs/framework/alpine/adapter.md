@@ -4,7 +4,7 @@ description: Mount TanStack Charts with an Alpine directive.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/alpine-charts alpinejs d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/alpine-charts alpinejs
 ```
 
 ```ts

@@ -2,7 +2,7 @@ import { cars } from '@charts-poc/demo-data/cars'
 import { defineChart, hexagon } from '@tanstack/charts'
 import { hexbin } from 'd3-hexbin'
 import { scaleLinear, scaleThreshold } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
 import type { ConformanceInput } from '../../types'
 
@@ -81,7 +81,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Hexagonally binned point density',
   {
@@ -89,3 +89,5 @@ export const mount = tanstackMount(
       `Bin center: ${coordinate.format(point.datum.x)} lb, ${coordinate.format(point.datum.y)} mpg · Cars: ${point.datum.count}`,
   },
 )
+
+export const mount = catalogCase.mount

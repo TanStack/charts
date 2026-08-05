@@ -111,15 +111,20 @@ or direct strategy use.
 
 ## Disabling chart-owned focus
 
+Set `focus: false` to disable native pointer and keyboard point focus. The
+scene keeps its semantic points but omits the generated default focus layer,
+and the DOM host forces the chart surface out of the tab order. Explicit
+focus-only marks remain available to custom renderers and programmatic paint.
+
 ```ts
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
 ```
 
 `focusDisabled` resolves, groups, and navigates to no points. Use it when an
 application owns gestures, selection paint, accessibility, and task semantics
-outside the native focus layer. It does not remove the rendered focus node or
-other DOM listeners; set definition `keyboard: false` and omit its `tooltip`
-as appropriate for the application-owned interaction.
+outside the native resolver but still needs the rendered focus layer. Set
+definition `keyboard: false` and omit its `tooltip` as appropriate for that
+application-owned interaction.
 
 ## Custom focus strategies
 
@@ -347,7 +352,7 @@ owns its search algorithm and must apply `maxDistance`. Point-only factories
 can ignore the second argument; geometry-aware indexes can traverse
 `context.scene` and use primitive bounds as their acceleration layer.
 Use the granular spatial primitive appropriate to the data; the boundary is
-described in [Scales and D3](../concepts/scales-and-d3.md).
+described in [Scales](../concepts/scales-and-d3.md).
 
 Supplying an index also replaces default primitive containment and affinity
 ranking; the host does not add a linear safety scan after an indexed query. An

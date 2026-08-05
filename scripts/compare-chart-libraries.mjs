@@ -8,6 +8,11 @@ import {
   launchBenchmarkBrowser,
   startBenchmarkServer,
 } from './benchmark/browser.mjs'
+import {
+  bundleBaselineBundles,
+  bundleBaselineRecord,
+  bundleBaselineShapeFailures,
+} from './benchmark/bundle-baseline.mjs'
 import { chartLibraries } from './benchmark/chart-libraries.mjs'
 import {
   comparisonCapabilityCoverage,
@@ -107,6 +112,9 @@ if (sizeOnly && perfOnly) {
 if (args.has('--check') && args.has('--update-baseline')) {
   throw new Error('Choose either --check or --update-baseline, not both.')
 }
+if (args.has('--check') && args.has('--check-bundle-baseline')) {
+  throw new Error('Choose either --check or --check-bundle-baseline, not both.')
+}
 
 const libraryFilter = csvOption('--library')
 const chartFilter = csvOption('--chart')
@@ -136,6 +144,12 @@ if (!selectedTiers.length) {
   throw new Error(
     'The tier filter did not match basic, interactive, or advanced.',
   )
+}
+if (
+  args.has('--check-bundle-provenance') &&
+  !args.has('--check-bundle-baseline')
+) {
+  throw new Error('--check-bundle-provenance requires --check-bundle-baseline.')
 }
 
 await mkdir(caseOutputDirectory, { recursive: true })
@@ -270,7 +284,17 @@ if (args.has('--check')) {
     selectedChartTypes,
     selectedTiers,
   )
-  const failures = await checkBundleBaseline(bundles, versions)
+}
+
+if (args.has('--check') || args.has('--check-bundle-baseline')) {
+  const failures = await checkBundleBaseline(bundles, versions, {
+    requireCompleteMatrix: args.has('--check'),
+    checkSourceProvenance:
+      args.has('--check') || args.has('--check-bundle-provenance'),
+    selectedLibraries,
+    selectedChartTypes,
+    selectedTiers,
+  })
   if (failures.length) {
     console.error(`Bundle comparison failed:\n${failures.join('\n')}`)
     process.exitCode = 1
@@ -1130,7 +1154,17 @@ async function writeBundleBaseline(
   await writeFile(targetPath, `${JSON.stringify(baseline, null, 2)}\n`)
 }
 
-async function checkBundleBaseline(bundles, actualVersions) {
+async function checkBundleBaseline(
+  bundles,
+  actualVersions,
+  {
+    requireCompleteMatrix = true,
+    checkSourceProvenance = true,
+    selectedLibraries: checkedLibraries = libraries,
+    selectedChartTypes: checkedChartTypes = chartTypes,
+    selectedTiers: checkedTiers = tiers,
+  } = {},
+) {
   let baseline
   try {
     baseline = JSON.parse(await readFile(baselinePath, 'utf8'))
@@ -1141,23 +1175,25 @@ async function checkBundleBaseline(bundles, actualVersions) {
   }
 
   const failures = []
-  const expectedTanStackRevision = tanstackComparisonRevision(root)
-  if (baseline.schemaVersion !== 3) {
+  const baselineRecord = bundleBaselineRecord(baseline)
+  const baselineBundles = bundleBaselineBundles(baselineRecord)
+  const expectedTanStackRevision = checkSourceProvenance
+    ? tanstackComparisonRevision(root)
+    : undefined
+  if (baselineRecord.schemaVersion !== 3) {
     failures.push(
       'bundle baseline schema is stale; run pnpm benchmark:update-baseline',
     )
   }
-  if (
-    JSON.stringify(baseline.matrix?.chartTypes) !==
-      JSON.stringify(chartTypes) ||
-    JSON.stringify(baseline.matrix?.tiers) !== JSON.stringify(tiers)
-  ) {
-    failures.push(
-      'bundle baseline matrix does not match the configured chart types and tiers',
-    )
-  }
-  for (const library of libraries) {
-    const expectedVersion = baseline.packageVersions?.[library.id]
+  failures.push(
+    ...bundleBaselineShapeFailures(baseline, {
+      libraryIds: libraries.map((library) => library.id),
+      chartTypes,
+      tiers,
+    }),
+  )
+  for (const library of checkedLibraries) {
+    const expectedVersion = baselineRecord.packageVersions?.[library.id]
     if (!expectedVersion) {
       failures.push(
         `${library.label}: bundle baseline is missing its package version`,
@@ -1165,7 +1201,7 @@ async function checkBundleBaseline(bundles, actualVersions) {
       continue
     }
     const actualVersion = actualVersions[library.id]
-    const source = baseline.sources?.[library.id]
+    const source = baselineRecord.sources?.[library.id]
     const versionFailure = comparisonInstalledVersionFailure(
       source,
       actualVersion,
@@ -1173,11 +1209,13 @@ async function checkBundleBaseline(bundles, actualVersions) {
     )
     if (versionFailure) failures.push(`${library.label}: ${versionFailure}`)
     if (library.id === 'tanstack') {
-      const sourceFailure = tanstackComparisonSourceFailure(
-        source,
-        expectedTanStackRevision,
-      )
-      if (sourceFailure) failures.push(`${library.label}: ${sourceFailure}`)
+      if (checkSourceProvenance) {
+        const sourceFailure = tanstackComparisonSourceFailure(
+          source,
+          expectedTanStackRevision,
+        )
+        if (sourceFailure) failures.push(`${library.label}: ${sourceFailure}`)
+      }
     } else if (
       source?.kind !== 'package' ||
       source.packageName !== library.packageName ||
@@ -1189,7 +1227,15 @@ async function checkBundleBaseline(bundles, actualVersions) {
     }
   }
   const actualIds = new Set(bundles.map((bundle) => bundle.id))
-  const expectedIds = new Set(Object.keys(baseline.bundles))
+  const expectedIds = new Set(
+    requireCompleteMatrix
+      ? Object.keys(baselineBundles)
+      : checkedLibraries.flatMap((library) =>
+          checkedChartTypes.flatMap((chartType) =>
+            checkedTiers.map((tier) => `${library.id}-${chartType}-${tier}`),
+          ),
+        ),
+  )
   for (const id of expectedIds) {
     if (!actualIds.has(id)) failures.push(`${id}: baseline case was not run`)
   }
@@ -1199,7 +1245,7 @@ async function checkBundleBaseline(bundles, actualVersions) {
         `${bundle.id}: normal comparison bundle retained ${bundle.stressSupportBytes} bytes of stress-only support`,
       )
     }
-    const expected = baseline.bundles[bundle.id]
+    const expected = baselineBundles[bundle.id]
     if (!expected) {
       failures.push(`${bundle.id}: no baseline; update the bundle baseline`)
       continue
@@ -1212,8 +1258,8 @@ async function checkBundleBaseline(bundles, actualVersions) {
       'incrementalBrotliBytes',
     ]) {
       const allowance = Math.max(
-        baseline.tolerance.minimumBytes,
-        Math.ceil(expected[metric] * baseline.tolerance.relative),
+        baselineRecord.tolerance.minimumBytes,
+        Math.ceil(expected[metric] * baselineRecord.tolerance.relative),
       )
       const limit = expected[metric] + allowance
       if (bundle[metric] > limit) {

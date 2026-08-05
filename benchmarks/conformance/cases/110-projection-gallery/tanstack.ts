@@ -1,6 +1,10 @@
 import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
-import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
+import {
+  previewWorldLand,
+  worldLand,
+  worldSphere,
+} from '../../shared/fixtures/country-atlas'
 import {
   fitGalleryProjection,
   projectionGalleryData,
@@ -15,21 +19,30 @@ const projectionColors = [
 ]
 
 const definition = (input: ConformanceInput) => {
-  const projections = projectionGalleryData()
+  const projections = projectionGalleryData().slice(
+    0,
+    input.preview ? 2 : undefined,
+  )
 
   return defineChart({
     marks: projections.flatMap((entry, index) => [
       geoShape([worldSphere], {
         projection: ({ chart }) =>
-          fitGalleryProjection(entry.create(), projectionPane(chart, index)),
+          fitGalleryProjection(
+            input.preview ? entry.create().precision(2) : entry.create(),
+            projectionPane(chart, index, input.preview === true),
+          ),
         fill: 'none',
         stroke: 'currentColor',
         strokeOpacity: 0.5,
         strokeWidth: 0.8,
       }),
-      geoShape([worldLand], {
+      geoShape([input.preview ? previewWorldLand : worldLand], {
         projection: ({ chart }) =>
-          fitGalleryProjection(entry.create(), projectionPane(chart, index)),
+          fitGalleryProjection(
+            input.preview ? entry.create().precision(2) : entry.create(),
+            projectionPane(chart, index, input.preview === true),
+          ),
         color: () => entry.id,
         fillOpacity: 0.78,
         stroke: 'currentColor',

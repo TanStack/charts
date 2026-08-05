@@ -5,6 +5,7 @@ import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { createChartSpring } from '@tanstack/charts/spring'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { focusMotionPeriods, focusMotionRows, focusMotionSeries } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type {
   ChartPoint,
   ChartRendererHost,
@@ -203,6 +204,11 @@ function chartDefinition() {
     margin: { top: 24, right: 26, bottom: 38, left: 46 },
   })
 }
+
+export const catalogCase = tanstackCase(
+  chartDefinition,
+  'Grouped line chart with animated focus and crosshair',
+)
 
 interface CrosshairOverlay {
   root: SVGSVGElement

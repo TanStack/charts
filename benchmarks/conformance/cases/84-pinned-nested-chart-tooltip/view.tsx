@@ -36,7 +36,7 @@ import type { EnergyMonth, EnergyMonthId } from './model'
 const EnergyTooltipExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function EnergyTooltipExample({ input }, ref) {
+>(function EnergyTooltipExample({ input, idPrefix }, ref) {
   const viewRef = useRef<HTMLDivElement>(null)
   const focusedIdRef = useRef<EnergyMonthId | null>(null)
   const renderedRef = useRef<{
@@ -115,6 +115,20 @@ const EnergyTooltipExample = forwardRef<
     [],
   )
 
+  if (input.preview) {
+    return (
+      <TooltipChart
+        idPrefix={idPrefix ? `${idPrefix}-main` : undefined}
+        definition={mainDefinition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        renderSvg={renderChartSvgWithResources}
+        ariaLabel="Annual household energy overview"
+        ariaDescription="A gray area tracks monthly electricity consumption. Stacked gold bars show solar energy used on site and exported."
+      />
+    )
+  }
+
   return (
     <div
       ref={viewRef}
@@ -180,8 +194,9 @@ const EnergyTooltipExample = forwardRef<
           />
         </div>
         <TooltipChart
+          idPrefix={idPrefix ? `${idPrefix}-main` : undefined}
           definition={mainDefinition}
-          width={chartWidth}
+          initialWidth={input.width}
           height={chartHeight}
           renderSvg={renderChartSvgWithResources}
           ariaLabel="Annual household energy overview"
@@ -200,7 +215,12 @@ const EnergyTooltipExample = forwardRef<
                 month={month}
                 pinned={pinned}
                 dismiss={dismiss}
-                consumptionChart={<ConsumptionMixChart month={month} />}
+                consumptionChart={
+                  <ConsumptionMixChart
+                    month={month}
+                    idPrefix={idPrefix ? `${idPrefix}-nested` : undefined}
+                  />
+                }
               />
             )
           }}
@@ -210,6 +230,7 @@ const EnergyTooltipExample = forwardRef<
   )
 })
 
+export const catalogComponent = EnergyTooltipExample
 export const mount = reactMount(EnergyTooltipExample)
 
 function energyDefinition(rows: readonly EnergyMonth[], chartWidth: number) {
@@ -379,7 +400,13 @@ function energyDefinition(rows: readonly EnergyMonth[], chartWidth: number) {
   )
 }
 
-function ConsumptionMixChart({ month }: { readonly month: EnergyMonth }) {
+function ConsumptionMixChart({
+  month,
+  idPrefix,
+}: {
+  readonly month: EnergyMonth
+  readonly idPrefix?: string
+}) {
   const definition = useMemo(() => {
     const parts = consumptionBreakdown(month)
     return defineChart(
@@ -410,6 +437,7 @@ function ConsumptionMixChart({ month }: { readonly month: EnergyMonth }) {
 
   return (
     <NestedChart
+      idPrefix={idPrefix}
       definition={definition}
       width={264}
       height={10}

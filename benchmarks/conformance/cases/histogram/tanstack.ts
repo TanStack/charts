@@ -1,7 +1,7 @@
 import { cars } from '@charts-poc/demo-data/cars'
 import { binX, defineChart, rect } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
 import type { ConformanceInput } from '../../types'
 
@@ -38,9 +38,15 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(definition, 'Histogram of fuel economy', {
-  format: ({ datum }) =>
-    `${datum.x1.toLocaleString('en-US')}–${datum.x2.toLocaleString(
-      'en-US',
-    )} · ${datum.count.toLocaleString('en-US')} observations`,
-})
+export const catalogCase = tanstackCase(
+  definition,
+  'Histogram of fuel economy',
+  {
+    format: ({ datum }) =>
+      `${datum.x1.toLocaleString('en-US')}–${datum.x2.toLocaleString(
+        'en-US',
+      )} · ${datum.count.toLocaleString('en-US')} observations`,
+  },
+)
+
+export const mount = catalogCase.mount

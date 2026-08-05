@@ -17,7 +17,7 @@ import {
   calendarMargin,
 } from './layout'
 import { withTokenActivityShell } from './shell'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const weekDomain = Array.from(
@@ -77,16 +77,26 @@ export const tokenUsageCalendarDefinition = (input: ConformanceInput) => {
   })
 }
 
+const ariaLabel =
+  'Token activity from August 2025 through July 2026. Weeks are columns and Sunday through Saturday are rows. Pale gray means no usage; blue intensity ranges from up to 25 million through over 150 million tokens.'
+const interactiveTooltip = {
+  anchor: 'point' as const,
+  className: 'token-activity-tooltip',
+  format: ({
+    datum,
+  }: {
+    datum: ReturnType<typeof tokenUsageCalendar>[number]
+  }) => formatTokenUsage(datum),
+  offset: 5,
+  portal,
+}
+
+export const catalogCase = tanstackCase(
+  tokenUsageCalendarDefinition,
+  ariaLabel,
+  interactiveTooltip,
+)
+
 export const mount = withTokenActivityShell(
-  tanstackMount(
-    tokenUsageCalendarDefinition,
-    'Token activity from August 2025 through July 2026. Weeks are columns and Sunday through Saturday are rows. Pale gray means no usage; blue intensity ranges from up to 25 million through over 150 million tokens.',
-    {
-      anchor: 'point',
-      className: 'token-activity-tooltip',
-      format: ({ datum }) => formatTokenUsage(datum),
-      offset: 5,
-      portal,
-    },
-  ),
+  tanstackMount(tokenUsageCalendarDefinition, ariaLabel, interactiveTooltip),
 )

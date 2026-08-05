@@ -96,7 +96,7 @@ percentile for each time group. It shows how both location and spread evolve.
 ></iframe>
 
 Prepare quantiles by time group in the application, then give the ribbon and
-median their own marks. [Scales and D3](../concepts/scales-and-d3.md) explains
+median their own marks. [Scales](../concepts/scales-and-d3.md) explains
 the preparation boundary; [Line and Area Marks](../reference/marks/line-and-area.md)
 defines the range-area channels.
 

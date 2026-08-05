@@ -2,16 +2,15 @@
 
 React lifecycle adapter for `@tanstack/charts`.
 
-Declare the adapter, core grammar, framework peers, and each D3 module used by
-your chart directly:
+Declare the adapter, core grammar, compact scales, and framework peers:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/react-charts react react-dom d3-scale
-pnpm add -D @types/d3-scale @types/react @types/react-dom
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/react-charts react react-dom
+pnpm add -D @types/react @types/react-dom
 ```
 
-Add or omit granular `d3-*` modules and their matching type packages with the
-chart's actual imports.
+Add granular `d3-*` modules and their matching type packages only when the
+chart needs scale or algorithm semantics outside the compact set.
 
 ```tsx
 import { defineChart } from '@tanstack/charts'

@@ -1,5 +1,7 @@
 ---
 '@tanstack/charts': minor
+'@tanstack/react-charts-catalog': patch
+'@tanstack/react-native-charts': patch
 ---
 
 Expose pinned state to tooltip content and item callbacks so built-in and
@@ -12,3 +14,6 @@ Tooltip `format` and `formatGroup` now receive the same content context as
 `content`; channel accessors use `(datum, { index, data })`; facet, focus,
 legend, and spatial-index extension callbacks move their supporting values
 into named context objects.
+
+Update the published pinned-tooltip catalog case to show the energy overview,
+compact hover summary, and animated pinned detail.

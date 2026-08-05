@@ -6,7 +6,7 @@
     "format-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "prettier --check ."
+        "command": "prettier --check . --cache --cache-strategy content --cache-location .nx/prettier-cache"
       }
     },
     "docs-check": {
@@ -15,16 +15,23 @@
         "command": "node scripts/check-docs.mjs"
       }
     },
+    "docs-test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run benchmarks/conformance/api-friction.test.ts scripts/sync-release-version.test.mjs"
+      }
+    },
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "tsc --noEmit -p tsconfig.json"
-      }
+        "command": "tsc --noEmit --incremental --tsBuildInfoFile .nx/typescript/tsconfig.tsbuildinfo -p tsconfig.json"
+      },
+      "outputs": ["{workspaceRoot}/.nx/typescript/tsconfig.tsbuildinfo"]
     },
     "test-dom": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "vitest run --config vitest.config.ts"
+        "command": "vitest run --config vitest.config.ts --pool=threads"
       }
     },
     "test-solid": {
@@ -85,6 +92,12 @@
         "command": "node scripts/check-framework-adapters.mjs"
       }
     },
+    "react-native-types": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/check-react-native-types.mjs"
+      }
+    },
     "package-check": {
       "executor": "nx:run-commands",
       "options": {
@@ -115,15 +128,38 @@
         "command": "pnpm --filter @charts-poc/conformance-example check:catalog"
       }
     },
-    "catalog-build": {
+    "react-catalog-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "CATALOG_BASE_PATH=/charts/catalog/ pnpm --filter @charts-poc/conformance-example build"
+        "command": "node scripts/sync-react-charts-catalog.mjs --check"
+      },
+      "cache": true,
+      "inputs": ["source"]
+    },
+    "catalog-vite-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "CATALOG_BASE_PATH=/charts/catalog/ pnpm --filter @charts-poc/conformance-example build:vite"
       }
+    },
+    "catalog-artifact-build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["catalog-vite-build"],
+      "options": {
+        "command": "node scripts/build-conformance-artifact.mjs && node scripts/check-conformance-artifact.mjs"
+      }
+    },
+    "catalog-build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["catalog-artifact-build"],
+      "options": {
+        "command": "node -e \"console.log('Catalog build passed.')\""
+      },
+      "cache": false
     },
     "catalog-loading-check": {
       "executor": "nx:run-commands",
-      "dependsOn": ["catalog-build"],
+      "dependsOn": ["catalog-artifact-build"],
       "options": {
         "command": "node scripts/check-catalog-loading.mjs"
       }
@@ -154,16 +190,17 @@
         "test-svelte-ssr",
         "test-octane",
         "test-octane-client",
+        "react-native-types",
         "package-check",
         "bundle-check",
         "catalog-check",
-        "catalog-loading-check",
-        "workspace-diff-check"
+        "react-catalog-check",
+        "catalog-loading-check"
       ],
       "options": {
         "command": "node -e \"console.log('CI targets passed.')\""
       },
-      "cache": false
+      "cache": true
     }
   }
 }

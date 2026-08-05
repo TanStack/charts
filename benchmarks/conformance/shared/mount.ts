@@ -46,8 +46,8 @@ export function tanstackMount<
   ) => ChartDefinition<TDatum, TXValue, TYValue>,
   ariaLabel: string,
   interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
-): ConformanceMount {
-  return (container, input) => {
+): TanStackConformanceCase<TDatum, TXValue, TYValue> {
+  const mount: ConformanceMount = (container, input) => {
     const options = {
       definition: withConformanceBehavior(
         createDefinition(input),
@@ -78,9 +78,45 @@ export function tanstackMount<
       },
     }
   }
+
+  const catalogCase = Object.assign(mount, {
+    createDefinition,
+    ariaLabel,
+    interactiveTooltip,
+  })
+
+  return Object.assign(catalogCase, { mount: catalogCase })
 }
 
-function withConformanceBehavior<
+export interface TanStackConformanceCase<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  (container: HTMLElement, input: ConformanceInput): ConformanceHandle
+  createDefinition: (
+    input: ConformanceInput,
+  ) => ChartDefinition<TDatum, TXValue, TYValue>
+  ariaLabel: string
+  interactiveTooltip: true | ChartTooltipOptions<TDatum>
+  mount: ConformanceMount
+}
+
+export function tanstackCase<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  createDefinition: (
+    input: ConformanceInput,
+  ) => ChartDefinition<TDatum, TXValue, TYValue>,
+  ariaLabel: string,
+  interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
+): TanStackConformanceCase<TDatum, TXValue, TYValue> {
+  return tanstackMount(createDefinition, ariaLabel, interactiveTooltip)
+}
+
+export function withConformanceBehavior<
   TDatum,
   TXValue extends ChartValue,
   TYValue extends ChartValue,
@@ -91,6 +127,7 @@ function withConformanceBehavior<
 ): ChartDefinition<TDatum, TXValue, TYValue> {
   const behavior: ChartDefinitionOptions<TDatum, TXValue, TYValue> = {
     animate: false,
+    ...(input.interactive === true ? {} : { focus: false }),
     keyboard: input.interactive === true,
     tooltip:
       input.interactive !== true

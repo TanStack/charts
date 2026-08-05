@@ -2,7 +2,7 @@ import { defineChart, vector } from '@tanstack/charts'
 import { wind } from '@charts-poc/demo-data/wind'
 import { scaleLinear, scaleSqrt } from 'd3-scale'
 import { sampleWind } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 const speed = scaleSqrt().domain([0, 14]).range([0, 22])
 const sampledWind = sampleWind(wind)
@@ -22,4 +22,9 @@ const definition = () =>
     y: { scale: scaleLinear, grid: true, axis: { label: 'Latitude' } },
   })
 
-export const mount = tanstackMount(definition, 'Two-dimensional vector field')
+export const catalogCase = tanstackCase(
+  definition,
+  'Two-dimensional vector field',
+)
+
+export const mount = catalogCase.mount

@@ -1,6 +1,6 @@
 ---
 title: Bundle Size and Performance
-description: Keep each chart proportional to the marks, D3 modules, host capabilities, and data representation it actually uses.
+description: Keep each chart proportional to the marks, scales, host capabilities, and data representation it actually uses.
 ---
 
 TanStack Charts is split around capability boundaries. A chart should pay for
@@ -14,6 +14,22 @@ The package root is the ergonomic path for ordinary charts:
 ```ts
 import { defineChart, lineY } from '@tanstack/charts'
 ```
+
+Use the compact scale package for common numeric and categorical mappings:
+
+```sh
+pnpm add @tanstack/charts-scales
+```
+
+```ts
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scalePoint } from '@tanstack/charts-scales/point'
+```
+
+There is no package root export. Each exact entry retains only its family, and
+the package has no production D3 dependency.
 
 Capability subpaths make optional boundaries explicit:
 
@@ -80,6 +96,12 @@ Its retained-module gate rejects tooltip, portal, `d3-scale`, `d3-format`,
 `d3-interpolate`, `d3-color`, transforms, and sibling compact-scale entries.
 Separate incremental gates limit tooltip and portal growth.
 
+The current locked fixtures measure the compact line scene at 8,283 gzip bytes
+versus 15,301 with D3 linear scales. The equivalent React consumers measure
+18,924 and 26,026 gzip bytes with React and React DOM external. These are
+fixture measurements, not universal savings claims; they show why the compact
+subset is the normal starting point.
+
 Transforms are root exports for convenience, but their granular subpaths are
 the smallest contract for reusable preparation code. Ordinary line, compact-
 scale, and tooltip-only bundle fixtures reject every transform module. Each
@@ -90,13 +112,30 @@ selection, and advanced reducers do not retain either dependency.
 
 ## Import D3 by capability
 
-TanStack Charts does not bundle a hidden analytical runtime. Import only the D3
-modules that own the scale, shape, transform, or spatial behavior a chart
-needs. A basic bar chart can use `d3-scale`; a stacked area may add
-`d3-shape`; a large nearest-point interaction may add a spatial index.
+Start with compact scales, then import only the D3 module that owns semantics
+outside that subset. Typical upgrade triggers are continuous time or UTC,
+logarithmic and other transformed scales, piecewise or nonnumeric
+interpolation, continuous color, curves, specialized transforms, and spatial
+indexes.
+
+The upgrade is per scale. A calendar x axis can use D3 while its numeric y axis
+stays compact:
+
+```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleUtc } from 'd3-scale'
+
+const x = { scale: scaleUtc, nice: true }
+const y = { scale: scaleLinear, nice: true }
+```
+
+Declare `d3-scale` and `@types/d3-scale` directly when application source uses
+that import. A stacked area may add `d3-shape`; a large nearest-point
+interaction may add a spatial index. Do not install the `d3` umbrella for one
+capability.
 
 The canonical dependency map and official references live in
-[Scales and D3](../concepts/scales-and-d3.md).
+[Scales](../concepts/scales-and-d3.md).
 
 ## Measure the complete feature
 

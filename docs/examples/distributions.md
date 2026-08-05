@@ -40,7 +40,7 @@ can look like a changed distribution.
 The prepared rows should carry each bin's lower bound, upper bound, and count or
 proportion. Render those intervals with
 [Bar and Rect Marks](../reference/marks/bar-and-rect.md). The
-[Scales and D3](../concepts/scales-and-d3.md) concept explains how the
+[Scales](../concepts/scales-and-d3.md) explains how the
 application chooses thresholds and reductions.
 
 ## Compare compact summaries
