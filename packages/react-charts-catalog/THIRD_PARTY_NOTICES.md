@@ -105,6 +105,7 @@ at revision `356f579b1d947ee05a914420eddff0f29cee300a`.
 - `decathlon`: JMP sample data
 - `downloads`: [npm downloads API](https://observablehq.com/@mbostock/npm-daily-downloads?name=@observablehq/cars)
 - `driving`: [The New York Times](https://archive.nytimes.com/www.nytimes.com/imagepages/2010/05/02/business/02metrics.html)
+- `learning-poverty`: [World Bank / Our World in Data](https://ourworldindata.org/grapher/share-of-children-who-cannot-read-at-end-of-primary-age)
 - `morley`: R datasets package
 - `sf-temperatures`: [National Climatic Data Center](https://www.ncdc.noaa.gov/)
 - `simpsons`: [IMDb / Todd W. Schneider](https://data.world/data-society/the-simpsons-by-the-data)

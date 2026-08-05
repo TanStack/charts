@@ -12,14 +12,14 @@ untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `3fdff48` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `11ba458` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `3fdff48`.
+at page render time. The measured TanStack workspace revision is `11ba458`.
 
 ## Capability matrix
 
@@ -90,7 +90,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-08-03`.
+Baseline date: `2026-08-05`.
 
 Controlled ranges cover 12 independently built, minified browser consumers:
 line, bar, area, and scatter at basic, interactive, and advanced tiers. Only
@@ -106,7 +106,7 @@ Vega-Lite, AG Charts, and uPlot main exports were read from Bundlephobia on July
 
 | Library            | Bundle size                            | React externalized | Evidence                                                   |
 | ------------------ | -------------------------------------- | -----------------: | ---------------------------------------------------------- |
-| TanStack Charts    | 28.64–34.09 KiB                        |                  — | Controlled suite                                           |
+| TanStack Charts    | 28.71–34.14 KiB                        |                  — | Controlled suite                                           |
 | D3                 | 90 KB gzip                             |                  — | External main export                                       |
 | Chart.js           | 44.70–58.21 KiB                        |                  — | Controlled suite                                           |
 | Apache ECharts     | 153.10–173.18 KiB                      |                  — | Controlled suite                                           |
@@ -135,8 +135,8 @@ browser run, so this page does not publish a cross-machine timing leaderboard.
 
 ## Broader conformance
 
-The catalog corpus contains 100 TanStack/reference pairs: 68 sourced from
-Observable Plot, 21 from Recharts, and 11 from Apache ECharts. Sixteen pairs
+The catalog corpus contains 109 TanStack/reference pairs: 75 sourced from
+Observable Plot, 23 from Recharts, and 11 from Apache ECharts. Sixteen pairs
 carry executable interaction scenarios. Those counts describe selected
 reference coverage, not each library's feature ceiling or a list of built-in
 TanStack chart types. Chart.js participates in the standard and stress suites,
