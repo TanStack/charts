@@ -3,96 +3,95 @@
   "referenceRenderer": "recharts",
   "order": 840,
   "id": "84-pinned-nested-chart-tooltip",
-  "title": "Pinned penguin tooltip with a nested chart",
+  "title": "Expanding pinned energy tooltip",
   "family": "interaction",
-  "intent": "Pin a penguin observation on click and compare four nearby same-species observations in a real secondary chart without making hover destructive.",
+  "intent": "Keep monthly energy totals compact during transient inspection, then smoothly expand the same pinned tooltip into consumption and solar-use detail.",
   "support": "composed",
   "features": [
-    "external rich tooltip",
+    "native structured tooltip content",
+    "pinned content context",
+    "custom tooltip body renderer",
     "click to pin",
-    "hover without activation",
+    "animated intrinsic height",
     "nested chart",
     "Escape dismissal"
   ],
   "geometry": [
-    {
-      "view": "main",
-      "role": "dot",
-      "count": 5
-    }
+    { "view": "main", "role": "bar", "count": 48 },
+    { "view": "main", "role": "dot", "count": 12 }
   ],
   "interactionScenarios": [
     {
-      "id": "hover-does-not-open-tooltip",
+      "id": "hover-shows-compact-summary",
       "steps": [
         {
           "type": "pointerMove",
-          "target": {
-            "view": "main",
-            "anchor": "point:adelie-biscoe-female"
-          }
+          "target": { "view": "main", "anchor": "month:jun" }
         },
         {
           "type": "assert",
           "assertions": [
-            { "path": "hoveredId", "equals": "adelie-biscoe-female" },
-            { "path": "tooltip.visible", "equals": false },
-            { "path": "tooltip.pinnedId", "equals": null },
-            { "path": "tooltip.miniBarCount", "equals": 0 }
+            { "path": "focusedMonth", "equals": "jun" },
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.pinned", "equals": false },
+            { "path": "tooltip.role", "equals": "status" },
+            { "path": "tooltip.inert", "equals": true },
+            { "path": "tooltip.month", "equals": "June" },
+            { "path": "tooltip.summaryRowCount", "equals": 2 },
+            { "path": "tooltip.detailsExpanded", "equals": false },
+            { "path": "tooltip.closeVisible", "equals": false }
           ]
         },
         { "type": "pointerLeave", "view": "main" },
         {
           "type": "assert",
           "assertions": [
-            { "path": "hoveredId", "equals": null },
+            { "path": "focusedMonth", "equals": null },
             { "path": "tooltip.visible", "equals": false }
           ]
         }
       ]
     },
     {
-      "id": "pin-and-dismiss-with-escape",
+      "id": "pin-expand-and-dismiss-with-escape",
       "steps": [
         {
+          "type": "pointerMove",
+          "target": { "view": "main", "anchor": "month:jun" }
+        },
+        {
           "type": "click",
-          "target": {
-            "view": "main",
-            "anchor": "point:gentoo-biscoe-male"
-          }
+          "target": { "view": "main", "anchor": "month:jun" }
         },
+        { "type": "wait", "durationMs": 300 },
         {
           "type": "assert",
           "assertions": [
+            { "path": "focusedMonth", "equals": "jun" },
             { "path": "tooltip.visible", "equals": true },
-            { "path": "tooltip.pinnedId", "equals": "gentoo-biscoe-male" },
-            { "path": "tooltip.miniBarCount", "equals": 4 },
-            { "path": "tooltip.chartCount", "equals": 1 }
-          ]
-        },
-        {
-          "type": "assert",
-          "assertions": [
-            { "path": "tooltip.selectedOverlayCount", "equals": 1 },
-            { "path": "tooltip.flipperLabelCount", "equals": 4 },
-            { "path": "tooltip.closeVisible", "equals": true }
+            { "path": "tooltip.pinned", "equals": true },
+            { "path": "tooltip.role", "equals": "dialog" },
+            { "path": "tooltip.inert", "equals": false },
+            { "path": "tooltip.summaryRowCount", "equals": 3 },
+            { "path": "tooltip.detailsExpanded", "equals": true },
+            { "path": "tooltip.detailRowCount", "equals": 6 },
+            { "path": "tooltip.nestedBarCount", "equals": 4 },
+            { "path": "tooltip.closeVisible", "equals": true },
+            { "path": "tooltip.text", "includes": "EV charging" }
           ]
         },
         {
           "type": "assertRendered",
           "assertions": [
             {
-              "target": {
-                "selector": "[data-external-tooltip=\"pinned\"]"
-              },
-              "property": "contained",
-              "equals": true,
-              "tolerance": 1
+              "target": { "selector": ".energy-tooltip__reveal" },
+              "property": "height",
+              "atLeast": 180
             },
             {
               "target": {
                 "role": "button",
-                "name": "Close pinned penguin details",
+                "name": "Close energy details",
                 "exact": true
               },
               "property": "visible",
@@ -101,56 +100,26 @@
             {
               "target": {
                 "role": "button",
-                "name": "Close pinned penguin details",
-                "exact": true
-              },
-              "property": "height",
-              "atLeast": 44
-            },
-            {
-              "target": {
-                "role": "button",
-                "name": "Close pinned penguin details",
+                "name": "Close energy details",
                 "exact": true
               },
               "property": "width",
-              "atLeast": 44
-            },
-            {
-              "target": {
-                "selector": "[data-external-tooltip=\"pinned\"]"
-              },
-              "property": "attribute",
-              "attribute": "aria-labelledby",
-              "includes": "nested-tooltip-"
-            },
-            {
-              "target": {
-                "role": "region",
-                "name": "Penguin measurements with a pinned nested-chart tooltip",
-                "exact": true
-              },
-              "property": "count",
-              "equals": 1
+              "atLeast": 36
             }
           ]
         },
-        { "type": "screenshot", "name": "pinned-nested-chart-open" },
+        { "type": "screenshot", "name": "pinned-energy-tooltip-expanded" },
         {
           "type": "key",
           "key": "Escape",
-          "target": {
-            "view": "main",
-            "anchor": "point:gentoo-biscoe-male"
-          }
+          "target": { "view": "main", "anchor": "month:jun" }
         },
         {
           "type": "assert",
           "assertions": [
+            { "path": "focusedMonth", "equals": null },
             { "path": "tooltip.visible", "equals": false },
-            { "path": "tooltip.pinnedId", "equals": null },
-            { "path": "tooltip.miniBarCount", "equals": 0 },
-            { "path": "focusedPoint", "equals": "gentoo-biscoe-male" }
+            { "path": "tooltip.pinned", "equals": false }
           ]
         }
       ]
@@ -159,64 +128,72 @@
       "id": "close-button-dismisses",
       "steps": [
         {
-          "type": "click",
-          "target": {
-            "view": "main",
-            "anchor": "point:chinstrap-dream-male"
-          }
+          "type": "pointerMove",
+          "target": { "view": "main", "anchor": "month:mar" }
         },
         {
           "type": "click",
-          "target": {
-            "view": "main",
-            "anchor": "tooltip:close"
-          }
+          "target": { "view": "main", "anchor": "month:mar" }
+        },
+        { "type": "wait", "durationMs": 300 },
+        {
+          "type": "click",
+          "target": { "view": "main", "anchor": "tooltip:close" }
         },
         {
           "type": "assert",
           "assertions": [
+            { "path": "focusedMonth", "equals": null },
             { "path": "tooltip.visible", "equals": false },
-            { "path": "tooltip.pinnedId", "equals": null },
-            { "path": "tooltip.selectedOverlayCount", "equals": 0 },
-            { "path": "focusedPoint", "equals": "chinstrap-dream-male" }
+            { "path": "tooltip.pinned", "equals": false }
           ]
         }
       ]
     },
     {
-      "id": "second-click-unpins",
+      "id": "keyboard-focus-pins-and-expands",
       "steps": [
         {
-          "type": "click",
-          "target": {
-            "view": "main",
-            "anchor": "point:adelie-biscoe-female"
-          }
+          "type": "key",
+          "key": "Enter",
+          "target": { "view": "main", "anchor": "month:jan" }
+        },
+        { "type": "wait", "durationMs": 300 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focusedMonth", "equals": "jan" },
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.pinned", "equals": true },
+            { "path": "tooltip.role", "equals": "dialog" },
+            { "path": "tooltip.summaryRowCount", "equals": 3 },
+            { "path": "tooltip.detailsExpanded", "equals": true },
+            { "path": "tooltip.detailRowCount", "equals": 6 },
+            { "path": "tooltip.closeVisible", "equals": true }
+          ]
         },
         {
-          "type": "click",
-          "target": {
-            "view": "main",
-            "anchor": "point:adelie-biscoe-female"
-          }
+          "type": "key",
+          "key": "Escape",
+          "target": { "view": "main", "anchor": "month:jan" }
         },
         {
           "type": "assert",
           "assertions": [
+            { "path": "focusedMonth", "equals": null },
             { "path": "tooltip.visible", "equals": false },
-            { "path": "tooltip.pinnedId", "equals": null },
-            { "path": "tooltip.miniBarCount", "equals": 0 }
+            { "path": "tooltip.pinned", "equals": false }
           ]
         }
       ]
     }
   ],
   "source": {
-    "title": "Recharts custom tooltip content",
-    "url": "https://recharts.github.io/en-US/examples/CustomContentOfTooltip/"
+    "title": "Dan Marek expanding energy tooltip interaction",
+    "url": "https://x.com/dan__marek/status/2083202252219559958"
   },
   "ai": {
-    "create": "Create a selectable penguin chart where hover only exposes focus state, clicking pins an external tooltip, and the tooltip mounts a four-bar same-species comparison.",
-    "maintain": "Keep hover and pinned selection separate, key the five displayed cohort representatives by species, island, and sex, destroy nested chart hosts when hidden, and preserve Escape plus second-click dismissal."
+    "create": "Create a twelve-month household energy chart with stacked consumption bars and a solar-generation line. Hover or keyboard focus shows only monthly totals. Click, Enter, or Space pins that tooltip, adds a solar-coverage row through the structured content callback, and smoothly reveals consumption plus generation-use details through the framework renderer. Keep the detailed subtree mounted and animate its intrinsic height from zero to auto with a one-row grid.",
+    "maintain": "Preserve twelve stable month IDs, four consumption segments per month, the compact two-row transient summary, pinned-only solar coverage, six detailed rows, a four-segment nested chart, native inert/status versus interactive/dialog semantics, reduced-motion behavior, and Escape plus close-button dismissal."
   }
 }

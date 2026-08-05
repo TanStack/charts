@@ -473,6 +473,67 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 
+  it('does not repin when dismissing a tooltip unmounts the click target', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    let closeButton: HTMLButtonElement | undefined
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Dismissible composed tooltip',
+      onFocusChange,
+      onTooltipBodyChange(target) {
+        if (!target) {
+          closeButton?.remove()
+          closeButton = undefined
+          return
+        }
+        if (closeButton) return
+        closeButton = document.createElement('button')
+        closeButton.addEventListener('click', () => target.dismiss())
+        target.element.append(closeButton)
+      },
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+    fake.element.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+
+    const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+    expect(tooltip?.dataset.sticky).toBe('true')
+    if (!closeButton) throw new Error('Expected composed tooltip close button')
+
+    closeButton.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 20,
+      }),
+    )
+
+    expect(tooltip?.hidden).toBe(true)
+    expect(onFocusChange).toHaveBeenLastCalledWith(null)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toBeNull()
+    host.destroy()
+  })
+
   it('uses the tooltip as a top-layer popover, retains ancestry, and reopens it while active', () => {
     const popover = installPopoverMock(window)
     const viewport = installVisualViewport(window, {

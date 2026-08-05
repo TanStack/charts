@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-02
+Last updated: 2026-08-04
 
 ## Triage rule
 
@@ -234,6 +234,8 @@ Each entry records:
 | F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
 | F-197 | Workspace validation omitted comparison provenance        | Tooling         | resolved   |
 | F-198 | Union-valued axes rejected configured D3 scales           | API             | resolved   |
+| F-199 | Dismissal could click through a composed tooltip          | API             | resolved   |
+| F-200 | Recharts point replacement canceled activation events     | Application     | monitoring |
 
 ## Findings
 
@@ -667,7 +669,10 @@ Each entry records:
   derived point text; `sort` controls grouped-series order. Point, pointer,
   group-center, and custom anchors combine with fixed or ordered fallback
   placements. `content` remains the escape hatch for application-specific
-  grouped structure without accepting arbitrary DOM. Every framework adapter
+  grouped structure without accepting arbitrary DOM. The shared content
+  context exposes pinned state to both `content` and item `text` callbacks, so
+  the native model can expand from transient summary rows to pinned details.
+  Every framework adapter
   adds a native body-composition boundary with the focused points, resolved
   content, native `defaultBody`, pinned state, and a dismissal action. Chart
   behavior remains definition-owned; adapter props, slots, snippets, templates,
@@ -683,7 +688,10 @@ Each entry records:
   Octane adapter tests prove native-body composition and cleanup. Framework
   lifecycle suites additionally cover nested charts, stable body mounting,
   typed and sorted points, transient inertness, pinned dialog semantics, and
-  dismissal. With framework and core packages external, no adapter adds more
+  dismissal. Focused DOM tests verify that content and item callbacks change
+  from `false` while transient to `true` while pinned; native coverage confirms
+  that content context matches renderer pin state. With framework and core
+  packages external, no adapter adds more
   than 1.4 kB gzip. No new runtime library was introduced; React DOM is now
   declared as the React adapter's portal peer.
 
@@ -3671,16 +3679,18 @@ Each entry records:
 - Status: monitoring
 - Severity: low
 - Owner: Tooling
-- Observed in: validating Nx from a sandboxed Git worktree
+- Observed in: validating Nx from sandboxed Git worktrees, most recently the
+  expanding pinned energy-tooltip example
 - Friction: Nx resolved its relative cache and workspace-data directories
   through the worktree's common Git checkout. The sandbox could execute every
   target but could not write task metadata outside the active worktree.
 - Current decision: keep the portable repository defaults. In restricted
   worktrees, set `NX_CACHE_DIRECTORY` and `NX_WORKSPACE_DATA_DIRECTORY` to
   absolute paths inside that worktree.
-- Verification: the full 17-target validation graph passes with both
-  directories scoped to the active worktree. Ordinary clones and GitHub
-  Actions retain `.nx/cache` and `.nx/workspace-data`.
+- Verification: the full 17-target validation graph and the energy-tooltip
+  workspace typecheck pass with both directories scoped to the active
+  worktree. Ordinary clones and GitHub Actions retain `.nx/cache` and
+  `.nx/workspace-data`.
 
 ### F-151 — Artifact actions targeted deprecated Node 20
 
@@ -4925,3 +4935,42 @@ Each entry records:
 - Verification: the public type regression accepts a configured D3 time scale
   for a `string | Date` axis, rejects an unrelated numeric scale, and the full
   workspace typecheck plus configured-scale runtime tests pass.
+
+### F-199 — Dismissal could click through a composed tooltip
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: the expanding pinned energy-tooltip catalog example
+- Friction: a framework close button called `dismiss()` during its target-phase
+  click handler. The adapter then unmounted that button before the event
+  reached the chart container, so a live descendant check no longer recognized
+  the event as tooltip-owned. When the portaled tooltip overlapped the chart,
+  the same click immediately pinned the point underneath it.
+- Decision: identify tooltip-owned clicks from the event's immutable composed
+  path, filtering that path to DOM nodes, instead of relying only on parentage
+  after target handlers have run.
+- Verification: a renderer regression unmounts its close button synchronously
+  during dismissal and proves the chart stays unfocused. The paired energy
+  case closes correctly at 320 and 640 pixels across both data revisions.
+
+### F-200 — Recharts point replacement canceled activation events
+
+- Status: monitoring
+- Severity: low
+- Owner: Application
+- Observed in: the Recharts reference for the expanding energy tooltip
+- Friction: showing the transient tooltip rerendered Recharts' custom point
+  elements between pointer movement and mouse activation. Browser click
+  synthesis could then lose the original point target even though the pointer
+  remained at the same semantic datum. The same replacement could disconnect a
+  focused point before a subsequent keyboard event.
+- Current decision: make the behavior scenario explicit about its hover-then-
+  click sequence. The reference resolves activation during document capture,
+  scopes it to the chart bounds, ignores the tooltip subtree, and falls back to
+  the nearest current point geometry within the point hit radius. Keyboard
+  focus stays on a stable listbox root while `aria-activedescendant` identifies
+  the current month option.
+- Verification: the paired behavior matrix passes hover, pointer pin, keyboard
+  pin, Escape, and close scenarios at 320 and 640 pixels across both revisions
+  without unsafe type assertions or renderer internals.

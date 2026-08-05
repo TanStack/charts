@@ -400,6 +400,7 @@ if (false) {
           text(point, context) {
             expectTypeOf(point.datum).toEqualTypeOf<Row>()
             expectTypeOf(context.formatY).toBeFunction()
+            expectTypeOf(context.pinned).toEqualTypeOf<boolean>()
             return point.datum.enabled ? 'enabled' : null
           },
         },
@@ -444,6 +445,7 @@ if (false) {
           yValue: number
         }>()
         expectTypeOf(context.xLabel).toEqualTypeOf<string>()
+        expectTypeOf(context.pinned).toEqualTypeOf<boolean>()
         return {
           rows: points.map((point) => ({
             label: point.datum.category,

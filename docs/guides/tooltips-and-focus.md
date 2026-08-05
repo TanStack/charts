@@ -106,8 +106,10 @@ const definition = defineChart({
       {
         id: 'change',
         label: 'Change',
-        text: (point) =>
-          point.datum.change == null ? null : percent(point.datum.change),
+        text: (point, { pinned }) =>
+          pinned && point.datum.change != null
+            ? percent(point.datum.change)
+            : null,
       },
       'x',
     ],
@@ -116,6 +118,10 @@ const definition = defineChart({
 ```
 
 Array order is row order. A nullish field or `text` result omits the row.
+Both item `text` and whole-tooltip `content` callbacks receive `pinned`, which
+is `false` during transient inspection and `true` after click, Enter, or Space.
+Use it to keep the transient tooltip compact and reveal detailed rows when the
+same tooltip is pinned.
 Grouped focus keeps its shared-axis heading and series rows. By default, rows
 follow the marks top-to-bottom for an x-group and left-to-right for a y-group.
 Override that with `sort: 'color-domain'`, `sort: 'focus'`, or a typed

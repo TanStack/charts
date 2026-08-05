@@ -262,7 +262,18 @@ export function mountChartRenderer<
     }
   }
   const handleClick = (event: MouseEvent) => {
-    if (tooltipInstance?.contains(event.target)) {
+    const activeTooltip = tooltipInstance
+    const NodeConstructor = container.ownerDocument.defaultView?.Node
+    const originatedInTooltip = NodeConstructor
+      ? event
+          .composedPath()
+          .some(
+            (target) =>
+              target instanceof NodeConstructor &&
+              activeTooltip?.contains(target),
+          )
+      : activeTooltip?.contains(event.target)
+    if (activeTooltip && originatedInTooltip) {
       return
     }
     const points = pointsAtPointer(event.clientX, event.clientY)

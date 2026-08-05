@@ -205,6 +205,10 @@ Formatting precedence is `content`, `formatGroup`, `format`, then the default.
 The text formatters do not parse HTML, and newlines are preserved. `className`
 is appended to `ts-chart-tooltip`.
 
+`ChartTooltipContentContext.pinned` is `false` during transient inspection and
+`true` after activation. Both `content` and item `text` callbacks receive it,
+so the built-in tooltip can reveal additional structured rows when pinned.
+
 ### Ordered point items
 
 `items` is an ordered single-point row list. Use `x`, `y`, and `group`

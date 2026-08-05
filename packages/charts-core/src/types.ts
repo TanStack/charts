@@ -1203,6 +1203,7 @@ export interface ChartTooltipContent {
 }
 
 export interface ChartTooltipContentContext {
+  pinned: boolean
   xLabel: string
   yLabel: string
   formatX: (value: ChartValue) => string

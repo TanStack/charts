@@ -263,7 +263,7 @@ See [DOM host](./dom-host.md) and
 | `DynamicChartConfig`                  | Responsive builder plus definition-owned behavior                      |
 | `ChartTooltipContent`                 | Safe title and row model for a native tooltip                          |
 | `ChartTooltipRow`                     | Label, formatted value, and optional color swatch                      |
-| `ChartTooltipContentContext`          | Axis labels and value formatters for content callbacks                 |
+| `ChartTooltipContentContext`          | Pinned state, axis labels, and value formatters for content callbacks  |
 | `ChartTooltipBodyContext`             | Focused points, content, pinned state, and dismissal                   |
 | `ChartTooltipBodyTarget`              | Renderer-adapter body mount element plus body context                  |
 

@@ -77,33 +77,49 @@ marks: [
 [Open the grouped focus example](https://tanstack.com/charts/catalog/35-grouped-tooltip/)
 to inspect its live chart and complete source.
 
-## Pin rich nested detail
+## Pin and expand rich detail
 
-A rich tooltip can compose the native rows with framework UI, including a
-second chart. Hover remains transient; click or keyboard activation pins the
-surface before it accepts pointer input.
+This energy tooltip stays compact on hover or keyboard focus. Click, Enter, or
+Space pins the same surface, adds solar coverage to its native rows, and
+smoothly reveals the detailed consumption and generation breakdown.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/84-pinned-nested-chart-tooltip/?theme=system&height=500"
-  title="Pinned rich tooltip containing a nested detail chart"
+  title="Monthly energy chart with a compact tooltip that expands when pinned"
   loading="lazy"
   width="100%"
   height="500"
   style="width:100%;height:500px;border:0;"
 ></iframe>
 
-The embedded framework-neutral case uses a fully application-owned surface.
-Use the adapter's tooltip-body composition surface and include `defaultBody`
-to retain native rows and swatches. A grouped parent can pass `points`
-directly into a pie definition, placing the series comparison beside the rows
-in both transient and pinned states. The transient body is inert; gate controls
-on `pinned`. The nested chart receives its own accessible label, definition,
-runtime, and framework cleanup.
+The definition's `content` callback receives `pinned`, so it can keep the
+transient summary short and add structured rows only after activation. The
+React `renderTooltipBody` callback receives that updated `defaultBody` and the
+same pinned state:
 
-Add the `portal` extension to the definition's tooltip options to escape
-clipped ancestors and use viewport collision handling. Move focus intentionally
-when the body contains controls, preserve Escape, and wire a close button to
-`dismiss`.
+```tsx
+<TooltipChart
+  definition={definition}
+  renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => (
+    <EnergyTooltip
+      month={points[0].datum}
+      summary={defaultBody}
+      expanded={pinned}
+      onClose={dismiss}
+    />
+  )}
+/>
+```
+
+The detail wrapper stays mounted and transitions from
+`grid-template-rows: 0fr` to `1fr`; its direct child uses `min-height: 0` and
+`overflow: hidden`. This animates intrinsic height without measuring content.
+The transient body remains inert, controls render only while pinned, and the
+nested consumption chart has its own accessible label and lifecycle.
+
+Add the `portal` extension to escape clipped ancestors and use viewport
+collision handling. Wire the close button to `dismiss`; the shared host also
+owns Escape, focus return, and non-modal dialog semantics.
 
 ## Scroll a wide schedule
 

@@ -685,7 +685,8 @@ describe('dynamic chart runtime', () => {
     stackHost.destroy()
   })
 
-  it('accepts application fields through structured tooltip content', () => {
+  it('expands structured tooltip content when pinned', () => {
+    const contentPinned = vi.fn()
     const container = document.createElement('div')
     const definition = defineChart({
       marks: [lineY([{ x: 0, y: 4, note: 'Released' }], { x: 'x', y: 'y' })],
@@ -699,22 +700,29 @@ describe('dynamic chart runtime', () => {
       definition: withChartOptions(definition, {
         tooltip: {
           use: tooltipExtension,
-          content: ([point], context) => ({
-            title: point ? context.formatX(point.xValue) : undefined,
-            rows: point
-              ? [
-                  {
-                    label: 'Status',
-                    value: point.datum.note,
-                    color: point.color,
-                  },
-                  {
-                    label: 'Downloads',
-                    value: `${point.yValue}k`,
-                  },
-                ]
-              : [],
-          }),
+          content: ([point], context) => {
+            contentPinned(context.pinned)
+            return {
+              title: point ? context.formatX(point.xValue) : undefined,
+              rows: point
+                ? [
+                    {
+                      label: 'Status',
+                      value: point.datum.note,
+                      color: point.color,
+                    },
+                    ...(context.pinned
+                      ? [
+                          {
+                            label: 'Downloads',
+                            value: `${point.yValue}k`,
+                          },
+                        ]
+                      : []),
+                  ]
+                : [],
+            }
+          },
         },
       }),
       width: 480,
@@ -726,13 +734,22 @@ describe('dynamic chart runtime', () => {
     svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
 
     const tooltip = container.querySelector('.ts-chart-tooltip')
-    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(2)
+    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(1)
     expect(tooltip?.textContent).toContain('Released')
+    expect(tooltip?.textContent).not.toContain('4k')
+    expect(contentPinned).toHaveBeenLastCalledWith(false)
+
+    svg.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+    )
+    expect(contentPinned).toHaveBeenLastCalledWith(true)
+    expect(tooltip?.querySelectorAll('.ts-chart-tooltip__row')).toHaveLength(2)
     expect(tooltip?.textContent).toContain('4k')
     host.destroy()
   })
 
   it('orders automatic point items and formats datum fields', () => {
+    const itemPinned = vi.fn()
     const data = [
       {
         id: 'a',
@@ -772,7 +789,10 @@ describe('dynamic chart runtime', () => {
             {
               id: 'change',
               label: 'Change',
-              text: (point) => `${point.datum.change * 100}%`,
+              text: (point, context) => {
+                itemPinned(context.pinned)
+                return context.pinned ? `${point.datum.change * 100}%` : null
+              },
             },
             {
               id: 'empty',
@@ -800,11 +820,19 @@ describe('dynamic chart runtime', () => {
     expect(rows.map((row) => row.textContent)).toEqual([
       'Revenue4.0',
       'Volume1.2k',
-      'Change25%',
       'PeriodA',
       'GroupAtlas',
     ])
     expect(container.querySelector('.ts-chart-tooltip__title')).toBeNull()
+    expect(itemPinned).toHaveBeenLastCalledWith(false)
+
+    svg.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+    )
+    expect(itemPinned).toHaveBeenLastCalledWith(true)
+    expect(container.querySelector('.ts-chart-tooltip')?.textContent).toContain(
+      'Change25%',
+    )
     host.destroy()
   })
 

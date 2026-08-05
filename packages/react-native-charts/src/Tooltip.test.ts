@@ -83,6 +83,38 @@ describe('native tooltip model', () => {
     expect(markup).not.toContain('<span')
   })
 
+  it('supplies pin state to custom content', () => {
+    const points = [point('alpha', 'Alpha', 3)]
+    const pinnedStates: boolean[] = []
+
+    const renderPinned = (pinned: boolean) =>
+      renderToStaticMarkup(
+        React.createElement(NativeChartTooltip<unknown, number, number>, {
+          scene: scene(points),
+          width: 100,
+          height: 60,
+          points,
+          pointer: null,
+          focusSource: 'programmatic',
+          options: {
+            content: (_focusedPoints, context) => {
+              pinnedStates.push(context.pinned)
+              return { rows: [] }
+            },
+          },
+          pinned,
+          color: '#111827',
+          resolvePaint: (value) => value,
+          dismiss: vi.fn(),
+        }),
+      )
+
+    renderPinned(false)
+    renderPinned(true)
+
+    expect(pinnedStates).toEqual([false, true])
+  })
+
   it('resolves axis anchors and supplies focus context to custom anchors', () => {
     const points = [point('alpha', 'Alpha', 3), point('beta', 'Beta', 7)]
     const currentScene = scene(points)

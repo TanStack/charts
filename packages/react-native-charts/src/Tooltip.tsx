@@ -80,7 +80,13 @@ export function NativeChartTooltip<
   )
   const point = unorderedPoints[0]
   if (!point) return null
-  const content = createNativeTooltipContent(points, scene, options, point)
+  const content = createNativeTooltipContent(
+    points,
+    scene,
+    pinned,
+    options,
+    point,
+  )
   const sceneAnchor = resolveNativeTooltipAnchor(
     point,
     points,
@@ -214,12 +220,13 @@ export function createNativeTooltipContent<
 >(
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   scene: ChartScene<TDatum, TXValue, TYValue>,
+  pinned = false,
   options?: ChartTooltipOptions<TDatum, TXValue, TYValue>,
   primaryPoint?: ChartPoint<TDatum, TXValue, TYValue>,
 ): ChartTooltipContent | string {
   const point = points[0]
   if (!point) return { rows: [] }
-  const context = createTooltipContentContext(scene)
+  const context = createTooltipContentContext(scene, pinned)
   const content = options?.content?.(points, context)
   if (content !== undefined) return content
   const formatted =
@@ -252,8 +259,10 @@ export function createNativeTooltipContent<
 
 function createTooltipContentContext(
   scene: ChartScene,
+  pinned: boolean,
 ): ChartTooltipContentContext {
   return {
+    pinned,
     xLabel: findSceneLabel(scene, 'x-label') ?? 'x',
     yLabel: findSceneLabel(scene, 'y-label') ?? 'y',
     formatX: formatValue,
