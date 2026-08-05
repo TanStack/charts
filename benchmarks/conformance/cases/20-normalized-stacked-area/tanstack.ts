@@ -3,7 +3,8 @@ import { format } from 'd3-format'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput, ConformanceMount } from '../../types'
+import { samplePreviewSeries } from '../../shared/preview'
+import type { ConformanceInput } from '../../types'
 
 const percent = format('.0%')
 const colors = [
@@ -19,16 +20,19 @@ const colors = [
   '#bab0ab',
 ]
 
-const definition = (_input: ConformanceInput) =>
+const definition = (input: ConformanceInput) =>
   defineChart({
     marks: [
-      areaY(industries, {
-        x: 'date',
-        y: 'unemployed',
-        color: 'industry',
-        fillOpacity: 0.82,
-        layout: stack({ offset: 'normalize' }),
-      }),
+      areaY(
+        samplePreviewSeries(industries, input, 32, (row) => row.industry),
+        {
+          x: 'date',
+          y: 'unemployed',
+          color: 'industry',
+          fillOpacity: 0.82,
+          layout: stack({ offset: 'normalize' }),
+        },
+      ),
       ruleY([0]),
     ],
     x: { scale: scaleUtc, axis: { label: 'Month' } },
@@ -39,11 +43,10 @@ const definition = (_input: ConformanceInput) =>
     },
     color: {
       range: colors,
-      legend: colorLegend({ label: 'Industry' }),
+      ...(input.preview === true
+        ? {}
+        : { legend: colorLegend({ label: 'Industry' }) }),
     },
   })
 
-export const mount: ConformanceMount = tanstackMount(
-  definition,
-  'Industry share of unemployment',
-)
+export const mount = tanstackMount(definition, 'Industry share of unemployment')

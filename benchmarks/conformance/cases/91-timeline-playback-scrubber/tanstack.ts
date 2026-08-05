@@ -9,6 +9,7 @@ import {
   selectPlaybackRows,
 } from './model'
 import { createPlaybackOverlay } from './overlay'
+import { tanstackCase } from '../../shared/mount'
 import type { ChartHost, ChartScene, ChartHostOptions } from '@tanstack/charts'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import type { PlaybackOverlayLayout } from './overlay'
@@ -73,6 +74,11 @@ const definition = (input: ConformanceInput) => {
     margin,
   })
 }
+
+export const catalogCase = tanstackCase(
+  definition,
+  'AAPL closes with a draggable timeline playback scrubber',
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

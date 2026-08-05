@@ -3,7 +3,7 @@ title: Overview
 description: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
 ---
 
-TanStack Charts `0.6.4` is a pre-alpha release. Its API may change between
+TanStack Charts `0.6.5` is a pre-alpha release. Its API may change between
 releases.
 
 TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and

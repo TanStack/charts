@@ -39,7 +39,7 @@ server-rendered application charts.
 <a id="status"></a>
 
 > [!IMPORTANT]
-> TanStack Charts `0.6.4` is pre-alpha. Its API may change between releases,
+> TanStack Charts `0.6.5` is pre-alpha. Its API may change between releases,
 > and it is not ready for production use.
 
 Most chart libraries are easy until the chart stops being standard. TanStack

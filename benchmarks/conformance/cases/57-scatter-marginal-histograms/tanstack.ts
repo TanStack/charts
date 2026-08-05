@@ -10,6 +10,7 @@ import {
 import { bin, max } from 'd3-array'
 import { scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
 import type { ConformanceInput } from '../../types'
 
@@ -35,10 +36,16 @@ const definition = (input: ConformanceInput) => {
     })
     .slice(input.revision * 8, input.revision * 8 + 320)
   const { xRects, yRects } = marginalRects(rows)
+  const scatterRows = samplePreviewData(rows, input, 80, [
+    (row) => row.flipper_length_mm,
+    (row) => row.body_mass_g,
+  ])
 
   return defineChart({
     marks: [
-      dot(rows, {
+      dot(scatterRows, {
+        key: (row) =>
+          `${row.species}:${row.island}:${row.culmen_length_mm}:${row.culmen_depth_mm}:${row.flipper_length_mm}:${row.body_mass_g}:${row.sex}`,
         x: 'flipper_length_mm',
         y: 'body_mass_g',
         color: 'species',

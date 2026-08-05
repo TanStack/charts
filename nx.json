@@ -84,6 +84,7 @@
       "{workspaceRoot}/packages/charts-core/**/*",
       "{workspaceRoot}/packages/charts-scales/**/*",
       "{workspaceRoot}/packages/*-charts/**/*",
+      "{workspaceRoot}/packages/react-charts-catalog/**/*",
       "{workspaceRoot}/examples/charts-react-native/**/*",
       "{workspaceRoot}/examples/charts-expo/**/*",
       "!{workspaceRoot}/packages/*/dist/**/*",

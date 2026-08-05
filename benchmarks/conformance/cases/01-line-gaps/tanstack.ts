@@ -1,11 +1,17 @@
 import { aapl } from '@charts-poc/demo-data/aapl'
 import { defineChart, lineY } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import type { ConformanceInput, ConformanceMount } from '../../types'
+import type { ConformanceInput } from '../../types'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 
 const definition = (input: ConformanceInput) => {
-  const rows = aapl.slice(Math.abs(input.revision) % 2)
+  const rows = samplePreviewData(
+    aapl.slice(Math.abs(input.revision) % 2),
+    input,
+    80,
+    [(row) => row.Date.getTime(), (row) => row.Close],
+  )
 
   return defineChart({
     marks: [
@@ -21,7 +27,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount: ConformanceMount = tanstackMount(
+export const mount = tanstackMount(
   definition,
   'Apple closing price with first-quarter gaps',
 )

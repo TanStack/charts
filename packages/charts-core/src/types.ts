@@ -1253,7 +1253,7 @@ export type ChartFocusMode<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> = ChartFocusPreset | ChartFocusStrategy<TDatum, TXValue, TYValue>
+> = false | ChartFocusPreset | ChartFocusStrategy<TDatum, TXValue, TYValue>
 
 export interface ChartSpatialIndex<
   TDatum = unknown,

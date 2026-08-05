@@ -4,6 +4,8 @@ import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
 import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
+import type { ConformanceInput } from '../../types'
 
 interface QuantileSummary {
   date: Date
@@ -12,8 +14,12 @@ interface QuantileSummary {
   upper: number
 }
 
-const definition = () => {
-  const rows = summarizeQuantiles(industries)
+const definition = (input: ConformanceInput) => {
+  const rows = samplePreviewData(summarizeQuantiles(industries), input, 64, [
+    (row) => row.date.getTime(),
+    (row) => row.lower,
+    (row) => row.upper,
+  ])
 
   return defineChart({
     marks: [
@@ -31,11 +37,17 @@ const definition = () => {
         strokeWidth: 2.25,
       }),
     ],
-    x: { scale: scaleUtc, axis: { label: 'Month' } },
+    x: {
+      scale: scaleUtc,
+      axis: input.preview === true ? {} : { label: 'Month' },
+    },
     y: {
       scale: scaleLinear,
       grid: true,
-      axis: { label: 'Unemployed people by industry (thousands)' },
+      axis:
+        input.preview === true
+          ? {}
+          : { label: 'Unemployed people by industry (thousands)' },
     },
   })
 }

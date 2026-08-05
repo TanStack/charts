@@ -2,6 +2,7 @@ import { createChartRuntime } from './runtime'
 import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint } from './scene'
 import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
+import { focusDisabled } from './focus-disabled'
 import { nearestPoint } from './nearest'
 import type {
   ChartRendererHost,
@@ -92,17 +93,26 @@ export function mountChartRenderer<
       ariaDescription: options.ariaDescription,
       className: options.className,
       tabIndex:
-        options.definition.keyboard === false ? -1 : (options.tabIndex ?? 0),
+        options.definition.keyboard === false ||
+        options.definition.focus === false
+          ? -1
+          : (options.tabIndex ?? 0),
       idPrefix: options.idPrefix,
       animation: hasRendered
         ? resolveAnimation(options.definition.animate, container, reason)
         : undefined,
     })
     hasRendered = true
-    spatialIndex = options.definition.spatialIndex?.(scene.points, scene)
-    const nextFocusedPoint = previousFocusedPoint
-      ? restoreFocusedPoint(scene.points, previousFocusedPoint)
-      : null
+    spatialIndex =
+      options.definition.focus === false
+        ? undefined
+        : options.definition.spatialIndex?.(scene.points, scene)
+    const nextFocusedPoint =
+      options.definition.focus === false
+        ? null
+        : previousFocusedPoint
+          ? restoreFocusedPoint(scene.points, previousFocusedPoint)
+          : null
     focusedPoint = nextFocusedPoint
     if (!nextFocusedPoint) pinnedKey = null
     if (previousFocusedPoint) {
@@ -634,6 +644,7 @@ function resolveFocusStrategy<
 >(
   focus: ChartFocusMode<TDatum, TXValue, TYValue> | undefined,
 ): ChartFocusStrategy<TDatum, TXValue, TYValue> | undefined {
+  if (focus === false) return focusDisabled
   if (typeof focus !== 'string') return focus
   switch (focus) {
     case 'nearest-x':

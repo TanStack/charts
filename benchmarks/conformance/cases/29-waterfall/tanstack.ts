@@ -3,7 +3,7 @@ import { pairs } from 'd3-array'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { driving } from '@charts-poc/demo-data/driving'
 import type { DrivingRow } from '@charts-poc/demo-data/driving'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 interface WaterfallPoint extends DrivingRow {
   label: string
@@ -95,7 +95,7 @@ function buildWaterfall(
   ]
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Annual changes in U.S. gasoline prices',
   {
@@ -107,3 +107,5 @@ export const mount = tanstackMount(
           )} · ${signedAmount.format(datum.end)} running change`,
   },
 )
+
+export const mount = catalogCase.mount

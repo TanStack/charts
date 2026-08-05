@@ -128,6 +128,14 @@
         "command": "pnpm --filter @charts-poc/conformance-example check:catalog"
       }
     },
+    "react-catalog-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/sync-react-charts-catalog.mjs --check"
+      },
+      "cache": true,
+      "inputs": ["source"]
+    },
     "catalog-vite-build": {
       "executor": "nx:run-commands",
       "options": {
@@ -186,6 +194,7 @@
         "package-check",
         "bundle-check",
         "catalog-check",
+        "react-catalog-check",
         "catalog-loading-check"
       ],
       "options": {

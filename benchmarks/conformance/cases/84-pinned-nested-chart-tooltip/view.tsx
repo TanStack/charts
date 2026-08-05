@@ -27,8 +27,9 @@ import type { CompletePenguin, NestedTooltipId } from './model'
 const NestedTooltipExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function NestedTooltipExample({ input }, ref) {
-  const titleId = `tanstack-nested-tooltip-${useId().replaceAll(':', '')}`
+>(function NestedTooltipExample({ input, idPrefix }, ref) {
+  const generatedTitleId = `tanstack-nested-tooltip-${useId().replaceAll(':', '')}`
+  const titleId = idPrefix ? `${idPrefix}-tooltip-title` : generatedTitleId
   const viewRef = useRef<HTMLDivElement>(null)
   const chartSurfaceRef = useRef<HTMLDivElement>(null)
   const tooltipRef = useRef<HTMLElement>(null)
@@ -225,6 +226,19 @@ const NestedTooltipExample = forwardRef<
     [pinnedDatum, pinnedId, placement],
   )
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix ? `${idPrefix}-main` : undefined}
+        definition={mainDefinition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Selectable penguin measurement chart"
+        ariaDescription="Use arrow keys to choose a penguin and Enter or Space to pin a same-species comparison."
+      />
+    )
+  }
+
   const tooltipPosition = tooltipStyle(
     input.width,
     input.height,
@@ -251,6 +265,7 @@ const NestedTooltipExample = forwardRef<
     >
       <div ref={chartSurfaceRef}>
         <Chart
+          idPrefix={idPrefix ? `${idPrefix}-main` : undefined}
           definition={mainDefinition}
           width={input.width}
           height={mainHeight}
@@ -341,6 +356,7 @@ const NestedTooltipExample = forwardRef<
             }}
           >
             <Chart
+              idPrefix={idPrefix ? `${idPrefix}-nested` : undefined}
               definition={miniDefinition}
               width={miniDimensions.width}
               height={miniDimensions.height}
@@ -367,6 +383,7 @@ const NestedTooltipExample = forwardRef<
   )
 })
 
+export const catalogComponent = NestedTooltipExample
 export const mount = reactMount(NestedTooltipExample)
 
 const visuallyHiddenStyle = {

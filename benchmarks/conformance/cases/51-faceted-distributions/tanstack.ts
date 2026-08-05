@@ -2,7 +2,7 @@ import { penguins } from '@charts-poc/demo-data/penguins'
 import { defineChart, facet, rect } from '@tanstack/charts'
 import { bin } from 'd3-array'
 import { scaleLinear } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
 import type { ConformanceInput } from '../../types'
 
@@ -105,7 +105,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Faceted distribution comparison',
   {
@@ -113,3 +113,5 @@ export const mount = tanstackMount(
       `${point.datum.species} · Body mass: ${point.datum.x1}–${point.datum.x2} g · Proportion: ${percent.format(point.datum.proportion)}`,
   },
 )
+
+export const mount = catalogCase.mount

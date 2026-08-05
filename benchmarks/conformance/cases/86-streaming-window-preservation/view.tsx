@@ -36,7 +36,7 @@ const color = '#2563eb'
 const StreamingExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function StreamingExample({ input }, ref) {
+>(function StreamingExample({ input, idPrefix }, ref) {
   const viewRef = useRef<HTMLDivElement>(null)
   const chartSurfaceRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<ChartScene<DownloadsRow, Date, number> | null>(null)
@@ -160,6 +160,18 @@ const StreamingExample = forwardRef<
     )
   }
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix}
+        definition={definition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Package downloads in a locked time viewport"
+      />
+    )
+  }
+
   return (
     <div
       ref={viewRef}
@@ -243,6 +255,7 @@ const StreamingExample = forwardRef<
         style={{ minHeight: 0, width: input.width, height: chartHeight }}
       >
         <Chart
+          idPrefix={idPrefix}
           definition={definition}
           width={input.width}
           height={chartHeight}
@@ -256,6 +269,7 @@ const StreamingExample = forwardRef<
   )
 })
 
+export const catalogComponent = StreamingExample
 export const mount = reactMount(StreamingExample)
 
 function ControlButton({

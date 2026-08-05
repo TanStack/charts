@@ -234,9 +234,16 @@ Each entry records:
 | F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
 | F-197 | Workspace validation omitted comparison provenance        | Tooling         | resolved   |
 | F-198 | Union-valued axes rejected configured D3 scales           | API             | resolved   |
-| F-199 | CI repeated unaffected work across every partition        | Tooling         | monitoring |
-| F-200 | Packed consumers serialized independent verification      | Tooling/Release | resolved   |
-| F-201 | Benchmark shards repeated setup and skewed work           | Tooling         | monitoring |
+| F-199 | Remote catalog modules could not participate in SSR       | Tooling/App     | resolved   |
+| F-200 | Packed consumers masked a runtime D3 dependency           | Tooling         | resolved   |
+| F-201 | Noninteractive SSR emitted hidden focus geometry          | API/Tooling     | resolved   |
+| F-202 | Worker runtimes rejected bundled CSV parsing              | Tooling         | resolved   |
+| F-203 | Catalog bundles omitted data license notices              | Tooling         | resolved   |
+| F-204 | Catalog definitions captured the initial server width     | Application     | resolved   |
+| F-205 | Catalog publishing raced its React dependency             | Tooling/Release | resolved   |
+| F-206 | CI repeated unaffected work across every partition        | Tooling         | monitoring |
+| F-207 | Packed consumers serialized independent verification      | Tooling/Release | resolved   |
+| F-208 | Benchmark shards repeated setup and skewed work           | Tooling         | monitoring |
 
 ## Findings
 
@@ -3211,9 +3218,11 @@ Each entry records:
   `maxFocusDistance`, and `spatialIndex` to `ChartDefinitionOptions`. Static
   definitions accept them directly; `DynamicChartConfig` combines them with a
   responsive builder; `defineChart(definition, options)` creates an explicitly
-  different configured definition. Hosts and framework adapters expose no
-  override path. Sizing, accessible surface metadata, callbacks, renderer
-  hooks, and native wrapper styling remain host or adapter concerns.
+  different configured definition, and runtime resolution preserves those
+  outer options when evaluating its responsive builder. Hosts and framework
+  adapters expose no override path. Sizing, accessible surface metadata,
+  callbacks, renderer hooks, and native wrapper styling remain host or adapter
+  concerns.
 - Verification: definition type contracts preserve inferred datum and
   coordinate types for focus, tooltip, and spatial callbacks while rejecting
   incompatible strategies. The full 2,083-test repository suite, root
@@ -3225,7 +3234,8 @@ Each entry records:
   a typed host-options boundary prevents behavior from drifting back to
   adapter props. The React Native `/universal` fixture keeps behavior on its
   directly authored one-argument definition; the two-argument form remains
-  reserved for decorating an existing definition.
+  reserved for decorating an existing definition. A responsive runtime
+  regression verifies that two-argument options survive every relayout.
 
 ### F-131 — Stable identity repeated inferable key channels
 
@@ -4939,7 +4949,147 @@ Each entry records:
   for a `string | Date` axis, rejects an unrelated numeric scale, and the full
   workspace typecheck plus configured-scale runtime tests pass.
 
-### F-199 — CI repeated unaffected work across every partition
+### F-199 — Remote catalog modules could not participate in SSR
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/App
+- Observed in: replacing the delayed TanStack.com `/charts` landing-page
+  mounts with server-rendered charts
+- Friction: the remote catalog artifact exposed only an imperative `mount`
+  contract. The application could render only an empty host in its initial
+  HTML, then wait for the browser to fetch and execute that artifact before any
+  chart appeared. React could not import that remote mount as a component
+  during server rendering even though the React adapter itself supports
+  complete SVG SSR.
+- Decision: preserve the remote imperative artifact for the conformance app
+  and publish the complete 109-case catalog separately as
+  `@tanstack/react-charts-catalog`. Each published case has a default React
+  component at `/cases/<id>`. The imperative and React paths share the same
+  case implementation, label, and interaction policy. Package builds bundle
+  private fixtures and datasets while externalizing React, React DOM, the
+  Charts packages, and exact declared D3 dependencies. The root entry contains
+  metadata and public prop types only, so importing the catalog index does not
+  load chart cases.
+- Verification: strict workspace TypeScript and the focused React SSR suite
+  pass. The packed-consumer gate imports every published subpath, renders all
+  109 case components through `react-dom/server`, verifies complete SVG view
+  boxes, catalog order, declarations, and package targets, rejects source files
+  and private workspace dependencies, and passes the existing web and React
+  Native package consumers.
+
+### F-200 — Packed consumers masked a runtime D3 dependency
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: installing the packed React catalog into TanStack.com without
+  the Charts development workspace
+- Friction: `@tanstack/charts/bar` imports `d3-scale` at runtime, but the core
+  package listed it only as a development dependency. The packed-consumer
+  fixture also installed `d3-scale` directly for its own examples, so its
+  successful bar imports hid the incomplete package manifest. A standalone
+  catalog install failed unless the application happened to supply the missing
+  module.
+- Decision: make `d3-scale` a runtime dependency of `@tanstack/charts` while
+  keeping its TypeScript package development-only. Add a separate packed
+  catalog consumer whose only direct runtime dependencies are the catalog,
+  React, and React DOM. Its internal Charts packages resolve from the staged
+  tarballs, and it receives no direct D3 dependency.
+- Verification: the standalone fixture installs offline from the packed
+  packages and server-renders the grouped-bar catalog component through the
+  `@tanstack/charts/bar` path. The complete packed web, declaration, bare React
+  Native, and Expo consumer gate passes with that fixture enabled.
+
+### F-201 — Noninteractive SSR emitted hidden focus geometry
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: server-rendering the TanStack.com `/charts` landing page
+- Friction: setting `keyboard: false` and `tooltip: false` disabled interaction
+  handlers but still generated a hidden default focus circle for every scene
+  point. Dense charts therefore shipped hundreds of invisible SVG elements in
+  the initial HTML. Treating `keyboard: false` as equivalent to no focus would
+  be incorrect because pointer-only charts can still use focus resolution.
+- Decision: add `focus: false` as an explicit chart-definition mode. It omits
+  only the generated default focus layer, forces native chart surfaces out of
+  the tab order, skips focus resolution and spatial-index construction, and
+  clears restored focus. Explicitly authored focus marks remain part of the
+  scene. Conformance catalog components set this mode only when
+  `interactive` is false.
+- Verification: scene tests retain semantic points while omitting the generated
+  focus layer. DOM, adapter, renderer-neutral, React SSR/hydration, and React
+  Native tests cover the disabled focus contract. The catalog test and packed
+  consumer gate server-render all 109 catalog components.
+
+### F-202 — Worker runtimes rejected bundled CSV parsing
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: previewing the server-rendered catalog on Cloudflare Workers
+- Friction: large bundled CSV snapshots used `d3-dsv` parsing at module load.
+  Its object-row parser creates a mapper with `new Function`, which Workers
+  rejects even though the chart renderer itself is server-safe.
+- Decision: generate compact CSV modules with a small CSP-safe row parser and
+  static field mappings. Keep `d3-dsv` only in the build-time synchronizer and
+  preserve its auto-typing license notice in the catalog package.
+- Verification: demo-data tests cover quoted fields and typed values, assert
+  that large bundles contain neither `d3-dsv`, `new Function`, nor `eval`, and
+  enforce the asset ceiling. Packed server-runtime checks execute with Node's
+  `--disallow-code-generation-from-strings` flag.
+
+### F-203 — Catalog bundles omitted data license notices
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: publication review of `@tanstack/react-charts-catalog`
+- Friction: the catalog bundled private case modules and complete Observable
+  dataset snapshots, but its tarball shipped only the TanStack license. It also
+  bundled D3 implementations despite those packages already being dependencies.
+- Decision: externalize every case-local D3 import and declare its exact runtime
+  package version. Ship source, revision, attribution, and complete ISC notices
+  for the bundled sample datasets, Plot snapshots, world and U.S. atlases,
+  TopoJSON client, and derived D3 DSV auto-typing.
+- Verification: package validation requires `THIRD_PARTY_NOTICES.md`. A packed
+  standalone consumer declares only the catalog, React, and React DOM while
+  resolving all D3 imports transitively from the catalog manifest.
+
+### F-204 — Catalog definitions captured the initial server width
+
+- Status: resolved
+- Severity: medium
+- Owner: Application
+- Observed in: resizing server-rendered catalog components with omitted widths
+- Friction: descriptor wrappers created definitions from `initialWidth`, while
+  custom React views fixed their input width to the same server value.
+  ResizeObserver could change the SVG viewport without rebuilding captured
+  breakpoints or custom-view layout.
+- Decision: rebuild descriptor definitions from the chart runtime's current
+  build-context width and height. Custom views retain `initialWidth` for SSR,
+  then measure their wrapper with ResizeObserver after hydration.
+- Verification: omitted-width regressions resize a static comparative-radar
+  descriptor and an interactive custom view from 640 to 360 pixels and compare
+  their updated geometry and layout with fixed-width output.
+
+### F-205 — Catalog publishing raced its React dependency
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: adding the catalog to the coordinated Changesets release
+- Friction: the publisher released core first, then all adapters concurrently.
+  The catalog depends on the same-version React adapter, so npm could expose a
+  catalog version before its dependency existed or leave it dangling if the
+  React publication failed.
+- Decision: publish core, then React, before starting concurrent publication of
+  the catalog and remaining adapters.
+- Verification: the release workflow contract asserts the core-to-React order
+  and that both complete before the concurrent publication phase.
+
+### F-206 — CI repeated unaffected work across every partition
 
 - Status: monitoring
 - Severity: high
@@ -4975,7 +5125,7 @@ Each entry records:
 - Follow-up: record the first production timings and run the opt-in Playwright
   container A/B.
 
-### F-200 — Packed consumers serialized independent verification
+### F-207 — Packed consumers serialized independent verification
 
 - Status: resolved
 - Severity: high
@@ -4996,7 +5146,7 @@ Each entry records:
   The worker-pool and packed-markdown regressions pass, both native consumers
   create their isolated caches, and every nested pnpm operation remains serial.
 
-### F-201 — Benchmark shards repeated setup and skewed work
+### F-208 — Benchmark shards repeated setup and skewed work
 
 - Status: monitoring
 - Severity: high

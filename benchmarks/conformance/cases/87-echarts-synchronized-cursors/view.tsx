@@ -41,7 +41,7 @@ const travelerCountFormat = new Intl.NumberFormat('en-US', {
 const SynchronizedCursorsExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function SynchronizedCursorsExample({ input }, ref) {
+>(function SynchronizedCursorsExample({ input, idPrefix }, ref) {
   const surfacesRef = useRef<
     Partial<Record<SynchronizedCursorView, HTMLDivElement>>
   >({})
@@ -113,6 +113,27 @@ const SynchronizedCursorsExample = forwardRef<
     ? synchronizedCursorDatumAtDate(rows, focusedDate)
     : null
 
+  if (input.preview) {
+    return (
+      <CursorChart
+        idPrefix={idPrefix ? `${idPrefix}-current` : undefined}
+        view="current"
+        input={input}
+        rows={rows}
+        height={input.height}
+        focusedDate={focusedDate}
+        surfaceRef={(surface) => {
+          if (surface) surfacesRef.current.current = surface
+        }}
+        onScene={(scene) => {
+          scenesRef.current.current = scene
+        }}
+        onFocus={handleFocus}
+        onSelect={handleSelect}
+      />
+    )
+  }
+
   return (
     <div
       onKeyDown={(event) => {
@@ -143,6 +164,7 @@ const SynchronizedCursorsExample = forwardRef<
         {synchronizedCursorViews.map((view) => (
           <CursorChart
             key={view}
+            idPrefix={idPrefix ? `${idPrefix}-${view}` : undefined}
             view={view}
             input={input}
             rows={rows}
@@ -164,11 +186,13 @@ const SynchronizedCursorsExample = forwardRef<
   )
 })
 
+export const catalogComponent = SynchronizedCursorsExample
 export const mount = reactMount(SynchronizedCursorsExample)
 
 function CursorChart({
   focusedDate,
   height,
+  idPrefix,
   input,
   onFocus,
   onScene,
@@ -179,6 +203,7 @@ function CursorChart({
 }: {
   focusedDate: Date | null
   height: number
+  idPrefix?: string
   input: ReactConformanceProps['input']
   onFocus: (points: readonly ChartPoint<TravelersRow>[]) => void
   onScene: (scene: ChartScene<TravelersRow>) => void
@@ -245,6 +270,22 @@ function CursorChart({
   const scene = sceneRef.current
   const x = scene && focusedDate ? scene.scales.x.map(focusedDate) : null
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix}
+        definition={definition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel={
+          view === 'current'
+            ? 'Linked 2020 airport travelers time series'
+            : 'Linked 2019 airport travelers time series'
+        }
+      />
+    )
+  }
+
   return (
     <div
       ref={surfaceRef}
@@ -252,6 +293,7 @@ function CursorChart({
       style={{ position: 'relative' }}
     >
       <Chart
+        idPrefix={idPrefix}
         definition={definition}
         width={input.width}
         height={height}

@@ -5,10 +5,27 @@ import { resolve } from 'node:path'
 import { build } from 'esbuild'
 import { describe, expect, it } from 'vitest'
 import { demoDatasetMetadata } from '@charts-poc/demo-data/metadata'
+import {
+  autoTypeValue,
+  parseCsvRows,
+} from '../packages/charts-demo-data/src/parse-csv.js'
 
 const workspace = resolve(import.meta.dirname, '..')
 
 describe('demo data', () => {
+  it('parses quoted CSV rows without code generation', () => {
+    expect(
+      parseCsvRows('name,note\r\nalpha,"one,two"\r\nbeta,"line\n""two"""'),
+    ).toEqual([
+      ['name', 'note'],
+      ['alpha', 'one,two'],
+      ['beta', 'line\n"two"'],
+    ])
+    expect(
+      ['', '42', 'true', '2026-08-02', ' text '].map(autoTypeValue),
+    ).toEqual([null, 42, true, new Date('2026-08-02'), ' text '])
+  })
+
   it('records a reproducible schema and provenance for every exact export', async () => {
     const packageJson = JSON.parse(
       await readFile(
@@ -62,7 +79,7 @@ describe('demo data', () => {
     expect(inputs.some((path) => path.includes('d3-dsv'))).toBe(false)
   })
 
-  it('keeps a complete large CSV snapshot below the catalog asset limit', async () => {
+  it('keeps a complete large CSV snapshot worker-safe and below the catalog asset limit', async () => {
     const result = await build({
       absWorkingDir: workspace,
       stdin: {
@@ -83,7 +100,10 @@ describe('demo data', () => {
       Object.keys(result.metafile.inputs).some((path) =>
         path.includes('d3-dsv'),
       ),
-    ).toBe(true)
+    ).toBe(false)
+    const output = new TextDecoder().decode(result.outputFiles[0]?.contents)
+    expect(output).not.toContain('new Function')
+    expect(output).not.toMatch(/\beval\s*\(/u)
     expect(result.outputFiles[0]?.contents.byteLength).toBeLessThan(1024 * 1024)
   })
 })

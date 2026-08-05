@@ -10,6 +10,7 @@ import type {
 
 export interface ReactConformanceProps {
   input: ConformanceInput
+  idPrefix?: string
 }
 
 export type ReactConformanceComponent = ForwardRefExoticComponent<

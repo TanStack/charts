@@ -1,6 +1,7 @@
 import { learningPoverty } from '@charts-poc/demo-data/learning-poverty'
 import { geoCentroid } from 'd3-geo'
 import { worldCountries } from '../fixtures/country-atlas'
+import { simplifyPolygonGeometry } from '../fixtures/simplify-geo'
 import type { LearningPovertyRow } from '@charts-poc/demo-data/learning-poverty'
 import type { ExtendedFeature, GeoGeometryObjects } from 'd3-geo'
 import type { CountryFeature, CountryGeometry } from '../fixtures/country-atlas'
@@ -49,6 +50,12 @@ export const learningPovertyCountries: readonly LearningPovertyCountry[] =
     const country = countryByName.get(atlasName)
     return country ? [joinCountry(country, row)] : []
   })
+
+export const previewLearningPovertyCountries: readonly LearningPovertyCountry[] =
+  learningPovertyCountries.map((country) => ({
+    ...country,
+    geometry: simplifyPolygonGeometry(country.geometry, 2),
+  }))
 
 if (learningPovertyCountries.length !== 95) {
   throw new TypeError(

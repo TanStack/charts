@@ -17,7 +17,9 @@ const definition = (input: ConformanceInput) => {
     .thresholds([...contourThresholds])(grid.values)
 
   return defineChart({
-    marks: [contourMark(geometry, grid.width, grid.height)],
+    marks: [
+      contourMark(geometry, grid.width, grid.height, input.preview === true),
+    ],
     color: {
       scale: scaleThreshold<number, string>,
       domain: contourThresholds.slice(1),
@@ -31,6 +33,7 @@ function contourMark(
   geometry: readonly ContourMultiPolygon[],
   gridWidth: number,
   gridHeight: number,
+  preview: boolean,
 ) {
   return createMark<ContourMultiPolygon, never, never>(({ markIndex }) => {
     const id = `contour-${markIndex}`
@@ -53,6 +56,7 @@ function contourMark(
           },
         })
         const path = geoPath(projection)
+        if (preview) path.digits(1)
         const children: SceneNode[] = []
 
         for (let index = 0; index < geometry.length; index++) {
