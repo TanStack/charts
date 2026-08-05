@@ -86,6 +86,8 @@ describe('chart cursor controller', () => {
     expect(
       resolveChartPointerFocus(xScene, 'nearest', 50, 80, 0),
     ).toBeUndefined()
+    expect(resolveChartPointerFocus(xScene, false, 50, 80, 0)).toBeUndefined()
+    expect(resolveChartFocusStrategy(false)).toBeUndefined()
     expect(
       resolveChartPointerFocus(
         xScene,

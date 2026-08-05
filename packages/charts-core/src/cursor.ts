@@ -207,6 +207,7 @@ export function resolveChartFocusStrategy<
 >(
   focus: ChartFocusMode<TDatum, TXValue, TYValue> | undefined,
 ): ChartFocusStrategy<TDatum, TXValue, TYValue> | undefined {
+  if (focus === false) return undefined
   if (typeof focus !== 'string') return focus
   switch (focus) {
     case 'nearest-x':

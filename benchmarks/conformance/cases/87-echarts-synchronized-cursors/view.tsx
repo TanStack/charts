@@ -107,15 +107,13 @@ const SynchronizedCursorsExample = forwardRef<
         input={input}
         rows={rows}
         height={input.height}
-        focusedDate={focusedDate}
+        cursor={cursor}
         surfaceRef={(surface) => {
           if (surface) surfacesRef.current.current = surface
         }}
         onScene={(scene) => {
           scenesRef.current.current = scene
         }}
-        onFocus={handleFocus}
-        onSelect={handleSelect}
       />
     )
   }
