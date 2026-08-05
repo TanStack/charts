@@ -5284,10 +5284,11 @@ Each entry records:
   matching x and y values, retain only the underlying data marks in
   `scene.points`, and keep rule nodes free of interaction metadata. The paired
   energy case passes its visual, behavior, geometry, and type gates with the
-  native focused `ruleX` guide. The reviewed integration adds 15 minified and 7
-  gzip bytes to the locked line-scene entry and 350 minified and 64 gzip bytes
-  to the representative-marks entry; the universal baseline records that cost,
-  and the Stats parity ceiling moves from 42.3 to 42.4 KiB.
+  native focused `ruleX` guide. After integration with `0.6.5` and the callback
+  context migration, the complete PR adds 109 minified and 41 gzip bytes to the
+  locked line-scene entry and 476 minified and 101 gzip bytes to the
+  representative-marks entry. The Stats parity ceiling moves from 42.3 to 42.5
+  KiB.
 
 ### F-214 — Callback parameter shapes were inconsistent
 
@@ -5320,8 +5321,9 @@ Each entry records:
   React Native, React, Octane, channel, facet, focus, legend, tooltip, and
   contract tests cover the migrated shapes; the migration guide records every
   breaking before-and-after signature. Full type, documentation, package,
-  format, bundle, and comparison gates pass. The reviewed universal bundle
-  baseline increases by at most 164 minified and 73 gzip bytes, and the three
-  affected integrated budgets each move by 0.1 KiB. The focused expanding
-  tooltip conformance case retains 99.6% geometry similarity and passes visual,
+  format, bundle, and comparison gates pass. Against `0.6.5`, the reviewed
+  universal bundle baseline increases by at most 476 minified and 137 gzip
+  bytes. The Stats parity ceiling moves by 0.2 KiB; the D3 quadtree and Delaunay
+  integration ceilings each move by 0.1 KiB. The focused expanding tooltip
+  conformance case retains 99.6% geometry similarity and passes visual,
   behavior, and type gates at both sizes and themes.
