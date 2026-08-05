@@ -351,6 +351,7 @@ describe('React Native Chart', () => {
     })
     const container = document.createElement('div')
     const root = createRoot(container)
+    const onFocusChange = vi.fn()
 
     try {
       await React.act(() => {
@@ -859,6 +860,69 @@ describe('React Native Chart', () => {
       expect(container.querySelectorAll('line')).toHaveLength(0)
       expect(firstRender).toHaveBeenCalledOnce()
       expect(secondRender).toHaveBeenCalledOnce()
+    } finally {
+      await React.act(() => root.unmount())
+    }
+  })
+
+  it('paints a programmatic cursor without advertising disabled native focus', async () => {
+    const rows = [
+      { id: 'a', x: 1, y: 4 },
+      { id: 'b', x: 2, y: 8 },
+    ]
+    const programmatic = {
+      anchor: 'value' as const,
+      value: { x: 2 },
+      source: 'programmatic' as const,
+      pinned: true,
+    }
+    const controller = createChartCursor<number, number>(programmatic)
+    const definition = defineChart({
+      marks: [
+        lineY(rows, { x: 'x', y: 'y', key: 'id' }),
+        crosshair({ id: 'disabled-focus-cursor', y: false }),
+      ],
+      x: { scale: scaleLinear().domain([1, 2]) },
+      y: { scale: scaleLinear().domain([0, 10]) },
+      guides: false,
+      focus: false,
+      cursor: {
+        use: cursorHost,
+        controller,
+        mode: 'focus',
+        match: 'x',
+      },
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    const onFocusChange = vi.fn()
+
+    try {
+      await React.act(() => {
+        root.render(
+          <Chart
+            definition={definition}
+            accessibilityLabel="Disabled native focus cursor chart"
+            testID="disabled-native-focus-cursor-chart"
+            width={320}
+            height={180}
+            onFocusChange={onFocusChange}
+          />,
+        )
+      })
+      const chart = container.querySelector<HTMLElement>(
+        '[data-testid="disabled-native-focus-cursor-chart"]',
+      )
+      if (!chart) throw new Error('Expected disabled native focus cursor chart')
+
+      expect(chart.dataset.accessibilityRole).toBe('image')
+      expect(chart.dataset.focusable).toBe('false')
+      expect(chart.dataset.accessibilityActions).toBe('')
+      expect(container.querySelector('line')).not.toBeNull()
+      expect(onFocusChange.mock.lastCall?.[0]?.xValue).toBe(2)
+
+      await dispatchPointer(chart, 'pointerdown', 160, 90)
+      expect(controller.getState()).toBe(programmatic)
     } finally {
       await React.act(() => root.unmount())
     }

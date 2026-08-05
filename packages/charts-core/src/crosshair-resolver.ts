@@ -31,21 +31,38 @@ function resolveGuideTarget(
         y: focus.primary.y,
         xValue: focusGuideValue(focus.primary, 'x'),
         yValue: focusGuideValue(focus.primary, 'y'),
+        xCursorValue: focus.primary.xValue,
+        yCursorValue: focus.primary.yValue,
         color: focus.primary.color,
       }
     : undefined
   if (!cursor) return local
 
   if (
-    cursor.state.anchor === 'value'
+    !local &&
+    (cursor.state.anchor === 'value'
       ? !cursorValueBelongsToGuide(cursor, guide)
-      : !cursorPositionBelongsToGuide(cursor, guide)
+      : !cursorPositionBelongsToGuide(cursor, guide))
   ) {
     return undefined
   }
 
-  const x = resolveGuideCursorAxis('x', guide, cursor, local?.x, local?.xValue)
-  const y = resolveGuideCursorAxis('y', guide, cursor, local?.y, local?.yValue)
+  const x = resolveGuideCursorAxis(
+    'x',
+    guide,
+    cursor,
+    local?.x,
+    local?.xValue,
+    local?.xCursorValue,
+  )
+  const y = resolveGuideCursorAxis(
+    'y',
+    guide,
+    cursor,
+    local?.y,
+    local?.yValue,
+    local?.yCursorValue,
+  )
   if (!x && !y) return undefined
   return {
     x: x?.position,
@@ -89,12 +106,22 @@ function resolveGuideCursorAxis(
   cursor: ChartCursorPresentation,
   fallbackPosition: number | undefined,
   fallbackValue: ChartValue | undefined,
+  fallbackCursorValue: ChartValue | undefined,
 ): { position: number; value?: ChartValue } | undefined {
   const enabled = cursor.axes === 'xy' || cursor.axes === axis
   const presented = cursor[axis]
   if (enabled && cursor.state.anchor === 'value') {
     const values = cursor.state.value
     const value = values[axis]
+    if (
+      value !== undefined &&
+      fallbackCursorValue !== undefined &&
+      valueKey(value) === valueKey(fallbackCursorValue) &&
+      typeof fallbackPosition === 'number' &&
+      Number.isFinite(fallbackPosition)
+    ) {
+      return { position: fallbackPosition, value: fallbackValue }
+    }
     const project = axis === 'x' ? guide.projectX : guide.projectY
     const position = value === undefined ? undefined : project?.(value)
     if (

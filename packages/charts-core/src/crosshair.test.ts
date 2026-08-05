@@ -308,6 +308,36 @@ describe('crosshair', () => {
     expect(point).toMatchObject({ yValue: 30, y1Value: 40, y2Value: 70 })
     expect(rule.y1).toBe(point.y)
     expect(label.text).toBe('y=70')
+
+    const controlledGuide = findNode(
+      resolveFocusPresentation(scene, focus(point), null, {
+        state: {
+          anchor: 'value',
+          value: { y: 30 },
+          source: 'programmatic',
+          pinned: false,
+        },
+        axes: 'y',
+        y: {
+          position: scene.scales.y!.map(30),
+          normalized: 0.7,
+          value: 30,
+        },
+      }).over,
+      'crosshair-1',
+    ) as SceneGroup
+    expect(
+      (findNode(controlledGuide.children, 'crosshair-1:y-rule') as SceneRule)
+        .y1,
+    ).toBe(point.y)
+    expect(
+      (
+        findNode(
+          controlledGuide.children,
+          'crosshair-1:y-label:text',
+        ) as SceneLabel
+      ).text,
+    ).toBe('y=70')
   })
 
   it('labels horizontally stacked difference bars with their plotted endpoint', () => {

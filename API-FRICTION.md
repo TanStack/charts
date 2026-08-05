@@ -4826,8 +4826,8 @@ Each entry records:
   canvas while the stable base canvas remains byte-identical.
   The paired Observable Plot/TanStack scenario retains its label, responsive,
   revision, and settled-state coverage without the application-owned overlay.
-  The isolated crosshair entry, including its guide-carried resolver, is 8.46
-  kB minified and 2.86 kB gzip and retains no cursor, platform-renderer,
+  The isolated crosshair entry, including its guide-carried resolver, is 8.67
+  kB minified and 2.91 kB gzip and retains no cursor, platform-renderer,
   tooltip, or D3 runtime. The renderer-neutral
   scene contract adds 236 minified and 92 gzip bytes to the locked line scene;
   static SVG adds 275 and 124 bytes. Configurable SVG guide serialization,
@@ -4842,8 +4842,12 @@ Each entry records:
   guide-layer helper as platform code. The reviewed exact baselines and
   narrowly raised affected-product ceilings record those costs. The separate
   cross-library comparison baseline changes exactly the 12 TanStack rows while
-  leaving all 48 external-library rows unchanged, and `pnpm benchmark:check`
-  passes against the recorded input revision. The DOM-only serializer remains
+  leaving all 48 external-library rows unchanged. Against the previous main
+  baseline, those controlled consumers add 2,752–2,911 gzip bytes, or
+  8.22–9.90%; the reviewed baseline records that shared renderer capability
+  rather than describing it as within the ordinary 3% drift tolerance.
+  `pnpm benchmark:check` passes against the recorded input revision. The
+  DOM-only serializer remains
   in the SVG/browser boundary so React Native and static SVG type and bundle
   gates never traverse DOM interfaces.
 
