@@ -203,7 +203,7 @@ function resolveLabel<TValue extends ChartValue>(
 function projector(scale: ResolvedScale | undefined) {
   return scale && scale.type !== 'none'
     ? (value: ChartValue) => {
-        const position = scale.map(value)
+        const position = (scale.viewport?.map ?? scale.map)(value)
         return Number.isFinite(position) ? position : undefined
       }
     : undefined

@@ -592,7 +592,7 @@ export function mountChartRenderer<
     ) {
       pointerPosition = null
       const binding = cursorBinding()
-      if (binding) clearPublishedCursor(binding.controller)
+      if (binding) cursorSession?.clearOwnedTransient()
       else updateFocus([])
       focusOwner = null
     }

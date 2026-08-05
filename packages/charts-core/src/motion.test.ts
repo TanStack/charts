@@ -187,7 +187,11 @@ describe('SVG motion', () => {
       height: 200,
     })
     const container = document.createElement('div')
-    const renderer = motion({ initial: false })
+    const renderer = motion<
+      { id: string; category: string; value: number },
+      string,
+      number
+    >({ initial: false })
     const options = {
       definition: firstDefinition,
       renderer,
@@ -920,7 +924,9 @@ describe('SVG motion', () => {
     const firstDefinition = definition(firstRows, [2, 5])
     const nextDefinition = definition(nextRows, [4, 7])
     const container = document.createElement('div')
-    const renderer = motion({ initial: false })
+    const renderer = motion<(typeof firstRows)[number], number, number>({
+      initial: false,
+    })
     const options = {
       definition: firstDefinition,
       renderer,
@@ -1289,7 +1295,9 @@ describe('SVG motion', () => {
     const frames = installManagedFrames()
     const host = mountChartRenderer(container, {
       definition,
-      renderer: motion({ initial: false }),
+      renderer: motion<(typeof focusRows)[number], number, number>({
+        initial: false,
+      }),
       width: 300,
       height: 200,
       ariaLabel: 'Mark-state focus subscription',
@@ -1356,7 +1364,9 @@ describe('SVG motion', () => {
     const frames = installManagedFrames()
     const options = {
       definition: firstDefinition,
-      renderer: motion({ initial: false }),
+      renderer: motion<{ id: string; x: number; y: number }, number, number>({
+        initial: false,
+      }),
       width: 300,
       height: 200,
       ariaLabel: 'Deferred mark-state interaction geometry',
@@ -1997,6 +2007,58 @@ describe('SVG motion', () => {
     ).toBeCloseTo(expectedY)
     expect(surface.getPresentationPoints?.()?.[0]?.y).toBeCloseTo(expectedY)
 
+    frames.run(100)
+    expect(surface.getPresentationPoints?.()).toBeUndefined()
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('uses updated data while retained points animate from prior geometry', () => {
+    const makeScene = (datum: {
+      id: string
+      category: string
+      value: number
+      revision: number
+    }) =>
+      createChartScene(
+        defineChart({
+          marks: [barY([datum], { x: 'category', y: 'value', key: 'id' })],
+          x: { scale: scaleBand().domain(['A']) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+          guides: false,
+        }),
+        { width: 300, height: 200 },
+      )
+    const initialDatum = {
+      id: 'a',
+      category: 'A',
+      value: 20,
+      revision: 0,
+    }
+    const updatedDatum = {
+      id: 'a',
+      category: 'A',
+      value: 80,
+      revision: 1,
+    }
+    const initial = makeScene(initialDatum)
+    const updated = makeScene(updatedDatum)
+    const container = document.createElement('div')
+    const surface = motion<typeof initialDatum, string, number>({
+      initial: false,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(initial, { ariaLabel: 'Updating data' })
+    const frames = installManagedFrames()
+
+    surface.render(updated, { ariaLabel: 'Updating data' })
+
+    const presented = surface.getPresentationPoints?.()?.[0]
+    expect(presented?.datum).toBe(updatedDatum)
+    expect(presented?.y).toBeCloseTo(initial.points[0]?.y ?? Number.NaN)
+    expect(presented?.y).not.toBeCloseTo(updated.points[0]?.y ?? Number.NaN)
+
+    frames.run(0)
     frames.run(100)
     expect(surface.getPresentationPoints?.()).toBeUndefined()
     surface.destroy()

@@ -332,7 +332,7 @@ function resolveCursorAxis<
     if (value === undefined) return undefined
     const scale = scene.scales[axis]
     if (!scale || scale.type === 'none') return undefined
-    position = scale.map(value)
+    position = (scale.viewport?.map ?? scale.map)(value)
     if (!Number.isFinite(position)) return undefined
     normalized = normalizePosition(position, origin, length)
   }

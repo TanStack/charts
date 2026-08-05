@@ -62,7 +62,13 @@ describe('crosshair', () => {
     expect(
       (findNode(firstGuide.children, 'crosshair-1:plot') as SceneGroup).clip,
     ).toEqual(scene.chart)
-    expect(first.over.some((node) => node.key === 'default-focus')).toBe(true)
+    expect(
+      first.over.some(
+        (node) =>
+          node.kind === 'group' &&
+          node.className?.includes('ts-chart__focus-layer--default'),
+      ),
+    ).toBe(true)
     expect(resolveFocusPresentation(scene, null)).toEqual({
       under: [],
       over: [],
@@ -262,9 +268,13 @@ describe('crosshair', () => {
     expect(label.x).toBeGreaterThanOrEqual(2)
     expect(label.y).toBeLessThanOrEqual(98)
     expect(nodesOfKind(guide.children, 'dot')).toHaveLength(1)
-    expect(presentation.over.some((node) => node.key === 'default-focus')).toBe(
-      true,
-    )
+    expect(
+      presentation.over.some(
+        (node) =>
+          node.kind === 'group' &&
+          node.className?.includes('ts-chart__focus-layer--default'),
+      ),
+    ).toBe(true)
   })
 
   it('labels stacked difference bars with their plotted endpoint', () => {
@@ -453,6 +463,50 @@ describe('crosshair', () => {
     expect(xRule.x1).toBe(controlledX)
     expect(yRule.y1).toBe(point.y)
     expect(marker).toMatchObject({ x: controlledX, y: point.y })
+  })
+
+  it('projects semantic cursors through translated viewport coordinates', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          dot([{ x: 1, y: 1 }], { x: 'x', y: 'y' }),
+          crosshair({ y: false }),
+        ],
+        x: {
+          scale: scaleLinear().domain([0, 3]),
+          viewport: { domain: [1, 2], translate: 20 },
+        },
+        y: { scale: scaleLinear().domain([0, 2]) },
+        guides: false,
+      }),
+      { width: 240, height: 160 },
+    )
+    const cursor = (value: number) => {
+      const position = scene.scales.x!.viewport!.map(value)
+      return {
+        state: {
+          anchor: 'value' as const,
+          value: { x: value },
+          source: 'programmatic' as const,
+          pinned: false,
+        },
+        axes: 'x' as const,
+        x: {
+          position,
+          normalized: (position - scene.chart.x) / scene.chart.width,
+          value,
+        },
+      }
+    }
+
+    const presentation = resolveFocusPresentation(scene, null, null, cursor(1))
+    const guide = findNode(presentation.over, 'crosshair-1') as SceneGroup
+    const xRule = findNode(guide.children, 'crosshair-1:x-rule') as SceneRule
+    expect(xRule.x1).toBe(scene.scales.x!.viewport!.map(1))
+
+    expect(resolveFocusPresentation(scene, null, null, cursor(2)).over).toEqual(
+      [],
+    )
   })
 
   it('projects semantic cursors per facet and keeps each cell tick formatter', () => {

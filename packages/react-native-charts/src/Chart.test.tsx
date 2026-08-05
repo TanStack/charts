@@ -230,8 +230,9 @@ describe('React Native Chart', () => {
       />,
     )
 
-    expect(nativeViewState.props?.onStartShouldSetResponder?.()).toBe(false)
-    expect(nativeViewState.props?.onMoveShouldSetResponder?.()).toBe(false)
+    const responderProps = nativeViewState.props as MockNativeViewProps | null
+    expect(responderProps?.onStartShouldSetResponder?.()).toBe(false)
+    expect(responderProps?.onMoveShouldSetResponder?.()).toBe(false)
   })
 
   it('rejects tooltip extensions owned by another host', () => {

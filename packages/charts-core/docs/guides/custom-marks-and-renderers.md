@@ -200,7 +200,7 @@ return {
           projectX: (value) => {
             const scale = scales.x
             if (!scale || scale.type === 'none') return undefined
-            const position = scale.map(value)
+            const position = (scale.viewport?.map ?? scale.map)(value)
             return Number.isFinite(position) ? position : undefined
           },
           resolve: resolveCrosshairGuide,
@@ -220,14 +220,17 @@ do not need to invent a placement for an ordinary guide mark.
 
 The required `surface` bounds cover the complete chart surface; `chart` covers
 the inner plot. Use `chart` for clipped rules and `surface` for labels that must
-remain visible. Each guide's required `resolve` callback receives the final
-guide, local focus, pointer, and projected cursor, then returns one transient
-scene node or `undefined`. `resolveCrosshairGuide` provides the built-in rule,
-band, label, and marker behavior. A custom guide can supply different policy
-without adding it to renderer bundles that never use the guide. A custom
-renderer receives final `SceneFocusGuide` values after the compiler has filled
-in placement. Pass the scene to `resolveFocusPresentation` instead of calling
-guide resolvers or resolving mark order inside the renderer.
+remain visible. Project semantic guide values through
+`scale.viewport?.map ?? scale.map` so a transient viewport translation keeps
+the guide aligned with presented content. Each guide's required `resolve`
+callback receives the final guide, local focus, pointer, and projected cursor,
+then returns one transient scene node or `undefined`. `resolveCrosshairGuide`
+provides the built-in rule, band, label, and marker behavior. A custom guide can
+supply different policy without adding it to renderer bundles that never use
+the guide. A custom renderer receives final `SceneFocusGuide` values after the
+compiler has filled in placement. Pass the scene to
+`resolveFocusPresentation` instead of calling guide resolvers or resolving mark
+order inside the renderer.
 
 ## Separate point and scale values
 

@@ -1780,7 +1780,10 @@ function createPresentationTracks(
         continue
       }
       if (seriesElementForPoint(point, pathGroups)) {
-        presented.set(identity, previous ?? point)
+        presented.set(
+          identity,
+          previous ? { ...point, x: previous.x, y: previous.y } : point,
+        )
         continue
       }
       if (!previous || (previous.x === point.x && previous.y === point.y)) {
@@ -1796,7 +1799,7 @@ function createPresentationTracks(
         presented.set(identity, point)
         continue
       }
-      presented.set(identity, previous)
+      presented.set(identity, { ...point, x: previous.x, y: previous.y })
       const states = pointValueStates(runtime, identity, [
         previous.x,
         previous.y,
@@ -1831,7 +1834,7 @@ function createPresentationTracks(
     const start =
       previous ??
       (horizontal ? { ...point, x: baseline } : { ...point, y: baseline })
-    presented.set(identity, start)
+    presented.set(identity, { ...point, x: start.x, y: start.y })
     const timing = timingFor({
       phase: defaultPhase === 'enter' ? 'enter' : phase,
       role: 'bar',

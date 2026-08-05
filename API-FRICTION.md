@@ -5443,10 +5443,11 @@ Each entry records:
   exact upstream protocols such as D3 threshold generators, and
   consumer-called service methods as classified exceptions.
 - Verification: the public callback inventory follows exported types,
-  functions, and values into nested package-owned types. It classifies all 534
+  functions, and values into nested package-owned types. It classifies all 565
   reachable callable surfaces, including Alpine's external directive protocol,
   Vue's nested tooltip slot, live-chart interaction and presentation service
-  handles, the presentation-points listener callback, and viewport mapping. It
+  handles, cursor controllers and host sessions, focus-guide resolvers, the
+  presentation-points listener callback, and viewport mapping. It
   rejects unclassified surfaces, callback arity above two, or a non-object
   second callback argument. Failed parameter
   type resolution preserves the parameter as a fail-closed non-object bag
@@ -5650,7 +5651,7 @@ Each entry records:
 - Verification: mark tests assert fixed one- and two-pixel continuous bands,
   and the paged history definition expresses its cursor as `width: 1` without
   responsive sample-spacing math.
-- Follow-up: F-213 later added presentation-only focus points to rules, so a
+- Follow-up: F-213 later added presentation-only `focusAnchors` to rules, so a
   focused `ruleX` can now express a one-pixel cursor too. Explicit band
   dimensions remain useful when authored band geometry needs an exact scene-
   pixel width or height.
@@ -5687,7 +5688,10 @@ Each entry records:
   exact 4-pixel left/right outset, focused period and stack-endpoint labels,
   dotted y rule, responsive revisions, and pointer-leave cleanup. The core
   stacked-label regression also proves that a difference interval formats its
-  plotted endpoint rather than the raw segment delta.
+  plotted endpoint rather than the raw segment delta. Cursor and crosshair
+  regressions project semantic values through `ResolvedScale.viewport.map` with
+  nonzero x and y translations, keeping controlled guides aligned with
+  presented viewport content.
 
 ### F-222 — Scene updates cleared active motion guide placement
 
@@ -5709,6 +5713,9 @@ Each entry records:
   dotted-rule elements while they animate between points, preserve an active
   guide through a keyed scene update and animate from its prior coordinate,
   and remove the retained layer when the next scene drops its crosshair.
+  Retained presentation points carry the destination datum and semantic values
+  with their prior x/y geometry, so focus callbacks and cursor labels report
+  the updated row throughout the transition.
 
 ### F-223 — Custom conformance mounts were not React catalog descriptors
 

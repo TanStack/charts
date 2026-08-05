@@ -1924,6 +1924,11 @@ describe('renderer-neutral chart host', () => {
     expect(firstFocus.mock.calls.at(-1)?.[0]?.xValue).toBe(1)
     expect(secondFocus.mock.calls.at(-1)?.[0]?.xValue).toBe(1)
 
+    first.element.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+    expect(controller.getState()).toBeNull()
+    expect(firstFocus).toHaveBeenLastCalledWith(null)
+    expect(secondFocus).toHaveBeenLastCalledWith(null)
+
     first.element.dispatchEvent(
       new MouseEvent('click', {
         bubbles: true,

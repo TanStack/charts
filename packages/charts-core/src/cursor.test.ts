@@ -342,6 +342,47 @@ describe('chart cursor projection', () => {
     expect(sceneAnchored?.y).toBeUndefined()
   })
 
+  it('projects semantic anchors through viewport presentation coordinates', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY(numericRows, { x: 'x', y: 'y', key: 'id' })],
+        x: {
+          scale: scaleLinear().domain([0, 10]),
+          viewport: { domain: [2, 8], translate: 24 },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 10]),
+          viewport: { domain: [2, 8], translate: -16 },
+        },
+        guides: false,
+      }),
+      { width: 320, height: 180 },
+    )
+    const binding = {
+      mode: 'focus',
+      use: cursorHost,
+      match: 'xy',
+      controller: createChartCursor<number, number>(),
+    } satisfies ChartCursorBinding<NumericRow, number, number>
+    const presentation = resolveChartCursorPresentation(scene, binding, {
+      anchor: 'value',
+      value: { x: 4, y: 6 },
+      source: 'programmatic',
+      pinned: false,
+    })
+    const x = scene.scales.x!.viewport!.map(4)
+    const y = scene.scales.y!.viewport!.map(6)
+
+    expect(presentation?.x).toMatchObject({ position: x, value: 4 })
+    expect(presentation?.x?.normalized).toBeCloseTo(
+      (x - scene.chart.x) / scene.chart.width,
+    )
+    expect(presentation?.y).toMatchObject({ position: y, value: 6 })
+    expect(presentation?.y?.normalized).toBeCloseTo(
+      (y - scene.chart.y) / scene.chart.height,
+    )
+  })
+
   it('omits a semantic axis when the destination scene has no matching scale', () => {
     const scene = { ...numericScene(), scales: {} }
     const binding = {
