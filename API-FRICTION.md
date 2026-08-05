@@ -5409,19 +5409,15 @@ Each entry records:
   rules intentionally emit no interaction points. Replacing the rule with a
   link would have introduced the wrong semantic mark solely to obtain a focus
   candidate.
-- Decision: let a mark scene expose presentation-only `focusPoints`. Focus
-  layers consume those candidates without adding them to the chart's global
-  interaction points. `ruleX` and `ruleY` now provide candidates keyed to their
-  rendered nodes while the nodes remain interaction-free.
+- Decision: let a mark scene expose presentation-only `focusAnchors`. Each
+  `ChartFocusAnchor` carries the rendered-node key and only the semantic axes
+  the mark owns. Focus layers consume those anchors without adding them to the
+  chart's global interaction points. `ruleX` and `ruleY` therefore remain
+  interaction-free without inventing a zero value for their missing axis.
 - Verification: focused-rule regressions reveal exactly one full-span rule for
-  matching x and y values, retain only the underlying data marks in
-  `scene.points`, and keep rule nodes free of interaction metadata. The paired
-  energy case passes its visual, behavior, geometry, and type gates with the
-  native focused `ruleX` guide. After integration with `0.6.5` and the callback
-  context migration, the complete PR adds 109 minified and 41 gzip bytes to the
-  locked line-scene entry and 476 minified and 101 gzip bytes to the
-  representative-marks entry. The Stats parity ceiling moves from 42.3 to 42.5
-  KiB.
+  matching x and y values, keep rule anchors separate from `scene.points`,
+  preserve categorical series matching, and prove that an absent axis does not
+  match zero. The paired energy case retains its native focused `ruleX` guide.
 
 ### F-214 — Callback parameter shapes were inconsistent
 
@@ -5721,15 +5717,18 @@ Each entry records:
 - Owner: Tooling/Application
 - Observed in: publishing stacked-bar cursor conformance case 119
 - Friction: the custom motion mount was a valid conformance implementation,
-  but the React catalog synchronizer could only infer descriptors from a direct
-  `tanstackMount(...)` export. Case 119 therefore passed the conformance catalog
-  while remaining absent from the published React catalog. Its custom renderer,
-  focus driver, and motion settling also made replacing that mount with the
-  standard helper incorrect.
-- Decision: keep the bespoke conformance mount and export a separate
-  `tanstackCase(...)` descriptor built from the same revision-aware chart
-  definition. Synchronize the generated React wrapper and update the explicit
-  catalog-size contracts to 110.
-- Verification: the React catalog synchronizer reports 110 matching cases, the
-  focused catalog suite server-renders every case including case 119, and the
-  workspace TypeScript check passes.
+  but the React catalog synchronizer did not publish it. A separate static
+  descriptor made case 119 visible, yet its generated wrapper used the base
+  React chart and silently ignored the mark's motion options. The docs-linked
+  demo therefore differed from the implementation under conformance.
+- Decision: route case 119 through the existing custom React view path. Share
+  one revision-aware definition and `motion()` renderer factory between that
+  view and the bespoke conformance mount; keep the conformance driver only for
+  target resolution, state inspection, and deterministic settling. Preview
+  rendering remains fluid and noninteractive while the full catalog view
+  honors its interactive input.
+- Verification: the synchronizer reports 110 matching cases. The catalog
+  regression moves focus between two bar periods and proves that both the
+  under-band and over-rule guide layers enter their running motion state. The
+  focused 25-test catalog suite, workspace typecheck, sync check, and diff check
+  pass.

@@ -22,6 +22,7 @@ const reactViewCaseIds = new Set([
   '88-echarts-free-cursor',
   '89-brush-range-selection',
   '90-zoomable-time-window',
+  '119-stacked-bar-band-cursor',
 ])
 
 const caseDirectories = (await readdir(casesDirectory, { withFileTypes: true }))

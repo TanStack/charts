@@ -164,6 +164,33 @@ clipped to the plot. For difference intervals such as stacked bars and areas,
 the label formats the plotted `x2` or `y2` endpoint so it matches the guide;
 tooltip formatting still reports the interval difference.
 
+`crosshair<TXValue, TYValue>(options = {})` accepts these top-level options:
+
+| Option   | Default                   | Meaning                                      |
+| -------- | ------------------------- | -------------------------------------------- |
+| `id`     | `crosshair-${markIndex}`  | Stable mark and guide identity               |
+| `x`      | `true`                    | Vertical rule or categorical band            |
+| `y`      | `true`                    | Horizontal rule or categorical band          |
+| `marker` | `false`                   | Marker at the resolved x/y intersection      |
+| `motion` | No mark-specific override | Optional guide spring or tween configuration |
+
+The shared rule options apply to both axes. The same fields on an axis object
+override the shared value for that axis:
+
+| Rule option       | Default          | Meaning                            |
+| ----------------- | ---------------- | ---------------------------------- |
+| `stroke`          | Chart foreground | Rule color                         |
+| `strokeOpacity`   | `0.35`           | Rule stroke opacity                |
+| `strokeWidth`     | `1`              | Nonnegative rule width             |
+| `strokeDasharray` | None             | SVG-compatible stroke dash pattern |
+
+An x or y axis object adds two options:
+
+| Axis option | Default | Meaning                                       |
+| ----------- | ------- | --------------------------------------------- |
+| `label`     | `false` | `true` for defaults or a label options object |
+| `band`      | `false` | `true` for defaults or a band options object  |
+
 On a categorical axis, `band` replaces that axis rule with a plot-spanning
 cursor band centered on the focused value:
 
@@ -200,21 +227,48 @@ overlay. With a bar inset of 4 and band inset of 0, the cursor extends exactly
 label shows the focused stack endpoint. Use separate crosshair marks whenever
 axes need different placement.
 
-| Band option     | Meaning                                                                  |
-| --------------- | ------------------------------------------------------------------------ |
-| `inset`         | Pixels removed from both scale-band edges; negative values create outset |
-| `radius`        | Corner radius                                                            |
-| `fill`          | Fill color; defaults to the chart foreground                             |
-| `fillOpacity`   | Fill opacity; defaults to `0.12`                                         |
-| `stroke`        | Optional outline color                                                   |
-| `strokeOpacity` | Optional outline opacity                                                 |
-| `strokeWidth`   | Optional outline width                                                   |
-| `opacity`       | Opacity applied to the complete band                                     |
+| Band option     | Default          | Meaning                                                                  |
+| --------------- | ---------------- | ------------------------------------------------------------------------ |
+| `inset`         | `0`              | Pixels removed from both scale-band edges; negative values create outset |
+| `radius`        | None             | Corner radius                                                            |
+| `fill`          | Chart foreground | Fill color                                                               |
+| `fillOpacity`   | `0.12`           | Fill opacity                                                             |
+| `stroke`        | None             | Optional outline color                                                   |
+| `strokeOpacity` | None             | Optional outline opacity                                                 |
+| `strokeWidth`   | None             | Optional nonnegative outline width                                       |
+| `opacity`       | None             | Opacity applied to the complete band                                     |
 
 `band: true` uses those defaults. Band geometry uses the resolved scale
 bandwidth, spans the plot in the other direction, and remains clipped to the
 plot. A continuous scale or any other axis with zero bandwidth emits no band.
 The axis label can still be enabled because `band` replaces only the rule.
+
+Label options control formatting and paint outside the plot:
+
+| Label option    | Default                                        |
+| --------------- | ---------------------------------------------- |
+| `format`        | Matching scale tick label, then semantic value |
+| `offset`        | `8`                                            |
+| `fill`          | Chart foreground                               |
+| `fillOpacity`   | None                                           |
+| `stroke`        | `var(--ts-chart-crosshair-label-halo, Canvas)` |
+| `strokeOpacity` | None                                           |
+| `strokeWidth`   | `3`                                            |
+| `opacity`       | None                                           |
+| `fontSize`      | `11`                                           |
+| `fontWeight`    | None                                           |
+
+Marker options control the resolved x/y intersection marker:
+
+| Marker option   | Default                                         |
+| --------------- | ----------------------------------------------- |
+| `radius`        | `4`                                             |
+| `fill`          | `var(--ts-chart-crosshair-marker-fill, Canvas)` |
+| `fillOpacity`   | None                                            |
+| `stroke`        | Focused point color, then guide or theme color  |
+| `strokeOpacity` | None                                            |
+| `strokeWidth`   | `2`                                             |
+| `opacity`       | None                                            |
 
 Pass semantic axis types to `crosshair` when TypeScript should check label
 formatters independently from the surrounding definition:
@@ -265,6 +319,36 @@ const definition = defineChart({
   },
 })
 ```
+
+```ts
+function createChartCursor<
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  initialState: ChartCursorState<TXValue, TYValue> | null = null,
+): ChartCursorController<TXValue, TYValue>
+```
+
+Every definition cursor binding accepts these common fields:
+
+| Option       | Default  | Meaning                                      |
+| ------------ | -------- | -------------------------------------------- |
+| `use`        | Required | Cursor host extension, normally `cursorHost` |
+| `controller` | Required | Observable structural cursor controller      |
+| `mode`       | Required | `focus` or `free` binding discriminator      |
+| `pin`        | `false`  | Enables activation to pin and dismiss        |
+
+Mode-specific fields are:
+
+| Mode    | Option  | Default | Meaning                                    |
+| ------- | ------- | ------- | ------------------------------------------ |
+| `focus` | `match` | `xy`    | Semantic axes shared between hosts         |
+| `free`  | `x`     | None    | Optional x-axis `valueAt` semantic mapping |
+| `free`  | `y`     | None    | Optional y-axis `valueAt` semantic mapping |
+
+Each free-axis object accepts an optional `valueAt(context)` callback. Without
+it, the cursor still shares scene and normalized coordinates but has no
+semantic value for that axis.
 
 `createChartCursor` remains a three-method structural store. `cursorHost` opts
 the binding into platform-neutral cursor policy without adding that policy to

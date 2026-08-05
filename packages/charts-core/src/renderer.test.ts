@@ -376,7 +376,7 @@ describe('renderer-neutral chart host', () => {
       definition: defineChart(definition, {
         focus: {
           resolve,
-          group: (_points, point) => [point],
+          group: (_points, { point }) => [point],
           navigation: (points) => points,
         },
         maxFocusDistance: 1_000,

@@ -39,7 +39,9 @@ describe('catalog definition shapes', () => {
             .filter(
               (entry) =>
                 entry.isFile() &&
-                (entry.name === 'tanstack.ts' || entry.name === 'view.tsx'),
+                (entry.name === 'tanstack.ts' ||
+                  entry.name === 'view.tsx' ||
+                  entry.name === 'chart.ts'),
             )
             .map((entry) => path.join(directory, entry.name))
         }),

@@ -362,6 +362,13 @@ their behavior:
   `CanvasChartRenderer`, `CanvasChartSurface`, `CanvasChartHostOptions`, and
   `CanvasChartHost`. See
   [Canvas renderer](./rendering-and-export.md#canvas-renderer).
+- `@tanstack/charts/cursor`: `ChartCursorController`, cursor state and
+  coordinate types, `createChartCursor`, and `cursorHost`. See
+  [Controlled cursors](./focus-and-interaction.md#controlled-cursors).
+- `@tanstack/charts/cursor/host`: `ChartCursorHostExtension`,
+  `ChartCursorHostSession`, and the platform-neutral cursor lifecycle,
+  projection, focus, and presentation helpers. See
+  [Controlled cursors](./focus-and-interaction.md#controlled-cursors).
 - `@tanstack/charts/export`: `SerializeChartSvgOptions` and
   `RenderChartPngOptions`. See [SVG
   serialization](./rendering-and-export.md#svg-serialization) and [browser
@@ -384,9 +391,12 @@ subpath:
 
 - `LineYOptions`, `AreaYOptions`, `AreaXOptions`, `AreaXCurve`
 - `BarYOptions`, `BarXOptions`
+- `BandXOptions`, `BandYOptions`
 - `DotOptions`, `HexagonOptions`
 - `RectOptions`, `CellOptions`
 - `RuleXOptions`, `RuleYOptions`
+- `CrosshairOptions`, `CrosshairRuleOptions`, `CrosshairAxisOptions`,
+  `CrosshairBandOptions`, `CrosshairLabelOptions`, `CrosshairMarkerOptions`
 - `LinkOptions`, `ArrowOptions`, `VectorOptions`, `VectorAnchor`
 - `TickXOptions`, `TickYOptions`
 - `TextOptions`, `TextAnchor`
