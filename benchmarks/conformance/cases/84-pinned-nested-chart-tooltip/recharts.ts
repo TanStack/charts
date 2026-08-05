@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef, useState } from 'react'
+import { createElement, useEffect, useId, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import {
@@ -6,22 +6,23 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ComposedChart,
   Line,
+  ReferenceLine,
   XAxis,
   YAxis,
 } from 'recharts'
 import {
+  energyAnnualOverview,
   energyColors,
   energyMonths,
   energyTooltipContent,
+  formatEnergy,
+  formatPercent,
   isEnergyMonthId,
 } from './model'
-import {
-  EnergyTooltipBody,
-  EnergyTooltipSummary,
-  energyTooltipStyles,
-} from './tooltip-body'
+import { EnergyTooltipBody, energyTooltipStyles } from './tooltip-body'
 import type { ChartPoint } from '@tanstack/charts'
 import type {
   FocusEvent as ReactFocusEvent,
@@ -51,7 +52,17 @@ interface EnergyDotProps {
   payload?: EnergyMonth
 }
 
+interface EnergyXAxisTickProps {
+  x?: number | string
+  y?: number | string
+  fill?: string
+  payload?: { value?: unknown }
+  activeMonthShort: string | null
+  markerLength: number
+}
+
 function EnergyChart({ input, onInteractionChange }: EnergyChartProps) {
+  const exportedPatternId = `energy-exported-${useId().replaceAll(':', '')}`
   const viewRef = useRef<HTMLDivElement>(null)
   const chartFocusRef = useRef<HTMLDivElement>(null)
   const pointElements = useRef(new Map<EnergyMonthId, SVGCircleElement>())
@@ -63,7 +74,12 @@ function EnergyChart({ input, onInteractionChange }: EnergyChartProps) {
   const activeId = pinnedId ?? focusedId ?? hoveredId
   const activeMonth = rows.find((month) => month.id === activeId) ?? null
   const pinned = activeMonth !== null && pinnedId === activeMonth.id
-  const chartHeight = Math.max(1, input.height - 46)
+  const chartWidth = Math.max(1, input.width - 24)
+  const chartHeight = Math.max(1, input.height - 48)
+  const annualConsumption = rows.reduce(
+    (total, month) => total + month.consumption,
+    0,
+  )
 
   useEffect(() => {
     onInteractionChange({ focusedMonth: activeId })
@@ -126,10 +142,11 @@ function EnergyChart({ input, onInteractionChange }: EnergyChartProps) {
       id: `energy-month-${id}`,
       cx,
       cy,
-      r: isActive ? 7 : 4.5,
-      fill: energyColors.generation,
-      stroke: 'Canvas',
-      strokeWidth: isActive ? 3 : 1.5,
+      r: isPinned ? 5 : isActive ? 4.5 : 3,
+      fill: 'Canvas',
+      stroke: energyColors.consumption,
+      strokeWidth: isPinned ? 2 : isActive ? 1.8 : 1.4,
+      opacity: isActive ? 1 : 0,
       'data-month-id': id,
       ref: (element: SVGCircleElement | null) => {
         if (element) pointElements.current.set(id, element)
@@ -164,7 +181,10 @@ function EnergyChart({ input, onInteractionChange }: EnergyChartProps) {
         position: 'relative',
         width: `${input.width}px`,
         height: `${input.height}px`,
+        paddingTop: '4px',
+        background: 'Canvas',
         color: 'CanvasText',
+        boxSizing: 'border-box',
       },
     },
     [
@@ -173,184 +193,268 @@ function EnergyChart({ input, onInteractionChange }: EnergyChartProps) {
         'header',
         {
           key: 'header',
+          className: 'energy-overview-card',
           style: {
             display: 'flex',
-            minHeight: '40px',
-            alignItems: 'baseline',
-            justifyContent: 'space-between',
-            gap: '16px',
-            padding: '3px 18px 0 52px',
+            height: '36px',
+            alignItems: 'center',
+            padding: '0 24px',
             font: '500 12px/1.3 system-ui, sans-serif',
           },
         },
-        [
-          createElement(
-            'strong',
-            { key: 'title', style: { fontSize: '14px', fontWeight: 680 } },
-            'Household energy',
-          ),
-          createElement(
-            'span',
-            { key: 'period', style: { opacity: 0.58 } },
-            '2025 · kWh',
-          ),
-        ],
+        createElement(
+          'strong',
+          { style: { fontSize: '13px', fontWeight: 680 } },
+          'Annual overview',
+        ),
       ),
       createElement(
         'div',
         {
-          key: 'chart-focus',
-          ref: chartFocusRef,
-          role: 'listbox',
-          tabIndex: 0,
-          'aria-label': 'Monthly household energy',
-          'aria-orientation': 'horizontal',
-          'aria-activedescendant': activeId
-            ? `energy-month-${activeId}`
-            : undefined,
-          onFocus: (event: ReactFocusEvent<HTMLDivElement>) => {
-            if (
-              event.target !== event.currentTarget ||
-              suppressFocusRef.current
-            ) {
-              return
-            }
-            setFocusedId(
-              (current) => current ?? pinnedId ?? rows[0]?.id ?? null,
-            )
-          },
-          onBlur: (event: ReactFocusEvent<HTMLDivElement>) => {
-            const NodeConstructor =
-              event.currentTarget.ownerDocument.defaultView?.Node
-            if (
-              NodeConstructor &&
-              event.relatedTarget instanceof NodeConstructor &&
-              event.currentTarget.contains(event.relatedTarget)
-            ) {
-              return
-            }
-            if (!pinnedId) setFocusedId(null)
-          },
-          onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => {
-            if (event.key === 'Escape' && pinnedId) {
-              event.preventDefault()
-              event.stopPropagation()
-              dismiss()
-              return
-            }
-            if (event.key === 'Enter' || event.key === ' ') {
-              const id = focusedId ?? pinnedId ?? rows[0]?.id
-              if (!id) return
-              event.preventDefault()
-              togglePinned(id)
-              return
-            }
-            const direction =
-              event.key === 'ArrowRight'
-                ? 1
-                : event.key === 'ArrowLeft'
-                  ? -1
-                  : 0
-            if (!direction) return
-            event.preventDefault()
-            const currentId = focusedId ?? pinnedId ?? rows[0]?.id
-            const currentIndex = rows.findIndex(
-              (month) => month.id === currentId,
-            )
-            const nextIndex = Math.min(
-              rows.length - 1,
-              Math.max(0, currentIndex + direction),
-            )
-            setFocusedId(rows[nextIndex]?.id ?? null)
+          key: 'chart-card',
+          style: {
+            position: 'relative',
+            width: `${chartWidth}px`,
+            height: `${chartHeight}px`,
+            margin: '0 12px',
+            border: '1px solid color-mix(in srgb, CanvasText 8%, transparent)',
+            borderRadius: '7px',
+            boxSizing: 'border-box',
           },
         },
-        createElement(
-          ComposedChart,
-          {
-            width: input.width,
-            height: chartHeight,
-            data: rows,
-            margin: { top: 16, right: 22, bottom: 18, left: 12 },
-            accessibilityLayer: true,
-            role: 'group',
-            title:
-              'Monthly household electricity consumption and solar generation in 2025',
-          },
-          [
-            createElement(CartesianGrid, {
-              key: 'grid',
-              stroke: 'color-mix(in srgb, CanvasText 13%, transparent)',
-              vertical: false,
-            }),
-            createElement(XAxis, {
-              key: 'x',
-              dataKey: 'monthShort',
-              tickLine: false,
-              axisLine: false,
-              tickMargin: 9,
-            }),
-            createElement(YAxis, {
-              key: 'y',
-              domain: [0, 850],
-              tickCount: 5,
-              width: 40,
-              label: {
-                value: 'kWh',
-                angle: -90,
-                position: 'insideLeft',
-                style: { textAnchor: 'middle' },
+        [
+          createElement(
+            'div',
+            {
+              key: 'annual-metrics',
+              'aria-hidden': true,
+              style: {
+                position: 'absolute',
+                zIndex: 1,
+                top: '14px',
+                left: '16px',
+                display: 'flex',
+                gap: '26px',
+                pointerEvents: 'none',
+                font: '500 11px/1.2 system-ui, sans-serif',
               },
-            }),
-            createElement(Area, {
-              key: 'solar-area',
-              type: 'monotone',
-              dataKey: 'generation',
-              fill: energyColors.generation,
-              fillOpacity: 0.12,
-              stroke: 'none',
-              isAnimationActive: false,
-            }),
-            createElement(Bar, {
-              key: 'household',
-              dataKey: 'household',
-              stackId: 'consumption',
-              fill: energyColors.household,
-              isAnimationActive: false,
-            }),
-            createElement(Bar, {
-              key: 'heat-pump',
-              dataKey: 'heatPump',
-              stackId: 'consumption',
-              fill: energyColors.heatPump,
-              isAnimationActive: false,
-            }),
-            createElement(Bar, {
-              key: 'hot-water',
-              dataKey: 'hotWater',
-              stackId: 'consumption',
-              fill: energyColors.hotWater,
-              isAnimationActive: false,
-            }),
-            createElement(Bar, {
-              key: 'ev-charging',
-              dataKey: 'evCharging',
-              stackId: 'consumption',
-              fill: energyColors.evCharging,
-              radius: [3, 3, 0, 0],
-              isAnimationActive: false,
-            }),
-            createElement(Line, {
-              key: 'generation-line',
-              type: 'monotone',
-              dataKey: 'generation',
-              stroke: energyColors.generation,
-              strokeWidth: 2.5,
-              dot: renderPoint,
-              activeDot: false,
-              isAnimationActive: false,
-            }),
-          ],
-        ),
+            },
+            [
+              createElement(AnnualMetric, {
+                key: 'generation',
+                label: 'Energy generated',
+                value: formatEnergy(energyAnnualOverview.generation),
+              }),
+              createElement(AnnualMetric, {
+                key: 'consumption',
+                label: 'Total consumption',
+                value: formatEnergy(annualConsumption),
+              }),
+            ],
+          ),
+          createElement(
+            'div',
+            {
+              key: 'chart-focus',
+              ref: chartFocusRef,
+              role: 'listbox',
+              tabIndex: 0,
+              'aria-label': 'Monthly household energy',
+              'aria-orientation': 'horizontal',
+              'aria-activedescendant': activeId
+                ? `energy-month-${activeId}`
+                : undefined,
+              onFocus: (event: ReactFocusEvent<HTMLDivElement>) => {
+                if (
+                  event.target !== event.currentTarget ||
+                  suppressFocusRef.current
+                ) {
+                  return
+                }
+                setFocusedId(
+                  (current) => current ?? pinnedId ?? rows[0]?.id ?? null,
+                )
+              },
+              onBlur: (event: ReactFocusEvent<HTMLDivElement>) => {
+                const NodeConstructor =
+                  event.currentTarget.ownerDocument.defaultView?.Node
+                if (
+                  NodeConstructor &&
+                  event.relatedTarget instanceof NodeConstructor &&
+                  event.currentTarget.contains(event.relatedTarget)
+                ) {
+                  return
+                }
+                if (!pinnedId) setFocusedId(null)
+              },
+              onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => {
+                if (event.key === 'Escape' && pinnedId) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  dismiss()
+                  return
+                }
+                if (event.key === 'Enter' || event.key === ' ') {
+                  const id = focusedId ?? pinnedId ?? rows[0]?.id
+                  if (!id) return
+                  event.preventDefault()
+                  togglePinned(id)
+                  return
+                }
+                const direction =
+                  event.key === 'ArrowRight'
+                    ? 1
+                    : event.key === 'ArrowLeft'
+                      ? -1
+                      : 0
+                if (!direction) return
+                event.preventDefault()
+                const currentId = focusedId ?? pinnedId ?? rows[0]?.id
+                const currentIndex = rows.findIndex(
+                  (month) => month.id === currentId,
+                )
+                const nextIndex = Math.min(
+                  rows.length - 1,
+                  Math.max(0, currentIndex + direction),
+                )
+                setFocusedId(rows[nextIndex]?.id ?? null)
+              },
+            },
+            createElement(
+              ComposedChart,
+              {
+                width: chartWidth,
+                height: chartHeight,
+                data: rows,
+                margin: { top: 82, right: 24, bottom: 8, left: 12 },
+                barCategoryGap: '16%',
+                barGap: 0,
+                accessibilityLayer: true,
+                role: 'group',
+                title: 'Annual household energy overview',
+              },
+              [
+                createElement(
+                  'defs',
+                  { key: 'fills' },
+                  createElement(
+                    'pattern',
+                    {
+                      id: exportedPatternId,
+                      width: 6,
+                      height: 6,
+                      patternUnits: 'userSpaceOnUse',
+                    },
+                    [
+                      createElement('rect', {
+                        key: 'background',
+                        width: 6,
+                        height: 6,
+                        fill: energyColors.exported,
+                      }),
+                      createElement('path', {
+                        key: 'hatch',
+                        d: 'M-1 1L1 -1M0 6L6 0M5 7L7 5',
+                        fill: 'none',
+                        stroke: energyColors.generation,
+                        strokeOpacity: 0.55,
+                        strokeWidth: 1,
+                      }),
+                    ],
+                  ),
+                ),
+                createElement(CartesianGrid, {
+                  key: 'grid',
+                  stroke: 'color-mix(in srgb, CanvasText 13%, transparent)',
+                  vertical: false,
+                }),
+                createElement(XAxis, {
+                  key: 'x',
+                  dataKey: 'monthShort',
+                  tickLine: false,
+                  axisLine: false,
+                  tickMargin: 8,
+                  tick: (props) =>
+                    createElement(EnergyXAxisTick, {
+                      ...props,
+                      activeMonthShort: activeMonth?.monthShort ?? null,
+                      markerLength: Math.max(
+                        14,
+                        ((chartWidth - 72 - 24) / 12) * 0.84,
+                      ),
+                    }),
+                }),
+                createElement(YAxis, {
+                  key: 'y',
+                  domain: [0, 2600],
+                  tickCount: 5,
+                  width: 60,
+                  tickLine: false,
+                  axisLine: false,
+                  tickMargin: 7,
+                  tickFormatter: (value: number) =>
+                    `${value.toLocaleString('en-US')} kWh`,
+                }),
+                createElement(Area, {
+                  key: 'consumption-area',
+                  type: 'monotone',
+                  dataKey: 'consumption',
+                  fill: energyColors.consumption,
+                  fillOpacity: 0.13,
+                  stroke: 'none',
+                  isAnimationActive: false,
+                }),
+                createElement(
+                  Bar,
+                  {
+                    key: 'used-on-site',
+                    dataKey: 'usedOnSite',
+                    stackId: 'generation',
+                    fill: energyColors.generationMuted,
+                    isAnimationActive: false,
+                  },
+                  rows.map((row) =>
+                    createElement(Cell, {
+                      key: row.id,
+                      fill:
+                        row.id === activeId
+                          ? energyColors.generation
+                          : energyColors.generationMuted,
+                    }),
+                  ),
+                ),
+                createElement(Bar, {
+                  key: 'exported',
+                  dataKey: 'exported',
+                  stackId: 'generation',
+                  fill: `url(#${exportedPatternId})`,
+                  radius: [3, 3, 0, 0],
+                  isAnimationActive: false,
+                }),
+                activeMonth
+                  ? createElement(ReferenceLine, {
+                      key: 'focused-month-guide',
+                      x: activeMonth.monthShort,
+                      stroke: 'CanvasText',
+                      strokeOpacity: 0.45,
+                      strokeWidth: 1,
+                      strokeDasharray: '4 4',
+                    })
+                  : null,
+                createElement(Line, {
+                  key: 'consumption-line',
+                  type: 'monotone',
+                  dataKey: 'consumption',
+                  stroke: energyColors.consumption,
+                  strokeWidth: 1.6,
+                  dot: renderPoint,
+                  activeDot: false,
+                  isAnimationActive: false,
+                }),
+              ],
+            ),
+          ),
+        ],
       ),
       activeMonth
         ? createElement(EnergyTooltip, {
@@ -359,8 +463,6 @@ function EnergyChart({ input, onInteractionChange }: EnergyChartProps) {
             monthIndex: rows.indexOf(activeMonth),
             pinned,
             input,
-            view: viewRef.current,
-            point: pointElements.current.get(activeMonth.id) ?? null,
             dismiss,
           })
         : null,
@@ -373,8 +475,6 @@ interface EnergyTooltipProps {
   monthIndex: number
   pinned: boolean
   input: ConformanceInput
-  view: HTMLDivElement | null
-  point: SVGCircleElement | null
   dismiss: () => void
 }
 
@@ -383,18 +483,24 @@ function EnergyTooltip({
   monthIndex,
   pinned,
   input,
-  view,
-  point,
   dismiss,
 }: EnergyTooltipProps) {
   const content = energyTooltipContent([energyPoint(month, monthIndex)], pinned)
+  const coverage = formatPercent(month.usedOnSite / month.consumption)
   const accessibleLabel = [
     content.title,
     ...content.rows.map((row) => `${row.label}: ${row.value}`),
+    ...(pinned
+      ? [
+          `Consumption mix: Household ${formatEnergy(month.household)}, Heat pump ${formatEnergy(month.heatPump)}, Hot water ${formatEnergy(month.hotWater)}, EV charging ${formatEnergy(month.evCharging)}`,
+          `Generation use: Used on site ${formatEnergy(month.usedOnSite)} (${formatPercent(month.usedOnSite / month.generation)}), Exported ${formatEnergy(month.exported)} (${formatPercent(month.exported / month.generation)})`,
+        ]
+      : []),
+    `Solar covered ${coverage} of household consumption`,
   ]
     .filter(Boolean)
     .join('\n')
-  const position = tooltipPosition(view, point, input, pinned)
+  const position = tooltipPosition(input, pinned, monthIndex, month.consumption)
   return createElement(
     'aside',
     {
@@ -408,6 +514,7 @@ function EnergyTooltip({
       style: {
         ...position.style,
         pointerEvents: 'none',
+        transition: 'top 260ms cubic-bezier(0.22, 1, 0.36, 1)',
       },
     },
     createElement(
@@ -418,13 +525,64 @@ function EnergyTooltip({
       },
       createElement(EnergyTooltipBody, {
         month,
-        summary: createElement(EnergyTooltipSummary, { content }),
         pinned,
         dismiss,
         consumptionChart: createElement(ConsumptionMixChart, { month }),
       }),
     ),
   )
+}
+
+function EnergyXAxisTick({
+  x,
+  y,
+  fill = '#666',
+  payload,
+  activeMonthShort,
+  markerLength,
+}: EnergyXAxisTickProps) {
+  const tickX = Number(x)
+  const tickY = Number(y)
+  const value = typeof payload?.value === 'string' ? payload.value : ''
+  if (!Number.isFinite(tickX) || !Number.isFinite(tickY)) return null
+  const active = value === activeMonthShort
+  return createElement('g', { transform: `translate(${tickX},${tickY})` }, [
+    active
+      ? createElement('line', {
+          key: 'active-line',
+          x1: -markerLength / 2,
+          x2: markerLength / 2,
+          y1: -6,
+          y2: -6,
+          stroke: 'CanvasText',
+          strokeWidth: 1.5,
+        })
+      : null,
+    active
+      ? createElement('line', {
+          key: 'active-tick',
+          x1: 0,
+          x2: 0,
+          y1: -6,
+          y2: 1,
+          stroke: 'CanvasText',
+          strokeWidth: 1.5,
+        })
+      : null,
+    createElement(
+      'text',
+      {
+        key: 'label',
+        x: 0,
+        y: 0,
+        dy: '0.71em',
+        fill,
+        fontSize: 11,
+        textAnchor: 'middle',
+      },
+      value,
+    ),
+  ])
 }
 
 function ConsumptionMixChart({ month }: { month: EnergyMonth }) {
@@ -436,9 +594,7 @@ function ConsumptionMixChart({ month }: { month: EnergyMonth }) {
       data: [month],
       layout: 'vertical',
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
-      accessibilityLayer: true,
-      role: 'img',
-      title: `${month.month} consumption split`,
+      accessibilityLayer: false,
     },
     [
       createElement(XAxis, {
@@ -485,45 +641,84 @@ function ConsumptionMixChart({ month }: { month: EnergyMonth }) {
   )
 }
 
+function AnnualMetric({ label, value }: { label: string; value: string }) {
+  const [amount, unit] = value.split(' ')
+  return createElement('div', { style: { display: 'grid', gap: '3px' } }, [
+    createElement(
+      'span',
+      {
+        key: 'label',
+        style: {
+          color: 'color-mix(in srgb, CanvasText 55%, transparent)',
+        },
+      },
+      label,
+    ),
+    createElement(
+      'strong',
+      {
+        key: 'value',
+        style: {
+          fontSize: '19px',
+          fontWeight: 680,
+          letterSpacing: '-0.02em',
+        },
+      },
+      [
+        amount,
+        ' ',
+        createElement(
+          'span',
+          {
+            key: 'unit',
+            style: {
+              fontSize: '11px',
+              fontWeight: 620,
+              letterSpacing: 0,
+            },
+          },
+          unit,
+        ),
+      ],
+    ),
+  ])
+}
+
 function energyPoint(
   month: EnergyMonth,
   datumIndex: number,
 ): ChartPoint<EnergyMonth, string, number> {
   return {
     key: month.id,
-    markId: 'generation-points',
+    markId: 'consumption-points',
     group: null,
-    groupLabel: 'Solar generation',
+    groupLabel: 'Consumption',
     datum: month,
     datumIndex,
     xValue: month.monthShort,
-    yValue: month.generation,
+    yValue: month.consumption,
     x: 0,
     y: 0,
-    color: energyColors.generation,
+    color: energyColors.consumption,
   }
 }
 
 function tooltipPosition(
-  view: HTMLDivElement | null,
-  point: SVGCircleElement | null,
   input: ConformanceInput,
   pinned: boolean,
+  monthIndex: number,
+  consumption: number,
 ) {
   const edge = 8
   const gap = 12
-  const width = Math.min(304, Math.max(1, input.width - edge * 2))
-  const estimatedHeight = pinned ? 306 : 92
-  const viewBounds = view?.getBoundingClientRect()
-  const pointBounds = point?.getBoundingClientRect()
-  const pointX =
-    viewBounds && pointBounds
-      ? pointBounds.left + pointBounds.width / 2 - viewBounds.left
-      : input.width / 2
-  const pointY =
-    viewBounds && pointBounds
-      ? pointBounds.top + pointBounds.height / 2 - viewBounds.top
-      : input.height / 2
+  const width = Math.min(292, Math.max(1, input.width - edge * 2))
+  const estimatedHeight = pinned ? 334 : 128
+  const chartWidth = Math.max(1, input.width - 24)
+  const chartHeight = Math.max(1, input.height - 48)
+  const plotWidth = Math.max(1, chartWidth - 72 - 24)
+  const plotHeight = Math.max(1, chartHeight - 82 - 38)
+  const pointX = 12 + 72 + ((monthIndex + 0.5) / 12) * plotWidth
+  const pointY = 40 + 82 + (1 - consumption / 2600) * plotHeight
   const placeRight = pointX + gap + width <= input.width - edge
   const placeLeft = pointX - gap - width >= edge
   const verticalOverlay = !placeRight && !placeLeft
@@ -532,15 +727,13 @@ function tooltipPosition(
     : placeLeft
       ? pointX - gap - width
       : Math.max(edge, Math.min(input.width - width - edge, pointX - width / 2))
-  const top = verticalOverlay
-    ? pointY + gap
-    : Math.max(
-        edge,
-        Math.min(
-          input.height - estimatedHeight - edge,
-          pointY - estimatedHeight / 2,
-        ),
-      )
+  const top = Math.max(
+    edge,
+    Math.min(
+      input.height - estimatedHeight - edge,
+      pointY - estimatedHeight / 2,
+    ),
+  )
   return {
     placement: placeRight ? 'right' : placeLeft ? 'left' : 'overlay',
     style: {

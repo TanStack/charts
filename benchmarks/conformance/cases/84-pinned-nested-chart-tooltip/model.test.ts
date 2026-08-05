@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   consumptionBreakdown,
+  energyAnnualOverview,
   energyMonths,
   energyTooltipContent,
 } from './model'
@@ -22,20 +23,30 @@ describe('expanding energy tooltip model', () => {
     }
   })
 
-  it('adds the pinned-only solar coverage row to the native content model', () => {
+  it('keeps the compact totals stable when the tooltip is pinned', () => {
     const june = energyMonths().find((month) => month.id === 'jun')!
 
     expect(energyTooltipContent([{ datum: june }], false)).toEqual({
       title: 'June',
       rows: [
-        { label: 'Consumption', value: '738 kWh', color: '#2563eb' },
-        { label: 'Generation', value: '482 kWh', color: '#f5b942' },
+        { label: 'Consumption', value: '738 kWh' },
+        { label: 'Generation', value: '482 kWh' },
       ],
     })
-    expect(energyTooltipContent([{ datum: june }], true).rows.at(-1)).toEqual({
-      label: 'Solar coverage',
-      value: '32%',
-    })
+    expect(energyTooltipContent([{ datum: june }], true)).toEqual(
+      energyTooltipContent([{ datum: june }], false),
+    )
+    expect(Math.round((june.usedOnSite / june.consumption) * 100)).toBe(23)
+    expect(Math.round((june.usedOnSite / june.generation) * 100)).toBe(35)
+  })
+
+  it('matches the annual overview from the source example', () => {
+    const months = energyMonths()
+
+    expect(months.reduce((total, month) => total + month.consumption, 0)).toBe(
+      energyAnnualOverview.consumption,
+    )
+    expect(energyAnnualOverview.generation).toBe(3_509)
   })
 
   it('updates a stable month without changing the domain', () => {

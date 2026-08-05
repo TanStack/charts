@@ -787,6 +787,8 @@ export interface MarkScene<
 > {
   nodes: readonly SceneNode[]
   points?: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  /** Presentation-only candidates used when the mark is wrapped by `whenFocused`. */
+  focusPoints?: readonly ChartPoint[]
 }
 
 export type ChartFocusAffinity = 'x' | 'y' | 'xy' | 'geometry'

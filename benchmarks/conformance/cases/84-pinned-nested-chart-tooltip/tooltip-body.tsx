@@ -1,11 +1,9 @@
 import type { ReactNode } from 'react'
 import { energyColors, formatEnergy, formatPercent } from './model'
-import type { ChartTooltipContent } from '@tanstack/charts'
 import type { EnergyMonth } from './model'
 
 interface EnergyTooltipBodyProps {
   readonly month: EnergyMonth
-  readonly summary: ReactNode
   readonly pinned: boolean
   readonly dismiss: () => void
   readonly consumptionChart: ReactNode
@@ -13,18 +11,18 @@ interface EnergyTooltipBodyProps {
 
 export function EnergyTooltipBody({
   month,
-  summary,
   pinned,
   dismiss,
   consumptionChart,
 }: EnergyTooltipBodyProps) {
+  const coverageShare = month.usedOnSite / month.consumption
   const usedShare = month.usedOnSite / month.generation
   const exportedShare = month.exported / month.generation
 
   return (
     <div className="energy-tooltip" data-expanded={String(pinned)}>
       <div className="energy-tooltip__summary">
-        {summary}
+        <div className="ts-chart-tooltip__title">{month.month}</div>
         {pinned ? (
           <button
             className="energy-tooltip__close"
@@ -34,15 +32,27 @@ export function EnergyTooltipBody({
             onPointerDown={(event) => event.stopPropagation()}
             onClick={dismiss}
           >
-            ×
+            <Chevron expanded />
           </button>
-        ) : null}
+        ) : (
+          <span className="energy-tooltip__toggle" aria-hidden="true">
+            <Chevron expanded={false} />
+          </span>
+        )}
+      </div>
+      <MetricRow label="Consumption" value={formatEnergy(month.consumption)} />
+      <div className="energy-tooltip__compact-generation">
+        <div className="energy-tooltip__compact-generation-inner">
+          <MetricRow
+            label="Generation"
+            value={formatEnergy(month.generation)}
+          />
+        </div>
       </div>
       <div className="energy-tooltip__reveal" aria-hidden={!pinned}>
         <div className="energy-tooltip__reveal-inner">
           <div className="energy-tooltip__details">
             <section aria-label="Consumption mix">
-              <h3>Consumption mix</h3>
               <div className="energy-tooltip__mini-chart">
                 {consumptionChart}
               </div>
@@ -69,7 +79,12 @@ export function EnergyTooltipBody({
             </section>
 
             <section aria-label="Generation use">
-              <h3>Generation use</h3>
+              <MetricRow
+                className="energy-tooltip__generation-heading"
+                label="Generation"
+                summary={false}
+                value={formatEnergy(month.generation)}
+              />
               <div
                 className="energy-tooltip__generation-bar"
                 aria-hidden="true"
@@ -90,48 +105,67 @@ export function EnergyTooltipBody({
               <DetailRow
                 color={energyColors.generation}
                 label="Used on site"
-                value={`${formatEnergy(month.usedOnSite)} · ${formatPercent(usedShare)}`}
+                value={formatPercent(usedShare)}
               />
               <DetailRow
                 color={energyColors.exported}
                 label="Exported"
-                value={`${formatEnergy(month.exported)} · ${formatPercent(exportedShare)}`}
+                value={formatPercent(exportedShare)}
               />
             </section>
           </div>
         </div>
       </div>
+      <p className="energy-tooltip__footer">
+        Solar covered {formatPercent(coverageShare)} of this month&apos;s
+        consumption, with the rest coming from the grid.
+      </p>
     </div>
   )
 }
 
-export function EnergyTooltipSummary({
-  content,
+function Chevron({ expanded }: { readonly expanded: boolean }) {
+  return (
+    <svg
+      className="energy-tooltip__chevron"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+    >
+      <path
+        d={
+          expanded
+            ? 'M3 2.5 6 5 9 2.5M3 9.5 6 7 9 9.5'
+            : 'm3 4 3-3 3 3M3 8l3 3 3-3'
+        }
+      />
+    </svg>
+  )
+}
+
+function MetricRow({
+  className,
+  label,
+  summary = true,
+  value,
 }: {
-  readonly content: ChartTooltipContent
+  readonly className?: string
+  readonly label: string
+  readonly summary?: boolean
+  readonly value: string
 }) {
   return (
-    <>
-      {content.title ? (
-        <div className="ts-chart-tooltip__title">{content.title}</div>
-      ) : null}
-      <div className="ts-chart-tooltip__rows" aria-hidden="true">
-        {content.rows.map((row) => (
-          <div className="ts-chart-tooltip__row" key={row.label}>
-            {row.color ? (
-              <span
-                className="energy-tooltip__swatch"
-                style={{ background: row.color }}
-              />
-            ) : (
-              <span />
-            )}
-            <span>{row.label}</span>
-            <span>{row.value}</span>
-          </div>
-        ))}
-      </div>
-    </>
+    <div
+      className={[
+        'energy-tooltip__metric-row',
+        summary ? 'ts-chart-tooltip__row' : null,
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <span>{label}</span>
+      <span>{value}</span>
+    </div>
   )
 }
 
@@ -158,18 +192,23 @@ function DetailRow({
 }
 
 export const energyTooltipStyles = `
+  .energy-overview-card .ts-chart:focus,
+  .energy-overview-card [role='listbox']:focus {
+    outline: none;
+  }
+
   .ts-chart-tooltip.energy-tooltip-surface,
   .energy-reference-tooltip {
     box-sizing: border-box;
-    width: 304px;
+    width: 292px;
     max-width: calc(100vw - 24px) !important;
     padding: 0 !important;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, CanvasText 14%, transparent) !important;
-    border-radius: 15px !important;
-    background: color-mix(in srgb, Canvas 96%, CanvasText 4%) !important;
-    color: CanvasText !important;
-    box-shadow: 0 18px 50px rgb(15 23 42 / 0.18) !important;
+    border: 1px solid rgb(255 255 255 / 0.1) !important;
+    border-radius: 10px !important;
+    background: #2b2b2e !important;
+    color: #f4f4f5 !important;
+    box-shadow: 0 14px 34px rgb(0 0 0 / 0.3) !important;
     font: 500 12px/1.35 system-ui, sans-serif !important;
   }
 
@@ -179,86 +218,107 @@ export const energyTooltipStyles = `
   }
 
   .energy-tooltip {
-    padding: 13px 14px 14px;
+    padding: 12px;
   }
 
   .energy-tooltip__summary {
     position: relative;
     min-width: 0;
-    padding-right: 0;
-    transition: padding-right 180ms ease;
-  }
-
-  .energy-tooltip[data-expanded='true'] .energy-tooltip__summary {
-    padding-right: 38px;
+    padding-right: 28px;
   }
 
   .energy-tooltip .ts-chart-tooltip__title {
     display: flex;
     align-items: center;
     min-height: 18px;
-    margin: 0 0 7px;
-    color: color-mix(in srgb, CanvasText 70%, transparent);
+    margin: 0 0 6px;
+    color: #f4f4f5;
     font-size: 12px;
     font-weight: 650;
-    letter-spacing: 0.01em;
   }
 
-  .energy-tooltip .ts-chart-tooltip__rows {
-    display: grid;
-    gap: 5px;
-  }
-
-  .energy-tooltip .ts-chart-tooltip__row,
-  .energy-tooltip__detail-row {
+  .energy-tooltip__metric-row {
     display: grid !important;
-    grid-template-columns: 8px minmax(0, 1fr) auto !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
     align-items: center !important;
-    column-gap: 8px !important;
+    column-gap: 12px !important;
     font-variant-numeric: tabular-nums;
   }
 
-  .energy-tooltip .ts-chart-tooltip__row > :last-child,
+  .energy-tooltip__metric-row > :last-child {
+    color: #fafafa;
+    font-weight: 620;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .energy-tooltip__detail-row {
+    display: grid;
+    grid-template-columns: 3px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+    min-height: 17px;
+    color: #d4d4d8;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
   .energy-tooltip__detail-row > :last-child {
+    color: #f4f4f5;
+    font-weight: 600;
     text-align: right;
     white-space: nowrap;
   }
 
   .energy-tooltip__swatch {
     display: block;
-    width: 8px;
-    height: 8px;
-    border-radius: 2px;
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+    width: 3px;
+    height: 10px;
+    border-radius: 999px;
   }
 
-  .energy-tooltip__close {
+  .energy-tooltip__close,
+  .energy-tooltip__toggle {
     position: absolute;
-    top: -7px;
-    right: -8px;
+    top: -9px;
+    right: -9px;
     display: grid;
     width: 36px;
     height: 36px;
     place-items: center;
+    color: #a1a1aa;
+  }
+
+  .energy-tooltip__close {
     padding: 0;
     border: 0;
-    border-radius: 10px;
+    border-radius: 8px;
     background: transparent;
-    color: color-mix(in srgb, CanvasText 62%, transparent);
+    color: #a1a1aa;
     cursor: pointer;
-    font: 500 20px/1 system-ui, sans-serif;
     pointer-events: auto;
+  }
+
+  .energy-tooltip__chevron {
+    width: 12px;
+    height: 12px;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
   }
 
   .energy-tooltip__close:hover,
   .energy-tooltip__close:focus-visible {
-    background: color-mix(in srgb, CanvasText 8%, transparent);
-    color: CanvasText;
+    background: rgb(255 255 255 / 0.08);
+    color: #fafafa;
     outline: none;
   }
 
   .energy-tooltip__close:focus-visible {
-    box-shadow: inset 0 0 0 2px #2563eb;
+    box-shadow: inset 0 0 0 2px #f5b942;
   }
 
   .energy-tooltip__reveal {
@@ -282,11 +342,9 @@ export const energyTooltipStyles = `
 
   .energy-tooltip__details {
     display: grid;
-    gap: 14px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid color-mix(in srgb, CanvasText 10%, transparent);
-    transform: translateY(-5px);
+    gap: 12px;
+    margin-top: 5px;
+    transform: translateY(-4px);
     transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
@@ -296,42 +354,66 @@ export const energyTooltipStyles = `
 
   .energy-tooltip__details section {
     display: grid;
-    gap: 6px;
+    gap: 5px;
   }
 
-  .energy-tooltip__details h3 {
-    margin: 0;
-    font: 650 11px/1.2 system-ui, sans-serif;
-    color: color-mix(in srgb, CanvasText 66%, transparent);
+  .energy-tooltip__compact-generation {
+    display: grid;
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transition:
+      grid-template-rows 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 120ms ease;
+  }
+
+  .energy-tooltip[data-expanded='true'] .energy-tooltip__compact-generation {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+
+  .energy-tooltip__compact-generation-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .energy-tooltip__generation-heading {
+    margin-top: 2px;
+    padding-top: 8px;
+    border-top: 1px solid rgb(255 255 255 / 0.09);
   }
 
   .energy-tooltip__mini-chart,
   .energy-tooltip__generation-bar {
     width: 100%;
-    height: 10px;
+    height: 8px;
     overflow: hidden;
-    border-radius: 4px;
-    background: color-mix(in srgb, CanvasText 7%, transparent);
+    border-radius: 3px;
+    background: rgb(255 255 255 / 0.08);
   }
 
   .energy-tooltip__mini-chart svg {
     display: block;
     width: 100%;
-    height: 10px;
+    height: 8px;
   }
 
   .energy-tooltip__generation-bar {
     display: flex;
   }
 
-  .energy-tooltip__detail-row {
-    min-height: 16px;
-    color: color-mix(in srgb, CanvasText 82%, transparent);
-    font-size: 11px;
+  .energy-tooltip__footer {
+    margin: 10px -12px -12px;
+    padding: 10px 12px 11px;
+    border-top: 1px solid rgb(255 255 255 / 0.07);
+    background: #222225;
+    color: #a8a8af;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .energy-tooltip__summary,
+    .energy-tooltip__compact-generation,
     .energy-tooltip__reveal,
     .energy-tooltip__details {
       transition: none;

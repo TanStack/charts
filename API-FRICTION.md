@@ -236,6 +236,9 @@ Each entry records:
 | F-198 | Union-valued axes rejected configured D3 scales           | API             | resolved   |
 | F-199 | Dismissal could click through a composed tooltip          | API             | resolved   |
 | F-200 | Recharts point replacement canceled activation events     | Application     | monitoring |
+| F-201 | Structured tooltip rows could not interleave details      | API             | monitoring |
+| F-202 | Paint parity normalized patterns but not gradients        | Tooling         | resolved   |
+| F-203 | Focused rules had no matchable presentation points        | API             | resolved   |
 
 ## Findings
 
@@ -4974,3 +4977,64 @@ Each entry records:
 - Verification: the paired behavior matrix passes hover, pointer pin, keyboard
   pin, Escape, and close scenarios at 320 and 640 pixels across both revisions
   without unsafe type assertions or renderer internals.
+
+### F-201 — Structured tooltip rows could not interleave custom detail
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: matching the expanding pinned energy tooltip to its source clip
+- Friction: `ChartTooltipContent` can describe only a title and flat rows. The
+  source layout expands a consumption breakdown directly below the Consumption
+  row, then places a generation breakdown below the Generation row, followed by
+  a full-width coverage sentence. The framework renderer therefore had to own
+  and repeat the two summary rows instead of composing `defaultBody` with the
+  inserted detail.
+- Current decision: keep the structured callback stable at two summary rows and
+  let the custom body renderer own non-tabular ordering. Do not expand the
+  generic content schema from one application layout.
+- Verification: the paired case reports two summary rows in both transient and
+  pinned states, then adds four nested consumption segments, six detail rows,
+  and the persistent coverage footer only through the custom renderer.
+
+### F-202 — Paint parity normalized patterns but not gradients
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: the solid-and-hatched generation bars in the expanding energy
+  tooltip comparison
+- Friction: the visual gate resolved an SVG pattern to its backing rectangle
+  color but left an equivalent linear-gradient paint as a raw resource URL.
+  The Recharts pattern and Charts gradient therefore failed paint parity even
+  though both used the same exported-energy color.
+- Decision: resolve a referenced gradient to its first stop color when no
+  pattern rectangle or path exists, preserving the existing solid-color
+  comparison contract.
+- Verification: the paired energy case compares the pattern and gradient fills
+  as the same exported-energy paint while retaining their rendered hatch
+  treatments.
+
+### F-203 — Focused rules had no matchable presentation points
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: the active-month guide in the expanding energy tooltip example
+- Friction: `whenFocused(ruleX(...), { match: "x" })` typechecked and matched
+  the documented focused-rule recipe, but every rule stayed hidden because
+  rules intentionally emit no interaction points. Replacing the rule with a
+  link would have introduced the wrong semantic mark solely to obtain a focus
+  candidate.
+- Decision: let a mark scene expose presentation-only `focusPoints`. Focus
+  layers consume those candidates without adding them to the chart's global
+  interaction points. `ruleX` and `ruleY` now provide candidates keyed to their
+  rendered nodes while the nodes remain interaction-free.
+- Verification: focused-rule regressions reveal exactly one full-span rule for
+  matching x and y values, retain only the underlying data marks in
+  `scene.points`, and keep rule nodes free of interaction metadata. The paired
+  energy case passes its visual, behavior, geometry, and type gates with the
+  native focused `ruleX` guide. The reviewed integration adds 15 minified and 7
+  gzip bytes to the locked line-scene entry and 350 minified and 64 gzip bytes
+  to the representative-marks entry; the universal baseline records that cost,
+  and the Stats parity ceiling moves from 42.3 to 42.4 KiB.

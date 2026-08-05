@@ -134,7 +134,7 @@ The complete overloads and runtime rules are in
 | `InitializedMark`       | Stable ID, materialized channels, optional layout labels, and render function |
 | `MaterializedChannel`   | Values contributed to an optional named scale                                 |
 | `MarkRenderContext`     | Final chart bounds, scales, theme, color resolver, and layout                 |
-| `MarkScene`             | Mark-owned scene nodes and optional interaction points                        |
+| `MarkScene`             | Mark-owned nodes plus optional interaction and presentation-focus points      |
 | `ChartScene`            | Complete renderer-neutral output                                              |
 | `ChartPoint`            | Typed interaction target                                                      |
 | `SceneInteraction`      | Semantic point or points attached to a rendered scene primitive               |

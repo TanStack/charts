@@ -231,7 +231,7 @@ function createChartSceneWithScaleResolver<
         ariaHidden: true,
         focus: {
           match: mark.focus.match ?? 'primary',
-          points: renderedPoints,
+          points: rendered.focusPoints ?? renderedPoints,
           placement:
             firstBaseMarkIndex < 0 || markIndex < firstBaseMarkIndex
               ? 'under'

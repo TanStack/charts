@@ -90,8 +90,14 @@ interface MarkScene<
 > {
   nodes: readonly SceneNode[]
   points?: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  focusPoints?: readonly ChartPoint[]
 }
 ```
+
+Use `focusPoints` only for presentation geometry wrapped in `whenFocused`
+whose candidates must not become native pointer, keyboard, tooltip, or callback
+targets. Candidate keys must match their scene-node keys. The scene compiler
+uses them only inside the focused presentation layer.
 
 ### Mark requirements
 
@@ -100,6 +106,7 @@ interface MarkScene<
 - Materialize every value needed to establish scale domains before rendering.
 - Map through `context.scales`; do not recalculate responsive ranges.
 - Give each scene node and point a deterministic key.
+- Keep presentation-only `focusPoints` keyed to the nodes they reveal.
 - Emit finite geometry only.
 - Preserve the original datum and index in every interaction point.
 - Use one honest focus coordinate and semantic x/y pair per point.

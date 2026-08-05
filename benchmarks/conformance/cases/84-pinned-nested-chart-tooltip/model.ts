@@ -1,12 +1,19 @@
 import type { ChartTooltipContent } from '@tanstack/charts'
 
 export const energyColors = {
-  household: '#2563eb',
-  heatPump: '#60a5fa',
-  hotWater: '#93c5fd',
-  evCharging: '#c7d2fe',
-  generation: '#f5b942',
-  exported: '#fde6a8',
+  consumption: '#8b8d90',
+  household: '#1685ff',
+  heatPump: '#e82285',
+  hotWater: '#ee4c91',
+  evCharging: '#5cbd68',
+  generationMuted: '#f4c675',
+  generation: '#f2a900',
+  exported: '#f8d99a',
+} as const
+
+export const energyAnnualOverview = {
+  generation: 3_509,
+  consumption: 17_847,
 } as const
 
 export const energyMonthIds = [
@@ -58,18 +65,18 @@ export interface EnergyBreakdownPart {
 }
 
 const baseMonths = [
-  ['jan', 'January', 'Jan', 214, 174, 128, 188, 286, 238, 48],
-  ['feb', 'February', 'Feb', 205, 162, 122, 172, 354, 257, 97],
-  ['mar', 'March', 'Mar', 212, 148, 126, 195, 455, 294, 161],
-  ['apr', 'April', 'Apr', 220, 132, 136, 202, 522, 304, 218],
-  ['may', 'May', 'May', 232, 118, 143, 216, 574, 298, 276],
-  ['jun', 'June', 'Jun', 241, 122, 150, 225, 482, 236, 246],
-  ['jul', 'July', 'Jul', 246, 109, 154, 238, 641, 274, 367],
-  ['aug', 'August', 'Aug', 238, 112, 148, 231, 612, 263, 349],
-  ['sep', 'September', 'Sep', 229, 128, 139, 212, 508, 285, 223],
-  ['oct', 'October', 'Oct', 221, 146, 133, 204, 414, 278, 136],
-  ['nov', 'November', 'Nov', 216, 168, 129, 196, 326, 251, 75],
-  ['dec', 'December', 'Dec', 228, 186, 137, 214, 258, 226, 32],
+  ['jan', 'January', 'Jan', 783, 637, 468, 688, 188, 180, 8],
+  ['feb', 'February', 'Feb', 672, 531, 400, 563, 219, 217, 2],
+  ['mar', 'March', 'Mar', 668, 466, 397, 614, 262, 257, 5],
+  ['apr', 'April', 'Apr', 570, 342, 352, 524, 375, 322, 53],
+  ['may', 'May', 'May', 376, 191, 232, 352, 427, 219, 208],
+  ['jun', 'June', 'Jun', 241, 122, 150, 225, 482, 169, 313],
+  ['jul', 'July', 'Jul', 246, 91, 155, 233, 367, 150, 217],
+  ['aug', 'August', 'Aug', 241, 96, 155, 233, 354, 138, 216],
+  ['sep', 'September', 'Sep', 242, 135, 147, 223, 304, 142, 162],
+  ['oct', 'October', 'Oct', 362, 239, 218, 335, 258, 185, 73],
+  ['nov', 'November', 'Nov', 577, 449, 345, 524, 174, 171, 3],
+  ['dec', 'December', 'Dec', 607, 495, 365, 570, 100, 99, 1],
 ] as const satisfies readonly (readonly [
   EnergyMonthId,
   string,
@@ -179,7 +186,7 @@ export function consumptionBreakdown(
 
 export function energyTooltipContent(
   points: readonly { readonly datum: EnergyMonth }[],
-  pinned: boolean,
+  _pinned: boolean,
 ): ChartTooltipContent {
   const month = points[0]?.datum
   if (!month) return { rows: [] }
@@ -189,21 +196,11 @@ export function energyTooltipContent(
       {
         label: 'Consumption',
         value: formatEnergy(month.consumption),
-        color: energyColors.household,
       },
       {
         label: 'Generation',
         value: formatEnergy(month.generation),
-        color: energyColors.generation,
       },
-      ...(pinned
-        ? [
-            {
-              label: 'Solar coverage',
-              value: formatPercent(month.usedOnSite / month.consumption),
-            },
-          ]
-        : []),
     ],
   }
 }

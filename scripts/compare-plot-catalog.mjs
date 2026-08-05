@@ -1948,8 +1948,14 @@ async function compareVisuals(
                   .getElementById(patternId)
                   ?.querySelector('rect, path')
               : undefined
-            return patternPaint
-              ? getComputedStyle(patternPaint).fill
+            if (patternPaint) return getComputedStyle(patternPaint).fill
+            const gradientStop = patternId
+              ? element.ownerDocument
+                  .getElementById(patternId)
+                  ?.querySelector('stop')
+              : undefined
+            return gradientStop
+              ? getComputedStyle(gradientStop).getPropertyValue('stop-color')
               : style.fill
           }
           return style.stroke
