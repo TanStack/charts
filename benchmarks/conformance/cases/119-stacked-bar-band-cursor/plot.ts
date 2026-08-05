@@ -1,5 +1,6 @@
 import * as Plot from '@observablehq/plot'
 import {
+  formatStackedCursorEndpoint,
   stackedCursorBandInset,
   stackedCursorBands,
   stackedCursorBarInset,
@@ -80,6 +81,44 @@ const render = (input: ConformanceInput, rows: readonly StackedCursorRow[]) =>
           className: 'stacked-cursor-y-rule',
         }),
       ),
+      Plot.text(
+        rows,
+        Plot.pointerX({
+          px: 'period',
+          py: (row: StackedCursorRow) => (row.start + row.end) / 2,
+          x: 'period',
+          text: 'period',
+          frameAnchor: 'bottom',
+          dy: 9,
+          lineAnchor: 'top',
+          maxRadius: Number.POSITIVE_INFINITY,
+          fill: 'currentColor',
+          stroke: 'var(--plot-background)',
+          strokeWidth: 5,
+          fontSize: 11,
+          fontWeight: 700,
+          className: 'stacked-cursor-x-label',
+        }),
+      ),
+      Plot.text(
+        rows,
+        Plot.pointerX({
+          px: 'period',
+          py: (row: StackedCursorRow) => (row.start + row.end) / 2,
+          y: 'end',
+          text: (row: StackedCursorRow) => formatStackedCursorEndpoint(row.end),
+          frameAnchor: 'left',
+          dx: -9,
+          textAnchor: 'end',
+          maxRadius: Number.POSITIVE_INFINITY,
+          fill: 'currentColor',
+          stroke: 'var(--plot-background)',
+          strokeWidth: 16,
+          fontSize: 11,
+          fontWeight: 700,
+          className: 'stacked-cursor-y-label',
+        }),
+      ),
     ],
   })
 
@@ -110,6 +149,12 @@ export const mount: ConformanceMount = (container, input) => {
       const yRule = container.querySelector<SVGLineElement>(
         '.stacked-cursor-y-rule line',
       )
+      const xLabel = container.querySelector<SVGTextElement>(
+        '.stacked-cursor-x-label text',
+      )
+      const yLabel = container.querySelector<SVGTextElement>(
+        '.stacked-cursor-y-label text',
+      )
       const bar = focused ? barForRow(container, rows, focused) : null
       const bandX = numberAttribute(band, 'x')
       const bandWidth = numberAttribute(band, 'width')
@@ -117,6 +162,10 @@ export const mount: ConformanceMount = (container, input) => {
       const barWidth = numberAttribute(bar, 'width')
       const barY = numberAttribute(bar, 'y')
       const ruleY = numberAttribute(yRule, 'y1')
+      const bandCenter = elementCenter(band)
+      const yRuleCenter = elementCenter(yRule)
+      const xLabelCenter = elementCenter(xLabel)
+      const yLabelCenter = elementCenter(yLabel)
 
       return {
         focus: {
@@ -129,6 +178,15 @@ export const mount: ConformanceMount = (container, input) => {
         cursor: {
           bandVisible: band !== null,
           yRuleVisible: yRule !== null,
+          xLabelVisible: xLabel !== null,
+          yLabelVisible: yLabel !== null,
+          xLabelText: xLabel?.textContent ?? null,
+          yLabelText: yLabel?.textContent ?? null,
+          labelsMatchFocus: Boolean(
+            focused &&
+            xLabel?.textContent === focused.period &&
+            yLabel?.textContent === formatStackedCursorEndpoint(focused.end),
+          ),
           yRuleDotted: dashArray(yRule) === '4 4',
           bandWider: Boolean(
             bandWidth !== null && barWidth !== null && bandWidth > barWidth,
@@ -143,6 +201,16 @@ export const mount: ConformanceMount = (container, input) => {
           leftOutset: difference(barX, bandX),
           rightOutset: difference(add(bandX, bandWidth), add(barX, barWidth)),
           widthDelta: difference(bandWidth, barWidth),
+          xLabelCentered: Boolean(
+            xLabelCenter &&
+            bandCenter &&
+            Math.abs(xLabelCenter.x - bandCenter.x) < 1.5,
+          ),
+          yLabelAligned: Boolean(
+            yLabelCenter &&
+            yRuleCenter &&
+            Math.abs(yLabelCenter.y - yRuleCenter.y) < 1.5,
+          ),
           motionState: 'finished',
           ySettled:
             yRule !== null &&
@@ -246,6 +314,14 @@ function numberAttribute(
   if (value === null || value === undefined) return null
   const number = Number(value)
   return Number.isFinite(number) ? number : null
+}
+
+function elementCenter(element: Element | null | undefined) {
+  if (!element) return null
+  const bounds = element.getBoundingClientRect()
+  const x = bounds.left + bounds.width / 2
+  const y = bounds.top + bounds.height / 2
+  return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
 }
 
 function difference(

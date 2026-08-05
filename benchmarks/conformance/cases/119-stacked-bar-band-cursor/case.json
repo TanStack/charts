@@ -4,14 +4,16 @@
   "id": "119-stacked-bar-band-cursor",
   "title": "Stacked bars with band and rule cursors",
   "family": "interaction",
-  "intent": "Track one stacked-bar category with a full-height x band and the focused segment endpoint with a dotted y rule.",
+  "intent": "Track one stacked-bar category with a labeled full-height x band and the focused segment endpoint with a labeled dotted y rule.",
   "support": "native",
   "features": [
     "stacked bars",
     "focused x band",
     "dotted y crosshair",
     "mixed cursor presentation",
-    "two-pixel bar outset",
+    "four-pixel bar outset",
+    "x cursor label",
+    "y cursor label",
     "cursor spring motion",
     "keyed data updates"
   ],
@@ -42,6 +44,8 @@
             { "path": "focus.groupSize", "equals": 3 },
             { "path": "cursor.bandVisible", "equals": true },
             { "path": "cursor.yRuleVisible", "equals": true },
+            { "path": "cursor.xLabelVisible", "equals": true },
+            { "path": "cursor.yLabelVisible", "equals": true },
             { "path": "cursor.yRuleDotted", "equals": true }
           ]
         },
@@ -53,19 +57,23 @@
             { "path": "cursor.bandCentered", "equals": true },
             {
               "path": "cursor.leftOutset",
-              "approx": 2,
+              "approx": 4,
               "tolerance": 0.05
             },
             {
               "path": "cursor.rightOutset",
-              "approx": 2,
+              "approx": 4,
               "tolerance": 0.05
             },
             {
               "path": "cursor.widthDelta",
-              "approx": 4,
+              "approx": 8,
               "tolerance": 0.05
             },
+            { "path": "cursor.xLabelText", "equals": "Nov" },
+            { "path": "cursor.labelsMatchFocus", "equals": true },
+            { "path": "cursor.xLabelCentered", "equals": true },
+            { "path": "cursor.yLabelAligned", "equals": true },
             { "path": "cursor.ySettled", "equals": true },
             { "path": "cursor.motionState", "equals": "finished" }
           ]
@@ -92,14 +100,24 @@
             { "path": "cursor.bandCentered", "equals": true },
             {
               "path": "cursor.leftOutset",
-              "approx": 2,
+              "approx": 4,
               "tolerance": 0.05
             },
             {
               "path": "cursor.rightOutset",
-              "approx": 2,
+              "approx": 4,
               "tolerance": 0.05
             },
+            {
+              "path": "cursor.widthDelta",
+              "approx": 8,
+              "tolerance": 0.05
+            },
+            { "path": "cursor.xLabelText", "equals": "Nov" },
+            { "path": "cursor.yLabelText", "equals": "992" },
+            { "path": "cursor.labelsMatchFocus", "equals": true },
+            { "path": "cursor.xLabelCentered", "equals": true },
+            { "path": "cursor.yLabelAligned", "equals": true },
             { "path": "cursor.ySettled", "equals": true }
           ]
         },
@@ -109,7 +127,11 @@
           "assertions": [
             { "path": "focus.period", "equals": null },
             { "path": "cursor.bandVisible", "equals": false },
-            { "path": "cursor.yRuleVisible", "equals": false }
+            { "path": "cursor.yRuleVisible", "equals": false },
+            { "path": "cursor.xLabelVisible", "equals": false },
+            { "path": "cursor.yLabelVisible", "equals": false },
+            { "path": "cursor.xLabelText", "equals": null },
+            { "path": "cursor.yLabelText", "equals": null }
           ]
         }
       ]
@@ -120,7 +142,7 @@
     "url": "https://observablehq.com/plot/interactions/pointer"
   },
   "ai": {
-    "create": "Create stacked Crimean War bars where the selected month paints an x band exactly two pixels beyond both bar edges and the selected segment paints a dotted horizontal y rule.",
-    "maintain": "Keep the x band and y rule as stable renderer-native guides, preserve their spring motion and keyed update continuity, and verify the band's exact rendered two-pixel outset across responsive sizes and themes."
+    "create": "Create stacked Crimean War bars where the selected month paints a labeled x band exactly four pixels beyond both bar edges and the selected segment paints a labeled dotted horizontal y rule at its stack endpoint.",
+    "maintain": "Keep the labeled x band and y rule as stable renderer-native guides, preserve their spring motion and keyed update continuity, and verify the band's exact rendered four-pixel outset plus label alignment across responsive sizes and themes."
   }
 }

@@ -3,7 +3,7 @@ import { crimeanWar } from '@charts-poc/demo-data/crimean-war'
 export const stackedCursorCauses = ['disease', 'wounds', 'other'] as const
 export const stackedCursorColors = ['#4269d0', '#ff725c', '#efb118']
 export const stackedCursorBarInset = 4
-export const stackedCursorOutset = 2
+export const stackedCursorOutset = 4
 export const stackedCursorBandInset =
   stackedCursorBarInset - stackedCursorOutset
 
@@ -29,6 +29,11 @@ const month = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   timeZone: 'UTC',
 })
+const integer = new Intl.NumberFormat('en-US')
+
+export function formatStackedCursorEndpoint(value: number) {
+  return integer.format(value)
+}
 
 const sourceRows = crimeanWar.slice(3, 11)
 

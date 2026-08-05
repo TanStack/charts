@@ -89,24 +89,29 @@ marks: [
   crosshair({
     x: {
       band: {
-        inset: 2,
+        inset: 0,
         radius: 3,
         fill: '#64748b',
         fillOpacity: 0.16,
       },
+      label: true,
     },
     y: false,
   }),
   barY(rows, { x: 'period', y: 'value', color: 'series', inset: 4 }),
-  crosshair({ x: false, y: { strokeDasharray: '4 4' } }),
+  crosshair({
+    x: false,
+    y: { strokeDasharray: '4 4', label: true },
+  }),
 ]
 ```
 
 It follows pointer and keyboard focus, stays out of hit testing, and renders
 through SVG, Canvas, motion, and native focus presentation. The first guide
 uses categorical bandwidth to paint below the bars; with bar inset 4 and band
-inset 2, it extends 2 pixels past each bar edge. The second guide paints the
-dotted y rule above the bars. Set `maxFocusDistance` to
+inset 0, it extends 4 pixels past each bar edge. Its x label shows the focused
+period. The second guide paints the dotted y rule above the bars and labels the
+focused stack endpoint. Set `maxFocusDistance` to
 `Number.POSITIVE_INFINITY` only when the guides should remain snapped across
 the complete plot.
 

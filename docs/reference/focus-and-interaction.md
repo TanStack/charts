@@ -160,7 +160,9 @@ options apply to both axes, and an axis object can override them. A label uses
 the matching resolved tick label when available, falls back to the semantic
 value, and accepts a `format` callback. Labels are clamped to the chart surface
 and rendered with a configurable halo. Rules and the optional marker are
-clipped to the plot.
+clipped to the plot. For difference intervals such as stacked bars and areas,
+the label formats the plotted `x2` or `y2` endpoint so it matches the guide;
+tooltip formatting still reports the interval difference.
 
 On a categorical axis, `band` replaces that axis rule with a plot-spanning
 cursor band centered on the focused value:
@@ -170,11 +172,12 @@ marks: [
   crosshair({
     x: {
       band: {
-        inset: 2,
+        inset: 0,
         radius: 3,
         fill: '#64748b',
         fillOpacity: 0.16,
       },
+      label: true,
     },
     y: false,
   }),
@@ -186,15 +189,16 @@ marks: [
   }),
   crosshair({
     x: false,
-    y: { strokeDasharray: '4 4' },
+    y: { strokeDasharray: '4 4', label: true },
   }),
 ]
 ```
 
 The first guide is an underlay because it precedes the bars; the second is an
-overlay. With a bar inset of 4 and band inset of 2, the cursor extends exactly
-2 pixels beyond each bar edge. Use separate crosshair marks whenever axes need
-different placement.
+overlay. With a bar inset of 4 and band inset of 0, the cursor extends exactly
+4 pixels beyond each bar edge. Its x label shows the focused period; the y rule
+label shows the focused stack endpoint. Use separate crosshair marks whenever
+axes need different placement.
 
 | Band option     | Meaning                                                                  |
 | --------------- | ------------------------------------------------------------------------ |

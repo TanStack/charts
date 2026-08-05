@@ -1,12 +1,23 @@
 import { describe, expect, it } from 'vitest'
 import {
+  formatStackedCursorEndpoint,
+  stackedCursorBandInset,
+  stackedCursorBarInset,
   stackedCursorCauses,
   stackedCursorMaximum,
+  stackedCursorOutset,
   stackedCursorPeriods,
   stackedCursorRowsForRevision,
 } from './model'
 
 describe('stacked cursor revisions', () => {
+  it('uses a full-width cursor band with deterministic endpoint labels', () => {
+    expect(stackedCursorBarInset).toBe(4)
+    expect(stackedCursorOutset).toBe(4)
+    expect(stackedCursorBandInset).toBe(0)
+    expect(formatStackedCursorEndpoint(1_131)).toBe('1,131')
+  })
+
   it('alternates visible values without changing category or point identity', () => {
     const initial = stackedCursorRowsForRevision(0)
     const revised = stackedCursorRowsForRevision(1)
@@ -19,6 +30,8 @@ describe('stacked cursor revisions', () => {
     expect(revised.map((row) => row.deaths)).not.toEqual(
       initial.map((row) => row.deaths),
     )
+    expect(initial.find((row) => row.id === 'Nov:wounds')?.end).toBe(1_131)
+    expect(revised.find((row) => row.id === 'Nov:wounds')?.end).toBe(992)
     expect(stackedCursorRowsForRevision(2)).toBe(initial)
     expect(stackedCursorRowsForRevision(3)).toBe(revised)
   })

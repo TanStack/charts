@@ -5672,8 +5672,10 @@ Each entry records:
   options, parent-scale centering for x- and y-grouped bars, and no band on a
   continuous scale. Case 119's
   `band-and-rule-follow-stack` scenario checks the full three-point x group,
-  exact 2-pixel left/right outset, dotted y rule, responsive revisions, and
-  pointer-leave cleanup.
+  exact 4-pixel left/right outset, focused period and stack-endpoint labels,
+  dotted y rule, responsive revisions, and pointer-leave cleanup. The core
+  stacked-label regression also proves that a difference interval formats its
+  plotted endpoint rather than the raw segment delta.
 
 ### F-222 — Scene updates cleared active motion guide placement
 

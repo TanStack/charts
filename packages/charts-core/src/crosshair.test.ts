@@ -7,6 +7,7 @@ import { facet } from './facet'
 import { resolveFocusPresentation } from './focus-presentation'
 import { group } from './group'
 import { createChartScene, defineChart } from './scene'
+import { stack } from './stack'
 import { linearAxes } from './test-scales'
 import type {
   ChartFocusState,
@@ -246,6 +247,92 @@ describe('crosshair', () => {
     expect(presentation.over.some((node) => node.key === 'default-focus')).toBe(
       true,
     )
+  })
+
+  it('labels stacked difference bars with their plotted endpoint', () => {
+    const rows = [
+      { id: 'first', category: 'A', series: 'first', value: 40 },
+      { id: 'second', category: 'A', series: 'second', value: 30 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barY(rows, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            key: 'id',
+            layout: stack({ order: ['first', 'second'] }),
+          }),
+          crosshair<number, number>({
+            x: false,
+            y: { label: { format: (value) => `y=${value}` } },
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A']) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 240, height: 160 },
+    )
+    const point = scene.points.find((candidate) => candidate.datum === rows[1])!
+    const guide = findNode(
+      resolveFocusPresentation(scene, focus(point)).over,
+      'crosshair-1',
+    ) as SceneGroup
+    const rule = findNode(guide.children, 'crosshair-1:y-rule') as SceneRule
+    const label = findNode(
+      guide.children,
+      'crosshair-1:y-label:text',
+    ) as SceneLabel
+
+    expect(point).toMatchObject({ yValue: 30, y1Value: 40, y2Value: 70 })
+    expect(rule.y1).toBe(point.y)
+    expect(label.text).toBe('y=70')
+  })
+
+  it('labels horizontally stacked difference bars with their plotted endpoint', () => {
+    const rows = [
+      { id: 'first', category: 'A', series: 'first', value: 40 },
+      { id: 'second', category: 'A', series: 'second', value: 30 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barX(rows, {
+            x: 'value',
+            y: 'category',
+            z: 'series',
+            key: 'id',
+            layout: stack({ order: ['first', 'second'] }),
+          }),
+          crosshair<number, number>({
+            x: { label: { format: (value) => `x=${value}` } },
+            y: false,
+          }),
+        ],
+        x: { scale: scaleLinear().domain([0, 100]) },
+        y: { scale: scaleBand<string>().domain(['A']) },
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 240, height: 160 },
+    )
+    const point = scene.points.find((candidate) => candidate.datum === rows[1])!
+    const guide = findNode(
+      resolveFocusPresentation(scene, focus(point)).over,
+      'crosshair-1',
+    ) as SceneGroup
+    const rule = findNode(guide.children, 'crosshair-1:x-rule') as SceneRule
+    const label = findNode(
+      guide.children,
+      'crosshair-1:x-label:text',
+    ) as SceneLabel
+
+    expect(point).toMatchObject({ xValue: 30, x1Value: 40, x2Value: 70 })
+    expect(rule.x1).toBe(point.x)
+    expect(label.text).toBe('x=70')
   })
 
   it('offsets and scopes guides to their focused facet cell', () => {

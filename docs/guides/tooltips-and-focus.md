@@ -78,11 +78,12 @@ const definition = defineChart({
     crosshair({
       x: {
         band: {
-          inset: 2,
+          inset: 0,
           radius: 3,
           fill: '#64748b',
           fillOpacity: 0.16,
         },
+        label: true,
       },
       y: false,
     }),
@@ -94,7 +95,7 @@ const definition = defineChart({
     }),
     crosshair({
       x: false,
-      y: { strokeDasharray: '4 4' },
+      y: { strokeDasharray: '4 4', label: true },
     }),
   ],
   x: { scale: scaleBand },
@@ -106,13 +107,13 @@ const definition = defineChart({
 })
 ```
 
-The x band follows `focus.primary.x` for pointer and keyboard focus. It uses
+The x band follows the focused x value for pointer and keyboard focus. It uses
 the categorical scale bandwidth, then applies `inset` to both edges. A bar
-inset of 4 and band inset of 2 makes the cursor 2 pixels wider on each side.
-The dotted y rule follows the primary stacked segment endpoint, while the
-tooltip still receives the complete x group. Keep the finite distance default
-when empty space should clear focus; Infinity is an explicit
-continuous-snapping policy.
+inset of 4 and band inset of 0 makes the cursor 4 pixels wider on each side.
+Its label shows the focused period. The dotted y rule and its label follow the
+primary stacked segment endpoint, while the tooltip still receives the
+complete x group. Keep the finite distance default when empty space should
+clear focus; Infinity is an explicit continuous-snapping policy.
 
 `crosshair` defaults to both axis rules with no labels or marker. Setting
 `band: true` or a band options object replaces that axis rule; axes with zero

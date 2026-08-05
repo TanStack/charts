@@ -13,6 +13,7 @@ import {
   stackedCursorBarInset,
   stackedCursorCauses,
   stackedCursorColors,
+  formatStackedCursorEndpoint,
   stackedCursorMaximum,
   stackedCursorPeriods,
   stackedCursorRowsForRevision,
@@ -56,6 +57,14 @@ const chartDefinition = (rows: readonly StackedCursorRow[]) =>
             inset: stackedCursorBandInset,
             radius: 3,
           },
+          label: {
+            format: String,
+            fill: 'CanvasText',
+            stroke: 'Canvas',
+            strokeWidth: 5,
+            fontSize: 11,
+            fontWeight: 700,
+          },
         },
         y: false,
         motion: { transition: cursorTransition },
@@ -79,6 +88,14 @@ const chartDefinition = (rows: readonly StackedCursorRow[]) =>
           strokeOpacity: 0.82,
           strokeWidth: 1,
           strokeDasharray: '4 4',
+          label: {
+            format: formatStackedCursorEndpoint,
+            fill: 'CanvasText',
+            stroke: 'Canvas',
+            strokeWidth: 16,
+            fontSize: 11,
+            fontWeight: 700,
+          },
         },
         motion: { transition: cursorTransition },
       }),
@@ -162,6 +179,16 @@ export const mount: ConformanceMount = (container, input) => {
         'stacked-cursor-rule:y-rule',
         'line',
       )
+      const xLabel = elementWithKey(
+        container,
+        'stacked-cursor-band:x-label:text',
+        'text',
+      )
+      const yLabel = elementWithKey(
+        container,
+        'stacked-cursor-rule:y-label:text',
+        'text',
+      )
       const guideLayer = yRule?.closest<SVGGElement>(
         '[data-ts-focus-guide-layer="over"]',
       )
@@ -174,12 +201,20 @@ export const mount: ConformanceMount = (container, input) => {
       const yRuleVisible = Boolean(
         yRule && guideLayer?.getAttribute('visibility') !== 'hidden',
       )
+      const xLabelVisible = Boolean(
+        xLabel && bandLayer?.getAttribute('visibility') !== 'hidden',
+      )
+      const yLabelVisible = Boolean(
+        yLabel && guideLayer?.getAttribute('visibility') !== 'hidden',
+      )
       const bandX = numberAttribute(band, 'x')
       const bandWidth = numberAttribute(band, 'width')
       const barX = numberAttribute(bar, 'x')
       const barWidth = numberAttribute(bar, 'width')
       const barY = numberAttribute(bar, 'y')
       const ruleY = numberAttribute(yRule, 'y1')
+      const xLabelX = numberAttribute(xLabel, 'x')
+      const yLabelY = numberAttribute(yLabel, 'y')
       const guideMotionState = motionState(bandLayer, guideLayer)
 
       return {
@@ -193,6 +228,16 @@ export const mount: ConformanceMount = (container, input) => {
         cursor: {
           bandVisible,
           yRuleVisible,
+          xLabelVisible,
+          yLabelVisible,
+          xLabelText: xLabelVisible ? (xLabel?.textContent ?? null) : null,
+          yLabelText: yLabelVisible ? (yLabel?.textContent ?? null) : null,
+          labelsMatchFocus: Boolean(
+            primary &&
+            xLabel?.textContent === primary.datum.period &&
+            yLabel?.textContent ===
+              formatStackedCursorEndpoint(primary.datum.end),
+          ),
           yRuleDotted: yRule?.getAttribute('stroke-dasharray') === '4 4',
           bandWider: Boolean(
             bandWidth !== null && barWidth !== null && bandWidth > barWidth,
@@ -207,6 +252,19 @@ export const mount: ConformanceMount = (container, input) => {
           leftOutset: difference(barX, bandX),
           rightOutset: difference(add(bandX, bandWidth), add(barX, barWidth)),
           widthDelta: difference(bandWidth, barWidth),
+          xLabelCentered: Boolean(
+            xLabelVisible &&
+            xLabelX !== null &&
+            bandX !== null &&
+            bandWidth !== null &&
+            Math.abs(xLabelX - bandX - bandWidth / 2) < 0.05,
+          ),
+          yLabelAligned: Boolean(
+            yLabelVisible &&
+            yLabelY !== null &&
+            ruleY !== null &&
+            Math.abs(yLabelY - ruleY) < 0.05,
+          ),
           motionState: guideMotionState,
           ySettled:
             yRuleVisible &&

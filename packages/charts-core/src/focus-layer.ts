@@ -67,8 +67,8 @@ function resolveGuideTarget(
     ? {
         x: focus.primary.x,
         y: focus.primary.y,
-        xValue: focus.primary.xValue,
-        yValue: focus.primary.yValue,
+        xValue: focusGuideValue(focus.primary, 'x'),
+        yValue: focusGuideValue(focus.primary, 'y'),
         color: focus.primary.color,
       }
     : undefined
@@ -92,6 +92,13 @@ function resolveGuideTarget(
     yValue: y?.value,
     color: local?.color,
   }
+}
+
+function focusGuideValue(point: ChartFocusState['primary'], axis: 'x' | 'y') {
+  const interval = axis === 'x' ? point.xInterval : point.yInterval
+  const endpoint = axis === 'x' ? point.x2Value : point.y2Value
+  const value = axis === 'x' ? point.xValue : point.yValue
+  return interval === 'difference' && endpoint !== undefined ? endpoint : value
 }
 
 function cursorValueBelongsToGuide(
