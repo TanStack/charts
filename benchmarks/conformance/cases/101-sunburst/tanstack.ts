@@ -5,7 +5,7 @@ import { partition } from 'd3-hierarchy'
 import { arc } from 'd3-shape'
 import { selectSunburstData } from './selection'
 import { flareHierarchy } from './transform'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { FlareRow } from '@charts-poc/demo-data/flare'
 import type { ConformanceInput } from '../../types'
 import type { HierarchyRectangularNode } from 'd3-hierarchy'
@@ -86,7 +86,13 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(definition, 'Flare analytics sunburst', {
-  format: ({ datum }) =>
-    `${datum.name.replaceAll('.', ' › ')} · ${datum.value.toLocaleString('en-US')}`,
-})
+export const catalogCase = tanstackCase(
+  definition,
+  'Flare analytics sunburst',
+  {
+    format: ({ datum }) =>
+      `${datum.name.replaceAll('.', ' › ')} · ${datum.value.toLocaleString('en-US')}`,
+  },
+)
+
+export const mount = catalogCase.mount

@@ -1,7 +1,7 @@
 import { penguins } from '@charts-poc/demo-data/penguins'
 import { createMark, defineChart } from '@tanstack/charts'
 import { contourDensity } from 'd3-contour'
-import { geoPath } from 'd3-geo'
+import { geoPath, geoTransform } from 'd3-geo'
 import { scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
@@ -43,7 +43,7 @@ export const densityDefinition = (input: ConformanceInput) => {
     .slice(input.revision * 8, input.revision * 8 + 320)
 
   return defineChart({
-    marks: [densityMark(points)],
+    marks: [densityMark(points, input.preview === true)],
     x: {
       scale: scaleLinear().domain(densityXDomain),
     },
@@ -51,11 +51,11 @@ export const densityDefinition = (input: ConformanceInput) => {
       scale: scaleLinear().domain(densityYDomain),
     },
     guides: false,
-    margin: 0,
+    margin: densityBandwidth * 1.5,
   })
 }
 
-function densityMark(data: PenguinBill[]) {
+function densityMark(data: PenguinBill[], preview: boolean) {
   return createMark<DensityContourDatum, number, number>(({ markIndex }) => {
     const id = `density-${markIndex}`
 
@@ -73,22 +73,28 @@ function densityMark(data: PenguinBill[]) {
       },
       render: ({ chart, scales }) => {
         const estimator = contourDensity<PenguinBill>()
-          .x((point) => scales.x.map(point.culmen_length_mm))
-          .y((point) => scales.y.map(point.culmen_depth_mm))
+          .x((point) => scales.x.map(point.culmen_length_mm) - chart.x)
+          .y((point) => scales.y.map(point.culmen_depth_mm) - chart.y)
           .size([chart.width, chart.height])
           .bandwidth(densityBandwidth)
           .thresholds(densityThresholds.map((threshold) => threshold / 100))
         const geometry: ContourMultiPolygon[] = estimator(data)
 
-        const path = geoPath()
+        const projection = geoTransform({
+          point(x, y) {
+            this.stream.point(chart.x + x, chart.y + y)
+          },
+        })
+        const path = geoPath(projection)
+        if (preview) path.digits(1)
         const children: SceneNode[] = []
         const points: ChartPoint<DensityContourDatum, number, number>[] = []
         const centroidXScale = scaleLinear()
           .domain(densityXDomain)
-          .range([0, chart.width])
+          .range([chart.x, chart.x + chart.width])
         const centroidYScale = scaleLinear()
           .domain(densityYDomain)
-          .range([chart.height, 0])
+          .range([chart.y + chart.height, chart.y])
 
         for (let index = 0; index < geometry.length; index++) {
           const contour = geometry[index]

@@ -3,7 +3,7 @@ import { survey } from '@charts-poc/demo-data/survey'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { likertResponses, selectLikertSurvey } from './selection'
 import { likertSegments } from './transform'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 const colors = ['#991b1b', '#ef4444', '#cbd5e1', '#60a5fa', '#1d4ed8']
 
@@ -41,7 +41,9 @@ const definition = () =>
     },
   })
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   definition,
   'Diverging Likert survey responses',
 )
+
+export const mount = catalogCase.mount

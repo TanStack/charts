@@ -1,8 +1,9 @@
 import { areaY, colorLegend, defineChart, ruleY } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
-import type { ConformanceInput, ConformanceMount } from '../../types'
+import type { ConformanceInput } from '../../types'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewSeries } from '../../shared/preview'
 
 const colors = [
   '#4e79a7',
@@ -17,15 +18,18 @@ const colors = [
   '#bab0ab',
 ]
 
-const definition = (_input: ConformanceInput) =>
+const definition = (input: ConformanceInput) =>
   defineChart({
     marks: [
-      areaY(industries, {
-        x: 'date',
-        y: 'unemployed',
-        color: 'industry',
-        fillOpacity: 0.78,
-      }),
+      areaY(
+        samplePreviewSeries(industries, input, 32, (row) => row.industry),
+        {
+          x: 'date',
+          y: 'unemployed',
+          color: 'industry',
+          fillOpacity: 0.78,
+        },
+      ),
       ruleY([0]),
     ],
     x: { scale: scaleUtc, axis: { label: 'Month' } },
@@ -36,11 +40,13 @@ const definition = (_input: ConformanceInput) =>
     },
     color: {
       range: colors,
-      legend: colorLegend({ label: 'Industry' }),
+      ...(input.preview === true
+        ? {}
+        : { legend: colorLegend({ label: 'Industry' }) }),
     },
   })
 
-export const mount: ConformanceMount = tanstackMount(
+export const mount = tanstackMount(
   definition,
   'Unemployment by industry as stacked areas',
   {

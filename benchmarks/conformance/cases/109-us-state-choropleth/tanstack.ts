@@ -2,7 +2,9 @@ import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
 import { scaleQuantile } from 'd3-scale'
 import {
+  fitPreviewUnemploymentProjection,
   fitUnemploymentProjection,
+  previewUnemploymentStates,
   projectedUnemploymentCounties,
 } from './transform'
 import { tanstackMount } from '../../shared/mount'
@@ -36,12 +38,19 @@ const colorRanges = [
 const definition = (input: ConformanceInput) =>
   defineChart({
     marks: [
-      geoShape(projectedUnemploymentCounties, {
-        projection: ({ chart }) => fitUnemploymentProjection(chart),
-        color: (county) => county.properties.rate,
-        stroke: '#f8fafc',
-        strokeWidth: 0.35,
-      }),
+      input.preview
+        ? geoShape(previewUnemploymentStates, {
+            projection: ({ chart }) => fitPreviewUnemploymentProjection(chart),
+            color: (state) => state.properties.rate,
+            stroke: '#f8fafc',
+            strokeWidth: 0.75,
+          })
+        : geoShape(projectedUnemploymentCounties, {
+            projection: ({ chart }) => fitUnemploymentProjection(chart),
+            color: (county) => county.properties.rate,
+            stroke: '#f8fafc',
+            strokeWidth: 0.35,
+          }),
     ],
     color: {
       scale: scaleQuantile<number, string>,
@@ -55,6 +64,8 @@ export const mount = tanstackMount(
   'United States county unemployment choropleth',
   {
     format: ({ datum }) =>
-      `${datum.properties.county}, ${datum.properties.state} · ${datum.properties.rate}% unemployment`,
+      'county' in datum.properties
+        ? `${datum.properties.county}, ${datum.properties.state} · ${datum.properties.rate}% unemployment`
+        : `${datum.properties.state} · ${datum.properties.rate.toFixed(1)}% average county unemployment`,
   },
 )

@@ -3,8 +3,9 @@ import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput, ConformanceMount } from '../../types'
+import type { ConformanceInput } from '../../types'
 import { selectBollingerData } from './selection'
+import { samplePreviewData } from '../../shared/preview'
 
 interface BollingerPoint extends AaplRow {
   meanClose: number
@@ -16,7 +17,16 @@ const windowSize = 20
 const deviationMultiplier = 2
 
 const definition = (input: ConformanceInput) => {
-  const rows = bollingerIntervals(selectBollingerData(aapl, input.revision))
+  const rows = samplePreviewData(
+    bollingerIntervals(selectBollingerData(aapl, input.revision)),
+    input,
+    80,
+    [
+      (row) => row.Date.getTime(),
+      (row) => row.lowerClose,
+      (row) => row.upperClose,
+    ],
+  )
 
   return defineChart({
     marks: [
@@ -39,7 +49,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount: ConformanceMount = tanstackMount(
+export const mount = tanstackMount(
   definition,
   'Twenty-day Apple Bollinger band',
 )

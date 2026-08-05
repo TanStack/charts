@@ -16,6 +16,7 @@ import {
   editableDurationDays,
 } from './model'
 import { createEditableHandleOverlay } from './overlay'
+import { tanstackCase } from '../../shared/mount'
 import type { ChartHost, ChartScene, ChartHostOptions } from '@tanstack/charts'
 import type { EditableEvent } from './scenario'
 import type { EditableHandleLayout } from './overlay'
@@ -128,6 +129,12 @@ const definition = (input: EditableChartInput) => {
     }
   })
 }
+
+export const catalogCase = tanstackCase(
+  (input: ConformanceInput) =>
+    definition({ ...input, end: initialEditableEventEnd }),
+  editableAriaLabel(0, initialEditableEventEnd),
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

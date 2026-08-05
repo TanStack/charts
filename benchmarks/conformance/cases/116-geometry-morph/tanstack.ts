@@ -3,6 +3,7 @@ import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleLinear } from 'd3-scale'
 import { morphData, morphModes } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type {
   ChartDefinition,
   ChartPoint,
@@ -168,6 +169,11 @@ function chartDefinition(
     margin: 0,
   })
 }
+
+export const catalogCase = tanstackCase(
+  (input) => chartDefinition(modeForRevision(input.revision)),
+  'Data morphing between bars, line, area, rose, and bubbles',
+)
 
 function morphMark(data: readonly MorphDatum[], mode: MorphMode) {
   return createMark<MorphDatum, number, number>(

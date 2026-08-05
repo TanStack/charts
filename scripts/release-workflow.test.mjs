@@ -32,6 +32,7 @@ describe('release workflow contract', () => {
         '@tanstack/charts',
         '@tanstack/charts-scales',
         '@tanstack/react-charts',
+        '@tanstack/react-charts-catalog',
         '@tanstack/react-native-charts',
         '@tanstack/octane-charts',
         '@tanstack/preact-charts',
@@ -97,8 +98,10 @@ describe('release workflow contract', () => {
     assert.match(publisher, /await validateReleaseArtifacts\(repositoryRoot\)/)
     assert.ok(
       publisher.indexOf('await publishArtifact(coreArtifact)') <
-        publisher.indexOf('await runWithConcurrency('),
-      'core must publish before adapters',
+        publisher.indexOf('await publishArtifact(reactArtifact)') &&
+        publisher.indexOf('await publishArtifact(reactArtifact)') <
+          publisher.indexOf('await runWithConcurrency('),
+      'core and React must publish before dependent packages',
     )
     assert.match(publisher, /New tag: \${artifact\.name}@\${version}/)
     assert.match(publisher, /validateTrustedPublishingNpmVersion/)

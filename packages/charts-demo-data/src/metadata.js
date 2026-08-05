@@ -368,7 +368,7 @@ export const demoDatasetMetadata = [
   {name: "features", types: [
   "array",
 ]},
-], bytes: 63146, sha256: "066ea951b4affba3ee7c2bf981b8333681ce24e55903ffcddcc39f0475fb39a3", selection: "Complete published snapshot", source: "WRLD indoor maps API", sourceUrl: "https://github.com/wrld3d/wrld-indoor-maps-api", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/westport-house.json", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/westport-house.json", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 63146, sha256: "066ea951b4affba3ee7c2bf981b8333681ce24e55903ffcddcc39f0475fb39a3", selection: "Complete published snapshot", source: "WRLD indoor maps API", sourceUrl: "https://github.com/wrld3d/wrld-indoor-maps-api", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/westport-house.json", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/westport-house.json", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "anscombe", title: "Anscombe's quartet", specifier: "@charts-poc/demo-data/anscombe", format: "CSV", records: 44, fields: [
   "series",
   "x",
@@ -383,7 +383,7 @@ export const demoDatasetMetadata = [
   {name: "y", types: [
   "number",
 ]},
-], bytes: 422, sha256: "136943112c4dbaebddb3f69f72612c0a4c9d4354b74ea54d98f6d16d01be9913", selection: "Complete published snapshot", source: "Anscombe's quartet", sourceUrl: "https://en.wikipedia.org/wiki/Anscombe%27s_quartet", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/anscombe.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/anscombe.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 422, sha256: "136943112c4dbaebddb3f69f72612c0a4c9d4354b74ea54d98f6d16d01be9913", selection: "Complete published snapshot", source: "Anscombe's quartet", sourceUrl: "https://en.wikipedia.org/wiki/Anscombe%27s_quartet", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/anscombe.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/anscombe.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "beagle", title: "HMS Beagle voyage", specifier: "@charts-poc/demo-data/beagle", format: "CSV", records: 303, fields: [
   "0",
   "1",
@@ -394,7 +394,7 @@ export const demoDatasetMetadata = [
   {name: "1", types: [
   "number",
 ]},
-], bytes: 4063, sha256: "338919940e130c887f186729eda26ad85b8b272ab83128d5facf40fbb3b309e9", selection: "Complete published snapshot", source: "Charles Darwin's voyage on the HMS Beagle", sourceUrl: "https://observablehq.com/@bmschmidt/data-driven-projections-darwins-world", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/beagle.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/beagle.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 4063, sha256: "338919940e130c887f186729eda26ad85b8b272ab83128d5facf40fbb3b309e9", selection: "Complete published snapshot", source: "Charles Darwin's voyage on the HMS Beagle", sourceUrl: "https://observablehq.com/@bmschmidt/data-driven-projections-darwins-world", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/beagle.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/beagle.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "crimean-war", title: "Crimean War monthly mortality", specifier: "@charts-poc/demo-data/crimean-war", format: "CSV", records: 24, fields: [
   "date",
   "army",
@@ -417,7 +417,7 @@ export const demoDatasetMetadata = [
   {name: "other", types: [
   "number",
 ]},
-], bytes: 676, sha256: "5747ee54b77a9b717dbc9d7f032581c4db67ea97de2f34df89cad093e632c368", selection: "Complete published snapshot", source: "Florence Nightingale", sourceUrl: "https://archive.org/details/b21304110/page/n11/mode/2up", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/crimean-war.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/crimean-war.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 676, sha256: "5747ee54b77a9b717dbc9d7f032581c4db67ea97de2f34df89cad093e632c368", selection: "Complete published snapshot", source: "Florence Nightingale", sourceUrl: "https://archive.org/details/b21304110/page/n11/mode/2up", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/crimean-war.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/crimean-war.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "decathlon", title: "Decathlon results", specifier: "@charts-poc/demo-data/decathlon", format: "CSV", records: 50, fields: [
   "Country",
   "100 Meters",
@@ -440,7 +440,7 @@ export const demoDatasetMetadata = [
   {name: "100 Meter Hurdles", types: [
   "number",
 ]},
-], bytes: 1321, sha256: "8c016fb7adcc04f0a9a970cd50a7067b1faa019f7a1df924d4dafcfedfdde951", selection: "Complete published snapshot", source: "JMP Statistical Discovery sample", sourceUrl: "https://github.com/hemanrobinson/preattentive/blob/a58dd4795d0ee063a38a2d7bf33812d969ca6256/src/Data.js#L5598-L5650", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/decathlon.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/decathlon.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 1321, sha256: "8c016fb7adcc04f0a9a970cd50a7067b1faa019f7a1df924d4dafcfedfdde951", selection: "Complete published snapshot", source: "JMP Statistical Discovery sample", sourceUrl: "https://github.com/hemanrobinson/preattentive/blob/a58dd4795d0ee063a38a2d7bf33812d969ca6256/src/Data.js#L5598-L5650", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/decathlon.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/decathlon.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "downloads", title: "Observable package downloads", specifier: "@charts-poc/demo-data/downloads", format: "CSV", records: 1566, fields: [
   "date",
   "downloads",
@@ -451,7 +451,7 @@ export const demoDatasetMetadata = [
   {name: "downloads", types: [
   "number",
 ]},
-], bytes: 20457, sha256: "09953cc843f382738c48dcfeae633dea30579ada163e8fd53b9907fa5f11d6ca", selection: "Complete published snapshot", source: "npm downloads API", sourceUrl: "https://observablehq.com/@mbostock/npm-daily-downloads?name=@observablehq/cars", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/downloads.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/downloads.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 20457, sha256: "09953cc843f382738c48dcfeae633dea30579ada163e8fd53b9907fa5f11d6ca", selection: "Complete published snapshot", source: "npm downloads API", sourceUrl: "https://observablehq.com/@mbostock/npm-daily-downloads?name=@observablehq/cars", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/downloads.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/downloads.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "learning-poverty", title: "Learning poverty by country", specifier: "@charts-poc/demo-data/learning-poverty", format: "CSV", records: 100, fields: [
   "Country Name",
   "Out-of-School (OoS)",
@@ -486,7 +486,7 @@ export const demoDatasetMetadata = [
   {name: "density", types: [
   "number",
 ]},
-], bytes: 4675, sha256: "6c4d1c0aef44a435a3205f8af2a2321d56da01950fb60475bb5086b90ed07e50", selection: "Complete published snapshot", source: "World Bank / Our World in Data", sourceUrl: "https://ourworldindata.org/grapher/share-of-children-who-cannot-read-at-end-of-primary-age", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/learning-poverty.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/learning-poverty.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 4675, sha256: "6c4d1c0aef44a435a3205f8af2a2321d56da01950fb60475bb5086b90ed07e50", selection: "Complete published snapshot", source: "World Bank / Our World in Data", sourceUrl: "https://ourworldindata.org/grapher/share-of-children-who-cannot-read-at-end-of-primary-age", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/learning-poverty.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/learning-poverty.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "driving", title: "U.S. driving and gasoline prices", specifier: "@charts-poc/demo-data/driving", format: "CSV", records: 55, fields: [
   "side",
   "year",
@@ -505,7 +505,7 @@ export const demoDatasetMetadata = [
   {name: "gas", types: [
   "number",
 ]},
-], bytes: 1546, sha256: "3aced2fa41f2be51ee43f9da66d964d7c647dac27bcc37158d09098efad4ba4e", selection: "Complete published snapshot", source: "The New York Times", sourceUrl: "https://archive.nytimes.com/www.nytimes.com/imagepages/2010/05/02/business/02metrics.html", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/driving.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/driving.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 1546, sha256: "3aced2fa41f2be51ee43f9da66d964d7c647dac27bcc37158d09098efad4ba4e", selection: "Complete published snapshot", source: "The New York Times", sourceUrl: "https://archive.nytimes.com/www.nytimes.com/imagepages/2010/05/02/business/02metrics.html", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/driving.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/driving.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "morley", title: "Michelson speed-of-light experiments", specifier: "@charts-poc/demo-data/morley", format: "CSV", records: 100, fields: [
   "Expt",
   "Run",
@@ -520,7 +520,7 @@ export const demoDatasetMetadata = [
   {name: "Speed", types: [
   "number",
 ]},
-], bytes: 874, sha256: "a9c06023c0f277f09b6ad541e0f81acc4e21b09f3d5c35919547c3934dae5968", selection: "Complete published snapshot", source: "R datasets / Michelson–Morley experiment", sourceUrl: "https://github.com/vincentarelbundock/Rdatasets/blob/master/csv/datasets/morley.csv", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/morley.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/morley.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 874, sha256: "a9c06023c0f277f09b6ad541e0f81acc4e21b09f3d5c35919547c3934dae5968", selection: "Complete published snapshot", source: "R datasets / Michelson–Morley experiment", sourceUrl: "https://github.com/vincentarelbundock/Rdatasets/blob/master/csv/datasets/morley.csv", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/morley.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/morley.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "sf-temperatures", title: "San Francisco daily temperatures", specifier: "@charts-poc/demo-data/sf-temperatures", format: "CSV", records: 732, fields: [
   "date",
   "high",
@@ -535,7 +535,7 @@ export const demoDatasetMetadata = [
   {name: "low", types: [
   "number",
 ]},
-], bytes: 15106, sha256: "1e90d4f9b2094bb32a4fd3f9d777478d0b5cb16f609c95e9be6eb2c245061cb4", selection: "Complete published snapshot", source: "National Climatic Data Center", sourceUrl: "https://www.ncdc.noaa.gov/", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/sf-temperatures.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/sf-temperatures.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 15106, sha256: "1e90d4f9b2094bb32a4fd3f9d777478d0b5cb16f609c95e9be6eb2c245061cb4", selection: "Complete published snapshot", source: "National Climatic Data Center", sourceUrl: "https://www.ncdc.noaa.gov/", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/sf-temperatures.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/sf-temperatures.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "simpsons", title: "The Simpsons episode ratings", specifier: "@charts-poc/demo-data/simpsons", format: "CSV", records: 600, fields: [
   "id",
   "title",
@@ -596,7 +596,7 @@ export const demoDatasetMetadata = [
   "string",
   "null",
 ]},
-], bytes: 119729, sha256: "7cc6ecdcb70637a6d5e8df8933537f338178a96f61dd92e905f1b6b6044ebd31", selection: "Complete published snapshot", source: "IMDb / Todd W. Schneider", sourceUrl: "https://data.world/data-society/the-simpsons-by-the-data", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/simpsons.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/simpsons.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 119729, sha256: "7cc6ecdcb70637a6d5e8df8933537f338178a96f61dd92e905f1b6b6044ebd31", selection: "Complete published snapshot", source: "IMDb / Todd W. Schneider", sourceUrl: "https://data.world/data-society/the-simpsons-by-the-data", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/simpsons.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/simpsons.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "survey", title: "Likert survey responses", specifier: "@charts-poc/demo-data/survey", format: "CSV", records: 500, fields: [
   "Question",
   "ID",
@@ -611,7 +611,7 @@ export const demoDatasetMetadata = [
   {name: "Response", types: [
   "string",
 ]},
-], bytes: 8217, sha256: "de6879d712488bf64cc7d215c12de59b5c9e08d574471493ae8d476510c2969c", selection: "Complete published snapshot", source: "Eitan Lees", sourceUrl: "https://talk.observablehq.com/t/diverging-stacked-bar-chart-in-plot/6028", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/survey.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/survey.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 8217, sha256: "de6879d712488bf64cc7d215c12de59b5c9e08d574471493ae8d476510c2969c", selection: "Complete published snapshot", source: "Eitan Lees", sourceUrl: "https://talk.observablehq.com/t/diverging-stacked-bar-chart-in-plot/6028", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/survey.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/survey.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "travelers", title: "U.S. airport traveler throughput", specifier: "@charts-poc/demo-data/travelers", format: "CSV", records: 300, fields: [
   "date",
   "current",
@@ -626,7 +626,7 @@ export const demoDatasetMetadata = [
   {name: "previous", types: [
   "number",
 ]},
-], bytes: 7836, sha256: "a5d9ba37fe6d67dc82195c571bc3f3a04ca07c83ddf57e127e1886f4d04d8ce8", selection: "Complete published snapshot", source: "U.S. Transportation Security Administration", sourceUrl: "https://www.tsa.gov/coronavirus/passenger-throughput", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/travelers.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/travelers.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 7836, sha256: "a5d9ba37fe6d67dc82195c571bc3f3a04ca07c83ddf57e127e1886f4d04d8ce8", selection: "Complete published snapshot", source: "U.S. Transportation Security Administration", sourceUrl: "https://www.tsa.gov/coronavirus/passenger-throughput", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/travelers.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/travelers.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "us-county-unemployment", title: "U.S. county unemployment", specifier: "@charts-poc/demo-data/us-county-unemployment", format: "CSV", records: 3219, fields: [
   "id",
   "state",
@@ -645,7 +645,7 @@ export const demoDatasetMetadata = [
   {name: "rate", types: [
   "number",
 ]},
-], bytes: 109819, sha256: "dd3cc76e5e21f8caceee84da7e36450d28a59a1535f928f93efbc9b752059452", selection: "Complete published snapshot", source: "U.S. Bureau of Labor Statistics", sourceUrl: "https://www.bls.gov/lau/tables.htm", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/us-county-unemployment.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/us-county-unemployment.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 109819, sha256: "dd3cc76e5e21f8caceee84da7e36450d28a59a1535f928f93efbc9b752059452", selection: "Complete published snapshot", source: "U.S. Bureau of Labor Statistics", sourceUrl: "https://www.bls.gov/lau/tables.htm", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/us-county-unemployment.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/us-county-unemployment.csv", license: "Observable Plot repository ISC; upstream source credited"},
   {id: "wind", title: "Gridded surface wind", specifier: "@charts-poc/demo-data/wind", format: "CSV", records: 4800, fields: [
   "longitude",
   "latitude",
@@ -664,7 +664,7 @@ export const demoDatasetMetadata = [
   {name: "v", types: [
   "number",
 ]},
-], bytes: 163963, sha256: "906a2dcf864ac82fd92b8863c30388665f004dbd85ac43ec43b87ce3aeea1a5a", selection: "Complete published snapshot", source: "Remote Sensing Systems / giCentre", sourceUrl: "https://github.com/gicentre/litvis/blob/main/examples/windVectors.md", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/wind.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/wind.csv", license: "Observable Plot repository MIT; upstream source credited"},
+], bytes: 163963, sha256: "906a2dcf864ac82fd92b8863c30388665f004dbd85ac43ec43b87ce3aeea1a5a", selection: "Complete published snapshot", source: "Remote Sensing Systems / giCentre", sourceUrl: "https://github.com/gicentre/litvis/blob/main/examples/windVectors.md", observablePackage: "observablehq/plot@356f579b1d94", observableRevision: "356f579b1d947ee05a914420eddff0f29cee300a", observableFile: "test/data/wind.csv", observableUrl: "https://github.com/observablehq/plot/blob/356f579b1d947ee05a914420eddff0f29cee300a/test/data/wind.csv", license: "Observable Plot repository ISC; upstream source credited"},
 ]
 
 const metadataBySpecifier = new Map(

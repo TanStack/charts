@@ -53,7 +53,7 @@ const rows = freeCursorRows(cars)
 const FreeCursorExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function FreeCursorExample({ input }, ref) {
+>(function FreeCursorExample({ input, idPrefix }, ref) {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<ChartScene<CompleteCar> | null>(null)
   const cursorRef = useRef<CursorState>(clearedCursor)
@@ -199,6 +199,18 @@ const FreeCursorExample = forwardRef<
       ? scene.chart.y + scene.chart.height * cursor.yNormalized
       : null
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix}
+        definition={definition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Line chart with a free two-dimensional cursor"
+      />
+    )
+  }
+
   return (
     <div
       onKeyDown={(event) => {
@@ -244,6 +256,7 @@ const FreeCursorExample = forwardRef<
         }}
       >
         <Chart
+          idPrefix={idPrefix}
           definition={definition}
           width={input.width}
           height={chartHeight}
@@ -262,6 +275,7 @@ const FreeCursorExample = forwardRef<
   )
 })
 
+export const catalogComponent = FreeCursorExample
 export const mount = reactMount(FreeCursorExample)
 
 function CursorControls({

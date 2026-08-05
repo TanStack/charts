@@ -40,7 +40,10 @@ export function createChartRendererAdapter<
         ariaDescription: options.ariaDescription,
         className: options.className,
         tabIndex:
-          options.definition.keyboard === false ? -1 : (options.tabIndex ?? 0),
+          options.definition.keyboard === false ||
+          options.definition.focus === false
+            ? -1
+            : (options.tabIndex ?? 0),
         idPrefix: options.idPrefix,
       })
     },

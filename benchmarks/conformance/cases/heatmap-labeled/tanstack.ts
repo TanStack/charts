@@ -14,7 +14,7 @@ const ratedEpisodes = simpsons.filter((row) => row.imdb_rating !== null)
 const unratedEpisodes = simpsons.filter((row) => row.imdb_rating === null)
 const ratingColors = ['#8e0152', '#f7f7f7', '#276419']
 
-const definition = (_input: ConformanceInput) =>
+const definition = (input: ConformanceInput) =>
   defineChart({
     marks: [
       cell(ratedEpisodes, {
@@ -29,19 +29,23 @@ const definition = (_input: ConformanceInput) =>
         fill: '#d1d5db',
         inset: 1,
       }),
-      text(simpsons, {
-        x: 'number_in_season',
-        y: 'season',
-        text: (row) =>
-          row.imdb_rating === null ? '–' : row.imdb_rating.toFixed(1),
-        fill: (row) =>
-          row.imdb_rating !== null &&
-          (row.imdb_rating < 5.5 || row.imdb_rating > 8.6)
-            ? '#f8fafc'
-            : '#0f172a',
-        fontSize: 10,
-        fontWeight: 600,
-      }),
+      ...(input.preview
+        ? []
+        : [
+            text(simpsons, {
+              x: 'number_in_season',
+              y: 'season',
+              text: (row) =>
+                row.imdb_rating === null ? '–' : row.imdb_rating.toFixed(1),
+              fill: (row) =>
+                row.imdb_rating !== null &&
+                (row.imdb_rating < 5.5 || row.imdb_rating > 8.6)
+                  ? '#f8fafc'
+                  : '#0f172a',
+              fontSize: 10,
+              fontWeight: 600,
+            }),
+          ]),
     ],
     x: {
       scale: scaleBand<number>()

@@ -112,15 +112,15 @@ The default SVG host requires `definition` and `ariaLabel`.
 
 The definition owns these chart behaviors:
 
-| Option             | Default                   | Meaning                                                  |
-| ------------------ | ------------------------- | -------------------------------------------------------- |
-| `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus   |
-| `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy        |
-| `focusRing`        | `true`                    | Built-in primary-point focus indicator                   |
-| `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                           |
-| `animate`          | `false`                   | Keyed attribute, enter, and exit animation               |
-| `keyboard`         | `true`                    | Keyboard focus and navigation                            |
-| `tooltip`          | `false`                   | Native tooltip content, placement, layering, and pinning |
+| Option             | Default                   | Meaning                                                                                                  |
+| ------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus                                                   |
+| `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy; `false` disables native focus and its generated layer |
+| `focusRing`        | `true`                    | Generated primary-point focus indicator; `false` keeps authored focus layers only                        |
+| `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                                                                           |
+| `animate`          | `false`                   | Keyed attribute, enter, and exit animation                                                               |
+| `keyboard`         | `true`                    | Keyboard focus and navigation                                                                            |
+| `tooltip`          | `false`                   | Native tooltip content, placement, layering, and pinning                                                 |
 
 Definition `keyboard: false` takes precedence over host `tabIndex`. A negative
 custom tab index can keep chart keyboard behavior available for programmatic

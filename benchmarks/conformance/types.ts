@@ -35,6 +35,8 @@ export interface ConformanceInput {
   height: number
   revision: number
   interactive?: boolean
+  /** Use lower-detail geometry suited to compact catalog cards. */
+  preview?: boolean
   /** True only for semantic browser scenarios, not catalog or visual mounts. */
   behavior?: boolean
 }
