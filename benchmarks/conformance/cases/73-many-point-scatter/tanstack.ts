@@ -23,7 +23,8 @@ const definition = (input: ConformanceInput) => {
   return defineChart({
     marks: [
       dot(points, {
-        key: (row) => `${row.name}:${row.year}`,
+        key: (row) =>
+          `${row.name}:${row.year}:${row['weight (lb)']}:${row['0-60 mph (s)']}:${row['displacement (cc)']}`,
         x: 'weight (lb)',
         y: '0-60 mph (s)',
         color: 'cylinders',

@@ -5335,15 +5335,16 @@ Each entry records:
 - Status: resolved
 - Severity: medium
 - Owner: Application
-- Observed in: the full conformance matrix for the linear-regression and framed
-  scatter examples
-- Friction: both examples keyed car rows with only `name` and `year`. The cars
-  dataset contains two same-year Ford Pinto rows and two same-year Plymouth
-  Reliant rows with different measurements, so keyed scene reconciliation
-  retained 318 of the 320 requested dots.
-- Decision: include each example's plotted x and y measurements in its key so
+- Observed in: the full conformance matrix for the linear-regression,
+  framed-scatter, and many-point-scatter examples
+- Friction: all three examples keyed car rows with only `name` and `year`. The
+  cars dataset contains same-name, same-year rows with different measurements,
+  so keyed scene reconciliation retained fewer dots than requested: 318 of 320
+  in the first two examples and as few as 297 of 300 in the third.
+- Decision: include each example's plotted channel measurements in its key so
   distinct source observations remain distinct while keys stay stable across
   revisions.
-- Verification: both examples now retain 320 unique keys for their initial and
-  revised 320-row windows, and focused standard conformance passes their full
-  320/640/960 light/dark visual matrix.
+- Verification: the first two examples now retain 320 unique keys and the
+  many-point example retains 300 unique keys for their initial and revised
+  windows. Focused standard conformance passes each example's full 320/640/960
+  light/dark visual matrix.
