@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY } from './bar'
-import { createChartCursor } from './cursor'
+import { createChartCursor, cursorHost } from './cursor'
 import { lineY } from './line'
 import { mountChartRenderer } from './renderer'
 import { defineChart, findNearestPoint } from './scene'
@@ -1856,6 +1856,7 @@ describe('renderer-neutral chart host', () => {
       focus: 'group-x',
       maxFocusDistance: 1_000,
       cursor: {
+        use: cursorHost,
         mode: 'focus',
         match: 'x',
         pin: true,
@@ -1962,6 +1963,7 @@ describe('renderer-neutral chart host', () => {
     const controller = createChartCursor<number, number>()
     const freeDefinition = defineChart(definition, {
       cursor: {
+        use: cursorHost,
         mode: 'free',
         pin: true,
         controller,
@@ -2106,7 +2108,7 @@ describe('renderer-neutral chart host', () => {
     const host = mountChartRenderer(document.createElement('div'), {
       ...options,
       definition: defineChart(definition, {
-        cursor: { mode: 'free', controller },
+        cursor: { use: cursorHost, mode: 'free', controller },
       }),
     })
     expect(fake.render.mock.calls.at(-1)?.[1]?.tabIndex).toBe(-1)
@@ -2114,7 +2116,7 @@ describe('renderer-neutral chart host', () => {
     host.update({
       ...options,
       definition: defineChart(definition, {
-        cursor: { mode: 'focus', controller },
+        cursor: { use: cursorHost, mode: 'focus', controller },
       }),
     })
     expect(fake.render.mock.calls.at(-1)?.[1]?.tabIndex).toBe(4)
@@ -2123,7 +2125,7 @@ describe('renderer-neutral chart host', () => {
       ...options,
       definition: defineChart(definition, {
         keyboard: false,
-        cursor: { mode: 'focus', controller },
+        cursor: { use: cursorHost, mode: 'focus', controller },
       }),
     })
     expect(fake.render.mock.calls.at(-1)?.[1]?.tabIndex).toBe(-1)
@@ -2148,7 +2150,7 @@ describe('renderer-neutral chart host', () => {
     const host = mountChartRenderer(container, {
       ...options,
       definition: defineChart(definition, {
-        cursor: { mode: 'free', controller },
+        cursor: { use: cursorHost, mode: 'free', controller },
       }),
     })
     expect(fake.paintFocus.mock.calls.at(-1)?.[2]).toMatchObject({
@@ -2193,7 +2195,7 @@ describe('renderer-neutral chart host', () => {
       ...options,
       definition: defineChart(definition, {
         focus: 'group-x',
-        cursor: { mode: 'focus', match: 'x', controller },
+        cursor: { use: cursorHost, mode: 'focus', match: 'x', controller },
       }),
     })
     expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.xValue).toBe(1)
@@ -2219,10 +2221,41 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 
+  it('resolves a programmatic focus cursor when native focus is disabled', () => {
+    const controller = createChartCursor<number, number>({
+      anchor: 'value',
+      value: { x: 1 },
+      source: 'programmatic',
+      pinned: true,
+    })
+    const fake = createFakeRenderer('disabled-native-focus-cursor-host')
+    const host = mountChartRenderer(document.createElement('div'), {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Programmatic cursor chart',
+      definition: defineChart(definition, {
+        focus: false,
+        cursor: {
+          use: cursorHost,
+          mode: 'focus',
+          match: 'x',
+          controller,
+        },
+      }),
+    })
+
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.xValue).toBe(1)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[2]?.state).toBe(
+      controller.getState(),
+    )
+    host.destroy()
+  })
+
   it('clears only transient cursor state published by the leaving host', () => {
     const controller = createChartCursor<number, number>()
     const cursorDefinition = defineChart(definition, {
-      cursor: { mode: 'free', controller },
+      cursor: { use: cursorHost, mode: 'free', controller },
     })
     const first = createFakeRenderer('first-owned-cursor-host')
     const second = createFakeRenderer('second-owned-cursor-host')
@@ -2306,7 +2339,7 @@ describe('renderer-neutral chart host', () => {
     const host = mountChartRenderer(document.createElement('div'), {
       ...options,
       definition: defineChart(definition, {
-        cursor: { mode: 'free', controller },
+        cursor: { use: cursorHost, mode: 'free', controller },
       }),
     })
     fake.element.dispatchEvent(
@@ -2335,7 +2368,7 @@ describe('renderer-neutral chart host', () => {
     const host = mountChartRenderer(document.createElement('div'), {
       ...options,
       definition: defineChart(definition, {
-        cursor: { mode: 'free', controller },
+        cursor: { use: cursorHost, mode: 'free', controller },
       }),
     })
     fake.element.dispatchEvent(
@@ -2351,7 +2384,7 @@ describe('renderer-neutral chart host', () => {
       ...options,
       definition: defineChart(definition, {
         maxFocusDistance: 1_000,
-        cursor: { mode: 'focus', match: 'x', controller },
+        cursor: { use: cursorHost, mode: 'focus', match: 'x', controller },
       }),
     })
     expect(controller.getState()).toBeNull()
@@ -2368,10 +2401,58 @@ describe('renderer-neutral chart host', () => {
     host.update({
       ...options,
       definition: defineChart(definition, {
-        cursor: { mode: 'free', controller },
+        cursor: { use: cursorHost, mode: 'free', controller },
       }),
     })
     expect(controller.getState()).toBeNull()
+    host.destroy()
+  })
+
+  it('treats the cursor host extension as binding identity', () => {
+    const controller = createChartCursor<number, number>()
+    const replacementCursorHost = {
+      ...cursorHost,
+      id: 'replacement-cursor-host',
+    }
+    const fake = createFakeRenderer('extension-changed-owned-cursor-host')
+    const options = {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Extension-changed owned cursor chart',
+    }
+    const definitionFor = (use: typeof cursorHost) =>
+      defineChart(definition, {
+        cursor: { use, mode: 'free', controller },
+      })
+    const host = mountChartRenderer(document.createElement('div'), {
+      ...options,
+      definition: definitionFor(cursorHost),
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()).not.toBeNull()
+
+    host.update({
+      ...options,
+      definition: definitionFor(replacementCursorHost),
+    })
+    expect(controller.getState()).toBeNull()
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 24,
+        clientY: 36,
+      }),
+    )
+    expect(controller.getState()).not.toBeNull()
     host.destroy()
   })
 
@@ -2387,7 +2468,13 @@ describe('renderer-neutral chart host', () => {
     const definitionFor = (match: 'x' | 'y') =>
       defineChart(definition, {
         maxFocusDistance: 1_000,
-        cursor: { mode: 'focus', match, pin: true, controller },
+        cursor: {
+          use: cursorHost,
+          mode: 'focus',
+          match,
+          pin: true,
+          controller,
+        },
       })
     const host = mountChartRenderer(document.createElement('div'), {
       ...options,

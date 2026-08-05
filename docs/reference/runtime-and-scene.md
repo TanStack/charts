@@ -207,12 +207,14 @@ interface ChartScene<
 | `theme`           | Fully resolved theme                                             |
 | `focusGuides`     | Optional data-less guide descriptors resolved from current focus |
 
-`focusGuides` do not add nodes or points to the base scene. Surfaces pass the
-current focus and optional cursor projection to `resolveFocusPresentation` to
-materialize their transient underlay and overlay nodes. A mark emits
+`focusGuides` do not add nodes or points to the base scene. Every guide carries
+a required resolver that receives its local focus, pointer, and cursor context
+and returns one transient scene node or `undefined`. Surfaces pass the current
+interaction state to `resolveFocusPresentation`, which calls those resolvers
+and separates their nodes into underlays and overlays. A mark emits
 `MarkFocusGuide`, whose optional placement defaults from mark order. The scene
 compiler produces the final `SceneFocusGuide` values shown here with placement
-resolved; renderers do not need to infer it.
+resolved; renderers do not call guide resolvers or infer placement themselves.
 
 ## Scene nodes
 

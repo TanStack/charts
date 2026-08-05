@@ -1529,6 +1529,7 @@ describe('SVG motion', () => {
           crosshair({
             id: 'motion-band',
             x: {
+              label: true,
               band: {
                 inset: 2,
                 fill: '#64748b',
@@ -1547,7 +1548,7 @@ describe('SVG motion', () => {
           crosshair({
             id: 'motion-rule',
             x: false,
-            y: { strokeDasharray: '4 4' },
+            y: { label: true, strokeDasharray: '4 4' },
             motion: { transition },
           }),
         ],
@@ -1582,6 +1583,12 @@ describe('SVG motion', () => {
     const rule = over?.querySelector<SVGLineElement>(
       '[data-ts-key="motion-rule:y-rule"]',
     )
+    const xLabel = under?.querySelector<SVGTextElement>(
+      '[data-ts-key="motion-band:x-label:text"]',
+    )
+    const yLabel = over?.querySelector<SVGTextElement>(
+      '[data-ts-key="motion-rule:y-label:text"]',
+    )
     const firstBandX = first.x - scene.scales.x.bandwidth / 2 + 2
 
     expect(Number(band?.getAttribute('x'))).toBeCloseTo(firstBandX)
@@ -1589,6 +1596,8 @@ describe('SVG motion', () => {
       scene.scales.x.bandwidth - 4,
     )
     expect(Number(rule?.getAttribute('y1'))).toBeCloseTo(first.y)
+    expect(Number(xLabel?.getAttribute('x'))).toBeCloseTo(first.x)
+    expect(Number(yLabel?.getAttribute('y'))).toBeCloseTo(first.y)
 
     surface.paintFocus({
       primary: second,
@@ -1610,6 +1619,10 @@ describe('SVG motion', () => {
     expect(movingBandX).toBeLessThan(secondBandX)
     expect(movingRuleY).toBeGreaterThan(Math.min(first.y, second.y))
     expect(movingRuleY).toBeLessThan(Math.max(first.y, second.y))
+    expect(Number(xLabel?.getAttribute('x'))).toBeCloseTo(
+      movingBandX + (scene.scales.x.bandwidth - 4) / 2,
+    )
+    expect(Number(yLabel?.getAttribute('y'))).toBeCloseTo(movingRuleY)
     expect(under?.dataset.tsMotionState).toBe('running')
     expect(over?.dataset.tsMotionState).toBe('running')
 
@@ -1618,6 +1631,8 @@ describe('SVG motion', () => {
     }
     expect(Number(band?.getAttribute('x'))).toBeCloseTo(secondBandX)
     expect(Number(rule?.getAttribute('y1'))).toBeCloseTo(second.y)
+    expect(Number(xLabel?.getAttribute('x'))).toBeCloseTo(second.x)
+    expect(Number(yLabel?.getAttribute('y'))).toBeCloseTo(second.y)
     expect(under?.dataset.tsMotionState).toBe('finished')
     expect(over?.dataset.tsMotionState).toBe('finished')
     surface.destroy()

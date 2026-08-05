@@ -70,10 +70,11 @@ Share one controller between definitions when several browser or React Native
 charts should resolve the same semantic value through their own scales:
 
 ```ts
-import { createChartCursor } from '@tanstack/charts/cursor'
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
 
 const sharedDate = createChartCursor<Date, number>()
 const cursor = {
+  use: cursorHost,
   controller: sharedDate,
   mode: 'focus' as const,
   match: 'x' as const,
@@ -116,6 +117,7 @@ const definition = defineChart({
   x: { scale: xScale },
   y: { scale: yScale },
   cursor: {
+    use: cursorHost,
     controller: freeCursor,
     mode: 'free',
     pin: true,
@@ -165,8 +167,10 @@ projection, and crosshair presentation; only their event plumbing differs.
 React Native uses responder gestures and accessibility actions instead of DOM
 pointer and key events.
 
-Application code imports `createChartCursor` and its state types from
-`@tanstack/charts/cursor`. The adapter-facing
+Application code imports `createChartCursor`, `cursorHost`, and cursor state
+types from `@tanstack/charts/cursor`. Every cursor binding supplies
+`use: cursorHost`, keeping cursor policy out of charts that do not opt in. The
+adapter-facing
 `@tanstack/charts/cursor/host` entry contains the platform-neutral projection
 and focus helpers used to implement a host; ordinary chart definitions do not
 need it.

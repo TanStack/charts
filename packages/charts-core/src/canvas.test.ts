@@ -5,6 +5,7 @@ import {
   createCanvasChartRenderer,
   mountCanvasChart,
 } from './canvas'
+import { resolveCrosshairGuide } from './crosshair-resolver'
 import { lineY } from './line'
 import { defineChart } from './scene'
 import { tooltip } from './tooltip'
@@ -546,6 +547,7 @@ describe('Canvas renderer', () => {
           chart: { x: 10, y: 5, width: 80, height: 45 },
           surface: { x: 0, y: 0, width: 100, height: 60 },
           placement: 'under',
+          resolve: resolveCrosshairGuide,
           x: {
             style: {
               stroke: '#475569',
@@ -576,6 +578,7 @@ describe('Canvas renderer', () => {
           chart: { x: 10, y: 5, width: 80, height: 45 },
           surface: { x: 0, y: 0, width: 100, height: 60 },
           placement: 'over',
+          resolve: resolveCrosshairGuide,
           y: {
             style: { stroke: '#64748b', strokeWidth: 1 },
             label: {
@@ -730,6 +733,7 @@ describe('Canvas renderer', () => {
           chart: { x: 10, y: 5, width: 80, height: 45 },
           surface: { x: 0, y: 0, width: 100, height: 60 },
           placement: 'over',
+          resolve: resolveCrosshairGuide,
           x: {
             style: { stroke: '#334155' },
             label: {

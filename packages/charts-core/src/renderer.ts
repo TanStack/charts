@@ -6,15 +6,15 @@ import { nearestPoint } from './nearest'
 import {
   chartPointFromNavigationOrder,
   chartPointFromSceneOrder,
-  createFocusChartCursorState,
-  createFreeChartCursorState,
-  resolveChartCursorFocus,
-  resolveChartCursorPresentation,
   resolveChartFocusStrategy,
   resolveChartPointerFocus,
   restoreChartFocusPoint,
   sameChartPointIdentity,
-} from './cursor'
+} from './interaction'
+import {
+  createChartCursorHostSession,
+  type ChartCursorHostSession,
+} from './cursor-host-contract'
 import type {
   ChartInteractionController,
   ChartPointerResolution,
@@ -27,9 +27,7 @@ import type {
 import type {
   ChartAnimationOptions,
   ChartCursorBinding,
-  ChartCursorController,
   ChartCursorPresentation,
-  ChartCursorState,
   ChartFocusMode,
   ChartFocusSource,
   ChartFocusStrategy,
@@ -87,15 +85,14 @@ export function mountChartRenderer<
     ChartTooltipExtensionInstance<TDatum, TXValue, TYValue> | undefined
   let suppressNextSurfaceFocus = false
   let spatialIndex: ChartSpatialIndex<TDatum, TXValue, TYValue> | undefined
-  let cursorController: ChartCursorController<TXValue, TYValue> | undefined
+  let cursorSession:
+    ChartCursorHostSession<TDatum, TXValue, TYValue> | undefined
   let cursorMode: ChartCursorBinding['mode'] | undefined
   let cursorMatch: 'x' | 'y' | 'xy' | undefined
+  let cursorExtension: ChartCursorBinding['use'] | undefined
   let renderedCursorBinding:
     ChartCursorBinding<TDatum, TXValue, TYValue> | undefined
   let unsubscribeCursor: (() => void) | undefined
-  let publishedCursorController:
-    ChartCursorController<TXValue, TYValue> | undefined
-  let publishedCursorState: ChartCursorState<TXValue, TYValue> | undefined
   let cursorPresentation: ChartCursorPresentation<TXValue, TYValue> | null =
     null
   let hasCursorPresentation = false
@@ -276,8 +273,7 @@ export function mountChartRenderer<
     ChartCursorBinding<TDatum, TXValue, TYValue> | undefined =>
     options.definition.cursor
 
-  const cursorIsPinned = () =>
-    cursorBinding()?.controller.getState()?.pinned === true
+  const cursorIsPinned = () => cursorSession?.getState()?.pinned === true
 
   const interactionIsPinned = () => pinnedKey !== null || cursorIsPinned()
 
@@ -289,26 +285,25 @@ export function mountChartRenderer<
     const nextMatch =
       nextBinding?.mode === 'focus' ? (nextBinding.match ?? 'xy') : undefined
     if (
-      nextController === cursorController &&
+      nextController === cursorSession?.controller &&
       nextMode === cursorMode &&
-      nextMatch === cursorMatch
+      nextMatch === cursorMatch &&
+      nextBinding?.use === cursorExtension
     ) {
       return
     }
-    const previousController = cursorController
-    const controllerChanged = nextController !== previousController
-    if (controllerChanged) unsubscribeCursor?.()
-    if (previousController) clearPublishedCursor(previousController)
-    publishedCursorController = undefined
-    publishedCursorState = undefined
-    cursorController = nextController
+    unsubscribeCursor?.()
+    unsubscribeCursor = undefined
+    cursorSession?.destroy()
+    cursorSession = nextBinding
+      ? createChartCursorHostSession(nextBinding)
+      : undefined
     cursorMode = nextMode
     cursorMatch = nextMatch
-    if (controllerChanged) {
-      unsubscribeCursor = nextController?.subscribe(() => {
-        if (!destroyed && hasRendered) applyCursorState(false)
-      })
-    }
+    cursorExtension = nextBinding?.use
+    unsubscribeCursor = cursorSession?.subscribe(() => {
+      if (!destroyed && hasRendered) applyCursorState(false)
+    })
   }
 
   const applyCursorState = (notifyRestored: boolean) => {
@@ -317,19 +312,17 @@ export function mountChartRenderer<
       cursorPresentation = null
       return
     }
-    const state = binding.controller.getState()
-    if (
-      state?.source !== 'pointer' ||
-      binding.controller !== publishedCursorController ||
-      state !== publishedCursorState
-    ) {
+    const session = cursorSession
+    if (!session) return
+    const state = session.getState()
+    if (state?.source !== 'pointer' || !session.owns(state)) {
       pointerPosition = null
     }
-    cursorPresentation = resolveChartCursorPresentation(scene, binding, state)
+    cursorPresentation = session.resolvePresentation(scene, binding, state)
     const previous = focusedPoint
     if (binding.mode === 'focus') {
-      const focus = resolveRendererFocusStrategy(options.definition.focus)
-      const points = resolveChartCursorFocus(
+      const focus = resolveChartFocusStrategy(options.definition.focus)
+      const points = session.resolveFocus(
         interactionPoints(),
         binding,
         state,
@@ -365,14 +358,15 @@ export function mountChartRenderer<
   ) => {
     const binding = cursorBinding()
     if (binding?.mode !== 'focus') return false
+    const session = cursorSession
+    if (!session) return false
     const point = points[0]
     if (!point) {
-      clearPublishedCursor(binding.controller)
+      session.clearOwnedTransient()
       return true
     }
-    publishCursor(
-      binding.controller,
-      createFocusChartCursorState(scene, binding, {
+    session.publish(
+      session.createFocusState(scene, binding, {
         primary: point,
         group: points,
         source: focusSource,
@@ -401,14 +395,14 @@ export function mountChartRenderer<
 
   const dismissTooltip = () => {
     const binding = cursorBinding()
-    if (!focusedPoint && !pinnedKey && !binding?.controller.getState()) return
+    if (!focusedPoint && !pinnedKey && !cursorSession?.getState()) return
     const restoreFocus = Boolean(
       tooltipInstance?.contains(container.ownerDocument.activeElement),
     )
     pinnedKey = null
     pointerPosition = null
     focusOwner = null
-    if (binding) clearCursor(binding.controller)
+    if (binding) cursorSession?.clear()
     else updateFocus([])
     const element = surface?.element
     if (
@@ -539,12 +533,13 @@ export function mountChartRenderer<
     const position = scenePositionAtPointer(clientX, clientY)
     if (!position || !plotContains(scene, position)) {
       pointerPosition = null
-      clearPublishedCursor(binding.controller)
+      cursorSession?.clearOwnedTransient()
       return true
     }
-    publishCursor(
-      binding.controller,
-      createFreeChartCursorState(scene, binding, position, 'pointer', false),
+    const session = cursorSession
+    if (!session) return false
+    session.publish(
+      session.createFreeState(scene, binding, position, 'pointer', false),
     )
     return true
   }
@@ -580,7 +575,7 @@ export function mountChartRenderer<
     ) {
       pointerPosition = null
       const binding = cursorBinding()
-      if (binding) clearPublishedCursor(binding.controller)
+      if (binding) cursorSession?.clearOwnedTransient()
       else updateFocus([])
       focusOwner = null
     }
@@ -622,16 +617,16 @@ export function mountChartRenderer<
     focusOwner = 'pointer'
     const binding = cursorBinding()
     if (binding?.mode === 'free') {
-      const state = binding.controller.getState()
+      const state = cursorSession?.getState()
       if (!state) {
         updateFreeCursorAtPointer(event.clientX, event.clientY)
       }
-      const current = binding.controller.getState()
+      const current = cursorSession?.getState()
       if (binding.pin && current) {
         if (current.pinned) {
-          clearCursor(binding.controller)
+          cursorSession?.clear()
         } else {
-          publishCursor(binding.controller, { ...current, pinned: true })
+          cursorSession?.publish({ ...current, pinned: true })
         }
       }
       options.onSelect?.(null)
@@ -646,7 +641,7 @@ export function mountChartRenderer<
       if (interactionIsPinned()) {
         pinnedKey = null
         pinChanged = true
-        if (binding) clearCursor(binding.controller)
+        if (binding) cursorSession?.clear()
       } else if (point) {
         pinnedKey = point.key
         pinChanged = true
@@ -659,7 +654,7 @@ export function mountChartRenderer<
   }
   const handleKeyDown = (event: KeyboardEvent) => {
     const binding = cursorBinding()
-    if (event.key === 'Escape' && binding?.controller.getState()) {
+    if (event.key === 'Escape' && cursorSession?.getState()) {
       event.preventDefault()
       dismissTooltip()
       return
@@ -682,7 +677,7 @@ export function mountChartRenderer<
       if (binding?.mode === 'focus' && canPin) {
         if (interactionIsPinned()) {
           pinnedKey = null
-          clearCursor(binding.controller)
+          cursorSession?.clear()
         } else {
           pinnedKey = point.key
           publishFocusCursor(focusPointsForPoint(point), true)
@@ -808,10 +803,11 @@ export function mountChartRenderer<
       observer?.disconnect()
       unsubscribeCursor?.()
       unsubscribeCursor = undefined
-      if (cursorController) clearPublishedCursor(cursorController)
-      cursorController = undefined
+      cursorSession?.destroy()
+      cursorSession = undefined
       cursorMode = undefined
       cursorMatch = undefined
+      cursorExtension = undefined
       fontSet?.removeEventListener?.('loadingdone', handleFontLoad)
       if (renderFrame !== undefined) {
         view?.cancelAnimationFrame?.(renderFrame)
@@ -850,38 +846,6 @@ export function mountChartRenderer<
       },
       { measureText: options.measureText ?? domText.measureText },
     )
-  }
-
-  function publishCursor(
-    controller: ChartCursorController<TXValue, TYValue>,
-    state: ChartCursorState<TXValue, TYValue>,
-  ) {
-    publishedCursorController = controller
-    publishedCursorState = state
-    controller.setState(state)
-  }
-
-  function clearPublishedCursor(
-    controller: ChartCursorController<TXValue, TYValue>,
-  ) {
-    const current = controller.getState()
-    if (
-      controller !== publishedCursorController ||
-      current !== publishedCursorState ||
-      current.pinned
-    ) {
-      return false
-    }
-    publishedCursorController = undefined
-    publishedCursorState = undefined
-    controller.setState(null)
-    return true
-  }
-
-  function clearCursor(controller: ChartCursorController<TXValue, TYValue>) {
-    publishedCursorController = undefined
-    publishedCursorState = undefined
-    controller.setState(null)
   }
 
   function resolvePointerFocus(

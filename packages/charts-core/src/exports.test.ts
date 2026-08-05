@@ -68,15 +68,35 @@ describe('public package exports', () => {
 
     expect(root).not.toHaveProperty('createChartCursor')
     expect(universal).not.toHaveProperty('createChartCursor')
-    expect(Object.keys(cursorModule)).toEqual(['createChartCursor'])
+    expect(Object.keys(cursorModule).sort()).toEqual([
+      'createChartCursor',
+      'cursorHost',
+    ])
     expect(Object.keys(cursorHostModule).sort()).toEqual([
+      'createChartCursorHostSession',
       'createFocusChartCursorState',
       'createFreeChartCursorState',
+      'cursorHost',
       'resolveChartCursorFocus',
       'resolveChartCursorPresentation',
       'resolveChartFocusStrategy',
       'resolveChartPointerFocus',
       'resolveFocusPresentation',
+    ])
+  })
+
+  it('keeps crosshair resolution on the optional mark subpath', async () => {
+    const [root, universal, crosshairModule] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/universal'),
+      import('@tanstack/charts/crosshair'),
+    ])
+
+    expect(root).not.toHaveProperty('resolveCrosshairGuide')
+    expect(universal).not.toHaveProperty('resolveCrosshairGuide')
+    expect(Object.keys(crosshairModule).sort()).toEqual([
+      'crosshair',
+      'resolveCrosshairGuide',
     ])
   })
 

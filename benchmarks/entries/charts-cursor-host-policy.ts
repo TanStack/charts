@@ -1,6 +1,8 @@
 export {
+  createChartCursorHostSession,
   createFocusChartCursorState,
   createFreeChartCursorState,
+  cursorHost,
   resolveChartCursorFocus,
   resolveChartCursorPresentation,
   resolveChartFocusStrategy,

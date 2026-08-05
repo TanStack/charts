@@ -4197,11 +4197,14 @@ Each entry records:
   when decorated with a tooltip token, while applications can still share the
   chart spec and options before that platform step. Cursor state, projection,
   focus resolution, and presentation are now shared platform-neutral policy.
-  The application-facing `@tanstack/charts/cursor` entry exports only the
-  controller constructor and state types; the adapter-facing
-  `@tanstack/charts/cursor/host` entry exposes projection and focus helpers
-  without making Metro traverse DOM modules. Browser and React Native hosts
-  both bind definition cursors in focus and free modes. Tooltip state, stable
+  The application-facing `@tanstack/charts/cursor` entry exports the controller
+  constructor, state types, and a tree-shakeable `cursorHost` extension. Every
+  cursor binding explicitly supplies `use: cursorHost`, so definitions that do
+  not opt in do not retain cursor policy. The adapter-facing
+  `@tanstack/charts/cursor/host` entry exposes the ownership-safe host session,
+  projection, and focus helpers without making Metro traverse DOM modules.
+  Browser and React Native hosts create that session from the binding token
+  while accepting any structural three-method controller. Tooltip state, stable
   restoration, navigation, and host event plumbing remain duplicated. The
   proof preserves the original primary and focus group independently from
   sorted tooltip rows, refreshes restored point objects, re-emits callbacks
@@ -4227,17 +4230,18 @@ Each entry records:
   cover semantic synchronization across differently sized native hosts without
   scene recompilation, grouped responder and accessibility focus, focus and
   free pinning, accessibility dismissal, normalized free-cursor projection,
-  programmatic updates, binding replacement and unmount, method-backed
-  controllers, and exact transient-state ownership when hosts share a
-  controller. Equivalent browser regressions protect pointer and keyboard
+  programmatic updates, binding replacement and unmount, method-backed and
+  cloning structural controllers, and exact transient-state ownership when
+  hosts share a controller. Equivalent browser regressions protect pointer and keyboard
   behavior. Native type checks and iOS/Android Metro gates import cursor host
   policy without DOM code. Shared cursor-policy regressions preserve the exact
   emitting facet with a local point identity, avoid projecting through a
   `type: 'none'` outer facet scale, and require each focus guide's authoritative
   projector to accept a semantic value before painting it. Granular production
   fixtures measure the application cursor controller at 0.56 kB minified and
-  0.34 kB gzip and the complete adapter-facing host policy, including
-  scene-aware pointer focus, at 13.92 kB and 5.08 kB. Retained-input gates
+  0.34 kB gzip and the complete adapter-facing host extension and session
+  policy, including scene-aware pointer focus, at 9.56 kB and 3.75 kB.
+  Retained-input gates
   reject platform renderers, tooltip code, and D3 from both entries and reject
   focus-presentation policy from the application entry. Physical-device and
   screen-reader verification remain outside the release gate, so this entry
@@ -4801,7 +4805,11 @@ Each entry records:
   supplies both full `surface` and inner `chart` bounds. The optional motion
   renderer consumes the guide's normal motion declaration; the default mounted
   SVG, Canvas, and native surfaces paint the same resolved target without
-  adding a clock or spring solver to core.
+  adding a clock or spring solver to core. Each `SceneFocusGuide` carries a
+  required resolver, so the optional guide owns its dynamic semantics while
+  renderers retain only generic transport. The crosshair subpath exports
+  `resolveCrosshairGuide` for custom guide marks that want the built-in rule,
+  band, label, and marker behavior.
 - Verification: crosshair scene tests cover stable x/y rules, axis overrides,
   labels, marker, clipping, surface clamping, facets, and cursor presentation
   without datum focus. Mark-order regressions place a guide before the first
@@ -4818,13 +4826,16 @@ Each entry records:
   canvas while the stable base canvas remains byte-identical.
   The paired Observable Plot/TanStack scenario retains its label, responsive,
   revision, and settled-state coverage without the application-owned overlay.
-  The isolated crosshair entry is 1.85 kB minified and 0.81 kB gzip and retains
-  no cursor, platform-renderer, tooltip, or D3 runtime. The renderer-neutral
+  The isolated crosshair entry, including its guide-carried resolver, is 8.46
+  kB minified and 2.86 kB gzip and retains no cursor, platform-renderer,
+  tooltip, or D3 runtime. The renderer-neutral
   scene contract adds 236 minified and 92 gzip bytes to the locked line scene;
   static SVG adds 275 and 124 bytes. Configurable SVG guide serialization,
-  renderer-owned resource copying, and stable detachable guide layers add
-  2,904 minified and 806–858 gzip bytes to the four locked DOM-host products
-  while leaving the locked static SVG byte count unchanged. Guide
+  renderer-owned resource copying, stable detachable guide layers, and generic
+  cursor-session orchestration add 8,730–8,740 minified and 2,827–2,916 gzip
+  bytes to the four locked DOM-host products. That reviewed cost is the core
+  renderer capability; crosshair semantics and cursor policy remain opt-in.
+  Guide
   interpolation and stable motion identity add 9,810 minified and 3,008 gzip
   bytes to the optional motion renderer; the final identity correction is 525
   and 164 of those bytes. Renderer-boundary checks classify the shared SVG

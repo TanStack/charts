@@ -965,6 +965,18 @@ export interface SceneFocusGuideMarker {
   style: SceneStyle
 }
 
+export interface SceneFocusGuideResolveContext {
+  scene: ChartScene
+  guide: SceneFocusGuide
+  focus: ChartFocusState | null
+  pointer?: ChartTooltipPosition | null
+  cursor?: ChartCursorPresentation | null
+}
+
+export type SceneFocusGuideResolver = (
+  context: SceneFocusGuideResolveContext,
+) => SceneNode | undefined
+
 /** Renderer-neutral description of presentation derived from chart focus. */
 export interface SceneFocusGuide {
   key: string
@@ -983,6 +995,8 @@ export interface SceneFocusGuide {
   measureText?: ChartTextMeasurer
   /** Facet-owned point-key prefix. Omitted for a top-level guide. */
   scope?: string
+  /** Resolves this guide's dynamic presentation without retaining its implementation in every renderer bundle. */
+  resolve: SceneFocusGuideResolver
 }
 
 export interface ChartFocusPresentation {
@@ -1309,6 +1323,12 @@ export interface ChartCursorController<
   setState: (next: ChartCursorStateUpdater<TXValue, TYValue>) => void
 }
 
+export interface ChartCursorExtensionToken {
+  readonly id: string
+  readonly create: Function
+  readonly __chartExtensionType?: 'cursor'
+}
+
 export interface ChartCursorAxisContext<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
@@ -1342,6 +1362,7 @@ export interface ChartFocusCursorBinding<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
+  use: ChartCursorExtensionToken
   controller: ChartCursorController<TXValue, TYValue>
   mode: 'focus'
   /** Semantic axes shared between hosts. Defaults to `xy`. */
@@ -1355,6 +1376,7 @@ export interface ChartFreeCursorBinding<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
+  use: ChartCursorExtensionToken
   controller: ChartCursorController<TXValue, TYValue>
   mode: 'free'
   /** Click or tap may pin and dismiss this cursor. */

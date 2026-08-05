@@ -146,7 +146,11 @@ describe('crosshair', () => {
     const vertical = createChartScene(
       defineChart({
         marks: [
-          crosshair({ id: 'x-band', x: { band: true }, y: false }),
+          crosshair({
+            id: 'x-band',
+            x: { band: true, label: true },
+            y: false,
+          }),
           barY(rows, {
             x: 'category',
             y: 'value',
@@ -165,7 +169,11 @@ describe('crosshair', () => {
     const horizontal = createChartScene(
       defineChart({
         marks: [
-          crosshair({ id: 'y-band', x: false, y: { band: true } }),
+          crosshair({
+            id: 'y-band',
+            x: false,
+            y: { band: true, label: true },
+          }),
           barX(rows, {
             x: 'value',
             y: 'category',
@@ -187,17 +195,27 @@ describe('crosshair', () => {
       resolveFocusPresentation(vertical, focus(verticalPoint)).under,
       'x-band:x-band',
     ) as SceneRect
+    const xLabel = findNode(
+      resolveFocusPresentation(vertical, focus(verticalPoint)).under,
+      'x-band:x-label:text',
+    ) as SceneLabel
     const horizontalPoint = horizontal.points[1]!
     const yBand = findNode(
       resolveFocusPresentation(horizontal, focus(horizontalPoint)).under,
       'y-band:y-band',
     ) as SceneRect
+    const yLabel = findNode(
+      resolveFocusPresentation(horizontal, focus(horizontalPoint)).under,
+      'y-band:y-label:text',
+    ) as SceneLabel
 
     expect(verticalPoint.x).not.toBeCloseTo(vertical.scales.x.map('A'))
     expect(xBand.x + xBand.width / 2).toBeCloseTo(vertical.scales.x.map('A'))
+    expect(xLabel.x).toBeCloseTo(vertical.scales.x.map('A'))
     expect(xBand.width).toBeCloseTo(vertical.scales.x.bandwidth)
     expect(horizontalPoint.y).not.toBeCloseTo(horizontal.scales.y.map('A'))
     expect(yBand.y + yBand.height / 2).toBeCloseTo(horizontal.scales.y.map('A'))
+    expect(yLabel.y).toBeCloseTo(horizontal.scales.y.map('A'))
     expect(yBand.height).toBeCloseTo(horizontal.scales.y.bandwidth)
   })
 

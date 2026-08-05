@@ -9,10 +9,7 @@ import type {
 } from 'react-native'
 import { View } from 'react-native'
 import {
-  createFocusChartCursorState,
-  createFreeChartCursorState,
-  resolveChartCursorFocus,
-  resolveChartCursorPresentation,
+  createChartCursorHostSession,
   resolveChartFocusStrategy,
   resolveFocusPresentation,
 } from '@tanstack/charts/cursor/host'
@@ -146,38 +143,56 @@ export function Chart<
     [scene],
   )
   const cursorBinding = definition.cursor
-  const cursorController = cursorBinding?.controller
+  const cursorMatch =
+    cursorBinding?.mode === 'focus' ? (cursorBinding.match ?? 'xy') : undefined
+  const cursorSession = React.useMemo(
+    () =>
+      cursorBinding ? createChartCursorHostSession(cursorBinding) : undefined,
+    [
+      cursorBinding?.controller,
+      cursorBinding?.mode,
+      cursorBinding?.use,
+      cursorMatch,
+    ],
+  )
   const subscribeCursor = React.useCallback(
     (listener: () => void) =>
-      cursorController?.subscribe(listener) ?? subscribeEmptyCursor(),
-    [cursorController],
+      cursorSession?.subscribe(listener) ?? subscribeEmptyCursor(),
+    [cursorSession],
   )
   const getCursorState = React.useCallback(
-    () => cursorController?.getState() ?? getEmptyCursorState(),
-    [cursorController],
+    () => cursorSession?.getState() ?? getEmptyCursorState(),
+    [cursorSession],
   )
   const cursorState = React.useSyncExternalStore<ChartCursorState<
     TXValue,
     TYValue
   > | null>(subscribeCursor, getCursorState, getCursorState)
-  const cursorMatch =
-    cursorBinding?.mode === 'focus' ? (cursorBinding.match ?? 'xy') : undefined
   const cursorPresentation = React.useMemo(
     () =>
-      scene && cursorBinding
-        ? resolveChartCursorPresentation(scene, cursorBinding, cursorState)
+      scene && cursorBinding && cursorSession
+        ? cursorSession.resolvePresentation(scene, cursorBinding, cursorState)
         : null,
-    [cursorBinding, cursorState, scene],
+    [cursorBinding, cursorSession, cursorState, scene],
   )
   const controlledFocusedPoints = React.useMemo(() => {
-    if (!scene || cursorBinding?.mode !== 'focus') return emptyChartPoints
-    return resolveChartCursorFocus(
+    if (!scene || cursorBinding?.mode !== 'focus' || !cursorSession) {
+      return emptyChartPoints
+    }
+    return cursorSession.resolveFocus(
       interactionPoints,
       cursorBinding,
       cursorState,
       resolveChartFocusStrategy(definition.focus),
     )
-  }, [cursorBinding, cursorState, definition.focus, interactionPoints, scene])
+  }, [
+    cursorBinding,
+    cursorSession,
+    cursorState,
+    definition.focus,
+    interactionPoints,
+    scene,
+  ])
   const [localFocusedPoints, setLocalFocusedPoints] = React.useState<
     readonly ChartPoint<TDatum, TXValue, TYValue>[]
   >([])
@@ -186,11 +201,13 @@ export function Chart<
     controller: cursorBinding?.controller,
     mode: cursorBinding?.mode,
     match: cursorMatch,
+    use: cursorBinding?.use,
   })
   const cursorBindingChanged =
     previousCursorBindingRef.current.controller !== cursorBinding?.controller ||
     previousCursorBindingRef.current.mode !== cursorBinding?.mode ||
-    previousCursorBindingRef.current.match !== cursorMatch
+    previousCursorBindingRef.current.match !== cursorMatch ||
+    previousCursorBindingRef.current.use !== cursorBinding?.use
   const focusedPoints = cursorBinding
     ? cursorBinding.mode === 'focus'
       ? controlledFocusedPoints
@@ -214,10 +231,6 @@ export function Chart<
   const [pointer, setPointer] = React.useState<ChartTooltipPosition | null>(
     null,
   )
-  const lastPublishedCursorStateRef = React.useRef<
-    ChartCursorState<TXValue, TYValue> | null | undefined
-  >(undefined)
-  const lastPublishedCursorControllerRef = React.useRef(cursorController)
   const [focusSource, setFocusSource] =
     React.useState<ChartFocusSource>('programmatic')
   const tooltipInput = React.useMemo(
@@ -243,14 +256,12 @@ export function Chart<
   const resolvedPointer =
     cursorBindingChanged ||
     (cursorBinding &&
-      (cursorBinding.controller !== lastPublishedCursorControllerRef.current ||
-        cursorState?.source !== 'pointer' ||
-        cursorState !== lastPublishedCursorStateRef.current))
+      (cursorState?.source !== 'pointer' || !cursorSession?.owns(cursorState)))
       ? null
       : pointer
   const cursorCurrentlyPinned = () =>
     cursorBinding
-      ? cursorBinding.controller.getState()?.pinned === true
+      ? cursorSession?.getState()?.pinned === true
       : pinnedKey !== null
 
   const commitLocalFocus = React.useCallback(
@@ -268,24 +279,7 @@ export function Chart<
   )
 
   React.useEffect(() => () => runtime.destroy(), [runtime])
-  React.useEffect(() => {
-    const controller = cursorController
-    return () => {
-      const published = lastPublishedCursorStateRef.current
-      if (
-        !controller ||
-        controller !== lastPublishedCursorControllerRef.current ||
-        !published ||
-        published.pinned ||
-        controller.getState() !== published
-      ) {
-        return
-      }
-      lastPublishedCursorControllerRef.current = undefined
-      lastPublishedCursorStateRef.current = undefined
-      controller.setState(null)
-    }
-  }, [cursorBinding?.mode, cursorController, cursorMatch])
+  React.useEffect(() => () => cursorSession?.destroy(), [cursorSession])
   React.useEffect(() => {
     if (scene) onRenderRef.current?.({ scene })
   }, [scene])
@@ -295,16 +289,16 @@ export function Chart<
       controller: cursorBinding?.controller,
       mode: cursorBinding?.mode,
       match: cursorMatch,
+      use: cursorBinding?.use,
     }
     localFocusedPointsRef.current = emptyChartPoints
     setLocalFocusedPoints(emptyChartPoints)
     setPinnedKey(null)
     setPointer(null)
-    lastPublishedCursorControllerRef.current = cursorController
-    lastPublishedCursorStateRef.current = undefined
   }, [
     cursorBinding?.controller,
     cursorBinding?.mode,
+    cursorBinding?.use,
     cursorBindingChanged,
     cursorMatch,
   ])
@@ -351,33 +345,21 @@ export function Chart<
   }, [cursorBinding, cursorState])
 
   const clearOwnedTransientCursor = React.useCallback(() => {
-    if (!cursorBinding) return false
-    const current = cursorBinding.controller.getState()
-    if (
-      !current ||
-      cursorBinding.controller !== lastPublishedCursorControllerRef.current ||
-      current !== lastPublishedCursorStateRef.current ||
-      current.pinned
-    ) {
-      return false
-    }
-    lastPublishedCursorStateRef.current = null
-    lastPublishedCursorControllerRef.current = undefined
+    if (!cursorBinding || !cursorSession) return false
+    const cleared = cursorSession.clearOwnedTransient()
+    if (!cleared) return false
     focusedPointsRef.current = emptyChartPoints
-    cursorBinding.controller.setState(null)
     return true
-  }, [cursorBinding])
+  }, [cursorBinding, cursorSession])
 
   const dismiss = React.useCallback(() => {
     setPinnedKey(null)
     setPointer(null)
     if (cursorBinding) {
-      lastPublishedCursorStateRef.current = null
-      lastPublishedCursorControllerRef.current = undefined
       focusedPointsRef.current = emptyChartPoints
-      cursorBinding.controller.setState(null)
+      cursorSession?.clear()
     } else commitLocalFocus([])
-  }, [commitLocalFocus, cursorBinding])
+  }, [commitLocalFocus, cursorBinding, cursorSession])
 
   const positionAtEvent = React.useCallback(
     (event: GestureResponderEvent) => {
@@ -409,22 +391,22 @@ export function Chart<
     source: ChartFocusSource,
     pinned: boolean,
   ) => {
-    if (!scene || cursorBinding?.mode !== 'focus') return false
+    if (!scene || cursorBinding?.mode !== 'focus' || !cursorSession) {
+      return false
+    }
     const point = points[0]
     if (!point) {
       clearOwnedTransientCursor()
       return true
     }
-    const state = createFocusChartCursorState(scene, cursorBinding, {
+    const state = cursorSession.createFocusState(scene, cursorBinding, {
       primary: point,
       group: points,
       source,
       pinned,
     })
-    lastPublishedCursorStateRef.current = state
-    lastPublishedCursorControllerRef.current = cursorBinding.controller
     focusedPointsRef.current = points
-    cursorBinding.controller.setState(state)
+    cursorSession.publish(state)
     return true
   }
 
@@ -440,23 +422,21 @@ export function Chart<
   }
 
   const updateFreeCursor = (event: GestureResponderEvent, pinned: boolean) => {
-    if (!scene || cursorBinding?.mode !== 'free') return false
+    if (!scene || cursorBinding?.mode !== 'free' || !cursorSession) return false
     const position = positionAtEvent(event)
     if (!position || !plotContains(scene, position)) {
       setPointer(null)
       clearOwnedTransientCursor()
       return true
     }
-    const state = createFreeChartCursorState(
+    const state = cursorSession.createFreeState(
       scene,
       cursorBinding,
       position,
       'pointer',
       pinned,
     )
-    lastPublishedCursorStateRef.current = state
-    lastPublishedCursorControllerRef.current = cursorBinding.controller
-    cursorBinding.controller.setState(state)
+    cursorSession.publish(state)
     return true
   }
 
@@ -472,7 +452,7 @@ export function Chart<
   }
   const handleResponderRelease = (event: GestureResponderEvent) => {
     if (cursorBinding?.mode === 'free') {
-      if (cursorBinding.controller.getState()?.pinned) {
+      if (cursorSession?.getState()?.pinned) {
         if (cursorBinding.pin) dismiss()
       } else {
         updateFreeCursor(event, cursorBinding.pin === true)
@@ -484,8 +464,7 @@ export function Chart<
     const point = points[0] ?? null
     if (cursorBinding?.mode === 'focus') {
       const canPin = cursorBinding.pin === true || sticky
-      const currentlyPinned =
-        cursorBinding.controller.getState()?.pinned === true
+      const currentlyPinned = cursorSession?.getState()?.pinned === true
       if (currentlyPinned && canPin) dismiss()
       else
         commitInteractionFocus(
@@ -535,7 +514,7 @@ export function Chart<
     if (cursorBinding?.mode === 'focus') {
       const canPin = cursorBinding.pin === true || sticky
       if (canPin) {
-        if (cursorBinding.controller.getState()?.pinned) dismiss()
+        if (cursorSession?.getState()?.pinned) dismiss()
         else publishFocusCursor(focusedPointsRef.current, 'keyboard', true)
       }
     } else if (!cursorBinding && sticky) {

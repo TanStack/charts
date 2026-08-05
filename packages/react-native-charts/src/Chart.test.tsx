@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { bandX } from '@tanstack/charts/band'
 import { barY } from '@tanstack/charts/bar'
 import { crosshair } from '@tanstack/charts/crosshair'
-import { createChartCursor } from '@tanstack/charts/cursor'
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
 import { whenFocused } from '@tanstack/charts/focus/mark'
 import { lineY } from '@tanstack/charts/line'
 import { defineChart } from '@tanstack/charts/scene'
@@ -218,7 +218,7 @@ describe('React Native Chart', () => {
       marks: [crosshair({ x: true, y: true })],
       guides: false,
       pointer: false,
-      cursor: { controller, mode: 'free' },
+      cursor: { use: cursorHost, controller, mode: 'free' },
     })
 
     renderToStaticMarkup(
@@ -599,7 +599,7 @@ describe('React Native Chart', () => {
       },
       y: { scale: scaleLinear().domain([0, 3]) },
       guides: false,
-      cursor: { controller, mode: 'focus', match: 'x' },
+      cursor: { use: cursorHost, controller, mode: 'focus', match: 'x' },
     })
     const onFocusChange = vi.fn()
     const container = document.createElement('div')
@@ -762,6 +762,7 @@ describe('React Native Chart', () => {
       focus: 'group-x',
       focusRing: false,
       cursor: {
+        use: cursorHost,
         controller,
         mode: 'focus',
         match: 'x',
@@ -917,6 +918,7 @@ describe('React Native Chart', () => {
       focusRing: false,
       tooltip: { use: trackingTooltip, sticky: true },
       cursor: {
+        use: cursorHost,
         controller,
         mode: 'focus',
         match: 'x',
@@ -1043,7 +1045,13 @@ describe('React Native Chart', () => {
     })
     const definitionFor = (match: 'x' | 'y') =>
       defineChart(baseDefinition, {
-        cursor: { controller, mode: 'focus', match, pin: true },
+        cursor: {
+          use: cursorHost,
+          controller,
+          mode: 'focus',
+          match,
+          pin: true,
+        },
       })
     const container = document.createElement('div')
     const root = createRoot(container)
@@ -1108,6 +1116,7 @@ describe('React Native Chart', () => {
       ],
       guides: false,
       cursor: {
+        use: cursorHost,
         controller,
         mode: 'free',
         pin: true,
@@ -1214,6 +1223,7 @@ describe('React Native Chart', () => {
       marks: [crosshair({ x: true, y: true })],
       guides: false,
       cursor: {
+        use: cursorHost,
         controller,
         mode: 'free',
       },
@@ -1333,6 +1343,7 @@ describe('React Native Chart', () => {
     const controller = createChartCursor<number, number>()
     const controlledDefinition = defineChart(baseDefinition, {
       cursor: {
+        use: cursorHost,
         controller,
         mode: 'focus',
         match: 'x',
@@ -1416,7 +1427,7 @@ describe('React Native Chart', () => {
       defineChart({
         marks: [crosshair({ x: true, y: true })],
         guides: false,
-        cursor: { controller, mode: 'free' },
+        cursor: { use: cursorHost, controller, mode: 'free' },
       })
     const container = document.createElement('div')
     const root = createRoot(container)
@@ -1502,7 +1513,7 @@ describe('React Native Chart', () => {
     const methodDefinition = defineChart({
       marks: [crosshair({ x: true, y: true })],
       guides: false,
-      cursor: { controller, mode: 'free' },
+      cursor: { use: cursorHost, controller, mode: 'free' },
     })
     const container = document.createElement('div')
     const root = createRoot(container)
@@ -1534,7 +1545,7 @@ describe('React Native Chart', () => {
     const bound = defineChart({
       marks: [crosshair({ x: true, y: true })],
       guides: false,
-      cursor: { controller, mode: 'free' },
+      cursor: { use: cursorHost, controller, mode: 'free' },
     })
     const unbound = defineChart({
       marks: [crosshair({ x: true, y: true })],

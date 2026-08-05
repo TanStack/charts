@@ -65,59 +65,59 @@ capabilities and individual marks independently tree-shakeable. Compact scales
 come from exact `@tanstack/charts-scales/*` entries; that package intentionally
 has no root export.
 
-| Import                               | Public values                                                                                                                                             |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@tanstack/charts`                   | Common marks including `crosshair`, legends, D3 curve bridges, definitions, runtime, scene, DOM host, static SVG, cursor creation, and focus presentation |
-| `@tanstack/charts-scales/band`       | `scaleBand`, `BandScale`                                                                                                                                  |
-| `@tanstack/charts-scales/linear`     | `scaleLinear`, `LinearScale`                                                                                                                              |
-| `@tanstack/charts-scales/ordinal`    | `scaleOrdinal`, `OrdinalScale`                                                                                                                            |
-| `@tanstack/charts-scales/point`      | `scalePoint`, `PointScale`                                                                                                                                |
-| `@tanstack/charts/adapter`           | `createChartAdapter`, `resolveChartAdapterLayout`, `ChartAdapter`, `ChartAdapterLayout`, and `ChartAdapterLayoutOptions`                                  |
-| `@tanstack/charts/adapter/renderer`  | `createChartRendererAdapter`                                                                                                                              |
-| `@tanstack/charts/area`              | `areaY`                                                                                                                                                   |
-| `@tanstack/charts/area-x`            | `areaX`                                                                                                                                                   |
-| `@tanstack/charts/arrow`             | `arrow`                                                                                                                                                   |
-| `@tanstack/charts/band`              | `bandX`, `bandY`                                                                                                                                          |
-| `@tanstack/charts/bar`               | `barX`, `barY`                                                                                                                                            |
-| `@tanstack/charts/canvas`            | `mountCanvasChart`, `canvasChartRenderer`, `createCanvasChartRenderer`, and Canvas host/surface types                                                     |
-| `@tanstack/charts/crosshair`         | Data-less `crosshair` focus guide and its option types                                                                                                    |
-| `@tanstack/charts/cursor`            | `createChartCursor` plus its framework-neutral controller and state types                                                                                 |
-| `@tanstack/charts/cursor/host`       | Adapter-facing cursor projection, focus resolution, focus-strategy, and focus-presentation helpers                                                        |
-| `@tanstack/charts/d3/area-x`         | `d3AreaXCurve`                                                                                                                                            |
-| `@tanstack/charts/d3/shape`          | `d3Curve`                                                                                                                                                 |
-| `@tanstack/charts/dom`               | `mountChart`                                                                                                                                              |
-| `@tanstack/charts/dot`               | `dot`                                                                                                                                                     |
-| `@tanstack/charts/export`            | SVG serialization/download and browser image export                                                                                                       |
-| `@tanstack/charts/facet`             | `facet`, `facetChart`                                                                                                                                     |
-| `@tanstack/charts/focus`             | `focusX`, `focusY`, `focusNearestX`, `focusNearestY`                                                                                                      |
-| `@tanstack/charts/focus/disabled`    | `focusDisabled`                                                                                                                                           |
-| `@tanstack/charts/focus/mark`        | `whenFocused`                                                                                                                                             |
-| `@tanstack/charts/frame`             | `frame`                                                                                                                                                   |
-| `@tanstack/charts/geo`               | `geoShape` and geographic projection types                                                                                                                |
-| `@tanstack/charts/group`             | `group`, `GroupLayout`, `GroupOptions`                                                                                                                    |
-| `@tanstack/charts/hexagon`           | `hexagon`                                                                                                                                                 |
-| `@tanstack/charts/legend`            | `colorLegend`, `colorGradientLegend`                                                                                                                      |
-| `@tanstack/charts/line`              | `lineY`                                                                                                                                                   |
-| `@tanstack/charts/link`              | `link`                                                                                                                                                    |
-| `@tanstack/charts/mark/scale-values` | `createMarkWithScaleValues`                                                                                                                               |
-| `@tanstack/charts/motion`            | `motion`, `ChartMotionOptions`, and renderer-neutral motion types                                                                                         |
-| `@tanstack/charts/polar`             | `polar`, radial arc/line/area/dot marks, and radial/angle guides                                                                                          |
-| `@tanstack/charts/universal`         | Common root authoring, runtime, scene, and static SVG values without browser hosts or adapters                                                            |
-| `@tanstack/charts/reconcile`         | `reconcileChartSvg`, `reconcileChartSvgFragment`                                                                                                          |
-| `@tanstack/charts/rect`              | `rect`, `cell`                                                                                                                                            |
-| `@tanstack/charts/renderer`          | `mountChartRenderer`                                                                                                                                      |
-| `@tanstack/charts/rule`              | `ruleX`, `ruleY`                                                                                                                                          |
-| `@tanstack/charts/runtime`           | `createChartRuntime`, `isDynamicChartDefinition`                                                                                                          |
-| `@tanstack/charts/scene`             | `defineChart`, `createChartScene`, `defaultChartTheme`, `findNearestPoint`, `viewportInteractionPoints`                                                   |
-| `@tanstack/charts/svg`               | `renderChartSvg`                                                                                                                                          |
-| `@tanstack/charts/svg/renderer`      | `createSvgChartRenderer`, `svgChartRenderer`                                                                                                              |
-| `@tanstack/charts/svg/resources`     | `renderChartSvgWithResources`                                                                                                                             |
-| `@tanstack/charts/stack`             | `stack`, `StackLayout`, `StackOptions`, `StackOrder`, `StackOffset`                                                                                       |
-| `@tanstack/charts/spring`            | `createChartSpring` and scalar spring types                                                                                                               |
-| `@tanstack/charts/text`              | `text`                                                                                                                                                    |
-| `@tanstack/charts/tick`              | `tickX`, `tickY`                                                                                                                                          |
-| `@tanstack/charts/types`             | Universal definition, mark, scene, runtime, focus, and tooltip-model types                                                                                |
-| `@tanstack/charts/vector`            | `vector`                                                                                                                                                  |
+| Import                               | Public values                                                                                                                                                  |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@tanstack/charts`                   | Common marks including `crosshair`, legends, D3 curve bridges, `createMark`, definitions, runtime, scene, DOM host, static SVG, and `resolveFocusPresentation` |
+| `@tanstack/charts-scales/band`       | `scaleBand`, `BandScale`                                                                                                                                       |
+| `@tanstack/charts-scales/linear`     | `scaleLinear`, `LinearScale`                                                                                                                                   |
+| `@tanstack/charts-scales/ordinal`    | `scaleOrdinal`, `OrdinalScale`                                                                                                                                 |
+| `@tanstack/charts-scales/point`      | `scalePoint`, `PointScale`                                                                                                                                     |
+| `@tanstack/charts/adapter`           | `createChartAdapter`, `resolveChartAdapterLayout`, `ChartAdapter`, `ChartAdapterLayout`, and `ChartAdapterLayoutOptions`                                       |
+| `@tanstack/charts/adapter/renderer`  | `createChartRendererAdapter`                                                                                                                                   |
+| `@tanstack/charts/area`              | `areaY`                                                                                                                                                        |
+| `@tanstack/charts/area-x`            | `areaX`                                                                                                                                                        |
+| `@tanstack/charts/arrow`             | `arrow`                                                                                                                                                        |
+| `@tanstack/charts/band`              | `bandX`, `bandY`                                                                                                                                               |
+| `@tanstack/charts/bar`               | `barX`, `barY`                                                                                                                                                 |
+| `@tanstack/charts/canvas`            | `mountCanvasChart`, `canvasChartRenderer`, `createCanvasChartRenderer`, and Canvas host/surface types                                                          |
+| `@tanstack/charts/crosshair`         | Data-less `crosshair`, `resolveCrosshairGuide`, and crosshair option types                                                                                     |
+| `@tanstack/charts/cursor`            | `createChartCursor`, `cursorHost`, and framework-neutral controller and state types                                                                            |
+| `@tanstack/charts/cursor/host`       | Adapter-facing cursor session, projection, focus resolution, focus-strategy, and focus-presentation helpers                                                    |
+| `@tanstack/charts/d3/area-x`         | `d3AreaXCurve`                                                                                                                                                 |
+| `@tanstack/charts/d3/shape`          | `d3Curve`                                                                                                                                                      |
+| `@tanstack/charts/dom`               | `mountChart`                                                                                                                                                   |
+| `@tanstack/charts/dot`               | `dot`                                                                                                                                                          |
+| `@tanstack/charts/export`            | SVG serialization/download and browser image export                                                                                                            |
+| `@tanstack/charts/facet`             | `facet`, `facetChart`                                                                                                                                          |
+| `@tanstack/charts/focus`             | `focusX`, `focusY`, `focusNearestX`, `focusNearestY`                                                                                                           |
+| `@tanstack/charts/focus/disabled`    | `focusDisabled`                                                                                                                                                |
+| `@tanstack/charts/focus/mark`        | `whenFocused`                                                                                                                                                  |
+| `@tanstack/charts/frame`             | `frame`                                                                                                                                                        |
+| `@tanstack/charts/geo`               | `geoShape` and geographic projection types                                                                                                                     |
+| `@tanstack/charts/group`             | `group`, `GroupLayout`, `GroupOptions`                                                                                                                         |
+| `@tanstack/charts/hexagon`           | `hexagon`                                                                                                                                                      |
+| `@tanstack/charts/legend`            | `colorLegend`, `colorGradientLegend`                                                                                                                           |
+| `@tanstack/charts/line`              | `lineY`                                                                                                                                                        |
+| `@tanstack/charts/link`              | `link`                                                                                                                                                         |
+| `@tanstack/charts/mark/scale-values` | `createMarkWithScaleValues`                                                                                                                                    |
+| `@tanstack/charts/motion`            | `motion`, `ChartMotionOptions`, and renderer-neutral motion types                                                                                              |
+| `@tanstack/charts/polar`             | `polar`, radial arc/line/area/dot marks, and radial/angle guides                                                                                               |
+| `@tanstack/charts/universal`         | Common root authoring, runtime, scene, and static SVG values without browser hosts or adapters                                                                 |
+| `@tanstack/charts/reconcile`         | `reconcileChartSvg`, `reconcileChartSvgFragment`                                                                                                               |
+| `@tanstack/charts/rect`              | `rect`, `cell`                                                                                                                                                 |
+| `@tanstack/charts/renderer`          | `mountChartRenderer`                                                                                                                                           |
+| `@tanstack/charts/rule`              | `ruleX`, `ruleY`                                                                                                                                               |
+| `@tanstack/charts/runtime`           | `createChartRuntime`, `isDynamicChartDefinition`                                                                                                               |
+| `@tanstack/charts/scene`             | `defineChart`, `createChartScene`, `defaultChartTheme`, `findNearestPoint`, `viewportInteractionPoints`                                                        |
+| `@tanstack/charts/svg`               | `renderChartSvg`                                                                                                                                               |
+| `@tanstack/charts/svg/renderer`      | `createSvgChartRenderer`, `svgChartRenderer`                                                                                                                   |
+| `@tanstack/charts/svg/resources`     | `renderChartSvgWithResources`                                                                                                                                  |
+| `@tanstack/charts/stack`             | `stack`, `StackLayout`, `StackOptions`, `StackOrder`, `StackOffset`                                                                                            |
+| `@tanstack/charts/spring`            | `createChartSpring` and scalar spring types                                                                                                                    |
+| `@tanstack/charts/text`              | `text`                                                                                                                                                         |
+| `@tanstack/charts/tick`              | `tickX`, `tickY`                                                                                                                                               |
+| `@tanstack/charts/types`             | Universal definition, mark, scene, runtime, focus, and tooltip-model types                                                                                     |
+| `@tanstack/charts/vector`            | `vector`                                                                                                                                                       |
 
 Import from the narrowest stable entry point when bundle isolation matters.
 Do not import internal source files.

@@ -56,7 +56,9 @@ const rendererBoundaryModules = {
   ],
 }
 const retainedInputGroups = {
-  crosshairRuntime: [/(?:^|\/)packages\/charts-core\/src\/crosshair\.ts$/u],
+  crosshairRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/crosshair(?:-resolver)?\.ts$/u,
+  ],
   cursorRuntime: [/(?:^|\/)packages\/charts-core\/src\/cursor\.ts$/u],
   focusPresentationRuntime: [
     /(?:^|\/)packages\/charts-core\/src\/focus-layer\.ts$/u,
@@ -482,7 +484,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    23.4,
+    21.4,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -626,7 +628,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    47.2,
+    45.2,
   ),
   locked(
     'Custom-scale line scene',
@@ -677,12 +679,12 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    31.3,
+    29.4,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    36.5,
+    34.6,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -887,7 +889,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    48.1,
+    46.1,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),

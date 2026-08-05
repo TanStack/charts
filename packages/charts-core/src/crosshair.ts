@@ -1,16 +1,19 @@
+import { resolveCrosshairGuide } from './crosshair-resolver'
 import { createMark } from './mark'
 import { valueKey } from './scales'
 import type {
   ChartMark,
   ChartMarkMotionOptions,
   ChartValue,
+  ResolvedScale,
   SceneFocusGuideAxis,
   SceneFocusGuideBand,
   SceneFocusGuideLabel,
   SceneFocusGuideMarker,
-  ResolvedScale,
   SceneStyle,
 } from './types'
+
+export { resolveCrosshairGuide }
 
 export interface CrosshairRuleOptions {
   stroke?: string
@@ -106,6 +109,7 @@ export function crosshair<
             projectY: projector(scales.y),
             motion: options.motion,
             measureText: layout.measureText,
+            resolve: resolveCrosshairGuide,
           },
         ],
       }),

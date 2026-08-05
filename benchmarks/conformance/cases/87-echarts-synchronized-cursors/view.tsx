@@ -6,7 +6,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { crosshair, defineChart, dot, lineY } from '@tanstack/charts'
-import { createChartCursor } from '@tanstack/charts/cursor'
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
 import { focusX } from '@tanstack/charts/focus'
 import { Chart } from '@tanstack/react-charts'
 import { travelers } from '@charts-poc/demo-data/travelers'
@@ -246,6 +246,7 @@ function CursorChart({
           focusRing: false,
           maxFocusDistance: Number.POSITIVE_INFINITY,
           cursor: {
+            use: cursorHost,
             controller: cursor,
             mode: 'focus',
             match: 'x',

@@ -140,28 +140,30 @@ The complete overloads and runtime rules are in
 
 ## Marks and scenes
 
-| Type                     | Purpose                                                                       |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| `ChartMark`              | Public initialized-mark factory plus inferred point and scale types           |
-| `MarkInitializeContext`  | Mark layer index                                                              |
-| `InitializedMark`        | Stable ID, channels, per-axis viewport ownership, layout, and render function |
-| `MaterializedChannel`    | Values contributed to an optional named scale                                 |
-| `MarkRenderContext`      | Final chart bounds, scales, theme, color resolver, and layout                 |
-| `MarkScene`              | Mark-owned nodes plus optional interaction points, focus anchors, and guides  |
-| `MarkFocusGuide`         | Mark-emitted focus guide with optional placement                              |
-| `ChartScene`             | Complete renderer-neutral output                                              |
-| `ChartPoint`             | Typed interaction target                                                      |
-| `ChartFocusAnchor`       | Focus-filter identity that does not participate in hit testing                |
-| `SceneFocusGuide`        | Data-less guide descriptor resolved against focus or cursor state             |
-| `SceneFocusGuideAxis`    | One crosshair axis rule or categorical band, plus an optional label           |
-| `SceneFocusGuideBand`    | Resolved categorical bandwidth, inset, radius, and paint                      |
-| `SceneFocusGuideLabel`   | Focus-guide label formatter, spacing, font, and paint                         |
-| `SceneFocusGuideMarker`  | Focus-guide intersection marker geometry and paint                            |
-| `ChartFocusPresentation` | Transient renderer-neutral underlay and overlay nodes                         |
-| `SceneInteraction`       | Semantic point or points attached to a rendered scene primitive               |
-| `ChartTick`              | Semantic value, formatted label, and pixel position                           |
-| `ResolvedScale`          | Final positional scale                                                        |
-| `ResolvedColorScale`     | Final color scale                                                             |
+| Type                            | Purpose                                                                       |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `ChartMark`                     | Public initialized-mark factory plus inferred point and scale types           |
+| `MarkInitializeContext`         | Mark layer index                                                              |
+| `InitializedMark`               | Stable ID, channels, per-axis viewport ownership, layout, and render function |
+| `MaterializedChannel`           | Values contributed to an optional named scale                                 |
+| `MarkRenderContext`             | Final chart bounds, scales, theme, color resolver, and layout                 |
+| `MarkScene`                     | Mark-owned nodes plus optional interaction points, focus anchors, and guides  |
+| `MarkFocusGuide`                | Mark-emitted focus guide with optional placement                              |
+| `ChartScene`                    | Complete renderer-neutral output                                              |
+| `ChartPoint`                    | Typed interaction target                                                      |
+| `ChartFocusAnchor`              | Focus-filter identity that does not participate in hit testing                |
+| `SceneFocusGuide`               | Data-less guide descriptor resolved against focus or cursor state             |
+| `SceneFocusGuideAxis`           | One crosshair axis rule or categorical band, plus an optional label           |
+| `SceneFocusGuideBand`           | Resolved categorical bandwidth, inset, radius, and paint                      |
+| `SceneFocusGuideLabel`          | Focus-guide label formatter, spacing, font, and paint                         |
+| `SceneFocusGuideMarker`         | Focus-guide intersection marker geometry and paint                            |
+| `SceneFocusGuideResolveContext` | Scene, guide, local focus, pointer, and cursor passed to a guide resolver     |
+| `SceneFocusGuideResolver`       | Optional-guide policy that returns one transient scene node                   |
+| `ChartFocusPresentation`        | Transient renderer-neutral underlay and overlay nodes                         |
+| `SceneInteraction`              | Semantic point or points attached to a rendered scene primitive               |
+| `ChartTick`                     | Semantic value, formatted label, and pixel position                           |
+| `ResolvedScale`                 | Final positional scale                                                        |
+| `ResolvedColorScale`            | Final color scale                                                             |
 
 Scene geometry and interaction point fields are documented in
 [Runtime and scene](./runtime-and-scene.md).
@@ -276,6 +278,7 @@ See [DOM host](./dom-host.md) and
 | `ChartCursorCoordinates`              | One or both coordinates in one coordinate space                          |
 | `ChartCursorValues`                   | One or both semantic axis values                                         |
 | `ChartCursorPointIdentity`            | Host-local key, mark, and datum-index cursor tie-breaker                 |
+| `ChartCursorExtensionToken`           | Environment-neutral contract implemented by cursor host extensions       |
 | `ChartCursorBinding`                  | Focus-snapped or free definition binding                                 |
 | `ChartFocusCursorBinding`             | Semantic datum-focus cursor options                                      |
 | `ChartFreeCursorBinding`              | Free coordinate cursor and optional axis inversion callbacks             |
@@ -283,6 +286,8 @@ See [DOM host](./dom-host.md) and
 | `ChartCursorAxisOptions`              | Optional free-cursor semantic `valueAt` mapping for one axis             |
 | `ChartCursorAxisPresentation`         | Host-local position, normalized position, and optional semantic value    |
 | `ChartCursorPresentation`             | Host-local projection of shared cursor state into one chart              |
+| `ChartCursorHostExtension`            | Platform-neutral cursor lifecycle and projection implementation          |
+| `ChartCursorHostSession`              | One binding's ownership-safe host cursor session                         |
 | `ChartSpatialIndex`                   | Nearest-point query                                                      |
 | `ChartSpatialIndexFactory`            | Builds an index from current scene points and resolved scene             |
 | `ChartSpatialIndexFactoryContext`     | Resolved scene supplied to an index factory                              |

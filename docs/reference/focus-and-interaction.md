@@ -240,11 +240,11 @@ animates from the previous geometry.
 
 ## Controlled cursors
 
-Import `createChartCursor` from the isolated cursor entry when interaction
-state must be shared or set programmatically:
+Import the controller and host extension from the isolated cursor entry when
+interaction state must be shared or set programmatically:
 
 ```ts
-import { createChartCursor } from '@tanstack/charts/cursor'
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
 
 const sharedDate = createChartCursor<Date, number>()
 
@@ -257,6 +257,7 @@ const definition = defineChart({
   y: { scale: scaleLinear },
   focus: 'group-x',
   cursor: {
+    use: cursorHost,
     controller: sharedDate,
     mode: 'focus',
     match: 'x',
@@ -265,11 +266,17 @@ const definition = defineChart({
 })
 ```
 
-`@tanstack/charts/cursor` exposes `createChartCursor` and its public state
-types without renderer or DOM code. Adapter and renderer authors can import
-the platform-neutral projection, focus, and presentation helpers from
-`@tanstack/charts/cursor/host`; application code normally does not need that
-host-facing entry.
+`createChartCursor` remains a three-method structural store. `cursorHost` opts
+the binding into platform-neutral cursor policy without adding that policy to
+charts that do not use cursors. Adapter and renderer authors can import the
+projection, focus, presentation, and session helpers from
+`@tanstack/charts/cursor/host`; application code normally uses the token from
+`@tanstack/charts/cursor`.
+
+`ChartCursorExtensionToken` is the environment-neutral binding contract.
+`cursorHost` implements it as a `ChartCursorHostExtension`. Adapter authors
+call `createChartCursorHostSession(binding)` to create an ownership-safe
+`ChartCursorHostSession` for one mounted binding.
 
 That host entry uses `createFocusChartCursorState` and
 `createFreeChartCursorState` to publish state, then
@@ -306,6 +313,7 @@ const freeCursor = createChartCursor<Date, number>()
 
 const definition = defineChart(baseDefinition, {
   cursor: {
+    use: cursorHost,
     controller: freeCursor,
     mode: 'free',
     pin: true,

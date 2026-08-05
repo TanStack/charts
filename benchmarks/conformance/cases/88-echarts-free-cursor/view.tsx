@@ -8,7 +8,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { crosshair, defineChart, dot, lineY } from '@tanstack/charts'
-import { createChartCursor } from '@tanstack/charts/cursor'
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
 import { Chart } from '@tanstack/react-charts'
 import { cars } from '@charts-poc/demo-data/cars'
@@ -112,6 +112,7 @@ const FreeCursorExample = forwardRef<
           keyboard: false,
           focus: focusDisabled,
           cursor: {
+            use: cursorHost,
             controller: cursor,
             mode: 'free',
             pin: true,

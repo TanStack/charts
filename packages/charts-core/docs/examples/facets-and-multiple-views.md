@@ -116,10 +116,11 @@ For focus-driven cursors, `createChartCursor` provides that application-owned
 state without an overlay or callback relay:
 
 ```ts
-import { createChartCursor } from '@tanstack/charts/cursor'
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
 
 const sharedDate = createChartCursor<Date, number>()
 const cursor = {
+  use: cursorHost,
   controller: sharedDate,
   mode: 'focus' as const,
   match: 'x' as const,

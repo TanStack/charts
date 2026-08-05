@@ -125,6 +125,12 @@ resolved from current focus or cursor state. `MarkFocusGuide` has the final
 `SceneFocusGuide` fields except that `placement` is optional. Omit it to let
 mark order place a guide under or over the first ordinary mark. Supply it only
 when a composed nested scene must preserve an already resolved placement.
+Every focus guide supplies a `resolve` callback that receives
+`SceneFocusGuideResolveContext` and returns one transient `SceneNode` or
+`undefined`. The callback stays attached to the optional guide instead of
+becoming unconditional renderer policy. Import `resolveCrosshairGuide` from
+`@tanstack/charts/crosshair` to reuse the built-in rule, band, label, and marker
+behavior.
 
 Set `focusGuideOnly: true` on an initialized mark that contributes only these
 dynamic guides and no ordinary base-scene content. This explicit
@@ -274,8 +280,10 @@ Custom surfaces should resolve authored focus layers and data-less guides with
 
 The scene compiler has already converted every mark-emitted `MarkFocusGuide`
 to a `SceneFocusGuide` with required `placement` before a renderer receives the
-scene. A custom renderer should consume that final placement through
-`resolveFocusPresentation`; it should not infer mark order again.
+scene. `resolveFocusPresentation` calls each guide's resolver with its local
+focus, pointer, and cursor context. A custom renderer should consume those
+resolved nodes and final placement through that helper; it should not call
+guide resolvers or infer mark order again.
 
 Use `@tanstack/charts/renderer` directly or the framework `/core` entries.
 The optional built-in implementation at `@tanstack/charts/canvas` demonstrates

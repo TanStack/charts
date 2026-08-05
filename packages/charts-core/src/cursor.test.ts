@@ -11,12 +11,15 @@ import {
   resolveChartFocusStrategy,
   resolveChartPointerFocus,
   sameChartValue,
+  cursorHost,
 } from './cursor'
+import { createChartCursorHostSession } from './cursor-host-contract'
 import { lineY } from './line'
 import { createChartScene, defineChart } from './scene'
 import type {
   ChartCursorBinding,
   ChartCursorState,
+  ChartCursorStateUpdater,
   ChartDefinition,
   ChartFocusMode,
   ChartPoint,
@@ -133,6 +136,59 @@ describe('chart cursor controller', () => {
     expect(second).toHaveBeenCalledTimes(3)
   })
 
+  it('rejects a cursor binding without the cursor host extension brand', () => {
+    const binding = {
+      use: { id: 'wrong-host', create: () => ({}) },
+      controller: createChartCursor<number, number>(),
+      mode: 'free',
+    } as unknown as ChartCursorBinding<NumericRow, number, number>
+
+    expect(() => createChartCursorHostSession(binding)).toThrow(
+      new TypeError('A chart cursor requires a cursor host extension.'),
+    )
+  })
+
+  it('tracks the actual state stored by a structural controller', () => {
+    let state: ChartCursorState<number, number> | null = null
+    const listeners = new Set<() => void>()
+    const controller = {
+      getState: () => state,
+      subscribe(listener: () => void) {
+        listeners.add(listener)
+        return () => listeners.delete(listener)
+      },
+      setState(next: ChartCursorStateUpdater<number, number>) {
+        const resolved = typeof next === 'function' ? next(state) : next
+        state = resolved ? { ...resolved } : null
+        for (const listener of listeners) listener()
+      },
+    }
+    const binding = {
+      use: cursorHost,
+      controller,
+      mode: 'free',
+    } satisfies ChartCursorBinding<NumericRow, number, number>
+    const session = createChartCursorHostSession(binding)
+    const ownedDuringNotification = vi.fn()
+    session.subscribe(() => {
+      ownedDuringNotification(session.owns(session.getState()))
+    })
+    const published: ChartCursorState<number, number> = {
+      anchor: 'normalized',
+      normalized: { x: 0.5, y: 0.25 },
+      source: 'pointer',
+      pinned: false,
+    }
+
+    session.publish(published)
+
+    expect(state).not.toBe(published)
+    expect(session.owns(state)).toBe(true)
+    expect(ownedDuringNotification).toHaveBeenLastCalledWith(true)
+    expect(session.clearOwnedTransient()).toBe(true)
+    expect(state).toBeNull()
+  })
+
   it('rejects missing and non-finite authoritative coordinates', () => {
     expect(() =>
       createChartCursor({
@@ -201,6 +257,7 @@ describe('chart cursor projection', () => {
     )
     const binding = {
       mode: 'free',
+      use: cursorHost,
       controller: createChartCursor<number, number>(),
       x: { valueAt: xValueAt },
       y: { valueAt: yValueAt },
@@ -289,6 +346,7 @@ describe('chart cursor projection', () => {
     const scene = { ...numericScene(), scales: {} }
     const binding = {
       mode: 'focus',
+      use: cursorHost,
       match: 'x',
       controller: createChartCursor<number, number>(),
     } satisfies ChartCursorBinding<NumericRow, number, number>
@@ -317,6 +375,7 @@ describe('chart cursor projection', () => {
     const scene = numericScene()
     const binding = {
       mode: 'free',
+      use: cursorHost,
       controller: createChartCursor<number, number>(),
       x: { valueAt: () => undefined },
     } satisfies ChartCursorBinding<NumericRow, number, number>
@@ -354,6 +413,7 @@ describe('chart cursor projection', () => {
     )
     const binding = {
       mode: 'focus',
+      use: cursorHost,
       match: 'x',
       controller: createChartCursor(),
     } satisfies ChartCursorBinding<(typeof rows)[number]>
@@ -417,6 +477,7 @@ describe('focus cursor semantics', () => {
   )
   const binding = {
     mode: 'focus',
+    use: cursorHost,
     match: 'x',
     controller: createChartCursor<Date, number>(),
   } satisfies ChartCursorBinding<TemporalRow, Date, number>
@@ -653,6 +714,7 @@ if (false) {
     y: { scale: scaleLinear().domain([0, 1]) },
     cursor: {
       mode: 'free',
+      use: cursorHost,
       controller,
       x: {
         valueAt(context) {
@@ -687,6 +749,7 @@ if (false) {
 
   const invalidBinding: ChartCursorBinding<CategoricalRow, string, number> = {
     mode: 'free',
+    use: cursorHost,
     controller,
     x: {
       // @ts-expect-error The x inversion callback must return the x-axis value type.
