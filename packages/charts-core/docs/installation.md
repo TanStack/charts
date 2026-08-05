@@ -3,7 +3,7 @@ title: Installation
 description: Install TanStack Charts, compact scales, a framework adapter, and optional D3 capabilities.
 ---
 
-TanStack Charts `0.6.4` publishes the framework-agnostic core and every adapter
+TanStack Charts `0.6.5` publishes the framework-agnostic core and every adapter
 listed below. Install the core and compact scales in each application that
 authors chart definitions:
 
