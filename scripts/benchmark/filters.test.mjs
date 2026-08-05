@@ -74,7 +74,12 @@ describe('benchmark shards', () => {
         entries.reduce((total, entry) => total + entry.weight, 0),
       ),
     ).toEqual([13, 13, 13])
-    expect(shards.flat()).toEqual(expect.arrayContaining(values))
+    expect(
+      shards
+        .flat()
+        .map((entry) => entry.id)
+        .sort(),
+    ).toEqual(values.map((entry) => entry.id).sort())
   })
 
   it('does not allocate empty weighted shards for a huge shard total', () => {
