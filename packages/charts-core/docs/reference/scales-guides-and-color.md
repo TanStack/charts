@@ -455,9 +455,9 @@ interface ChartColorLegend {
 }
 ```
 
-`height` reserves space before chart bounds are finalized. Both callbacks
-receive the resolved colors, chart bounds, theme, and full width. Return one
-keyed [scene node](./runtime-and-scene.md#scene-nodes).
+`height` returns the reserved pixel height before chart bounds are finalized.
+`render` returns one keyed [scene node](./runtime-and-scene.md#scene-nodes).
+Both callbacks receive the resolved colors, chart bounds, theme, and full width.
 
 ## Theme and gradients
 

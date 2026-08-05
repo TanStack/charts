@@ -135,8 +135,14 @@ describe('native tooltip model', () => {
         _points: readonly ChartPoint<unknown, number, number>[],
         context: ChartTooltipContentContext,
       ) => resolveText(context)
+      const items: NonNullable<
+        ChartTooltipOptions<unknown, number, number>['items']
+      > = [
+        { channel: 'x', label: 'Horizontal' },
+        { channel: 'y', label: 'Vertical' },
+      ]
       const options: ChartTooltipOptions<unknown, number, number> =
-        formatter === 'format' ? { format } : { formatGroup }
+        formatter === 'format' ? { format, items } : { formatGroup, items }
 
       expect(
         createNativeTooltipContent(
@@ -157,7 +163,10 @@ describe('native tooltip model', () => {
         ),
       ).toBe('Pinned')
       expect(contexts.map((context) => context.pinned)).toEqual([false, true])
-      expect(contexts[1]).toMatchObject({ xLabel: 'x', yLabel: 'y' })
+      expect(contexts[1]).toMatchObject({
+        xLabel: 'Horizontal',
+        yLabel: 'Vertical',
+      })
       expect(contexts[1]?.formatX(1)).toBe('1')
       expect(contexts[1]?.formatY(3)).toBe('3')
     },

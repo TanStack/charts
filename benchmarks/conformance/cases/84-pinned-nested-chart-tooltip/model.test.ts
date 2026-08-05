@@ -4,6 +4,7 @@ import {
   energyAnnualOverview,
   energyMonths,
   energyTooltipContent,
+  monthFromTarget,
 } from './model'
 
 describe('expanding energy tooltip model', () => {
@@ -59,5 +60,13 @@ describe('expanding energy tooltip model', () => {
     expect(updated.at(-1)?.consumption).toBe(
       (initial.at(-1)?.consumption ?? 0) + 18,
     )
+  })
+
+  it('resolves only main-view month targets', () => {
+    expect(monthFromTarget({ anchor: 'month:jun' })).toBe('jun')
+    expect(monthFromTarget({ view: 'main', anchor: 'month:jan' })).toBe('jan')
+    expect(monthFromTarget({ view: 'nested', anchor: 'month:jun' })).toBeNull()
+    expect(monthFromTarget({ anchor: 'tooltip:jun' })).toBeNull()
+    expect(monthFromTarget({ anchor: 'month:smarch' })).toBeNull()
   })
 })

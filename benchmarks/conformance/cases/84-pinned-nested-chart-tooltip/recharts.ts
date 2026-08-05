@@ -21,6 +21,7 @@ import {
   formatEnergy,
   formatPercent,
   isEnergyMonthId,
+  monthFromTarget,
 } from './model'
 import { EnergyTooltipBody, energyTooltipStyles } from './tooltip-body'
 import type { ChartPoint } from '@tanstack/charts'
@@ -30,11 +31,7 @@ import type {
   PointerEvent as ReactPointerEvent,
   ReactNode,
 } from 'react'
-import type {
-  ConformanceInput,
-  ConformanceMount,
-  ConformanceTarget,
-} from '../../types'
+import type { ConformanceInput, ConformanceMount } from '../../types'
 import type { EnergyMonth, EnergyMonthId } from './model'
 
 interface InteractionState {
@@ -777,12 +774,6 @@ function monthIdAtPointer(
     }
   }
   return nearest?.id ?? null
-}
-
-function monthFromTarget(target: ConformanceTarget) {
-  if (target.view !== undefined && target.view !== 'main') return null
-  const [kind, id] = target.anchor.split(':')
-  return kind === 'month' && isEnergyMonthId(id) ? id : null
 }
 
 function center(element: HTMLElement | SVGElement) {

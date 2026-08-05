@@ -5318,11 +5318,14 @@ Each entry records:
   functions, and values into nested package-owned types. It classifies all 527
   reachable callable surfaces, including Alpine's external directive protocol
   and Vue's nested tooltip slot, and rejects unclassified surfaces, callback
-  arity above two, or a non-object second callback argument. Focused core,
-  React Native, React, Octane, channel, facet, focus, legend, tooltip, and
-  contract tests cover the migrated shapes; the migration guide records every
-  breaking before-and-after signature. Full type, documentation, package,
-  format, bundle, and comparison gates pass. Against `0.6.5`, the reviewed
+  arity above two, or a non-object second callback argument. Failed parameter
+  type resolution preserves the parameter as a fail-closed non-object bag
+  instead of aborting or undercounting the inventory. Focused core, React
+  Native, React, Octane, channel, facet, focus, legend, tooltip, and contract
+  tests cover the migrated shapes, including configured tooltip item labels in
+  React Native callback context; the migration guide records every breaking
+  before-and-after signature. Full type, documentation, package, format,
+  bundle, and comparison gates pass. Against `0.6.5`, the reviewed
   universal bundle baseline increases by at most 476 minified and 137 gzip
   bytes. The Stats parity and D3 quadtree ceilings each move by 0.2 KiB; the
   React compact-line and Delaunay integration ceilings each move by 0.1 KiB.

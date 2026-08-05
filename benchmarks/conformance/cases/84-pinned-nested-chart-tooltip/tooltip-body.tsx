@@ -1,5 +1,10 @@
 import type { ReactNode } from 'react'
-import { energyColors, formatEnergy, formatPercent } from './model'
+import {
+  consumptionBreakdown,
+  energyColors,
+  formatEnergy,
+  formatPercent,
+} from './model'
 import type { EnergyMonth } from './model'
 
 interface EnergyTooltipBodyProps {
@@ -56,26 +61,14 @@ export function EnergyTooltipBody({
               <div className="energy-tooltip__mini-chart">
                 {consumptionChart}
               </div>
-              <DetailRow
-                color={energyColors.household}
-                label="Household"
-                value={formatEnergy(month.household)}
-              />
-              <DetailRow
-                color={energyColors.heatPump}
-                label="Heat pump"
-                value={formatEnergy(month.heatPump)}
-              />
-              <DetailRow
-                color={energyColors.hotWater}
-                label="Hot water"
-                value={formatEnergy(month.hotWater)}
-              />
-              <DetailRow
-                color={energyColors.evCharging}
-                label="EV charging"
-                value={formatEnergy(month.evCharging)}
-              />
+              {consumptionBreakdown(month).map((part) => (
+                <DetailRow
+                  key={part.id}
+                  color={part.color}
+                  label={part.label}
+                  value={formatEnergy(part.value)}
+                />
+              ))}
             </section>
 
             <section aria-label="Generation use">

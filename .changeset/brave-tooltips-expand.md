@@ -15,6 +15,10 @@ Tooltip `format` and `formatGroup` now receive the same content context as
 legend, and spatial-index extension callbacks move their supporting values
 into named context objects.
 
+`ruleX` and `ruleY` now expose presentation-only focus points, so
+`whenFocused(..., { match: 'x' })` and `whenFocused(..., { match: 'y' })` can
+reveal focused guide rules without making them interaction or tooltip targets.
+
 Update the published pinned-tooltip catalog case to show the energy overview,
 compact hover summary, and animated pinned detail.
 

@@ -779,13 +779,14 @@ export function validatePublicCallableSurfaces(
       continue
     }
 
+    if (
+      category === callbackCategories.upstreamProtocol ||
+      category === callbackCategories.serviceMethod
+    ) {
+      continue
+    }
+
     for (const parameters of surface.signatures) {
-      if (
-        category === callbackCategories.upstreamProtocol ||
-        category === callbackCategories.serviceMethod
-      ) {
-        continue
-      }
       if (parameters.length > 2) {
         failures.push(
           `${surface.id} has ${parameters.length} positional arguments; public callbacks accept at most two`,
@@ -929,10 +930,12 @@ function addSurface(
   const parameters = signature.parameters.map((parameter) => {
     const parameterDeclaration =
       parameter.valueDeclaration ?? parameter.declarations?.[0] ?? declaration
-    const type = checker.getTypeOfSymbolAtLocation(
-      parameter,
-      parameterDeclaration,
-    )
+    let type
+    try {
+      type = checker.getTypeOfSymbolAtLocation(parameter, parameterDeclaration)
+    } catch {
+      return { name: parameter.name, objectBag: false }
+    }
     return {
       name: parameter.name,
       objectBag: isObjectBag(checker, type),

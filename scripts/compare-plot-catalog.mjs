@@ -1959,20 +1959,15 @@ async function compareVisuals(
           const style = getComputedStyle(element)
           if (element.localName === 'line') return style.stroke
           if (style.fill && style.fill !== 'none') {
-            const patternId = style.fill.match(
+            const referenceId = style.fill.match(
               /url\((?:["'])?#([^"')]+)(?:["'])?\)/,
             )?.[1]
-            const patternPaint = patternId
-              ? element.ownerDocument
-                  .getElementById(patternId)
-                  ?.querySelector('rect, path')
+            const referencedElement = referenceId
+              ? element.ownerDocument.getElementById(referenceId)
               : undefined
+            const patternPaint = referencedElement?.querySelector('rect, path')
             if (patternPaint) return getComputedStyle(patternPaint).fill
-            const gradientStop = patternId
-              ? element.ownerDocument
-                  .getElementById(patternId)
-                  ?.querySelector('stop')
-              : undefined
+            const gradientStop = referencedElement?.querySelector('stop')
             return gradientStop
               ? getComputedStyle(gradientStop).getPropertyValue('stop-color')
               : style.fill

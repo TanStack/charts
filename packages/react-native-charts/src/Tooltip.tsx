@@ -10,9 +10,11 @@ import type {
   ChartPoint,
   ChartFocusSource,
   ChartScene,
+  ChartTooltipChannelItem,
   ChartTooltipContent,
   ChartTooltipContentContext,
   ChartTooltipExtensionToken,
+  ChartTooltipItem,
   ChartTooltipOptions,
   ChartTooltipPlacement,
   ChartTooltipPosition,
@@ -226,7 +228,7 @@ export function createNativeTooltipContent<
 ): ChartTooltipContent | string {
   const point = points[0]
   if (!point) return { rows: [] }
-  const context = createTooltipContentContext(scene, pinned)
+  const context = createTooltipContentContext(scene, pinned, options)
   const content = options?.content?.(points, context)
   if (content !== undefined) return content
   const formatted =
@@ -261,14 +263,37 @@ export function createNativeTooltipContent<
 function createTooltipContentContext(
   scene: ChartScene,
   pinned: boolean,
+  options?: ChartTooltipOptions<any, any, any>,
 ): ChartTooltipContentContext {
+  const x = findTooltipChannelItem(options?.items, 'x')
+  const y = findTooltipChannelItem(options?.items, 'y')
   return {
     pinned,
-    xLabel: findSceneLabel(scene, 'x-label') ?? 'x',
-    yLabel: findSceneLabel(scene, 'y-label') ?? 'y',
+    xLabel: x?.label ?? findSceneLabel(scene, 'x-label') ?? 'x',
+    yLabel: y?.label ?? findSceneLabel(scene, 'y-label') ?? 'y',
     formatX: formatValue,
     formatY: formatValue,
   }
+}
+
+function findTooltipChannelItem(
+  items: readonly ChartTooltipItem<any, any, any>[] | undefined,
+  channel: 'x' | 'y',
+): ChartTooltipChannelItem<any, any, any> | undefined {
+  const item = items?.find(
+    (candidate) => tooltipItemChannel(candidate) === channel,
+  )
+  return typeof item === 'object' && 'channel' in item
+    ? (item as ChartTooltipChannelItem<any, any, any>)
+    : undefined
+}
+
+function tooltipItemChannel(item: ChartTooltipItem<any, any, any>) {
+  return typeof item === 'string'
+    ? item
+    : 'channel' in item
+      ? item.channel
+      : undefined
 }
 
 function orderTooltipPoints<

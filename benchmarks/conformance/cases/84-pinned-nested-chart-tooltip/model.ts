@@ -1,4 +1,5 @@
 import type { ChartTooltipContent } from '@tanstack/charts'
+import type { ConformanceTarget } from '../../types'
 
 export const energyColors = {
   consumption: '#8b8d90',
@@ -143,6 +144,12 @@ export function energyMonths(revision = 0): readonly EnergyMonth[] {
 
 export function isEnergyMonthId(value: unknown): value is EnergyMonthId {
   return energyMonthIds.some((id) => id === value)
+}
+
+export function monthFromTarget(target: ConformanceTarget) {
+  if (target.view !== undefined && target.view !== 'main') return null
+  const [kind, id] = target.anchor.split(':')
+  return kind === 'month' && isEnergyMonthId(id) ? id : null
 }
 
 export function consumptionBreakdown(

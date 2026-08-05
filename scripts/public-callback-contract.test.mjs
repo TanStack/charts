@@ -1,26 +1,26 @@
 import { resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import {
   createClassifications,
   inspectPublicCallableSurfaces,
-  publicCallbackContractFailures,
   validatePublicCallableSurfaces,
 } from './public-callback-contract.mjs'
 
 const repositoryRoot = resolve(import.meta.dirname, '..')
 
 describe('public callback contract', () => {
-  it('classifies every callable surface exported by published packages', async () => {
-    expect(await publicCallbackContractFailures(repositoryRoot)).toEqual([])
-  }, 20_000)
+  let inventory
 
-  it('follows exported values into private nested callback types', async () => {
-    const surfaces = new Map(
-      (await inspectPublicCallableSurfaces(repositoryRoot)).map((surface) => [
-        surface.id,
-        surface,
-      ]),
-    )
+  beforeAll(async () => {
+    inventory = await inspectPublicCallableSurfaces(repositoryRoot)
+  }, 30_000)
+
+  it('classifies every callable surface exported by published packages', () => {
+    expect(validatePublicCallableSurfaces(inventory)).toEqual([])
+  })
+
+  it('follows exported values into private nested callback types', () => {
+    const surfaces = new Map(inventory.map((surface) => [surface.id, surface]))
 
     expect(
       surfaces

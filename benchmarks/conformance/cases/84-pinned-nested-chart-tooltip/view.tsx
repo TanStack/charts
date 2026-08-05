@@ -25,11 +25,11 @@ import {
   energyMonths,
   energyTooltipContent,
   formatEnergy,
-  isEnergyMonthId,
+  monthFromTarget,
 } from './model'
 import { EnergyTooltipBody, energyTooltipStyles } from './tooltip-body'
 import type { ChartScene } from '@tanstack/charts'
-import type { ConformanceTarget, ConformanceTestDriver } from '../../types'
+import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 import type { EnergyMonth, EnergyMonthId } from './model'
 
@@ -196,7 +196,7 @@ const EnergyTooltipExample = forwardRef<
         <TooltipChart
           idPrefix={idPrefix ? `${idPrefix}-main` : undefined}
           definition={mainDefinition}
-          initialWidth={input.width}
+          initialWidth={chartWidth}
           height={chartHeight}
           renderSvg={renderChartSvgWithResources}
           ariaLabel="Annual household energy overview"
@@ -444,12 +444,6 @@ function ConsumptionMixChart({
       ariaLabel={`${month.month} consumption split: household ${month.household} kilowatt-hours, heat pump ${month.heatPump}, hot water ${month.hotWater}, and EV charging ${month.evCharging}`}
     />
   )
-}
-
-function monthFromTarget(target: ConformanceTarget) {
-  if (target.view !== undefined && target.view !== 'main') return null
-  const [kind, id] = target.anchor.split(':')
-  return kind === 'month' && isEnergyMonthId(id) ? id : null
 }
 
 function pointCoordinate(
