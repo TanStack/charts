@@ -17,3 +17,6 @@ into named context objects.
 
 Update the published pinned-tooltip catalog case to show the energy overview,
 compact hover summary, and animated pinned detail.
+
+Preserve distinct source rows in the linear-regression and framed-scatter
+catalog examples when car names and years repeat.
