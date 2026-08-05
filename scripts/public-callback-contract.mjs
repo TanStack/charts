@@ -49,6 +49,10 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/dom-types.ts:ChartRenderer', 'mount.requestRender'],
     [
+      '@tanstack/charts:src/dom-types.ts:ChartSurface',
+      'subscribePresentationPoints.listener',
+    ],
+    [
       '@tanstack/charts:src/dom-types.ts:ChartTooltipExtensionContext',
       'bodyChange.$return',
     ],
@@ -347,8 +351,12 @@ const callbackInventory = {
       'destroy getScene update',
     ],
     [
+      '@tanstack/charts:src/dom-types.ts:ChartInteractionController',
+      'clientToScene resolvePointer setControlledFocus',
+    ],
+    [
       '@tanstack/charts:src/dom-types.ts:ChartSurface',
-      'clientToScene destroy getPresentationPoints paintFocus render',
+      'clientToScene destroy getPresentationPoints paintFocus render subscribePresentationPoints subscribePresentationPoints.$return',
     ],
     ['@tanstack/charts:src/dom-types.ts:ChartTooltipExtension', 'create'],
     [
@@ -382,6 +390,7 @@ const callbackInventory = {
     ['@tanstack/charts:src/types.ts:MarkRenderContext', 'color'],
     ['@tanstack/charts:src/types.ts:ResolvedColorScale', 'map'],
     ['@tanstack/charts:src/types.ts:ResolvedScale', 'map'],
+    ['@tanstack/charts:src/types.ts:ResolvedScaleViewport', 'map'],
     [
       '@tanstack/lit-charts:src/Chart.ts:Chart',
       'connectedCallback disconnectedCallback',

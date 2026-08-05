@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "generatedAt": "2026-08-05T17:24:34.932Z",
+  "generatedAt": "2026-08-05T17:26:11.302Z",
   "packageVersions": {
     "tanstack": "0.6.5",
     "chartjs": "4.5.1",
@@ -11,7 +11,7 @@
   "sources": {
     "tanstack": {
       "kind": "workspace",
-      "revision": "4134429b49973cf64df1f36123ba8392571562eb"
+      "revision": "2688b431ae10fe42a9132a2e1f7c88d58cb0cd28"
     },
     "chartjs": {
       "kind": "package",
@@ -35,17 +35,8 @@
     }
   },
   "matrix": {
-    "chartTypes": [
-      "line",
-      "bar",
-      "area",
-      "scatter"
-    ],
-    "tiers": [
-      "basic",
-      "interactive",
-      "advanced"
-    ]
+    "chartTypes": ["line", "bar", "area", "scatter"],
+    "tiers": ["basic", "interactive", "advanced"]
   },
   "tolerance": {
     "relative": 0.03,

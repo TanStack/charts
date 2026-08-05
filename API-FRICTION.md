@@ -5320,10 +5320,12 @@ Each entry records:
   exact upstream protocols such as D3 threshold generators, and
   consumer-called service methods as classified exceptions.
 - Verification: the public callback inventory follows exported types,
-  functions, and values into nested package-owned types. It classifies all 527
-  reachable callable surfaces, including Alpine's external directive protocol
-  and Vue's nested tooltip slot, and rejects unclassified surfaces, callback
-  arity above two, or a non-object second callback argument. Failed parameter
+  functions, and values into nested package-owned types. It classifies all 534
+  reachable callable surfaces, including Alpine's external directive protocol,
+  Vue's nested tooltip slot, live-chart interaction and presentation service
+  handles, the presentation-points listener callback, and viewport mapping. It
+  rejects unclassified surfaces, callback arity above two, or a non-object
+  second callback argument. Failed parameter
   type resolution preserves the parameter as a fail-closed non-object bag
   instead of aborting or undercounting the inventory. Focused core, React
   Native, React, Octane, channel, facet, focus, legend, tooltip, and contract
