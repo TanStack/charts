@@ -306,7 +306,7 @@ oscillator. Values and velocities use caller units per second. Seed a new
 - Compatible numeric attributes and path command skeletons interpolate.
 - Incompatible element types or path topology use keyed enter/exit opacity.
 - Stable keys preserve DOM identity, velocity, and presentation points.
-- Crosshair rules, labels, and markers follow the same keyed interruption
+- Crosshair rules, bands, labels, and markers follow the same keyed interruption
   behavior as focused marks.
 - SVG interaction follows animated presentation geometry for keyed built-in and
   custom marks.

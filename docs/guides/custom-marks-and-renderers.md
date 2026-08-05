@@ -177,7 +177,7 @@ keyboard navigation.
 
 ## Focus-guide marks
 
-A mark that emits only cursor-driven rules, labels, or markers declares that
+A mark that emits only cursor-driven rules, bands, labels, or markers declares that
 role explicitly:
 
 ```ts
