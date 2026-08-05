@@ -839,7 +839,7 @@ async function verifyEsmRuntime() {
       }
     }
     const { catalogCases } = await import('@tanstack/react-charts-catalog')
-    assert.equal(catalogCases.length, 109)
+    assert.equal(catalogCases.length, 110)
     assert.equal(renderedCatalogCases, catalogCases.length)
     assert.deepEqual(
       catalogCases.map(({ id }) => id).sort(),

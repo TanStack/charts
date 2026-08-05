@@ -27,6 +27,7 @@ const MultiLineEndLabels = component('02-multi-line-end-labels')
 const GroupedReducerBars = component('59-grouped-reducer-bars')
 const InteractiveLegend = component('81-recharts-interactive-legend')
 const ComparativeRadar = component('99-comparative-radar')
+const StackedBarBandCursor = component('119-stacked-bar-band-cursor')
 
 describe('@tanstack/react-charts-catalog', () => {
   it('server-renders complete chart SVG', () => {
@@ -243,8 +244,87 @@ describe('@tanstack/react-charts-catalog', () => {
     }
   })
 
+  it('runs both published stacked cursor guides between focus targets', async () => {
+    let frame = 0
+    let time = 0
+    const frames = new Map<number, FrameRequestCallback>()
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frame += 1
+        frames.set(frame, callback)
+        return frame
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation((id) => {
+        if (id !== null && id !== undefined) frames.delete(id)
+      })
+    const target = document.createElement('div')
+    const root = createRoot(target)
+
+    try {
+      await act(async () => {
+        root.render(
+          <StackedBarBandCursor
+            width={480}
+            height={320}
+            revision={0}
+            interactive
+            idPrefix="motion-stacked-bar-band-cursor"
+          />,
+        )
+      })
+      const svg = target.querySelector<SVGSVGElement>('svg.ts-chart')
+      if (!svg) throw new Error('Expected the stacked cursor SVG')
+      vi.spyOn(svg, 'getBoundingClientRect').mockImplementation(() => ({
+        x: 0,
+        y: 0,
+        top: 0,
+        right: 480,
+        bottom: 320,
+        left: 0,
+        width: 480,
+        height: 320,
+        toJSON: () => ({}),
+      }))
+      const bars = [
+        ...svg.querySelectorAll<SVGRectElement>(
+          'rect[data-ts-key^="stacked-cursor-bars:"]',
+        ),
+      ].filter((bar) => Number(bar.getAttribute('height')) > 0)
+      const first = bars[0]
+      const second = bars.find(
+        (bar) => bar.getAttribute('x') !== first?.getAttribute('x'),
+      )
+      if (!first || !second) {
+        throw new Error('Expected bars in two stacked cursor periods')
+      }
+
+      moveToBar(svg, first)
+      flushAnimationFrames(frames, () => (time += 1_000))
+      moveToBar(svg, second)
+
+      expect(
+        svg.querySelector(
+          '[data-ts-focus-guide-layer="under"][data-ts-motion-state="running"]',
+        ),
+      ).not.toBeNull()
+      expect(
+        svg.querySelector(
+          '[data-ts-focus-guide-layer="over"][data-ts-motion-state="running"]',
+        ),
+      ).not.toBeNull()
+      expect(requestFrame).toHaveBeenCalled()
+    } finally {
+      await act(async () => root.unmount())
+      requestFrame.mockRestore()
+      cancelFrame.mockRestore()
+    }
+  })
+
   it('publishes every conformance case in catalog order', () => {
-    expect(catalogCases).toHaveLength(109)
+    expect(catalogCases).toHaveLength(110)
     expect(caseComponents.size).toBe(catalogCases.length)
     expect([...caseComponents.keys()].sort()).toEqual(
       catalogCases.map(({ id }) => id).sort(),
@@ -324,3 +404,30 @@ describe('@tanstack/react-charts-catalog', () => {
     }
   }, 30_000)
 })
+
+function moveToBar(svg: SVGSVGElement, bar: SVGRectElement) {
+  const x = Number(bar.getAttribute('x'))
+  const y = Number(bar.getAttribute('y'))
+  const width = Number(bar.getAttribute('width'))
+  const height = Number(bar.getAttribute('height'))
+  svg.dispatchEvent(
+    new MouseEvent('pointermove', {
+      bubbles: true,
+      clientX: x + width / 2,
+      clientY: y + height / 2,
+    }),
+  )
+}
+
+function flushAnimationFrames(
+  frames: Map<number, FrameRequestCallback>,
+  nextTime: () => number,
+) {
+  for (let index = 0; index < 20 && frames.size > 0; index += 1) {
+    const callbacks = [...frames.values()]
+    frames.clear()
+    const time = nextTime()
+    callbacks.forEach((callback) => callback(time))
+  }
+  if (frames.size > 0) throw new Error('Motion did not settle')
+}

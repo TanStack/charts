@@ -85,9 +85,10 @@ The client renders the same initial structure, then the layout effect adopts
 and reconciles that SVG. There is no placeholder-only server mode.
 
 The Canvas entry emits the same outer structure with a named Canvas root and
-three `aria-hidden` canvases. It does not paint pixels on the server. The client
-adopts those elements, paints after mount, and attaches the same focus,
-keyboard, tooltip, and selection host.
+five `aria-hidden` canvases: one hidden stable base bitmap and four live paint
+layers. It does not paint pixels on the server. The client adopts those
+elements, paints after mount, and attaches the same focus, keyboard, tooltip,
+and selection host.
 
 Use deterministic data, scale domains, definitions, dimensions, and custom
 renderers on server and client. The adapter generates a sanitized `idPrefix`

@@ -6,12 +6,14 @@ import { createChartScene } from './scene'
 import type {
   Channel,
   ChartBounds,
+  ChartFocusAnchor,
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
   ChartMargin,
   ChartPoint,
   ChartScene,
+  SceneFocusGuide,
   ChartSpec,
   ChartTheme,
   ChartValue,
@@ -273,6 +275,7 @@ function renderCellAxes<TDatum>(options: CellRenderOptions<TDatum>) {
     layout,
   } = options
   const points: ChartPoint<TDatum>[] = []
+  const focusGuides: SceneFocusGuide[] = []
   const children = entries.map((entry, index) => {
     const column = index % columns
     const row = Math.floor(index / columns)
@@ -291,6 +294,7 @@ function renderCellAxes<TDatum>(options: CellRenderOptions<TDatum>) {
     const identity = valueKey(entry.key)
     const offset = offsetScene(id, identity, scene, x, y + labelHeight)
     points.push(...offset.points)
+    focusGuides.push(...offset.focusGuides)
     return facetCell({
       id,
       identity,
@@ -305,7 +309,7 @@ function renderCellAxes<TDatum>(options: CellRenderOptions<TDatum>) {
       nodes: offset.nodes,
     })
   })
-  return facetScene(id, children, points)
+  return facetScene(id, children, points, focusGuides)
 }
 
 interface OuterRenderOptions<TDatum> extends Omit<
@@ -345,6 +349,7 @@ function renderOuterAxes<TDatum>(options: OuterRenderOptions<TDatum>) {
   const originX = chart.x + margin.left
   const originY = chart.y + margin.top
   const points: ChartPoint<TDatum>[] = []
+  const focusGuides: SceneFocusGuide[] = []
   const axes: SceneGroup[] = []
   let xTitle: SceneLabel | undefined
   let yTitle: SceneLabel | undefined
@@ -371,6 +376,7 @@ function renderOuterAxes<TDatum>(options: OuterRenderOptions<TDatum>) {
     deepestPlotBottom = Math.max(deepestPlotBottom, plotY + plotHeight)
     const offset = offsetScene(id, identity, scene, x, plotY)
     points.push(...offset.points)
+    focusGuides.push(...offset.focusGuides)
 
     if (axis && column === 0) {
       const yChildren = axis.children.filter(
@@ -479,6 +485,7 @@ function renderOuterAxes<TDatum>(options: OuterRenderOptions<TDatum>) {
       },
     ],
     points,
+    focusGuides,
   )
 }
 
@@ -550,6 +557,7 @@ function facetScene<TDatum>(
   id: string,
   children: readonly SceneNode[],
   points: readonly ChartPoint<TDatum>[],
+  focusGuides: readonly SceneFocusGuide[],
 ) {
   return {
     nodes: [
@@ -561,6 +569,7 @@ function facetScene<TDatum>(
       },
     ],
     points,
+    ...(focusGuides.length ? { focusGuides } : {}),
   }
 }
 
@@ -747,9 +756,13 @@ function offsetScene<TDatum>(
   scene: ChartScene<TDatum>,
   x: number,
   y: number,
-): { nodes: readonly SceneNode[]; points: readonly ChartPoint<TDatum>[] } {
+): {
+  nodes: readonly SceneNode[]
+  points: readonly ChartPoint<TDatum>[]
+  focusGuides: readonly SceneFocusGuide[]
+} {
   const prefix = `${id}:${identity}`
-  const pointMap = new Map<ChartPoint, ChartPoint<TDatum>>()
+  const pointMap = new Map<ChartFocusAnchor, ChartPoint<TDatum>>()
   const mapPoint = (point: ChartPoint): ChartPoint<TDatum> => {
     const existing = pointMap.get(point)
     if (existing) return existing
@@ -762,15 +775,43 @@ function offsetScene<TDatum>(
     pointMap.set(point, mapped)
     return mapped
   }
+  const mapFocusAnchor = (anchor: ChartFocusAnchor): ChartFocusAnchor =>
+    pointMap.get(anchor) ?? {
+      ...anchor,
+      key: `${id}:${identity}:${anchor.key}`,
+    }
   const points = scene.points.map(mapPoint)
   return {
     nodes: mapScenePoints(
       withoutDefaultFocusLayers(scene.nodes),
       mapPoint,
+      mapFocusAnchor,
       prefix,
     ),
     points,
+    focusGuides: (scene.focusGuides ?? []).map((guide) => ({
+      ...guide,
+      key: `${prefix}:${guide.key}`,
+      markId: `${prefix}:${guide.markId}`,
+      chart: offsetBounds(guide.chart, x, y),
+      surface: offsetBounds(guide.surface, x, y),
+      projectX: guide.projectX
+        ? (value) => offsetProjection(guide.projectX!(value), x)
+        : undefined,
+      projectY: guide.projectY
+        ? (value) => offsetProjection(guide.projectY!(value), y)
+        : undefined,
+      scope: guide.scope ? `${prefix}:${guide.scope}` : prefix,
+    })),
   }
+}
+
+function offsetProjection(value: number | undefined, offset: number) {
+  return value === undefined ? undefined : value + offset
+}
+
+function offsetBounds(bounds: ChartBounds, x: number, y: number): ChartBounds {
+  return { ...bounds, x: bounds.x + x, y: bounds.y + y }
 }
 
 function withoutDefaultFocusLayers(
@@ -796,6 +837,7 @@ function withoutDefaultFocusLayers(
 function mapScenePoints(
   nodes: readonly SceneNode[],
   mapPoint: (point: ChartPoint) => ChartPoint,
+  mapFocusAnchor: (anchor: ChartFocusAnchor) => ChartFocusAnchor,
   prefix: string,
   prefixKeys = false,
 ): readonly SceneNode[] {
@@ -812,6 +854,7 @@ function mapScenePoints(
         children: mapScenePoints(
           node.children,
           mapPoint,
+          mapFocusAnchor,
           prefix,
           shouldPrefixKeys,
         ),
@@ -819,6 +862,9 @@ function mapScenePoints(
           ? {
               focus: {
                 ...node.focus,
+                anchors: (node.focus.anchors ?? node.focus.points).map(
+                  mapFocusAnchor,
+                ),
                 points: node.focus.points.map(mapPoint),
               },
             }

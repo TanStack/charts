@@ -3,9 +3,10 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
-  useState,
+  useSyncExternalStore,
 } from 'react'
-import { defineChart, dot, lineY } from '@tanstack/charts'
+import { crosshair, defineChart, dot, lineY } from '@tanstack/charts'
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
 import { focusX } from '@tanstack/charts/focus'
 import { Chart } from '@tanstack/react-charts'
 import { travelers } from '@charts-poc/demo-data/travelers'
@@ -21,7 +22,7 @@ import {
   synchronizedCursorYDomains,
 } from './model'
 import { synchronizedCursorColors } from './colors'
-import type { ChartPoint, ChartScene } from '@tanstack/charts'
+import type { ChartCursorController, ChartScene } from '@tanstack/charts'
 import type { TravelersRow } from '@charts-poc/demo-data/travelers'
 import type { SynchronizedCursorView } from './model'
 import type {
@@ -48,34 +49,18 @@ const SynchronizedCursorsExample = forwardRef<
   const scenesRef = useRef<
     Record<SynchronizedCursorView, ChartScene<TravelersRow> | null>
   >({ current: null, previous: null })
-  const focusedDateRef = useRef<Date | null>(null)
-  const pinnedDateRef = useRef<Date | null>(null)
-  const [focusedDate, setFocusedDateState] = useState<Date | null>(null)
-  const [pinnedDate, setPinnedDateState] = useState<Date | null>(null)
-  const [, repaint] = useState(0)
+  const cursor = useMemo(() => createChartCursor<Date, number>(), [])
+  const cursorState = useSyncExternalStore(
+    cursor.subscribe,
+    cursor.getState,
+    cursor.getState,
+  )
+  const focusedDate = cursorState?.value?.x ?? null
   const rows = useMemo(
     () => selectSynchronizedCursorData(travelers, input.revision),
     [input.revision],
   )
   const viewHeight = Math.max(140, Math.floor((input.height - 56 - 8) / 2))
-
-  const setDates = (focus: Date | null, pin: Date | null) => {
-    focusedDateRef.current = focus
-    pinnedDateRef.current = pin
-    setFocusedDateState(focus)
-    setPinnedDateState(pin)
-  }
-  const handleFocus = (points: readonly ChartPoint<TravelersRow>[]) => {
-    if (!points.length && pinnedDateRef.current) return
-    const date = points[0]?.datum.date ?? null
-    focusedDateRef.current = date
-    setFocusedDateState(date)
-  }
-  const handleSelect = (point: ChartPoint<TravelersRow> | null) => {
-    if (!point) return
-    const same = pinnedDateRef.current?.getTime() === point.datum.date.getTime()
-    setDates(same ? null : point.datum.date, same ? null : point.datum.date)
-  }
 
   useImperativeHandle(
     ref,
@@ -90,10 +75,11 @@ const SynchronizedCursorsExample = forwardRef<
       },
       readState() {
         return interactionState(
+          surfacesRef.current,
           scenesRef.current,
           input,
-          focusedDateRef.current,
-          pinnedDateRef.current !== null,
+          cursor.getState()?.value?.x ?? null,
+          cursor.getState()?.pinned ?? false,
         )
       },
       geometry(query) {
@@ -106,7 +92,7 @@ const SynchronizedCursorsExample = forwardRef<
         return surface && scene ? sceneChartBounds(surface, scene) : null
       },
     }),
-    [input],
+    [cursor, input],
   )
 
   const focusedDatum = focusedDate
@@ -121,26 +107,19 @@ const SynchronizedCursorsExample = forwardRef<
         input={input}
         rows={rows}
         height={input.height}
-        focusedDate={focusedDate}
+        cursor={cursor}
         surfaceRef={(surface) => {
           if (surface) surfacesRef.current.current = surface
         }}
         onScene={(scene) => {
           scenesRef.current.current = scene
         }}
-        onFocus={handleFocus}
-        onSelect={handleSelect}
       />
     )
   }
 
   return (
     <div
-      onKeyDown={(event) => {
-        if (event.key !== 'Escape' || !pinnedDateRef.current) return
-        event.preventDefault()
-        setDates(null, null)
-      }}
       style={{
         display: 'grid',
         gridTemplateRows: '56px minmax(0, 1fr)',
@@ -151,7 +130,7 @@ const SynchronizedCursorsExample = forwardRef<
       <Summary
         date={focusedDate}
         datum={focusedDatum}
-        pinned={Boolean(pinnedDate)}
+        pinned={cursorState?.pinned ?? false}
       />
       <div
         style={{
@@ -169,16 +148,13 @@ const SynchronizedCursorsExample = forwardRef<
             input={input}
             rows={rows}
             height={viewHeight}
-            focusedDate={focusedDate}
+            cursor={cursor}
             surfaceRef={(surface) => {
               if (surface) surfacesRef.current[view] = surface
             }}
             onScene={(scene) => {
               scenesRef.current[view] = scene
-              repaint((value) => value + 1)
             }}
-            onFocus={handleFocus}
-            onSelect={handleSelect}
           />
         ))}
       </div>
@@ -190,29 +166,24 @@ export const catalogComponent = SynchronizedCursorsExample
 export const mount = reactMount(SynchronizedCursorsExample)
 
 function CursorChart({
-  focusedDate,
+  cursor,
   height,
   idPrefix,
   input,
-  onFocus,
   onScene,
-  onSelect,
   rows,
   surfaceRef,
   view,
 }: {
-  focusedDate: Date | null
+  cursor: ChartCursorController<Date, number>
   height: number
   idPrefix?: string
   input: ReactConformanceProps['input']
-  onFocus: (points: readonly ChartPoint<TravelersRow>[]) => void
   onScene: (scene: ChartScene<TravelersRow>) => void
-  onSelect: (point: ChartPoint<TravelersRow> | null) => void
   rows: readonly TravelersRow[]
   surfaceRef: (surface: HTMLDivElement | null) => void
   view: SynchronizedCursorView
 }) {
-  const sceneRef = useRef<ChartScene<TravelersRow> | null>(null)
   const definition = useMemo(
     () =>
       defineChart(
@@ -231,6 +202,19 @@ function CursorChart({
               r: 3,
               stroke: '#ffffff',
               strokeWidth: 1,
+            }),
+            crosshair({
+              id: 'synchronized-crosshair',
+              y: false,
+              stroke: '#64748b',
+              strokeWidth: 1,
+              strokeDasharray: '4 4',
+              marker: {
+                radius: 5,
+                fill: '#ffffff',
+                stroke: '#334155',
+                strokeWidth: 2,
+              },
             }),
           ],
           x: {
@@ -259,16 +243,19 @@ function CursorChart({
           animate: false,
           keyboard: true,
           focus: focusX,
+          focusRing: false,
           maxFocusDistance: Number.POSITIVE_INFINITY,
+          cursor: {
+            use: cursorHost,
+            controller: cursor,
+            mode: 'focus',
+            match: 'x',
+            pin: true,
+          },
         },
       ),
-    [rows, view],
+    [cursor, rows, view],
   )
-  const datum = focusedDate
-    ? synchronizedCursorDatumAtDate(rows, focusedDate)
-    : null
-  const scene = sceneRef.current
-  const x = scene && focusedDate ? scene.scales.x.map(focusedDate) : null
 
   if (input.preview) {
     return (
@@ -302,59 +289,11 @@ function CursorChart({
             ? 'Linked 2020 airport travelers time series'
             : 'Linked 2019 airport travelers time series'
         }
-        onFocusGroupChange={onFocus}
-        onSelect={onSelect}
-        onRender={({ scene: nextScene }) => {
-          sceneRef.current = nextScene
-          onScene(nextScene)
-        }}
+        onRender={({ scene }) => onScene(scene)}
       />
-      {scene ? (
-        <svg
-          data-conformance-overlay="synchronized-crosshair"
-          aria-hidden="true"
-          viewBox={`0 0 ${scene.width} ${scene.height}`}
-          style={overlayStyle}
-        >
-          {x !== null ? (
-            <>
-              <line
-                data-conformance-crosshair="x"
-                x1={x}
-                x2={x}
-                y1={scene.chart.y}
-                y2={scene.chart.y + scene.chart.height}
-                stroke="#64748b"
-                strokeWidth={1}
-                strokeDasharray="4 4"
-              />
-              {datum ? (
-                <circle
-                  data-conformance-crosshair="marker"
-                  cx={x}
-                  cy={scene.scales.y.map(datum[view])}
-                  r={5}
-                  fill="#ffffff"
-                  stroke="#334155"
-                  strokeWidth={2}
-                />
-              ) : null}
-            </>
-          ) : null}
-        </svg>
-      ) : null}
     </div>
   )
 }
-
-const overlayStyle = {
-  position: 'absolute',
-  inset: 0,
-  width: '100%',
-  height: '100%',
-  overflow: 'visible',
-  pointerEvents: 'none',
-} as const
 
 function Summary({
   date,
@@ -608,6 +547,7 @@ function pointsBounds(
 }
 
 function interactionState(
+  surfaces: Partial<Record<SynchronizedCursorView, HTMLDivElement>>,
   scenes: Record<SynchronizedCursorView, ChartScene<TravelersRow> | null>,
   input: ReactConformanceProps['input'],
   date: Date | null,
@@ -615,12 +555,20 @@ function interactionState(
 ): ConformanceJsonObject {
   const rows = selectSynchronizedCursorData(travelers, input.revision)
   const crosshair = (view: SynchronizedCursorView) => {
+    const xRule = surfaces[view]?.querySelector<SVGLineElement>(
+      '[data-ts-key="synchronized-crosshair:x-rule"]',
+    )
+    const layer = xRule?.closest<SVGGElement>('[data-ts-focus-guide-layer]')
     const scene = scenes[view]
-    const x = scene && date ? scene.scales.x.map(date) : null
+    const x = Number(xRule?.getAttribute('x1'))
+    const visible =
+      Boolean(xRule) &&
+      Number.isFinite(x) &&
+      layer?.getAttribute('visibility') !== 'hidden'
     return {
-      visible: x !== null,
+      visible,
       xNormalized:
-        x !== null && scene ? (x - scene.chart.x) / scene.chart.width : null,
+        visible && scene ? (x - scene.chart.x) / scene.chart.width : null,
     }
   }
   const current = crosshair('current')

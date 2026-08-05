@@ -10,8 +10,8 @@ import { Chart, defineChartElement } from '@tanstack/lit-charts'
 `defineChartElement()` registers `Chart` as `tanstack-chart`. Pass the complete
 chart value through the element's `options` property, not HTML attributes.
 Replace the definition identity when captured application values change.
-The definition also owns focus, tooltip, animation, keyboard policy, focus
-distance, and spatial indexing.
+The definition also owns `focus`, `focusRing`, `cursor`, `tooltip`, `animate`,
+`keyboard`, `maxFocusDistance`, and `spatialIndex`.
 
 ## `options`
 

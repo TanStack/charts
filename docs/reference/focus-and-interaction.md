@@ -1,13 +1,14 @@
 ---
 title: Focus and Interaction
-description: Configure pointer focus, grouped focus, keyboard navigation, native tooltips, selection, and spatial indexes.
+description: Configure pointer focus, grouped focus, crosshairs, controlled cursors, keyboard navigation, native tooltips, selection, and spatial indexes.
 ---
 
-The DOM host and framework adapters provide point-level interaction from each
-mark's emitted `ChartPoint` values and rendered scene primitives. The defaults
-cover geometry-aware pointer focus, linear keyboard navigation, activation,
-and an optional native tooltip. Definitions own these policies; adapters only
-mount them and report events.
+The DOM hosts, framework adapters, and React Native `Chart` provide point-level
+interaction from each mark's emitted `ChartPoint` values and rendered scene
+primitives. The defaults cover geometry-aware pointer or responder focus,
+linear keyboard or accessibility navigation, activation, and an optional
+native tooltip. Definitions own these policies; adapters mount them and report
+events.
 
 ## Default behavior
 
@@ -94,7 +95,10 @@ For curved `polyline` and `area` nodes, the current resolver uses the
 primitive's structured point geometry. Exact picking against an optional
 authored SVG path string remains a separate refinement.
 
-An explicit focus preset or custom strategy replaces this default resolver.
+Built-in axis focus modes compose painted containment with axis snapping. When
+the pointer is inside an interactive primitive, the topmost painted mark seeds
+the primary point. Outside painted geometry, the configured axis mode uses its
+normal nearest-axis fallback. A custom strategy replaces this host behavior.
 
 ## Focus modes
 
@@ -109,20 +113,344 @@ const groupedDownloads = defineChart(definition, {
 })
 ```
 
-| Preset      | Pointer resolution                                 | Group returned to callbacks and tooltip                               | Keyboard navigation                     |
-| ----------- | -------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------- |
-| `nearest`   | Nearest point in two dimensions                    | Primary point only                                                    | Every point                             |
-| `nearest-x` | Nearest x coordinate, then nearest y               | Primary point only                                                    | Every point                             |
-| `nearest-y` | Nearest y coordinate, then nearest x               | Primary point only                                                    | Every point                             |
-| `group-x`   | Nearest x coordinate, then nearest y within that x | One point per group sharing the semantic x value; nearest point first | One representative per semantic x value |
-| `group-y`   | Nearest y coordinate, then nearest x within that y | One point per group sharing the semantic y value; nearest point first | One representative per semantic y value |
+| Preset      | Pointer resolution                                                     | Group returned to callbacks and tooltip                               | Keyboard navigation                     |
+| ----------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------- |
+| `nearest`   | Nearest painted geometry or point in two dimensions                    | Primary point only                                                    | Every point                             |
+| `nearest-x` | Containing painted mark; otherwise nearest x, then nearest y           | Primary point only                                                    | Every point                             |
+| `nearest-y` | Containing painted mark; otherwise nearest y, then nearest x           | Primary point only                                                    | Every point                             |
+| `group-x`   | Containing painted mark; otherwise nearest x, then nearest y at that x | One point per group sharing the semantic x value; primary point first | One representative per semantic x value |
+| `group-y`   | Containing painted mark; otherwise nearest y, then nearest x at that y | One point per group sharing the semantic y value; primary point first | One representative per semantic y value |
 
 Grouping compares semantic values, including dates by timestamp. Duplicate
 points with the same `group` value are reduced to one member in grouped focus.
 
 The equivalent `focusX`, `focusY`, `focusNearestX`, and `focusNearestY`
 strategy objects remain available from `@tanstack/charts/focus` for composition
-or direct strategy use.
+or direct strategy use. The exact exported objects receive the same host-level
+containment behavior as their presets. A strategy that wraps or copies one of
+them is custom and owns its complete pointer resolution.
+
+## Crosshair guides
+
+`crosshair` is a data-less presentation mark. It follows the chart's resolved
+focus state without adding scale values or pointer targets:
+
+```ts
+import { crosshair, defineChart, lineY } from '@tanstack/charts'
+
+const definition = defineChart({
+  marks: [
+    lineY(rows, { x: 'date', y: 'value', color: 'series' }),
+    crosshair({
+      x: { label: true },
+      y: false,
+      strokeDasharray: '4 4',
+    }),
+  ],
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear },
+  focus: 'group-x',
+  maxFocusDistance: Number.POSITIVE_INFINITY,
+})
+```
+
+The x guide is vertical and the y guide is horizontal. Both default to
+enabled; labels and the intersection marker default to disabled. Shared rule
+options apply to both axes, and an axis object can override them. A label uses
+the matching resolved tick label when available, falls back to the semantic
+value, and accepts a `format` callback. Labels are clamped to the chart surface
+and rendered with a configurable halo. Rules and the optional marker are
+clipped to the plot. For difference intervals such as stacked bars and areas,
+the label formats the plotted `x2` or `y2` endpoint so it matches the guide;
+tooltip formatting still reports the interval difference.
+
+`crosshair<TXValue, TYValue>(options = {})` accepts these top-level options:
+
+| Option   | Default                   | Meaning                                      |
+| -------- | ------------------------- | -------------------------------------------- |
+| `id`     | `crosshair-${markIndex}`  | Stable mark and guide identity               |
+| `x`      | `true`                    | Vertical rule or categorical band            |
+| `y`      | `true`                    | Horizontal rule or categorical band          |
+| `marker` | `false`                   | Marker at the resolved x/y intersection      |
+| `motion` | No mark-specific override | Optional guide spring or tween configuration |
+
+The shared rule options apply to both axes. The same fields on an axis object
+override the shared value for that axis:
+
+| Rule option       | Default          | Meaning                            |
+| ----------------- | ---------------- | ---------------------------------- |
+| `stroke`          | Chart foreground | Rule color                         |
+| `strokeOpacity`   | `0.35`           | Rule stroke opacity                |
+| `strokeWidth`     | `1`              | Nonnegative rule width             |
+| `strokeDasharray` | None             | SVG-compatible stroke dash pattern |
+
+An x or y axis object adds two options:
+
+| Axis option | Default | Meaning                                       |
+| ----------- | ------- | --------------------------------------------- |
+| `label`     | `false` | `true` for defaults or a label options object |
+| `band`      | `false` | `true` for defaults or a band options object  |
+
+On a categorical axis, `band` replaces that axis rule with a plot-spanning
+cursor band centered on the focused value:
+
+```ts
+marks: [
+  crosshair({
+    x: {
+      band: {
+        inset: 0,
+        radius: 3,
+        fill: '#64748b',
+        fillOpacity: 0.16,
+      },
+      label: true,
+    },
+    y: false,
+  }),
+  barY(rows, {
+    x: 'period',
+    y: 'value',
+    color: 'series',
+    inset: 4,
+  }),
+  crosshair({
+    x: false,
+    y: { strokeDasharray: '4 4', label: true },
+  }),
+]
+```
+
+The first guide is an underlay because it precedes the bars; the second is an
+overlay. With a bar inset of 4 and band inset of 0, the cursor extends exactly
+4 pixels beyond each bar edge. Its x label shows the focused period; the y rule
+label shows the focused stack endpoint. Use separate crosshair marks whenever
+axes need different placement.
+
+| Band option     | Default          | Meaning                                                                  |
+| --------------- | ---------------- | ------------------------------------------------------------------------ |
+| `inset`         | `0`              | Pixels removed from both scale-band edges; negative values create outset |
+| `radius`        | None             | Corner radius                                                            |
+| `fill`          | Chart foreground | Fill color                                                               |
+| `fillOpacity`   | `0.12`           | Fill opacity                                                             |
+| `stroke`        | None             | Optional outline color                                                   |
+| `strokeOpacity` | None             | Optional outline opacity                                                 |
+| `strokeWidth`   | None             | Optional nonnegative outline width                                       |
+| `opacity`       | None             | Opacity applied to the complete band                                     |
+
+`band: true` uses those defaults. Band geometry uses the resolved scale
+bandwidth, spans the plot in the other direction, and remains clipped to the
+plot. A continuous scale or any other axis with zero bandwidth emits no band.
+The axis label can still be enabled because `band` replaces only the rule.
+
+Label options control formatting and paint outside the plot:
+
+| Label option    | Default                                        |
+| --------------- | ---------------------------------------------- |
+| `format`        | Matching scale tick label, then semantic value |
+| `offset`        | `8`                                            |
+| `fill`          | Chart foreground                               |
+| `fillOpacity`   | None                                           |
+| `stroke`        | `var(--ts-chart-crosshair-label-halo, Canvas)` |
+| `strokeOpacity` | None                                           |
+| `strokeWidth`   | `3`                                            |
+| `opacity`       | None                                           |
+| `fontSize`      | `11`                                           |
+| `fontWeight`    | None                                           |
+
+Marker options control the resolved x/y intersection marker:
+
+| Marker option   | Default                                         |
+| --------------- | ----------------------------------------------- |
+| `radius`        | `4`                                             |
+| `fill`          | `var(--ts-chart-crosshair-marker-fill, Canvas)` |
+| `fillOpacity`   | None                                            |
+| `stroke`        | Focused point color, then guide or theme color  |
+| `strokeOpacity` | None                                            |
+| `strokeWidth`   | `2`                                             |
+| `opacity`       | None                                            |
+
+Pass semantic axis types to `crosshair` when TypeScript should check label
+formatters independently from the surrounding definition:
+
+```ts
+crosshair<Date, number>({
+  x: { label: { format: (value) => value.toISOString() } },
+  y: { label: { format: (value) => value.toFixed(1) } },
+})
+```
+
+Mark order controls placement. Put `crosshair(...)` before the first ordinary
+mark for an underlay, or after it for an overlay. The default primary focus
+ring still composes with the crosshair; set `focusRing: false` only when the
+crosshair marker or other authored geometry deliberately replaces it.
+
+The guide is `aria-hidden`. Pointer and keyboard users reach the same focus
+state through the chart root, callbacks, and optional tooltip. `motion` on the
+crosshair controls its keyed rules, bands, labels, and marker when the
+definition is mounted with the optional motion renderer. Active guide
+placements remain visible through keyed scene updates so restored focus
+animates from the previous geometry.
+
+## Controlled cursors
+
+Import the controller and host extension from the isolated cursor entry when
+interaction state must be shared or set programmatically:
+
+```ts
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
+
+const sharedDate = createChartCursor<Date, number>()
+
+const definition = defineChart({
+  marks: [
+    lineY(rows, { x: 'date', y: 'value' }),
+    crosshair({ x: { label: true }, y: false }),
+  ],
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear },
+  focus: 'group-x',
+  cursor: {
+    use: cursorHost,
+    controller: sharedDate,
+    mode: 'focus',
+    match: 'x',
+    pin: true,
+  },
+})
+```
+
+```ts
+function createChartCursor<
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  initialState: ChartCursorState<TXValue, TYValue> | null = null,
+): ChartCursorController<TXValue, TYValue>
+```
+
+Every definition cursor binding accepts these common fields:
+
+| Option       | Default  | Meaning                                      |
+| ------------ | -------- | -------------------------------------------- |
+| `use`        | Required | Cursor host extension, normally `cursorHost` |
+| `controller` | Required | Observable structural cursor controller      |
+| `mode`       | Required | `focus` or `free` binding discriminator      |
+| `pin`        | `false`  | Enables activation to pin and dismiss        |
+
+Mode-specific fields are:
+
+| Mode    | Option  | Default | Meaning                                    |
+| ------- | ------- | ------- | ------------------------------------------ |
+| `focus` | `match` | `xy`    | Semantic axes shared between hosts         |
+| `free`  | `x`     | None    | Optional x-axis `valueAt` semantic mapping |
+| `free`  | `y`     | None    | Optional y-axis `valueAt` semantic mapping |
+
+Each free-axis object accepts an optional `valueAt(context)` callback. Without
+it, the cursor still shares scene and normalized coordinates but has no
+semantic value for that axis.
+
+`createChartCursor` remains a three-method structural store. `cursorHost` opts
+the binding into platform-neutral cursor policy without adding that policy to
+charts that do not use cursors. Adapter and renderer authors can import the
+projection, focus, presentation, and session helpers from
+`@tanstack/charts/cursor/host`; application code normally uses the token from
+`@tanstack/charts/cursor`.
+
+`ChartCursorExtensionToken` is the environment-neutral binding contract.
+`cursorHost` implements it as a `ChartCursorHostExtension`. Adapter authors
+call `createChartCursorHostSession(binding)` to create an ownership-safe
+`ChartCursorHostSession` for one mounted binding.
+
+That host entry uses `createFocusChartCursorState` and
+`createFreeChartCursorState` to publish state, then
+`resolveChartCursorPresentation` and `resolveChartCursorFocus` to project it
+into each scene. `resolveChartPointerFocus` composes built-in axis focus with
+painted containment and returns `undefined` for default nearest focus so a host
+can apply its spatial index or renderer geometry. `resolveChartFocusStrategy`
+converts a built-in focus name to its grouping strategy.
+`resolveFocusPresentation` finally produces renderer-neutral underlay and
+overlay nodes. An empty array from `resolveChartPointerFocus` means an explicit
+strategy found no target. Pass `scene.points` (the default) as its final
+argument to enable painted containment. A distinct array explicitly signals
+active renderer presentation points and preserves anchor resolution while
+those interpolated points are authoritative.
+
+Use the same controller in several browser or React Native definitions to
+synchronize by semantic value rather than pixel position. In `focus` mode,
+pointer, responder, keyboard, or accessibility focus publishes a
+value-anchored cursor. Each subscribing host maps the value through its own
+scales, resolves its own local point and focus group, and paints its crosshair
+and tooltip. `match` defaults to `xy`; choose `x` or `y` for an axis cursor.
+The originating point's group is retained as the preferred series when more
+than one local point matches. Optional `ChartCursorState.origin` carries
+`{ key, markId, datumIndex }` to retain the local point when equal values
+repeat, including across facets. A unique `key` plus `markId` survives data
+reordering; `datumIndex` disambiguates duplicate keys. A consuming scene
+ignores the tie-breaker when its key and mark do not exist, then resolves from
+the portable semantic `value` and preferred `group`.
+
+`free` mode follows plot coordinates without resolving a datum:
+
+```ts
+const freeCursor = createChartCursor<Date, number>()
+
+const definition = defineChart(baseDefinition, {
+  cursor: {
+    use: cursorHost,
+    controller: freeCursor,
+    mode: 'free',
+    pin: true,
+    x: {
+      valueAt: ({ scene, position }) =>
+        xScale
+          .copy()
+          .range([scene.chart.x, scene.chart.x + scene.chart.width])
+          .invert(position),
+    },
+    y: {
+      valueAt: ({ scene, position }) =>
+        yScale
+          .copy()
+          .range([scene.chart.y + scene.chart.height, scene.chart.y])
+          .invert(position),
+    },
+  },
+})
+```
+
+The host publishes normalized plot coordinates so the free cursor survives a
+responsive relayout. `valueAt` optionally adds semantic values for labels and
+application state; inversion and precision remain owned by the configured
+scale. Programmatic state may instead use `anchor: 'value'`,
+`anchor: 'normalized'`, or `anchor: 'scene'`. Only the anchor's coordinate
+space is authoritative; the other fields are diagnostics from the host that
+last emitted the state.
+
+`createChartCursor` returns `getState`, `setState`, and `subscribe`. Passing
+`null` clears the cursor, and `setState` accepts a previous-state updater.
+Unpinned host-owned state clears on pointer or responder cancellation, leave,
+and blur. Cleanup is ownership-safe: a host clears only the exact unpinned
+state object it most recently published to that controller. State replaced by
+the application or another host, and pinned state, survives that host's
+cleanup, rebinding, and unmount.
+
+With `pin: true`, click or tap pins. Browser focus cursors toggle through Enter
+or Space and dismiss through Escape; React Native focus cursors expose the
+equivalent activate and escape accessibility actions. A pinned free cursor can
+be toggled by another click or tap, or cleared programmatically.
+
+Free mode deliberately does not invent keyboard datum navigation. When its
+values are part of the reader's task, pair it with a labeled semantic control
+or status output. A focus-mode cursor inherits the chart's existing keyboard
+navigation and accessible tooltip behavior.
+
+Definition cursor bindings have browser and React Native host parity. DOM
+renderer hosts publish pointer and keyboard interaction. React Native `Chart`
+publishes responder gestures and, for focus mode, accessibility navigation,
+activation, and dismissal. Both hosts subscribe to programmatic updates and
+shared controllers. Free mode deliberately remains a coordinate gesture with
+no invented keyboard or accessibility datum order.
 
 ## Disabling chart-owned focus
 
@@ -382,6 +710,10 @@ resolution.
 Brushes, zooming, dragging, scrolling, and selections can listen on a wrapper
 or use `onRender` to attach application behavior. Keep semantic state outside
 the scene and update a dynamic definition by replacing its identity.
+
+Use a definition cursor binding for snapped or free crosshairs. Keep other
+semantic state outside the scene and update a dynamic definition by replacing
+its identity.
 
 For application-timed datum inspection, use the stable controller instead of
 reimplementing coordinate conversion and focus:

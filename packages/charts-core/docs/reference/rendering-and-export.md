@@ -82,7 +82,9 @@ renders as the first rect. All labels escape text and inherit the document
 font.
 
 Focus-filtered scene groups render hidden until the DOM host supplies focus
-state. Scene keys become `data-ts-key` attributes for reconciliation.
+state. Data-less crosshair guides are also transient and are absent from this
+static serialization because no focus or cursor state was supplied. Scene keys
+become `data-ts-key` attributes for reconciliation.
 
 ## Canvas renderer
 
@@ -100,9 +102,9 @@ const host = mountCanvasChart(container, {
 
 `mountCanvasChart` has the same definition, sizing, focus, spatial-index,
 keyboard, tooltip, selection, update, and destroy behavior as `mountChart`.
-The renderer paints focus underlays, the base scene, and focus overlays on
-separate canvases, uses the browser device-pixel ratio by default, and maps
-pointer coordinates back into the scene.
+The renderer paints authored focus layers and crosshair guides below or above
+the base scene on separate canvases, uses the browser device-pixel ratio by
+default, and maps pointer coordinates back into the scene.
 
 ```ts
 interface CanvasChartRendererOptions {
@@ -116,7 +118,9 @@ interface CanvasChartSurface<
 > extends ChartSurface<TDatum, TXValue, TYValue> {
   readonly element: HTMLDivElement
   readonly canvas: HTMLCanvasElement
+  readonly backgroundCanvas: HTMLCanvasElement
   readonly focusUnderCanvas: HTMLCanvasElement
+  readonly sceneCanvas: HTMLCanvasElement
   readonly focusCanvas: HTMLCanvasElement
 }
 
@@ -168,12 +172,16 @@ function mountCanvasChart<
 ): CanvasChartHost<TDatum, TXValue, TYValue>
 ```
 
-The surface's `element` is its accessible chart root. `canvas` holds the base
-scene; `focusUnderCanvas` and `focusCanvas` paint transient layers below and
-above it, so focus changes do not repaint the base scene. A finite, positive
-`pixelRatio` fixes every backing store at that
-ratio. An omitted value uses `devicePixelRatio`, then `1`; an invalid value
-uses `1`.
+The surface's `element` is its accessible chart root. `canvas` is the stable
+base bitmap: chart background plus ordinary scene, without transient focus.
+It remains suitable for direct `toBlob()` and `toDataURL()` calls and is not
+part of the live visual stack. The live stack is `backgroundCanvas`,
+`focusUnderCanvas`, `sceneCanvas`, then `focusCanvas`. This lets an underlay
+paint above an opaque chart background but below ordinary marks without
+repainting the stable base bitmap on cursor movement.
+
+A finite, positive `pixelRatio` fixes every backing store at that ratio. An
+omitted value uses `devicePixelRatio`, then `1`; an invalid value uses `1`.
 
 `CanvasChartHostOptions` removes the required `renderer` from the
 renderer-neutral host options. The returned `CanvasChartHost` owns update,
@@ -186,9 +194,11 @@ Use `canvasChartRenderer` for the shared default instance. Call
 an independently typed renderer instance.
 
 The server-facing `prerender` step emits a deterministic, named chart shell
-with three `aria-hidden` canvases. It does not attempt server-side pixel
-painting. The browser adopts that shell, sizes the backing stores, paints the
-scene, and attaches the shared interaction host. See
+with five `aria-hidden` canvases: the hidden stable `canvas` base bitmap plus
+the public `backgroundCanvas`, `focusUnderCanvas`, `sceneCanvas`, and
+`focusCanvas` live layers. It does not attempt server-side pixel painting. The
+browser adopts that shell, sizes the backing stores, paints the scene, and
+attaches the shared interaction host. See
 [SSR and Hydration](../guides/ssr-and-hydration.md).
 
 Canvas is an escape hatch for paint-heavy SVG output, not an unbounded-data
@@ -262,6 +272,29 @@ With animation:
 - a returned cancellation function stops the current frame loop
 
 The DOM host calls reconciliation and cancellation for you.
+
+Custom SVG renderers that already own a keyed subtree can reconcile only that
+subtree without reparsing or walking the surrounding chart:
+
+```ts
+import { reconcileChartSvgFragment } from '@tanstack/charts/reconcile'
+
+const cancel = reconcileChartSvgFragment(currentGroup, nextGroupMarkup, {
+  duration: 180,
+})
+```
+
+```ts
+function reconcileChartSvgFragment(
+  currentRoot: SVGElement,
+  markup: string,
+  animation?: ChartAnimationOptions,
+): () => void
+```
+
+The fragment root must keep the same namespace and element name to preserve
+its identity. Otherwise the reconciler replaces it. Child keying, tweening,
+and cancellation match `reconcileChartSvg`.
 
 ## Animation options
 
@@ -390,8 +423,9 @@ consistent with the selected MIME type.
 
 The raster helpers accept a mounted SVG or Canvas chart root, or an ancestor
 containing one. SVG is serialized, decoded, and drawn into the export canvas.
-Canvas uses its base scene layer directly and composites focus underlays and
-overlays only when `includeFocus` is true. `serializeChartSvg` and
+Canvas uses the stable `canvas` base bitmap directly when focus is excluded.
+With `includeFocus`, it composites `backgroundCanvas`, `focusUnderCanvas`,
+`sceneCanvas`, and `focusCanvas` in that order. `serializeChartSvg` and
 `downloadChartSvg` remain SVG-only.
 
 ## Custom renderers
@@ -428,6 +462,7 @@ interface ChartSurface<
   paintFocus: (
     focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
     pointer?: ChartTooltipPosition | null,
+    cursor?: ChartCursorPresentation<TXValue, TYValue> | null,
   ) => ChartScene | void
   destroy: () => void
 }
@@ -471,7 +506,7 @@ interface ChartRendererRenderContext<
 | `clientToScene()`               | Optionally convert viewport client coordinates to scene coordinates; the controller returns `null` when omitted or unavailable |
 | `getPresentationPoints()`       | Expose renderer-owned point geometry while a scene transition is active                                                        |
 | `subscribePresentationPoints()` | Notify the host as presentation geometry advances so focus and tooltips remain aligned                                         |
-| `paintFocus()`                  | Paint or clear focus and optionally return the resolved destination scene used for subsequent pointer hits                     |
+| `paintFocus()`                  | Paint or clear authored focus layers and guides, then optionally return the destination scene used for subsequent pointer hits |
 | `destroy()`                     | Release renderer-owned animation, observers, listeners, and resources                                                          |
 
 `requestRender()` asks the shared host to rebuild and repaint on its next
@@ -491,6 +526,12 @@ the surface paints. The host uses that destination scene for subsequent
 pointer resolution while the renderer animates toward it. Returning `void`
 keeps the base scene as the interaction source and remains valid for renderers
 that do not resolve alternate scene geometry.
+
+Use `resolveFocusPresentation(scene, focus, pointer, cursor)` from the package
+root or universal entry to resolve renderer-neutral `under` and `over` nodes.
+Paint them in this order: `under`, the base scene, then `over`. The optional
+cursor argument is the controller state projected into this surface's plot;
+it can drive a crosshair without datum focus.
 
 The shared host continues to own runtime updates, responsive sizing, text
 measurement, focus resolution, keyboard behavior, native tooltips, selection,
@@ -535,7 +576,8 @@ renderer should preserve:
 
 - an SVG root discoverable by the host
 - stable `data-ts-key` identities for reconciliation
-- focus-filtered scene groups when native focus paint is desired
+- focus-filtered scene groups and data-less guides when native focus paint is
+  desired
 - the scene coordinate system and accessible name
 
 See [Custom extensions](./custom-extensions.md#custom-renderers) before

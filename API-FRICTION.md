@@ -211,7 +211,7 @@ Each entry records:
 | F-173 | Metro retained the complete universal barrel              | API/Tooling     | monitoring |
 | F-174 | OIDC release cannot claim a new npm package name          | Tooling         | resolved   |
 | F-175 | Native SVG resource normalization collapsed authored IDs  | Application     | resolved   |
-| F-176 | Large marks were focused by distant anchor points         | API             | monitoring |
+| F-176 | Large marks were focused by distant anchor points         | API             | resolved   |
 | F-177 | Bubble overlap inherited incidental source order          | Application     | resolved   |
 | F-178 | Custom-template examples exposed DOM mutation plumbing    | Docs/Tooling    | resolved   |
 | F-179 | Animation clocks drift at fixed frame indices             | Tooling         | monitoring |
@@ -222,7 +222,7 @@ Each entry records:
 | F-184 | Cross-type marks lacked a shared morph topology           | API             | monitoring |
 | F-185 | Control reflow turned a morph into a resize               | Application     | resolved   |
 | F-186 | Focus states bypassed the optional physics runtime        | API             | resolved   |
-| F-187 | Crosshair motion required an application-owned frame loop | API             | monitoring |
+| F-187 | Crosshair motion required an application-owned frame loop | API             | resolved   |
 | F-188 | Paired interaction assertions assumed equal timing        | Tooling         | monitoring |
 | F-189 | The motion spike exposed duplicate configuration surfaces | API             | resolved   |
 | F-190 | Static conformance sampled active motion                  | Tooling         | resolved   |
@@ -256,6 +256,9 @@ Each entry records:
 | F-218 | Paged history required overlaid chart hosts               | API             | resolved   |
 | F-219 | Long-press focus duplicated host pointer geometry         | API             | resolved   |
 | F-220 | Focus cursor width depended on private band inference     | API             | resolved   |
+| F-221 | Focus-filtered bands could not act as cursor geometry     | API             | resolved   |
+| F-222 | Scene updates cleared active motion guide placement       | API             | resolved   |
+| F-223 | Custom mounts were not React catalog descriptors          | Tooling/App     | resolved   |
 
 ## Findings
 
@@ -1667,7 +1670,8 @@ Each entry records:
 - Status: resolved
 - Severity: medium
 - Owner: Documentation
-- Observed in: focus-plus-context, continuous brush, and wheel zoom/pan cases
+- Observed in: focus-plus-context, continuous brush, wheel zoom/pan, and free
+  cursor cases
 - Friction: `ChartScene.scales.x` exposes semantic-to-pixel `map`, but not an
   inverse operation. A snapped overview click can scan known datum positions,
   but continuous brush, pan, zoom, and free data-space selection need a
@@ -1676,13 +1680,17 @@ Each entry records:
   already supplies. Copy that scale, apply the resolved `scene.chart` pixel
   range, and call its native `invert`; reverse the range for y. Then apply an
   explicit semantic precision policy such as `utcDay.round`. Do not add a
-  second scale algorithm or universal inversion surface.
+  second scale algorithm or universal inversion surface. A free cursor can
+  receive that mapping through its optional per-axis `valueAt` callback; the
+  configured scale still owns inversion, clamping, and precision.
 - Verification: the focus-plus-context case remains snapped to known dates.
   The continuous brush passes forward and reverse real-pointer drags, and the
   wheel viewport passes pointer-anchored zoom, horizontal pan, clamping, and
   full-domain restoration. Both implementations are cast-free, use the same
   source D3 scale semantics, pass responsive behavior and visual checks, and
-  leave every locked universal bundle unchanged.
+  leave every locked universal bundle unchanged. Cursor projection tests cover
+  configured-scale `valueAt`, reversed y ranges, normalized resize behavior,
+  semantic programmatic anchors, and scenes without a matching scale.
 
 ### F-064 — Scroll-clipped labels failed containment
 
@@ -1908,9 +1916,11 @@ Each entry records:
   policy and pass midpoint, first/last edge, pointer-leave, keyboard, touch,
   rendered crosshair, and revision checks at every standard width.
 - Documentation verification:
-  `packages/charts-core/docs/large-data-and-interaction.md` now places
-  `maxFocusDistance` beside the four axis-focus strategies and distinguishes
-  continuous snapping from finite proximity.
+  `docs/reference/focus-and-interaction.md` and
+  `docs/guides/tooltips-and-focus.md` place `maxFocusDistance` beside the axis
+  focus and crosshair recipes and distinguish continuous snapping from finite
+  proximity. The data-less crosshair changes only presentation; it does not
+  silently widen the resolver's distance policy.
 - Follow-up: reassess the API only if authoring evaluations still require
   case-specific pixel calculations after reading the guide.
 
@@ -1926,23 +1936,33 @@ Each entry records:
   snapping, and overlays. Their value math passes while keyboard semantics,
   touch, cancellation, out-of-bounds clamping, visible values, and recovery
   controls are missing or inconsistent.
-- Current decision: keep specialized interaction algorithms outside Charts
-  core. Teach granular optional `d3-brush` for focus/context and range
-  selection, optional `d3-zoom` for zoom/pan, and native semantic range
-  controls for scrubbers and editable handles. The application still owns
-  policy and presentation.
+- Current decision: centralize the repeated focus-snapped and free cursor
+  lifecycle in a small framework-neutral controller plus definition binding.
+  Keep specialized interaction algorithms outside Charts core. Teach granular
+  optional `d3-brush` for focus/context and range selection, optional
+  `d3-zoom` for zoom/pan, and native semantic range controls for scrubbers and
+  editable handles. The application still owns gesture policy and semantic
+  state.
 - Verification: cases 83 and 89 use real optional `d3-brush`; case 90 uses
   optional `d3-zoom`; cases 91 and 92 pair direct manipulation with native
   semantic controls. Pointer, keyboard, touch, cancellation, clamping,
   recovery, screenshots, and update preservation pass across the full matrix.
   Practical `d3-brush` plus selection and `d3-zoom` plus selection kernels are
   isolated at 16.20 and 15.91 kB gzip with independent budgets. Neither enters
-  a locked Charts consumer.
+  a locked Charts consumer. Cursor controller and renderer-host tests cover
+  focus-value synchronization, free normalized coordinates, programmatic
+  state, pinning, cancellation, Escape, subscription cleanup, and the absence
+  of invented free-cursor keyboard stepping. Faceted cursor regressions retain
+  the exact emitting cell through the optional local `origin` identity when
+  semantic values collide, leave a `type: 'none'` outer scale unprojected,
+  project the semantic value independently through each cell's scale and tick
+  formatter, and render no guide when its authoritative per-cell projector
+  rejects the value even if stale presentation coordinates are present.
 - Documentation verification:
-  `packages/charts-core/docs/large-data-and-interaction.md` routes by problem
-  to the corrected brush, zoom, cursor, scrubber, editable-range, scrolling,
-  and nested-tooltip cases and requires equivalent keyboard, touch,
-  cancellation, clamping, visible-value, and recovery semantics.
+  `docs/guides/interactions-and-selections.md` routes by problem to the
+  controlled cursor, brush, zoom, scrubber, editable-range, and scrolling
+  paths and requires equivalent keyboard, touch, cancellation, clamping,
+  visible-value, and recovery semantics.
 - Follow-up: generate and evaluate the skill from this guide. Consider a
   tree-shakeable headless interaction boundary only if repeated production use
   still duplicates lifecycle code after using D3 and native controls.
@@ -1979,15 +1999,23 @@ Each entry records:
   but not pointer cancellation, which can leave stale state after a canceled
   touch gesture.
 - Expected: transient focus clears when the chart no longer owns keyboard or
-  pointer interaction. Explicit application pinning remains controlled by the
-  application.
-- Decision: add scoped focus-out and pointer-cancel cleanup in the DOM host
-  without changing selection or pinned application state.
+  pointer interaction. Explicitly pinned tooltip or cursor state survives
+  transient cleanup until activation or Escape dismisses it.
+- Decision: add scoped focus-out and pointer-cancel cleanup in browser hosts
+  and responder-termination and blur cleanup in React Native without changing
+  selection or pinned state. Apply the same ownership-safe cleanup and
+  controller-subscription lifecycle to focus and free cursor bindings.
 - Verification: the shared DOM-host tests cover focus moving within the same
   cross-realm chart, focus moving to an adjacent control, pointer cancellation,
   and explicit selection preservation. Interaction scenarios cover blur,
   touch cancellation, pointer cancellation, and pinned state. Core, React, and
-  Octane test suites plus the full 79-case matrix pass.
+  Octane test suites plus the full 79-case matrix pass. Renderer-host and
+  React Native cursor regressions cover pinned cancellation, dismissal,
+  binding removal, host destruction, controller unsubscription, and exact
+  transient-state ownership across shared controllers. A renderer-host
+  regression also changes focus/free mode without changing controller identity
+  in either direction and verifies that each previously owned transient state
+  is cleared before the new mode can publish.
 
 ### F-078 — Renderer completion signals were incomparable
 
@@ -3002,7 +3030,13 @@ Each entry records:
   covers device-pixel-ratio backing stores, `Path2D`, CSS color resolution,
   gradients, focus isolation, resizing, and PNG export. Bundle metafiles and
   packed-consumer checks enforce that renderer-neutral entries include neither
-  renderer and Canvas entries include no SVG reconciler.
+  renderer and Canvas entries include no SVG reconciler. The five-canvas shell
+  retains the public `CanvasChartSurface.canvas` as a hidden stable
+  background-plus-scene bitmap for direct `toBlob()` and `toDataURL()`
+  compatibility, while four public live layers model background, focus
+  underlay, ordinary scene, and focus overlay. Core and adapter hydration
+  regressions adopt all five canvases in place, and export regressions use the
+  stable bitmap without focus or composite the four live layers with focus.
 
 ### F-122 — Dense scene aggregation overflowed the call stack
 
@@ -3019,7 +3053,7 @@ Each entry records:
   fixes the failure before it reaches any renderer.
 - Verification: a 200,000-value scene regression completes without an
   argument-limit error. Native Chromium also compiles and mounts one million
-  dots through the Canvas renderer with four surface descendants. That check
+  dots through the Canvas renderer. That check
   still retains roughly 427 MiB of JavaScript heap and spends most first-paint
   time rasterizing the dense path, so Canvas removes per-mark DOM cost rather
   than making unbounded data free.
@@ -3904,18 +3938,31 @@ Each entry records:
 - Status: resolved
 - Severity: high
 - Owner: API
-- Observed in: implementing the background-highlight feedback in issue #9
+- Observed in: implementing the background-highlight feedback in issue #9 and
+  validating focused rules in issue #32
 - Friction: the host could paint only one hardcoded point marker. A focused
   category band, rule, active bar, or custom effect required renderer-specific
-  DOM mutation or a second interaction loop.
+  DOM mutation or a second interaction loop. The initial `whenFocused`
+  implementation then derived its matching candidates only from mark
+  interaction points. Rules deliberately emit no interaction points, so
+  `whenFocused(ruleX(...), { match: "x" })` and its y equivalent compiled an
+  empty focus layer. Making rules emit ordinary points would have incorrectly
+  added them to pointer hit testing.
 - Decision: `whenFocused` filters an ordinary mark from the centralized
   `ChartFocusState`. Matching supports primary, group, key, x, y, and series.
   Mark order owns under/over placement; filtered marks infer scales but do not
-  add hit targets. Custom surfaces receive primary, group, source, and pinned
-  state.
-- Verification: SVG tests filter band geometry by semantic x, Canvas tests
-  preserve the cached base layer while painting underlays and overlays, and
-  renderer tests verify pointer/keyboard source and pinned state.
+  add hit targets. A mark scene may now emit semantic `focusAnchors` separately
+  from interaction points. Rules emit only the axis value they own, avoiding a
+  false match against a placeholder value on the other axis. Custom surfaces
+  receive primary, group, source, and pinned state.
+- Verification: SVG tests filter band geometry by semantic x. Canvas tests
+  preserve the public focus-free base bitmap while painting live background,
+  authored underlay, ordinary scene, and overlay layers in order. Renderer
+  tests verify pointer/keyboard source and pinned state. The issue #32
+  regressions filter x and y rules, preserve datum-identity matching, reject
+  missing-axis matches at zero, keep standalone rules absent from nearest-point
+  resolution, and remap focus-only rule anchors across facets. Focused SVG,
+  Canvas, React Native scene, and workspace type checks pass.
 
 ### F-159 — Axis scale and presentation controls were interleaved
 
@@ -4149,16 +4196,22 @@ Each entry records:
   native render time rather than by the shared definition type; production
   typing may need a host-refined definition. A definition becomes host-specific
   when decorated with a tooltip token, while applications can still share the
-  chart spec and options before that platform step. A supported native package
-  still requires extracting renderer-neutral interaction and tooltip state,
-  with the DOM and native hosts consuming the same implementation. The proof
-  omits shared focus-layer groups from its base scene and uses a generic native
-  overlay; authored focus marks and inline mark states remain unsupported until
-  scene-state resolution is shared. It now preserves the original primary and
-  focus group independently from sorted tooltip rows, refreshes restored point
-  objects, re-emits callbacks when public point values or geometry change,
-  silently refreshes equivalent point references, and keeps callback refs out
-  of restoration effect dependencies.
+  chart spec and options before that platform step. Cursor state, projection,
+  focus resolution, and presentation are now shared platform-neutral policy.
+  The application-facing `@tanstack/charts/cursor` entry exports the controller
+  constructor, state types, and a tree-shakeable `cursorHost` extension. Every
+  cursor binding explicitly supplies `use: cursorHost`, so definitions that do
+  not opt in do not retain cursor policy. The adapter-facing
+  `@tanstack/charts/cursor/host` entry exposes the ownership-safe host session,
+  projection, and focus helpers without making Metro traverse DOM modules.
+  Browser and React Native hosts create that session from the binding token
+  while accepting any structural three-method controller. Tooltip state, stable
+  restoration, navigation, and host event plumbing remain duplicated. The
+  proof preserves the original primary and focus group independently from
+  sorted tooltip rows, refreshes restored point objects, re-emits callbacks
+  when public point values or geometry change, silently refreshes equivalent
+  point references, and keeps callback refs out of restoration effect
+  dependencies.
 - Verification: focused native tests cover strategy selection, grouping,
   restoration, navigation, axis and custom anchors, supported default content,
   placement, and extension ownership. The native type and Metro gates use the
@@ -4172,7 +4225,28 @@ Each entry records:
   source when only callback props change. An inline-definition regression
   verifies an equivalent restored scene does not re-emit focus into the
   parent. A grouped-tooltip regression now verifies visual default order and
-  explicit color-domain order in both hosts.
+  explicit color-domain order in both hosts. Native component regressions paint
+  authored focus layers and a clipped two-axis crosshair with labels and marker
+  through the shared resolver, including `focusRing: false`. Cursor regressions
+  cover semantic synchronization across differently sized native hosts without
+  scene recompilation, grouped responder and accessibility focus, focus and
+  free pinning, accessibility dismissal, normalized free-cursor projection,
+  programmatic updates, binding replacement and unmount, method-backed and
+  cloning structural controllers, and exact transient-state ownership when
+  hosts share a controller. Equivalent browser regressions protect pointer and keyboard
+  behavior. Native type checks and iOS/Android Metro gates import cursor host
+  policy without DOM code. Shared cursor-policy regressions preserve the exact
+  emitting facet with a local point identity, avoid projecting through a
+  `type: 'none'` outer facet scale, and require each focus guide's authoritative
+  projector to accept a semantic value before painting it. Granular production
+  fixtures measure the application cursor controller at 0.56 kB minified and
+  0.34 kB gzip and the complete adapter-facing host extension and session
+  policy, including scene-aware pointer focus, at 9.80 kB and 3.84 kB.
+  Retained-input gates
+  reject platform renderers, tooltip code, and D3 from both entries and reject
+  focus-presentation policy from the application entry. Physical-device and
+  screen-reader verification remain outside the release gate, so this entry
+  remains monitoring for the other duplicated native interaction policy.
 
 ### F-169 — CSS theme defaults reach the native scene compiler
 
@@ -4332,7 +4406,7 @@ Each entry records:
 
 ### F-176 — Large marks were focused by distant anchor points
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: API
 - Observed in: stacked-bar tooltip report and interaction-geometry lab
@@ -4343,7 +4417,7 @@ Each entry records:
   ranking, while chart-wide nearest-x made off-bar selection too permissive.
   Pure x fallback also tied every segment in one stack and selected the bottom
   segment when the pointer was above the stack.
-- Current decision: use a two-stage scene contract rather than infer a strategy
+- Decision: use a two-stage scene contract rather than infer a strategy
   from chart composition or copy geometry onto `ChartPoint`. A resolved `rect`,
   `dot`, `area`, `polyline`, or `rule` attaches its semantic point or points and
   natural `x`, `y`, `xy`, or `geometry` fallback. The default resolver collects
@@ -4353,15 +4427,19 @@ Each entry records:
   geometry distance to break ties. Inline mark states return their destination
   scene to the host, which intentionally uses that scene during animation.
   Points not attached to a primitive retain legacy point-distance behavior.
-  Explicit focus strategies and custom spatial indexes continue to own their
-  complete search semantics; the spatial-index factory now receives the final
-  scene as a backward-compatible second argument so bounds, quadtrees, or
-  Delaunay can remain optional acceleration layers without copying geometry
-  onto points. Facet layout also scopes the final primitive and focus-layer
-  keys. Default `primary`/`group` presentation matches canonical focused points
-  instead of treating equal x/y/series tuples in another panel as the same
-  point; `whenFocused(..., { match: "x" })` or `match: "y"` remains the
-  explicit synchronized-cursor contract.
+  Built-in `nearest-x`, `nearest-y`, `group-x`, and `group-y` modes, including
+  their exact exported strategy identities, use the same exact containment to
+  seed the primary point before applying singleton or semantic-axis grouping.
+  Outside painted geometry they retain their previous axis fallback and
+  `maxFocusDistance` behavior. Custom focus strategies and custom spatial
+  indexes continue to own their complete search semantics; the spatial-index
+  factory receives the final scene as a backward-compatible second argument so
+  bounds, quadtrees, or Delaunay can remain optional acceleration layers
+  without copying geometry onto points. Facet layout also scopes the final
+  primitive and focus-layer keys. Default `primary`/`group` presentation
+  matches canonical focused points instead of treating equal x/y/series tuples
+  in another panel as the same point; `whenFocused(..., { match: "x" })` or
+  `match: "y"` remains the explicit synchronized-cursor contract.
 - Verification: focused tests cover containment priority, x/y/xy/geometry
   fallback, rounded/reversed rectangles, circles, polygons, rules and lines,
   built-in bar affinity, paint-order overlap, stack-edge selection, nested
@@ -4380,14 +4458,13 @@ Each entry records:
   lines, rectangles, and dots contribute their natural affinity per primitive
   without a chart-wide setting, including topmost containment when unlike marks
   overlap. Facet coverage includes plain, grouped, stacked, and bubble marks.
-  Three mixed-mark cases now include an additional native `group-x` or
-  `group-y` tooltip card. This exposed that grouped tooltips are not an
-  independent presentation option: each grouped preset replaces the default
-  scene-containment resolver with nearest-axis selection as well as returning
-  the focus group. The lab keeps those cards separate and labelled rather than
-  claiming that geometry-first primary selection and axis grouping currently
-  compose.
-  The full unit matrix passes 745 tests across 131 files;
+  Three mixed-mark cases include an additional native `group-x` or `group-y`
+  tooltip card. The stacked-bar band-cursor conformance case closes the gap
+  those cards exposed: hovering the middle of a stack segment now selects that
+  painted segment first, then returns its full semantic axis group. Focused
+  DOM, motion-presentation, custom-strategy, React Native, x/y preset, and
+  exported-strategy regressions cover the composed contract.
+  The full unit matrix passes 846 tests across 139 files;
   typecheck, documentation,
   formatting, packed-consumer, seven-adapter, sandbox production-build, and
   live browser checks also pass.
@@ -4412,7 +4489,10 @@ Each entry records:
   fixture ceilings were reviewed and accepted because painted-geometry
   interaction is the default contract across DOM, Canvas, and native charts;
   the exact locked baselines now record that decision while the isolated 2 kB
-  ceiling continues to constrain the resolver itself. A final size audit removed
+  ceiling continues to constrain the resolver itself. Composing containment
+  with built-in axis focus adds 267 minified / 100 gzip bytes to the DOM host
+  and 105 gzip bytes to the React compact-scale consumer, which remains below
+  its locked 23 KiB product ceiling at 22.99 KiB. A final size audit removed
   redundant built-in `MarkScene.points` arrays and explicit default `xy`
   affinity fields while retaining the optional point list for custom-mark
   compatibility. Against the immediate pre-audit build, that saves 119
@@ -4432,8 +4512,7 @@ Each entry records:
   establish topmost traversal, cached-bounds rejection, and exact path tests.
 
 - Follow-up: exact picking against optional authored SVG path strings and an
-  interpolated mid-transition scene remain separate refinements. Verify full
-  SVG/Canvas parity before resolving this entry.
+  interpolated mid-transition scene remain separate refinements.
 
 ### F-177 — Bubble overlap inherited incidental source order
 
@@ -4704,7 +4783,7 @@ Each entry records:
 
 ### F-187 — Crosshair motion required an application-owned frame loop
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
 - Owner: API
 - Observed in: focus and crosshair motion catalog case 117
@@ -4716,18 +4795,61 @@ Each entry records:
   coordinates. Mounting that overlay before the chart caused the SVG surface
   renderer to adopt it as the chart root; the application had to mount the
   owned chart surface first and append the overlay afterward.
-- Decision: keep this plumbing in the spike while the correct renderer-neutral
-  boundary is unproven. Investigate a focus-guide scene primitive or an
-  optional motion-value/vector primitive that can drive SVG, Canvas, and native
-  presentation without adding a clock or spring implementation to core.
-- Verification: the 640px and 320px browser checks keep overlay and chart view
-  boxes aligned. On two rapid retargets the crosshair continues in its incoming
-  direction before reversing, both axis labels remain exactly aligned to the
-  moving guide, grouped focus remains active, keyboard focus moves the target,
-  and no coordinate becomes invalid. Both labels remain inside the 320px
-  surface at the edge datum. The paired Observable Plot/TanStack scenario
-  passes label content, both sizes and revisions, with 97.9% geometry
-  similarity and settled crosshair state.
+- Decision: add a data-less `crosshair` mark that emits renderer-neutral focus
+  guide descriptors rather than scale values, hit targets, or base-scene
+  nodes. `resolveFocusPresentation` maps current focus or projected cursor
+  state into keyed underlay/overlay rules, optional labels, and an optional
+  marker. A guide-only mark declares `focusGuideOnly: true` so it does not
+  become the ordinary-mark boundary. `MarkScene` accepts `MarkFocusGuide` with
+  optional placement: mark order is the default, while composed nested scenes
+  can retain an explicit resolved placement. The required mark render context
+  supplies both full `surface` and inner `chart` bounds. The optional motion
+  renderer consumes the guide's normal motion declaration; the default mounted
+  SVG, Canvas, and native surfaces paint the same resolved target without
+  adding a clock or spring solver to core. Each `SceneFocusGuide` carries a
+  required resolver, so the optional guide owns its dynamic semantics while
+  renderers retain only generic transport. The crosshair subpath exports
+  `resolveCrosshairGuide` for custom guide marks that want the built-in rule,
+  band, label, and marker behavior.
+- Verification: crosshair scene tests cover stable x/y rules, axis overrides,
+  labels, marker, clipping, surface clamping, facets, and cursor presentation
+  without datum focus. Mark-order regressions place a guide before the first
+  ordinary mark underneath, while faceting preserves that placement after
+  composing nested scenes. Public type checks require full surface bounds and
+  do not require authors to supply meaningless placement. SVG and Canvas
+  surfaces paint both placements; the motion regression preserves guide DOM
+  identity, sampled position, and incoming spring velocity across rapid
+  retargets. React Native paints authored focus plus clipped rules, labels, and
+  marker through the shared resolver.
+  Mounted SVG export includes the current guide only with `includeFocus: true`.
+  The browser-backed Canvas smoke now supplies a complete `ChartFocusState`
+  and an authored focus layer, proving that focus changes only the overlay
+  canvas while the stable base canvas remains byte-identical.
+  The paired Observable Plot/TanStack scenario retains its label, responsive,
+  revision, and settled-state coverage without the application-owned overlay.
+  The isolated crosshair entry, including its guide-carried resolver, is 8.69
+  kB minified and 2.92 kB gzip and retains no cursor, platform-renderer,
+  tooltip, or D3 runtime. The renderer-neutral
+  scene and static-SVG contracts add 188–258 minified and 68–103 gzip bytes to
+  the four locked non-host products. Configurable SVG guide serialization,
+  renderer-owned resource copying, stable detachable guide layers, and generic
+  cursor-session orchestration add 9,020–9,032 minified and 2,698–2,810 gzip
+  bytes to the four locked DOM-host products. That reviewed cost is the core
+  renderer capability; crosshair semantics and cursor policy remain opt-in.
+  Guide
+  interpolation and stable motion identity keep the optional motion renderer
+  at 45.93 kB minified and 15.48 kB gzip. Renderer-boundary checks classify the
+  shared SVG guide-layer helper as platform code. The reviewed exact baselines and
+  narrowly raised affected-product ceilings record those costs. The separate
+  cross-library comparison baseline changes exactly the 12 TanStack rows while
+  leaving all 48 external-library rows unchanged. Against the previous main
+  baseline, those controlled consumers add 2,655–2,827 gzip bytes, or
+  7.43–8.35%; the reviewed baseline records that shared renderer capability
+  rather than describing it as within the ordinary 3% drift tolerance.
+  `pnpm benchmark:check` passes against the recorded input revision. The
+  DOM-only serializer remains
+  in the SVG/browser boundary so React Native and static SVG type and bundle
+  gates never traverse DOM interfaces.
 
 ### F-188 — Paired interaction assertions assumed equal timing
 
@@ -4928,11 +5050,15 @@ Each entry records:
   and keyboard focus.
 - Decision: compose the built-in ring with authored focus layers by default.
   Add definition `focusRing: false` for charts whose authored geometry
-  deliberately replaces the primary indicator.
+  deliberately replaces the primary indicator. A data-less crosshair follows
+  the same rule: its guides compose with the ring, while an authored marker can
+  replace it through the explicit opt-out.
 - Verification: scene and SVG regressions retain both a focused category band
   and one primary ring, Canvas paints authored underlays and the default
   overlay together, facets retain synchronized authored bands plus one shared
-  ring, and an explicit opt-out omits the ring. Removing the implicit
+  ring, and an explicit opt-out omits the ring. Crosshair guide descriptors are
+  additive to those focus layers, and native component coverage verifies a
+  marker with `focusRing: false`. Removing the implicit
   focus-layer scan reduces the ten locked universal bundles by 109–110
   minified bytes and 22–48 gzip bytes; the reviewed exact baseline records the
   decrease.
@@ -4994,7 +5120,7 @@ Each entry records:
   load chart cases.
 - Verification: strict workspace TypeScript and the focused React SSR suite
   pass. The packed-consumer gate imports every published subpath, renders all
-  109 case components through `react-dom/server`, verifies complete SVG view
+  110 case components through `react-dom/server`, verifies complete SVG view
   boxes, catalog order, declarations, and package targets, rejects source files
   and private workspace dependencies, and passes the existing web and React
   Native package consumers.
@@ -5042,7 +5168,7 @@ Each entry records:
 - Verification: scene tests retain semantic points while omitting the generated
   focus layer. DOM, adapter, renderer-neutral, React SSR/hydration, and React
   Native tests cover the disabled focus contract. The catalog test and packed
-  consumer gate server-render all 109 catalog components.
+  consumer gate server-render all 110 catalog components.
 
 ### F-202 — Worker runtimes rejected bundled CSV parsing
 
@@ -5282,19 +5408,15 @@ Each entry records:
   rules intentionally emit no interaction points. Replacing the rule with a
   link would have introduced the wrong semantic mark solely to obtain a focus
   candidate.
-- Decision: let a mark scene expose presentation-only `focusPoints`. Focus
-  layers consume those candidates without adding them to the chart's global
-  interaction points. `ruleX` and `ruleY` now provide candidates keyed to their
-  rendered nodes while the nodes remain interaction-free.
+- Decision: let a mark scene expose presentation-only `focusAnchors`. Each
+  `ChartFocusAnchor` carries the rendered-node key and only the semantic axes
+  the mark owns. Focus layers consume those anchors without adding them to the
+  chart's global interaction points. `ruleX` and `ruleY` therefore remain
+  interaction-free without inventing a zero value for their missing axis.
 - Verification: focused-rule regressions reveal exactly one full-span rule for
-  matching x and y values, retain only the underlying data marks in
-  `scene.points`, and keep rule nodes free of interaction metadata. The paired
-  energy case passes its visual, behavior, geometry, and type gates with the
-  native focused `ruleX` guide. After integration with `0.6.5` and the callback
-  context migration, the complete PR adds 109 minified and 41 gzip bytes to the
-  locked line-scene entry and 476 minified and 101 gzip bytes to the
-  representative-marks entry. The Stats parity ceiling moves from 42.3 to 42.5
-  KiB.
+  matching x and y values, keep rule anchors separate from `scene.points`,
+  preserve categorical series matching, and prove that an absent axis does not
+  match zero. The paired energy case retains its native focused `ruleX` guide.
 
 ### F-214 — Callback parameter shapes were inconsistent
 
@@ -5320,10 +5442,11 @@ Each entry records:
   exact upstream protocols such as D3 threshold generators, and
   consumer-called service methods as classified exceptions.
 - Verification: the public callback inventory follows exported types,
-  functions, and values into nested package-owned types. It classifies all 534
+  functions, and values into nested package-owned types. It classifies all 565
   reachable callable surfaces, including Alpine's external directive protocol,
   Vue's nested tooltip slot, live-chart interaction and presentation service
-  handles, the presentation-points listener callback, and viewport mapping. It
+  handles, cursor controllers and host sessions, focus-guide resolvers, the
+  presentation-points listener callback, and viewport mapping. It
   rejects unclassified surfaces, callback arity above two, or a non-object
   second callback argument. Failed parameter
   type resolution preserves the parameter as a fail-closed non-object bag
@@ -5527,7 +5650,91 @@ Each entry records:
 - Verification: mark tests assert fixed one- and two-pixel continuous bands,
   and the paged history definition expresses its cursor as `width: 1` without
   responsive sample-spacing math.
-- Follow-up: F-213 later added presentation-only focus points to rules, so a
+- Follow-up: F-213 later added presentation-only `focusAnchors` to rules, so a
   focused `ruleX` can now express a one-pixel cursor too. Explicit band
   dimensions remain useful when authored band geometry needs an exact scene-
   pixel width or height.
+
+### F-221 — Focus-filtered bands could not act as cursor geometry
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: stacked-bar band-and-rule cursor conformance case 119
+- Friction: `whenFocused(bandX(...), { match: "x" })` could reveal the band
+  authored for a focused category, but it could not move one stable band with
+  focus. The first case-119 implementation therefore needed a synthetic row
+  for every category and a complete set of hidden band rectangles. That was
+  correct for a data-bound visibility filter but the wrong ownership model for
+  cursor geometry, which should not require duplicated data or participate in
+  the ordinary mark tree.
+- Decision: add `band` to each `crosshair` axis. `band: true` or a
+  `CrosshairBandOptions` object replaces that axis rule with a renderer-native
+  rectangle centered on the focused semantic value. Its full size comes from
+  the resolved categorical scale bandwidth, so grouped marks use the parent
+  category rather than a subgroup's point coordinate. `inset` applies to both
+  edges and may be negative for an outset. The band spans and clips to the plot
+  in the other direction, accepts radius/fill/stroke/opacity paint, remains
+  outside hit testing, and emits no geometry when bandwidth is zero. Mark order
+  continues to own underlay or overlay placement, so a band and an
+  opposite-axis rule can use separate crosshair marks when their placements
+  differ.
+- Verification: the categorical cursor-band unit regression proves exact
+  inset geometry, a 2-pixel outset from bars whose inset differs by 2, paint
+  options, parent-scale centering for x- and y-grouped bars, and no band on a
+  continuous scale. Case 119's
+  `band-and-rule-follow-stack` scenario checks the full three-point x group,
+  exact 4-pixel left/right outset, focused period and stack-endpoint labels,
+  dotted y rule, responsive revisions, and pointer-leave cleanup. The core
+  stacked-label regression also proves that a difference interval formats its
+  plotted endpoint rather than the raw segment delta. Cursor and crosshair
+  regressions project semantic values through `ResolvedScale.viewport.map` with
+  nonzero x and y translations, keeping controlled guides aligned with
+  presented viewport content.
+
+### F-222 — Scene updates cleared active motion guide placement
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: animating the case-119 band and rule through a data revision
+- Friction: the motion renderer detached persistent focus-guide layers during
+  a scene update, then cleared every recorded visible placement before the
+  host restored focus. The same keyed band and rule therefore became hidden or
+  snapped to the next geometry instead of continuing from their visible
+  positions.
+- Decision: retain each visible under/over placement while the next scene still
+  provides a guide at that placement. Restore the detached keyed layer with its
+  current visibility, then let restored focus animate its geometry. Remove the
+  placement and layer when the next scene no longer provides the guide so the
+  retention rule cannot leave stale cursor paint behind.
+- Verification: focused motion regressions keep the same categorical band and
+  dotted-rule elements while they animate between points, preserve an active
+  guide through a keyed scene update and animate from its prior coordinate,
+  and remove the retained layer when the next scene drops its crosshair.
+  Retained presentation points carry the destination datum and semantic values
+  with their prior x/y geometry, so focus callbacks and cursor labels report
+  the updated row throughout the transition.
+
+### F-223 — Custom conformance mounts were not React catalog descriptors
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling/Application
+- Observed in: publishing stacked-bar cursor conformance case 119
+- Friction: the custom motion mount was a valid conformance implementation,
+  but the React catalog synchronizer did not publish it. A separate static
+  descriptor made case 119 visible, yet its generated wrapper used the base
+  React chart and silently ignored the mark's motion options. The docs-linked
+  demo therefore differed from the implementation under conformance.
+- Decision: route case 119 through the existing custom React view path. Share
+  one revision-aware definition and `motion()` renderer factory between that
+  view and the bespoke conformance mount; keep the conformance driver only for
+  target resolution, state inspection, and deterministic settling. Preview
+  rendering remains fluid and noninteractive while the full catalog view
+  honors its interactive input.
+- Verification: the synchronizer reports 110 matching cases. The catalog
+  regression moves focus between two bar periods and proves that both the
+  under-band and over-rule guide layers enter their running motion state. The
+  focused 25-test catalog suite, workspace typecheck, sync check, and diff check
+  pass.

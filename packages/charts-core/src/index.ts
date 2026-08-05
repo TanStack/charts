@@ -13,6 +13,15 @@ export { barX, barY } from './bar'
 export type { BarXOptions, BarYOptions } from './bar'
 export { bandX, bandY } from './band'
 export type { BandXOptions, BandYOptions } from './band'
+export { crosshair } from './crosshair'
+export type {
+  CrosshairAxisOptions,
+  CrosshairBandOptions,
+  CrosshairLabelOptions,
+  CrosshairMarkerOptions,
+  CrosshairOptions,
+  CrosshairRuleOptions,
+} from './crosshair'
 export { d3Curve } from './d3-shape'
 export { dot } from './dot'
 export type { DotOptions } from './dot'
@@ -21,6 +30,7 @@ export type { FacetAxes, FacetChartContext, FacetOptions } from './facet'
 export { frame } from './frame'
 export type { FrameOptions } from './frame'
 export { whenFocused } from './focus-mark'
+export { resolveFocusPresentation } from './focus-presentation'
 export { group } from './group'
 export type { GroupLayout, GroupOptions } from './group'
 export { hexagon } from './hexagon'
@@ -168,6 +178,7 @@ export type {
   MarkInitializeContext,
   MarkRenderContext,
   MarkScene,
+  MarkFocusGuide,
   MaterializedChannel,
   ChartAxisOptions,
   ChartAxisLabelOptions,
@@ -187,6 +198,18 @@ export type {
   ChartColorScaleContext,
   ResolvedColorScaleKind,
   InferableColorScaleLike,
+  ChartCursorAxisContext,
+  ChartCursorAxisOptions,
+  ChartCursorAxisPresentation,
+  ChartCursorBinding,
+  ChartCursorController,
+  ChartCursorCoordinates,
+  ChartCursorExtensionToken,
+  ChartCursorPointIdentity,
+  ChartCursorPresentation,
+  ChartCursorState,
+  ChartCursorStateUpdater,
+  ChartCursorValues,
   ChartColorLegend,
   ChartColorLegendContext,
   ChartContinuousDomain,
@@ -195,6 +218,9 @@ export type {
   ChartDefinition,
   ChartDefinitionOptions,
   ChartExtensionInput,
+  ChartFocusAnchor,
+  ChartFocusCursorBinding,
+  ChartFocusPresentation,
   ChartFocusMode,
   ChartFocusFilter,
   ChartFocusAffinity,
@@ -205,6 +231,7 @@ export type {
   ChartFocusSource,
   ChartFocusState,
   ChartFocusStrategy,
+  ChartFreeCursorBinding,
   ChartGradientStop,
   ChartKey,
   ChartLayoutOptions,
@@ -298,6 +325,13 @@ export type {
   ResolvedColorScale,
   SceneDot,
   SceneArea,
+  SceneFocusGuide,
+  SceneFocusGuideAxis,
+  SceneFocusGuideBand,
+  SceneFocusGuideLabel,
+  SceneFocusGuideMarker,
+  SceneFocusGuideResolveContext,
+  SceneFocusGuideResolver,
   SceneInteraction,
   SceneGroup,
   SceneLabel,

@@ -22,6 +22,7 @@ const customViewIds = [
   '88-echarts-free-cursor',
   '89-brush-range-selection',
   '90-zoomable-time-window',
+  '119-stacked-bar-band-cursor',
 ] as const
 
 function component(id: string) {

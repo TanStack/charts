@@ -42,6 +42,7 @@ interface InitializedMark<
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
   viewport?: Readonly<Partial<Record<'x' | 'y', 'content' | 'fixed'>>>
+  focusGuideOnly?: boolean
   layoutLabels?(context: MarkRenderContext): readonly SceneLabel[]
   render(context: MarkRenderContext): MarkScene<TDatum, TXValue, TYValue>
 }
@@ -82,10 +83,12 @@ The render context provides final geometry and shared presentation:
 ```ts
 interface MarkRenderContext {
   markIndex: number
+  surface: ChartBounds
   chart: ChartBounds
   scales: Readonly<Record<string, ResolvedScale>>
   theme: ChartTheme
   color(value: ChartKey | null | undefined): string
+  colors: ResolvedColorScale
   layout: ChartLayoutOptions
 }
 ```
@@ -107,14 +110,37 @@ interface MarkScene<
 > {
   nodes: readonly SceneNode[]
   points?: readonly ChartPoint<TDatum, TXValue, TYValue>[]
-  focusPoints?: readonly ChartPoint[]
+  focusAnchors?: readonly ChartFocusAnchor[]
+  focusGuides?: readonly MarkFocusGuide[]
+}
+
+type MarkFocusGuide = Omit<SceneFocusGuide, 'placement'> & {
+  placement?: SceneFocusGuide['placement']
 }
 ```
 
-Use `focusPoints` only for presentation geometry wrapped in `whenFocused`
-whose candidates must not become native pointer, keyboard, tooltip, or callback
-targets. Candidate keys must match their scene-node keys. The scene compiler
-uses them only inside the focused presentation layer.
+`focusAnchors` let `whenFocused` reveal decorative geometry without making it
+a pointer or keyboard target. `focusGuides` describe data-less presentation
+resolved from current focus or cursor state. `MarkFocusGuide` has the final
+`SceneFocusGuide` fields except that `placement` is optional. Omit it to let
+mark order place a guide under or over the first ordinary mark. Supply it only
+when a composed nested scene must preserve an already resolved placement.
+Every focus guide supplies a `resolve` callback that receives
+`SceneFocusGuideResolveContext` and returns one transient `SceneNode` or
+`undefined`. The callback stays attached to the optional guide instead of
+becoming unconditional renderer policy. Import `resolveCrosshairGuide` from
+`@tanstack/charts/crosshair` to reuse the built-in rule, band, label, and marker
+behavior.
+
+Set `focusGuideOnly: true` on an initialized mark that contributes only these
+dynamic guides and no ordinary base-scene content. This explicit
+classification keeps the mark out of the first-ordinary-mark boundary used by
+default placement. `surface` is the required full-surface bounds; `chart` is
+the inner plot. Guide rules normally clip to `chart`, while labels may use
+`surface` for clamping.
+
+The practical contracts are in
+[Custom Marks and Renderers](../guides/custom-marks-and-renderers.md).
 
 ### Mark requirements
 
@@ -125,7 +151,7 @@ uses them only inside the focused presentation layer.
 - Declare `viewport` ownership when channel inference does not match the
   mark's content or fixed annotation behavior.
 - Give each scene node and point a deterministic key.
-- Keep presentation-only `focusPoints` keyed to the nodes they reveal.
+- Keep presentation-only focus anchors keyed to the nodes they reveal.
 - Emit finite geometry only.
 - Preserve the original datum and index in every interaction point.
 - Use one honest focus coordinate and semantic x/y pair per point.
@@ -248,6 +274,17 @@ scene coordinates, paints focus, and releases renderer-owned resources.
 `mountChartRenderer` keeps responsive sizing, runtime updates, focus,
 keyboard, tooltip, and selection behavior shared across renderers.
 
+Custom surfaces should resolve authored focus layers and data-less guides with
+`resolveFocusPresentation(scene, focus, pointer, cursor)`, then paint its
+`under` nodes, the base scene, and its `over` nodes in that order.
+
+The scene compiler has already converted every mark-emitted `MarkFocusGuide`
+to a `SceneFocusGuide` with required `placement` before a renderer receives the
+scene. `resolveFocusPresentation` calls each guide's resolver with its local
+focus, pointer, and cursor context. A custom renderer should consume those
+resolved nodes and final placement through that helper; it should not call
+guide resolvers or infer mark order again.
+
 Use `@tanstack/charts/renderer` directly or the framework `/core` entries.
 The optional built-in implementation at `@tanstack/charts/canvas` demonstrates
 the boundary without changing the default SVG imports.
@@ -255,7 +292,8 @@ the boundary without changing the default SVG imports.
 For an SVG-only serialization change, pass a `ChartSvgRenderer` as `renderSvg`
 to the compatibility host or adapt it with `createSvgChartRenderer` from
 `@tanstack/charts/svg/renderer`. Preserve the SVG root, stable DOM keys,
-accessible name, coordinate system, and focus marker expected by that adapter.
+accessible name, coordinate system, and focus presentation expected by that
+adapter.
 
 Default SVG serialization already preserves declared gradients and group
 clips; see [Rendering and export](./rendering-and-export.md#svg-resources).

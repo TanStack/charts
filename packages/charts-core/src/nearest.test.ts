@@ -1,7 +1,11 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
 import { barX, barY } from './bar'
-import { nearestPoint, nearestScenePoint } from './nearest'
+import {
+  findContainingScenePoint,
+  nearestPoint,
+  nearestScenePoint,
+} from './nearest'
 import { createChartScene, defineChart } from './scene'
 import type {
   ChartFocusAffinity,
@@ -42,6 +46,34 @@ describe('scene interaction geometry', () => {
     )
 
     expect(nearestScenePoint(scene, 100, 100, 48)?.key).toBe('upper')
+    expect(findContainingScenePoint(scene, 100, 100)?.point?.key).toBe('upper')
+  })
+
+  it('does not treat axis-affinity fallback as painted containment', () => {
+    const xAligned = point('x-aligned', 100, 20)
+    const scene = testScene([rect(xAligned, 95, 15, 10, 10, 'x')], [xAligned])
+
+    expect(findContainingScenePoint(scene, 100, 190)).toBeNull()
+    expect(nearestScenePoint(scene, 100, 190, 0)?.key).toBe('x-aligned')
+  })
+
+  it('does not fall through a containing target without a semantic point', () => {
+    const lower = point('lower', 100, 100)
+    const empty = {
+      ...rect(lower, 80, 80, 40, 40),
+      key: 'empty',
+      interaction: { points: [], affinity: 'xy' as const },
+    }
+    const scene = testScene([rect(lower, 80, 80, 40, 40), empty], [lower])
+
+    expect(findContainingScenePoint(scene, 100, 100)).toEqual({ point: null })
+    expect(nearestScenePoint(scene, 100, 100, 48)).toBeNull()
+    expect(
+      findContainingScenePoint(scene, 100, 100, scene.points.slice()),
+    ).toEqual({ point: null })
+    expect(
+      nearestScenePoint(scene, 100, 100, 48, scene.points.slice()),
+    ).toBeNull()
   })
 
   it('falls back along the primitive affinity after missing every shape', () => {

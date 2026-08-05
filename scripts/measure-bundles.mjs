@@ -23,6 +23,8 @@ const rendererBoundaryModules = {
   ],
   svg: [
     'packages/charts-core/src/reconcile.ts',
+    'packages/charts-core/src/svg-focus-guide-layer.ts',
+    'packages/charts-core/src/svg-focus-guide-serializer.ts',
     'packages/charts-core/src/svg-renderer.ts',
     'packages/charts-core/src/svg-resources.ts',
     'packages/charts-core/src/svg-surface.ts',
@@ -44,6 +46,8 @@ const rendererBoundaryModules = {
     'packages/charts-core/src/export.ts',
     'packages/charts-core/src/reconcile.ts',
     'packages/charts-core/src/renderer.ts',
+    'packages/charts-core/src/svg-focus-guide-layer.ts',
+    'packages/charts-core/src/svg-focus-guide-serializer.ts',
     'packages/charts-core/src/svg-resources.ts',
     'packages/charts-core/src/svg-surface.ts',
     'packages/react-charts/src/CanvasChart.tsx',
@@ -52,6 +56,17 @@ const rendererBoundaryModules = {
   ],
 }
 const retainedInputGroups = {
+  crosshairRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/crosshair(?:-resolver)?\.ts$/u,
+  ],
+  cursorRuntime: [/(?:^|\/)packages\/charts-core\/src\/cursor\.ts$/u],
+  focusPresentationRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/focus-layer\.ts$/u,
+  ],
+  platformRendererRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/(?:adapter(?:-renderer)?|canvas|dom(?:-text)?|export|reconcile|renderer|svg(?:-focus-guide-(?:layer|serializer)|-renderer|-resources|-surface)?)\.ts$/u,
+    /(?:^|\/)packages\/(?:react-charts|react-native-charts)\/src\//u,
+  ],
   compactLinear: [/(?:^|\/)packages\/charts-scales\/src\/linear\.ts$/u],
   compactBandEntry: [/(?:^|\/)packages\/charts-scales\/src\/band\.ts$/u],
   compactPointEntry: [/(?:^|\/)packages\/charts-scales\/src\/point\.ts$/u],
@@ -254,7 +269,7 @@ const entries = [
   budgeted(
     'D3-scale facets + static SVG',
     'benchmarks/entries/charts-facet-svg.ts',
-    20.9,
+    21.05,
   ),
   budgeted(
     'D3-scale arrows + static SVG',
@@ -271,6 +286,24 @@ const entries = [
     'Custom mark scale-value factory',
     'benchmarks/entries/charts-mark-scale-values.ts',
     0.25,
+  ),
+  measured(
+    'Crosshair mark extension',
+    'benchmarks/entries/charts-crosshair-kernel.ts',
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['crosshairRuntime'],
+        forbid: [
+          'cursorRuntime',
+          'focusPresentationRuntime',
+          'platformRendererRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+    },
   ),
   budgeted(
     'D3-scale hexagons + static SVG',
@@ -451,7 +484,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    21.3,
+    24,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -493,7 +526,7 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    14.4,
+    15.5,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -595,7 +628,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    44.5,
+    47.25,
   ),
   locked(
     'Custom-scale line scene',
@@ -646,12 +679,12 @@ const entries = [
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    29.2,
+    31.8,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    34.5,
+    37.05,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -793,6 +826,41 @@ const entries = [
     'benchmarks/entries/charts-pointer-geometry-kernel.ts',
     2.2,
   ),
+  measured(
+    'Application cursor controller',
+    'benchmarks/entries/charts-cursor-controller.ts',
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['cursorRuntime'],
+        forbid: [
+          'crosshairRuntime',
+          'focusPresentationRuntime',
+          'platformRendererRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+    },
+  ),
+  measured(
+    'Cursor host policy',
+    'benchmarks/entries/charts-cursor-host-policy.ts',
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['cursorRuntime', 'focusPresentationRuntime'],
+        forbid: [
+          'crosshairRuntime',
+          'platformRendererRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+    },
+  ),
   budgeted(
     'D3 brush controller kernel',
     'benchmarks/entries/d3-brush-kernel.ts',
@@ -821,7 +889,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    45.4,
+    48.1,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),

@@ -11,7 +11,7 @@ import type {
   ChartKey,
   ChartMark,
   ChartMarkMotionOptions,
-  ChartPoint,
+  ChartFocusAnchor,
   ChartValue,
   OptionChannelOutput,
   SceneNode,
@@ -81,53 +81,43 @@ export function ruleY<TDatum>(
         },
       },
       render: ({ scales, chart, theme, color: resolveColor }) => {
-        const nodes: SceneNode[] = []
-        const focusPoints: ChartPoint[] = []
-
+        const children: SceneNode[] = []
+        const focusAnchors: ChartFocusAnchor[] = []
         data.forEach((datum, index) => {
-          const value = values[index]
-          if (!isChartValue(value)) return
-
-          const y = scales.y.map(value)
-          const color = visualValue(
-            options.stroke,
-            datum,
-            index,
-            data,
-            colorValues[index] == null
-              ? theme.foreground
-              : resolveColor(colorValues[index]),
-          )
-          const key = `${id}:${valueKey(value)}:${index}`
-          nodes.push({
+          const yValue = values[index]
+          if (!isChartValue(yValue)) return
+          const key = `${id}:${valueKey(yValue)}:${index}`
+          children.push({
             kind: 'rule',
             key,
             x1: chart.x,
             x2: chart.x + chart.width,
-            y1: y,
-            y2: y,
+            y1: scales.y.map(yValue),
+            y2: scales.y.map(yValue),
             style: {
-              stroke: color,
+              stroke: visualValue(
+                options.stroke,
+                datum,
+                index,
+                data,
+                colorValues[index] == null
+                  ? theme.foreground
+                  : resolveColor(colorValues[index]),
+              ),
               strokeOpacity: options.strokeOpacity ?? 0.5,
               strokeWidth: options.strokeWidth,
               strokeDasharray: options.strokeDasharray,
             },
           })
-          focusPoints.push({
+          focusAnchors.push({
             key,
             markId: id,
-            group: null,
-            groupLabel: id,
+            group: isChartKey(colorValues[index]) ? colorValues[index] : null,
             datum,
             datumIndex: index,
-            xValue: 0,
-            yValue: value,
-            x: chart.x + chart.width / 2,
-            y,
-            color,
+            yValue,
           })
         })
-
         return {
           nodes: [
             {
@@ -135,10 +125,10 @@ export function ruleY<TDatum>(
               key: id,
               className: 'ts-chart__rule ts-chart__rule-y',
               ariaHidden: true,
-              children: nodes,
+              children,
             },
           ],
-          focusPoints,
+          focusAnchors,
         }
       },
     }
@@ -181,53 +171,43 @@ export function ruleX<TDatum>(
         },
       },
       render: ({ scales, chart, theme, color: resolveColor }) => {
-        const nodes: SceneNode[] = []
-        const focusPoints: ChartPoint[] = []
-
+        const children: SceneNode[] = []
+        const focusAnchors: ChartFocusAnchor[] = []
         data.forEach((datum, index) => {
-          const value = values[index]
-          if (!isChartValue(value)) return
-
-          const x = scales.x.map(value)
-          const color = visualValue(
-            options.stroke,
-            datum,
-            index,
-            data,
-            colorValues[index] == null
-              ? theme.foreground
-              : resolveColor(colorValues[index]),
-          )
-          const key = `${id}:${valueKey(value)}:${index}`
-          nodes.push({
+          const xValue = values[index]
+          if (!isChartValue(xValue)) return
+          const key = `${id}:${valueKey(xValue)}:${index}`
+          children.push({
             kind: 'rule',
             key,
-            x1: x,
-            x2: x,
+            x1: scales.x.map(xValue),
+            x2: scales.x.map(xValue),
             y1: chart.y,
             y2: chart.y + chart.height,
             style: {
-              stroke: color,
+              stroke: visualValue(
+                options.stroke,
+                datum,
+                index,
+                data,
+                colorValues[index] == null
+                  ? theme.foreground
+                  : resolveColor(colorValues[index]),
+              ),
               strokeOpacity: options.strokeOpacity ?? 0.5,
               strokeWidth: options.strokeWidth,
               strokeDasharray: options.strokeDasharray,
             },
           })
-          focusPoints.push({
+          focusAnchors.push({
             key,
             markId: id,
-            group: null,
-            groupLabel: id,
+            group: isChartKey(colorValues[index]) ? colorValues[index] : null,
             datum,
             datumIndex: index,
-            xValue: value,
-            yValue: 0,
-            x,
-            y: chart.y + chart.height / 2,
-            color,
+            xValue,
           })
         })
-
         return {
           nodes: [
             {
@@ -235,10 +215,10 @@ export function ruleX<TDatum>(
               key: id,
               className: 'ts-chart__rule ts-chart__rule-x',
               ariaHidden: true,
-              children: nodes,
+              children,
             },
           ],
-          focusPoints,
+          focusAnchors,
         }
       },
     }

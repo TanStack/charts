@@ -91,8 +91,10 @@ describe('React Canvas adapter', () => {
     expect(html).toContain('aria-label="Revenue"')
     expect(html).toContain('aria-description="Monthly revenue"')
     expect(html).toContain('tabindex="4"')
+    expect(html).toContain('ts-chart-canvas__background')
     expect(html).toContain('ts-chart-canvas__scene')
     expect(html).toContain('ts-chart-canvas__focus')
+    expect(html).toContain('ts-chart-canvas__base')
     expect(html).not.toContain('<svg')
     expect(getContext).not.toHaveBeenCalled()
     getContext.mockRestore()
@@ -110,11 +112,17 @@ describe('React Canvas adapter', () => {
       />,
     )
     const serverSurface = target.querySelector<HTMLElement>('.ts-chart-canvas')
+    const serverBackgroundCanvas = target.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__background',
+    )
     const serverSceneCanvas = target.querySelector<HTMLCanvasElement>(
       '.ts-chart-canvas__scene',
     )
     const serverFocusCanvas = target.querySelector<HTMLCanvasElement>(
       '.ts-chart-canvas__focus',
+    )
+    const serverBaseCanvas = target.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__base',
     )
     const onFocusChange = vi.fn()
     const onSelect = vi.fn()
@@ -139,11 +147,17 @@ describe('React Canvas adapter', () => {
     const surface = target.querySelector<HTMLElement>('.ts-chart-canvas')
     if (!surface) throw new Error('Expected a Canvas chart surface')
     expect(surface).toBe(serverSurface)
+    expect(target.querySelector('.ts-chart-canvas__background')).toBe(
+      serverBackgroundCanvas,
+    )
     expect(target.querySelector('.ts-chart-canvas__scene')).toBe(
       serverSceneCanvas,
     )
     expect(target.querySelector('.ts-chart-canvas__focus')).toBe(
       serverFocusCanvas,
+    )
+    expect(target.querySelector('.ts-chart-canvas__base')).toBe(
+      serverBaseCanvas,
     )
     expect(onRender).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -229,7 +243,7 @@ describe('React Canvas adapter', () => {
     })
 
     expect(target.querySelector('.ts-chart-canvas')).not.toBeNull()
-    expect(target.querySelectorAll('canvas')).toHaveLength(3)
+    expect(target.querySelectorAll('canvas')).toHaveLength(5)
     expect(target.querySelector('svg')).toBeNull()
 
     await act(async () => root.unmount())

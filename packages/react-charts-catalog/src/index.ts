@@ -655,6 +655,12 @@ export const catalogCases = [
     title: 'Token use calendar heatmap',
     family: 'time',
   },
+  {
+    id: '119-stacked-bar-band-cursor',
+    order: 1200,
+    title: 'Stacked bars with band and rule cursors',
+    family: 'interaction',
+  },
 ] as const
 
 export type CatalogCaseId = (typeof catalogCases)[number]['id']

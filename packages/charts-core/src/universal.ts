@@ -3,12 +3,22 @@ export { areaX } from './area-x'
 export { arrow } from './arrow'
 export { barX, barY } from './bar'
 export { bandX, bandY } from './band'
+export { crosshair } from './crosshair'
+export type {
+  CrosshairAxisOptions,
+  CrosshairBandOptions,
+  CrosshairLabelOptions,
+  CrosshairMarkerOptions,
+  CrosshairOptions,
+  CrosshairRuleOptions,
+} from './crosshair'
 export { d3AreaXCurve } from './d3-area-x'
 export { d3Curve } from './d3-shape'
 export { dot } from './dot'
 export { facet, facetChart } from './facet'
 export { frame } from './frame'
 export { whenFocused } from './focus-mark'
+export { resolveFocusPresentation } from './focus-presentation'
 export { group } from './group'
 export { hexagon } from './hexagon'
 export { lineY } from './line'

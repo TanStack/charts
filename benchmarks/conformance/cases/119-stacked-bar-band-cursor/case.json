@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "order": 1200,
+  "id": "119-stacked-bar-band-cursor",
+  "title": "Stacked bars with band and rule cursors",
+  "family": "interaction",
+  "intent": "Track one stacked-bar category with a labeled full-height x band and the focused segment endpoint with a labeled dotted y rule.",
+  "support": "native",
+  "features": [
+    "stacked bars",
+    "focused x band",
+    "dotted y crosshair",
+    "mixed cursor presentation",
+    "four-pixel bar outset",
+    "x cursor label",
+    "y cursor label",
+    "cursor spring motion",
+    "keyed data updates"
+  ],
+  "geometry": [{ "role": "bar", "count": 24 }],
+  "interactionScenarios": [
+    {
+      "id": "band-and-rule-follow-stack",
+      "steps": [
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "period:Jul:cause:disease"
+          }
+        },
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "period:Nov:cause:wounds"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focus.period", "equals": "Nov" },
+            { "path": "focus.cause", "equals": "wounds" },
+            { "path": "focus.groupSize", "equals": 3 },
+            { "path": "cursor.bandVisible", "equals": true },
+            { "path": "cursor.yRuleVisible", "equals": true },
+            { "path": "cursor.xLabelVisible", "equals": true },
+            { "path": "cursor.yLabelVisible", "equals": true },
+            { "path": "cursor.yRuleDotted", "equals": true }
+          ]
+        },
+        { "type": "wait", "durationMs": 1200 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "cursor.bandWider", "equals": true },
+            { "path": "cursor.bandCentered", "equals": true },
+            {
+              "path": "cursor.leftOutset",
+              "approx": 4,
+              "tolerance": 0.05
+            },
+            {
+              "path": "cursor.rightOutset",
+              "approx": 4,
+              "tolerance": 0.05
+            },
+            {
+              "path": "cursor.widthDelta",
+              "approx": 8,
+              "tolerance": 0.05
+            },
+            { "path": "cursor.xLabelText", "equals": "Nov" },
+            { "path": "cursor.labelsMatchFocus", "equals": true },
+            { "path": "cursor.xLabelCentered", "equals": true },
+            { "path": "cursor.yLabelAligned", "equals": true },
+            { "path": "cursor.ySettled", "equals": true },
+            { "path": "cursor.motionState", "equals": "finished" }
+          ]
+        },
+        { "type": "screenshot", "name": "stacked-band-and-rule-cursors" },
+        { "type": "update", "revision": 1 },
+        { "type": "wait", "durationMs": 1200 },
+        {
+          "type": "pointerMove",
+          "target": {
+            "view": "main",
+            "anchor": "period:Nov:cause:wounds"
+          }
+        },
+        { "type": "wait", "durationMs": 1200 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focus.period", "equals": "Nov" },
+            { "path": "focus.cause", "equals": "wounds" },
+            { "path": "focus.deaths", "equals": 367 },
+            { "path": "focus.end", "equals": 992 },
+            { "path": "cursor.bandWider", "equals": true },
+            { "path": "cursor.bandCentered", "equals": true },
+            {
+              "path": "cursor.leftOutset",
+              "approx": 4,
+              "tolerance": 0.05
+            },
+            {
+              "path": "cursor.rightOutset",
+              "approx": 4,
+              "tolerance": 0.05
+            },
+            {
+              "path": "cursor.widthDelta",
+              "approx": 8,
+              "tolerance": 0.05
+            },
+            { "path": "cursor.xLabelText", "equals": "Nov" },
+            { "path": "cursor.yLabelText", "equals": "992" },
+            { "path": "cursor.labelsMatchFocus", "equals": true },
+            { "path": "cursor.xLabelCentered", "equals": true },
+            { "path": "cursor.yLabelAligned", "equals": true },
+            { "path": "cursor.ySettled", "equals": true }
+          ]
+        },
+        { "type": "pointerLeave", "view": "main" },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "focus.period", "equals": null },
+            { "path": "cursor.bandVisible", "equals": false },
+            { "path": "cursor.yRuleVisible", "equals": false },
+            { "path": "cursor.xLabelVisible", "equals": false },
+            { "path": "cursor.yLabelVisible", "equals": false },
+            { "path": "cursor.xLabelText", "equals": null },
+            { "path": "cursor.yLabelText", "equals": null }
+          ]
+        }
+      ]
+    }
+  ],
+  "source": {
+    "title": "Observable Plot pointer interaction",
+    "url": "https://observablehq.com/plot/interactions/pointer"
+  },
+  "ai": {
+    "create": "Create stacked Crimean War bars where the selected month paints a labeled x band exactly four pixels beyond both bar edges and the selected segment paints a labeled dotted horizontal y rule at its stack endpoint.",
+    "maintain": "Keep the labeled x band and y rule as stable renderer-native guides, preserve their spring motion and keyed update continuity, and verify the band's exact rendered four-pixel outset plus label alignment across responsive sizes and themes."
+  }
+}

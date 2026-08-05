@@ -23,6 +23,7 @@ import type {
   ChartMarkPointX,
   ChartMarkPointY,
   ChartPoint,
+  SceneFocusGuide,
   ResolvedColorScale,
   ChartScene,
   ChartScaleResolver,
@@ -215,7 +216,10 @@ function createChartSceneWithScaleResolver<
   const points: ChartPoint<TDatum, TXValue, TYValue>[] = []
   const translateX = scales.x.viewport?.translate ?? 0
   const translateY = scales.y.viewport?.translate ?? 0
-  const firstBaseMarkIndex = initialized.findIndex((mark) => !mark.focus)
+  const focusGuides: SceneFocusGuide[] = []
+  const firstBaseMarkIndex = initialized.findIndex(
+    (mark) => !mark.focus && !mark.focusGuideOnly,
+  )
 
   initialized.forEach((mark, markIndex) => {
     const viewportX = Boolean(
@@ -244,6 +248,7 @@ function createChartSceneWithScaleResolver<
     }
     const rendered = mark.render({
       markIndex,
+      surface: { x: 0, y: 0, width, height },
       chart,
       scales,
       theme,
@@ -260,10 +265,14 @@ function createChartSceneWithScaleResolver<
         ? mapScenePointReferences(rendered.nodes, presentPoint)
         : rendered.nodes
     const presentedPoints = renderedPoints.map(presentPoint)
-    const presentedFocusPoints = (rendered.focusPoints ?? renderedPoints).map(
-      presentPoint,
-    )
     const entryNodes: SceneNode[] = []
+    const placement =
+      firstBaseMarkIndex < 0 || markIndex < firstBaseMarkIndex
+        ? 'under'
+        : 'over'
+    for (const guide of rendered.focusGuides ?? []) {
+      focusGuides.push({ ...guide, placement: guide.placement ?? placement })
+    }
     if (mark.focus) {
       entryNodes.push({
         kind: 'group',
@@ -272,11 +281,9 @@ function createChartSceneWithScaleResolver<
         ariaHidden: true,
         focus: {
           match: mark.focus.match ?? 'primary',
-          points: presentedFocusPoints,
-          placement:
-            firstBaseMarkIndex < 0 || markIndex < firstBaseMarkIndex
-              ? 'under'
-              : 'over',
+          anchors: rendered.focusAnchors ?? renderedPoints,
+          points: presentedPoints,
+          placement,
         },
         children: renderedNodes,
       })
@@ -342,6 +349,7 @@ function createChartSceneWithScaleResolver<
         clip: entry.clipped ? chart : undefined,
         focus: {
           match: 'primary',
+          anchors: entry.points,
           points: entry.points,
           placement: 'over',
         },
@@ -372,6 +380,7 @@ function createChartSceneWithScaleResolver<
     colors,
     gradients: definition.gradients ?? [],
     theme,
+    ...(focusGuides.length ? { focusGuides } : {}),
     [chartSceneSource]: [definition, initialized],
   } as ChartScene<TDatum, TXValue, TYValue> & {
     [chartSceneSource]: readonly [
@@ -669,6 +678,7 @@ function resolveSceneLayout(
         if (autoClipped) return
         const labels = mark.layoutLabels?.({
           markIndex,
+          surface: { x: 0, y: 0, width, height },
           chart: resolved.chart,
           scales: resolved.scales,
           theme,

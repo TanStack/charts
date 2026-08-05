@@ -1,6 +1,6 @@
 import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
-import { focusedSceneNodes } from './focus-layer'
+import { resolveFocusPresentation } from './focus-presentation'
 import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
 import type {
   ChartInteractionController,
@@ -33,8 +33,13 @@ export interface CanvasChartSurface<
   TYValue extends ChartValue = ChartValue,
 > extends ChartSurface<TDatum, TXValue, TYValue> {
   readonly element: HTMLDivElement
+  /** Background plus ordinary scene, excluding transient focus presentation. */
   readonly canvas: HTMLCanvasElement
+  /** Live background layer beneath focus underlays. */
+  readonly backgroundCanvas: HTMLCanvasElement
   readonly focusUnderCanvas: HTMLCanvasElement
+  /** Live ordinary-scene layer above focus underlays. */
+  readonly sceneCanvas: HTMLCanvasElement
   readonly focusCanvas: HTMLCanvasElement
 }
 
@@ -161,12 +166,25 @@ function createUniversalCanvasChartRenderer(
       const document = container.ownerDocument
       const view = document.defaultView
       const root = findOrCreateRoot(container)
+      const backgroundCanvas = findOrCreateCanvas(
+        root,
+        'ts-chart-canvas__background',
+      )
       const focusUnderCanvas = findOrCreateCanvas(
         root,
         'ts-chart-canvas__focus-under',
       )
-      const canvas = findOrCreateCanvas(root, 'ts-chart-canvas__scene')
+      const sceneCanvas = findOrCreateCanvas(root, 'ts-chart-canvas__scene')
       const focusCanvas = findOrCreateCanvas(root, 'ts-chart-canvas__focus')
+      const canvas = findOrCreateCanvas(root, 'ts-chart-canvas__base')
+      canvas.style.display = 'none'
+      root.append(
+        backgroundCanvas,
+        focusUnderCanvas,
+        sceneCanvas,
+        focusCanvas,
+        canvas,
+      )
       const resolver = new CanvasPaintResolver(root)
       const mutationObserver = observeTheme(container, requestRender)
       const colorScheme = view?.matchMedia?.('(prefers-color-scheme: dark)')
@@ -179,18 +197,47 @@ function createUniversalCanvasChartRenderer(
       let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
       let pixelRatio = 1
       let cancelAnimation = () => {}
+      let backgroundAnimationActive = false
       let stateTransition: ChartMarkStateTransition | undefined
       let destroyed = false
+
+      const startCoordinatedAnimation = (
+        nextScene: ChartScene<TDatum, TXValue, TYValue>,
+        animation: ChartAnimationOptions,
+        captureBase: boolean,
+      ) => {
+        backgroundAnimationActive = true
+        const cancel = animateSceneUpdate(
+          backgroundCanvas,
+          sceneCanvas,
+          captureBase ? canvas : undefined,
+          nextScene,
+          pixelRatio,
+          animation,
+          resolver,
+          root,
+          () => {
+            backgroundAnimationActive = false
+          },
+        )
+        cancelAnimation = () => {
+          backgroundAnimationActive = false
+          cancel()
+        }
+      }
 
       const surface: CanvasChartSurface<TDatum, TXValue, TYValue> = {
         renderer,
         element: root,
         canvas,
+        backgroundCanvas,
         focusUnderCanvas,
+        sceneCanvas,
         focusCanvas,
         render(nextScene, options) {
           if (destroyed) return
           cancelAnimation()
+          backgroundAnimationActive = false
           cancelAnimation = () => {}
           configureRoot(root, options)
           resolver.refresh()
@@ -205,7 +252,9 @@ function createUniversalCanvasChartRenderer(
             scene.height === nextScene.height &&
             pixelRatio === nextPixelRatio
           pixelRatio = nextPixelRatio
+          sizeCanvas(backgroundCanvas, nextScene, pixelRatio)
           sizeCanvas(canvas, nextScene, pixelRatio)
+          sizeCanvas(sceneCanvas, nextScene, pixelRatio)
           sizeCanvas(focusUnderCanvas, nextScene, pixelRatio)
           sizeCanvas(focusCanvas, nextScene, pixelRatio)
           root.dataset.tsChartWidth = String(nextScene.width)
@@ -215,16 +264,22 @@ function createUniversalCanvasChartRenderer(
           clearCanvas(focusCanvas, nextScene, pixelRatio)
 
           if (canAnimate) {
-            cancelAnimation = animateScene(
-              canvas,
+            startCoordinatedAnimation(nextScene, options.animation!, true)
+          } else {
+            paintBackgroundCanvas(
+              backgroundCanvas,
               nextScene,
               pixelRatio,
-              options.animation!,
               resolver,
-              root,
             )
-          } else {
-            paintCanvas(canvas, nextScene, pixelRatio, resolver, root)
+            paintCanvas(sceneCanvas, nextScene, pixelRatio, resolver, root)
+            composeBaseCanvas(
+              canvas,
+              backgroundCanvas,
+              sceneCanvas,
+              nextScene,
+              pixelRatio,
+            )
           }
           scene = nextScene
           stateTransition = undefined
@@ -237,37 +292,63 @@ function createUniversalCanvasChartRenderer(
             y: ((clientY - bounds.top) / bounds.height) * currentScene.height,
           }
         },
-        paintFocus(focus, pointer) {
+        paintFocus(focus, pointer, cursor) {
           if (!scene || destroyed) return
           const resolved = resolveMarkStateScene(scene, focus, pointer)
           const previousTransition = stateTransition
           if (resolved.scene !== scene || previousTransition) {
+            const interruptedBackground = backgroundAnimationActive
             cancelAnimation()
+            backgroundAnimationActive = false
             const transition = resolveMarkStateTransition(
               resolved.transition ?? previousTransition,
               root,
             )
             if (transition) {
-              cancelAnimation = animateScene(
-                canvas,
+              if (interruptedBackground) {
+                startCoordinatedAnimation(resolved.scene, transition, false)
+              } else {
+                cancelAnimation = animateScene(
+                  sceneCanvas,
+                  resolved.scene,
+                  pixelRatio,
+                  transition,
+                  resolver,
+                  root,
+                )
+              }
+            } else {
+              if (interruptedBackground) {
+                paintBackgroundCanvas(
+                  backgroundCanvas,
+                  resolved.scene,
+                  pixelRatio,
+                  resolver,
+                )
+              }
+              paintCanvas(
+                sceneCanvas,
                 resolved.scene,
                 pixelRatio,
-                transition,
                 resolver,
                 root,
               )
-            } else {
-              paintCanvas(canvas, resolved.scene, pixelRatio, resolver, root)
               cancelAnimation = () => {}
             }
           }
           stateTransition = focus
             ? (resolved.transition ?? previousTransition)
             : undefined
+          const presentation = resolveFocusPresentation(
+            resolved.scene,
+            focus,
+            pointer,
+            cursor,
+          )
           paintFocusCanvas(
             focusUnderCanvas,
             resolved.scene,
-            focusedSceneNodes(resolved.scene, focus, 'under'),
+            presentation.under,
             pixelRatio,
             resolver,
             root,
@@ -275,7 +356,7 @@ function createUniversalCanvasChartRenderer(
           paintFocusCanvas(
             focusCanvas,
             resolved.scene,
-            focusedSceneNodes(resolved.scene, focus, 'over'),
+            presentation.over,
             pixelRatio,
             resolver,
             root,
@@ -349,7 +430,7 @@ function renderCanvasShell(
     : ''
   const width = integer(scene.width)
   const height = integer(scene.height)
-  return `<div class="${escapeAttribute(className)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}"${description} tabindex="${integer(options.tabIndex ?? 0)}" data-ts-chart-width="${width}" data-ts-chart-height="${height}" data-ts-chart-pixel-ratio="1" style="display:block;position:relative;width:100%;height:100%;overflow:visible"><canvas class="ts-chart-canvas__focus-under" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas><canvas class="ts-chart-canvas__scene" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas><canvas class="ts-chart-canvas__focus" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas></div>`
+  return `<div class="${escapeAttribute(className)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}"${description} tabindex="${integer(options.tabIndex ?? 0)}" data-ts-chart-width="${width}" data-ts-chart-height="${height}" data-ts-chart-pixel-ratio="1" style="display:block;position:relative;width:100%;height:100%;overflow:visible"><canvas class="ts-chart-canvas__background" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas><canvas class="ts-chart-canvas__focus-under" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas><canvas class="ts-chart-canvas__scene" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas><canvas class="ts-chart-canvas__focus" width="${width}" height="${height}" aria-hidden="true" style="display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas><canvas class="ts-chart-canvas__base" width="${width}" height="${height}" aria-hidden="true" style="display:none"></canvas></div>`
 }
 
 function findOrCreateRoot(container: HTMLElement): HTMLDivElement {
@@ -450,6 +531,44 @@ function paintCanvas(
   paintScene(context, scene, resolver, root)
 }
 
+function paintBackgroundCanvas(
+  canvas: HTMLCanvasElement,
+  scene: ChartScene,
+  pixelRatio: number,
+  resolver: CanvasPaintResolver,
+): void {
+  const context = requiredContext(canvas)
+  resetContext(context, pixelRatio)
+  context.clearRect(0, 0, scene.width, scene.height)
+  paintSceneBackground(context, scene, resolver)
+}
+
+function composeBaseCanvas(
+  canvas: HTMLCanvasElement,
+  backgroundCanvas: HTMLCanvasElement,
+  sceneCanvas: HTMLCanvasElement,
+  scene: ChartScene,
+  pixelRatio: number,
+): void {
+  const context = requiredContext(canvas)
+  resetContext(context, pixelRatio)
+  context.clearRect(0, 0, scene.width, scene.height)
+  context.drawImage(backgroundCanvas, 0, 0, scene.width, scene.height)
+  context.drawImage(sceneCanvas, 0, 0, scene.width, scene.height)
+}
+
+function paintSceneBackground(
+  context: CanvasRenderingContext2D,
+  scene: ChartScene,
+  resolver: CanvasPaintResolver,
+): void {
+  if (scene.theme.background === 'transparent') return
+  const background = resolver.resolve(scene.theme.background)
+  if (!background) return
+  context.fillStyle = background
+  context.fillRect(0, 0, scene.width, scene.height)
+}
+
 function resetContext(
   context: CanvasRenderingContext2D,
   pixelRatio: number,
@@ -475,16 +594,92 @@ function animateScene(
     return () => {}
   }
 
-  const previous = document.createElement('canvas')
-  previous.width = canvas.width
-  previous.height = canvas.height
-  requiredContext(previous).drawImage(canvas, 0, 0)
-  const target = document.createElement('canvas')
-  target.width = canvas.width
-  target.height = canvas.height
+  const previous = copyCanvas(canvas)
+  const target = sizedCanvas(document, canvas)
   paintCanvas(target, scene, pixelRatio, resolver, root)
+  return crossfadeCanvasLayers(
+    view,
+    [{ canvas, previous, target }],
+    duration,
+    animation,
+  )
+}
 
-  const context = requiredContext(canvas)
+function animateSceneUpdate(
+  backgroundCanvas: HTMLCanvasElement,
+  sceneCanvas: HTMLCanvasElement,
+  baseCanvas: HTMLCanvasElement | undefined,
+  scene: ChartScene,
+  pixelRatio: number,
+  animation: ChartAnimationOptions,
+  resolver: CanvasPaintResolver,
+  root: HTMLDivElement,
+  onComplete?: () => void,
+): () => void {
+  const document = sceneCanvas.ownerDocument
+  const view = document.defaultView
+  const duration = Math.max(0, animation.duration ?? 250)
+  if (!view?.requestAnimationFrame || duration === 0) {
+    paintBackgroundCanvas(backgroundCanvas, scene, pixelRatio, resolver)
+    paintCanvas(sceneCanvas, scene, pixelRatio, resolver, root)
+    if (baseCanvas) {
+      composeBaseCanvas(
+        baseCanvas,
+        backgroundCanvas,
+        sceneCanvas,
+        scene,
+        pixelRatio,
+      )
+    }
+    onComplete?.()
+    return () => {}
+  }
+
+  const previousBackground = copyCanvas(backgroundCanvas)
+  const targetBackground = sizedCanvas(document, backgroundCanvas)
+  paintBackgroundCanvas(targetBackground, scene, pixelRatio, resolver)
+  const previousScene = copyCanvas(sceneCanvas)
+  const targetScene = sizedCanvas(document, sceneCanvas)
+  paintCanvas(targetScene, scene, pixelRatio, resolver, root)
+  if (baseCanvas) {
+    composeBaseCanvas(
+      baseCanvas,
+      targetBackground,
+      targetScene,
+      scene,
+      pixelRatio,
+    )
+  }
+
+  return crossfadeCanvasLayers(
+    view,
+    [
+      {
+        canvas: backgroundCanvas,
+        previous: previousBackground,
+        target: targetBackground,
+      },
+      { canvas: sceneCanvas, previous: previousScene, target: targetScene },
+    ],
+    duration,
+    animation,
+    onComplete,
+  )
+}
+
+interface CanvasCrossfadeLayer {
+  canvas: HTMLCanvasElement
+  previous: HTMLCanvasElement
+  target: HTMLCanvasElement
+}
+
+function crossfadeCanvasLayers(
+  view: Window,
+  layers: readonly CanvasCrossfadeLayer[],
+  duration: number,
+  animation: ChartAnimationOptions,
+  onComplete?: () => void,
+): () => void {
   const ease = resolveEasing(animation.easing)
   let frame: number | undefined
   let canceled = false
@@ -495,17 +690,21 @@ function animateScene(
     start ??= time
     const progress = duration === 0 ? 1 : Math.min(1, (time - start) / duration)
     const eased = ease(progress)
-    context.setTransform(1, 0, 0, 1, 0, 0)
-    context.clearRect(0, 0, canvas.width, canvas.height)
-    context.globalAlpha = 1 - eased
-    context.drawImage(previous, 0, 0)
-    context.globalAlpha = eased
-    context.drawImage(target, 0, 0)
-    context.globalAlpha = 1
+    for (const { canvas, previous, target } of layers) {
+      const context = requiredContext(canvas)
+      context.setTransform(1, 0, 0, 1, 0, 0)
+      context.clearRect(0, 0, canvas.width, canvas.height)
+      context.globalAlpha = 1 - eased
+      context.drawImage(previous, 0, 0)
+      context.globalAlpha = eased
+      context.drawImage(target, 0, 0)
+      context.globalAlpha = 1
+    }
     if (progress < 1) {
       frame = view.requestAnimationFrame(paintFrame)
     } else {
       frame = undefined
+      onComplete?.()
     }
   }
 
@@ -514,6 +713,22 @@ function animateScene(
     canceled = true
     if (frame !== undefined) view.cancelAnimationFrame(frame)
   }
+}
+
+function copyCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
+  const copy = sizedCanvas(canvas.ownerDocument, canvas)
+  requiredContext(copy).drawImage(canvas, 0, 0)
+  return copy
+}
+
+function sizedCanvas(
+  document: Document,
+  source: HTMLCanvasElement,
+): HTMLCanvasElement {
+  const canvas = document.createElement('canvas')
+  canvas.width = source.width
+  canvas.height = source.height
+  return canvas
 }
 
 function resolveEasing(
@@ -545,13 +760,6 @@ function paintScene(
   const Path = root.ownerDocument.defaultView?.Path2D
   const font = readFont(root)
   const painter: ScenePainter = { context, resolver, scene, Path, font }
-  if (scene.theme.background !== 'transparent') {
-    const background = resolver.resolve(scene.theme.background)
-    if (background) {
-      context.fillStyle = background
-      context.fillRect(0, 0, scene.width, scene.height)
-    }
-  }
   paintNodes(painter, scene.nodes, defaultPaint)
 }
 

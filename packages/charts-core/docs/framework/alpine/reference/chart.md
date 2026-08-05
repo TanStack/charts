@@ -10,8 +10,8 @@ import { charts } from '@tanstack/alpine-charts'
 Register `charts` with `Alpine.plugin`, then make `x-chart` evaluate to a
 complete `ChartOptions` value. Replace the definition identity when captured
 application values change.
-The definition also owns focus, tooltip, animation, keyboard policy, focus
-distance, and spatial indexing.
+The definition also owns `focus`, `focusRing`, `cursor`, `tooltip`, `animate`,
+`keyboard`, `maxFocusDistance`, and `spatialIndex`.
 
 ## Directive options
 

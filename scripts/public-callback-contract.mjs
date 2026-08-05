@@ -23,6 +23,11 @@ const callbackInventory = {
       '@tanstack/charts:src/canvas.ts:UniversalCanvasChartRenderer',
       'mount.requestRender',
     ],
+    ['@tanstack/charts:src/crosshair.ts:CrosshairLabelOptions', 'format'],
+    [
+      '@tanstack/charts:src/cursor-host-contract.ts:ChartCursorHostSession',
+      'subscribe.listener',
+    ],
     [
       '@tanstack/charts:src/area-x.ts:AreaXOptions',
       'color fill key stroke x x1 x2 y z',
@@ -142,6 +147,12 @@ const callbackInventory = {
     ['@tanstack/charts:src/types.ts:ChartAxisTickOptions', 'format motion'],
     ['@tanstack/charts:src/types.ts:ChartColorLegend', 'height render'],
     ['@tanstack/charts:src/types.ts:ChartColorScale', 'resolve'],
+    ['@tanstack/charts:src/types.ts:ChartCursorAxisOptions', 'valueAt'],
+    [
+      '@tanstack/charts:src/types.ts:ChartCursorController',
+      'setState.next subscribe.listener',
+    ],
+    ['@tanstack/charts:src/types.ts:ChartCursorStateUpdater', '$call'],
     [
       '@tanstack/charts:src/types.ts:ChartDefinitionOptions',
       'motion spatialIndex',
@@ -163,6 +174,12 @@ const callbackInventory = {
     ['@tanstack/charts:src/types.ts:ChartMotionTweenTransition', 'easing'],
     ['@tanstack/charts:src/types.ts:ChartScale', 'resolve'],
     ['@tanstack/charts:src/types.ts:ChartScaleResolver', '$call'],
+    [
+      '@tanstack/charts:src/types.ts:SceneFocusGuide',
+      'measureText motion projectX projectY resolve',
+    ],
+    ['@tanstack/charts:src/types.ts:SceneFocusGuideLabel', 'format'],
+    ['@tanstack/charts:src/types.ts:SceneFocusGuideResolver', '$call'],
     ['@tanstack/charts:src/types.ts:ChartSpatialIndexFactory', '$call'],
     ['@tanstack/charts:src/types.ts:ChartSvgRenderer', '$call'],
     ['@tanstack/charts:src/types.ts:ChartTextMeasurer', '$call'],
@@ -185,6 +202,10 @@ const callbackInventory = {
       '$call.initialize $call.motion',
     ],
     ['@tanstack/charts:src/reconcile.ts:reconcileChartSvg', '$call.$return'],
+    [
+      '@tanstack/charts:src/reconcile.ts:reconcileChartSvgFragment',
+      '$call.$return',
+    ],
     ['@tanstack/charts:src/scene.ts:defineChart', '$call.chart'],
     [
       '@tanstack/charts:src/svg-surface.ts:createSvgChartRenderer',
@@ -344,6 +365,14 @@ const callbackInventory = {
       '@tanstack/charts:src/canvas.ts:UniversalCanvasChartRenderer',
       'mount prerender',
     ],
+    [
+      '@tanstack/charts:src/cursor-host-contract.ts:ChartCursorHostExtension',
+      'create',
+    ],
+    [
+      '@tanstack/charts:src/cursor-host-contract.ts:ChartCursorHostSession',
+      'clear clearOwnedTransient createFocusState createFreeState destroy getState owns publish resolveFocus resolvePresentation subscribe subscribe.$return',
+    ],
     ['@tanstack/charts:src/dom-types.ts:ChartHost', 'destroy getScene update'],
     ['@tanstack/charts:src/dom-types.ts:ChartRenderer', 'mount prerender'],
     [
@@ -379,6 +408,10 @@ const callbackInventory = {
     ['@tanstack/charts:src/polar.ts:PolarResolvedScale', 'map ticks'],
     ['@tanstack/charts:src/polar.ts:PolarMarkRenderContext', 'color'],
     ['@tanstack/charts:src/spring.ts:ChartSpring', 'sample'],
+    [
+      '@tanstack/charts:src/types.ts:ChartCursorController',
+      'getState setState subscribe subscribe.$return',
+    ],
     ['@tanstack/charts:src/types.ts:ChartMarkStateContext', 'matches'],
     ['@tanstack/charts:src/types.ts:ChartRuntime', 'destroy render'],
     ['@tanstack/charts:src/types.ts:ChartSpatialIndex', 'findNearest'],

@@ -1,6 +1,6 @@
 ---
 title: Tooltips and Focus
-description: Configure grouped focus, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
+description: Configure grouped focus, crosshairs, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
 ---
 
 The DOM host provides a small automatic path for the common case:
@@ -35,13 +35,13 @@ point clears transient focus.
 
 ## Axis focus modes
 
-| Mode        | Result                                     |
-| ----------- | ------------------------------------------ |
-| omitted     | One nearest point in two dimensions        |
-| `nearest-x` | One point, prioritizing x distance         |
-| `nearest-y` | One point, prioritizing y distance         |
-| `group-x`   | One point per group at the nearest x value |
-| `group-y`   | One point per group at the nearest y value |
+| Mode        | Result                                                                    |
+| ----------- | ------------------------------------------------------------------------- |
+| omitted     | One nearest painted geometry or point in two dimensions                   |
+| `nearest-x` | The containing mark, otherwise one point prioritizing x distance          |
+| `nearest-y` | The containing mark, otherwise one point prioritizing y distance          |
+| `group-x`   | The containing mark first, plus its semantic x group; otherwise nearest x |
+| `group-y`   | The containing mark first, plus its semantic y group; otherwise nearest y |
 
 Grouped focus is appropriate for comparing several series at the same date or
 category. A sparse snapped cursor can opt into
@@ -63,11 +63,70 @@ whenFocused(bandY(rows, { y: 'value' }), { match: 'y' })
 
 These are presentation filters, not alternate selection strategies. The first
 paints a vertical band wherever the focused x value exists; the second paints a
-horizontal band wherever the focused y value exists.
+horizontal band wherever the focused y value exists. `whenFocused` can only
+reveal geometry already emitted by its authored mark. It cannot move one
+stable band between values.
+
+Use the data-less `crosshair` mark when one renderer-native guide should follow
+the active focus instead of revealing authored geometry for a matching datum:
+
+```ts
+import { crosshair } from '@tanstack/charts/crosshair'
+
+const definition = defineChart({
+  marks: [
+    crosshair({
+      x: {
+        band: {
+          inset: 0,
+          radius: 3,
+          fill: '#64748b',
+          fillOpacity: 0.16,
+        },
+        label: true,
+      },
+      y: false,
+    }),
+    barY(rows, {
+      x: 'period',
+      y: 'value',
+      color: 'series',
+      inset: 4,
+    }),
+    crosshair({
+      x: false,
+      y: { strokeDasharray: '4 4', label: true },
+    }),
+  ],
+  x: { scale: scaleBand },
+  y: { scale: scaleLinear },
+  focus: 'group-x',
+  focusRing: false,
+  maxFocusDistance: Number.POSITIVE_INFINITY,
+  tooltip,
+})
+```
+
+The x band follows the focused x value for pointer and keyboard focus. It uses
+the categorical scale bandwidth, then applies `inset` to both edges. A bar
+inset of 4 and band inset of 0 makes the cursor 4 pixels wider on each side.
+Its label shows the focused period. The dotted y rule and its label follow the
+primary stacked segment endpoint, while the tooltip still receives the
+complete x group. Keep the finite distance default when empty space should
+clear focus; Infinity is an explicit continuous-snapping policy.
+
+`crosshair` defaults to both axis rules with no labels or marker. Setting
+`band: true` or a band options object replaces that axis rule; axes with zero
+bandwidth emit no band. Guides are clipped to the plot and labels are clamped
+to the surface. They do not change nearest-point selection, add hit targets,
+or suppress the primary focus ring. Use `focusRing: false` only when authored
+cursor geometry deliberately replaces the ring. See
+[Focus and Interaction](../reference/focus-and-interaction.md#crosshair-guides)
+for the complete band paint contract and controlled cursor behavior.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/35-grouped-tooltip/?theme=system&height=480"
-  title="Grouped x-axis focus and tooltip across multiple lines"
+  src="https://tanstack.com/charts/catalog/embed/119-stacked-bar-band-cursor/?theme=system&height=480"
+  title="Stacked bars with a categorical x cursor band and dotted y rule"
   loading="lazy"
   style="width: 100%; height: 480px; border: 0;"
 ></iframe>
@@ -500,6 +559,9 @@ search over every raw point.
 - Use native focus for datum inspection.
 - Choose two-dimensional, nearest-axis, or grouped-axis semantics explicitly.
 - Keep a finite distance unless continuous snapping is intended.
+- Use `crosshair` for a single focus-driven guide; use `whenFocused` to reveal
+  existing data-bound geometry.
+- Share semantic cursor state through `createChartCursor`, not copied pixels.
 - Use native plaintext formatting for the 90% case.
 - Use the `portal` extension where clipped ancestors or stacking contexts can
   hide the tooltip.

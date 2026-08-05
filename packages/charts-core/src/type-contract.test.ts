@@ -1,5 +1,13 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleBand, scaleLinear, scaleTime, scaleUtc } from 'd3-scale'
+import type {
+  CrosshairAxisOptions as PublicCrosshairAxisOptions,
+  CrosshairBandOptions as PublicCrosshairBandOptions,
+  CrosshairLabelOptions as PublicCrosshairLabelOptions,
+  CrosshairMarkerOptions as PublicCrosshairMarkerOptions,
+  CrosshairOptions as PublicCrosshairOptions,
+  CrosshairRuleOptions as PublicCrosshairRuleOptions,
+} from '@tanstack/charts/types'
 import { barX, barY } from './bar'
 import type { BarYOptions } from './bar'
 import { mountChart } from './dom'
@@ -45,6 +53,15 @@ interface Row {
   value: number
   date: Date
   enabled: boolean
+}
+
+type PublicCrosshairTypeSurface = {
+  axis: PublicCrosshairAxisOptions<string>
+  band: PublicCrosshairBandOptions
+  label: PublicCrosshairLabelOptions<string>
+  marker: PublicCrosshairMarkerOptions
+  options: PublicCrosshairOptions<string, number>
+  rule: PublicCrosshairRuleOptions
 }
 
 const rows: readonly Row[] = [
@@ -846,6 +863,17 @@ if (false) {
 }
 
 describe('public type contracts', () => {
+  it('exports crosshair options from the type-only entry', () => {
+    expectTypeOf<PublicCrosshairTypeSurface['axis']>().toMatchTypeOf<{
+      band?: boolean | PublicCrosshairTypeSurface['band']
+      label?: boolean | PublicCrosshairTypeSurface['label']
+    }>()
+    expectTypeOf<PublicCrosshairTypeSurface['options']>().toMatchTypeOf<{
+      marker?: boolean | PublicCrosshairTypeSurface['marker']
+      stroke?: PublicCrosshairTypeSurface['rule']['stroke']
+    }>()
+  })
+
   it('types inline state callbacks from one context object', () => {
     dot(rows, {
       x: 'value',

@@ -117,6 +117,7 @@ The definition owns these chart behaviors:
 | `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus                                                   |
 | `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy; `false` disables native focus and its generated layer |
 | `focusRing`        | `true`                    | Generated primary-point focus indicator; `false` keeps authored focus layers only                        |
+| `cursor`           | None                      | Focus-snapped or free application-owned cursor binding                                                   |
 | `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                                                                           |
 | `animate`          | `false`                   | Keyed attribute, enter, and exit animation                                                               |
 | `pointer`          | `true`                    | Automatic pointer focus, leave, and click handling                                                       |

@@ -190,20 +190,31 @@ interface ChartScene<
   colors: ResolvedColorScale
   gradients: readonly ChartLinearGradient[]
   theme: ChartTheme
+  focusGuides?: readonly SceneFocusGuide[]
 }
 ```
 
-| Property          | Meaning                                                     |
-| ----------------- | ----------------------------------------------------------- |
-| `width`, `height` | Full scene dimensions                                       |
-| `margin`          | Resolved outer margins after guide and legend measurement   |
-| `chart`           | Inner plot bounds with `x`, `y`, `width`, and `height`      |
-| `nodes`           | Ordered renderer-neutral display tree                       |
-| `points`          | Complete interaction set, including viewport-clipped points |
-| `scales`          | Resolved positional scales, normally under `x` and `y`      |
-| `colors`          | Resolved chart color scale                                  |
-| `gradients`       | Declared linear-gradient resources                          |
-| `theme`           | Fully resolved theme                                        |
+| Property          | Meaning                                                          |
+| ----------------- | ---------------------------------------------------------------- |
+| `width`, `height` | Full scene dimensions                                            |
+| `margin`          | Resolved outer margins after guide and legend measurement        |
+| `chart`           | Inner plot bounds with `x`, `y`, `width`, and `height`           |
+| `nodes`           | Ordered renderer-neutral display tree                            |
+| `points`          | Complete interaction set, including viewport-clipped points      |
+| `scales`          | Resolved positional scales, normally under `x` and `y`           |
+| `colors`          | Resolved chart color scale                                       |
+| `gradients`       | Declared linear-gradient resources                               |
+| `theme`           | Fully resolved theme                                             |
+| `focusGuides`     | Optional data-less guide descriptors resolved from current focus |
+
+`focusGuides` do not add nodes or points to the base scene. Every guide carries
+a required resolver that receives its local focus, pointer, and cursor context
+and returns one transient scene node or `undefined`. Surfaces pass the current
+interaction state to `resolveFocusPresentation`, which calls those resolvers
+and separates their nodes into underlays and overlays. A mark emits
+`MarkFocusGuide`, whose optional placement defaults from mark order. The scene
+compiler produces the final `SceneFocusGuide` values shown here with placement
+resolved; renderers do not call guide resolvers or infer placement themselves.
 
 ## Scene nodes
 

@@ -126,7 +126,8 @@
     "./cases/115-definition-motion": "./src/cases/115-definition-motion.ts",
     "./cases/116-geometry-morph": "./src/cases/116-geometry-morph.ts",
     "./cases/117-focus-cursor-motion": "./src/cases/117-focus-cursor-motion.ts",
-    "./cases/118-token-usage-calendar": "./src/cases/118-token-usage-calendar.ts"
+    "./cases/118-token-usage-calendar": "./src/cases/118-token-usage-calendar.ts",
+    "./cases/119-stacked-bar-band-cursor": "./src/cases/119-stacked-bar-band-cursor.ts"
   },
   "dependencies": {
     "@tanstack/charts": "workspace:*",
@@ -594,6 +595,10 @@
       "./cases/118-token-usage-calendar": {
         "types": "./dist/cases/118-token-usage-calendar.d.ts",
         "import": "./dist/cases/118-token-usage-calendar.js"
+      },
+      "./cases/119-stacked-bar-band-cursor": {
+        "types": "./dist/cases/119-stacked-bar-band-cursor.d.ts",
+        "import": "./dist/cases/119-stacked-bar-band-cursor.js"
       }
     }
   }

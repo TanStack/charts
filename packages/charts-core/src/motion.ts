@@ -1,6 +1,7 @@
 import { focusedNodeKeys } from './focus-layer'
+import { resolveFocusGuides } from './focus-presentation'
 import { resolveMarkStateScene } from './mark-state'
-import { reconcileChartSvg } from './reconcile'
+import { reconcileChartSvg, reconcileChartSvgFragment } from './reconcile'
 import { chartSceneSource } from './scene-source'
 import { viewportTranslationChanged } from './scene-point-map'
 import { createChartSpring } from './spring'
@@ -12,6 +13,13 @@ import type {
   RollingPathSnapshot,
   RollingPathTransform,
 } from './motion-path'
+import { renderFocusGuideLayer } from './svg-renderer'
+import {
+  detachSvgFocusGuideLayers,
+  ensureSvgFocusGuideLayer,
+  removeSvgFocusGuideLayer,
+  restoreSvgFocusGuideLayers,
+} from './svg-focus-guide-layer'
 import type {
   ChartRenderer,
   ChartSurface,
@@ -19,6 +27,7 @@ import type {
 } from './dom-types'
 import type {
   ChartFocusState,
+  ChartCursorPresentation,
   ChartMotionContext,
   ChartMotionDefinition,
   ChartMotionPath,
@@ -77,12 +86,24 @@ interface ChartSvgMotionContext<TDatum = unknown> {
   setPresentationPoints?: (points: readonly ChartPoint<TDatum>[]) => void
 }
 
+interface ChartSvgMotionFragmentContext<TDatum = unknown> {
+  container: HTMLElement
+  root: SVGElement
+  scene: ChartScene<TDatum>
+  previousScene?: ChartScene<TDatum>
+  markup: string
+  transition?: ChartMotionTransition
+}
+
 interface ChartSvgMotionDriver<TDatum = unknown> {
   readonly id: string
   readonly initial: boolean
   readonly resize: boolean
   readonly respectReducedMotion: boolean
   animateSvg: (context: ChartSvgMotionContext<TDatum>) => () => void
+  animateSvgFragment: (
+    context: ChartSvgMotionFragmentContext<TDatum>,
+  ) => () => void
 }
 
 interface MotionValueState {
@@ -238,7 +259,49 @@ function createSvgMotionRuntime(
         finish: () => context.setPresentationPoints?.(context.scene.points),
       })
     },
+    animateSvgFragment(context) {
+      let runtime = runtimes.get(context.container)
+      if (!runtime) {
+        runtime = {
+          elements: new WeakMap(),
+          points: new Map(),
+        }
+        runtimes.set(context.container, runtime)
+      }
+      const nextRoot = parseSvgFragment(context.root, context.markup)
+      if (
+        !nextRoot ||
+        context.root.namespaceURI !== nextRoot.namespaceURI ||
+        context.root.localName !== nextRoot.localName
+      ) {
+        if (nextRoot) context.root.replaceWith(nextRoot)
+        return () => {}
+      }
+      const tracks: MotionTrack[] = []
+      reconcileMotionElement(context.root, nextRoot, tracks, {
+        scene: context.scene,
+        previousScene: context.previousScene,
+        timingFor: createTimingResolver(
+          options,
+          context.scene,
+          context.transition ? { transition: context.transition } : undefined,
+        ),
+        options,
+        runtime,
+        pathPlans: {
+          elements: new Map(),
+          points: new Map(),
+        },
+      })
+      return runTracks(context.root, tracks)
+    },
   }
+}
+
+function parseSvgFragment(current: SVGElement, markup: string) {
+  const template = current.ownerDocument.createElement('template')
+  template.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg">${markup}</svg>`
+  return template.content.firstElementChild?.firstElementChild ?? undefined
 }
 
 export function motion<
@@ -271,6 +334,8 @@ function createMotionSvgChartRenderer<
       const adoptedRoot =
         container.firstElementChild?.matches('svg.ts-chart') ?? false
       let cancelAnimation = () => {}
+      let cancelFocusAnimation = () => {}
+      const visibleFocusGuides = new Set<'under' | 'over'>()
       let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
       let presentationPoints:
         readonly ChartPoint<TDatum, TXValue, TYValue>[] | undefined
@@ -288,12 +353,14 @@ function createMotionSvgChartRenderer<
         | {
             focus: ChartFocusState<TDatum, TXValue, TYValue> | null
             pointer: ChartTooltipPosition | null
+            cursor: ChartCursorPresentation<TXValue, TYValue> | null
           }
         | undefined
       let desiredStateFocus:
         | {
             focus: ChartFocusState<TDatum, TXValue, TYValue> | null
             pointer: ChartTooltipPosition | null
+            cursor: ChartCursorPresentation<TXValue, TYValue> | null
           }
         | undefined
       const svgElement = () => {
@@ -319,19 +386,23 @@ function createMotionSvgChartRenderer<
           if (destroyed || dataMotionActive || !pendingStateFocus) return
           const pending = pendingStateFocus
           pendingStateFocus = undefined
-          applyStateFocus(pending.focus, pending.pointer)
+          applyStateFocus(pending.focus, pending.pointer, pending.cursor)
         })
       }
       const applyStateFocus = (
         focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
         pointer: ChartTooltipPosition | null,
+        cursor: ChartCursorPresentation<TXValue, TYValue> | null,
         resolved = scene
           ? resolveMarkStateScene(scene, focus, pointer)
           : undefined,
       ) => {
         if (!scene || !renderOptions || !resolved) return
+        cancelFocusAnimation()
+        cancelFocusAnimation = () => {}
         const previousTransition = stateTransition
         if (resolved.scene !== scene || previousTransition) {
+          const focusGuideLayers = detachSvgFocusGuideLayers(svgElement())
           cancelAnimation()
           if (presentationPoints !== scene.points) {
             publishPresentationPoints(scene.points)
@@ -356,12 +427,24 @@ function createMotionSvgChartRenderer<
                 phase: 'update',
                 transition,
               })
+          restoreSvgFocusGuideLayers(svgElement(), focusGuideLayers)
           stateScene = focus ? resolved.scene : undefined
         }
         stateTransition = focus
           ? (resolved.transition ?? previousTransition)
           : undefined
         paintMotionSvgFocus(svgElement(), resolved.scene, focus)
+        cancelFocusAnimation = paintMotionSvgFocusGuides({
+          container,
+          svg: svgElement(),
+          scene: resolved.scene,
+          focus,
+          pointer,
+          cursor,
+          idPrefix: renderOptions.idPrefix,
+          motion,
+          visible: visibleFocusGuides,
+        })
         return resolved.scene
       }
       const surface: ChartSurface<TDatum, TXValue, TYValue> = {
@@ -396,6 +479,23 @@ function createMotionSvgChartRenderer<
           )
           const markup = renderSvg(nextScene, options)
           cancelAnimation()
+          cancelFocusAnimation()
+          cancelFocusAnimation = () => {}
+          const retainsFocusGuideLayers = Boolean(
+            previousScene?.focusGuides?.length,
+          )
+          const focusGuideLayers = retainsFocusGuideLayers
+            ? detachSvgFocusGuideLayers(svgElement())
+            : {}
+          for (const placement of visibleFocusGuides) {
+            if (
+              !nextScene.focusGuides?.some(
+                (guide) => guide.placement === placement,
+              )
+            ) {
+              visibleFocusGuides.delete(placement)
+            }
+          }
           const revision = ++dataMotionRevision
           stateScene = undefined
           stateTransition = undefined
@@ -431,6 +531,16 @@ function createMotionSvgChartRenderer<
             publishPresentationPoints(nextScene.points)
             dataMotionActive = false
           }
+          if (retainsFocusGuideLayers) {
+            restoreSvgFocusGuideLayers(
+              svgElement(),
+              focusGuideLayers,
+              (placement) =>
+                nextScene.focusGuides?.some(
+                  (guide) => guide.placement === placement,
+                ) === true,
+            )
+          }
         },
         clientToScene(currentScene, clientX, clientY) {
           return svgClientToScene(svgElement(), currentScene, clientX, clientY)
@@ -449,17 +559,38 @@ function createMotionSvgChartRenderer<
           presentationListeners.add(listener)
           return () => presentationListeners.delete(listener)
         },
-        paintFocus(focus, pointer) {
+        paintFocus(focus, pointer, cursor) {
           if (!scene || !renderOptions) return
-          desiredStateFocus = { focus, pointer: pointer ?? null }
+          desiredStateFocus = {
+            focus,
+            pointer: pointer ?? null,
+            cursor: cursor ?? null,
+          }
           const resolved = resolveMarkStateScene(scene, focus, pointer)
           if (dataMotionActive) {
             pendingStateFocus = desiredStateFocus
             paintMotionSvgFocus(svgElement(), resolved.scene, focus)
+            cancelFocusAnimation()
+            cancelFocusAnimation = paintMotionSvgFocusGuides({
+              container,
+              svg: svgElement(),
+              scene: resolved.scene,
+              focus,
+              pointer,
+              cursor,
+              idPrefix: renderOptions.idPrefix,
+              motion,
+              visible: visibleFocusGuides,
+            })
             return resolved.scene
           }
           pendingStateFocus = undefined
-          return applyStateFocus(focus, pointer ?? null, resolved)
+          return applyStateFocus(
+            focus,
+            pointer ?? null,
+            cursor ?? null,
+            resolved,
+          )
         },
         destroy() {
           destroyed = true
@@ -468,6 +599,7 @@ function createMotionSvgChartRenderer<
           desiredStateFocus = undefined
           cancelAnimation()
           presentationListeners.clear()
+          cancelFocusAnimation()
         },
       }
       return surface
@@ -482,7 +614,9 @@ function paintMotionSvgFocus(
   focus: ChartFocusState | null,
 ) {
   const sceneLayers = collectMotionFocusLayers(scene.nodes)
-  const elements = svg.querySelectorAll<SVGGElement>('[data-ts-focus-layer]')
+  const elements = svg.querySelectorAll<SVGGElement>(
+    '[data-ts-focus-layer]:not([data-ts-focus-guide-layer])',
+  )
   elements.forEach((element, index) => {
     const layer = sceneLayers[index]
     const visible = layer ? focusedNodeKeys(layer, focus) : new Set<string>()
@@ -498,6 +632,70 @@ function paintMotionSvgFocus(
       )
     })
   })
+}
+
+function paintMotionSvgFocusGuides<TDatum>(options: {
+  container: HTMLElement
+  svg: SVGSVGElement
+  scene: ChartScene<TDatum>
+  focus: ChartFocusState<TDatum> | null
+  pointer?: Parameters<typeof resolveFocusGuides>[2]
+  cursor?: ChartCursorPresentation | null
+  idPrefix?: string
+  motion: ChartSvgMotionDriver<TDatum>
+  visible: Set<'under' | 'over'>
+}) {
+  const {
+    container,
+    svg,
+    scene,
+    focus,
+    pointer,
+    cursor,
+    idPrefix = '',
+    motion,
+    visible,
+  } = options
+  const presentation = resolveFocusGuides(scene, focus, pointer, cursor)
+  const reduced =
+    motion.respectReducedMotion &&
+    (container.ownerDocument.defaultView?.matchMedia?.(
+      '(prefers-reduced-motion: reduce)',
+    ).matches ??
+      false)
+  const cancellations: (() => void)[] = []
+
+  for (const placement of ['under', 'over'] as const) {
+    if (!scene.focusGuides?.some((guide) => guide.placement === placement)) {
+      removeSvgFocusGuideLayer(svg, placement)
+      visible.delete(placement)
+      continue
+    }
+    const layer = ensureSvgFocusGuideLayer(svg, placement)
+    const nodes = presentation[placement]
+    if (!nodes.length) {
+      layer.setAttribute('visibility', 'hidden')
+      visible.delete(placement)
+      continue
+    }
+
+    const markup = renderFocusGuideLayer(nodes, placement, idPrefix)
+    if (reduced || !visible.has(placement)) {
+      reconcileChartSvgFragment(layer, markup)
+    } else {
+      cancellations.push(
+        motion.animateSvgFragment({
+          container,
+          root: layer,
+          scene,
+          markup,
+        }),
+      )
+    }
+    visible.add(placement)
+  }
+
+  return () => cancellations.forEach((cancel) => cancel())
 }
 
 function collectMotionFocusLayers(nodes: ChartScene['nodes']): SceneGroup[] {
@@ -1348,6 +1546,24 @@ function guideOrMarkTimingContext(
   const key = element.getAttribute('data-ts-key')
   if (!key) return undefined
 
+  const focusGuide = element.closest<SVGGElement>('g.ts-chart__crosshair')
+  if (focusGuide) {
+    const ownerKey = focusGuide.getAttribute('data-ts-key') ?? key
+    const markId = motionMarkId(scene, ownerKey)
+    return {
+      phase,
+      role: markMotionRole(focusGuide, element),
+      key,
+      markId,
+      seriesKey: ownerKey,
+      seriesIndex: 0,
+      datumIndex: 0,
+      datumCount: 1,
+      datum: undefined,
+      point: undefined,
+    }
+  }
+
   const focusLayer = element.closest<SVGGElement>('g.ts-chart__focus-layer')
   if (focusLayer) {
     const focusPoints = collectMotionFocusLayers(scene.nodes).flatMap(
@@ -1492,6 +1708,11 @@ function markMotionRole(owner: Element, element: Element): ChartMotionRole {
 }
 
 function motionMarkId(scene: ChartScene, key: string): string | undefined {
+  const focusGuide = scene.focusGuides
+    ?.slice()
+    .sort((left, right) => right.key.length - left.key.length)
+    .find((guide) => key === guide.key || key.startsWith(`${guide.key}:`))
+  if (focusGuide) return focusGuide.markId
   const source = motionSceneSource(scene)
   const candidates = new Set([
     ...scene.points.map((point) => point.markId),
@@ -1559,7 +1780,10 @@ function createPresentationTracks(
         continue
       }
       if (seriesElementForPoint(point, pathGroups)) {
-        presented.set(identity, previous ?? point)
+        presented.set(
+          identity,
+          previous ? { ...point, x: previous.x, y: previous.y } : point,
+        )
         continue
       }
       if (!previous || (previous.x === point.x && previous.y === point.y)) {
@@ -1575,7 +1799,7 @@ function createPresentationTracks(
         presented.set(identity, point)
         continue
       }
-      presented.set(identity, previous)
+      presented.set(identity, { ...point, x: previous.x, y: previous.y })
       const states = pointValueStates(runtime, identity, [
         previous.x,
         previous.y,
@@ -1610,7 +1834,7 @@ function createPresentationTracks(
     const start =
       previous ??
       (horizontal ? { ...point, x: baseline } : { ...point, y: baseline })
-    presented.set(identity, start)
+    presented.set(identity, { ...point, x: start.x, y: start.y })
     const timing = timingFor({
       phase: defaultPhase === 'enter' ? 'enter' : phase,
       role: 'bar',
@@ -2038,48 +2262,59 @@ function motionDefinitions(
   scene: ChartScene,
 ): SceneMotionDefinitions | undefined {
   const source = motionSceneSource(scene)
-  if (!source) return undefined
-  const [definition, initialized] = source
   const marks: Record<string, ChartMotionDefinition<any>> = {}
-  initialized.forEach((mark, index) => {
-    const authored = definition.marks[index]?.motion
-    if (authored !== undefined) marks[mark.id] = authored
-  })
+  let defaultDefinition: ChartMotionDefinition<any> | undefined
+  if (source) {
+    const [definition, initialized] = source
+    defaultDefinition = definition.motion
+    initialized.forEach((mark, index) => {
+      const authored = definition.marks[index]?.motion
+      if (authored !== undefined) marks[mark.id] = authored
+    })
+  }
+  for (const guide of scene.focusGuides ?? []) {
+    if (guide.motion !== undefined) {
+      marks[guide.markId] = guide.motion as ChartMotionDefinition<any>
+    }
+  }
 
   const guides: Record<string, ChartMotionDefinition<any>> = {}
-  for (const axis of ['x', 'y'] as const) {
-    const configured = definition[axis]
-    const presentation =
-      !configured || configured.axis === false
-        ? undefined
-        : (configured.axis ?? {})
-    if (presentation?.motion !== undefined) {
-      guides[`axis:${axis}`] = presentation.motion
-    }
-    if (presentation?.ticks && presentation.ticks.motion !== undefined) {
-      guides[`tick:${axis}`] = presentation.ticks.motion
-    }
-    if (
-      presentation?.tickLabels &&
-      presentation.tickLabels.motion !== undefined
-    ) {
-      guides[`tick-label:${axis}`] = presentation.tickLabels.motion
-    }
-    if (
-      typeof presentation?.label === 'object' &&
-      presentation.label.motion !== undefined
-    ) {
-      guides[`axis-label:${axis}`] = presentation.label.motion
+  if (source) {
+    const [definition] = source
+    for (const axis of ['x', 'y'] as const) {
+      const configured = definition[axis]
+      const presentation =
+        !configured || configured.axis === false
+          ? undefined
+          : (configured.axis ?? {})
+      if (presentation?.motion !== undefined) {
+        guides[`axis:${axis}`] = presentation.motion
+      }
+      if (presentation?.ticks && presentation.ticks.motion !== undefined) {
+        guides[`tick:${axis}`] = presentation.ticks.motion
+      }
+      if (
+        presentation?.tickLabels &&
+        presentation.tickLabels.motion !== undefined
+      ) {
+        guides[`tick-label:${axis}`] = presentation.tickLabels.motion
+      }
+      if (
+        typeof presentation?.label === 'object' &&
+        presentation.label.motion !== undefined
+      ) {
+        guides[`axis-label:${axis}`] = presentation.label.motion
+      }
     }
   }
 
   const hasMarks = Object.keys(marks).length > 0
   const hasGuides = Object.keys(guides).length > 0
-  if (definition.motion === undefined && !hasMarks && !hasGuides) {
+  if (defaultDefinition === undefined && !hasMarks && !hasGuides) {
     return undefined
   }
   return {
-    ...(definition.motion === undefined ? {} : { default: definition.motion }),
+    ...(defaultDefinition === undefined ? {} : { default: defaultDefinition }),
     ...(hasMarks ? { marks } : {}),
     ...(hasGuides ? { guides } : {}),
   }
@@ -2107,7 +2342,7 @@ function resolveBarBaseline(
 }
 
 function runTracks(
-  root: SVGSVGElement,
+  root: SVGElement,
   tracks: readonly MotionTrack[],
   lifecycle: { publish?: () => void; finish?: () => void } = {},
 ) {

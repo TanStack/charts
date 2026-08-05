@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { defineChart, dot, lineY } from '@tanstack/charts'
+import { crosshair, defineChart, dot, lineY } from '@tanstack/charts'
 import { focusX } from '@tanstack/charts/focus'
 import { Chart } from '@tanstack/react-charts'
 import { industries } from '@charts-poc/demo-data/industries'
@@ -69,6 +69,13 @@ const AxisPointerExample = forwardRef<
             stroke: '#ffffff',
             strokeWidth: 1,
           }),
+          crosshair({
+            id: 'axis-pointer-crosshair',
+            y: false,
+            stroke: '#64748b',
+            strokeWidth: 1,
+            strokeDasharray: '4 4',
+          }),
         ],
         x: {
           scale: scaleUtc,
@@ -124,7 +131,7 @@ const AxisPointerExample = forwardRef<
           : null
       },
       readState() {
-        return interactionState(focusedPointsRef.current)
+        return interactionState(surfaceRef.current, focusedPointsRef.current)
       },
       geometry(query) {
         const surface = surfaceRef.current
@@ -217,34 +224,6 @@ const AxisPointerExample = forwardRef<
       >
         Hover or use ← → to compare months
       </div>
-      {scene ? (
-        <svg
-          aria-hidden="true"
-          data-conformance-overlay="crosshair"
-          viewBox={`0 0 ${scene.width} ${scene.height}`}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            overflow: 'visible',
-            pointerEvents: 'none',
-          }}
-        >
-          {focusedPoint ? (
-            <line
-              data-conformance-crosshair="x"
-              x1={focusedPoint.x}
-              x2={focusedPoint.x}
-              y1={scene.chart.y}
-              y2={scene.chart.y + scene.chart.height}
-              stroke="#64748b"
-              strokeWidth={1}
-              strokeDasharray="4 4"
-            />
-          ) : null}
-        </svg>
-      ) : null}
       <div
         data-conformance-tooltip="grouped"
         data-placement={tooltipPosition?.placement}
@@ -436,6 +415,7 @@ function pointsBounds(
 }
 
 function interactionState(
+  surface: HTMLDivElement | null,
   points: readonly ChartPoint<AxisPointerDatum>[],
 ): ConformanceJsonObject {
   const ordered = axisPointerIndustries.flatMap((industry) => {
@@ -445,13 +425,24 @@ function interactionState(
     return point ? [point] : []
   })
   const date = ordered[0]?.datum.date
+  const crosshair = surface?.querySelector<SVGLineElement>(
+    '[data-ts-key="axis-pointer-crosshair:x-rule"]',
+  )
+  const crosshairLayer = crosshair?.closest<SVGGElement>(
+    '[data-ts-focus-guide-layer]',
+  )
   return {
     focus: {
       date: date ? axisPointerDateKey(date) : null,
       industries: ordered.map((point) => point.datum.industry),
       values: ordered.map((point) => point.datum.unemployed),
     },
-    crosshair: { visible: ordered.length > 0 },
+    crosshair: {
+      visible:
+        crosshair !== null &&
+        crosshair !== undefined &&
+        crosshairLayer?.getAttribute('visibility') !== 'hidden',
+    },
     tooltip: { visible: ordered.length > 0 },
   }
 }

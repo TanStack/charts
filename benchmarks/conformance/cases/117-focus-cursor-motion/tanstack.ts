@@ -1,8 +1,7 @@
-import { defineChart, dot, lineY } from '@tanstack/charts'
+import { crosshair, defineChart, dot, lineY } from '@tanstack/charts'
 import { focusX } from '@tanstack/charts/focus'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
-import { createChartSpring } from '@tanstack/charts/spring'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { focusMotionPeriods, focusMotionRows, focusMotionSeries } from './model'
 import { tanstackCase } from '../../shared/mount'
@@ -33,8 +32,7 @@ export const mount: ConformanceMount = (container, input) => {
   let host: ChartRendererHost<FocusMotionRow, string, number> | undefined
   let focused: readonly ChartPoint<FocusMotionRow, string, number>[] = []
   const surface = container.ownerDocument.createElement('div')
-  let overlay: CrosshairOverlay
-  let cursor: ReturnType<typeof createSpringCrosshair> | undefined
+  let status: HTMLOutputElement | undefined
   surface.dataset.conformanceView = 'main'
   surface.style.position = 'relative'
   surface.style.width = `${input.width}px`
@@ -53,26 +51,16 @@ export const mount: ConformanceMount = (container, input) => {
       points: readonly ChartPoint<FocusMotionRow, string, number>[],
     ) {
       focused = points
-      const primary = points[0]
-      if (primary) cursor?.move(primary)
-      else cursor?.clear()
-      if (overlay) paintStatus(overlay.status, points)
+      if (status) paintStatus(status, points)
     },
     onRender(context: { scene: ChartScene<FocusMotionRow, string, number> }) {
       scene = context.scene
-      cursor?.repaint()
     },
   })
 
   host = mountChartRenderer(surface, options())
   scene = host.getScene()
-  overlay = createCrosshairOverlay(surface)
-  cursor = createSpringCrosshair(
-    container.ownerDocument.defaultView,
-    overlay,
-    () => scene,
-  )
-  cursor.repaint()
+  status = createFocusStatus(surface)
 
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
@@ -96,16 +84,32 @@ export const mount: ConformanceMount = (container, input) => {
     },
     readState() {
       const primary = focused[0]
-      const crosshairX = Number(overlay.xLine.getAttribute('x1'))
-      const crosshairY = Number(overlay.marker.getAttribute('cy'))
+      const layer = surface.querySelector<SVGGElement>(
+        '[data-ts-focus-guide-layer="over"]',
+      )
+      const xRule = layer?.querySelector<SVGLineElement>(
+        '[data-ts-key="focus-motion-crosshair:x-rule"]',
+      )
+      const marker = layer?.querySelector<SVGCircleElement>(
+        '[data-ts-key="focus-motion-crosshair:marker"]',
+      )
+      const xLabel = layer?.querySelector<SVGTextElement>(
+        '[data-ts-key="focus-motion-crosshair:x-label:text"]',
+      )
+      const yLabel = layer?.querySelector<SVGTextElement>(
+        '[data-ts-key="focus-motion-crosshair:y-label:text"]',
+      )
+      const crosshairX = Number(xRule?.getAttribute('x1'))
+      const crosshairY = Number(marker?.getAttribute('cy'))
       return {
         focused: primary?.datum.id ?? null,
         groupSize: focused.length,
-        crosshairVisible: overlay.root.dataset.visible === 'true',
+        crosshairVisible:
+          layer?.getAttribute('visibility') !== 'hidden' && Boolean(xRule),
         crosshairX,
         crosshairY,
-        crosshairXLabel: overlay.xLabel.text.textContent ?? '',
-        crosshairYLabel: overlay.yLabel.text.textContent ?? '',
+        crosshairXLabel: xLabel?.textContent ?? '',
+        crosshairYLabel: yLabel?.textContent ?? '',
         crosshairFinite:
           Number.isFinite(crosshairX) && Number.isFinite(crosshairY),
         crosshairSettled:
@@ -128,10 +132,9 @@ export const mount: ConformanceMount = (container, input) => {
       surface.style.height = `${nextInput.height}px`
       host?.update(options())
       scene = host?.getScene()
-      cursor.repaint()
     },
     destroy() {
-      cursor?.destroy()
+      status?.remove()
       host?.destroy()
       surface.remove()
     },
@@ -191,6 +194,47 @@ function chartDefinition() {
           },
         ],
       }),
+      crosshair<string, number>({
+        id: 'focus-motion-crosshair',
+        stroke: 'CanvasText',
+        strokeOpacity: 0.48,
+        strokeWidth: 1,
+        strokeDasharray: '4 4',
+        x: {
+          label: {
+            format: (value) => String(value),
+            offset: 8,
+            fill: 'CanvasText',
+            fontSize: 10,
+            fontWeight: 700,
+          },
+        },
+        y: {
+          label: {
+            format: (value) => String(value),
+            offset: 22,
+            fill: 'CanvasText',
+            fontSize: 10,
+            fontWeight: 700,
+          },
+        },
+        marker: {
+          radius: 5,
+          fill: 'Canvas',
+          stroke: 'CanvasText',
+          strokeWidth: 1.5,
+        },
+        motion: {
+          transition: {
+            type: 'spring',
+            stiffness: 320,
+            damping: 28,
+            mass: 0.72,
+            restDelta: 0.02,
+            restSpeed: 0.02,
+          },
+        },
+      }),
     ],
     x: {
       scale: scaleBand<string>().domain(focusMotionPeriods).padding(0.1),
@@ -210,51 +254,8 @@ export const catalogCase = tanstackCase(
   'Grouped line chart with animated focus and crosshair',
 )
 
-interface CrosshairOverlay {
-  root: SVGSVGElement
-  xLine: SVGLineElement
-  yLine: SVGLineElement
-  marker: SVGCircleElement
-  xLabel: CrosshairLabel
-  yLabel: CrosshairLabel
-  status: HTMLOutputElement
-}
-
-interface CrosshairLabel {
-  root: SVGGElement
-  text: SVGTextElement
-}
-
-function createCrosshairOverlay(surface: HTMLElement): CrosshairOverlay {
+function createFocusStatus(surface: HTMLElement) {
   const document = surface.ownerDocument
-  const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  root.setAttribute('aria-hidden', 'true')
-  root.dataset.focusCrosshair = ''
-  root.dataset.visible = 'false'
-  Object.assign(root.style, {
-    position: 'absolute',
-    inset: '0',
-    width: '100%',
-    height: '100%',
-    overflow: 'visible',
-    pointerEvents: 'none',
-    opacity: '0',
-    transition: 'opacity 120ms ease-out',
-  })
-  const xLine = crosshairLine(document)
-  const yLine = crosshairLine(document)
-  const marker = document.createElementNS(
-    'http://www.w3.org/2000/svg',
-    'circle',
-  )
-  marker.setAttribute('r', '5')
-  marker.setAttribute('fill', 'Canvas')
-  marker.setAttribute('stroke', 'CanvasText')
-  marker.setAttribute('stroke-width', '1.5')
-  const xLabel = createCrosshairLabel(document, 'x')
-  const yLabel = createCrosshairLabel(document, 'y')
-  root.append(xLine, yLine, marker, xLabel.root, yLabel.root)
-
   const status = document.createElement('output')
   status.setAttribute('aria-live', 'polite')
   status.textContent = 'Hover or use ← →'
@@ -273,154 +274,8 @@ function createCrosshairOverlay(surface: HTMLElement): CrosshairOverlay {
     whiteSpace: 'nowrap',
     pointerEvents: 'none',
   })
-  surface.append(root, status)
-  return { root, xLine, yLine, marker, xLabel, yLabel, status }
-}
-
-function crosshairLine(document: Document) {
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-  line.setAttribute('stroke', 'CanvasText')
-  line.setAttribute('stroke-opacity', '0.48')
-  line.setAttribute('stroke-width', '1')
-  line.setAttribute('stroke-dasharray', '4 4')
-  return line
-}
-
-function createCrosshairLabel(
-  document: Document,
-  axis: 'x' | 'y',
-): CrosshairLabel {
-  const root = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-  root.dataset.conformanceCrosshairLabel = axis
-  const background = document.createElementNS(
-    'http://www.w3.org/2000/svg',
-    'rect',
-  )
-  const width = axis === 'x' ? 42 : 36
-  background.setAttribute('x', String(-width / 2))
-  background.setAttribute('y', '-10')
-  background.setAttribute('width', String(width))
-  background.setAttribute('height', '20')
-  background.setAttribute('rx', '4')
-  background.setAttribute('fill', 'CanvasText')
-  background.setAttribute('stroke', 'Canvas')
-  background.setAttribute('stroke-width', '1')
-  const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-  text.setAttribute('fill', 'Canvas')
-  text.setAttribute('text-anchor', 'middle')
-  text.setAttribute('dominant-baseline', 'middle')
-  text.setAttribute('font-family', 'system-ui, sans-serif')
-  text.setAttribute('font-size', '10')
-  text.setAttribute('font-weight', '700')
-  root.append(background, text)
-  return { root, text }
-}
-
-function createSpringCrosshair(
-  view: Window | null,
-  overlay: CrosshairOverlay,
-  scene: () => ChartScene<FocusMotionRow, string, number> | undefined,
-) {
-  const spring = createChartSpring({
-    stiffness: 320,
-    damping: 28,
-    mass: 0.72,
-    restDelta: 0.02,
-    restSpeed: 0.02,
-  })
-  let value: { x: number; y: number } | undefined
-  let target: { x: number; y: number } | undefined
-  let velocity = { x: 0, y: 0 }
-  let frame: number | undefined
-  let previousTime: number | undefined
-
-  const paint = () => {
-    const currentScene = scene()
-    if (!currentScene) return
-    overlay.root.setAttribute(
-      'viewBox',
-      `0 0 ${currentScene.width} ${currentScene.height}`,
-    )
-    if (!value) return
-    overlay.xLine.setAttribute('x1', String(value.x))
-    overlay.xLine.setAttribute('x2', String(value.x))
-    overlay.xLine.setAttribute('y1', String(currentScene.chart.y))
-    overlay.xLine.setAttribute(
-      'y2',
-      String(currentScene.chart.y + currentScene.chart.height),
-    )
-    overlay.yLine.setAttribute('x1', String(currentScene.chart.x))
-    overlay.yLine.setAttribute(
-      'x2',
-      String(currentScene.chart.x + currentScene.chart.width),
-    )
-    overlay.yLine.setAttribute('y1', String(value.y))
-    overlay.yLine.setAttribute('y2', String(value.y))
-    overlay.marker.setAttribute('cx', String(value.x))
-    overlay.marker.setAttribute('cy', String(value.y))
-    overlay.xLabel.root.setAttribute(
-      'transform',
-      `translate(${value.x} ${currentScene.chart.y + currentScene.chart.height + 16})`,
-    )
-    overlay.yLabel.root.setAttribute(
-      'transform',
-      `translate(${currentScene.chart.x - 22} ${value.y})`,
-    )
-  }
-
-  const tick = (time: number) => {
-    frame = undefined
-    if (!view || !value || !target) return
-    const elapsed = Math.min(32, Math.max(0, time - (previousTime ?? time)))
-    previousTime = time
-    const x = spring.sample(elapsed, {
-      from: value.x,
-      to: target.x,
-      velocity: velocity.x,
-    })
-    const y = spring.sample(elapsed, {
-      from: value.y,
-      to: target.y,
-      velocity: velocity.y,
-    })
-    value = { x: x.value, y: y.value }
-    velocity = { x: x.velocity, y: y.velocity }
-    paint()
-    if (!x.done || !y.done) frame = view.requestAnimationFrame(tick)
-  }
-
-  const schedule = () => {
-    if (view && frame === undefined) frame = view.requestAnimationFrame(tick)
-  }
-
-  return {
-    move(point: ChartPoint<FocusMotionRow, string, number>) {
-      target = { x: point.x, y: point.y }
-      if (!value) value = target
-      overlay.xLabel.text.textContent = point.datum.period
-      overlay.yLabel.text.textContent = String(point.datum.value)
-      overlay.root.dataset.visible = 'true'
-      overlay.root.style.opacity = '1'
-      paint()
-      schedule()
-    },
-    clear() {
-      target = undefined
-      value = undefined
-      velocity = { x: 0, y: 0 }
-      previousTime = undefined
-      if (view && frame !== undefined) view.cancelAnimationFrame(frame)
-      frame = undefined
-      overlay.root.dataset.visible = 'false'
-      overlay.root.style.opacity = '0'
-    },
-    repaint: paint,
-    destroy() {
-      if (view && frame !== undefined) view.cancelAnimationFrame(frame)
-      overlay.root.remove()
-      overlay.status.remove()
-    },
-  }
+  surface.append(status)
+  return status
 }
 
 function paintStatus(

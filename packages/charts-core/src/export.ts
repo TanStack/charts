@@ -113,6 +113,12 @@ export async function renderChartImage(
       view.URL.revokeObjectURL(url)
     }
   } else {
+    const base = canvasSurface!.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__base',
+    )
+    const background = canvasSurface!.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__background',
+    )
     const focusUnder = canvasSurface!.querySelector<HTMLCanvasElement>(
       '.ts-chart-canvas__focus-under',
     )
@@ -120,15 +126,22 @@ export async function renderChartImage(
       '.ts-chart-canvas__scene',
     )
     if (!scene) throw new Error('Expected a Canvas chart scene layer')
-    if (options.includeFocus && focusUnder) {
-      context.drawImage(focusUnder, 0, 0, width, height)
-    }
-    context.drawImage(scene, 0, 0, width, height)
-    if (options.includeFocus) {
+    if (!options.includeFocus && base) {
+      context.drawImage(base, 0, 0, width, height)
+    } else {
+      if (background) {
+        context.drawImage(background, 0, 0, width, height)
+      }
+      if (options.includeFocus && focusUnder) {
+        context.drawImage(focusUnder, 0, 0, width, height)
+      }
+      context.drawImage(scene, 0, 0, width, height)
       const focus = canvasSurface!.querySelector<HTMLCanvasElement>(
         '.ts-chart-canvas__focus',
       )
-      if (focus) context.drawImage(focus, 0, 0, width, height)
+      if (options.includeFocus && focus) {
+        context.drawImage(focus, 0, 0, width, height)
+      }
     }
   }
 

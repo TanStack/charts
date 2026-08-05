@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { barY } from './bar'
+import { createChartCursor, cursorHost } from './cursor'
 import { lineY } from './line'
 import { mountChartRenderer } from './renderer'
 import { defineChart, findNearestPoint } from './scene'
+import { stack } from './stack'
 import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
@@ -10,7 +13,12 @@ import type {
   ChartSurface,
   ChartSurfaceRenderOptions,
 } from './dom-types'
-import type { ChartPoint, ChartScene, ChartTooltipAnchorContext } from './types'
+import type {
+  ChartPoint,
+  ChartScene,
+  ChartTooltipAnchorContext,
+  SceneNode,
+} from './types'
 
 interface Datum {
   id: string
@@ -279,7 +287,6 @@ describe('renderer-neutral chart host', () => {
       ariaLabel: 'Indexed chart',
       onFocusChange,
     })
-
     fake.element.dispatchEvent(
       new MouseEvent('pointermove', {
         bubbles: true,
@@ -297,12 +304,108 @@ describe('renderer-neutral chart host', () => {
     host.destroy()
   })
 
+  it('uses painted containment to seed built-in grouped axis focus', () => {
+    const rows: readonly Datum[] = [
+      { id: 'disease', x: 0, y: 100 },
+      { id: 'wounds', x: 0, y: 40 },
+      { id: 'other', x: 0, y: 20 },
+    ]
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusGroupChange = vi.fn()
+    const host = mountChartRenderer(container, {
+      definition: defineChart({
+        marks: [
+          barY(rows, {
+            x: 'x',
+            y: 'y',
+            z: 'id',
+            key: 'id',
+            layout: stack({ order: rows.map((row) => row.id) }),
+          }),
+        ],
+        x: { scale: scaleBand<number>().domain([0]) },
+        y: { scale: scaleLinear().domain([0, 160]) },
+        guides: false,
+        margin: 0,
+        focus: 'group-x',
+        maxFocusDistance: 0,
+      }),
+      renderer: fake.renderer,
+      width: 320,
+      height: 200,
+      ariaLabel: 'Stacked focus chart',
+      onFocusGroupChange,
+    })
+    const target = host
+      .getScene()
+      .points.find((point) => point.datum.id === 'wounds')
+    const targetRect = target
+      ? flattenSceneNodes(host.getScene().nodes).find(
+          (node) => node.kind === 'rect' && node.interaction?.point === target,
+        )
+      : undefined
+    if (!target || targetRect?.kind !== 'rect') {
+      throw new Error('Expected the wounds stack segment')
+    }
+    fake.clientToScene.mockReturnValue({
+      x: targetRect.x + targetRect.width / 2,
+      y: targetRect.y + targetRect.height / 2,
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientX: 0, clientY: 0 }),
+    )
+
+    const focused = onFocusGroupChange.mock.calls.at(-1)?.[0] as
+      readonly ChartPoint<Datum, number, number>[] | undefined
+    expect(focused).toHaveLength(3)
+    expect(focused?.[0]?.datum.id).toBe('wounds')
+    host.destroy()
+  })
+
+  it('keeps custom focus strategies in control of pointer resolution', () => {
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const resolve = vi.fn(
+      (points: readonly ChartPoint<Datum, number, number>[]) =>
+        points[1] ? [points[1]] : [],
+    )
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        focus: {
+          resolve,
+          group: (_points, { point }) => [point],
+          navigation: (points) => points,
+        },
+        maxFocusDistance: 1_000,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Custom focus chart',
+      onFocusChange,
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientX: 0, clientY: 0 }),
+    )
+
+    expect(resolve).toHaveBeenCalledOnce()
+    expect(onFocusChange).toHaveBeenLastCalledWith(host.getScene().points[1])
+    host.destroy()
+  })
+
   it('resolves pointers against the destination scene returned by focus paint', () => {
     const fake = createFakeRenderer()
     const container = document.createElement('div')
     const onFocusChange = vi.fn()
     const host = mountChartRenderer(container, {
-      definition: defineChart(definition, { maxFocusDistance: 1 }),
+      definition: defineChart(definition, {
+        focus: 'nearest-x',
+        maxFocusDistance: 1,
+      }),
       renderer: fake.renderer,
       width: 480,
       height: 260,
@@ -363,7 +466,11 @@ describe('renderer-neutral chart host', () => {
     let presentation: ChartScene<Datum, number, number>['points'] | undefined
     fake.surface.getPresentationPoints = () => presentation
     const host = mountChartRenderer(container, {
-      definition: { ...definition, maxFocusDistance: 20 },
+      definition: {
+        ...definition,
+        focus: 'nearest-x',
+        maxFocusDistance: 20,
+      },
       renderer: fake.renderer,
       width: 480,
       height: 260,
@@ -1742,6 +1849,690 @@ describe('renderer-neutral chart host', () => {
 
     host.destroy()
   })
+
+  it('synchronizes semantic focus cursors across hosts without rendering again', () => {
+    const controller = createChartCursor<number, number>()
+    const cursorDefinition = defineChart(definition, {
+      focus: 'group-x',
+      maxFocusDistance: 1_000,
+      cursor: {
+        use: cursorHost,
+        mode: 'focus',
+        match: 'x',
+        pin: true,
+        controller,
+      },
+    })
+    const first = createFakeRenderer('first-cursor-host')
+    const second = createFakeRenderer('second-cursor-host')
+    const firstContainer = document.createElement('div')
+    const secondContainer = document.createElement('div')
+    const firstFocus = vi.fn()
+    const secondFocus = vi.fn()
+    const firstHost = mountChartRenderer(firstContainer, {
+      definition: cursorDefinition,
+      renderer: first.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'First synchronized chart',
+      onFocusChange: firstFocus,
+    })
+    const secondHost = mountChartRenderer(secondContainer, {
+      definition: cursorDefinition,
+      renderer: second.renderer,
+      width: 640,
+      height: 320,
+      ariaLabel: 'Second synchronized chart',
+      onFocusChange: secondFocus,
+    })
+
+    first.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+
+    expect(controller.getState()).toMatchObject({
+      anchor: 'value',
+      value: { x: 0 },
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(firstFocus).toHaveBeenLastCalledWith(firstHost.getScene().points[0])
+    expect(secondFocus).toHaveBeenLastCalledWith(
+      secondHost.getScene().points[0],
+    )
+    expect(first.paintFocus.mock.calls.at(-1)?.[0]?.primary.xValue).toBe(0)
+    expect(second.paintFocus.mock.calls.at(-1)?.[0]?.primary.xValue).toBe(0)
+    expect(first.paintFocus.mock.calls.at(-1)?.[2]).toMatchObject({
+      state: { value: { x: 0 } },
+      x: { value: 0 },
+    })
+    expect(first.paintFocus.mock.calls.at(-1)?.[2]?.y).toBeUndefined()
+    expect(first.render).toHaveBeenCalledOnce()
+    expect(second.render).toHaveBeenCalledOnce()
+
+    first.element.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }),
+    )
+    expect(controller.getState()).toMatchObject({
+      value: { x: 1 },
+      source: 'keyboard',
+    })
+    expect(firstFocus.mock.calls.at(-1)?.[0]?.xValue).toBe(1)
+    expect(secondFocus.mock.calls.at(-1)?.[0]?.xValue).toBe(1)
+
+    first.element.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+    expect(controller.getState()).toBeNull()
+    expect(firstFocus).toHaveBeenLastCalledWith(null)
+    expect(secondFocus).toHaveBeenLastCalledWith(null)
+
+    first.element.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()).toMatchObject({
+      value: { x: 0 },
+      source: 'pointer',
+      pinned: true,
+    })
+    const firstPaintCount = first.paintFocus.mock.calls.length
+    const secondPaintCount = second.paintFocus.mock.calls.length
+    first.element.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
+    second.element.dispatchEvent(
+      new MouseEvent('pointercancel', { bubbles: true }),
+    )
+    expect(controller.getState()?.pinned).toBe(true)
+    expect(first.paintFocus).toHaveBeenCalledTimes(firstPaintCount)
+    expect(second.paintFocus).toHaveBeenCalledTimes(secondPaintCount)
+
+    second.element.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }),
+    )
+    expect(controller.getState()).toBeNull()
+    expect(first.paintFocus.mock.calls.at(-1)?.[0]).toBeNull()
+    expect(second.paintFocus.mock.calls.at(-1)?.[0]).toBeNull()
+    expect(first.render).toHaveBeenCalledOnce()
+    expect(second.render).toHaveBeenCalledOnce()
+
+    firstHost.destroy()
+    secondHost.destroy()
+  })
+
+  it('projects, pins, and clears a free cursor without datum focus or keyboard stepping', () => {
+    const controller = createChartCursor<number, number>()
+    const freeDefinition = defineChart(definition, {
+      cursor: {
+        use: cursorHost,
+        mode: 'free',
+        pin: true,
+        controller,
+        x: { valueAt: ({ normalized }) => normalized },
+        y: { valueAt: ({ normalized }) => normalized },
+      },
+    })
+    const fake = createFakeRenderer('free-cursor-host')
+    fake.clientToScene.mockImplementation((scene) => ({
+      x: scene.chart.x + scene.chart.width * 0.25,
+      y: scene.chart.y + scene.chart.height * 0.75,
+    }))
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const host = mountChartRenderer(container, {
+      definition: freeDefinition,
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Free cursor chart',
+      onFocusChange,
+    })
+    expect(fake.render.mock.calls[0]?.[1]?.tabIndex).toBe(-1)
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    const pointerState = controller.getState()
+    expect(pointerState).toMatchObject({
+      anchor: 'normalized',
+      normalized: { x: 0.25, y: 0.75 },
+      value: { x: 0.25, y: 0.75 },
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toBeNull()
+    expect(fake.paintFocus.mock.calls.at(-1)?.[2]).toMatchObject({
+      x: { normalized: 0.25, value: 0.25 },
+      y: { normalized: 0.75, value: 0.75 },
+    })
+    expect(onFocusChange).not.toHaveBeenCalled()
+    expect(fake.render).toHaveBeenCalledOnce()
+
+    const paintCountBeforeKey = fake.paintFocus.mock.calls.length
+    fake.element.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowRight' }),
+    )
+    expect(controller.getState()).toBe(pointerState)
+    expect(fake.paintFocus).toHaveBeenCalledTimes(paintCountBeforeKey)
+
+    controller.setState({
+      anchor: 'value',
+      value: { x: 0.5, y: 4 },
+      source: 'programmatic',
+      pinned: false,
+    })
+    expect(fake.paintFocus.mock.calls.at(-1)?.[2]).toMatchObject({
+      x: { position: host.getScene().scales.x!.map(0.5), value: 0.5 },
+      y: { position: host.getScene().scales.y!.map(4), value: 4 },
+    })
+    expect(fake.render).toHaveBeenCalledOnce()
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointerdown', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    fake.element.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()).toMatchObject({
+      anchor: 'normalized',
+      pinned: true,
+    })
+    const pinnedPaintCount = fake.paintFocus.mock.calls.length
+    fake.element.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
+    fake.element.dispatchEvent(
+      new MouseEvent('pointercancel', { bubbles: true }),
+    )
+    expect(controller.getState()?.pinned).toBe(true)
+    expect(fake.paintFocus).toHaveBeenCalledTimes(pinnedPaintCount)
+
+    fake.element.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }),
+    )
+    expect(controller.getState()).toBeNull()
+    expect(fake.paintFocus.mock.calls.at(-1)?.[2]).toBeNull()
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()).not.toBeNull()
+    fake.clientToScene.mockReturnValue({
+      x: host.getScene().chart.x - 1,
+      y: host.getScene().chart.y,
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 0,
+        clientY: 0,
+      }),
+    )
+    expect(controller.getState()).toBeNull()
+    expect(fake.paintFocus.mock.calls.at(-1)?.[2]).toBeNull()
+
+    const paintCountBeforeDestroy = fake.paintFocus.mock.calls.length
+    host.destroy()
+    controller.setState({
+      anchor: 'normalized',
+      normalized: { x: 0.5 },
+      source: 'programmatic',
+      pinned: false,
+    })
+    expect(fake.paintFocus).toHaveBeenCalledTimes(paintCountBeforeDestroy)
+  })
+
+  it('keeps free cursors out of the tab order and preserves focus cursor keyboard access', () => {
+    const controller = createChartCursor<number, number>()
+    const fake = createFakeRenderer('cursor-tab-order-host')
+    const options = {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Cursor tab order chart',
+      tabIndex: 4,
+    }
+    const host = mountChartRenderer(document.createElement('div'), {
+      ...options,
+      definition: defineChart(definition, {
+        cursor: { use: cursorHost, mode: 'free', controller },
+      }),
+    })
+    expect(fake.render.mock.calls.at(-1)?.[1]?.tabIndex).toBe(-1)
+
+    host.update({
+      ...options,
+      definition: defineChart(definition, {
+        cursor: { use: cursorHost, mode: 'focus', controller },
+      }),
+    })
+    expect(fake.render.mock.calls.at(-1)?.[1]?.tabIndex).toBe(4)
+
+    host.update({
+      ...options,
+      definition: defineChart(definition, {
+        keyboard: false,
+        cursor: { use: cursorHost, mode: 'focus', controller },
+      }),
+    })
+    expect(fake.render.mock.calls.at(-1)?.[1]?.tabIndex).toBe(-1)
+    host.destroy()
+  })
+
+  it('clears cursor presentation and subscription when cursor behavior is removed', () => {
+    const controller = createChartCursor<number, number>({
+      anchor: 'normalized',
+      normalized: { x: 0.5, y: 0.5 },
+      source: 'programmatic',
+      pinned: false,
+    })
+    const fake = createFakeRenderer('removable-cursor-host')
+    const container = document.createElement('div')
+    const options = {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Removable cursor chart',
+    }
+    const host = mountChartRenderer(container, {
+      ...options,
+      definition: defineChart(definition, {
+        cursor: { use: cursorHost, mode: 'free', controller },
+      }),
+    })
+    expect(fake.paintFocus.mock.calls.at(-1)?.[2]).toMatchObject({
+      state: controller.getState(),
+    })
+
+    host.update({ ...options, definition })
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toBeNull()
+    expect(fake.paintFocus.mock.calls.at(-1)?.[2]).toBeNull()
+    const paintCount = fake.paintFocus.mock.calls.length
+    controller.setState({
+      anchor: 'normalized',
+      normalized: { x: 0.75, y: 0.25 },
+      source: 'programmatic',
+      pinned: false,
+    })
+    expect(fake.paintFocus).toHaveBeenCalledTimes(paintCount)
+
+    host.destroy()
+  })
+
+  it('clears controlled focus instead of restoring it when a focus cursor is removed', () => {
+    const controller = createChartCursor<number, number>({
+      anchor: 'value',
+      value: { x: 1 },
+      source: 'programmatic',
+      pinned: true,
+    })
+    const fake = createFakeRenderer('removable-focus-cursor-host')
+    const container = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const onFocusGroupChange = vi.fn()
+    const options = {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Removable focus cursor chart',
+      onFocusChange,
+      onFocusGroupChange,
+    }
+    const host = mountChartRenderer(container, {
+      ...options,
+      definition: defineChart(definition, {
+        focus: 'group-x',
+        cursor: { use: cursorHost, mode: 'focus', match: 'x', controller },
+      }),
+    })
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.xValue).toBe(1)
+
+    onFocusChange.mockClear()
+    onFocusGroupChange.mockClear()
+    host.update({ ...options, definition })
+
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toBeNull()
+    expect(fake.paintFocus.mock.calls.at(-1)?.[2]).toBeNull()
+    expect(onFocusChange).toHaveBeenCalledOnce()
+    expect(onFocusChange).toHaveBeenLastCalledWith(null)
+    expect(onFocusGroupChange).toHaveBeenLastCalledWith([])
+
+    const paintCount = fake.paintFocus.mock.calls.length
+    controller.setState({
+      anchor: 'value',
+      value: { x: 0 },
+      source: 'programmatic',
+      pinned: false,
+    })
+    expect(fake.paintFocus).toHaveBeenCalledTimes(paintCount)
+    host.destroy()
+  })
+
+  it('resolves a programmatic focus cursor when native focus is disabled', () => {
+    const controller = createChartCursor<number, number>({
+      anchor: 'value',
+      value: { x: 1 },
+      source: 'programmatic',
+      pinned: true,
+    })
+    const fake = createFakeRenderer('disabled-native-focus-cursor-host')
+    const host = mountChartRenderer(document.createElement('div'), {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Programmatic cursor chart',
+      definition: defineChart(definition, {
+        focus: false,
+        cursor: {
+          use: cursorHost,
+          mode: 'focus',
+          match: 'x',
+          controller,
+        },
+      }),
+    })
+
+    expect(fake.paintFocus.mock.calls.at(-1)?.[0]?.primary.xValue).toBe(1)
+    expect(fake.paintFocus.mock.calls.at(-1)?.[2]?.state).toBe(
+      controller.getState(),
+    )
+    host.destroy()
+  })
+
+  it('clears only transient cursor state published by the leaving host', () => {
+    const controller = createChartCursor<number, number>()
+    const cursorDefinition = defineChart(definition, {
+      cursor: { use: cursorHost, mode: 'free', controller },
+    })
+    const first = createFakeRenderer('first-owned-cursor-host')
+    const second = createFakeRenderer('second-owned-cursor-host')
+    const firstHost = mountChartRenderer(document.createElement('div'), {
+      definition: cursorDefinition,
+      renderer: first.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'First owned cursor chart',
+    })
+    const secondHost = mountChartRenderer(document.createElement('div'), {
+      definition: cursorDefinition,
+      renderer: second.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Second owned cursor chart',
+    })
+
+    first.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    const firstPublished = controller.getState()
+    expect(firstPublished?.source).toBe('pointer')
+
+    const programmatic = {
+      anchor: 'value' as const,
+      value: { x: 1, y: 8 },
+      source: 'programmatic' as const,
+      pinned: false,
+    }
+    controller.setState(programmatic)
+    expect(first.paintFocus.mock.calls.at(-1)?.[1]).toBeNull()
+    first.element.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
+    expect(controller.getState()).toBe(programmatic)
+
+    second.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 24,
+        clientY: 36,
+      }),
+    )
+    const secondPublished = controller.getState()
+    expect(secondPublished).not.toBe(programmatic)
+    expect(first.paintFocus.mock.calls.at(-1)?.[1]).toBeNull()
+    expect(second.paintFocus.mock.calls.at(-1)?.[1]).not.toBeNull()
+    first.element.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
+    expect(controller.getState()).toBe(secondPublished)
+
+    second.element.dispatchEvent(
+      new MouseEvent('mouseleave', { bubbles: true }),
+    )
+    expect(controller.getState()).toBeNull()
+
+    first.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()).not.toBeNull()
+    firstHost.destroy()
+    expect(controller.getState()).toBeNull()
+    secondHost.destroy()
+  })
+
+  it('clears an owned transient cursor when its binding is replaced', () => {
+    const controller = createChartCursor<number, number>()
+    const fake = createFakeRenderer('replaced-owned-cursor-host')
+    const options = {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Replaced owned cursor chart',
+    }
+    const host = mountChartRenderer(document.createElement('div'), {
+      ...options,
+      definition: defineChart(definition, {
+        cursor: { use: cursorHost, mode: 'free', controller },
+      }),
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()).not.toBeNull()
+
+    host.update({ ...options, definition })
+    expect(controller.getState()).toBeNull()
+    host.destroy()
+  })
+
+  it('clears an owned transient cursor when its binding mode changes', () => {
+    const controller = createChartCursor<number, number>()
+    const fake = createFakeRenderer('mode-changed-owned-cursor-host')
+    const options = {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Mode-changed owned cursor chart',
+    }
+    const host = mountChartRenderer(document.createElement('div'), {
+      ...options,
+      definition: defineChart(definition, {
+        cursor: { use: cursorHost, mode: 'free', controller },
+      }),
+    })
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()?.anchor).toBe('normalized')
+
+    host.update({
+      ...options,
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        cursor: { use: cursorHost, mode: 'focus', match: 'x', controller },
+      }),
+    })
+    expect(controller.getState()).toBeNull()
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()?.anchor).toBe('value')
+
+    host.update({
+      ...options,
+      definition: defineChart(definition, {
+        cursor: { use: cursorHost, mode: 'free', controller },
+      }),
+    })
+    expect(controller.getState()).toBeNull()
+    host.destroy()
+  })
+
+  it('treats the cursor host extension as binding identity', () => {
+    const controller = createChartCursor<number, number>()
+    const replacementCursorHost = {
+      ...cursorHost,
+      id: 'replacement-cursor-host',
+    }
+    const fake = createFakeRenderer('extension-changed-owned-cursor-host')
+    const options = {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Extension-changed owned cursor chart',
+    }
+    const definitionFor = (use: typeof cursorHost) =>
+      defineChart(definition, {
+        cursor: { use, mode: 'free', controller },
+      })
+    const host = mountChartRenderer(document.createElement('div'), {
+      ...options,
+      definition: definitionFor(cursorHost),
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()).not.toBeNull()
+
+    host.update({
+      ...options,
+      definition: definitionFor(replacementCursorHost),
+    })
+    expect(controller.getState()).toBeNull()
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 24,
+        clientY: 36,
+      }),
+    )
+    expect(controller.getState()).not.toBeNull()
+    host.destroy()
+  })
+
+  it('treats focus match as binding identity without clearing foreign or pinned state', () => {
+    const controller = createChartCursor<number, number>()
+    const fake = createFakeRenderer('match-changed-owned-cursor-host')
+    const options = {
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Match-changed owned cursor chart',
+    }
+    const definitionFor = (match: 'x' | 'y') =>
+      defineChart(definition, {
+        maxFocusDistance: 1_000,
+        cursor: {
+          use: cursorHost,
+          mode: 'focus',
+          match,
+          pin: true,
+          controller,
+        },
+      })
+    const host = mountChartRenderer(document.createElement('div'), {
+      ...options,
+      definition: definitionFor('x'),
+    })
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()).toMatchObject({ value: { x: 0 } })
+    host.update({ ...options, definition: definitionFor('y') })
+    expect(controller.getState()).toBeNull()
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    expect(controller.getState()).toMatchObject({ value: { y: 4 } })
+    const foreign = {
+      anchor: 'value' as const,
+      value: { y: 8 },
+      source: 'programmatic' as const,
+      pinned: false,
+    }
+    controller.setState(foreign)
+    host.update({ ...options, definition: definitionFor('x') })
+    expect(controller.getState()).toBe(foreign)
+
+    fake.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: 20,
+        clientY: 30,
+      }),
+    )
+    fake.element.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, clientX: 20, clientY: 30 }),
+    )
+    const pinned = controller.getState()
+    expect(pinned?.pinned).toBe(true)
+    host.update({ ...options, definition: definitionFor('y') })
+    expect(controller.getState()).toBe(pinned)
+
+    host.destroy()
+    expect(controller.getState()).toBe(pinned)
+  })
 })
 
 function installPopoverMock(view: Window & typeof globalThis) {
@@ -1849,6 +2640,14 @@ function restoreProperty(
 ) {
   if (descriptor) Object.defineProperty(target, key, descriptor)
   else Reflect.deleteProperty(target, key)
+}
+
+function flattenSceneNodes(nodes: readonly SceneNode[]): SceneNode[] {
+  return nodes.flatMap((node) =>
+    node.kind === 'group'
+      ? [node, ...flattenSceneNodes(node.children)]
+      : [node],
+  )
 }
 
 interface FakeRenderer {

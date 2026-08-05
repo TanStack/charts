@@ -95,9 +95,10 @@ import { tooltip } from '@tanstack/react-native-charts/tooltip'
 
 Packed tarballs are typechecked and bundled through default bare React Native
 and Expo Metro configurations on iOS and Android. The workspace Expo 57
-fixture also renders in Expo Go on an iOS simulator. Bare-native and Android
-simulators, physical devices, gestures, visual parity, and screen readers are
-not currently supported.
+fixture also renders in Expo Go on an iOS simulator. Native responder and
+accessibility cursor behavior has component regression coverage. Bare-native
+and Android simulator runs, physical devices, visual parity, and screen-reader
+verification are not currently part of the release gate.
 
 ## Choose scale capabilities
 

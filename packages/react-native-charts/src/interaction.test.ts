@@ -6,6 +6,7 @@ import type {
   ChartDefinition,
   ChartPoint,
   ChartScene,
+  SceneNode,
 } from '@tanstack/charts/types'
 import { adjacentFocusPoint, createNativeChartFocusModel } from './interaction'
 
@@ -72,6 +73,23 @@ describe('native focus model', () => {
     expect(model.resolve(10, 10)).toEqual([])
     expect(model.group(points[0]!)).toEqual([])
     expect(model.navigation).toEqual([])
+  })
+
+  it('uses painted containment to seed grouped axis focus', () => {
+    const disease = point('disease', 'disease', 0, 10, 40, 1, 100)
+    const wounds = point('wounds', 'wounds', 1, 10, 20, 1, 40)
+    const model = createNativeChartFocusModel(
+      chartScene(
+        [disease, wounds],
+        [rectangle(disease, 5, 40, 10, 20), rectangle(wounds, 5, 20, 10, 20)],
+      ),
+      definition({ focus: 'group-x', maxFocusDistance: 0 }),
+    )
+
+    expect(model.resolve(10, 30).map((candidate) => candidate.key)).toEqual([
+      'wounds',
+      'disease',
+    ])
   })
 
   it('restores duplicate keys by datum identity after a scene update', () => {
@@ -170,13 +188,14 @@ function point(
 
 function chartScene(
   points: readonly ChartPoint<Datum, number, number>[],
+  nodes: readonly SceneNode[] = [],
 ): ChartScene<Datum, number, number> {
   return {
     width: 100,
     height: 60,
     margin: { top: 0, right: 0, bottom: 0, left: 0 },
     chart: { x: 0, y: 0, width: 100, height: 60 },
-    nodes: [],
+    nodes,
     points,
     scales: {},
     colors: {
@@ -193,5 +212,23 @@ function chartScene(
       background: 'transparent',
       palette: ['#2563eb', '#f97316'],
     },
+  }
+}
+
+function rectangle(
+  target: ChartPoint<Datum, number, number>,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): SceneNode {
+  return {
+    kind: 'rect',
+    key: target.key,
+    x,
+    y,
+    width,
+    height,
+    interaction: { point: target, affinity: 'x' },
   }
 }

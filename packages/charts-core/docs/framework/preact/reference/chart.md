@@ -9,8 +9,8 @@ import { Chart } from '@tanstack/preact-charts'
 
 The definition infers datum and coordinate types for every callback. Replace
 its identity when captured application values change.
-It also owns focus, tooltip, animation, keyboard policy, focus distance, and
-spatial indexing.
+It also owns `focus`, `focusRing`, `cursor`, `tooltip`, `animate`, `keyboard`,
+`maxFocusDistance`, and `spatialIndex`.
 
 ## Props
 
