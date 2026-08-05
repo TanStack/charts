@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   bundleBaselineBundles,
+  bundleBaselineRecord,
   bundleBaselineShapeFailures,
 } from './bundle-baseline.mjs'
 
@@ -58,6 +59,24 @@ describe('bundle baseline shape', () => {
       expect(bundleBaselineShapeFailures(malformed, configuration)).toEqual([
         expect.stringContaining('bundle baseline cases do not match'),
       ])
+    },
+  )
+
+  it.each([null, []])(
+    'keeps malformed root value %j on the structured validation path',
+    (malformed) => {
+      expect(bundleBaselineRecord(malformed)).toEqual({})
+      expect(bundleBaselineBundles(malformed)).toEqual({})
+      expect(bundleBaselineShapeFailures(malformed, configuration)).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('bundle baseline matrix does not match'),
+          expect.stringContaining('bundle baseline cases do not match'),
+          expect.stringContaining(
+            'bundle baseline package versions do not match',
+          ),
+          expect.stringContaining('bundle baseline sources do not match'),
+        ]),
+      )
     },
   )
 })

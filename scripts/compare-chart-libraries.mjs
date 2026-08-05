@@ -10,6 +10,7 @@ import {
 } from './benchmark/browser.mjs'
 import {
   bundleBaselineBundles,
+  bundleBaselineRecord,
   bundleBaselineShapeFailures,
 } from './benchmark/bundle-baseline.mjs'
 import { chartLibraries } from './benchmark/chart-libraries.mjs'
@@ -1174,11 +1175,12 @@ async function checkBundleBaseline(
   }
 
   const failures = []
-  const baselineBundles = bundleBaselineBundles(baseline)
+  const baselineRecord = bundleBaselineRecord(baseline)
+  const baselineBundles = bundleBaselineBundles(baselineRecord)
   const expectedTanStackRevision = checkSourceProvenance
     ? tanstackComparisonRevision(root)
     : undefined
-  if (baseline.schemaVersion !== 3) {
+  if (baselineRecord.schemaVersion !== 3) {
     failures.push(
       'bundle baseline schema is stale; run pnpm benchmark:update-baseline',
     )
@@ -1191,7 +1193,7 @@ async function checkBundleBaseline(
     }),
   )
   for (const library of checkedLibraries) {
-    const expectedVersion = baseline.packageVersions?.[library.id]
+    const expectedVersion = baselineRecord.packageVersions?.[library.id]
     if (!expectedVersion) {
       failures.push(
         `${library.label}: bundle baseline is missing its package version`,
@@ -1199,7 +1201,7 @@ async function checkBundleBaseline(
       continue
     }
     const actualVersion = actualVersions[library.id]
-    const source = baseline.sources?.[library.id]
+    const source = baselineRecord.sources?.[library.id]
     const versionFailure = comparisonInstalledVersionFailure(
       source,
       actualVersion,
@@ -1256,8 +1258,8 @@ async function checkBundleBaseline(
       'incrementalBrotliBytes',
     ]) {
       const allowance = Math.max(
-        baseline.tolerance.minimumBytes,
-        Math.ceil(expected[metric] * baseline.tolerance.relative),
+        baselineRecord.tolerance.minimumBytes,
+        Math.ceil(expected[metric] * baselineRecord.tolerance.relative),
       )
       const limit = expected[metric] + allowance
       if (bundle[metric] > limit) {

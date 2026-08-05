@@ -3,11 +3,12 @@ export function bundleBaselineShapeFailures(
   { libraryIds, chartTypes, tiers },
 ) {
   const failures = []
+  const baselineRecord = bundleBaselineRecord(baseline)
 
   if (
-    JSON.stringify(baseline.matrix?.chartTypes) !==
+    JSON.stringify(baselineRecord.matrix?.chartTypes) !==
       JSON.stringify(chartTypes) ||
-    JSON.stringify(baseline.matrix?.tiers) !== JSON.stringify(tiers)
+    JSON.stringify(baselineRecord.matrix?.tiers) !== JSON.stringify(tiers)
   ) {
     failures.push(
       'bundle baseline matrix does not match the configured chart types and tiers',
@@ -22,27 +23,31 @@ export function bundleBaselineShapeFailures(
   pushKeySetFailure(
     failures,
     'bundle baseline cases',
-    recordKeys(baseline.bundles),
+    recordKeys(baselineRecord.bundles),
     expectedBundleIds,
   )
   pushKeySetFailure(
     failures,
     'bundle baseline package versions',
-    recordKeys(baseline.packageVersions),
+    recordKeys(baselineRecord.packageVersions),
     libraryIds,
   )
   pushKeySetFailure(
     failures,
     'bundle baseline sources',
-    recordKeys(baseline.sources),
+    recordKeys(baselineRecord.sources),
     libraryIds,
   )
 
   return failures
 }
 
+export function bundleBaselineRecord(baseline) {
+  return recordOrEmpty(baseline)
+}
+
 export function bundleBaselineBundles(baseline) {
-  return recordOrEmpty(baseline?.bundles)
+  return recordOrEmpty(bundleBaselineRecord(baseline).bundles)
 }
 
 function pushKeySetFailure(failures, label, actualValues, expectedValues) {
