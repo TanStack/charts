@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-02
+Last updated: 2026-08-04
 
 ## Triage rule
 
@@ -241,6 +241,9 @@ Each entry records:
 | F-203 | Catalog bundles omitted data license notices              | Tooling         | resolved   |
 | F-204 | Catalog definitions captured the initial server width     | Application     | resolved   |
 | F-205 | Catalog publishing raced its React dependency             | Tooling/Release | resolved   |
+| F-206 | CI repeated unaffected work across every partition        | Tooling         | monitoring |
+| F-207 | Packed consumers serialized independent verification      | Tooling/Release | resolved   |
+| F-208 | Benchmark shards repeated setup and skewed work           | Tooling         | monitoring |
 
 ## Findings
 
@@ -5085,3 +5088,88 @@ Each entry records:
   the catalog and remaining adapters.
 - Verification: the release workflow contract asserts the core-to-React order
   and that both complete before the concurrent publication phase.
+
+### F-206 — CI repeated unaffected work across every partition
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling
+- Observed in: profiling local and GitHub validation on 2026-08-04
+- Friction: a documentation-only pull request still ran the complete static,
+  bundle, comparison, and stress workflow. It consumed 4 minutes 38 seconds of
+  wall time and 18.2 runner-minutes; the eight browser jobs alone consumed 12
+  runner-minutes. Root Nx inputs treated package documentation and the `CI`
+  environment as source, while every job restored the same local Nx cache even
+  when it never invoked Nx. Repeated setup consumed 339 runner-seconds on that
+  run, and the manually shared local cache showed no critical-path reuse for an
+  identical revision.
+- Decision: classify pull-request paths before starting browser partitions and
+  keep one stable aggregate `CI` result that accepts only intentionally skipped
+  jobs. Documentation-only static runs execute format, documentation, focused
+  Markdown invariant tests, and diff checks. Narrow source inputs exclude
+  generated/public documentation, remove runner identity from deterministic
+  hashes, cache the pnpm store, key Playwright from its exact browser metadata
+  and architecture, and stop sharing `.nx/cache` across machines. Full static
+  validation now uses the public TanStack Charts Nx Cloud workspace and assigns
+  the package critical path to one large agent while two medium agents consume
+  the remaining cacheable graph. Documentation-only validation stays local and
+  does not start agents.
+- Verification: classifier and workflow contracts cover package READMEs,
+  media, nested Markdown, mixed source changes, lockfiles, workflow changes,
+  conditional aggregate results, pinned setup actions, Nx Cloud identity,
+  cacheability, agent assignment, and the exact Playwright container canary.
+  The focused documentation graph and complete 18-task local graph pass; a
+  fresh task cache completes in 63.17 seconds and the identical warm graph in
+  0.97 seconds. The next pull request and scheduled run must confirm distributed
+  critical-path and runner-minute savings before this entry closes.
+- Follow-up: record the first production timings and run the opt-in Playwright
+  container A/B.
+
+### F-207 — Packed consumers serialized independent verification
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: reducing the local package validation critical path
+- Friction: five independent package builds and nineteen production bundles ran
+  serially. The bare React Native and Expo consumers also shared Metro's default
+  temporary cache; Expo's `--clear` made concurrent verification unsafe even
+  though their installed projects and bundle outputs were otherwise separate.
+- Decision: retain serial `pnpm pack` and install phases required by F-142, but
+  use bounded, draining worker pools for in-process package builds, web bundles,
+  and post-install consumer verification. Give each native consumer a local
+  `.metro-cache`, preserve deterministic result order, and keep packed and
+  framework adapter gates in one top-level process so their pnpm phases cannot
+  overlap.
+- Verification: the complete packed-consumer gate passes with unchanged bundle
+  boundaries and sizes in 30.38 seconds, down from the 35.30-second baseline.
+  The worker-pool and packed-markdown regressions pass, both native consumers
+  create their isolated caches, and every nested pnpm operation remains serial.
+
+### F-208 — Benchmark shards repeated setup and skewed work
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling
+- Observed in: profiling scheduled comparison, stress, and conformance runs
+- Friction: every conformance shard constructed 28 TypeScript programs and
+  prepared bundles serially. Modulo case assignment left one conformance shard
+  at 222 seconds while another took 80 seconds. Standard stress groups took
+  428, 401, 258, and 137 seconds, and a separate bundle-baseline job rebuilt the
+  same comparison cases that four browser shards built immediately afterward.
+- Decision: compile all conformance baselines and negative probes in one
+  TypeScript program, prepare independent bundles with four-worker draining
+  pools, and assign conformance cases by deterministic estimated cost. Preserve
+  the semantic quick stress groups, but assign standard/full workloads using
+  explicit weights derived from the observed scheduled run. Each comparison
+  shard now checks the filtered baseline and complete configured key set from
+  its existing bundles; the full duplicate job runs only when a maintainer
+  explicitly requests a candidate.
+- Verification: benchmark regressions pass and serial browser measurement is
+  unchanged. Predicted worst conformance weight falls from 4,484 to 2,898
+  (35%), and predicted standard stress load becomes 315, 298, 275, and 336
+  seconds instead of a 428-second maximum. Focused size conformance completes
+  in 7.98 seconds, a one-of-eight size shard in 13.21 seconds, and a filtered
+  stress shard completes with zero failures.
+- Follow-up: replace predicted weights with measured per-case and per-workload
+  cloud durations after the next complete scheduled runs.

@@ -1,0 +1,15 @@
+distribute-on:
+  default: 2 linux-medium-js, 1 linux-large-js
+
+assignment-rules:
+  - targets:
+      - package-check
+    run-on:
+      - agent: linux-large-js
+        parallelism: 1
+
+  - projects:
+      - '*'
+    run-on:
+      - agent: linux-medium-js
+        parallelism: 2

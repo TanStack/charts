@@ -20,6 +20,7 @@ import { build, transform } from 'esbuild'
 import ts from 'typescript'
 import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
 import { verifyPackedReactNativeConsumers } from './packed-react-native-consumers.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const execFileAsync = promisify(execFile)
 const root = resolve(import.meta.dirname, '..')
@@ -62,6 +63,8 @@ const webPackages = [
 ]
 const nativePackage = packageConfig('react-native-charts', 'react-native')
 const packages = [...webPackages, nativePackage]
+const packageBuildConcurrency = 3
+const productionBundleConcurrency = 4
 
 try {
   await mkdir(resolve(buildWorkspace, 'packages'), { recursive: true })
@@ -83,9 +86,8 @@ try {
     )}\n`,
   )
 
-  for (const packageInfo of packages) {
-    await buildPackage(packageInfo)
-  }
+  await Promise.all(packages.map(loadPackageManifest))
+  await runWithConcurrency(packages, packageBuildConcurrency, buildPackage)
 
   const tarballs = new Map()
   for (const packageInfo of packages) {
@@ -94,15 +96,27 @@ try {
 
   await installFixture(tarballs)
   await verifyStandaloneCatalogConsumer(tarballs)
-  await verifyInstalledManifests()
-  await verifyEsmRuntime()
-  await verifyDeclarations()
-  const bundles = await verifyProductionBundles()
-  const nativeBundles = await verifyPackedReactNativeConsumers({
-    repositoryRoot: root,
-    temporaryRoot,
-    tarballs,
-  })
+  let bundles
+  let nativeBundles
+  await runWithConcurrency(
+    [
+      async () => {
+        await verifyInstalledManifests()
+        await verifyEsmRuntime()
+        await verifyDeclarations()
+        bundles = await verifyProductionBundles()
+      },
+      async () => {
+        nativeBundles = await verifyPackedReactNativeConsumers({
+          repositoryRoot: root,
+          temporaryRoot,
+          tarballs,
+        })
+      },
+    ],
+    2,
+    (operation) => operation(),
+  )
 
   console.log('Packed exports, declarations, and runtime gate passed.')
   console.log('| Consumer | Bytes | Gzip |')
@@ -131,7 +145,7 @@ function packageConfig(directoryName, kind) {
   }
 }
 
-async function buildPackage(packageInfo) {
+async function loadPackageManifest(packageInfo) {
   const manifest = JSON.parse(
     await readFile(resolve(packageInfo.sourceDirectory, 'package.json')),
   )
@@ -139,6 +153,9 @@ async function buildPackage(packageInfo) {
   packageInfo.name = manifest.name
 
   validateManifest(packageInfo)
+}
+
+async function buildPackage(packageInfo) {
   await mkdir(packageInfo.stageDirectory, { recursive: true })
   await copyPackageFiles(packageInfo)
   await buildRuntime(packageInfo)
@@ -1850,72 +1867,79 @@ async function verifyProductionBundles() {
     resolve(fixtureDirectory, 'node_modules'),
   )
   await mkdir(bundleDirectory, { recursive: true })
-  const results = []
+  const results = new Array(entries.length)
 
-  for (const entry of entries) {
-    const entryPath = resolve(fixtureDirectory, entry.filename)
-    const outfile = resolve(bundleDirectory, `${entry.label.toLowerCase()}.js`)
-    await writeFile(entryPath, entry.source)
-    const result = await build({
-      entryPoints: [entryPath],
-      outfile,
-      absWorkingDir: fixtureDirectory,
-      bundle: true,
-      conditions: entry.conditions ?? ['browser', 'import', 'default'],
-      external: entry.external,
-      format: 'esm',
-      legalComments: 'none',
-      logLevel: 'silent',
-      metafile: true,
-      minify: true,
-      platform: entry.platform ?? 'browser',
-      target: 'es2022',
-      treeShaking: true,
-    })
-    const contents = await readFile(outfile)
-    assert.ok(contents.byteLength > 100, `${entry.label} bundle is empty`)
-    assert.ok(
-      contents.byteLength < 500_000,
-      `${entry.label} bundle unexpectedly exceeds 500 kB`,
-    )
-    const retainedInputs = collectRetainedInputs(result.metafile)
-    assertRendererBoundary(
-      entry.label,
-      retainedInputs,
-      entry.rendererBoundary,
-      packedRendererModules,
-    )
-    assertPackedInputBoundary(
-      entry.label,
-      retainedInputs,
-      entry.inputBoundary,
-      packedInputModules,
-    )
-    for (const input of Object.keys(result.metafile.inputs)) {
-      const absoluteInput = resolve(fixtureDirectory, input)
-      assert.equal(
-        absoluteInput.startsWith(`${resolve(root, 'packages')}${sep}`),
-        false,
-        `${entry.label} bundle used workspace source: ${absoluteInput}`,
+  await runWithConcurrency(
+    entries,
+    productionBundleConcurrency,
+    async (entry, index) => {
+      const entryPath = resolve(fixtureDirectory, entry.filename)
+      const outfile = resolve(
+        bundleDirectory,
+        `${entry.label.toLowerCase()}.js`,
       )
-      if (absoluteInput.includes(`${sep}@tanstack${sep}`)) {
-        const resolvedInput = await realpath(absoluteInput)
-        assert.ok(
-          resolvedInput.startsWith(fixtureNodeModules),
-          `${entry.label} bundle resolved outside the fixture: ${resolvedInput}`,
+      await writeFile(entryPath, entry.source)
+      const result = await build({
+        entryPoints: [entryPath],
+        outfile,
+        absWorkingDir: fixtureDirectory,
+        bundle: true,
+        conditions: entry.conditions ?? ['browser', 'import', 'default'],
+        external: entry.external,
+        format: 'esm',
+        legalComments: 'none',
+        logLevel: 'silent',
+        metafile: true,
+        minify: true,
+        platform: entry.platform ?? 'browser',
+        target: 'es2022',
+        treeShaking: true,
+      })
+      const contents = await readFile(outfile)
+      assert.ok(contents.byteLength > 100, `${entry.label} bundle is empty`)
+      assert.ok(
+        contents.byteLength < 500_000,
+        `${entry.label} bundle unexpectedly exceeds 500 kB`,
+      )
+      const retainedInputs = collectRetainedInputs(result.metafile)
+      assertRendererBoundary(
+        entry.label,
+        retainedInputs,
+        entry.rendererBoundary,
+        packedRendererModules,
+      )
+      assertPackedInputBoundary(
+        entry.label,
+        retainedInputs,
+        entry.inputBoundary,
+        packedInputModules,
+      )
+      for (const input of Object.keys(result.metafile.inputs)) {
+        const absoluteInput = resolve(fixtureDirectory, input)
+        assert.equal(
+          absoluteInput.startsWith(`${resolve(root, 'packages')}${sep}`),
+          false,
+          `${entry.label} bundle used workspace source: ${absoluteInput}`,
         )
-        assert.ok(
-          resolvedInput.includes(`${sep}dist${sep}`),
-          `${entry.label} bundle bypassed packed dist: ${resolvedInput}`,
-        )
+        if (absoluteInput.includes(`${sep}@tanstack${sep}`)) {
+          const resolvedInput = await realpath(absoluteInput)
+          assert.ok(
+            resolvedInput.startsWith(fixtureNodeModules),
+            `${entry.label} bundle resolved outside the fixture: ${resolvedInput}`,
+          )
+          assert.ok(
+            resolvedInput.includes(`${sep}dist${sep}`),
+            `${entry.label} bundle bypassed packed dist: ${resolvedInput}`,
+          )
+        }
       }
-    }
-    results.push({
-      label: entry.label,
-      bytes: contents.byteLength,
-      gzip: gzipSync(contents).byteLength,
-    })
-  }
+      results[index] = {
+        label: entry.label,
+        bytes: contents.byteLength,
+        gzip: gzipSync(contents).byteLength,
+      }
+    },
+  )
 
   return results
 }

@@ -14,19 +14,63 @@ on:
         required: false
         type: boolean
         default: false
+      playwright_container_canary:
+        description: Compare the host runner with the exact Playwright container
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: chart-library-benchmarks-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Select CI partitions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      compare: ${{ steps.classify.outputs.compare || steps.full.outputs.compare }}
+      stress: ${{ steps.classify.outputs.stress || steps.full.outputs.stress }}
+
+    steps:
+      - name: Checkout pull request
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Classify pull request changes
+        if: github.event_name == 'pull_request'
+        id: classify
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git cat-file -e "${HEAD_SHA}^{commit}"
+          git diff --no-renames --name-only -z "$BASE_SHA" "$HEAD_SHA" |
+            node scripts/classify-ci-changes.mjs >> "$GITHUB_OUTPUT"
+
+      - name: Select every partition
+        if: github.event_name != 'pull_request'
+        id: full
+        run: |
+          echo 'compare=true' >> "$GITHUB_OUTPUT"
+          echo 'stress=true' >> "$GITHUB_OUTPUT"
+
   static:
     name: Static checks
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      NX_CLOUD_CONTINUOUS_ASSIGNMENT: 'true'
 
     steps:
       - name: Checkout
@@ -35,14 +79,46 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Classify static pull request changes
+        if: github.event_name == 'pull_request'
+        id: static-changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git cat-file -e "${HEAD_SHA}^{commit}"
+          git diff --no-renames --name-only -z "$BASE_SHA" "$HEAD_SHA" |
+            node scripts/classify-ci-changes.mjs >> "$GITHUB_OUTPUT"
+
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Run cached validation graph
-        run: pnpm run validate
+      - name: Set Nx SHAs
+        uses: nrwl/nx-set-shas@afb73a62d26e41464e9254689e1fd6122ee683c1 # v5.0.1
 
-      - name: Check React Native POC types
-        run: pnpm react-native:poc:types
+      - name: Start Nx Agents
+        id: nx-agents
+        if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
+        run: pnpm exec nx start-ci-run --distribute-on=".nx/workflows/distribution.yaml"
+
+      - name: Run full cached validation graph
+        if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
+        env:
+          NX_PARALLEL: 4
+        run: pnpm exec nx run charts-workspace:ci
+
+      - name: Stop Nx Agents
+        if: always() && steps.nx-agents.outcome == 'success'
+        run: pnpm exec nx stop-all-agents
+
+      - name: Run documentation validation graph
+        if: github.event_name == 'pull_request' && steps.static-changes.outputs.static == 'docs'
+        run: pnpm exec nx run-many --targets=format-check,docs-check,docs-test --projects=charts-workspace --parallel=4
+
+      - name: Check workspace diff
+        run: git diff --check
 
       - name: Upload production catalog
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -53,35 +129,10 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
 
-  bundle-baseline:
-    name: Bundle baseline
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Setup
-        uses: ./.github/actions/setup
-
-      - name: Check comparison bundle baseline
-        id: benchmark-check
-        run: pnpm benchmark:check
-
-      - name: Upload comparison bundle baseline candidate
-        if: ${{ always() && steps.benchmark-check.outcome != 'skipped' && (steps.benchmark-check.outcome == 'failure' || inputs.upload_bundle_baseline_candidate) }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: comparison-bundle-baseline-${{ github.sha }}
-          path: .benchmark-output/results/bundle-baseline.candidate.json
-          if-no-files-found: error
-
   compare:
     name: Comparison (${{ matrix.chart }})
+    if: needs.changes.outputs.compare == 'true'
+    needs: changes
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -97,6 +148,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          fetch-depth: ${{ matrix.chart == 'line' && '0' || '1' }}
           persist-credentials: false
 
       - name: Setup
@@ -105,7 +157,14 @@ jobs:
           playwright: 'true'
 
       - name: Run comparison shard
-        run: pnpm benchmark -- --profile=ci --chart=${{ matrix.chart }}
+        env:
+          CHECK_BASELINE_PROVENANCE: ${{ matrix.chart == 'line' }}
+        run: |
+          baseline_args=(--check-bundle-baseline)
+          if [ "$CHECK_BASELINE_PROVENANCE" = true ]; then
+            baseline_args+=(--check-bundle-provenance)
+          fi
+          pnpm benchmark -- --profile=ci --chart=${{ matrix.chart }} "${baseline_args[@]}"
 
       - name: Publish comparison summary
         if: success()
@@ -121,23 +180,59 @@ jobs:
           name: chart-library-comparison-${{ matrix.chart }}-${{ github.run_id }}
           path: .benchmark-output/results
           if-no-files-found: error
+          retention-days: 14
+
+  bundle-baseline-candidate:
+    name: Bundle baseline candidate
+    if: github.event_name == 'workflow_dispatch' && inputs.upload_bundle_baseline_candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Check comparison bundle baseline
+        id: benchmark-check
+        run: node scripts/compare-chart-libraries.mjs --check
+
+      - name: Upload comparison bundle baseline candidate
+        if: always() && steps.benchmark-check.outcome != 'skipped'
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: comparison-bundle-baseline-${{ github.sha }}
+          path: .benchmark-output/results/bundle-baseline.candidate.json
+          if-no-files-found: error
+          retention-days: 14
 
   stress:
     name: Stress (${{ matrix.name }})
+    if: needs.changes.outputs.stress == 'true'
+    needs: changes
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: raw
+          - name: partition-1
             workloads: raw-line,raw-scatter,interactive-scatter
-          - name: envelopes
+            shard: 1/4
+          - name: partition-2
             workloads: binned-density,pixel-envelope,viewport-envelope
-          - name: transforms
+            shard: 2/4
+          - name: partition-3
             workloads: stats-multi-series-line,rolling-keyed-window,histogram-128
-          - name: collections
+            shard: 3/4
+          - name: partition-4
             workloads: top-categories,dashboard-lines
+            shard: 4/4
 
     steps:
       - name: Checkout
@@ -150,16 +245,13 @@ jobs:
         with:
           playwright: 'true'
 
-      - name: Validate stress workload invariants
-        run: pnpm exec vitest run benchmarks/comparison/stress
-
       - name: Run quick stress shard
         if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: pnpm benchmark:stress:quick -- --workload=${{ matrix.workloads }}
 
       - name: Run standard stress shard
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: pnpm benchmark:stress:standard -- --workload=${{ matrix.workloads }}
+        run: pnpm benchmark:stress:standard -- --shard=${{ matrix.shard }}
 
       - name: Publish stress summary
         if: success()
@@ -175,34 +267,79 @@ jobs:
           name: chart-library-stress-${{ matrix.name }}-${{ github.run_id }}
           path: .benchmark-output/stress/results
           if-no-files-found: error
+          retention-days: 14
+
+  compare-container-canary:
+    name: Comparison container canary
+    if: github.event_name == 'workflow_dispatch' && inputs.playwright_container_canary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.0-noble@sha256:baed2032d533817f3dbe6425de795788430ba345e819a1201337009ba17c9d07
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Run line comparison in container
+        run: pnpm benchmark -- --profile=ci --chart=line
+
+      - name: Upload container comparison
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: chart-library-comparison-container-line-${{ github.run_id }}
+          path: .benchmark-output/results
+          if-no-files-found: error
+          retention-days: 14
 
   ci:
     name: CI
     if: always()
     needs:
+      - changes
       - static
-      - bundle-baseline
       - compare
       - stress
+      - bundle-baseline-candidate
+      - compare-container-canary
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
     steps:
       - name: Require every CI partition
         env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
           STATIC_RESULT: ${{ needs.static.result }}
-          BUNDLE_RESULT: ${{ needs.bundle-baseline.result }}
+          COMPARISON_REQUIRED: ${{ needs.changes.outputs.compare }}
           COMPARISON_RESULT: ${{ needs.compare.result }}
+          STRESS_REQUIRED: ${{ needs.changes.outputs.stress }}
           STRESS_RESULT: ${{ needs.stress.result }}
+          BUNDLE_CANDIDATE_REQUIRED: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_bundle_baseline_candidate }}
+          BUNDLE_CANDIDATE_RESULT: ${{ needs.bundle-baseline-candidate.result }}
+          CANARY_REQUIRED: ${{ github.event_name == 'workflow_dispatch' && inputs.playwright_container_canary }}
+          CANARY_RESULT: ${{ needs.compare-container-canary.result }}
         run: |
-          for result in \
-            "$STATIC_RESULT" \
-            "$BUNDLE_RESULT" \
-            "$COMPARISON_RESULT" \
-            "$STRESS_RESULT"
-          do
-            test "$result" = success
-          done
+          require_partition() {
+            case "$1:$2" in
+              true:success|false:skipped) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          test "$CHANGES_RESULT" = success
+          test "$STATIC_RESULT" = success
+          require_partition "$COMPARISON_REQUIRED" "$COMPARISON_RESULT"
+          require_partition "$STRESS_REQUIRED" "$STRESS_RESULT"
+          require_partition "$BUNDLE_CANDIDATE_REQUIRED" "$BUNDLE_CANDIDATE_RESULT"
+          require_partition "$CANARY_REQUIRED" "$CANARY_RESULT"
 
   publish-catalog:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
