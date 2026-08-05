@@ -5073,7 +5073,7 @@ Each entry records:
   contract tests cover the migrated shapes; the migration guide records every
   breaking before-and-after signature. Full type, documentation, package,
   format, bundle, and comparison gates pass. The reviewed universal bundle
-  baseline increases by at most 154 minified and 69 gzip bytes, and the three
+  baseline increases by at most 164 minified and 73 gzip bytes, and the three
   affected integrated budgets each move by 0.1 KiB. The focused expanding
   tooltip conformance case retains 99.6% geometry similarity and passes visual,
   behavior, and type gates at both sizes and themes.
