@@ -1,13 +1,6 @@
 import { bin, median } from 'd3-array'
-import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
-
-export const violinSpecies = ['Adelie', 'Chinstrap', 'Gentoo'] as const
-export type ViolinSpecies = (typeof violinSpecies)[number]
-
-export type PenguinMass = PenguinsRow & {
-  readonly species: ViolinSpecies
-  readonly body_mass_g: number
-}
+import { massBoundaries, violinSpecies } from './selection'
+import type { PenguinMass, ViolinSpecies } from './selection'
 
 export interface ViolinPoint {
   id: string
@@ -26,21 +19,10 @@ export interface ViolinMedian {
   center: number
 }
 
-const boundaries = [
-  2500, 2750, 3000, 3250, 3500, 3750, 4000, 4250, 4500, 4750, 5000, 5250, 5500,
-  5750, 6000, 6250, 6500,
-]
 const createBins = bin<PenguinMass, number>()
   .value((row) => row.body_mass_g)
-  .domain([2500, 6500])
-  .thresholds(boundaries.slice(1, -1))
-
-export function isPenguinMass(row: PenguinsRow): row is PenguinMass {
-  return (
-    row.body_mass_g !== null &&
-    violinSpecies.includes(row.species as ViolinSpecies)
-  )
-}
+  .domain([massBoundaries[0], massBoundaries.at(-1)!])
+  .thresholds(massBoundaries.slice(1, -1))
 
 export function violinDensity(
   rows: readonly PenguinMass[],

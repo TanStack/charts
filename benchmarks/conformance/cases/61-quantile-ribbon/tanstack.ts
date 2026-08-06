@@ -1,32 +1,36 @@
-import { areaY, defineChart, lineY } from '@tanstack/charts'
-import { quantile, rollups } from 'd3-array'
+import { areaY, defineChart, groupBy, lineY, quantile } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import { tanstackMount } from '../../shared/mount'
 
-interface QuantileSummary {
-  date: Date
-  lower: number
-  median: number
-  upper: number
-}
+export const quantileRows = groupBy(industries, {
+  by: 'date',
+  outputs: {
+    lower: { value: 'unemployed', reduce: quantile(0.1) },
+    median: { value: 'unemployed', reduce: quantile(0.5) },
+    upper: { value: 'unemployed', reduce: quantile(0.9) },
+  },
+})
 
-const definition = () => {
-  const rows = summarizeQuantiles(industries)
+const dateKey = ({ date }: (typeof quantileRows)[number]) => date.getTime()
 
+export const quantileRibbonDefinition = () => {
   return defineChart({
     marks: [
-      areaY(rows, {
+      areaY(quantileRows, {
+        id: 'quantile-ribbon',
         x: 'date',
         y1: 'lower',
         y2: 'upper',
+        key: dateKey,
         fill: '#0ea5e9',
         fillOpacity: 0.22,
       }),
-      lineY(rows, {
+      lineY(quantileRows, {
+        id: 'median-line',
         x: 'date',
         y: 'median',
+        key: dateKey,
         stroke: '#0369a1',
         strokeWidth: 2.25,
       }),
@@ -41,33 +45,6 @@ const definition = () => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  quantileRibbonDefinition,
   'Monthly industry unemployment distribution',
 )
-
-function summarizeQuantiles(
-  rows: readonly IndustriesRow[],
-): readonly QuantileSummary[] {
-  return rollups(
-    rows,
-    (values) => ({
-      lower: quantile(values, 0.1, (row) => row.unemployed),
-      median: quantile(values, 0.5, (row) => row.unemployed),
-      upper: quantile(values, 0.9, (row) => row.unemployed),
-    }),
-    (row) => row.date.getTime(),
-  ).flatMap(([date, summary]) =>
-    summary.lower === undefined ||
-    summary.median === undefined ||
-    summary.upper === undefined
-      ? []
-      : [
-          {
-            date: new Date(date),
-            lower: summary.lower,
-            median: summary.median,
-            upper: summary.upper,
-          },
-        ],
-  )
-}

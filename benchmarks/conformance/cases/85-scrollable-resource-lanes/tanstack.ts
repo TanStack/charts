@@ -4,6 +4,8 @@ import { scaleBand, scaleUtc } from 'd3-scale'
 import { timelineStatusColors } from './colors'
 import {
   createResourceTimelineShell,
+  ensureTimelineFocusVisible,
+  renderTimelineLaneRail,
   sizeResourceTimelineShell,
   timelineBodyHeight,
   timelineChartHeight,
@@ -36,7 +38,6 @@ import type {
 } from '../../types'
 
 const taskInset = 5
-const focusScrollPadding = 32
 
 interface TimelineFocusState {
   taskId: string | null
@@ -44,43 +45,58 @@ interface TimelineFocusState {
   scrolled: boolean
 }
 
-const definition = (input: ConformanceInput) => {
+export const resourceTimelineDefinition = (input: ConformanceInput) => {
   const rows = resourceTasks(input.revision)
 
-  return defineChart(({ width }) => {
-    return {
-      marks: [
-        rect(rows, {
-          x1: 'start',
-          x2: 'end',
-          y: 'resource',
-          color: 'status',
-          inset: taskInset,
-          radius: 4,
-          stroke: '#ffffff',
-          strokeWidth: 1,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain(resourceTimelineDomain),
-        grid: true,
-        axis: { ticks: { count: Math.max(6, Math.floor(width / 84)) } },
+  return defineChart(
+    defineChart(({ width }) => {
+      return {
+        marks: [
+          rect(rows, {
+            x1: 'start',
+            x2: 'end',
+            y: 'resource',
+            color: 'status',
+            inset: taskInset,
+            radius: 4,
+            stroke: '#ffffff',
+            strokeWidth: 1,
+          }),
+        ],
+        x: {
+          scale: scaleUtc().domain(resourceTimelineDomain),
+          grid: true,
+          axis: { ticks: { count: Math.max(6, Math.floor(width / 84)) } },
+        },
+        y: {
+          scale: scaleBand<string>()
+            .domain(resourceLanes)
+            .paddingInner(0.08)
+            .paddingOuter(0.04),
+          grid: false,
+          axis: false,
+        },
+        color: {
+          domain: timelineStatuses,
+          range: timelineStatuses.map((status) => timelineStatusColors[status]),
+        },
+        margin: timelineMargin,
+      }
+    }),
+    {
+      animate: false,
+      keyboard: true,
+      tooltip: {
+        use: tooltip,
+        format: (point) =>
+          `${point.datum.resource} · ${point.datum.label} · ${
+            point.datum.status
+          } · ${formatTaskDate(point.datum.start)}–${formatTaskDate(
+            point.datum.end,
+          )}`,
       },
-      y: {
-        scale: scaleBand<string>()
-          .domain(resourceLanes)
-          .paddingInner(0.08)
-          .paddingOuter(0.04),
-        grid: false,
-        axis: false,
-      },
-      color: {
-        domain: timelineStatuses,
-        range: timelineStatuses.map((status) => timelineStatusColors[status]),
-      },
-      margin: timelineMargin,
-    }
-  })
+    },
+  )
 }
 
 export const mount: ConformanceMount = (container, input) => {
@@ -98,8 +114,7 @@ export const mount: ConformanceMount = (container, input) => {
     scrolled: false,
   }
 
-  const updateFocusedTask = (points: readonly ChartPoint<ResourceTask>[]) => {
-    const point = points[0] ?? null
+  const updateFocusedTask = (point: ChartPoint<ResourceTask> | null) => {
     focusState.taskId = point?.datum.id ?? null
     focusState.centerX = point?.x ?? null
     focusState.scrolled = point
@@ -111,19 +126,7 @@ export const mount: ConformanceMount = (container, input) => {
   const chartOptions = (
     nextInput: ConformanceInput,
   ): ChartHostOptions<ResourceTask> => ({
-    definition: defineChart(definition(nextInput), {
-      animate: false,
-      keyboard: true,
-      tooltip: {
-        use: tooltip,
-        format: (point) =>
-          `${point.datum.resource} · ${point.datum.label} · ${
-            point.datum.status
-          } · ${formatTaskDate(point.datum.start)}–${formatTaskDate(
-            point.datum.end,
-          )}`,
-      },
-    }),
+    definition: resourceTimelineDefinition(nextInput),
     width: timelineContentWidth(
       nextInput.width - timelineLaneRailWidth(nextInput.width),
     ),
@@ -131,7 +134,10 @@ export const mount: ConformanceMount = (container, input) => {
     ariaLabel: 'Tasks scheduled across five resource lanes',
     ariaDescription:
       'Focus the chart and use the arrow, Home, and End keys to inspect tasks. Offscreen tasks scroll into view.',
-    onFocusGroupChange: updateFocusedTask,
+    onFocusChange: updateFocusedTask,
+    onRender: ({ scene }) => {
+      renderTimelineLaneRail(shell.laneRail, (lane) => scene.scales.y.map(lane))
+    },
   })
   const host = mountChart(chartSurface, chartOptions(input))
   const driver = createDriver(
@@ -263,23 +269,6 @@ function timelineState(
       scrolled: focusState.scrolled,
     },
   }
-}
-
-function ensureTimelineFocusVisible(viewport: HTMLDivElement, centerX: number) {
-  const previous = viewport.scrollLeft
-  const visibleStart = previous + focusScrollPadding
-  const visibleEnd = previous + viewport.clientWidth - focusScrollPadding
-  let next = previous
-  if (centerX < visibleStart) {
-    next = centerX - focusScrollPadding
-  } else if (centerX > visibleEnd) {
-    next = centerX - viewport.clientWidth + focusScrollPadding
-  }
-  viewport.scrollLeft = Math.max(
-    0,
-    Math.min(next, viewport.scrollWidth - viewport.clientWidth),
-  )
-  return Math.abs(viewport.scrollLeft - previous) > 1
 }
 
 function timelineGeometry(

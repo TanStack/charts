@@ -6,14 +6,15 @@
   "title": "Observed monthly AAPL brush selection",
   "family": "interaction",
   "intent": "Select AAPL monthly closes with a direct horizontal drag that snaps both boundaries to observed trading dates.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "observed-month UTC brush",
     "real pointer drag",
     "normalized reverse selection",
-    "persistent selection overlay",
-    "D3 scale inversion",
-    "optional d3-brush controller",
+    "definition-owned selection overlay",
+    "resolved-scale candidate snapping",
+    "controlled semantic range",
+    "first-party brush behavior",
     "touch cancellation",
     "keyboard-adjustable semantic handles",
     "live range summary"
@@ -285,7 +286,7 @@
     "url": "https://echarts.apache.org/handbook/en/interaction/brush/"
   },
   "ai": {
-    "create": "Create a UTC chart of monthly AAPL closes with an optional granular d3-brush controller, observed-date snapping, two semantic slider handles, touch cancellation, and a live range summary.",
-    "maintain": "Keep the full semantic domain in an injected D3 UTC scale, snap committed bounds to observed UTC months, synchronize the D3 brush extent and selection to resolved scene bounds, and keep selection state outside the renderer."
+    "create": "Create a UTC chart of monthly AAPL closes with the first-party horizontal brush behavior, observed-date snapping, two semantic slider handles, touch cancellation, and a live range summary.",
+    "maintain": "Keep the semantic range controlled by the application, let the brush behavior own resolved-scale mapping, snapping, painting, handles, and gesture lifecycle, and keep the range summary outside the renderer."
   }
 }

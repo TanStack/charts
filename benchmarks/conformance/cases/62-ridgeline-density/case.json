@@ -7,9 +7,9 @@
   "intent": "Compare the distribution of real Simpsons episode IMDb ratings across three seasons in compact vertically offset layers.",
   "support": "native",
   "features": [
-    "ridgeline chart",
-    "grouped range areas",
-    "offset baselines",
+    "public grouped binX transform",
+    "public grouped max normalization",
+    "semantic ridgeline mark",
     "smooth D3 curves",
     "categorical color"
   ],
@@ -23,7 +23,7 @@
     "url": "https://observablehq.com/plot/marks/area"
   },
   "ai": {
-    "create": "Create a three-season ridgeline chart by binning the Simpsons dataset's imdb_rating field, using explicit baselines, grouped range areas, matching top lines, and a granular D3 basis curve.",
-    "maintain": "Change the selected seasons while keeping observed rating bins, offsets, scale domains, labels, identity, colors, and responsive curve geometry aligned."
+    "create": "Create a three-season ridgeline chart by grouping binX on the Simpsons dataset's imdb_rating field, normalizing each season by its maximum count, and passing the prepared profiles to ridgelineY with a D3 basis curve.",
+    "maintain": "Change the selected seasons while keeping semantic category baselines, grouped bin lineage, normalization, labels, identity, colors, and responsive overlap geometry aligned."
   }
 }

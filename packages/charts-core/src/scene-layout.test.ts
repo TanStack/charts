@@ -1,11 +1,18 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { measureSceneLabelBounds } from './guide-layout'
 import { lineY } from './line'
 import { createMark } from './mark'
 import { createChartScene, defineChart } from './scene'
 import { text } from './text'
-import type { ChartTextMeasurer, SceneLabel, SceneNode } from './types'
+import type {
+  ChartAxisTickLabelContext,
+  ChartAxisTickLabelOptions,
+  ChartAxisTickLabelValue,
+  ChartTextMeasurer,
+  SceneLabel,
+  SceneNode,
+} from './types'
 
 const measureText: ChartTextMeasurer = (text, options) => {
   const width = text.length * options.fontSize * 0.6
@@ -105,6 +112,162 @@ describe('automatic scene guide layout', () => {
     expect(labels(narrow).length).toBeLessThan(labels(wide).length)
     expect(labels(all)).toHaveLength(categories.length)
     expect(labels(narrow).every((label) => label.rotate === -30)).toBe(true)
+  })
+
+  it('resolves typed tick-label accessors before thinning with stable candidate indices', () => {
+    const categories = Array.from(
+      { length: 12 },
+      (_value, index) => `Long category ${index + 1}`,
+    )
+    const contexts: ChartAxisTickLabelContext<string>[] = []
+    const dx: ChartAxisTickLabelValue<string, number> = (context) => {
+      expectTypeOf(context).toEqualTypeOf<ChartAxisTickLabelContext<string>>()
+      contexts.push(context)
+      return context.index === 0 ? -context.bandwidth / 2 : undefined
+    }
+    const tickLabels = {
+      anchor: ({ index }) => (index === 0 ? 'start' : undefined),
+      dx,
+    } satisfies ChartAxisTickLabelOptions<string>
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY(
+            categories.map((category, value) => ({ category, value })),
+            { x: 'category', y: 'value' },
+          ),
+        ],
+        margin: 0,
+        x: {
+          scale: scaleBand<string>().domain(categories),
+          axis: { tickLabels },
+        },
+        y: { scale: scaleLinear().domain([0, categories.length]), axis: false },
+      }),
+      { width: 260, height: 180 },
+      { measureText },
+    )
+    const labels = flatten(scene.nodes).filter(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.startsWith('x-tick-label:'),
+    )
+
+    expect(contexts.map(({ index }) => index)).toEqual(
+      categories.map((_value, index) => index),
+    )
+    expect(contexts.map(({ value }) => value)).toEqual(categories)
+    expect(contexts.every(({ bandwidth }) => bandwidth > 0)).toBe(true)
+    expect(labels.length).toBeLessThan(categories.length)
+    expect(
+      labels.map(({ text }) => contexts[categories.indexOf(text)]?.index),
+    ).toEqual(labels.map(({ text }) => categories.indexOf(text)))
+    expect(labels[0]).toMatchObject({
+      x: scene.chart.x,
+      anchor: 'start',
+    })
+  })
+
+  it('applies tick-label typography, offsets, opacity, and axis defaults to scene labels', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([0, 1])],
+        margin: 0,
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          axis: {
+            ticks: { values: [0, 1] },
+            tickLabels: {
+              rotate: -30,
+              fontSize: ({ index }) => (index === 0 ? 18 : undefined),
+              fontWeight: ({ index }) => (index === 0 ? 700 : undefined),
+              opacity: ({ index }) => (index === 0 ? 0.4 : undefined),
+              anchor: ({ index }) => (index === 0 ? 'start' : undefined),
+              dx: ({ index }) => (index === 0 ? 3 : undefined),
+              dy: ({ index }) => (index === 0 ? 5 : undefined),
+            },
+          },
+        },
+        y: {
+          scale: scaleLinear().domain([0, 1]),
+          axis: { ticks: { values: [0, 1] } },
+        },
+      }),
+      { width: 480, height: 240 },
+      { measureText },
+    )
+    const labels = flatten(scene.nodes).filter(
+      (node): node is SceneLabel => node.kind === 'label',
+    )
+    const xLabels = labels.filter((label) =>
+      label.key.startsWith('x-tick-label:'),
+    )
+    const yLabels = labels.filter((label) =>
+      label.key.startsWith('y-tick-label:'),
+    )
+    const first = xLabels[0]!
+    const second = xLabels[1]!
+
+    expect(first).toMatchObject({
+      x: scene.scales.x.ticks[0]!.position + 3,
+      y: scene.chart.y + scene.chart.height + 4 + 4 + 18 * 0.8 + 5,
+      anchor: 'start',
+      rotate: -30,
+      fontSize: 18,
+      fontWeight: 700,
+      style: { opacity: 0.4 },
+    })
+    expect(second).toMatchObject({
+      anchor: 'end',
+      rotate: -30,
+      fontSize: 11,
+      style: { fillOpacity: 0.68 },
+    })
+    expect(second.fontWeight).toBeUndefined()
+    expect(yLabels.every(({ anchor }) => anchor === 'end')).toBe(true)
+  })
+
+  it('measures accessor-resolved tick-label bounds into automatic margins', () => {
+    const definition = (fontSize: number, dx: number) =>
+      defineChart({
+        marks: [lineY([0, 1])],
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          axis: {
+            ticks: { values: [0, 1] },
+            tickLabels: {
+              fontSize: () => fontSize,
+              anchor: () => 'start' as const,
+              dx: () => dx,
+            },
+          },
+        },
+        y: { scale: scaleLinear().domain([0, 1]), axis: false },
+      })
+    const regular = createChartScene(
+      definition(11, 0),
+      { width: 320, height: 180 },
+      { measureText },
+    )
+    const enlarged = createChartScene(
+      definition(24, 18),
+      { width: 320, height: 180 },
+      { measureText },
+    )
+
+    expect(enlarged.margin.bottom).toBeGreaterThan(regular.margin.bottom)
+    expect(enlarged.margin.right).toBeGreaterThan(regular.margin.right)
+    for (const label of flatten(enlarged.nodes).filter(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.startsWith('x-tick-label:'),
+    )) {
+      const bounds = measureSceneLabelBounds(label, measureText)
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(
+        enlarged.width + 0.001,
+      )
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(
+        enlarged.height + 0.001,
+      )
+    }
   })
 
   it('hard-keeps exact labels without adding tick stubs or grid lines', () => {

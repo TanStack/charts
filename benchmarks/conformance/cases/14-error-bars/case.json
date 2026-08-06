@@ -7,10 +7,12 @@
   "intent": "Compare mean penguin body mass by species with one-standard-deviation uncertainty bounds.",
   "support": "native",
   "features": [
+    "groupBy transform",
+    "mean and sample-deviation reducers",
     "link mark",
     "tick caps",
     "dot mark",
-    "explicit low-high interval",
+    "channel-composed low-high interval",
     "categorical x scale"
   ],
   "geometry": [
@@ -28,6 +30,6 @@
   },
   "ai": {
     "create": "Create a responsive point-estimate chart from the penguins sample data, grouping body_mass_g by species and showing the mean plus or minus one standard deviation.",
-    "maintain": "Change the uncertainty calculation while retaining the imported observations, typed endpoint channels, and automatic species spacing."
+    "maintain": "Change the authored uncertainty estimator while retaining contributing-observation lineage, typed reducer outputs, and automatic species spacing."
   }
 }

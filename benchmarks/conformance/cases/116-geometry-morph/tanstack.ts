@@ -2,9 +2,10 @@ import { createMark, defineChart } from '@tanstack/charts'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleLinear } from 'd3-scale'
+import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { morphData, morphModes } from './model'
 import type {
-  ChartDefinition,
+  ChartMotionDefinition,
   ChartPoint,
   ChartRendererHost,
   ChartRendererHostOptions,
@@ -48,7 +49,7 @@ export const mount: ConformanceMount = (container, input) => {
       currentInput.height - controls.root.getBoundingClientRect().height,
     )
   const options = (): ChartRendererHostOptions<MorphDatum, number, number> => ({
-    definition: chartDefinition(mode),
+    definition: geometryMorphDefinition(morphData, mode),
     renderer,
     width: currentInput.width,
     height: chartHeight(),
@@ -121,14 +122,12 @@ export const mount: ConformanceMount = (container, input) => {
       return {
         mode,
         interruptionCount,
-        pathCount: chart.querySelectorAll('path.ts-chart__area').length,
-        motionState:
-          chart
-            .querySelector('svg.ts-chart')
-            ?.getAttribute('data-ts-motion-state') ?? null,
+        pathCount: chart.querySelectorAll('g.ts-chart__geometry-morph > path')
+          .length,
+        motionState: readChartMotionState(chart),
       }
     },
-    settle: () => settleMotion(chart, 5_000),
+    settle: () => settleChartMotion(chart, 5_000),
   }
 
   return {
@@ -149,9 +148,10 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
-function chartDefinition(
+export function geometryMorphDefinition(
+  data: readonly MorphDatum[],
   mode: MorphMode,
-): ChartDefinition<MorphDatum, number, number> {
+) {
   return defineChart({
     motion: {
       transition: {
@@ -161,86 +161,113 @@ function chartDefinition(
         mass: 0.9,
       },
     },
-    marks: [morphMark(morphData, mode)],
-    x: { scale: scaleLinear().domain([0, morphData.length - 1]) },
+    marks: [
+      normalizedTopologyMark(data, mode, {
+        id: 'geometry-morph',
+        key: (datum) => datum.id,
+        fill: (datum) => datum.color,
+        fillOpacity: 0.9,
+        stroke: 'Canvas',
+        strokeOpacity: 0.75,
+        strokeWidth: 1.5,
+        lineJoin: 'round',
+        motion(context) {
+          return {
+            delay: context.phase === 'enter' ? context.datumIndex * 38 : 0,
+            transition:
+              context.datum?.id === 'violet'
+                ? { type: 'spring', mass: 1.35 }
+                : undefined,
+          }
+        },
+      }),
+    ],
+    x: { scale: scaleLinear().domain([0, data.length - 1]) },
     y: { scale: scaleLinear().domain([0, 100]) },
     guides: false,
     margin: 0,
   })
 }
 
-function morphMark(data: readonly MorphDatum[], mode: MorphMode) {
-  return createMark<MorphDatum, number, number>(
-    ({ markIndex }) => {
-      const id = `geometry-morph-${markIndex}`
-      return {
-        id,
-        channels: {
-          x: { scale: 'x', values: data.map((_datum, index) => index) },
-          y: {
-            scale: 'y',
-            values: data.map((datum) => datum.value),
-            includeZero: true,
-          },
+interface NormalizedTopologyMarkOptions {
+  id: string
+  key: (datum: MorphDatum, index: number) => string
+  fill: (datum: MorphDatum, index: number) => string
+  fillOpacity: number
+  stroke: string
+  strokeOpacity: number
+  strokeWidth: number
+  lineJoin: 'miter' | 'round' | 'bevel'
+  motion?: ChartMotionDefinition<MorphDatum>
+}
+
+function normalizedTopologyMark(
+  data: readonly MorphDatum[],
+  mode: MorphMode,
+  options: NormalizedTopologyMarkOptions,
+) {
+  return createMark<MorphDatum, number, number>(() => {
+    const id = options.id
+    return {
+      id,
+      channels: {
+        x: { scale: 'x', values: data.map((_datum, index) => index) },
+        y: {
+          scale: 'y',
+          values: data.map((datum) => datum.value),
+          includeZero: true,
         },
-        render: ({ chart }) => {
-          const geometries = geometryForMode(data, mode, chart)
-          const nodes: SceneNode[] = []
-          const points: ChartPoint<MorphDatum, number, number>[] = []
-          data.forEach((datum, datumIndex) => {
-            const geometry = geometries[datumIndex]
-            if (!geometry) return
-            const key = `${id}:${datum.id}`
-            nodes.push({
-              kind: 'area',
-              key,
-              points: geometry.points,
-              path: closedPath(geometry.points),
-              style: {
-                fill: datum.color,
-                fillOpacity: 0.9,
-                stroke: 'Canvas',
-                strokeOpacity: 0.75,
-                strokeWidth: 1.5,
-                lineJoin: 'round',
-              },
-            })
-            points.push({
-              key,
-              markId: id,
-              group: datum.id,
-              groupLabel: datum.label,
-              datum,
-              datumIndex,
-              xValue: datumIndex,
-              yValue: datum.value,
-              x: geometry.center[0],
-              y: geometry.center[1],
-              color: datum.color,
-            })
+      },
+      render: ({ chart }) => {
+        const geometries = geometryForMode(data, mode, chart)
+        const nodes: SceneNode[] = []
+        const points: ChartPoint<MorphDatum, number, number>[] = []
+        data.forEach((datum, datumIndex) => {
+          const geometry = geometries[datumIndex]
+          if (!geometry) return
+          const datumKey = options.key(datum, datumIndex)
+          const key = `${id}:${datumKey}`
+          nodes.push({
+            kind: 'area',
+            key,
+            points: geometry.points,
+            style: {
+              fill: options.fill(datum, datumIndex),
+              fillOpacity: options.fillOpacity,
+              stroke: options.stroke,
+              strokeOpacity: options.strokeOpacity,
+              strokeWidth: options.strokeWidth,
+              lineJoin: options.lineJoin,
+            },
           })
-          return {
-            nodes: [
-              {
-                kind: 'group',
-                key: id,
-                className: 'ts-chart__area ts-chart__geometry-morph',
-                children: nodes,
-              },
-            ],
-            points,
-          }
-        },
-      }
-    },
-    (context) => ({
-      delay: context.phase === 'enter' ? context.datumIndex * 38 : 0,
-      transition:
-        context.datum?.id === 'violet'
-          ? { type: 'spring', mass: 1.35 }
-          : undefined,
-    }),
-  )
+          points.push({
+            key,
+            markId: id,
+            group: datumKey,
+            groupLabel: datum.label,
+            datum,
+            datumIndex,
+            xValue: datumIndex,
+            yValue: datum.value,
+            x: geometry.center[0],
+            y: geometry.center[1],
+            color: datum.color,
+          })
+        })
+        return {
+          nodes: [
+            {
+              kind: 'group',
+              key: id,
+              className: 'ts-chart__area ts-chart__geometry-morph',
+              children: nodes,
+            },
+          ],
+          points,
+        }
+      },
+    }
+  }, options.motion)
 }
 
 function geometryForMode(
@@ -260,8 +287,11 @@ function geometryForMode(
       const height = ((chart.height - padding * 2) * datum.value) / 100
       const x = chart.x + padding + index * width + gap / 2
       const y = chart.y + chart.height - padding - height
-      const points = sampleRectangle(x, y, width - gap, height, sampleCount)
-      return { points, center: centroid(points) }
+      const barWidth = width - gap
+      return {
+        points: sampleRectangle(x, y, barWidth, height, sampleCount),
+        center: [x + barWidth / 2, y + height / 2] as Point,
+      }
     })
   }
 
@@ -308,7 +338,15 @@ function geometryForMode(
       end - gap,
       sampleCount,
     )
-    return { points, center: centroid(points) }
+    const middleAngle = (start + end) / 2
+    const middleRadius = (inner + outer) / 2
+    return {
+      points,
+      center: [
+        center[0] + Math.cos(middleAngle) * middleRadius,
+        center[1] + Math.sin(middleAngle) * middleRadius,
+      ] as Point,
+    }
   })
 }
 
@@ -369,21 +407,6 @@ function sampleSector(
   return points
 }
 
-function closedPath(points: readonly Point[]) {
-  return points
-    .map(([x, y], index) => `${index === 0 ? 'M' : 'L'}${x},${y}`)
-    .join('')
-    .concat('Z')
-}
-
-function centroid(points: readonly Point[]): Point {
-  const sum = points.reduce(
-    (result, point) => [result[0] + point[0], result[1] + point[1]] as Point,
-    [0, 0] as Point,
-  )
-  return [sum[0] / points.length, sum[1] / points.length]
-}
-
 function createControls(document: Document) {
   const root = document.createElement('div')
   root.setAttribute('role', 'group')
@@ -438,27 +461,4 @@ function modeLabel(mode: MorphMode) {
 
 function clearTimer(view: Window | null, timer: number | undefined) {
   if (timer !== undefined) view?.clearTimeout(timer)
-}
-
-function settleMotion(chart: HTMLElement, timeout: number) {
-  const view = chart.ownerDocument.defaultView
-  if (!view) return Promise.resolve()
-  const started = view.performance.now()
-  return new Promise<void>((resolve) => {
-    const check = () => {
-      const state = chart
-        .querySelector('svg.ts-chart')
-        ?.getAttribute('data-ts-motion-state')
-      if (
-        state === 'finished' ||
-        state === null ||
-        view.performance.now() - started >= timeout
-      ) {
-        resolve()
-        return
-      }
-      view.requestAnimationFrame(check)
-    }
-    check()
-  })
 }

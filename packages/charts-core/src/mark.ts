@@ -5,6 +5,7 @@ import type {
   ChartKey,
   ChartValue,
   InitializedMark,
+  MarkInitialization,
   MarkInitializeContext,
   ChartMark,
   ChartMotionDefinition,
@@ -42,10 +43,36 @@ export function createMark<
 >(
   initialize: (
     context: MarkInitializeContext,
-  ) => InitializedMark<TDatum, TXValue, TYValue>,
+  ) => MarkInitialization<TDatum, TXValue, TYValue>,
   motion?: ChartMotionDefinition<TDatum>,
 ): ChartMark<TDatum, TXValue, TYValue> {
-  return motion === undefined ? { initialize } : { initialize, motion }
+  const normalizedInitialize = (context: MarkInitializeContext) => {
+    const initialized = normalizeMarkInitialization(initialize(context))
+    return motion === undefined || initialized.motion !== undefined
+      ? initialized
+      : { ...initialized, motion }
+  }
+  return motion === undefined
+    ? { initialize: normalizedInitialize }
+    : { initialize: normalizedInitialize, motion }
+}
+
+export function normalizeMarkInitialization<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  initialized: MarkInitialization<TDatum, TXValue, TYValue>,
+): InitializedMark<TDatum, TXValue, TYValue> {
+  if (typeof initialized.render === 'function') return initialized
+  return {
+    ...initialized,
+    render: () => {
+      throw new TypeError(
+        `Mark "${initialized.id}" must resolve its layout before rendering`,
+      )
+    },
+  }
 }
 
 export function markStates<TDatum, TStyle extends ChartMarkStateStyle<TDatum>>(
@@ -167,7 +194,10 @@ function keysAreUniqueWithinGroups(
 ): boolean {
   const seen = new Set<string>()
   for (let index = 0; index < keys.length; index += 1) {
-    const identity = `${valueKey(groups?.[index] ?? null)}:${valueKey(keys[index])}`
+    const identity = JSON.stringify([
+      valueKey(groups?.[index] ?? null),
+      valueKey(keys[index]),
+    ])
     if (seen.has(identity)) return false
     seen.add(identity)
   }

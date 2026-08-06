@@ -2,17 +2,14 @@ import { barY, defineChart, lineY } from '@tanstack/charts'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { updateStages as stages } from './model'
 import type {
-  ChartDefinition,
   ChartRenderer,
   ChartRendererHost,
   ChartRendererHostOptions,
 } from '@tanstack/charts'
-import type {
-  ChartMotionSpringTransition,
-  ChartMotionTweenTransition,
-} from '@tanstack/charts/motion'
+import type { ChartMotionTweenTransition } from '@tanstack/charts/motion'
 import type { UpdateRow } from './model'
 import type {
   ConformanceInput,
@@ -20,7 +17,7 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-interface UpdateSettings {
+export interface UpdateSettings {
   duration: number
   easing: ChartMotionTweenTransition['easing']
   spring: boolean
@@ -68,7 +65,7 @@ export const mount: ConformanceMount = (container, input) => {
     ChartRendererHostOptions<UpdateRow, string, number> | undefined => {
     if (!renderer) return undefined
     return {
-      definition: chartDefinition(stages[stage] ?? stages[0], settings),
+      definition: motionUpdatesDefinition(stages[stage] ?? stages[0], settings),
       renderer,
       width: currentInput.width,
       height: chartHeight(),
@@ -174,13 +171,10 @@ export const mount: ConformanceMount = (container, input) => {
         stage,
         interruptionCount,
         ids: (stages[stage] ?? stages[0]).map((row) => row.id),
-        motionState:
-          chart
-            .querySelector('svg.ts-chart')
-            ?.getAttribute('data-ts-motion-state') ?? null,
+        motionState: readChartMotionState(chart),
       }
     },
-    settle: () => settleMotion(chart, activeTimeout),
+    settle: () => settleChartMotion(chart, activeTimeout),
   }
 
   return {
@@ -201,14 +195,19 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
-function chartDefinition(
+export function motionUpdatesDefinition(
   rows: readonly UpdateRow[],
   settings: UpdateSettings,
-): ChartDefinition<UpdateRow, string, number> {
+) {
   return defineChart({
     motion: {
       transition: settings.spring
-        ? springTransition(settings)
+        ? {
+            type: 'spring',
+            stiffness: settings.stiffness,
+            damping: settings.damping,
+            mass: settings.mass,
+          }
         : {
             type: 'tween',
             duration: settings.duration,
@@ -217,6 +216,7 @@ function chartDefinition(
     },
     marks: [
       barY(rows, {
+        id: 'actual',
         x: 'period',
         y: 'actual',
         key: 'id',
@@ -266,6 +266,7 @@ function chartDefinition(
         },
       }),
       lineY(rows, {
+        id: 'target',
         x: 'period',
         y: 'target',
         key: 'id',
@@ -313,19 +314,6 @@ function springRegime(settings: UpdateSettings) {
   if (ratio < 0.99) return 'underdamped'
   if (ratio > 1.01) return 'overdamped'
   return 'critical'
-}
-
-function springTransition(
-  settings: UpdateSettings,
-  overrides: Partial<ChartMotionSpringTransition> = {},
-): ChartMotionSpringTransition {
-  return {
-    type: 'spring',
-    stiffness: settings.stiffness,
-    damping: settings.damping,
-    mass: settings.mass,
-    ...overrides,
-  }
 }
 
 function createControls(document: Document, settings: UpdateSettings) {
@@ -462,27 +450,4 @@ function button(document: Document, label: string) {
   control.textContent = label
   control.style.padding = '0 14px'
   return control
-}
-
-function settleMotion(chart: HTMLElement, timeout: number) {
-  const view = chart.ownerDocument.defaultView
-  if (!view) return Promise.resolve()
-  const started = view.performance.now()
-  return new Promise<void>((resolve) => {
-    const check = () => {
-      const state = chart
-        .querySelector('svg.ts-chart')
-        ?.getAttribute('data-ts-motion-state')
-      if (
-        state === 'finished' ||
-        state === null ||
-        view.performance.now() - started >= timeout
-      ) {
-        resolve()
-        return
-      }
-      view.requestAnimationFrame(check)
-    }
-    check()
-  })
 }

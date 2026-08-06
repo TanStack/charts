@@ -93,4 +93,52 @@ describe('SVG surface coordinates', () => {
 
     surface.destroy()
   })
+
+  it('restores a no-transition pinned mark state when focus clears', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          dot([{ id: 'a', x: 1, y: 1 }], {
+            x: 'x',
+            y: 'y',
+            key: 'id',
+            r: 5,
+            states: [
+              {
+                when: { focus: 'primary', pinned: true },
+                style: { r: 9, fill: '#f97316' },
+              },
+            ],
+          }),
+        ],
+        x: { scale: scaleLinear().domain([0, 2]) },
+        y: { scale: scaleLinear().domain([0, 2]) },
+        guides: false,
+      }),
+      { width: 320, height: 200 },
+    )
+    const point = scene.points[0]
+    if (!point) throw new Error('Expected chart point')
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Pinned mark state restoration' })
+    const circle = container.querySelector<SVGCircleElement>(
+      '.ts-chart__dot circle',
+    )
+    if (!circle) throw new Error('Expected chart dot')
+
+    expect(circle.getAttribute('r')).toBe('5')
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'pointer',
+      pinned: true,
+    })
+    expect(circle.getAttribute('r')).toBe('9')
+    expect(circle.getAttribute('fill')).toBe('#f97316')
+
+    surface.paintFocus(null)
+    expect(circle.getAttribute('r')).toBe('5')
+    surface.destroy()
+  })
 })

@@ -1,0 +1,3557 @@
+{
+  "schemaVersion": 1,
+  "audit": "DEFINITION-COVERAGE-AUDIT.md",
+  "plan": "DEFINITION-COVERAGE-PLAN.md",
+  "phases": [
+    {
+      "id": "phase-0",
+      "order": 0,
+      "title": "Existing boundaries"
+    },
+    {
+      "id": "phase-1",
+      "order": 1,
+      "title": "Shared foundations"
+    },
+    {
+      "id": "phase-2",
+      "order": 2,
+      "title": "Core primitives"
+    },
+    {
+      "id": "phase-3",
+      "order": 3,
+      "title": "Optional layouts"
+    },
+    {
+      "id": "phase-4",
+      "order": 4,
+      "title": "Interaction"
+    },
+    {
+      "id": "phase-5",
+      "order": 5,
+      "title": "Closure"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "current-definition-api",
+      "title": "Current definition API migration",
+      "kind": "migration",
+      "tier": "core",
+      "phase": "phase-0",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": [],
+      "evidence": [
+        "../../scripts/catalog-definition-shapes.test.mjs",
+        "definition-coverage-roadmap.test.ts"
+      ]
+    },
+    {
+      "id": "application-boundary",
+      "title": "Reviewed application boundary",
+      "kind": "boundary",
+      "tier": "application",
+      "phase": "phase-0",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": [],
+      "evidence": [
+        "cases/85-scrollable-resource-lanes/tanstack.test.ts",
+        "cases/86-streaming-window-preservation/tanstack.test.ts",
+        "DEFINITION-COVERAGE-AUDIT.md"
+      ]
+    },
+    {
+      "id": "decorative-mark",
+      "title": "Decorative mark composition",
+      "kind": "mark-compositor",
+      "tier": "optional",
+      "phase": "phase-0",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-218"],
+      "entryPoint": "@tanstack/charts/mark/decorative",
+      "bundleFixture": "benchmarks/entries/charts-decorative-line-svg.ts",
+      "evidence": [
+        "../../packages/charts-core/src/mark-decorative.test.ts",
+        "../entries/charts-decorative-line-svg.ts",
+        "cases/86-streaming-window-preservation/tanstack.test.ts"
+      ]
+    },
+    {
+      "id": "inline-custom-boundary",
+      "title": "Reviewed inline custom mark boundary",
+      "kind": "boundary",
+      "tier": "case",
+      "phase": "phase-0",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-184"],
+      "evidence": [
+        "cases/116-geometry-morph/tanstack.ts",
+        "cases/116-geometry-morph/tanstack.test.ts"
+      ]
+    },
+    {
+      "id": "resolved-mark-layout",
+      "title": "Resolved mark layout scheduling contract",
+      "kind": "foundation",
+      "tier": "core",
+      "phase": "phase-1",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-047", "F-048", "F-051", "F-063", "F-116", "F-163"],
+      "entryPoint": "@tanstack/charts",
+      "bundleFixture": "benchmarks/entries/charts-core.ts",
+      "evidence": [
+        "../../packages/charts-core/src/resolved-layout.test.ts",
+        "../../packages/charts-core/src/resolved-layout-position.test.ts",
+        "../../packages/charts-core/src/resolved-layout-child.test.ts",
+        "../entries/charts-core.ts"
+      ]
+    },
+    {
+      "id": "composite-mark",
+      "title": "Child and composite mark contract",
+      "kind": "foundation",
+      "tier": "core",
+      "phase": "phase-1",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-041", "F-044", "F-048", "F-200"],
+      "entryPoint": "@tanstack/charts/mark/composite",
+      "bundleFixture": "benchmarks/entries/charts-composite-mark.ts",
+      "evidence": [
+        "../../packages/charts-core/src/mark-composite.test.ts",
+        "../entries/charts-composite-mark.ts"
+      ]
+    },
+    {
+      "id": "view-composition",
+      "title": "Coordinated view composition",
+      "kind": "view",
+      "tier": "core",
+      "phase": "phase-1",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-214"],
+      "entryPoint": "@tanstack/charts/view",
+      "bundleFixture": "benchmarks/entries/charts-view-composition.ts",
+      "evidence": [
+        "../../packages/charts-core/src/view-compose.test.ts",
+        "../../packages/charts-core/src/view-layout.test.ts",
+        "../../packages/charts-core/src/view.test.ts",
+        "../../packages/charts-core/src/scene-embed-internal.test.ts",
+        "../entries/charts-view-composition.ts"
+      ]
+    },
+    {
+      "id": "controlled-signals",
+      "title": "Controlled semantic interaction signals",
+      "kind": "foundation",
+      "tier": "core",
+      "phase": "phase-1",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-075"],
+      "entryPoint": "@tanstack/charts/interaction/signal",
+      "bundleFixture": "benchmarks/entries/charts-interaction-signal.ts",
+      "evidence": [
+        "../../packages/charts-core/src/interaction-signal.test.ts",
+        "../entries/charts-interaction-signal.ts"
+      ]
+    },
+    {
+      "id": "configured-scale-inversion",
+      "title": "Configured scale inversion",
+      "kind": "foundation",
+      "tier": "core",
+      "phase": "phase-1",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-063"],
+      "entryPoint": "@tanstack/charts",
+      "bundleFixture": "benchmarks/entries/charts-core.ts",
+      "evidence": ["../../packages/charts-core/src/configured-scale.test.ts"]
+    },
+    {
+      "id": "fold-transform",
+      "title": "Wide-to-long fold transform",
+      "kind": "transform",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-163"],
+      "entryPoint": "@tanstack/charts/transform/fold",
+      "bundleFixture": "benchmarks/entries/charts-transform-fold.ts",
+      "evidence": [
+        "../../packages/charts-core/src/transform-fold.test.ts",
+        "../entries/charts-transform-fold.ts"
+      ]
+    },
+    {
+      "id": "inside-out-wiggle-stack",
+      "title": "Inside-out wiggle stack layout",
+      "kind": "layout",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-043"],
+      "entryPoint": "@tanstack/charts/stack",
+      "bundleFixture": "benchmarks/entries/charts-transform-stack.ts",
+      "evidence": [
+        "../../packages/charts-core/src/stack-internal.test.ts",
+        "../entries/charts-transform-stack.ts"
+      ]
+    },
+    {
+      "id": "anchored-stack",
+      "title": "Anchored diverging stack layout",
+      "kind": "layout",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-163"],
+      "entryPoint": "@tanstack/charts/stack",
+      "bundleFixture": "benchmarks/entries/charts-transform-stack.ts",
+      "evidence": [
+        "cases/26-diverging-likert/tanstack.ts",
+        "../../packages/charts-core/src/stack-internal.test.ts",
+        "../entries/charts-transform-stack.ts"
+      ]
+    },
+    {
+      "id": "waterfall-layout",
+      "title": "Waterfall cumulative layout",
+      "kind": "layout",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-163"],
+      "entryPoint": "@tanstack/charts/transform/waterfall",
+      "bundleFixture": "benchmarks/entries/charts-transform-waterfall.ts",
+      "evidence": [
+        "../../packages/charts-core/src/transform-waterfall.test.ts",
+        "../entries/charts-transform-waterfall.ts"
+      ]
+    },
+    {
+      "id": "bar-max-thickness",
+      "title": "Final-scale bar thickness cap",
+      "kind": "mark-option",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-219"],
+      "entryPoint": "@tanstack/charts",
+      "bundleFixture": "benchmarks/entries/charts-core.ts",
+      "evidence": [
+        "cases/70-composed-chart/tanstack.ts",
+        "cases/70-composed-chart/tanstack.test.ts",
+        "../../packages/charts-core/src/marks.test.ts",
+        "../../docs/reference/marks/bar-and-rect.md"
+      ]
+    },
+    {
+      "id": "box-mark",
+      "title": "Box marks",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": ["composite-mark"],
+      "frictionIds": ["F-041", "F-127", "F-200"],
+      "entryPoint": "@tanstack/charts/box",
+      "bundleFixture": "benchmarks/entries/charts-box-svg.ts",
+      "evidence": [
+        "cases/15-boxplot/tanstack.ts",
+        "../../packages/charts-core/src/box.test.ts",
+        "../entries/charts-box-svg.ts"
+      ]
+    },
+    {
+      "id": "line-x-mark",
+      "title": "Horizontal line mark",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-212"],
+      "entryPoint": "@tanstack/charts/line",
+      "bundleFixture": "benchmarks/entries/charts-line-x-svg.ts",
+      "evidence": [
+        "../../packages/charts-core/src/line.test.ts",
+        "../entries/charts-line-x-svg.ts"
+      ]
+    },
+    {
+      "id": "regression-mark",
+      "title": "Linear regression marks",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": ["composite-mark", "line-x-mark"],
+      "frictionIds": ["F-213"],
+      "entryPoint": "@tanstack/charts/regression",
+      "bundleFixture": "benchmarks/entries/charts-regression-svg.ts",
+      "evidence": [
+        "cases/31-linear-regression/tanstack.ts",
+        "../../packages/charts-core/src/regression.test.ts",
+        "../entries/charts-regression-svg.ts"
+      ]
+    },
+    {
+      "id": "difference-mark",
+      "title": "Difference marks",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": ["composite-mark", "line-x-mark", "resolved-mark-layout"],
+      "frictionIds": ["F-044"],
+      "entryPoint": "@tanstack/charts/difference",
+      "bundleFixture": "benchmarks/entries/charts-difference-svg.ts",
+      "evidence": [
+        "cases/33-difference-chart/tanstack.ts",
+        "../../packages/charts-core/src/difference.test.ts",
+        "../entries/charts-difference-svg.ts"
+      ]
+    },
+    {
+      "id": "ridgeline-mark",
+      "title": "Ridgeline distribution mark",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-215"],
+      "entryPoint": "@tanstack/charts/ridgeline",
+      "bundleFixture": "benchmarks/entries/charts-ridgeline-svg.ts",
+      "evidence": [
+        "cases/62-ridgeline-density/tanstack.ts",
+        "cases/62-ridgeline-density/tanstack.test.ts",
+        "../../packages/charts-core/src/ridgeline.test.ts",
+        "../../packages/charts-core/src/mapped-spacing-internal.test.ts",
+        "../entries/charts-ridgeline-svg.ts"
+      ]
+    },
+    {
+      "id": "violin-mark",
+      "title": "Violin distribution mark",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-216"],
+      "entryPoint": "@tanstack/charts/violin",
+      "bundleFixture": "benchmarks/entries/charts-violin-svg.ts",
+      "evidence": [
+        "cases/63-violin-distributions/tanstack.ts",
+        "cases/63-violin-distributions/tanstack.test.ts",
+        "../../packages/charts-core/src/violin.test.ts",
+        "../../packages/charts-core/src/tick.test.ts",
+        "../../packages/charts-core/src/mapped-spacing-internal.test.ts",
+        "../entries/charts-violin-svg.ts"
+      ]
+    },
+    {
+      "id": "mosaic-layout",
+      "title": "Normalized mosaic transform",
+      "kind": "transform",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-217"],
+      "entryPoint": "@tanstack/charts/transform/mosaic",
+      "bundleFixture": "benchmarks/entries/charts-transform-mosaic.ts",
+      "evidence": [
+        "cases/64-marimekko-mosaic/tanstack.ts",
+        "cases/64-marimekko-mosaic/tanstack.test.ts",
+        "../../packages/charts-core/src/transform-mosaic.test.ts",
+        "../../packages/charts-core/src/proportional-interval-internal.test.ts",
+        "../../packages/charts-core/src/polar-pie.test.ts",
+        "../entries/charts-transform-mosaic.ts"
+      ]
+    },
+    {
+      "id": "polar-value-allocation",
+      "title": "Polar value allocation",
+      "kind": "transform",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-117"],
+      "entryPoint": "@tanstack/charts/polar",
+      "bundleFixture": "benchmarks/entries/charts-polar-pie-svg.ts",
+      "evidence": [
+        "../../packages/charts-core/src/polar-pie.test.ts",
+        "../entries/charts-polar-pie-svg.ts"
+      ]
+    },
+    {
+      "id": "radial-bars",
+      "title": "Radial bar marks",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-117"],
+      "entryPoint": "@tanstack/charts/polar",
+      "bundleFixture": "benchmarks/entries/charts-radial-bar-svg.ts",
+      "evidence": [
+        "../../packages/charts-core/src/polar-radial-bar.test.ts",
+        "../entries/charts-radial-bar-svg.ts"
+      ]
+    },
+    {
+      "id": "radial-labels",
+      "title": "Outside radial labels and leaders",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": ["polar-value-allocation"],
+      "frictionIds": ["F-117"],
+      "entryPoint": "@tanstack/charts/polar",
+      "bundleFixture": "benchmarks/entries/charts-radial-label-svg.ts",
+      "evidence": [
+        "../../packages/charts-core/src/polar.test.ts",
+        "../entries/charts-radial-label-svg.ts"
+      ]
+    },
+    {
+      "id": "axis-tick-label-accessors",
+      "title": "Per-tick label style and position accessors",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-2",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-191"],
+      "entryPoint": "@tanstack/charts",
+      "bundleFixture": "benchmarks/entries/charts-tick-label-accessors.ts",
+      "evidence": [
+        "cases/118-token-usage-calendar/tanstack.ts",
+        "cases/118-token-usage-calendar/tanstack.test.ts",
+        "../../packages/charts-core/src/scene-layout.test.ts",
+        "../../packages/charts-core/src/facet.test.ts",
+        "../../packages/charts-core/src/motion.test.ts",
+        "../entries/charts-tick-label-accessors.ts"
+      ]
+    },
+    {
+      "id": "waffle-mark",
+      "title": "Responsive waffle marks",
+      "kind": "mark",
+      "tier": "core",
+      "phase": "phase-1",
+      "status": "verified",
+      "dependsOn": ["resolved-mark-layout"],
+      "frictionIds": ["F-048"],
+      "entryPoint": "@tanstack/charts/waffle",
+      "bundleFixture": "benchmarks/entries/charts-waffle-svg.ts",
+      "evidence": [
+        "cases/41-waffle-unit-chart/tanstack.ts",
+        "../../packages/charts-core/src/waffle.test.ts",
+        "../entries/charts-waffle-svg.ts"
+      ]
+    },
+    {
+      "id": "dodge-layout",
+      "title": "Resolved dot dodge layouts",
+      "kind": "layout",
+      "tier": "core",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": ["resolved-mark-layout"],
+      "frictionIds": ["F-051"],
+      "entryPoint": "@tanstack/charts/dodge",
+      "bundleFixture": "benchmarks/entries/charts-dodge-svg.ts",
+      "evidence": [
+        "cases/52-beeswarm-dodge/tanstack.ts",
+        "../../packages/charts-core/src/dodge.test.ts",
+        "../entries/charts-dodge-svg.ts"
+      ]
+    },
+    {
+      "id": "spatial-delaunay",
+      "title": "Delaunay link mark",
+      "kind": "adapter",
+      "tier": "optional",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": ["resolved-mark-layout"],
+      "frictionIds": ["F-047"],
+      "entryPoint": "@tanstack/charts/spatial/delaunay",
+      "bundleFixture": "benchmarks/entries/charts-spatial-delaunay-svg.ts",
+      "evidence": [
+        "cases/37-delaunay-network/tanstack.ts",
+        "../../packages/charts-core/src/spatial-delaunay.test.ts",
+        "../entries/charts-spatial-delaunay-svg.ts"
+      ]
+    },
+    {
+      "id": "spatial-contour",
+      "title": "Contour mark",
+      "kind": "adapter",
+      "tier": "optional",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-204"],
+      "entryPoint": "@tanstack/charts/spatial/contour",
+      "bundleFixture": "benchmarks/entries/charts-spatial-contour-svg.ts",
+      "evidence": [
+        "cases/38-contour-topography/tanstack.ts",
+        "../../packages/charts-core/src/spatial-contour.test.ts",
+        "../entries/charts-spatial-contour-svg.ts"
+      ]
+    },
+    {
+      "id": "spatial-density",
+      "title": "Density contour mark",
+      "kind": "adapter",
+      "tier": "optional",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": ["resolved-mark-layout"],
+      "frictionIds": ["F-202", "F-203"],
+      "entryPoint": "@tanstack/charts/spatial/density",
+      "bundleFixture": "benchmarks/entries/charts-spatial-density-svg.ts",
+      "evidence": [
+        "cases/39-density-contours/tanstack.ts",
+        "../../packages/charts-core/src/spatial-density.test.ts",
+        "../entries/charts-spatial-density-svg.ts"
+      ]
+    },
+    {
+      "id": "spatial-hexbin",
+      "title": "Resolved hexbin transform",
+      "kind": "adapter",
+      "tier": "optional",
+      "phase": "phase-1",
+      "status": "verified",
+      "dependsOn": ["resolved-mark-layout", "configured-scale-inversion"],
+      "frictionIds": ["F-049"],
+      "entryPoint": "@tanstack/charts/spatial/hexbin",
+      "bundleFixture": "benchmarks/entries/charts-spatial-hexbin-svg.ts",
+      "evidence": [
+        "cases/43-hexbin-density/tanstack.ts",
+        "../../packages/charts-core/src/spatial-hexbin.test.ts",
+        "../entries/charts-spatial-hexbin-svg.ts"
+      ]
+    },
+    {
+      "id": "spatial-voronoi",
+      "title": "Visible Voronoi mark",
+      "kind": "adapter",
+      "tier": "optional",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-201"],
+      "entryPoint": "@tanstack/charts/spatial/voronoi",
+      "bundleFixture": "benchmarks/entries/charts-spatial-voronoi-svg.ts",
+      "evidence": [
+        "cases/65-voronoi-nearest-tooltip/tanstack.ts",
+        "../../packages/charts-core/src/spatial-voronoi.test.ts",
+        "../entries/charts-spatial-voronoi-svg.ts"
+      ]
+    },
+    {
+      "id": "hierarchy-tree",
+      "title": "Tidy tree layout transform",
+      "kind": "transform",
+      "tier": "optional",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-206"],
+      "entryPoint": "@tanstack/charts/hierarchy/tree",
+      "bundleFixture": "benchmarks/entries/charts-hierarchy-tree.ts",
+      "evidence": [
+        "cases/36-hierarchy-tree/tanstack.ts",
+        "../../packages/charts-core/src/hierarchy-tree.test.ts",
+        "../entries/charts-hierarchy-tree.ts"
+      ]
+    },
+    {
+      "id": "hierarchy-treemap",
+      "title": "Treemap mark",
+      "kind": "adapter",
+      "tier": "optional",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": ["resolved-mark-layout"],
+      "frictionIds": ["F-057"],
+      "entryPoint": "@tanstack/charts/hierarchy/treemap",
+      "bundleFixture": "benchmarks/entries/charts-hierarchy-treemap.ts",
+      "evidence": [
+        "cases/74-recharts-treemap/tanstack.ts",
+        "../../packages/charts-core/src/hierarchy-treemap.test.ts",
+        "../entries/charts-hierarchy-treemap.ts"
+      ]
+    },
+    {
+      "id": "hierarchy-sunburst",
+      "title": "Sunburst mark",
+      "kind": "adapter",
+      "tier": "optional",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-208"],
+      "entryPoint": "@tanstack/charts/hierarchy/sunburst",
+      "bundleFixture": "benchmarks/entries/charts-hierarchy-sunburst.ts",
+      "evidence": [
+        "cases/101-sunburst/tanstack.ts",
+        "../../packages/charts-core/src/hierarchy-sunburst.test.ts",
+        "../entries/charts-hierarchy-sunburst.ts"
+      ]
+    },
+    {
+      "id": "network-force",
+      "title": "Static force layout transform",
+      "kind": "transform",
+      "tier": "optional",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-205"],
+      "entryPoint": "@tanstack/charts/network/force",
+      "bundleFixture": "benchmarks/entries/charts-network-force.ts",
+      "evidence": [
+        "cases/40-force-directed-network/tanstack.ts",
+        "../../packages/charts-core/src/network-force.test.ts",
+        "../entries/charts-network-force.ts"
+      ]
+    },
+    {
+      "id": "network-sankey",
+      "title": "Sankey diagram mark",
+      "kind": "adapter",
+      "tier": "optional",
+      "phase": "phase-3",
+      "status": "verified",
+      "dependsOn": ["resolved-mark-layout"],
+      "frictionIds": ["F-164"],
+      "entryPoint": "@tanstack/charts/network/sankey",
+      "bundleFixture": "benchmarks/entries/charts-network-sankey.ts",
+      "evidence": [
+        "cases/111-basic-sankey/tanstack.ts",
+        "cases/111-sankey-flow/tanstack.ts",
+        "../../packages/charts-core/src/network-sankey.test.ts",
+        "../entries/charts-network-sankey.ts"
+      ]
+    },
+    {
+      "id": "interactive-legend",
+      "title": "Controlled interactive legend",
+      "kind": "interaction",
+      "tier": "core",
+      "phase": "phase-4",
+      "status": "verified",
+      "dependsOn": ["controlled-signals"],
+      "frictionIds": ["F-075"],
+      "entryPoint": "@tanstack/charts/legend",
+      "bundleFixture": "benchmarks/entries/charts-interactive-legend.ts",
+      "evidence": [
+        "cases/81-recharts-interactive-legend/tanstack.ts",
+        "cases/81-recharts-interactive-legend/tanstack.test.ts",
+        "../../packages/charts-core/src/interactive-legend.test.ts",
+        "../entries/charts-interactive-legend.ts"
+      ]
+    },
+    {
+      "id": "keyed-selection",
+      "title": "Controlled keyed selection",
+      "kind": "interaction",
+      "tier": "core",
+      "phase": "phase-4",
+      "status": "verified",
+      "dependsOn": ["controlled-signals"],
+      "frictionIds": ["F-075"],
+      "entryPoint": "@tanstack/charts/selection",
+      "bundleFixture": "benchmarks/entries/charts-keyed-selection.ts",
+      "evidence": [
+        "cases/82-chart-table-selection/tanstack.ts",
+        "cases/82-chart-table-selection/tanstack.test.ts",
+        "../../packages/charts-core/src/selection.test.ts"
+      ]
+    },
+    {
+      "id": "focus-guide",
+      "title": "Focus guide marks",
+      "kind": "interaction",
+      "tier": "core",
+      "phase": "phase-4",
+      "status": "verified",
+      "dependsOn": [],
+      "frictionIds": ["F-187"],
+      "entryPoint": "@tanstack/charts/focus/guide",
+      "bundleFixture": "benchmarks/entries/charts-focus-guide.ts",
+      "evidence": [
+        "../../packages/charts-core/src/focus-guide.test.ts",
+        "../../packages/charts-core/src/focus-mark.test.ts",
+        "../entries/charts-focus-guide.ts",
+        "cases/87-echarts-synchronized-cursors/tanstack.test.ts",
+        "cases/117-focus-cursor-motion/tanstack.test.ts"
+      ]
+    },
+    {
+      "id": "continuous-cursor",
+      "title": "Controlled continuous cursor",
+      "kind": "interaction",
+      "tier": "core",
+      "phase": "phase-4",
+      "status": "verified",
+      "dependsOn": ["controlled-signals", "configured-scale-inversion"],
+      "frictionIds": ["F-063", "F-075"],
+      "entryPoint": "@tanstack/charts/interaction/cursor",
+      "bundleFixture": "benchmarks/entries/charts-continuous-cursor.ts",
+      "evidence": [
+        "../../packages/charts-core/src/interaction-cursor.test.ts",
+        "../entries/charts-continuous-cursor.ts",
+        "cases/88-echarts-free-cursor/tanstack.test.ts"
+      ]
+    },
+    {
+      "id": "brush-x",
+      "title": "Controlled horizontal brush",
+      "kind": "interaction",
+      "tier": "optional",
+      "phase": "phase-4",
+      "status": "verified",
+      "dependsOn": ["controlled-signals", "configured-scale-inversion"],
+      "frictionIds": ["F-063", "F-075"],
+      "entryPoint": "@tanstack/charts/interaction/brush",
+      "bundleFixture": "benchmarks/entries/charts-brush-x.ts",
+      "evidence": [
+        "../../packages/charts-core/src/interaction-axis-internal.test.ts",
+        "../../packages/charts-core/src/interaction-brush.test.ts",
+        "../entries/charts-brush-x.ts",
+        "cases/83-focus-context-window/tanstack.test.ts",
+        "cases/89-brush-range-selection/tanstack.test.ts"
+      ]
+    },
+    {
+      "id": "zoom-x",
+      "title": "Controlled horizontal zoom",
+      "kind": "interaction",
+      "tier": "optional",
+      "phase": "phase-4",
+      "status": "verified",
+      "dependsOn": ["controlled-signals", "configured-scale-inversion"],
+      "frictionIds": ["F-063", "F-075"],
+      "entryPoint": "@tanstack/charts/interaction/zoom",
+      "bundleFixture": "benchmarks/entries/charts-zoom-x.ts",
+      "evidence": [
+        "../../packages/charts-core/src/interaction-axis-internal.test.ts",
+        "../../packages/charts-core/src/interaction-zoom.test.ts",
+        "../entries/charts-zoom-x.ts",
+        "cases/90-zoomable-time-window/tanstack.test.ts"
+      ]
+    },
+    {
+      "id": "scale-handle",
+      "title": "Scale-bound semantic handle",
+      "kind": "interaction",
+      "tier": "core",
+      "phase": "phase-4",
+      "status": "verified",
+      "dependsOn": ["controlled-signals"],
+      "frictionIds": ["F-063", "F-075"],
+      "entryPoint": "@tanstack/charts/interaction/handle",
+      "bundleFixture": "benchmarks/entries/charts-scale-handle.ts",
+      "evidence": [
+        "../../packages/charts-core/src/interaction-handle.test.ts",
+        "../../scripts/check-packed-consumers.mjs",
+        "../../scripts/measure-bundles.mjs",
+        "../entries/charts-scale-handle.ts",
+        "cases/91-timeline-playback-scrubber/tanstack.test.ts",
+        "cases/92-editable-event-range/tanstack.test.ts"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "01-line-gaps",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/01-line-gaps/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Native line channels treat null values as discontinuities; scales, path segmentation, and focus lineage remain inside the ordinary definition."
+        }
+      ]
+    },
+    {
+      "id": "02-multi-line-end-labels",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/02-multi-line-end-labels/tanstack.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Select each series endpoint through the public grouped select transform."
+        }
+      ]
+    },
+    {
+      "id": "03-temperature-range-band",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/03-temperature-range-band/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose one native interval area and two native lines over the same temperature observations; no range DTO or custom path is needed."
+        }
+      ]
+    },
+    {
+      "id": "04-stacked-time-area",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/04-stacked-time-area/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Let native area stacking, color grouping, rule, scales, guides, and legend consume tidy industry rows directly."
+        }
+      ]
+    },
+    {
+      "id": "13-interval-timeline",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/13-interval-timeline/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Express open-to-close intervals with native barX endpoint channels and an ordinary categorical band."
+        }
+      ]
+    },
+    {
+      "id": "14-error-bars",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/14-error-bars/tanstack.ts",
+        "cases/14-error-bars/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Group contributing observations once through public mean and sample-deviation reducers with direct source lineage."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain the one-deviation estimator, singleton fallback, and endpoint arithmetic as authored statistical meaning."
+        }
+      ]
+    },
+    {
+      "id": "15-boxplot",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["composite-mark", "box-mark"],
+      "evidence": [
+        "cases/15-boxplot/tanstack.ts",
+        "cases/15-boxplot/tanstack.test.ts",
+        "../../packages/charts-core/src/box.test.ts",
+        "../entries/charts-box-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/box.ts"],
+          "summary": "Group raw observations and own sorted quantiles, Tukey fences, observed whiskers, outlier partitioning, direct lineage, and native child-mark composition inside boxX and boxY."
+        }
+      ]
+    },
+    {
+      "id": "16-lollipop",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/16-lollipop/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose native links from zero to value with source-bound dots; no lollipop-specific mark or prepared geometry is warranted."
+        }
+      ]
+    },
+    {
+      "id": "17-dumbbell",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/17-dumbbell/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose one native endpoint link and two source-bound dot layers for each city row."
+        }
+      ]
+    },
+    {
+      "id": "18-cumulative-histogram",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/18-cumulative-histogram/tanstack.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose public binX and cumulative transforms before an ordinary rect mark while preserving transform lineage."
+        }
+      ]
+    },
+    {
+      "id": "19-moving-average-line",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/19-moving-average-line/tanstack.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Compute the authored fourteen-day means through the public window transform and feed its rows to native lines."
+        }
+      ]
+    },
+    {
+      "id": "20-normalized-stacked-area",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/20-normalized-stacked-area/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Use the public normalized stack layout directly on native areaY with ordinary scales, guides, and legend."
+        }
+      ]
+    },
+    {
+      "id": "21-streamgraph",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["inside-out-wiggle-stack"],
+      "evidence": [
+        "cases/21-streamgraph/tanstack.ts",
+        "cases/21-streamgraph/tanstack.test.ts",
+        "../../packages/charts-core/src/stack-internal.test.ts",
+        "../entries/charts-transform-stack.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/stack-internal.ts"],
+          "dependencies": ["d3-shape"],
+          "summary": "Own D3 inside-out order, dense wiggle offset, one global zero-origin translation, sparse-cell policy, and row lineage in the shared stack kernel."
+        }
+      ]
+    },
+    {
+      "id": "22-bollinger-band",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/22-bollinger-band/tanstack.ts",
+        "cases/22-bollinger-band/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Compute the full trailing mean and sample deviation once through the public window transform with direct source lineage."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain the twenty-day scope, two-deviation multiplier, and lower/upper channel arithmetic as authored financial meaning."
+        }
+      ]
+    },
+    {
+      "id": "24-quantitative-binned-heatmap",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/24-quantitative-binned-heatmap/tanstack.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use public binXY for authored thresholds and count reduction, then render its semantic intervals with native rect cells."
+        }
+      ]
+    },
+    {
+      "id": "25-calendar-heatmap",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/25-calendar-heatmap/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Keep calendar week and weekday accessors as authored semantics while native cells, band scales, color, and legend own geometry."
+        }
+      ]
+    },
+    {
+      "id": "26-diverging-likert",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["anchored-stack"],
+      "evidence": [
+        "cases/26-diverging-likert/tanstack.ts",
+        "cases/26-diverging-likert/tanstack.test.ts",
+        "../../packages/charts-core/src/stack-internal.test.ts",
+        "../entries/charts-transform-stack.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/stack-internal.ts"],
+          "summary": "Own nonnegative ordered stacking and per-position translation around a named series fraction in the shared stack kernel."
+        }
+      ]
+    },
+    {
+      "id": "27-parallel-coordinates",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["fold-transform"],
+      "evidence": ["cases/27-parallel-coordinates/tanstack.test.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/transform-fold.ts"],
+          "summary": "Fold wide metric fields before public grouped normalization and compound selection."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["selection.ts", "tanstack.ts"],
+          "summary": "Retain event order, metric direction, and last-row country selection."
+        }
+      ]
+    },
+    {
+      "id": "28-candlestick",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/28-candlestick/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose native high-low and open-close links from source rows; gain/loss partitioning is presentation policy, not a layout engine."
+        }
+      ]
+    },
+    {
+      "id": "29-waterfall",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["waterfall-layout"],
+      "evidence": [
+        "cases/29-waterfall/tanstack.ts",
+        "cases/29-waterfall/tanstack.test.ts",
+        "../../packages/charts-core/src/transform-waterfall.test.ts",
+        "../entries/charts-transform-waterfall.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/transform-waterfall.ts"],
+          "summary": "Own ordered cumulative start/end intervals, sign classification, optional grouped net totals, and direct lineage in an eager waterfall transform."
+        }
+      ]
+    },
+    {
+      "id": "30-slopegraph",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["fold-transform"],
+      "evidence": ["cases/30-slopegraph/tanstack.test.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/transform-fold.ts"],
+          "summary": "Fold period fields into points consumed by native line, text, and selection marks."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["selection.ts", "tanstack.ts"],
+          "summary": "Retain field-to-year display mapping and final-endpoint label policy."
+        }
+      ]
+    },
+    {
+      "id": "31-linear-regression",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["composite-mark", "line-x-mark", "regression-mark"],
+      "evidence": [
+        "cases/31-linear-regression/tanstack.ts",
+        "cases/31-linear-regression/tanstack.test.ts",
+        "../../packages/charts-core/src/regression.test.ts",
+        "../entries/charts-regression-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/regression.ts"],
+          "summary": "Own the regression fit and optional confidence band in a composite mark."
+        }
+      ]
+    },
+    {
+      "id": "32-change-arrows",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/32-change-arrows/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Use native arrow endpoint channels for the two authored direction classes without precomputed paths."
+        }
+      ]
+    },
+    {
+      "id": "33-difference-chart",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": [
+        "composite-mark",
+        "line-x-mark",
+        "resolved-mark-layout",
+        "difference-mark"
+      ],
+      "evidence": [
+        "cases/33-difference-chart/tanstack.ts",
+        "cases/33-difference-chart/tanstack.test.ts",
+        "../../packages/charts-core/src/difference.test.ts",
+        "../entries/charts-difference-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "resolved-layout",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/difference.ts"],
+          "summary": "Resolve exact rendered crossings through final invertible scales and compose semantic positive and negative lobes."
+        }
+      ]
+    },
+    {
+      "id": "34-pointer-tooltip",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/34-pointer-tooltip/tanstack.ts"],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["tanstack.ts"],
+          "summary": "Configure point focus, decorative line geometry, keyboard operation, and native point tooltip in the chart definition; host probing remains conformance tooling."
+        }
+      ]
+    },
+    {
+      "id": "35-grouped-tooltip",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/35-grouped-tooltip/tanstack.ts"],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["tanstack.ts"],
+          "summary": "Configure grouped focus, decorative lines, ordered grouped tooltip content, and portal placement through native definition behavior."
+        }
+      ]
+    },
+    {
+      "id": "36-hierarchy-tree",
+      "coverage": "prepared",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["hierarchy-tree"],
+      "evidence": [
+        "cases/36-hierarchy-tree/tanstack.ts",
+        "../../packages/charts-core/src/hierarchy-tree.test.ts",
+        "../entries/charts-hierarchy-tree.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/hierarchy-tree.ts"],
+          "dependencies": ["d3-hierarchy"],
+          "summary": "Construct a validated flat hierarchy, settle a semantic tidy-tree layout, and emit stable native-mark nodes and target-lineage links."
+        }
+      ]
+    },
+    {
+      "id": "37-delaunay-network",
+      "coverage": "prepared",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["resolved-mark-layout", "spatial-delaunay"],
+      "evidence": [
+        "cases/37-delaunay-network/tanstack.ts",
+        "../../packages/charts-core/src/spatial-delaunay.test.ts",
+        "../entries/charts-spatial-delaunay-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "resolved-layout",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/spatial-delaunay.ts"],
+          "dependencies": ["d3-delaunay"],
+          "summary": "Triangulate final screen positions by source group and render canonical links with both endpoint records."
+        }
+      ]
+    },
+    {
+      "id": "38-contour-topography",
+      "coverage": "prepared",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["spatial-contour"],
+      "evidence": [
+        "cases/38-contour-topography/tanstack.ts",
+        "../../packages/charts-core/src/spatial-contour.test.ts",
+        "../entries/charts-spatial-contour-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/spatial-contour.ts"],
+          "dependencies": ["d3-contour"],
+          "summary": "Generate marching-squares topology eagerly from the regular scalar grid while preserving missing positions and finite source lineage."
+        },
+        {
+          "kind": "custom-mark",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/spatial-contour.ts"],
+          "summary": "Map structured contour rings into final chart bounds through ordinary mark rendering without positional scales or d3-geo."
+        }
+      ]
+    },
+    {
+      "id": "39-density-contours",
+      "coverage": "prepared",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["resolved-mark-layout", "spatial-density"],
+      "evidence": [
+        "cases/39-density-contours/tanstack.ts",
+        "../../packages/charts-core/src/spatial-density.test.ts",
+        "../entries/charts-spatial-density-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "resolved-layout",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/spatial-density.ts"],
+          "dependencies": ["d3-contour"],
+          "summary": "Estimate grouped density against final scales and emit structured multipolygons with group-level source lineage."
+        }
+      ]
+    },
+    {
+      "id": "40-force-directed-network",
+      "coverage": "prepared",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["network-force"],
+      "evidence": [
+        "cases/40-force-directed-network/tanstack.ts",
+        "../../packages/charts-core/src/network-force.test.ts",
+        "../entries/charts-network-force.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/network-force.ts"],
+          "dependencies": ["d3-force"],
+          "summary": "Settle private graph clones synchronously with ordered explicit forces, resolve endpoints, retain lineage, and return padded domains for native marks."
+        }
+      ]
+    },
+    {
+      "id": "40-geojson-map",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/40-geojson-map/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Pass GeoJSON features and a public geoIdentity projection descriptor to geoShape; Charts owns fitting and path rendering."
+        }
+      ]
+    },
+    {
+      "id": "41-waffle-unit-chart",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-1",
+      "status": "verified",
+      "capabilities": ["resolved-mark-layout", "waffle-mark"],
+      "evidence": [
+        "cases/41-waffle-unit-chart/tanstack.ts",
+        "../../packages/charts-core/src/waffle.test.ts",
+        "../entries/charts-waffle-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "resolved-layout",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/waffle.ts"],
+          "summary": "Allocate cumulative units from source rows and choose square-cell packing from final inner bounds while retaining source-level identity."
+        }
+      ]
+    },
+    {
+      "id": "42-vector-field",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/42-vector-field/tanstack.ts",
+        "cases/42-vector-field/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Pass the authored sample grid to native vector channels; Charts owns one rendered vector and interaction point per source observation."
+        }
+      ]
+    },
+    {
+      "id": "43-hexbin-density",
+      "coverage": "prepared",
+      "disposition": "optional-primitive",
+      "phase": "phase-1",
+      "status": "verified",
+      "capabilities": ["resolved-mark-layout", "spatial-hexbin"],
+      "evidence": [
+        "cases/43-hexbin-density/tanstack.ts",
+        "../../packages/charts-core/src/spatial-hexbin.test.ts",
+        "../entries/charts-spatial-hexbin-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "resolved-layout",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/spatial-hexbin.ts"],
+          "summary": "Bin projected observations in final pixel space, invert bin centers internally to semantic values for the adopted hexagon child, and let the configured final scales remap them for rendering without exposing the round trip to case code."
+        }
+      ]
+    },
+    {
+      "id": "44-framed-scatter",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/44-framed-scatter/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose the native frame and dot marks over configured Cartesian scales without custom border geometry."
+        }
+      ]
+    },
+    {
+      "id": "50-empirical-cdf",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/50-empirical-cdf/tanstack.ts",
+        "cases/50-empirical-cdf/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use public rank with explicit tied-rank probability mapping, then render the ordered rows with a native stepped line."
+        }
+      ]
+    },
+    {
+      "id": "51-faceted-distributions",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/51-faceted-distributions/tanstack.ts",
+        "cases/51-faceted-distributions/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose public binning, facet-local normalization, and facet marks."
+        }
+      ]
+    },
+    {
+      "id": "52-beeswarm-dodge",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["resolved-mark-layout", "dodge-layout"],
+      "evidence": [
+        "cases/52-beeswarm-dodge/tanstack.ts",
+        "../../packages/charts-core/src/dodge.test.ts",
+        "../entries/charts-dodge-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "resolved-layout",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/dodge.ts"],
+          "summary": "Project the measured axis and greedily place final-radius dots from a logical cross-axis anchor while retaining source identity and the exact measured pixel coordinate."
+        }
+      ]
+    },
+    {
+      "id": "53-log-scale-scatter",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/53-log-scale-scatter/tanstack.ts",
+        "cases/53-log-scale-scatter/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Keep the positive-domain guard explicit and feed source rows directly to a native dot mark with a configured log scale."
+        }
+      ]
+    },
+    {
+      "id": "54-bump-ranking",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/54-bump-ranking/tanstack.ts",
+        "cases/54-bump-ranking/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose public ranking and order-independent maximum-date selection with native line, dot, and text marks."
+        }
+      ]
+    },
+    {
+      "id": "55-indexed-multi-line",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/55-indexed-multi-line/tanstack.ts",
+        "cases/55-indexed-multi-line/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use public first-value normalization and grouped endpoint selection."
+        }
+      ]
+    },
+    {
+      "id": "56-connected-scatter",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/56-connected-scatter/tanstack.ts",
+        "cases/56-connected-scatter/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use the public two-row window output with native arrows."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain the editorial choice of which direction segments receive arrows."
+        }
+      ]
+    },
+    {
+      "id": "57-scatter-marginal-histograms",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["view-composition"],
+      "evidence": [
+        "cases/57-scatter-marginal-histograms/tanstack.ts",
+        "cases/57-scatter-marginal-histograms/tanstack.test.ts",
+        "../../packages/charts-core/src/view.test.ts",
+        "../../packages/charts-core/src/scene-embed-internal.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/view.ts",
+            "packages/charts-core/src/scene-embed-internal.ts"
+          ],
+          "summary": "Compose normal child definitions in named tracks, align shared plot ranges, and adopt namespaced child scenes."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use public binX and binY transforms for the two marginal distributions."
+        }
+      ]
+    },
+    {
+      "id": "58-select-extrema",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/58-select-extrema/tanstack.ts",
+        "cases/58-select-extrema/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Feed public minimum and maximum selections as original rows directly to separate dot and text marks."
+        }
+      ]
+    },
+    {
+      "id": "59-grouped-reducer-bars",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/59-grouped-reducer-bars/tanstack.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use public groupBy mean reduction and feed its rows directly to native bars and labels."
+        }
+      ]
+    },
+    {
+      "id": "60-lag-autocorrelation",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/60-lag-autocorrelation/tanstack.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use public two-row window output for lag pairs and compose native dots with an authored identity reference line."
+        }
+      ]
+    },
+    {
+      "id": "61-quantile-ribbon",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/61-quantile-ribbon/tanstack.ts",
+        "cases/61-quantile-ribbon/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Feed public grouped quantile reducers directly to area and line marks."
+        }
+      ]
+    },
+    {
+      "id": "62-ridgeline-density",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["ridgeline-mark"],
+      "evidence": [
+        "cases/62-ridgeline-density/tanstack.ts",
+        "cases/62-ridgeline-density/tanstack.test.ts",
+        "../../packages/charts-core/src/ridgeline.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use public grouped binX and max normalization while retaining nested raw lineage."
+        },
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/ridgeline.ts",
+            "packages/charts-core/src/mapped-spacing-internal.ts"
+          ],
+          "summary": "Derive profile displacement from semantic point or band category steps and preserve one interaction point per prepared sample."
+        }
+      ]
+    },
+    {
+      "id": "63-violin-distributions",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["violin-mark"],
+      "evidence": [
+        "cases/63-violin-distributions/tanstack.ts",
+        "cases/63-violin-distributions/tanstack.test.ts",
+        "../../packages/charts-core/src/violin.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use public grouped binY, max normalization, and grouped median reduction while retaining nested raw lineage."
+        },
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/violin.ts",
+            "packages/charts-core/src/tick.ts",
+            "packages/charts-core/src/mapped-spacing-internal.ts"
+          ],
+          "summary": "Mirror prepared widths and size median ticks from semantic point or band category steps."
+        }
+      ]
+    },
+    {
+      "id": "64-marimekko-mosaic",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["mosaic-layout"],
+      "evidence": [
+        "cases/64-marimekko-mosaic/tanstack.ts",
+        "cases/64-marimekko-mosaic/tanstack.test.ts",
+        "../../packages/charts-core/src/transform-mosaic.test.ts",
+        "../entries/charts-transform-mosaic.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "before-definition",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": [
+            "packages/charts-core/src/transform-mosaic.ts",
+            "packages/charts-core/src/proportional-interval-internal.ts"
+          ],
+          "summary": "Allocate outer marginals and conditional inner values as semantic normalized cell endpoints through one shared proportional-interval kernel."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Keep count policy explicit through groupBy, derive labels by select, and render the resulting cells with ordinary rect and text marks."
+        }
+      ]
+    },
+    {
+      "id": "65-voronoi-nearest-tooltip",
+      "coverage": "custom-render",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["spatial-voronoi"],
+      "evidence": [
+        "cases/65-voronoi-nearest-tooltip/tanstack.ts",
+        "../../packages/charts-core/src/spatial-voronoi.test.ts",
+        "../entries/charts-spatial-voronoi-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "custom-mark",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/spatial-voronoi.ts"],
+          "dependencies": ["d3-delaunay"],
+          "summary": "Project source rows through final scales during ordinary mark rendering and emit bounded structured cells without claiming native focus ownership."
+        }
+      ]
+    },
+    {
+      "id": "70-composed-chart",
+      "coverage": "declarative",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["bar-max-thickness"],
+      "evidence": [
+        "cases/70-composed-chart/tanstack.ts",
+        "cases/70-composed-chart/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/bar.ts"],
+          "summary": "Apply maxThickness after the final categorical and subgroup bands plus authored inset resolve, center the capped bar, and share the private resolver across barY and barX."
+        }
+      ]
+    },
+    {
+      "id": "71-recharts-population-pyramid",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/71-recharts-population-pyramid/tanstack.ts",
+        "cases/71-recharts-population-pyramid/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose public groupBy counts, a signed value accessor, and one native diverging bar stack while retaining raw-observation lineage."
+        }
+      ]
+    },
+    {
+      "id": "72-recharts-mixed-bars",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/72-recharts-mixed-bars/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose native grouped and stacked bar intervals with one public group layout; no case-owned slot coordinates are needed."
+        }
+      ]
+    },
+    {
+      "id": "73-many-point-scatter",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/73-many-point-scatter/tanstack.ts",
+        "cases/73-many-point-scatter/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Feed selected source rows to one native dot mark with explicit stable keys and a configured radius scale."
+        }
+      ]
+    },
+    {
+      "id": "74-recharts-treemap",
+      "coverage": "prepared",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["resolved-mark-layout", "hierarchy-treemap"],
+      "evidence": [
+        "cases/74-recharts-treemap/tanstack.ts",
+        "../../packages/charts-core/src/hierarchy-treemap.test.ts",
+        "../entries/charts-hierarchy-treemap.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "resolved-layout",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/hierarchy-treemap.ts"],
+          "dependencies": ["d3-hierarchy"],
+          "summary": "Construct a validated flat hierarchy once, tile private copies against final plot bounds, and emit stable interactive leaf rectangles with measured in-cell labels and source lineage."
+        }
+      ]
+    },
+    {
+      "id": "75-radar",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["fold-transform"],
+      "evidence": ["cases/75-radar/tanstack.test.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/transform-fold.ts"],
+          "summary": "Fold metrics before public normalization and native radial area marks."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["selection.ts", "tanstack.ts"],
+          "summary": "Retain event order, timed-event direction, first-profile selection, the same-reference 1.1px angle-label offset, and compact margins; angleGrid already owns label context plus default anchor and baseline, so no shared helper is warranted."
+        }
+      ]
+    },
+    {
+      "id": "76-pie",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["polar-value-allocation"],
+      "evidence": [
+        "cases/76-pie/tanstack.test.ts",
+        "../../packages/charts-core/src/polar-pie.test.ts",
+        "../entries/charts-polar-pie-svg.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/polar-pie.ts"],
+          "summary": "Allocate nonnegative source values into ordered visible angle intervals with flat direct lineage."
+        }
+      ]
+    },
+    {
+      "id": "77-donut",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["polar-value-allocation"],
+      "evidence": [
+        "cases/77-donut/tanstack.test.ts",
+        "../../packages/charts-core/src/polar-pie.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/polar-pie.ts"],
+          "summary": "Allocate flat source-linked intervals with native pie and compose the donut through the radial arc inner radius."
+        }
+      ]
+    },
+    {
+      "id": "78-gauge",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["polar-value-allocation"],
+      "evidence": [
+        "cases/78-gauge/tanstack.test.ts",
+        "../../packages/charts-core/src/polar-pie.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/polar-pie.ts"],
+          "summary": "Allocate flat source-linked intervals over an authored partial angle range with native pie."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["transform.ts"],
+          "summary": "Retain semantic agreement aggregation."
+        }
+      ]
+    },
+    {
+      "id": "80-echarts-axis-pointer",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/80-echarts-axis-pointer/tanstack.ts",
+        "cases/80-echarts-axis-pointer/tanstack.test.ts",
+        "../../packages/charts-core/src/focus-guide.test.ts",
+        "../../packages/charts-core/src/runtime.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose grouped x focus, native tooltip content and placement, keyboard policy, continuous snap reach, and the categorical legend in the definition."
+        },
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/focus-guide.ts"],
+          "summary": "Retarget one stable full-height rule through the renderer-neutral focus-guide lifecycle."
+        }
+      ]
+    },
+    {
+      "id": "81-recharts-interactive-legend",
+      "coverage": "declarative",
+      "disposition": "first-party-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": ["controlled-signals", "interactive-legend"],
+      "evidence": [
+        "cases/81-recharts-interactive-legend/tanstack.ts",
+        "cases/81-recharts-interactive-legend/tanstack.test.ts",
+        "../../packages/charts-core/src/interactive-legend.test.ts",
+        "cases/81-recharts-interactive-legend/view.tsx"
+      ],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/interactive-legend.ts",
+            "packages/charts-core/src/mark-scene-filter-internal.ts"
+          ],
+          "summary": "Own domain-ordered toggling, post-domain series visibility, responsive legend layout, native browser controls, and static fallback."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["view.tsx"],
+          "summary": "Retain the controlled visibility snapshot and surrounding conformance region."
+        }
+      ]
+    },
+    {
+      "id": "82-chart-table-selection",
+      "coverage": "app-composed",
+      "disposition": "first-party-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": ["controlled-signals", "keyed-selection"],
+      "evidence": [
+        "cases/82-chart-table-selection/tanstack.ts",
+        "cases/82-chart-table-selection/tanstack.test.ts",
+        "../../packages/charts-core/src/selection.test.ts",
+        "cases/82-chart-table-selection/view.tsx"
+      ],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/selection.ts",
+            "packages/charts-core/src/mark-scene-filter-internal.ts",
+            "packages/charts-core/src/renderer.ts"
+          ],
+          "summary": "Own semantic-key activation and decorative post-domain filtering of an ordinary selected mark."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["view.tsx"],
+          "summary": "Retain the selected snapshot, semantic HTML table, status, clear action, and persistence as application UI."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "data",
+          "sources": ["model.ts"],
+          "summary": "Retain the representative-row cohort and product-specific key and label policy."
+        }
+      ]
+    },
+    {
+      "id": "83-focus-context-window",
+      "coverage": "app-composed",
+      "disposition": "optional-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": [
+        "controlled-signals",
+        "keyed-selection",
+        "configured-scale-inversion",
+        "brush-x"
+      ],
+      "evidence": [
+        "cases/83-focus-context-window/tanstack.ts",
+        "cases/83-focus-context-window/tanstack.test.ts",
+        "../../packages/charts-core/src/interaction-brush.test.ts",
+        "../../packages/charts-core/src/renderer.test.ts",
+        "cases/83-focus-context-window/view.tsx"
+      ],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "post-render",
+          "owner": "charts",
+          "coordinateSpace": "dom",
+          "sources": [
+            "packages/charts-core/src/interaction-brush.ts",
+            "packages/charts-core/src/interaction-axis-internal.ts"
+          ],
+          "summary": "Own final-scale brush painting, inversion, snapping, pointer and touch lifecycle, cancellation, accessible handles, static fallback, and teardown."
+        },
+        {
+          "kind": "interaction-controller",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/selection.ts",
+            "packages/charts-core/src/renderer.ts"
+          ],
+          "summary": "Keep keyed detail selection in the controlled definition and filter its decorative overlay through renderer-owned point identity."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["view.tsx"],
+          "summary": "Retain the accepted four-month policy, range input, status, persistence, and two warranted chart hosts: the independently sized detail and overview have different rows, domains, axes, margins, and behavior."
+        }
+      ]
+    },
+    {
+      "id": "84-pinned-nested-chart-tooltip",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/84-pinned-nested-chart-tooltip/tanstack.ts",
+        "cases/84-pinned-nested-chart-tooltip/tanstack.test.ts",
+        "../../packages/charts-core/src/runtime.test.ts",
+        "../../packages/charts-core/src/svg-surface.test.ts",
+        "../../packages/charts-core/src/canvas.test.ts",
+        "../../packages/react-charts/src/Chart.test.tsx",
+        "cases/84-pinned-nested-chart-tooltip/view.tsx"
+      ],
+      "work": [
+        {
+          "kind": "application-overlay",
+          "stage": "post-render",
+          "owner": "charts",
+          "coordinateSpace": "dom",
+          "sources": [
+            "packages/charts-core/src/renderer.ts",
+            "packages/charts-core/src/tooltip.ts",
+            "packages/charts-core/src/svg-surface.ts",
+            "packages/charts-core/src/canvas.ts"
+          ],
+          "summary": "Own sticky activation, pin-only mounting, viewport placement, accessible dismissal, inline pinned state, and base-paint restoration."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["view.tsx"],
+          "summary": "Retain representative and same-species cohort policy, close-button presentation, and nested child-chart composition."
+        }
+      ]
+    },
+    {
+      "id": "85-scrollable-resource-lanes",
+      "coverage": "app-composed",
+      "disposition": "application-boundary",
+      "phase": "phase-0",
+      "status": "accepted-boundary",
+      "capabilities": ["application-boundary"],
+      "evidence": [
+        "cases/85-scrollable-resource-lanes/tanstack.ts",
+        "cases/85-scrollable-resource-lanes/tanstack.test.ts",
+        "cases/85-scrollable-resource-lanes/shell.ts",
+        "DEFINITION-COVERAGE-PLAN.md"
+      ],
+      "work": [
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["shell.ts"],
+          "summary": "Retain native overflow, content-width and scroll-preservation policy, the fixed rail and legend, persistent task summary, and complete schedule alternative."
+        },
+        {
+          "kind": "interaction-controller",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["tanstack.ts", "shell.ts"],
+          "summary": "Use the chart-owned focused point to reveal an offscreen task in the parent scroll viewport and update the persistent summary."
+        }
+      ]
+    },
+    {
+      "id": "86-streaming-window-preservation",
+      "coverage": "app-composed",
+      "disposition": "application-boundary",
+      "phase": "phase-0",
+      "status": "accepted-boundary",
+      "capabilities": ["application-boundary", "decorative-mark"],
+      "evidence": [
+        "DEFINITION-COVERAGE-AUDIT.md",
+        "DEFINITION-COVERAGE-PLAN.md",
+        "cases/86-streaming-window-preservation/data.test.ts",
+        "cases/86-streaming-window-preservation/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["model.ts", "view.tsx"],
+          "summary": "Retain data arrival, complete history, locked/latest/all viewport policy, controls, and announcements; share only pure case-local viewport and status helpers."
+        }
+      ]
+    },
+    {
+      "id": "87-echarts-synchronized-cursors",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": ["view-composition", "focus-guide", "decorative-mark"],
+      "evidence": [
+        "cases/87-echarts-synchronized-cursors/tanstack.ts",
+        "cases/87-echarts-synchronized-cursors/tanstack.test.ts",
+        "../../packages/charts-core/src/view.test.ts",
+        "../../packages/charts-core/src/focus-guide.test.ts",
+        "../../packages/charts-core/src/mark-decorative.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose one grouped-x focus lifecycle, sticky pinning, keyboard navigation, and semantic restoration across both child views."
+        },
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/view.ts",
+            "packages/charts-core/src/focus-guide.ts",
+            "packages/charts-core/src/mark-decorative.ts"
+          ],
+          "summary": "Compile two aligned child scenes, retarget one guide per view, and keep decorative lines out of the shared focus group."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["summary.ts"],
+          "summary": "Retain the cross-view live value summary as an observer of chart-owned focus and selection events."
+        }
+      ]
+    },
+    {
+      "id": "88-echarts-free-cursor",
+      "coverage": "app-composed",
+      "disposition": "first-party-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": [
+        "controlled-signals",
+        "configured-scale-inversion",
+        "continuous-cursor"
+      ],
+      "evidence": [
+        "DEFINITION-COVERAGE-AUDIT.md",
+        "DEFINITION-COVERAGE-PLAN.md",
+        "cases/88-echarts-free-cursor/tanstack.ts",
+        "cases/88-echarts-free-cursor/tanstack.test.ts",
+        "../../packages/charts-core/src/interaction-cursor.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "post-render",
+          "owner": "charts",
+          "coordinateSpace": "dom",
+          "sources": ["packages/charts-core/src/interaction-cursor.ts"],
+          "summary": "Own final-scale inversion, guide and label painting, transient pointer and touch previews, controlled pinning, clearing, and host teardown."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["controls.ts"],
+          "summary": "Retain domain-specific semantic sliders and live status text over the same controlled position."
+        }
+      ]
+    },
+    {
+      "id": "89-brush-range-selection",
+      "coverage": "app-composed",
+      "disposition": "optional-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": [
+        "controlled-signals",
+        "configured-scale-inversion",
+        "brush-x"
+      ],
+      "evidence": [
+        "DEFINITION-COVERAGE-AUDIT.md",
+        "DEFINITION-COVERAGE-PLAN.md",
+        "cases/89-brush-range-selection/tanstack.ts",
+        "cases/89-brush-range-selection/tanstack.test.ts",
+        "../../packages/charts-core/src/interaction-brush.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "post-render",
+          "owner": "charts",
+          "coordinateSpace": "dom",
+          "sources": ["packages/charts-core/src/interaction-brush.ts"],
+          "dependencies": ["d3-brush"],
+          "summary": "Own brush painting, inversion, snapping, normalization, handles, cancellation, and controlled range."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["model.ts", "tanstack.ts"],
+          "summary": "Retain monthly cohort selection, accepted range state, the live financial summary, and conformance observation."
+        }
+      ]
+    },
+    {
+      "id": "90-zoomable-time-window",
+      "coverage": "app-composed",
+      "disposition": "optional-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": [
+        "controlled-signals",
+        "configured-scale-inversion",
+        "zoom-x"
+      ],
+      "evidence": [
+        "DEFINITION-COVERAGE-AUDIT.md",
+        "DEFINITION-COVERAGE-PLAN.md",
+        "cases/90-zoomable-time-window/case.json",
+        "cases/90-zoomable-time-window/tanstack.ts",
+        "cases/90-zoomable-time-window/tanstack.test.ts",
+        "../../packages/charts-core/src/interaction-zoom.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "post-render",
+          "owner": "charts",
+          "coordinateSpace": "dom",
+          "sources": ["packages/charts-core/src/interaction-zoom.ts"],
+          "dependencies": ["d3-zoom"],
+          "summary": "Own resolved-scale wheel zoom, pan, touch, keyboard, clamping, cancellation, focus, and controlled semantic-window updates."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["model.ts", "tanstack.ts"],
+          "summary": "Retain accepted-window state, visible-row and y-domain policy, status, reset, conformance observation, and persistence."
+        }
+      ]
+    },
+    {
+      "id": "91-timeline-playback-scrubber",
+      "coverage": "app-composed",
+      "disposition": "first-party-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": ["controlled-signals", "scale-handle"],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "post-render",
+          "owner": "charts",
+          "coordinateSpace": "dom",
+          "sources": ["packages/charts-core/src/interaction-handle.ts"],
+          "summary": "Own final-scale playhead painting, candidate snapping, pointer and touch capture, cancellation, and one keyboard slider."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts", "model.ts"],
+          "summary": "Retain the accepted frame, playback timing, transport controls, status, and announcements."
+        }
+      ],
+      "evidence": [
+        "cases/91-timeline-playback-scrubber/tanstack.ts",
+        "cases/91-timeline-playback-scrubber/tanstack.test.ts",
+        "../../packages/charts-core/src/interaction-handle.test.ts"
+      ]
+    },
+    {
+      "id": "92-editable-event-range",
+      "coverage": "app-composed",
+      "disposition": "first-party-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": ["controlled-signals", "scale-handle"],
+      "work": [
+        {
+          "kind": "interaction-controller",
+          "stage": "post-render",
+          "owner": "charts",
+          "coordinateSpace": "dom",
+          "sources": ["packages/charts-core/src/interaction-handle.ts"],
+          "summary": "Own final-scale end-handle painting, constrained candidate snapping, pointer and touch capture, cancellation, and keyboard slider semantics."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts", "controls.ts", "model.ts"],
+          "summary": "Retain the date input, validation, event constraint, accepted end, commit transaction, status, and exact-value alternative."
+        }
+      ],
+      "evidence": [
+        "cases/92-editable-event-range/tanstack.ts",
+        "cases/92-editable-event-range/tanstack.test.ts",
+        "../../packages/charts-core/src/interaction-handle.test.ts"
+      ]
+    },
+    {
+      "id": "93-labeled-pie",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["polar-value-allocation", "radial-labels"],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/polar.ts"],
+          "dependencies": [],
+          "summary": "Own post-scale radial offsets and shared automatic outside anchors in granular text and rule marks."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "data",
+          "sources": ["selection.ts"],
+          "dependencies": [],
+          "summary": "Retain the authored four-letter revision selection and label styling policy."
+        }
+      ],
+      "evidence": [
+        "cases/93-labeled-pie/tanstack.test.ts",
+        "../../packages/charts-core/src/polar.test.ts"
+      ]
+    },
+    {
+      "id": "94-center-donut",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["polar-value-allocation"],
+      "evidence": [
+        "cases/94-center-donut/tanstack.test.ts",
+        "../../packages/charts-core/src/polar-pie.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/polar-pie.ts"],
+          "dependencies": [],
+          "summary": "Allocate flat source-linked donut intervals through native pie."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain the semantic selected-frequency total and center-label presentation."
+        }
+      ]
+    },
+    {
+      "id": "95-rounded-donut",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["polar-value-allocation"],
+      "evidence": [
+        "cases/95-rounded-donut/tanstack.test.ts",
+        "../../packages/charts-core/src/polar-pie.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/polar-pie.ts"],
+          "dependencies": [],
+          "summary": "Own flat value allocation and explicit angular gaps, composed with the existing radial arc corner radius."
+        }
+      ]
+    },
+    {
+      "id": "96-nested-donut",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["polar-value-allocation"],
+      "evidence": [
+        "cases/96-nested-donut/tanstack.test.ts",
+        "../../packages/charts-core/src/polar-pie.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "before-definition",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/polar-pie.ts"],
+          "dependencies": [],
+          "summary": "Run two independent native pie allocations for concentric radial-arc layers."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["transform.ts"],
+          "summary": "Retain domain-specific family aggregation."
+        }
+      ]
+    },
+    {
+      "id": "97-rose",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["radial-bars"],
+      "evidence": [
+        "cases/97-rose/tanstack.ts",
+        "cases/97-rose/tanstack.test.ts",
+        "../../packages/charts-core/src/polar-radial-bar.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/polar.ts"],
+          "dependencies": ["d3-shape"],
+          "summary": "Resolve categorical angle bands and quantitative radial extents through the native radius-extending radial bar mark."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["selection.ts"],
+          "dependencies": [],
+          "summary": "Retain the authored six-letter revision selection."
+        }
+      ]
+    },
+    {
+      "id": "98-needle-gauge",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["polar-value-allocation"],
+      "evidence": [
+        "cases/98-needle-gauge/tanstack.test.ts",
+        "../../packages/charts-core/src/polar-pie.test.ts",
+        "../../packages/charts-core/src/polar.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "before-definition",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/polar-pie.ts"],
+          "summary": "Allocate flat threshold-band intervals while native radial marks express ticks, needle, hub, and readout."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["transform.ts"],
+          "summary": "Retain domain-specific threshold meaning."
+        }
+      ]
+    },
+    {
+      "id": "99-comparative-radar",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["fold-transform"],
+      "evidence": ["cases/99-comparative-radar/tanstack.test.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["packages/charts-core/src/transform-fold.ts"],
+          "summary": "Fold profile metrics before grouped normalization while retaining profile identity."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["selection.ts", "tanstack.ts"],
+          "summary": "Retain event order, metric direction, country filter, first-profile selection, the same-reference 1.1px angle-label offset, and compact margins; angleGrid already owns label context plus default anchor and baseline, so no shared helper is warranted."
+        }
+      ]
+    },
+    {
+      "id": "100-radial-bars",
+      "coverage": "prepared",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["radial-bars"],
+      "evidence": [
+        "cases/100-radial-bars/tanstack.test.ts",
+        "../../packages/charts-core/src/polar-radial-bar.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/polar.ts"],
+          "dependencies": ["d3-shape"],
+          "summary": "Resolve categorical radius bands and quantitative angular extents through the native angle-extending radial bar mark."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["selection.ts"],
+          "dependencies": [],
+          "summary": "Retain the authored four-letter revision selection."
+        }
+      ]
+    },
+    {
+      "id": "101-sunburst",
+      "coverage": "declarative",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["hierarchy-sunburst"],
+      "evidence": [
+        "cases/101-sunburst/tanstack.ts",
+        "cases/101-sunburst/tanstack.test.ts",
+        "../../packages/charts-core/src/hierarchy-sunburst.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/hierarchy-sunburst.ts"],
+          "dependencies": ["d3-hierarchy", "d3-shape"],
+          "summary": "Own partition layout and depth-dependent radii while preserving hierarchy lineage."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["selection.ts"],
+          "dependencies": [],
+          "summary": "Retain the authored Flare subset and revision policy."
+        }
+      ]
+    },
+    {
+      "id": "102-world-choropleth",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/102-world-choropleth/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose land, joined country features, and sphere through geoShape with a public Equal Earth descriptor and threshold color scale."
+        }
+      ]
+    },
+    {
+      "id": "103-bubble-map",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/103-bubble-map/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose land, source-linked geographic points, and sphere through geoShape with a public projection descriptor and radius channel."
+        }
+      ]
+    },
+    {
+      "id": "104-orthographic-globe",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/104-orthographic-globe/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Layer sphere, graticule, and land through geoShape with one authored orthographic projection descriptor per mark."
+        }
+      ]
+    },
+    {
+      "id": "105-route-map",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/105-route-map/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Layer land, graticule, route, and sphere through geoShape with a shared public Equal Earth projection descriptor."
+        }
+      ]
+    },
+    {
+      "id": "106-polar-line",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/106-polar-line/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose native polar grids and a radial line from semantic day-angle and temperature-radius channels."
+        }
+      ]
+    },
+    {
+      "id": "107-polar-scatter",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/107-polar-scatter/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose native polar grids and radial dots from semantic wind direction, latitude band, and speed channels."
+        }
+      ]
+    },
+    {
+      "id": "108-country-choropleth",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/108-country-choropleth/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Render joined country features through geoShape with a public Equal Earth descriptor and quantized color definition."
+        }
+      ]
+    },
+    {
+      "id": "109-us-state-choropleth",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/109-us-state-choropleth/tanstack.ts",
+        "cases/109-us-state-choropleth/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Pass county features and the public Albers USA projection descriptor to geoShape; Charts owns fitting, paths, and quantile color mapping."
+        }
+      ]
+    },
+    {
+      "id": "110-projection-gallery",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/110-projection-gallery/tanstack.ts",
+        "cases/110-projection-gallery/tanstack.test.ts",
+        "../../packages/charts-core/src/facet.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/facet.ts",
+            "packages/charts-core/src/geo.ts"
+          ],
+          "dependencies": ["d3-geo"],
+          "summary": "Use current facets with one child geo chart per projection instead of manual pane bounds."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "none",
+          "sources": ["projection.ts"],
+          "dependencies": ["d3-geo"],
+          "summary": "Retain the authored projection selection and display order."
+        }
+      ]
+    },
+    {
+      "id": "111-basic-sankey",
+      "coverage": "declarative",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["resolved-mark-layout", "network-sankey"],
+      "evidence": [
+        "cases/111-basic-sankey/tanstack.ts",
+        "cases/111-basic-sankey/tanstack.test.ts",
+        "../../packages/charts-core/src/network-sankey.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/network-sankey.ts"],
+          "dependencies": ["d3-sankey"],
+          "summary": "Own mutation isolation, graph validation, endpoint resolution, responsive node and link layout, immutable lineage, and ordinary child-mark composition."
+        }
+      ]
+    },
+    {
+      "id": "111-sankey-flow",
+      "coverage": "declarative",
+      "disposition": "optional-primitive",
+      "phase": "phase-3",
+      "status": "verified",
+      "capabilities": ["resolved-mark-layout", "network-sankey"],
+      "evidence": [
+        "cases/111-sankey-flow/tanstack.ts",
+        "cases/111-sankey-flow/tanstack.test.ts",
+        "../../packages/charts-core/src/network-sankey.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/network-sankey.ts"],
+          "dependencies": ["d3-sankey"],
+          "summary": "Own mutation isolation, graph validation, endpoint resolution, responsive flow layout, immutable lineage, and ordinary child-mark composition."
+        },
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "resolved-layout",
+          "owner": "case",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["tanstack.ts", "layout.ts"],
+          "dependencies": [],
+          "summary": "Retain authored compact wording, label side and offsets, two-line values, backdrop measurement, title placement, and semantic paint."
+        }
+      ]
+    },
+    {
+      "id": "112-motion-entrance",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/112-motion-entrance/tanstack.ts",
+        "cases/112-motion-entrance/tanstack.test.ts",
+        "shared/motion.ts"
+      ],
+      "work": [
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain replay and demo settings while motion stays definition-local."
+        }
+      ]
+    },
+    {
+      "id": "113-motion-updates",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/113-motion-updates/tanstack.ts",
+        "cases/113-motion-updates/tanstack.test.ts",
+        "shared/motion.ts"
+      ],
+      "work": [
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain stage controls while keyed update motion stays declarative."
+        }
+      ]
+    },
+    {
+      "id": "114-spring-line-motion",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/114-spring-line-motion/tanstack.ts",
+        "cases/114-spring-line-motion/tanstack.test.ts",
+        "shared/motion.ts"
+      ],
+      "work": [
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain demo controls while line morph and spring overrides stay declarative."
+        }
+      ]
+    },
+    {
+      "id": "115-definition-motion",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/115-definition-motion/tanstack.ts",
+        "cases/115-definition-motion/tanstack.test.ts",
+        "shared/motion.ts"
+      ],
+      "work": [
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain controls while chart, mark, datum, axis, tick, and label motion stay definition-owned."
+        }
+      ]
+    },
+    {
+      "id": "116-geometry-morph",
+      "coverage": "custom-render",
+      "disposition": "inline-custom-mark",
+      "phase": "phase-0",
+      "status": "accepted-boundary",
+      "capabilities": ["inline-custom-boundary"],
+      "evidence": [
+        "DEFINITION-COVERAGE-AUDIT.md",
+        "cases/116-geometry-morph/tanstack.ts",
+        "cases/116-geometry-morph/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "custom-mark",
+          "stage": "mark-render",
+          "owner": "case",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain the deliberately bespoke normalized topology for cross-shape path morphing."
+        }
+      ]
+    },
+    {
+      "id": "117-focus-cursor-motion",
+      "coverage": "app-composed",
+      "disposition": "first-party-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": ["focus-guide"],
+      "evidence": [
+        "cases/117-focus-cursor-motion/tanstack.ts",
+        "cases/117-focus-cursor-motion/tanstack.test.ts",
+        "../../packages/charts-core/src/focus-guide.test.ts",
+        "../../packages/charts-core/src/focus-mark.test.ts",
+        "../entries/charts-focus-guide.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/focus-guide.ts",
+            "packages/charts-core/src/focus-layer.ts"
+          ],
+          "summary": "Resolve source-bound rules, marker, measured labels, and stable retarget slots inside the renderer-neutral focus lifecycle."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain the visible aria-live status and update it from host focus events."
+        }
+      ]
+    },
+    {
+      "id": "118-token-usage-calendar",
+      "coverage": "app-composed",
+      "disposition": "first-party-primitive",
+      "phase": "phase-2",
+      "status": "verified",
+      "capabilities": ["axis-tick-label-accessors"],
+      "evidence": [
+        "cases/118-token-usage-calendar/tanstack.ts",
+        "cases/118-token-usage-calendar/tanstack.test.ts",
+        "cases/118-token-usage-calendar/shell.test.ts",
+        "../../packages/charts-core/src/scene-layout.test.ts",
+        "../../packages/charts-core/src/facet.test.ts",
+        "../../packages/charts-core/src/motion.test.ts",
+        "../entries/charts-tick-label-accessors.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "resolved-layout",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/types.ts",
+            "packages/charts-core/src/scene.ts"
+          ],
+          "summary": "Resolve per-candidate typography, anchor, and offsets before thinning and margin measurement."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["layout.ts", "shell.ts"],
+          "summary": "Retain width-derived host sizing and tooltip presentation."
+        }
+      ]
+    },
+    {
+      "id": "bar-grouped",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/bar-grouped/tanstack.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose public grouped reduction and grouped bar layout inside the responsive definition; width only controls tick-label presentation."
+        }
+      ]
+    },
+    {
+      "id": "bar-horizontal-ranking",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/bar-horizontal-ranking/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Keep authored row ordering beside native horizontal bars, baseline rule, band scale, and automatic label measurement."
+        }
+      ]
+    },
+    {
+      "id": "bar-stacked",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/bar-stacked/tanstack.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose public fold and stack transforms directly with native bars while retaining authored cause order and colors."
+        }
+      ]
+    },
+    {
+      "id": "bar-vertical-sorted",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/bar-vertical-sorted/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Feed sorted category rows directly to native vertical bars; responsive definition input only rotates crowded tick labels."
+        }
+      ]
+    },
+    {
+      "id": "facets-anscombe",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/facets-anscombe/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Use the native facet mark to create four child definitions with shared authored domains and source-bound dots."
+        }
+      ]
+    },
+    {
+      "id": "heatmap-labeled",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/heatmap-labeled/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose native cells and text over explicit category domains, including authored missing-value and contrast policies."
+        }
+      ]
+    },
+    {
+      "id": "histogram",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/histogram/tanstack.ts"],
+      "work": [
+        {
+          "kind": "data-transform",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "data",
+          "sources": ["tanstack.ts"],
+          "summary": "Use public binX output directly as semantic rect intervals with native scales and focus lineage."
+        }
+      ]
+    },
+    {
+      "id": "scatter-bubble",
+      "coverage": "declarative",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": ["cases/scatter-bubble/tanstack.ts"],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Feed model rows directly to a native dot mark with color and radius channels plus ordinary legends and scales."
+        }
+      ]
+    }
+  ],
+  "overview": "DEFINITION-COVERAGE-OVERVIEW.md"
+}

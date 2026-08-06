@@ -1,26 +1,21 @@
 import { defineChart } from '@tanstack/charts'
-import { polar, radialArc, radialText } from '@tanstack/charts/polar'
+import { pie, polar, radialArc, radialText } from '@tanstack/charts/polar'
 import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { scaleLinear } from 'd3-scale'
-import { pie } from 'd3-shape'
 import { selectCenterDonutData } from './selection'
 import { tanstackMount } from '../../shared/mount'
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import type { ConformanceInput } from '../../types'
 
 const tau = Math.PI * 2
-const pieLayout = pie<AlphabetRow>()
-  .sort(null)
-  .value(({ frequency }) => frequency)
 const colors = ['#0ea5e9', '#6366f1', '#a855f7']
 const percentage = new Intl.NumberFormat('en-US', {
   style: 'percent',
   maximumFractionDigits: 1,
 })
 
-const definition = (input: ConformanceInput) => {
+export const centerDonutDefinition = (input: ConformanceInput) => {
   const data = selectCenterDonutData(alphabet, input.revision)
-  const arcs = pieLayout([...data])
+  const arcs = pie(data, { value: 'frequency' })
   const total = data.reduce((sum, row) => sum + row.frequency, 0)
   const center = [
     { id: 'total', angle: 0, radius: 0, text: percentage.format(total) },
@@ -34,12 +29,16 @@ const definition = (input: ConformanceInput) => {
         radius: { scale: scaleLinear().domain([0, 1]) },
         marks: [
           radialArc(arcs, {
+            id: 'letter-slices',
+            key: 'letter',
             innerRadius: ({ radius }) => radius * 0.62,
-            color: ({ data }) => data.letter,
+            color: 'letter',
           }),
           radialText(center, {
+            id: 'center-total',
             angle: 'angle',
             radius: 'radius',
+            key: 'id',
             text: 'text',
             fill: '#0f172a',
             fontSize: 20,
@@ -54,12 +53,12 @@ const definition = (input: ConformanceInput) => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  centerDonutDefinition,
   'Letter frequency donut with total',
   {
     format: ({ datum }) =>
-      'data' in datum
-        ? `${datum.data.letter} · ${percentage.format(datum.data.frequency)}`
+      'letter' in datum
+        ? `${datum.letter} · ${percentage.format(datum.frequency)}`
         : `Total · ${datum.text}`,
   },
 )

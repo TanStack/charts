@@ -25,6 +25,14 @@ import { motion } from '@tanstack/charts/motion'
 import { createChartSpring } from '@tanstack/charts/spring'
 import { renderChartImage } from '@tanstack/charts/export'
 import { focusX } from '@tanstack/charts/focus'
+import { focusGuideX } from '@tanstack/charts/focus/guide'
+import { brushX } from '@tanstack/charts/interaction/brush'
+import { continuousCursor } from '@tanstack/charts/interaction/cursor'
+import { handleX } from '@tanstack/charts/interaction/handle'
+import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { zoomX } from '@tanstack/charts/interaction/zoom'
+import { interactiveColorLegend } from '@tanstack/charts/legend'
+import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 import { d3Curve } from '@tanstack/charts/d3/shape'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
@@ -42,16 +50,25 @@ an application-supplied renderer without importing Canvas.
 Non-cartesian geometry is subpath-only:
 
 ```ts
-import { polar, radialArc } from '@tanstack/charts/polar'
+import { pie, polar, radialArc, radialBarRadius } from '@tanstack/charts/polar'
 import { geoShape } from '@tanstack/charts/geo'
+import { sunburst } from '@tanstack/charts/hierarchy/sunburst'
+import { sankeyDiagram } from '@tanstack/charts/network/sankey'
 ```
 
 The root entry does not re-export those capabilities. Polar brings in its
 `d3-shape` geometry only when the polar subpath is imported; geography does
-the same for `d3-geo`. Import `pie`, configured scales, projections, and curve
-factories from their granular D3 modules as the chart requires them. Political
-boundary data and `topojson-client` remain application dependencies; importing
-`geoShape` does not bundle an atlas.
+the same for `d3-geo`. The exact sunburst entry adds its `d3-hierarchy`
+partition only when imported and reuses the sector geometry shared by ordinary
+polar marks. It does not add hierarchy or sunburst code to ordinary polar
+charts. Polar value allocation comes from its native `pie` transform.
+The exact Sankey entry adds `d3-sankey` and resolved child-mark composition
+only to Sankey consumers; it does not change root, universal, static force, or
+ordinary link bundles.
+Import configured scales, projections, and curve factories from their granular
+D3 modules as the chart requires them. Political boundary data and
+`topojson-client` remain application dependencies; importing `geoShape` does
+not bundle an atlas.
 
 Tween and spring SVG motion is one optional renderer entry. Importing
 `@tanstack/charts/motion` includes both transition models, retained geometry,
@@ -59,6 +76,47 @@ and the SVG reconciler. There is no separate tween-only adapter. The scalar
 physics sampler remains available independently from `@tanstack/charts/spring`.
 Core definitions can contain inert `motion` policy without importing either
 runtime.
+
+Focus guides are also exact-subpath marks. Importing
+`@tanstack/charts/focus/guide` adds renderer-neutral candidate and label
+construction, but no DOM host, tooltip, motion runtime, spring solver, React,
+or D3 geometry package.
+
+The controlled-signal snapshot is 0.09 KiB gzip in isolation. The interactive
+categorical legend, including native DOM controls, adds 2.07 KiB gzip over the
+ordinary DOM host. Neither implementation enters root or universal consumers.
+
+Controlled keyed selection is also exact-subpath-only. Its semantic-key
+controller and post-domain mark filter enter through
+`@tanstack/charts/selection`; `whenSelected` reuses the ordinary authored mark
+instead of importing another geometry or renderer implementation. The root and
+universal value entries do not re-export the selection implementation.
+
+The continuous cursor is exact-subpath-only through
+`@tanstack/charts/interaction/cursor`. It reuses the controlled signal, scale
+interaction axis, and renderer-neutral guide-node kernel without importing the
+datum focus guide, tooltip, brush, or a D3 package. Its incremental DOM-host
+fixture adds 3.63 KiB gzip under a 5 KiB cap.
+
+The horizontal scale handle is exact-subpath-only through
+`@tanstack/charts/interaction/handle`. It reuses the controlled signal,
+candidate interaction axis, and value-cloning range kernel without importing
+cursor, brush, zoom, guide, or D3 code. Its incremental DOM-host fixture adds
+3.65 KiB gzip under a 5 KiB cap.
+
+Horizontal brushing is exact-subpath-only through
+`@tanstack/charts/interaction/brush`. It includes the one-dimensional
+scale/snap kernel, DOM host control, `d3-brush`, and `d3-selection` only for a
+consumer that imports it. Root, universal, ordinary DOM, legend, and selection
+consumers retain none of those modules.
+
+Horizontal zoom is exact-subpath-only through
+`@tanstack/charts/interaction/zoom`. It includes the controlled semantic-window
+behavior, final-scale interaction axis, DOM host control, `d3-zoom`, and
+`d3-selection` only for a consumer that imports it. Root, universal, ordinary
+DOM, brush, cursor, legend, and selection consumers retain none of those
+modules. Its incremental DOM-host fixture adds 19.95 KiB gzip under a 20 KiB
+cap.
 
 Your bundler must honor ESM exports and tree shaking. Avoid namespace imports
 when a named or subpath import communicates the real dependency.
@@ -117,9 +175,10 @@ The [library comparison](../comparison.md) publishes the current pinned
 four-chart, three-tier bundle snapshot and its limits.
 
 The repository's bundle gates use isolated entries so adding a complex mark
-cannot silently increase the smallest chart. Polar has separate arc-only and
-D3-pie consumer ceilings plus a complete scale-backed line/scatter ceiling;
-geography has its own projected-shape ceiling. The ordinary line,
+cannot silently increase the smallest chart. Polar has separate arc-only, pie
+allocation, radial-label, radial-bar, gauge, and scale-backed line/scatter
+ceilings; sunburst has an incremental ceiling over the equivalent D3 partition
+kernel; geography has its own projected-shape ceiling. The ordinary line,
 representative-mark, DOM, and framework entries remain exact byte locks.
 
 ## Separate preparation, scene, and paint

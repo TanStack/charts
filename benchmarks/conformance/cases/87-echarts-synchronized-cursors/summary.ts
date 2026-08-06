@@ -68,6 +68,7 @@ export function updateSynchronizedSummary(
     summary.date.textContent = 'Focus either chart'
     summary.current.textContent = '—'
     summary.previous.textContent = '—'
+    delete summary.root.dataset.date
     summary.root.dataset.pinned = 'false'
     return
   }

@@ -180,5 +180,16 @@ function colorScaleKind(
 
 export function valueKey(value: unknown): string {
   if (value instanceof Date) return `date:${value.getTime()}`
+  if (typeof value === 'string') return `string:${value.length}:${value}`
   return `${typeof value}:${String(value)}`
+}
+
+/** Orders ChartKey values independently from their collision-safe identity. */
+export function compareChartKey(
+  left: ChartKey | null,
+  right: ChartKey | null,
+): number {
+  const leftOrder = `${typeof left}:${String(left)}`
+  const rightOrder = `${typeof right}:${String(right)}`
+  return leftOrder < rightOrder ? -1 : leftOrder > rightOrder ? 1 : 0
 }

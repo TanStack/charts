@@ -198,6 +198,7 @@ Ticks draw a short rule centered at a scaled point:
 ```ts
 tickX(rows, { x: 'category', y: 'value', z: 'series' })
 tickY(rows, { x: 'value', y: 'category', length: 16 })
+tickY(summaries, { x: 'category', y: 'median', span: 0.36 })
 ```
 
 ```ts
@@ -225,9 +226,13 @@ Both share:
 | `strokeOpacity` | `number`                        | SVG default                                  | Stroke opacity                      |
 | `strokeWidth`   | `number`                        | `1.5`                                        | Stroke width                        |
 | `length`        | `number`                        | Perpendicular scale bandwidth, otherwise `6` | Total length before inset           |
+| `span`          | `number`                        | None                                         | Total length in category-step units |
 | `inset`         | `number`                        | `0`                                          | Pixels removed from both ends       |
 
 Available length is clamped to at least zero after subtracting twice the inset.
+`length` and `span` are mutually exclusive. `span` requires a point or band
+scale on the perpendicular axis and uses the complete configured domain,
+including empty category slots, to derive its step.
 Each valid row emits one interaction point at the tick center.
 
 ## Invalid rows and identity

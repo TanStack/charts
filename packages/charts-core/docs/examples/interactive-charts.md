@@ -79,9 +79,9 @@ to inspect its live chart and complete source.
 
 ## Pin rich nested detail
 
-A rich tooltip can compose the native rows with framework UI, including a
-second chart. Hover remains transient; click or keyboard activation pins the
-surface before it accepts pointer input.
+A rich tooltip can compose framework UI, including a second chart, inside the
+native tooltip body. This example keeps hover as chart focus only and mounts
+the detail after click or keyboard activation.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/84-pinned-nested-chart-tooltip/?theme=system&height=500"
@@ -92,18 +92,15 @@ surface before it accepts pointer input.
   style="width:100%;height:500px;border:0;"
 ></iframe>
 
-The embedded framework-neutral case uses a fully application-owned surface.
-Use the adapter's tooltip-body composition surface and include `defaultBody`
-to retain native rows and swatches. A grouped parent can pass `points`
-directly into a pie definition, placing the series comparison beside the rows
-in both transient and pinned states. The transient body is inert; gate controls
-on `pinned`. The nested chart receives its own accessible label, definition,
-runtime, and framework cleanup.
+The definition owns stable point identity, the pinned mark state,
+`visibility: 'pinned'`, placement, portaling, Escape, and focus return. The
+adapter body receives the pinned point and mounts an ordinary nested chart.
+The application retains only the same-species cohort policy, close-button
+presentation, and child-chart content.
 
-Add the `portal` extension to the definition's tooltip options to escape
-clipped ancestors and use viewport collision handling. Move focus intentionally
-when the body contains controls, preserve Escape, and wire a close button to
-`dismiss`.
+Add the `portal` extension to escape clipped ancestors and use viewport
+collision handling. Wire a close button to `dismiss`; the host restores chart
+focus when dismissal starts inside the body.
 
 ## Scroll a wide schedule
 
@@ -125,13 +122,17 @@ Preserve lane order, task keys, scroll position, and viewport-relative geometry
 across data updates. Do not capture vertical page scrolling when the timeline
 only needs horizontal movement.
 
+Position the external rail from `onRender` with `scene.scales.y.map`. Do not
+construct a second band scale to reproduce chart-space label centers.
+
 Use [Layout, Axes, and Coordinates](../concepts/layout-axes-and-coordinates.md)
 to align labels and the plotted region.
 
 ## Zoom and pan a time domain
 
-Zooming changes an explicit semantic domain. Wheel, drag, touch, keyboard, and
-reset controls should all update the same start and end values.
+`zoomX` changes a controlled semantic window through the normal definition.
+The x scale, wheel, drag, touch, keyboard, and reset control all use the same
+start and end values.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/90-zoomable-time-window/?theme=system&height=480"
@@ -142,20 +143,16 @@ reset controls should all update the same start and end values.
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
-Define:
+Import `zoomX` from `@tanstack/charts/interaction/zoom`, bind its `window` to a
+controlled signal, and provide the full `extent` and allowed `scaleExtent`.
+The behavior owns final-scale inversion, focus-gated wheel capture,
+pointer-anchored zoom, pan, touch and keyboard input, cancellation, clamping,
+and teardown.
 
-- Full-domain limits
-- Minimum and maximum span
-- Pointer anchor behavior
-- Pan increments
-- Wheel activation and normalization
-- Touch cancellation
-- Keyboard equivalents
-- Reset behavior
-
-Store the resulting domain in application state and pass it into the chart's
-configured scale. Preserve that domain when data values update unless product
-policy explicitly follows the latest point.
+Keep the accepted window, visible-row or clipping policy, y-domain policy,
+status, reset control, persistence, and follow-latest behavior in application
+state. Preserve the window when data values update unless product policy
+explicitly follows the latest point.
 
 ## Edit an interval
 
@@ -197,8 +194,8 @@ Application-owned interaction state should be semantic:
 - Playback index
 - Pinned datum key
 
-Pixel geometry is derived from `scene.chart` and copied configured scales on
-each render. This keeps state valid after responsive layout, font changes, and
+Pixel geometry is derived from `scene.chart` and resolved scales on each
+render. This keeps state valid after responsive layout, font changes, and
 server hydration.
 
 Controllers and overlays may install pointer capture, event listeners,

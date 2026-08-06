@@ -112,24 +112,25 @@ facet(rows, {
 ```
 
 ```ts
-function facet<TDatum>(
+function facet<TDatum, TChildSpec extends ChartSpec>(
   source: Iterable<TDatum>,
-  options: FacetOptions<TDatum>,
-): ChartMark<TDatum>
+  options: FacetOptions<TDatum, TChildSpec>,
+): ChartMark<ChartSpecDatum<TChildSpec>>
 ```
 
 ### Options
 
-| Option     | Type                                                    | Default                   | Meaning                                                        |
-| ---------- | ------------------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
-| `id`       | `string`                                                | Layer-derived             | Stable outer mark ID                                           |
-| `by`       | `Channel<TDatum, ChartKey>`                             | Required                  | String or number grouping key                                  |
-| `chart`    | `(data: readonly TDatum[], key: ChartKey) => ChartSpec` | Required                  | Builds one static child spec per group                         |
-| `columns`  | `number`                                                | Automatic                 | Requested column count, floored and clamped to `1..groupCount` |
-| `minWidth` | `number`                                                | `220`                     | Target minimum cell width used for automatic columns           |
-| `gap`      | `number`                                                | `16`                      | Gap between rows and columns, clamped to at least zero         |
-| `label`    | `boolean \| ((key) => string)`                          | `true`                    | Shows default key labels, formats them, or disables labels     |
-| `axes`     | `'outer' \| 'cell'`                                     | `'outer'` where shareable | Shared outside axes or independent axes in every cell          |
+| Option     | Type                                                                  | Default                   | Meaning                                                        |
+| ---------- | --------------------------------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
+| `id`       | `string`                                                              | Layer-derived             | Stable outer mark ID                                           |
+| `by`       | `Channel<TDatum, ChartKey>`                                           | Required                  | String or number grouping key                                  |
+| `chart`    | `(data: readonly [TDatum, ...TDatum[]], key: ChartKey) => TChildSpec` | Required                  | Builds one static child spec from a nonempty group             |
+| `columns`  | `number`                                                              | Automatic                 | Requested column count, floored and clamped to `1..groupCount` |
+| `minWidth` | `number`                                                              | `220`                     | Target minimum cell width used for automatic columns           |
+| `gap`      | `number`                                                              | `16`                      | Gap between rows and columns, clamped to at least zero         |
+| `label`    | `boolean \| ((key) => string)`                                        | `true`                    | Shows default key labels, formats them, or disables labels     |
+| `axes`     | `'outer' \| 'cell'`                                                   | `'outer'` where shareable | Shared outside axes or independent axes in every cell          |
+| `motion`   | `ChartMotionDefinition<ChartSpecDatum<TChildSpec>>`                   | None                      | Motion policy over child-mark data                             |
 
 Facet preserves first-seen group order and original row order within each
 group. Non-string and non-number `by` results are skipped.
@@ -186,7 +187,9 @@ measurement. Compilation errors are wrapped with the facet and cell key.
 Child `ChartPoint` coordinates are offset into the parent scene. Point keys are
 prefixed with facet and group identity, so equal child keys remain unique
 across cells. Datum, semantic x/y values, group, group label, and paint are
-preserved.
+preserved. The facet's output datum type comes from the marks returned by
+`chart`; grouping rows do not replace a child point's original datum. Motion
+callbacks receive that same child datum type.
 
 The facet mark itself has intentionally opaque positional types because each
 child may return a different mark composition. Its child scale domains do not
@@ -204,10 +207,10 @@ const definition = facetChart(rows, {
 ```
 
 ```ts
-function facetChart<TDatum>(
+function facetChart<TDatum, TChildSpec extends ChartSpec>(
   source: Iterable<TDatum>,
-  options: FacetOptions<TDatum>,
-): StaticChartDefinition<TDatum>
+  options: FacetOptions<TDatum, TChildSpec>,
+): StaticChartDefinition<ChartSpecDatum<TChildSpec>>
 ```
 
 The wrapper sets:

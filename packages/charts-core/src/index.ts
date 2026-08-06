@@ -13,7 +13,36 @@ export { barX, barY } from './bar'
 export type { BarXOptions, BarYOptions } from './bar'
 export { bandX, bandY } from './band'
 export type { BandXOptions, BandYOptions } from './band'
+export { boxX, boxY } from './box'
+export type {
+  BoxDatum,
+  BoxOutlierDatum,
+  BoxSummaryDatum,
+  BoxXDatum,
+  BoxXOptions,
+  BoxYDatum,
+  BoxYOptions,
+} from './box'
 export { d3Curve } from './d3-shape'
+export { differenceX, differenceY } from './difference'
+export type {
+  DifferenceAreaDatum,
+  DifferenceDatum,
+  DifferenceIndependent,
+  DifferenceSign,
+  DifferenceXOptions,
+  DifferenceYOptions,
+} from './difference'
+export { dodgeX, dodgeY } from './dodge'
+export type {
+  DodgeOptions,
+  DodgeXAnchor,
+  DodgeXLayout,
+  DodgeXOptions,
+  DodgeYAnchor,
+  DodgeYLayout,
+  DodgeYOptions,
+} from './dodge'
 export { dot } from './dot'
 export type { DotOptions } from './dot'
 export { facet, facetChart } from './facet'
@@ -21,18 +50,40 @@ export type { FacetAxes, FacetOptions } from './facet'
 export { frame } from './frame'
 export type { FrameOptions } from './frame'
 export { whenFocused } from './focus-mark'
+export { focusedSceneNodes, resolveFocusScene } from './focus-layer'
+export type { ResolvedFocusScene } from './focus-layer'
 export { group } from './group'
 export type { GroupLayout, GroupOptions } from './group'
 export { hexagon } from './hexagon'
 export type { HexagonOptions } from './hexagon'
 export { mountChart } from './dom'
-export { lineY } from './line'
-export type { LineYOptions } from './line'
+export { lineX, lineY } from './line'
+export type { LineXOptions, LineYOptions } from './line'
+export { linearRegressionX, linearRegressionY } from './regression'
+export type {
+  LinearRegressionXDatum,
+  LinearRegressionXOptions,
+  LinearRegressionYDatum,
+  LinearRegressionYOptions,
+} from './regression'
+export { ridgelineX, ridgelineY } from './ridgeline'
+export type {
+  RidgelineCurve,
+  RidgelinePosition,
+  RidgelineStateStyle,
+  RidgelineXOptions,
+  RidgelineYOptions,
+} from './ridgeline'
 export { link } from './link'
 export type { LinkOptions } from './link'
-export { colorGradientLegend, colorLegend } from './legend'
-export type { ColorGradientLegendOptions, ColorLegendOptions } from './legend'
+export { colorGradientLegend, colorLegend } from './legend-static'
+export type {
+  ColorGradientLegendOptions,
+  ColorLegendOptions,
+} from './legend-static'
 export { createMark } from './mark'
+export { compositeMark } from './mark-composite'
+export type { CompositeMarkOptions } from './mark-composite'
 export { cell, rect } from './rect'
 export type { CellOptions, RectOptions } from './rect'
 export { createChartRuntime, isDynamicChartDefinition } from './runtime'
@@ -45,6 +96,7 @@ export {
 export { renderChartSvg } from './svg'
 export { stack } from './stack'
 export type {
+  StackAnchor,
   StackLayout,
   StackOffset,
   StackOptions,
@@ -65,6 +117,12 @@ export type {
 } from './transform'
 export { groupBy } from './transform-group'
 export type { GroupByDatum, GroupByOptions } from './transform-group'
+export { mosaicX, mosaicY } from './transform-mosaic'
+export type {
+  MosaicOptions,
+  MosaicXDatum,
+  MosaicYDatum,
+} from './transform-mosaic'
 export { binX, binY } from './transform-bin'
 export type { BinOptions, BinXDatum, BinYDatum } from './transform-bin'
 export { binXY } from './transform-bin-xy'
@@ -90,6 +148,13 @@ export type {
 } from './transform-normalize'
 export { cumulative } from './transform-cumulative'
 export type { CumulativeDatum, CumulativeOptions } from './transform-cumulative'
+export { fold } from './transform-fold'
+export type {
+  FoldDatum,
+  FoldField,
+  FoldOptions,
+  FoldOutputNames,
+} from './transform-fold'
 export { rank } from './transform-rank'
 export type { RankDatum, RankOptions, RankTies } from './transform-rank'
 export { select } from './transform-select'
@@ -105,6 +170,14 @@ export type {
   StackRowsYDatum,
   StackRowsYOptions,
 } from './transform-stack'
+export { waterfall } from './transform-waterfall'
+export type {
+  WaterfallDatum,
+  WaterfallKind,
+  WaterfallOptions,
+  WaterfallStepDatum,
+  WaterfallTotalDatum,
+} from './transform-waterfall'
 export type {
   TransformNumericReducer,
   TransformOutputRow,
@@ -131,6 +204,16 @@ export { tickX, tickY } from './tick'
 export type { TickXOptions, TickYOptions } from './tick'
 export { vector } from './vector'
 export type { VectorAnchor, VectorOptions } from './vector'
+export { violinX, violinY } from './violin'
+export type {
+  ViolinPosition,
+  ViolinXCurve,
+  ViolinXOptions,
+  ViolinYCurve,
+  ViolinYOptions,
+} from './violin'
+export { waffleX, waffleY } from './waffle'
+export type { WaffleOptions, WaffleXOptions, WaffleYOptions } from './waffle'
 export type {
   ChartHost,
   ChartHostCommonOptions,
@@ -160,18 +243,27 @@ export type {
   ChannelOutput,
   DynamicChartDefinition,
   InitializedMark,
+  MarkInitialization,
   MarkInitializeContext,
   MarkRenderContext,
+  MarkResolvedLayoutContext,
   MarkScene,
   MaterializedChannel,
+  ResolvedLayoutMarkInitialization,
+  ResolvedMarkLayout,
   ChartAxisOptions,
   ChartAxisLabelOptions,
   ChartAxisPresentationOptions,
+  ChartAxisTickLabelContext,
   ChartAxisTickLabelOptions,
   ChartAxisTickLabelThinOptions,
+  ChartAxisTickLabelValue,
   ChartAxisTickOptions,
   ChartAxisValue,
   ChartAnimationOptions,
+  ChartBehavior,
+  ChartBehaviorContext,
+  ChartBehaviorScene,
   ChartBounds,
   ChartBuildContext,
   ChartColorOptions,
@@ -288,6 +380,8 @@ export type {
   SceneGroup,
   SceneLabel,
   SceneNode,
+  ScenePolygon,
+  ScenePolygonRing,
   ScenePolyline,
   SceneRect,
   SceneRule,

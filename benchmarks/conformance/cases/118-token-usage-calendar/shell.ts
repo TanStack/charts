@@ -30,11 +30,6 @@ export function withTokenActivityShell(
     chartSurface.style.minHeight = '0'
     chartSurface.style.width = '100%'
     style.textContent = `
-      .token-activity-shell .ts-chart__axes text {
-        font-size: 13px;
-        opacity: 0.62;
-      }
-
       .ts-chart-tooltip.token-activity-tooltip {
         max-width: calc(100% - 24px) !important;
         padding: 6px 9px !important;
@@ -53,7 +48,6 @@ export function withTokenActivityShell(
 
     resizeShell(container, shell, chartSurface, input)
     const chart = mountChart(chartSurface, chartInput(input))
-    alignFirstMonthLabel(chartSurface)
 
     const driver: ConformanceTestDriver = {
       resolveTarget(target) {
@@ -94,7 +88,6 @@ export function withTokenActivityShell(
         currentInput = nextInput
         resizeShell(container, shell, chartSurface, nextInput)
         chart.update(chartInput(nextInput))
-        alignFirstMonthLabel(chartSurface)
       },
       destroy() {
         chart.destroy()
@@ -110,25 +103,6 @@ function chartInput(input: ConformanceInput): ConformanceInput {
     ...input,
     height: calendarChartHeight(input.width),
   }
-}
-
-function alignFirstMonthLabel(chartSurface: HTMLElement) {
-  const chart = chartSurface.querySelector<SVGSVGElement>('svg.ts-chart')
-  if (!chart) return
-
-  const cells = chart.querySelectorAll<SVGRectElement>(
-    'rect[data-ts-key^="rect-0:"]',
-  )
-  const labels = chart.querySelectorAll<SVGTextElement>('.ts-chart__axes text')
-  const firstCell = cells.item(0)
-  const firstLabel = labels.item(0)
-  if (!firstCell || !firstLabel) return
-
-  const start = Number(firstCell.getAttribute('x'))
-  if (!Number.isFinite(start)) return
-
-  firstLabel.setAttribute('x', String(start))
-  firstLabel.setAttribute('text-anchor', 'start')
 }
 
 function resizeShell(

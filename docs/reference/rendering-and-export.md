@@ -204,6 +204,7 @@ Renderer-specific tradeoffs:
 - Canvas animation crossfades complete frames; SVG animation reconciles and
   interpolates keyed elements.
 - Curved, polar, and geographic `path` geometry requires browser `Path2D`.
+- Structured `SceneArea.polygons` render directly and do not require `Path2D`.
 - Scene-node `className` values do not create styleable Canvas descendants.
 - Gradients require geometry with measurable bounds.
 
@@ -477,6 +478,20 @@ the surface paints. The host uses that destination scene for subsequent
 pointer resolution while the renderer animates toward it. Returning `void`
 keeps the base scene as the interaction source and remains valid for renderers
 that do not resolve alternate scene geometry.
+
+Custom surfaces can reuse the environment-safe focus lifecycle exported from
+the root and `/universal` entries:
+
+```ts
+const focusedScene = resolveFocusScene(scene, focus).scene
+const under = focusedSceneNodes(focusedScene, focus, 'under')
+const over = focusedSceneNodes(focusedScene, focus, 'over')
+```
+
+`resolveFocusScene` materializes retargetable focus candidates under stable
+keys. `focusedSceneNodes` returns the ordinary nodes for the requested paint
+placement. This is the same path used by the SVG, Canvas, and React Native
+surfaces.
 
 The shared host continues to own runtime updates, responsive sizing, text
 measurement, focus resolution, keyboard behavior, native tooltips, selection,

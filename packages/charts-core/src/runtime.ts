@@ -29,12 +29,13 @@ export function createChartRuntime<
         height: size.height,
         theme: defaultChartTheme,
       })
+      const { chart: _chart, ...options } = definition
 
-      return createChartScene(spec, size, layout) as ChartScene<
-        TDatum,
-        TRenderXValue,
-        TRenderYValue
-      >
+      return createChartScene(
+        { ...spec, ...options },
+        size,
+        layout,
+      ) as ChartScene<TDatum, TRenderXValue, TRenderYValue>
     },
     destroy() {},
   }

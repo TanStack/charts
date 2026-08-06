@@ -1,33 +1,37 @@
 import { areaY, defineChart, deviation, lineY, window } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 import { selectBollingerData } from './selection'
 
-interface BollingerPoint extends AaplRow {
-  meanClose: number
-  lowerClose: number
-  upperClose: number
-}
-
 const windowSize = 20
 const deviationMultiplier = 2
 
-const definition = (input: ConformanceInput) => {
-  const rows = bollingerIntervals(selectBollingerData(aapl, input.revision))
+export const bollingerDefinition = (input: ConformanceInput) => {
+  const rows = window(selectBollingerData(aapl, input.revision), {
+    size: windowSize,
+    orderBy: 'Date',
+    anchor: 'end',
+    partial: false,
+    outputs: {
+      meanClose: { value: 'Close', reduce: 'mean' },
+      closeDeviation: { value: 'Close', reduce: deviation },
+    },
+  })
 
   return defineChart({
     marks: [
       areaY(rows, {
+        id: 'bollinger-band',
         x: 'Date',
-        y1: 'lowerClose',
-        y2: 'upperClose',
+        y1: (row) => row.meanClose - row.closeDeviation * deviationMultiplier,
+        y2: (row) => row.meanClose + row.closeDeviation * deviationMultiplier,
         fill: '#7c3aed',
         fillOpacity: 0.18,
       }),
       lineY(rows, {
+        id: 'bollinger-mean',
         x: 'Date',
         y: 'meanClose',
         stroke: '#7c3aed',
@@ -40,27 +44,6 @@ const definition = (input: ConformanceInput) => {
 }
 
 export const mount: ConformanceMount = tanstackMount(
-  definition,
+  bollingerDefinition,
   'Twenty-day Apple Bollinger band',
 )
-
-function bollingerIntervals(
-  rows: readonly AaplRow[],
-): readonly BollingerPoint[] {
-  return window(rows, {
-    size: windowSize,
-    orderBy: 'Date',
-    partial: false,
-    outputs: {
-      meanClose: { value: 'Close', reduce: 'mean' },
-      closeDeviation: { value: 'Close', reduce: deviation },
-    },
-  }).map(({ closeDeviation, ...row }) => {
-    const spread = closeDeviation * deviationMultiplier
-    return {
-      ...row,
-      lowerClose: row.meanClose - spread,
-      upperClose: row.meanClose + spread,
-    }
-  })
-}

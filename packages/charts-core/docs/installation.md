@@ -47,6 +47,41 @@ pnpm add @tanstack/octane-charts octane
 
 The adapters intentionally do not replace the core package. Definitions and marks still come from `@tanstack/charts`; an adapter only connects the shared runtime to its framework lifecycle.
 
+Optional capabilities use exact subpaths from the same package:
+
+```ts
+import { contour } from '@tanstack/charts/spatial/contour'
+import { focusGuideX } from '@tanstack/charts/focus/guide'
+import { brushX } from '@tanstack/charts/interaction/brush'
+import { continuousCursor } from '@tanstack/charts/interaction/cursor'
+import { handleX } from '@tanstack/charts/interaction/handle'
+import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { zoomX } from '@tanstack/charts/interaction/zoom'
+import { interactiveColorLegend } from '@tanstack/charts/legend'
+import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
+import { forceLayout } from '@tanstack/charts/network/force'
+import { sankeyDiagram } from '@tanstack/charts/network/sankey'
+import { treeLayout } from '@tanstack/charts/hierarchy/tree'
+import { treemap } from '@tanstack/charts/hierarchy/treemap'
+import { sunburst } from '@tanstack/charts/hierarchy/sunburst'
+```
+
+The algorithm-backed subpaths own their `d3-contour`, `d3-force`,
+`d3-sankey`, `d3-hierarchy`, `d3-brush`, `d3-zoom`, and `d3-selection`
+implementations. The continuous cursor uses resolved scale inversion and adds
+no D3 dependency. The scale handle uses the shared candidate-axis kernel and
+also adds no D3 dependency. Install a corresponding D3 module in the
+application only when application source imports it directly.
+
+Eager transforms also have exact subpaths when a library needs a narrow import:
+
+```ts
+import { fold } from '@tanstack/charts/transform/fold'
+```
+
+`fold` is implemented by TanStack Charts and does not require an application
+D3 dependency.
+
 ## Framework compatibility
 
 | Adapter package                 | Framework peers                                                                 |
@@ -106,11 +141,12 @@ the output of D3 transforms directly. Your application must declare every
 `d3-*` module that its source imports. Strict package managers do not expose
 transitive dependencies as an application import contract.
 
-The core package declares the `d3-array`, `d3-shape`, and `d3-geo`
-implementations owned by its numeric-bin and stack transforms, polar and D3
-curve features, and geo features. They are normal dependencies, not peer
-requirements, and bundlers remove unused algorithms and geometry from
-application bundles.
+The core package declares the `d3-array`, `d3-shape`, `d3-geo`, `d3-delaunay`,
+`d3-hexbin`, `d3-contour`, `d3-force`, `d3-sankey`, `d3-hierarchy`, `d3-brush`,
+and `d3-selection` implementations owned by its transforms, curve and geo
+features, and optional spatial, network, hierarchy, and brush entries. They are
+normal dependencies, not peer requirements, and bundlers remove unused
+algorithms and geometry from application bundles.
 
 A typical cartesian chart uses:
 

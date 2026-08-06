@@ -1,11 +1,8 @@
 import * as Plot from '@observablehq/plot'
 import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
-import {
-  fitGalleryProjection,
-  projectionGalleryData,
-  projectionPane,
-} from './projection'
+import { projectionGalleryData } from './projection'
 import type { ConformanceInput, ConformanceMount } from '../../types'
+import type { GeoProjection } from 'd3-geo'
 
 const svgNamespace = 'http://www.w3.org/2000/svg'
 const projectionColors = [
@@ -85,4 +82,41 @@ export const mount: ConformanceMount = (container, input) => {
       root.remove()
     },
   }
+}
+
+interface ProjectionPane {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+function projectionPane(bounds: ProjectionPane, index: number): ProjectionPane {
+  const leftWidth = Math.floor(bounds.width / 2)
+  const topHeight = Math.floor(bounds.height / 2)
+  const column = index % 2
+  const row = Math.floor(index / 2)
+  const width = column === 0 ? leftWidth : bounds.width - leftWidth
+  const height = row === 0 ? topHeight : bounds.height - topHeight
+
+  return {
+    x: bounds.x + (column === 0 ? 0 : leftWidth),
+    y: bounds.y + (row === 0 ? 0 : topHeight),
+    width,
+    height,
+  }
+}
+
+function fitGalleryProjection(
+  projection: GeoProjection,
+  { x, y, width, height }: ProjectionPane,
+  inset = 8,
+): GeoProjection {
+  return projection.fitExtent(
+    [
+      [x + inset, y + inset],
+      [x + width - inset, y + height - inset],
+    ],
+    worldSphere,
+  )
 }

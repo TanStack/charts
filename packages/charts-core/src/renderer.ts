@@ -6,6 +6,8 @@ import { nearestPoint } from './nearest'
 import type {
   ChartRendererHost,
   ChartRendererHostOptions,
+  ChartHostControlExtension,
+  ChartHostControlInstance,
   ChartSurface,
   ChartTooltipExtension,
   ChartTooltipExtensionInstance,
@@ -15,6 +17,7 @@ import type {
   ChartFocusSource,
   ChartFocusMode,
   ChartFocusStrategy,
+  ChartHostControl,
   ChartPoint,
   ChartRuntime,
   ChartScene,
@@ -64,6 +67,13 @@ export function mountChartRenderer<
     ChartTooltipExtensionInstance<TDatum, TXValue, TYValue> | undefined
   let suppressNextSurfaceFocus = false
   let spatialIndex: ChartSpatialIndex<TDatum, TXValue, TYValue> | undefined
+  const controlInstances = new Map<
+    string,
+    {
+      extension: ChartHostControlExtension
+      instance: ChartHostControlInstance
+    }
+  >()
   const previousPosition = container.style.position
   const view = container.ownerDocument.defaultView
   const computedPosition = view?.getComputedStyle(container).position
@@ -76,13 +86,14 @@ export function mountChartRenderer<
     if (destroyed) return
     if (refreshText && !options.measureText) domText.refresh()
     const previousFocusedPoint = focusedPoint
-    scene = createScene()
+    scene = createHostedScene(createScene())
     interactionScene = scene
     if (!surface) {
       surface = options.renderer.mount(container, scheduleRender)
     } else if (surface.renderer !== options.renderer) {
-      surface?.destroy()
       destroyTooltip()
+      destroyHostControls()
+      surface.destroy()
       container.replaceChildren()
       surface = options.renderer.mount(container, scheduleRender)
       hasRendered = false
@@ -98,6 +109,7 @@ export function mountChartRenderer<
         ? resolveAnimation(options.definition.animate, container, reason)
         : undefined,
     })
+    syncHostControls()
     hasRendered = true
     spatialIndex = options.definition.spatialIndex?.(scene.points, scene)
     const nextFocusedPoint = previousFocusedPoint
@@ -185,7 +197,7 @@ export function mountChartRenderer<
   ) => {
     const point = points[0] ?? null
     if (samePointIdentity(point, focusedPoint)) {
-      if (forcePaint) paintTooltip(point, points)
+      if (forcePaint) paintFocus(point, points)
       return
     }
     focusedPoint = point
@@ -241,6 +253,13 @@ export function mountChartRenderer<
     return resolvePointerFocus(position.x, position.y, maxDistance)
   }
   const handlePointerMove = (event: PointerEvent) => {
+    if (controlContains(event.target)) {
+      if (!pinnedKey) {
+        pointerPosition = null
+        updateFocus([])
+      }
+      return
+    }
     if (pinnedKey) return
     focusSource = 'pointer'
     updateFocus(
@@ -262,6 +281,7 @@ export function mountChartRenderer<
     }
   }
   const handleClick = (event: MouseEvent) => {
+    if (controlContains(event.target)) return
     if (tooltipInstance?.contains(event.target)) {
       return
     }
@@ -279,9 +299,11 @@ export function mountChartRenderer<
       }
     }
     updateFocus(points, pinChanged)
+    options.definition.selection?.change(point, 'pointer')
     options.onSelect?.(point)
   }
   const handleKeyDown = (event: KeyboardEvent) => {
+    if (controlContains(event.target)) return
     if (options.definition.keyboard === false || !scene.points.length) return
     if (event.key === 'Escape' && pinnedKey) {
       event.preventDefault()
@@ -295,6 +317,7 @@ export function mountChartRenderer<
         pinnedKey = pinnedKey ? null : focusedPoint.key
         paintFocus(focusedPoint, focusPointsForPoint(focusedPoint))
       }
+      options.definition.selection?.change(focusedPoint, 'keyboard')
       options.onSelect?.(focusedPoint)
       return
     }
@@ -313,6 +336,13 @@ export function mountChartRenderer<
     updateFocus(point ? focusPointsForPoint(point) : [])
   }
   const handleFocus = (event: FocusEvent) => {
+    if (controlContains(event.target)) {
+      if (!pinnedKey) {
+        pointerPosition = null
+        updateFocus([])
+      }
+      return
+    }
     if (event.target === surface?.element && suppressNextSurfaceFocus) {
       suppressNextSurfaceFocus = false
       return
@@ -395,6 +425,7 @@ export function mountChartRenderer<
         view?.cancelAnimationFrame?.(renderFrame)
       }
       destroyTooltip()
+      destroyHostControls()
       surface?.destroy()
       runtime.destroy()
       container.removeEventListener('pointermove', handlePointerMove)
@@ -425,6 +456,48 @@ export function mountChartRenderer<
       },
       { measureText: options.measureText ?? domText.measureText },
     )
+  }
+
+  function syncHostControls() {
+    const retained = new Set<string>()
+    for (const control of scene.controls ?? []) {
+      const extension = control.extension as ChartHostControlExtension
+      const identity = `${extension.id}:${control.key}`
+      retained.add(identity)
+      let current = controlInstances.get(identity)
+      if (current && current.extension !== extension) {
+        current.instance.destroy()
+        controlInstances.delete(identity)
+        current = undefined
+      }
+      if (!current) {
+        current = {
+          extension,
+          instance: extension.create({ container, surface: surface! }),
+        }
+        controlInstances.set(identity, current)
+      }
+      current.instance.update(control, scene)
+    }
+    for (const [identity, current] of controlInstances) {
+      if (retained.has(identity)) continue
+      current.instance.destroy()
+      controlInstances.delete(identity)
+    }
+  }
+
+  function destroyHostControls() {
+    for (const current of controlInstances.values()) {
+      current.instance.destroy()
+    }
+    controlInstances.clear()
+  }
+
+  function controlContains(target: EventTarget | null) {
+    for (const current of controlInstances.values()) {
+      if (current.instance.contains?.(target)) return true
+    }
+    return false
   }
 
   function resolvePointerFocus(
@@ -538,6 +611,25 @@ export function mountChartRenderer<
 }
 
 const emptyTooltipOptions: ChartTooltipOptions<any, any, any> = {}
+
+function createHostedScene<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+): ChartScene<TDatum, TXValue, TYValue> {
+  const fallbackKeys = new Set(
+    (scene.controls ?? []).flatMap((control: ChartHostControl) =>
+      control.fallbackNodeKey ? [control.fallbackNodeKey] : [],
+    ),
+  )
+  if (!fallbackKeys.size) return scene
+  return {
+    ...scene,
+    nodes: scene.nodes.filter((node) => !fallbackKeys.has(node.key)),
+  }
+}
 
 function resolveTooltipInput<
   TDatum,

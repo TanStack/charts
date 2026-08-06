@@ -1,14 +1,22 @@
 import { describe, expect, it, vi } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { bandX } from './band'
 import { barY } from './bar'
 import { dot } from './dot'
+import { whenFocused } from './focus-mark'
 import { lineY } from './line'
 import { motion } from './motion'
+import { polar, radialBarRadius } from './polar'
 import { mountChartRenderer } from './renderer'
 import { createChartScene, defineChart } from './scene'
 import { chartSceneSource } from './scene-source'
 import { renderChartSvg } from './svg'
-import type { ChartMotionContext, ChartPoint, ChartScene } from './types'
+import type {
+  ChartMotionContext,
+  ChartPoint,
+  ChartScene,
+  SceneNode,
+} from './types'
 
 const rows = [
   { id: 'a', category: 'A', value: 40 },
@@ -277,6 +285,382 @@ describe('SVG motion', () => {
     expect(guideRoles).toContain('tick')
     expect(guideRoles).toContain('tick-label')
     expect(guideRoles).toContain('axis-label')
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('interpolates numeric tick-label typography and snaps categorical anchors', () => {
+    const definition = (
+      fontSize: number,
+      fontWeight: number,
+      anchor: 'middle' | 'start',
+    ) =>
+      defineChart({
+        motion: {
+          transition: { type: 'tween', duration: 100, easing: 'linear' },
+        },
+        marks: [lineY([0, 1])],
+        margin: 0,
+        x: {
+          scale: scaleLinear().domain([0, 1]),
+          axis: {
+            ticks: { values: [0, 1] },
+            tickLabels: { fontSize, fontWeight, anchor },
+          },
+        },
+        y: { scale: scaleLinear().domain([0, 1]), axis: false },
+      })
+    const first = createChartScene(definition(10, 400, 'middle'), {
+      width: 300,
+      height: 200,
+    })
+    const next = createChartScene(definition(20, 700, 'start'), {
+      width: 300,
+      height: 200,
+    })
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Tick typography' })
+    const frames = installManagedFrames()
+    surface.render(next, { ariaLabel: 'Tick typography' })
+    const label = container.querySelector<SVGTextElement>(
+      '[data-ts-key^="x-tick-label:"]',
+    )
+
+    expect(label?.getAttribute('text-anchor')).toBe('start')
+    expect(label?.getAttribute('font-size')).toBe('10')
+    expect(label?.getAttribute('font-weight')).toBe('400')
+    frames.run(0)
+    frames.run(50)
+    expect(Number(label?.getAttribute('font-size'))).toBeCloseTo(15)
+    expect(Number(label?.getAttribute('font-weight'))).toBeCloseTo(550)
+    frames.run(100)
+    expect(label?.getAttribute('font-size')).toBe('20')
+    expect(label?.getAttribute('font-weight')).toBe('700')
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('reports radial-bar paths with the semantic bar motion role', () => {
+    const roles: string[] = []
+    const definition = (value: number) =>
+      defineChart({
+        motion(context) {
+          roles.push(context.role)
+          return { transition: { type: 'tween', duration: 100 } }
+        },
+        marks: [
+          polar({
+            angle: { scale: scaleBand<string>().domain(['A']) },
+            radius: { scale: scaleLinear().domain([0, 10]) },
+            marks: [
+              radialBarRadius([{ id: 'a', category: 'A', value }], {
+                id: 'radial-revenue',
+                angle: 'category',
+                radius: 'value',
+                key: 'id',
+              }),
+            ],
+          }),
+        ],
+        margin: 0,
+      })
+    const first = createChartScene(definition(4), {
+      width: 200,
+      height: 200,
+    })
+    const next = createChartScene(definition(8), {
+      width: 200,
+      height: 200,
+    })
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Radial bars' })
+    const frames = installManagedFrames()
+    surface.render(next, { ariaLabel: 'Radial bars' })
+
+    expect(
+      container.querySelector('g.ts-chart__bar.ts-chart__arc'),
+    ).not.toBeNull()
+    expect(roles).toContain('bar')
+    expect(roles).not.toContain('arc')
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('retargets focused mark geometry with stable identity and exact motion context', () => {
+    const guideRows = [
+      { id: 'guide-a', x: 0 },
+      { id: 'guide-b', x: 50 },
+      { id: 'guide-c', x: 100 },
+    ]
+    const valueRows = guideRows.map((row) => ({ ...row, y: 5 }))
+    const contexts: ChartMotionContext<(typeof guideRows)[number]>[] = []
+    const transition = {
+      type: 'spring' as const,
+      stiffness: 90,
+      damping: 10,
+      mass: 1,
+    }
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          whenFocused(
+            bandX(guideRows, {
+              id: 'active-guide',
+              x: 'x',
+              key: 'id',
+              motion(context) {
+                contexts.push(context)
+                return { transition }
+              },
+            }),
+            { match: 'x', retarget: true },
+          ),
+          dot(valueRows, {
+            id: 'values',
+            x: 'x',
+            y: 'y',
+            key: 'id',
+          }),
+        ],
+        x: { scale: scaleLinear().domain([0, 100]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 300, height: 180 },
+    )
+    const [first, , last] = scene.points
+    if (!first || !last) throw new Error('Expected value points')
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Retargeted guide' })
+    const frames = installManagedFrames()
+    const focus = (point: ChartPoint) =>
+      surface.paintFocus({
+        primary: point,
+        group: [point],
+        source: 'pointer',
+        pinned: false,
+      })
+    const guide = () =>
+      container.querySelector<SVGRectElement>('[data-ts-focus-retarget] rect')
+
+    focus(first)
+    const firstGuide = guide()
+    expect(firstGuide).not.toBeNull()
+    expect(firstGuide?.dataset.tsKey).toBe('focus:active-guide:selection:0')
+    const firstX = Number(firstGuide?.getAttribute('x'))
+    expect(firstX).toBeLessThan(0)
+    expect(
+      contexts.some(
+        (context) =>
+          context.phase === 'enter' &&
+          context.datum === guideRows[0] &&
+          context.point?.datum === guideRows[0] &&
+          context.markId === 'active-guide',
+      ),
+    ).toBe(true)
+
+    let time = 0
+    frames.run(time)
+    while (
+      container.querySelector('svg')?.dataset.tsMotionState !== 'finished' &&
+      time < 4_000
+    ) {
+      time += 16
+      frames.run(time)
+    }
+
+    focus(last)
+    expect(guide()).toBe(firstGuide)
+    expect(
+      contexts.some(
+        (context) =>
+          context.phase === 'update' &&
+          context.datum === guideRows[2] &&
+          context.point?.datum === guideRows[2],
+      ),
+    ).toBe(true)
+    frames.run(time)
+    time += 80
+    frames.run(time)
+    const interruptedX = Number(guide()?.getAttribute('x'))
+    expect(interruptedX).toBeGreaterThan(firstX)
+
+    focus(first)
+    expect(guide()).toBe(firstGuide)
+    expect(Number(guide()?.getAttribute('x'))).toBeCloseTo(interruptedX)
+    frames.run(time)
+    time += 16
+    frames.run(time)
+    expect(Number(guide()?.getAttribute('x'))).toBeGreaterThan(interruptedX)
+
+    surface.paintFocus(null)
+    expect(guide()).toBe(firstGuide)
+    expect(
+      container
+        .querySelector('[data-ts-focus-retarget]')
+        ?.getAttribute('visibility'),
+    ).toBe('visible')
+    expect(
+      contexts.some(
+        (context) =>
+          context.phase === 'exit' &&
+          context.datum === guideRows[0] &&
+          context.point?.datum === guideRows[0],
+      ),
+    ).toBe(true)
+    frames.run(time)
+    while (
+      container.querySelector('svg')?.dataset.tsMotionState !== 'finished' &&
+      time < 8_000
+    ) {
+      time += 16
+      frames.run(time)
+    }
+    expect(guide()).toBeNull()
+    expect(
+      container
+        .querySelector('[data-ts-focus-retarget]')
+        ?.getAttribute('visibility'),
+    ).toBe('hidden')
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('scopes focus-state springs to their owning marks', () => {
+    const guideRows = [
+      { id: 'guide-a', x: 0 },
+      { id: 'guide-b', x: 100 },
+    ]
+    const valueRows = guideRows.map((row) => ({ ...row, y: 5 }))
+    const focusSpring = {
+      type: 'spring' as const,
+      stiffness: 20,
+      damping: 5,
+      mass: 1,
+    }
+    const guideSpring = {
+      type: 'spring' as const,
+      stiffness: 1_000,
+      damping: 40,
+      mass: 1,
+    }
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          whenFocused(
+            bandX(guideRows, {
+              id: 'focus-guide',
+              x: 'x',
+              key: 'id',
+              motion: { transition: guideSpring },
+            }),
+            { match: 'x', retarget: true },
+          ),
+          dot(valueRows, {
+            id: 'source-points',
+            x: 'x',
+            y: 'y',
+            key: 'id',
+            r: 6,
+            states: [
+              {
+                when: { focus: 'unmatched' },
+                style: { r: 2 },
+                transition: focusSpring,
+              },
+              {
+                when: { focus: 'primary' },
+                style: { r: 12 },
+                transition: focusSpring,
+              },
+            ],
+          }),
+        ],
+        x: { scale: scaleLinear().domain([0, 100]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 300, height: 180 },
+    )
+    const [first, second] = scene.points
+    if (!first || !second) throw new Error('Expected source points')
+    const marks = scene.nodes.find((node) => node.key === 'marks')
+    if (marks?.kind !== 'group') throw new Error('Expected mark layer')
+    const focusLayer = marks.children[0]
+    if (focusLayer?.kind !== 'group' || !focusLayer.focus) {
+      throw new Error('Expected focus layer')
+    }
+    const targetGuide = flattenSceneNodes(
+      focusLayer.focus.candidates ?? [],
+    ).find(
+      (node): node is Extract<SceneNode, { kind: 'rect' }> =>
+        node.kind === 'rect' && node.interaction?.point?.datum === guideRows[1],
+    )
+    if (!targetGuide) throw new Error('Expected target guide geometry')
+
+    const container = document.createElement('div')
+    const surface = motion({ initial: false }).mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Scoped focus springs' })
+    const frames = installManagedFrames()
+    const focus = (point: ChartPoint) =>
+      surface.paintFocus({
+        primary: point,
+        group: [point],
+        source: 'pointer',
+        pinned: false,
+      })
+    const guide = () =>
+      container.querySelector<SVGRectElement>('[data-ts-focus-retarget] rect')
+    const circle = (point: ChartPoint) =>
+      container.querySelector<SVGCircleElement>(
+        `g.ts-chart__dot > circle[data-ts-key="${point.key}"]`,
+      )
+
+    let time = 0
+    focus(first)
+    frames.run(time)
+    while (
+      container.querySelector('svg')?.dataset.tsMotionState !== 'finished' &&
+      time < 10_000
+    ) {
+      time += 16
+      frames.run(time)
+    }
+    const firstGuideX = Number(guide()?.getAttribute('x'))
+    expect(Number(circle(first)?.getAttribute('r'))).toBeCloseTo(12)
+    expect(Number(circle(second)?.getAttribute('r'))).toBeCloseTo(2)
+
+    focus(second)
+    frames.run(time)
+    time += 80
+    frames.run(time)
+    const guideProgress =
+      (Number(guide()?.getAttribute('x')) - firstGuideX) /
+      (targetGuide.x - firstGuideX)
+    const stateProgress = (Number(circle(second)?.getAttribute('r')) - 2) / 10
+    expect(guideProgress).toBeGreaterThan(0.5)
+    expect(stateProgress).toBeGreaterThan(0)
+    expect(stateProgress).toBeLessThan(0.25)
+
+    while (
+      container.querySelector('svg')?.dataset.tsMotionState !== 'finished' &&
+      time < 20_000
+    ) {
+      time += 16
+      frames.run(time)
+    }
+    expect(Number(guide()?.getAttribute('x'))).toBeCloseTo(targetGuide.x)
+    expect(Number(circle(first)?.getAttribute('r'))).toBeCloseTo(2)
+    expect(Number(circle(second)?.getAttribute('r'))).toBeCloseTo(12)
+
     surface.destroy()
     frames.restore()
   })
@@ -848,6 +1232,14 @@ function installFrames() {
       cancel.mockRestore()
     },
   }
+}
+
+function flattenSceneNodes(nodes: readonly SceneNode[]): SceneNode[] {
+  return nodes.flatMap((node) =>
+    node.kind === 'group'
+      ? [node, ...flattenSceneNodes(node.children)]
+      : [node],
+  )
 }
 
 function installManagedFrames() {

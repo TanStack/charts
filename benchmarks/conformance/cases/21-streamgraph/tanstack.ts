@@ -1,21 +1,7 @@
-import { areaY, colorLegend, defineChart } from '@tanstack/charts'
-import { group, min } from 'd3-array'
+import { areaY, colorLegend, defineChart, stack } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import { stack, stackOffsetWiggle, stackOrderInsideOut } from 'd3-shape'
 import { industries } from '@charts-poc/demo-data/industries'
-import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput, ConformanceMount } from '../../types'
-
-interface WideTimePoint {
-  date: Date
-  byIndustry: ReadonlyMap<string, IndustriesRow>
-}
-
-interface StreamIndustryPoint extends IndustriesRow {
-  y1: number
-  y2: number
-}
 
 const colors = [
   '#4e79a7',
@@ -30,16 +16,15 @@ const colors = [
   '#bab0ab',
 ]
 
-const definition = (_input: ConformanceInput) => {
-  const rows = streamIntervals(industries)
-
-  return defineChart({
+export const streamgraphDefinition = () =>
+  defineChart({
     marks: [
-      areaY(rows, {
+      areaY(industries, {
         x: 'date',
-        y1: 'y1',
-        y2: 'y2',
+        y: 'unemployed',
+        z: 'industry',
         color: 'industry',
+        layout: stack({ offset: 'wiggle', order: 'inside-out' }),
         fillOpacity: 0.85,
       }),
     ],
@@ -54,10 +39,9 @@ const definition = (_input: ConformanceInput) => {
       legend: colorLegend({ label: 'Industry' }),
     },
   })
-}
 
-export const mount: ConformanceMount = tanstackMount(
-  definition,
+export const mount = tanstackMount(
+  streamgraphDefinition,
   'Unemployment by industry as a streamgraph',
   {
     format: ({ datum }) =>
@@ -68,41 +52,3 @@ export const mount: ConformanceMount = tanstackMount(
       })} · ${datum.unemployed.toLocaleString('en-US')} thousand unemployed`,
   },
 )
-
-function streamIntervals(
-  rows: readonly IndustriesRow[],
-): readonly StreamIndustryPoint[] {
-  const industryNames = Array.from(new Set(rows.map((row) => row.industry)))
-  const wideRows = Array.from(
-    group(rows, (row) => row.date.getTime()).values(),
-    toWideRow,
-  )
-  const layers = stack<WideTimePoint, string>()
-    .keys(industryNames)
-    .value((row, industry) => row.byIndustry.get(industry)?.unemployed ?? 0)
-    .order(stackOrderInsideOut)
-    .offset(stackOffsetWiggle)(wideRows)
-  const baseline = min(layers, (layer) => min(layer, (point) => point[0])) ?? 0
-
-  return layers.flatMap((series) =>
-    series.flatMap((point): readonly StreamIndustryPoint[] => {
-      const source = point.data.byIndustry.get(series.key)
-      return source
-        ? [
-            {
-              ...source,
-              y1: point[0] - baseline,
-              y2: point[1] - baseline,
-            },
-          ]
-        : []
-    }),
-  )
-}
-
-function toWideRow(rows: IndustriesRow[]): WideTimePoint {
-  return {
-    date: rows[0]?.date ?? new Date(0),
-    byIndustry: new Map(rows.map((row) => [row.industry, row] as const)),
-  }
-}

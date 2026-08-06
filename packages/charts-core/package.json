@@ -21,11 +21,29 @@
     "@types/d3-geo": "^3.1.0",
     "@types/d3-shape": "^3.1.8",
     "d3-array": "3.2.4",
+    "d3-brush": "3.0.0",
+    "d3-contour": "4.0.2",
+    "d3-delaunay": "6.0.4",
+    "d3-force": "3.0.0",
     "d3-geo": "3.1.1",
-    "d3-shape": "3.2.0"
+    "d3-hexbin": "0.2.2",
+    "d3-hierarchy": "3.1.2",
+    "d3-sankey": "0.12.3",
+    "d3-selection": "3.0.0",
+    "d3-shape": "3.2.0",
+    "d3-zoom": "3.0.0"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.2",
+    "@types/d3-brush": "^3.0.6",
+    "@types/d3-contour": "^3.0.6",
+    "@types/d3-delaunay": "^6.0.4",
+    "@types/d3-force": "^3.0.10",
+    "@types/d3-hexbin": "0.2.5",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-sankey": "^0.12.5",
+    "@types/d3-selection": "^3.0.11",
+    "@types/d3-zoom": "^3.0.8",
     "@types/d3-scale": "^4.0.9",
     "d3-scale": "4.0.2"
   },
@@ -38,30 +56,49 @@
     "./arrow": "./src/arrow.ts",
     "./bar": "./src/bar.ts",
     "./band": "./src/band.ts",
+    "./box": "./src/box.ts",
     "./canvas": "./src/canvas.ts",
     "./d3/area-x": "./src/d3-area-x.ts",
     "./d3/shape": "./src/d3-shape.ts",
+    "./difference": "./src/difference.ts",
     "./dom": "./src/dom.ts",
+    "./dodge": "./src/dodge.ts",
     "./dot": "./src/dot.ts",
     "./export": "./src/export.ts",
     "./facet": "./src/facet.ts",
     "./focus": "./src/focus.ts",
+    "./focus/guide": "./src/focus-guide.ts",
     "./focus/mark": "./src/focus-mark.ts",
     "./focus/disabled": "./src/focus-disabled.ts",
     "./frame": "./src/frame.ts",
     "./group": "./src/group.ts",
     "./geo": "./src/geo.ts",
     "./hexagon": "./src/hexagon.ts",
+    "./hierarchy/tree": "./src/hierarchy-tree.ts",
+    "./hierarchy/treemap": "./src/hierarchy-treemap.ts",
+    "./hierarchy/sunburst": "./src/hierarchy-sunburst.ts",
+    "./interaction/signal": "./src/interaction-signal.ts",
+    "./interaction/brush": "./src/interaction-brush.ts",
+    "./interaction/cursor": "./src/interaction-cursor.ts",
+    "./interaction/handle": "./src/interaction-handle.ts",
+    "./interaction/zoom": "./src/interaction-zoom.ts",
     "./legend": "./src/legend.ts",
     "./line": "./src/line.ts",
     "./link": "./src/link.ts",
     "./motion": "./src/motion.ts",
+    "./network/force": "./src/network-force.ts",
+    "./network/sankey": "./src/network-sankey.ts",
+    "./mark/composite": "./src/mark-composite.ts",
+    "./mark/decorative": "./src/mark-decorative.ts",
     "./mark/scale-values": "./src/mark-with-scale-values.ts",
     "./polar": "./src/polar.ts",
     "./universal": "./src/universal.ts",
     "./reconcile": "./src/reconcile.ts",
     "./rect": "./src/rect.ts",
+    "./regression": "./src/regression.ts",
+    "./selection": "./src/selection.ts",
     "./renderer": "./src/renderer.ts",
+    "./ridgeline": "./src/ridgeline.ts",
     "./rule": "./src/rule.ts",
     "./runtime": "./src/runtime.ts",
     "./scene": "./src/scene.ts",
@@ -70,24 +107,35 @@
     "./svg/resources": "./src/svg-resources.ts",
     "./stack": "./src/stack.ts",
     "./spring": "./src/spring.ts",
+    "./spatial/contour": "./src/spatial-contour.ts",
+    "./spatial/delaunay": "./src/spatial-delaunay.ts",
+    "./spatial/density": "./src/spatial-density.ts",
+    "./spatial/hexbin": "./src/spatial-hexbin.ts",
+    "./spatial/voronoi": "./src/spatial-voronoi.ts",
     "./transform": "./src/transform.ts",
     "./transform/bin": "./src/transform-bin.ts",
     "./transform/bin-time": "./src/transform-bin-time.ts",
     "./transform/bin-xy": "./src/transform-bin-xy.ts",
     "./transform/cumulative": "./src/transform-cumulative.ts",
+    "./transform/fold": "./src/transform-fold.ts",
     "./transform/group": "./src/transform-group.ts",
+    "./transform/mosaic": "./src/transform-mosaic.ts",
     "./transform/normalize": "./src/transform-normalize.ts",
     "./transform/rank": "./src/transform-rank.ts",
     "./transform/reduce": "./src/transform-reduce.ts",
     "./transform/select": "./src/transform-select.ts",
     "./transform/stack": "./src/transform-stack.ts",
+    "./transform/waterfall": "./src/transform-waterfall.ts",
     "./transform/window": "./src/transform-window.ts",
     "./text": "./src/text.ts",
     "./tick": "./src/tick.ts",
     "./tooltip": "./src/tooltip.ts",
     "./tooltip/portal": "./src/tooltip-portal.ts",
     "./types": "./src/universal-types.ts",
-    "./vector": "./src/vector.ts"
+    "./vector": "./src/vector.ts",
+    "./violin": "./src/violin.ts",
+    "./view": "./src/view.ts",
+    "./waffle": "./src/waffle.ts"
   },
   "publishConfig": {
     "access": "public",
@@ -125,6 +173,10 @@
         "types": "./dist/band.d.ts",
         "import": "./dist/band.js"
       },
+      "./box": {
+        "types": "./dist/box.d.ts",
+        "import": "./dist/box.js"
+      },
       "./canvas": {
         "types": "./dist/canvas.d.ts",
         "import": "./dist/canvas.js"
@@ -137,9 +189,17 @@
         "types": "./dist/d3-shape.d.ts",
         "import": "./dist/d3-shape.js"
       },
+      "./difference": {
+        "types": "./dist/difference.d.ts",
+        "import": "./dist/difference.js"
+      },
       "./dom": {
         "types": "./dist/dom.d.ts",
         "import": "./dist/dom.js"
+      },
+      "./dodge": {
+        "types": "./dist/dodge.d.ts",
+        "import": "./dist/dodge.js"
       },
       "./dot": {
         "types": "./dist/dot.d.ts",
@@ -156,6 +216,10 @@
       "./focus": {
         "types": "./dist/focus.d.ts",
         "import": "./dist/focus.js"
+      },
+      "./focus/guide": {
+        "types": "./dist/focus-guide.d.ts",
+        "import": "./dist/focus-guide.js"
       },
       "./focus/mark": {
         "types": "./dist/focus-mark.d.ts",
@@ -181,6 +245,38 @@
         "types": "./dist/hexagon.d.ts",
         "import": "./dist/hexagon.js"
       },
+      "./hierarchy/tree": {
+        "types": "./dist/hierarchy-tree.d.ts",
+        "import": "./dist/hierarchy-tree.js"
+      },
+      "./hierarchy/treemap": {
+        "types": "./dist/hierarchy-treemap.d.ts",
+        "import": "./dist/hierarchy-treemap.js"
+      },
+      "./hierarchy/sunburst": {
+        "types": "./dist/hierarchy-sunburst.d.ts",
+        "import": "./dist/hierarchy-sunburst.js"
+      },
+      "./interaction/signal": {
+        "types": "./dist/interaction-signal.d.ts",
+        "import": "./dist/interaction-signal.js"
+      },
+      "./interaction/brush": {
+        "types": "./dist/interaction-brush.d.ts",
+        "import": "./dist/interaction-brush.js"
+      },
+      "./interaction/cursor": {
+        "types": "./dist/interaction-cursor.d.ts",
+        "import": "./dist/interaction-cursor.js"
+      },
+      "./interaction/handle": {
+        "types": "./dist/interaction-handle.d.ts",
+        "import": "./dist/interaction-handle.js"
+      },
+      "./interaction/zoom": {
+        "types": "./dist/interaction-zoom.d.ts",
+        "import": "./dist/interaction-zoom.js"
+      },
       "./legend": {
         "types": "./dist/legend.d.ts",
         "import": "./dist/legend.js"
@@ -197,9 +293,45 @@
         "types": "./dist/motion.d.ts",
         "import": "./dist/motion.js"
       },
+      "./network/force": {
+        "types": "./dist/network-force.d.ts",
+        "import": "./dist/network-force.js"
+      },
+      "./network/sankey": {
+        "types": "./dist/network-sankey.d.ts",
+        "import": "./dist/network-sankey.js"
+      },
+      "./mark/composite": {
+        "types": "./dist/mark-composite.d.ts",
+        "import": "./dist/mark-composite.js"
+      },
+      "./mark/decorative": {
+        "types": "./dist/mark-decorative.d.ts",
+        "import": "./dist/mark-decorative.js"
+      },
       "./spring": {
         "types": "./dist/spring.d.ts",
         "import": "./dist/spring.js"
+      },
+      "./spatial/contour": {
+        "types": "./dist/spatial-contour.d.ts",
+        "import": "./dist/spatial-contour.js"
+      },
+      "./spatial/delaunay": {
+        "types": "./dist/spatial-delaunay.d.ts",
+        "import": "./dist/spatial-delaunay.js"
+      },
+      "./spatial/density": {
+        "types": "./dist/spatial-density.d.ts",
+        "import": "./dist/spatial-density.js"
+      },
+      "./spatial/hexbin": {
+        "types": "./dist/spatial-hexbin.d.ts",
+        "import": "./dist/spatial-hexbin.js"
+      },
+      "./spatial/voronoi": {
+        "types": "./dist/spatial-voronoi.d.ts",
+        "import": "./dist/spatial-voronoi.js"
       },
       "./mark/scale-values": {
         "types": "./dist/mark-with-scale-values.d.ts",
@@ -221,9 +353,21 @@
         "types": "./dist/rect.d.ts",
         "import": "./dist/rect.js"
       },
+      "./regression": {
+        "types": "./dist/regression.d.ts",
+        "import": "./dist/regression.js"
+      },
+      "./selection": {
+        "types": "./dist/selection.d.ts",
+        "import": "./dist/selection.js"
+      },
       "./renderer": {
         "types": "./dist/renderer.d.ts",
         "import": "./dist/renderer.js"
+      },
+      "./ridgeline": {
+        "types": "./dist/ridgeline.d.ts",
+        "import": "./dist/ridgeline.js"
       },
       "./rule": {
         "types": "./dist/rule.d.ts",
@@ -273,9 +417,17 @@
         "types": "./dist/transform-cumulative.d.ts",
         "import": "./dist/transform-cumulative.js"
       },
+      "./transform/fold": {
+        "types": "./dist/transform-fold.d.ts",
+        "import": "./dist/transform-fold.js"
+      },
       "./transform/group": {
         "types": "./dist/transform-group.d.ts",
         "import": "./dist/transform-group.js"
+      },
+      "./transform/mosaic": {
+        "types": "./dist/transform-mosaic.d.ts",
+        "import": "./dist/transform-mosaic.js"
       },
       "./transform/normalize": {
         "types": "./dist/transform-normalize.d.ts",
@@ -296,6 +448,10 @@
       "./transform/stack": {
         "types": "./dist/transform-stack.d.ts",
         "import": "./dist/transform-stack.js"
+      },
+      "./transform/waterfall": {
+        "types": "./dist/transform-waterfall.d.ts",
+        "import": "./dist/transform-waterfall.js"
       },
       "./transform/window": {
         "types": "./dist/transform-window.d.ts",
@@ -324,6 +480,18 @@
       "./vector": {
         "types": "./dist/vector.d.ts",
         "import": "./dist/vector.js"
+      },
+      "./violin": {
+        "types": "./dist/violin.d.ts",
+        "import": "./dist/violin.js"
+      },
+      "./view": {
+        "types": "./dist/view.d.ts",
+        "import": "./dist/view.js"
+      },
+      "./waffle": {
+        "types": "./dist/waffle.d.ts",
+        "import": "./dist/waffle.js"
       }
     }
   }

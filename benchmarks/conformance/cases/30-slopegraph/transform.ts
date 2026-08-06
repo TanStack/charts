@@ -1,4 +1,5 @@
 import type { CitywagesRow } from '@charts-poc/demo-data/citywages'
+import { wageFields, wageYear } from './selection'
 
 export interface SlopePoint {
   id: string
@@ -11,20 +12,13 @@ export interface SlopePoint {
 export function toSlopePoints(
   rows: readonly CitywagesRow[],
 ): readonly SlopePoint[] {
-  return rows.flatMap((row) => [
-    {
-      id: `${row.Metro}:1980`,
+  return rows.flatMap((row) =>
+    wageFields.map((field) => ({
+      id: `${row.Metro}:${field}`,
       Metro: row.Metro,
       nyt_display: row.nyt_display,
-      year: '1980' as const,
-      inequality: row.R90_10_1980,
-    },
-    {
-      id: `${row.Metro}:2015`,
-      Metro: row.Metro,
-      nyt_display: row.nyt_display,
-      year: '2015' as const,
-      inequality: row.R90_10_2015,
-    },
-  ])
+      year: wageYear(field),
+      inequality: row[field],
+    })),
+  )
 }

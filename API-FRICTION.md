@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-02
+Last updated: 2026-08-06
 
 ## Triage rule
 
@@ -34,206 +34,230 @@ Each entry records:
 
 ## Index
 
-| ID    | Finding                                                   | Owner           | Status     |
-| ----- | --------------------------------------------------------- | --------------- | ---------- |
-| F-001 | Configured D3 scales required a TanStack wrapper          | API             | resolved   |
-| F-002 | Responsive range ownership was unclear                    | Documentation   | resolved   |
-| F-003 | Scale requirements ignored mark dimensionality            | API             | resolved   |
-| F-004 | A radius channel silently imported continuous D3          | API             | resolved   |
-| F-005 | Curved area topology was implemented independently        | API             | resolved   |
-| F-006 | Explicit domain construction is repetitive                | API/Skill       | resolved   |
-| F-007 | Runtime and adapters bypassed strict scales               | API             | resolved   |
-| F-008 | D3 motion would currently burden every DOM host           | API             | resolved   |
-| F-009 | Color semantics were overloaded onto grouping and paint   | API             | resolved   |
-| F-010 | D3 curves require one TanStack grammar bridge             | API             | resolved   |
-| F-011 | Adapters performed dynamic preparation twice              | API             | resolved   |
-| F-012 | Render callbacks omit diagnostic metrics                  | API             | monitoring |
-| F-013 | Bar series identity also changed bar geometry             | API             | resolved   |
-| F-014 | Responsive nicing duplicates layout calculations          | API             | resolved   |
-| F-015 | Legacy scale helpers compete with the D3-first API        | API             | resolved   |
-| F-016 | Stats animated export still renders through Plot          | Integration/API | open       |
-| F-017 | React migration rebuilt a static definition               | Documentation   | resolved   |
-| F-018 | Stats derivations still invalidate dynamic input          | Application     | resolved   |
-| F-019 | Custom tooltip formatting leaked float artifacts          | Application     | resolved   |
-| F-020 | Axis focus could not select a single nearest point        | API             | resolved   |
-| F-021 | Native tooltips only accept plain text                    | API             | resolved   |
-| F-022 | Native tooltips could not be pinned                       | API             | resolved   |
-| F-023 | Fixed margins clip or waste guide space                   | API             | resolved   |
-| F-024 | Co-located benchmark cases defeated tree shaking          | Tooling         | resolved   |
-| F-025 | Bundle maintenance clobbered comparison reports           | Tooling         | resolved   |
-| F-026 | Facet summaries omitted the overall result                | Tooling         | resolved   |
-| F-027 | Pnpm validation attempted an interactive purge            | Tooling         | monitoring |
-| F-028 | Field channels accepted incompatible value types          | API             | resolved   |
-| F-029 | Dynamic hosts allowed omitted input                       | API             | resolved   |
-| F-030 | Heterogeneous dynamic marks erased datum types            | API             | resolved   |
-| F-031 | Positional scales were disconnected from channels         | API             | resolved   |
-| F-032 | Memoized adapter internals erase generic types            | API             | resolved   |
-| F-033 | Point coordinate values remain broad                      | API/Docs        | resolved   |
-| F-034 | Text color and offset required mark duplication           | API             | resolved   |
-| F-035 | Plot legends confused the primary SVG measurement         | Tooling         | resolved   |
-| F-036 | Presence-only visual checks overstated parity             | Tooling         | resolved   |
-| F-037 | Facets repeat shared axes in every panel                  | API             | resolved   |
-| F-038 | Plot and D3 threshold arrays mean different things        | Documentation   | resolved   |
-| F-039 | Dots could not express stroke opacity                     | API             | resolved   |
-| F-040 | Bundle ceilings allowed silent universal growth           | Tooling         | resolved   |
-| F-041 | Bounded segments and caps required custom marks           | API             | resolved   |
-| F-042 | Hoisted tooltip options lose callback context             | API/Docs        | monitoring |
-| F-043 | Plot and D3 wiggle stacks use different origins           | Documentation   | resolved   |
-| F-044 | Difference fills need crossing interpolation              | Documentation   | resolved   |
-| F-045 | Arrow endpoints could not express vector fields           | API             | resolved   |
-| F-046 | Mirrored labels required duplicate text marks             | API             | resolved   |
-| F-047 | Unique Delaunay edges are not obvious                     | Documentation   | monitoring |
-| F-048 | Responsive waffle packing lacks final bounds              | API             | monitoring |
-| F-049 | Plot and d3-hexbin use different units                    | Documentation   | resolved   |
-| F-050 | Plot proportion units depend on transform scope           | Documentation   | monitoring |
-| F-051 | Beeswarm layout needs responsive pixel preparation        | Documentation   | monitoring |
-| F-052 | D3 rank overloads lose callback context                   | Documentation   | monitoring |
-| F-053 | Data-bound annotations can escape auto margins            | API/Docs        | resolved   |
-| F-054 | D3 reducer output needs empty-safe narrowing              | Documentation   | monitoring |
-| F-055 | Horizontal areas required renderer internals              | API             | resolved   |
-| F-056 | Conformance tooling assumed Plot was the reference        | Tooling         | resolved   |
-| F-057 | D3 hierarchy coordinates use screen-space y               | Documentation   | monitoring |
-| F-058 | Radar checks ignored polar labels                         | Tooling         | resolved   |
-| F-059 | Vite cached a newly added package subpath                 | Tooling/API     | resolved   |
-| F-060 | Geometry similarity could not gate exact layouts          | Tooling         | resolved   |
-| F-061 | Catalog metadata validation was browser-bound             | Tooling         | resolved   |
-| F-062 | Interaction checks were selector-bound                    | Tooling         | resolved   |
-| F-063 | Resolved scales cannot map pixels back to values          | Documentation   | resolved   |
-| F-064 | Scroll-clipped labels failed containment                  | Tooling         | resolved   |
-| F-065 | Logical views required fake DOM roots                     | Tooling         | resolved   |
-| F-066 | Disabling native focus required a custom strategy         | API             | resolved   |
-| F-067 | Reference wrappers duplicated accessible roots            | Tooling         | resolved   |
-| F-068 | Source audit omitted shared implementation files          | Tooling         | resolved   |
-| F-069 | Strict containment exposed a clipped Plot guide           | Application     | resolved   |
-| F-070 | ECharts brush injected an undeclared toolbox              | Application     | resolved   |
-| F-071 | Formatter crossed into the Stats parity worktree          | Tooling         | resolved   |
-| F-072 | Wide brush ticks exceeded a locked right margin           | Application     | resolved   |
-| F-073 | Scenario state overstated interaction quality             | Tooling         | resolved   |
-| F-074 | Axis focus distance created sparse cursor gaps            | Documentation   | monitoring |
-| F-075 | Gesture recipes omitted controller semantics              | Documentation   | monitoring |
-| F-076 | Compact charts could not keep only one axis guide         | API             | resolved   |
-| F-077 | Transient host focus survived blur and cancellation       | API             | resolved   |
-| F-078 | Renderer completion signals were incomparable             | Tooling         | resolved   |
-| F-079 | Large-data timing hid representation cost                 | Tooling/Skill   | resolved   |
-| F-080 | Benchmark adapters drifted from shared geometry           | Tooling         | resolved   |
-| F-081 | Pointer probes confused tooltip presence with state       | Tooling         | resolved   |
-| F-082 | Dormant DOM-host work accumulated across dashboards       | API             | resolved   |
-| F-083 | One-shot pointer timing hid sustained cursor work         | Tooling         | resolved   |
-| F-084 | Gesture and viewport costs were conflated                 | Tooling         | resolved   |
-| F-085 | Grid style repeated on every rule                         | API             | resolved   |
-| F-086 | Finding status drifted from the index                     | Tooling         | resolved   |
-| F-087 | Custom focus strategies erased application types          | API             | resolved   |
-| F-088 | Update counts hid key and latest-wins correctness         | Tooling         | resolved   |
-| F-089 | Custom SVG renderers erased scene point types             | API             | resolved   |
-| F-090 | Source exports hid packed-package failures                | Tooling         | resolved   |
-| F-091 | Adapter coordinate generics broke explicit arity          | API             | resolved   |
-| F-092 | Packed documentation linked outside its tarball           | Docs/Tooling    | resolved   |
-| F-093 | Filtered stress runs overwrote canonical reports          | Tooling         | resolved   |
-| F-094 | Custom marks conflated point and scale values             | API/Docs        | resolved   |
-| F-095 | Long matrices treated one browser stall as deterministic  | Tooling         | resolved   |
-| F-096 | Export smoke tests drifted from package manifests         | Tooling         | resolved   |
-| F-097 | Lifecycle page errors passed the memory soak              | Tooling         | resolved   |
-| F-098 | Filtered conformance runs overwrote full reports          | Tooling         | resolved   |
-| F-099 | Invalid cells remained eligible for fastest rankings      | Tooling         | resolved   |
-| F-100 | Spatial-index updates skipped focused UI repaint          | API             | resolved   |
-| F-101 | Page errors could age into retryable timeouts             | Tooling         | resolved   |
-| F-102 | AI recipes hid direct D3 dependency ownership             | Docs/Tooling    | resolved   |
-| F-103 | Mixed valid and unknown filters narrowed benchmark scope  | Tooling         | resolved   |
-| F-104 | Catalog embeds lacked a production-safe contract          | Tooling         | resolved   |
-| F-105 | Competing documentation roots drifted                     | Docs/Tooling    | resolved   |
-| F-106 | Build-context theme looked fully resolved                 | Documentation   | resolved   |
-| F-107 | Authored SVG tab indexes were ignored                     | API             | resolved   |
-| F-108 | Interaction point color differed from rendered fill       | API             | resolved   |
-| F-109 | Grouped focus could duplicate the focused series          | API             | resolved   |
-| F-110 | Hexagon radius mapping accepted invalid source values     | API             | resolved   |
-| F-111 | Adapter aspect-ratio geometry diverged on first render    | API             | resolved   |
-| F-112 | Reference rules could not render dashed strokes           | API             | resolved   |
-| F-113 | Direct runtime factories cannot infer later definitions   | API/Docs        | monitoring |
-| F-114 | Gradient stop tokens disappeared from standalone exports  | API             | resolved   |
-| F-115 | Documentation checks did not validate code snippets       | Tooling         | resolved   |
-| F-116 | Build context was mistaken for resolved plot geometry     | Documentation   | resolved   |
-| F-117 | Non-Cartesian examples duplicated coordinate engines      | API             | resolved   |
-| F-118 | Serialized SVG discarded interaction semantics            | API/Application | monitoring |
-| F-119 | Catalog hosting crossed repository ownership              | Tooling         | resolved   |
-| F-120 | Key-only focus collapsed duplicate observations           | API             | resolved   |
-| F-121 | SVG callback was not a rendering-pipeline boundary        | API             | resolved   |
-| F-122 | Dense scene aggregation overflowed the call stack         | API             | resolved   |
-| F-123 | Framework adapters repeated runtime ownership             | API             | resolved   |
-| F-124 | Name-only inventories masked undocumented contracts       | Docs/Tooling    | resolved   |
-| F-125 | Adapter surface classes disappeared across lifecycles     | API             | resolved   |
-| F-126 | Executable comparisons had no public documentation        | Docs/Tooling    | resolved   |
-| F-127 | Catalog source hid data transformation dependencies       | Docs/Tooling    | resolved   |
-| F-128 | Chart-owned data reactivity duplicated application state  | API             | resolved   |
-| F-129 | Responsive relayout restarted chart animation             | API             | resolved   |
-| F-130 | Adapter options duplicated chart behavior                 | API             | resolved   |
-| F-131 | Stable identity repeated inferable key channels           | API             | resolved   |
-| F-132 | Factory unions disrupt D3's generic inference             | API             | monitoring |
-| F-133 | Clipped ancestors trapped native tooltips                 | API             | resolved   |
-| F-134 | Demo fixtures modeled charts instead of source data       | Docs/Tooling    | resolved   |
-| F-135 | Published release lacked a repository baseline marker     | Tooling/Release | resolved   |
-| F-136 | Comparison conflated workspace and published source       | Tooling/Docs    | resolved   |
-| F-137 | Latest docs installed an incompatible published API       | Docs/Release    | resolved   |
-| F-138 | Publisher pin predated explicit trust permissions         | Tooling/Release | resolved   |
-| F-139 | Top-level entries bypassed tarball validation             | Tooling/Release | resolved   |
-| F-140 | Behavior config could erase responsive datum inference    | API             | monitoring |
-| F-141 | Vitest followed pnpm workspace symlinks                   | Tooling         | resolved   |
-| F-142 | Package verification reinstalled during release builds    | Tooling/Release | resolved   |
-| F-143 | The `ci` script name collided with pnpm's clean install   | Tooling/Docs    | resolved   |
-| F-144 | Action pin checks accepted invalid commit lengths         | Tooling         | resolved   |
-| F-145 | Changesets included private workspaces in version plans   | Tooling/Release | resolved   |
-| F-146 | Octane hydration used a unit-test timeout                 | Tooling         | resolved   |
-| F-147 | Release automation duplicated validated work              | Tooling/Release | resolved   |
-| F-148 | Publisher failure returned before its workers settled     | Tooling/Release | resolved   |
-| F-149 | Release checks could stall or accept an unbound tag       | Tooling/Release | resolved   |
-| F-150 | Nx worktree caches followed the common Git directory      | Tooling         | monitoring |
-| F-151 | Artifact actions targeted deprecated Node 20              | Tooling         | resolved   |
-| F-152 | Version bumps invalidated workspace bundle evidence       | Tooling/Release | resolved   |
-| F-153 | Changesets left release-facing version claims behind      | Tooling/Release | resolved   |
-| F-154 | Root barrels crossed the browser host boundary            | API/Tooling     | resolved   |
-| F-155 | Optional tooltip code burdened every chart consumer       | API             | resolved   |
-| F-156 | Releases stranded manual Unreleased migration notes       | Tooling/Release | monitoring |
-| F-157 | Conformance monitoring blocked unrelated changes          | Tooling         | resolved   |
-| F-158 | Focus presentation was fixed to one renderer marker       | API             | resolved   |
-| F-159 | Axis scale and presentation controls were interleaved     | API             | resolved   |
-| F-160 | Responsive tick labels had no collision policy            | API             | resolved   |
-| F-161 | Tooltip anchors could not fix coordinates independently   | API             | resolved   |
-| F-162 | Focus styling required duplicate marks                    | API             | resolved   |
-| F-163 | Cross-row transforms lacked a public ownership boundary   | API             | resolved   |
-| F-164 | Sankey widths required a custom scene renderer            | API             | resolved   |
-| F-165 | Incidental D3 utilities leaked into core paths            | API/Tooling     | resolved   |
-| F-166 | Grouped tooltip order diverged from mark position         | API             | resolved   |
-| F-167 | D3 declarations require a browser image global            | Tooling         | monitoring |
-| F-168 | Native interaction copied DOM-renderer policy             | API             | monitoring |
-| F-169 | CSS theme defaults reach the native scene compiler        | API             | monitoring |
-| F-170 | Text measurement omits native typography                  | API             | monitoring |
-| F-171 | Packed declarations assume one platform global set        | Tooling         | resolved   |
-| F-172 | Metro skipped the fixture-owned Babel runtime             | Tooling         | resolved   |
-| F-173 | Metro retained the complete universal barrel              | API/Tooling     | monitoring |
-| F-174 | OIDC release cannot claim a new npm package name          | Tooling         | resolved   |
-| F-175 | Native SVG resource normalization collapsed authored IDs  | Application     | resolved   |
-| F-176 | Large marks were focused by distant anchor points         | API             | monitoring |
-| F-177 | Bubble overlap inherited incidental source order          | Application     | resolved   |
-| F-178 | Custom-template examples exposed DOM mutation plumbing    | Docs/Tooling    | resolved   |
-| F-179 | Animation clocks drift at fixed frame indices             | Tooling         | monitoring |
-| F-180 | Chart host hid animated presentation geometry             | Tooling/API     | resolved   |
-| F-181 | Tween tracks could not preserve interruption velocity     | API             | resolved   |
-| F-182 | Per-series transition overrides did not inherit defaults  | API             | resolved   |
-| F-183 | Motion policy was centralized in renderer setup           | API/Tooling     | resolved   |
-| F-184 | Cross-type marks lacked a shared morph topology           | API             | monitoring |
-| F-185 | Control reflow turned a morph into a resize               | Application     | resolved   |
-| F-186 | Focus states bypassed the optional physics runtime        | API             | resolved   |
-| F-187 | Crosshair motion required an application-owned frame loop | API             | monitoring |
-| F-188 | Paired interaction assertions assumed equal timing        | Tooling         | monitoring |
-| F-189 | The motion spike exposed duplicate configuration surfaces | API             | resolved   |
-| F-190 | Static conformance sampled active motion                  | Tooling         | resolved   |
-| F-191 | Axis tick styling and edge alignment required shell work  | API/Application | monitoring |
-| F-192 | SVG letterboxing shifted pointer hit testing              | API             | resolved   |
-| F-193 | Fixed catalog height hid compact responsive examples      | Tooling/App     | resolved   |
-| F-194 | Behavior runs omitted the interactive input               | Tooling         | resolved   |
-| F-195 | Release versions matched dependency substrings            | Tooling         | resolved   |
-| F-196 | Focus decorations suppressed the primary indicator        | API             | resolved   |
-| F-197 | Workspace validation omitted comparison provenance        | Tooling         | resolved   |
-| F-198 | Union-valued axes rejected configured D3 scales           | API             | resolved   |
+| ID    | Finding                                                        | Owner           | Status     |
+| ----- | -------------------------------------------------------------- | --------------- | ---------- |
+| F-001 | Configured D3 scales required a TanStack wrapper               | API             | resolved   |
+| F-002 | Responsive range ownership was unclear                         | Documentation   | resolved   |
+| F-003 | Scale requirements ignored mark dimensionality                 | API             | resolved   |
+| F-004 | A radius channel silently imported continuous D3               | API             | resolved   |
+| F-005 | Curved area topology was implemented independently             | API             | resolved   |
+| F-006 | Explicit domain construction is repetitive                     | API/Skill       | resolved   |
+| F-007 | Runtime and adapters bypassed strict scales                    | API             | resolved   |
+| F-008 | D3 motion would currently burden every DOM host                | API             | resolved   |
+| F-009 | Color semantics were overloaded onto grouping and paint        | API             | resolved   |
+| F-010 | D3 curves require one TanStack grammar bridge                  | API             | resolved   |
+| F-011 | Adapters performed dynamic preparation twice                   | API             | resolved   |
+| F-012 | Render callbacks omit diagnostic metrics                       | API             | resolved   |
+| F-013 | Bar series identity also changed bar geometry                  | API             | resolved   |
+| F-014 | Responsive nicing duplicates layout calculations               | API             | resolved   |
+| F-015 | Legacy scale helpers compete with the D3-first API             | API             | resolved   |
+| F-016 | Stats animated export still renders through Plot               | Integration/API | resolved   |
+| F-017 | React migration rebuilt a static definition                    | Documentation   | resolved   |
+| F-018 | Stats derivations still invalidate dynamic input               | Application     | resolved   |
+| F-019 | Custom tooltip formatting leaked float artifacts               | Application     | resolved   |
+| F-020 | Axis focus could not select a single nearest point             | API             | resolved   |
+| F-021 | Native tooltips only accept plain text                         | API             | resolved   |
+| F-022 | Native tooltips could not be pinned                            | API             | resolved   |
+| F-023 | Fixed margins clip or waste guide space                        | API             | resolved   |
+| F-024 | Co-located benchmark cases defeated tree shaking               | Tooling         | resolved   |
+| F-025 | Bundle maintenance clobbered comparison reports                | Tooling         | resolved   |
+| F-026 | Facet summaries omitted the overall result                     | Tooling         | resolved   |
+| F-027 | Pnpm validation attempted an interactive purge                 | Tooling         | resolved   |
+| F-028 | Field channels accepted incompatible value types               | API             | resolved   |
+| F-029 | Dynamic hosts allowed omitted input                            | API             | resolved   |
+| F-030 | Heterogeneous dynamic marks erased datum types                 | API             | resolved   |
+| F-031 | Positional scales were disconnected from channels              | API             | resolved   |
+| F-032 | Memoized adapter internals erase generic types                 | API             | resolved   |
+| F-033 | Point coordinate values remain broad                           | API/Docs        | resolved   |
+| F-034 | Text color and offset required mark duplication                | API             | resolved   |
+| F-035 | Plot legends confused the primary SVG measurement              | Tooling         | resolved   |
+| F-036 | Presence-only visual checks overstated parity                  | Tooling         | resolved   |
+| F-037 | Facets repeat shared axes in every panel                       | API             | resolved   |
+| F-038 | Plot and D3 threshold arrays mean different things             | Documentation   | resolved   |
+| F-039 | Dots could not express stroke opacity                          | API             | resolved   |
+| F-040 | Bundle ceilings allowed silent universal growth                | Tooling         | resolved   |
+| F-041 | Bounded segments and caps required custom marks                | API             | resolved   |
+| F-042 | Hoisted tooltip options lose callback context                  | API/Docs        | resolved   |
+| F-043 | Streamgraph layout escaped the native stack                    | API/Docs        | resolved   |
+| F-044 | Difference fills need crossing interpolation                   | API/Docs        | resolved   |
+| F-045 | Arrow endpoints could not express vector fields                | API             | resolved   |
+| F-046 | Mirrored labels required duplicate text marks                  | API             | resolved   |
+| F-047 | Unique Delaunay edges are not obvious                          | API/Docs        | resolved   |
+| F-048 | Responsive waffle packing lacks final bounds                   | API/Docs        | resolved   |
+| F-049 | Plot and d3-hexbin use different units                         | Documentation   | resolved   |
+| F-050 | Plot proportion units depend on transform scope                | Documentation   | resolved   |
+| F-051 | Beeswarm layout needs responsive pixel preparation             | API/Docs        | resolved   |
+| F-052 | Ranking preparation depended on D3 callback overloads          | API/Docs        | resolved   |
+| F-053 | Data-bound annotations can escape auto margins                 | API/Docs        | resolved   |
+| F-054 | D3 reducer output needs empty-safe narrowing                   | Documentation   | monitoring |
+| F-055 | Horizontal areas required renderer internals                   | API             | resolved   |
+| F-056 | Conformance tooling assumed Plot was the reference             | Tooling         | resolved   |
+| F-057 | D3 hierarchy coordinates use screen-space y                    | API/Docs        | resolved   |
+| F-058 | Radar checks ignored polar labels                              | Tooling         | resolved   |
+| F-059 | Vite cached a newly added package subpath                      | Tooling/API     | resolved   |
+| F-060 | Geometry similarity could not gate exact layouts               | Tooling         | resolved   |
+| F-061 | Catalog metadata validation was browser-bound                  | Tooling         | resolved   |
+| F-062 | Interaction checks were selector-bound                         | Tooling         | resolved   |
+| F-063 | Resolved scales cannot map pixels back to values               | API/Docs        | resolved   |
+| F-064 | Scroll-clipped labels failed containment                       | Tooling         | resolved   |
+| F-065 | Logical views required fake DOM roots                          | Tooling         | resolved   |
+| F-066 | Disabling native focus required a custom strategy              | API             | resolved   |
+| F-067 | Reference wrappers duplicated accessible roots                 | Tooling         | resolved   |
+| F-068 | Source audit omitted shared implementation files               | Tooling         | resolved   |
+| F-069 | Strict containment exposed a clipped Plot guide                | Application     | resolved   |
+| F-070 | ECharts brush injected an undeclared toolbox                   | Application     | resolved   |
+| F-071 | Formatter crossed into the Stats parity worktree               | Tooling         | resolved   |
+| F-072 | Wide brush ticks exceeded a locked right margin                | Application     | resolved   |
+| F-073 | Scenario state overstated interaction quality                  | Tooling         | resolved   |
+| F-074 | Axis focus distance created sparse cursor gaps                 | Documentation   | monitoring |
+| F-075 | Controlled interactions omitted behavior semantics             | API/Docs        | resolved   |
+| F-076 | Compact charts could not keep only one axis guide              | API             | resolved   |
+| F-077 | Transient host focus survived blur and cancellation            | API             | resolved   |
+| F-078 | Renderer completion signals were incomparable                  | Tooling         | resolved   |
+| F-079 | Large-data timing hid representation cost                      | Tooling/Skill   | resolved   |
+| F-080 | Benchmark adapters drifted from shared geometry                | Tooling         | resolved   |
+| F-081 | Pointer probes confused tooltip presence with state            | Tooling         | resolved   |
+| F-082 | Dormant DOM-host work accumulated across dashboards            | API             | resolved   |
+| F-083 | One-shot pointer timing hid sustained cursor work              | Tooling         | resolved   |
+| F-084 | Gesture and viewport costs were conflated                      | Tooling         | resolved   |
+| F-085 | Grid style repeated on every rule                              | API             | resolved   |
+| F-086 | Finding status drifted from the index                          | Tooling         | resolved   |
+| F-087 | Custom focus strategies erased application types               | API             | resolved   |
+| F-088 | Update counts hid key and latest-wins correctness              | Tooling         | resolved   |
+| F-089 | Custom SVG renderers erased scene point types                  | API             | resolved   |
+| F-090 | Source exports hid packed-package failures                     | Tooling         | resolved   |
+| F-091 | Adapter coordinate generics broke explicit arity               | API             | resolved   |
+| F-092 | Packed documentation linked outside its tarball                | Docs/Tooling    | resolved   |
+| F-093 | Filtered stress runs overwrote canonical reports               | Tooling         | resolved   |
+| F-094 | Custom marks conflated point and scale values                  | API/Docs        | resolved   |
+| F-095 | Long matrices treated one browser stall as deterministic       | Tooling         | resolved   |
+| F-096 | Export smoke tests drifted from package manifests              | Tooling         | resolved   |
+| F-097 | Lifecycle page errors passed the memory soak                   | Tooling         | resolved   |
+| F-098 | Filtered conformance runs overwrote full reports               | Tooling         | resolved   |
+| F-099 | Invalid cells remained eligible for fastest rankings           | Tooling         | resolved   |
+| F-100 | Spatial-index updates skipped focused UI repaint               | API             | resolved   |
+| F-101 | Page errors could age into retryable timeouts                  | Tooling         | resolved   |
+| F-102 | AI recipes hid direct D3 dependency ownership                  | Docs/Tooling    | resolved   |
+| F-103 | Mixed valid and unknown filters narrowed benchmark scope       | Tooling         | resolved   |
+| F-104 | Catalog embeds lacked a production-safe contract               | Tooling         | resolved   |
+| F-105 | Competing documentation roots drifted                          | Docs/Tooling    | resolved   |
+| F-106 | Build-context theme looked fully resolved                      | Documentation   | resolved   |
+| F-107 | Authored SVG tab indexes were ignored                          | API             | resolved   |
+| F-108 | Interaction point color differed from rendered fill            | API             | resolved   |
+| F-109 | Grouped focus could duplicate the focused series               | API             | resolved   |
+| F-110 | Hexagon radius mapping accepted invalid source values          | API             | resolved   |
+| F-111 | Adapter aspect-ratio geometry diverged on first render         | API             | resolved   |
+| F-112 | Reference rules could not render dashed strokes                | API             | resolved   |
+| F-113 | Direct runtime factories cannot infer later definitions        | API/Docs        | monitoring |
+| F-114 | Gradient stop tokens disappeared from standalone exports       | API             | resolved   |
+| F-115 | Documentation checks did not validate code snippets            | Tooling         | resolved   |
+| F-116 | Build context was mistaken for resolved plot geometry          | Documentation   | resolved   |
+| F-117 | Non-Cartesian examples duplicated coordinate engines           | API             | resolved   |
+| F-118 | Serialized SVG discarded interaction semantics                 | API/Application | monitoring |
+| F-119 | Catalog hosting crossed repository ownership                   | Tooling         | resolved   |
+| F-120 | Key-only focus collapsed duplicate observations                | API             | resolved   |
+| F-121 | SVG callback was not a rendering-pipeline boundary             | API             | resolved   |
+| F-122 | Dense scene aggregation overflowed the call stack              | API             | resolved   |
+| F-123 | Framework adapters repeated runtime ownership                  | API             | resolved   |
+| F-124 | Name-only inventories masked undocumented contracts            | Docs/Tooling    | resolved   |
+| F-125 | Adapter surface classes disappeared across lifecycles          | API             | resolved   |
+| F-126 | Executable comparisons had no public documentation             | Docs/Tooling    | resolved   |
+| F-127 | Catalog source hid data transformation dependencies            | Docs/Tooling    | resolved   |
+| F-128 | Chart-owned data reactivity duplicated application state       | API             | resolved   |
+| F-129 | Responsive relayout restarted chart animation                  | API             | resolved   |
+| F-130 | Adapter options duplicated chart behavior                      | API             | resolved   |
+| F-131 | Stable identity repeated inferable key channels                | API             | resolved   |
+| F-132 | Factory unions disrupt D3's generic inference                  | API             | monitoring |
+| F-133 | Clipped ancestors trapped native tooltips                      | API             | resolved   |
+| F-134 | Demo fixtures modeled charts instead of source data            | Docs/Tooling    | resolved   |
+| F-135 | Published release lacked a repository baseline marker          | Tooling/Release | resolved   |
+| F-136 | Comparison conflated workspace and published source            | Tooling/Docs    | resolved   |
+| F-137 | Latest docs installed an incompatible published API            | Docs/Release    | resolved   |
+| F-138 | Publisher pin predated explicit trust permissions              | Tooling/Release | resolved   |
+| F-139 | Top-level entries bypassed tarball validation                  | Tooling/Release | resolved   |
+| F-140 | Behavior config could erase responsive datum inference         | API             | monitoring |
+| F-141 | Vitest followed pnpm workspace symlinks                        | Tooling         | resolved   |
+| F-142 | Package verification reinstalled during release builds         | Tooling/Release | resolved   |
+| F-143 | The `ci` script name collided with pnpm's clean install        | Tooling/Docs    | resolved   |
+| F-144 | Action pin checks accepted invalid commit lengths              | Tooling         | resolved   |
+| F-145 | Changesets included private workspaces in version plans        | Tooling/Release | resolved   |
+| F-146 | Octane hydration used a unit-test timeout                      | Tooling         | resolved   |
+| F-147 | Release automation duplicated validated work                   | Tooling/Release | resolved   |
+| F-148 | Publisher failure returned before its workers settled          | Tooling/Release | resolved   |
+| F-149 | Release checks could stall or accept an unbound tag            | Tooling/Release | resolved   |
+| F-150 | Nx worktree caches followed the common Git directory           | Tooling         | monitoring |
+| F-151 | Artifact actions targeted deprecated Node 20                   | Tooling         | resolved   |
+| F-152 | Version bumps invalidated workspace bundle evidence            | Tooling/Release | resolved   |
+| F-153 | Changesets left release-facing version claims behind           | Tooling/Release | resolved   |
+| F-154 | Root barrels crossed the browser host boundary                 | API/Tooling     | resolved   |
+| F-155 | Optional tooltip code burdened every chart consumer            | API             | resolved   |
+| F-156 | Releases stranded manual Unreleased migration notes            | Tooling/Release | monitoring |
+| F-157 | Conformance monitoring blocked unrelated changes               | Tooling         | resolved   |
+| F-158 | Focus presentation was fixed to one renderer marker            | API             | resolved   |
+| F-159 | Axis scale and presentation controls were interleaved          | API             | resolved   |
+| F-160 | Responsive tick labels had no collision policy                 | API             | resolved   |
+| F-161 | Tooltip anchors could not fix coordinates independently        | API             | resolved   |
+| F-162 | Focus styling required duplicate marks                         | API             | resolved   |
+| F-163 | Cross-row transforms lacked a public ownership boundary        | API             | resolved   |
+| F-164 | Sankey widths required a custom scene renderer                 | API             | resolved   |
+| F-165 | Incidental D3 utilities leaked into core paths                 | API/Tooling     | resolved   |
+| F-166 | Grouped tooltip order diverged from mark position              | API             | resolved   |
+| F-167 | D3 declarations require a browser image global                 | Tooling         | monitoring |
+| F-168 | Native interaction copied DOM-renderer policy                  | API             | monitoring |
+| F-169 | CSS theme defaults reach the native scene compiler             | API             | monitoring |
+| F-170 | Text measurement omits native typography                       | API             | monitoring |
+| F-171 | Packed declarations assume one platform global set             | Tooling         | resolved   |
+| F-172 | Metro skipped the fixture-owned Babel runtime                  | Tooling         | resolved   |
+| F-173 | Metro retained the complete universal barrel                   | API/Tooling     | monitoring |
+| F-174 | OIDC release cannot claim a new npm package name               | Tooling         | resolved   |
+| F-175 | Native SVG resource normalization collapsed authored IDs       | Application     | resolved   |
+| F-176 | Large marks were focused by distant anchor points              | API             | monitoring |
+| F-177 | Bubble overlap inherited incidental source order               | Application     | resolved   |
+| F-178 | Custom-template examples exposed DOM mutation plumbing         | Docs/Tooling    | resolved   |
+| F-179 | Animation clocks drift at fixed frame indices                  | Tooling         | monitoring |
+| F-180 | Chart host hid animated presentation geometry                  | Tooling/API     | resolved   |
+| F-181 | Tween tracks could not preserve interruption velocity          | API             | resolved   |
+| F-182 | Per-series transition overrides did not inherit defaults       | API             | resolved   |
+| F-183 | Motion policy was centralized in renderer setup                | API/Tooling     | resolved   |
+| F-184 | Cross-type marks lacked a shared morph topology                | API             | monitoring |
+| F-185 | Control reflow turned a morph into a resize                    | Application     | resolved   |
+| F-186 | Focus states bypassed the optional physics runtime             | API             | resolved   |
+| F-187 | Crosshair motion required an application-owned frame loop      | API             | resolved   |
+| F-188 | Paired interaction assertions assumed equal timing             | Tooling         | monitoring |
+| F-189 | The motion spike exposed duplicate configuration surfaces      | API             | resolved   |
+| F-190 | Static conformance sampled active motion                       | Tooling         | resolved   |
+| F-191 | Axis tick styling and edge alignment required shell work       | API             | resolved   |
+| F-192 | SVG letterboxing shifted pointer hit testing                   | API             | resolved   |
+| F-193 | Fixed catalog height hid compact responsive examples           | Tooling/App     | resolved   |
+| F-194 | Behavior runs omitted the interactive input                    | Tooling         | resolved   |
+| F-195 | Release versions matched dependency substrings                 | Tooling         | resolved   |
+| F-196 | Focus decorations suppressed the primary indicator             | API             | resolved   |
+| F-197 | Workspace validation omitted comparison provenance             | Tooling         | resolved   |
+| F-198 | Union-valued axes rejected configured D3 scales                | API             | resolved   |
+| F-199 | Support metadata hid outside-definition authoring              | Docs/Tooling    | monitoring |
+| F-200 | Generic mark composition widened channel types                 | API             | resolved   |
+| F-201 | Visible Voronoi cells required custom D3 paths                 | API/Docs        | resolved   |
+| F-202 | Density contours hid responsive geometry behind a custom mark  | API/Docs        | resolved   |
+| F-203 | D3 contour v4 runtime APIs were absent from its declarations   | Tooling         | resolved   |
+| F-204 | Scalar-grid contours hid topology behind a custom mark         | API/Docs        | resolved   |
+| F-205 | Force layouts hid static settlement behind case utilities      | API/Docs        | resolved   |
+| F-206 | Tidy trees hid hierarchy construction in definition builders   | API/Docs        | resolved   |
+| F-207 | D3 arc contexts overstated the required Canvas surface         | Tooling/API     | resolved   |
+| F-208 | Sunburst definitions exposed partition and arc DTOs            | API/Docs        | resolved   |
+| F-209 | Facets typed child points as grouping rows                     | API             | resolved   |
+| F-210 | Definition-shape audit ignored complete definition factories   | Tooling         | resolved   |
+| F-211 | Responsive builders defer nested axis callback inference       | API             | monitoring |
+| F-212 | Transposed composites lacked a horizontal line mark            | API             | resolved   |
+| F-213 | Regression fits were hidden in case-owned endpoint preparation | API/Docs        | resolved   |
+| F-214 | Marginal views required reserved-domain manual plotting        | API/Docs        | resolved   |
+| F-215 | Ridgeline profiles lost categories to numeric surrogates       | API/Docs        | resolved   |
+| F-216 | Violin envelopes encoded categories as numeric endpoints       | API/Docs        | resolved   |
+| F-217 | Mosaic cells hid two normalization denominators                | API/Docs        | resolved   |
+| F-218 | Decorative scene fragments lost point ownership                | API             | resolved   |
+| F-219 | Responsive bar caps required guessed plot widths               | API/Docs        | resolved   |
+| F-220 | Framed labels estimate glyph bounds by character count         | API             | monitoring |
+| F-221 | Roadmap evidence existence allowed false verification          | Tooling         | resolved   |
+| F-222 | View composition coupled placement to grid semantics           | API/Docs        | resolved   |
 
 ## Findings
 
@@ -482,7 +506,7 @@ Each entry records:
 
 ### F-012 — Render callbacks omit diagnostic metrics
 
-- Status: monitoring
+- Status: resolved
 - Severity: low
 - Observed in: TanStack Charts sandbox migration
 - Friction: `onRender` exposes the scene and elements but not render count,
@@ -562,7 +586,7 @@ Each entry records:
 
 ### F-016 — Stats animated export still renders through Plot
 
-- Status: open
+- Status: resolved
 - Severity: high
 - Owner: Integration/API
 - Observed in: TanStack Stats default-renderer cutover
@@ -638,7 +662,7 @@ Each entry records:
 - Status: resolved
 - Severity: high
 - Owner: API
-- Observed in: TanStack Stats tooltip parity
+- Observed in: TanStack Stats tooltip parity and pinned nested-chart tooltip
 - Friction: `focusX` and `focusY` intentionally return one point per series at
   an axis value. Observable Plot's `pointerX` and `pointerY` select only the
   nearest point while prioritizing that axis, so stacked and segmented charts
@@ -696,14 +720,22 @@ Each entry records:
 - Friction: Observable Plot lets a pointer click freeze the current tip while
   the pointer leaves or moves elsewhere. The TanStack host always cleared focus
   on mouse leave, so inspecting a dense value required holding the pointer
-  still.
+  still. The nested-detail case also needed focus styling without painting an
+  empty transient custom-body shell before activation.
 - Decision: pointer clicks, Enter, and Space pin the focused point by default;
   another activation or Escape releases it, and `sticky: false` opts out.
   Pinned native content allows text selection. Activation still calls
   `onSelect`, and the option adds no separate interaction dependency.
+  `visibility: 'pinned'` keeps focus and inline state active while suppressing
+  the tooltip element and adapter body until activation.
 - Verification: the DOM-host regression covers pinning, ignored pointer
   movement while pinned, mouse leave, Escape, repinning, click release, text
-  selection, keyboard activation, and the `sticky: false` opt-out.
+  selection, keyboard activation, and the `sticky: false` opt-out. React body
+  lifecycle coverage proves pin-only focus creates no shell or body, pinning
+  mounts one non-modal dialog and nested body, and release hides and unmounts
+  both. Case 84 passes every click, keyboard dismissal, close-button,
+  revision-update, accessible-dialog, and nested-host scenario at 320px and
+  640px with 99.6% diagnostic geometry.
 
 ### F-023 — Fixed margins clip or waste guide space
 
@@ -830,7 +862,7 @@ Each entry records:
 
 ### F-027 — Pnpm validation attempted an interactive purge
 
-- Status: monitoring
+- Status: resolved
 - Severity: low
 - Owner: Tooling
 - Observed in: Octane showcase demo validation and the `0.0.1`
@@ -1107,13 +1139,14 @@ Each entry records:
   produced different level sets.
 - Decision: describe bins in terms of a complete boundary sequence. Plot
   receives the sequence directly; D3 receives the first and last values as its
-  domain and the interior values through `thresholds`. Density recipes keep
-  thresholds in Plot's documented units and divide by 100 only at the direct
-  `d3-contour` boundary.
+  domain and the interior values through `thresholds`. Plot density fixtures
+  retain Plot's readability units. The first-party `densityContour` mark uses
+  `d3-contour`'s weighted-observations-per-CSS-pixel-squared unit directly, so
+  the factor of 100 never leaks into the Charts API.
 - Verification: the paired case now renders seven bins on both sides, and the
-  migration recipe records the conversion without assertions or custom bin
-  math. The paired density case renders six matching responsive contours with
-  no unsafe type escape.
+  migration recipe records the conversion without custom bin math. The paired
+  density case passes six native thresholds to `densityContour`; only its Plot
+  fixture retains the corresponding values multiplied by 100.
 
 ### F-039 — Dots could not express stroke opacity
 
@@ -1179,15 +1212,29 @@ Each entry records:
 - Decision: add tree-shakeable `link` and `tickX`/`tickY` marks over the
   existing rule scene node. Link owns typed endpoint channels and interaction
   identity; ticks derive their default length from the perpendicular band
-  scale and accept an explicit pixel length.
-- Verification: the five catalog families pass initial and updated responsive
-  geometry, paint, containment, accessibility, and strict-type checks.
-  Isolated link and tick consumers are 13.25 and 13.64 kB gzip, while the
-  byte-locked universal consumers remain unchanged.
+  scale and accept an explicit pixel length. Repeated statistical composition
+  is a separate boundary: `boxX` and `boxY` accept raw observations, own the
+  complete Tukey summary, and render through native link, bar, tick, and dot
+  children. The private summary remains atomic; exposing quartile, fence,
+  whisker, and outlier substeps would let independently filtered calls drift.
+- Shared contracts: box marks reuse the same private sorted-quantile kernel as
+  the public quantile reducer, the established grouped-index and source-lineage
+  conventions, and the generic child-mark composition kernel. They add no
+  second interval primitive or renderer path.
+- Verification: the five bounded-segment catalog families pass initial and
+  updated responsive geometry, paint, containment, accessibility, and
+  strict-type checks. Focused box tests cover exact quartiles and Tukey
+  whiskers, singleton and zero-IQR groups, invalid values, horizontal
+  transposition, global outlier order, raw-row lineage, repeated
+  initialization, derived motion data, and one summary interaction target per
+  group. Case 15 now passes raw Morley observations directly to `boxY` with no
+  case-owned quantile or summary module. Isolated link, tick, and box consumers
+  protect their respective bundle boundaries while byte-locked ordinary
+  consumers remain unchanged.
 
 ### F-042 — Hoisted host tooltip options lose callback context
 
-- Status: monitoring
+- Status: resolved
 - Severity: low
 - Owner: Documentation/API
 - Observed in: pointer and grouped-tooltip catalog cases
@@ -1209,28 +1256,45 @@ Each entry records:
 - Follow-up: if raw-host examples repeat this pattern, add a small
   definition-correlated options helper rather than weakening callback types.
 
-### F-043 — Plot and D3 wiggle stacks have different vertical origins
+### F-043 — Streamgraph layout escaped the native stack
 
 - Status: resolved
 - Severity: medium
-- Owner: Documentation
+- Owner: API/Documentation
 - Observed in: streamgraph catalog case
-- Friction: Plot's wiggle stack zero-shifts the completed stream, while
-  `d3-shape`'s `stackOffsetWiggle` can leave a negative minimum baseline.
-  Passing D3 intervals through unchanged produced equivalent layers at a
-  different vertical origin.
-- Decision: the D3 recipe computes the minimum generated baseline and shifts
-  every lower and upper endpoint by its negation. Keep this explicit in the
-  streamgraph recipe rather than hiding it in the renderer.
-- Verification: the paired streamgraph passes the responsive initial and
-  updated visual matrix with cast-free prepared intervals and granular
-  `d3-shape` imports.
+- Friction: Charts exposed a tidy-row `wiggle` stack but not inside-out order or
+  a zero-origin policy. The case therefore pivoted 1,708 observations into
+  wide rows, invoked D3, rebased every interval, cloned source records, and fed
+  explicit endpoints to `areaY`.
+- Research: Observable Plot is not D3 wiggle with only a different origin. Its
+  sparse handling, equal-peak ordering, and baseline phase also differ. The
+  compatibility target is the existing TanStack/D3 recipe, not exact Plot
+  endpoints.
+- Decision: `StackOrder` includes `inside-out` and delegates its peak/tie and
+  balancing semantics to D3's exported `stackOrderInsideOut`. `wiggle` keeps
+  D3's dense zero-imputed layout, then shifts the completed matrix once so the
+  global minimum generated start is zero. The order stays explicit, and
+  wiggle is documented for nonnegative layers.
+- Shared boundary: `stackExtents` applies the same policy to `areaY`, `areaX`,
+  `barY`, `barX`, `stackRowsY`, and `stackRowsX`. Positions and series remain
+  first-seen. Missing cells influence layout as zero but emit no synthetic row
+  or interaction point. Reverse changes geometric order without changing
+  returned row order or lineage.
+- Verification: focused tests cover canonical and reversed endpoints, sparse
+  cells, duplicate rejection, first-seen positions, zero origin, thickness,
+  transposition, and source indexes. Case 21 consumes the untouched industry
+  rows and retains all 1,708 raw datum identities. Browser conformance passes
+  the six responsive/theme scenarios with clean types, 93.8% diagnostic
+  geometry, 54 authored lines, and 37.73 KiB gzip versus Plot's 53 lines and
+  91.65 KiB. The exact stack transform is 2.25 KiB gzip under its reviewed
+  2.30 KiB budget; intentional shared stack growth is recorded in the
+  representative-mark baseline.
 
 ### F-044 — Difference fills require explicit crossing interpolation
 
 - Status: resolved
 - Severity: medium
-- Owner: Documentation/Skills
+- Owner: API/Documentation
 - Observed in: actual-versus-forecast difference catalog case
 - Friction: mapping two series directly to `areaY` produces an overlapping
   ribbon, not semantic positive and negative lobes. Correct output requires
@@ -1239,17 +1303,31 @@ Each entry records:
   The first recipe assigned a segment to every sample; consecutive samples
   with the same sign therefore produced degenerate one-point paths instead of
   one contiguous lobe.
-- Current decision: keep this preparation outside the renderer and publish it
-  as a typed difference-chart recipe. Build maximal same-sign runs, duplicate
-  each interpolated or exact-zero boundary into its two adjacent runs, and
-  keep plot bounds and guide formats explicit in comparisons. A native
-  transform is not justified until repeated use shows that the authoring cost
-  outweighs its optional bundle cost.
-- Verification: the composed case passes responsive initial and updated
-  geometry, paint, containment, accessibility, guide-sequence, and strict-type
-  checks at 0.26× Plot gzip with no assertions or suppressions. Its four
-  expected sign runs are bounded by `maxCount: 4`, preventing the original
-  nine per-sample paths from passing again.
+- Decision: add granular `differenceY` and `differenceX` composite marks. They
+  accept the two boundary channels directly, classify semantic positive and
+  negative runs, and render decorative area children plus two interactive raw
+  boundary lines. Crossings resolve after final x/y scales: the mark intersects
+  the straight rendered segments in screen space, then inverts that point back
+  to semantic values. Both positional scales must support inversion. This keeps
+  fills exact under log, power, symlog, reversed, numeric, and temporal scales
+  instead of silently assuming affine data-space interpolation.
+- Shared boundary: Difference reuses the resolved-layout adoption seam first
+  established for Hexbin and Delaunay, then composes ordinary `areaX`/`areaY`,
+  `lineX`/`lineY`, composite namespacing, child interaction filtering, motion,
+  grouping, inferred keys, and transform lineage. Case 33 also replaces its
+  private rolling reducer with the same grouped `window(..., reduce: "mean")`
+  contract used by the moving-average and Bollinger cases. Regression shares
+  the composition and transposed marks, but none of Difference's crossing math.
+- Verification: focused tests cover exact linear, Date, and nonlinear log
+  crossings in both orientations; zero plateaus; invalid semantic and mapped
+  gaps; grouped series; stable lobe keys; fill suppression; raw line identity;
+  states; motion; lineage; and non-invertible scale errors. Case 33 contains no
+  lobe geometry or custom rolling reducer and passes responsive browser visual,
+  geometry, paint, containment, accessibility, and strict-type gates at 89.8%
+  diagnostic geometry, 68 authored lines, and 42.90 KiB gzip versus Plot's 89
+  lines and 92.70 KiB. The isolated Difference fixture is 23.03 KiB gzip, a
+  6.37 KiB increment under its 6.5 KiB cap. Exact package, universal types,
+  packed runtime, documentation, TypeScript, and bundle-isolation gates pass.
 
 ### F-045 — Arrow endpoints could not express pixel-space vector fields
 
@@ -1288,22 +1366,49 @@ Each entry records:
 
 ### F-047 — Unique Delaunay edges are not obvious from halfedges
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
-- Owner: Documentation/Skills
+- Owner: API/Documentation
 - Observed in: Delaunay spatial-network catalog case
 - Friction: `d3-delaunay` exposes triangles, halfedges, and hull indexes rather
   than a ready-made unique edge list. A correct link recipe must take one side
-  of each paired halfedge and separately close the convex hull.
-- Current decision: keep topology preparation in granular D3 and package the
-  tested extraction as a typed recipe. It does not belong in rendering core.
-- Verification: the recipe produces 26 unique links for 12 points before and
-  after update; the paired case passes with 97.5% diagnostic geometry
-  similarity and no assertions or suppressions.
+  of each paired halfedge and separately close the convex hull. The recipe also
+  triangulated raw weight and economy units. Final x/y pixel ranges are
+  anisotropic, so 8 of 63 revision-zero edges changed at a representative
+  resolved aspect ratio even though the total edge count stayed constant.
+- Decision: keep Delaunay optional, but expose a first-party granular
+  `delaunayLink` mark that accepts source points and runs against resolved
+  screen coordinates. The definition-coverage audit found repeated final-scale
+  or final-bounds work in Delaunay, density, hexbin, dodge, Voronoi, and waffle
+  cases; the case-owned extraction is implementation evidence, not the target
+  authoring API. The private kernel derives adjacency from triangle and hull
+  edges and emits each undirected pair once. This avoids both copied halfedge
+  arithmetic and `delaunay.neighbors()` ending before every real triangle edge
+  is visited on numerically damaged inputs. Source `z` partitions topology.
+  Each partition is ordered by stable point key before
+  triangulation because D3 otherwise resolves cocircular and coincident ties
+  from input order. Presentation and motion accessors receive a derived edge
+  datum with both endpoint rows, indexes, keys, and semantic coordinates
+  instead of inheriting an arbitrary endpoint's channels.
+- Verification: case 37 now passes source cars directly to `delaunayLink` and
+  contains no D3 import, prepared endpoint DTO, copied scale, or manual edge
+  loop. Every 320/640/960 light/dark variant renders 63 matching links and
+  clears the 63-link geometry floor. The matrix passes visual review at 97.5%
+  mean diagnostic geometry, produces clean strict types, and is 0.41× Plot
+  gzip. Focused tests cover
+  final-aspect-ratio diagonal changes, complete-pair domains, categorical and
+  temporal scales without inversion, `z` isolation, facets, stable endpoint
+  keys, input-reordered cocircular and coincident ties, interaction midpoints,
+  raw-row lineage, and empty, singleton, two-point, coincident, and collinear
+  inputs. The isolated mark adds 8.16 KiB gzip over native links within its
+  8.25 KiB ceiling, of which 7.14 KiB is the Delaunay kernel. Retained
+  input and packed-consumer gates keep Delaunay and its transitive geometry
+  dependencies out of root, universal, ordinary-link, representative, and
+  adapter bundles.
 
 ### F-048 — Responsive waffle packing cannot see final inner bounds
 
-- Status: monitoring
+- Status: resolved
 - Severity: low
 - Owner: API/Documentation
 - Observed in: responsive waffle unit-chart catalog case
@@ -1311,13 +1416,55 @@ Each entry records:
   the mark's final inner bounds are known only after guide and legend layout.
   The recipe can choose a near-square grid but cannot guarantee the same cell
   aspect ratio after a top legend consumes space.
-- Current decision: use outer dimensions for the lightweight recipe and
-  disable Cartesian guides through the existing `guides: false` option. Do not
-  expose layout internals until another use case needs a true bounds-aware
-  preparation hook.
-- Follow-up: evaluate a post-layout transform or layout-aware custom-mark
-  context if this repeats. The current 100-unit case passes responsive visual,
-  color, containment, accessibility, and strict-type gates at 0.13× Plot gzip.
+- Decision: the repetition threshold is met for deterministic mark-local work
+  after positional scales and final inner bounds resolve. `createMark` now
+  supports a pure `resolveLayout` result when a mark must contribute final color
+  channels, labels, derived states, or a child render closure before rendering,
+  without restoring a reactive `prepare` graph. Initial channels remain the
+  only positional-domain input. Voronoi establishes the narrower boundary: an
+  ordinary render callback already has final scales and bounds, so geometry
+  that contributes no derived channels or focus points does not need the
+  resolved-layout lifecycle.
+- Decomposition: `resolveLayout` is only the scheduling boundary. Projection is
+  one smaller internal contract: per-axis helpers retain the source row and
+  index while adding `xValue`/`x` or `yValue`/`y` without discarding mark-owned
+  fields. `materializeLayoutXYRows` adds a shared complete-pair rule for
+  two-axis consumers. Dodge uses one projector; hexbin, Delaunay, and Voronoi
+  compose both. Voronoi uses those helpers during ordinary rendering, proving
+  that projection is reusable independently of lifecycle scheduling. Delaunay
+  also establishes direct child-mark adoption with hexbin:
+  `adoptResolvedChildMark` forwards a non-layout child's channels, states,
+  labels, and render closure while rejecting nested layout resolution. Indexed
+  reduction remains separate. Algorithm kernels such as dodge, Delaunay,
+  hexagonal binning, and waffle packing stay pure and named. This is not a
+  universal layout callback or reactive transform graph.
+- The waffle proof adds one reusable one-to-many identity rule: child geometry
+  keys extend the source point key. State and motion lookup use the longest
+  matching point-key prefix, so many tiles retain one source datum, index, and
+  motion context without exposing derived tile rows.
+- Verification: lifecycle tests cover bounded repeated resolution,
+  final render-once behavior, derived color and legend inference, automatic
+  labels, immutable positional domains, derived state rows, and source
+  lineage. The first screen-space reducer proof, case 43 `hexbin`, passes the
+  standard 320/640/960 light/dark conformance matrix at 99.5% diagnostic
+  geometry similarity with clean strict types. The reviewed compiler baseline
+  adds at most 255 gzip bytes; `d3-hexbin` remains absent from the ordinary
+  hexagon bundle. Case 41 now accepts the 26 source frequency rows directly,
+  allocates cumulative units, and fits square cells from final bounds after its
+  legend resolves. Focus, state, motion, and geometry retain the original row
+  identity instead of exposing 100 derived cell rows. Its 320/640/960
+  light/dark conformance matrix passes with clean strict types; the isolated
+  mark adds 1.50 KiB gzip over the frame fixture and retains no D3 geometry.
+  Dodge projects one measured axis; hexbin, Delaunay, and Voronoi compose both
+  projectors. Delaunay adopts native `link` through the same narrow helper that
+  hexbin uses for `hexagon`. Voronoi directly emits structured areas during
+  ordinary rendering because it derives neither channels nor focus points. All
+  retain semantic and pixel anchors without copied scales in case code.
+- Follow-up: preserve a hexbin bin's direct pixel center during rendering
+  before migrating density, avoiding its remaining
+  invert-to-semantic-to-map round trip. Keep Delaunay relation and Voronoi cell
+  kernels private until another visible topology mark proves a broader
+  boundary.
 
 ### F-049 — Plot hexbin width and d3-hexbin radius use different units
 
@@ -1329,18 +1476,22 @@ Each entry records:
   centers, while `d3-hexbin.radius` is the center-to-vertex radius. Passing half
   the Plot width to D3 changed bin membership and the resulting color
   thresholds even though the rendered hexagon radius matched.
-- Decision: convert with `radius = binWidth / sqrt(3)`. Keep the rendered symbol
-  radius separate because it controls the visible gap rather than bin
-  membership. For responsive parity, run D3 over the chart's explicit pixel
-  range and invert bin centers back through the positional scales.
-- Verification: after the unit conversion, the paired case passes at 99.5%
-  diagnostic geometry similarity with matching threshold paints, clean strict
-  types, and 0.22× Plot gzip. The optional hexagon renderer is 13.26 kB gzip and
-  byte-locked ordinary chart bundles are unchanged.
+- Decision: `@tanstack/charts/spatial/hexbin` accepts Plot-style `binWidth` and
+  converts internally with `radius = binWidth / sqrt(3)`. Rendered hexagon
+  radius remains a separate option because it controls the visible gap. The
+  mark owns final-scale mapping and inversion, reducer outputs, stable keys,
+  interaction points, and raw-row lineage.
+- Verification: case 43 now passes raw observations directly to the mark and
+  contains no copied scale, manual extent, inverse mapping, or bin DTO. The
+  standard paired matrix passes at 99.5% diagnostic geometry similarity with
+  matching threshold paints and clean strict types. The isolated spatial
+  bundle is 17.66 kB gzip, 1.47 kB above the existing hexagon scene and below
+  its 2 kB incremental budget; retained-input gates keep `d3-hexbin` out of the
+  ordinary hexagon bundle.
 
 ### F-050 — Plot proportion units depend on transform scope
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
 - Owner: Documentation/Skills
 - Observed in: faceted distribution catalog case
@@ -1348,52 +1499,77 @@ Each entry records:
   and `proportion` normalizes globally while faceted histograms generally need
   `proportion-facet`. Treating either output as a fraction produces incorrect
   domains or comparisons between panels.
-- Current decision: recipes must name the normalization scope and express
-  domains in their own post-transform units. Plot's percentage axis consumes
-  values in `[0, 100]`; the direct D3 preparation keeps fractions in `[0, 1]`
-  and formats them with `Intl.NumberFormat`. In both cases, divide each facet
-  bin by that facet's own observation count.
-- Verification: focused preparation tests prove that every in-domain row is
-  counted once, each populated facet sums to one, the domain maximum remains
-  in the final bin, and absent groups produce no `NaN` values. The paired
-  faceted distributions pass responsive shared-guide, geometry, paint, and
-  strict-type checks with each panel independently normalized.
+- Decision: keep normalization scope explicit in the transform definition.
+  Case 51 groups `binX` by `species`, then calls `normalize` with the same
+  group, `basis: "sum"`, and `as: "proportion"`. The resulting fractions use
+  a `[0, 0.4]` domain and `Intl.NumberFormat` percent labels. No facet-specific
+  reducer or prepared bin DTO is needed; Plot's `[0, 100]` percentage units
+  remain a reference-library distinction rather than a Charts API contract.
+- Shared boundary: `binX` owns fixed thresholds, counts, and aggregate source
+  lineage. `normalize` owns the per-species denominator and retains each bin as
+  its immediate source. `facet` owns the responsive panels. Explicit species
+  order, fixed domains, percent wording, and empty-bin display policy remain
+  authored meaning.
+- Verification: focused revision tests cover 16 nonempty bins, explicit facet
+  order, fixed 500-gram boundaries, exact per-species counts and sums, and
+  nested identity from normalized rows through aggregate bins to raw penguins.
+  The TanStack source contains no D3 bin import or preparation helper. Quick
+  browser conformance passes responsive visual, geometry-count, paint,
+  containment, accessibility, and strict-type gates at 35.71 KiB gzip versus
+  Plot's 87.89 KiB, with 95 authored lines versus 56.
 
 ### F-051 — Beeswarm layout is responsive pixel-space preparation
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
-- Owner: Documentation/Skills
+- Owner: API/Documentation
 - Observed in: beeswarm distribution catalog case
 - Friction: collision radii are pixels, while the input measure and rendered
   coordinates are data-space values. A direct D3-force composition must map
   through explicit responsive scales, settle the simulation synchronously, and
   invert displaced positions back into chart values.
-- Current decision: keep this as an optional granular `d3-force` recipe. It is
-  substantially more code and slower than Plot's built-in dodge, but does not
-  justify weight in every chart. Pin the quantitative coordinate with the
-  simulation node's `fx`; a strong `forceX` still permits visible measure-axis
-  drift. For a mark radius `r` and Plot dodge padding `p`, use a collision
-  radius of `r + p / 2`. Revisit a tree-shakeable dodge helper only if agent
-  evaluations repeatedly fail the recipe.
-- Verification: the corrected cast-free case preserves all 25 quantitative x
-  positions exactly and passes at 99.8% diagnostic geometry similarity and
-  22.58 kB gzip. The prior force-X recipe created 69 distinct rendered x
-  positions from those same 25 values and reached only 99.0% similarity.
+- Decision: add tree-shakeable `dodgeX` / `dodgeY` dot layouts on the
+  resolved-layout lifecycle from F-048. A greedy dodge preserves the measured
+  coordinate exactly and avoids teaching authors a heavier force simulation.
+  Radius stays configured once on `dot`; the private layout resolver receives
+  those final pixel radii. The public descriptor exposes only orientation,
+  anchor, and padding, so this does not create a generic layout callback.
+- Verification: case 52 now passes source cars directly to `dot` with
+  `layout: dodgeY(...)`; it owns no force simulation, parallel scale, inverted
+  coordinate, or positioned DTO. The full 320/640/960 light/dark matrix passes
+  at 99.8% mean diagnostic geometry similarity with clean strict types and
+  0.35x Plot gzip. Focused tests protect exact measured positions, every
+  anchor, variable radius, categorical scales, invalid-row lineage, stable
+  identity, state and motion ownership, transposition, deterministic repeats,
+  and facet-local layout. The isolated feature adds 0.57 KiB gzip over an
+  ordinary dot chart and retains no `d3-force`. The reviewed shared dot
+  integration moves the representative gzip baseline by 650 bytes;
+  retained-input gates keep the dodge kernel out of ordinary dot and
+  representative bundles. Randomized review matched Observable Plot placement
+  across 1,000 seeds and found no collisions across another 200 stress seeds.
+  Dense identical inputs remain quadratic: 1,000 dots took roughly 0.5–0.8
+  seconds and 2,000 took roughly 2–6 seconds, so an indexed neighbor query is
+  the follow-up before documenting this layout for large swarms.
 
-### F-052 — Some d3-array overloads lose callback context
+### F-052 — Ranking preparation depended on D3 callback overloads
 
-- Status: monitoring
+- Status: resolved
 - Severity: low
-- Owner: Documentation/Skills
+- Owner: API/Documentation
 - Observed in: empirical CDF and bump-ranking catalog cases
-- Friction: the installed `d3-array` `rank` overloads do not always
-  contextually type an inline accessor over generic or readonly rows.
-- Current decision: project typed rows to a numeric array before ranking, or
-  annotate the accessor parameter. This is an explicit third-party function
-  boundary, not a consumer cast and not a Charts API problem.
-- Verification: both ranking cases compile strictly without assertions,
-  suppressions, umbrella D3 imports, or lost datum types in chart marks.
+- Friction: both definitions needed row-preserving ranks, but direct
+  `d3-array` ranking accepted only projected numeric arrays cleanly and did not
+  retain row lineage or grouped transform semantics.
+- Decision: use the public typed `rank` transform with explicit value, group,
+  order, and tie policies. It returns flat source-linked rows that remain valid
+  mark data, so definitions do not project values into a parallel array or
+  recover source identity afterward.
+- Verification: the empirical CDF and bump-ranking definitions import public
+  `rank`, compile strictly without assertions or D3 array imports, and retain
+  source rows in their line, dot, and text marks. Focused transform tests cover
+  grouped rank calculation and explicit ordering. Fresh quick browser
+  conformance passes visual and strict-type gates at 97.9% and 96.3%
+  diagnostic geometry similarity respectively.
 
 ### F-053 — Data-bound annotations can escape automatic guide margins
 
@@ -1431,17 +1607,30 @@ Each entry records:
 - Status: monitoring
 - Severity: low
 - Owner: Documentation/Skills
-- Observed in: percentile-ribbon and lag-autocorrelation catalog cases
+- Observed in: percentile-ribbon, lag-autocorrelation, and error-bars catalog
+  cases
 - Friction: `d3-array` quantiles correctly return `undefined` for empty groups,
   while chart channels require definite numeric summaries. Lag preparation is
   also clearer and less error-prone with `pairs` than with manual indexing.
-- Current decision: recipes must preserve D3's result types, drop incomplete
-  summaries with an explicit guard, and use the narrowest D3 iterator for
-  adjacency transforms. Do not cast reducer output or add transform semantics
-  to Charts core.
-- Verification: both cases compile strictly from raw typed rows with granular
-  `d3-array` imports, no assertions or suppressions, and pass responsive
-  initial/update visual checks.
+- Decision: the public eager `groupBy` plus granular `quantile`
+  reducer now owns grouped percentile output and source lineage. Use it beside
+  `areaY` and `lineY` for the quantile ribbon. Keep adjacent lag preparation
+  as an ordinary typed function and preserve explicit empty-result guards;
+  this does not require a reactive transform graph. `deviation` is sample
+  deviation and returns `NaN` for fewer than two finite values; an error-bar
+  definition that wants a zero-width singleton interval keeps that fallback
+  explicit in its authored reducer.
+- Verification: Case 14 filters to contributing observations, groups once
+  through public mean/deviation outputs, retains typed lineage, and tests its
+  singleton policy without a summary DTO. Case 61 now groups the 1,708 raw
+  industry observations once through public p10, p50, and p90 reducers and
+  feeds the same 122 aggregate rows directly to ordinary area and line marks.
+  Focused tests prove definite numeric output, empty-input and nonfinite-group
+  behavior, quantile order, exact source indexes and object identity, D3
+  interpolation parity, stable date keys, and source closure. Existing exact
+  transform bundle gates pass. Browser conformance passes at 96.9% diagnostic
+  geometry with clean visual and type gates; TanStack uses 50 authored lines
+  and 38.34 KiB gzip versus Plot's 47 lines and 92.64 KiB.
 
 ### F-055 — Horizontal areas required renderer internals
 
@@ -1457,14 +1646,11 @@ Each entry records:
   key, and visual channels. Keep its implementation and `d3AreaXCurve` bridge
   in separate subpaths so straight areas and all existing `areaY`/`d3Curve`
   consumers retain their dependency boundaries.
-- Verification: the violin case now uses the inferred public mark without
-  casts or suppressions. Focused tests cover exact D3 horizontal area topology,
-  interaction values, invalid-row segmentation, channel rejection, and package
-  exports. The smooth static-SVG consumer is 15.31 kB gzip. Every locked
-  minified bundle and all existing Stats/curve bundles are byte-identical. The
-  root exports change only unrelated gzip compression: the line scene is one
-  byte smaller, line plus SVG is one byte larger, and the direct D3 linear
-  scene is three bytes smaller.
+- Verification: focused `areaX` tests continue to cover exact D3 horizontal
+  area topology, interaction values, invalid-row segmentation, channel
+  rejection, package exports, and the isolated smooth static-SVG boundary. The
+  violin case later moved to its narrower semantic mark; it is no longer the
+  active verification for this general interval-area API.
 
 ### F-056 — Conformance tooling assumed Plot was the reference
 
@@ -1496,20 +1682,47 @@ Each entry records:
 
 ### F-057 — D3 hierarchy coordinates use screen-space y
 
-- Status: monitoring
-- Severity: low
-- Owner: Documentation/Skills
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
 - Observed in: Recharts bundle-size treemap comparison
 - Friction: `d3-hierarchy` treemap output uses screen coordinates where `y`
   increases downward. Feeding normalized `y0`/`y1` values into a normal
-  Cartesian scale silently flips the layout vertically.
-- Current decision: treemap recipes should use a descending y domain when
-  routing normalized hierarchy coordinates through `rect` and `text` marks.
-  Keep hierarchy layout in granular D3 preparation rather than teaching the
-  renderer a second coordinate convention.
-- Verification: the paired treemap uses `scaleLinear().domain([100, 0])`,
-  keeps labels contained at 320 and 640 px, and passes initial/update geometry,
-  paint, accessibility, strict-type, and isolated-bundle gates.
+  Cartesian scale silently flips the layout vertically. The case also ran D3
+  against a fixed 100-by-100 square, sorted the hierarchy outside the
+  definition, and stretched those rectangles through scales. Squarified row
+  topology depends on the final aspect ratio, and D3 padding is measured in
+  pixels, so the normalized preparation retained only 86.9% baseline geometry
+  similarity and hid responsive work behind apparently simple native marks.
+- Decision: expose `treemap` from the exact optional
+  `@tanstack/charts/hierarchy/treemap` entry. It accepts semantic path rows or
+  explicit `nodeId` / `parentId` channels, materializes nonnegative values once,
+  and reuses the private flat-hierarchy builder and node-context materializer
+  established by `treeLayout`. Authored child order is the default; optional
+  immutable sort contexts and the `squarify`, `binary`, `dice`, `slice`, and
+  `slice-dice` methods remain Charts-owned. Each resolved-layout pass tiles a
+  private hierarchy copy against the final plot width and height, retains D3's
+  downward-increasing screen coordinates internally, and emits interactive
+  leaf rectangles without x/y scales or coordinate DTO preparation. Stable
+  `TreemapNode` values carry hierarchy metadata, aggregate value, ancestor IDs,
+  direct source lineage, and source indexes into color, paint, state, label,
+  tooltip, and motion callbacks. Optional centered labels use the chart's text
+  measurer and render only when measured bounds plus label padding fit the
+  painted cell. Stateful resquarification remains outside the public method
+  list so repeated layout passes are deterministic.
+- Verification: case 74 now passes selected Flare rows directly to the exact
+  mark and contains no case-owned hierarchy conversion, cell DTO, D3 layout,
+  scale inversion, or label-width heuristic. Focused core, export, case, and
+  catalog suites pass 41 tests, and strict workspace TypeScript passes. The
+  exact source entry is 6.06 KiB gzip versus 2.74 KiB for the equivalent D3
+  stratify-and-treemap kernel, a 3.32 KiB wrapper increment within its 3.5 KiB
+  ceiling. Packed consumers pass with a 6.16 KiB exact treemap mark. The
+  standard responsive browser matrix passes native support, clean types, and
+  visual review at 99.4% diagnostic geometry similarity; inspected output
+  matches the reference topology, colors, and labels. The Charts definition is
+  45 lines versus 129 for Recharts, its measured consumer is 25.49 kB versus
+  138.09 kB gzip, and its median mount and update times are 0.37x and 0.50x the
+  reference.
 
 ### F-058 — Radar checks ignored polar labels
 
@@ -1571,10 +1784,12 @@ Each entry records:
   `minimumGeometrySimilarity` from zero to one. The floor applies separately
   to every viewport, theme, initial render, and revised render; cases without a
   floor retain diagnostic-only behavior.
-- Verification: the corrected beeswarm clears its 99.5% floor across the full
-  standard matrix with a minimum score of 99.71%; its prior 99.0% result would
-  fail. Radar clears a 99.99% floor with a minimum score above 99.999%. Both
-  remain clean under strict type auditing, and the change is test tooling only.
+- Verification: the corrected force recipe cleared its 99.5% floor with a
+  minimum score of 99.71%. The native Plot-compatible dodge layout changes the
+  deterministic cross-axis packing and clears its reconciled 99.4% floor with
+  a 99.489% minimum across the full matrix; the prior visibly drifting 99.0%
+  recipe still fails. Radar clears a 99.99% floor with a minimum score above
+  99.999%. All remain clean under strict type auditing.
 
 ### F-061 — Catalog metadata validation was browser-bound
 
@@ -1627,23 +1842,50 @@ Each entry records:
 
 - Status: resolved
 - Severity: medium
-- Owner: Documentation
-- Observed in: focus-plus-context, continuous brush, and wheel zoom/pan cases
+- Owner: API/Documentation
+- Observed in: focus-plus-context, continuous brush, wheel zoom/pan, and
+  scale-handle cases
 - Friction: `ChartScene.scales.x` exposes semantic-to-pixel `map`, but not an
   inverse operation. A snapped overview click can scan known datum positions,
   but continuous brush, pan, zoom, and free data-space selection need a
-  correct pixel-to-value mapping for the configured scale.
-- Decision: inversion stays with the configured D3 scale that the application
-  already supplies. Copy that scale, apply the resolved `scene.chart` pixel
-  range, and call its native `invert`; reverse the range for y. Then apply an
-  explicit semantic precision policy such as `utcDay.round`. Do not add a
-  second scale algorithm or universal inversion surface.
-- Verification: the focus-plus-context case remains snapped to known dates.
-  The continuous brush passes forward and reverse real-pointer drags, and the
-  wheel viewport passes pointer-anchored zoom, horizontal pan, clamping, and
-  full-domain restoration. Both implementations are cast-free, use the same
-  source D3 scale semantics, pass responsive behavior and visual checks, and
-  leave every locked universal bundle unchanged.
+  correct pixel-to-value mapping for the configured scale. Before the
+  first-party interaction migrations, cases 83, 88, 89, 90, 91, and 92
+  repeated the same copy-range-invert setup.
+- Current decision: do not implement a universal inverse or a second scale
+  algorithm. `ResolvedScale` now preserves an optional native `invert` from
+  the responsive configured-scale copy. First-party interactions can consume
+  that capability and apply explicit semantic snapping such as `utcDay.round`
+  without pretending every scale is invertible. The shared interaction-axis
+  kernel accepts explicit ordered candidates when the interaction should map
+  pixels to the nearest observed value; this is distinct from a general scale
+  inverse. Its internal continuous `invert` remains unclamped so zoom can pan a
+  whole window before applying semantic extent constraints; `valueAt` retains
+  clipped pointer behavior. Inversion remains for genuine continuous
+  pixel-to-value behavior.
+  Resolved geometry should retain both semantic and pixel anchors so child
+  rendering does not map to pixels, invert to values, and map again.
+- Existing verification: numeric and UTC scales round-trip through `map` and
+  `invert`, reversed y ranges invert correctly, band scales expose no false
+  inverse, and the authored scale remains immutable. Case 43 uses the public
+  inverse to return screen-space bin centers to semantic coordinates. The
+  packed and retained-input gates pass with no optional spatial algorithm in
+  the ordinary core consumer. Exact-subpath `continuousCursor` now composes
+  two interaction axes over the final x/y ranges. Case 88 contains no copied
+  scale or authored `.invert()` call and covers reversed axes, numeric and
+  temporal inversion, clamping, controlled acceptance, and static/hosted
+  guide paint. Case 89 supplies its 12 observed UTC dates to the same axis
+  kernel; `brushX` nearest-snaps forward and reverse selections without a
+  copied scale or case-authored inverse. Case 90 now uses the same resolved
+  continuous boundary through `zoomX`; the case contains no copied scale,
+  authored inverse, or transform-to-domain conversion. Case 91 supplies its
+  ordered observed dates to `handleX`; the candidate axis maps and snaps the
+  playhead without a copied scale or scale inverse. Case 92 supplies its valid
+  event-end dates to the same handle and maps its track through the final x and
+  semantic y scales without manual scale-to-DOM conversion.
+- Decision: no scale-level nearest API is needed. Continuous interactions use
+  the configured scale's native inverse; finite interactions use the shared
+  explicit-candidate axis. Reopen only if a real interaction cannot fit either
+  boundary.
 
 ### F-064 — Scroll-clipped labels failed containment
 
@@ -1659,8 +1901,9 @@ Each entry records:
   clipping separately. Only a case-owned
   `data-conformance-scroll-viewport` may omit a scrolling tick whose anchor is
   outside that viewport; a partially clipped label whose anchor remains inside
-  still fails. The timeline uses an explicit three-tick UTC guide so its
-  visible month labels do not straddle the viewport edge.
+  still fails. The TanStack timeline uses native responsive UTC ticks; the
+  ECharts reference uses a weekly ruler. In both, the declared scroll viewport
+  owns clipping without weakening the global containment check.
 - Verification: the strict check first caught TanStack's partially clipped
   `Jan 19` tick at 320 px. After the explicit tick policy, both renderers pass
   initial and revised containment with zero overflow or clipping at 320 and
@@ -1669,7 +1912,7 @@ Each entry records:
   renderers with no captured page errors.
 - Interaction-audit evidence: passing containment did not preserve usable
   schedule context. At 320 px and `scrollLeft = 260`, all five lane labels
-  were fully offscreen, and the three-tick policy left only “February”
+  were fully offscreen, and the then-current three-tick policy left only “February”
   visible. The chart remained mathematically correct but no longer identified
   the visible resource lanes.
 - Resolution: the case now keeps resource labels in a fixed rail while only
@@ -1875,38 +2118,177 @@ Each entry records:
 - Follow-up: reassess the API only if authoring evaluations still require
   case-specific pixel calculations after reading the guide.
 
-### F-075 — Gesture recipes omitted controller semantics
+### F-075 — Controlled interactions omitted behavior semantics
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
-- Owner: Documentation/Skill
-- Observed in: focus/context, brush, wheel zoom, scrubber, and editable-range
-  cases
-- Friction: the current guidance correctly teaches scale copying and D3
-  inversion, but the examples then hand-build pointer capture, wheel math,
+- Owner: API/Documentation
+- Observed in: interactive legend, chart/table selection, focus/context, brush,
+  wheel zoom, scrubber, and editable-range cases
+- Friction: the earlier guidance taught scale copying and D3 inversion, but
+  the examples then hand-built pointer capture, wheel math,
   snapping, and overlays. Their value math passes while keyboard semantics,
   touch, cancellation, out-of-bounds clamping, visible values, and recovery
-  controls are missing or inconsistent.
-- Current decision: keep specialized interaction algorithms outside Charts
-  core. Teach granular optional `d3-brush` for focus/context and range
-  selection, optional `d3-zoom` for zoom/pan, and native semantic range
-  controls for scrubbers and editable handles. The application still owns
-  policy and presentation.
-- Verification: cases 83 and 89 use real optional `d3-brush`; case 90 uses
-  optional `d3-zoom`; cases 91 and 92 pair direct manipulation with native
-  semantic controls. Pointer, keyboard, touch, cancellation, clamping,
-  recovery, screenshots, and update preservation pass across the full matrix.
-  Practical `d3-brush` plus selection and `d3-zoom` plus selection kernels are
-  isolated at 16.20 and 15.91 kB gzip with independent budgets. Neither enters
-  a locked Charts consumer.
+  controls are missing or inconsistent. The interactive legend additionally
+  duplicated keyed-set normalization, row filtering, responsive height math,
+  HTML buttons, swatches, pressed state, and focus preservation outside the
+  chart definition. The chart/table case filtered source rows, conditionally
+  created a second interactive dot mark, and translated host `onSelect` points
+  back into application IDs even though the chart already owned activation.
+- Current decision: the repetition threshold for a first-party boundary is
+  met. `controlledSignal` is the shared typed snapshot/callback boundary; it
+  creates no chart-owned store or subscription graph. `interactiveColorLegend`
+  now owns domain-ordered toggling, post-domain series visibility, responsive
+  layout, native browser controls, and a static fallback while the application
+  owns the accepted snapshot and persistence. `keyedSelection` now reuses the
+  signal for semantic point activation, and `whenSelected` filters an ordinary
+  authored mark after domains resolve while removing its duplicate interaction
+  points. Exact-subpath `brushX` now uses the same boundary and owns final-scale
+  painting, inversion or candidate snapping, reverse normalization, pointer
+  and touch lifecycle, cancellation, keyboard sliders, host containment and
+  teardown, and a static fallback. Exact-subpath `continuousCursor` composes
+  the same signal and interaction-axis boundary across x and y, then owns
+  unsnapped final-scale inversion, guide and label paint, transient pointer and
+  touch previews, controlled pinning, leave/cancel cleanup, toggle/Escape
+  clearing, and host teardown without importing brush or D3 policy.
+  Exact-subpath `zoomX` now binds a controlled semantic window to the final x
+  scale and owns focus-gated wheel capture, pointer-anchored zoom, drag and
+  horizontal-wheel pan, touch and keyboard input, clamping, cancellation, and
+  teardown. D3 Zoom remains private to that optional DOM control. Exact-subpath
+  `handleX` binds one controlled semantic x value to ordered candidates and
+  owns final-scale track, rule and handle paint, nearest snapping, pointer and
+  touch capture, cancellation, keyboard slider semantics, and teardown without
+  sharing brush, cursor, zoom, or D3 policy. Applications retain accepted
+  windows, visible-row and y-domain policy, forms, tables, semantic controls,
+  summaries, recovery controls, independent-host layout, and persistence.
+  Complete linked views inside one chart host can use `viewGrid` and one shared
+  host interaction lifecycle.
+- Existing verification: the recorded before-state cases 83 and 89 use real
+  optional `d3-brush`, and case 90 uses optional `d3-zoom`; cases 91 and 92 pair direct
+  manipulation with native semantic controls. Pointer, keyboard, touch,
+  cancellation, clamping, recovery, screenshots, and update preservation pass
+  across the full matrix. Practical `d3-brush` plus selection and `d3-zoom`
+  plus selection kernels are isolated at 16.20 and 15.91 kB gzip with
+  independent budgets. Case 83 now imports first-party `brushX` in the overview
+  definition and contains no TanStack-owned D3 import, SVG overlay, effect,
+  copied scale, or selected-row preparation. Its one-dimensional interaction
+  axis is shared infrastructure for mapping, inversion, snapping, ordering,
+  clamping, and keyboard stepping, while D3 remains private to the optional DOM
+  control. Focused behavior, renderer, axis, type, export, and case tests pass;
+  the quick paired browser matrix passes every pointer, touch, cancellation,
+  semantic-control, update, visual, and type scenario at 99.9% diagnostic
+  geometry. Brush regressions additionally cover synchronous controlled
+  rejection, later external updates while a touch terminal is pending,
+  reversed scales, constrained handle ARIA ranges, and mouse/touch teardown.
+  The optional brush adds 19.24 KiB gzip over the ordinary DOM host under its
+  20 KiB cap; ordinary root, universal, and DOM entries retain no brush, axis,
+  `d3-brush`, or `d3-selection` input. Case 81 now uses one grouped raw-row line mark and
+  the controlled interactive legend. Its full browser matrix passes native
+  click, Enter, Space, 44-pixel targets, focus retention, controlled updates,
+  both renderers, two revisions, light/dark themes, and 320/640/960px layouts
+  at 98.6% geometry similarity. Focused signal, legend, host, Canvas, definition,
+  export, and type tests pass. The signal is 0.09 KiB gzip; the interactive
+  legend adds 2.07 KiB over the ordinary DOM host and stays out of root and
+  universal entries. Case 82 now keeps the full raw rows in both ordinary dot
+  marks, resolves activation through a stable semantic key, preserves complete
+  x/y domains, and paints the selected mark as a decorative post-domain
+  overlay without adding a second focus target. Focused controller and case
+  tests cover typed pointer, keyboard, and clear reasons; ignored nullish keys;
+  canonical key identity; complete multi-fragment Waffle selection; stable
+  selection across reordered revisions; and static SVG output. The paired
+  quick browser matrix passes all four semantic scenarios for Recharts and
+  Charts across both revisions and 320/640px layouts; focused native-host
+  coverage also passes accessibility activation, pointer selection, and blank
+  clearing.
+- Continuous-cursor follow-up: case 88 now uses `continuousCursor` in one
+  ordinary definition. Rules, marker, optional axis labels, final-scale
+  inversion, transient pointer/touch previews, controlled pinning, leave and
+  cancellation, toggle/Escape clearing, and teardown moved out of the case.
+  The shared interaction-axis kernel owns mapping, inversion, clamping,
+  cloning, and reversed ranges; the guide-node kernel is shared with focus
+  guides without importing datum focus or motion. The case retains only its
+  semantic sliders, live status, rounding, and conformance driver. Focused
+  behavior, static SVG, host, type, export, and case tests cover numeric and
+  temporal scales, controlled acceptance and rejection, pointer and touch,
+  updates, and source ownership. The isolated DOM-host fixture has a 5 KiB
+  incremental cap, adds 3.63 KiB, and forbids focus-guide, brush, tooltip,
+  legend, selection, and D3 inputs.
+- Brush second proof: case 89 now uses the same exact-subpath `brushX` as case 83. The definition supplies observed UTC candidates, so the interaction axis
+  owns final-scale mapping, nearest snapping, reverse normalization, and
+  keyboard indices without a copied scale or case-authored inverse. Brush
+  painting, forward/reverse drag, pointer and touch cancellation, semantic
+  handles, shortcut metadata, controlled commit, resize synchronization, and
+  teardown moved out of the case. Monthly cohort selection, accepted range,
+  and the live AAPL summary remain application-owned. Focused tests pass, and
+  the quick paired browser matrix passes every interaction, visual, geometry,
+  update, and strict type gate at 98.7% diagnostic geometry.
+- Zoom follow-up: case 90 now uses exact-subpath `zoomX` in one ordinary
+  definition. The behavior owns final-scale inversion, wheel normalization and
+  focus gating, pointer-anchored zoom, drag and horizontal-wheel pan, touch and
+  keyboard input, clamping, cancellation, controlled updates, and teardown.
+  The case retains the accepted semantic window, visible-row and y-domain
+  policy, live status, Reset control, persistence, and conformance observation.
+  The React effect, second SVG, D3 imports, copied scale, transform conversion,
+  and case-owned gesture listeners are gone. Focused behavior and case tests
+  cover numeric and temporal windows, controlled updates, focus, input modes,
+  limits, responsive replacement, teardown, and source ownership. The exact
+  optional bundle fixture isolates D3 Zoom and Selection from root, universal,
+  ordinary DOM, brush, cursor, legend, and selection consumers. It adds 20,429
+  bytes, or 19.95 KiB gzip, over the ordinary DOM host under its 20 KiB cap.
+  The quick paired browser matrix passes unfocused page scrolling, focus-gated
+  pixel/line/page wheel zoom, horizontal-wheel pan, pointer drag, touch
+  activation and pan, keyboard, Reset, revisions, visual, and strict type
+  scenarios at 98.6% diagnostic geometry. TanStack uses 512 authored lines and
+  51.59 kB gzip versus ECharts' 727 lines and 172.82 kB.
+- Scale-handle follow-up: cases 91 and 92 now use exact-subpath `handleX` in
+  their ordinary definitions. The behavior maps ordered semantic candidates
+  through the final x scale, paints the track, optional rule and handle, and
+  owns nearest snapping, pointer and touch capture, cancellation,
+  Arrow/Home/End input, accessible slider state, focus paint, resize
+  synchronization, and teardown. Case 91 retains the accepted frame, playback
+  clock, transport controls, status, and announcements. Its overlay import, copied scene
+  geometry, second SVG, range input, and case-owned pointer lifecycle are gone.
+  Focused behavior and case tests cover validation, semantic cross values,
+  static paint, input modes, controlled updates, playback timing, exact types,
+  and source ownership. Packed runtime, declaration, type-inference, and exact
+  subpath isolation checks pass. The exact DOM-host fixture adds 3,740 bytes,
+  or 3.65 KiB gzip, over the ordinary host under a 5 KiB cap. It retains only
+  the controlled signal, candidate axis, value-cloning range kernel, and
+  handle controller; root, universal, cursor, brush, zoom, native, and
+  unrelated consumers retain no handle or D3 input. Case 91's quick matrix
+  passes 1/1 behavior plus visual and strict type gates at 320 and 640 px
+  across both revisions with 99.0% geometry. TanStack uses 539 authored lines
+  and 39.58 kB gzip versus the reference's 856 lines and 167.93 kB. Case 92
+  reuses the handle at a semantic lane with no rule and passes behavior,
+  visual, and strict types at 99.9% geometry. Its date input, validation, event
+  constraint, commit state, status, and exact-value alternative remain
+  application-owned; its overlay, scale-to-DOM mapping, range input, and
+  case-owned gesture lifecycle are gone.
+- Synchronized-cursor follow-up: case 87 needs no controlled focus signal.
+  One `viewGrid` host lets grouped x focus select one view-grouped dot per date,
+  while child focus guides retarget inside their own plots. Native sticky
+  tooltip state owns pin, leave, Escape, keyboard activation, and update
+  restoration. The external live summary can observe focus and selection, but
+  the host does not expose pinned state in those callbacks; the case therefore
+  mirrors pin toggles from `onSelect`. Keep that observability gap monitoring,
+  but do not add controlled focus or a chart-owned store unless an independent-
+  host consumer proves it necessary.
 - Documentation verification:
-  `packages/charts-core/docs/large-data-and-interaction.md` routes by problem
-  to the corrected brush, zoom, cursor, scrubber, editable-range, scrolling,
-  and nested-tooltip cases and requires equivalent keyboard, touch,
-  cancellation, clamping, visible-value, and recovery semantics.
-- Follow-up: generate and evaluate the skill from this guide. Consider a
-  tree-shakeable headless interaction boundary only if repeated production use
-  still duplicates lifecycle code after using D3 and native controls.
+  the interaction, legend, accessibility, installation, reference, and bundle
+  guides document the controlled boundary, categorical series-identity rule,
+  include-hidden domain policy, native-button/static-fallback split, semantic
+  keyed selection, decorative post-domain marks, controlled horizontal brush,
+  controlled continuous cursor, controlled scale handles, controlled
+  horizontal zoom, application-owned semantic cursor and window controls,
+  linked tables and fixed-window policy, exact imports, host lifecycle, and
+  React Native limitations.
+  The generated package docs are synced from the root documentation tree.
+- Decision: the audited interaction families now have explicit definition or
+  application boundaries. Keep keyed selection
+  separate from interactive-legend toggle and brush-range policy, and keep
+  application table, summary, recovery, validation, playback, and persistence
+  UI outside Charts. Reopen only when a concrete case repeats missing behavior
+  semantics rather than product policy.
 
 ### F-076 — Compact charts could not keep only one axis guide
 
@@ -2796,8 +3178,8 @@ Each entry records:
 - Status: resolved
 - Severity: high
 - Owner: API
-- Observed in: native pie, donut, gauge, radar, polar line/scatter, radial
-  hierarchy, and atlas-backed GeoJSON catalog expansion
+- Observed in: native pie, donut, gauge, labeled pie, radar, polar
+  line/scatter, radial hierarchy, and atlas-backed GeoJSON catalog expansion
 - Friction: scene nodes could already carry arbitrary paths, but the public API
   did not own a non-Cartesian coordinate system. The radar case duplicated
   responsive centering, angular projection, polygon grids, spokes, and label
@@ -2809,7 +3191,10 @@ Each entry records:
   mark, while projected Point geometry could not pass a datum radius through
   D3 `geoPath`. The first numeric polar-line comparison also exposed that the
   specialized radial-line group lacked the generic line-role class shared by
-  catalog and inspection tooling.
+  catalog and inspection tooling. Once pie cases were added, eight of them
+  repeated a D3 pie generator and nested every raw row under `datum.data`; the
+  rounded donut additionally subtracted D3 padding from every end angle and
+  disabled arc padding to obtain a direct three-degree gap.
 - Decision: add opt-in `@tanstack/charts/polar` and
   `@tanstack/charts/geo` entry points. `polar` copies configured D3 angle and
   radius scales into final responsive bounds and composes D3-backed arcs,
@@ -2820,17 +3205,121 @@ Each entry records:
   geometries, `fit: "sphere"` preserves a complete world frame, and an
   explicit GeoJSON geometry or collection fixes the fit independently of the
   rendered rows. Path, centroid, and point-radius geometry remain delegated to
-  D3. Geo and polar marks expose positionless scale phantoms, so definitions
+  D3. The polar entry also exposes eager `pie`, which allocates typed
+  nonnegative values into flat source-linked angle intervals. It preserves
+  source output order, makes angular ordering explicit, and materializes
+  radius-independent `gapAngle` space before `radialArc` geometry. Geo and
+  polar marks expose positionless scale phantoms, so definitions
   omit Cartesian axes and guides without repeating `x: null`, `y: null`, or
   `guides: false`. Neither capability is re-exported from the package root.
   Boundary datasets and TopoJSON conversion stay application-owned inputs
-  rather than package dependencies.
+  rather than package dependencies. Outside pie labels remain granular mark
+  composition rather than becoming a composite mark: `radialText` accepts a
+  signed post-scale `radiusOffset` and automatic `anchor: "outside"`, while
+  `radialRule` accepts independent signed post-scale endpoint offsets. The
+  automatic anchor shares one private angle-based rule with `angleGrid`.
+  These pixel channels never affect radius domains or reserve chart margins.
 - Verification: focused polar, geo, configured-scale, and type-contract tests
   cover responsive scale copying, source-scale immutability, D3 path equality,
   data/sphere/explicit-geometry fitting, resize refits, inset clamping,
   omitted positionless axes, projected paths, interaction points, Feature
   identity independent of color values, and polygon, line, and mixed-geometry
-  semantic paint defaults. Root typecheck passes.
+  semantic paint defaults. Focused pie tests additionally cover source
+  lineage, ordering, full and partial sweeps, gaps, overflow-safe fractions,
+  D3 path parity, and exact-subpath bundle isolation. Cases 76 and 77 consume
+  raw alphabet fields without a D3 pie DTO. Case 77 composes the same flat
+  intervals with an ordinary responsive `radialArc` inner radius, confirming
+  that donuts do not need a second allocator or composite mark. Case 78 passes
+  its semantic agreement and remainder rows through the same transform with
+  explicit partial start and end angles. Its focused runtime test proves flat
+  lineage, the authored sweep, responsive annular geometry, semantic update
+  keys, and the absence of case-owned D3 layout; the survey reduction remains
+  application-owned. No gauge-specific mark or shared utility beyond `pie` and
+  `radialArc` is warranted. Case 93 passes those flat intervals directly to
+  arcs, rules, and text without a D3 DTO, label DTO, dynamic width callback, or
+  case-owned anchor calculation. Focused core and case tests cover responsive
+  pixel geometry, semantic keys and colors, direct lineage, interaction-point
+  coordinates, radius-domain isolation, signed and nonfinite offsets, invalid
+  semantic rows, cardinal tolerances, and authored guide overrides. The
+  dedicated radial-label source fixture is 17.75 KiB gzip, excludes the pie
+  allocator, and packed declarations compile both new option contracts.
+  Case 94 uses the same flat intervals for an annular arc and an ordinary
+  center `radialText`; its selected-frequency sum remains explicit case-owned
+  semantics. Focused tests cover the aggregate, responsive annulus, exact
+  center position, flat lineage, and stable independent slice/center keys.
+  No center-label composite or general aggregate helper is warranted.
+  Case 95 replaces its D3 pie, end-angle trim, and explicit padding suppression
+  with `pie({ gapAngle })`; the existing `radialArc` continues to own the
+  responsive annulus and corner radius. Focused tests prove direct seam and
+  internal gaps, zero double-padding, flat lineage, stable keys, and exact
+  rounded paths. No rounded-donut composite or corner-gap helper is warranted.
+  Case 96 applies the same allocator independently to prepared family and
+  detail rows, then composes two keyed `radialArc` layers. Focused tests prove
+  aligned family boundaries, direct prepared-row lineage, responsive annuli,
+  exact paths, and stable ring identity. The Flare classifier and sums remain
+  case-owned; no grouped-pie or nested-donut helper is warranted.
+  Case 98 allocates flat threshold bands over the same authored half-circle
+  used by its angle scale, then composes existing radial rules, dot, and text
+  for ticks, needle, hub, and readout. Focused tests prove every layer's
+  responsive geometry and semantic identity. Radial endpoint offsets are not
+  reused because these lengths scale with chart radius, and the readout keeps
+  `dy` because its displacement is screen-down rather than angle-relative. No
+  gauge, needle, threshold-band, or tick-range primitive is warranted.
+  Cases 97 and 100 are transposed bar semantics, not pie allocation. The polar
+  entry now exposes `radialBarRadius` for categorical angle bands with
+  quantitative radius intervals and `radialBarAngle` for categorical radius
+  bands with quantitative angle intervals. `PolarRadiusOptions.range` supplies
+  responsive physical endpoints for the copied radius scale. D3 band padding
+  owns categorical occupancy; semantic endpoints, raw datum identity, stable
+  keys, and geometry-attached interaction survive both orientations. One
+  private band resolver and one private sector trace serve both marks. The
+  trace replays the same D3 arc geometry used for paint, including rounded
+  corners, so focus does not accept the clipped cap corners of a full-rounded
+  radial bar. The lazy arc generator prevents radial-bar geometry from entering
+  unrelated polar bundles. Radial bars retain the arc inspection class but
+  resolve the semantic bar motion role. No bar-ratio option, rose composite,
+  radial-rectangle API, or public generic ranged-sector mark is warranted by
+  these two cases.
+  Standard browser comparisons for cases 76–78 pass
+  at 100.0% geometry with clean visual and strict-type gates. For case 76,
+  TanStack versus Recharts is 53 versus 56
+  authored lines and 25.38 versus 145.71 KiB gzip; median mount is 0.10 versus
+  1.20 ms and median update is 0.10 versus 0.60 ms. For case 77, it is 54
+  versus 56 lines and 25.41 versus 145.72 KiB; median mount is 0.20 versus 1.20
+  ms and median update is 0.10 versus 0.70 ms.
+  For case 78, it is 78 versus 79 lines and 25.46 versus 145.80 KiB; median
+  mount is 0.10 versus 1.10 ms and median update is 0.10 versus 0.50 ms.
+  Case 93 passes at 99.9% geometry with 81 versus 72 authored lines and 34.16
+  versus 145.78 KiB gzip; median mount is 0.20 versus 1.40 ms and median update
+  is 0.20 versus 1.00 ms. Case 94 passes at 99.9% geometry with 75 versus 74
+  authored lines and 33.97 versus 145.84 KiB gzip; median mount is 0.20 versus
+  1.20 ms and median update is 0.10 versus 0.60 ms.
+  Case 95 passes at 100.0% geometry with 59 versus 61 authored lines and 25.43
+  versus 145.73 KiB gzip; median mount is 0.20 versus 1.10 ms and median update
+  is 0.10 versus 0.60 ms.
+  Case 96 passes at 100.0% geometry with 134 versus 151 authored lines and
+  25.57 versus 145.98 KiB gzip; median mount is 0.20 versus 1.50 ms and median
+  update is 0.10 versus 0.80 ms.
+  Case 98 passes at 100.0% geometry with 139 versus 134 authored lines and
+  34.79 versus 146.13 KiB gzip; median mount is 0.20 versus 1.20 ms and median
+  update is 0.20 versus 0.60 ms.
+  Case 97 passes at 100.0% geometry with 60 versus 71 authored lines and 34.08
+  versus 145.79 KiB gzip; median mount is 0.20 versus 1.30 ms and median update
+  is 0.10 versus 0.80 ms. Case 100 passes at 99.9% geometry with 65 versus 76
+  authored lines and 34.08 versus 145.09 KiB gzip; median mount is 0.20 versus
+  1.60 ms and median update is 0.10 versus 1.10 ms. Focused tests additionally
+  cover implicit and explicit intervals, fixed domains, responsive ranges,
+  source-scale immutability, exact rounded paths, painted containment, semantic
+  motion role, raw lineage, stable keys, and removal of both authored D3 arc
+  generators and case 100's transform utility. The dual-orientation bundle is
+  21.38 KiB gzip under its 21.5 KiB cap; packed runtime verifies four painted
+  paths and both public option contracts. The unavoidable shared radius-range
+  branch moves the gauge and polar line/scatter fixtures to 20.99 and 22.46
+  KiB gzip under narrowly reviewed 21.05 and 22.55 KiB caps.
+  Packed declarations, runtime, and isolation pass. The exact pie-only
+  consumer is 2.10 kB minified and 1.06 KiB gzip with no D3 runtime; universal,
+  core, and React fixtures that do not import pie reject its allocation module.
+  Root typecheck passes.
 
 ### F-118 — Serialized SVG discarded interaction semantics
 
@@ -3097,18 +3586,23 @@ Each entry records:
   transitive shared fixture.
   Raw fixture modules may load, parse, or generate observations; bins, stacks,
   ranks, cumulative endpoints, summaries, and layouts remain visible in
-  renderer or transform source. The conformance report exposes transitive
-  authored lines per implementation and their per-case ratio. Data-space
-  transforms use ordinary adjacent functions; application or framework
-  reactivity owns memoization. Surface-responsive transforms remain in the
-  chart callback.
+  renderer or transform source until a documented first-party primitive owns
+  the complete operation. In that case the roadmap points to the production
+  source and tests while the case shows the raw-row definition. The conformance
+  report exposes transitive authored lines per implementation and their
+  per-case ratio. Data-space transforms use ordinary adjacent functions;
+  application or framework reactivity owns memoization. Surface-responsive
+  transforms remain in the chart callback.
 - Verification: recursive source-loader coverage proves that entry and support
   files open by default, fixture files remain visible in a collapsed group,
   shared fixture dependencies are included transitively, and shared harness
   modules stay excluded from authored totals. The comparison report and
   schema-v4 artifact use the same closure and expose entry, support, fixture,
   and harness metrics and paths. Histogram, moving-average, stacked-area,
-  boxplot, lollipop, and waterfall show their transforms beside `defineChart`.
+  lollipop, and waterfall show their transforms beside `defineChart`.
+  Boxplot preparation has since moved behind the first-party `boxX`/`boxY`
+  boundary: case 15 now displays the raw-row definition and the native mark
+  owns quartiles, whiskers, and outlier partitioning with direct lineage.
   Waterfall data exports signed contributions rather than cumulative endpoints;
   force and Marimekko show their local layout modules; the responsive waffle
   source visibly expands category totals into cells. A second role audit moved
@@ -3242,7 +3736,11 @@ Each entry records:
   cover explicit-key precedence, top-level and nested primitive `id`,
   single-axis and composite point candidates, group-local uniqueness, index
   fallback, per-mark development warnings, and stable rendered identity. Root
-  typecheck passes.
+  typecheck passes. Case 85 verifies that revised task intervals retain their
+  inferred task-ID point keys without repeating `key: 'id'` in the rect mark.
+  Case 86 verifies that retained observations keep their inferred Date keys
+  across offscreen append and revision changes without repeating `key: 'date'`
+  in either the line or dot layer.
 
 ### F-132 — Factory unions disrupt D3's generic inference
 
@@ -3933,17 +4431,23 @@ Each entry records:
 - Status: resolved
 - Severity: high
 - Owner: API
-- Observed in: issue #9 pointer and grouped-tooltip examples
+- Observed in: issue #9 pointer and grouped-tooltip examples and the pinned
+  nested-chart tooltip
 - Friction: enlarging or recoloring an existing focused dot required a second
   `whenFocused(dot(...))` with duplicated data, position channels, key policy,
   and paint. That replacement geometry could not interpolate from the base
-  mark and made callback-dependent presentation repeat channel logic.
+  mark and made callback-dependent presentation repeat channel logic. Pointer
+  pinning later changed tooltip state without repainting an already focused
+  point, while dismissal could leave a no-transition pinned style painted
+  after semantic focus cleared.
 - Decision: supported marks accept ordered inline `states`. A state selects
   centralized focus by primary, group, key, x, y, series, unmatched, source,
   pinned state, or a callback. Style callbacks receive one object containing
   datum, index, data, point, focus, pointer, and a focus matcher. State styles
   change presentation only; `whenFocused` remains the composition for new
-  transient geometry.
+  transient geometry. Same-point forced updates repaint the complete focus
+  state, and SVG and Canvas remember whether stateful paint must be restored
+  when focus becomes null.
 - Verification: SVG tests cover callback context, ordered active/unmatched
   overrides, paint and radius transitions, and restoration. Canvas tests cover
   equivalent repaint and restoration. Public type tests preserve the source
@@ -3951,7 +4455,10 @@ Each entry records:
   exercise primary and grouped state styles. The complexity audit replaced a
   quadratic node/point scan with a per-mark prefix index. Static line-scene
   plumbing adds 71 gzip bytes; the complete SVG DOM host adds 994 gzip bytes,
-  recorded in the reviewed universal bundle baseline.
+  recorded in the reviewed universal bundle baseline. Case 84 uses one keyed
+  dot mark with `{ focus: 'primary', pinned: true }`; pointer pin/unpin,
+  same-point pointer tracking, SVG/Canvas null-focus restoration, Escape,
+  close-button dismissal, and revision preservation are regression-covered.
 
 ### F-163 — Cross-row transforms lacked a public ownership boundary
 
@@ -3959,7 +4466,8 @@ Each entry records:
 - Severity: high
 - Owner: API
 - Observed in: replacing manual histogram, grouped-reducer, rolling-average,
-  extrema, and stack preparation in the issue #9 authoring pass
+  extrema, stack, and repeated wide-to-long preparation in the issue #9
+  authoring pass
 - Friction: canonical docs assigned every transform to application code while a
   private legacy package exposed a different options-rewriting transform model.
   Authors had no public typed path for common reductions, no consistent source
@@ -3968,16 +4476,24 @@ Each entry records:
   nested `datum.datum` paths, input-order-only windows, and implicit reducer
   defaults. Real heatmap, cumulative histogram, ECDF, bump, Bollinger, and
   temporal aggregation cases still required one-off D3 glue.
-- Decision: expose eager data-first grouping, numeric and temporal binning,
-  two-dimensional binning, window, cumulative, rank, normalize, select, and
-  stack-row helpers. Group fields are named. One-to-one transforms extend flat
-  input rows. Windowed operations accept explicit ordering. Every output names
-  its reducer. Common reductions use compact string names; descriptive,
-  dispersion, endpoint, change, ratio, and quantile reducers are separately
-  tree-shakeable functions. Ordinary functions
-  are the custom composition escape hatch; there is no `transformData`
-  protocol or hidden reactive graph. `stack()` and `group()` remain mark
-  layouts.
+- Decision: expose eager data-first fold, grouping, numeric and temporal
+  binning, two-dimensional binning, window, cumulative, rank, normalize,
+  select, and stack-row helpers. `fold` emits source-row-major output in
+  authored field order, preserves values without filtering, and adds direct
+  lineage under configurable key/value names. Group fields are named.
+  One-to-one transforms extend flat input rows. Windowed operations accept
+  explicit ordering. Every output names its reducer. Common reductions use
+  compact string names; descriptive, dispersion, endpoint, change, ratio, and
+  quantile reducers are separately tree-shakeable functions. Ordinary
+  functions are the custom composition escape hatch; there is no
+  `transformData` protocol or hidden reactive graph. `stack()` and `group()`
+  remain mark layouts.
+- Streaming-window boundary evidence: case 86 calls one ordinary inclusive
+  row filter inside its exported definition builder. The bounded rows must
+  drive y-domain inference, keyboard candidates, and tooltip data; passing
+  complete history with `clip: true` would only clip paint. Locked/latest/all
+  meaning and retention remain application policy, so neither the rolling
+  `window()` reducer nor a generic domain-filter transform belongs here.
 - Verification: focused unit and type tests cover callback inference, named
   compound groups, aligned grouped and two-dimensional bins, calendar-aligned
   empty periods, ordered rolling and cumulative lineage, ranks, quantiles,
@@ -3986,6 +4502,79 @@ Each entry records:
   independent bundle measurement; ordinary mark entries remain protected by
   exact baselines. The private legacy transform export and its 402 lines of
   duplicate implementation/tests remain removed.
+- Fold follow-up verification: runtime and type tests cover authored field
+  order, heterogeneous key/value correlation, collisions, missing values,
+  direct lineage, generators, empty inputs, and option errors. Cases 27, 30,
+  75, and 99 now keep `fold` → `normalize` → `select` composition beside their
+  TanStack definitions and retain case-owned metric direction, selection, and
+  label semantics without D3 extent preparation. Focused standard conformance
+  keeps geometry at 96.0%, 98.9%, 100.0%, and 100.0%, with clean visual and
+  strict type gates; authored TanStack source falls from 102/94/142/181 lines
+  to 97/84/124/139. The exact fold bundle is 0.42 KiB gzip under its 0.50 KiB
+  ceiling, the granular transform suite is 6.32 KiB under 6.40 KiB, and the
+  packed exact consumer is 0.41 KiB with exports, declarations, runtime, and
+  isolation verified.
+- Bollinger follow-up verification: case 22 computes one full trailing
+  `window` with named mean and sample-deviation outputs, then derives lower and
+  upper `areaY` channels beside the mean `lineY`. The window owns ordering and
+  twenty-row source lineage; the twenty-day scope, two-deviation multiplier,
+  and endpoint arithmetic remain explicit financial meaning. No `bollingerY`
+  mark, mean-plus-spread transform, cloned interval DTO, or case helper is
+  warranted. Focused tests cover both revisions and D3 statistic parity.
+  Browser conformance passes with clean types and 97.5% diagnostic geometry at
+  38.21 KiB gzip versus Plot's 93.69 KiB. Plot's strict missing-value policy is
+  distinct from `window` reducers ignoring non-finite values; every AAPL row is
+  finite, so a future arbitrary-missing-data case should state its filtering
+  policy rather than silently expand this API.
+- Anchored-stack follow-up verification: case 26 groups raw survey responses
+  through public `groupBy`, then passes those counts to an ordinary `barX`
+  definition with an explicit response order and neutral-series fraction. The
+  shared stack kernel uses ordered nonnegative prefix extents before translating
+  the selected anchor point to zero; this preserves missing neutral cells that
+  D3's signed diverging offset would collapse to `[0, 0]`. Horizontal and
+  vertical marks plus both stack-row transforms share the same geometry and
+  direct input identity. Focused tests cover exact endpoints, sparse anchors,
+  fraction boundaries, invalid values and offsets, transposition, lineage, and
+  removal of the case cursor/endpoint helper. No Likert-specific mark or
+  signed-count transform is warranted. Browser conformance passes with clean
+  types and 94.2% diagnostic geometry at 35.41 KiB gzip versus Plot's 86.83
+  KiB. The reviewed exact stack fixture is 2.61 KiB gzip.
+- Waterfall follow-up: case 29 uses the existing ordered two-row `window` with
+  the `difference` reducer to expose year-over-year analytical intent, then
+  passes those signed changes through the eager `waterfall` transform. The
+  transform owns cumulative start/end intervals, increase/decrease
+  classification, optional zero-based group totals, stable ordering, and
+  direct step and aggregate lineage. Synthetic totals contain group and
+  derived fields rather than cloning an arbitrary last datum. Invalid values
+  are omitted, zero is retained, numeric overflow throws, and total-group names
+  cannot collide with derived or lineage fields. No waterfall mark, generic
+  synthetic-row protocol, or second cumulative reducer is warranted. Browser
+  conformance passes with clean types and 96.7% diagnostic geometry at 36.10
+  KiB gzip versus Plot's 85.44 KiB. The exact transform is 1.02 KiB gzip and
+  the granular transform suite is 7.16 KiB.
+- Population-pyramid follow-up: case 71 groups raw penguin observations by
+  species and sex through public `groupBy`, then gives one ordinary `barX` a
+  signed quantitative accessor and the existing diverging `stack` layout.
+  Grouping owns aggregation and source lineage; the stack kernel owns interval
+  geometry; which sex points left remains a visible one-line semantic choice.
+  No pyramid mark, signed-count transform, or case DTO is warranted. Focused
+  tests cover exact counts, all 333/327 selected observations, direct lineage,
+  symmetric domain policy, zero-baseline geometry at three widths, and stable
+  identities across resize and revisions. Browser conformance passes with
+  clean types and 99.1% diagnostic geometry at 33.99 KiB gzip versus Recharts'
+  151.05 KiB.
+- Catalog-closure follow-up: the all-case audit found that several definitions
+  still bypassed these delivered transforms despite being marked verified.
+  Case 02 and Case 55 now select their newest dated group rows with public
+  `select`; Case 55 also replaces its local first-value indexer with grouped
+  `normalize`. `bar-grouped` uses compound `groupBy`, `bar-stacked` uses
+  `fold`, Case 56 uses a two-row `window` directly in native arrows, and Case
+  60 keeps its lag window inline beside the marks. Focused tests cover
+  reordered inputs, group counts, fold and window lineage, semantic identity,
+  and source closure without local D3 grouping or DTO helpers. Fresh quick
+  browser conformance passes visual and strict-type gates for Cases 02,
+  `bar-grouped`, `bar-stacked`, 50, 54–56, and 60 at 97.4%, 96.8%, 98.4%,
+  97.9%, 96.3%, 97.6%, 98.9%, and 97.9% diagnostic geometry respectively.
 
 ### F-164 — Sankey widths required a custom scene renderer
 
@@ -3998,14 +4587,46 @@ Each entry records:
   round caps. Proportional `d3-sankey` links therefore forced both examples to
   duplicate complete custom scene construction for paths, nodes, labels, and
   interaction points instead of composing the existing marks.
-- Decision: make link stroke width and opacity visual channels and expose its
-  SVG line cap. Keep `d3-sankey` as a direct application dependency; run its
-  responsive layout in the dynamic chart builder, then render the positioned
-  output with native `link`, `rect`, and `text` marks.
-- Verification: focused link and Sankey tests pass; the complete 17-target CI
-  graph passes its type, package, bundle, documentation, catalog, and framework
-  gates. Browser conformance passes both Sankey cases at 320px and 640px with
-  clean types and 98.3% mean frame-relative geometry similarity.
+- Interim decision: make link stroke width and opacity visual channels and
+  expose its SVG line cap. Keep `d3-sankey` as a direct application dependency;
+  run its responsive layout in the dynamic chart builder, then render the
+  positioned output with native `link`, `rect`, and `text` marks.
+- Follow-up evidence: native marks removed the custom renderer but both Sankey
+  cases still clone D3-mutated inputs, resolve endpoints, assert bounds, and
+  materialize layout and label DTOs before the definition. The complete
+  definition-coverage audit classifies this as reusable adapter work.
+- Implemented decision: retain native `link`, `rect`, and `text` presentation
+  and add the exact optional `@tanstack/charts/network/sankey` entry. The
+  `sankeyDiagram` mark owns responsive D3 layout, input cloning, graph
+  validation, endpoint resolution, proportional widths, stable identity,
+  immutable node/link values, lineage, and final-pixel child-mark composition.
+  Consumers that do not import the subpath do not retain `d3-sankey`.
+- Shared decomposition: force and Sankey layouts now share private graph
+  accessor, key, duplicate, and endpoint validation. Sankey's ordinary child
+  marks use a renderer-neutral resolved-child composition helper, and its
+  parent/child motion merge shares the same private contract as polar
+  composites. Composite child motion is snapshotted on each initialized mark;
+  the former closure-global state let a later initialization overwrite motion
+  for an earlier scene. Sankey and polar reuse regressions now protect that
+  lifecycle. D3 settlement, column allocation, link thickness, and immutable
+  Sankey materialization remain one mark invariant rather than becoming public
+  halfway utilities.
+- Retained boundary: both cases now pass semantic node and link rows directly
+  to `sankeyDiagram`. The basic case retains only responsive dimensions and
+  theme styling. The income-statement case retains authored order, compact
+  wording, label side, value strings, backdrops, title, and profit/cost paint
+  inside the ordinary `marks` callback.
+- Verification: focused core tests cover two responsive sizes, exact D3
+  parity, frozen-input isolation, graph errors, stable parallel-link identity,
+  immutable lineage, child mark composition, and absence of Cartesian scales.
+  Browser conformance passes both migrated cases at 320px and 640px with no
+  diagnostics, clean types, clean visual review, and 98.3% mean geometry:
+  99.9% for Basic Sankey and 96.8% for Sankey Flow. The exact source is 6.94
+  KiB gzip versus 1.83 KiB for the D3 Sankey kernel, a 5.11 KiB increment under
+  its 5.25 KiB cap. The packed production consumer is 14.33 KiB. Source and
+  published exports, declarations, runtime, framework consumers, and
+  production isolation pass; every non-Sankey bundle fixture rejects both the
+  adapter and `d3-sankey`.
 
 ### F-165 — Incidental D3 utilities leaked into core paths
 
@@ -4021,16 +4642,19 @@ Each entry records:
 - Decision: implement nearest-point, quantile, and compact tick math locally.
   Keep `d3-array` inside numeric-bin transforms, `d3-shape` inside stack,
   polar, and curve features, and `d3-geo` inside geo features as normal
-  dependencies, not peers or caller-supplied `use` capabilities. Keep the
-  tree-shakable D3 curve bridges available from the root, universal, and exact
-  barrels. Compact scales declare no production D3 dependency.
+  dependencies, not peers or caller-supplied `use` capabilities. Keep
+  `d3-hexbin` behind the exact `@tanstack/charts/spatial/hexbin` subpath. Keep
+  the tree-shakable D3 curve bridges available from the root, universal, and
+  exact barrels. Compact scales declare no production D3 dependency.
 - Verification: core, geo, polar, curve, compact-scale, and type-contract tests
   pass. The independently structured tick helpers match `d3-array` across
   fixed edge cases and 2,000 deterministic generated domains. Bundle
   retained-input gates reject D3 geometry from ordinary root consumers and
   every `d3-*` module plus `internmap` from compact consumers, while selected
   transform, polar, geo, and curve features retain their owned D3
-  implementation.
+  implementation. The packed-consumer gate resolves and executes the exact
+  spatial hexbin export while proving its D3 implementation is absent from the
+  ordinary core consumer.
 
 ### F-166 — Grouped tooltip order diverged from mark position
 
@@ -4556,9 +5180,12 @@ Each entry records:
   transition selection live only in definitions.
 - Verification: the comparison series in catalog case 114 returns only
   `{ transition: { type: 'spring', mass: 1.2 } }` and inherits the chart's
-  stiffness and damping. Focused motion tests cover the chart, mark, axis,
-  tick, tick-label, and axis-label cascade; typecheck and catalog validation
-  pass.
+  stiffness and damping. Its case test covers exact datum identity and stable
+  keys across stages, native path retargeting with momentum continuity, the
+  partial override, and the absence of custom rendering. The standard browser
+  matrix passes visual and strict type gates at 97.2% final-frame geometry.
+  Focused core motion tests cover the chart, mark, axis, tick, tick-label, and
+  axis-label cascade.
 
 ### F-183 — Motion policy was centralized in renderer setup
 
@@ -4579,10 +5206,12 @@ Each entry records:
   public registry.
 - Verification: case 115 combines a chart default, mixed spring/tween mark and
   guide overrides, per-datum staggering, and interrupted updates while its
-  renderer is created once with no semantic timing callback. Cases 112–114 now
-  keep their policy in definitions too. Browser checks reached the expected
-  final geometry with no invalid paths, stale probes, or console errors;
-  focused tests, typecheck, and catalog validation pass. Every built-in mark,
+  renderer is created once with no semantic timing callback. Its focused case
+  tests cover exact datum identity, stable keys, the complete definition
+  cascade, spring interruption continuity, and the source boundary. Cases
+  112–114 now keep their policy in definitions too. The standard case 115
+  browser matrix passes visual and strict type gates at 95.3% final-frame
+  geometry with no invalid paths, stale probes, or console errors. Every built-in mark,
   including nested polar marks and composite facet/polar parents, accepts the
   same definition-local policy. Keyed interaction points now follow animated
   geometry for non-line marks as well as bars and path series. A focused test
@@ -4591,7 +5220,10 @@ Each entry records:
   initialized mark IDs; it does not change enumerable or serialized scene
   output. It costs 94 minified bytes / 42–54 gzip bytes in isolated scene
   consumers. The complete default DOM host delta is 254 minified / 128 gzip
-  bytes, including presentation-point lookup.
+  bytes, including presentation-point lookup. Snapshotting factory motion on
+  each initialized mark adds 63 minified bytes and 16–18 gzip bytes to ordinary
+  single-mark consumers; the reviewed locked baselines and the narrow custom
+  mark, vector, and polar budgets include that lifecycle cost.
 
 ### F-184 — Cross-type marks lacked a shared morph topology
 
@@ -4610,14 +5242,21 @@ Each entry records:
   normalizes every bar, rose sector, donut sector, and bubble to a 48-point
   closed polygon. The existing spring runtime then animates the same 96 numeric
   channels per datum and preserves those channel velocities when retargeted.
-  Do not make SVG path-string normalization the cross-renderer contract;
-  investigate an optional normalized geometry/morph adapter that Canvas and
-  native renderers can consume too.
+  The definition owns ID, source key, paint, spring defaults, stagger, and the
+  one per-datum mass exception. The custom mark owns only responsive sampling
+  and interaction anchors, and emits `SceneArea.points` so normal SVG, Canvas,
+  and native serialization owns the path. Do not make SVG path-string
+  normalization the cross-renderer contract. Keep a normalized morph adapter
+  in monitoring until a second real case repeats this topology work.
 - Verification: browser checks observe six changing paths and six active
   motion tracks during bar-to-rose and interrupted rose-to-bubble transitions,
   with stable chart height, no invalid coordinates, six distinct final shapes,
   no stale probes, and no console errors. All shapes stay inside the chart at
-  320px. The example exposes the cost directly: 576 animated coordinate
+  320px. Focused tests cover exact types, raw row identity, stable keys, all
+  four 48-point topologies, a shared renderer skeleton, definition-local
+  policy, and path-token momentum after an interrupted retarget. The standard
+  visual matrix passes strict types and visual review at 87.4% final-frame
+  geometry. The example exposes the cost directly: 576 animated coordinate
   channels and roughly 12.5 kB of SVG markup at 640px.
 
 ### F-185 — Control reflow turned a morph into a resize
@@ -4660,7 +5299,7 @@ Each entry records:
 
 ### F-187 — Crosshair motion required an application-owned frame loop
 
-- Status: monitoring
+- Status: resolved
 - Severity: medium
 - Owner: API
 - Observed in: focus and crosshair motion catalog case 117
@@ -4672,18 +5311,46 @@ Each entry records:
   coordinates. Mounting that overlay before the chart caused the SVG surface
   renderer to adopt it as the chart root; the application had to mount the
   owned chart surface first and append the overlay afterward.
-- Decision: keep this plumbing in the spike while the correct renderer-neutral
-  boundary is unproven. Investigate a focus-guide scene primitive or an
-  optional motion-value/vector primitive that can drive SVG, Canvas, and native
-  presentation without adding a clock or spring implementation to core.
-- Verification: the 640px and 320px browser checks keep overlay and chart view
-  boxes aligned. On two rapid retargets the crosshair continues in its incoming
-  direction before reversing, both axis labels remain exactly aligned to the
-  moving guide, grouped focus remains active, keyboard focus moves the target,
-  and no coordinate becomes invalid. Both labels remain inside the 320px
-  surface at the edge datum. The paired Observable Plot/TanStack scenario
-  passes label content, both sizes and revisions, with 97.9% geometry
-  similarity and settled crosshair state.
+- Decision: the renderer-neutral boundary is a stable-key focus-guide
+  scene primitive, not an application SVG or a general motion-value graph. Add
+  `focusGuideX` / `focusGuideY` with rules, marker, labels, formatters, and
+  ordinary definition motion. Composed shared focus inside one host then covers
+  linked cursors without adding another animation clock to core; controlled
+  focus remains separate only for independently hosted charts.
+- Verification: case 117 now uses the exact focus-guide entry and contains no
+  second SVG, frame loop, spring sampler, resize repaint, or `onRender`
+  callback. Candidate subtrees carry explicit point-slot ownership instead of
+  colon-prefix inference; `a`/`a:point`, the guide's own `:point` suffix, and
+  duplicate primitive rows have regressions. Mark-state transitions are scoped
+  to their owning mark, so the guide keeps its distinct spring and interrupted
+  velocity. SVG, Canvas, React Native, facets, labels, raw identity, initial
+  focus, retarget, clear, and visible live-status ownership pass 109 combined
+  focused tests. The standard browser matrix passes both revisions, light and
+  dark themes, 320/640/960px viewports, keyboard/pointer behavior, clean types,
+  and 98.0% geometry similarity. The exact fixture is 18.07 KiB gzip, a 1.09
+  KiB increment over ordinary dots under its 2 KiB cap; the packed consumer is
+  18.05 KiB and retains no motion, spring, tooltip, portal, or D3 geometry
+  input.
+- Static axis-pointer follow-up: case 80 now composes `focusGuideX` with
+  grouped x focus, the native grouped tooltip, and `colorLegend`. It contains
+  no React state mirror, second SVG, `onRender` coordinate bridge, handwritten
+  legend, or tooltip-position function. This is the same focus-guide primitive
+  as case 117 and the same grouped-focus/tooltip seam as case 35; adding an
+  `axisPointer` wrapper would only hide those existing parts. Focused tests
+  cover source identity, hidden guide candidates, stable retarget structure,
+  full-height rule geometry at 320/640/960px, native tooltip rows and swatches,
+  and clear behavior. The standard browser matrix passes both revisions,
+  light and dark themes, pointer leave, touch cancellation, edge containment,
+  visual and strict type gates at 98.9% diagnostic geometry. TanStack uses 397
+  authored lines and 39.33 KiB gzip versus ECharts' 446 lines and 173.77 KiB.
+- Linked-view follow-up: case 87 composes two child focus guides inside one
+  `viewGrid`. Grouped x focus retargets both rules and markers at the same Date,
+  while native pinning owns pointer-leave, keyboard activation, Escape, and
+  update restoration. The case contains no second SVG, frame loop, copied
+  scale, or cross-host focus controller. This is a second focus-guide consumer
+  with a distinct independent-y, shared-x composition contract. The quick
+  paired browser matrix passes both renderers, revisions, sizes, themes,
+  behavior, visual, and strict type gates at 100.0% diagnostic geometry.
 
 ### F-188 — Paired interaction assertions assumed equal timing
 
@@ -4754,15 +5421,26 @@ Each entry records:
   `driver.settle` hook before inspecting initial and revised frames. Keep
   intermediate timing, velocity, and interruption assertions in independent
   interaction scenarios and renderer tests.
+- Follow-up evidence: cases 112–116 each copied the same renderer-state query,
+  animation-frame loop, completion check, and timeout; case 117 copied the
+  state query. This was conformance-driver plumbing, not missing chart grammar.
+- Follow-up decision: keep one benchmark-only `readChartMotionState` helper for
+  cases 112–117 and one `settleChartMotion` helper for cases 112–116. Do not add
+  settling, replay, or DOM-state inspection to the renderer-neutral chart
+  definition. Replay controls and renderer remounts remain application shell.
 - Verification: the quick 112–117 browser matrix passes all six visual cases,
   the focus/crosshair scenario, both revisions, and 320/640px viewports. Mean
-  final-frame geometry similarity is 94.2%, with clean strict types.
+  final-frame geometry similarity is 94.2%, with clean strict types. Case 112's
+  focused tests additionally cover shared state reads, completion, timeout,
+  raw datum identity, and chart/mark/datum motion ownership. Target-specific
+  replay timing remains in renderer tests because paired catalog scenarios
+  cannot impose animation state on the static Observable Plot reference.
 
 ### F-191 — Axis tick styling and edge alignment required shell work
 
-- Status: monitoring
+- Status: resolved
 - Severity: low
-- Owner: API/Application
+- Owner: API
 - Observed in: matching the token activity calendar to a supplied visual
   reference
 - Friction: the reference required larger, quieter month labels than the
@@ -4777,17 +5455,23 @@ Each entry records:
   not widen. The cell mark also defaults to a 0.75-pixel inset, so omitting the
   authored inset still recessed the first and final columns from a flush scale
   range.
-- Current decision: keep the override local to the application shell and avoid
-  expanding the public axis API from one styling and edge-alignment case. Use
-  an explicit zero cell inset with zero band outer padding and horizontal chart
-  margins when flush calendar edges are intended.
-  Revisit if production migrations or unrelated examples repeat the need for
-  authored tick-label typography or per-tick anchoring.
-- Verification: browser inspection at gallery widths confirms twelve 13px
-  month labels, with Aug starting at the first cell edge and Jul retaining its
-  normal month position, 364 approximately square daily cells, and no
-  application, page, or overlay errors. Workspace typecheck and the focused
-  quick conformance matrix pass initial and updated data at 320px and 640px.
+- Decision: post-render mutation of a generated guide is not an
+  application boundary. Add tick-label typography plus per-value or per-index
+  anchor and offset accessors to the axis definition. Keep the explicit zero
+  cell inset and band padding for flush calendar geometry; width-derived host
+  sizing remains shell work.
+- Verification: tick labels now accept constant or per-candidate `fontSize`,
+  `fontWeight`, `opacity`, `anchor`, `dx`, and `dy`. Accessors run before
+  thinning with semantic value, stable candidate index, resolved position, and
+  bandwidth; `undefined` preserves defaults. Resolved typography participates
+  in measurement, automatic margins, facet compatibility, SVG/Canvas/native
+  output, and motion. Case 118 is a static typed definition per conformance
+  input; its shell contains no axis CSS, guide query, or generated-DOM
+  mutation. The standard matrix passes 364 cells, both revisions, light and
+  dark themes, 320/640/960px viewports, pointer behavior, clean types, and 98.8%
+  geometry similarity. The focused fixture is 16.67 KiB gzip, only 0.09 KiB
+  over the ordinary line/SVG path and under its 0.75 KiB cap; the packed
+  consumer is 16.60 KiB with no optional input retained.
 
 ### F-192 — SVG letterboxing shifted pointer hit testing
 
@@ -4925,3 +5609,856 @@ Each entry records:
 - Verification: the public type regression accepts a configured D3 time scale
   for a `string | Date` axis, rejects an unrelated numeric scale, and the full
   workspace typecheck plus configured-scale runtime tests pass.
+
+### F-199 — Support metadata hid outside-definition authoring
+
+- Status: monitoring
+- Severity: medium
+- Owner: Documentation/Tooling
+- Observed in: complete custom-authoring audit of the public catalog
+- Friction: `support: native | composed` and free-form feature strings could
+  not answer which examples implement essential visualization work outside the
+  chart definition. Case 116 is `native` despite defining a raw custom mark;
+  case 57 is only `composed` despite manually reserving two domain regions for
+  D3-binned marginal rectangles. Moving visual layout into a transform module
+  can also make a short definition look declarative while hiding the authoring
+  cost. Source length, support files, and D3 imports mix real plotting work with
+  data selection and conformance drivers.
+- Current decision: keep one immutable reviewed before-state audit that assigns
+  all 109 cases to a strict custom-authoring set, a preparation-review tier, a
+  shell-only tier, or a definition-native baseline, plus a current disposition
+  audit, overview, and machine-readable roadmap for all 109 cases. The roadmap
+  owns current migration sources and verification status. Use static source
+  signals only to generate candidates. If this becomes public catalog metadata,
+  record the work kind, execution stage, owner, coordinate space, source
+  symbols, and target disposition explicitly beside the generated
+  authored-source closure.
+- Verification: `CUSTOM-AUTHORING-AUDIT.md` accounts for 47 strict custom
+  cases, 13 preparation-review cases, 7 shell-only cases, and 42
+  definition-native cases. Direct source review confirms four `createMark`
+  implementations, 31 manual geometry/layout cases, and 12 visible
+  overlay/controller cases in the strict set. The current audit, overview, and
+  roadmap each assign all 109 live catalog directories exactly once: 58 use
+  the current definition API, 34 use first-party primitives, 14 use optional
+  first-party adapters, two retain application boundaries, and one warrants an
+  inline custom mark. The resulting 106 visualizations use normal definitions.
+  The durable `definition-coverage-roadmap.json` also tracks the capability
+  DAG, source ownership records, bundle fixtures, and case-local evidence. Its
+  `resolved-layout` stage and repository-relative implementation paths keep
+  migrated work visible instead of relabeling it as case-owned preparation;
+  the focused validator protects live-catalog equality, totals, paths,
+  dependencies, and boundary status.
+
+### F-200 — Generic mark composition widened channel types
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: composing resolved-layout `hexbin` from `hexagon`, then native
+  box summaries from ordinary link, bar, tick, and dot marks
+- Friction: `HexagonOptions<NoInfer<TDatum>>` rejected a generic derived datum
+  even though the source iterable already fixed that datum type. Separately,
+  `ChannelOutput` checked object keys before accessor functions, so a generic
+  numeric accessor could widen its interaction value back to `ChartValue`.
+  The first implementation would have required assertions inside the
+  first-party mark and the same assertions in third-party composite marks.
+- Decision: let `hexagon` infer its datum from the source and then validate its
+  options against that type. Resolve accessor output before field output in
+  `ChannelOutput`; functions cannot be semantic field names, and this ordering
+  preserves their exact return type under generic composition. Promote the
+  repeated ordinary-child kernel as public `compositeMark`: it namespaces
+  child channels, nodes, points, and motion while preserving the union of each
+  child's datum and positional types. Child IDs must be unique, declaration
+  order remains paint order, and a child with its own resolved layout is
+  rejected instead of introducing nested layout scheduling.
+- Verification: `spatial-hexbin` composes `hexagon` with no assertion or
+  suppression, its public reducer outputs retain numeric point types, and box
+  marks reuse the same composition kernel while exposing exact derived summary
+  and outlier types. Focused composite tests cover channel and scene
+  namespacing, child point ownership, parent/child motion merging, duplicate
+  IDs, and resolved-layout rejection. The full workspace TypeScript program
+  passes, and the focused conformance type probes reject all eight invalid
+  TanStack programs.
+
+### F-201 — Visible Voronoi cells required custom D3 paths
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: Voronoi nearest-tooltip catalog case
+- Friction: the case owned a raw `createMark`, projected every observation
+  through resolved scales, constructed and clipped a D3 Voronoi diagram, and
+  converted each cell to an SVG path. The chart definition hid that work behind
+  `voronoiCells`, while the path-only scene output coupled the recipe to one
+  renderer shape. Making those cells interactive would also have duplicated
+  the dot layer's keyboard and nearest-point candidates.
+- Decision: expose the optional exact-subpath `voronoi` mark. It accepts source
+  x/y, stable key, explicit topology group, color, and presentation channels;
+  projects complete pairs through the final configured scales in its ordinary
+  render callback; and emits clipped, renderer-neutral `SceneArea.points`.
+  Stable-key ordering and exact coordinate deduplication make coincident,
+  subpixel, and cocircular inputs deterministic without merging distinct
+  projected sites. Geometry is centered on the site cloud and scaled by an
+  exact power of two to preserve representable coordinates while avoiding
+  near-coincident and far-offscreen cancellation. D3 output is checked for
+  complete ownership, convexity, offscreen neighbor half-planes, and total
+  area. Invalid numerical output is rebuilt from half-planes using adjacency
+  derived from triangle and hull edges; an all-site pass and plot-centered
+  recovery handle damaged topology and extreme offscreen coordinates. Final
+  polygons are clamped and normalized again, and the mark fails explicitly if
+  a distinct cell boundary is not representable in authored chart coordinates.
+  The cells are decorative and emit no chart points or interaction records, so a
+  normal dot layer remains the sole owner of native nearest focus, keyboard
+  navigation, and tooltip data. Color does not partition topology; only
+  explicit `z` creates independent full-bounds tessellations.
+- Verification: case 65 passes source cars directly to `voronoi` and `dot` with
+  no case-owned mark, D3 import, resolved-scale loop, path construction, or
+  scene-node type. Focused tests cover final responsive bounds, complete-pair
+  domains, categorical and temporal axes without inversion, explicit grouping,
+  stable reordered ties, raw-row presentation accessors, dot-owned nearest
+  focus, facets, seeded partitions, and empty, singleton, two-point,
+  coincident, collinear, and invalid inputs. Its 320/640/960 light/dark
+  conformance matrix passes both revisions with clean strict types, all
+  interaction scenarios, and 98.4% diagnostic geometry similarity. Authored
+  case source falls from 207 to 149 lines. The exact SVG fixture adds 8.93 KiB
+  gzip over ordinary dots within its 9 KiB ceiling, the packed-consumer gate
+  resolves the published subpath, and retained-input checks keep the optional
+  Delaunay kernel out of root, universal, ordinary-mark, representative, host,
+  and adapter bundles.
+
+### F-202 — Density contours hid responsive geometry behind a custom mark
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: point density contours catalog case
+- Friction: the chart definition appeared short only because a local
+  `createMark` owned resolved-scale projection, estimator sizing, threshold
+  conversion, `d3-geo` path construction, copied centroid scales, inversion,
+  scene nodes, and synthetic tooltip rows. A contour level can contain several
+  disconnected polygons and holes, so its aggregate centroid can fall outside
+  every painted region. The tooltip therefore presented a coordinate that was
+  neither a source observation nor a valid contour location.
+- Decision: expose `densityContour` from the optional
+  `@tanstack/charts/spatial/density` subpath. It accepts source x/y, optional
+  estimator group and weight channels, pixel bandwidth and cell size, native
+  density thresholds, and derived presentation channels. It estimates after
+  final positional projection, shares numeric levels across explicit groups,
+  retains group-level source lineage, and emits no focus points. Add structured
+  multipolygons to `SceneArea`: one area can now contain disconnected polygons
+  and holes without SVG syntax, while SVG, Canvas, React Native, gradients,
+  clipping, bounds, and nearest containment share the same geometry. A pure
+  contour-coordinate mapper is the smaller reusable unit now shared with the
+  scalar-grid contour mark. Generated-versus-explicit contour identity and
+  threshold validation are also shared independently of threshold generation.
+  Canonical ChartKey grouping is shared with Delaunay and Voronoi; the KDE
+  remains density-specific.
+- Verification: case 39 passes its six D3-native thresholds directly to the
+  native mark and contains no custom mark, D3 import, copied scale, path
+  serializer, centroid, or tooltip formatter. Focused tests cover resolved
+  nonlinear projection, nonzero margins, complete-pair and weight filtering,
+  grouping, shared numeric levels, lineage, resize behavior, stable keys, and
+  zero synthetic points. Renderer tests cover disconnected polygons and holes
+  in SVG, Canvas without `Path2D`, React Native SVG, bounds, and nearest
+  containment. Internal tests cover canonical spatial grouping, duplicate
+  explicit levels, and generated-level identity across changing values. The
+  scalar-grid mark now reuses the same threshold validation, level identity,
+  and structured polygon mapper without inheriting the density estimator or
+  resolved-layout lifecycle. The exact spatial bundle adds 2.84 KiB gzip over
+  ordinary dots within its 3 KiB ceiling, and retained-input gates keep
+  `d3-contour` out of root, universal, ordinary-mark, representative, host, and
+  adapter bundles.
+  The renderer-neutral polygon contract adds 105 B gzip to static SVG, about
+  220 B to the DOM host, and about 80 B to the geometry resolver; those shared
+  costs are reviewed in the bundle baseline.
+
+### F-203 — D3 contour v4 runtime APIs were absent from its declarations
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: native density contour implementation
+- Friction: `d3-contour@4` exposes `density.contours(data)` so one computed grid
+  can report its maximum and materialize several shared thresholds. The current
+  `@types/d3-contour` package describes the older callable estimator but omits
+  that v4 method, forcing an assertion despite the installed runtime contract.
+- Decision: keep one private narrow extension for `contours`, its callable
+  threshold function, and read-only `max`. Do not widen public chart types or
+  duplicate the grid calculation to accommodate stale external declarations.
+- Verification: the exact runtime dependency and declaration dependency are
+  owned by the optional package entry, strict workspace typechecking passes,
+  and density tests exercise both explicit levels and the missing numeric-count
+  path.
+
+### F-204 — Scalar-grid contours hid topology behind a custom mark
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: filled wind-speed contour catalog case
+- Friction: the case converted source observations to a magnitude-only array,
+  generated marching-squares geometry before the definition, then used a raw
+  `createMark` to project that geometry through `d3-geo` and emit SVG path data.
+  The short definition hid source lineage, grid orientation, contour identity,
+  and renderer ownership across a transform helper and custom render loop.
+- Decision: expose `contour` from the optional
+  `@tanstack/charts/spatial/contour` subpath. It accepts the raw row-major grid,
+  dimensions, scalar value channel, numeric or explicit thresholds, smoothing,
+  and derived presentation channels. Marching-squares topology is data-space
+  work and does not depend on chart size, so the mark computes it eagerly and
+  uses ordinary rendering only to map structured rings into final plot bounds.
+  Missing values retain their grid positions, finite source lineage survives on
+  each level, Cartesian row zero remains at the bottom, and the mark emits no
+  synthetic focus point. Reuse the density mark's contour mapper, threshold
+  validation, and explicit-versus-generated identity; do not share its KDE,
+  grouping, resolved-layout lifecycle, or threshold-generation semantics.
+- Verification: case 38 now passes raw wind rows, an inline magnitude accessor,
+  dimensions, and levels to the native mark. Its case source contains no custom
+  mark, D3 import, GeoJSON projection, path serializer, or scene-node type;
+  the remaining helper only selects a rectangular source window. Focused tests
+  cover dimension and source-length validation, missing grid positions, numeric
+  identity, field lineage, bottom-up orientation, explicit duplicate levels,
+  generated-level key stability, smoothing, final-bounds projection, structured
+  disconnected polygons and holes, and zero synthetic points. The exact SVG
+  fixture is 10.62 KiB gzip, 2.78 KiB over the 7.84 KiB frame-and-static-SVG
+  baseline and within its 3 KiB ceiling. Source and packed-consumer gates pass
+  for the optional subpath, while retained-input checks keep `d3-contour` and
+  scalar-contour code out of ordinary bundles. Strict workspace TypeScript also
+  passes with the raw-row accessor shared by the TanStack and Plot definitions.
+
+### F-205 — Force layouts hid static settlement behind case utilities
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: Les Misérables force-directed network catalog case
+- Friction: the definition rendered native links, dots, and labels but depended
+  on a case utility to clone graph rows, configure and tick a stopped D3
+  simulation, resolve mutated link endpoints, and derive padded domains. The
+  coordinates looked like ordinary prepared data at the definition boundary,
+  hiding reusable static-layout mechanics and source lineage. Moving the whole
+  simulation into a mark would instead couple data-space settlement to chart
+  size and obscure that normal marks already express the result.
+- Decision: expose `forceLayout` from the exact optional
+  `@tanstack/charts/network/force` entry. It accepts stable node and endpoint
+  channels plus an ordered list containing at most one each of `link`,
+  `manyBody`, `center`, `collide`, `x`, and `y`. The eager transform runs a
+  fixed number of synchronous ticks over private clones, preserves raw endpoint
+  keys, attaches node and link lineage, resolves native link coordinates, and
+  returns padded quantitative domains. It has no resolved-layout dependency:
+  the force topology is data-space work, and ordinary scales map the settled
+  rows after chart layout. Keep arbitrary custom forces, asynchronous ticking,
+  dragging, reheating, and controlled live positions in an application-owned
+  D3 controller rather than expanding this static transform into a second
+  runtime.
+- Verification: focused transform tests cover raw-row field and accessor
+  channels, all six force descriptors, authored order, private-clone
+  immutability, exact node and link lineage, endpoint identity, padded and empty
+  domains, numeric-versus-string keys, invalid options, duplicate force types,
+  and missing endpoints. Case 40 matches its case-owned D3 reference for both
+  revisions, preserves native mark identities, and imports neither `d3-force`
+  nor the reference layout from the TanStack definition. The exact entry is
+  6.97 KiB gzip versus 5.56 KiB for the raw D3 force kernel, a 1.41 KiB wrapper
+  increment within its 2.5 KiB ceiling. Source and packed retained-input gates
+  keep `network-force` and `d3-force` out of root, universal, ordinary-mark,
+  renderer, and adapter consumers. Strict workspace TypeScript passes. The
+  complete responsive, theme, and revision browser matrix renders 13 nodes, 15
+  links, and 13 labels with clean diagnostics, visual parity, and 100% geometry
+  similarity.
+
+### F-206 — Tidy trees hid hierarchy construction in definition builders
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: Flare tidy hierarchy tree catalog case
+- Friction: the definition directly imported D3 hierarchy, converted semantic
+  paths, stratified the selected rows, ran the tidy-tree layout, reversed and
+  transposed coordinates, and materialized separate node and link DTOs. Those
+  arrays discarded source lineage and hid stable hierarchy identity behind a
+  definition builder even though the final visualization used ordinary link,
+  dot, and text marks. A tree mark would duplicate those existing marks, while
+  resolved layout would incorrectly couple arbitrary semantic tree units to
+  final pixels.
+- Decision: expose the eager `treeLayout` transform from the exact optional
+  `@tanstack/charts/hierarchy/tree` entry. It accepts either full path rows with
+  a one-character delimiter or explicit `id` and `parentId` channels, plus
+  `left`, `right`, `top`, or `bottom` orientation, semantic breadth/depth node
+  size, sorting, and separation. It returns stable native-mark node and link
+  rows with resolved endpoints, hierarchy metadata, and honest lineage;
+  path-imputed ancestors have null data and empty lineage. Normal positional
+  scales own responsive projection, so the transform has no
+  `resolved-mark-layout` dependency. A private flat-hierarchy layer now owns
+  path normalization, explicit-parent construction, validation, imputed
+  ancestors, source indexes, and authored order without exposing D3 hierarchy
+  nodes. Treemap and sunburst can reuse that construction while retaining their
+  own layout-specific coordinate and presentation policy. Do not extract a
+  generic link materializer yet: tree links are synthesized from target-node
+  lineage, while force links preserve authored link rows.
+- Verification: focused transform tests cover path and explicit-parent input,
+  raw accessor context, primitive rows, all four orientations, semantic node
+  size, immutable sort/separation contexts, authored order, escaped delimiters,
+  imputed ancestors, exact node and target-link lineage, deterministic output,
+  nonmutation, and invalid hierarchies and options. Case 36 matches its existing
+  D3/Plot layout across both revisions, renders native nodes, links, and labels,
+  preserves stable IDs and raw rows, and imports neither `d3-hierarchy` nor a
+  case-owned layout utility. The focused tree, export, case, and roadmap suites
+  pass 33 tests. The exact entry is 4.00 KiB gzip versus 2.44 KiB for the raw D3
+  stratify-plus-tree kernel, a 1.56 KiB wrapper increment within its 2.5 KiB
+  ceiling; source retained-input policy passes. The packed exact-subpath
+  consumer resolves and is 4.05 KiB gzip, while root, universal, ordinary-mark,
+  renderer, and adapter consumers retain neither the tree transform nor
+  `d3-hierarchy`. The focused responsive, theme, and revision browser matrix
+  passes visual review with 99.9% geometry similarity and a clean authored
+  source diff.
+
+### F-207 — D3 arc contexts overstate the required Canvas surface
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling/API
+- Observed in: native rounded radial-bar interaction geometry
+- Friction: `d3-shape` can replay an arc into any path-like sink that implements
+  `moveTo`, `lineTo`, `arc`, and `closePath`, but its declaration requires a
+  complete `CanvasRenderingContext2D`. The renderer-neutral scene needed that
+  replay to derive a sampled rounded interaction boundary from the paint path.
+  An unrounded sector approximation falsely accepted about 9.5% of a representative full-rounded
+  cap's interaction polygon, while depending on DOM `Path2D` or parsing SVG
+  path text would break server and non-DOM renderers.
+- Decision: keep one private minimal arc-trace context and one narrow assertion
+  at the external declaration boundary. Sample every emitted circular segment
+  into scene points, restore the D3 generator's prior context in `finally`, and
+  expose neither the assertion nor a Canvas dependency publicly. This is the
+  shared sector-boundary kernel for radial bars and hierarchy sectors.
+- Verification: focused tests reject the former clipped-corner false hit,
+  retain painted interior hits, and cover reversed angular sweeps, complete
+  annuli, reversed radius ranges and endpoints, and hole exclusion. Polar,
+  nearest-point, strict TypeScript, browser conformance, and bundle-isolation
+  gates pass.
+
+### F-208 — Sunburst definitions exposed hierarchy partition and arc DTOs
+
+- Status: resolved
+- Severity: high
+- Owner: API/Documentation
+- Observed in: Flare analytics sunburst catalog case
+- Friction: the definition stratified flat paths, aggregated values, ran D3
+  partition, materialized angle/depth/color DTOs, and authored a responsive D3
+  arc generator. The apparent radial-arc composition therefore hid hierarchy
+  construction, branch inheritance, responsive ring allocation, and source
+  lineage across the definition and a case utility.
+- Decision: implement an exact optional
+  `@tanstack/charts/hierarchy/sunburst` PolarMark. Reuse the private flat
+  hierarchy construction and aggregation contracts plus the same private
+  renderer-neutral sector kernel as radial bars. Keep selection, palette,
+  orientation, hole size, ring gap, and tooltip language case-owned. Do not
+  expose a public partition DTO transform or generic four-endpoint sector mark
+  until another audited case proves those broader contracts.
+- Verification: case 101 now consumes raw Flare rows with `path`, `value`, and
+  `color: "branchId"`; its only radial callback preserves the reference's
+  visible-depth allocation. Shared tests cover path and explicit-parent input,
+  opaque IDs, imputed ancestors, direct lineage, aggregate values, sorting,
+  responsive and reversed radii, fixed gaps, partial and reversed sweeps,
+  paint-derived geometry focus, stable keys, and exclusion of invisible
+  branches from color inference. The exact source is 7.00 KiB gzip versus 1.97
+  KiB for D3 stratify plus partition, a 5.03 KiB increment within its 5.1 KiB
+  ceiling. Packed runtime, declarations, exports, and ordinary-consumer
+  isolation pass. Browser conformance reports 100.0% geometry and clean visual
+  and type gates; the TanStack case uses 58 lines and 28.24 KiB gzip versus
+  Recharts' 91 lines and 132.17 KiB, with 0.30 ms versus 0.70 ms median mount
+  and equal 0.20 ms median update.
+
+### F-209 — Facets typed child points as grouping rows
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: standard projection gallery migration
+- Friction: `facet` grouped projection configuration rows but each child chart
+  rendered sphere and land geometry. Runtime points correctly retained those
+  GeoJSON objects, while the public mark, definition, and motion types claimed
+  every point datum was a projection configuration row. The callback also
+  exposed each real group as a possibly empty array, requiring an assertion for
+  an invariant the facet already owns.
+- Decision: parameterize `FacetOptions`, `facet`, and `facetChart` by the child
+  chart specification and derive their output and motion datum from
+  `ChartSpecDatum<TChildSpec>`. Keep grouping rows as a separate internal type
+  and expose them to the child callback as a nonempty tuple. Carry the child
+  datum through cell compilation, point offsetting, and outer-axis rendering
+  without changing scene behavior.
+- Verification: a heterogeneous `Group -> Child` regression proves nonempty
+  group inference, exact child datum and motion types, raw object identity, and
+  offset scene points. The focused facet, geo, projection-gallery, and
+  definition-shape suites pass 27 tests, full TypeScript passes, and the facet
+  reference documents the child datum contract.
+
+### F-210 — Definition-shape audit ignored complete definition factories
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: standard projection gallery migration
+- Friction: replacing `defineChart({...})` with the existing `facetChart(...)`
+  factory made the catalog definition-shape total fall by one even though both
+  calls return complete static definitions. The AST audit recognized only the
+  spelling `defineChart`, so it confused an alternate public factory with a
+  missing definition.
+- Decision: classify `facetChart` calls as static definitions in the same
+  source audit. Continue treating dynamic `defineChart(context => ...)` calls
+  separately because only they consume responsive build context.
+- Verification: the catalog audit accounts for all 111 definitions as 105
+  static and six responsive entries, with no parameterless responsive
+  builders. Responsive Sankey layout now belongs inside its mark, and the
+  calendar's outer input factory already owns current dimensions, so neither
+  case retains a redundant chart builder.
+
+### F-211 — Responsive builders defer nested axis callback inference
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: token calendar tick-label accessor migration
+- Friction: a `defineChart(({ width }) => ({ ... }))` callback uses its build
+  parameter while TypeScript is also inferring marks from the callback return.
+  That context-sensitive generic cycle prevents nested axis callbacks in the
+  returned object from receiving their inferred semantic value type. A narrow
+  overload fixed parameterless builders but failed the representative
+  size-dependent band-cell definition and shifted existing invalid-program
+  diagnostics, so it was not retained.
+- Decision: the calendar's outer conformance factory already receives the
+  current width and height on mount and update, so it now returns a static
+  definition and keeps complete per-tick inference. Do not add a partial
+  overload. A genuinely responsive builder can explicitly type its build
+  parameter or nested `ChartAxisTickLabelContext`; revisit a dedicated builder
+  form only after another real case needs both inference directions.
+- Verification: case 118 compiles without callback annotations or assertions,
+  recreates its static definition for each responsive input, and passes the
+  full 320/640/960px browser matrix. Full workspace TypeScript passes.
+
+### F-212 — Transposed composites lacked a horizontal line mark
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: auditing horizontal regression and difference composites
+- Friction: `areaX` could express transposed interval geometry, but the only
+  line mark treated x as the longitudinal channel and y as the numeric value.
+  A horizontal regression or difference boundary therefore needed swapped
+  DTO fields, an incorrectly typed `lineY`, or a custom mark even though its
+  path, grouping, gaps, paint, identity, interaction, and motion were ordinary
+  line semantics.
+- Decision: expose `lineX` and `LineXOptions` beside `lineY`. Its numeric x
+  value and `ChartValue` y channel transpose defaults, strict inference,
+  independent-axis key fallback, scale domains, invalid-row gaps, and focus
+  affinity. Both orientations share one internal line pipeline; the small
+  runtime orientation seam is preferable to duplicating grouping, path,
+  interaction, and motion behavior.
+- Verification: focused strict-type, domain, temporal, categorical, source
+  identity, generator, grouping, gap, SVG, and Canvas tests pass across both
+  orientations. Bundle review attributes roughly 193 minified and 71–78 gzip
+  bytes in existing line consumers to the shared orientation seam; lineX-only
+  channel extraction tree-shakes from lineY consumers. Regression and
+  difference composites are the two audited consumers.
+
+### F-213 — Regression fits were hidden in case-owned endpoint preparation
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: linear regression catalog case
+- Friction: the definition appeared to layer dots and a two-point line, but
+  the case first computed means, covariance, variance, slope, intercept, and
+  independent extents. That indirection hid the model, provided no grouped or
+  confidence-band path, discarded aggregate source lineage, and would have to
+  be transposed again for a horizontal regression.
+- Decision: add `linearRegressionY` and `linearRegressionX` composite marks.
+  They accept raw numeric or temporal observations, use a centered
+  least-squares fit, optionally group by `z`, sample the observed semantic
+  independent domain, and render an optional Student-t fitted-mean confidence
+  band plus the fitted line through ordinary area and line children. Only the
+  line owns interaction. `ci` defaults to `0.95`, `0` suppresses the band, and
+  `samples` defaults to 64 semantic vertices rather than renderer pixels.
+- Shared boundary: the two orientations reuse `lineX`/`lineY`, `areaX`/`areaY`,
+  composite namespacing and motion, first-seen grouping, and aggregate lineage.
+  The centered fit, residual error, Student-t quantile, and confidence interval
+  remain one regression kernel. Difference crossings share none of that math.
+- Verification: focused tests cover numeric and temporal fits, groups,
+  degenerate inputs, centered stability, Student-t intervals, sample domains,
+  transposition, gaps, aggregate lineage, raw identity, interaction ownership,
+  and motion. Case 31 passes 320 raw rows directly to the mark and contains no
+  covariance, variance, mean, endpoint, or line preparation. Browser
+  conformance passes visual and strict-type gates at 96.5% diagnostic geometry,
+  63 authored lines, and 37.49 KiB gzip versus Plot's 46 lines and 88.95 KiB.
+  The isolated regression fixture is 22.47 KiB gzip, a 5.82 KiB increment under
+  its 6 KiB cap. Exact package and universal declarations, packed runtime,
+  documentation, full TypeScript, and bundle-isolation gates pass.
+
+### F-214 — Marginal views required reserved-domain manual plotting
+
+- Status: resolved
+- Severity: high
+- Owner: API/Documentation
+- Observed in: scatterplot with marginal histograms catalog case
+- Friction: the apparent scatter-and-histogram definition first ran two
+  case-owned D3 bins, normalized counts, mapped them into hard-coded slices of
+  the scatterplot's semantic x/y domains, added separator rules, and hid ticks
+  in the reserved ranges. The data-space constants coupled layout to the
+  current domains and made three independent scale roles look like one simple
+  chart. Existing facets can embed complete child chart scenes, but repetition
+  is not the semantic relationship here, and the private embedder did not
+  namespace child `markId` values.
+- Decision: add exact-subpath `viewGrid` composition for named fixed/flexible
+  row and column tracks. Each cell receives a normal static chart definition.
+  `share` asserts equal resolved scale domains and mappings while aligning plot
+  endpoints after guide margins resolve; `align` aligns endpoints without
+  requiring equal domains. Extract facet's full-chart scene adoption into one
+  renderer-neutral helper that offsets and namespaces points and mark IDs,
+  remaps interaction/focus/state references, removes nested default focus
+  layers, and leaves guide keys local. This is separate from resolved mark
+  layout: Hexbin and Difference derive geometry inside one parent scale pair,
+  while view composition compiles independent child scales and scenes. Child
+  host behavior remains outer-definition-owned. Authored child selection,
+  behaviors, scene backgrounds, compiled controls, unsupported resources, and
+  guide motion fail explicitly instead of disappearing during scene adoption.
+- Verification: focused view, scene-adoption, facet, composite, export, and
+  Case 57 suites pass 59 tests. Case 57 now feeds the same raw rows
+  through public `binX` and `binY`, ordinary `dot` and `rect` marks, and three
+  child definitions; its tests cover both revisions, exact raw and aggregate
+  lineage, seven plus eight bins, 320/640/960px plot-range alignment, and
+  authored-source closure. Exact packed-package, documentation, TypeScript,
+  and bundle-isolation gates pass. The current coordinated-view fixture
+  exercises the shared `composeViews` kernel and is 22.50 KiB gzip, 5.13 KiB
+  over ordinary dots plus static SVG and below its reviewed 5.25 KiB cap. A
+  focused parity test proves `viewGrid` resolves the same scene as equivalent
+  `composeViews`, `grid`, and `shareX` input. Browser conformance passes the
+  visual and type gates at 95.3% diagnostic geometry; TanStack uses 165
+  authored lines and 38.58 KiB gzip versus Plot's 129 lines and 84.80 KiB.
+- Linked-view follow-up: case 87 proves that `viewGrid` also owns interaction
+  coordination when the reference library links multiple grids in one chart
+  instance. The two child scenes share Date semantics and aligned x ranges,
+  retain independent y domains, and expose one outer focus and pin lifecycle.
+  View layout and crosshair painting no longer require application state or DOM
+  overlays; only the live cross-view value summary remains UI.
+
+### F-215 — Ridgeline profiles lost categories to numeric surrogates
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: ridgeline density comparison catalog case
+- Friction: the definition appeared to contain ordinary rules, areas, and
+  lines, but `ridgeDensity` first selected seasons, created 24 D3 bins per
+  season, normalized each group, replaced semantic seasons with numeric
+  baselines `0`, `1`, and `2`, added a fixed `0.78` data-space offset, and
+  required a hand-authored numeric y domain, rounded tick lookup, and left
+  margin. The helper mixed analytical preparation with scale-resolved profile
+  geometry and discarded both raw and aggregate lineage.
+- Decision: keep grouped `binX` and `normalize({ basis: "max" })` explicit in
+  the definition, and add `ridgelineY` plus its transposed `ridgelineX` for
+  geometry only. A ridge consumes a numeric or temporal profile position, a
+  numeric or string category, and a normalized `[0, 1]` height. It derives the
+  category step from the complete resolved point or band domain and expresses
+  `overlap` in step units. The mark emits one area and optional outline per
+  category but only one semantic interaction point per sample. It preserves
+  source datums, stable keys, gaps, curves, safe shared opacity states, and
+  keyed motion. Rules, category labels, scale direction, color, binning, and
+  normalization remain normal definition concerns.
+- Shared boundary: `minimumMappedSpacing`, `resolvedCategoryStep`, and category
+  scale validation are the first-principles reusable seam. Band marks use
+  mapped spacing for inferred bandwidth; ridgelines, violins, and
+  category-relative ticks use the complete resolved domain plus the bounded
+  singleton fallback. The public ridge mark does not depend on composite or
+  resolved-child layout, and it does not hide density estimation. The existing
+  D3 curve bridge remains the correct path-generation primitive.
+- Verification: focused scale, geometry, type, state, motion, renderer, export,
+  Plot-helper, and Case 62 suites pass 49 tests. Case tests cover both revisions,
+  72 bins, per-season maxima, nested normalize-to-bin-to-episode identity,
+  semantic season ticks, 320/640/960px offsets, curve paths, stable resize keys,
+  and authored-source closure. Exact packed runtime, declarations, production
+  isolation, and seven framework adapters pass; documentation passes for 99
+  pages and 90 catalog embeds. The isolated fixture is 17.35 KiB gzip, a
+  715-byte increment over the line plus static-SVG baseline and below its
+  0.75 KiB cap. Browser conformance passes visual and strict-type gates at
+  94.1% diagnostic geometry; TanStack uses 103 authored lines and 36.23 KiB
+  gzip versus Plot's 117 lines and 92.77 KiB.
+
+### F-216 — Violin envelopes encoded categories as numeric endpoints
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: violin distribution comparison catalog case
+- Friction: `violinDensity` combined authored body-mass boundaries, grouped D3
+  bins, per-species max normalization, numeric category centers, and mirrored
+  `x1`/`x2` endpoints in one helper. `violinMedians` separately repeated the
+  numeric centers and fabricated median endpoints. The definition therefore
+  appeared to be an ordinary area, link, and dot while the actual distribution
+  policy and category layout lived elsewhere. A numeric x domain and rounded
+  tick lookup reconstructed the discarded species labels, and neither helper
+  retained aggregate or raw-observation lineage.
+- Decision: keep grouped `binY`, `normalize({ basis: "max" })`, and `groupBy`
+  with the public `median` reducer explicit in the definition. Add `violinY`
+  and its transposed `violinX` for mirrored geometry only. The mark consumes a
+  numeric or temporal profile position, a numeric or string category, and a
+  normalized `[0, 1]` width. Its `span` is the full peak width in category-step
+  units. It emits one closed area per contiguous category segment and one
+  centered semantic interaction point per prepared sample. Density estimation,
+  boundaries, normalization, summaries, axes, and category order remain normal
+  definition concerns.
+- Shared boundary: `minimumMappedSpacing`, `resolvedCategoryStep`, and category
+  scale validation are the reusable first-principles seam shared by band,
+  ridgeline, violin, and category-relative ticks. `tickX` and `tickY` now accept
+  a mutually exclusive `span` in orthogonal category-step units, so the median
+  bar remains an ordinary summary mark without synthetic endpoints. Ridge and
+  violin segment loops intentionally remain separate: a ridge closes one
+  displaced profile to a baseline and moves its interaction geometry, while a
+  violin joins two mirrored boundaries around centered interaction points. A
+  mode-driven shared kernel would reintroduce the indirection this audit is
+  removing.
+- Verification: focused spacing, tick, violin, transform, type, state, motion,
+  renderer, export, Plot-helper, and Case 63 suites cover both orientations,
+  D3 area topology, point and band scales, empty domain slots, singleton
+  fitting, invalid-row gaps, stable identity, 48 bins in both revisions, exact
+  max counts and medians, nested normalize-to-bin-to-observation identity,
+  semantic species ticks, and symmetric 320/640/960px geometry. Case source no
+  longer imports either custom helper or authors numeric category endpoints.
+  Exact packed runtime, declarations, production isolation, React Native, and
+  seven framework adapter gates pass; documentation passes for 100 pages and
+  90 catalog embeds. The isolated violin fixture is 17.37 KiB gzip, a roughly
+  0.72 KiB increment below its 0.75 KiB cap, and retains no ridge, areaX,
+  composite, public transform, resolved-child, or D3 geometry runtime. The packed
+  violin fixture is 18.08 KiB gzip. Browser conformance passes visual and
+  strict-type gates at 97.9% diagnostic geometry; TanStack uses 122 authored
+  lines and 37.79 KiB gzip versus Plot's 155 lines and 93.46 KiB. The global
+  bundle gate still reports only an unrelated composite-mark cap and four
+  pre-existing one-byte locked-baseline drifts.
+
+### F-217 — Mosaic cells hid two normalization denominators
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: Marimekko survey-composition catalog case
+- Friction: `mosaicLayout` grouped raw survey rows, counted category pairs,
+  normalized question totals across x, normalized response counts within each
+  question across y, advanced two cumulative cursors, and fabricated a second
+  label DTO. The definition therefore appeared to contain only rectangles and
+  text while the analytical count policy, both denominators, category order,
+  endpoints, and labels lived elsewhere. Prepared cells retained no path to
+  either their aggregate row or the 500 source observations.
+- Decision: keep `groupBy` with an explicit count or sum reducer in the
+  definition, then expose eager `mosaicY` and `mosaicX` transforms for unique
+  aggregate category pairs. `mosaicY` allocates x marginals globally and y
+  values conditionally within x; `mosaicX` transposes that policy. Each output
+  preserves source fields, semantic `xValue` and `yValue`, both normalized
+  centers and endpoints, the cell value, its outer total, the grand total, and
+  direct lineage. Explicit orders control geometry without synthesizing rows;
+  duplicate pairs fail with guidance to aggregate first. Ordinary `select`,
+  `rect`, and `text` own labels and rendering, so no mosaic mark or custom
+  scene boundary is needed.
+- Shared boundary: extract one private overflow-safe proportional-interval
+  allocator and use it once for mosaic marginals, once per conditional group,
+  and for polar pie slices. This is the reusable first-principles seam: ordered
+  nonnegative weights become aligned fractions and endpoints. Waffle remains
+  separate because it rounds cumulative unit boundaries, fragments categories
+  across cells, and packs those fragments in resolved pixels. Reusing its
+  kernel or the D3-backed general stack engine would add policies this eager
+  transform does not have.
+- Verification: focused interval, pie, mosaic, export, reference-helper, and
+  Case 64 suites pass 72 tests, and the full TypeScript program passes. The
+  case emits 25 stable ordinary rectangles plus five labels, preserves exact
+  question widths of 101/500, 95/500, 103/500, 100/500, and 101/500, and
+  retains all 500 raw observations through `mosaicY` to grouped counts. Its
+  source imports no local layout or D3 array utility. Exact package runtime,
+  declarations, production isolation, React Native, and seven framework
+  adapters pass; documentation passes for 100 pages, 90 catalog embeds, and 18
+  executable examples. The isolated transform is 1.95 KiB gzip below its 2.1
+  KiB cap with no D3, mark, renderer, or unrelated transform runtime. Sharing
+  the allocator moves the polar-pie increment from 1.00 to 1.05 KiB within its
+  reviewed 1.1 KiB cap; the global bundle gate otherwise retains only the
+  unrelated composite cap and five one- or two-byte locked-baseline drifts.
+  Browser conformance passes visual and strict-type gates at 96.7% diagnostic
+  geometry; TanStack uses 103 authored lines and 34.35 KiB gzip versus Plot's
+  146 lines and 83.62 KiB.
+
+### F-218 — Decorative scene fragments lost point ownership
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: controlled keyed selection, focused composite marks, Waffle,
+  line dots, streaming line-plus-dot layers, radial lines, arrows, and Box
+  decorations
+- Friction: post-domain filtering and focus reconstruction inferred semantic
+  ownership from string prefixes in generated scene keys. A point key such as
+  `a` could therefore claim `a:child`, while a user key such as `a:dot` or
+  `a:shaft` could collide with the generated dot or arrow fragment for `a`.
+  Composite children that intentionally removed interaction metadata also
+  discarded the only remaining link from whiskers, medians, labels, and other
+  decorative geometry to their source point.
+- Decision: keep exact point identity separate from structural descendant
+  ownership. Generated string keys now use length-delimited identity, while
+  ordering uses a separate semantic comparator. A shared scene-point lookup
+  resolves exact keys, namespaced descendants, focus candidates, mark roots,
+  and an explicit renderer-neutral `pointOwner` carried by singular decorative
+  fragments. Selection filtering, focus reconstruction, mark state, scene
+  adoption, and composite namespacing all use that one ownership contract.
+  `pointOwner` is not an interaction point and cannot create duplicate focus or
+  activation targets. The exact `@tanstack/charts/mark/decorative` subpath now
+  applies the same removal boundary to a complete ordinary or resolved-layout
+  mark. It preserves scale channels, post-domain ordering, layout-label
+  measurement, motion, and visual geometry while exposing `never` point types.
+- Boundary: this is shared scene identity infrastructure, not a Waffle,
+  selection, or composite-mark utility. Multi-point geometry such as regression
+  bands and difference fills cannot honestly use singular `pointOwner`; add a
+  point-set ownership form only when a real filtered or focused case requires
+  it. Duplicate authored top-level mark IDs remain invalid and should be
+  rejected at definition validation rather than repaired during reconciliation.
+- Verification: the full charts-core suite passes 650 tests and the root
+  TypeScript program passes. Focused regressions cover colon-containing text
+  and Waffle keys, line point/dot collisions, arrow shaft collisions, nested
+  retargeted focus candidates, radial-line descendant focus, nested state
+  metadata, and selected Box whisker and median ownership. The decorative-mark
+  suite additionally covers one interaction owner for line-plus-dot layers,
+  idempotent point-free rules, resolved Waffle layout and post-domain order,
+  preserved automatic label margins, exact scale/point types, and explicit
+  rejection of focus/state behavior. The isolated decorative line adds 0.38
+  KiB gzip over the ordinary static line within its 0.5 KiB cap and tree-shakes
+  the point-ownership lookup. Ordinary root line fixtures retain none of the
+  decorator, scene-filter, or ownership modules; the packed exact-subpath
+  runtime, declaration, production-isolation, and React Native gates pass.
+- Linked-view follow-up: both Case 87 line layers now use the decorator, so 16
+  dots are the only outer-scene interaction points. View identity remains on
+  the dots for grouped x focus, while the decorative lines still contribute
+  Date/value domains and visible geometry. This is the first composed-view
+  consumer and requires no new ownership utility.
+- Annotation follow-up: Case 58 now wraps both extrema text layers with the
+  same decorator, leaving the minimum and maximum dots as the only annotation
+  interaction points while preserving label geometry and automatic margins.
+  Its focused test rejects label-owned points; quick browser conformance passes
+  visual and strict-type gates at 98.5% diagnostic geometry similarity.
+
+### F-219 — Responsive bar caps required guessed plot widths
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: layered weather composed-chart catalog case
+- Friction: the definition subtracted its expected left and right margins from
+  the outer width, reconstructed the configured band scale's bandwidth, and
+  converted a desired 20px bar cap into a dynamic inset. That calculation ran
+  before final axis layout and repeated geometry already owned by `barY`.
+- Decision: add orientation-neutral `maxThickness` to `barY` and `barX`. The
+  mark applies the finite nonnegative cap to painted categorical thickness
+  after resolving the final band, optional subgroup band, and authored inset,
+  then centers the result. Narrow responsive bands retain their natural size.
+  One private thickness resolver serves both orientations; it does not become
+  a public layout utility because no non-bar consumer requires this policy.
+- Verification: focused core tests cover exact centered 20px vertical and
+  horizontal caps from final resolved scales, grouped bars after authored
+  inset, finite and nonfinite limits, and inline-state inset overrides that
+  cannot widen a capped bar. The Case 70 runtime test covers six wide capped
+  bars, natural narrow responsive bars, and source closure without a responsive
+  definition builder or guessed inner width. Quick browser conformance passes
+  visual and strict-type gates at 99.5% diagnostic geometry similarity. An
+  isolated bundle reversal attributes 240 minified and 97 gzip bytes in the
+  representative-marks fixture to the bar cap, plus 75–80 gzip bytes in DOM
+  and React host fixtures for the inline-state invariant; ordinary line and
+  compact-scene fixtures retain no bar-cap code.
+
+### F-220 — Framed labels estimate glyph bounds by character count
+
+- Status: monitoring
+- Severity: medium
+- Owner: API
+- Observed in: editable-range label fit and Sankey-flow label backdrops
+- Friction: Case 92 estimates whether an event label fits with
+  `label.length * 6 + 10`; the richer Sankey case estimates backdrop width from
+  the longer label/value string, font size, and a `0.58` glyph factor. Charts
+  already owns renderer-aware text measurement for axes, automatic text
+  margins, focus-guide labels, and treemap fit, but ordinary definitions cannot
+  compose those measured bounds into a padded background or visibility rule.
+- Current decision: keep both presentation policies explicit. Do not expose a
+  raw text-measurement utility or add a Sankey-specific label DSL. The narrow
+  reusable candidate is a resolved text-frame/label composite that owns text
+  measurement, padding, background geometry, and optional fit visibility while
+  retaining normal text channels and renderer lifecycle. Two catalog uses are
+  enough to record the seam, not enough to commit its public shape.
+- Verification: both cases retain their estimates beside the authored label
+  presentation, and the Sankey layout itself remains fully owned by the
+  existing optional primitive. A future extraction must replace both formulas
+  and prove DOM, Canvas, and native measurement behavior before this finding
+  can resolve.
+
+### F-221 — Roadmap evidence existence allowed false verification
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: definition-coverage rereview of Cases 02, 55, and 56
+- Friction: the roadmap validator accepted any evidence path that existed. It
+  did not require verified entries to cite their own case, or compare roadmap
+  IDs with the live catalog. Cases 55 and 56 therefore passed with copied Case
+  61 evidence, while Case 02's existing source path did not prove its claimed
+  public-transform migration; all three still contained the case-owned helpers
+  their verified summaries said had been removed. The former 42-case control
+  group also existed only as a count rather than explicit review records.
+- Decision: require the audit, overview, roadmap, and live catalog directory
+  sets to be identical and unique. Every verified or accepted case must cite at
+  least one path under its own directory, and every case-local work source must
+  be reachable from that case's actual TanStack authored closure. Keep all 109
+  cases explicit so a control-group total cannot hide missing ownership
+  reviews. Compare the audit disposition and overview disposition/capability
+  columns with the machine-readable record. Correct the three definitions and
+  attach their own focused evidence instead of weakening their verified
+  summaries.
+- Verification: the roadmap gate passes four tests while proving 109 unique
+  IDs in each document, exact equality with the 109 live directories,
+  case-local evidence for every verified or accepted entry, authored-closure
+  reachability for local ownership sources, documentation-column parity,
+  capability-DAG validity, stable disposition totals, and the three accepted
+  boundaries.
+  Cases 02, 55, and 56 now cite their own sources; Cases 55 and 56 also cite
+  their own focused tests. Their focused matrix passes eight tests across three
+  files, and the roadmap matrix passes four tests in one file.
+
+### F-222 — View composition coupled placement to grid semantics
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: Cartesian chart with an overlaid donut summary and the
+  composition-primitive review after the marginal-histogram migration
+- Friction: `viewGrid` correctly replaced reserved-domain plotting for adjacent
+  views, but its row/column cells also made one non-overlapping arrangement the
+  composition abstraction. Placing a complete polar summary in the corner of
+  a Cartesian chart would require reserving a track that shrank the main view,
+  manually adopting a second scene, or adding a special inset-chart factory.
+  Each path coupled child chart lifecycle to one placement policy.
+- Decision: make exact-subpath `composeViews` the primitive over named complete
+  chart definitions and keep placement in opaque deterministic utilities.
+  `fill`, `grid`, `layer`, and frame-relative `inset` compose layouts; later
+  layers paint above earlier ones, and every named child is placed exactly
+  once. Keep scale relationships orthogonal through `shareX`, `shareY`,
+  `alignX`, and `alignY`. `viewGrid` remains concise compatibility syntax that
+  lowers into the same composition and scene-adoption kernel rather than a
+  second engine. Arbitrary layout callbacks are intentionally outside the
+  contract so responsive placement, clipping, paint order, and validation stay
+  owned by Charts.
+- Verification: focused layout tests cover retained view IDs, grid plus inset
+  resolution, all nine anchors, proportional shrinking, fixed/flexible tracks,
+  invalid layouts, duplicate placement, unresolved references, and cycles. The
+  mixed-coordinate scene test covers a Cartesian chart plus polar donut,
+  responsive clipping, stable namespaced identity, datum and scale-value
+  unions, one outer focus layer, reverse paint order, and transparent-hole
+  pass-through. Scale tests cover shared versus aligned mappings and reject
+  links across incompatible frames. A scene-parity test proves `viewGrid`
+  lowers into the same kernel. The package export test proves all composition
+  and layout helpers exist only on `@tanstack/charts/view`; the root TypeScript
+  program validates unknown, missing, and linked view IDs. Canonical docs pass
+  for 100 pages and are synchronized into the package. The grid-only bundle
+  tree-shakes the inset, layer, and anchor implementations; the coordinated
+  fixture is 22.50 KiB gzip, a 5.13 KiB increment over ordinary dots plus
+  static SVG and below its reviewed 5.25 KiB cap. All 1,529 unit tests pass,
+  along with packed exports, declarations, runtime consumers, and seven
+  framework adapter package gates.

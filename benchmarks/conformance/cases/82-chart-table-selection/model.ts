@@ -31,6 +31,12 @@ export function penguinSelectionLabel(row: CompletePenguin) {
   return `${row.species} ${row.sex.toLowerCase()} on ${row.island}`
 }
 
+export function selectionRowId(row: CompletePenguin): SelectionId {
+  const id = penguinSelectionId(row)
+  if (!id) throw new TypeError('Expected a chart/table selection row')
+  return id
+}
+
 export function selectionRows(
   rows: readonly PenguinsRow[],
   revision = 0,

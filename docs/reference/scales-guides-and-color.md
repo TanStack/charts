@@ -43,6 +43,11 @@ They are a documented subset, not a complete `d3-scale` compatibility claim.
 Use D3 for temporal or transformed domains, piecewise and nonnumeric
 interpolation, and full formatting semantics.
 
+`ConfiguredScaleLike` may expose `invert(position)`. Charts copies that
+capability onto `ResolvedScale.invert` after assigning the responsive range.
+Final-screen layouts and interactions can then recover semantic values without
+copying the authored scale. Band scales do not expose inversion.
+
 ## Positional scale factories
 
 The common path passes the D3 factory directly:
@@ -133,6 +138,38 @@ interface ChartAxisOptions<TValue extends ChartValue> {
           | false
           | {
               rotate?: number
+              fontSize?:
+                | number
+                | ((
+                    context: ChartAxisTickLabelContext<TValue>,
+                  ) => number | undefined)
+              fontWeight?:
+                | number
+                | ((
+                    context: ChartAxisTickLabelContext<TValue>,
+                  ) => number | undefined)
+              opacity?:
+                | number
+                | ((
+                    context: ChartAxisTickLabelContext<TValue>,
+                  ) => number | undefined)
+              anchor?:
+                | 'start'
+                | 'middle'
+                | 'end'
+                | ((
+                    context: ChartAxisTickLabelContext<TValue>,
+                  ) => 'start' | 'middle' | 'end' | undefined)
+              dx?:
+                | number
+                | ((
+                    context: ChartAxisTickLabelContext<TValue>,
+                  ) => number | undefined)
+              dy?:
+                | number
+                | ((
+                    context: ChartAxisTickLabelContext<TValue>,
+                  ) => number | undefined)
               thin?:
                 | boolean
                 | {
@@ -191,6 +228,39 @@ const x = {
 `thin: false` renders every candidate label. `keep` is a hard guarantee:
 kept values render even if they collide with one another. A kept value outside
 the candidate set adds only a label, not a tick stub or grid line.
+
+Tick-label presentation accepts constants or accessors. Accessors run on every
+candidate before thinning and receive the semantic value, stable candidate
+index, resolved center position, and resolved band width. Continuous scales
+report a bandwidth of zero. Returning `undefined` preserves the normal value
+for that candidate.
+
+```ts
+interface ChartAxisTickLabelContext<TValue extends ChartValue> {
+  value: TValue
+  index: number
+  position: number
+  bandwidth: number
+}
+
+const x = {
+  scale: scaleBand<number>().domain(weeks),
+  axis: {
+    tickLabels: {
+      fontSize: 13,
+      opacity: 0.62,
+      anchor: ({ index }) => (index === 0 ? 'start' : undefined),
+      dx: ({ index, bandwidth }) => (index === 0 ? -bandwidth / 2 : undefined),
+    },
+  },
+}
+```
+
+`anchor` defaults to the rotation-derived x anchor or `end` on y. `dx` and
+`dy` apply after the normal tick position and padding. Resolved font size,
+weight, anchor, offset, opacity, and rotation all participate in collision
+thinning and automatic margins. Numeric typography follows tick-label motion;
+anchor changes snap.
 
 ## Automatic guide layout
 
@@ -255,6 +325,7 @@ interface ResolvedScale {
   type: string
   domain: readonly ChartValue[]
   map(value: unknown): number
+  invert?(position: number): ChartValue
   ticks: readonly { value: ChartValue; label: string; position: number }[]
   bandwidth: number
 }
@@ -296,7 +367,7 @@ interface ChartColorOptions {
 | `domain` | Observed channel values | Domain hint for factory, built-in, or custom resolution              |
 | `range`  | See below               | Range for a factory, the built-in scale, or a custom resolver        |
 | `nice`   | `false`                 | Nice a factory or configured continuous color scale                  |
-| `legend` | None                    | Legend layout and scene renderer shown above the inner chart         |
+| `legend` | None                    | Legend layout and scene renderer above or below the inner chart      |
 
 Resolution order:
 
@@ -349,6 +420,7 @@ colorLegend({
   itemWidth: 120,
   width: 240,
   format: (value) => value.toFixed(0),
+  placement: 'bottom',
 })
 ```
 
@@ -358,6 +430,7 @@ interface ColorLegendOptions {
   itemWidth?: number
   width?: number
   format?: (value: number) => string
+  placement?: 'top' | 'bottom'
 }
 ```
 
@@ -365,7 +438,7 @@ interface ColorLegendOptions {
 to responsive columns for categorical scales. Continuous scales render a
 sampled ramp. Quantize, quantile, and threshold scales render exact range bins
 at their resolved thresholds. `width` and `format` configure the quantitative
-forms.
+forms. `placement` defaults to `top`.
 
 ## Gradient legend
 
@@ -377,6 +450,7 @@ colorGradientLegend({
   steps: 48,
   width: 240,
   format: (value) => value.toFixed(1),
+  placement: 'bottom',
 })
 ```
 
@@ -386,6 +460,7 @@ interface ColorGradientLegendOptions {
   steps?: number
   width?: number
   format?: (value: number) => string
+  placement?: 'top' | 'bottom'
 }
 ```
 
@@ -394,20 +469,68 @@ interface ColorGradientLegendOptions {
 inner chart width. The legend requires a numeric first and last color-domain
 value and throws for a nonnumeric domain.
 
+## Interactive categorical legend
+
+```ts
+import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { interactiveColorLegend } from '@tanstack/charts/legend'
+
+interactiveColorLegend({
+  visible: controlledSignal(visibleSeries, setVisibleSeries),
+  placement: 'bottom',
+  ariaLabel: 'Series visibility',
+})
+```
+
+```ts
+interface InteractiveColorLegendChange<TValue extends ChartKey> {
+  type: 'toggle'
+  value: TValue
+  visible: boolean
+}
+
+interface InteractiveColorLegendOptions<TValue extends ChartKey> {
+  visible: ControlledSignal<
+    readonly TValue[],
+    InteractiveColorLegendChange<TValue>
+  >
+  placement?: 'top' | 'bottom'
+  ariaLabel?: string
+  itemWidth?: number
+  format?: (value: TValue) => string
+  itemAriaLabel?: (value: TValue, visible: boolean) => string
+  emptyLabel?: string
+}
+```
+
+The application owns the current visible-value snapshot and handles each
+proposed replacement. The legend owns domain-ordered toggling, responsive
+layout, and native browser buttons. It filters series geometry and focus points
+after scale resolution, so hidden values remain in categorical and positional
+domains. A mark participates when its categorical `color` channel establishes
+series identity without a separate `z` channel.
+
+The DOM hosts replace the scene fallback with native `button` elements. Static
+SVG output retains a noninteractive visual fallback. This control is not yet
+implemented by the React Native host.
+
 ## Custom legends
 
 `ChartColorLegend` separates layout from rendering:
 
 ```ts
 interface ChartColorLegend {
+  placement?: 'top' | 'bottom'
   height(itemCount: number, width: number, colors?: ResolvedColorScale): number
   render(context: ChartColorLegendContext): SceneNode
 }
 ```
 
 `height` reserves space before chart bounds are finalized. `render` receives
-the resolved colors, chart bounds, theme, and full width. Return one keyed
-[scene node](./runtime-and-scene.md#scene-nodes).
+the resolved colors, plot bounds, legend bounds, theme, and full chart size.
+Return one keyed [scene node](./runtime-and-scene.md#scene-nodes). Browser host
+controls are an advanced extension boundary used by `interactiveColorLegend`;
+ordinary custom legends should remain renderer-neutral scene output.
 
 ## Theme and gradients
 

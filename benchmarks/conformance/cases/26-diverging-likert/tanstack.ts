@@ -1,23 +1,37 @@
-import { barX, colorLegend, defineChart, ruleX } from '@tanstack/charts'
+import {
+  barX,
+  colorLegend,
+  defineChart,
+  groupBy,
+  ruleX,
+  stack,
+} from '@tanstack/charts'
 import { survey } from '@charts-poc/demo-data/survey'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { likertResponses, selectLikertSurvey } from './selection'
-import { likertSegments } from './transform'
 import { tanstackMount } from '../../shared/mount'
 
 const colors = ['#991b1b', '#ef4444', '#cbd5e1', '#60a5fa', '#1d4ed8']
 
 const likertSurvey = selectLikertSurvey(survey)
-const segments = likertSegments(likertSurvey)
+export const likertCounts = groupBy(likertSurvey, {
+  by: { Question: 'Question', Response: 'Response' },
+  outputs: { count: { reduce: 'count' } },
+})
 
-const definition = () =>
+export const likertDefinition = () =>
   defineChart({
     marks: [
-      barX(segments, {
-        x1: 'x1',
-        x2: 'x2',
+      barX(likertCounts, {
+        id: 'likert-responses',
+        x: 'count',
         y: 'Question',
+        z: 'Response',
         color: 'Response',
+        layout: stack({
+          order: likertResponses,
+          anchor: { series: 'Neutral', fraction: 0.5 },
+        }),
         key: (row) => `${row.Question}:${row.Response}`,
         inset: 0.75,
       }),
@@ -42,6 +56,6 @@ const definition = () =>
   })
 
 export const mount = tanstackMount(
-  definition,
+  likertDefinition,
   'Diverging Likert survey responses',
 )

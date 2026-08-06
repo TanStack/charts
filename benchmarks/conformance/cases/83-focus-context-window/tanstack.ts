@@ -1,1 +1,5 @@
-export { mount } from './view'
+export {
+  focusContextDetailDefinition,
+  focusContextOverviewDefinition,
+  mount,
+} from './view'

@@ -6,7 +6,12 @@ import { createMark } from './mark'
 import { createChartScene, defineChart, findNearestPoint } from './scene'
 import { renderChartSvg } from './svg'
 import { linearAxes, utcXAxes } from './test-scales'
-import type { ChartDefinition, ChartPoint, SceneNode } from './types'
+import type {
+  ChartBehaviorContext,
+  ChartDefinition,
+  ChartPoint,
+  SceneNode,
+} from './types'
 
 describe('native mark and channel scene', () => {
   it('groups one flat arbitrary dataset through a z channel', () => {
@@ -94,6 +99,107 @@ describe('native mark and channel scene', () => {
     expect(
       flatten(marks.children).filter((node) => node.kind === 'dot'),
     ).toHaveLength(3)
+  })
+
+  it('places resolved behavior fallback and controls after guides and before focus', () => {
+    const extension = {
+      id: 'test-behavior-control',
+      create: () => {
+        throw new Error('Scene creation must not mount host controls')
+      },
+    }
+    const resolve = vi.fn((_context: ChartBehaviorContext) => ({
+      nodes: [
+        {
+          kind: 'group' as const,
+          key: 'behavior-fallback',
+          className: 'test-behavior-fallback',
+          children: [],
+        },
+      ],
+      controls: [
+        {
+          key: 'overlay',
+          extension,
+          fallbackNodeKey: 'behavior-fallback',
+        },
+      ],
+    }))
+    const scene = createChartScene(
+      defineChart({
+        marks: [lineY([1, 3, 2])],
+        behaviors: [{ id: 'test-behavior', resolve }],
+        ...linearAxes([0, 2], [0, 3]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const keys = scene.nodes.map((node) => node.key)
+
+    expect(resolve).toHaveBeenCalledOnce()
+    expect(resolve.mock.calls[0]?.[0]).toMatchObject({
+      chart: scene.chart,
+      scales: scene.scales,
+      colors: scene.colors,
+      theme: scene.theme,
+      width: 480,
+      height: 260,
+    })
+    expect(keys.indexOf('behavior-fallback')).toBeGreaterThan(
+      keys.indexOf('axes'),
+    )
+    expect(keys.indexOf('behavior-fallback')).toBeLessThan(
+      keys.indexOf('default-focus'),
+    )
+    expect(scene.controls).toEqual([
+      {
+        key: 'overlay',
+        extension,
+        fallbackNodeKey: 'behavior-fallback',
+      },
+    ])
+    expect(renderChartSvg(scene, { ariaLabel: 'Behavior fallback' })).toContain(
+      'test-behavior-fallback',
+    )
+  })
+
+  it('rejects duplicate behavior ids', () => {
+    const behavior = { id: 'duplicate', resolve: () => ({}) }
+
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [lineY([1, 3, 2])],
+          behaviors: [behavior, behavior],
+          ...linearAxes([0, 2], [0, 3]),
+        }),
+        { width: 480, height: 260 },
+      ),
+    ).toThrow('Duplicate chart behavior id "duplicate"')
+  })
+
+  it('rejects duplicate host-control identities from behavior output', () => {
+    const extension = { id: 'duplicate-control', create: () => ({}) }
+
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [lineY([1, 3, 2])],
+          behaviors: [
+            {
+              id: 'controls',
+              resolve: () => ({
+                controls: [
+                  { key: 'overlay', extension },
+                  { key: 'overlay', extension },
+                ],
+              }),
+            },
+          ],
+          ...linearAxes([0, 2], [0, 3]),
+        }),
+        { width: 480, height: 260 },
+      ),
+    ).toThrow('Duplicate chart host control "duplicate-control:overlay"')
   })
 
   it('uses the public custom-mark protocol for extension', () => {

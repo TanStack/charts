@@ -115,6 +115,91 @@ describe('scene interaction geometry', () => {
     expect(nearestScenePoint(scene, 125, 100, 48)).toBeNull()
   })
 
+  it('uses disconnected polygon exteriors and excludes their holes', () => {
+    const region = point('region', 20, 20)
+    const scene = testScene(
+      [
+        {
+          kind: 'area',
+          key: region.key,
+          points: [
+            [200, 200],
+            [210, 200],
+            [200, 210],
+          ],
+          path: 'M200,200L210,200L200,210Z',
+          polygons: [
+            [
+              [
+                [0, 0],
+                [100, 0],
+                [100, 100],
+                [0, 100],
+              ],
+              [
+                [30, 30],
+                [70, 30],
+                [70, 70],
+                [30, 70],
+              ],
+            ],
+            [
+              [
+                [140, 10],
+                [180, 10],
+                [180, 50],
+                [140, 50],
+              ],
+            ],
+          ],
+          interaction: { point: region, affinity: 'geometry' },
+        },
+      ],
+      [region],
+    )
+
+    expect(nearestScenePoint(scene, 20, 20, 0)?.key).toBe('region')
+    expect(nearestScenePoint(scene, 160, 30, 0)?.key).toBe('region')
+    expect(nearestScenePoint(scene, 50, 50, 48)).toBeNull()
+    expect(nearestScenePoint(scene, 202, 202, 48)).toBeNull()
+  })
+
+  it('measures area fallback distance from every polygon ring', () => {
+    const region = point('region', 20, 20)
+    const scene = testScene(
+      [
+        {
+          kind: 'area',
+          key: region.key,
+          points: [],
+          polygons: [
+            [
+              [
+                [0, 0],
+                [100, 0],
+                [100, 100],
+                [0, 100],
+              ],
+              [
+                [30, 30],
+                [70, 30],
+                [70, 70],
+                [30, 70],
+              ],
+            ],
+          ],
+          interaction: { point: region },
+        },
+      ],
+      [region],
+    )
+
+    expect(nearestScenePoint(scene, 50, 68, 2)?.key).toBe('region')
+    expect(nearestScenePoint(scene, 50, 67, 2)).toBeNull()
+    expect(nearestScenePoint(scene, 102, 50, 2)?.key).toBe('region')
+    expect(nearestScenePoint(scene, 103, 50, 2)).toBeNull()
+  })
+
   it('uses the rendered circle radius', () => {
     const bubble = point('bubble', 100, 100)
     const neighbor = point('neighbor', 137, 100)

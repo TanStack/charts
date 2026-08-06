@@ -17,6 +17,8 @@ import { echartsMount } from '../../shared/echarts-mount'
 import { timelineStatusColors } from './colors'
 import {
   createResourceTimelineShell,
+  ensureTimelineFocusVisible,
+  renderTimelineLaneRail,
   sizeResourceTimelineShell,
   timelineBodyHeight,
   timelineChartHeight,
@@ -51,8 +53,6 @@ type ResourceTimelineOption = ComposeOption<
   | AriaComponentOption
 >
 
-const focusScrollPadding = 32
-
 interface TimelineFocusState {
   taskId: string | null
   centerX: number | null
@@ -61,6 +61,7 @@ interface TimelineFocusState {
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
+  let currentChart: EChartsType | null = null
   const shell = createResourceTimelineShell(
     container.ownerDocument,
     input,
@@ -77,10 +78,27 @@ export const mount: ConformanceMount = (container, input) => {
   const mountChart = echartsMount(
     (nextInput) => timelineOption(nextInput),
     'Tasks scheduled across five resource lanes',
-    ({ chart, surface }) =>
-      createDriver(chart, surface, view, shell, () => currentInput, focusState),
+    ({ chart, surface }) => {
+      currentChart = chart
+      return createDriver(
+        chart,
+        surface,
+        view,
+        shell,
+        () => currentInput,
+        focusState,
+      )
+    },
   )
+  const renderLaneRail = () => {
+    const chart = currentChart
+    if (!chart) return
+    renderTimelineLaneRail(shell.laneRail, (lane) => {
+      return taskPoint(chart, resourceTimelineDomain[0], lane)?.[1] ?? null
+    })
+  }
   const chartHandle = mountChart(chartFrame, timelineInput(input))
+  renderLaneRail()
   const dateRuler = createDateRuler(chartFrame)
   renderDateRuler(dateRuler, timelineInput(input))
   chartFrame
@@ -98,6 +116,7 @@ export const mount: ConformanceMount = (container, input) => {
         resourceTasks(nextInput.revision),
       )
       chartHandle.update(timelineInput(nextInput))
+      renderLaneRail()
       renderDateRuler(dateRuler, timelineInput(nextInput))
       if (focusState.taskId) {
         updateTimelineTaskDetails(
@@ -382,23 +401,6 @@ function timelineState(
       scrolled: focusState.scrolled,
     },
   }
-}
-
-function ensureTimelineFocusVisible(viewport: HTMLDivElement, centerX: number) {
-  const previous = viewport.scrollLeft
-  const visibleStart = previous + focusScrollPadding
-  const visibleEnd = previous + viewport.clientWidth - focusScrollPadding
-  let next = previous
-  if (centerX < visibleStart) {
-    next = centerX - focusScrollPadding
-  } else if (centerX > visibleEnd) {
-    next = centerX - viewport.clientWidth + focusScrollPadding
-  }
-  viewport.scrollLeft = Math.max(
-    0,
-    Math.min(next, viewport.scrollWidth - viewport.clientWidth),
-  )
-  return Math.abs(viewport.scrollLeft - previous) > 1
 }
 
 function taskMidpoint(task: ResourceTask) {

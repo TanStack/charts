@@ -1,4 +1,5 @@
-import { defineChart } from '@tanstack/charts'
+import { defineChart, normalize, select } from '@tanstack/charts'
+import { fold } from '@tanstack/charts/transform/fold'
 import {
   angleGrid,
   polar,
@@ -8,28 +9,33 @@ import {
 import { decathlon } from '@charts-poc/demo-data/decathlon'
 import { scaleLinear, scalePoint } from 'd3-scale'
 import { curveLinearClosed } from 'd3-shape'
-import { selectRadarAthlete } from './selection'
-import { radarEvents, radarProfile } from './transform'
+import { radarEvents, timedEvents } from './selection'
 import { tanstackMount } from '../../shared/mount'
 import type { PolarGuideLabelContext } from '@tanstack/charts/polar'
 import type { ConformanceInput } from '../../types'
 
-const ringValues = [20, 40, 60, 80, 100] as const
-const radarAthlete = selectRadarAthlete(decathlon)
+const ringValues = [0.2, 0.4, 0.6, 0.8, 1] as const
 const angleScale = scalePoint<string>().domain(radarEvents)
-const radiusScale = scaleLinear().domain([0, 100])
-const profile = radarProfile(decathlon, radarAthlete)
+const radiusScale = scaleLinear().domain([0, 1])
+
+export const foldedDecathlon = fold(decathlon, {
+  fields: radarEvents,
+  as: { key: 'event', value: 'result' },
+})
+export const normalizedDecathlon = normalize(foldedDecathlon, {
+  by: 'event',
+  value: ({ datum }) =>
+    timedEvents.has(datum.event) ? -datum.result : datum.result,
+  basis: 'extent',
+  as: 'relativePerformance',
+})
+export const radarProfile = select(normalizedDecathlon, {
+  by: 'event',
+  select: 'first',
+})
 
 function angleLabelIsTopOrBottom(angle: number): boolean {
   return Math.abs(Math.sin(angle)) <= Math.SQRT1_2
-}
-
-function angleLabelBaseline({
-  angle,
-  y,
-}: PolarGuideLabelContext): 'auto' | 'middle' | 'hanging' {
-  if (!angleLabelIsTopOrBottom(angle)) return 'middle'
-  return y > 0 ? 'hanging' : 'auto'
 }
 
 function angleLabelDy({ angle, y }: PolarGuideLabelContext): number {
@@ -37,7 +43,7 @@ function angleLabelDy({ angle, y }: PolarGuideLabelContext): number {
   return y > 0 ? -1.1 : 0
 }
 
-const definition = (input: ConformanceInput) => {
+export const radarDefinition = (input: ConformanceInput) => {
   const margin =
     input.width < 480
       ? { top: 20, right: 55, bottom: 20, left: 105 }
@@ -58,6 +64,7 @@ const definition = (input: ConformanceInput) => {
             labelAngle: Math.PI / 3,
             labelRotate: 60,
             labelBaseline: 'auto',
+            format: (value) => String(Number(value) * 100),
             labelFill: '#cccccc',
             stroke: '#cbd5e1',
           }),
@@ -65,16 +72,17 @@ const definition = (input: ConformanceInput) => {
             values: radarEvents,
             labels: true,
             labelOffset: 8,
-            labelBaseline: angleLabelBaseline,
             labelDy: angleLabelDy,
             labelFill: '#808080',
             stroke: '#cbd5e1',
           }),
         ],
         marks: [
-          radialArea(profile, {
+          radialArea(radarProfile, {
+            id: 'athlete-profile',
             angle: 'event',
             radius: 'relativePerformance',
+            key: 'event',
             className: 'ts-chart__radar',
             curve: curveLinearClosed,
             fill: '#8884d8',
@@ -89,7 +97,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(definition, 'Decathlon radar chart', {
+export const mount = tanstackMount(radarDefinition, 'Decathlon radar chart', {
   format: ({ datum }) =>
-    `${datum.Country} · ${datum.event} · ${datum.relativePerformance.toFixed(1)} / 100`,
+    `${datum.Country} · ${datum.event} · ${(datum.relativePerformance * 100).toFixed(1)}%`,
 })

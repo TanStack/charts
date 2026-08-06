@@ -1,16 +1,7 @@
 import { extent } from 'd3-array'
 import type { DecathlonRow } from '@charts-poc/demo-data/decathlon'
-
-export const radarEvents = [
-  '100 Meters',
-  'Long Jump',
-  'High Jump',
-  '100 Meter Hurdles',
-] as const
-export const radarCountries = ['USA', 'GBR'] as const
-
-export type RadarCountry = (typeof radarCountries)[number]
-export type RadarEvent = (typeof radarEvents)[number]
+import { radarCountries, radarEvents, timedEvents } from './selection'
+import type { RadarCountry, RadarEvent } from './selection'
 
 export interface ComparativeRadarDatum {
   readonly event: RadarEvent
@@ -24,7 +15,6 @@ export interface ComparativeRadarPoint {
   readonly relativePerformance: number
 }
 
-const timedEvents = new Set<RadarEvent>(['100 Meters', '100 Meter Hurdles'])
 function normalizeResult(
   sourceRows: readonly DecathlonRow[],
   row: DecathlonRow,

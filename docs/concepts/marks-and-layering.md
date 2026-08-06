@@ -7,21 +7,24 @@ A mark turns data and channel values into renderer-neutral scene nodes. Marks ar
 
 ## Built-in mark families
 
-| Visual task                                   | Start with                |
-| --------------------------------------------- | ------------------------- |
-| Trend or connected path                       | `lineY`                   |
-| Range, band, or filled trend                  | `areaY`, `areaX`          |
-| Category comparison                           | `barY`, `barX`            |
-| Interval, heatmap cell, or rectangular region | `rect`, `cell`            |
-| Relationship or individual observation        | `dot`, `hexagon`          |
-| Baseline, threshold, or reference             | `ruleX`, `ruleY`          |
-| Label or annotation                           | `text`                    |
-| Directed relationship                         | `arrow`, `link`, `vector` |
-| Compact distribution glyph                    | `tickX`, `tickY`          |
-| Plot frame                                    | `frame`                   |
-| Small-multiple composition                    | `facet`, `facetChart`     |
-| Pie, donut, gauge, or cyclic profile          | `polar` and radial marks  |
-| Projected GeoJSON                             | `geoShape`                |
+| Visual task                                   | Start with                   |
+| --------------------------------------------- | ---------------------------- |
+| Trend or connected path                       | `lineY`                      |
+| Difference between two connected paths        | `differenceY`, `differenceX` |
+| Least-squares trend and confidence band       | `linearRegressionY`          |
+| Range, band, or filled trend                  | `areaY`, `areaX`             |
+| Category comparison                           | `barY`, `barX`               |
+| Interval, heatmap cell, or rectangular region | `rect`, `cell`               |
+| Relationship or individual observation        | `dot`, `hexagon`             |
+| Tukey distribution summary                    | `boxY`, `boxX`               |
+| Baseline, threshold, or reference             | `ruleX`, `ruleY`             |
+| Label or annotation                           | `text`                       |
+| Directed relationship                         | `arrow`, `link`, `vector`    |
+| Compact distribution glyph                    | `tickX`, `tickY`             |
+| Plot frame                                    | `frame`                      |
+| Small-multiple composition                    | `facet`, `facetChart`        |
+| Pie, donut, gauge, or cyclic profile          | `polar` and radial marks     |
+| Projected GeoJSON                             | `geoShape`                   |
 
 Start from the analytical question in
 [Choosing a Chart](../guides/choosing-a-chart.md). The
@@ -51,6 +54,28 @@ A useful default order is:
 5. Labels and annotations
 
 There is no separate overlay subsystem. An annotation is another mark with its own data, channels, and stable identity.
+
+## Decorative layers
+
+When two layered marks describe the same observations, choose one interaction
+owner. For example, dots can own focus and tooltips while the connected line
+remains visual:
+
+```ts
+import { dot, lineY } from '@tanstack/charts'
+import { decorative } from '@tanstack/charts/mark/decorative'
+
+const marks = [
+  decorative(lineY(rows, { x: 'date', y: 'value' })),
+  dot(rows, { x: 'date', y: 'value' }),
+]
+```
+
+`decorative(mark)` preserves the mark's scale channels, domains, layout-label
+measurement, motion, and painted geometry. It removes interaction points and
+scene ownership, so the layer cannot add a second keyboard stop, tooltip, or
+activation target. The input must be an always-painted mark without focus or
+state behavior.
 
 ## Mark identity
 

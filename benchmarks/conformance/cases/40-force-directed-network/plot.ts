@@ -1,14 +1,16 @@
 import * as Plot from '@observablehq/plot'
 import { miserables } from '@charts-poc/demo-data/miserables'
 import { networkLayout } from './layout'
+import { forceNetworkData } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 
 const colors = ['#2563eb', '#f97316', '#10b981']
+const network = forceNetworkData(miserables)
 
 export const mount: ConformanceMount = (container, input) =>
   mountObservablePlot(container, input, (nextInput) => {
-    const graph = networkLayout(miserables, nextInput.revision)
+    const graph = networkLayout(network, nextInput.revision)
 
     return Plot.plot({
       width: nextInput.width,

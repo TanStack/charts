@@ -1,6 +1,6 @@
 import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
-import { focusedSceneNodes } from './focus-layer'
+import { focusedSceneNodes, resolveFocusScene } from './focus-layer'
 import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
 import type {
   ChartRenderer,
@@ -19,6 +19,7 @@ import type {
   ChartValue,
   RenderChartOptions,
   SceneNode,
+  ScenePolygon,
   SceneStyle,
 } from './types'
 
@@ -178,6 +179,7 @@ function createUniversalCanvasChartRenderer(
       let pixelRatio = 1
       let cancelAnimation = () => {}
       let stateTransition: ChartMarkStateTransition | undefined
+      let markStatePainted = false
       let destroyed = false
 
       const surface: CanvasChartSurface<TDatum, TXValue, TYValue> = {
@@ -226,6 +228,7 @@ function createUniversalCanvasChartRenderer(
           }
           scene = nextScene
           stateTransition = undefined
+          markStatePainted = false
         },
         clientToScene(currentScene, clientX, clientY) {
           const bounds = root.getBoundingClientRect()
@@ -237,30 +240,32 @@ function createUniversalCanvasChartRenderer(
         },
         paintFocus(focus, pointer) {
           if (!scene || destroyed) return
-          const resolved = resolveMarkStateScene(scene, focus, pointer)
+          const state = resolveMarkStateScene(scene, focus, pointer)
+          const resolved = resolveFocusScene(state.scene, focus)
           const previousTransition = stateTransition
-          if (resolved.scene !== scene || previousTransition) {
+          if (state.scene !== scene || markStatePainted || previousTransition) {
             cancelAnimation()
             const transition = resolveMarkStateTransition(
-              resolved.transition ?? previousTransition,
+              state.transition ?? previousTransition,
               root,
             )
             if (transition) {
               cancelAnimation = animateScene(
                 canvas,
-                resolved.scene,
+                state.scene,
                 pixelRatio,
                 transition,
                 resolver,
                 root,
               )
             } else {
-              paintCanvas(canvas, resolved.scene, pixelRatio, resolver, root)
+              paintCanvas(canvas, state.scene, pixelRatio, resolver, root)
               cancelAnimation = () => {}
             }
           }
+          markStatePainted = Boolean(focus && state.scene !== scene)
           stateTransition = focus
-            ? (resolved.transition ?? previousTransition)
+            ? (state.transition ?? previousTransition)
             : undefined
           paintFocusCanvas(
             focusUnderCanvas,
@@ -629,7 +634,10 @@ function paintNode(
         return
       }
       case 'area': {
-        if (node.path) {
+        if (node.polygons !== undefined) {
+          beginPolygonPath(context, node.polygons)
+          paintCurrentPath(painter, state, boundsForNode(node), 'evenodd')
+        } else if (node.path) {
           const path = pathFromData(painter, node.path)
           paintPath(painter, path, state, boundsForNode(node))
         } else {
@@ -742,6 +750,22 @@ function beginPointPath(
   if (close && points.length) context.closePath()
 }
 
+function beginPolygonPath(
+  context: CanvasRenderingContext2D,
+  polygons: readonly ScenePolygon[],
+): void {
+  context.beginPath()
+  for (const polygon of polygons) {
+    for (const ring of polygon) {
+      ring.forEach(([x, y], index) => {
+        if (index === 0) context.moveTo(x, y)
+        else context.lineTo(x, y)
+      })
+      if (ring.length) context.closePath()
+    }
+  }
+}
+
 function beginRoundedRect(
   context: CanvasRenderingContext2D,
   x: number,
@@ -788,8 +812,9 @@ function paintCurrentPath(
   painter: ScenePainter,
   state: PaintState,
   bounds: ChartBounds | null,
+  fillRule?: CanvasFillRule,
 ): void {
-  fillCurrentPath(painter, state, bounds)
+  fillCurrentPath(painter, state, bounds, fillRule)
   strokeCurrentPath(painter, state, bounds)
 }
 
@@ -822,12 +847,14 @@ function fillCurrentPath(
   painter: ScenePainter,
   state: PaintState,
   bounds: ChartBounds | null,
+  fillRule?: CanvasFillRule,
 ): void {
   const fill = resolvePaint(painter, state.fill, bounds)
   if (!fill) return
   painter.context.globalAlpha = state.opacity * state.fillOpacity
   painter.context.fillStyle = fill
-  painter.context.fill()
+  if (fillRule === undefined) painter.context.fill()
+  else painter.context.fill(fillRule)
 }
 
 function strokeCurrentPath(
@@ -974,8 +1001,11 @@ function boundsForNode(node: Exclude<SceneNode, { kind: 'group' | 'label' }>) {
         [node.x2, node.y2],
       ])
     case 'polyline':
-    case 'area':
       return boundsFromPoints(node.points)
+    case 'area':
+      return node.polygons === undefined
+        ? boundsFromPoints(node.points)
+        : boundsFromPolygons(node.polygons)
     case 'dot':
       return {
         x: node.x - node.radius,
@@ -986,6 +1016,12 @@ function boundsForNode(node: Exclude<SceneNode, { kind: 'group' | 'label' }>) {
     case 'rect':
       return { x: node.x, y: node.y, width: node.width, height: node.height }
   }
+}
+
+function boundsFromPolygons(
+  polygons: readonly ScenePolygon[],
+): ChartBounds | null {
+  return boundsFromPoints(polygons.flatMap((polygon) => polygon.flat()))
 }
 
 function boundsFromPoints(

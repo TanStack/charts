@@ -1,46 +1,42 @@
 import { defineChart } from '@tanstack/charts'
-import { polar, radialArc } from '@tanstack/charts/polar'
+import { polar, radialBarAngle } from '@tanstack/charts/polar'
 import { alphabet } from '@charts-poc/demo-data/alphabet'
-import { arc } from 'd3-shape'
+import { scaleBand, scaleLinear } from 'd3-scale'
 import { selectRadialBarData } from './selection'
-import { radialBarLayout } from './transform'
 import { tanstackMount } from '../../shared/mount'
-import type { RadialBarLayoutDatum } from './transform'
 import type { ConformanceInput } from '../../types'
 
 const innerRadiusRatio = 0.2
-const barRatio = 0.62
 const colors = ['#7c3aed', '#0ea5e9', '#14b8a6', '#f59e0b']
 const maximumFrequency = alphabet[0]?.frequency ?? 1
 
-const definition = (input: ConformanceInput) => {
-  const data = radialBarLayout(selectRadialBarData(alphabet, input.revision))
+export const radialBarsDefinition = (input: ConformanceInput) => {
+  const data = selectRadialBarData(alphabet, input.revision)
 
   return defineChart({
     marks: [
       polar({
         radiusRatio: 0.84,
+        angle: {
+          scale: scaleLinear().domain([0, maximumFrequency]),
+        },
+        radius: {
+          scale: () =>
+            scaleBand<string>().paddingInner(0.38).paddingOuter(0.19),
+          range: [
+            ({ radius }) => radius * innerRadiusRatio,
+            ({ radius }) => radius,
+          ],
+        },
         marks: [
-          radialArc(data, {
+          radialBarAngle(data, {
+            id: 'letter-bars',
             className: 'ts-chart__radial-bars',
-            generator: ({ radius }) => {
-              const innerRadius = radius * innerRadiusRatio
-              const band = (radius - innerRadius) / data.length
-              const barSize = band * barRatio
-              const offset = Math.round((band - barSize) / 2)
-
-              return arc<unknown, RadialBarLayoutDatum>()
-                .startAngle(0)
-                .endAngle(
-                  (row) => (row.frequency / maximumFrequency) * Math.PI * 2,
-                )
-                .innerRadius((row) => innerRadius + row.ring * band + offset)
-                .outerRadius(
-                  (row) => innerRadius + row.ring * band + offset + barSize,
-                )
-                .cornerRadius(barSize / 2)
-            },
+            angle: 'frequency',
+            radius: 'letter',
+            key: 'letter',
             color: 'letter',
+            cornerRadius: 'full',
           }),
         ],
       }),
@@ -51,6 +47,6 @@ const definition = (input: ConformanceInput) => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  radialBarsDefinition,
   'Concentric letter frequency bars',
 )

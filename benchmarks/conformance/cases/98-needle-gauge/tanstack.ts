@@ -1,6 +1,7 @@
 import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployment'
 import { defineChart } from '@tanstack/charts'
 import {
+  pie,
   polar,
   radialArc,
   radialDot,
@@ -8,7 +9,6 @@ import {
   radialText,
 } from '@tanstack/charts/polar'
 import { scaleLinear } from 'd3-scale'
-import { pie } from 'd3-shape'
 import {
   gaugeBands,
   gaugeMaximum,
@@ -22,20 +22,19 @@ const startAngle = -Math.PI / 2
 const endAngle = Math.PI / 2
 const angleScale = scaleLinear().domain([0, gaugeMaximum])
 const radiusScale = scaleLinear().domain([0, 1])
-const pieLayout = pie<GaugeBand>()
-  .sort(null)
-  .value(({ value }) => value)
-  .startAngle(startAngle)
-  .endAngle(endAngle)
+const arcs = pie(gaugeBands, {
+  value: 'value',
+  startAngle,
+  endAngle,
+})
 const bandIds: readonly GaugeBand['id'][] = ['low', 'elevated', 'high']
 const bandColors = ['#22c55e', '#f59e0b', '#ef4444']
 
-const definition = (input: ConformanceInput) => {
+export const needleGaugeDefinition = (input: ConformanceInput) => {
   const reading = usCountyUnemployment[(input.revision % 2) * 2]
   if (!reading) {
     throw new Error('County unemployment data is incomplete.')
   }
-  const arcs = pieLayout([...gaugeBands])
 
   return defineChart({
     marks: [
@@ -44,17 +43,17 @@ const definition = (input: ConformanceInput) => {
         radius: { scale: radiusScale },
         startAngle,
         endAngle,
-        inset: 0,
         radiusRatio: 0.82,
         marks: [
           radialArc(arcs, {
-            startAngle: 'startAngle',
-            endAngle: 'endAngle',
-            padAngle: 'padAngle',
+            id: 'gauge-bands',
+            key: 'id',
             innerRadius: ({ radius }) => radius * 0.72,
-            color: ({ data }) => data.id,
+            color: 'id',
           }),
           radialRule(gaugeTicks, {
+            id: 'gauge-ticks',
+            key: 'id',
             angle: 'value',
             radius1: 0.76,
             radius2: 0.94,
@@ -63,6 +62,8 @@ const definition = (input: ConformanceInput) => {
             strokeWidth: 2,
           }),
           radialRule([reading], {
+            id: 'gauge-needle',
+            key: 'id',
             angle: 'rate',
             radius1: 0,
             radius2: 0.64,
@@ -70,12 +71,16 @@ const definition = (input: ConformanceInput) => {
             strokeWidth: 4,
           }),
           radialDot([reading], {
+            id: 'gauge-hub',
+            key: 'id',
             angle: 'rate',
             radius: 0,
             r: 8,
             fill: 'currentColor',
           }),
           radialText([reading], {
+            id: 'gauge-value',
+            key: 'id',
             angle: 'rate',
             radius: 0,
             text: (row) => `${row.rate}%`,
@@ -94,11 +99,15 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(definition, 'County unemployment gauge', {
-  format: ({ datum }) => {
-    if ('data' in datum) {
-      return `${datum.data.label} · ${datum.data.value} percentage-point band`
-    }
-    return `${datum.county}, ${datum.state} · ${datum.rate}% unemployment`
+export const mount = tanstackMount(
+  needleGaugeDefinition,
+  'County unemployment gauge',
+  {
+    format: ({ datum }) => {
+      if ('label' in datum) {
+        return `${datum.label} · ${datum.value} percentage-point band`
+      }
+      return `${datum.county}, ${datum.state} · ${datum.rate}% unemployment`
+    },
   },
-})
+)

@@ -2,9 +2,12 @@ import {
   stack as d3Stack,
   stackOffsetDiverging,
   stackOffsetExpand,
+  stackOffsetNone,
   stackOffsetSilhouette,
   stackOffsetWiggle,
+  stackOrderInsideOut,
 } from 'd3-shape'
+import type { Series } from 'd3-shape'
 import { valueKey } from './scales'
 import type { StackOptions, StackOrder } from './stack'
 import type { ChartKey, ChartValue } from './types'
@@ -25,6 +28,8 @@ export function stackExtents(
   input: readonly StackInput[],
   options: Readonly<StackOptions> = {},
 ): Map<number, StackExtent> {
+  const anchorFraction = resolveAnchorFraction(options)
+  if (input.length === 0) return new Map()
   const positions: ChartValue[] = []
   const positionIndex = new Map<string, number>()
   const seriesInput: ChartKey[] = []
@@ -43,8 +48,6 @@ export function stackExtents(
     }
   }
 
-  const series = orderedSeries(input, seriesInput, options.order)
-  if (options.reverse) series.reverse()
   const rows = positions.map(
     () => Object.create(null) as Record<string, number>,
   )
@@ -63,23 +66,42 @@ export function stackExtents(
     rows[position]![seriesIdentity] = row.value
   }
 
+  const insideOut = options.order === 'inside-out'
+  if (anchorFraction !== undefined && input.some(({ value }) => value < 0)) {
+    throw new TypeError('A stack anchor requires nonnegative values')
+  }
+  const series = orderedSeries(input, seriesInput, options.order)
+  if (options.reverse && !insideOut) series.reverse()
   const identities = series.map(valueKey)
-  const offset =
-    options.offset === 'normalize'
+  const offset = options.anchor
+    ? stackOffsetNone
+    : options.offset === 'normalize'
       ? stackOffsetExpand
       : options.offset === 'center'
         ? stackOffsetSilhouette
         : options.offset === 'wiggle'
           ? stackOffsetWiggle
           : stackOffsetDiverging
-  const stacked = d3Stack<Record<string, number>, string>()
+  const generator = d3Stack<Record<string, number>, string>()
     .keys(identities)
     .value((row, key) => row[key] ?? 0)
-    .offset(offset)(rows)
+    .offset(offset)
+  if (insideOut) {
+    generator.order(
+      options.reverse
+        ? (seriesValues) => stackOrderInsideOut(seriesValues).reverse()
+        : stackOrderInsideOut,
+    )
+  }
+  const stacked = generator(rows)
+  if (options.anchor && anchorFraction !== undefined) {
+    translateAnchorToZero(stacked, options.anchor.series, anchorFraction)
+  }
+  if (options.offset === 'wiggle') translateWiggleToZero(stacked)
   const output = new Map<number, StackExtent>()
 
-  stacked.forEach((seriesValues, seriesIndex) => {
-    const seriesIdentity = identities[seriesIndex]!
+  stacked.forEach((seriesValues) => {
+    const seriesIdentity = seriesValues.key
     seriesValues.forEach((extent, position) => {
       const sourceIndex = sourceIndices.get(`${position}:${seriesIdentity}`)
       if (sourceIndex === undefined) return
@@ -87,6 +109,63 @@ export function stackExtents(
     })
   })
   return output
+}
+
+function resolveAnchorFraction(options: Readonly<StackOptions>) {
+  const anchor = options.anchor
+  if (!anchor) return undefined
+  if (options.offset !== undefined && options.offset !== 'diverging') {
+    throw new TypeError(
+      'A stack anchor can only be used with the diverging offset',
+    )
+  }
+  const fraction = anchor.fraction ?? 0.5
+  if (!Number.isFinite(fraction) || fraction < 0 || fraction > 1) {
+    throw new TypeError('A stack anchor fraction must be between zero and one')
+  }
+  return fraction
+}
+
+function translateAnchorToZero<TDatum>(
+  stacked: readonly Series<TDatum, string>[],
+  series: ChartKey,
+  fraction: number,
+): void {
+  const anchorIdentity = valueKey(series)
+  const anchorSeries = stacked.find(
+    (seriesValues) => seriesValues.key === anchorIdentity,
+  )
+  if (!anchorSeries) {
+    throw new TypeError(
+      `Stack anchor series "${String(series)}" is not in the resolved series order`,
+    )
+  }
+  anchorSeries.forEach((anchorExtent, position) => {
+    const shift =
+      anchorExtent[0] + (anchorExtent[1] - anchorExtent[0]) * fraction
+    for (const seriesValues of stacked) {
+      const extent = seriesValues[position]
+      if (!extent) continue
+      extent[0] -= shift
+      extent[1] -= shift
+    }
+  })
+}
+
+function translateWiggleToZero<TDatum, TKey>(
+  stacked: readonly Series<TDatum, TKey>[],
+): void {
+  let baseline = Number.POSITIVE_INFINITY
+  for (const series of stacked) {
+    for (const extent of series) baseline = Math.min(baseline, extent[0])
+  }
+  if (!Number.isFinite(baseline) || baseline === 0) return
+  for (const series of stacked) {
+    for (const extent of series) {
+      extent[0] -= baseline
+      extent[1] -= baseline
+    }
+  }
 }
 
 export function stackValues(

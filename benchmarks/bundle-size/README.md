@@ -25,14 +25,15 @@ may add only its transport module over the tooltip consumer. Ordinary line,
 compact-scale, and tooltip kernels also reject all transform modules.
 
 The compact linear scene and React consumer are both locked and budgeted. The
-scene has an 8.1 KiB gzip ceiling. The React compact-scale line consumer has an
-18.6 KiB ceiling with React and React DOM external. `d3-array` tick helpers are
-allowed only in the compact linear path; categorical compact-scale kernels
-reject every D3 runtime input. All compact fixtures reject `d3-scale`,
-`d3-format`, `d3-interpolate`, `d3-color`, and `internmap`.
+scene measures 8.94 KiB gzip under a 9 KiB ceiling. The React compact-scale
+line consumer measures 20.95 KiB under a 21 KiB ceiling with React and React
+DOM external. `d3-array` tick helpers are allowed only in the compact linear
+path; categorical compact-scale kernels reject every D3 runtime input. All
+compact fixtures reject `d3-scale`, `d3-format`, `d3-interpolate`, `d3-color`,
+and `internmap`.
 
 Painted-geometry interaction is part of the default scene and host contract
-across DOM, Canvas, and native rendering. Its isolated resolver has a 2 KiB
+across DOM, Canvas, and native rendering. Its isolated resolver has a 2.1 KiB
 gzip ceiling. The locked shared-host entries record the reviewed integration
 cost, while noninteractive consumers retain only the small scene-compiler
 portion of that contract.
@@ -45,19 +46,45 @@ the common families still compose without pulling calendar bins or advanced
 reducers into the default set.
 
 Non-cartesian capability subpaths follow the same policy. Polar and geographic
-entries measure complete scenes through static SVG: a minimal arc, D3 pie,
-full scale-backed gauge composition, a scale-backed polar line and scatter
-composition, and projected GeoJSON. Atlas datasets remain application-owned
-inputs rather than chart-package dependencies. The locked Cartesian entries
-prove those D3 geometry modules remain opt-in.
+entries measure complete scenes through static SVG: a minimal arc, first-party
+pie allocation, full scale-backed gauge composition, a scale-backed polar line
+and scatter composition, and projected GeoJSON. Atlas datasets remain
+application-owned inputs rather than chart-package dependencies. The locked
+Cartesian entries prove those D3 geometry modules remain opt-in.
 
 The advanced custom-mark scale-value factory follows the same rule: its
 subpath has a dedicated budget, while ordinary chart entries must retain zero
 bytes from it.
 
 The optional interaction measurements include the practical granular imports:
-`d3-brush` or `d3-zoom` together with `d3-selection`. They are controller
-kernels, not dependencies of TanStack Charts or its ordinary DOM host.
+`d3-brush` or `d3-zoom` together with `d3-selection`. The standalone kernels
+remain comparison baselines. The exact `interaction/brush` fixture measures
+the first-party behavior over the ordinary DOM host and proves its D3 runtime
+does not enter root, universal, or unrelated host consumers. It adds 19.70 KiB
+gzip under a 20 KiB incremental cap.
+
+The exact `interaction/zoom` fixture adds 20.17 KiB gzip over the ordinary DOM
+host under a 20.25 KiB incremental cap. It retains the controlled signal, shared
+interaction axis and range kernels, the zoom controller, and private D3 Zoom
+runtime. Root, universal, cursor, brush, native, and unrelated consumers retain
+no zoom code.
+
+The exact `interaction/cursor` fixture also measures over the ordinary DOM
+host. It adds 3.69 KiB gzip under a 5 KiB incremental cap. It requires only the
+controlled signal, shared scale-interaction axis, cursor controller, and
+guide-node kernel. It rejects the datum focus guide, brush and D3 runtimes,
+tooltip, legend, and selection modules.
+
+The exact `interaction/handle` fixture adds 3.66 KiB gzip over the ordinary
+DOM host under a 5 KiB incremental cap. It retains only the controlled signal,
+shared candidate-axis and value-cloning kernels, and handle controller. Root,
+universal, cursor, brush, zoom, native, and unrelated consumers retain no
+handle code or D3 runtime.
+
+The controlled-signal fixture measures 0.09 KiB gzip against a 0.25 KiB cap.
+The interactive categorical legend fixture adds 2.52 KiB gzip over the DOM
+host and has a 2.6 KiB incremental cap. Both retain only their declared exact
+subpath modules.
 
 Update the universal baseline only after reviewing why a shared path changed:
 

@@ -91,12 +91,14 @@ meaning.
 
 ## Select annotations in data preparation
 
-Prepare a small annotation dataset:
+Prepare or select a small annotation dataset:
 
 1. Select observations by a documented rule such as minimum, maximum, first
    threshold crossing, or named event.
-2. Retain the original datum and stable ID.
-3. Add label text and any intentional x/y offset.
+2. Keep the original datum and stable ID when the source row already carries
+   the annotation's semantic coordinates.
+3. Put presentation-only label formatting, anchors, and x/y offsets on the
+   text mark. Add fields only when they are reusable annotation data.
 4. Render dots, rules, links, and text as independent marks.
 
 This makes the selection auditable. The chart renderer should not decide which

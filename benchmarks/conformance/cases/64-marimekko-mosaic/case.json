@@ -5,12 +5,13 @@
   "title": "Marimekko survey composition",
   "family": "part-to-whole",
   "intent": "Encode each survey question's response count as column width and its Likert composition as stacked height.",
-  "support": "composed",
+  "support": "native",
   "features": [
     "Marimekko chart",
-    "mosaic layout",
+    "native mosaic transform",
     "variable-width rectangles",
-    "d3-array grouping and cumulative sums",
+    "declarative grouped counts",
+    "proportional interval allocation",
     "categorical legend"
   ],
   "geometry": [
@@ -18,11 +19,11 @@
     { "role": "text", "count": 5 }
   ],
   "source": {
-    "title": "Observable Plot Marimekko stack example",
-    "url": "https://observablehq.com/plot/transforms/stack"
+    "title": "Observable Plot Marimekko example",
+    "url": "https://observablehq.com/@observablehq/plot-marimekko"
   },
   "ai": {
-    "create": "Create a Marimekko chart from raw survey rows where question totals determine column widths and each question's response mix determines normalized vertical cells, using granular d3-array preparation and typed rectangle endpoints.",
-    "maintain": "Add a question or response while preserving the original Question and Response fields through counting, the two independent normalization denominators, explicit Likert ordering, stable cell identity, labels, colors, and complete zero-to-one bounds."
+    "create": "Create a Marimekko chart from raw survey rows with explicit grouped counts, mosaicY proportional intervals, and ordinary rectangle and text marks.",
+    "maintain": "Add a question or response while preserving semantic categories, both normalization denominators, explicit Likert ordering, nested source lineage, stable cell identity, labels, colors, and complete zero-to-one bounds."
   }
 }

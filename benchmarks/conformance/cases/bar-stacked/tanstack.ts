@@ -1,5 +1,5 @@
 import { crimeanWar } from '@charts-poc/demo-data/crimean-war'
-import { barY, defineChart, ruleY, stack } from '@tanstack/charts'
+import { barY, defineChart, fold, ruleY, stack } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
@@ -7,18 +7,16 @@ import type { ConformanceInput } from '../../types'
 const causes = ['disease', 'wounds', 'other'] as const
 const causeColors = ['#4269d0', '#ff725c', '#efb118']
 
-const definition = (input: ConformanceInput) => {
-  const rows = crimeanWar.slice(input.revision).flatMap((row) =>
-    causes.map((cause) => ({
-      date: row.date,
-      cause,
-      deaths: row[cause],
-    })),
-  )
+export const stackedBarDefinition = (input: ConformanceInput) => {
+  const rows = fold(crimeanWar.slice(input.revision), {
+    fields: causes,
+    as: { key: 'cause', value: 'deaths' },
+  })
 
   return defineChart({
     marks: [
       barY(rows, {
+        id: 'death-bars',
         x: 'date',
         y: 'deaths',
         z: 'cause',
@@ -40,7 +38,10 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(definition, 'Crimean War deaths by cause')
+export const mount = tanstackMount(
+  stackedBarDefinition,
+  'Crimean War deaths by cause',
+)
 
 const month = new Intl.DateTimeFormat('en-US', {
   month: 'short',

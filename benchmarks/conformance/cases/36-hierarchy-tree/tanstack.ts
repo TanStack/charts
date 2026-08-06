@@ -1,81 +1,44 @@
 import { defineChart, dot, link, text } from '@tanstack/charts'
+import { treeLayout } from '@tanstack/charts/hierarchy/tree'
 import { flare } from '@charts-poc/demo-data/flare'
-import { stratify, tree } from 'd3-hierarchy'
 import { scaleLinear } from 'd3-scale'
 import { selectHierarchyData } from './selection'
 import { tanstackMount } from '../../shared/mount'
-import type { FlareRow } from '@charts-poc/demo-data/flare'
 import type { ConformanceInput } from '../../types'
 
-interface TreeNodeRow {
-  name: string
-  x: number
-  y: number
-  internal: boolean
-}
+export const treeDefinition = (input: ConformanceInput) => {
+  const layout = treeLayout(selectHierarchyData(flare, input.revision), {
+    path: 'name',
+    delimiter: '.',
+  })
 
-interface TreeLinkRow {
-  source: string
-  target: string
-  x1: number
-  y1: number
-  x2: number
-  y2: number
-}
-
-function hierarchyPath(name: string): string {
-  return name.slice('flare.'.length).replaceAll('.', '/')
-}
-
-function hierarchyLabel(name: string): string {
-  return name.slice(name.lastIndexOf('.') + 1)
-}
-
-const definition = (input: ConformanceInput) => {
-  const root = stratify<FlareRow>().path((row) => hierarchyPath(row.name))(
-    Array.from(selectHierarchyData(flare, input.revision)),
-  )
-  const layoutRoot = tree<FlareRow>().nodeSize([1, 1])(root)
-
-  const nodes: readonly TreeNodeRow[] = layoutRoot
-    .descendants()
-    .map((node) => ({
-      name: node.data.name,
-      x: node.y,
-      y: -node.x,
-      internal: node.children !== undefined,
-    }))
-  const links: readonly TreeLinkRow[] = layoutRoot
-    .links()
-    .map(({ source, target }) => ({
-      source: source.data.name,
-      target: target.data.name,
-      x1: source.y,
-      y1: -source.x,
-      x2: target.y,
-      y2: -target.x,
-    }))
   return defineChart({
     marks: [
-      link(links, {
+      link(layout.links, {
+        id: 'hierarchy-links',
         x1: 'x1',
         y1: 'y1',
         x2: 'x2',
         y2: 'y2',
+        key: 'id',
         stroke: '#94a3b8',
         strokeOpacity: 0.55,
         strokeWidth: 1.5,
       }),
-      dot(nodes, {
+      dot(layout.nodes, {
+        id: 'hierarchy-nodes',
         x: 'x',
         y: 'y',
+        key: 'id',
         fill: '#2563eb',
         r: 3.5,
       }),
-      text(nodes, {
+      text(layout.nodes, {
+        id: 'hierarchy-labels',
         x: 'x',
         y: 'y',
-        text: (node) => hierarchyLabel(node.name),
+        text: 'name',
+        key: 'id',
         fill: '#2563eb',
         fontSize: 10,
         anchor: (node) => (node.internal ? 'end' : 'start'),
@@ -90,12 +53,12 @@ const definition = (input: ConformanceInput) => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  treeDefinition,
   'Tidy Flare analytics hierarchy',
   {
     format: ({ datum }) =>
-      'name' in datum
-        ? `${datum.name} · ${datum.internal ? 'Group' : 'Leaf'}`
-        : `${datum.source} → ${datum.target}`,
+      'internal' in datum
+        ? `${datum.data?.name ?? datum.name} · ${datum.internal ? 'Group' : 'Leaf'}`
+        : `${datum.sourceNode.data?.name ?? datum.source} → ${datum.targetNode.data?.name ?? datum.target}`,
   },
 )

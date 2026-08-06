@@ -44,7 +44,7 @@ export function hexagon<TDatum>(
 ): ChartMark<TDatum, number, number>
 export function hexagon<
   TDatum,
-  const TOptions extends HexagonOptions<NoInfer<TDatum>> | undefined,
+  const TOptions extends HexagonOptions<TDatum> | undefined,
 >(
   source: Iterable<TDatum>,
   options: TOptions,
@@ -55,7 +55,7 @@ export function hexagon<
 >
 export function hexagon<TDatum>(
   source: Iterable<TDatum>,
-  options: HexagonOptions<NoInfer<TDatum>> = {},
+  options: HexagonOptions<TDatum> = {},
 ): ChartMark<TDatum> {
   const data = Array.isArray(source) ? source : Array.from(source)
 

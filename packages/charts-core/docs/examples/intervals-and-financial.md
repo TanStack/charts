@@ -18,9 +18,10 @@ force intervals through a point-value channel.
 | How does a percentile range evolve over time?                 | Quantile ribbon plus median line                      |
 | How do explicit lower and upper measurements change together? | Range area in [Lines and Areas](./lines-and-areas.md) |
 
-The chart should receive prepared endpoint fields with units that match the
-scale. [Data and Channels](../concepts/data-and-channels.md) defines these
-interval channel shapes.
+The definition may receive endpoint fields directly or derive them from typed
+reducer outputs. In either form, endpoint units must match the scale.
+[Data and Channels](../concepts/data-and-channels.md) defines these interval
+channel shapes.
 
 ## Compare open-to-close spans
 
@@ -62,6 +63,11 @@ link, caps, and point as separate layers using the
 [Rules, Links, Arrows, Vectors, and Ticks reference](../reference/marks/rules-links-arrows-vectors-and-ticks.md)
 and [Dot and Hexagon Marks](../reference/marks/dot-and-hexagon.md).
 
+This example groups contributing observations once with `groupBy`, emits typed
+mean and sample-deviation outputs, and derives low and high values in the mark
+channel accessors. The estimator and singleton policy remain authored chart
+meaning; no dedicated error-bar mark or prepared endpoint DTO is required.
+
 ## Encode open, high, low, and close
 
 A candlestick uses a high-low wick and an open-close body. Directional color is
@@ -95,10 +101,11 @@ percentile for each time group. It shows how both location and spread evolve.
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
-Prepare quantiles by time group in the application, then give the ribbon and
-median their own marks. [Scales and D3](../concepts/scales-and-d3.md) explains
-the preparation boundary; [Line and Area Marks](../reference/marks/line-and-area.md)
-defines the range-area channels.
+Use `groupBy` with `quantile` reducers to preserve each time group's source
+rows, then give the ribbon and median their own marks. [Transforms and
+Reactivity](../guides/transforms-and-reactivity.md) defines the aggregation
+boundary; [Line and Area Marks](../reference/marks/line-and-area.md) defines the
+range-area channels.
 
 ## Production checks
 

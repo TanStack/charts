@@ -29,51 +29,56 @@ export const tokenUsageCalendarDefinition = (input: ConformanceInput) => {
   const days = tokenUsageCalendar(input.revision)
   const monthTicks = calendarMonthTicks()
 
-  return defineChart(({ width, height }) => {
-    return {
-      marks: [
-        cell(days, {
-          x: 'week',
-          y: 'weekday',
-          color: 'level',
-          key: 'dateKey',
-          inset: 0,
-          radius: 3,
-        }),
-      ],
-      x: {
-        scale: scaleBand<number>()
-          .domain(weekDomain)
-          .paddingInner(calendarBandPaddingInner)
-          .paddingOuter(calendarBandPaddingOuter),
-        axis: {
-          line: false,
-          ticks: {
-            values: monthTicks.values,
-            size: 0,
-            padding: 7,
-            format: (week: number) => monthTicks.labels.get(week) ?? '',
-          },
-          tickLabels: { thin: { minGap: 8, priority: 'ends' } },
+  return defineChart({
+    marks: [
+      cell(days, {
+        x: 'week',
+        y: 'weekday',
+        color: 'level',
+        key: 'dateKey',
+        inset: 0,
+        radius: 3,
+      }),
+    ],
+    x: {
+      scale: scaleBand<number>()
+        .domain(weekDomain)
+        .paddingInner(calendarBandPaddingInner)
+        .paddingOuter(calendarBandPaddingOuter),
+      axis: {
+        line: false,
+        ticks: {
+          values: monthTicks.values,
+          size: 0,
+          padding: 7,
+          format: (week: number) => monthTicks.labels.get(week) ?? '',
+        },
+        tickLabels: {
+          fontSize: 13,
+          opacity: 0.62,
+          anchor: ({ index }) => (index === 0 ? 'start' : undefined),
+          dx: ({ index, bandwidth }) =>
+            index === 0 ? -bandwidth / 2 : undefined,
+          thin: { minGap: 8, priority: 'ends' },
         },
       },
-      y: {
-        scale: scaleBand<string>()
-          .domain(weekdays)
-          .paddingInner(calendarBandPaddingInner)
-          .paddingOuter(calendarBandPaddingOuter),
-        axis: false,
-      },
-      color: {
-        scale: scaleOrdinal<string, string>()
-          .domain(usageLevels)
-          .range(usageColors),
-      },
-      margin: {
-        ...calendarMargin,
-        bottom: calendarBottomMargin(width, height),
-      },
-    }
+    },
+    y: {
+      scale: scaleBand<string>()
+        .domain(weekdays)
+        .paddingInner(calendarBandPaddingInner)
+        .paddingOuter(calendarBandPaddingOuter),
+      axis: false,
+    },
+    color: {
+      scale: scaleOrdinal<string, string>()
+        .domain(usageLevels)
+        .range(usageColors),
+    },
+    margin: {
+      ...calendarMargin,
+      bottom: calendarBottomMargin(input.width, input.height),
+    },
   })
 }
 

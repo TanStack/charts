@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { mountChart } from './dom'
 import { barX, barY } from './bar'
+import { dot } from './dot'
 import { lineY } from './line'
 import { rect } from './rect'
 import { createChartRuntime } from './runtime'
@@ -76,6 +77,37 @@ describe('dynamic chart runtime', () => {
 
     expect(narrow.points).toHaveLength(2)
     expect(wide.points[0]?.color).toBe('blue')
+    runtime.destroy()
+  })
+
+  it('preserves behavior and focus options around a dynamic chart builder', () => {
+    const resolve = vi.fn(() => ({
+      nodes: [
+        {
+          kind: 'group' as const,
+          key: 'dynamic-behavior-fallback',
+          children: [],
+        },
+      ],
+    }))
+    const definition = defineChart(
+      defineChart(() => ({
+        marks: [lineY([{ id: 'a', x: 0, y: 4 }], { x: 'x', y: 'y' })],
+        ...linearAxes([0, 1], [0, 4]),
+      })),
+      {
+        behaviors: [{ id: 'dynamic-behavior', resolve }],
+        focusRing: false,
+      },
+    )
+    const runtime = createChartRuntime<Datum>()
+    const scene = runtime.render(definition, { width: 480, height: 260 })
+
+    expect(resolve).toHaveBeenCalledOnce()
+    expect(
+      scene.nodes.some((node) => node.key === 'dynamic-behavior-fallback'),
+    ).toBe(true)
+    expect(scene.nodes.some((node) => node.key === 'default-focus')).toBe(false)
     runtime.destroy()
   })
 
@@ -914,6 +946,149 @@ describe('dynamic chart runtime', () => {
     )
     container.dispatchEvent(new MouseEvent('mouseleave'))
     expect(tooltip?.hidden).toBe(true)
+    host.destroy()
+  })
+
+  it('repaints inline pinned mark state on pointer pin and release', () => {
+    const data = [{ id: 'a', x: 0.5, y: 0.5 }]
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          dot(data, {
+            x: 'x',
+            y: 'y',
+            key: 'id',
+            r: 5,
+            states: [
+              {
+                when: { focus: 'primary', pinned: true },
+                style: { r: 9, fill: '#f97316' },
+              },
+            ],
+          }),
+        ],
+        ...linearAxes([0, 1], [0, 1]),
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      width: 320,
+      height: 200,
+      ariaLabel: 'Pointer pinned mark state',
+    })
+    const svg = container.querySelector('svg')
+    const point = host.getScene().points[0]
+    const circle = container.querySelector<SVGCircleElement>(
+      '.ts-chart__dot circle',
+    )
+    if (!svg || !point || !circle) throw new Error('Expected chart point')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 320,
+      bottom: 200,
+      left: 0,
+      width: 320,
+      height: 200,
+      toJSON: () => ({}),
+    })
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('5')
+
+    svg.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('9')
+    expect(circle.getAttribute('fill')).toBe('#f97316')
+
+    svg.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        clientX: point.x,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('5')
+    host.destroy()
+  })
+
+  it('repaints pointer-dependent mark state while tracking one point', () => {
+    const data = [{ id: 'a', x: 0.5, y: 0.5 }]
+    const container = document.createElement('div')
+    const host = mountChart(container, {
+      definition: defineChart({
+        marks: [
+          dot(data, {
+            x: 'x',
+            y: 'y',
+            key: 'id',
+            r: 5,
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: {
+                  r: ({ point, pointer }) =>
+                    pointer && pointer.x > point.x ? 11 : 7,
+                },
+              },
+            ],
+          }),
+        ],
+        ...linearAxes([0, 1], [0, 1]),
+        maxFocusDistance: 1_000,
+        tooltip: { use: tooltipExtension, anchor: 'pointer' },
+      }),
+      width: 320,
+      height: 200,
+      ariaLabel: 'Pointer tracked mark state',
+    })
+    const svg = container.querySelector('svg')
+    const point = host.getScene().points[0]
+    const circle = container.querySelector<SVGCircleElement>(
+      '.ts-chart__dot circle',
+    )
+    if (!svg || !point || !circle) throw new Error('Expected chart point')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 320,
+      bottom: 200,
+      left: 0,
+      width: 320,
+      height: 200,
+      toJSON: () => ({}),
+    })
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: point.x - 20,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('7')
+
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: point.x + 20,
+        clientY: point.y,
+      }),
+    )
+    expect(circle.getAttribute('r')).toBe('11')
     host.destroy()
   })
 

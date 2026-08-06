@@ -127,6 +127,10 @@ interactive content only when `pinned` is true; transient tooltips do not
 accept pointer input. `dismiss()` clears the tooltip and restores chart focus
 when focus was inside its body.
 
+Set `tooltip.visibility: 'pinned'` on the definition when the React body itself
+should mount only after activation. Returning `null` is not needed to suppress
+a transient native shell.
+
 Existing users of this prop should move `Chart` from
 `@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. Replace
 `Chart as CanvasChart` from `/canvas` or `Chart as RendererChart` from `/core`

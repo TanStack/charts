@@ -1,7 +1,8 @@
 import { citywages } from '@charts-poc/demo-data/citywages'
-import { defineChart, dot, lineY, text } from '@tanstack/charts'
+import { defineChart, dot, lineY, select, text } from '@tanstack/charts'
+import { fold } from '@tanstack/charts/transform/fold'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { toSlopePoints } from './transform'
+import { wageFields, wageYear } from './selection'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
@@ -16,29 +17,41 @@ const colors = [
   '#64748b',
 ]
 
-const definition = (input: ConformanceInput) => {
-  const rows = toSlopePoints(
-    citywages.slice(input.revision * 4, input.revision * 4 + 8),
-  )
-  const labels = rows.filter((row) => row.year === '2015')
+export const slopegraphDefinition = (input: ConformanceInput) => {
+  const source = citywages.slice(input.revision * 4, input.revision * 4 + 8)
+  const rows = fold(source, {
+    fields: wageFields,
+    as: { key: 'wageField', value: 'inequality' },
+  })
+  const labels = select(rows, {
+    by: 'Metro',
+    select: 'last',
+  })
+
   return defineChart({
     marks: [
       lineY(rows, {
-        x: 'year',
+        id: 'metro-lines',
+        x: ({ wageField }) => wageYear(wageField),
         y: 'inequality',
         color: 'nyt_display',
+        key: ({ Metro, wageField }) => `${Metro}:${wageField}`,
       }),
       dot(rows, {
-        x: 'year',
+        id: 'metro-points',
+        x: ({ wageField }) => wageYear(wageField),
         y: 'inequality',
         color: 'nyt_display',
+        key: ({ Metro, wageField }) => `${Metro}:${wageField}`,
         r: 3,
       }),
       text(labels, {
-        x: 'year',
+        id: 'endpoint-labels',
+        x: ({ wageField }) => wageYear(wageField),
         y: 'inequality',
         text: 'nyt_display',
         color: 'nyt_display',
+        key: ({ Metro, wageField }) => `${Metro}:${wageField}`,
         dx: 6,
         anchor: 'start',
       }),
@@ -59,6 +72,6 @@ const definition = (input: ConformanceInput) => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  slopegraphDefinition,
   'Metropolitan wage inequality, 1980 to 2015',
 )

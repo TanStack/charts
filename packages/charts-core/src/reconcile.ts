@@ -13,6 +13,8 @@ const interpolatedAttributes = new Set([
   'cy',
   'd',
   'fill-opacity',
+  'font-size',
+  'font-weight',
   'height',
   'opacity',
   'r',
@@ -62,7 +64,12 @@ function reconcileElement(
   syncAttributes(current, next, tweens)
 
   if (!next.firstElementChild) {
-    if (current.textContent !== next.textContent) {
+    if (current.firstElementChild) {
+      for (const child of [...current.children]) {
+        if (tweens) addExitTween(child, tweens)
+        else child.remove()
+      }
+    } else if (current.textContent !== next.textContent) {
       current.textContent = next.textContent
     }
     return

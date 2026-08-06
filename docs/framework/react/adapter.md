@@ -170,6 +170,9 @@ render only while `pinned` is true. Adding the `portal` extension to the
 tooltip options promotes the whole surface above clipped ancestors without
 changing this React API.
 
+For pin-only detail, set `visibility: 'pinned'` in the definition. The shared
+host then mounts the native surface and React body only after activation.
+
 ## Definition identity
 
 Define a fixed chart outside component render:

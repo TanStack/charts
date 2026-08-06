@@ -8,10 +8,10 @@
   "intent": "Select a plotted observation and highlight its matching row in an accessible data table.",
   "support": "composed",
   "features": [
-    "point selection",
-    "linked table",
-    "selected overlay",
-    "accessible state"
+    "native controlled keyed selection",
+    "linked semantic HTML table",
+    "decorative selected mark",
+    "accessible application state"
   ],
   "geometry": [{ "role": "dot", "count": 5 }],
   "interactionScenarios": [
@@ -152,6 +152,7 @@
           "assertions": [
             { "path": "selectedId", "equals": "adelie-biscoe-female" },
             { "path": "selectedValue", "equals": 3400 },
+            { "path": "focusedRow", "equals": "adelie-biscoe-female" },
             {
               "path": "announcement",
               "equals": "Selected Adelie female on Biscoe: 3,400 g"
@@ -228,6 +229,6 @@
   },
   "ai": {
     "create": "Create a penguin measurement chart linked to an accessible table so selecting a point highlights the corresponding row.",
-    "maintain": "Use the displayed species, island, and sex cohorts as shared selection keys, keep the source measurements unchanged, keep the table semantic, and render selection as a separate visual overlay."
+    "maintain": "Keep one raw observation dataset, stable semantic keys, controlled selection, and the decorative selected mark in the definition. Retain the semantic HTML table, status announcement, clear action, representative-row policy, and persistence in the application shell."
   }
 }

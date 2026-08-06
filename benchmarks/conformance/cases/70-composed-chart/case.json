@@ -11,7 +11,8 @@
     "mixed marks",
     "daily observations",
     "monotone curves",
-    "shared numeric scale"
+    "shared numeric scale",
+    "resolved maximum bar thickness"
   ],
   "geometry": [
     { "role": "area", "count": 1 },

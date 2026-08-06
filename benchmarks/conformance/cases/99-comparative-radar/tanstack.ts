@@ -1,4 +1,5 @@
-import { defineChart } from '@tanstack/charts'
+import { defineChart, normalize, select } from '@tanstack/charts'
+import { fold } from '@tanstack/charts/transform/fold'
 import {
   angleGrid,
   polar,
@@ -8,33 +9,38 @@ import {
 import { decathlon } from '@charts-poc/demo-data/decathlon'
 import { scaleLinear, scalePoint } from 'd3-scale'
 import { curveLinearClosed } from 'd3-shape'
-import { selectRadarProfiles } from './selection'
-import {
-  comparativeRadarPoints,
-  radarCountries,
-  radarEvents,
-} from './transform'
+import { radarCountries, radarEvents, timedEvents } from './selection'
 import { tanstackMount } from '../../shared/mount'
 import type { PolarGuideLabelContext } from '@tanstack/charts/polar'
 import type { ConformanceInput } from '../../types'
 
-const ringValues = [20, 40, 60, 80, 100] as const
+const ringValues = [0.2, 0.4, 0.6, 0.8, 1] as const
 const angleScale = scalePoint<string>().domain(radarEvents)
-const radiusScale = scaleLinear().domain([0, 100])
+const radiusScale = scaleLinear().domain([0, 1])
 const colors = ['#7c3aed', '#0ea5e9']
-const radarProfiles = selectRadarProfiles(decathlon)
-const points = comparativeRadarPoints(decathlon, radarProfiles)
+const selectedCountryNames: ReadonlySet<string> = new Set(radarCountries)
+
+export const foldedDecathlon = fold(decathlon, {
+  fields: radarEvents,
+  as: { key: 'event', value: 'result' },
+})
+export const normalizedDecathlon = normalize(foldedDecathlon, {
+  by: 'event',
+  value: ({ datum }) =>
+    timedEvents.has(datum.event) ? -datum.result : datum.result,
+  basis: 'extent',
+  as: 'relativePerformance',
+})
+const selectedCountries = normalizedDecathlon.filter(({ Country }) =>
+  selectedCountryNames.has(Country),
+)
+export const radarProfiles = select(selectedCountries, {
+  by: { Country: 'Country', event: 'event' },
+  select: 'first',
+})
 
 function angleLabelIsTopOrBottom(angle: number): boolean {
   return Math.abs(Math.sin(angle)) <= Math.SQRT1_2
-}
-
-function angleLabelBaseline({
-  angle,
-  y,
-}: PolarGuideLabelContext): 'auto' | 'middle' | 'hanging' {
-  if (!angleLabelIsTopOrBottom(angle)) return 'middle'
-  return y > 0 ? 'hanging' : 'auto'
 }
 
 function angleLabelDy({ angle, y }: PolarGuideLabelContext): number {
@@ -42,7 +48,7 @@ function angleLabelDy({ angle, y }: PolarGuideLabelContext): number {
   return y > 0 ? -1.1 : 0
 }
 
-const definition = (input: ConformanceInput) => {
+export const comparativeRadarDefinition = (input: ConformanceInput) => {
   const margin =
     input.width < 480
       ? { top: 20, right: 55, bottom: 20, left: 105 }
@@ -63,6 +69,7 @@ const definition = (input: ConformanceInput) => {
             labelAngle: Math.PI / 3,
             labelRotate: 60,
             labelBaseline: 'auto',
+            format: (value) => String(Number(value) * 100),
             labelFill: '#cccccc',
             stroke: '#cbd5e1',
           }),
@@ -70,17 +77,18 @@ const definition = (input: ConformanceInput) => {
             values: radarEvents,
             labels: true,
             labelOffset: 8,
-            labelBaseline: angleLabelBaseline,
             labelDy: angleLabelDy,
             labelFill: '#808080',
             stroke: '#cbd5e1',
           }),
         ],
         marks: [
-          radialArea(points, {
+          radialArea(radarProfiles, {
+            id: 'country-profiles',
             angle: 'event',
             radius: 'relativePerformance',
             color: 'Country',
+            key: ({ Country, event }) => `${Country}:${event}`,
             className: 'ts-chart__radar',
             curve: curveLinearClosed,
             fillOpacity: 0.18,
@@ -96,4 +104,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(definition, 'Comparative radar chart')
+export const mount = tanstackMount(
+  comparativeRadarDefinition,
+  'Comparative radar chart',
+)

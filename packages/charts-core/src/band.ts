@@ -7,6 +7,7 @@ import {
   visualValue,
 } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
+import { minimumMappedSpacing } from './mapped-spacing-internal'
 import { valueKey } from './scales'
 import type {
   Channel,
@@ -261,19 +262,8 @@ function inferBandwidth(
   span: number,
   count: number,
 ): number {
-  const positions = [
-    ...new Set(
-      values
-        .filter(isChartValue)
-        .map(scale.map)
-        .filter((value) => Number.isFinite(value)),
-    ),
-  ].sort((left, right) => left - right)
-  let minimum = Infinity
-  for (let index = 1; index < positions.length; index += 1) {
-    minimum = Math.min(minimum, positions[index]! - positions[index - 1]!)
-  }
-  return Number.isFinite(minimum)
-    ? minimum * 0.8
+  const spacing = minimumMappedSpacing(scale, values)
+  return spacing !== undefined
+    ? spacing * 0.8
     : Math.min(48, (span / Math.max(2, count + 1)) * 0.8)
 }

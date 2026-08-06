@@ -1,4 +1,5 @@
 import type { TransformValue } from './transform'
+import { quantileSortedValues } from './transform-statistics-internal'
 
 export type TransformNumericReducer = 'count' | 'sum' | 'mean' | 'min' | 'max'
 
@@ -46,14 +47,8 @@ export function quantile<TDatum>(
     throw new TypeError('quantile: probability must be between zero and one')
   }
   return ({ values }) => {
-    if (!values.length) return Number.NaN
     const sorted = [...values].sort((left, right) => left - right)
-    const position = (sorted.length - 1) * probability
-    const lower = Math.floor(position)
-    const upper = Math.ceil(position)
-    const start = sorted[lower] as number
-    const end = sorted[upper] as number
-    return start + (end - start) * (position - lower)
+    return quantileSortedValues(sorted, probability)
   }
 }
 

@@ -1,23 +1,26 @@
-import { createMark, defineChart } from '@tanstack/charts'
-import { contours } from 'd3-contour'
-import { geoPath, geoTransform } from 'd3-geo'
+import { defineChart } from '@tanstack/charts'
+import { contour } from '@tanstack/charts/spatial/contour'
 import { scaleThreshold } from 'd3-scale'
-import { contourThresholds, windSpeedGrid } from './transform'
+import { contourThresholds, windObservationGrid } from './transform'
 import { tanstackMount } from '../../shared/mount'
-import type { ContourMultiPolygon } from 'd3-contour'
 import type { ConformanceInput } from '../../types'
-import type { SceneNode } from '@tanstack/charts'
 
 const colors = ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#2563eb']
 
-const definition = (input: ConformanceInput) => {
-  const grid = windSpeedGrid(input.revision)
-  const geometry = contours()
-    .size([grid.width, grid.height])
-    .thresholds([...contourThresholds])(grid.values)
+export const contourDefinition = (input: ConformanceInput) => {
+  const grid = windObservationGrid(input.revision)
 
   return defineChart({
-    marks: [contourMark(geometry, grid.width, grid.height)],
+    marks: [
+      contour(grid.data, {
+        width: grid.width,
+        height: grid.height,
+        value: (row) => Math.hypot(row.u, row.v),
+        thresholds: contourThresholds,
+        stroke: '#ffffff',
+        strokeWidth: 0.75,
+      }),
+    ],
     color: {
       scale: scaleThreshold<number, string>,
       domain: contourThresholds.slice(1),
@@ -27,66 +30,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-function contourMark(
-  geometry: readonly ContourMultiPolygon[],
-  gridWidth: number,
-  gridHeight: number,
-) {
-  return createMark<ContourMultiPolygon, never, never>(({ markIndex }) => {
-    const id = `contour-${markIndex}`
-
-    return {
-      id,
-      channels: {
-        color: {
-          scale: 'color',
-          values: geometry.map((contour) => contour.value),
-        },
-      },
-      render: ({ chart, color }) => {
-        const projection = geoTransform({
-          point(x, y) {
-            this.stream.point(
-              chart.x + (x / gridWidth) * chart.width,
-              chart.y + chart.height - (y / gridHeight) * chart.height,
-            )
-          },
-        })
-        const path = geoPath(projection)
-        const children: SceneNode[] = []
-
-        for (let index = 0; index < geometry.length; index++) {
-          const contour = geometry[index]
-          if (contour === undefined) continue
-          const pathData = path(contour)
-          if (pathData === null) continue
-          children.push({
-            kind: 'area',
-            key: `${id}:${index}`,
-            points: [],
-            path: pathData,
-            style: {
-              fill: color(contour.value),
-              stroke: '#ffffff',
-              strokeWidth: 0.75,
-            },
-          })
-        }
-
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: 'ts-chart__area',
-              ariaHidden: true,
-              children,
-            },
-          ],
-        }
-      },
-    }
-  })
-}
-
-export const mount = tanstackMount(definition, 'Filled wind-speed contours')
+export const mount = tanstackMount(
+  contourDefinition,
+  'Filled wind-speed contours',
+)

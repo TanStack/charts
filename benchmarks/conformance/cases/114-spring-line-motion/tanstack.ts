@@ -2,9 +2,9 @@ import { defineChart, lineY } from '@tanstack/charts'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { springLineStages } from './model'
 import type {
-  ChartDefinition,
   ChartRenderer,
   ChartRendererHost,
   ChartRendererHostOptions,
@@ -16,12 +16,12 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-type TransitionMode = 'spring' | 'tween'
+export type SpringLineTransitionMode = 'spring' | 'tween'
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input
   let stage = Math.abs(input.revision) % springLineStages.length
-  let mode: TransitionMode = 'spring'
+  let mode: SpringLineTransitionMode = 'spring'
   let interruptionCount = 0
   let timer: number | undefined
   let host: ChartRendererHost<SpringLineRow, string, number> | undefined
@@ -49,7 +49,7 @@ export const mount: ConformanceMount = (container, input) => {
     ChartRendererHostOptions<SpringLineRow, string, number> | undefined => {
     if (!renderer) return undefined
     return {
-      definition: chartDefinition(
+      definition: springLineMotionDefinition(
         springLineStages[stage] ?? springLineStages[0],
         mode,
       ),
@@ -129,13 +129,10 @@ export const mount: ConformanceMount = (container, input) => {
         stage,
         mode,
         interruptionCount,
-        motionState:
-          chart
-            .querySelector('svg.ts-chart')
-            ?.getAttribute('data-ts-motion-state') ?? null,
+        motionState: readChartMotionState(chart),
       }
     },
-    settle: () => settleMotion(chart, mode === 'spring' ? 5_000 : 1_500),
+    settle: () => settleChartMotion(chart, mode === 'spring' ? 5_000 : 1_500),
   }
 
   return {
@@ -156,10 +153,10 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
-function chartDefinition(
+export function springLineMotionDefinition(
   rows: readonly SpringLineRow[],
-  mode: TransitionMode,
-): ChartDefinition<SpringLineRow, string, number> {
+  mode: SpringLineTransitionMode,
+) {
   return defineChart({
     motion: {
       transition:
@@ -169,7 +166,7 @@ function chartDefinition(
     },
     marks: [
       lineY(rows, {
-        id: 'comparison',
+        id: 'primary',
         x: 'period',
         y: 'primary',
         key: 'id',
@@ -177,6 +174,7 @@ function chartDefinition(
         strokeWidth: 4,
       }),
       lineY(rows, {
+        id: 'comparison',
         x: 'period',
         y: 'comparison',
         key: 'id',
@@ -248,27 +246,4 @@ function button(document: Document, label: string) {
 
 function clearTimer(view: Window | null, timer: number | undefined) {
   if (timer !== undefined) view?.clearTimeout(timer)
-}
-
-function settleMotion(chart: HTMLElement, timeout: number) {
-  const view = chart.ownerDocument.defaultView
-  if (!view) return Promise.resolve()
-  const started = view.performance.now()
-  return new Promise<void>((resolve) => {
-    const check = () => {
-      const state = chart
-        .querySelector('svg.ts-chart')
-        ?.getAttribute('data-ts-motion-state')
-      if (
-        state === 'finished' ||
-        state === null ||
-        view.performance.now() - started >= timeout
-      ) {
-        resolve()
-        return
-      }
-      view.requestAnimationFrame(check)
-    }
-    check()
-  })
 }

@@ -1,6 +1,7 @@
 import { simpsons } from '@charts-poc/demo-data/simpsons'
 import { describe, expect, it } from 'vitest'
-import { isRatedEpisode, ridgeDensity, ridgeSeasons } from './transform'
+import { isRatedEpisode, ridgeSeasons } from './selection'
+import { ridgeDensity } from './transform'
 
 describe('ridgeDensity', () => {
   it('bins and normalizes the observed ratings above each season baseline', () => {

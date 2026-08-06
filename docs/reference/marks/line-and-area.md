@@ -1,6 +1,6 @@
 ---
 title: Line and Area Marks
-description: Reference for lineY, areaY, areaX, grouping, null gaps, interval baselines, points, and optional curve bridges.
+description: Reference for lineY, lineX, areaY, areaX, grouping, null gaps, interval baselines, points, and optional curve bridges.
 ---
 
 Line and area marks consume an iterable directly. Channels may be compatible
@@ -9,7 +9,14 @@ undefined, invalid, or nonfinite create gaps instead of connecting across
 missing data.
 
 ```ts
-import { areaX, areaY, defineChart, lineY, stack } from '@tanstack/charts'
+import {
+  areaX,
+  areaY,
+  defineChart,
+  lineX,
+  lineY,
+  stack,
+} from '@tanstack/charts'
 ```
 
 ## `lineY`
@@ -60,6 +67,34 @@ Each valid row emits one interaction point at its scaled x/y coordinate.
 `groupLabel` is the string form of the effective path group, or the mark ID
 without a group.
 
+## `lineX`
+
+`lineX` is the transposed line mark. It connects numeric x values along a
+numeric, categorical, or temporal y channel:
+
+```ts
+const mark = lineX(rows, {
+  x: 'value',
+  y: 'category',
+  z: 'series',
+  points: true,
+})
+```
+
+```ts
+function lineX<TDatum>(
+  source: Iterable<TDatum>,
+  options?: LineXOptions<TDatum>,
+): ChartMark<TDatum, number, InferredY>
+```
+
+Its options transpose `lineY`: `x` is the numeric value channel and defaults
+to a numeric datum; `y` is the longitudinal `ChartValue` channel and defaults
+to row index. Identity falls back to y, invalid rows create segment gaps, and
+input order remains path order. Grouping, paint, points, curves, states, and
+motion use the same contract. Line interaction follows y affinity so keyboard
+and pointer traversal match the longitudinal axis.
+
 ## `areaY`
 
 `areaY` fills between a numeric upper channel and a numeric lower baseline
@@ -107,8 +142,15 @@ series; a discrete `color` channel may infer it when `z` is absent. Use
 centering, or wiggle offset. Supplying `y1` or `y2` opts out and preserves
 authored interval boundaries.
 
-Input order and null-gap behavior match `lineY`. Each valid row emits one point
-at the upper `y2`/`y` value, not at the lower baseline.
+Use `order: 'inside-out'` with `offset: 'wiggle'` for nonnegative
+streamgraphs. Inside-out order follows series peaks and totals. The completed
+wiggle stack is translated once so the global minimum start is zero; individual
+positions are not rebased. Positions and series retain first-seen order, and a
+missing position/series pair contributes zero to layout without emitting a
+synthetic point.
+
+Input order and null-gap behavior match the line marks. Each valid row emits
+one point at the upper `y2`/`y` value, not at the lower baseline.
 
 ## `areaX`
 

@@ -1,9 +1,10 @@
 import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
+import { geoAlbersUsa } from 'd3-geo'
 import { scaleQuantile } from 'd3-scale'
 import {
-  fitUnemploymentProjection,
   projectedUnemploymentCounties,
+  unemploymentCountyCollection,
 } from './transform'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
@@ -33,11 +34,14 @@ const colorRanges = [
   ],
 ]
 
-const definition = (input: ConformanceInput) =>
+export const usStateChoroplethDefinition = (input: ConformanceInput) =>
   defineChart({
     marks: [
       geoShape(projectedUnemploymentCounties, {
-        projection: ({ chart }) => fitUnemploymentProjection(chart),
+        projection: {
+          type: geoAlbersUsa,
+          fit: unemploymentCountyCollection,
+        },
         color: (county) => county.properties.rate,
         stroke: '#f8fafc',
         strokeWidth: 0.35,
@@ -51,7 +55,7 @@ const definition = (input: ConformanceInput) =>
   })
 
 export const mount = tanstackMount(
-  definition,
+  usStateChoroplethDefinition,
   'United States county unemployment choropleth',
   {
     format: ({ datum }) =>

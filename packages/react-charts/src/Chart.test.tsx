@@ -482,6 +482,106 @@ describe('React adapter', () => {
     target.remove()
   })
 
+  it('mounts a pin-only tooltip body only for the pinned lifecycle', async () => {
+    const tooltipDefinition = defineChart(definition, {
+      maxFocusDistance: 1_000,
+      tooltip: {
+        use: tooltip,
+        portal: tooltipPortal,
+        visibility: 'pinned',
+        content: ([point]) => ({
+          title: point?.datum.id ?? 'Revenue',
+          rows: [],
+        }),
+      },
+    })
+    const target = document.createElement('div')
+    document.body.append(target)
+    const root = createRoot(target)
+
+    await act(async () => {
+      root.render(
+        <TooltipChart
+          definition={tooltipDefinition}
+          width={480}
+          height={260}
+          ariaLabel="Pin-only revenue details"
+          renderTooltipBody={({ pinned }) => (
+            <div data-testid="pin-only-tooltip-body">{String(pinned)}</div>
+          )}
+        />,
+      )
+    })
+
+    const svg = target.querySelector('svg')
+    if (!svg) throw new Error('Expected an SVG chart')
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    await act(async () => {
+      svg.dispatchEvent(
+        new MouseEvent('pointermove', {
+          bubbles: true,
+          clientX: 52,
+          clientY: 200,
+        }),
+      )
+    })
+
+    expect(document.querySelector('[data-ts-chart-tooltip-portal]')).toBeNull()
+    expect(
+      document.querySelector('[data-testid="pin-only-tooltip-body"]'),
+    ).toBeNull()
+
+    await act(async () => {
+      svg.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          clientX: 52,
+          clientY: 200,
+        }),
+      )
+    })
+
+    const portal = document.querySelector<HTMLElement>(
+      '[data-ts-chart-tooltip-portal]',
+    )
+    expect(portal?.hidden).toBe(false)
+    expect(portal?.getAttribute('role')).toBe('dialog')
+    expect(
+      portal?.querySelector('[data-testid="pin-only-tooltip-body"]')
+        ?.textContent,
+    ).toBe('true')
+
+    await act(async () => {
+      svg.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          clientX: 52,
+          clientY: 200,
+        }),
+      )
+    })
+
+    expect(portal?.hidden).toBe(true)
+    expect(
+      portal?.querySelector('[data-testid="pin-only-tooltip-body"]'),
+    ).toBeNull()
+
+    await act(async () => root.unmount())
+    expect(document.querySelector('[data-ts-chart-tooltip-portal]')).toBeNull()
+    target.remove()
+  })
+
   it('preserves the chart DOM when the definition is stable', async () => {
     const dynamicDefinition = defineChart(() => ({
       marks: [

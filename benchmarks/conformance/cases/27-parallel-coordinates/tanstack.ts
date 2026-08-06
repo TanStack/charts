@@ -1,8 +1,15 @@
-import { colorLegend, defineChart, dot, lineY } from '@tanstack/charts'
+import {
+  colorLegend,
+  defineChart,
+  dot,
+  lineY,
+  normalize,
+  select,
+} from '@tanstack/charts'
+import { fold } from '@tanstack/charts/transform/fold'
 import { decathlon } from '@charts-poc/demo-data/decathlon'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { decathlonEvents, selectRepresentativeDecathletes } from './selection'
-import { normalizeDecathlonResults } from './transform'
+import { decathlonEvents, timedEvents } from './selection'
 import { tanstackMount } from '../../shared/mount'
 
 const colors = [
@@ -15,22 +22,39 @@ const colors = [
   '#ca8a04',
 ]
 
-const representativeDecathletes = selectRepresentativeDecathletes(decathlon)
-const rows = normalizeDecathlonResults(decathlon, representativeDecathletes)
+export const foldedDecathlon = fold(decathlon, {
+  fields: decathlonEvents,
+  as: { key: 'event', value: 'result' },
+})
+export const normalizedDecathlon = normalize(foldedDecathlon, {
+  by: 'event',
+  value: ({ datum }) =>
+    timedEvents.has(datum.event) ? -datum.result : datum.result,
+  basis: 'extent',
+  as: 'relativePerformance',
+})
+export const representativeProfiles = select(normalizedDecathlon, {
+  by: { Country: 'Country', event: 'event' },
+  select: 'last',
+})
 
-const definition = () =>
+export const parallelCoordinatesDefinition = () =>
   defineChart({
     marks: [
-      lineY(rows, {
+      lineY(representativeProfiles, {
+        id: 'country-lines',
         x: 'event',
-        y: 'relativePerformance',
+        y: ({ relativePerformance }) => relativePerformance * 100,
         color: 'Country',
+        key: ({ Country, event }) => `${Country}:${event}`,
         strokeWidth: 1.75,
       }),
-      dot(rows, {
+      dot(representativeProfiles, {
+        id: 'country-points',
         x: 'event',
-        y: 'relativePerformance',
+        y: ({ relativePerformance }) => relativePerformance * 100,
         color: 'Country',
+        key: ({ Country, event }) => `${Country}:${event}`,
         r: 2.75,
       }),
     ],
@@ -49,6 +73,6 @@ const definition = () =>
   })
 
 export const mount = tanstackMount(
-  definition,
+  parallelCoordinatesDefinition,
   'Parallel coordinates model comparison',
 )

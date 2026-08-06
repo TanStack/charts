@@ -45,6 +45,7 @@ function dot<TDatum>(
 | `rScale`        | `(value: number) => number`          | Identity             | Maps each valid raw radius to pixels  |
 | `fill`          | `string`                             | Resolved color       | Final constant fill override          |
 | `fillOpacity`   | `number`                             | SVG default          | Fill opacity                          |
+| `layout`        | `DodgeXLayout \| DodgeYLayout`       | None                 | Resolved collision placement          |
 | `stroke`        | `string`                             | None                 | Constant stroke                       |
 | `strokeOpacity` | `number`                             | SVG default          | Stroke opacity                        |
 | `strokeWidth`   | `number`                             | SVG default          | Stroke width                          |
@@ -55,6 +56,10 @@ must also be finite and nonnegative or the row is skipped.
 
 Unlike `hexagon`, `dot.fill` and `dot.stroke` are constants. Use `color` and
 the chart color scale for data-driven dot color.
+
+[`dodgeX` and `dodgeY`](./dodge.md) derive one dot coordinate after the
+measured axis scale and final plot bounds resolve. The generated coordinate
+does not contribute a positional scale domain.
 
 Without an explicit key, `dot` tries a unique top-level or nested `data.id`,
 then x, y, and the x/y tuple. Supply `key` when positions can change while the

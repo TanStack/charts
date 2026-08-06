@@ -79,6 +79,17 @@ review of cases 80–92 and records the implementation follow-through for
 discoverability, rendered feedback, keyboard and touch operation, cancellation,
 accessibility, and edge behavior.
 
+The [custom authoring audit](./CUSTOM-AUTHORING-AUDIT.md) preserves the reviewed
+before-state classification of work outside the declarative chart definition.
+The [definition coverage audit](./DEFINITION-COVERAGE-AUDIT.md) then reviews
+every flagged case and identifies current-API migrations, missing reusable
+primitives, optional algorithm adapters, and justified custom boundaries.
+The [definition coverage plan](./DEFINITION-COVERAGE-PLAN.md) tracks the
+capability dependencies, migration status, acceptance criteria, and gates for
+all 109 dispositions. The
+[definition coverage overview](./DEFINITION-COVERAGE-OVERVIEW.md) catalogs the
+current boundary and case-local evidence for every case.
+
 ## Published catalog and documentation embeds
 
 The Vite application remains the local authoring surface at

@@ -30,6 +30,29 @@ export interface NativeChartSceneProps {
   resolvePaint: NativePaintResolver
 }
 
+export interface NativeChartSceneNodesProps extends NativeChartSceneProps {
+  nodes: readonly SceneNode[]
+}
+
+export function NativeChartSceneNodes({
+  scene,
+  nodes,
+  color,
+  idPrefix,
+  resolvePaint,
+}: NativeChartSceneNodesProps) {
+  const gradientIds = React.useMemo(
+    () => new Set(scene.gradients.map((gradient) => gradient.id)),
+    [scene.gradients],
+  )
+  const paint = React.useCallback(
+    (value: string) =>
+      resolveScenePaint(value, gradientIds, idPrefix, resolvePaint, color),
+    [color, gradientIds, idPrefix, resolvePaint],
+  )
+  return <>{nodes.map((node) => renderSceneNode(node, idPrefix, paint))}</>
+}
+
 export const NativeChartScene = React.memo(function NativeChartScene({
   scene,
   color,
@@ -130,7 +153,12 @@ function renderSceneNode(
         <Path
           key={node.key}
           {...style}
-          d={node.path ?? pointsPath(node.points, true)}
+          d={
+            node.polygons !== undefined
+              ? polygonsPath(node.polygons)
+              : (node.path ?? pointsPath(node.points, true))
+          }
+          fillRule={node.polygons === undefined ? undefined : 'evenodd'}
           vectorEffect="non-scaling-stroke"
         />
       )
@@ -267,6 +295,16 @@ function pointsPath(
   return `${points
     .map(([x, y], index) => `${index === 0 ? 'M' : 'L'}${x},${y}`)
     .join('')}${close ? 'Z' : ''}`
+}
+
+function polygonsPath(
+  polygons: readonly (readonly (readonly (readonly [number, number])[])[])[],
+) {
+  return polygons
+    .flatMap((polygon) => polygon)
+    .filter((ring) => ring.length > 0)
+    .map((ring) => pointsPath(ring, true))
+    .join('')
 }
 
 function scopedId(prefix: string, id: string) {

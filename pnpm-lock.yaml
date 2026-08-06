@@ -190,12 +190,12 @@ importers:
       d3-shape:
         specifier: 3.2.0
         version: 3.2.0
-      d3-time:
-        specifier: 3.1.0
-        version: 3.1.0
       d3-zoom:
         specifier: 3.0.0
         version: 3.0.0
+      d3-time:
+        specifier: 3.1.0
+        version: 3.1.0
       echarts:
         specifier: 6.1.0
         version: 6.1.0
@@ -617,9 +617,33 @@ importers:
       d3-array:
         specifier: 3.2.4
         version: 3.2.4
+      d3-brush:
+        specifier: 3.0.0
+        version: 3.0.0
+      d3-contour:
+        specifier: 4.0.2
+        version: 4.0.2
+      d3-delaunay:
+        specifier: 6.0.4
+        version: 6.0.4
+      d3-force:
+        specifier: 3.0.0
+        version: 3.0.0
       d3-geo:
         specifier: 3.1.1
         version: 3.1.1
+      d3-hexbin:
+        specifier: 0.2.2
+        version: 0.2.2
+      d3-hierarchy:
+        specifier: 3.1.2
+        version: 3.1.2
+      d3-sankey:
+        specifier: 0.12.3
+        version: 0.12.3
+      d3-selection:
+        specifier: 3.0.0
+        version: 3.0.0
       d3-shape:
         specifier: 3.2.0
         version: 3.2.0
@@ -627,9 +651,36 @@ importers:
       '@types/d3-array':
         specifier: ^3.2.2
         version: 3.2.2
+      '@types/d3-brush':
+        specifier: ^3.0.6
+        version: 3.0.6
+      '@types/d3-contour':
+        specifier: ^3.0.6
+        version: 3.0.6
+      '@types/d3-delaunay':
+        specifier: ^6.0.4
+        version: 6.0.4
+      '@types/d3-force':
+        specifier: ^3.0.10
+        version: 3.0.10
+      '@types/d3-hexbin':
+        specifier: 0.2.5
+        version: 0.2.5
+      '@types/d3-hierarchy':
+        specifier: ^3.1.7
+        version: 3.1.7
+      '@types/d3-sankey':
+        specifier: ^0.12.5
+        version: 0.12.5
       '@types/d3-scale':
         specifier: ^4.0.9
         version: 4.0.9
+      '@types/d3-selection':
+        specifier: ^3.0.11
+        version: 3.0.11
+      '@types/d3-zoom':
+        specifier: ^3.0.8
+        version: 3.0.8
       d3-scale:
         specifier: 4.0.2
         version: 4.0.2

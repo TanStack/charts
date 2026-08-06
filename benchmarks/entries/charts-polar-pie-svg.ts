@@ -1,7 +1,6 @@
-import { polar, radialArc } from '@tanstack/charts/polar'
+import { pie, polar, radialArc } from '@tanstack/charts/polar'
 import { createChartScene, defineChart } from '@tanstack/charts/scene'
 import { renderChartSvg } from '@tanstack/charts/svg'
-import { pie } from 'd3-shape'
 
 const rows = [
   { id: 'ingest', value: 42, fill: '#2563eb' },
@@ -10,20 +9,15 @@ const rows = [
   { id: 'other', value: 12, fill: '#f59e0b' },
 ]
 
-const slices = pie<(typeof rows)[number]>()
-  .sort(null)
-  .value((row) => row.value)(rows)
+const slices = pie(rows, { value: 'value' })
 
 const definition = defineChart({
   marks: [
     polar({
       marks: [
         radialArc(slices, {
-          key: (slice) => slice.data.id,
-          startAngle: 'startAngle',
-          endAngle: 'endAngle',
-          padAngle: 'padAngle',
-          fill: (slice) => slice.data.fill,
+          key: 'id',
+          fill: 'fill',
         }),
       ],
     }),

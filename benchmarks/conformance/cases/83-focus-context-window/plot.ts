@@ -147,7 +147,7 @@ export const mount: ConformanceMount = (container, input) => {
   overviewView.dataset.conformanceView = 'overview'
   controls.dataset.focusControls = ''
   overviewView.style.position = 'relative'
-  brushOverlay.dataset.focusWindow = ''
+  brushOverlay.dataset.chartBrush = 'focus-window'
   brushOverlay.setAttribute('aria-hidden', 'true')
   brushOverlay.append(brushGroup)
   Object.assign(brushOverlay.style, {

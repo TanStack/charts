@@ -16,6 +16,7 @@ import type {
 } from 'echarts/components'
 import type { ComposeOption, EChartsType } from 'echarts/core'
 import { industries } from '@charts-poc/demo-data/industries'
+import { clientPointBounds } from '../../shared/driver-geometry'
 import { echartsMount } from '../../shared/echarts-mount'
 import { axisPointerColors } from './colors'
 import {
@@ -299,7 +300,9 @@ function geometry(
           const point = pixelPoint(chart, row.date, row.unemployed)
           return point ? [point] : []
         })
-      const sample = pointsBounds(points, bounds, axisPointerColors[industry])
+      const sample = clientPointBounds(points, bounds, {
+        paint: axisPointerColors[industry],
+      })
       return sample ? [sample] : []
     })
   }
@@ -327,27 +330,6 @@ function pixelPoint(
     return null
   }
   return [point[0], point[1]]
-}
-
-function pointsBounds(
-  points: readonly (readonly [number, number])[],
-  surfaceBounds: DOMRect,
-  paint: string,
-): ConformanceGeometrySample | null {
-  if (!points.length) return null
-  const xs = points.map((point) => point[0])
-  const ys = points.map((point) => point[1])
-  const left = Math.min(...xs)
-  const right = Math.max(...xs)
-  const top = Math.min(...ys)
-  const bottom = Math.max(...ys)
-  return {
-    x: surfaceBounds.left + left,
-    y: surfaceBounds.top + top,
-    width: Math.max(1, right - left),
-    height: Math.max(1, bottom - top),
-    paint,
-  }
 }
 
 function interactionState(state: InteractionState): ConformanceJsonObject {

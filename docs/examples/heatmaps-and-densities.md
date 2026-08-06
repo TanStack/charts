@@ -5,9 +5,9 @@ description: Choose quantitative matrix cells, contours, or hexagonal bins to sh
 
 Heatmaps and density charts answer where values concentrate across two
 dimensions. A matrix uses explicit row and column categories or intervals.
-Contours and spatial bins summarize a continuous point field. Choose the
-representation that preserves the question instead of defaulting to one color
-per raw observation.
+Contours summarize a regular scalar grid or an estimated point field; spatial
+bins summarize local observations. Choose the representation that preserves
+the question instead of defaulting to one color per raw observation.
 
 ## Choose the comparison
 
@@ -15,6 +15,7 @@ per raw observation.
 | ------------------------------------------------------------- | --------------------------- |
 | How does daily activity vary by week and weekday?             | Token use calendar heatmap  |
 | How many observations fall in each quantitative x-y interval? | Binned quantitative heatmap |
+| What regions of a regular scalar grid cross selected levels?  | Scalar-grid contours        |
 | What smooth regions enclose similar point density?            | Density contours            |
 | Where are dense clusters while retaining local bin shape?     | Hexagonal bins              |
 | What value belongs to each pair of named categories?          | An ordinal cell matrix      |
@@ -71,7 +72,27 @@ thresholds that are stable across comparable views and a color domain that
 states whether absolute count or normalized density is being shown. See
 [Scales and D3](../concepts/scales-and-d3.md) for binning and scale ownership.
 
-## Summarize a continuous field with contours
+## Trace levels through a scalar grid
+
+A scalar-grid contour shows where a sampled field crosses chosen values. The
+input is a regular row-major grid rather than a set of x/y observations.
+
+<iframe
+  src="https://tanstack.com/charts/catalog/embed/38-contour-topography/?theme=system&height=480"
+  title="Wind-speed scalar-grid contours built with TanStack Charts"
+  loading="lazy"
+  width="100%"
+  height="480"
+  style="width:100%;height:480px;border:0;"
+></iframe>
+
+The optional [`contour` mark](../reference/marks/contour.md) accepts the raw
+grid, dimensions, value channel, and levels. It owns marching-squares topology
+and structured polygons; the chart definition retains the metric and threshold
+choices. Keep grid orientation and dimensions explicit when changing the
+sample window.
+
+## Estimate point concentration with density contours
 
 Density contours turn many points into nested level sets. They are useful for
 revealing cluster shape and overlap when raw dots would occlude one another.
@@ -87,8 +108,10 @@ revealing cluster shape and overlap when raw dots would occlude one another.
 
 Bandwidth and thresholds change the visible shape. Treat them as analytical
 parameters, keep them stable for comparisons, and explain them when they affect
-interpretation. This case uses an optional custom mark boundary described in
-[Custom Marks and Renderers](../guides/custom-marks-and-renderers.md).
+interpretation. The optional
+[`densityContour` mark](../reference/marks/density.md) maps the source channels
+through final scales, owns responsive estimation, and emits structured polygons
+and holes without case-owned path construction.
 
 ## Retain local structure with hexagonal bins
 
@@ -106,10 +129,9 @@ would impose stronger horizontal and vertical edges.
 ></iframe>
 
 Pixel-space binning is responsive work: a changed container changes the spatial
-layout. Keep that preparation aligned with the chart's measured inner bounds.
-[Responsive Charts](../guides/responsive-charts.md) defines the measurement
-lifecycle; [Dot and Hexagon Marks](../reference/marks/dot-and-hexagon.md)
-defines the rendered mark.
+layout. The optional [`hexbin` mark](../reference/marks/hexbin.md) owns that
+resolved-layout step, reducer channels, source lineage, and hexagon scene
+output without a duplicated scale.
 
 ## Production checks
 

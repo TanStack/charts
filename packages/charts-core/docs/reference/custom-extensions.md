@@ -8,6 +8,40 @@ scene compiler. Prefer composition with built-in marks first. Add an extension
 when the chart requires geometry or behavior that cannot be expressed without
 distorting its data model.
 
+## Composite marks
+
+`compositeMark` groups ordinary marks behind one stable parent identity:
+
+```ts
+import { compositeMark } from '@tanstack/charts/mark/composite'
+
+function compositeMark<
+  TMarks extends readonly ChartMark<any, any, any, any, any>[],
+>(
+  marks: TMarks,
+  options?: CompositeMarkOptions<ChartMarkDatum<TMarks[number]>>,
+): ChartMark<
+  ChartMarkDatum<TMarks[number]>,
+  ChartMarkPointX<TMarks[number]>,
+  ChartMarkPointY<TMarks[number]>,
+  ChartMarkScaleX<TMarks[number]>,
+  ChartMarkScaleY<TMarks[number]>
+>
+```
+
+`CompositeMarkOptions` contains optional `id` and `motion` fields. The result
+preserves the union of child datum and positional types. Initialization merges
+the children's semantic channels under parent and child namespaces. Rendering
+keeps child order, namespaces scene keys and mark IDs, and retains each child
+point as a separate interaction target. Parent and child motion definitions
+merge under the resolved child namespace, with child fields taking precedence.
+
+Every child must have a unique ID and an ordinary initialized `render` method.
+A child that owns `resolveLayout` is rejected; keep one resolved-layout owner
+instead of nesting scheduling lifecycles. See
+[Custom Marks and Renderers](../guides/custom-marks-and-renderers.md#group-reusable-child-marks)
+for composition guidance.
+
 ## Custom marks
 
 ```ts
@@ -22,7 +56,8 @@ function createMark<
 >(
   initialize: (
     context: MarkInitializeContext,
-  ) => InitializedMark<TDatum, TXValue, TYValue>,
+  ) => MarkInitialization<TDatum, TXValue, TYValue>,
+  motion?: ChartMotionDefinition<TDatum>,
 ): ChartMark<TDatum, TXValue, TYValue>
 ```
 
@@ -41,10 +76,24 @@ interface InitializedMark<
 > {
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
+  motion?: ChartMotionDefinition<any>
   layoutLabels?(context: MarkRenderContext): readonly SceneLabel[]
   render(context: MarkRenderContext): MarkScene<TDatum, TXValue, TYValue>
+  resolveLayout?(
+    context: MarkResolvedLayoutContext,
+  ): ResolvedMarkLayout<TDatum, TXValue, TYValue>
 }
 ```
+
+`MarkInitialization` also accepts a `ResolvedLayoutMarkInitialization`, which
+has `resolveLayout` instead of an initial `render`. `createMark` normalizes both
+forms to `InitializedMark`, so wrappers around ordinary marks retain a callable
+`render`.
+
+The optional factory `motion` is copied onto each initialized mark. An
+initializer may return its own `motion` when a composite or resolved layout
+needs a scene-local policy; that value takes precedence over the factory
+fallback.
 
 Materialized channels declare semantic values before scale resolution:
 
@@ -73,6 +122,35 @@ interface MarkRenderContext {
 }
 ```
 
+### Final-screen mark layout
+
+Use `resolveLayout` when binning, collision avoidance, topology, or responsive
+packing depends on final positional scales and inner bounds:
+
+```ts
+interface MarkResolvedLayoutContext {
+  markIndex: number
+  chart: ChartBounds
+  scales: Readonly<Record<string, ResolvedScale>>
+  theme: ChartTheme
+  layout: ChartLayoutOptions
+}
+
+interface ResolvedMarkLayout<TDatum, TXValue, TYValue> {
+  channels?: Readonly<Record<string, MaterializedChannel>>
+  states?: InitializedMark<TDatum, TXValue, TYValue>['states']
+  layoutLabels?(context: MarkRenderContext): readonly SceneLabel[]
+  render(context: MarkRenderContext): MarkScene<TDatum, TXValue, TYValue>
+}
+```
+
+The margin solver may call `resolveLayout` more than once. Keep it synchronous,
+pure, deterministic, and free of application state. Initial channels alone
+establish x/y domains. Resolved channels replace them for final
+non-positional inference, including color; resolved x/y values never re-domain
+the positional scales. Derived rows stay inside the returned render closure
+instead of becoming a cross-mark transform graph.
+
 If a custom mark emits labels that should participate in automatic margins,
 return the same positioned labels from `layoutLabels`. The solver may call it
 more than once with different responsive ranges; keep it pure. `render` still
@@ -97,13 +175,15 @@ interface MarkScene<
 
 - Give the mark a stable ID. Derive a fallback from `markIndex` only when layer
   order is stable.
-- Materialize every value needed to establish scale domains before rendering.
+- Materialize every value needed to establish positional domains during
+  initialization.
 - Map through `context.scales`; do not recalculate responsive ranges.
 - Give each scene node and point a deterministic key.
 - Emit finite geometry only.
 - Preserve the original datum and index in every interaction point.
 - Use one honest focus coordinate and semantic x/y pair per point.
-- Keep preprocessing outside `render`.
+- Keep semantic row transforms eager and outside `render`; use
+  `resolveLayout` only for work that requires final screen geometry.
 
 The scene node and point shapes are documented in
 [Runtime and scene](./runtime-and-scene.md).
@@ -127,7 +207,8 @@ function createMarkWithScaleValues<
 >(
   initialize: (
     context: MarkInitializeContext,
-  ) => InitializedMark<TDatum, TXPointValue, TYPointValue>,
+  ) => MarkInitialization<TDatum, TXPointValue, TYPointValue>,
+  motion?: ChartMotionDefinition<TDatum>,
 ): ChartMark<TDatum, TXPointValue, TYPointValue, TXScaleValue, TYScaleValue>
 ```
 

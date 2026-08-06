@@ -32,22 +32,23 @@ function barY<TDatum>(
 
 ### Options
 
-| Option        | Type                                 | Default                        | Meaning                                          |
-| ------------- | ------------------------------------ | ------------------------------ | ------------------------------------------------ |
-| `id`          | `string`                             | Layer-derived                  | Stable mark ID                                   |
-| `x`           | `Channel<TDatum, ChartValue?>`       | Row index                      | Bar category or center                           |
-| `y`           | `Channel<TDatum, number?>`           | Numeric datum                  | Length; implicitly stacked at each x             |
-| `y1`          | `number \| Channel<TDatum, number?>` | Implicit stack start           | Explicit baseline endpoint                       |
-| `y2`          | `number \| Channel<TDatum, number?>` | Implicit stack end             | Explicit value endpoint; takes precedence over y |
-| `z`           | `Channel<TDatum, ChartKey?>`         | No group                       | Group identity; color fallback when omitted      |
-| `color`       | `Channel<TDatum, ChartKey?>`         | `z`                            | Independent value sent to the chart color scale  |
-| `key`         | `Channel<TDatum, ChartKey>`          | Top/nested `id`, x, then index | Stable scene and interaction identity            |
-| `fill`        | `VisualChannel<TDatum, string>`      | Resolved `color`               | Final bar paint override                         |
-| `fillOpacity` | `number`                             | SVG default                    | Fill opacity                                     |
-| `layout`      | `GroupLayout \| StackLayout`         | Implicit diverging stack       | Configures grouping or stack order/offset        |
-| `inset`       | `number`                             | `0`                            | Pixels removed from both categorical edges       |
-| `radius`      | `number`                             | None                           | SVG rectangle corner radius                      |
-| `states`      | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides              |
+| Option         | Type                                 | Default                        | Meaning                                          |
+| -------------- | ------------------------------------ | ------------------------------ | ------------------------------------------------ |
+| `id`           | `string`                             | Layer-derived                  | Stable mark ID                                   |
+| `x`            | `Channel<TDatum, ChartValue?>`       | Row index                      | Bar category or center                           |
+| `y`            | `Channel<TDatum, number?>`           | Numeric datum                  | Length; implicitly stacked at each x             |
+| `y1`           | `number \| Channel<TDatum, number?>` | Implicit stack start           | Explicit baseline endpoint                       |
+| `y2`           | `number \| Channel<TDatum, number?>` | Implicit stack end             | Explicit value endpoint; takes precedence over y |
+| `z`            | `Channel<TDatum, ChartKey?>`         | No group                       | Group identity; color fallback when omitted      |
+| `color`        | `Channel<TDatum, ChartKey?>`         | `z`                            | Independent value sent to the chart color scale  |
+| `key`          | `Channel<TDatum, ChartKey>`          | Top/nested `id`, x, then index | Stable scene and interaction identity            |
+| `fill`         | `VisualChannel<TDatum, string>`      | Resolved `color`               | Final bar paint override                         |
+| `fillOpacity`  | `number`                             | SVG default                    | Fill opacity                                     |
+| `layout`       | `GroupLayout \| StackLayout`         | Implicit diverging stack       | Configures grouping or stack order/offset        |
+| `inset`        | `number`                             | `0`                            | Pixels removed from both categorical edges       |
+| `maxThickness` | `number`                             | Unbounded                      | Maximum painted width after grouping and inset   |
+| `radius`       | `number`                             | None                           | SVG rectangle corner radius                      |
+| `states`       | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides              |
 
 The interaction point is at the group-band center and the `y2`/`y` endpoint.
 Its semantic `xValue` is x and its `yValue` is the value endpoint.
@@ -72,22 +73,23 @@ function barX<TDatum>(
 
 Its options transpose `barY`:
 
-| Option        | Type                                 | Default                        | Meaning                                     |
-| ------------- | ------------------------------------ | ------------------------------ | ------------------------------------------- |
-| `id`          | `string`                             | Layer-derived                  | Stable mark ID                              |
-| `x`           | `Channel<TDatum, number?>`           | Numeric datum                  | Length; implicitly stacked at each y        |
-| `x1`          | `number \| Channel<TDatum, number?>` | Implicit stack start           | Explicit baseline endpoint                  |
-| `x2`          | `number \| Channel<TDatum, number?>` | Implicit stack end             | Explicit value endpoint; takes precedence   |
-| `y`           | `Channel<TDatum, ChartValue?>`       | Row index                      | Bar category or center                      |
-| `z`           | `Channel<TDatum, ChartKey?>`         | No group                       | Group identity; color fallback when omitted |
-| `color`       | `Channel<TDatum, ChartKey?>`         | `z`                            | Independent color-scale value               |
-| `key`         | `Channel<TDatum, ChartKey>`          | Top/nested `id`, y, then index | Stable identity                             |
-| `fill`        | `VisualChannel<TDatum, string>`      | Resolved `color`               | Final bar paint override                    |
-| `fillOpacity` | `number`                             | SVG default                    | Fill opacity                                |
-| `layout`      | `GroupLayout \| StackLayout`         | Implicit diverging stack       | Configures grouping or stack order/offset   |
-| `inset`       | `number`                             | `0`                            | Pixels removed from both categorical edges  |
-| `radius`      | `number`                             | None                           | Corner radius                               |
-| `states`      | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides         |
+| Option         | Type                                 | Default                        | Meaning                                     |
+| -------------- | ------------------------------------ | ------------------------------ | ------------------------------------------- |
+| `id`           | `string`                             | Layer-derived                  | Stable mark ID                              |
+| `x`            | `Channel<TDatum, number?>`           | Numeric datum                  | Length; implicitly stacked at each y        |
+| `x1`           | `number \| Channel<TDatum, number?>` | Implicit stack start           | Explicit baseline endpoint                  |
+| `x2`           | `number \| Channel<TDatum, number?>` | Implicit stack end             | Explicit value endpoint; takes precedence   |
+| `y`            | `Channel<TDatum, ChartValue?>`       | Row index                      | Bar category or center                      |
+| `z`            | `Channel<TDatum, ChartKey?>`         | No group                       | Group identity; color fallback when omitted |
+| `color`        | `Channel<TDatum, ChartKey?>`         | `z`                            | Independent color-scale value               |
+| `key`          | `Channel<TDatum, ChartKey>`          | Top/nested `id`, y, then index | Stable identity                             |
+| `fill`         | `VisualChannel<TDatum, string>`      | Resolved `color`               | Final bar paint override                    |
+| `fillOpacity`  | `number`                             | SVG default                    | Fill opacity                                |
+| `layout`       | `GroupLayout \| StackLayout`         | Implicit diverging stack       | Configures grouping or stack order/offset   |
+| `inset`        | `number`                             | `0`                            | Pixels removed from both categorical edges  |
+| `maxThickness` | `number`                             | Unbounded                      | Maximum painted height after grouping/inset |
+| `radius`       | `number`                             | None                           | Corner radius                               |
+| `states`       | `readonly ChartMarkState[]`          | None                           | Focus-driven presentation overrides         |
 
 The interaction point is at the `x2`/`x` endpoint and group-band center.
 
@@ -105,6 +107,13 @@ padding. Scale setup and ownership are documented in
 `inset` is applied after band or inferred layout and is clamped to at least
 zero. A sufficiently large inset produces a zero-width or zero-height bar
 rather than negative geometry.
+
+`maxThickness` caps the painted width for `barY` or height for `barX` in final
+chart pixels. The mark applies the cap after grouped-band layout and `inset`,
+then centers the narrower bar in its resolved band. Narrow responsive bands
+keep their natural size. Negative finite values clamp to zero; nonfinite values
+do not cap the bar. Inline-state `inset` overrides remain absolute, but their
+resolved geometry still honors the cap.
 
 ## Grouped bars
 
@@ -167,24 +176,65 @@ barY(rows, {
 })
 ```
 
-`order` accepts input order, ascending or descending absolute totals, or an
-explicit series list. `reverse` reverses the resolved order. `offset` accepts
-`diverging` (default), `normalize`, `center`, or `wiggle`.
+`order` accepts input order, ascending or descending absolute totals,
+inside-out streamgraph order, or an explicit series list. `reverse` reverses
+the resolved order. `offset` accepts `diverging` (default), `normalize`,
+`center`, or `wiggle`.
 
 ```ts
-type StackOrder = 'input' | 'ascending' | 'descending' | readonly ChartKey[]
+type StackOrder =
+  'input' | 'ascending' | 'descending' | 'inside-out' | readonly ChartKey[]
 type StackOffset = 'diverging' | 'normalize' | 'center' | 'wiggle'
+
+interface StackAnchor {
+  series: ChartKey
+  fraction?: number
+}
 
 interface StackOptions {
   order?: StackOrder
   offset?: StackOffset
   reverse?: boolean
+  anchor?: StackAnchor
 }
 
 interface StackLayout extends StackOptions {
   readonly type: 'stack'
 }
 ```
+
+`inside-out` uses each series peak and total to balance layers above and below
+the stream. `wiggle` is intended for nonnegative streamgraph values. After the
+wiggle offset is complete, Charts translates the whole stack so its global
+minimum start is zero. It does not independently rebase each position.
+
+Use `anchor` when ordered, nonnegative category counts should diverge around a
+point inside one series. This Likert layout places the midpoint of `Neutral` at
+zero:
+
+```ts
+barX(counts, {
+  x: 'count',
+  y: 'question',
+  z: 'response',
+  color: 'response',
+  layout: stack({
+    order: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree'],
+    anchor: { series: 'Neutral', fraction: 0.5 },
+  }),
+})
+```
+
+`fraction` defaults to `0.5`; zero selects the series start and one selects its
+end. Anchor layout zero-imputes missing position/series cells before translating
+the completed stack, but it emits no synthetic rows. The anchor series may be
+absent at a position. It must still appear in the resolved series order, which
+an explicit `order` can establish. Anchors reject negative lengths and cannot
+be combined with `normalize`, `center`, or `wiggle` offsets.
+
+Positions and series retain first-seen order. Missing position/series pairs
+contribute zero to layout without creating synthetic rows or interaction
+points.
 
 Supplying `y1` or `y2` opts out of implicit stacking and treats the channels
 as authored endpoints. The same contract is transposed for `barX`.

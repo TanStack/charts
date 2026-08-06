@@ -68,6 +68,39 @@ overlay:
 The [Interactions and Selections](./interactions-and-selections.md) guide
 defines the ownership boundary.
 
+`interactiveColorLegend` uses native browser buttons with `aria-pressed`, a
+named group, 44-pixel minimum targets, and stable focus across controlled
+updates. Static SVG output keeps only a visual fallback, so pair exported
+charts with text or a table when series visibility must remain actionable.
+
+`brushX` exposes its ordered handles as horizontal sliders when `values` is
+provided. Arrow keys move one authored value, Home and End move to the allowed
+range edge, and Escape restores the range from the active pointer gesture.
+Give both handles distinct names and format their semantic values. The DOM
+overlay works with SVG and Canvas hosts; static SVG and React Native need an
+application-owned range input for equivalent operation.
+
+`continuousCursor` paints an unsnapped pointer guide but does not expose that
+presentation-only overlay as a keyboard task. Pair its controlled x/y position
+with named sliders or inputs and visible status text. Escape clears a visible
+cursor through the behavior; the semantic controls should update the same
+controlled position. Static SVG and React Native retain accepted guide paint
+but still need those application-owned controls for operation.
+
+`handleX` exposes one named horizontal slider. Left or Down moves to the
+previous authored value, Right or Up moves to the next, and Home and End move
+to the candidate endpoints. Its `format` result becomes `aria-valuetext`; the
+pointer target is 44 pixels high by default. Escape restores the gesture
+origin while a pointer or touch drag is active. Static SVG and React Native
+retain the accepted handle paint but need an application-owned semantic input.
+
+`zoomX` exposes one named plot surface with visible focus. Plus and minus zoom,
+the arrow keys pan, Home resets, and Escape cancels an active gesture. Wheel
+input is captured only while that surface is focused; an unfocused chart must
+not trap page scrolling. Keep a visible Reset button and current-window text
+bound to the same controlled window. Static SVG and React Native render the
+accepted window but need application-owned semantic zoom controls.
+
 ## Never rely on color alone
 
 Pair semantic color with at least one other signal:
@@ -115,11 +148,19 @@ Escape and `dismiss()` close it, and focus returns to the chart when dismissal
 starts inside the body. Controls still need an intentional tab order and
 accessible names.
 
+Use `tooltip.visibility: 'pinned'` when no transient surface should be
+announced. Focus and pinned mark styling remain available, while the tooltip
+element and framework body mount only after activation.
+
 ## Linked table pattern
 
 For analytical and operational charts, a linked table gives readers exact
 values and a familiar navigation surface. Selection state should be shared
 semantically, rather than inferred from DOM nodes.
+
+Use `keyedSelection` and `whenSelected` for chart activation and selected
+geometry. Keep the semantic HTML table, status announcement, and clear control
+in the application, bound to the same controlled selected key.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/82-chart-table-selection/?theme=system&height=480"

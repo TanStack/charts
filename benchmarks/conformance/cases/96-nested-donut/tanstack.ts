@@ -1,18 +1,10 @@
 import { flare } from '@charts-poc/demo-data/flare'
 import { defineChart } from '@tanstack/charts'
-import { polar, radialArc } from '@tanstack/charts/polar'
-import { pie } from 'd3-shape'
+import { pie, polar, radialArc } from '@tanstack/charts/polar'
 import { nestedFlareDonut } from './transform'
 import { tanstackMount } from '../../shared/mount'
-import type { FlareDonutSlice } from './transform'
 import type { ConformanceInput } from '../../types'
 
-const innerLayout = pie<FlareDonutSlice>()
-  .sort(null)
-  .value(({ size }) => size)
-const outerLayout = pie<FlareDonutSlice>()
-  .sort(null)
-  .value(({ size }) => size)
 const names = [
   'flare.animate',
   'flare.data',
@@ -30,14 +22,14 @@ const colors = [
   '#a855f7',
 ]
 
-const definition = (input: ConformanceInput) => {
+export const nestedDonutDefinition = (input: ConformanceInput) => {
   const sourceRows =
     input.revision % 2 === 0
       ? flare
       : flare.filter((row) => row.size === null || row.size >= 1_000)
   const data = nestedFlareDonut(sourceRows)
-  const innerArcs = innerLayout([...data.inner])
-  const outerArcs = outerLayout([...data.outer])
+  const innerArcs = pie(data.inner, { value: 'size' })
+  const outerArcs = pie(data.outer, { value: 'size' })
 
   return defineChart({
     marks: [
@@ -45,13 +37,17 @@ const definition = (input: ConformanceInput) => {
         radiusRatio: 0.8,
         marks: [
           radialArc(innerArcs, {
+            id: 'family-slices',
+            key: 'name',
             innerRadius: ({ radius }) => radius * 0.12,
             outerRadius: ({ radius }) => radius * 0.46,
-            color: ({ data }) => data.name,
+            color: 'name',
           }),
           radialArc(outerArcs, {
+            id: 'detail-slices',
+            key: 'name',
             innerRadius: ({ radius }) => radius * 0.56,
-            color: ({ data }) => data.name,
+            color: 'name',
           }),
         ],
       }),
@@ -61,4 +57,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(definition, 'Nested Flare package sizes')
+export const mount = tanstackMount(
+  nestedDonutDefinition,
+  'Nested Flare package sizes',
+)

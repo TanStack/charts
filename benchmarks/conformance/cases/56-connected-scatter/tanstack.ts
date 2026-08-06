@@ -1,17 +1,36 @@
-import { arrow, d3Curve, defineChart, dot, lineY, text } from '@tanstack/charts'
+import {
+  arrow,
+  d3Curve,
+  defineChart,
+  dot,
+  lineY,
+  text,
+  window,
+} from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { curveCatmullRom } from 'd3-shape'
 import { driving } from '@charts-poc/demo-data/driving'
-import { directionSegments } from './transform'
 import { tanstackMount } from '../../shared/mount'
 
-const arrows = directionSegments(driving)
+export const directionTargetIndexes = [14, 28, 42] as const
+const directionTargetIndexSet: ReadonlySet<number> = new Set(
+  directionTargetIndexes,
+)
+export const directionPairs = window(driving, {
+  orderBy: 'year',
+  size: 2,
+  partial: false,
+  outputs: {},
+}).filter(({ sourceIndexes }) =>
+  directionTargetIndexSet.has(sourceIndexes[1] ?? -1),
+)
 const labels = driving.filter((row) => row.year % 5 === 0)
 
-const definition = () =>
+export const connectedScatterDefinition = () =>
   defineChart({
     marks: [
       lineY(driving, {
+        id: 'driving-path',
         x: 'miles',
         y: 'gas',
         stroke: '#64748b',
@@ -19,21 +38,24 @@ const definition = () =>
         curve: d3Curve(curveCatmullRom.alpha(0.5)),
       }),
       dot(driving, {
+        id: 'driving-points',
         x: 'miles',
         y: 'gas',
         fill: '#0f766e',
         r: 3.25,
       }),
-      arrow(arrows, {
-        x1: 'miles1',
-        y1: 'gas1',
-        x2: 'miles2',
-        y2: 'gas2',
+      arrow(directionPairs, {
+        id: 'direction-arrows',
+        x1: ({ source }) => source[0]?.miles,
+        y1: ({ source }) => source[0]?.gas,
+        x2: 'miles',
+        y2: 'gas',
         stroke: '#0f766e',
         strokeWidth: 1.5,
         headLength: 7,
       }),
       text(labels, {
+        id: 'year-labels',
         x: 'miles',
         y: 'gas',
         text: (row) => `${row.year}`,
@@ -54,6 +76,6 @@ const definition = () =>
   })
 
 export const mount = tanstackMount(
-  definition,
+  connectedScatterDefinition,
   'Directed connected scatterplot over time',
 )

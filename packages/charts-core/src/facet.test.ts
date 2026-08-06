@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { bandX, bandY } from './band'
 import { barY } from './bar'
@@ -11,9 +11,60 @@ import { createChartScene } from './scene'
 import { renderChartSvg } from './svg'
 import { svgChartRenderer } from './svg-surface'
 import { linearAxes } from './test-scales'
-import type { SceneNode } from './types'
+import type { ChartSpecDatum, SceneNode } from './types'
 
 describe('facets', () => {
+  it('preserves heterogeneous child datum types and source identity', () => {
+    interface Group {
+      id: string
+      panel: string
+    }
+    interface Child {
+      id: string
+      x: number
+      y: number
+    }
+
+    const groups: readonly Group[] = [
+      { id: 'group-a', panel: 'Alpha' },
+      { id: 'group-b', panel: 'Alpha' },
+    ]
+    const children: readonly Child[] = [
+      { id: 'child-a', x: 0, y: 2 },
+      { id: 'child-b', x: 1, y: 4 },
+    ]
+    let firstGroup: Group | undefined
+    const definition = facetChart(groups, {
+      by: 'panel',
+      label: false,
+      chart: (groupRows) => {
+        expectTypeOf(groupRows).toEqualTypeOf<readonly [Group, ...Group[]]>()
+        firstGroup = groupRows[0]
+        return {
+          marks: [lineY(children, { x: 'x', y: 'y', key: 'id' })],
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 4]) },
+          guides: false,
+          margin: 0,
+        }
+      },
+      motion: (context) => {
+        expectTypeOf(context.datum).toEqualTypeOf<Child | undefined>()
+        return {}
+      },
+    })
+    type DefinitionDatum = ChartSpecDatum<typeof definition>
+    expectTypeOf<DefinitionDatum>().toEqualTypeOf<Child>()
+
+    const scene = createChartScene(definition, { width: 320, height: 180 })
+
+    expect(definition.marks[0]?.motion).toBeDefined()
+    expect(firstGroup).toBe(groups[0])
+    expect(scene.points.map(({ datum }) => datum)).toEqual(children)
+    expect(scene.points[0]?.datum).toBe(children[0])
+    expect(scene.points[1]?.datum).toBe(children[1])
+  })
+
   it('lays out independently rendered groups and offsets interaction points', () => {
     const data = [
       { id: 'a', group: 'Alpha', x: 0, y: 2 },
@@ -44,6 +95,10 @@ describe('facets', () => {
     ).toHaveLength(2)
     expect(scene.points).toHaveLength(4)
     expect(new Set(scene.points.map((point) => point.key)).size).toBe(4)
+    expect(new Set(scene.points.map((point) => point.markId)).size).toBe(2)
+    expect(
+      scene.points.every((point) => point.markId.startsWith('facet-0:')),
+    ).toBe(true)
     expect(
       flatten(scene.nodes).filter(
         (node) =>
@@ -400,7 +455,7 @@ describe('facets', () => {
     )
     expect(visibleLayers).toHaveLength(1)
     expect(visibleMarkers).toHaveLength(1)
-    expect(visibleMarkers[0]?.dataset.tsKey).toContain('string:North')
+    expect(visibleMarkers[0]?.dataset.tsKey).toContain('string:5:North')
     surface.destroy()
   })
 
@@ -421,7 +476,7 @@ describe('facets', () => {
                 fill: '#d4d4d4',
                 inset: 4,
               }),
-              { match: 'x' },
+              { match: 'x', retarget: true },
             ),
             barY(rows, { x: 'x', y: 'value' }),
           ],
@@ -562,6 +617,41 @@ describe('facets', () => {
     expect(axes).toHaveLength(2)
   })
 
+  it('compares materialized outer-axis accessor output instead of callback identity', () => {
+    const data = [
+      { group: 'A', value: 1 },
+      { group: 'B', value: 2 },
+    ]
+    const definition = (different: boolean) =>
+      facetChart(data, {
+        by: 'group',
+        columns: 2,
+        chart: (group, key) => ({
+          marks: [lineY(group, { y: 'value' })],
+          x: {
+            scale: scaleLinear().domain([0, 1]),
+            axis: {
+              ticks: { values: [0, 1] },
+              tickLabels: {
+                fontSize: ({ index }: { index: number }) =>
+                  index === 0 && (!different || key === 'A') ? 13 : undefined,
+                anchor: ({ index }: { index: number }) =>
+                  index === 0 ? 'start' : undefined,
+              },
+            },
+          },
+          y: { scale: scaleLinear().domain([0, 2]) },
+        }),
+      })
+
+    expect(() =>
+      createChartScene(definition(false), { width: 640, height: 260 }),
+    ).not.toThrow()
+    expect(() =>
+      createChartScene(definition(true), { width: 640, height: 260 }),
+    ).toThrow(/guide options differ/)
+  })
+
   it('does not render data marks during the outer-guide prepass', () => {
     const data = [
       { group: 'A', value: 1 },
@@ -575,6 +665,38 @@ describe('facets', () => {
         renders += 1
         return { nodes: [] }
       },
+    }))
+
+    createChartScene(
+      facetChart(data, {
+        by: 'group',
+        columns: 2,
+        chart: (group) => ({
+          marks: [lineY(group, { y: 'value' }), counted],
+          ...linearAxes([0, 1], [0, 2]),
+        }),
+      }),
+      { width: 640, height: 260 },
+    )
+
+    expect(renders).toBe(2)
+  })
+
+  it('does not render resolved-layout marks during the outer-guide prepass', () => {
+    const data = [
+      { group: 'A', value: 1 },
+      { group: 'B', value: 2 },
+    ]
+    let renders = 0
+    const counted = createMark(() => ({
+      id: 'resolved-counted',
+      channels: {},
+      resolveLayout: () => ({
+        render: () => {
+          renders += 1
+          return { nodes: [] }
+        },
+      }),
     }))
 
     createChartScene(

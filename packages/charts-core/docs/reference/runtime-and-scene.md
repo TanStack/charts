@@ -178,23 +178,31 @@ Every scene node has a stable `key`, optional `className`, optional
 `SceneStyle`, and optional `ariaHidden`. Geometric primitives may also attach
 a `SceneInteraction`; groups and labels cannot.
 
-| `kind`     | Geometry                                                   |
-| ---------- | ---------------------------------------------------------- |
-| `group`    | `children`, optional translation and clip bounds           |
-| `rule`     | `x1`, `y1`, `x2`, `y2`                                     |
-| `polyline` | point pairs and optional precomputed path data             |
-| `area`     | closed point pairs and optional precomputed path data      |
-| `dot`      | center and radius                                          |
-| `rect`     | origin, dimensions, and optional radius                    |
-| `label`    | origin, text, anchor, baseline, rotation, size, and weight |
+| `kind`     | Geometry                                                            |
+| ---------- | ------------------------------------------------------------------- |
+| `group`    | `children`, optional translation and clip bounds                    |
+| `rule`     | `x1`, `y1`, `x2`, `y2`                                              |
+| `polyline` | point pairs and optional precomputed path data                      |
+| `area`     | closed points, structured polygons and holes, or optional path data |
+| `dot`      | center and radius                                                   |
+| `rect`     | origin, dimensions, and optional radius                             |
+| `label`    | origin, text, anchor, baseline, rotation, size, and weight          |
 
 `SceneStyle` supports fill, fill opacity, stroke, stroke opacity, stroke width,
 overall opacity, line cap, line join, and dash array.
 
+`SceneArea.polygons` is authoritative when present. Each polygon contains an
+exterior ring followed by zero or more hole rings; one area can contain several
+disconnected polygons. SVG and React Native serialize the rings with even-odd
+fill, while Canvas paints them directly without `Path2D`. Bounds and exact
+geometry containment use every ring.
+
 `SceneRect.inset` retains the resolved inset for absolute inline-state
 overrides. Its optional `insetAxis` is `x`, `y`, or `xy`; vertical and
 horizontal bars use only their categorical axis, while ordinary rectangles use
-both axes. Renderers consume the already-resolved rectangle geometry.
+both axes. `SceneRect.maxThickness` retains a bar's categorical size ceiling so
+an inline-state inset cannot widen its resolved geometry past that ceiling.
+Renderers consume the already-resolved rectangle geometry.
 
 ```ts
 type SceneInteraction =

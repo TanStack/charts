@@ -1,13 +1,8 @@
 import { cumsum, group, rollup, sum } from 'd3-array'
 import type { SurveyRow } from '@charts-poc/demo-data/survey'
+import { mosaicResponses } from './selection'
 
-export const mosaicResponses = [
-  'Strongly Disagree',
-  'Disagree',
-  'Neutral',
-  'Agree',
-  'Strongly Agree',
-] as const
+export { mosaicResponses } from './selection'
 
 export interface MosaicCell {
   Question: string

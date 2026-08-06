@@ -1,6 +1,7 @@
 import { simpsons } from '@charts-poc/demo-data/simpsons'
 import * as Plot from '@observablehq/plot'
-import { isRatedEpisode, ridgeDensity, ridgeSeasons } from './transform'
+import { isRatedEpisode, ridgeSeasons } from './selection'
+import { ridgeDensity } from './transform'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 

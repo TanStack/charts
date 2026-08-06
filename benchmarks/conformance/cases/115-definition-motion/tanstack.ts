@@ -2,9 +2,9 @@ import { barY, defineChart, lineY } from '@tanstack/charts'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { definitionMotionStages } from './model'
 import type {
-  ChartDefinition,
   ChartRendererHost,
   ChartRendererHostOptions,
 } from '@tanstack/charts'
@@ -47,7 +47,7 @@ export const mount: ConformanceMount = (container, input) => {
     string,
     number
   > => ({
-    definition: chartDefinition(
+    definition: definitionMotionDefinition(
       definitionMotionStages[stage] ?? definitionMotionStages[0],
     ),
     renderer,
@@ -115,13 +115,10 @@ export const mount: ConformanceMount = (container, input) => {
       return {
         stage,
         interruptionCount,
-        motionState:
-          chart
-            .querySelector('svg.ts-chart')
-            ?.getAttribute('data-ts-motion-state') ?? null,
+        motionState: readChartMotionState(chart),
       }
     },
-    settle: () => settleMotion(chart, 5_000),
+    settle: () => settleChartMotion(chart, 5_000),
   }
 
   return {
@@ -142,9 +139,9 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
-function chartDefinition(
+export function definitionMotionDefinition(
   rows: readonly DefinitionMotionRow[],
-): ChartDefinition<DefinitionMotionRow, string, number> {
+) {
   const maximum = Math.max(100, ...rows.map((row) => row.actual))
   const yMaximum = Math.ceil(maximum / 20) * 20
   const guideMotion = {
@@ -256,27 +253,4 @@ function button(document: Document, label: string) {
 
 function clearTimer(view: Window | null, timer: number | undefined) {
   if (timer !== undefined) view?.clearTimeout(timer)
-}
-
-function settleMotion(chart: HTMLElement, timeout: number) {
-  const view = chart.ownerDocument.defaultView
-  if (!view) return Promise.resolve()
-  const started = view.performance.now()
-  return new Promise<void>((resolve) => {
-    const check = () => {
-      const state = chart
-        .querySelector('svg.ts-chart')
-        ?.getAttribute('data-ts-motion-state')
-      if (
-        state === 'finished' ||
-        state === null ||
-        view.performance.now() - started >= timeout
-      ) {
-        resolve()
-        return
-      }
-      view.requestAnimationFrame(check)
-    }
-    check()
-  })
 }

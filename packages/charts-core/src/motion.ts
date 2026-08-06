@@ -1,4 +1,4 @@
-import { focusedNodeKeys } from './focus-layer'
+import { focusedNodeKeys, resolveFocusScene } from './focus-layer'
 import { resolveMarkStateScene } from './mark-state'
 import { reconcileChartSvg } from './reconcile'
 import { chartSceneSource } from './scene-source'
@@ -60,6 +60,7 @@ interface ChartSvgMotionContext<TDatum = unknown> {
   markup?: string
   phase: 'initial' | 'update'
   transition?: ChartMotionTransition
+  markTransitions?: Readonly<Record<string, ChartMotionTransition>>
   setPresentationPoints?: (points: readonly ChartPoint<TDatum>[]) => void
 }
 
@@ -180,7 +181,22 @@ function createSvgMotionRuntime(
       const timing = createTimingResolver(
         options,
         context.scene,
-        context.transition ? { transition: context.transition } : undefined,
+        context.transition || context.markTransitions
+          ? {
+              ...(context.transition
+                ? { default: { transition: context.transition } }
+                : {}),
+              ...(context.markTransitions
+                ? {
+                    marks: Object.fromEntries(
+                      Object.entries(context.markTransitions).map(
+                        ([markId, transition]) => [markId, { transition }],
+                      ),
+                    ),
+                  }
+                : {}),
+            }
+          : undefined,
       )
       if (context.phase === 'update' && context.markup) {
         return reconcileMotionSvg(context, options, timing, runtime)
@@ -243,6 +259,8 @@ function createMotionSvgChartRenderer<
         readonly ChartPoint<TDatum, TXValue, TYValue>[] | undefined
       let renderOptions: ChartSurfaceRenderOptions | undefined
       let stateTransition: ChartMarkStateTransition | undefined
+      let stateTransitions:
+        Readonly<Record<string, ChartMarkStateTransition>> | undefined
       let stateScene: ChartScene<TDatum, TXValue, TYValue> | undefined
       const svgElement = () => {
         const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
@@ -307,6 +325,7 @@ function createMotionSvgChartRenderer<
           stateScene = undefined
           renderOptions = options
           stateTransition = undefined
+          stateTransitions = undefined
         },
         clientToScene(currentScene, clientX, clientY) {
           return motionClientToScene(
@@ -328,12 +347,14 @@ function createMotionSvgChartRenderer<
         },
         paintFocus(focus, pointer) {
           if (!scene || !renderOptions) return
-          const resolved = resolveMarkStateScene(scene, focus, pointer)
+          const state = resolveMarkStateScene(scene, focus, pointer)
+          const resolved = resolveFocusScene(state.scene, focus)
           const previousTransition = stateTransition
-          if (resolved.scene !== scene || previousTransition) {
+          const previousTransitions = stateTransitions
+          if (resolved.scene !== scene || stateScene || previousTransition) {
             cancelAnimation()
             presentationPoints = scene.points
-            const transition = resolved.transition ?? previousTransition
+            const transition = state.transition ?? previousTransition
             const reduced =
               motion.respectReducedMotion &&
               (transition?.respectReducedMotion ?? true) &&
@@ -351,12 +372,16 @@ function createMotionSvgChartRenderer<
                   presentationPoints: scene.points,
                   markup,
                   phase: 'update',
-                  transition,
+                  markTransitions: state.transitions ?? previousTransitions,
                 })
-            stateScene = focus ? resolved.scene : undefined
+            stateScene =
+              focus && resolved.scene !== scene ? resolved.scene : undefined
           }
           stateTransition = focus
-            ? (resolved.transition ?? previousTransition)
+            ? (state.transition ?? previousTransition)
+            : undefined
+          stateTransitions = focus
+            ? (state.transitions ?? previousTransitions)
             : undefined
           paintMotionSvgFocus(svgElement(), resolved.scene, focus)
         },
@@ -393,6 +418,14 @@ function paintMotionSvgFocus(
   const elements = svg.querySelectorAll<SVGGElement>('[data-ts-focus-layer]')
   elements.forEach((element, index) => {
     const layer = sceneLayers[index]
+    if (layer?.focus?.retarget) {
+      const hasChildren = element.children.length > 0
+      element.setAttribute('visibility', hasChildren ? 'visible' : 'hidden')
+      element
+        .querySelectorAll<SVGElement>('[data-ts-key]')
+        .forEach((child) => child.setAttribute('visibility', 'visible'))
+      return
+    }
     const visible = layer ? focusedNodeKeys(layer, focus) : new Set<string>()
     element.setAttribute(
       'visibility',
@@ -626,6 +659,8 @@ const motionAttributes = new Set([
   'cy',
   'd',
   'fill-opacity',
+  'font-size',
+  'font-weight',
   'height',
   'opacity',
   'r',
@@ -651,7 +686,11 @@ function reconcileMotionElement(
   addUpdateTrack(current, next, tracks, context)
 
   if (!next.firstElementChild) {
-    if (current.textContent !== next.textContent) {
+    if (current.firstElementChild) {
+      for (const child of [...current.children]) {
+        addExitMotionTrack(child, tracks, context)
+      }
+    } else if (current.textContent !== next.textContent) {
       current.textContent = next.textContent
     }
     return
@@ -769,7 +808,11 @@ function addEnterMotionTrack(
   const timing = context.timingFor(timingContext)
   element.setAttribute('data-ts-motion-role', timingContext.role)
 
-  if (timingContext.role === 'bar' && element.localName === 'rect') {
+  if (
+    timingContext.role === 'bar' &&
+    element.localName === 'rect' &&
+    !element.closest('[data-ts-focus-retarget]')
+  ) {
     const horizontal = Boolean(element.closest('g.ts-chart__bar-x'))
     const targetX = numberAttribute(element, 'x')
     const targetY = numberAttribute(element, 'y')
@@ -836,6 +879,9 @@ function addExitMotionTrack(
   tracks: MotionTrack[],
   context: MotionReconcileContext,
 ) {
+  const retargetLayer = element.closest<SVGGElement>(
+    'g[data-ts-focus-retarget]',
+  )
   const timingContext = elementTimingContext(
     element,
     'exit',
@@ -859,6 +905,9 @@ function addExitMotionTrack(
     },
     finish() {
       element.remove()
+      if (retargetLayer && !retargetLayer.children.length) {
+        retargetLayer.setAttribute('visibility', 'hidden')
+      }
     },
     cancel() {
       element.removeAttribute('data-ts-motion-role')
@@ -871,6 +920,9 @@ function elementTimingContext(
   phase: ChartMotionPhase,
   scene: ChartScene,
 ): ChartMotionContext | undefined {
+  if (element.closest('[data-ts-focus-retarget]')) {
+    return guideOrMarkTimingContext(element, phase, scene)
+  }
   const barGroup = element.closest<SVGGElement>(
     'g.ts-chart__bar-y, g.ts-chart__bar-x',
   )
@@ -971,19 +1023,27 @@ function guideOrMarkTimingContext(
   }
 
   const marks = element.closest<SVGGElement>('g.ts-chart__marks')
-  if (!marks || element.closest('g.ts-chart__focus-layer')) return undefined
-  const point = scene.points.find(
-    (candidate) => candidate.key === key || key === `${candidate.key}:dot`,
-  )
+  if (!marks) return undefined
+  const focusLayer = element.closest<SVGGElement>('g.ts-chart__focus-layer')
+  if (focusLayer && !focusLayer.hasAttribute('data-ts-focus-retarget')) {
+    return undefined
+  }
+  const focusContext = focusLayer
+    ? retargetFocusContext(element, focusLayer, scene)
+    : undefined
+  const point = focusContext?.point ?? motionPointForKey(scene.points, key)
   let owner = element
-  while (owner.parentElement && owner.parentNode !== marks) {
+  const ownerParent = focusLayer ?? marks
+  while (owner.parentElement && owner.parentNode !== ownerParent) {
     owner = owner.parentElement
   }
   const ownerKey = owner.getAttribute('data-ts-key') ?? key
   const markId = point?.markId ?? motionMarkId(scene, ownerKey)
   const role = markMotionRole(owner, element)
   const markPoints = markId
-    ? scene.points.filter((candidate) => candidate.markId === markId)
+    ? (focusContext?.layer.focus?.points ?? scene.points).filter(
+        (candidate) => candidate.markId === markId,
+      )
     : []
   const seriesKey = point
     ? `${point.markId}:${String(point.group ?? '')}`
@@ -1002,6 +1062,64 @@ function guideOrMarkTimingContext(
   }
 }
 
+function retargetFocusContext(
+  element: Element,
+  focusLayer: SVGGElement,
+  scene: ChartScene,
+): { layer: SceneGroup; point: ChartPoint | undefined } | undefined {
+  const layerKey = focusLayer.getAttribute('data-ts-key')
+  if (!layerKey) return undefined
+  const layer = findSceneGroup(scene.nodes, layerKey)
+  if (!layer?.focus?.retarget) return undefined
+  const prefix = `${layerKey}:selection:`
+  let current: Element | null = element
+  let slot: number | undefined
+  while (current && current !== focusLayer) {
+    const key = current.getAttribute('data-ts-key')
+    if (key?.startsWith(prefix)) {
+      const value = Number(key.slice(prefix.length).split(':')[0])
+      if (Number.isInteger(value) && value >= 0) slot = value
+      break
+    }
+    current = current.parentElement
+  }
+  return {
+    layer,
+    point: layer.focus.activePoints?.[slot ?? 0],
+  }
+}
+
+function findSceneGroup(
+  nodes: readonly ChartScene['nodes'][number][],
+  key: string,
+): SceneGroup | undefined {
+  for (const node of nodes) {
+    if (node.kind !== 'group') continue
+    if (node.key === key) return node
+    const nested = findSceneGroup(node.children, key)
+    if (nested) return nested
+  }
+  return undefined
+}
+
+function motionPointForKey(
+  points: readonly ChartPoint[],
+  key: string,
+): ChartPoint | undefined {
+  let match: ChartPoint | undefined
+  for (const point of points) {
+    if (
+      key !== point.key &&
+      key !== `${point.key}:dot` &&
+      !key.startsWith(`${point.key}:`)
+    ) {
+      continue
+    }
+    if (!match || point.key.length > match.key.length) match = point
+  }
+  return match
+}
+
 function markMotionRole(owner: Element, element: Element): ChartMotionRole {
   let className = ''
   let current: Element | null = element
@@ -1015,10 +1133,12 @@ function markMotionRole(owner: Element, element: Element): ChartMotionRole {
     className.includes('ts-chart__radial-area')
   )
     return 'area'
+  // Radial bars also carry the arc geometry role for inspection. Keep the
+  // authored mark role semantic when both classes are present.
+  if (className.includes('ts-chart__bar')) return 'bar'
   if (className.includes('ts-chart__arc')) return 'arc'
   if (className.includes('ts-chart__arrow')) return 'arrow'
   if (className.includes('ts-chart__band')) return 'band'
-  if (className.includes('ts-chart__bar')) return 'bar'
   if (className.includes('ts-chart__dot')) return 'dot'
   if (className.includes('ts-chart__facet')) return 'facet'
   if (className.includes('ts-chart__frame')) return 'frame'
@@ -1425,7 +1545,7 @@ function resolveTiming(
   options: ResolvedMotionOptions,
   context: ChartMotionContext,
   definitions?: SceneMotionDefinitions,
-  override?: ChartMotionDefinition,
+  overrides?: SceneMotionDefinitions,
 ) {
   const baseDuration =
     options.transition.type === 'tween'
@@ -1468,7 +1588,17 @@ function resolveTiming(
       apply(definitions?.guides?.[`${context.role}:${context.axis}`])
     }
   }
-  apply(override)
+  apply(overrides?.default)
+  if (context.markId && overrides?.marks) {
+    const markId = Object.keys(overrides.marks)
+      .filter(
+        (candidate) =>
+          context.markId === candidate ||
+          context.markId?.startsWith(`${candidate}:`),
+      )
+      .sort((left, right) => right.length - left.length)[0]
+    if (markId) apply(overrides.marks[markId])
+  }
 
   // A delayed physical retarget would freeze the sampled velocity. Spring
   // updates therefore begin immediately; use delay for enter/exit choreography.
@@ -1479,7 +1609,7 @@ function resolveTiming(
 function createTimingResolver(
   options: ResolvedMotionOptions,
   scene: ChartScene,
-  override?: ChartMotionDefinition,
+  overrides?: SceneMotionDefinitions,
 ): TimingResolver {
   const definitions = motionDefinitions(scene)
   const cache = new Map<string, ResolvedTiming>()
@@ -1487,7 +1617,7 @@ function createTimingResolver(
     const key = `${context.phase}\0${context.role}\0${context.key}`
     const existing = cache.get(key)
     if (existing) return existing
-    const timing = resolveTiming(options, context, definitions, override)
+    const timing = resolveTiming(options, context, definitions, overrides)
     cache.set(key, timing)
     return timing
   }
@@ -1501,7 +1631,7 @@ function motionDefinitions(
   const [definition, initialized] = source
   const marks: Record<string, ChartMotionDefinition<any>> = {}
   initialized.forEach((mark, index) => {
-    const authored = definition.marks[index]?.motion
+    const authored = mark.motion ?? definition.marks[index]?.motion
     if (authored !== undefined) marks[mark.id] = authored
   })
 

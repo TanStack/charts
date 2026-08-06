@@ -1,1 +1,1 @@
-export { mount } from './view'
+export { interactiveLegendDefinition, mount } from './view'

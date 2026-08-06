@@ -58,6 +58,99 @@ describe('core marks and categorical scales', () => {
     expect(scene.points.map((point) => point.datum)).toEqual(data)
   })
 
+  it('caps resolved bar thickness without guessing final chart dimensions', () => {
+    const data = [
+      { id: 'a', category: 'Alpha', value: 12 },
+      { id: 'b', category: 'Beta', value: 18 },
+    ]
+    const vertical = createChartScene(
+      defineChart({
+        marks: [
+          barY(data, {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            maxThickness: 20,
+          }),
+        ],
+        ...bandXAxes(['Alpha', 'Beta'], [0, 18]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const horizontal = createChartScene(
+      defineChart({
+        marks: [
+          barX(data, {
+            x: 'value',
+            y: 'category',
+            key: 'id',
+            maxThickness: 20,
+          }),
+        ],
+        ...bandYAxes([0, 18], ['Alpha', 'Beta']),
+      }),
+      { width: 480, height: 260 },
+    )
+    const verticalBars = flatten(vertical.nodes).filter(
+      (node) => node.kind === 'rect',
+    )
+    const horizontalBars = flatten(horizontal.nodes).filter(
+      (node) => node.kind === 'rect',
+    )
+
+    expect(verticalBars[0]).toMatchObject({
+      kind: 'rect',
+      x: vertical.scales.x.map('Alpha') - 10,
+      width: 20,
+      inset: (vertical.scales.x.bandwidth - 20) / 2,
+      insetAxis: 'x',
+    })
+    expect(horizontalBars[0]).toMatchObject({
+      kind: 'rect',
+      y: horizontal.scales.y.map('Alpha') - 10,
+      height: 20,
+      inset: (horizontal.scales.y.bandwidth - 20) / 2,
+      insetAxis: 'y',
+    })
+  })
+
+  it('clamps negative maximum bar thickness and ignores nonfinite limits', () => {
+    const renderWidth = (maxThickness: number) => {
+      const scene = createChartScene(
+        defineChart({
+          marks: [
+            barY([{ category: 'Alpha', value: 12 }], {
+              x: 'category',
+              y: 'value',
+              maxThickness,
+            }),
+          ],
+          ...bandXAxes(['Alpha'], [0, 12]),
+        }),
+        { width: 480, height: 260 },
+      )
+      const bar = flatten(scene.nodes).find((node) => node.kind === 'rect')
+      if (bar?.kind !== 'rect') throw new Error('Expected one bar')
+      return { bar, scene }
+    }
+
+    const negative = renderWidth(-4)
+    expect(negative.bar).toMatchObject({
+      x: negative.scene.scales.x.map('Alpha'),
+      width: 0,
+    })
+
+    for (const value of [Number.NaN, Infinity, -Infinity]) {
+      const unbounded = renderWidth(value)
+      expect(unbounded.bar).toMatchObject({
+        x:
+          unbounded.scene.scales.x.map('Alpha') -
+          unbounded.scene.scales.x.bandwidth / 2,
+        width: expect.closeTo(unbounded.scene.scales.x.bandwidth, 8),
+      })
+    }
+  })
+
   it('supports horizontal bars with a categorical y scale', () => {
     const scene = createChartScene(
       defineChart({
@@ -321,6 +414,52 @@ describe('core marks and categorical scales', () => {
       'Router',
     ])
     expect(groupScale.range()).toEqual([0, 1])
+  })
+
+  it('caps each grouped bar after resolving its subgroup band and inset', () => {
+    const data = [
+      { id: 'a:query', category: 'A', series: 'Query', value: 12 },
+      { id: 'a:router', category: 'A', series: 'Router', value: 8 },
+    ]
+    const groupScale = scaleBand<string>()
+      .domain(['Query', 'Router'])
+      .padding(0.2)
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          barY(data, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            layout: group({ scale: groupScale }),
+            inset: 2,
+            maxThickness: 12,
+            key: 'id',
+          }),
+        ],
+        ...bandXAxes(['A'], [0, 12]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const bars = flatten(scene.nodes).filter((node) => node.kind === 'rect')
+    const resolvedGroupScale = groupScale
+      .copy()
+      .range([0, scene.scales.x.bandwidth])
+    const groupBandwidth = resolvedGroupScale.bandwidth()
+    const categoryStart = scene.scales.x.map('A') - scene.scales.x.bandwidth / 2
+
+    expect(bars).toHaveLength(2)
+    data.forEach((row, index) => {
+      expect(bars[index]).toMatchObject({
+        kind: 'rect',
+        x:
+          categoryStart +
+          (resolvedGroupScale(row.series) ?? Number.NaN) +
+          (groupBandwidth - 12) / 2,
+        width: 12,
+        inset: (groupBandwidth - 12) / 2,
+      })
+    })
   })
 
   it('infers grouped-bar domains from a band-scale factory', () => {

@@ -6,10 +6,10 @@
   "title": "Sankey",
   "family": "network",
   "intent": "Trace Apple FY22 product and service revenue through gross profit, operating costs, operating profit, and net profit with flow width proportional to reported value.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "d3-sankey layout",
-    "responsive node positioning",
+    "native Sankey diagram mark",
+    "responsive final-pixel node positioning",
     "proportional link width",
     "direct value labels",
     "deterministic data updates",
@@ -26,7 +26,7 @@
     "url": "https://d3-graph-gallery.com/sankey.html"
   },
   "ai": {
-    "create": "Recreate the Apple FY22 income statement as a responsive Sankey diagram using explicit node and link records, the official d3-sankey layout, a centered title, direct two-line value labels, neutral revenue paths, green profit paths, and red cost paths.",
-    "maintain": "Change statement values through the bounded revision model while preserving unique IDs, flow conservation at every intermediate subtotal, left-aligned sink depths, responsive bounds, semantic profit and cost colors, flat link caps, direct labels, native link/rect/text composition, and the direct d3-sankey dependency."
+    "create": "Recreate the Apple FY22 income statement as a responsive Sankey diagram using explicit node and link records, the native Sankey diagram mark, a centered title, direct two-line value labels, neutral revenue paths, green profit paths, and red cost paths.",
+    "maintain": "Change statement values through the bounded revision model while preserving unique IDs, flow conservation at every intermediate subtotal, left-aligned sink depths, responsive bounds, semantic profit and cost colors, flat link caps, direct labels, and native link/rect/text composition."
   }
 }

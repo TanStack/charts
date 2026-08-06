@@ -1,1 +1,1 @@
-export { mount } from './view'
+export { mount, streamingWindowDefinition } from './view'

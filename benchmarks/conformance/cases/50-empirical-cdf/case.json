@@ -10,7 +10,7 @@
     "empirical CDF",
     "quantile rank transform",
     "step curve",
-    "d3-array rank",
+    "TanStack rank",
     "d3-shape curve"
   ],
   "geometry": [{ "role": "line", "count": 1 }],

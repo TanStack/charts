@@ -13,7 +13,7 @@ that relationship.
 | Reader question                                                 | Start with                                  |
 | --------------------------------------------------------------- | ------------------------------------------- |
 | Do two quantitative measures move together?                     | A scatterplot                               |
-| What linear tendency summarizes that relationship?              | Scatterplot plus a prepared regression line |
+| What linear tendency summarizes that relationship?              | Scatterplot plus `linearRegressionY`        |
 | How does the relationship evolve in a known order?              | A connected scatterplot                     |
 | Does a series depend on its previous observation?               | A lag plot                                  |
 | Which dense point is closest to the pointer or keyboard cursor? | A scatterplot with a spatial focus strategy |
@@ -21,25 +21,26 @@ that relationship.
 Do not infer causation from proximity or a fitted trend. Show the model and
 preparation only when they answer the stated question.
 
-## Add a prepared regression
+## Add a linear regression
 
-A fitted line is derived data. Calculate its coefficients in the application,
-then render the raw observations and fitted endpoints as independent layers.
+Pass the observations directly to `linearRegressionY`. The mark owns the
+least-squares fit, semantic-domain samples, optional confidence band, and
+aggregate source lineage. Keep the dot layer separate so each observation
+remains independently focusable.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/31-linear-regression/?theme=system&height=480"
-  title="Scatterplot with a prepared linear regression line built with TanStack Charts"
+  title="Scatterplot with a linear regression mark built with TanStack Charts"
   loading="lazy"
   width="100%"
   height="480"
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
-This separation lets the dot layer preserve every observation while the line
-layer consumes only the model output. See
-[Marks and Layering](../concepts/marks-and-layering.md) for composition and
-[Scales and D3](../concepts/scales-and-d3.md) for the application-owned
-statistics boundary.
+Set `ci: 0` when only the fitted line is needed. The default `0.95` band uses a
+Student-t interval for the fitted mean. See the
+[linear regression mark](../reference/marks/regression.md) for grouping,
+sampling, and degenerate-fit behavior.
 
 ## Connect observations only when order matters
 
@@ -79,11 +80,12 @@ Make the lag length explicit and decide how the first observation is handled.
 The chart should receive the resulting pairs rather than conceal the shift
 inside a mark.
 
-## Use spatial focus for dense points
+## Separate visible cells from nearest-point focus
 
-Nearest-point interaction should use two-dimensional distance when both axes
-matter. A spatial index can make that lookup efficient without changing the
-dot grammar or storing tooltip state inside the mark.
+Voronoi cells make each point's nearest region visible. The optional `voronoi`
+mark paints those cells but deliberately adds no focus candidates. A layered
+`dot` mark remains the semantic source for pointer focus, keyboard navigation,
+and tooltips.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/65-voronoi-nearest-tooltip/?theme=system&height=480"
@@ -94,9 +96,10 @@ dot grammar or storing tooltip state inside the mark.
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
-[Tooltips and Focus](../guides/tooltips-and-focus.md) defines the focus and
-formatting model. Use [Interactions and Selections](../guides/interactions-and-selections.md)
-when focused data also changes application state.
+See the [`voronoi` mark](../reference/marks/voronoi.md) for final-screen cell
+geometry and stable identity. [Tooltips and Focus](../guides/tooltips-and-focus.md)
+defines the focus and formatting model. Use a `ChartSpatialIndexFactory` when
+lookup performance matters but the cells should not be painted.
 
 ## Production checks
 
@@ -107,8 +110,9 @@ when focused data also changes application state.
   a third quantitative value.
 - Control opacity or aggregate spatially before thousands of overlapping dots
   obscure the distribution. See [Large Data](../guides/large-data.md).
-- Keep regression, lag pairs, and spatial indexes in data preparation or
-  interaction capabilities rather than the dot mark.
+- Keep lag pairs in data preparation. Keep lookup-only spatial indexes in
+  interaction capabilities; use `voronoi` only when cells are part of the
+  visible encoding.
 - Provide keyboard-equivalent focus and a textual value path, as described in
   [Accessibility](../guides/accessibility.md).
 

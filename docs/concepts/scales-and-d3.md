@@ -13,11 +13,13 @@ TanStack Charts uses an explicit algorithm layer:
 Both scale implementations use callable, copyable scale objects. There is no
 hidden D3 umbrella import.
 
-`@tanstack/charts` declares `d3-array`, `d3-shape`, and `d3-geo` because its
-numeric-bin and stack transforms, polar and D3 curve features, and geo features
-own those implementations. They are not peers and require no `use`
-configuration. Bundlers tree-shake unused algorithms and geometry, and exact
-feature subpaths remain available when an application wants a narrower import.
+`@tanstack/charts` declares `d3-array`, `d3-shape`, `d3-geo`, `d3-delaunay`,
+`d3-hexbin`, `d3-contour`, `d3-force`, `d3-sankey`, and `d3-hierarchy` because its
+transforms, polar and D3 curve features, geo features, and optional spatial,
+network, and hierarchy entries own those implementations. They are not peers
+and require no `use` configuration. Bundlers tree-shake unused algorithms and
+geometry, and exact feature subpaths remain available when an application
+wants a narrower import.
 
 ## Direct dependency ownership
 
@@ -69,23 +71,36 @@ interpolation; locale-aware format specifiers; and other full D3 behavior.
 
 Use the official D3 pages as the API reference for each algorithm. TanStack Charts documentation only describes how its output crosses the chart boundary.
 
-| Need                                                               | D3 module                                                   | How it enters TanStack Charts                                                                     |
-| ------------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Quantitative, temporal, categorical, log, radial, and color scales | [`d3-scale`](https://d3js.org/d3-scale)                     | Pass a factory for an inferred domain or an instance for a fixed domain                           |
-| Sequential, diverging, and categorical color schemes               | [`d3-scale-chromatic`](https://d3js.org/d3-scale-chromatic) | Pass an interpolator or scheme to a configured D3 color scale                                     |
-| Extents, grouping, aggregation, bins, sorting, and statistics      | [`d3-array`](https://d3js.org/d3-array)                     | Convert source data into rows, domains, or thresholds before creating marks                       |
-| Stacks, pies, arcs, curves, and shape generators                   | [`d3-shape`](https://d3js.org/d3-shape)                     | Feed pie intervals and curve factories to polar marks, or bridge a Cartesian curve with `d3Curve` |
-| Calendar intervals                                                 | [`d3-time`](https://d3js.org/d3-time)                       | Build bins, ticks, rounded selections, and date windows in application code                       |
-| Numeric formatting                                                 | [`d3-format`](https://d3js.org/d3-format)                   | Pass a formatter to an axis or tooltip option                                                     |
-| Time formatting                                                    | [`d3-time-format`](https://d3js.org/d3-time-format)         | Pass a formatter to an axis or tooltip option                                                     |
-| Quadtrees                                                          | [`d3-quadtree`](https://d3js.org/d3-quadtree)               | Implement an optional `ChartSpatialIndexFactory`                                                  |
-| Delaunay and Voronoi geometry                                      | [`d3-delaunay`](https://d3js.org/d3-delaunay)               | Implement a spatial index, overlay, or custom mark                                                |
-| DOM selection for optional D3 gesture controllers                  | [`d3-selection`](https://d3js.org/d3-selection)             | Attach an application-owned brush or zoom behavior to an overlay                                  |
-| Brushes                                                            | [`d3-brush`](https://d3js.org/d3-brush)                     | Own the gesture in application code and map pixels through a copied chart scale                   |
-| Pan and zoom                                                       | [`d3-zoom`](https://d3js.org/d3-zoom)                       | Own the gesture, update application state, and rebuild the definition with a configured domain    |
-| Hierarchies and layouts                                            | [`d3-hierarchy`](https://d3js.org/d3-hierarchy)             | Convert layout output into ordinary rows or custom scene nodes                                    |
-| Force simulation                                                   | [`d3-force`](https://d3js.org/d3-force)                     | Prepare positioned nodes and links before rendering                                               |
-| Geographic projections and paths                                   | [`d3-geo`](https://d3js.org/d3-geo)                         | Pass a responsive projection factory to `geoShape`                                                |
+| Need                                                               | D3 module                                                   | How it enters TanStack Charts                                                                                |
+| ------------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Quantitative, temporal, categorical, log, radial, and color scales | [`d3-scale`](https://d3js.org/d3-scale)                     | Pass a factory for an inferred domain or an instance for a fixed domain                                      |
+| Sequential, diverging, and categorical color schemes               | [`d3-scale-chromatic`](https://d3js.org/d3-scale-chromatic) | Pass an interpolator or scheme to a configured D3 color scale                                                |
+| Extents, grouping, aggregation, bins, sorting, and statistics      | [`d3-array`](https://d3js.org/d3-array)                     | Convert source data into rows, domains, or thresholds before creating marks                                  |
+| Stacks, pies, arcs, curves, and shape generators                   | [`d3-shape`](https://d3js.org/d3-shape)                     | Feed pie intervals and curve factories to polar marks, or bridge a Cartesian curve with `d3Curve`            |
+| Calendar intervals                                                 | [`d3-time`](https://d3js.org/d3-time)                       | Build bins, ticks, rounded selections, and date windows in application code                                  |
+| Numeric formatting                                                 | [`d3-format`](https://d3js.org/d3-format)                   | Pass a formatter to an axis or tooltip option                                                                |
+| Time formatting                                                    | [`d3-time-format`](https://d3js.org/d3-time-format)         | Pass a formatter to an axis or tooltip option                                                                |
+| Quadtrees                                                          | [`d3-quadtree`](https://d3js.org/d3-quadtree)               | Implement an optional `ChartSpatialIndexFactory`                                                             |
+| Delaunay and Voronoi geometry                                      | [`d3-delaunay`](https://d3js.org/d3-delaunay)               | Use exact optional `delaunayLink` or `voronoi` marks; import directly for a custom spatial index or geometry |
+| DOM selection for optional D3 gesture controllers                  | [`d3-selection`](https://d3js.org/d3-selection)             | Imported privately by first-party brush and zoom behaviors; import directly for a different DOM controller   |
+| Brushes                                                            | [`d3-brush`](https://d3js.org/d3-brush)                     | Use exact optional `brushX`; import directly for a different application-owned gesture                       |
+| Pan and zoom                                                       | [`d3-zoom`](https://d3js.org/d3-zoom)                       | Use exact optional `zoomX` with a controlled semantic window; import directly for a different gesture policy |
+| Hierarchies and layouts                                            | [`d3-hierarchy`](https://d3js.org/d3-hierarchy)             | Use exact optional `treeLayout` for flat tidy trees and `treemap` for responsive rectangle tiling            |
+| Force simulation                                                   | [`d3-force`](https://d3js.org/d3-force)                     | Use exact optional `forceLayout` for static settlement; import directly for a live application controller    |
+| Sankey flow layout                                                 | [`d3-sankey`](https://github.com/d3/d3-sankey)              | Use exact optional `sankeyDiagram` for responsive layout and ordinary child-mark composition                 |
+| Geographic projections and paths                                   | [`d3-geo`](https://d3js.org/d3-geo)                         | Pass a responsive projection factory to `geoShape`                                                           |
+
+An optional algorithm does not necessarily need final chart layout.
+`treeLayout` and `forceLayout` produce semantic data-space coordinates, so
+native `link`, `dot`, and `text` marks can map their output through ordinary
+positional scales. Treemap topology depends on the final plot aspect ratio and
+its padding is measured in pixels, so the exact `treemap` mark owns both the
+responsive D3 layout and its downward-increasing screen coordinates. Sankey
+column allocation, padding, and proportional link width also resolve in final
+pixels; `sankeyDiagram` then composes ordinary marks over immutable node and
+link rows. Density estimation and Delaunay geometry likewise run after scale
+ranges resolve. Keep live force controllers in application state; the exact
+Charts force entry owns deterministic static settlement only.
 
 ## Positional scales follow materialized dimensions
 
@@ -321,30 +336,33 @@ plot bounds.
 
 ## Pixel-to-value inversion
 
-Brush, cursor, crop, and zoom gestures are application-owned. To invert a scene coordinate:
+`brushX`, `continuousCursor`, and `zoomX` own final-scale inversion for their
+normal gestures. A custom crop or gesture can read the same optional inverse
+from the resolved scene scale:
 
 ```ts
 const scene = host.getScene()
-const interactiveX = sourceXScale
-  .copy()
-  .range([scene.chart.x, scene.chart.x + scene.chart.width])
+const invertX = scene.scales.x.invert
+if (!invertX) throw new Error('This interaction requires an invertible x scale')
 
-const selectedDate = interactiveX.invert(pointerX)
+const selectedDate = invertX(pointerX)
 ```
 
-For a normal continuous y axis, use the reversed chart range:
+For a normal continuous y axis, the resolved scale already owns its reversed
+pixel range:
 
 ```ts
-const interactiveY = sourceYScale
-  .copy()
-  .range([scene.chart.y + scene.chart.height, scene.chart.y])
+const invertY = scene.scales.y.invert
+if (!invertY) throw new Error('This interaction requires an invertible y scale')
 
-const selectedValue = interactiveY.invert(pointerY)
+const selectedValue = invertY(pointerY)
 ```
 
 Apply the application’s precision policy after inversion. For example, round a day-based selection with a D3 time interval or round a currency threshold to the supported increment. Pixels do not imply semantic precision.
 
-When the application owns the gesture, disable the native nearest-point focus strategy if the two interactions would conflict. See [Interactions and Selections](../guides/interactions-and-selections.md).
+When the application owns a custom gesture, disable the native nearest-point
+focus strategy if the two interactions would conflict. See
+[Interactions and Selections](../guides/interactions-and-selections.md).
 
 ## Log-scale example
 

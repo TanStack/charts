@@ -1,16 +1,11 @@
 import { defineChart } from '@tanstack/charts'
-import { polar, radialArc } from '@tanstack/charts/polar'
+import { polar, radialBarRadius } from '@tanstack/charts/polar'
 import { alphabet } from '@charts-poc/demo-data/alphabet'
-import { arc, pie } from 'd3-shape'
+import { scaleBand, scaleLinear } from 'd3-scale'
 import { selectRoseData } from './selection'
 import { tanstackMount } from '../../shared/mount'
-import type { AlphabetRow } from '@charts-poc/demo-data/alphabet'
 import type { ConformanceInput } from '../../types'
-import type { PieArcDatum } from 'd3-shape'
 
-const pieLayout = pie<AlphabetRow>()
-  .sort(null)
-  .value(() => 1)
 const colors = [
   '#0369a1',
   '#2563eb',
@@ -21,28 +16,25 @@ const colors = [
 ]
 const maximumFrequency = alphabet[0]?.frequency ?? 1
 
-function outerRadius(value: number, radius: number): number {
-  return radius * (0.3 + (0.7 * value) / maximumFrequency)
-}
-
-const definition = (input: ConformanceInput) => {
-  const arcs = pieLayout([...selectRoseData(alphabet, input.revision)])
+export const roseDefinition = (input: ConformanceInput) => {
+  const data = selectRoseData(alphabet, input.revision)
 
   return defineChart({
     marks: [
       polar({
         radiusRatio: 0.8,
+        angle: { scale: () => scaleBand<string>() },
+        radius: {
+          scale: scaleLinear().domain([0, maximumFrequency]),
+          range: [({ radius }) => radius * 0.3, ({ radius }) => radius],
+        },
         marks: [
-          radialArc(arcs, {
-            generator: ({ radius }) =>
-              arc<PieArcDatum<AlphabetRow>>()
-                .startAngle((slice) => slice.startAngle)
-                .endAngle((slice) => slice.endAngle)
-                .innerRadius(0)
-                .outerRadius((slice) =>
-                  outerRadius(slice.data.frequency, radius),
-                ),
-            color: ({ data }: PieArcDatum<AlphabetRow>) => data.letter,
+          radialBarRadius(data, {
+            id: 'letter-bars',
+            angle: 'letter',
+            radius: 'frequency',
+            key: 'letter',
+            color: 'letter',
             stroke: '#ffffff',
             strokeWidth: 1,
           }),
@@ -54,4 +46,7 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(definition, 'English letter frequency rose')
+export const mount = tanstackMount(
+  roseDefinition,
+  'English letter frequency rose',
+)

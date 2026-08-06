@@ -294,7 +294,10 @@ const overlayStyle = {
 }
 ```
 
-DOM pointer coordinates must first be converted into scene coordinates using the rendered SVG bounds. Native focus does this automatically. Application-owned brush and zoom gestures can use copied D3 scales to invert those scene coordinates.
+DOM pointer coordinates must first be converted into scene coordinates using
+the rendered surface bounds. Native focus and the first-party brush, cursor,
+and zoom behaviors do this automatically against resolved scales. A custom
+gesture can use the resolved scale's optional `invert` operation.
 
 ## Clipping and overflow
 

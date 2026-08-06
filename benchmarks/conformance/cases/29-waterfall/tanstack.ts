@@ -1,23 +1,22 @@
-import { barY, colorLegend, defineChart, ruleY } from '@tanstack/charts'
-import { pairs } from 'd3-array'
+import {
+  barY,
+  colorLegend,
+  defineChart,
+  difference,
+  ruleY,
+  window,
+} from '@tanstack/charts'
+import { waterfall } from '@tanstack/charts/transform/waterfall'
+import type { WaterfallKind } from '@tanstack/charts/transform/waterfall'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { driving } from '@charts-poc/demo-data/driving'
-import type { DrivingRow } from '@charts-poc/demo-data/driving'
 import { tanstackMount } from '../../shared/mount'
 
-interface WaterfallPoint extends DrivingRow {
-  label: string
-  change: number
-  start: number
-  end: number
-  kind: 'increase' | 'decrease' | 'total'
-}
-
-const kinds: readonly WaterfallPoint['kind'][] = [
+const kinds = [
   'increase',
   'decrease',
   'total',
-]
+] satisfies readonly WaterfallKind[]
 const colors = ['#10b981', '#ef4444', '#2563eb']
 const signedAmount = new Intl.NumberFormat('en-US', {
   signDisplay: 'always',
@@ -27,18 +26,40 @@ const signedAmount = new Intl.NumberFormat('en-US', {
 })
 
 const observations = driving.filter((row) => row.year >= 2004)
+const firstYear = observations[0]?.year
+const lastYear = observations.at(-1)?.year
+const totalLabel =
+  firstYear === undefined || lastYear === undefined
+    ? 'Total'
+    : `${firstYear}–${String(lastYear).slice(-2)}`
 
-const definition = () =>
+export const yearlyChanges = window(observations, {
+  orderBy: 'year',
+  size: 2,
+  partial: false,
+  outputs: {
+    delta: { value: 'gas', reduce: difference },
+  },
+})
+
+export const waterfallRows = waterfall(yearlyChanges, {
+  value: 'delta',
+  orderBy: 'year',
+  total: true,
+})
+
+export const waterfallDefinition = () =>
   defineChart(({ width }) => {
-    const rows = buildWaterfall(observations)
-
     return {
       marks: [
-        barY(rows, {
-          x: 'label',
+        barY(waterfallRows, {
+          id: 'waterfall-bars',
+          x: (datum) => (datum.kind === 'total' ? totalLabel : `${datum.year}`),
           y1: 'start',
           y2: 'end',
           color: 'kind',
+          key: (datum) =>
+            datum.kind === 'total' ? 'net-total' : `${datum.year}`,
           inset: 1,
         }),
         ruleY([0], { stroke: '#64748b', strokeOpacity: 0.6 }),
@@ -60,49 +81,14 @@ const definition = () =>
     }
   })
 
-function buildWaterfall(
-  rows: readonly DrivingRow[],
-): readonly WaterfallPoint[] {
-  let total = 0
-  const changes = pairs(rows, (previous, current): WaterfallPoint => {
-    const change = current.gas - previous.gas
-    const start = total
-    total += change
-    return {
-      ...current,
-      label: `${current.year}`,
-      change,
-      start,
-      end: total,
-      kind: change >= 0 ? 'increase' : 'decrease',
-    }
-  })
-
-  const first = rows[0]
-  const last = rows.at(-1)
-  if (!first || !last) return changes
-
-  return [
-    ...changes,
-    {
-      ...last,
-      label: `${first.year}–${String(last.year).slice(-2)}`,
-      change: total,
-      start: 0,
-      end: total,
-      kind: 'total',
-    },
-  ]
-}
-
 export const mount = tanstackMount(
-  definition,
+  waterfallDefinition,
   'Annual changes in U.S. gasoline prices',
   {
     format: ({ datum }) =>
       datum.kind === 'total'
-        ? `${datum.label} · ${signedAmount.format(datum.end)} net change`
-        : `${datum.label} · ${signedAmount.format(
+        ? `${totalLabel} · ${signedAmount.format(datum.end)} net change`
+        : `${datum.year} · ${signedAmount.format(
             datum.end - datum.start,
           )} · ${signedAmount.format(datum.end)} running change`,
   },

@@ -1,6 +1,6 @@
 import { reconcileChartSvg } from './reconcile'
 import { renderChartSvg } from './svg'
-import { focusedNodeKeys } from './focus-layer'
+import { focusedNodeKeys, resolveFocusScene } from './focus-layer'
 import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
 import type {
   ChartRenderer,
@@ -32,6 +32,8 @@ export function createSvgChartRenderer<
       let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
       let renderOptions: ChartSurfaceRenderOptions | undefined
       let stateTransition: ChartMarkStateTransition | undefined
+      let markStatePainted = false
+      let retargetedFocus = false
       const svgElement = () => {
         const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
         if (!svg) {
@@ -57,27 +59,37 @@ export function createSvgChartRenderer<
           scene = nextScene
           renderOptions = options
           stateTransition = undefined
+          markStatePainted = false
+          retargetedFocus = false
         },
         clientToScene(scene, clientX, clientY) {
           return clientToScene(svgElement(), scene, clientX, clientY)
         },
         paintFocus(focus, pointer) {
           if (!scene || !renderOptions) return
-          const resolved = resolveMarkStateScene(scene, focus, pointer)
+          const state = resolveMarkStateScene(scene, focus, pointer)
+          const resolved = resolveFocusScene(state.scene, focus)
           const previousTransition = stateTransition
-          if (resolved.scene !== scene || previousTransition) {
+          if (
+            resolved.scene !== scene ||
+            markStatePainted ||
+            retargetedFocus ||
+            previousTransition
+          ) {
             cancelAnimation()
             cancelAnimation = reconcileChartSvg(
               container,
               renderSvg(resolved.scene, renderOptions),
               resolveMarkStateTransition(
-                resolved.transition ?? previousTransition,
+                state.transition ?? previousTransition,
                 container,
               ),
             )
           }
+          retargetedFocus = resolved.retargeted
+          markStatePainted = Boolean(focus && state.scene !== scene)
           stateTransition = focus
-            ? (resolved.transition ?? previousTransition)
+            ? (state.transition ?? previousTransition)
             : undefined
           paintSvgFocus(svgElement(), resolved.scene, focus)
           return resolved.scene

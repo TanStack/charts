@@ -9,17 +9,9 @@ const casesDirectory = path.resolve(
 )
 
 const responsiveDefinitions = [
-  '111-basic-sankey/tanstack.ts',
-  '111-sankey-flow/tanstack.ts',
-  '118-token-usage-calendar/tanstack.ts',
   '29-waterfall/tanstack.ts',
-  '41-waffle-unit-chart/tanstack.ts',
-  '43-hexbin-density/tanstack.ts',
-  '52-beeswarm-dodge/tanstack.ts',
-  '70-composed-chart/tanstack.ts',
   '85-scrollable-resource-lanes/tanstack.ts',
   '92-editable-event-range/tanstack.ts',
-  '93-labeled-pie/tanstack.ts',
   'bar-grouped/tanstack.ts',
   'bar-vertical-sorted/tanstack.ts',
 ]
@@ -63,9 +55,9 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification.parameterless).toEqual([])
-    expect(classification.static).toBe(98)
+    expect(classification.static).toBe(108)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
-    expect(classification.static + classification.responsive.length).toBe(111)
+    expect(classification.static + classification.responsive.length).toBe(113)
   })
 })
 
@@ -78,6 +70,14 @@ function classifyDefinitions(relativePath, source, classification) {
   )
 
   function visit(node) {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === 'facetChart'
+    ) {
+      classification.static += 1
+    }
+
     if (
       ts.isCallExpression(node) &&
       ts.isIdentifier(node.expression) &&

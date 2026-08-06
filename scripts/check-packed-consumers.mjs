@@ -21,6 +21,31 @@ import ts from 'typescript'
 import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
 import { verifyPackedReactNativeConsumers } from './packed-react-native-consumers.mjs'
 
+const optionalHierarchyInputGroups = [
+  'hierarchyFlat',
+  'hierarchyTree',
+  'hierarchyTreemap',
+  'hierarchySunburst',
+  'd3Hierarchy',
+]
+const optionalSankeyInputGroups = ['networkSankey', 'd3Sankey']
+const optionalFocusInputGroups = ['focusGuide']
+const optionalGuideNodeInputGroups = ['guideNodes']
+const optionalInteractionInputGroups = [
+  'interactionSignal',
+  'interactiveLegend',
+  'keyedSelection',
+  'decorativeMarkPublic',
+  'decorativeMarkLifecycle',
+  'markSceneFilter',
+]
+const optionalInteractionAxisInputGroups = ['interactionAxis']
+const optionalInteractionRangeInputGroups = ['interactionRange']
+const optionalCursorInputGroups = ['interactionCursor']
+const optionalHandleInputGroups = ['interactionHandle']
+const optionalBrushInputGroups = ['interactionBrush', 'd3Brush', 'd3Selection']
+const optionalZoomInputGroups = ['interactionZoom', 'd3Zoom']
+
 const execFileAsync = promisify(execFile)
 const root = resolve(import.meta.dirname, '..')
 const rootManifest = JSON.parse(await readFile(resolve(root, 'package.json')))
@@ -451,14 +476,27 @@ async function installFixture(tarballs) {
       tarballs.get('@tanstack/react-charts'),
     ),
     '@types/d3-array': installedDependency('@types/d3-array'),
+    '@types/d3-contour': installedDependency('@types/d3-contour'),
+    '@types/d3-delaunay': installedDependency('@types/d3-delaunay'),
+    '@types/d3-force': installedDependency('@types/d3-force'),
     '@types/d3-geo': installedDependency('@types/d3-geo'),
+    '@types/d3-hierarchy': installedDependency('@types/d3-hierarchy'),
     '@types/d3-scale': installedDependency('@types/d3-scale'),
     '@types/d3-shape': installedDependency('@types/d3-shape'),
+    '@types/d3-zoom': installedDependency('@types/d3-zoom'),
     '@types/react': installedDependency('@types/react'),
     'd3-array': installedDependency('d3-array'),
+    'd3-brush': installedDependency('d3-brush'),
+    'd3-contour': installedDependency('d3-contour'),
+    'd3-delaunay': installedDependency('d3-delaunay'),
+    'd3-force': installedDependency('d3-force'),
     'd3-geo': installedDependency('d3-geo'),
+    'd3-hierarchy': installedDependency('d3-hierarchy'),
+    'd3-hexbin': installedDependency('d3-hexbin'),
     'd3-scale': installedDependency('d3-scale'),
+    'd3-selection': installedDependency('d3-selection'),
     'd3-shape': installedDependency('d3-shape'),
+    'd3-zoom': installedDependency('d3-zoom'),
     octane: installedDependency('octane'),
     react: installedDependency('react'),
     'react-dom': installedDependency('react-dom'),
@@ -475,22 +513,44 @@ async function installFixture(tarballs) {
   )
   await writeFile(
     resolve(fixtureDirectory, 'pnpm-workspace.yaml'),
-    `packages:\n  - '.'\noverrides:\n  '@tanstack/charts': ${JSON.stringify(
+    `packages:\n  - '.'\noverrides:\n  'd3-sankey': ${JSON.stringify(
+      installedDependency('d3-sankey'),
+    )}\n  '@tanstack/charts': ${JSON.stringify(
       coreTarball,
     )}\n  '@tanstack/charts-scales': ${JSON.stringify(
       scalesTarball,
     )}\n  'd3-array': ${JSON.stringify(
       installedDependency('d3-array'),
+    )}\n  'd3-brush': ${JSON.stringify(
+      installedDependency('d3-brush'),
+    )}\n  'd3-contour': ${JSON.stringify(
+      installedDependency('d3-contour'),
+    )}\n  'd3-delaunay': ${JSON.stringify(
+      installedDependency('d3-delaunay'),
+    )}\n  'd3-force': ${JSON.stringify(
+      installedDependency('d3-force'),
     )}\n  'd3-geo': ${JSON.stringify(
       installedDependency('d3-geo'),
+    )}\n  'd3-hierarchy': ${JSON.stringify(
+      installedDependency('d3-hierarchy'),
+    )}\n  'd3-hexbin': ${JSON.stringify(
+      installedDependency('d3-hexbin'),
     )}\n  'd3-scale': ${JSON.stringify(
       installedDependency('d3-scale'),
+    )}\n  'd3-selection': ${JSON.stringify(
+      installedDependency('d3-selection'),
     )}\n  'd3-shape': ${JSON.stringify(
       installedDependency('d3-shape'),
     )}\n  '@types/d3-shape': ${JSON.stringify(
       installedDependency('@types/d3-shape'),
+    )}\n  '@types/d3-contour': ${JSON.stringify(
+      installedDependency('@types/d3-contour'),
+    )}\n  '@types/d3-force': ${JSON.stringify(
+      installedDependency('@types/d3-force'),
     )}\n  '@types/d3-geo': ${JSON.stringify(
       installedDependency('@types/d3-geo'),
+    )}\n  '@types/d3-hierarchy': ${JSON.stringify(
+      installedDependency('@types/d3-hierarchy'),
     )}\n`,
   )
   await run(
@@ -558,20 +618,51 @@ async function verifyEsmRuntime() {
     import { createElement } from 'react'
     import { renderToStaticMarkup } from 'react-dom/server'
     import { renderToString } from 'octane/server'
-    import { scaleLinear } from 'd3-scale'
+    import { scaleBand, scaleLinear, scalePoint } from 'd3-scale'
     import { scaleBand as compactScaleBand } from '@tanstack/charts-scales/band'
     import { scaleLinear as compactScaleLinear } from '@tanstack/charts-scales/linear'
     import { scaleOrdinal as compactScaleOrdinal } from '@tanstack/charts-scales/ordinal'
     import { scalePoint as compactScalePoint } from '@tanstack/charts-scales/point'
     import {
+      areaY,
+      barX,
+      barY,
+      boxY,
+      compositeMark,
       createChartScene,
       defineChart,
+      differenceY,
+      dot,
+      link,
+      lineX,
       lineY,
+      linearRegressionY,
+      rect,
       renderChartSvg,
+      ridgelineY,
+      violinY,
     } from '@tanstack/charts'
+    import { stack } from '@tanstack/charts/stack'
+    import { mosaicX, mosaicY } from '@tanstack/charts/transform/mosaic'
+    import { waterfall } from '@tanstack/charts/transform/waterfall'
     import { canvasChartRenderer } from '@tanstack/charts/canvas'
+    import { focusGuideX } from '@tanstack/charts/focus/guide'
+    import { brushX } from '@tanstack/charts/interaction/brush'
+    import { continuousCursor } from '@tanstack/charts/interaction/cursor'
+    import { handleX } from '@tanstack/charts/interaction/handle'
+    import { controlledSignal } from '@tanstack/charts/interaction/signal'
+    import { zoomX } from '@tanstack/charts/interaction/zoom'
+    import { interactiveColorLegend } from '@tanstack/charts/legend'
+    import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
     import { motion } from '@tanstack/charts/motion'
     import { createChartSpring } from '@tanstack/charts/spring'
+    import {
+      polar,
+      radialBarAngle,
+      radialBarRadius,
+    } from '@tanstack/charts/polar'
+    import { sunburst } from '@tanstack/charts/hierarchy/sunburst'
+    import { sankeyDiagram } from '@tanstack/charts/network/sankey'
     import { tooltip } from '@tanstack/charts/tooltip'
     import { portal } from '@tanstack/charts/tooltip/portal'
     import { Chart as ReactChart } from '@tanstack/react-charts'
@@ -603,6 +694,47 @@ async function verifyEsmRuntime() {
     assert.equal(portal.id, 'portal')
     assert.equal(motion().id, 'svg:svg-motion')
     assert.equal(createChartSpring().sample(0).value, 0)
+    const packedBrushChanges = []
+    const packedBrush = brushX({
+      range: controlledSignal({ start: 0, end: 1 }, (next, reason) => {
+        packedBrushChanges.push({ next, reason })
+      }),
+      values: [0, 1, 2],
+    })
+    assert.equal(packedBrush.id, 'brush-x')
+    assert.equal(typeof packedBrush.resolve, 'function')
+    assert.deepEqual(packedBrushChanges, [])
+    const packedCursorChanges = []
+    const packedCursor = continuousCursor({
+      position: controlledSignal({ x: 1, y: 2 }, (next, reason) => {
+        packedCursorChanges.push({ next, reason })
+      }),
+    })
+    assert.equal(packedCursor.id, 'continuous-cursor')
+    assert.equal(typeof packedCursor.resolve, 'function')
+    assert.deepEqual(packedCursorChanges, [])
+    const packedHandleChanges = []
+    const packedHandle = handleX({
+      value: controlledSignal(1, (next, reason) => {
+        packedHandleChanges.push({ next, reason })
+      }),
+      values: [0, 1, 2],
+      cross: { edge: 'bottom' },
+    })
+    assert.equal(packedHandle.id, 'handle-x')
+    assert.equal(typeof packedHandle.resolve, 'function')
+    assert.deepEqual(packedHandleChanges, [])
+    const packedZoomChanges = []
+    const packedZoom = zoomX({
+      window: controlledSignal({ start: 0, end: 10 }, (next, reason) => {
+        packedZoomChanges.push({ next, reason })
+      }),
+      extent: [0, 10],
+      scaleExtent: [1, 8],
+    })
+    assert.equal(packedZoom.id, 'zoom-x')
+    assert.equal(typeof packedZoom.resolve, 'function')
+    assert.deepEqual(packedZoomChanges, [])
 
     const rows = [
       { id: 'a', x: 0, y: 2 },
@@ -610,14 +742,601 @@ async function verifyEsmRuntime() {
     ]
     const definition = defineChart({
       marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
-      x: { scale: scaleLinear().domain([0, 1]) },
+      x: {
+        scale: scaleLinear().domain([0, 1]),
+        axis: {
+          ticks: { values: [0, 1] },
+          tickLabels: {
+            fontSize: 13,
+            opacity: 0.62,
+            anchor: ({ index }) => index === 0 ? 'start' : undefined,
+            dx: ({ index, bandwidth }) => index === 0 ? -bandwidth / 2 : undefined,
+          },
+        },
+      },
       y: { scale: scaleLinear().domain([0, 5]) },
     })
     const scene = createChartScene(definition, { width: 320, height: 180 })
-    assert.match(
-      renderChartSvg(scene, { ariaLabel: 'Packed core chart' }),
-      /<path/,
+    const coreSvg = renderChartSvg(scene, { ariaLabel: 'Packed core chart' })
+    assert.match(coreSvg, /<path/)
+    assert.match(coreSvg, /font-size="13"/)
+    assert.match(coreSvg, /opacity="0.62"/)
+    assert.match(coreSvg, /text-anchor="start"/)
+
+    const horizontalDefinition = defineChart({
+      marks: [lineX(rows, { x: 'y', y: 'id', key: 'id' })],
+      x: { scale: scaleLinear().domain([0, 5]) },
+      y: { scale: scaleBand().domain(['a', 'b']) },
+    })
+    const horizontalScene = createChartScene(horizontalDefinition, {
+      width: 320,
+      height: 180,
+    })
+    assert.deepEqual(
+      horizontalScene.points.map(({ xValue, yValue }) => [xValue, yValue]),
+      [[2, 'a'], [5, 'b']],
     )
+    horizontalScene.points.forEach((point) => {
+      assert.equal(point.datum, rows[point.datumIndex])
+    })
+
+    const ridgeRows = [
+      { id: 'a:0', category: 'A', x: 0, height: 0 },
+      { id: 'a:1', category: 'A', x: 1, height: 1 },
+      { id: 'b:0', category: 'B', x: 0, height: 0.25 },
+      { id: 'b:1', category: 'B', x: 1, height: 0.75 },
+    ]
+    const ridgeScene = createChartScene(defineChart({
+      marks: [ridgelineY(ridgeRows, {
+        x: 'x',
+        y: 'category',
+        height: 'height',
+        key: 'id',
+      })],
+      guides: false,
+      x: { scale: scaleLinear().domain([0, 1]) },
+      y: { scale: scalePoint().domain(['A', 'B']) },
+    }), { width: 320, height: 180 })
+    const ridgeSvg = renderChartSvg(ridgeScene, {
+      ariaLabel: 'Packed ridgeline chart',
+    })
+    assert.equal(ridgeScene.points.length, ridgeRows.length)
+    ridgeScene.points.forEach((point) => {
+      assert.equal(point.datum, ridgeRows[point.datumIndex])
+    })
+    assert.match(ridgeSvg, /ts-chart__ridgeline-y/)
+
+    const violinRows = [
+      { id: 'a:0', category: 'A', value: 0, width: 0 },
+      { id: 'a:1', category: 'A', value: 1, width: 1 },
+      { id: 'b:0', category: 'B', value: 0, width: 0.25 },
+      { id: 'b:1', category: 'B', value: 1, width: 0.75 },
+    ]
+    const violinScene = createChartScene(defineChart({
+      marks: [violinY(violinRows, {
+        x: 'category',
+        y: 'value',
+        width: 'width',
+        key: 'id',
+      })],
+      guides: false,
+      x: { scale: scalePoint().domain(['A', 'B']) },
+      y: { scale: scaleLinear().domain([0, 1]) },
+    }), { width: 320, height: 180 })
+    const violinSvg = renderChartSvg(violinScene, {
+      ariaLabel: 'Packed violin chart',
+    })
+    assert.equal(violinScene.points.length, violinRows.length)
+    violinScene.points.forEach((point) => {
+      assert.equal(point.datum, violinRows[point.datumIndex])
+    })
+    assert.match(violinSvg, /ts-chart__violin-y/)
+
+    const regressionDefinition = defineChart({
+      marks: [
+        linearRegressionY(rows, {
+          x: 'x',
+          y: 'y',
+          ci: 0,
+          samples: 3,
+        }),
+      ],
+      x: { scale: scaleLinear() },
+      y: { scale: scaleLinear() },
+    })
+    const regressionScene = createChartScene(regressionDefinition, {
+      width: 320,
+      height: 180,
+    })
+    assert.deepEqual(
+      regressionScene.points.map(({ xValue, yValue }) => [xValue, yValue]),
+      [[0, 2], [0.5, 3.5], [1, 5]],
+    )
+    regressionScene.points.forEach(({ datum }) => {
+      assert.equal(datum.source[0], rows[0])
+      assert.equal(datum.source[1], rows[1])
+      assert.deepEqual(datum.sourceIndexes, [0, 1])
+    })
+
+    const differenceDefinition = defineChart({
+      marks: [
+        differenceY(rows, {
+          id: 'packed-difference',
+          x: 'x',
+          y1: 3,
+          y2: 'y',
+        }),
+      ],
+      x: { scale: scaleLinear() },
+      y: { scale: scaleLinear() },
+    })
+    const differenceScene = createChartScene(differenceDefinition, {
+      width: 320,
+      height: 180,
+    })
+    const comparisonPoints = differenceScene.points.filter(
+      ({ markId }) => markId === 'packed-difference:comparison',
+    )
+    const primaryPoints = differenceScene.points.filter(
+      ({ markId }) => markId === 'packed-difference:primary',
+    )
+    assert.equal(comparisonPoints.length, rows.length)
+    assert.equal(primaryPoints.length, rows.length)
+    rows.forEach((row, index) => {
+      assert.equal(comparisonPoints[index].datum, row)
+      assert.equal(primaryPoints[index].datum, row)
+    })
+
+    const packedStreamRows = [
+      { x: 0, series: 'A', value: 2 },
+      { x: 0, series: 'B', value: 1 },
+      { x: 1, series: 'A', value: 1 },
+      { x: 1, series: 'B', value: 3 },
+    ]
+    const packedStreamDefinition = defineChart({
+      marks: [
+        areaY(packedStreamRows, {
+          x: 'x',
+          y: 'value',
+          z: 'series',
+          layout: stack({ order: 'inside-out', offset: 'wiggle' }),
+        }),
+      ],
+      x: { scale: scaleLinear() },
+      y: { scale: scaleLinear() },
+    })
+    const packedStreamScene = createChartScene(packedStreamDefinition, {
+      width: 320,
+      height: 180,
+    })
+    assert.equal(packedStreamScene.points.length, packedStreamRows.length)
+    assert.equal(
+      Math.min(...packedStreamScene.points.map(({ y1Value }) => y1Value)),
+      0,
+    )
+    packedStreamScene.points.forEach((point) => {
+      assert.equal(point.datum, packedStreamRows[point.datumIndex])
+    })
+
+    const packedLikertRows = [
+      { question: 'Q1', response: 'Disagree', count: 2 },
+      { question: 'Q1', response: 'Neutral', count: 2 },
+      { question: 'Q1', response: 'Agree', count: 3 },
+    ]
+    const packedLikertDefinition = defineChart({
+      marks: [
+        barX(packedLikertRows, {
+          x: 'count',
+          y: 'question',
+          z: 'response',
+          layout: stack({
+            order: ['Disagree', 'Neutral', 'Agree'],
+            anchor: { series: 'Neutral', fraction: 0.5 },
+          }),
+        }),
+      ],
+      x: { scale: scaleLinear() },
+      y: { scale: scaleBand() },
+    })
+    const packedLikertScene = createChartScene(packedLikertDefinition, {
+      width: 320,
+      height: 180,
+    })
+    const packedNeutral = packedLikertScene.points.find(
+      ({ datum }) => datum.response === 'Neutral',
+    )
+    assert.equal(packedNeutral?.x1Value, -1)
+    assert.equal(packedNeutral?.x2Value, 1)
+    packedLikertScene.points.forEach((point) => {
+      assert.equal(point.datum, packedLikertRows[point.datumIndex])
+    })
+
+    const packedWaterfallRows = [
+      { order: 2, value: -1 },
+      { order: 1, value: 3 },
+    ]
+    const packedWaterfall = waterfall(packedWaterfallRows, {
+      value: 'value',
+      orderBy: 'order',
+      total: true,
+    })
+    assert.deepEqual(
+      packedWaterfall.map(({ start, end, kind }) => ({ start, end, kind })),
+      [
+        { start: 0, end: 3, kind: 'increase' },
+        { start: 3, end: 2, kind: 'decrease' },
+        { start: 0, end: 2, kind: 'total' },
+      ],
+    )
+    assert.equal(packedWaterfall[0].source[0], packedWaterfallRows[1])
+    assert.deepEqual(packedWaterfall[2].sourceIndexes, [1, 0])
+
+    const packedMosaicRows = [
+      { question: 'A', response: 'No', count: 1 },
+      { question: 'A', response: 'Yes', count: 3 },
+      { question: 'B', response: 'No', count: 2 },
+      { question: 'B', response: 'Yes', count: 2 },
+    ]
+    const packedMosaicOptions = {
+      x: 'question',
+      y: 'response',
+      value: 'count',
+      xOrder: ['A', 'B'],
+      yOrder: ['No', 'Yes'],
+    }
+    const packedMosaicY = mosaicY(packedMosaicRows, packedMosaicOptions)
+    const packedMosaicX = mosaicX(packedMosaicRows, packedMosaicOptions)
+    assert.deepEqual(
+      packedMosaicY.map(({ x1, x2, y1, y2 }) => [x1, x2, y1, y2]),
+      [
+        [0, 0.5, 0, 0.25],
+        [0, 0.5, 0.25, 1],
+        [0.5, 1, 0, 0.5],
+        [0.5, 1, 0.5, 1],
+      ],
+    )
+    assert.deepEqual(
+      packedMosaicX.map(({ y1, y2 }) => [y1, y2]),
+      [[0, 0.375], [0.375, 1], [0, 0.375], [0.375, 1]],
+    )
+    packedMosaicY.forEach((cell, index) => {
+      assert.equal(cell.source[0], packedMosaicRows[index])
+      assert.deepEqual(cell.sourceIndexes, [index])
+    })
+
+    const packedSummaryRows = [
+      { category: 'A', median: 3, q1: 2, q3: 5 },
+    ]
+    const packedBoxRows = [
+      { id: 'a', category: 'B', value: 0 },
+      { id: 'b', category: 'B', value: 0 },
+      { id: 'c', category: 'B', value: 0 },
+      { id: 'd', category: 'B', value: 0 },
+      { id: 'e', category: 'B', value: 10 },
+    ]
+    const packedCompositeDefinition = defineChart({
+      marks: [
+        compositeMark([
+          barY(packedSummaryRows, {
+            id: 'body',
+            x: 'category',
+            y: 'median',
+            y1: 'q1',
+            y2: 'q3',
+          }),
+        ], { id: 'packed-composite' }),
+        boxY(packedBoxRows, {
+          id: 'packed-box',
+          x: 'category',
+          y: 'value',
+          key: 'id',
+        }),
+      ],
+      x: { scale: scaleBand().domain(['A', 'B']) },
+      y: { scale: scaleLinear().domain([0, 10]) },
+    })
+    const packedCompositeScene = createChartScene(packedCompositeDefinition, {
+      width: 320,
+      height: 180,
+    })
+    assert.equal(
+      packedCompositeScene.points.filter(
+        ({ markId }) => markId === 'packed-composite:body',
+      ).length,
+      1,
+    )
+    assert.equal(
+      packedCompositeScene.points.filter(
+        ({ markId }) => markId === 'packed-box:box',
+      ).length,
+      1,
+    )
+    assert.equal(
+      packedCompositeScene.points.filter(
+        ({ markId }) => markId === 'packed-box:outlier',
+      ).length,
+      1,
+    )
+    const packedCompositeSvg = renderChartSvg(packedCompositeScene, {
+      ariaLabel: 'Packed composite and box marks',
+    })
+    assert.match(packedCompositeSvg, /ts-chart__bar/)
+    assert.match(packedCompositeSvg, /ts-chart__dot/)
+
+    const focusGuideDefinition = defineChart({
+      marks: [
+        lineY(rows, { x: 'x', y: 'y', key: 'id' }),
+        focusGuideX(rows, {
+          id: 'packed-focus-guide',
+          x: 'x',
+          y: 'y',
+          key: 'id',
+          yRule: {},
+          marker: {},
+          xLabel: {},
+          yLabel: {},
+        }),
+      ],
+      x: { scale: scaleLinear().domain([0, 1]) },
+      y: { scale: scaleLinear().domain([0, 5]) },
+      focusRing: false,
+    })
+    const focusGuideScene = createChartScene(focusGuideDefinition, {
+      width: 320,
+      height: 180,
+    })
+    assert.equal(
+      focusGuideScene.points.some(({ markId }) => markId === 'packed-focus-guide'),
+      false,
+    )
+    assert.match(
+      renderChartSvg(focusGuideScene, { ariaLabel: 'Packed focus guide' }),
+      /data-ts-focus-retarget="true"/,
+    )
+
+    const packedSelectionChanges = []
+    const packedSelection = keyedSelection({
+      selected: controlledSignal('b', (next, reason) => {
+        packedSelectionChanges.push({ next, reason })
+      }),
+      key: (datum) => datum.id,
+    })
+    const packedSelectionDefinition = defineChart({
+      marks: [
+        dot(rows, {
+          id: 'packed-selection-points',
+          x: 'x',
+          y: 'y',
+          key: 'id',
+        }),
+        whenSelected(
+          dot(rows, {
+            id: 'packed-selection-overlay',
+            x: 'x',
+            y: 'y',
+            key: 'id',
+            r: 7,
+            fill: '#f97316',
+          }),
+          packedSelection,
+        ),
+      ],
+      x: { scale: scaleLinear().domain([0, 1]) },
+      y: { scale: scaleLinear().domain([0, 5]) },
+      selection: packedSelection,
+    })
+    const packedSelectionScene = createChartScene(
+      packedSelectionDefinition,
+      { width: 320, height: 180 },
+    )
+    assert.equal(packedSelectionScene.points.length, rows.length)
+    assert.equal(
+      packedSelectionScene.points.every(
+        ({ markId }) => markId === 'packed-selection-points',
+      ),
+      true,
+    )
+    assert.match(
+      renderChartSvg(packedSelectionScene, {
+        ariaLabel: 'Packed selected overlay',
+      }),
+      /data-ts-key="packed-selection-overlay"/,
+    )
+    packedSelection.change(packedSelectionScene.points[0], 'pointer')
+    assert.equal(packedSelectionChanges.at(-1).next, 'a')
+    assert.equal(packedSelectionChanges.at(-1).reason.type, 'select')
+    packedSelection.change(null, 'pointer')
+    assert.equal(packedSelectionChanges.at(-1).next, null)
+    assert.equal(packedSelectionChanges.at(-1).reason.type, 'clear')
+
+    let packedVisibleChange
+    const packedInteractiveLegendDefinition = defineChart({
+      marks: [lineY([
+        { id: 'a', x: 0, y: 2, series: 'one' },
+        { id: 'b', x: 1, y: 5, series: 'two' },
+      ], {
+        x: 'x',
+        y: 'y',
+        color: 'series',
+        key: 'id',
+      })],
+      x: { scale: scaleLinear().domain([0, 1]) },
+      y: { scale: scaleLinear().domain([0, 5]) },
+      color: {
+        domain: ['one', 'two'],
+        legend: interactiveColorLegend({
+          visible: controlledSignal(['one'], (next, reason) => {
+            packedVisibleChange = { next, reason }
+          }),
+        }),
+      },
+    })
+    const packedInteractiveLegendScene = createChartScene(
+      packedInteractiveLegendDefinition,
+      { width: 320, height: 180 },
+    )
+    assert.equal(packedInteractiveLegendScene.points.length, 1)
+    assert.equal(packedInteractiveLegendScene.controls.length, 1)
+    packedInteractiveLegendScene.controls[0].toggle('two')
+    assert.deepEqual(packedVisibleChange.next, ['one', 'two'])
+    assert.equal(packedVisibleChange.reason.value, 'two')
+    assert.match(
+      renderChartSvg(packedInteractiveLegendScene, {
+        ariaLabel: 'Packed interactive legend',
+      }),
+      /ts-chart__legend--interactive-fallback/,
+    )
+
+    const radialRows = [
+      { id: 'alpha', value: 8 },
+      { id: 'beta', value: 5 },
+    ]
+    const radialDefinition = defineChart({
+      marks: [
+        polar({
+          angle: { scale: () => scaleBand() },
+          radius: {
+            scale: scaleLinear().domain([0, 8]),
+            range: [({ radius }) => radius * 0.25, ({ radius }) => radius],
+          },
+          marks: [
+            radialBarRadius(radialRows, {
+              angle: 'id',
+              radius: 'value',
+              key: 'id',
+              fill: '#2563eb',
+            }),
+          ],
+        }),
+        polar({
+          angle: { scale: scaleLinear().domain([0, 8]) },
+          radius: {
+            scale: () => scaleBand(),
+            range: [({ radius }) => radius * 0.2, ({ radius }) => radius],
+          },
+          marks: [
+            radialBarAngle(radialRows, {
+              angle: 'value',
+              radius: 'id',
+              key: 'id',
+              cornerRadius: 'full',
+              fill: '#7c3aed',
+            }),
+          ],
+        }),
+      ],
+    })
+    const radialSvg = renderChartSvg(
+      createChartScene(radialDefinition, { width: 320, height: 180 }),
+      { ariaLabel: 'Packed polar bars' },
+    )
+    assert.match(radialSvg, /ts-chart__radial-bar-radius/)
+    assert.match(radialSvg, /ts-chart__radial-bar-angle/)
+    assert.equal(radialSvg.match(/<path/g)?.length, 4)
+
+    const hierarchyRows = [
+      { id: 'root', parentId: null, amount: 0 },
+      { id: 'alpha', parentId: 'root', amount: 4 },
+      { id: 'beta', parentId: 'root', amount: 6 },
+      { id: 'gamma', parentId: 'beta', amount: 3 },
+    ]
+    const hierarchyDefinition = defineChart({
+      marks: [
+        polar({
+          marks: [
+            sunburst(hierarchyRows, {
+              id: 'packed-sunburst',
+              nodeId: 'id',
+              parentId: 'parentId',
+              value: 'amount',
+              innerRadius: ({ radius }) => radius * 0.15,
+              ringPadding: 2,
+              color: 'branchId',
+            }),
+          ],
+        }),
+      ],
+    })
+    const hierarchyScene = createChartScene(hierarchyDefinition, {
+      width: 320,
+      height: 180,
+    })
+    const hierarchySvg = renderChartSvg(hierarchyScene, {
+      ariaLabel: 'Packed hierarchy sunburst',
+    })
+    assert.equal(hierarchySvg.match(/<path/g)?.length, 3)
+    const hierarchyPoints = hierarchyScene.points.filter(
+      ({ markId }) => markId === 'packed-sunburst',
+    )
+    assert.equal(hierarchyPoints.length, 3)
+    for (const point of hierarchyPoints) {
+      assert.ok(hierarchyRows.includes(point.datum.data))
+      assert.equal(point.datum.source.length, 1)
+      assert.equal(point.datum.source[0], point.datum.data)
+      assert.deepEqual(point.datum.sourceIndexes, [
+        hierarchyRows.indexOf(point.datum.data),
+      ])
+    }
+
+    const sankeyNodes = [
+      { id: 'source', label: 'Source' },
+      { id: 'middle', label: 'Middle' },
+      { id: 'target', label: 'Target' },
+    ]
+    const sankeyLinks = [
+      { id: 'source-middle', source: 'source', target: 'middle', value: 6 },
+      { id: 'middle-target', source: 'middle', target: 'target', value: 4 },
+    ]
+    const sankeyDefinition = defineChart({
+      marks: [
+        sankeyDiagram({
+          id: 'packed-sankey',
+          nodes: sankeyNodes,
+          links: sankeyLinks,
+          nodeKey: 'id',
+          source: 'source',
+          target: 'target',
+          value: 'value',
+          marks: ({ nodes, links }) => [
+            link(links, {
+              id: 'links',
+              x1: 'x1',
+              y1: 'y1',
+              x2: 'x2',
+              y2: 'y2',
+              key: 'key',
+              strokeWidth: (flow) => flow.width,
+            }),
+            rect(nodes, {
+              id: 'nodes',
+              x1: 'x0',
+              x2: 'x1',
+              y1: 'y0',
+              y2: 'y1',
+              key: 'key',
+            }),
+          ],
+        }),
+      ],
+      guides: false,
+    })
+    const sankeyScene = createChartScene(sankeyDefinition, {
+      width: 320,
+      height: 180,
+    })
+    const sankeySvg = renderChartSvg(sankeyScene, {
+      ariaLabel: 'Packed Sankey chart',
+    })
+    assert.equal(sankeySvg.match(/<rect/g)?.length, 3)
+    assert.equal(sankeySvg.match(/<line/g)?.length, 2)
+    const sankeyNodePoints = sankeyScene.points.filter(
+      ({ markId }) => markId === 'packed-sankey:nodes',
+    )
+    assert.equal(sankeyNodePoints.length, sankeyNodes.length)
+    for (const point of sankeyNodePoints) {
+      assert.ok(sankeyNodes.includes(point.datum.data))
+      assert.equal(point.datum.source[0], point.datum.data)
+    }
 
     const reactHtml = renderToStaticMarkup(
       createElement(ReactChart, {
@@ -709,6 +1428,8 @@ async function verifyDeclarations() {
       type ChartHost,
       type ChartHostCommonOptions,
       type ChartHostOptions,
+      type ChartAxisTickLabelContext,
+      type ChartAxisTickLabelValue,
       type ChartSpec,
       type ChartPoint,
       type ChartRenderContext,
@@ -724,14 +1445,229 @@ async function verifyDeclarations() {
       type ChartSurfaceRenderOptions,
       type ChartSvgRenderer,
       type ChartTooltipBodyTarget,
+      type MosaicOptions as RootMosaicOptions,
+      type MosaicXDatum as RootMosaicXDatum,
+      type MosaicYDatum as RootMosaicYDatum,
+      type ViolinPosition as RootViolinPosition,
+      type ViolinXCurve as RootViolinXCurve,
+      type ViolinXOptions as RootViolinXOptions,
+      type ViolinYCurve as RootViolinYCurve,
+      type ViolinYOptions as RootViolinYOptions,
     } from '@tanstack/charts'
     import { canvasChartRenderer } from '@tanstack/charts/canvas'
+    import {
+      focusGuideX,
+      focusGuideY,
+      type FocusGuideLabelOptions,
+      type FocusGuideOptions,
+    } from '@tanstack/charts/focus/guide'
+    import {
+      controlledSignal,
+      type ControlledSignal,
+    } from '@tanstack/charts/interaction/signal'
+    import {
+      brushX,
+      type BrushRange,
+      type BrushXChange,
+    } from '@tanstack/charts/interaction/brush'
+    import {
+      continuousCursor,
+      type ContinuousCursorChange,
+      type ContinuousCursorOptions,
+      type ContinuousCursorPosition,
+    } from '@tanstack/charts/interaction/cursor'
+    import {
+      handleX,
+      type HandleXChange,
+      type HandleXCross,
+      type HandleXOptions,
+    } from '@tanstack/charts/interaction/handle'
+    import {
+      zoomX,
+      type ZoomXChange,
+      type ZoomXOptions,
+      type ZoomXWindow,
+    } from '@tanstack/charts/interaction/zoom'
+    import {
+      keyedSelection,
+      whenSelected,
+      type KeyedSelection,
+      type KeyedSelectionChange,
+      type KeyedSelectionOptions,
+    } from '@tanstack/charts/selection'
+    import {
+      interactiveColorLegend,
+      type InteractiveColorLegendChange,
+    } from '@tanstack/charts/legend'
     import { motion, type ChartMotionOptions } from '@tanstack/charts/motion'
     import {
       createChartSpring,
       type ChartSpringOptions,
     } from '@tanstack/charts/spring'
-    import { lineY } from '@tanstack/charts/line'
+    import {
+      lineX,
+      lineY,
+      type LineXOptions,
+      type LineYOptions,
+    } from '@tanstack/charts/line'
+    import {
+      linearRegressionX,
+      linearRegressionY,
+      type LinearRegressionXDatum,
+      type LinearRegressionXOptions,
+      type LinearRegressionYDatum,
+      type LinearRegressionYOptions,
+    } from '@tanstack/charts/regression'
+    import {
+      differenceX,
+      differenceY,
+      type DifferenceAreaDatum,
+      type DifferenceDatum,
+      type DifferenceIndependent,
+      type DifferenceSign,
+      type DifferenceXOptions,
+      type DifferenceYOptions,
+    } from '@tanstack/charts/difference'
+    import {
+      ridgelineX,
+      ridgelineY,
+      type RidgelineCurve,
+      type RidgelinePosition,
+      type RidgelineStateStyle,
+      type RidgelineXOptions,
+      type RidgelineYOptions,
+    } from '@tanstack/charts/ridgeline'
+    import {
+      violinX,
+      violinY,
+      type ViolinPosition,
+      type ViolinXCurve,
+      type ViolinXOptions,
+      type ViolinYCurve,
+      type ViolinYOptions,
+    } from '@tanstack/charts/violin'
+    import {
+      alignX,
+      alignY,
+      composeViews,
+      fill,
+      grid,
+      inset,
+      layer,
+      shareX,
+      shareY,
+      viewGrid,
+      type ViewAnchor,
+      type ViewGridItem,
+      type ViewLink,
+      type ViewScaleLink,
+      type ViewTrack,
+    } from '@tanstack/charts/view'
+    import { link } from '@tanstack/charts/link'
+    import { rect } from '@tanstack/charts/rect'
+    import { barY } from '@tanstack/charts/bar'
+    import {
+      boxY,
+      type BoxDatum,
+    } from '@tanstack/charts/box'
+    import {
+      compositeMark,
+      type CompositeMarkOptions,
+    } from '@tanstack/charts/mark/composite'
+    import {
+      stack,
+      type StackAnchor,
+      type StackOrder,
+    } from '@tanstack/charts/stack'
+    import type {
+      BoxDatum as UniversalBoxDatum,
+      CompositeMarkOptions as UniversalCompositeMarkOptions,
+      DifferenceAreaDatum as UniversalDifferenceAreaDatum,
+      DifferenceDatum as UniversalDifferenceDatum,
+      DifferenceIndependent as UniversalDifferenceIndependent,
+      DifferenceSign as UniversalDifferenceSign,
+      DifferenceXOptions as UniversalDifferenceXOptions,
+      DifferenceYOptions as UniversalDifferenceYOptions,
+      LineXOptions as UniversalLineXOptions,
+      LineYOptions as UniversalLineYOptions,
+      LinearRegressionXDatum as UniversalLinearRegressionXDatum,
+      LinearRegressionXOptions as UniversalLinearRegressionXOptions,
+      LinearRegressionYDatum as UniversalLinearRegressionYDatum,
+      LinearRegressionYOptions as UniversalLinearRegressionYOptions,
+      MosaicOptions as UniversalMosaicOptions,
+      MosaicXDatum as UniversalMosaicXDatum,
+      MosaicYDatum as UniversalMosaicYDatum,
+      RidgelineCurve as UniversalRidgelineCurve,
+      RidgelinePosition as UniversalRidgelinePosition,
+      RidgelineStateStyle as UniversalRidgelineStateStyle,
+      RidgelineXOptions as UniversalRidgelineXOptions,
+      RidgelineYOptions as UniversalRidgelineYOptions,
+      ViolinPosition as UniversalViolinPosition,
+      ViolinXCurve as UniversalViolinXCurve,
+      ViolinXOptions as UniversalViolinXOptions,
+      ViolinYCurve as UniversalViolinYCurve,
+      ViolinYOptions as UniversalViolinYOptions,
+      StackAnchor as UniversalStackAnchor,
+      StackOrder as UniversalStackOrder,
+      WaterfallDatum as UniversalWaterfallDatum,
+      WaterfallKind as UniversalWaterfallKind,
+      WaterfallOptions as UniversalWaterfallOptions,
+    } from '@tanstack/charts/types'
+    import {
+      pie,
+      polar,
+      radialBarAngle,
+      radialBarRadius,
+      radialRule,
+      radialText,
+      type PieDatum,
+      type PieOptions,
+      type PolarRadiusOptions,
+      type RadialBarAngleOptions,
+      type RadialBarRadiusOptions,
+      type RadialRuleOptions,
+      type RadialTextOptions,
+    } from '@tanstack/charts/polar'
+    import {
+      sunburst,
+      type SunburstNode,
+      type SunburstNodeComparator,
+      type SunburstOptions,
+      type SunburstParentOptions,
+      type SunburstPathOptions,
+    } from '@tanstack/charts/hierarchy/sunburst'
+    import {
+      sankeyDiagram,
+      type SankeyLink,
+      type SankeyNode,
+      type SankeyNodeComparator,
+    } from '@tanstack/charts/network/sankey'
+    import {
+      fold,
+      type FoldDatum,
+      type FoldOptions,
+      type FoldOutputNames,
+    } from '@tanstack/charts/transform/fold'
+    import {
+      mosaicX,
+      mosaicY,
+      type MosaicOptions,
+      type MosaicXDatum,
+      type MosaicYDatum,
+    } from '@tanstack/charts/transform/mosaic'
+    import type {
+      MosaicOptions as UniversalBarrelMosaicOptions,
+      MosaicXDatum as UniversalBarrelMosaicXDatum,
+      MosaicYDatum as UniversalBarrelMosaicYDatum,
+    } from '@tanstack/charts/universal'
+    import {
+      waterfall,
+      type WaterfallDatum,
+      type WaterfallKind,
+      type WaterfallOptions,
+      type WaterfallStepDatum,
+      type WaterfallTotalDatum,
+    } from '@tanstack/charts/transform/waterfall'
     import { tooltip } from '@tanstack/charts/tooltip'
     import { portal } from '@tanstack/charts/tooltip/portal'
     import { scaleBand as compactScaleBand } from '@tanstack/charts-scales/band'
@@ -779,13 +1715,987 @@ async function verifyDeclarations() {
         : false
     type Expect<T extends true> = T
 
+    const lineYOptions: LineYOptions<Row> = {
+      x: 'category',
+      y: 'value',
+      key: 'id',
+    }
+    const lineXOptions: LineXOptions<Row> = {
+      x: 'value',
+      y: 'category',
+      key: 'id',
+    }
+    const lineRows: readonly Row[] = [
+      { id: 'line-a', category: 'A', value: 4 },
+    ]
+    const packedLines = [
+      lineY(lineRows, lineYOptions),
+      lineX(lineRows, lineXOptions),
+    ]
+    type UniversalLineXOptionsParity = Expect<
+      Equal<UniversalLineXOptions<Row>, LineXOptions<Row>>
+    >
+    type UniversalLineYOptionsParity = Expect<
+      Equal<UniversalLineYOptions<Row>, LineYOptions<Row>>
+    >
+    const lineOptionsParity: [
+      UniversalLineXOptionsParity,
+      UniversalLineYOptionsParity,
+    ] = [true, true]
+    void [lineYOptions, lineXOptions, lineRows, packedLines, lineOptionsParity]
+
+    const regressionYOptions: LinearRegressionYOptions<Row> = {
+      x: 'value',
+      y: 'value',
+      ci: 0,
+      samples: 2,
+    }
+    const regressionXOptions: LinearRegressionXOptions<Row> = {
+      x: 'value',
+      y: 'value',
+      ci: 0,
+      samples: 2,
+    }
+    const packedRegressions = [
+      linearRegressionY(lineRows, regressionYOptions),
+      linearRegressionX(lineRows, regressionXOptions),
+    ]
+    type UniversalRegressionYOptionsParity = Expect<
+      Equal<UniversalLinearRegressionYOptions<Row>, LinearRegressionYOptions<Row>>
+    >
+    type UniversalRegressionXOptionsParity = Expect<
+      Equal<UniversalLinearRegressionXOptions<Row>, LinearRegressionXOptions<Row>>
+    >
+    type UniversalRegressionYDatumParity = Expect<
+      Equal<UniversalLinearRegressionYDatum<Row>, LinearRegressionYDatum<Row>>
+    >
+    type UniversalRegressionXDatumParity = Expect<
+      Equal<UniversalLinearRegressionXDatum<Row>, LinearRegressionXDatum<Row>>
+    >
+    const regressionParity: [
+      UniversalRegressionYOptionsParity,
+      UniversalRegressionXOptionsParity,
+      UniversalRegressionYDatumParity,
+      UniversalRegressionXDatumParity,
+    ] = [true, true, true, true]
+    void [
+      regressionYOptions,
+      regressionXOptions,
+      packedRegressions,
+      regressionParity,
+    ]
+
+    const differenceYOptions: DifferenceYOptions<Row, number> = {
+      x: 'value',
+      y1: 'value',
+      y2: 'value',
+    }
+    const differenceXOptions: DifferenceXOptions<Row, number> = {
+      x1: 'value',
+      x2: 'value',
+      y: 'value',
+    }
+    const packedDifferences = [
+      differenceY(lineRows, differenceYOptions),
+      differenceX(lineRows, differenceXOptions),
+    ]
+    type UniversalDifferenceYOptionsParity = Expect<
+      Equal<UniversalDifferenceYOptions<Row, number>, DifferenceYOptions<Row, number>>
+    >
+    type UniversalDifferenceXOptionsParity = Expect<
+      Equal<UniversalDifferenceXOptions<Row, number>, DifferenceXOptions<Row, number>>
+    >
+    type UniversalDifferenceAreaDatumParity = Expect<
+      Equal<UniversalDifferenceAreaDatum<Row, number>, DifferenceAreaDatum<Row, number>>
+    >
+    type UniversalDifferenceDatumParity = Expect<
+      Equal<UniversalDifferenceDatum<Row, number>, DifferenceDatum<Row, number>>
+    >
+    type UniversalDifferenceIndependentParity = Expect<
+      Equal<UniversalDifferenceIndependent, DifferenceIndependent>
+    >
+    type UniversalDifferenceSignParity = Expect<
+      Equal<UniversalDifferenceSign, DifferenceSign>
+    >
+    const differenceParity: [
+      UniversalDifferenceYOptionsParity,
+      UniversalDifferenceXOptionsParity,
+      UniversalDifferenceAreaDatumParity,
+      UniversalDifferenceDatumParity,
+      UniversalDifferenceIndependentParity,
+      UniversalDifferenceSignParity,
+    ] = [true, true, true, true, true, true]
+    void [
+      differenceYOptions,
+      differenceXOptions,
+      packedDifferences,
+      differenceParity,
+    ]
+
+    const ridgelineYOptions: RidgelineYOptions<Row, number, string> = {
+      x: 'value',
+      y: 'category',
+      height: 'value',
+      key: 'id',
+    }
+    const ridgelineXOptions: RidgelineXOptions<Row, number, string> = {
+      x: 'category',
+      y: 'value',
+      height: 'value',
+      key: 'id',
+    }
+    const packedRidgelines = [
+      ridgelineY(lineRows, ridgelineYOptions),
+      ridgelineX(lineRows, ridgelineXOptions),
+    ]
+    type UniversalRidgelineYOptionsParity = Expect<
+      Equal<
+        UniversalRidgelineYOptions<Row, number, string>,
+        RidgelineYOptions<Row, number, string>
+      >
+    >
+    type UniversalRidgelineXOptionsParity = Expect<
+      Equal<
+        UniversalRidgelineXOptions<Row, number, string>,
+        RidgelineXOptions<Row, number, string>
+      >
+    >
+    type UniversalRidgelinePositionParity = Expect<
+      Equal<UniversalRidgelinePosition, RidgelinePosition>
+    >
+    type UniversalRidgelineCurveParity = Expect<
+      Equal<UniversalRidgelineCurve, RidgelineCurve>
+    >
+    type UniversalRidgelineStateStyleParity = Expect<
+      Equal<UniversalRidgelineStateStyle<Row>, RidgelineStateStyle<Row>>
+    >
+    const ridgelineParity: [
+      UniversalRidgelineYOptionsParity,
+      UniversalRidgelineXOptionsParity,
+      UniversalRidgelinePositionParity,
+      UniversalRidgelineCurveParity,
+      UniversalRidgelineStateStyleParity,
+    ] = [true, true, true, true, true]
+    void [
+      ridgelineYOptions,
+      ridgelineXOptions,
+      packedRidgelines,
+      ridgelineParity,
+    ]
+
+    const violinYOptions: ViolinYOptions<Row, number, string> = {
+      x: 'category',
+      y: 'value',
+      width: 'value',
+      key: 'id',
+    }
+    const violinXOptions: ViolinXOptions<Row, number, string> = {
+      x: 'value',
+      y: 'category',
+      width: 'value',
+      key: 'id',
+    }
+    const packedViolins = [
+      violinY(lineRows, violinYOptions),
+      violinX(lineRows, violinXOptions),
+    ]
+    type UniversalViolinYOptionsParity = Expect<
+      Equal<
+        UniversalViolinYOptions<Row, number, string>,
+        ViolinYOptions<Row, number, string>
+      >
+    >
+    type UniversalViolinXOptionsParity = Expect<
+      Equal<
+        UniversalViolinXOptions<Row, number, string>,
+        ViolinXOptions<Row, number, string>
+      >
+    >
+    type UniversalViolinPositionParity = Expect<
+      Equal<UniversalViolinPosition, ViolinPosition>
+    >
+    type UniversalViolinYCurveParity = Expect<
+      Equal<UniversalViolinYCurve, ViolinYCurve>
+    >
+    type UniversalViolinXCurveParity = Expect<
+      Equal<UniversalViolinXCurve, ViolinXCurve>
+    >
+    type RootViolinYOptionsParity = Expect<
+      Equal<
+        RootViolinYOptions<Row, number, string>,
+        ViolinYOptions<Row, number, string>
+      >
+    >
+    type RootViolinXOptionsParity = Expect<
+      Equal<
+        RootViolinXOptions<Row, number, string>,
+        ViolinXOptions<Row, number, string>
+      >
+    >
+    type RootViolinPositionParity = Expect<
+      Equal<RootViolinPosition, ViolinPosition>
+    >
+    type RootViolinYCurveParity = Expect<
+      Equal<RootViolinYCurve, ViolinYCurve>
+    >
+    type RootViolinXCurveParity = Expect<
+      Equal<RootViolinXCurve, ViolinXCurve>
+    >
+    const violinParity: [
+      UniversalViolinYOptionsParity,
+      UniversalViolinXOptionsParity,
+      UniversalViolinPositionParity,
+      UniversalViolinYCurveParity,
+      UniversalViolinXCurveParity,
+      RootViolinYOptionsParity,
+      RootViolinXOptionsParity,
+      RootViolinPositionParity,
+      RootViolinYCurveParity,
+      RootViolinXCurveParity,
+    ] = [true, true, true, true, true, true, true, true, true, true]
+    void [
+      violinYOptions,
+      violinXOptions,
+      packedViolins,
+      violinParity,
+    ]
+
+    const packedViewTrack: ViewTrack = { id: 'main', grow: 1 }
+    const packedViewLink: ViewLink = { x: 'main' }
+    const packedViewChart = defineChart({
+      marks: [lineY(lineRows, lineYOptions)],
+      x: { scale: compactScaleLinear().domain([0, 5]) },
+      y: { scale: compactScaleLinear().domain([0, 5]) },
+    })
+    const packedViewItem: ViewGridItem<
+      typeof packedViewChart,
+      'main',
+      'main'
+    > = {
+      id: 'main',
+      row: 'main',
+      column: 'main',
+      chart: packedViewChart,
+    }
+    const packedViews = viewGrid({
+      rows: [packedViewTrack],
+      columns: [{ id: 'main', grow: 1 }],
+      views: [packedViewItem],
+    })
+    const packedViewAnchor: ViewAnchor = 'top-right'
+    const packedLayeredViews = composeViews({
+      views: {
+        main: packedViewChart,
+        summary: packedViewChart,
+      },
+      layout: layer(
+        fill('main'),
+        inset('summary', {
+          relativeTo: 'main',
+          anchor: packedViewAnchor,
+          width: 80,
+          height: 60,
+          offset: 8,
+        }),
+      ),
+    })
+    const packedGridLayout = grid({
+      rows: [{ id: 'main', grow: 1 }],
+      columns: [{ id: 'main', grow: 1 }],
+      cells: { main: { row: 'main', column: 'main' } },
+    })
+    const packedScaleLinks: readonly ViewScaleLink<'main' | 'summary'>[] = [
+      shareX('summary', 'main'),
+      shareY('summary', 'main'),
+      alignX('summary', 'main'),
+      alignY('summary', 'main'),
+    ]
+    const packedViewDatum: ChartSpecDatum<typeof packedViews> = lineRows[0]!
+    void [
+      packedViewTrack,
+      packedViewLink,
+      packedViewItem,
+      packedViews,
+      packedViewAnchor,
+      packedLayeredViews,
+      packedGridLayout,
+      packedScaleLinks,
+      packedViewDatum,
+    ]
+
+    const packedStackOrder: StackOrder = 'inside-out'
+    const packedStackAnchor: StackAnchor = {
+      series: 'Neutral',
+      fraction: 0.5,
+    }
+    const packedStackLayout = stack({
+      order: packedStackOrder,
+      offset: 'wiggle',
+    })
+    const packedAnchoredStackLayout = stack({
+      order: ['Disagree', 'Neutral', 'Agree'],
+      anchor: packedStackAnchor,
+    })
+    type UniversalStackAnchorParity = Expect<
+      Equal<UniversalStackAnchor, StackAnchor>
+    >
+    type UniversalStackOrderParity = Expect<
+      Equal<UniversalStackOrder, StackOrder>
+    >
+    const universalStackAnchorParity: UniversalStackAnchorParity = true
+    const universalStackOrderParity: UniversalStackOrderParity = true
+    void [
+      packedStackLayout,
+      packedAnchoredStackLayout,
+      universalStackAnchorParity,
+      universalStackOrderParity,
+    ]
+
+    interface WideRow {
+      id: string
+      count: number
+      label: string
+    }
+    const wideRows: readonly WideRow[] = [
+      { id: 'a', count: 4, label: 'Alpha' },
+    ]
+    const foldOptions: FoldOptions<WideRow, readonly ['count']> = {
+      fields: ['count'],
+    }
+    const outputNames: FoldOutputNames<'metric', 'reading'> = {
+      key: 'metric',
+      value: 'reading',
+    }
+    const foldedRows = fold(wideRows, {
+      fields: ['count', 'label'],
+      as: outputNames,
+    })
+    const foldedDatum: FoldDatum<
+      WideRow,
+      readonly ['count', 'label'],
+      typeof outputNames
+    > = foldedRows[0]!
+    if (foldedDatum.metric === 'count') {
+      type ValueIsNumber = Expect<Equal<typeof foldedDatum.reading, number>>
+      const check: ValueIsNumber = true
+      void check
+    } else {
+      type ValueIsString = Expect<Equal<typeof foldedDatum.reading, string>>
+      const check: ValueIsString = true
+      void check
+    }
+    if (false) {
+      // @ts-expect-error Fold output renaming requires both names.
+      fold(wideRows, { fields: ['count'], as: { key: 'metric' } })
+    }
+    void [foldOptions, foldedRows]
+
+    const waterfallOptions: WaterfallOptions<Row> = {
+      value: 'value',
+      orderBy: 'value',
+      total: true,
+    }
+    const waterfallRows = waterfall(lineRows, waterfallOptions)
+    const waterfallDatum: WaterfallDatum<Row> = waterfallRows[0]!
+    const waterfallKind: WaterfallKind = waterfallDatum.kind
+    if (waterfallDatum.kind === 'total') {
+      const total: WaterfallTotalDatum<Row> = waterfallDatum
+      void total
+    } else {
+      const step: WaterfallStepDatum<Row> = waterfallDatum
+      void step
+    }
+    type UniversalWaterfallDatumParity = Expect<
+      Equal<UniversalWaterfallDatum<Row>, WaterfallDatum<Row>>
+    >
+    type UniversalWaterfallKindParity = Expect<
+      Equal<UniversalWaterfallKind, WaterfallKind>
+    >
+    type UniversalWaterfallOptionsParity = Expect<
+      Equal<UniversalWaterfallOptions<Row>, WaterfallOptions<Row>>
+    >
+    const waterfallParity: [
+      UniversalWaterfallDatumParity,
+      UniversalWaterfallKindParity,
+      UniversalWaterfallOptionsParity,
+    ] = [true, true, true]
+    void [waterfallOptions, waterfallRows, waterfallKind, waterfallParity]
+
+    interface MosaicRow {
+      question: string
+      response: string
+      count: number
+    }
+    const mosaicRows: readonly MosaicRow[] = [
+      { question: 'A', response: 'No', count: 1 },
+      { question: 'A', response: 'Yes', count: 3 },
+      { question: 'B', response: 'No', count: 2 },
+      { question: 'B', response: 'Yes', count: 2 },
+    ]
+    const mosaicOptions: MosaicOptions<MosaicRow> = {
+      x: 'question',
+      y: 'response',
+      value: 'count',
+      xOrder: ['A', 'B'],
+      yOrder: ['No', 'Yes'],
+    }
+    const mosaicYRows = mosaicY(mosaicRows, {
+      x: 'question',
+      y: 'response',
+      value: 'count',
+    })
+    const mosaicXRows = mosaicX(mosaicRows, {
+      x: 'question',
+      y: 'response',
+      value: 'count',
+    })
+    const mosaicYDatum: MosaicYDatum<MosaicRow, string, string> =
+      mosaicYRows[0]!
+    const mosaicXDatum: MosaicXDatum<MosaicRow, string, string> =
+      mosaicXRows[0]!
+    type RootMosaicOptionsParity = Expect<
+      Equal<RootMosaicOptions<MosaicRow>, MosaicOptions<MosaicRow>>
+    >
+    type RootMosaicXDatumParity = Expect<
+      Equal<RootMosaicXDatum<MosaicRow>, MosaicXDatum<MosaicRow>>
+    >
+    type RootMosaicYDatumParity = Expect<
+      Equal<RootMosaicYDatum<MosaicRow>, MosaicYDatum<MosaicRow>>
+    >
+    type UniversalMosaicOptionsParity = Expect<
+      Equal<UniversalMosaicOptions<MosaicRow>, MosaicOptions<MosaicRow>>
+    >
+    type UniversalMosaicXDatumParity = Expect<
+      Equal<UniversalMosaicXDatum<MosaicRow>, MosaicXDatum<MosaicRow>>
+    >
+    type UniversalMosaicYDatumParity = Expect<
+      Equal<UniversalMosaicYDatum<MosaicRow>, MosaicYDatum<MosaicRow>>
+    >
+    type UniversalBarrelMosaicOptionsParity = Expect<
+      Equal<UniversalBarrelMosaicOptions<MosaicRow>, MosaicOptions<MosaicRow>>
+    >
+    type UniversalBarrelMosaicXDatumParity = Expect<
+      Equal<UniversalBarrelMosaicXDatum<MosaicRow>, MosaicXDatum<MosaicRow>>
+    >
+    type UniversalBarrelMosaicYDatumParity = Expect<
+      Equal<UniversalBarrelMosaicYDatum<MosaicRow>, MosaicYDatum<MosaicRow>>
+    >
+    const mosaicParity: [
+      RootMosaicOptionsParity,
+      RootMosaicXDatumParity,
+      RootMosaicYDatumParity,
+      UniversalMosaicOptionsParity,
+      UniversalMosaicXDatumParity,
+      UniversalMosaicYDatumParity,
+      UniversalBarrelMosaicOptionsParity,
+      UniversalBarrelMosaicXDatumParity,
+      UniversalBarrelMosaicYDatumParity,
+    ] = [true, true, true, true, true, true, true, true, true]
+    void [
+      mosaicOptions,
+      mosaicYRows,
+      mosaicXRows,
+      mosaicYDatum,
+      mosaicXDatum,
+      mosaicParity,
+    ]
+
+    interface PieRow {
+      id: string
+      amount: number
+      label: string
+    }
+    const pieRows: readonly PieRow[] = [
+      { id: 'a', amount: 2, label: 'Alpha' },
+      { id: 'b', amount: 1, label: 'Beta' },
+    ]
+    const pieOptions: PieOptions<PieRow> = {
+      value: 'amount',
+      gapAngle: 0.01,
+    }
+    const pieSlices = pie(pieRows, pieOptions)
+    const pieSlice: PieDatum<PieRow> = pieSlices[0]!
+    type PieValueIsNumber = Expect<Equal<typeof pieSlice.value, number>>
+    type PiePadIsZero = Expect<Equal<typeof pieSlice.padAngle, 0>>
+    const pieChecks: [PieValueIsNumber, PiePadIsZero] = [true, true]
+    const radialTextOptions: RadialTextOptions<PieDatum<PieRow>> = {
+      angle: 'angle',
+      radius: 1,
+      radiusOffset: (row, index, data) =>
+        row.fraction * 10 + index + data.length,
+      text: 'label',
+      anchor: 'outside',
+      key: 'id',
+    }
+    const radialRuleOptions: RadialRuleOptions<PieDatum<PieRow>> = {
+      angle: 'angle',
+      radius1: 1,
+      radius2: 1,
+      radius1Offset: -2,
+      radius2Offset: (row) => row.fraction * 10,
+      key: 'id',
+    }
+    const radialLabels = radialText(pieSlices, radialTextOptions)
+    const radialLeaders = radialRule(pieSlices, radialRuleOptions)
+    const polarRadiusOptions: PolarRadiusOptions<number> = {
+      scale: scaleLinear().domain([0, 2]),
+      range: [0, ({ radius }) => radius * 0.8],
+    }
+    const radialBarRadiusOptions: RadialBarRadiusOptions<PieRow> = {
+      angle: 'id',
+      radius: 'amount',
+      radius1: (row, index, data) => row.amount - index / data.length,
+      color: 'id',
+      key: 'id',
+    }
+    const radialBarAngleOptions: RadialBarAngleOptions<PieRow> = {
+      angle: 'amount',
+      angle1: 0,
+      radius: 'id',
+      cornerRadius: 'full',
+      color: 'id',
+      key: 'id',
+    }
+    const radiusBars = radialBarRadius(pieRows, radialBarRadiusOptions)
+    const angleBars = radialBarAngle(pieRows, radialBarAngleOptions)
+    const radialBarDefinition = defineChart({
+      marks: [
+        polar({
+          angle: { scale: () => scaleBand<string>() },
+          radius: polarRadiusOptions,
+          marks: [radiusBars],
+        }),
+        polar({
+          angle: { scale: scaleLinear().domain([0, 2]) },
+          radius: {
+            scale: () => scaleBand<string>(),
+            range: [0, ({ radius }) => radius],
+          },
+          marks: [angleBars],
+        }),
+      ],
+    })
+    if (false) {
+      // @ts-expect-error Pie values must be numeric or nullish.
+      pie(pieRows, { value: 'label' })
+      // @ts-expect-error Radial radius bars require a numeric radius channel.
+      radialBarRadius(pieRows, { angle: 'id', radius: 'label' })
+    }
+    void [
+      pieOptions,
+      pieSlices,
+      pieChecks,
+      radialTextOptions,
+      radialRuleOptions,
+      radialLabels,
+      radialLeaders,
+      polarRadiusOptions,
+      radialBarRadiusOptions,
+      radialBarAngleOptions,
+      radiusBars,
+      angleBars,
+      radialBarDefinition,
+    ]
+
+    interface HierarchyRow {
+      id: string
+      parentId: string | null
+      path: string
+      amount: number
+    }
+    const hierarchyRows: readonly HierarchyRow[] = [
+      { id: 'root', parentId: null, path: 'root', amount: 0 },
+      { id: 'alpha', parentId: 'root', path: 'root.alpha', amount: 4 },
+      { id: 'beta', parentId: 'root', path: 'root.beta', amount: 6 },
+    ]
+    const sunburstComparator: SunburstNodeComparator<HierarchyRow> = (
+      left,
+      right,
+    ) => right.value - left.value || left.id.localeCompare(right.id)
+    const sunburstParentOptions: SunburstParentOptions<HierarchyRow> = {
+      nodeId: 'id',
+      parentId: 'parentId',
+      value: 'amount',
+      sort: sunburstComparator,
+      innerRadius: ({ radius }) => radius * 0.1,
+      outerRadius: ({ radius }) => radius * 0.9,
+      ringPadding: 2,
+      color: 'branchId',
+    }
+    const sunburstOptions: SunburstOptions<HierarchyRow> =
+      sunburstParentOptions
+    const sunburstParentMark = sunburst(hierarchyRows, sunburstOptions)
+    const sunburstPathOptions: SunburstPathOptions<HierarchyRow> = {
+      path: 'path',
+      delimiter: '.',
+      value: 'amount',
+      color: (node) => node.branchId,
+    }
+    const sunburstPathMark = sunburst(hierarchyRows, sunburstPathOptions)
+    const identifySunburstNode = (node: SunburstNode<HierarchyRow>) => {
+      type DataIsRawRow = Expect<
+        Equal<typeof node.data, HierarchyRow | null>
+      >
+      type BranchIsNullable = Expect<
+        Equal<typeof node.branchId, string | null>
+      >
+      const checks: [DataIsRawRow, BranchIsNullable] = [true, true]
+      void checks
+      return node.id
+    }
+    if (false) {
+      sunburst(hierarchyRows, {
+        nodeId: 'id',
+        parentId: 'parentId',
+        // @ts-expect-error Sunburst values must be numeric or nullish.
+        value: 'path',
+      })
+    }
+    void [
+      sunburstComparator,
+      sunburstOptions,
+      sunburstParentMark,
+      sunburstPathOptions,
+      sunburstPathMark,
+      identifySunburstNode,
+    ]
+
+    interface SankeyNodeRow {
+      id: string
+      label: string
+      order: number
+    }
+    interface SankeyLinkRow {
+      id: string
+      source: string
+      target: string
+      value: number
+    }
+    const sankeyNodes: readonly SankeyNodeRow[] = [
+      { id: 'source', label: 'Source', order: 0 },
+      { id: 'target', label: 'Target', order: 1 },
+    ]
+    const sankeyLinks: readonly SankeyLinkRow[] = [
+      { id: 'source-target', source: 'source', target: 'target', value: 4 },
+    ]
+    const sankeyNodeSort: SankeyNodeComparator<SankeyNodeRow, string> = (
+      left,
+      right,
+    ) => left.data.order - right.data.order
+    const sankeyMark = sankeyDiagram({
+      nodes: sankeyNodes,
+      links: sankeyLinks,
+      nodeKey: 'id',
+      source: 'source',
+      target: 'target',
+      value: 'value',
+      nodeSort: sankeyNodeSort,
+      marks: ({ nodes, links }) => [
+        link(links, {
+          x1: 'x1',
+          y1: 'y1',
+          x2: 'x2',
+          y2: 'y2',
+          key: 'key',
+          strokeWidth: (flow) => flow.width,
+        }),
+        rect(nodes, {
+          x1: 'x0',
+          x2: 'x1',
+          y1: 'y0',
+          y2: 'y1',
+          key: 'key',
+        }),
+      ] as const,
+    })
+    const sankeyDefinition = defineChart({
+      marks: [sankeyMark],
+      guides: false,
+    })
+    type PackedSankeyNode = SankeyNode<
+      SankeyNodeRow,
+      SankeyLinkRow,
+      string
+    >
+    type PackedSankeyLink = SankeyLink<
+      SankeyNodeRow,
+      SankeyLinkRow,
+      string
+    >
+    type SankeyDatumIsResolvedUnion = Expect<
+      Equal<
+        ChartSpecDatum<typeof sankeyDefinition>,
+        PackedSankeyNode | PackedSankeyLink
+      >
+    >
+    const sankeyDatumCheck: SankeyDatumIsResolvedUnion = true
+    const identifySankeyNode = (node: PackedSankeyNode) => node.data.id
+    const identifySankeyLink = (flow: PackedSankeyLink) => flow.data.id
+    if (false) {
+      sankeyDiagram({
+        nodes: sankeyNodes,
+        links: sankeyLinks,
+        nodeKey: 'id',
+        source: 'source',
+        target: 'target',
+        // @ts-expect-error Sankey link values must be numeric.
+        value: 'source',
+        marks: ({ nodes }) => [rect(nodes, {})],
+      })
+    }
+    void [
+      sankeyNodeSort,
+      sankeyMark,
+      sankeyDefinition,
+      sankeyDatumCheck,
+      identifySankeyNode,
+      identifySankeyLink,
+    ]
+
     const rows: readonly Row[] = [
       { id: 'a', category: 'Alpha', value: 4 },
       { id: 'b', category: 'Beta', value: 8 },
     ]
+    const packedBoxMark = boxY(rows, {
+      x: 'category',
+      y: 'value',
+      key: 'id',
+    })
+    const packedBoxDefinition = defineChart({
+      marks: [packedBoxMark],
+      x: { scale: scaleBand<string>() },
+      y: { scale: scaleLinear() },
+    })
+    type PackedBoxDatumIsDerived = Expect<
+      Equal<ChartSpecDatum<typeof packedBoxDefinition>, BoxDatum<Row, string>>
+    >
+    type PackedBoxXIsString = Expect<
+      Equal<ChartSpecXValue<typeof packedBoxDefinition>, string>
+    >
+    type PackedBoxYIsNumber = Expect<
+      Equal<ChartSpecYValue<typeof packedBoxDefinition>, number>
+    >
+    type UniversalBoxTypeParity = Expect<
+      Equal<UniversalBoxDatum<Row, string>, BoxDatum<Row, string>>
+    >
+    const packedCompositeOptions: CompositeMarkOptions<Row> = {
+      id: 'packed-composite',
+      motion: ({ datum }) => ({ delay: datum?.value ?? 0 }),
+    }
+    const packedCompositeMark = compositeMark(
+      [barY(rows, { x: 'category', y: 'value', key: 'id' })],
+      packedCompositeOptions,
+    )
+    type UniversalCompositeTypeParity = Expect<
+      Equal<
+        UniversalCompositeMarkOptions<Row>,
+        CompositeMarkOptions<Row>
+      >
+    >
+    const packedBoxChecks: [
+      PackedBoxDatumIsDerived,
+      PackedBoxXIsString,
+      PackedBoxYIsNumber,
+      UniversalBoxTypeParity,
+      UniversalCompositeTypeParity,
+    ] = [true, true, true, true, true]
+    void [
+      packedBoxMark,
+      packedBoxDefinition,
+      packedBoxChecks,
+      packedCompositeMark,
+    ]
+    const packedTickFontSize: ChartAxisTickLabelValue<string, number> = ({
+      value,
+      index,
+      position,
+      bandwidth,
+    }) => {
+      type ValueIsString = Expect<Equal<typeof value, string>>
+      type IndexIsNumber = Expect<Equal<typeof index, number>>
+      type PositionIsNumber = Expect<Equal<typeof position, number>>
+      type BandwidthIsNumber = Expect<Equal<typeof bandwidth, number>>
+      const checks: [
+        ValueIsString,
+        IndexIsNumber,
+        PositionIsNumber,
+        BandwidthIsNumber,
+      ] = [true, true, true, true]
+      void checks
+      return index === 0 ? 13 : undefined
+    }
+    const packedTickAnchor = (
+      context: ChartAxisTickLabelContext<string>,
+    ) => (context.index === 0 ? 'start' as const : undefined)
+    const focusGuideOptions: FocusGuideOptions<Row, 'category', 'value'> = {
+      x: 'category',
+      y: 'value',
+      key: 'id',
+      xRule: {},
+      yRule: {},
+      marker: {},
+      xLabel: {
+        format(value, point) {
+          type ValueIsString = Expect<Equal<typeof value, string>>
+          type PointDatumIsRow = Expect<Equal<typeof point.datum, Row>>
+          const checks: [ValueIsString, PointDatumIsRow] = [true, true]
+          void checks
+          return value
+        },
+      },
+      yLabel: { format: (value) => String(value) },
+    }
+    const packedFocusGuideX = focusGuideX(rows, focusGuideOptions)
+    const packedFocusGuideY = focusGuideY(rows, focusGuideOptions)
+    const packedFocusLabel: FocusGuideLabelOptions<
+      Row,
+      string,
+      string,
+      number
+    > = {
+      format: (value, point) => value + point.datum.id,
+    }
+    void [
+      focusGuideOptions,
+      packedFocusGuideX,
+      packedFocusGuideY,
+      packedFocusLabel,
+    ]
+    type PackedSeries = 'one' | 'two'
+    const packedVisibleSignal: ControlledSignal<
+      readonly PackedSeries[],
+      InteractiveColorLegendChange<PackedSeries>
+    > = controlledSignal<
+      readonly PackedSeries[],
+      InteractiveColorLegendChange<PackedSeries>
+    >(['one'], () => {})
+    const packedInteractiveLegend = interactiveColorLegend({
+      visible: packedVisibleSignal,
+    })
+    const packedBrushRange: ControlledSignal<
+      BrushRange<Date>,
+      BrushXChange<Date>
+    > = controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
+      { start: new Date('2026-01-01'), end: new Date('2026-02-01') },
+      (_next, reason) => reason.value.start.toISOString(),
+    )
+    const packedBrush = brushX({
+      range: packedBrushRange,
+      values: [new Date('2026-01-01'), new Date('2026-02-01')],
+    })
+    const packedCursorPosition: ContinuousCursorPosition<Date, number> = {
+      x: new Date('2026-01-15'),
+      y: 3,
+    }
+    const packedCursorSignal: ControlledSignal<
+      ContinuousCursorPosition<Date, number> | null,
+      ContinuousCursorChange<Date, number>
+    > = controlledSignal<
+      ContinuousCursorPosition<Date, number> | null,
+      ContinuousCursorChange<Date, number>
+    >(packedCursorPosition, (_next, reason) => reason.type)
+    const packedCursorOptions: ContinuousCursorOptions<Date, number> = {
+      position: packedCursorSignal,
+      xLabel: { format: (value) => value.toISOString() },
+      yLabel: { format: (value) => value.toFixed(1) },
+    }
+    const packedCursor = continuousCursor(packedCursorOptions)
+    type PackedCursorXIsDate = Expect<
+      Equal<typeof packedCursor.__xValue, Date | undefined>
+    >
+    type PackedCursorYIsNumber = Expect<
+      Equal<typeof packedCursor.__yValue, number | undefined>
+    >
+    const packedCursorChecks: [PackedCursorXIsDate, PackedCursorYIsNumber] = [
+      true,
+      true,
+    ]
+    const packedHandleValue: ControlledSignal<
+      Date,
+      HandleXChange<Date>
+    > = controlledSignal<Date, HandleXChange<Date>>(
+      new Date('2026-01-15'),
+      (_next, reason) => reason.source,
+    )
+    const packedHandleCross: HandleXCross<number> = { value: 3 }
+    const packedHandleOptions: HandleXOptions<Date, number> = {
+      value: packedHandleValue,
+      values: [
+        new Date('2026-01-01'),
+        new Date('2026-01-15'),
+        new Date('2026-02-01'),
+      ],
+      cross: packedHandleCross,
+      ruleStyle: false,
+      format: (value) => value.toISOString(),
+    }
+    const packedHandle = handleX(packedHandleOptions)
+    const packedZoomWindow: ControlledSignal<
+      ZoomXWindow<Date>,
+      ZoomXChange<Date>
+    > = controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(
+      { start: new Date('2026-01-01'), end: new Date('2026-02-01') },
+      (_next, reason) => reason.action,
+    )
+    const packedZoomOptions: ZoomXOptions<Date> = {
+      window: packedZoomWindow,
+      extent: [new Date('2026-01-01'), new Date('2026-03-01')],
+      scaleExtent: [1, 8],
+    }
+    const packedZoom = zoomX(packedZoomOptions)
+    const packedSelectionOptions: KeyedSelectionOptions<
+      Row,
+      string,
+      string,
+      number
+    > = {
+      selected: controlledSignal<
+        string | null,
+        KeyedSelectionChange<Row, string, string, number>
+      >('b', () => {}),
+      key: (datum) => datum.id,
+    }
+    const packedKeyedSelection: KeyedSelection<
+      Row,
+      string,
+      string,
+      number
+    > = keyedSelection(packedSelectionOptions)
+    const packedSelectedMark = whenSelected(
+      lineY(rows, { x: 'category', y: 'value', key: 'id' }),
+      packedKeyedSelection,
+    )
+    void [
+      packedInteractiveLegend,
+      packedBrushRange,
+      packedBrush,
+      packedCursorPosition,
+      packedCursorSignal,
+      packedCursorOptions,
+      packedCursor,
+      packedCursorChecks,
+      packedHandleValue,
+      packedHandleCross,
+      packedHandleOptions,
+      packedHandle,
+      packedZoomWindow,
+      packedZoomOptions,
+      packedZoom,
+      packedSelectionOptions,
+      packedKeyedSelection,
+      packedSelectedMark,
+    ]
     const definition = defineChart({
       marks: [lineY(rows, { x: 'category', y: 'value', key: 'id' })],
-      x: { scale: scaleBand<string>().domain(rows.map((row) => row.category)) },
+      x: {
+        scale: scaleBand<string>().domain(rows.map((row) => row.category)),
+        axis: {
+          tickLabels: {
+            fontSize: packedTickFontSize,
+            anchor: packedTickAnchor,
+          },
+        },
+      },
       y: { scale: scaleLinear().domain([0, 8]) },
       focus: {
         resolve(points) {
@@ -1166,6 +3076,12 @@ async function verifyDeclarations() {
       ChartTooltipExtensionToken,
       ChartTooltipPortalExtensionToken,
     } from '@tanstack/charts/types'
+    import { controlledSignal } from '@tanstack/charts/interaction/signal'
+    import {
+      keyedSelection,
+      whenSelected,
+      type KeyedSelectionChange,
+    } from '@tanstack/charts/selection'
     import { scaleLinear } from 'd3-scale'
 
     interface Row {
@@ -1178,10 +3094,25 @@ async function verifyDeclarations() {
       { id: 'a', x: 0, y: 2 },
       { id: 'b', x: 1, y: 5 },
     ]
+    const selected = controlledSignal<
+      string | null,
+      KeyedSelectionChange<Row, string, number, number>
+    >('b', () => {})
+    const selection = keyedSelection<Row, string, number, number>({
+      selected,
+      key: (datum) => datum.id,
+    })
     const definition: ChartDefinition<Row, number, number> = defineChart({
-      marks: [lineY(rows, { x: 'x', y: 'y', key: 'id' })],
+      marks: [
+        lineY(rows, { x: 'x', y: 'y', key: 'id' }),
+        whenSelected(
+          lineY(rows, { id: 'selected', x: 'x', y: 'y', key: 'id' }),
+          selection,
+        ),
+      ],
       x: { scale: scaleLinear() },
       y: { scale: scaleLinear() },
+      selection,
     })
     const runtime = createChartRuntime<Row, number, number>()
     const scene: ChartScene<Row, number, number> = runtime.render(
@@ -1200,7 +3131,7 @@ async function verifyDeclarations() {
       id: 'host-tooltip-portal',
       create: () => undefined,
     }
-    void [point, tooltip, tooltipToken, portalToken]
+    void [point, tooltip, tooltipToken, portalToken, selected, selection]
   `
   const universalContractPath = resolve(
     fixtureDirectory,
@@ -1305,8 +3236,119 @@ async function verifyProductionBundles() {
     tooltipPortal: ['/@tanstack/charts/dist/tooltip-portal.js'],
     motion: ['/@tanstack/charts/dist/motion.js'],
     spring: ['/@tanstack/charts/dist/spring.js'],
+    focusGuide: ['/@tanstack/charts/dist/focus-guide.js'],
+    focusMark: ['/@tanstack/charts/dist/focus-mark.js'],
+    guideNodes: ['/@tanstack/charts/dist/guide-nodes-internal.js'],
+    interactionSignal: ['/@tanstack/charts/dist/interaction-signal.js'],
+    interactionBrush: ['/@tanstack/charts/dist/interaction-brush.js'],
+    interactionCursor: ['/@tanstack/charts/dist/interaction-cursor.js'],
+    interactionHandle: ['/@tanstack/charts/dist/interaction-handle.js'],
+    interactionZoom: ['/@tanstack/charts/dist/interaction-zoom.js'],
+    interactionAxis: ['/@tanstack/charts/dist/interaction-axis-internal.js'],
+    interactionRange: ['/@tanstack/charts/dist/interaction-range-internal.js'],
+    interactiveLegend: ['/@tanstack/charts/dist/interactive-legend.js'],
+    keyedSelection: ['/@tanstack/charts/dist/selection.js'],
+    decorativeMarkPublic: ['/@tanstack/charts/dist/mark-decorative.js'],
+    decorativeMarkLifecycle: [
+      '/@tanstack/charts/dist/mark-decorative-internal.js',
+    ],
+    markSceneFilter: ['/@tanstack/charts/dist/mark-scene-filter-internal.js'],
+    scenePointOwnership: [
+      '/@tanstack/charts/dist/scene-point-ownership-internal.js',
+    ],
+    categoricalLegendLayout: [
+      '/@tanstack/charts/dist/legend-layout-internal.js',
+    ],
     reactTooltip: ['/@tanstack/react-charts/dist/tooltip.js'],
-    d3GeometryRuntime: ['/d3-geo/', '/d3-shape/'],
+    polarPie: ['/@tanstack/charts/dist/polar-pie.js'],
+    transformFold: ['/@tanstack/charts/dist/transform-fold.js'],
+    transformMosaic: ['/@tanstack/charts/dist/transform-mosaic.js'],
+    transformWaterfall: ['/@tanstack/charts/dist/transform-waterfall.js'],
+    regressionMark: ['/@tanstack/charts/dist/regression.js'],
+    differenceMark: ['/@tanstack/charts/dist/difference.js'],
+    viewComposition: [
+      '/@tanstack/charts/dist/view.js',
+      '/@tanstack/charts/dist/view-layout.js',
+    ],
+    sceneEmbed: ['/@tanstack/charts/dist/scene-embed-internal.js'],
+    sceneNamespace: ['/@tanstack/charts/dist/scene-child-id-internal.js'],
+    facetMark: ['/@tanstack/charts/dist/facet.js'],
+    transformInternal: ['/@tanstack/charts/dist/transform-internal.js'],
+    proportionalInterval: [
+      '/@tanstack/charts/dist/proportional-interval-internal.js',
+    ],
+    transformOther: [
+      '/@tanstack/charts/dist/transform.js',
+      '/@tanstack/charts/dist/transform-bin.js',
+      '/@tanstack/charts/dist/transform-bin-time.js',
+      '/@tanstack/charts/dist/transform-bin-xy.js',
+      '/@tanstack/charts/dist/transform-cumulative.js',
+      '/@tanstack/charts/dist/transform-group.js',
+      '/@tanstack/charts/dist/transform-normalize.js',
+      '/@tanstack/charts/dist/transform-rank.js',
+      '/@tanstack/charts/dist/transform-reduce.js',
+      '/@tanstack/charts/dist/transform-reduce-internal.js',
+      '/@tanstack/charts/dist/transform-select.js',
+      '/@tanstack/charts/dist/transform-stack.js',
+      '/@tanstack/charts/dist/transform-window.js',
+    ],
+    spatialHexbin: ['/@tanstack/charts/dist/spatial-hexbin.js'],
+    spatialDensity: ['/@tanstack/charts/dist/spatial-density.js'],
+    spatialContour: [
+      '/@tanstack/charts/dist/spatial-contour.js',
+      '/@tanstack/charts/dist/spatial-contour-internal.js',
+    ],
+    spatialGrouping: ['/@tanstack/charts/dist/spatial-group-internal.js'],
+    spatialDelaunay: [
+      '/@tanstack/charts/dist/spatial-delaunay.js',
+      '/@tanstack/charts/dist/spatial-delaunay-internal.js',
+    ],
+    spatialVoronoi: [
+      '/@tanstack/charts/dist/spatial-voronoi.js',
+      '/@tanstack/charts/dist/spatial-voronoi-internal.js',
+    ],
+    networkForce: ['/@tanstack/charts/dist/network-force.js'],
+    networkGraph: ['/@tanstack/charts/dist/network-graph-internal.js'],
+    networkSankey: ['/@tanstack/charts/dist/network-sankey.js'],
+    resolvedLayoutChild: ['/@tanstack/charts/dist/resolved-layout-child.js'],
+    compositeMarkPublic: ['/@tanstack/charts/dist/mark-composite.js'],
+    compositeMarkKernel: ['/@tanstack/charts/dist/mark-composite-internal.js'],
+    boxMark: ['/@tanstack/charts/dist/box.js'],
+    areaXMark: ['/@tanstack/charts/dist/area-x.js'],
+    ridgelineMark: ['/@tanstack/charts/dist/ridgeline.js'],
+    violinMark: ['/@tanstack/charts/dist/violin.js'],
+    mappedSpacing: ['/@tanstack/charts/dist/mapped-spacing-internal.js'],
+    transformStatistics: [
+      '/@tanstack/charts/dist/transform-statistics-internal.js',
+    ],
+    compositeMotion: ['/@tanstack/charts/dist/composite-motion-internal.js'],
+    hierarchyFlat: ['/@tanstack/charts/dist/hierarchy-flat-internal.js'],
+    hierarchyTree: ['/@tanstack/charts/dist/hierarchy-tree.js'],
+    hierarchyTreemap: ['/@tanstack/charts/dist/hierarchy-treemap.js'],
+    hierarchySunburst: ['/@tanstack/charts/dist/hierarchy-sunburst.js'],
+    polarMarkInfrastructure: ['/@tanstack/charts/dist/polar-mark-internal.js'],
+    polarSector: ['/@tanstack/charts/dist/polar-sector-internal.js'],
+    d3GeometryRuntime: [
+      '/d3-delaunay/',
+      '/d3-contour/',
+      '/d3-geo/',
+      '/d3-hexbin/',
+      '/d3-shape/',
+      '/delaunator/',
+      '/robust-predicates/',
+    ],
+    d3Hexbin: ['/d3-hexbin/'],
+    d3Contour: ['/d3-contour/'],
+    d3Geo: ['/d3-geo/'],
+    d3Delaunay: ['/d3-delaunay/', '/delaunator/', '/robust-predicates/'],
+    d3Force: ['/d3-force/'],
+    d3Sankey: ['/d3-sankey/'],
+    d3Hierarchy: ['/d3-hierarchy/'],
+    d3Brush: ['/d3-brush/'],
+    d3Zoom: ['/d3-zoom/'],
+    d3Selection: ['/d3-selection/'],
+    d3Shape: ['/d3-shape/'],
+    d3Path: ['/d3-path/'],
     d3Runtime: ['/d3-', '/internmap/'],
   }
   const entries = [
@@ -1317,6 +3359,22 @@ async function verifyProductionBundles() {
       rendererBoundary: 'universal',
       platform: 'neutral',
       conditions: ['import', 'default'],
+      inputBoundary: {
+        forbid: [
+          'networkForce',
+          'd3Force',
+          ...optionalHierarchyInputGroups,
+          'spatialDensity',
+          'spatialContour',
+          'spatialGrouping',
+          'd3Contour',
+          'spatialDelaunay',
+          'spatialVoronoi',
+          'd3Delaunay',
+          'polarPie',
+          'viewComposition',
+        ],
+      },
       source: `
         export * from '@tanstack/charts/universal'
       `,
@@ -1326,7 +3384,30 @@ async function verifyProductionBundles() {
       filename: 'core.ts',
       external: [],
       rendererBoundary: 'svg',
-      inputBoundary: { forbid: ['d3GeometryRuntime'] },
+      inputBoundary: {
+        forbid: [
+          'd3GeometryRuntime',
+          'networkForce',
+          'd3Force',
+          ...optionalHierarchyInputGroups,
+          'spatialContour',
+          'spatialGrouping',
+          'spatialDelaunay',
+          'spatialVoronoi',
+          'd3Delaunay',
+          'transformFold',
+          'transformMosaic',
+          'transformWaterfall',
+          'regressionMark',
+          'differenceMark',
+          'viewComposition',
+          'ridgelineMark',
+          'violinMark',
+          'mappedSpacing',
+          'polarPie',
+          'scenePointOwnership',
+        ],
+      },
       source: `
         import {
           createChartScene,
@@ -1348,15 +3429,1287 @@ async function verifyProductionBundles() {
       `,
     },
     {
+      label: 'Controlled signal',
+      filename: 'interaction-signal.ts',
+      minimumBytes: 40,
+      external: [],
+      inputBoundary: {
+        require: ['interactionSignal'],
+        forbid: [
+          'interactiveLegend',
+          'keyedSelection',
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+        ],
+      },
+      source: `
+        export { controlledSignal } from '@tanstack/charts/interaction/signal'
+      `,
+    },
+    {
+      label: 'Controlled keyed selection subpath',
+      filename: 'keyed-selection.ts',
+      external: [],
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['interactionSignal', 'keyedSelection'],
+        forbid: [
+          'interactiveLegend',
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+        ],
+      },
+      source: `
+        import { controlledSignal } from '@tanstack/charts/interaction/signal'
+        import { keyedSelection } from '@tanstack/charts/selection'
+        const selected = controlledSignal('a', () => {})
+        export const selection = keyedSelection({
+          selected,
+          key: (datum) => datum.id,
+        })
+      `,
+    },
+    {
+      label: 'Continuous cursor subpath',
+      filename: 'continuous-cursor.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactionCursor',
+          'interactionAxis',
+          'guideNodes',
+        ],
+        forbid: [
+          'interactionBrush',
+          'd3Brush',
+          'd3Selection',
+          'focusGuide',
+          'focusMark',
+          'interactiveLegend',
+          'keyedSelection',
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+          'tooltip',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { mountChart } from '@tanstack/charts/dom'
+        import { continuousCursor } from '@tanstack/charts/interaction/cursor'
+        import { controlledSignal } from '@tanstack/charts/interaction/signal'
+        export const position = controlledSignal({ x: 1, y: 2 }, () => {})
+        export const cursor = continuousCursor({
+          position,
+          xLabel: { format: (value) => \`x \${value}\` },
+          yLabel: { format: (value) => \`y \${value}\` },
+        })
+        export { mountChart }
+      `,
+    },
+    {
+      label: 'Horizontal handle subpath',
+      filename: 'handle-x.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactionHandle',
+          'interactionAxis',
+          'interactionRange',
+        ],
+        forbid: [
+          'interactionBrush',
+          'interactionCursor',
+          'interactionZoom',
+          'd3Brush',
+          'd3Zoom',
+          'd3Selection',
+          'focusGuide',
+          'focusMark',
+          'guideNodes',
+          'interactiveLegend',
+          'keyedSelection',
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+          'tooltip',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { mountChart } from '@tanstack/charts/dom'
+        import { handleX } from '@tanstack/charts/interaction/handle'
+        import { controlledSignal } from '@tanstack/charts/interaction/signal'
+        const values = [0, 1, 2, 3]
+        export const value = controlledSignal(1, () => {})
+        export const horizontalHandle = handleX({
+          value,
+          values,
+          cross: { edge: 'bottom' },
+        })
+        export { mountChart }
+      `,
+    },
+    {
+      label: 'Horizontal brush subpath',
+      filename: 'brush-x.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactionBrush',
+          'interactionAxis',
+          'interactionRange',
+          'd3Brush',
+          'd3Selection',
+        ],
+        forbid: [
+          'interactiveLegend',
+          'keyedSelection',
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+          'tooltip',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { mountChart } from '@tanstack/charts/dom'
+        import { brushX } from '@tanstack/charts/interaction/brush'
+        import { controlledSignal } from '@tanstack/charts/interaction/signal'
+        const values = [0, 1, 2, 3]
+        export const range = controlledSignal(
+          { start: values[1], end: values[2] },
+          () => {},
+        )
+        export const horizontalBrush = brushX({ range, values })
+        export { mountChart }
+      `,
+    },
+    {
+      label: 'Horizontal zoom subpath',
+      filename: 'zoom-x.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactionZoom',
+          'interactionAxis',
+          'interactionRange',
+          'd3Zoom',
+          'd3Selection',
+        ],
+        forbid: [
+          'interactionBrush',
+          'interactionCursor',
+          'd3Brush',
+          'interactiveLegend',
+          'keyedSelection',
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+          'tooltip',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { mountChart } from '@tanstack/charts/dom'
+        import { controlledSignal } from '@tanstack/charts/interaction/signal'
+        import { zoomX } from '@tanstack/charts/interaction/zoom'
+        export const window = controlledSignal(
+          { start: 0, end: 10 },
+          () => {},
+        )
+        export const horizontalZoom = zoomX({
+          window,
+          extent: [0, 10],
+          scaleExtent: [1, 8],
+        })
+        export { mountChart }
+      `,
+    },
+    {
+      label: 'Selected overlay subpath',
+      filename: 'selected-overlay.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'keyedSelection',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+          'scenePointOwnership',
+        ],
+        forbid: [
+          'interactiveLegend',
+          'decorativeMarkPublic',
+          'categoricalLegendLayout',
+          'tooltip',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { dot } from '@tanstack/charts/dot'
+        import { controlledSignal } from '@tanstack/charts/interaction/signal'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleLinear } from 'd3-scale'
+        const rows = [
+          { id: 'a', x: 0, y: 2 },
+          { id: 'b', x: 1, y: 5 },
+        ]
+        const selection = keyedSelection({
+          selected: controlledSignal('b', () => {}),
+          key: (datum) => datum.id,
+        })
+        const definition = defineChart({
+          marks: [
+            dot(rows, { id: 'points', x: 'x', y: 'y', key: 'id' }),
+            whenSelected(
+              dot(rows, {
+                id: 'selected-point',
+                x: 'x',
+                y: 'y',
+                key: 'id',
+                r: 7,
+                fill: '#f97316',
+              }),
+              selection,
+            ),
+          ],
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+          selection,
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed selected overlay' },
+        )
+      `,
+    },
+    {
+      label: 'Decorative mark subpath',
+      filename: 'decorative-mark.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'markSceneFilter',
+        ],
+        forbid: [
+          'interactionSignal',
+          'interactiveLegend',
+          'keyedSelection',
+          'categoricalLegendLayout',
+          'tooltip',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { lineY } from '@tanstack/charts/line'
+        import { decorative } from '@tanstack/charts/mark/decorative'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleLinear } from 'd3-scale'
+        const definition = defineChart({
+          marks: [decorative(lineY([2, 5, 3]))],
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed decorative line' },
+        )
+      `,
+    },
+    {
+      label: 'Interactive legend subpath',
+      filename: 'interactive-legend.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'interactionSignal',
+          'interactiveLegend',
+          'markSceneFilter',
+          'categoricalLegendLayout',
+        ],
+        forbid: [
+          'keyedSelection',
+          'decorativeMarkPublic',
+          'decorativeMarkLifecycle',
+          'tooltip',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        export { mountChart } from '@tanstack/charts/dom'
+        export { controlledSignal } from '@tanstack/charts/interaction/signal'
+        export { interactiveColorLegend } from '@tanstack/charts/legend'
+      `,
+    },
+    {
+      label: 'Horizontal line mark',
+      filename: 'line-x.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        forbid: [
+          'transformFold',
+          'transformMosaic',
+          'transformWaterfall',
+          'regressionMark',
+          'differenceMark',
+          'viewComposition',
+          'ridgelineMark',
+          'violinMark',
+          'mappedSpacing',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { lineX } from '@tanstack/charts/line'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleBand, scaleLinear } from 'd3-scale'
+        const rows = [
+          { id: 'a', category: 'A', value: 2 },
+          { id: 'b', category: 'B', value: 5 },
+        ]
+        const definition = defineChart({
+          marks: [lineX(rows, { x: 'value', y: 'category', key: 'id' })],
+          x: { scale: scaleLinear().domain([0, 5]) },
+          y: { scale: scaleBand().domain(['A', 'B']) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed horizontal line chart' },
+        )
+      `,
+    },
+    {
+      label: 'Linear regression mark',
+      filename: 'regression.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'regressionMark',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'd3Shape',
+        ],
+        forbid: ['boxMark', 'transformWaterfall'],
+      },
+      source: `
+        import { linearRegressionY } from '@tanstack/charts/regression'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleLinear } from 'd3-scale'
+        const rows = [
+          { x: 0, y: 1 },
+          { x: 1, y: 2 },
+          { x: 2, y: 1 },
+          { x: 3, y: 4 },
+          { x: 4, y: 5 },
+        ]
+        const definition = defineChart({
+          marks: [linearRegressionY(rows, { x: 'x', y: 'y', samples: 8 })],
+          x: { scale: scaleLinear() },
+          y: { scale: scaleLinear() },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed linear regression chart' },
+        )
+      `,
+    },
+    {
+      label: 'Difference mark',
+      filename: 'difference.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'differenceMark',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'resolvedLayoutChild',
+          'd3Shape',
+        ],
+        forbid: ['boxMark', 'regressionMark', 'transformWaterfall'],
+      },
+      source: `
+        import { differenceY } from '@tanstack/charts/difference'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleLinear } from 'd3-scale'
+        const rows = [
+          { x: 0, comparison: 2, primary: 1 },
+          { x: 1, comparison: 2, primary: 3 },
+          { x: 2, comparison: 2, primary: 4 },
+          { x: 3, comparison: 2, primary: 1 },
+        ]
+        const definition = defineChart({
+          marks: [differenceY(rows, {
+            x: 'x',
+            y1: 'comparison',
+            y2: 'primary',
+          })],
+          x: { scale: scaleLinear() },
+          y: { scale: scaleLinear() },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed difference chart' },
+        )
+      `,
+    },
+    {
+      label: 'Coordinated views',
+      filename: 'view.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'viewComposition',
+          'sceneEmbed',
+          'sceneNamespace',
+          'compositeMotion',
+        ],
+        forbid: [
+          'facetMark',
+          'compositeMarkPublic',
+          'compositeMarkKernel',
+          'resolvedLayoutChild',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { dot } from '@tanstack/charts/dot'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { composeViews, grid, shareX } from '@tanstack/charts/view'
+        import { scaleLinear } from 'd3-scale'
+        const rows = [{ x: 0, y: 1 }, { x: 1, y: 2 }]
+        const x = scaleLinear().domain([0, 1])
+        const definition = composeViews({
+          views: {
+            overview: defineChart({
+              marks: [dot(rows, { x: 'x', y: 'y' })],
+              x: { scale: x },
+              y: { scale: scaleLinear().domain([0, 2]) },
+              guides: false,
+            }),
+            main: defineChart({
+              marks: [dot(rows, { x: 'x', y: 'y' })],
+              x: { scale: x },
+              y: { scale: scaleLinear().domain([0, 2]) },
+            }),
+          },
+          layout: grid({
+            rows: [
+              { id: 'overview', size: 48 },
+              { id: 'main', grow: 1 },
+            ],
+            columns: [{ id: 'main', grow: 1 }],
+            cells: {
+              overview: { row: 'overview', column: 'main' },
+              main: { row: 'main', column: 'main' },
+            },
+          }),
+          links: [shareX('overview', 'main')],
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed coordinated views' },
+        )
+      `,
+    },
+    {
       label: 'Core renderer',
       filename: 'core-renderer.ts',
       external: [],
       rendererBoundary: 'neutral',
       inputBoundary: {
-        forbid: ['tooltip', 'tooltipPortal', 'motion'],
+        forbid: [
+          'tooltip',
+          'tooltipPortal',
+          'motion',
+          'transformFold',
+          'transformMosaic',
+          'transformWaterfall',
+          'polarPie',
+        ],
       },
       source: `
         export { mountChartRenderer } from '@tanstack/charts/renderer'
+      `,
+    },
+    {
+      label: 'Transform fold',
+      filename: 'transform-fold.ts',
+      external: [],
+      inputBoundary: {
+        require: ['transformFold', 'transformInternal'],
+        forbid: [
+          'transformMosaic',
+          'transformWaterfall',
+          'transformOther',
+          'd3Runtime',
+        ],
+      },
+      source: `
+        import { fold } from '@tanstack/charts/transform/fold'
+        const rows = [
+          { id: 'a', current: 4, previous: 2 },
+          { id: 'b', current: 7, previous: 5 },
+        ]
+        export const output = fold(rows, {
+          fields: ['current', 'previous'],
+          as: { key: 'period', value: 'value' },
+        })
+      `,
+    },
+    {
+      label: 'Transform mosaic',
+      filename: 'transform-mosaic.ts',
+      external: [],
+      inputBoundary: {
+        require: [
+          'transformMosaic',
+          'transformInternal',
+          'proportionalInterval',
+        ],
+        forbid: [
+          'transformFold',
+          'transformWaterfall',
+          'transformOther',
+          'd3Runtime',
+        ],
+      },
+      source: `
+        import { mosaicX, mosaicY } from '@tanstack/charts/transform/mosaic'
+        const rows = [
+          { question: 'A', response: 'No', count: 1 },
+          { question: 'A', response: 'Yes', count: 3 },
+          { question: 'B', response: 'No', count: 2 },
+          { question: 'B', response: 'Yes', count: 2 },
+        ]
+        const options = {
+          x: 'question',
+          y: 'response',
+          value: 'count',
+          xOrder: ['A', 'B'],
+          yOrder: ['No', 'Yes'],
+        }
+        export const output = {
+          x: mosaicX(rows, options),
+          y: mosaicY(rows, options),
+        }
+      `,
+    },
+    {
+      label: 'Transform waterfall',
+      filename: 'transform-waterfall.ts',
+      external: [],
+      inputBoundary: {
+        require: ['transformWaterfall', 'transformInternal'],
+        forbid: [
+          'transformFold',
+          'transformMosaic',
+          'transformOther',
+          'd3Runtime',
+        ],
+      },
+      source: `
+        import { waterfall } from '@tanstack/charts/transform/waterfall'
+        const rows = [
+          { order: 2, value: -1 },
+          { order: 1, value: 3 },
+        ]
+        export const output = waterfall(rows, {
+          value: 'value',
+          orderBy: 'order',
+          total: true,
+        })
+      `,
+    },
+    {
+      label: 'Composite mark',
+      filename: 'composite-mark.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'compositeMarkPublic',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+        ],
+        forbid: ['boxMark', 'transformStatistics'],
+      },
+      source: `
+        import { barY } from '@tanstack/charts/bar'
+        import { compositeMark } from '@tanstack/charts/mark/composite'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleBand, scaleLinear } from 'd3-scale'
+        const rows = [{ id: 'a', category: 'A', value: 4 }]
+        const definition = defineChart({
+          marks: [compositeMark([
+            barY(rows, {
+              id: 'body',
+              x: 'category',
+              y: 'value',
+              key: 'id',
+            }),
+          ], { id: 'packed-composite' })],
+          x: { scale: scaleBand() },
+          y: { scale: scaleLinear() },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed composite mark' },
+        )
+      `,
+    },
+    {
+      label: 'Box mark',
+      filename: 'box-mark.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'boxMark',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'transformStatistics',
+          'transformInternal',
+        ],
+        forbid: ['compositeMarkPublic'],
+      },
+      source: `
+        import { boxY } from '@tanstack/charts/box'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleBand, scaleLinear } from 'd3-scale'
+        const rows = [
+          { id: 'a', category: 'A', value: 0 },
+          { id: 'b', category: 'A', value: 0 },
+          { id: 'c', category: 'A', value: 0 },
+          { id: 'd', category: 'A', value: 0 },
+          { id: 'e', category: 'A', value: 10 },
+        ]
+        const definition = defineChart({
+          marks: [boxY(rows, {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+          })],
+          x: { scale: scaleBand() },
+          y: { scale: scaleLinear() },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed box mark' },
+        )
+      `,
+    },
+    {
+      label: 'Ridgeline mark',
+      filename: 'ridgeline.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['ridgelineMark', 'mappedSpacing', 'transformInternal'],
+        forbid: [
+          'transformOther',
+          'compositeMarkPublic',
+          'compositeMarkKernel',
+          'resolvedLayoutChild',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { ridgelineY } from '@tanstack/charts/ridgeline'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleLinear, scalePoint } from 'd3-scale'
+        const rows = [
+          { id: 'a:0', category: 'A', x: 0, height: 0 },
+          { id: 'a:1', category: 'A', x: 1, height: 1 },
+          { id: 'b:0', category: 'B', x: 0, height: 0.25 },
+          { id: 'b:1', category: 'B', x: 1, height: 0.75 },
+        ]
+        const definition = defineChart({
+          marks: [ridgelineY(rows, {
+            x: 'x',
+            y: 'category',
+            height: 'height',
+            key: 'id',
+          })],
+          guides: false,
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scalePoint().domain(['A', 'B']) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed ridgeline mark' },
+        )
+      `,
+    },
+    {
+      label: 'Violin mark',
+      filename: 'violin.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['violinMark', 'mappedSpacing', 'transformInternal'],
+        forbid: [
+          'transformOther',
+          'ridgelineMark',
+          'areaXMark',
+          'compositeMarkPublic',
+          'compositeMarkKernel',
+          'resolvedLayoutChild',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { violinY } from '@tanstack/charts/violin'
+        import { scaleLinear, scalePoint } from 'd3-scale'
+        const rows = [
+          { id: 'a:0', category: 'A', value: 0, width: 0 },
+          { id: 'a:1', category: 'A', value: 1, width: 1 },
+          { id: 'b:0', category: 'B', value: 0, width: 0.25 },
+          { id: 'b:1', category: 'B', value: 1, width: 0.75 },
+        ]
+        const definition = defineChart({
+          marks: [violinY(rows, {
+            x: 'category',
+            y: 'value',
+            width: 'width',
+            key: 'id',
+          })],
+          guides: false,
+          x: { scale: scalePoint().domain(['A', 'B']) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed violin mark' },
+        )
+      `,
+    },
+    {
+      label: 'Polar pie allocation',
+      filename: 'polar-pie.ts',
+      external: [],
+      inputBoundary: {
+        require: ['polarPie', 'transformInternal'],
+        forbid: ['transformOther', 'd3Runtime'],
+      },
+      source: `
+        import { pie } from '@tanstack/charts/polar'
+        const rows = [
+          { id: 'a', amount: 4 },
+          { id: 'b', amount: 3 },
+          { id: 'c', amount: 2 },
+        ]
+        export const output = pie(rows, {
+          value: 'amount',
+          gapAngle: 0.02,
+        })
+      `,
+    },
+    {
+      label: 'Network force layout',
+      filename: 'network-force.ts',
+      external: [],
+      inputBoundary: {
+        require: ['networkForce', 'networkGraph', 'd3Force'],
+        forbid: ['spatialDensity', 'spatialContour', 'spatialGrouping'],
+      },
+      source: `
+        import { forceLayout } from '@tanstack/charts/network/force'
+        const nodes = [
+          { id: 'a', group: 'one' },
+          { id: 'b', group: 'one' },
+          { id: 'c', group: 'two' },
+        ]
+        const links = [
+          { source: 'a', target: 'b' },
+          { source: 'b', target: 'c' },
+        ]
+        export const layout = forceLayout(nodes, links, {
+          nodeKey: 'id',
+          source: 'source',
+          target: 'target',
+          iterations: 40,
+          forces: [
+            { type: 'link', distance: 20 },
+            { type: 'manyBody', strength: -20 },
+            { type: 'center' },
+          ],
+        })
+      `,
+    },
+    {
+      label: 'Network Sankey mark',
+      filename: 'network-sankey.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'networkSankey',
+          'networkGraph',
+          'resolvedLayoutChild',
+          'compositeMarkKernel',
+          'compositeMotion',
+          'sceneNamespace',
+          'd3Sankey',
+        ],
+        forbid: ['networkForce', 'd3Force', 'spatialGrouping'],
+      },
+      source: `
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { link } from '@tanstack/charts/link'
+        import { rect } from '@tanstack/charts/rect'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { sankeyDiagram } from '@tanstack/charts/network/sankey'
+        const nodes = [
+          { id: 'source', label: 'Source' },
+          { id: 'middle', label: 'Middle' },
+          { id: 'target', label: 'Target' },
+        ]
+        const links = [
+          { id: 'source-middle', source: 'source', target: 'middle', value: 6 },
+          { id: 'middle-target', source: 'middle', target: 'target', value: 4 },
+        ]
+        const definition = defineChart({
+          marks: [sankeyDiagram({
+            nodes,
+            links,
+            nodeKey: 'id',
+            source: 'source',
+            target: 'target',
+            value: 'value',
+            marks: ({ nodes: laidOutNodes, links: laidOutLinks }) => [
+              link(laidOutLinks, {
+                x1: 'x1',
+                y1: 'y1',
+                x2: 'x2',
+                y2: 'y2',
+                key: 'key',
+                strokeWidth: (flow) => flow.width,
+              }),
+              rect(laidOutNodes, {
+                x1: 'x0',
+                x2: 'x1',
+                y1: 'y0',
+                y2: 'y1',
+                key: 'key',
+              }),
+            ],
+          })],
+          guides: false,
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed Sankey chart' },
+        )
+      `,
+    },
+    {
+      label: 'Tick-label accessors',
+      filename: 'tick-label-accessors.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        forbid: [
+          'focusGuide',
+          'focusMark',
+          'motion',
+          'spring',
+          'tooltip',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { lineY } from '@tanstack/charts/line'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleLinear } from 'd3-scale'
+        const definition = defineChart({
+          marks: [lineY([4, 9, 7])],
+          x: {
+            scale: scaleLinear().domain([0, 2]),
+            axis: {
+              ticks: { values: [0, 1, 2] },
+              tickLabels: {
+                fontSize: 13,
+                opacity: 0.62,
+                anchor: ({ index }) => index === 0 ? 'start' : undefined,
+                dx: ({ index, bandwidth }) => index === 0 ? -bandwidth / 2 : undefined,
+              },
+            },
+          },
+          y: { scale: scaleLinear().domain([0, 10]) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed tick-label chart' },
+        )
+      `,
+    },
+    {
+      label: 'Focus guide mark',
+      filename: 'focus-guide.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['focusGuide', 'focusMark', 'guideNodes'],
+        forbid: [
+          'motion',
+          'spring',
+          'tooltip',
+          'tooltipPortal',
+          'd3GeometryRuntime',
+        ],
+      },
+      source: `
+        import { dot } from '@tanstack/charts/dot'
+        import { focusGuideX } from '@tanstack/charts/focus/guide'
+        import { createChartScene, defineChart } from '@tanstack/charts/scene'
+        import { renderChartSvg } from '@tanstack/charts/svg'
+        import { scaleLinear } from 'd3-scale'
+        const rows = [
+          { id: 'a', x: 1, y: 2 },
+          { id: 'b', x: 2, y: 4 },
+        ]
+        const definition = defineChart({
+          marks: [
+            dot(rows, { x: 'x', y: 'y', key: 'id' }),
+            focusGuideX(rows, {
+              x: 'x',
+              y: 'y',
+              key: 'id',
+              yRule: {},
+              marker: {},
+              xLabel: {},
+              yLabel: {},
+            }),
+          ],
+          guides: false,
+          focusRing: false,
+          x: { scale: scaleLinear().domain([0, 3]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed focus guide chart' },
+        )
+      `,
+    },
+    {
+      label: 'Hierarchy tree layout',
+      filename: 'hierarchy-tree.ts',
+      external: [],
+      inputBoundary: {
+        require: ['hierarchyFlat', 'hierarchyTree', 'd3Hierarchy'],
+        forbid: ['networkForce', 'd3Force', 'spatialGrouping'],
+      },
+      source: `
+        import { treeLayout } from '@tanstack/charts/hierarchy/tree'
+        const rows = [
+          { name: 'root' },
+          { name: 'root.alpha' },
+          { name: 'root.beta' },
+          { name: 'root.beta.gamma' },
+        ]
+        export const layout = treeLayout(rows, {
+          path: 'name',
+          delimiter: '.',
+        })
+      `,
+    },
+    {
+      label: 'Hierarchy treemap mark',
+      filename: 'hierarchy-treemap.ts',
+      external: [],
+      inputBoundary: {
+        require: ['hierarchyFlat', 'hierarchyTreemap', 'd3Hierarchy'],
+        forbid: ['hierarchyTree', 'networkForce', 'd3Force', 'spatialGrouping'],
+      },
+      source: `
+        import { treemap } from '@tanstack/charts/hierarchy/treemap'
+        const rows = [
+          { name: 'root', size: 0 },
+          { name: 'root.alpha', size: 4 },
+          { name: 'root.beta', size: 6 },
+          { name: 'root.beta.gamma', size: 3 },
+        ]
+        export const mark = treemap(rows, {
+          path: 'name',
+          delimiter: '.',
+          value: 'size',
+          ratio: 4 / 3,
+          round: true,
+          color: (node) => node.ancestorIds.at(-1) ?? node.id,
+          label: 'name',
+        })
+      `,
+    },
+    {
+      label: 'Hierarchy sunburst mark',
+      filename: 'hierarchy-sunburst.ts',
+      external: [],
+      inputBoundary: {
+        require: [
+          'hierarchyFlat',
+          'hierarchySunburst',
+          'polarMarkInfrastructure',
+          'polarSector',
+          'd3Hierarchy',
+          'd3Shape',
+        ],
+        forbid: [
+          'hierarchyTree',
+          'hierarchyTreemap',
+          'polarPie',
+          'networkForce',
+          'd3Force',
+          'spatialGrouping',
+        ],
+      },
+      source: `
+        import { sunburst } from '@tanstack/charts/hierarchy/sunburst'
+        const rows = [
+          { id: 'root', parentId: null, amount: 0 },
+          { id: 'alpha', parentId: 'root', amount: 4 },
+          { id: 'beta', parentId: 'root', amount: 6 },
+          { id: 'gamma', parentId: 'beta', amount: 3 },
+        ]
+        export const mark = sunburst(rows, {
+          nodeId: 'id',
+          parentId: 'parentId',
+          value: 'amount',
+          color: 'branchId',
+          innerRadius: ({ radius }) => radius * 0.15,
+          ringPadding: 2,
+        })
+      `,
+    },
+    {
+      label: 'Spatial density',
+      filename: 'spatial-density.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'spatialDensity',
+          'spatialContour',
+          'spatialGrouping',
+          'd3Contour',
+        ],
+      },
+      source: `
+        import {
+          createChartScene,
+          defineChart,
+          renderChartSvg,
+        } from '@tanstack/charts'
+        import { densityContour } from '@tanstack/charts/spatial/density'
+        import { scaleLinear } from 'd3-scale'
+        const rows = [
+          { x: 0, y: 2 },
+          { x: 0.1, y: 2.1 },
+          { x: 1, y: 5 },
+        ]
+        const definition = defineChart({
+          marks: [densityContour(rows, {
+            x: 'x',
+            y: 'y',
+            thresholds: [0.0001],
+          })],
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed spatial density chart' },
+        )
+      `,
+    },
+    {
+      label: 'Spatial contour',
+      filename: 'spatial-contour.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['spatialContour', 'd3Contour'],
+        forbid: ['spatialDensity', 'spatialGrouping', 'd3Geo'],
+      },
+      source: `
+        import {
+          createChartScene,
+          defineChart,
+          renderChartSvg,
+        } from '@tanstack/charts'
+        import { contour } from '@tanstack/charts/spatial/contour'
+        const values = [0, 0, 0, 0, 8, 0, 0, 0, 0]
+        const definition = defineChart({
+          marks: [contour(values, {
+            width: 3,
+            height: 3,
+            thresholds: [4],
+          })],
+          guides: false,
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed spatial contour chart' },
+        )
+      `,
+    },
+    {
+      label: 'Spatial hexbin',
+      filename: 'spatial-hexbin.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: { require: ['spatialHexbin', 'd3Hexbin'] },
+      source: `
+        import {
+          createChartScene,
+          defineChart,
+          renderChartSvg,
+        } from '@tanstack/charts'
+        import { hexbin } from '@tanstack/charts/spatial/hexbin'
+        import { scaleLinear } from 'd3-scale'
+        const rows = [
+          { x: 0, y: 2 },
+          { x: 0.1, y: 2.1 },
+          { x: 1, y: 5 },
+        ]
+        const definition = defineChart({
+          marks: [hexbin(rows, { x: 'x', y: 'y', binWidth: 20 })],
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 5]) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed spatial hexbin chart' },
+        )
+      `,
+    },
+    {
+      label: 'Spatial Delaunay',
+      filename: 'spatial-delaunay.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: ['spatialDelaunay', 'spatialGrouping', 'd3Delaunay'],
+      },
+      source: `
+        import {
+          createChartScene,
+          defineChart,
+          renderChartSvg,
+        } from '@tanstack/charts'
+        import { delaunayLink } from '@tanstack/charts/spatial/delaunay'
+        import { scaleLinear } from 'd3-scale'
+        const rows = [
+          { id: 'a', x: 0, y: 0 },
+          { id: 'b', x: 1, y: 0 },
+          { id: 'c', x: 0, y: 1 },
+        ]
+        const definition = defineChart({
+          marks: [delaunayLink(rows, { x: 'x', y: 'y', key: 'id' })],
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed spatial Delaunay chart' },
+        )
+      `,
+    },
+    {
+      label: 'Spatial Voronoi',
+      filename: 'spatial-voronoi.ts',
+      external: [],
+      rendererBoundary: 'svg',
+      inputBoundary: {
+        require: [
+          'spatialVoronoi',
+          'spatialGrouping',
+          'spatialDelaunay',
+          'd3Delaunay',
+        ],
+      },
+      source: `
+        import {
+          createChartScene,
+          defineChart,
+          renderChartSvg,
+        } from '@tanstack/charts'
+        import { voronoi } from '@tanstack/charts/spatial/voronoi'
+        import { scaleLinear } from 'd3-scale'
+        const rows = [
+          { id: 'a', group: 'one', x: 0, y: 0 },
+          { id: 'b', group: 'two', x: 1, y: 0 },
+          { id: 'c', group: 'one', x: 0, y: 1 },
+        ]
+        const definition = defineChart({
+          marks: [
+            voronoi(rows, {
+              x: 'x',
+              y: 'y',
+              key: 'id',
+              color: 'group',
+              fillOpacity: 0.2,
+              stroke: '#fff',
+            }),
+          ],
+          x: { scale: scaleLinear().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 1]) },
+        })
+        export const svg = renderChartSvg(
+          createChartScene(definition, { width: 320, height: 180 }),
+          { ariaLabel: 'Packed spatial Voronoi chart' },
+        )
       `,
     },
     {
@@ -1379,7 +4732,13 @@ async function verifyProductionBundles() {
           'tooltipPortal',
           'reactTooltip',
           'd3GeometryRuntime',
+          'networkForce',
+          'd3Force',
+          ...optionalHierarchyInputGroups,
           'motion',
+          'transformFold',
+          'transformWaterfall',
+          'polarPie',
         ],
       },
       source: `
@@ -1623,7 +4982,10 @@ async function verifyProductionBundles() {
       treeShaking: true,
     })
     const contents = await readFile(outfile)
-    assert.ok(contents.byteLength > 100, `${entry.label} bundle is empty`)
+    assert.ok(
+      contents.byteLength > (entry.minimumBytes ?? 100),
+      `${entry.label} bundle is empty`,
+    )
     assert.ok(
       contents.byteLength < 500_000,
       `${entry.label} bundle unexpectedly exceeds 500 kB`,
@@ -1638,7 +5000,7 @@ async function verifyProductionBundles() {
     assertPackedInputBoundary(
       entry.label,
       retainedInputs,
-      entry.inputBoundary,
+      optionalSubpathIsolatedBoundary(entry.inputBoundary),
       packedInputModules,
     )
     for (const input of Object.keys(result.metafile.inputs)) {
@@ -1668,6 +5030,64 @@ async function verifyProductionBundles() {
   }
 
   return results
+}
+
+function optionalSubpathIsolatedBoundary(boundary = {}) {
+  const hierarchyRequired = (boundary.require ?? []).some((group) =>
+    optionalHierarchyInputGroups.includes(group),
+  )
+  const sankeyRequired = (boundary.require ?? []).some((group) =>
+    optionalSankeyInputGroups.includes(group),
+  )
+  const focusRequired = (boundary.require ?? []).some((group) =>
+    optionalFocusInputGroups.includes(group),
+  )
+  const guideNodesRequired = (boundary.require ?? []).some((group) =>
+    optionalGuideNodeInputGroups.includes(group),
+  )
+  const interactionRequired = (boundary.require ?? []).some((group) =>
+    optionalInteractionInputGroups.includes(group),
+  )
+  const interactionAxisRequired = (boundary.require ?? []).some((group) =>
+    optionalInteractionAxisInputGroups.includes(group),
+  )
+  const interactionRangeRequired = (boundary.require ?? []).some((group) =>
+    optionalInteractionRangeInputGroups.includes(group),
+  )
+  const cursorRequired = (boundary.require ?? []).some((group) =>
+    optionalCursorInputGroups.includes(group),
+  )
+  const handleRequired = (boundary.require ?? []).some((group) =>
+    optionalHandleInputGroups.includes(group),
+  )
+  const brushRequired = (boundary.require ?? []).some((group) =>
+    optionalBrushInputGroups.includes(group),
+  )
+  const zoomRequired = (boundary.require ?? []).some((group) =>
+    optionalZoomInputGroups.includes(group),
+  )
+
+  return {
+    ...boundary,
+    forbid: [
+      ...new Set([
+        ...(boundary.forbid ?? []),
+        ...(hierarchyRequired ? [] : optionalHierarchyInputGroups),
+        ...(sankeyRequired ? [] : optionalSankeyInputGroups),
+        ...(focusRequired ? [] : optionalFocusInputGroups),
+        ...(guideNodesRequired ? [] : optionalGuideNodeInputGroups),
+        ...(interactionRequired ? [] : optionalInteractionInputGroups),
+        ...(interactionAxisRequired ? [] : optionalInteractionAxisInputGroups),
+        ...(interactionRangeRequired
+          ? []
+          : optionalInteractionRangeInputGroups),
+        ...(cursorRequired ? [] : optionalCursorInputGroups),
+        ...(handleRequired ? [] : optionalHandleInputGroups),
+        ...(brushRequired ? [] : optionalBrushInputGroups),
+        ...(zoomRequired ? [] : optionalZoomInputGroups),
+      ]),
+    ],
+  }
 }
 
 function assertRendererBoundary(label, inputs, boundary, modules) {

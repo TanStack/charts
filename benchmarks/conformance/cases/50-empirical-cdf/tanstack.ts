@@ -17,7 +17,7 @@ const percent = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,
 })
 
-const definition = (input: ConformanceInput) => {
+export const empiricalCdfDefinition = (input: ConformanceInput) => {
   const source = completeCars
     .slice(input.revision * 8)
     .sort((left, right) => left['economy (mpg)'] - right['economy (mpg)'])
@@ -30,6 +30,7 @@ const definition = (input: ConformanceInput) => {
   return defineChart({
     marks: [
       lineY(rows, {
+        id: 'empirical-cdf',
         x: 'economy (mpg)',
         y: 'probability',
         curve: d3Curve(curveStepAfter),
@@ -54,6 +55,6 @@ const definition = (input: ConformanceInput) => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  empiricalCdfDefinition,
   'Empirical cumulative distribution',
 )

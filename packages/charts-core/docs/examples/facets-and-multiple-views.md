@@ -45,9 +45,28 @@ domains can make local variation easier to see, but they can also exaggerate
 small differences. If independent scales are intentional, give panels their
 own guides and state the policy.
 
-Prepare reductions independently within each facet. A proportional histogram,
-for example, divides by the cohort's count rather than a global count unless
-the global population is the intended denominator.
+Keep the denominator visible by grouping both transforms:
+
+```ts
+const bins = normalize(
+  binX(rows, {
+    value: 'body_mass_g',
+    by: 'species',
+    thresholds,
+    outputs: { count: { reduce: 'count' } },
+  }),
+  {
+    value: 'count',
+    by: 'species',
+    basis: 'sum',
+    as: 'proportion',
+  },
+)
+```
+
+`binX` owns aggregate lineage and `normalize` divides each species by its own
+count. Omit the second `by` only when the global population is the intended
+denominator.
 
 ## Add marginal context
 
@@ -67,13 +86,48 @@ A scatterplot with marginal histograms combines three roles:
 ></iframe>
 
 All regions can derive from the same raw observations, but they do not share
-the same marks or plot rectangle. Keep their domains coordinated and their
-accessibility labels distinct.
+the same marks or plot rectangle. This example uses public `binX` and `binY`
+transforms inside three ordinary chart definitions. Place them with
+`composeViews` and `grid`, then use `shareX` and `shareY` to match the
+scatterplot's resolved scales and plot ranges. `viewGrid` is concise syntax for
+the same non-overlapping layout.
 
-Several chart hosts are usually simpler and more accessible. Use one custom
-scene with embedded regions only when exact responsive alignment materially
-improves the product. [Custom Marks and Renderers](../guides/custom-marks-and-renderers.md)
-covers that advanced boundary.
+Use separate chart hosts when each view needs independent interaction or an
+independent accessible label. See
+[View Composition](../reference/view-composition.md) for the single-figure
+layout contract.
+
+## Overlay a summary
+
+An inset can use a different coordinate system from the chart behind it. This
+places a donut summary over a Cartesian detail chart without teaching either
+child about the other:
+
+```ts
+import { composeViews, fill, inset, layer } from '@tanstack/charts/view'
+
+const definition = composeViews({
+  views: {
+    detail: detailDefinition,
+    summary: donutDefinition,
+  },
+  layout: layer(
+    fill('detail'),
+    inset('summary', {
+      relativeTo: 'detail',
+      anchor: 'top-right',
+      width: 160,
+      height: 160,
+      offset: 12,
+    }),
+  ),
+})
+```
+
+The inset is anchored to the complete detail frame. It is clipped to its own
+frame and shrinks proportionally when the host is too small. Because the child
+scenes share one outer interaction model, empty inset space and the donut hole
+leave detail geometry behind them eligible for focus.
 
 ## Pair detail with context
 
@@ -115,6 +169,7 @@ semantic value at different coordinates.
 ## Production checks
 
 - Use one repeated encoding for true facets; use named views when roles differ.
+- Place every named composed view exactly once.
 - Make shared versus independent domains explicit.
 - Keep bin boundaries, group order, color meaning, and units comparable.
 - Give each independently interactive view its own accessible label.

@@ -1898,7 +1898,7 @@ async function compareVisuals(
             tick: '.ts-chart__tick line',
             vector: '.ts-chart__vector-item .ts-chart__arrow-shaft',
             voronoi: '.ts-chart__voronoi path',
-            waffle: '.ts-chart__rect rect',
+            waffle: '.ts-chart__waffle rect',
           }
           const rechartsSelectors = {
             arc: '.recharts-pie-sector path, .recharts-radial-bar-sector path, .recharts-sector',

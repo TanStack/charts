@@ -29,18 +29,23 @@ const observations = industries.filter(
     includedIndustrySet.has(row.industry),
 )
 
-const definition = () => {
+export const bumpRankingDefinition = () => {
   const rows = rank(observations, {
     by: 'date',
     value: 'unemployed',
     order: 'descending',
     ties: 'competition',
   })
-  const labels = select(rows, { by: 'industry', select: 'last' })
+  const labels = select(rows, {
+    by: 'industry',
+    value: ({ datum }) => datum.date.getTime(),
+    select: 'max',
+  })
 
   return defineChart({
     marks: [
       lineY(rows, {
+        id: 'industry-ranks',
         x: 'date',
         y: 'rank',
         color: 'industry',
@@ -48,12 +53,14 @@ const definition = () => {
         strokeWidth: 2.25,
       }),
       dot(rows, {
+        id: 'industry-rank-points',
         x: 'date',
         y: 'rank',
         color: 'industry',
         r: 3,
       }),
       text(labels, {
+        id: 'newest-industry-labels',
         x: 'date',
         y: 'rank',
         text: 'industry',
@@ -85,6 +92,6 @@ const definition = () => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  bumpRankingDefinition,
   'Annual unemployment rank by industry',
 )

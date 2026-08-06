@@ -3,6 +3,7 @@ import { createMarkWithScaleValues } from './mark-with-scale-values'
 import { resolveGuideMargins } from './guide-layout'
 import { valueKey } from './scales'
 import { createChartScene } from './scene'
+import { embedChartScene } from './scene-embed-internal'
 import type {
   Channel,
   ChartBounds,
@@ -10,9 +11,11 @@ import type {
   ChartMark,
   ChartMarkMotionOptions,
   ChartMargin,
+  ChartMotionDefinition,
   ChartPoint,
   ChartScene,
   ChartSpec,
+  ChartSpecDatum,
   ChartTheme,
   ChartValue,
   ResolvedScale,
@@ -24,10 +27,13 @@ import type {
 
 export type FacetAxes = 'outer' | 'cell'
 
-export interface FacetOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+export interface FacetOptions<
+  TDatum,
+  TChildSpec extends ChartSpec = StaticChartDefinition<TDatum>,
+> extends ChartMarkMotionOptions<ChartSpecDatum<TChildSpec>> {
   id?: string
   by: Channel<TDatum, ChartKey>
-  chart: (data: readonly TDatum[], key: ChartKey) => ChartSpec
+  chart: (data: readonly [TDatum, ...TDatum[]], key: ChartKey) => TChildSpec
   columns?: number
   minWidth?: number
   gap?: number
@@ -35,19 +41,50 @@ export interface FacetOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   axes?: FacetAxes
 }
 
+type FacetChartInput<TDatum> = (
+  data: readonly [TDatum, ...TDatum[]],
+  key: ChartKey,
+) => unknown
+
+type FacetOptionsInput<TDatum, TChart extends FacetChartInput<TDatum>> = Omit<
+  FacetOptions<TDatum>,
+  'chart' | 'motion'
+> & {
+  chart: TChart
+  motion?: ChartMotionDefinition<
+    ChartSpecDatum<Extract<ReturnType<TChart>, ChartSpec>>
+  >
+} & ([ReturnType<TChart>] extends [ChartSpec] ? unknown : never)
+
 interface FacetEntry<TDatum> {
   key: ChartKey
-  data: TDatum[]
+  data: [TDatum, ...TDatum[]]
 }
 
+export function facet<
+  TDatum,
+  TChart extends FacetChartInput<NoInfer<TDatum>> = (
+    data: readonly [TDatum, ...TDatum[]],
+    key: ChartKey,
+  ) => StaticChartDefinition<TDatum>,
+>(
+  source: Iterable<TDatum>,
+  options: FacetOptionsInput<NoInfer<TDatum>, TChart>,
+): ChartMark<
+  ChartSpecDatum<Extract<ReturnType<TChart>, ChartSpec>>,
+  ChartValue,
+  ChartValue,
+  never,
+  never
+>
 export function facet<TDatum>(
   source: Iterable<TDatum>,
-  options: FacetOptions<NoInfer<TDatum>>,
-): ChartMark<TDatum, ChartValue, ChartValue, never, never> {
+  options: FacetOptions<TDatum, ChartSpec>,
+): ChartMark<unknown, ChartValue, ChartValue, never, never> {
   const data = Array.isArray(source) ? source : Array.from(source)
 
-  return createMarkWithScaleValues<
-    TDatum,
+  const mark = createMarkWithScaleValues<
+    unknown,
     ChartValue,
     ChartValue,
     never,
@@ -88,7 +125,7 @@ export function facet<TDatum>(
         const showLabel = options.label !== false
         const labelHeight = showLabel ? 22 : 0
         const definitions = entries.map((entry) =>
-          mergeTheme<TDatum>(options.chart(entry.data, entry.key), theme),
+          mergeTheme(options.chart(entry.data, entry.key), theme),
         )
 
         if (
@@ -96,7 +133,7 @@ export function facet<TDatum>(
           entries.length <= 1 ||
           definitions.every((definition) => definition.guides === false)
         ) {
-          return renderCellAxes({
+          return renderCellAxes<TDatum, unknown>({
             id,
             entries,
             definitions,
@@ -114,7 +151,7 @@ export function facet<TDatum>(
         }
 
         const guideScenes = entries.map((entry, index) =>
-          createFacetScene(
+          createFacetScene<TDatum, unknown>(
             id,
             entry,
             {
@@ -129,7 +166,7 @@ export function facet<TDatum>(
           ),
         )
         assertOuterAxes(id, definitions, guideScenes)
-        const margin = resolveOuterMargin({
+        const margin = resolveOuterMargin<TDatum, unknown>({
           id,
           entries,
           definitions,
@@ -142,7 +179,7 @@ export function facet<TDatum>(
           layout,
         })
 
-        return renderOuterAxes({
+        return renderOuterAxes<TDatum, unknown>({
           id,
           entries,
           definitions,
@@ -160,12 +197,14 @@ export function facet<TDatum>(
       },
     }
   }, options.motion)
+
+  return mark
 }
 
-function resolveOuterMargin<TDatum>(options: {
+function resolveOuterMargin<TDatum, TChildDatum>(options: {
   id: string
   entries: readonly FacetEntry<TDatum>[]
-  definitions: readonly StaticChartDefinition<TDatum>[]
+  definitions: readonly StaticChartDefinition<TChildDatum>[]
   chart: ChartBounds
   columns: number
   rows: number
@@ -201,8 +240,8 @@ function resolveOuterMargin<TDatum>(options: {
       gap,
       rows,
     )
-    const measured = entries.map((entry, index) => {
-      const scene = createFacetScene(
+    const scenes = entries.map((entry, index) =>
+      createFacetScene(
         id,
         entry,
         {
@@ -212,7 +251,10 @@ function resolveOuterMargin<TDatum>(options: {
         },
         { width: plotWidth, height: plotHeight },
         layout,
-      )
+      ),
+    )
+    assertOuterAxes(id, definitions, scenes)
+    const measured = scenes.map((scene) => {
       const axes = scene.nodes.find(
         (node): node is SceneGroup =>
           node.kind === 'group' && node.key === 'axes',
@@ -233,10 +275,10 @@ function resolveOuterMargin<TDatum>(options: {
   return margin
 }
 
-interface CellRenderOptions<TDatum> {
+interface CellRenderOptions<TDatum, TChildDatum> {
   id: string
   entries: readonly FacetEntry<TDatum>[]
-  definitions: readonly StaticChartDefinition<TDatum>[]
+  definitions: readonly StaticChartDefinition<TChildDatum>[]
   chart: ChartBounds
   columns: number
   cellWidth: number
@@ -249,7 +291,9 @@ interface CellRenderOptions<TDatum> {
   layout: Parameters<typeof createChartScene>[2]
 }
 
-function renderCellAxes<TDatum>(options: CellRenderOptions<TDatum>) {
+function renderCellAxes<TDatum, TChildDatum>(
+  options: CellRenderOptions<TDatum, TChildDatum>,
+) {
   const {
     id,
     entries,
@@ -265,7 +309,7 @@ function renderCellAxes<TDatum>(options: CellRenderOptions<TDatum>) {
     theme,
     layout,
   } = options
-  const points: ChartPoint<TDatum>[] = []
+  const points: ChartPoint<TChildDatum>[] = []
   const children = entries.map((entry, index) => {
     const column = index % columns
     const row = Math.floor(index / columns)
@@ -301,15 +345,17 @@ function renderCellAxes<TDatum>(options: CellRenderOptions<TDatum>) {
   return facetScene(id, children, points)
 }
 
-interface OuterRenderOptions<TDatum> extends Omit<
-  CellRenderOptions<TDatum>,
+interface OuterRenderOptions<TDatum, TChildDatum> extends Omit<
+  CellRenderOptions<TDatum, TChildDatum>,
   'cellWidth' | 'cellHeight'
 > {
   rows: number
   margin: ChartMargin
 }
 
-function renderOuterAxes<TDatum>(options: OuterRenderOptions<TDatum>) {
+function renderOuterAxes<TDatum, TChildDatum>(
+  options: OuterRenderOptions<TDatum, TChildDatum>,
+) {
   const {
     id,
     entries,
@@ -337,7 +383,7 @@ function renderOuterAxes<TDatum>(options: OuterRenderOptions<TDatum>) {
   )
   const originX = chart.x + margin.left
   const originY = chart.y + margin.top
-  const points: ChartPoint<TDatum>[] = []
+  const points: ChartPoint<TChildDatum>[] = []
   const axes: SceneGroup[] = []
   let xTitle: SceneLabel | undefined
   let yTitle: SceneLabel | undefined
@@ -557,13 +603,13 @@ function facetScene<TDatum>(
   }
 }
 
-function createFacetScene<TDatum>(
+function createFacetScene<TDatum, TChildDatum>(
   id: string,
   entry: FacetEntry<TDatum>,
-  definition: StaticChartDefinition<TDatum>,
+  definition: StaticChartDefinition<TChildDatum>,
   size: { width: number; height: number },
   layout: Parameters<typeof createChartScene>[2],
-): ChartScene<TDatum> {
+): ChartScene<TChildDatum> {
   try {
     return createChartScene(definition, size, layout)
   } catch (error) {
@@ -580,6 +626,17 @@ function withoutMarkRendering(mark: ChartMark<unknown>): ChartMark<unknown> {
   return {
     initialize: (context) => {
       const initialized = mark.initialize(context)
+      const resolveLayout = initialized.resolveLayout
+      if (resolveLayout) {
+        return {
+          ...initialized,
+          render: () => ({ nodes: [] }),
+          resolveLayout: (layoutContext) => ({
+            ...resolveLayout(layoutContext),
+            render: () => ({ nodes: [] }),
+          }),
+        }
+      }
       return { ...initialized, render: () => ({ nodes: [] }) }
     },
   }
@@ -608,6 +665,7 @@ function assertOuterAxes(
         !sameAxis(firstDefinition.y, definition.y) ||
         !sameScale(firstScene.scales.x!, scene.scales.x!) ||
         !sameScale(firstScene.scales.y!, scene.scales.y!) ||
+        !sameMaterializedAxes(firstScene, scene) ||
         firstScene.theme.foreground !== scene.theme.foreground ||
         firstScene.theme.muted !== scene.theme.muted
       )
@@ -703,6 +761,15 @@ function sameScale(left: ResolvedScale, right: ResolvedScale): boolean {
   )
 }
 
+function sameMaterializedAxes(left: ChartScene, right: ChartScene): boolean {
+  const axes = (scene: ChartScene) =>
+    scene.nodes.find(
+      (node): node is SceneGroup =>
+        node.kind === 'group' && node.key === 'axes',
+    )
+  return JSON.stringify(axes(left)) === JSON.stringify(axes(right))
+}
+
 function sameValues(
   left: readonly unknown[],
   right: readonly unknown[],
@@ -720,10 +787,10 @@ function scaleDirection(scale: ResolvedScale): number {
   return Math.sign(scale.map(last) - scale.map(first))
 }
 
-function mergeTheme<TDatum>(
-  spec: ChartSpec,
+function mergeTheme<TSpec extends ChartSpec>(
+  spec: TSpec,
   theme: ChartTheme,
-): StaticChartDefinition<TDatum> {
+): StaticChartDefinition<ChartSpecDatum<TSpec>> {
   return {
     ...spec,
     theme: {
@@ -741,105 +808,7 @@ function offsetScene<TDatum>(
   x: number,
   y: number,
 ): { nodes: readonly SceneNode[]; points: readonly ChartPoint<TDatum>[] } {
-  const prefix = `${id}:${identity}`
-  const pointMap = new Map<ChartPoint, ChartPoint<TDatum>>()
-  const mapPoint = (point: ChartPoint): ChartPoint<TDatum> => {
-    const existing = pointMap.get(point)
-    if (existing) return existing
-    const mapped = {
-      ...point,
-      key: `${id}:${identity}:${point.key}`,
-      x: point.x + x,
-      y: point.y + y,
-    } as ChartPoint<TDatum>
-    pointMap.set(point, mapped)
-    return mapped
-  }
-  const points = scene.points.map(mapPoint)
-  return {
-    nodes: mapScenePoints(
-      withoutDefaultFocusLayers(scene.nodes),
-      mapPoint,
-      prefix,
-    ),
-    points,
-  }
-}
-
-function withoutDefaultFocusLayers(
-  nodes: readonly SceneNode[],
-): readonly SceneNode[] {
-  return nodes.flatMap((node): readonly SceneNode[] => {
-    if (node.kind !== 'group') return [node]
-    if (
-      node.focus &&
-      node.className?.includes('ts-chart__focus-layer--default')
-    ) {
-      return []
-    }
-    return [
-      {
-        ...node,
-        children: withoutDefaultFocusLayers(node.children),
-      },
-    ]
-  })
-}
-
-function mapScenePoints(
-  nodes: readonly SceneNode[],
-  mapPoint: (point: ChartPoint) => ChartPoint,
-  prefix: string,
-  prefixKeys = false,
-): readonly SceneNode[] {
-  return nodes.map((node): SceneNode => {
-    const shouldPrefixKeys =
-      prefixKeys ||
-      (node.kind === 'group' &&
-        (node.focus !== undefined || node.className === 'ts-chart__marks'))
-    const key = shouldPrefixKeys ? `${prefix}:${node.key}` : node.key
-    if (node.kind === 'group') {
-      return {
-        ...node,
-        key,
-        children: mapScenePoints(
-          node.children,
-          mapPoint,
-          prefix,
-          shouldPrefixKeys,
-        ),
-        ...(node.focus
-          ? {
-              focus: {
-                ...node.focus,
-                points: node.focus.points.map(mapPoint),
-              },
-            }
-          : {}),
-        ...(node.states
-          ? {
-              states: {
-                ...node.states,
-                points: node.states.points.map(mapPoint),
-              },
-            }
-          : {}),
-      }
-    }
-    if (node.kind === 'label' || !node.interaction) {
-      return shouldPrefixKeys ? { ...node, key } : node
-    }
-    return {
-      ...node,
-      key,
-      interaction: node.interaction.point
-        ? { ...node.interaction, point: mapPoint(node.interaction.point) }
-        : {
-            ...node.interaction,
-            points: node.interaction.points.map(mapPoint),
-          },
-    }
-  })
+  return embedChartScene(scene, { ownerId: id, childId: identity, x, y })
 }
 
 function maxSceneMargins(scenes: readonly ChartScene[]): ChartMargin {
@@ -871,10 +840,20 @@ function cellSize(size: number, gap: number, count: number): number {
   return Math.max(1, (size - gap * (count - 1)) / count)
 }
 
+export function facetChart<
+  TDatum,
+  TChart extends FacetChartInput<NoInfer<TDatum>> = (
+    data: readonly [TDatum, ...TDatum[]],
+    key: ChartKey,
+  ) => StaticChartDefinition<TDatum>,
+>(
+  source: Iterable<TDatum>,
+  options: FacetOptionsInput<NoInfer<TDatum>, TChart>,
+): StaticChartDefinition<ChartSpecDatum<Extract<ReturnType<TChart>, ChartSpec>>>
 export function facetChart<TDatum>(
   source: Iterable<TDatum>,
-  options: FacetOptions<NoInfer<TDatum>>,
-): StaticChartDefinition<TDatum> {
+  options: FacetOptions<TDatum, ChartSpec>,
+): StaticChartDefinition<unknown> {
   return {
     marks: [facet(source, options)],
     guides: false,

@@ -454,17 +454,14 @@ export const mount: ConformanceMount = (container, input) => {
         )
         return {
           hoveredId: interaction.hoveredId,
-          focusedPoint:
-            surface.ownerDocument.activeElement instanceof SVGElement
-              ? (surface.ownerDocument.activeElement.dataset.pointId ?? null)
-              : null,
+          chartFocused: surface.contains(surface.ownerDocument.activeElement),
           tooltip: {
             visible: Boolean(tooltip),
             pinnedId: interaction.pinnedId,
             miniBarCount:
               tooltip?.querySelectorAll('.recharts-bar-rectangle').length ?? 0,
             chartCount: tooltip?.querySelectorAll('svg').length ?? 0,
-            selectedOverlayCount: surface.querySelectorAll(
+            pinnedMarkCount: surface.querySelectorAll(
               '[data-point-id][aria-pressed="true"]',
             ).length,
             flipperLabelCount:

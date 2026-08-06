@@ -28,6 +28,7 @@ export interface ConfiguredScaleLike<TValue extends ChartValue> {
   bandwidth?: () => number
   copy: () => ConfiguredScaleLike<TValue>
   domain: () => readonly TValue[]
+  invert?: (position: number) => TValue
   range: (values: Iterable<number>) => ConfiguredScaleLike<TValue>
   ticks?: (count: number) => readonly TValue[]
   tickFormat?: (count: number) => (value: TValue) => string
@@ -87,15 +88,12 @@ export type WidenChartValue<TValue> = TValue extends string
       ? Date
       : never
 
-export type ChannelOutput<
-  TDatum,
-  TChannel,
-  TFallback extends ChartValue,
-> = TChannel extends keyof TDatum
-  ? WidenChartValue<NonNullable<TDatum[TChannel]>>
-  : TChannel extends ChannelAccessor<TDatum, infer TValue>
+export type ChannelOutput<TDatum, TChannel, TFallback extends ChartValue> =
+  TChannel extends ChannelAccessor<TDatum, infer TValue>
     ? WidenChartValue<NonNullable<TValue>>
-    : WidenChartValue<TFallback>
+    : TChannel extends keyof TDatum
+      ? WidenChartValue<NonNullable<TDatum[TChannel]>>
+      : WidenChartValue<TFallback>
 
 export type OptionChannelOutput<
   TDatum,
@@ -286,9 +284,32 @@ export interface ChartAxisTickLabelThinOptions<
   keep?: readonly TValue[]
 }
 
+export interface ChartAxisTickLabelContext<
+  TValue extends ChartValue = ChartValue,
+> {
+  /** Semantic tick value. */
+  value: TValue
+  /** Candidate index before collision-aware thinning. */
+  index: number
+  /** Resolved scale position at the center of the tick. */
+  position: number
+  /** Resolved band width, or zero for a continuous scale. */
+  bandwidth: number
+}
+
+export type ChartAxisTickLabelValue<TValue extends ChartValue, TOutput> =
+  | TOutput
+  | ((context: ChartAxisTickLabelContext<TValue>) => TOutput | undefined)
+
 export interface ChartAxisTickLabelOptions<TValue extends ChartValue = any> {
   rotate?: number
   thin?: boolean | ChartAxisTickLabelThinOptions<TValue>
+  fontSize?: ChartAxisTickLabelValue<TValue, number>
+  fontWeight?: ChartAxisTickLabelValue<TValue, number>
+  opacity?: ChartAxisTickLabelValue<TValue, number>
+  anchor?: ChartAxisTickLabelValue<TValue, 'start' | 'middle' | 'end'>
+  dx?: ChartAxisTickLabelValue<TValue, number>
+  dy?: ChartAxisTickLabelValue<TValue, number>
   motion?: ChartMotionDefinition
 }
 
@@ -389,17 +410,66 @@ export interface ChartColorScale {
 export interface ChartColorLegendContext {
   colors: ResolvedColorScale
   chart: ChartBounds
+  bounds: ChartBounds
   theme: ChartTheme
   width: number
+  height: number
+}
+
+export type ChartLegendPlacement = 'top' | 'bottom'
+
+export interface ChartHostControlExtensionToken {
+  readonly id: string
+  readonly create: Function
+  readonly __chartExtensionType?: 'host-control'
+}
+
+export interface ChartHostControl {
+  readonly key: string
+  readonly extension: ChartHostControlExtensionToken
+  readonly fallbackNodeKey?: string
+}
+
+export interface ChartBehaviorContext {
+  chart: ChartBounds
+  scales: Readonly<Record<string, ResolvedScale>>
+  colors: ResolvedColorScale
+  theme: ChartTheme
+  width: number
+  height: number
+}
+
+export interface ChartBehaviorScene {
+  nodes?: readonly SceneNode[]
+  controls?: readonly ChartHostControl[]
+}
+
+/** Resolves renderer-neutral interaction output after scales and bounds exist. */
+export interface ChartBehavior<
+  TXValue extends ChartValue = any,
+  TYValue extends ChartValue = any,
+> {
+  readonly id: string
+  resolve: (context: ChartBehaviorContext) => ChartBehaviorScene
+  readonly __xValue?: TXValue
+  readonly __yValue?: TYValue
 }
 
 export interface ChartColorLegend {
+  placement?: ChartLegendPlacement
   height: (
     itemCount: number,
     width: number,
     colors?: ResolvedColorScale,
   ) => number
   render: (context: ChartColorLegendContext) => SceneNode
+  /** Keeps hidden series in scale inference while removing their scene output. */
+  seriesVisible?: (value: ChartKey) => boolean
+  filterMark?: (
+    scene: MarkScene,
+    context: { seriesFromColor?: boolean },
+  ) => MarkScene
+  control?: (context: ChartColorLegendContext) => ChartHostControl
 }
 
 export interface ChartTheme {
@@ -597,6 +667,20 @@ export type ChartSpec<TMarks extends AnyChartMarks | undefined = undefined> = [
   ? ChartSpecForMarks<Extract<TMarks, AnyChartMarks>>
   : StoredChartSpec
 
+export type ChartSelectionSource = 'pointer' | 'keyboard'
+
+export interface ChartSelectionController<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  readonly type: 'keyed'
+  change: (
+    point: ChartPoint<TDatum, TXValue, TYValue> | null,
+    source: ChartSelectionSource,
+  ) => void
+}
+
 export interface ChartDefinitionOptions<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
@@ -611,6 +695,12 @@ export interface ChartDefinitionOptions<
   /** Renderer-neutral motion defaults. An optional motion implementation consumes them. */
   motion?: ChartMotionDefinition<NoInfer<TDatum>>
   keyboard?: boolean
+  selection?: ChartSelectionController<
+    NoInfer<TDatum>,
+    NoInfer<TXValue>,
+    NoInfer<TYValue>
+  >
+  behaviors?: readonly ChartBehavior<NoInfer<TXValue>, NoInfer<TYValue>>[]
   tooltip?:
     | false
     | ChartTooltipInput<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
@@ -624,6 +714,8 @@ interface StoredChartDefinitionOptions {
   animate?: boolean | ChartAnimationOptions
   motion?: ChartMotionDefinition<any>
   keyboard?: boolean
+  selection?: ChartSelectionController<any, any, any>
+  behaviors?: readonly ChartBehavior<any, any>[]
   tooltip?: false | ChartTooltipInput<any, any, any>
 }
 
@@ -720,6 +812,7 @@ export interface ResolvedScale {
   type: string
   domain: readonly ChartValue[]
   map: (value: unknown) => number
+  invert?: (position: number) => ChartValue
   ticks: readonly ChartTick[]
   bandwidth: number
 }
@@ -744,6 +837,22 @@ export interface MarkRenderContext {
   layout: ChartLayoutOptions
 }
 
+/**
+ * Final positional scale and plot geometry available to a mark-local layout.
+ *
+ * A layout may run more than once while automatic margins converge. It must be
+ * synchronous, pure, and deterministic. Positional scale domains come only
+ * from the channels returned by `initialize`; layout-resolved channels may
+ * contribute to non-positional scales such as color.
+ */
+export interface MarkResolvedLayoutContext {
+  markIndex: number
+  chart: ChartBounds
+  scales: Readonly<Record<string, ResolvedScale>>
+  theme: ChartTheme
+  layout: ChartLayoutOptions
+}
+
 export interface ChartMark<
   TDatum = unknown,
   // Point values drive interaction callbacks; scale values cover every materialized channel.
@@ -762,13 +871,15 @@ export interface ChartMark<
   readonly __yScaleValue?: TYScaleValue
 }
 
-export interface InitializedMark<
+interface InitializedMarkBase<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
+  /** Scene-local motion policy resolved while this mark is initialized. */
+  motion?: ChartMotionDefinition<any>
   /** The mark uses a discrete color channel as inferred series identity. */
   seriesFromColor?: boolean
   focus?: ChartFocusFilter
@@ -776,9 +887,59 @@ export interface InitializedMark<
     data: readonly unknown[]
     definitions: readonly ChartMarkState<any>[]
   }
+  /** Optional final mark-scene pass after chart-level domain-dependent filters. */
+  postDomain?: (scene: MarkScene<any, any, any>) => MarkScene<any, any, any>
+  layoutLabels?: (context: MarkRenderContext) => readonly SceneLabel[]
+}
+
+export interface ResolvedMarkLayout<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  /**
+   * Final channels used by non-positional scale inference. When omitted, the
+   * initialized channels are retained. These channels never re-domain x or y.
+   */
+  channels?: Readonly<Record<string, MaterializedChannel>>
+  states?: {
+    data: readonly unknown[]
+    definitions: readonly ChartMarkState<any>[]
+  }
+  postDomain?: (scene: MarkScene<any, any, any>) => MarkScene<any, any, any>
   layoutLabels?: (context: MarkRenderContext) => readonly SceneLabel[]
   render: (context: MarkRenderContext) => MarkScene<TDatum, TXValue, TYValue>
 }
+
+export interface InitializedMark<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends InitializedMarkBase<TDatum, TXValue, TYValue> {
+  render: (context: MarkRenderContext) => MarkScene<TDatum, TXValue, TYValue>
+  resolveLayout?: (
+    context: MarkResolvedLayoutContext,
+  ) => ResolvedMarkLayout<TDatum, TXValue, TYValue>
+}
+
+export interface ResolvedLayoutMarkInitialization<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> extends InitializedMarkBase<TDatum, TXValue, TYValue> {
+  render?: never
+  resolveLayout: (
+    context: MarkResolvedLayoutContext,
+  ) => ResolvedMarkLayout<TDatum, TXValue, TYValue>
+}
+
+export type MarkInitialization<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | InitializedMark<TDatum, TXValue, TYValue>
+  | ResolvedLayoutMarkInitialization<TDatum, TXValue, TYValue>
 
 export interface MarkScene<
   TDatum = unknown,
@@ -853,6 +1014,8 @@ interface SceneNodeBase {
   className?: string
   style?: SceneStyle
   ariaHidden?: boolean
+  /** Point ownership for decorative geometry; does not make the node interactive. */
+  pointOwner?: ChartPoint
 }
 
 interface InteractiveSceneNodeBase extends SceneNodeBase {
@@ -866,10 +1029,18 @@ export interface SceneGroup extends SceneNodeBase {
   translateX?: number
   translateY?: number
   clip?: ChartBounds
+  /** Point slot owned by this subtree inside an enclosing focus candidate tree. */
+  focusCandidateIndex?: number
   focus?: {
     match: ChartFocusMatch
     points: readonly ChartPoint[]
     placement: 'under' | 'over'
+    /** Keeps candidate geometry out of paint until focus resolves it. */
+    retarget?: boolean
+    /** Renderer-neutral source geometry for a retargeting focus layer. */
+    candidates?: readonly SceneNode[]
+    /** Focus points represented by the currently selected children. */
+    activePoints?: readonly ChartPoint[]
   }
   states?: {
     data: readonly unknown[]
@@ -892,9 +1063,17 @@ export interface ScenePolyline extends InteractiveSceneNodeBase {
   path?: string
 }
 
+/** One closed area boundary. The first ring in a polygon is its exterior. */
+export type ScenePolygonRing = readonly (readonly [number, number])[]
+
+/** One polygon expressed as an exterior ring followed by zero or more holes. */
+export type ScenePolygon = readonly ScenePolygonRing[]
+
 export interface SceneArea extends InteractiveSceneNodeBase {
   kind: 'area'
   points: readonly (readonly [number, number])[]
+  /** Structured disconnected polygons. When present, this is the rendered geometry. */
+  polygons?: readonly ScenePolygon[]
   path?: string
 }
 
@@ -916,6 +1095,8 @@ export interface SceneRect extends InteractiveSceneNodeBase {
   inset?: number
   /** Axes affected by `inset`; bars use only their categorical axis. */
   insetAxis?: 'x' | 'y' | 'xy'
+  /** Categorical size ceiling retained while resolving inline-state insets. */
+  maxThickness?: number
 }
 
 export interface SceneLabel extends SceneNodeBase {
@@ -952,6 +1133,7 @@ export interface ChartScene<
   colors: ResolvedColorScale
   gradients: readonly ChartLinearGradient[]
   theme: ChartTheme
+  controls?: readonly ChartHostControl[]
 }
 
 export interface RenderChartOptions {
@@ -1007,6 +1189,7 @@ export interface ChartTooltipOptions<
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) => string
   sticky?: boolean
+  visibility?: 'focus' | 'pinned'
 }
 
 export type ChartExtensionInput<TExtension, TOptions> =
@@ -1073,6 +1256,11 @@ export type ChartFocusMatch = 'primary' | 'group' | 'key' | 'x' | 'y' | 'series'
 
 export interface ChartFocusFilter {
   match?: ChartFocusMatch
+  /**
+   * Keeps only the current focus selection in the rendered scene and gives it
+   * stable structural keys so ordinary renderer motion can retarget it.
+   */
+  retarget?: boolean
 }
 
 export type ChartTooltipXAnchor =

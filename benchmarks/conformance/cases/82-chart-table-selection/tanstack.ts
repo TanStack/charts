@@ -1,1 +1,1 @@
-export { mount } from './view'
+export { chartTableSelectionDefinition, mount } from './view'

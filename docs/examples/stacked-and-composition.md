@@ -60,6 +60,43 @@ give it a separate aligned view.
 The original value remains available to tooltips and selection while the mark
 derives its stack endpoints.
 
+## Center an ordered response scale
+
+Survey counts are nonnegative, but an ordered response scale often reads as
+diverging. Group the observations into counts, then anchor the stack on the
+neutral category:
+
+```ts
+const counts = groupBy(responses, {
+  by: { question: 'question', response: 'response' },
+  outputs: { count: { reduce: 'count' } },
+})
+
+barX(counts, {
+  x: 'count',
+  y: 'question',
+  z: 'response',
+  color: 'response',
+  layout: stack({
+    order: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree'],
+    anchor: { series: 'Neutral', fraction: 0.5 },
+  }),
+})
+```
+
+The grouping transform owns counts and lineage. The stack owns ordered
+endpoints and the per-question zero translation. Response order, neutral
+choice, and anchor fraction remain explicit chart meaning.
+
+<iframe
+  src="https://tanstack.com/charts/catalog/embed/26-diverging-likert/?theme=system&height=480"
+  title="Diverging Likert response counts built with TanStack Charts"
+  loading="lazy"
+  width="100%"
+  height="480"
+  style="width:100%;height:480px;border:0;"
+></iframe>
+
 ## Compare proportional mix
 
 A normalized stack gives every x position the same total height. It answers
@@ -97,12 +134,54 @@ but the displaced baseline makes precise values and totals difficult to read.
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
-Use `offset: 'center'` or `offset: 'wiggle'` and an explicit order when the
-composition depends on them. Keep those values stable across revisions,
-preserve series colors, and provide exact values through
+The source can stay in tidy form; stacking belongs to the area definition:
+
+```ts
+areaY(industries, {
+  x: 'date',
+  y: 'unemployed',
+  z: 'industry',
+  color: 'industry',
+  layout: stack({ offset: 'wiggle', order: 'inside-out' }),
+})
+```
+
+Keep the offset and order stable across revisions, preserve series colors, and
+provide exact values through
 [Tooltips and Focus](../guides/tooltips-and-focus.md).
 
 Use an ordinary stacked area when totals or baselines are part of the question.
+
+## Show shares as fixed units
+
+A waffle chart trades precise length comparison for countable, equal units.
+Use it when one tile has a clear meaning, such as one percentage point.
+
+```ts
+waffleY(alphabet, {
+  y: 'frequency',
+  color: 'letter',
+  unit: 0.01,
+  round: true,
+  gap: 2,
+  radius: 2,
+})
+```
+
+<iframe
+  src="https://tanstack.com/charts/catalog/embed/41-waffle-unit-chart/?theme=system&height=480"
+  title="English letter frequency waffle chart built with TanStack Charts"
+  loading="lazy"
+  width="100%"
+  height="480"
+  style="width:100%;height:480px;border:0;"
+></iframe>
+
+`waffleY` expands source values internally and preserves each source row for
+tooltips and selection. `unit` defines one complete cell; `round: true` rounds
+cumulative boundaries so category rounding does not change the overall total.
+Leave `columns` unset for responsive square-cell packing, or set it when the
+grid dimensions are part of the encoding.
 
 ## Encode two part-to-whole dimensions
 
@@ -121,11 +200,13 @@ horizontal and vertical interval endpoints.
 
 The two dimensions have independent denominators: response totals determine
 each question's column width, while response-category shares determine height
-within that question. Keep those calculations separate and label both meanings.
-Small cells may need a tooltip or adjacent table rather than unreadable direct
-text.
+within that question. Use `groupBy` to state the count or sum, then `mosaicY`
+to allocate both normalized interval dimensions. Ordinary `rect` and `text`
+marks render the result. Small cells may need a tooltip or adjacent table
+rather than unreadable direct text.
 
-Rectangle endpoint semantics are defined in
+The transform contract is defined in [Data Transforms](../reference/transforms.md),
+and rectangle endpoint semantics are defined in
 [Bar and Rect Marks](../reference/marks/bar-and-rect.md).
 
 ## Production checks

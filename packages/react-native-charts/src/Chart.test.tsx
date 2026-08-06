@@ -3,37 +3,73 @@ import { createRoot } from 'react-dom/client'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { scaleLinear } from 'd3-scale'
 import { describe, expect, it, vi } from 'vitest'
+import { dot } from '@tanstack/charts/dot'
+import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { lineY } from '@tanstack/charts/line'
 import { defineChart } from '@tanstack/charts/scene'
+import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 import { Chart } from './Chart'
 import {
   tooltip,
   type NativeChartTooltipComponent,
   type NativeChartTooltipExtension,
 } from './tooltip-entry'
+import type { ChartScene } from '@tanstack/charts'
+
+const nativeChartRoot = vi.hoisted(() => ({
+  props: null as null | Record<string, unknown>,
+}))
 
 vi.mock('react-native', async () => {
   const ReactModule = await import('react')
+  type MockViewProps = React.HTMLAttributes<HTMLDivElement> & {
+    accessible?: boolean
+    onAccessibilityAction?: (event: {
+      nativeEvent: { actionName: string }
+    }) => void
+    onResponderRelease?: (event: {
+      nativeEvent: { locationX: number; locationY: number }
+    }) => void
+    style?: unknown
+  }
   return {
     Text: 'span',
-    View: ReactModule.forwardRef<
-      HTMLDivElement,
-      React.HTMLAttributes<HTMLDivElement> & { style?: unknown }
-    >(function MockView({ children, onBlur, onFocus, style }, ref) {
-      const resolvedStyle = Array.isArray(style)
-        ? Object.assign({}, ...style.filter(Boolean))
-        : style
-      return ReactModule.createElement(
-        'div',
+    View: ReactModule.forwardRef<HTMLDivElement, MockViewProps>(
+      function MockView(
         {
-          ref,
+          accessible,
+          children,
+          onAccessibilityAction,
           onBlur,
           onFocus,
-          style: resolvedStyle as React.CSSProperties,
+          onResponderRelease,
+          style,
         },
-        children,
-      )
-    }),
+        ref,
+      ) {
+        const resolvedStyle = Array.isArray(style)
+          ? Object.assign({}, ...style.filter(Boolean))
+          : style
+        if (accessible) {
+          nativeChartRoot.props = {
+            onAccessibilityAction,
+            onBlur,
+            onFocus,
+            onResponderRelease,
+          }
+        }
+        return ReactModule.createElement(
+          'div',
+          {
+            ref,
+            onBlur,
+            onFocus,
+            style: resolvedStyle as React.CSSProperties,
+          },
+          children,
+        )
+      },
+    ),
   }
 })
 
@@ -86,6 +122,120 @@ describe('React Native Chart', () => {
     expect(markup).toContain('<circle')
     expect(markup).toContain('#2563eb')
     expect(markup).not.toContain('var(--')
+  })
+
+  it('renders and activates controlled keyed selection through native input', async () => {
+    const rows = [
+      { id: 'a' as const, x: 0, y: 2 },
+      { id: 'b' as const, x: 1, y: 5 },
+    ]
+    type Row = (typeof rows)[number]
+    type RowId = Row['id']
+    const onChange = vi.fn()
+    const onRender = vi.fn()
+    const onSelect = vi.fn()
+    const selection = keyedSelection<Row, RowId, number, number>({
+      selected: controlledSignal<RowId | null, any>('b', onChange),
+      key: (datum) => datum.id,
+    })
+    const selectedDefinition = defineChart({
+      marks: [
+        dot(rows, { id: 'base', x: 'x', y: 'y', key: 'id' }),
+        whenSelected(
+          dot(rows, {
+            id: 'selected',
+            x: 'x',
+            y: 'y',
+            key: 'id',
+            r: 7,
+            fill: '#f97316',
+          }),
+          selection,
+        ),
+      ],
+      x: { scale: scaleLinear().domain([0, 1]) },
+      y: { scale: scaleLinear().domain([0, 5]) },
+      maxFocusDistance: 8,
+      selection,
+    })
+    const markup = renderToStaticMarkup(
+      <Chart
+        definition={selectedDefinition}
+        accessibilityLabel="Selected observation"
+        width={480}
+        height={260}
+      />,
+    )
+
+    expect(markup).toContain('#f97316')
+
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    try {
+      await React.act(() => {
+        root.render(
+          <Chart
+            definition={selectedDefinition}
+            accessibilityLabel="Selected observation"
+            width={480}
+            height={260}
+            onSelect={onSelect}
+            onRender={onRender}
+          />,
+        )
+      })
+      const props = nativeChartRoot.props as {
+        onAccessibilityAction: (event: {
+          nativeEvent: { actionName: string }
+        }) => void
+        onFocus: () => void
+        onResponderRelease: (event: {
+          nativeEvent: { locationX: number; locationY: number }
+        }) => void
+      }
+
+      await React.act(() => props.onFocus())
+      await React.act(() =>
+        props.onAccessibilityAction({
+          nativeEvent: { actionName: 'activate' },
+        }),
+      )
+      expect(onChange.mock.lastCall).toMatchObject([
+        'a',
+        { type: 'select', source: 'keyboard' },
+      ])
+
+      const scene = onRender.mock.lastCall?.[0].scene as ChartScene<
+        Row,
+        number,
+        number
+      >
+      const second = scene.points[1]
+      if (!second) throw new Error('Expected native chart points')
+      await React.act(() =>
+        props.onResponderRelease({
+          nativeEvent: { locationX: second.x, locationY: second.y },
+        }),
+      )
+      expect(onChange.mock.lastCall).toMatchObject([
+        'b',
+        { type: 'select', source: 'pointer', point: second },
+      ])
+      expect(onSelect).toHaveBeenCalledWith(second)
+
+      await React.act(() =>
+        props.onResponderRelease({
+          nativeEvent: { locationX: 479, locationY: 1 },
+        }),
+      )
+      expect(onChange.mock.lastCall).toMatchObject([
+        null,
+        { type: 'clear', source: 'pointer' },
+      ])
+    } finally {
+      await React.act(() => root.unmount())
+      nativeChartRoot.props = null
+    }
   })
 
   it('waits for a native layout instead of compiling speculative geometry', () => {

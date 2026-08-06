@@ -6,10 +6,10 @@
   "title": "Basic Sankey",
   "family": "network",
   "intent": "Show one input splitting into two paths and recombining into one output, with link width proportional to value.",
-  "support": "composed",
+  "support": "native",
   "features": [
-    "d3-sankey layout",
-    "responsive node positioning",
+    "native Sankey diagram mark",
+    "responsive final-pixel node positioning",
     "proportional link width",
     "deterministic data updates",
     "theme-default styling",
@@ -25,7 +25,7 @@
     "url": "https://d3-graph-gallery.com/sankey.html"
   },
   "ai": {
-    "create": "Create a minimal responsive Sankey diagram with four named nodes, four links, the official d3-sankey layout, one label per node, and the chart theme's default foreground and muted colors.",
-    "maintain": "Keep this example intentionally minimal: preserve the simple split-and-recombine dataset, a revision-varying split with a total of 10, flow conservation, responsive bounds, flat link caps, one label per node, native link/rect/text composition, and the direct d3-sankey dependency without adding semantic color overrides or decorative labels."
+    "create": "Create a minimal responsive Sankey diagram with four named nodes, four links, the native Sankey diagram mark, one label per node, and the chart theme's default foreground and muted colors.",
+    "maintain": "Keep this example intentionally minimal: preserve the simple split-and-recombine dataset, a revision-varying split with a total of 10, flow conservation, responsive bounds, flat link caps, one label per node, and native link/rect/text composition without adding semantic color overrides or decorative labels."
   }
 }

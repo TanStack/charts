@@ -25,7 +25,7 @@ or an authoring skill. The runtime receives data that is ready to encode.
 | Show a matrix                   | Heatmap                                | Labeled cells for small matrices                                        |
 | Repeat the same view by group   | Facets                                 | Linked views when each panel needs a different role                     |
 | Show topology                   | Node-link diagram                      | Matrix encoding when the network is dense                               |
-| Edit or navigate a time range   | Chart plus semantic controls           | Brush, zoom, or scrubber owned by the application                       |
+| Edit or navigate a time range   | Chart plus semantic controls           | Controlled brush or zoom behavior; application-owned scrubber or editor |
 
 The [chart examples](../examples/index.md) show these choices as executable
 compositions.
@@ -50,17 +50,18 @@ visual properties. Do not convert data into a library-owned series structure.
 
 Use this escalation order:
 
-1. One built-in mark.
+1. One built-in mark or first-party composite mark.
 2. Several built-in marks sharing scales.
 3. Facets or explicitly linked views.
 4. D3-prepared rows passed to built-in marks.
-5. A custom mark that emits scene nodes.
-6. An application-owned overlay or gesture controller.
+5. `compositeMark` for a reusable unit made only from ordinary marks.
+6. A custom mark that emits scene nodes.
+7. An application-owned overlay or gesture controller.
 
-Composition is usually enough. A boxplot, for example, is a prepared summary
-rendered with rectangles, rules, ticks, and dots. A candlestick is a link plus
-a ranged rectangle. A focus-and-context view is two charts sharing semantic
-state.
+Prefer a first-party mark when it owns inseparable semantics. `boxX` and `boxY`
+accept raw observations and keep quartiles, fences, whiskers, outliers, and
+lineage aligned. A candlestick remains a useful link-plus-ranged-rectangle
+composition. A focus-and-context view is two charts sharing semantic state.
 
 See [Marks and Layering](../concepts/marks-and-layering.md),
 [Faceting and Composition](./faceting-and-composition.md), and

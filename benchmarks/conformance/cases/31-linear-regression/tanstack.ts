@@ -1,55 +1,22 @@
 import { cars } from '@charts-poc/demo-data/cars'
-import { defineChart, dot, lineY } from '@tanstack/charts'
-import { extent, mean } from 'd3-array'
+import { defineChart, dot, linearRegressionY } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
 import type { ConformanceInput } from '../../types'
-
-interface RegressionPoint {
-  id: string
-  'power (hp)': number
-  'economy (mpg)': number
-}
 
 type CompleteCar = CarsRow & {
   'power (hp)': number
   'economy (mpg)': number
 }
 
-const completeCars = cars.filter(
+export const completeCars = cars.filter(
   (row): row is CompleteCar =>
     row['power (hp)'] !== null && row['economy (mpg)'] !== null,
 )
 
-const definition = (input: ConformanceInput) => {
+export const regressionDefinition = (input: ConformanceInput) => {
   const rows = completeCars.slice(input.revision * 8, input.revision * 8 + 320)
-  const meanX = mean(rows, (row) => row['power (hp)']) ?? 0
-  const meanY = mean(rows, (row) => row['economy (mpg)']) ?? 0
-  let covariance = 0
-  let variance = 0
-  for (const row of rows) {
-    covariance += (row['power (hp)'] - meanX) * (row['economy (mpg)'] - meanY)
-    variance += (row['power (hp)'] - meanX) ** 2
-  }
-  const slope = variance === 0 ? 0 : covariance / variance
-  const intercept = meanY - slope * meanX
-  const [minimumPower = 0, maximumPower = 0] = extent(
-    rows,
-    (row) => row['power (hp)'],
-  )
-  const trend: readonly RegressionPoint[] = [
-    {
-      id: 'start',
-      'power (hp)': minimumPower,
-      'economy (mpg)': intercept + slope * minimumPower,
-    },
-    {
-      id: 'end',
-      'power (hp)': maximumPower,
-      'economy (mpg)': intercept + slope * maximumPower,
-    },
-  ]
 
   return defineChart({
     marks: [
@@ -60,9 +27,11 @@ const definition = (input: ConformanceInput) => {
         stroke: '#2563eb',
         r: 3,
       }),
-      lineY(trend, {
+      linearRegressionY(rows, {
+        id: 'regression',
         x: 'power (hp)',
         y: 'economy (mpg)',
+        ci: 0,
         stroke: '#dc2626',
         strokeWidth: 2,
       }),
@@ -77,7 +46,7 @@ const definition = (input: ConformanceInput) => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  regressionDefinition,
   'Scatterplot with linear regression',
   {
     format: ({ datum }) =>
@@ -85,9 +54,9 @@ export const mount = tanstackMount(
         ? `${datum.name} · ${datum['power (hp)'].toLocaleString(
             'en-US',
           )} hp · ${datum['economy (mpg)'].toLocaleString('en-US')} mpg`
-        : `Regression · ${datum['power (hp)'].toLocaleString(
+        : `Regression · ${datum.x.toLocaleString(
             'en-US',
-          )} hp · predicted ${datum['economy (mpg)'].toLocaleString('en-US', {
+          )} hp · predicted ${datum.y.toLocaleString('en-US', {
             maximumFractionDigits: 1,
           })} mpg`,
   },

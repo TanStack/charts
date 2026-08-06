@@ -1,12 +1,7 @@
 import { defineChart, dot, first, lineY, window } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
-import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import { tanstackMount } from '../../shared/mount'
-
-interface LagPoint extends AaplRow {
-  PreviousClose: number
-}
 
 interface ReferencePoint {
   PreviousClose: number
@@ -20,8 +15,13 @@ const identity: readonly ReferencePoint[] = [
   { PreviousClose: closeDomain[1], Close: closeDomain[1] },
 ]
 
-const definition = () => {
-  const rows = lagPairs(observations)
+export const lagAutocorrelationDefinition = () => {
+  const rows = window(observations, {
+    size: 2,
+    orderBy: 'Date',
+    partial: false,
+    outputs: { PreviousClose: { value: 'Close', reduce: first } },
+  })
 
   return defineChart({
     marks: [
@@ -53,15 +53,6 @@ const definition = () => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  lagAutocorrelationDefinition,
   'Lag-one autocorrelation of Apple closing prices',
 )
-
-function lagPairs(rows: readonly AaplRow[]): readonly LagPoint[] {
-  return window(rows, {
-    size: 2,
-    orderBy: 'Date',
-    partial: false,
-    outputs: { PreviousClose: { value: 'Close', reduce: first } },
-  })
-}

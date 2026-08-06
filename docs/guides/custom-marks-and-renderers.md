@@ -21,13 +21,58 @@ Before creating a mark, check whether the result is a combination of:
 - dots or hexagons;
 - rules, links, ticks, arrows, or vectors;
 - text or frames;
-- facets.
+- facets;
 - polar arcs, radial paths, dots, or guides;
-- projected GeoJSON.
+- projected GeoJSON;
+- optional scalar contours, density contours, spatial bins, topology marks,
+  hierarchy layouts, or Sankey flow composition.
 
 Composition retains built-in type inference, focus metadata, animation, and
 subpath bundle boundaries. The [chart examples](../examples/index.md) show
-boxplots, candlesticks, networks, and annotations built this way.
+candlesticks, networks, and annotations built this way. Boxplots use the
+first-party [`boxX` and `boxY` marks](../reference/marks/box.md), which keep
+their statistical steps aligned instead of exposing prepared child datasets.
+
+For example, a regular scalar grid belongs in the optional
+[`contour` mark](../reference/marks/contour.md), not a case-owned D3 path and
+scene-node loop. A weighted directed graph belongs in
+[`sankeyDiagram`](../reference/marks/sankey.md), whose callback composes
+ordinary links, rectangles, and labels after responsive layout.
+
+## Group reusable child marks
+
+Use `compositeMark` when a reusable unit consists entirely of ordinary marks:
+
+```ts
+import { compositeMark, dot, frame } from '@tanstack/charts'
+
+const framedPoints = compositeMark(
+  [
+    frame({ id: 'border', strokeOpacity: 0.2 }),
+    dot(rows, {
+      id: 'points',
+      x: 'date',
+      y: 'value',
+      key: 'id',
+    }),
+  ],
+  { id: 'framed-points' },
+)
+```
+
+The parent namespaces child channels, scene keys, points, and motion. Child
+declaration order remains paint order, and datum and positional types are the
+union of the children. Parent motion supplies defaults; a child's motion wins
+where both specify the same field.
+
+Child IDs must be unique. Every child retains its own interaction points, so
+do not layer several interactive marks when only one semantic target should
+exist. A child with its own `resolveLayout` is rejected because nested layout
+scheduling would be ambiguous. Compose those marks directly in the chart or
+write one custom mark with a single resolved-layout owner.
+
+`compositeMark` is available from the root and universal entries. Import
+`@tanstack/charts/mark/composite` when bundle isolation matters.
 
 ## Create a mark
 
@@ -84,6 +129,14 @@ When a custom mark emits data labels, an optional `layoutLabels(context)` can
 return those positioned `SceneLabel` nodes before render so unlocked margins
 contain them. Keep that method pure because responsive layout may call it more
 than once; the final `render` call still happens once.
+
+For layout that genuinely requires final scales or plot bounds, return
+`resolveLayout(context)` instead of an initial render. It may derive
+screen-space bins, collisions, or topology and returns the final channels,
+labels, states, and render closure. Positional domains still come from the
+channels materialized by `initialize`; resolved channels can contribute to
+color inference. The bounded margin solver may call the layout repeatedly, so
+it must be pure and deterministic.
 
 Available scene nodes:
 
@@ -165,13 +218,6 @@ Use `ChartMarkPointX` and `ChartMarkPointY` for the interaction contract and
 `ChartMarkScaleX` and `ChartMarkScaleY` for the positional contract. Ordinary
 chart code should rely on definition inference instead.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/38-contour-topography/?theme=system&height=480"
-  title="Topographic contours rendered through a custom mark"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
-
 ## Custom scales and legends
 
 Configured callable D3 scales are the normal path. `ChartScale`,
@@ -206,6 +252,11 @@ runtime, keyboard, tooltip, selection, and focus-strategy behavior. Keep
 If `paintFocus` resolves and paints inline mark-state geometry, return that
 destination `ChartScene`. The host will use it for subsequent pointer hits;
 returning nothing preserves base-scene interaction for simpler renderers.
+
+Use the public `resolveFocusScene` and `focusedSceneNodes` helpers when a
+custom surface supports authored focus layers. They keep normal filtered marks
+and `whenFocused(..., { retarget: true })` compositions on the same
+renderer-neutral selection path as the built-in surfaces.
 
 Use `ChartRendererRenderContext.surface` instead of assuming `onRender` exposes
 an SVG element. Framework consumers pass `renderer` through

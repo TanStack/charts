@@ -103,7 +103,8 @@ Options:
 - `label`: optional legend title;
 - `itemWidth`: minimum categorical item width;
 - `width`: preferred quantitative legend width;
-- `format`: numeric boundary formatter.
+- `format`: numeric boundary formatter;
+- `placement`: `top` by default or `bottom`.
 
 The legend reserves its own layout height. It is visual guidance and is hidden
 from the SVG accessibility tree; essential category meaning should also be
@@ -123,11 +124,42 @@ available through direct labels, surrounding HTML, or a table.
 - `label`: optional title;
 - `steps`: rendered color samples, with a minimum of two;
 - `width`: preferred width capped by the chart;
-- `format`: formatter for the domain endpoints.
+- `format`: formatter for the domain endpoints;
+- `placement`: `top` by default or `bottom`.
 
 Use `colorGradientLegend` only when a discrete scale should intentionally be
 shown as a sampled ramp. It requires a numeric domain and does not invent
 units or semantic thresholds.
+
+## Controlled interactive legend
+
+Use `interactiveColorLegend` when a categorical color value is also the series
+identity:
+
+```ts
+import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { interactiveColorLegend } from '@tanstack/charts/legend'
+
+const color = {
+  domain: ['core', 'react', 'octane'],
+  range: ['#2563eb', '#f97316', '#10b981'],
+  legend: interactiveColorLegend({
+    visible: controlledSignal(visibleSeries, setVisibleSeries),
+    placement: 'bottom',
+    ariaLabel: 'Package visibility',
+  }),
+}
+```
+
+The application stores `visibleSeries`; the legend proposes the next complete
+array in color-domain order. Filtering happens after scale resolution, so a
+hidden series keeps its color and does not change inferred position domains.
+The browser host renders native pressed-state buttons and preserves their focus
+across controlled updates. Static SVG rendering keeps a visual, noninteractive
+fallback.
+
+This behavior applies to marks whose `color` channel defines series identity.
+Keep a separate `z` channel when grouping and color mean different things.
 
 ## Direct labels versus legends
 

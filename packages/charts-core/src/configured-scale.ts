@@ -37,12 +37,16 @@ export function resolveConfiguredScale<TValue extends ChartValue>(
     const result = scale(value as TValue)
     return result === undefined ? Number.NaN : result + bandwidth / 2
   }
+  const invert = scale.invert
+    ? (position: number) => scale.invert!(position - bandwidth / 2)
+    : undefined
 
   return {
     id: context.id,
     type: categorical ? 'band' : 'configured',
     domain,
     map,
+    ...(invert ? { invert } : {}),
     ticks: tickValues.map((value) => ({
       value,
       position: map(value),

@@ -223,6 +223,61 @@ describe('configured scales', () => {
     expect(xSource.range()).toEqual([0, 1])
   })
 
+  it('propagates inversion from responsive continuous scale copies', () => {
+    const xSource = scaleLinear().domain([0, 10])
+    const start = new Date('2026-01-01T00:00:00Z')
+    const end = new Date('2026-01-11T00:00:00Z')
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY(
+            [
+              { at: start, value: 0 },
+              { at: end, value: 10 },
+            ],
+            {
+              x: 'at',
+              y: 'value',
+            },
+          ),
+        ],
+        x: { scale: scaleUtc().domain([start, end]) },
+        y: { scale: xSource },
+      }),
+      { width: 480, height: 260 },
+    )
+
+    expect(scene.scales.x.invert?.(scene.scales.x.map(start))).toEqual(start)
+    expect(scene.scales.x.invert?.(scene.scales.x.map(end))).toEqual(end)
+    expect(scene.scales.y.invert?.(scene.scales.y.map(0))).toBeCloseTo(0)
+    expect(scene.scales.y.invert?.(scene.scales.y.map(10))).toBeCloseTo(10)
+    expect(xSource.range()).toEqual([0, 1])
+  })
+
+  it('does not expose inversion for band scales', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY(
+            [
+              { category: 'A', value: 1 },
+              { category: 'B', value: 2 },
+            ],
+            {
+              x: 'category',
+              y: 'value',
+            },
+          ),
+        ],
+        x: { scale: scaleBand<string> },
+        y: { scale: scaleLinear },
+      }),
+      { width: 320, height: 180 },
+    )
+
+    expect(scene.scales.x.invert).toBeUndefined()
+  })
+
   it('rejects missing scales in the scene compiler', () => {
     const invalidDefinition = {
       marks: [lineY([1, 2, 3])],

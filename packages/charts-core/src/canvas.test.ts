@@ -4,8 +4,18 @@ import {
   canvasChartRenderer,
   createCanvasChartRenderer,
   mountCanvasChart,
+  type CanvasChartHost,
 } from './canvas'
-import { lineY } from './line'
+import { controlledSignal } from './interaction-signal'
+import {
+  continuousCursor,
+  type ContinuousCursorChange,
+  type ContinuousCursorPosition,
+} from './interaction-cursor'
+import { handleX, type HandleXChange } from './interaction-handle'
+import { zoomX, type ZoomXChange, type ZoomXWindow } from './interaction-zoom'
+import { interactiveColorLegend } from './interactive-legend'
+import { lineX, lineY } from './line'
 import { defineChart } from './scene'
 import { tooltip } from './tooltip'
 import type { ChartSurfaceRenderOptions } from './dom-types'
@@ -140,6 +150,37 @@ describe('Canvas renderer', () => {
         style: { fill: '#778899' },
       },
       {
+        kind: 'area',
+        key: 'multi-area',
+        points: [[99, 99]],
+        path: 'M99,99Z',
+        polygons: [
+          [
+            [
+              [2, 2],
+              [18, 2],
+              [18, 18],
+              [2, 18],
+            ],
+            [
+              [6, 6],
+              [14, 6],
+              [14, 14],
+              [6, 14],
+            ],
+          ],
+          [
+            [
+              [24, 2],
+              [30, 2],
+              [30, 8],
+              [24, 8],
+            ],
+          ],
+        ],
+        style: { fill: '#112233', stroke: '#445566' },
+      },
+      {
         kind: 'dot',
         key: 'dot',
         x: 50,
@@ -212,6 +253,10 @@ describe('Canvas renderer', () => {
     )
     expect(fake.operations).toContain('fill:path')
     expect(fake.operations).toContain('stroke:path')
+    expect(fake.operations).toContain('fill:evenodd')
+    expect(fake.operations).toContain('moveTo:2,2')
+    expect(fake.operations).toContain('moveTo:6,6')
+    expect(fake.operations).toContain('moveTo:24,2')
     expect(fake.operations).toContain('arc:50,30,5')
     expect(fake.operations).toContain('arcTo')
     expect(fake.operations).toContain('fillText:Canvas,0,0')
@@ -306,6 +351,111 @@ describe('Canvas renderer', () => {
     surface.destroy()
   })
 
+  it('snaps retargeting focus candidates without adding interaction points', () => {
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+    const datumA = { id: 'a' }
+    const datumB = { id: 'b' }
+    const pointA = {
+      key: 'guide:a',
+      markId: 'guide',
+      group: null,
+      groupLabel: 'guide',
+      datum: datumA,
+      datumIndex: 0,
+      xValue: 1,
+      yValue: 0,
+      x: 20,
+      y: 30,
+      color: '#2563eb',
+    }
+    const pointB = {
+      ...pointA,
+      key: 'guide:b',
+      datum: datumB,
+      datumIndex: 1,
+      xValue: 2,
+      x: 80,
+    }
+    const candidates: SceneNode[] = [
+      {
+        kind: 'group',
+        key: 'guide',
+        children: [
+          {
+            kind: 'rule',
+            key: pointA.key,
+            x1: 20,
+            x2: 20,
+            y1: 0,
+            y2: 60,
+            style: { stroke: '#2563eb' },
+          },
+          {
+            kind: 'rule',
+            key: pointB.key,
+            x1: 80,
+            x2: 80,
+            y1: 0,
+            y2: 60,
+            style: { stroke: '#2563eb' },
+          },
+        ],
+      },
+    ]
+    const resolved = scene([
+      {
+        kind: 'group',
+        key: 'focus:guide',
+        className: 'ts-chart__focus-layer',
+        children: [],
+        focus: {
+          match: 'primary',
+          points: [pointA, pointB],
+          placement: 'over',
+          retarget: true,
+          candidates,
+        },
+      },
+    ])
+    surface.render(resolved, renderOptions())
+    const base = contexts.get(surface.canvas)
+    const focus = contexts.get(surface.focusCanvas)
+    if (!base || !focus) throw new Error('Expected Canvas contexts')
+    const baseOperations = [...base.operations]
+
+    const firstStart = focus.operations.length
+    const firstScene = surface.paintFocus({
+      primary: pointA,
+      group: [pointA],
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(focus.operations.slice(firstStart)).toContain('moveTo:20,0')
+    expect(firstScene?.points).toEqual([])
+
+    const secondStart = focus.operations.length
+    surface.paintFocus({
+      primary: pointB,
+      group: [pointB],
+      source: 'pointer',
+      pinned: false,
+    })
+    const secondPaint = focus.operations.slice(secondStart)
+    expect(secondPaint).toContain('moveTo:80,0')
+    expect(secondPaint).not.toContain('moveTo:20,0')
+
+    const clearStart = focus.operations.length
+    surface.paintFocus(null)
+    const clearPaint = focus.operations.slice(clearStart)
+    expect(clearPaint).toContain('clearRect:0,0,100,60')
+    expect(
+      clearPaint.some((operation) => operation.startsWith('moveTo:')),
+    ).toBe(false)
+    expect(base.operations).toEqual(baseOperations)
+    surface.destroy()
+  })
+
   it('repaints inline mark states and restores the base Canvas scene', () => {
     const container = document.createElement('div')
     const surface = canvasChartRenderer.mount(container, () => {})
@@ -367,6 +517,68 @@ describe('Canvas renderer', () => {
     surface.paintFocus(null)
     const restored = fake.operations.slice(restoreStart)
     expect(restored).toContain('arc:50,30,5')
+    surface.destroy()
+  })
+
+  it('restores a no-transition pinned mark state when focus clears', () => {
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer.mount(container, () => {})
+    const point = {
+      key: 'dots:null:a',
+      markId: 'dots',
+      group: null,
+      groupLabel: 'dots',
+      datum: { id: 'a' },
+      datumIndex: 0,
+      xValue: 1,
+      yValue: 2,
+      x: 50,
+      y: 30,
+      color: '#2563eb',
+    }
+    surface.render(
+      scene([
+        {
+          kind: 'group',
+          key: 'states:dots',
+          states: {
+            data: [point.datum],
+            points: [point],
+            definitions: [
+              {
+                when: { focus: 'primary', pinned: true },
+                style: { r: 9, fill: '#f97316' },
+              },
+            ],
+          },
+          children: [
+            {
+              kind: 'dot',
+              key: point.key,
+              x: 50,
+              y: 30,
+              radius: 5,
+              style: { fill: '#2563eb' },
+            },
+          ],
+        },
+      ]),
+      renderOptions(),
+    )
+    const fake = contexts.get(surface.canvas)
+    if (!fake) throw new Error('Expected scene context')
+
+    surface.paintFocus({
+      primary: point,
+      group: [point],
+      source: 'pointer',
+      pinned: true,
+    })
+    expect(fake.operations).toContain('arc:50,30,9')
+
+    const restoreStart = fake.operations.length
+    surface.paintFocus(null)
+    expect(fake.operations.slice(restoreStart)).toContain('arc:50,30,5')
     surface.destroy()
   })
 
@@ -613,6 +825,369 @@ describe('Canvas renderer', () => {
     expect(container.childElementCount).toBe(0)
   })
 
+  it('hosts interactive legend controls beside the Canvas surface', () => {
+    const data = [
+      { x: 0, y: 4, series: 'a' as const },
+      { x: 1, y: 8, series: 'a' as const },
+      { x: 0, y: 6, series: 'b' as const },
+      { x: 1, y: 3, series: 'b' as const },
+    ]
+    type Series = (typeof data)[number]['series']
+    let visible: readonly Series[] = ['a', 'b']
+    let host!: CanvasChartHost<(typeof data)[number], number, number>
+    const options = () => ({
+      definition: defineChart({
+        marks: [lineY(data, { x: 'x', y: 'y', color: 'series' })],
+        x: { scale: scaleLinear().domain([0, 1]) },
+        y: { scale: scaleLinear().domain([0, 8]) },
+        color: {
+          domain: ['a', 'b'] as const,
+          range: ['#2563eb', '#f97316'],
+          legend: interactiveColorLegend({
+            visible: controlledSignal(visible, (next) => {
+              visible = next
+              host.update(options())
+            }),
+          }),
+        },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Interactive Canvas chart',
+    })
+    const container = document.createElement('div')
+    document.body.append(container)
+    host = mountCanvasChart(container, options())
+
+    const button = container.querySelector<HTMLButtonElement>(
+      '.ts-chart__interactive-legend [data-series-id="a"]',
+    )
+    if (!button) throw new Error('Expected interactive legend button')
+    button.focus()
+    button.click()
+
+    expect(visible).toEqual(['b'])
+    expect(button.getAttribute('aria-pressed')).toBe('false')
+    expect(document.activeElement).toBe(button)
+    expect(new Set(host.getScene().points.map((point) => point.group))).toEqual(
+      new Set(['b']),
+    )
+    expect(container.querySelector('.ts-chart-canvas')).not.toBeNull()
+    host.destroy()
+    expect(container.childElementCount).toBe(0)
+    container.remove()
+  })
+
+  it('hosts a continuous cursor over the Canvas surface', () => {
+    const data = [
+      { x: 0, y: 0 },
+      { x: 10, y: 10 },
+    ]
+    const onChange = vi.fn()
+    const definition = defineChart({
+      marks: [lineY(data, { x: 'x', y: 'y' })],
+      x: { scale: scaleLinear().domain([0, 10]) },
+      y: { scale: scaleLinear().domain([0, 10]) },
+      behaviors: [
+        continuousCursor({
+          id: 'canvas-cursor',
+          position: controlledSignal<
+            ContinuousCursorPosition<number, number> | null,
+            ContinuousCursorChange<number, number>
+          >(null, onChange),
+        }),
+      ],
+      keyboard: false,
+    })
+    const container = document.createElement('div')
+    document.body.append(container)
+    const host = mountCanvasChart(container, {
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Canvas free cursor',
+    })
+    const surface = container.querySelector<HTMLElement>('.ts-chart-canvas')!
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+    const overlay = container.querySelector<SVGSVGElement>(
+      '[data-chart-cursor="canvas-cursor"]',
+    )!
+    const scene = host.getScene()
+    const event = new MouseEvent('pointermove', {
+      bubbles: true,
+      clientX: scene.chart.x + scene.chart.width / 2,
+      clientY: scene.chart.y + scene.chart.height / 2,
+    })
+    Object.defineProperty(event, 'pointerType', { value: 'mouse' })
+
+    overlay.dispatchEvent(event)
+
+    const [value, change] = onChange.mock.calls.at(-1)!
+    expect(value.x).toBeCloseTo(5)
+    expect(value.y).toBeCloseTo(5)
+    expect(change).toMatchObject({ type: 'preview', cause: 'move' })
+    expect(
+      overlay.querySelector('.ts-chart__continuous-cursor-marker'),
+    ).not.toBeNull()
+    expect(container.querySelector('.ts-chart-canvas')).not.toBeNull()
+
+    host.destroy()
+    expect(container.childElementCount).toBe(0)
+    container.remove()
+  })
+
+  it('hosts a scale handle over Canvas and removes it with its behavior', () => {
+    const onChange = vi.fn()
+    const data = [
+      { x: 0, y: 0 },
+      { x: 10, y: 10 },
+    ]
+    const chart = (withHandle: boolean) =>
+      defineChart({
+        marks: [lineY(data, { x: 'x', y: 'y' })],
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+        behaviors: withHandle
+          ? [
+              handleX({
+                id: 'canvas-handle',
+                value: controlledSignal<number, HandleXChange<number>>(
+                  0,
+                  onChange,
+                ),
+                values: [0, 5, 10],
+                cross: { edge: 'bottom', offset: 8 },
+              }),
+            ]
+          : [],
+        keyboard: false,
+      })
+    const container = document.createElement('div')
+    document.body.append(container)
+    const host = mountCanvasChart(container, {
+      definition: chart(true),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Canvas handle',
+    })
+    const target = container.querySelector<SVGRectElement>(
+      '[data-chart-handle-surface="canvas-handle"]',
+    )!
+
+    target.focus()
+    target.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'End',
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+
+    expect(onChange).toHaveBeenLastCalledWith(
+      10,
+      expect.objectContaining({ type: 'commit', source: 'keyboard' }),
+    )
+    expect(target.getAttribute('aria-valuenow')).toBe('2')
+    expect(container.querySelector('.ts-chart-canvas')).not.toBeNull()
+
+    host.update({
+      definition: chart(false),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Canvas without handle',
+    })
+    expect(target.isConnected).toBe(false)
+    expect(
+      container.querySelector('[data-chart-handle-surface="canvas-handle"]'),
+    ).toBeNull()
+
+    host.destroy()
+    expect(container.childElementCount).toBe(0)
+    container.remove()
+  })
+
+  it('hosts horizontal zoom controls over Canvas and tears them down with their owner', () => {
+    const onChange = vi.fn()
+    const acceptedWindow = { start: 2.5, end: 7.5 }
+    const data = [
+      { x: 0, y: 0 },
+      { x: 10, y: 10 },
+    ]
+    const definition = defineChart({
+      marks: [lineY(data, { x: 'x', y: 'y' })],
+      x: {
+        scale: scaleLinear().domain([acceptedWindow.start, acceptedWindow.end]),
+      },
+      y: { scale: scaleLinear().domain([0, 10]) },
+      behaviors: [
+        zoomX({
+          id: 'canvas-zoom',
+          window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
+            acceptedWindow,
+            onChange,
+          ),
+          extent: [0, 10],
+          scaleExtent: [1, 8],
+        }),
+      ],
+      keyboard: false,
+    })
+    const withoutZoom = defineChart({
+      marks: [lineY(data, { x: 'x', y: 'y' })],
+      x: { scale: scaleLinear().domain([0, 10]) },
+      y: { scale: scaleLinear().domain([0, 10]) },
+      keyboard: false,
+    })
+    const container = document.createElement('div')
+    document.body.append(container)
+    const host = mountCanvasChart(container, {
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Canvas zoom',
+    })
+    const target = container.querySelector<SVGElement>(
+      '[data-chart-zoom-surface="canvas-zoom"]',
+    )!
+
+    target.focus()
+    target.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: '+',
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+
+    const [value, change] = onChange.mock.calls.at(-1)!
+    expect(value.start).toBeCloseTo(3.75)
+    expect(value.end).toBeCloseTo(6.25)
+    expect(change).toMatchObject({
+      type: 'commit',
+      source: 'keyboard',
+      action: 'zoom',
+    })
+    expect(container.querySelector('.ts-chart-canvas')).not.toBeNull()
+
+    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+    const scene = host.getScene()
+    const x = scene.chart.x + scene.chart.width / 2
+    const y = scene.chart.y + scene.chart.height / 2
+    const pointerEvent = (
+      type: 'mousedown' | 'mousemove' | 'mouseup',
+      clientX: number,
+      buttons = 0,
+    ) => {
+      const event = new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        buttons,
+        clientX,
+        clientY: y,
+      })
+      Object.defineProperty(event, 'view', { value: window })
+      return event
+    }
+    target.dispatchEvent(pointerEvent('mousedown', x))
+    window.dispatchEvent(pointerEvent('mousemove', x + 30, 1))
+    expect(onChange.mock.calls.at(-1)?.[1]).toMatchObject({ type: 'preview' })
+
+    const callCount = onChange.mock.calls.length
+    host.update({
+      definition: withoutZoom,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Canvas without zoom',
+    })
+    expect(target.isConnected).toBe(false)
+    expect(
+      container.querySelector('[data-chart-zoom-surface="canvas-zoom"]'),
+    ).toBeNull()
+    window.dispatchEvent(pointerEvent('mousemove', x + 60, 1))
+    window.dispatchEvent(pointerEvent('mouseup', x + 60))
+    target.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: '+',
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+    expect(onChange).toHaveBeenCalledTimes(callCount)
+    expect(container.querySelector('.ts-chart-canvas')).not.toBeNull()
+
+    host.update({
+      definition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Canvas zoom restored',
+    })
+    const restoredTarget = container.querySelector(
+      '[data-chart-zoom-surface="canvas-zoom"]',
+    )
+    expect(restoredTarget).not.toBe(target)
+
+    host.destroy()
+    expect(restoredTarget?.isConnected).toBe(false)
+    expect(container.childElementCount).toBe(0)
+    container.remove()
+  })
+
+  it('paints lineX through the shared Canvas polyline scene', () => {
+    const container = document.createElement('div')
+    const host = mountCanvasChart(container, {
+      definition: defineChart({
+        marks: [lineX([2, 6, 4])],
+        x: { scale: scaleLinear().domain([0, 6]) },
+        y: { scale: scaleLinear().domain([0, 2]) },
+        guides: false,
+      }),
+      width: 300,
+      height: 180,
+      ariaLabel: 'Horizontal line',
+    })
+    const canvas = container.querySelector<HTMLCanvasElement>(
+      '.ts-chart-canvas__scene',
+    )
+    const painted = canvas ? contexts.get(canvas) : undefined
+
+    expect(host.getScene().points.map((point) => point.xValue)).toEqual([
+      2, 6, 4,
+    ])
+    expect(
+      painted?.operations.some(
+        (operation) =>
+          operation.startsWith('stroke:') && operation.endsWith(':2.25:1'),
+      ),
+    ).toBe(true)
+    expect(
+      painted?.operations.filter((operation) =>
+        operation.startsWith('lineTo:'),
+      ),
+    ).toHaveLength(2)
+    host.destroy()
+  })
+
   it('adopts prerendered Canvas markup instead of replacing its root', () => {
     const container = document.createElement('div')
     container.innerHTML = canvasChartRenderer.prerender(scene([]), {
@@ -624,6 +1199,52 @@ describe('Canvas renderer', () => {
     surface.render(scene([]), renderOptions())
 
     expect(surface.element).toBe(root)
+    surface.destroy()
+  })
+
+  it('paints structured polygons without requiring Path2D', () => {
+    Object.defineProperty(window, 'Path2D', {
+      configurable: true,
+      value: undefined,
+    })
+    const container = document.createElement('div')
+    const surface = canvasChartRenderer.mount(container, () => {})
+
+    expect(() =>
+      surface.render(
+        scene([
+          {
+            kind: 'area',
+            key: 'contour',
+            points: [[99, 99]],
+            path: 'M99,99Z',
+            polygons: [
+              [
+                [
+                  [0, 0],
+                  [20, 0],
+                  [20, 20],
+                  [0, 20],
+                ],
+                [
+                  [5, 5],
+                  [15, 5],
+                  [15, 15],
+                  [5, 15],
+                ],
+              ],
+            ],
+            style: { fill: '#2563eb' },
+          },
+        ]),
+        renderOptions(),
+      ),
+    ).not.toThrow()
+
+    const fake = contexts.get(surface.canvas)
+    expect(fake?.operations).toContain('fill:evenodd')
+    expect(fake?.operations).toContain('moveTo:0,0')
+    expect(fake?.operations).not.toContain('moveTo:99,99')
     surface.destroy()
   })
 
@@ -745,8 +1366,14 @@ function fakeContext(): FakeCanvasContext {
       operations.push(`translate:${values.join(',')}`),
     rotate: (value: number) => operations.push(`rotate:${value}`),
     clip: () => operations.push('clip'),
-    fill: (path?: Path2D) =>
-      operations.push(path ? 'fill:path' : 'fill:current'),
+    fill: (pathOrRule?: Path2D | CanvasFillRule) =>
+      operations.push(
+        pathOrRule === 'evenodd'
+          ? 'fill:evenodd'
+          : pathOrRule
+            ? 'fill:path'
+            : 'fill:current',
+      ),
     stroke: (path?: Path2D) => {
       operations.push(path ? 'stroke:path' : 'stroke:current')
       operations.push(

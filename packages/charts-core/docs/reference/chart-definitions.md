@@ -87,9 +87,15 @@ does not return or own them.
 ## Definition behavior
 
 `ChartDefinitionOptions<TDatum, TXValue, TYValue>` contains `focus`,
-`focusRing`, `maxFocusDistance`, `spatialIndex`, `animate`, `keyboard`, and
-`tooltip`. These options belong to both static and responsive definitions.
-Hosts and framework adapters do not override them.
+`focusRing`, `selection`, `behaviors`, `maxFocusDistance`, `spatialIndex`,
+`animate`, `keyboard`, and `tooltip`. These options belong to both static and
+responsive definitions. Hosts and framework adapters do not override them.
+
+Each `ChartBehavior` resolves after final scales and plot bounds exist. It can
+provide renderer-neutral fallback nodes and an optional host control. Behavior
+IDs and host-control identities must be unique. Browser hosts remove a
+control's fallback before painting and own its update, renderer replacement,
+event containment, and teardown lifecycle. Static renderers keep the fallback.
 
 Tooltip placement policy stays with the definition. Add the `portal` extension
 when the surface must escape clipped chart ancestors. Framework-only content

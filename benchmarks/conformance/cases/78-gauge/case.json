@@ -9,9 +9,10 @@
   "support": "native",
   "features": [
     "polar coordinates",
-    "D3 pie layout",
+    "native pie allocation",
+    "source lineage",
     "partial angular range",
-    "annular arc sectors",
+    "keyed annular arc sectors",
     "bounded proportion",
     "responsive radius"
   ],
@@ -22,7 +23,7 @@
     "url": "https://recharts.github.io/en-US/examples/PieChartWithNeedle/"
   },
   "ai": {
-    "create": "Reduce the survey's raw Question and Response rows to an agreement percentage, then create a 270-degree gauge from that observed share and its remainder using two keyed annular arcs.",
-    "maintain": "Change the selected question while preserving the visible reducer, partial sweep, zero baseline, responsive radii, stable agreement and remainder identities, and exact fills."
+    "create": "Reduce the survey's raw Question and Response rows to an agreement percentage, then use native pie allocation to create a 270-degree gauge from that observed share and its remainder.",
+    "maintain": "Change the selected question while preserving the visible reducer, flat source lineage, partial sweep, responsive radii, stable agreement and remainder identities, and exact fills."
   }
 }

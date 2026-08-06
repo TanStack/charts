@@ -3,6 +3,7 @@ import type {
   RenderChartSvgOptions,
   SceneGroup,
   SceneNode,
+  ScenePolygon,
   SceneStyle,
 } from './types'
 
@@ -63,7 +64,7 @@ function renderNode(
           : ` transform="translate(${number(node.translateX ?? 0)} ${number(node.translateY ?? 0)})"`
       const extension = hooks?.renderGroup?.(node, idPrefix)
       const focus = node.focus
-        ? ` data-ts-focus-layer="${node.focus.placement}" visibility="hidden"`
+        ? ` data-ts-focus-layer="${node.focus.placement}"${node.focus.retarget ? ' data-ts-focus-retarget="true"' : ''} visibility="hidden"`
         : ''
       return `<g${common}${transform}${focus}${extension?.attributes ?? ''}>${extension?.content ?? ''}${node.children.map((child) => renderNode(child, hooks, idPrefix)).join('')}</g>`
     }
@@ -82,14 +83,11 @@ function renderNode(
     }
     case 'area': {
       const path =
-        node.path ??
-        `${node.points
-          .map(
-            ([x, y], index) =>
-              `${index === 0 ? 'M' : 'L'}${number(x)},${number(y)}`,
-          )
-          .join('')}Z`
-      return `<path${common} d="${path}" vector-effect="non-scaling-stroke"/>`
+        node.polygons !== undefined
+          ? polygonsPath(node.polygons)
+          : (node.path ?? pointsPath(node.points, true))
+      const fillRule = node.polygons === undefined ? '' : ' fill-rule="evenodd"'
+      return `<path${common} d="${path}"${fillRule} vector-effect="non-scaling-stroke"/>`
     }
     case 'dot':
       return `<circle${common} cx="${number(node.x)}" cy="${number(node.y)}" r="${number(node.radius)}"/>`
@@ -115,6 +113,25 @@ function renderNode(
       return `<text${common} x="${number(node.x)}" y="${number(node.y)}"${anchor}${baseline}${transform}${fontSize}${fontWeight} font-family="inherit">${escapeText(node.text)}</text>`
     }
   }
+}
+
+function polygonsPath(polygons: readonly ScenePolygon[]) {
+  return polygons
+    .flatMap((polygon) => polygon)
+    .filter((ring) => ring.length > 0)
+    .map((ring) => pointsPath(ring, true))
+    .join('')
+}
+
+function pointsPath(
+  points: readonly (readonly [number, number])[],
+  close: boolean,
+) {
+  return `${points
+    .map(
+      ([x, y], index) => `${index === 0 ? 'M' : 'L'}${number(x)},${number(y)}`,
+    )
+    .join('')}${close ? 'Z' : ''}`
 }
 
 function renderCommon(

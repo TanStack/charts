@@ -7,7 +7,8 @@
   "intent": "Compare how four standard projections reshape the same real country atlas.",
   "support": "native",
   "features": [
-    "four responsive projection panes",
+    "four responsive facet child charts",
+    "declarative sphere-fitted projections",
     "Equal Earth projection",
     "Natural Earth projection",
     "Mercator projection",

@@ -24,10 +24,8 @@ import type {
   OptionChannelOutput,
 } from './types'
 
-export interface LineYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
+interface LineOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   id?: string
-  x?: Channel<TDatum, ChartValue | null | undefined>
-  y?: Channel<TDatum, number | null | undefined>
   z?: Channel<TDatum, ChartKey | null | undefined>
   color?: Channel<TDatum, ChartKey | null | undefined>
   key?: Channel<TDatum, ChartKey>
@@ -40,13 +38,32 @@ export interface LineYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   states?: readonly ChartMarkState<TDatum, ChartLineStateStyle<TDatum>>[]
 }
 
+export interface LineYOptions<TDatum> extends LineOptions<TDatum> {
+  x?: Channel<TDatum, ChartValue | null | undefined>
+  y?: Channel<TDatum, number | null | undefined>
+}
+
+export interface LineXOptions<TDatum> extends LineOptions<TDatum> {
+  x?: Channel<TDatum, number | null | undefined>
+  y?: Channel<TDatum, ChartValue | null | undefined>
+}
+
 interface LineRow<TDatum> {
   datum: TDatum
   datumIndex: number
   xValue: ChartValue | null | undefined
-  yValue: number | null | undefined
+  yValue: ChartValue | null | undefined
   groupValue: ChartKey | null | undefined
   datumKey: ChartKey
+}
+
+interface LineChannels {
+  xValues: readonly (ChartValue | null | undefined)[]
+  yValues: readonly (ChartValue | null | undefined)[]
+  isValidX: (value: unknown) => value is ChartValue
+  isValidY: (value: unknown) => value is ChartValue
+  keyValues: readonly (ChartValue | null | undefined)[]
+  affinity: 'x' | 'y'
 }
 
 export function lineY<TDatum>(
@@ -62,15 +79,69 @@ export function lineY<
 export function lineY<TDatum>(
   source: Iterable<TDatum>,
   options: LineYOptions<NoInfer<TDatum>> = {},
-): ChartMark<TDatum, any, any> {
+): ChartMark<TDatum, ChartValue, ChartValue> {
   const data = Array.isArray(source) ? source : Array.from(source)
 
-  return createMark(({ markIndex }) => {
-    const id = options.id ?? `line-${markIndex}`
+  return createLineMark(data, options, 'line', () => {
     const xValues = channelValues(data, options.x, (_datum, index) => index)
     const yValues = channelValues(data, options.y, (datum) =>
       typeof datum === 'number' ? datum : undefined,
     )
+
+    return {
+      xValues,
+      yValues,
+      isValidX: isChartValue,
+      isValidY: isFiniteNumber,
+      keyValues: xValues,
+      affinity: 'x',
+    }
+  })
+}
+
+export function lineX<TDatum>(
+  source: Iterable<TDatum>,
+): ChartMark<TDatum, number, number>
+export function lineX<
+  TDatum,
+  const TOptions extends LineXOptions<NoInfer<TDatum>> | undefined,
+>(
+  source: Iterable<TDatum>,
+  options: TOptions,
+): ChartMark<TDatum, number, OptionChannelOutput<TDatum, TOptions, 'y', number>>
+export function lineX<TDatum>(
+  source: Iterable<TDatum>,
+  options: LineXOptions<NoInfer<TDatum>> = {},
+): ChartMark<TDatum, ChartValue, ChartValue> {
+  const data = Array.isArray(source) ? source : Array.from(source)
+
+  return createLineMark(data, options, 'line-x', () => {
+    const xValues = channelValues(data, options.x, (datum) =>
+      typeof datum === 'number' ? datum : undefined,
+    )
+    const yValues = channelValues(data, options.y, (_datum, index) => index)
+
+    return {
+      xValues,
+      yValues,
+      isValidX: isFiniteNumber,
+      isValidY: isChartValue,
+      keyValues: yValues,
+      affinity: 'y',
+    }
+  })
+}
+
+function createLineMark<TDatum>(
+  data: readonly TDatum[],
+  options: LineOptions<TDatum>,
+  idPrefix: string,
+  channels: () => LineChannels,
+): ChartMark<TDatum, ChartValue, ChartValue> {
+  return createMark(({ markIndex }) => {
+    const id = options.id ?? `${idPrefix}-${markIndex}`
+    const { xValues, yValues, isValidX, isValidY, keyValues, affinity } =
+      channels()
     const zValues = channelValues(data, options.z, () => null)
     const colorValues =
       options.color === undefined
@@ -82,7 +153,7 @@ export function lineY<TDatum>(
         : zValues
     const keys = inferredKeyValues(data, options.key, {
       groups: groupValues,
-      candidates: [xValues],
+      candidates: [keyValues],
       markId: id,
       warningIdentity: options,
     })
@@ -102,11 +173,11 @@ export function lineY<TDatum>(
       channels: {
         x: {
           scale: 'x',
-          values: xValues.filter(isChartValue),
+          values: xValues.filter(isValidX),
         },
         y: {
           scale: 'y',
-          values: yValues.filter(isFiniteNumber),
+          values: yValues.filter(isValidY),
         },
         color: {
           scale: 'color',
@@ -139,7 +210,10 @@ export function lineY<TDatum>(
               key: `${id}:${groupKey}:segment:${segmentIndex}`,
               points: segment,
               path: options.curve?.line(segment),
-              interaction: { points: segmentPoints, affinity: 'x' },
+              interaction: {
+                points: segmentPoints,
+                affinity,
+              },
               style: {
                 fill: 'none',
                 stroke: color,
@@ -156,7 +230,7 @@ export function lineY<TDatum>(
           }
 
           for (const row of groupRows) {
-            if (!isChartValue(row.xValue) || !isFiniteNumber(row.yValue)) {
+            if (!isValidX(row.xValue) || !isValidY(row.yValue)) {
               flushSegment()
               continue
             }
@@ -186,6 +260,7 @@ export function lineY<TDatum>(
                 x,
                 y,
                 radius: 2.5,
+                pointOwner: point,
                 style: { fill: color },
               })
             }

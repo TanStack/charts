@@ -1,6 +1,5 @@
 import { penguins } from '@charts-poc/demo-data/penguins'
-import { defineChart, facet, rect } from '@tanstack/charts'
-import { bin } from 'd3-array'
+import { binX, defineChart, facet, normalize, rect } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
@@ -13,50 +12,13 @@ export type PenguinMass = PenguinsRow & {
   readonly body_mass_g: number
 }
 
-export interface DistributionBin {
-  id: string
-  species: PenguinSpecies
-  x1: number
-  x2: number
-  count: number
-  proportion: number
-}
-
 const boundaries = [2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500]
-const createBins = bin<PenguinMass, number>()
-  .value((row) => row.body_mass_g)
-  .domain([2500, 6500])
-  .thresholds(boundaries.slice(1, -1))
 const percent = new Intl.NumberFormat('en-US', {
   style: 'percent',
   maximumFractionDigits: 0,
 })
 
-export function prepareFacetedDistributionBins(
-  rows: readonly PenguinMass[],
-): readonly DistributionBin[] {
-  return species.flatMap((speciesName) => {
-    const groupRows = rows.filter((row) => row.species === speciesName)
-    if (groupRows.length === 0) return []
-
-    return createBins(groupRows).flatMap((bucket, index) =>
-      bucket.x0 === undefined || bucket.x1 === undefined || bucket.length === 0
-        ? []
-        : [
-            {
-              id: `${speciesName}:${index}`,
-              species: speciesName,
-              x1: bucket.x0,
-              x2: bucket.x1,
-              count: bucket.length,
-              proportion: bucket.length / groupRows.length,
-            },
-          ],
-    )
-  })
-}
-
-const definition = (input: ConformanceInput) => {
+export const facetedDistributionDefinition = (input: ConformanceInput) => {
   const rows = penguins
     .filter((row): row is PenguinMass => {
       return (
@@ -65,7 +27,25 @@ const definition = (input: ConformanceInput) => {
       )
     })
     .slice(input.revision * 8, input.revision * 8 + 320)
-  const bins = prepareFacetedDistributionBins(rows)
+  const bins = normalize(
+    binX(rows, {
+      value: 'body_mass_g',
+      by: 'species',
+      thresholds: boundaries,
+      outputs: { count: { reduce: 'count' } },
+    }),
+    {
+      value: 'count',
+      by: 'species',
+      basis: 'sum',
+      as: 'proportion',
+    },
+  )
+    .filter(({ count }) => count > 0)
+    .sort(
+      (left, right) =>
+        species.indexOf(left.species) - species.indexOf(right.species),
+    )
 
   return defineChart({
     marks: [
@@ -106,7 +86,7 @@ const definition = (input: ConformanceInput) => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  facetedDistributionDefinition,
   'Faceted distribution comparison',
   {
     format: (point) =>

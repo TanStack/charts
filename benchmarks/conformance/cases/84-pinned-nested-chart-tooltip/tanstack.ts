@@ -1,1 +1,1 @@
-export { mount } from './view'
+export { mount, pinnedNestedTooltipDefinition } from './view'

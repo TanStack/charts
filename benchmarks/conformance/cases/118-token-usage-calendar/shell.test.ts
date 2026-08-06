@@ -4,7 +4,7 @@ import { withTokenActivityShell } from './shell'
 import type { ConformanceInput, ConformanceMount } from '../../types'
 
 describe('token activity shell', () => {
-  it('keeps the gallery interactive and aligns only the first month label', () => {
+  it('keeps sizing and tooltip presentation application-owned without mutating guides', () => {
     const inputs: ConformanceInput[] = []
     const mountChart: ConformanceMount = (container, input) => {
       inputs.push(input)
@@ -43,10 +43,13 @@ describe('token activity shell', () => {
     expect(shell?.style.width).toBe('100%')
     expect(shell?.style.height).toBe(`${calendarChartHeight(320)}px`)
     expect(container.style.minHeight).toBe(`${calendarChartHeight(320)}px`)
-    expect(labels[0]?.getAttribute('x')).toBe('10')
-    expect(labels[0]?.getAttribute('text-anchor')).toBe('start')
+    expect(labels[0]?.getAttribute('x')).toBe('14')
+    expect(labels[0]?.getAttribute('text-anchor')).toBe('middle')
     expect(labels[1]?.getAttribute('x')).toBe('92')
     expect(labels[1]?.getAttribute('text-anchor')).toBe('middle')
+    expect(container.querySelector('style')?.textContent).not.toContain(
+      '.ts-chart__axes',
+    )
 
     handle.update({
       width: 960,

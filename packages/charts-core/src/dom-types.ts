@@ -2,6 +2,8 @@ import type {
   ChartAnimationOptions,
   ChartDefinition,
   ChartFocusState,
+  ChartHostControl,
+  ChartHostControlExtensionToken,
   ChartPoint,
   ChartScene,
   ChartSvgRenderer,
@@ -17,6 +19,23 @@ import type {
   RenderChartOptions,
   RenderChartSvgOptions,
 } from './types'
+
+export interface ChartHostControlExtension extends ChartHostControlExtensionToken {
+  create: (
+    context: ChartHostControlExtensionContext,
+  ) => ChartHostControlInstance
+}
+
+export interface ChartHostControlExtensionContext {
+  container: HTMLElement
+  surface: ChartSurface<any, any, any>
+}
+
+export interface ChartHostControlInstance {
+  update: (control: ChartHostControl, scene: ChartScene) => void
+  contains?: (target: EventTarget | null) => boolean
+  destroy: () => void
+}
 
 export interface ChartSurfaceRenderOptions extends RenderChartOptions {
   animation?: ChartAnimationOptions

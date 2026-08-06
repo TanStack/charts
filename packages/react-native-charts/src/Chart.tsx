@@ -231,6 +231,7 @@ export function Chart<
     const point = points[0] ?? null
     if (sticky) setPinnedKey(pinnedKey ? null : (point?.key ?? null))
     commitFocus(points)
+    definition.selection?.change(point, 'pointer')
     onSelect?.(point)
   }
   const handleResponderTerminate = () => {
@@ -263,6 +264,7 @@ export function Chart<
     const point = focusedPointsRef.current[0] ?? null
     if (!point) return
     if (sticky) setPinnedKey((current) => (current ? null : point.key))
+    definition.selection?.change(point, 'keyboard')
     onSelect?.(point)
   }
   const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
@@ -337,6 +339,21 @@ export function Chart<
     >
       {scene ? (
         <>
+          <NativeChartFocusOverlay
+            width={scene.width}
+            height={scene.height}
+            scene={scene}
+            points={focusedPoints}
+            placement="under"
+            source={focusSource}
+            pinned={pinnedKey !== null}
+            showDefault={definition.focusRing !== false}
+            color={color}
+            fill={focusFill}
+            fontFamily={fontFamily}
+            idPrefix={idPrefix}
+            resolvePaint={resolvePaint}
+          />
           <NativeChartScene
             scene={scene}
             color={color}
@@ -347,9 +364,16 @@ export function Chart<
           <NativeChartFocusOverlay
             width={scene.width}
             height={scene.height}
+            scene={scene}
             points={focusedPoints}
+            placement="over"
+            source={focusSource}
+            pinned={pinnedKey !== null}
+            showDefault={definition.focusRing !== false}
             color={color}
             fill={focusFill}
+            fontFamily={fontFamily}
+            idPrefix={idPrefix}
             resolvePaint={resolvePaint}
           />
           {TooltipComponent && focusedPoints.length ? (

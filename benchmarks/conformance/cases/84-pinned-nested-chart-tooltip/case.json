@@ -9,6 +9,7 @@
   "support": "composed",
   "features": [
     "external rich tooltip",
+    "definition-owned pin-only tooltip",
     "click to pin",
     "hover without activation",
     "nested chart",
@@ -73,7 +74,7 @@
         {
           "type": "assert",
           "assertions": [
-            { "path": "tooltip.selectedOverlayCount", "equals": 1 },
+            { "path": "tooltip.pinnedMarkCount", "equals": 1 },
             { "path": "tooltip.flipperLabelCount", "equals": 4 },
             { "path": "tooltip.closeVisible", "equals": true }
           ]
@@ -85,9 +86,8 @@
               "target": {
                 "selector": "[data-external-tooltip=\"pinned\"]"
               },
-              "property": "contained",
-              "equals": true,
-              "tolerance": 1
+              "property": "visible",
+              "equals": true
             },
             {
               "target": {
@@ -118,11 +118,13 @@
             },
             {
               "target": {
-                "selector": "[data-external-tooltip=\"pinned\"]"
+                "role": "dialog",
+                "name": "Gentoo male on Biscoe",
+                "exact": false
               },
               "property": "attribute",
-              "attribute": "aria-labelledby",
-              "includes": "nested-tooltip-"
+              "attribute": "aria-modal",
+              "equals": "false"
             },
             {
               "target": {
@@ -150,7 +152,7 @@
             { "path": "tooltip.visible", "equals": false },
             { "path": "tooltip.pinnedId", "equals": null },
             { "path": "tooltip.miniBarCount", "equals": 0 },
-            { "path": "focusedPoint", "equals": "gentoo-biscoe-male" }
+            { "path": "chartFocused", "equals": true }
           ]
         }
       ]
@@ -177,8 +179,8 @@
           "assertions": [
             { "path": "tooltip.visible", "equals": false },
             { "path": "tooltip.pinnedId", "equals": null },
-            { "path": "tooltip.selectedOverlayCount", "equals": 0 },
-            { "path": "focusedPoint", "equals": "chinstrap-dream-male" }
+            { "path": "tooltip.pinnedMarkCount", "equals": 0 },
+            { "path": "chartFocused", "equals": true }
           ]
         }
       ]
@@ -206,6 +208,38 @@
             { "path": "tooltip.visible", "equals": false },
             { "path": "tooltip.pinnedId", "equals": null },
             { "path": "tooltip.miniBarCount", "equals": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pinned-update-preserves-semantic-point",
+      "steps": [
+        {
+          "type": "click",
+          "target": {
+            "view": "main",
+            "anchor": "point:adelie-dream-female"
+          }
+        },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.pinnedId", "equals": "adelie-dream-female" },
+            { "path": "tooltip.pinnedMarkCount", "equals": 1 },
+            { "path": "tooltip.chartCount", "equals": 1 }
+          ]
+        },
+        { "type": "update", "revision": 1 },
+        {
+          "type": "assert",
+          "assertions": [
+            { "path": "tooltip.visible", "equals": true },
+            { "path": "tooltip.pinnedId", "equals": "adelie-dream-female" },
+            { "path": "tooltip.pinnedMarkCount", "equals": 1 },
+            { "path": "tooltip.miniBarCount", "equals": 4 },
+            { "path": "tooltip.chartCount", "equals": 1 }
           ]
         }
       ]

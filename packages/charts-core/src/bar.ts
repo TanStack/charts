@@ -45,6 +45,8 @@ export interface BarYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   layout?: BarLayout
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
+  /** Maximum painted width in pixels after grouping and inset. */
+  maxThickness?: number
   radius?: number
   states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
@@ -63,6 +65,8 @@ export interface BarXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   layout?: BarLayout
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
+  /** Maximum painted height in pixels after grouping and inset. */
+  maxThickness?: number
   radius?: number
   states?: readonly ChartMarkState<TDatum, ChartBarStateStyle<TDatum>>[]
 }
@@ -164,7 +168,11 @@ export function barY<TDatum>(
           totalBandwidth,
         )
         const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
-        const inset = Math.max(0, options.inset ?? 0)
+        const thickness = resolveBarThickness(
+          groupBandwidth,
+          options.inset,
+          options.maxThickness,
+        )
         const nodes: SceneNode[] = []
 
         data.forEach((datum, datumIndex) => {
@@ -192,9 +200,9 @@ export function barY<TDatum>(
           const center = scales.x.map(xValue)
           const baselinePosition = scales.y.map(y1Value)
           const valuePosition = scales.y.map(y2Value)
-          const x = center - totalBandwidth / 2 + groupOffset + inset
+          const x = center - totalBandwidth / 2 + groupOffset + thickness.inset
           const y = Math.min(baselinePosition, valuePosition)
-          const width = Math.max(0, groupBandwidth - inset * 2)
+          const width = thickness.size
           const height = Math.abs(baselinePosition - valuePosition)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           const point: ChartPoint<TDatum> = {
@@ -221,8 +229,11 @@ export function barY<TDatum>(
             width,
             height,
             radius: options.radius,
-            inset,
+            inset: thickness.inset,
             insetAxis: 'x',
+            ...(thickness.maximum === undefined
+              ? {}
+              : { maxThickness: thickness.maximum }),
             interaction: { point, affinity: 'x' },
             style: {
               fill,
@@ -344,7 +355,11 @@ export function barX<TDatum>(
           totalBandwidth,
         )
         const groupBandwidth = groupScale?.bandwidth ?? totalBandwidth
-        const inset = Math.max(0, options.inset ?? 0)
+        const thickness = resolveBarThickness(
+          groupBandwidth,
+          options.inset,
+          options.maxThickness,
+        )
         const nodes: SceneNode[] = []
 
         data.forEach((datum, datumIndex) => {
@@ -372,10 +387,10 @@ export function barX<TDatum>(
           const baselinePosition = scales.x.map(x1Value)
           const valuePosition = scales.x.map(x2Value)
           const center = scales.y.map(yValue)
-          const y = center - totalBandwidth / 2 + groupOffset + inset
+          const y = center - totalBandwidth / 2 + groupOffset + thickness.inset
           const x = Math.min(baselinePosition, valuePosition)
           const width = Math.abs(baselinePosition - valuePosition)
-          const height = Math.max(0, groupBandwidth - inset * 2)
+          const height = thickness.size
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           const point: ChartPoint<TDatum> = {
             key,
@@ -401,8 +416,11 @@ export function barX<TDatum>(
             width,
             height,
             radius: options.radius,
-            inset,
+            inset: thickness.inset,
             insetAxis: 'y',
+            ...(thickness.maximum === undefined
+              ? {}
+              : { maxThickness: thickness.maximum }),
             interaction: { point, affinity: 'y' },
             style: {
               fill,
@@ -425,6 +443,24 @@ export function barX<TDatum>(
       },
     }
   }, options.motion)
+}
+
+function resolveBarThickness(
+  bandwidth: number,
+  insetOption: number | undefined,
+  maxThicknessOption: number | undefined,
+) {
+  const authoredInset = Math.max(0, insetOption ?? 0)
+  const resolvedBandwidth = Math.max(0, bandwidth)
+  const available = Math.max(0, resolvedBandwidth - authoredInset * 2)
+  const constrained = Number.isFinite(maxThicknessOption)
+  const maximum = constrained ? Math.max(0, maxThicknessOption!) : available
+  const size = Math.min(available, maximum)
+  return {
+    inset: (resolvedBandwidth - size) / 2,
+    maximum: constrained ? maximum : undefined,
+    size,
+  }
 }
 
 function resolveGroupScale(

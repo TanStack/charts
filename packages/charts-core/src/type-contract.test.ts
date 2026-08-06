@@ -6,6 +6,19 @@ import { mountChart } from './dom'
 import { dot } from './dot'
 import { facet } from './facet'
 import { focusX } from './focus'
+import { brushX, type BrushRange } from './interaction-brush'
+import {
+  continuousCursor,
+  type ContinuousCursorChange,
+  type ContinuousCursorPosition,
+} from './interaction-cursor'
+import {
+  handleX,
+  type HandleXChange,
+  type HandleXOptions,
+} from './interaction-handle'
+import { controlledSignal } from './interaction-signal'
+import { zoomX, type ZoomXChange, type ZoomXWindow } from './interaction-zoom'
 import { lineY } from './line'
 import { createMark } from './mark'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
@@ -17,6 +30,7 @@ import { createChartScene, defineChart } from './scene'
 import { tooltip } from './tooltip'
 import { portal } from './tooltip-portal'
 import type {
+  ChartBehavior,
   ChartDefinition,
   ChartFocusStrategy,
   ChartMark,
@@ -57,6 +71,89 @@ interface LiteralRow {
   category: 'Alpha'
   value: 4
 }
+
+const dateBrushSignal = controlledSignal<BrushRange<Date>>(
+  { start: rows[0]!.date, end: rows[0]!.date },
+  () => {},
+)
+const dateBrush = brushX({
+  range: dateBrushSignal,
+  values: rows.map((row) => row.date),
+})
+const dateNumberCursor = continuousCursor({
+  position: controlledSignal<
+    ContinuousCursorPosition<Date, number> | null,
+    ContinuousCursorChange<Date, number>
+  >(null, () => {}),
+  xLabel: {
+    format: (value) => {
+      expectTypeOf(value).toEqualTypeOf<Date>()
+      return value.toISOString()
+    },
+  },
+  yLabel: {
+    format: (value) => {
+      expectTypeOf(value).toEqualTypeOf<number>()
+      return value.toLocaleString()
+    },
+  },
+})
+const dateDateCursor = continuousCursor({
+  position: controlledSignal<
+    ContinuousCursorPosition<Date, Date> | null,
+    ContinuousCursorChange<Date, Date>
+  >(null, () => {}),
+})
+const dateHandleSignal = controlledSignal<Date, HandleXChange<Date>>(
+  rows[0]!.date,
+  () => {},
+)
+const dateNumberHandleOptions: HandleXOptions<Date, number> = {
+  value: dateHandleSignal,
+  values: rows.map((row) => row.date),
+  cross: { value: 2 },
+  format: (value) => {
+    expectTypeOf(value).toEqualTypeOf<Date>()
+    return value.toISOString()
+  },
+}
+const dateNumberHandle = handleX(dateNumberHandleOptions)
+const dateStringHandle = handleX({
+  value: dateHandleSignal,
+  values: rows.map((row) => row.date),
+  cross: { value: 'Alpha' as const },
+})
+// @ts-expect-error Horizontal handles require explicit ordered values.
+handleX({ value: dateHandleSignal, cross: { edge: 'bottom' } })
+const dateZoom = zoomX({
+  window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(
+    { start: rows[0]!.date, end: new Date('2025-01-02T00:00:00Z') },
+    () => {},
+  ),
+  extent: [rows[0]!.date, new Date('2025-01-03T00:00:00Z')],
+  format: (value) => {
+    expectTypeOf(value).toEqualTypeOf<Date>()
+    return value.toISOString()
+  },
+})
+const numberZoom = zoomX({
+  window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
+    { start: 0, end: 4 },
+    () => {},
+  ),
+  extent: [0, 4],
+})
+brushX({ range: dateBrushSignal, keyboard: false })
+// @ts-expect-error String brushes require explicit ordered values.
+brushX({
+  range: controlledSignal<BrushRange<string>>(
+    { start: 'a', end: 'b' },
+    () => {},
+  ),
+  keyboard: false,
+})
+// @ts-expect-error Continuous brushes without explicit values cannot step by keyboard.
+brushX({ range: dateBrushSignal, keyboard: true })
 
 const literalRows: readonly LiteralRow[] = [{ category: 'Alpha', value: 4 }]
 
@@ -143,6 +240,24 @@ const temporalDefinition = defineChart({
   },
   y: { scale: scaleLinear().domain([0, 4]) },
 })
+
+defineChart(temporalDefinition, { behaviors: [dateBrush] })
+// @ts-expect-error The brush x-value must match the chart x-value.
+defineChart(numericDefinition, { behaviors: [dateBrush] })
+defineChart(temporalDefinition, { behaviors: [dateNumberCursor] })
+// @ts-expect-error The cursor x-value must match the chart x-value.
+defineChart(numericDefinition, { behaviors: [dateNumberCursor] })
+// @ts-expect-error The cursor y-value must match the chart y-value.
+defineChart(temporalDefinition, { behaviors: [dateDateCursor] })
+defineChart(temporalDefinition, { behaviors: [dateNumberHandle] })
+// @ts-expect-error The handle x-value must match the chart x-value.
+defineChart(numericDefinition, { behaviors: [dateNumberHandle] })
+// @ts-expect-error A semantic handle cross must match the chart y-value.
+defineChart(temporalDefinition, { behaviors: [dateStringHandle] })
+defineChart(temporalDefinition, { behaviors: [dateZoom] })
+defineChart(numericDefinition, { behaviors: [numberZoom] })
+// @ts-expect-error The zoom x-value must match the chart x-value.
+defineChart(numericDefinition, { behaviors: [dateZoom] })
 const unionPositionMark = rows.length > 0 ? temporalMark : categoricalMark
 const unionPositionDefinition = defineChart({
   marks: [unionPositionMark],
@@ -344,6 +459,13 @@ if (false) {
   })
 
   const container = document.createElement('div')
+  const temporalBehavior: ChartBehavior<Date, number> = {
+    id: 'temporal-behavior',
+    resolve: () => ({}),
+  }
+  defineChart(temporalDefinition, { behaviors: [temporalBehavior] })
+  // @ts-expect-error A Date-x behavior cannot consume a numeric-x chart.
+  defineChart(numericDefinition, { behaviors: [temporalBehavior] })
   const categoricalFocus: ChartFocusStrategy<Row, string, number> = {
     resolve(points) {
       return points.filter(

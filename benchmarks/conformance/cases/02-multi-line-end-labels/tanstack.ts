@@ -1,5 +1,4 @@
-import { defineChart, lineY, text } from '@tanstack/charts'
-import { group } from 'd3-array'
+import { defineChart, lineY, select, text } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
 import type { ConformanceInput, ConformanceMount } from '../../types'
@@ -9,19 +8,26 @@ import type { MultiLineDatum } from './selection'
 
 const colors = ['#2563eb', '#ea580c', '#059669']
 
-const definition = (input: ConformanceInput) => {
-  const rows = selectMultiLineData(industries, input.revision)
-  const endpoints = lastBySeries(rows)
+export const multiLineEndLabelsDefinition = (
+  rows: readonly MultiLineDatum[],
+) => {
+  const endpoints = select(rows, {
+    by: 'industry',
+    value: ({ datum }) => datum.date.getTime(),
+    select: 'max',
+  })
 
   return defineChart({
     marks: [
       lineY(rows, {
+        id: 'industry-lines',
         x: 'date',
         y: 'unemployed',
         color: 'industry',
         strokeWidth: 2.25,
       }),
       text(endpoints, {
+        id: 'industry-end-labels',
         x: 'date',
         y: 'unemployed',
         text: 'industry',
@@ -44,15 +50,10 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
+const definition = (input: ConformanceInput) =>
+  multiLineEndLabelsDefinition(selectMultiLineData(industries, input.revision))
+
 export const mount: ConformanceMount = tanstackMount(
   definition,
   'Unemployment by industry with direct end labels',
 )
-
-function lastBySeries(
-  rows: readonly MultiLineDatum[],
-): readonly MultiLineDatum[] {
-  return Array.from(group(rows, (row) => row.industry).values(), (groupRows) =>
-    groupRows.at(-1),
-  ).filter((row): row is MultiLineDatum => row !== undefined)
-}

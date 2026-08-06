@@ -6,6 +6,7 @@ import { defineChart, findNearestPoint } from './scene'
 import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
+  ChartHostControlExtension,
   ChartRenderer,
   ChartSurface,
   ChartSurfaceRenderOptions,
@@ -958,6 +959,99 @@ describe('renderer-neutral chart host', () => {
     })
     host.destroy()
     expect(second.destroy).toHaveBeenCalledOnce()
+  })
+
+  it('recreates behavior controls against the active renderer surface', () => {
+    const first = createFakeRenderer('first')
+    const second = createFakeRenderer('second')
+    const container = document.createElement('div')
+    const lifecycle: string[] = []
+    const instances: {
+      surface: ChartSurface<any, any, any>
+      update: ReturnType<typeof vi.fn>
+      destroy: ReturnType<typeof vi.fn>
+    }[] = []
+    first.destroy.mockImplementation(() => {
+      lifecycle.push('surface:first:destroy')
+    })
+    second.destroy.mockImplementation(() => {
+      lifecycle.push('surface:second:destroy')
+    })
+    const extension: ChartHostControlExtension = {
+      id: 'test-behavior-control',
+      create: vi.fn(({ container: controlContainer, surface }) => {
+        expect(controlContainer).toBe(container)
+        const rendererId = surface.renderer.id
+        lifecycle.push(`control:${rendererId}:create`)
+        const instance = {
+          update: vi.fn(),
+          destroy: vi.fn(() => {
+            lifecycle.push(`control:${rendererId}:destroy`)
+          }),
+        }
+        instances.push({ surface, ...instance })
+        return instance
+      }),
+    }
+    const controlledDefinition = defineChart(definition, {
+      behaviors: [
+        {
+          id: 'test-behavior',
+          resolve: () => ({
+            nodes: [
+              {
+                kind: 'group',
+                key: 'behavior-fallback',
+                children: [],
+              },
+            ],
+            controls: [
+              {
+                key: 'overlay',
+                extension,
+                fallbackNodeKey: 'behavior-fallback',
+              },
+            ],
+          }),
+        },
+      ],
+    })
+    const options = {
+      definition: controlledDefinition,
+      renderer: first.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Behavior control lifecycle',
+    }
+    const host = mountChartRenderer(container, options)
+
+    expect(instances[0]?.surface).toBe(first.surface)
+    expect(instances[0]?.update).toHaveBeenCalledOnce()
+    expect(
+      first.render.mock.calls[0]?.[0].nodes.some(
+        (node: ChartScene['nodes'][number]) => node.key === 'behavior-fallback',
+      ),
+    ).toBe(false)
+
+    host.update({ ...options, ariaLabel: 'Same behavior control' })
+    expect(extension.create).toHaveBeenCalledOnce()
+    expect(instances[0]?.update).toHaveBeenCalledTimes(2)
+
+    host.update({ ...options, renderer: second.renderer })
+
+    expect(instances).toHaveLength(2)
+    expect(instances[0]?.destroy).toHaveBeenCalledOnce()
+    expect(instances[1]?.surface).toBe(second.surface)
+    expect(instances[1]?.update).toHaveBeenCalledOnce()
+    expect(lifecycle.indexOf('control:first:destroy')).toBeLessThan(
+      lifecycle.indexOf('surface:first:destroy'),
+    )
+
+    host.destroy()
+    expect(instances[1]?.destroy).toHaveBeenCalledOnce()
+    expect(lifecycle.indexOf('control:second:destroy')).toBeLessThan(
+      lifecycle.indexOf('surface:second:destroy'),
+    )
   })
 
   it('coalesces render requests made by the active surface', () => {

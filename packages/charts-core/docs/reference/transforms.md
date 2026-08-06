@@ -3,13 +3,15 @@ title: Data Transforms
 description: Typed, eager transforms for reusable application data.
 ---
 
-Transforms are ordinary functions: rows in, rows out. They do not rewrite mark
-options, retain state, cache results, or own framework reactivity.
+Transforms are ordinary functions: source rows in, typed derived data out.
+They do not rewrite mark options, retain state, cache results, or own framework
+reactivity.
 
 ## Functions
 
 | Export                     | Result                                                   |
 | -------------------------- | -------------------------------------------------------- |
+| `fold`                     | Wide rows repeated into authored field/value pairs       |
 | `groupBy`                  | Named group fields, reducer outputs, and lineage         |
 | `binX`, `binY`             | Numeric intervals on one axis                            |
 | `binXY`                    | Numeric cells with x and y intervals                     |
@@ -20,7 +22,11 @@ options, retain state, cache results, or own framework reactivity.
 | `normalize`                | Flat input rows extended with normalized values          |
 | `select`                   | Selected original rows                                   |
 | `stackRowsX`, `stackRowsY` | Flat input rows extended with stack endpoints            |
+| `mosaicX`, `mosaicY`       | Two normalized proportional interval dimensions          |
+| `waterfall`                | Ordered signed contributions as cumulative intervals     |
 | `quantile`                 | A reusable quantile reducer factory                      |
+| `treeLayout`               | Tidy-tree node and link rows in semantic coordinates     |
+| `forceLayout`              | Settled nodes, resolved links, and padded x/y domains    |
 
 Granular entry points are:
 
@@ -29,19 +35,50 @@ Granular entry points are:
 - `@tanstack/charts/transform/bin-time`
 - `@tanstack/charts/transform/bin-xy`
 - `@tanstack/charts/transform/cumulative`
+- `@tanstack/charts/transform/fold`
 - `@tanstack/charts/transform/group`
+- `@tanstack/charts/transform/mosaic`
 - `@tanstack/charts/transform/normalize`
 - `@tanstack/charts/transform/rank`
 - `@tanstack/charts/transform/reduce`
 - `@tanstack/charts/transform/select`
 - `@tanstack/charts/transform/stack`
+- `@tanstack/charts/transform/waterfall`
 - `@tanstack/charts/transform/window`
+- `@tanstack/charts/hierarchy/tree`
+- `@tanstack/charts/network/force`
 
 Numeric, two-dimensional, and calendar bins are separate so specialized
 binning does not enlarge an ordinary histogram.
 
 Numeric `thresholds` accepts a count, complete boundary array, or a
 D3-compatible threshold callback such as `thresholdScott`.
+
+## Fold wide rows
+
+`fold` turns selected fields into long-form rows while preserving the other
+source fields:
+
+```ts
+import { fold } from '@tanstack/charts/transform/fold'
+
+const points = fold(rows, {
+  fields: ['R90_10_1980', 'R90_10_2015'] as const,
+  as: { key: 'periodField', value: 'inequality' },
+})
+```
+
+Output is source-row-major, then follows authored `fields` order. Each point
+retains the source row's other properties and adds `periodField`, `inequality`,
+`source`, and `sourceIndexes`. Omitting `as` uses `key` and `value`. Values are
+not filtered, so `null`, `undefined`, and `NaN` remain available to subsequent
+transforms or application logic.
+
+Use a literal field tuple so the output key and value remain correlated when
+TypeScript narrows the key. Duplicate fields, identical output names, and the
+reserved `source` or `sourceIndexes` output names throw synchronously with a
+`fold:` error. Output names may replace source fields; lineage retains the
+original row.
 
 ## Group fields
 
@@ -76,7 +113,14 @@ Custom reducers receive one object with `values`, selected `data`, source
 custom reducer.
 
 Empty `count` and `sum` results are zero. Other empty numeric results are
-`NaN`.
+`NaN`. `variance` and `deviation` use the sample denominator and return `NaN`
+for fewer than two finite values. If a singleton group needs a zero-width
+interval, state that policy in a small authored reducer.
+
+Numeric reducers ignore non-finite channel values, while `source`,
+`sourceIndexes`, and a custom reducer's `data` still describe every input row
+in the group. Filter invalid observations before `groupBy` when lineage should
+contain only contributors.
 
 ## Ordering and flat rows
 
@@ -105,11 +149,197 @@ There is no nested `datum.datum` path. A named output may intentionally replace
 an input field; the original rows remain available through lineage. Structural
 `source` and `sourceIndexes` names are reserved.
 
+## Mosaic intervals
+
+`mosaicY` allocates outer category totals across x, then normalizes y values
+within each x category. Keep aggregation explicit so the definition shows
+whether a cell represents a count or a weighted sum:
+
+```ts
+import { groupBy, mosaicY, rect } from '@tanstack/charts'
+
+const counts = groupBy(responses, {
+  by: { question: 'question', response: 'response' },
+  outputs: { count: { reduce: 'count' } },
+})
+
+const cells = mosaicY(counts, {
+  x: 'question',
+  y: 'response',
+  value: 'count',
+  yOrder: ['Strongly disagree', 'Disagree', 'Neutral', 'Agree'],
+})
+
+rect(cells, {
+  x: 'x',
+  x1: 'x1',
+  x2: 'x2',
+  y: 'y',
+  y1: 'y1',
+  y2: 'y2',
+  color: 'yValue',
+})
+```
+
+Each row retains the aggregate input fields and adds semantic `xValue` and
+`yValue`, normalized centers and endpoints, the cell `value`, its outer-group
+total, the grand total, and direct lineage. `mosaicX` transposes the policy:
+y-category totals determine row heights and x values compose within each row.
+Use `xOrder` and `yOrder` to make categorical ordering explicit. Duplicate
+x/y pairs throw; aggregate them first with `groupBy`.
+
+## Waterfall intervals
+
+`waterfall` turns signed contributions into ordered cumulative intervals. It
+does not derive the contributions themselves, so analytical intent remains
+visible beside the chart:
+
+```ts
+import { barY, difference, window } from '@tanstack/charts'
+import { waterfall } from '@tanstack/charts/transform/waterfall'
+
+const changes = window(observations, {
+  orderBy: 'year',
+  size: 2,
+  partial: false,
+  outputs: { delta: { value: 'price', reduce: difference } },
+})
+
+const bridge = waterfall(changes, {
+  value: 'delta',
+  orderBy: 'year',
+  total: true,
+})
+
+barY(bridge, {
+  x: (row) => (row.kind === 'total' ? 'Total' : row.year),
+  y1: 'start',
+  y2: 'end',
+  color: 'kind',
+})
+```
+
+Each valid step retains the input row, adds `delta`, `start`, `end`, and an
+`increase` or `decrease` kind, and carries one-row direct lineage. Zero is an
+increase so it remains available to downstream policy. Nullish and nonfinite
+values are omitted. A nonfinite cumulative result throws instead of emitting
+invalid geometry.
+
+`total: true` appends one zero-based `total` row for every nonempty group. The
+total is a discriminated synthetic row containing only group fields, derived
+fields, and aggregate direct lineage; it does not clone an arbitrary last
+source row. `by`, `orderBy`, and `order` use the same first-seen grouping and
+stable ordering contracts as the other eager transforms. Group output names
+cannot collide with waterfall or lineage fields.
+
+## Tidy hierarchy trees
+
+`treeLayout` turns flat path or parent-reference rows into positioned nodes and
+links. Import it from its exact optional entry:
+
+```ts
+import { treeLayout } from '@tanstack/charts/hierarchy/tree'
+
+const hierarchy = treeLayout(rows, {
+  path: 'name',
+  delimiter: '.',
+  orientation: 'left',
+  nodeSize: [1, 1],
+})
+```
+
+Use `path` and an optional one-character `delimiter` for full semantic paths.
+Missing path ancestors are imputed with `data: null` and empty lineage. Use
+`id` and `parentId` instead when every node is an explicit row:
+
+```ts
+const hierarchy = treeLayout(rows, {
+  id: 'id',
+  parentId: 'parentId',
+})
+```
+
+The two input forms are mutually exclusive. IDs must be unique, every
+non-root parent must exist, and the rows must form one acyclic hierarchy.
+`sort` and `separation` receive immutable `TreeNodeContext` objects with
+identity, raw data, depth, height, `internal`/`external` flags, and lineage. Input
+order remains the child order when `sort` is omitted.
+
+Path-mode IDs use canonical slash form and `name` is the terminal path segment.
+Explicit-parent IDs are opaque, so `name` is the complete authored ID even
+when it contains a slash.
+
+Output nodes contain `id`, `parentId`, `name`, nullable `data`, `depth`,
+`height`, `internal`, `external`, `x`, `y`, `source`, and `sourceIndexes`.
+Each link contains stable source and target IDs, resolved endpoint nodes and
+indexes, `x1`, `y1`, `x2`, `y2`, and the target node's raw-row lineage. A link
+uses its target ID as its own ID because each non-root tree node has one
+incoming link. Endpoint indexes are null when the corresponding path ancestor
+was imputed.
+
+`orientation` selects the root anchor: `left` is the default, with `right`,
+`top`, and `bottom` also available. `nodeSize` is `[breadth, depth]` in semantic
+data-space units. Normal positional scales own responsive projection, so this
+eager transform does not depend on final chart bounds. It is uncached; memoize
+unchanged hierarchy input with other derived data.
+
+## Static force layouts
+
+`forceLayout` runs a stopped D3 force simulation synchronously and returns
+ordinary rows for native marks. Import it from its exact optional entry:
+
+```ts
+import { forceLayout } from '@tanstack/charts/network/force'
+
+const graph = forceLayout(nodes, links, {
+  nodeKey: 'id',
+  source: 'source',
+  target: 'target',
+  iterations: 300,
+  domainPadding: 0.2,
+  forces: [
+    { type: 'link', distance: 42 },
+    { type: 'manyBody', strength: -120 },
+    { type: 'center', x: 0, y: 0 },
+    { type: 'collide', radius: 9, strength: 0.9 },
+    { type: 'x', x: 0, strength: 0.03 },
+    { type: 'y', y: 0, strength: 0.03 },
+  ],
+})
+```
+
+The force descriptors are explicit and applied in authored order. `link`
+accepts link-row distance and strength channels. `manyBody.strength`,
+`collide.radius`, and the `x` and `y` targets and strengths accept node-row
+channels. `center` coordinates and `collide.strength` are fixed values. Each
+force type may appear at most once.
+
+The transform clones its inputs before D3 mutates simulation state. Output
+nodes retain non-reserved source fields and add `x`, `y`, `vx`, `vy`, `source`,
+and `sourceIndexes`. Output links retain their raw endpoint keys and add
+resolved node references, source and target indexes, `x1`, `y1`, `x2`, `y2`,
+`sourceRows`, and `sourceIndexes`. The result also contains `xDomain` and
+`yDomain` for configured positional scales.
+
+Node keys must be unique, and every link endpoint must match one. Stable input
+order produces repeatable static settlement. The transform is eager,
+chart-size independent, and uncached; memoize it with other derived data when
+a framework component rebuilds unchanged input.
+
+This API does not run a live simulation or own drag state. Products that need
+continuous physics or node dragging should keep that controller and its
+positions in application state, then render the current rows through normal
+marks.
+
 ## Lineage
 
 Aggregations expose `source` and `sourceIndexes`. Row-extending transforms
 expose the source rows used for that derived value. This supports inspection,
 tooltips, drill-down, and subsequent transforms without renderer knowledge.
+
+Lineage is direct to the immediate input. In a `fold` → `normalize` pipeline,
+the normalized row points to its folded input, and that folded row points to
+the original source row. `select` returns the chosen input rows unchanged.
 
 See [Transforms and Reactivity](../guides/transforms-and-reactivity.md) for
 composition and memoization guidance.
@@ -131,6 +361,9 @@ Group exports are `GroupByOptions` and `GroupByDatum`. Numeric bin exports are
 `BinXYOptions` and `BinXYDatum`. Calendar bin exports are `TimeIntervalLike`,
 `BinTimeOptions`, and `BinTimeDatum`.
 
+Fold exports are `FoldField`, `FoldOutputNames`, `FoldOptions`, and
+`FoldDatum`.
+
 Rolling exports are `WindowOptions`, `WindowDatum`, and `WindowAnchor`.
 Cumulative exports are `CumulativeOptions` and `CumulativeDatum`. Rank exports
 are `RankOptions`, `RankDatum`, and `RankTies`.
@@ -140,3 +373,19 @@ Normalization exports are `NormalizeOptions`, `NormalizeDatum`,
 `SelectOptions`, `SelectMethod`, and `SelectContext`. Row-stack exports are
 `StackRowsXOptions`, `StackRowsXDatum`, `StackRowsYOptions`, and
 `StackRowsYDatum`.
+
+Mosaic exports are `MosaicOptions`, `MosaicXDatum`, and `MosaicYDatum`.
+
+Waterfall exports are `WaterfallKind`, `WaterfallOptions`, `WaterfallDatum`,
+`WaterfallStepDatum`, and `WaterfallTotalDatum`.
+
+Static force-layout exports are `forceLayout`, `ForceLayoutOptions`,
+`ForceDescriptor`, `ForceNumericValue`, `ForceLinkDescriptor`,
+`ForceManyBodyDescriptor`, `ForceCenterDescriptor`, `ForceCollideDescriptor`,
+`ForceXDescriptor`, `ForceYDescriptor`, `ForceLayoutResult`,
+`ForceLayoutNode`, `ForceLayoutLink`, and `ForceLinkLineage`.
+
+Tidy-tree exports are `treeLayout`, `TreeOrientation`, `TreeNodeContext`,
+`TreeNodeComparator`, `TreeNodeSeparation`, `TreeLayoutPathOptions`,
+`TreeLayoutParentOptions`, `TreeLayoutOptions`, `TreeLayoutNode`,
+`TreeLayoutLink`, and `TreeLayoutResult`.

@@ -7,6 +7,7 @@ import {
   whenFocused,
 } from '@tanstack/charts'
 import type { ChartHostOptions } from '@tanstack/charts'
+import { decorative } from '@tanstack/charts/mark/decorative'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear, scaleUtc } from 'd3-scale'
@@ -36,14 +37,17 @@ const definition = (input: ConformanceInput) => {
         }),
         { match: 'x' },
       ),
-      lineY(rows, {
-        x: 'date',
-        y: 'unemployed',
-        color: 'industry',
-      }),
+      decorative(
+        lineY(rows, {
+          x: 'date',
+          y: 'unemployed',
+          color: 'industry',
+        }),
+      ),
       dot(rows, {
         x: 'date',
         y: 'unemployed',
+        z: 'industry',
         color: 'industry',
         r: 2.5,
         states: [

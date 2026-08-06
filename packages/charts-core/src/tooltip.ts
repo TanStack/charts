@@ -87,6 +87,10 @@ function createTooltipExtension<
     nextContext: ChartTooltipPaintContext<TDatum, TXValue, TYValue>,
   ) {
     paintContext = nextContext
+    if (options.visibility === 'pinned' && !nextContext.pinned) {
+      hide()
+      return
+    }
     const tooltipElement = ensureElement()
     syncPortal()
     tooltipElement.className = options.className

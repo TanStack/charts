@@ -1,10 +1,10 @@
 import { cars } from '@charts-poc/demo-data/cars'
-import { createMark, defineChart, dot, mountChart } from '@tanstack/charts'
+import { defineChart, dot, mountChart } from '@tanstack/charts'
+import { voronoi } from '@tanstack/charts/spatial/voronoi'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Delaunay } from 'd3-delaunay'
 import { scaleLinear } from 'd3-scale'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
-import type { ChartHostOptions, SceneNode } from '@tanstack/charts'
+import type { ChartHostOptions } from '@tanstack/charts'
 import type {
   ConformanceHandle,
   ConformanceInput,
@@ -18,80 +18,22 @@ type CompleteCar = CarsRow & {
 
 const colors = ['#2563eb', '#0d9488', '#d97706']
 
-function voronoiCells(rows: readonly CompleteCar[]) {
-  return createMark<CompleteCar, number, number>(({ markIndex }) => {
-    const id = `voronoi-cells-${markIndex}`
-
-    return {
-      id,
-      channels: {
-        x: {
-          scale: 'x',
-          values: rows.map((row) => row['weight (lb)']),
-        },
-        y: {
-          scale: 'y',
-          values: rows.map((row) => row['economy (mpg)']),
-        },
-        color: {
-          scale: 'color',
-          values: rows.map(cylinderLabel),
-        },
-      },
-      render: ({ chart, scales, color }) => {
-        const delaunay = Delaunay.from(
-          rows,
-          (row) => scales.x.map(row['weight (lb)']),
-          (row) => scales.y.map(row['economy (mpg)']),
-        )
-        const cells = delaunay.voronoi([
-          chart.x,
-          chart.y,
-          chart.x + chart.width,
-          chart.y + chart.height,
-        ])
-        const children: SceneNode[] = []
-
-        rows.forEach((row, index) => {
-          const path = cells.renderCell(index)
-          if (path === null) return
-          children.push({
-            kind: 'area',
-            key: `${id}:${carKey(row)}`,
-            points: [],
-            path,
-            style: {
-              fill: color(cylinderLabel(row)),
-              fillOpacity: 0.14,
-              stroke: '#ffffff',
-              strokeWidth: 1,
-            },
-          })
-        })
-
-        return {
-          nodes: [
-            {
-              kind: 'group',
-              key: id,
-              className: 'ts-chart__voronoi',
-              ariaHidden: true,
-              children,
-            },
-          ],
-        }
-      },
-    }
-  })
-}
-
 const definition = (rows: readonly CompleteCar[]) =>
   defineChart({
     marks: [
-      voronoiCells(rows),
+      voronoi(rows, {
+        x: 'weight (lb)',
+        y: 'economy (mpg)',
+        key: carKey,
+        color: cylinderLabel,
+        fillOpacity: 0.14,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
       dot(rows, {
         x: 'weight (lb)',
         y: 'economy (mpg)',
+        key: carKey,
         color: cylinderLabel,
         stroke: '#ffffff',
         strokeWidth: 1,

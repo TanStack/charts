@@ -59,6 +59,44 @@ describe('keyed SVG reconciliation', () => {
     cancelFrame.mockRestore()
   })
 
+  it('interpolates numeric label typography and snaps categorical anchors', () => {
+    const container = document.createElement('div')
+    const callbacks: FrameRequestCallback[] = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callbacks.push(callback)
+        return callbacks.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    reconcileChartSvg(
+      container,
+      '<svg><text data-ts-key="label" font-size="10" font-weight="400" text-anchor="middle">A</text></svg>',
+    )
+    const label = container.querySelector('text')
+
+    reconcileChartSvg(
+      container,
+      '<svg><text data-ts-key="label" font-size="20" font-weight="700" text-anchor="start">A</text></svg>',
+      { duration: 100, easing: 'linear' },
+    )
+
+    expect(label?.getAttribute('text-anchor')).toBe('start')
+    expect(label?.getAttribute('font-size')).toBe('10')
+    callbacks.shift()?.(0)
+    callbacks.shift()?.(50)
+    expect(Number(label?.getAttribute('font-size'))).toBeCloseTo(15)
+    expect(Number(label?.getAttribute('font-weight'))).toBeCloseTo(550)
+    callbacks.shift()?.(100)
+    expect(label?.getAttribute('font-size')).toBe('20')
+    expect(label?.getAttribute('font-weight')).toBe('700')
+
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
   it('fades removed keyed elements before removing them', () => {
     const container = document.createElement('div')
     const callbacks: FrameRequestCallback[] = []

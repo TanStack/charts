@@ -92,6 +92,7 @@ export function createEditableHandleOverlay(
 
   const track = document.createElement('div')
   track.className = 'ts-conformance-event-track'
+  track.dataset.chartHandleTrack = 'release-end'
   track.style.position = 'absolute'
   track.style.height = '4px'
   track.style.borderRadius = '999px'
@@ -101,6 +102,7 @@ export function createEditableHandleOverlay(
   const range = document.createElement('input')
   range.className = 'ts-conformance-event-range'
   range.type = 'range'
+  range.dataset.chartHandleSurface = 'release-end'
   range.step = '1'
   range.setAttribute('aria-label', 'Release end handle')
   range.style.position = 'absolute'
@@ -109,6 +111,7 @@ export function createEditableHandleOverlay(
 
   const handle = document.createElement('div')
   handle.className = 'ts-conformance-event-handle'
+  handle.dataset.chartHandle = 'release-end'
   handle.style.position = 'absolute'
   handle.style.boxSizing = 'border-box'
   handle.style.width = '20px'

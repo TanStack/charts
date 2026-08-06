@@ -1,4 +1,4 @@
-export type StreamingViewportMode = 'locked' | 'latest' | 'all'
+import type { StreamingViewportMode } from './model'
 
 export interface StreamingControls {
   root: HTMLDivElement

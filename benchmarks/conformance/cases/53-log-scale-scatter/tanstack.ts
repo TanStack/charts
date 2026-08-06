@@ -7,16 +7,18 @@ import type { ConformanceInput } from '../../types'
 
 type SizedFlareRow = FlareRow & { readonly size: number }
 
-const definition = (input: ConformanceInput) => {
+export const logScaleScatterDefinition = (input: ConformanceInput) => {
   const rows = flare
-    .filter((row): row is SizedFlareRow => row.size !== null)
+    .filter((row): row is SizedFlareRow => row.size !== null && row.size > 0)
     .slice(input.revision * 8, input.revision * 8 + 200)
 
   return defineChart({
     marks: [
       dot(rows, {
+        id: 'class-size-points',
         x: 'size',
         y: (row) => row.name.split('.').length - 1,
+        key: 'name',
         r: 3.5,
         fill: '#f97316',
         stroke: '#9a3412',
@@ -39,6 +41,6 @@ const definition = (input: ConformanceInput) => {
 }
 
 export const mount = tanstackMount(
-  definition,
+  logScaleScatterDefinition,
   'Flare class size on a logarithmic scale',
 )

@@ -305,6 +305,10 @@
           "to": "reference/chart-spec"
         },
         {
+          "label": "View Composition",
+          "to": "reference/view-composition"
+        },
+        {
           "label": "Data Transforms",
           "to": "reference/transforms"
         },
@@ -439,12 +443,76 @@
           "to": "reference/marks/line-and-area"
         },
         {
+          "label": "Difference Marks",
+          "to": "reference/marks/difference"
+        },
+        {
+          "label": "Linear Regression Marks",
+          "to": "reference/marks/regression"
+        },
+        {
           "label": "Bar and Rect Marks",
           "to": "reference/marks/bar-and-rect"
         },
         {
+          "label": "Box Marks",
+          "to": "reference/marks/box"
+        },
+        {
           "label": "Dot and Hexagon Marks",
           "to": "reference/marks/dot-and-hexagon"
+        },
+        {
+          "label": "Dodge Layouts",
+          "to": "reference/marks/dodge"
+        },
+        {
+          "label": "Waffle Marks",
+          "to": "reference/marks/waffle"
+        },
+        {
+          "label": "Ridgeline Marks",
+          "to": "reference/marks/ridgeline"
+        },
+        {
+          "label": "Violin Marks",
+          "to": "reference/marks/violin"
+        },
+        {
+          "label": "Focus Guide Marks",
+          "to": "reference/marks/focus-guide"
+        },
+        {
+          "label": "Treemap Mark",
+          "to": "reference/marks/treemap"
+        },
+        {
+          "label": "Sunburst Mark",
+          "to": "reference/marks/sunburst"
+        },
+        {
+          "label": "Sankey Diagram Mark",
+          "to": "reference/marks/sankey"
+        },
+        {
+          "label": "Hexbin Mark",
+          "to": "reference/marks/hexbin"
+        },
+        {
+          "label": "Contour Mark",
+          "to": "reference/marks/contour"
+        },
+        {
+          "label": "Density Contour Mark",
+          "to": "reference/marks/density"
+        },
+        {
+          "label": "Delaunay Link Mark",
+          "to": "reference/marks/delaunay"
+        },
+        {
+          "label": "Voronoi Mark",
+          "to": "reference/marks/voronoi"
         },
         {
           "label": "Rules, Links, Arrows, Vectors, and Ticks",

@@ -167,6 +167,11 @@ Add `className` to style the native HTML surface. Clicking pins the current
 tooltip for text selection. A later click or Escape unpins it. Set
 `sticky: false` to disable pinning.
 
+Set `visibility: 'pinned'` when focus should style the chart without opening a
+transient tooltip. Click, Enter, or Space can still pin the focused point; only
+the pinned surface and adapter body are mounted. The default is
+`visibility: 'focus'`.
+
 ## Anchoring and placement
 
 Point anchoring is the stable default for scatterplots, bars, and keyboard
@@ -423,6 +428,10 @@ visible but cannot receive pointer or keyboard input. Render controls only when
 still need useful labels and intentional focus order. The adapter updates
 framework content with focused-point changes and unmounts it when the tooltip
 is dismissed or the parent chart unmounts.
+
+For pin-only detail, configure `visibility: 'pinned'` in the definition. The
+host then suppresses both the transient shell and the adapter body instead of
+requiring the framework renderer to return an empty element.
 
 | Adapter                      | Native body composition                            |
 | ---------------------------- | -------------------------------------------------- |

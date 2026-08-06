@@ -2,6 +2,7 @@ import { barY, defineChart, lineY } from '@tanstack/charts'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
+import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { entranceRows as rows } from './model'
 import type {
   ChartMotionTweenTransition,
@@ -15,7 +16,7 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-interface MotionSettings {
+export interface MotionSettings {
   duration: number
   staggerMs: number
   easing: ChartMotionTweenTransition['easing']
@@ -57,7 +58,7 @@ export const mount: ConformanceMount = (container, input) => {
     replayCount += 1
     renderer = motion<MotionRow, string, number>()
     host = mountChartRenderer(chart, {
-      definition: chartDefinition(settings),
+      definition: motionEntranceDefinition(settings),
       renderer,
       width: currentInput.width,
       height: chartHeight(),
@@ -107,13 +108,10 @@ export const mount: ConformanceMount = (container, input) => {
         staggerMs: settings.staggerMs,
         customTiming: settings.customTiming,
         replayCount,
-        motionState:
-          chart
-            .querySelector('svg.ts-chart')
-            ?.getAttribute('data-ts-motion-state') ?? null,
+        motionState: readChartMotionState(chart),
       }
     },
-    settle: () => settleMotion(chart, settings.duration * 1.6),
+    settle: () => settleChartMotion(chart, settings.duration * 1.6),
   }
 
   return {
@@ -123,7 +121,7 @@ export const mount: ConformanceMount = (container, input) => {
       view.style.height = `${nextInput.height}px`
       if (!renderer) return
       host?.update({
-        definition: chartDefinition(settings),
+        definition: motionEntranceDefinition(settings),
         renderer,
         width: nextInput.width,
         height: chartHeight(),
@@ -137,7 +135,7 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
-function chartDefinition(settings: MotionSettings) {
+export function motionEntranceDefinition(settings: MotionSettings) {
   const { duration, easing, staggerMs, customTiming } = settings
   return defineChart({
     motion: {
@@ -289,27 +287,4 @@ function button(document: Document, label: string) {
   control.textContent = label
   control.style.padding = '0 14px'
   return control
-}
-
-function settleMotion(chart: HTMLElement, timeout: number) {
-  const view = chart.ownerDocument.defaultView
-  if (!view) return Promise.resolve()
-  const started = view.performance.now()
-  return new Promise<void>((resolve) => {
-    const check = () => {
-      const state = chart
-        .querySelector('svg.ts-chart')
-        ?.getAttribute('data-ts-motion-state')
-      if (
-        state === 'finished' ||
-        state === null ||
-        view.performance.now() - started >= timeout
-      ) {
-        resolve()
-        return
-      }
-      view.requestAnimationFrame(check)
-    }
-    check()
-  })
 }

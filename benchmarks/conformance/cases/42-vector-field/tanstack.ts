@@ -7,10 +7,11 @@ import { tanstackMount } from '../../shared/mount'
 const speed = scaleSqrt().domain([0, 14]).range([0, 22])
 const sampledWind = sampleWind(wind)
 
-const definition = () =>
+export const vectorFieldDefinition = () =>
   defineChart({
     marks: [
       vector(sampledWind, {
+        id: 'wind-vectors',
         x: 'longitude',
         y: 'latitude',
         length: (row) => speed(Math.hypot(row.u, row.v)),
@@ -22,4 +23,7 @@ const definition = () =>
     y: { scale: scaleLinear, grid: true, axis: { label: 'Latitude' } },
   })
 
-export const mount = tanstackMount(definition, 'Two-dimensional vector field')
+export const mount = tanstackMount(
+  vectorFieldDefinition,
+  'Two-dimensional vector field',
+)

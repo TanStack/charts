@@ -4,8 +4,13 @@ import {
   inferredKeyValues,
   isChartKey,
   isChartValue,
+  isFiniteNumber,
   visualValue,
 } from './mark'
+import {
+  isResolvedCategoryScale,
+  resolvedCategoryStep,
+} from './mapped-spacing-internal'
 import { valueKey } from './scales'
 import type {
   Channel,
@@ -30,6 +35,8 @@ export interface TickXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   strokeOpacity?: number
   strokeWidth?: number
   length?: number
+  /** Total tick length in orthogonal category-step units. */
+  span?: number
   inset?: number
 }
 
@@ -44,6 +51,8 @@ export interface TickYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   strokeOpacity?: number
   strokeWidth?: number
   length?: number
+  /** Total tick length in orthogonal category-step units. */
+  span?: number
   inset?: number
 }
 
@@ -89,6 +98,15 @@ function tick<TDatum>(
   orientation: 'x' | 'y',
 ): ChartMark<TDatum> {
   const data = Array.isArray(source) ? source : Array.from(source)
+  if (options.length !== undefined && options.span !== undefined) {
+    throw new TypeError('tick: length and span are mutually exclusive')
+  }
+  if (
+    options.span !== undefined &&
+    (!isFiniteNumber(options.span) || options.span <= 0)
+  ) {
+    throw new TypeError('tick: span must be a positive finite number')
+  }
 
   return createMark(({ markIndex }) => {
     const id = options.id ?? `tick-${orientation}-${markIndex}`
@@ -111,14 +129,31 @@ function tick<TDatum>(
           values: colorValues.filter(isChartKey),
         },
       },
-      render: ({ scales, color: resolveColor }) => {
+      render: ({ chart, scales, color: resolveColor }) => {
         const nodes: SceneNode[] = []
         const points: ChartPoint<TDatum>[] = []
-        const bandwidth =
-          orientation === 'x' ? scales.y.bandwidth : scales.x.bandwidth
+        const orthogonalScale = orientation === 'x' ? scales.y : scales.x
+        const bandwidth = orthogonalScale.bandwidth
+        if (
+          options.span !== undefined &&
+          !isResolvedCategoryScale(orthogonalScale)
+        ) {
+          throw new TypeError(
+            `tick${orientation.toUpperCase()}: span requires a point or band scale on the orthogonal axis`,
+          )
+        }
+        const spanLength =
+          options.span === undefined
+            ? undefined
+            : resolvedCategoryStep(
+                orthogonalScale,
+                orientation === 'x' ? chart.height : chart.width,
+                options.span,
+              ) * options.span
         const availableLength = Math.max(
           0,
-          (options.length ?? (bandwidth || 6)) - (options.inset ?? 0) * 2,
+          (spanLength ?? options.length ?? (bandwidth || 6)) -
+            (options.inset ?? 0) * 2,
         )
 
         data.forEach((datum, datumIndex) => {

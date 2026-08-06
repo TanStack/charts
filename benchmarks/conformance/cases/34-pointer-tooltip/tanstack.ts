@@ -1,4 +1,5 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { decorative } from '@tanstack/charts/mark/decorative'
 import type { ChartHostOptions } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { scaleLinear, scaleUtc } from 'd3-scale'
@@ -15,11 +16,13 @@ const definition = (input: ConformanceInput) => {
   const rows = selectPointerTooltipData(aapl, input.revision)
   return defineChart({
     marks: [
-      lineY(rows, {
-        x: 'Date',
-        y: 'Close',
-        stroke: '#2563eb',
-      }),
+      decorative(
+        lineY(rows, {
+          x: 'Date',
+          y: 'Close',
+          stroke: '#2563eb',
+        }),
+      ),
       dot(rows, {
         x: 'Date',
         y: 'Close',

@@ -1,28 +1,31 @@
 import {
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react'
 import { defineChart, dot, lineY } from '@tanstack/charts'
+import { decorative } from '@tanstack/charts/mark/decorative'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
 import { downloads } from '@charts-poc/demo-data/downloads'
 import { scaleLinear, scaleUtc } from 'd3-scale'
+import { clientPointBounds } from '../../shared/driver-geometry'
 import { reactMount } from '../../shared/react-mount'
 import { streamingData } from './selection'
 import {
   formatStreamingDate,
-  fullStreamingViewport,
-  latestStreamingViewport,
   streamingDateKey,
-  streamingViewportDomain,
+  streamingStatus,
+  streamingViewportForMode,
+  streamingViewportLabel,
   visibleStreamingData,
 } from './model'
 import type { ChartScene } from '@tanstack/charts'
 import type { DownloadsRow } from '@charts-poc/demo-data/downloads'
-import type { StreamingViewportMode } from './controls'
+import type { StreamingViewportMode } from './model'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
@@ -32,6 +35,63 @@ import type {
 import type { ReactConformanceProps } from '../../shared/react-mount'
 
 const color = '#2563eb'
+
+export function streamingWindowDefinition(
+  rows: readonly DownloadsRow[],
+  viewport: readonly [Date, Date],
+  viewportMode: StreamingViewportMode,
+) {
+  const visibleRows = visibleStreamingData(rows, viewport)
+  return defineChart({
+    marks: [
+      decorative(
+        lineY(visibleRows, {
+          id: 'stream-line',
+          x: 'date',
+          y: 'downloads',
+          stroke: color,
+          strokeWidth: 2.5,
+        }),
+      ),
+      dot(visibleRows, {
+        id: 'stream-points',
+        x: 'date',
+        y: 'downloads',
+        fill: color,
+        r: 3.5,
+        stroke: '#ffffff',
+        strokeWidth: 1,
+      }),
+    ],
+    x: {
+      scale: scaleUtc().domain(viewport),
+      axis: {
+        ticks: {
+          format: (value) =>
+            value.toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              timeZone: 'UTC',
+            }),
+        },
+        label: streamingViewportLabel(viewportMode),
+      },
+    },
+    y: {
+      scale: scaleLinear,
+      grid: true,
+      axis: { ticks: { count: 5 }, label: 'Downloads' },
+    },
+    margin: { top: 18, right: 24, bottom: 44, left: 58 },
+    animate: false,
+    keyboard: true,
+    tooltip: {
+      use: tooltip,
+      format: (point) =>
+        `${formatStreamingDate(point.datum.date)} · ${point.datum.downloads.toLocaleString()} downloads`,
+    },
+  })
+}
 
 const StreamingExample = forwardRef<
   ConformanceTestDriver,
@@ -48,75 +108,27 @@ const StreamingExample = forwardRef<
     () => streamingData(downloads, input.revision, appended),
     [appended, input.revision],
   )
-  const viewport =
-    viewportMode === 'latest'
-      ? latestStreamingViewport(rows)
-      : viewportMode === 'all'
-        ? fullStreamingViewport(rows)
-        : streamingViewportDomain
+  const viewport = useMemo(
+    () => streamingViewportForMode(rows, viewportMode),
+    [rows, viewportMode],
+  )
   const stateRef = useRef({ rows, appended, viewport, viewportMode })
   stateRef.current = { rows, appended, viewport, viewportMode }
   const chartHeight = Math.max(180, input.height - 78)
-  const definition = useMemo(() => {
-    const visibleRows = visibleStreamingData(rows, viewport)
-    return defineChart(
-      defineChart({
-        marks: [
-          lineY(visibleRows, {
-            x: 'date',
-            y: 'downloads',
-            stroke: color,
-            strokeWidth: 2.5,
-          }),
-          dot(visibleRows, {
-            x: 'date',
-            y: 'downloads',
-            fill: color,
-            r: 3.5,
-            stroke: '#ffffff',
-            strokeWidth: 1,
-          }),
-        ],
-        x: {
-          scale: scaleUtc().domain(viewport),
-          axis: {
-            ticks: {
-              format: (value) =>
-                value.toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  timeZone: 'UTC',
-                }),
-            },
-            label:
-              viewportMode === 'locked'
-                ? 'Locked viewport'
-                : viewportMode === 'latest'
-                  ? 'Following latest'
-                  : 'All samples',
-          },
-        },
-        y: {
-          scale: scaleLinear,
-          grid: true,
-          axis: { ticks: { count: 5 }, label: 'Downloads' },
-        },
-        margin: { top: 18, right: 24, bottom: 44, left: 58 },
-      }),
-      {
-        animate: false,
-        keyboard: true,
-        tooltip: {
-          use: tooltip,
-          format: (point) =>
-            `${formatStreamingDate(point.datum.date)} · ${point.datum.downloads.toLocaleString()} downloads`,
-        },
-      },
-    )
-  }, [rows, viewport, viewportMode])
-  const status =
-    announcement ||
-    `${rows.length} samples · ${formatStreamingDate(viewport[0])}–${formatStreamingDate(viewport[1])} · viewport locked`
+  const definition = useMemo(
+    () => streamingWindowDefinition(rows, viewport, viewportMode),
+    [rows, viewport, viewportMode],
+  )
+  const status = streamingStatus({
+    rows,
+    viewport,
+    viewportMode,
+    announcement,
+  })
+
+  useEffect(() => {
+    setAnnouncement('')
+  }, [input.revision])
 
   useImperativeHandle(
     ref,
@@ -141,12 +153,7 @@ const StreamingExample = forwardRef<
   const append = () => {
     const nextAppended = appended + 1
     const nextRows = streamingData(downloads, input.revision, nextAppended)
-    const nextViewport =
-      viewportMode === 'latest'
-        ? latestStreamingViewport(nextRows)
-        : viewportMode === 'all'
-          ? fullStreamingViewport(nextRows)
-          : streamingViewportDomain
+    const nextViewport = streamingViewportForMode(nextRows, viewportMode)
     const added = nextRows.at(-1)
     setAppended(nextAppended)
     setAnnouncement(
@@ -200,7 +207,7 @@ const StreamingExample = forwardRef<
           pressed={viewportMode === 'latest'}
           onClick={() => {
             setViewportMode('latest')
-            const nextViewport = latestStreamingViewport(rows)
+            const nextViewport = streamingViewportForMode(rows, 'latest')
             setAnnouncement(
               `Following the latest samples through ${formatStreamingDate(nextViewport[1])}.`,
             )
@@ -246,7 +253,9 @@ const StreamingExample = forwardRef<
           definition={definition}
           width={input.width}
           height={chartHeight}
-          ariaLabel="Package downloads in a locked time viewport"
+          ariaLabel={`Package downloads · ${streamingViewportLabel(
+            viewportMode,
+          )}`}
           onRender={({ scene }) => {
             sceneRef.current = scene
           }}
@@ -380,30 +389,12 @@ function streamingGeometry(
     }))
   }
   if (query.role === 'line') {
-    const sample = pointsBounds(points, bounds, scaleX, scaleY)
+    const sample = clientPointBounds(points, bounds, {
+      scaleX,
+      scaleY,
+      paint: color,
+    })
     return sample ? [sample] : []
   }
   return []
-}
-
-function pointsBounds(
-  points: readonly (readonly [number, number])[],
-  svgBounds: DOMRect,
-  scaleX: number,
-  scaleY: number,
-): ConformanceGeometrySample | null {
-  if (!points.length) return null
-  const xs = points.map((point) => point[0])
-  const ys = points.map((point) => point[1])
-  const left = Math.min(...xs)
-  const right = Math.max(...xs)
-  const top = Math.min(...ys)
-  const bottom = Math.max(...ys)
-  return {
-    x: svgBounds.left + left * scaleX,
-    y: svgBounds.top + top * scaleY,
-    width: Math.max(1, (right - left) * scaleX),
-    height: Math.max(1, (bottom - top) * scaleY),
-    paint: color,
-  }
 }

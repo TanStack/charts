@@ -1,5 +1,6 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
+import { arrow } from './arrow'
 import { bandX } from './band'
 import { barX, barY } from './bar'
 import { dot } from './dot'
@@ -7,7 +8,7 @@ import { whenFocused } from './focus-mark'
 import { lineY } from './line'
 import { createChartScene, defineChart } from './scene'
 import { svgChartRenderer } from './svg-surface'
-import type { ChartScene, ChartValue } from './types'
+import type { ChartScene, ChartValue, SceneGroup } from './types'
 
 describe('focus-filtered marks', () => {
   const rows = [
@@ -135,7 +136,273 @@ describe('focus-filtered marks', () => {
       ),
     ).toBe(false)
   })
+
+  it('resolves only the active retarget candidate under stable scene keys', () => {
+    const guides = [
+      { id: 'guide-a', category: 'A' },
+      { id: 'guide-b', category: 'B' },
+    ]
+    const values = [
+      { id: 'value-a', category: 'A', value: 12 },
+      { id: 'value-b', category: 'B', value: 8 },
+    ]
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          whenFocused(
+            bandX(guides, {
+              id: 'active-band',
+              x: 'category',
+              key: 'id',
+            }),
+            { match: 'x', retarget: true },
+          ),
+          barY(values, {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 20]) },
+        focusRing: false,
+      }),
+      { width: 320, height: 180 },
+    )
+    const marks = resolved.nodes.find((node) => node.key === 'marks')
+    if (marks?.kind !== 'group') throw new Error('Expected marks')
+    const layer = marks.children[0]
+    if (layer?.kind !== 'group' || !layer.focus) {
+      throw new Error('Expected focus layer')
+    }
+    expect(layer.children).toEqual([])
+    expect(layer.focus.candidates).toHaveLength(1)
+    expect(resolved.points).toHaveLength(values.length)
+
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(resolved, { ariaLabel: 'Retargeted band' })
+    expect(container.querySelector('[data-ts-focus-retarget] rect')).toBeNull()
+
+    const first = resolved.points[0]!
+    const firstScene = surface.paintFocus({
+      primary: first,
+      group: [first],
+      source: 'pointer',
+      pinned: false,
+    })
+    const firstRect = container.querySelector<SVGRectElement>(
+      '[data-ts-focus-retarget] rect',
+    )
+    expect(firstRect).not.toBeNull()
+    expect(firstRect?.dataset.tsKey).toBe('focus:active-band:selection:0')
+    const firstX = Number(firstRect?.getAttribute('x'))
+    expect(firstScene && firstScene !== resolved).toBe(true)
+    const activeLayer = firstScene
+      ? findFocusLayer(firstScene, 'focus:active-band')
+      : undefined
+    expect(activeLayer?.focus?.activePoints?.[0]?.datum).toBe(guides[0])
+
+    const second = resolved.points[1]!
+    surface.paintFocus({
+      primary: second,
+      group: [second],
+      source: 'pointer',
+      pinned: false,
+    })
+    const secondRect = container.querySelector<SVGRectElement>(
+      '[data-ts-focus-retarget] rect',
+    )
+    expect(secondRect).toBe(firstRect)
+    expect(Number(secondRect?.getAttribute('x'))).toBeGreaterThan(firstX)
+
+    surface.paintFocus(null)
+    expect(container.querySelector('[data-ts-focus-retarget] rect')).toBeNull()
+    expect(
+      container
+        .querySelector('[data-ts-focus-retarget]')
+        ?.getAttribute('visibility'),
+    ).toBe('hidden')
+    surface.destroy()
+  })
+
+  it('preserves one stable retarget slot per grouped focus candidate', () => {
+    const guides = [
+      { id: 'a-one', category: 'A', series: 'one' },
+      { id: 'a-two', category: 'A', series: 'two' },
+      { id: 'b-one', category: 'B', series: 'one' },
+      { id: 'b-two', category: 'B', series: 'two' },
+    ]
+    const values = guides.map((row, index) => ({
+      ...row,
+      value: index + 1,
+    }))
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          whenFocused(
+            bandX(guides, {
+              id: 'group-band',
+              x: 'category',
+              z: 'series',
+              key: 'id',
+            }),
+            { match: 'x', retarget: true },
+          ),
+          barY(values, {
+            x: 'category',
+            y: 'value',
+            z: 'series',
+            key: 'id',
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 5]) },
+        focusRing: false,
+      }),
+      { width: 320, height: 180 },
+    )
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(resolved, { ariaLabel: 'Grouped retarget' })
+    const focusAt = (point: (typeof resolved.points)[number]) =>
+      surface.paintFocus({
+        primary: point,
+        group: resolved.points.filter(
+          (candidate) => candidate.xValue === point.xValue,
+        ),
+        source: 'pointer',
+        pinned: false,
+      })
+
+    focusAt(resolved.points[0]!)
+    const firstKeys = [
+      ...container.querySelectorAll<SVGRectElement>(
+        '[data-ts-focus-retarget] rect',
+      ),
+    ].map((node) => node.dataset.tsKey)
+    focusAt(resolved.points[2]!)
+    const secondKeys = [
+      ...container.querySelectorAll<SVGRectElement>(
+        '[data-ts-focus-retarget] rect',
+      ),
+    ].map((node) => node.dataset.tsKey)
+
+    expect(firstKeys).toEqual([
+      'focus:group-band:selection:0',
+      'focus:group-band:selection:1',
+    ])
+    expect(secondKeys).toEqual(firstKeys)
+    surface.destroy()
+  })
+
+  it('does not infer candidate ownership from colon-prefixed keys', () => {
+    const values = [
+      { id: 'a', category: 'A', value: 12 },
+      { id: 'a:point', category: 'B', value: 8 },
+    ]
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          whenFocused(
+            bandX(values, {
+              id: 'active-band',
+              x: 'category',
+              key: 'id',
+            }),
+            { retarget: true },
+          ),
+          barY(values, {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 20]) },
+        focusRing: false,
+      }),
+      { width: 320, height: 180 },
+    )
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(resolved, { ariaLabel: 'Collision-safe retarget' })
+
+    for (const point of resolved.points) {
+      surface.paintFocus({
+        primary: point,
+        group: [point],
+        source: 'pointer',
+        pinned: false,
+      })
+      expect(
+        container.querySelectorAll('[data-ts-focus-retarget] rect'),
+      ).toHaveLength(1)
+    }
+
+    surface.destroy()
+  })
+
+  it('does not confuse one focused arrow with another arrow fragment key', () => {
+    const values = [
+      { id: 'a', x1: 0, y1: 0, x2: 1, y2: 1 },
+      { id: 'a:shaft', x1: 1, y1: 0, x2: 2, y2: 1 },
+    ]
+    const resolved = createChartScene(
+      defineChart({
+        marks: [
+          whenFocused(
+            arrow(values, {
+              id: 'focused-arrow',
+              x1: 'x1',
+              y1: 'y1',
+              x2: 'x2',
+              y2: 'y2',
+              key: 'id',
+            }),
+          ),
+        ],
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear },
+        guides: false,
+        focusRing: false,
+      }),
+      { width: 320, height: 180 },
+    )
+    const layer = findFocusLayer(resolved, 'focus:focused-arrow')
+    const selected = layer?.focus?.points[1]
+    if (!selected) throw new Error('Expected focused arrow points')
+
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(resolved, { ariaLabel: 'Collision-safe arrows' })
+    surface.paintFocus({
+      primary: selected,
+      group: [selected],
+      source: 'pointer',
+      pinned: false,
+    })
+
+    const visibleLines = [
+      ...container.querySelectorAll('[data-ts-focus-layer] line'),
+    ].filter((line) => line.getAttribute('visibility') === 'visible')
+    expect(visibleLines).toHaveLength(3)
+    surface.destroy()
+  })
 })
+
+function findFocusLayer(scene: ChartScene, key: string) {
+  const visit = (nodes: ChartScene['nodes']): SceneGroup | undefined => {
+    for (const node of nodes) {
+      if (node.kind !== 'group') continue
+      if (node.key === key) return node
+      const nested = visit(node.children)
+      if (nested) return nested
+    }
+    return undefined
+  }
+  return visit(scene.nodes)
+}
 
 describe('inline mark states', () => {
   const rows = [
@@ -303,6 +570,51 @@ describe('inline mark states', () => {
       return { before, after }
     }
 
+    const cappedVertical = createChartScene(
+      defineChart({
+        marks: [
+          barY([{ id: 'capped-vertical', category: 'A', value: 8 }], {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            maxThickness: 20,
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { inset: 0 },
+                transition: { type: 'tween', duration: 0 },
+              },
+            ],
+          }),
+        ],
+        x: { scale: scaleBand<string>().domain(['A']) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+      }),
+      { width: 240, height: 180 },
+    )
+    const cappedHorizontal = createChartScene(
+      defineChart({
+        marks: [
+          barX([{ id: 'capped-horizontal', category: 'A', value: 8 }], {
+            x: 'value',
+            y: 'category',
+            key: 'id',
+            maxThickness: 20,
+            states: [
+              {
+                when: { focus: 'primary' },
+                style: { inset: 0 },
+                transition: { type: 'tween', duration: 0 },
+              },
+            ],
+          }),
+        ],
+        x: { scale: scaleLinear().domain([0, 10]) },
+        y: { scale: scaleBand<string>().domain(['A']) },
+      }),
+      { width: 240, height: 180 },
+    )
+
     const verticalState = inspect(vertical)
     expect(verticalState.after.x).toBe(verticalState.before.x - 10)
     expect(verticalState.after.width).toBe(verticalState.before.width + 20)
@@ -316,6 +628,16 @@ describe('inline mark states', () => {
     expect(horizontalState.after.height).toBe(
       horizontalState.before.height + 20,
     )
+
+    const cappedVerticalState = inspect(cappedVertical)
+    expect(cappedVerticalState.before.width).toBe(20)
+    expect(cappedVerticalState.after.x).toBe(cappedVerticalState.before.x)
+    expect(cappedVerticalState.after.width).toBe(20)
+
+    const cappedHorizontalState = inspect(cappedHorizontal)
+    expect(cappedHorizontalState.before.height).toBe(20)
+    expect(cappedHorizontalState.after.y).toBe(cappedHorizontalState.before.y)
+    expect(cappedHorizontalState.after.height).toBe(20)
   })
 
   it('applies series states to line geometry through the point index', () => {

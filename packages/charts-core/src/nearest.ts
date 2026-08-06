@@ -6,6 +6,7 @@ import type {
   ChartValue,
   SceneInteraction,
   SceneNode,
+  ScenePolygon,
 } from './types'
 
 type GeometricSceneNode = Exclude<SceneNode, { kind: 'group' | 'label' }>
@@ -241,7 +242,9 @@ function containsTarget(target: SceneInteractionTarget, x: number, y: number) {
       return dx * dx + dy * dy <= radius * radius
     }
     case 'area':
-      return containsPolygon(node.points, localX, localY)
+      return node.polygons === undefined
+        ? containsPolygon(node.points, localX, localY)
+        : containsPolygons(node.polygons, localX, localY)
     case 'polyline':
       return (
         squaredDistanceToPolyline(node.points, localX, localY, false) <=
@@ -288,7 +291,10 @@ function distanceToTarget(
       break
     }
     case 'area':
-      distance = squaredDistanceToPolyline(node.points, localX, localY, true)
+      distance =
+        node.polygons === undefined
+          ? squaredDistanceToPolyline(node.points, localX, localY, true)
+          : squaredDistanceToPolygons(node.polygons, localX, localY)
       break
     case 'polyline': {
       const raw = squaredDistanceToPolyline(node.points, localX, localY, false)
@@ -329,7 +335,9 @@ function boundsForNode(node: GeometricSceneNode): ChartBounds | null {
       }
     }
     case 'area':
-      return boundsFromPoints(node.points)
+      return node.polygons === undefined
+        ? boundsFromPoints(node.points)
+        : boundsFromPolygons(node.polygons)
     case 'polyline': {
       const bounds = boundsFromPoints(node.points)
       return bounds ? expandBounds(bounds, strokeRadius(node)) : null
@@ -417,6 +425,31 @@ function containsPolygon(
   return inside
 }
 
+function containsPolygons(
+  polygons: readonly ScenePolygon[],
+  x: number,
+  y: number,
+) {
+  return polygons.some(([exterior, ...holes]) => {
+    if (!exterior || !containsPolygon(exterior, x, y)) return false
+    return !holes.some((hole) => containsPolygon(hole, x, y))
+  })
+}
+
+function squaredDistanceToPolygons(
+  polygons: readonly ScenePolygon[],
+  x: number,
+  y: number,
+) {
+  let distance = Infinity
+  for (const polygon of polygons) {
+    for (const ring of polygon) {
+      distance = Math.min(distance, squaredDistanceToPolyline(ring, x, y, true))
+    }
+  }
+  return distance
+}
+
 function squaredDistanceToPolyline(
   points: readonly (readonly [number, number])[],
   x: number,
@@ -477,6 +510,12 @@ function boundsFromPoints(
   return Number.isFinite(minX)
     ? { x: minX, y: minY, width: maxX - minX, height: maxY - minY }
     : null
+}
+
+function boundsFromPolygons(
+  polygons: readonly ScenePolygon[],
+): ChartBounds | null {
+  return boundsFromPoints(polygons.flatMap((polygon) => polygon.flat()))
 }
 
 function normalizeRect(rect: ChartBounds): ChartBounds {

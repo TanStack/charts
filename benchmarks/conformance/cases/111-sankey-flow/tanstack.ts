@@ -1,8 +1,7 @@
 import { d3Curve, defineChart, link, rect, text } from '@tanstack/charts'
-import { sankey, sankeyLeft } from 'd3-sankey'
-import { scaleLinear } from 'd3-scale'
+import { sankeyDiagram } from '@tanstack/charts/network/sankey'
 import { curveBumpX } from 'd3-shape'
-import { labelBackdropBounds, responsiveLayout } from './layout'
+import { labelBackdropBounds } from './layout'
 import {
   incomeStatementData,
   incomeStatementTitle,
@@ -10,8 +9,8 @@ import {
   toneColors,
 } from './model'
 import { tanstackMount } from '../../shared/mount'
-import type { SankeyGraph, SankeyLink, SankeyNode } from 'd3-sankey'
-import type { FlowLink, FlowNode, FlowTone } from './model'
+import type { SankeyLink, SankeyNode } from '@tanstack/charts/network/sankey'
+import type { FlowLink, FlowNode, FlowNodeId, FlowTone } from './model'
 import type { ConformanceInput } from '../../types'
 
 const toneDomain = [
@@ -20,12 +19,18 @@ const toneDomain = [
   'Cost',
 ] as const satisfies readonly FlowTone[]
 
-export interface IncomeSankeyNodeRow extends FlowNode {
-  readonly kind: 'node'
-  readonly x0: number
-  readonly x1: number
-  readonly y0: number
-  readonly y1: number
+export type IncomeSankeyNodeRow = SankeyNode<FlowNode, FlowLink, FlowNodeId>
+export type IncomeSankeyLinkRow = SankeyLink<FlowNode, FlowLink, FlowNodeId>
+
+export interface IncomeSankeyTitleRow {
+  readonly kind: 'title'
+  readonly id: 'title'
+  readonly title: string
+  readonly x: number
+  readonly y: number
+}
+
+interface IncomeSankeyLabelRow extends IncomeSankeyNodeRow {
   readonly labelText: string
   readonly labelX: number
   readonly labelNameY: number
@@ -37,242 +42,173 @@ export interface IncomeSankeyNodeRow extends FlowNode {
   readonly backdropY1: number
 }
 
-export interface IncomeSankeyLinkRow extends FlowLink {
-  readonly kind: 'link'
-  readonly id: string
-  readonly sourceLabel: string
-  readonly targetLabel: string
-  readonly x1: number
-  readonly y1: number
-  readonly x2: number
-  readonly y2: number
-  readonly width: number
-}
-
-export interface IncomeSankeyTitleRow {
-  readonly kind: 'title'
-  readonly id: 'title'
-  readonly title: string
-  readonly x: number
-  readonly y: number
-}
-
 export type IncomeSankeyDatum =
   IncomeSankeyNodeRow | IncomeSankeyLinkRow | IncomeSankeyTitleRow
 
 export const sankeyDefinition = (input: ConformanceInput) => {
   const { nodes, links } = incomeStatementData(input.revision)
 
-  return defineChart(({ width, height }) => {
-    const layout = responsiveLayout(width, height)
-    const graph = sankey<FlowNode, FlowLink>()
-      .nodeId((node) => node.id)
-      .nodeAlign(sankeyLeft)
-      .nodeSort((left, right) => left.order - right.order)
-      .nodeWidth(layout.nodeWidth)
-      .nodePadding(layout.nodePadding)
-      .extent([
-        [layout.leftMargin, layout.topMargin],
-        [width - layout.rightMargin, height - layout.bottomMargin],
-      ])
-      .iterations(32)(cloneGraph(nodes, links))
-    const nodeRows = graph.nodes.map((node) =>
-      nodeRow(node, width, layout.labelOffset, layout.labelFontSize),
-    )
-    const linkRows = graph.links.map(linkRow)
-    const backdropRows = nodeRows.filter((node) => node.labelBackdrop)
-    const titleRows: readonly IncomeSankeyTitleRow[] = [
-      {
-        kind: 'title',
-        id: 'title',
-        title: incomeStatementTitle,
-        x: width / 2,
-        y: layout.titleY,
-      },
-    ]
+  return defineChart({
+    marks: [
+      sankeyDiagram({
+        id: 'income-sankey',
+        nodes,
+        links,
+        nodeKey: 'id',
+        source: 'source',
+        target: 'target',
+        value: 'value',
+        align: 'left',
+        nodeSort: (left, right) => left.data.order - right.data.order,
+        nodeWidth: ({ width }) => clamp(width * 0.032, 10, 24),
+        nodePadding: ({ height }) => clamp(height * 0.11, 12, 40),
+        inset: ({ width, height }) => ({
+          left: clamp(width * 0.15, 56, 122),
+          right: clamp(width * 0.13, 48, 105),
+          top: clamp(height * 0.14, 38, 70),
+          bottom: clamp(height * 0.025, 8, 14),
+        }),
+        iterations: 32,
+        marks: ({ chart, nodes: sankeyNodes, links: sankeyLinks }) => {
+          const labelFontSize = clamp(chart.width * 0.013, 6.5, 10.5)
+          const labelOffset = clamp(chart.width * 0.008, 3, 6)
+          const labelRows = sankeyNodes.map((node): IncomeSankeyLabelRow => {
+            const labelAnchor =
+              node.data.labelSide === 'right' ? 'start' : 'end'
+            const labelX =
+              node.data.labelSide === 'right'
+                ? node.x1 + labelOffset
+                : node.x0 - labelOffset
+            const labelText =
+              chart.width < 720 && node.data.compactLabel
+                ? node.data.compactLabel
+                : node.data.label
+            const backdrop = labelBackdropBounds({
+              anchor: labelAnchor,
+              centerY: node.y,
+              fontSize: labelFontSize,
+              label: labelText,
+              labelX,
+              value: node.data.displayValue,
+            })
+            return {
+              ...node,
+              labelText,
+              labelX,
+              labelNameY: node.y - labelFontSize * 0.5,
+              labelValueY: node.y + labelFontSize * 0.58,
+              labelAnchor,
+              backdropX0: backdrop.x,
+              backdropX1: backdrop.x + backdrop.width,
+              backdropY0: backdrop.y,
+              backdropY1: backdrop.y + backdrop.height,
+            }
+          })
+          const backdropRows = labelRows.filter(
+            (node) => node.data.labelBackdrop,
+          )
+          const titleRows: readonly IncomeSankeyTitleRow[] = [
+            {
+              kind: 'title',
+              id: 'title',
+              title: incomeStatementTitle,
+              x: chart.x + chart.width / 2,
+              y: chart.y + clamp(chart.height * 0.065, 17, 32),
+            },
+          ]
 
-    return {
-      marks: [
-        link(linkRows, {
-          x1: 'x1',
-          y1: 'y1',
-          x2: 'x2',
-          y2: 'y2',
-          stroke: (flow) => linkColors[flow.tone],
-          strokeOpacity: (flow) => (flow.tone === 'Neutral' ? 0.58 : 0.64),
-          strokeWidth: (flow) => flow.width,
-          lineCap: 'butt',
-          curve: d3Curve(curveBumpX),
-        }),
-        rect(nodeRows, {
-          x1: 'x0',
-          x2: 'x1',
-          y1: 'y0',
-          y2: 'y1',
-          color: 'tone',
-          inset: 0,
-        }),
-        rect(backdropRows, {
-          x1: 'backdropX0',
-          x2: 'backdropX1',
-          y1: 'backdropY0',
-          y2: 'backdropY1',
-          fill: 'var(--panel, #ffffff)',
-          fillOpacity: 0.82,
-          inset: 0,
-          radius: 1,
-        }),
-        text(nodeRows, {
-          x: 'labelX',
-          y: 'labelNameY',
-          text: 'labelText',
-          anchor: (node) => node.labelAnchor,
-          fill: 'currentColor',
-          fontSize: layout.labelFontSize,
-          fontWeight: 700,
-        }),
-        text(nodeRows, {
-          x: 'labelX',
-          y: 'labelValueY',
-          text: 'displayValue',
-          anchor: (node) => node.labelAnchor,
-          fill: 'currentColor',
-          fontSize: layout.labelFontSize,
-          fontWeight: 500,
-        }),
-        text(titleRows, {
-          x: 'x',
-          y: 'y',
-          text: 'title',
-          fill: '#155477',
-          fontSize: layout.titleFontSize,
-          fontWeight: 750,
-        }),
-      ],
-      x: { scale: scaleLinear().domain([0, width]) },
-      y: { scale: scaleLinear().domain([height, 0]) },
-      color: {
-        domain: toneDomain,
-        range: toneDomain.map((tone) => toneColors[tone]),
-      },
-      guides: false,
-      margin: 0,
-    }
+          return [
+            link(sankeyLinks, {
+              id: 'links',
+              x1: 'x1',
+              y1: 'y1',
+              x2: 'x2',
+              y2: 'y2',
+              key: 'key',
+              stroke: (flow) => linkColors[flow.data.tone],
+              strokeOpacity: (flow) =>
+                flow.data.tone === 'Neutral' ? 0.58 : 0.64,
+              strokeWidth: (flow) => Math.max(1, flow.width),
+              lineCap: 'butt',
+              curve: d3Curve(curveBumpX),
+            }),
+            rect(sankeyNodes, {
+              id: 'nodes',
+              x1: 'x0',
+              x2: 'x1',
+              y1: 'y0',
+              y2: 'y1',
+              key: 'key',
+              color: (node) => node.data.tone,
+              inset: 0,
+            }),
+            rect(backdropRows, {
+              id: 'label-backdrops',
+              x1: 'backdropX0',
+              x2: 'backdropX1',
+              y1: 'backdropY0',
+              y2: 'backdropY1',
+              key: 'key',
+              fill: 'var(--panel, #ffffff)',
+              fillOpacity: 0.82,
+              inset: 0,
+              radius: 1,
+            }),
+            text(labelRows, {
+              id: 'label-names',
+              x: 'labelX',
+              y: 'labelNameY',
+              text: 'labelText',
+              key: 'key',
+              anchor: (node) => node.labelAnchor,
+              fill: 'currentColor',
+              fontSize: labelFontSize,
+              fontWeight: 700,
+            }),
+            text(labelRows, {
+              id: 'label-values',
+              x: 'labelX',
+              y: 'labelValueY',
+              text: (node) => node.data.displayValue,
+              key: 'key',
+              anchor: (node) => node.labelAnchor,
+              fill: 'currentColor',
+              fontSize: labelFontSize,
+              fontWeight: 500,
+            }),
+            text(titleRows, {
+              id: 'title',
+              x: 'x',
+              y: 'y',
+              text: 'title',
+              key: 'id',
+              fill: '#155477',
+              fontSize: clamp(chart.width * 0.034, 14, 26),
+              fontWeight: 750,
+            }),
+          ] as const
+        },
+      }),
+    ],
+    color: {
+      domain: toneDomain,
+      range: toneDomain.map((tone) => toneColors[tone]),
+    },
+    guides: false,
+    margin: 0,
   })
 }
 
-function nodeRow(
-  node: SankeyNode<FlowNode, FlowLink>,
-  width: number,
-  labelOffset: number,
-  labelFontSize: number,
-): IncomeSankeyNodeRow {
-  const { x0, x1, y0, y1 } = resolvedNodeBounds(node)
-  const labelOnRight = node.labelSide === 'right'
-  const labelX = labelOnRight ? x1 + labelOffset : x0 - labelOffset
-  const labelAnchor = labelOnRight ? 'start' : 'end'
-  const centerY = (y0 + y1) / 2
-  const labelText =
-    width < 720 && node.compactLabel ? node.compactLabel : node.label
-  const backdrop = labelBackdropBounds({
-    anchor: labelAnchor,
-    centerY,
-    fontSize: labelFontSize,
-    label: labelText,
-    labelX,
-    value: node.displayValue,
-  })
-
-  return {
-    kind: 'node',
-    id: node.id,
-    label: node.label,
-    compactLabel: node.compactLabel,
-    value: node.value,
-    displayValue: node.displayValue,
-    tone: node.tone,
-    order: node.order,
-    labelSide: node.labelSide,
-    labelBackdrop: node.labelBackdrop,
-    x0,
-    x1,
-    y0,
-    y1,
-    labelText,
-    labelX,
-    labelNameY: centerY - labelFontSize * 0.5,
-    labelValueY: centerY + labelFontSize * 0.58,
-    labelAnchor,
-    backdropX0: backdrop.x,
-    backdropX1: backdrop.x + backdrop.width,
-    backdropY0: backdrop.y,
-    backdropY1: backdrop.y + backdrop.height,
-  }
-}
-
-function linkRow(flow: SankeyLink<FlowNode, FlowLink>): IncomeSankeyLinkRow {
-  const source = resolvedLinkNode(flow.source, 'source')
-  const target = resolvedLinkNode(flow.target, 'target')
-  const y1 = flow.y0
-  const y2 = flow.y1
-  if (y1 === undefined || y2 === undefined) {
-    throw new TypeError(
-      `Sankey link "${source.id} → ${target.id}" has no layout`,
-    )
-  }
-
-  return {
-    kind: 'link',
-    id: `${source.id}:${target.id}`,
-    source: source.id,
-    target: target.id,
-    sourceLabel: source.label,
-    targetLabel: target.label,
-    value: flow.value,
-    tone: flow.tone,
-    x1: resolvedNodeBounds(source).x1,
-    y1,
-    x2: resolvedNodeBounds(target).x0,
-    y2,
-    width: Math.max(1, flow.width ?? 1),
-  }
-}
-
-function cloneGraph(
-  nodes: readonly FlowNode[],
-  links: readonly FlowLink[],
-): SankeyGraph<FlowNode, FlowLink> {
-  return {
-    nodes: nodes.map((node) => ({ ...node })),
-    links: links.map((flow) => ({ ...flow })),
-  }
-}
-
-function resolvedLinkNode(
-  node: SankeyLink<FlowNode, FlowLink>['source'],
-  endpoint: 'source' | 'target',
-): SankeyNode<FlowNode, FlowLink> {
-  if (typeof node === 'object') return node
-  throw new TypeError(`Unresolved Sankey link ${endpoint}`)
-}
-
-function resolvedNodeBounds(node: SankeyNode<FlowNode, FlowLink>) {
-  const { x0, x1, y0, y1 } = node
-  if (
-    x0 === undefined ||
-    x1 === undefined ||
-    y0 === undefined ||
-    y1 === undefined
-  ) {
-    throw new TypeError(`Sankey node "${node.id}" has no layout bounds`)
-  }
-  return { x0, x1, y0, y1 }
+function clamp(value: number, minimum: number, maximum: number) {
+  return Math.min(maximum, Math.max(minimum, value))
 }
 
 export const mount = tanstackMount(sankeyDefinition, incomeStatementTitle, {
   format: ({ datum }) => {
     if (datum.kind === 'title') return datum.title
-    if (datum.kind === 'node') return `${datum.label} · ${datum.displayValue}`
-    return `${datum.sourceLabel} → ${datum.targetLabel} · ${datum.value}`
+    if (datum.kind === 'node') {
+      return `${datum.data.label} · ${datum.data.displayValue}`
+    }
+    return `${datum.sourceNode.data.label} → ${datum.targetNode.data.label} · ${datum.value}`
   },
 })

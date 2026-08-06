@@ -1,15 +1,17 @@
 ---
 title: Polar and Radar Charts
-description: Build D3-backed pie, donut, gauge, radar, line, scatter, radial bar, rose, and sunburst charts through the opt-in polar coordinate entry.
+description: Build native pie, donut, gauge, radar, line, scatter, radial bar, rose, and sunburst charts through the opt-in polar coordinate entry.
 ---
 
 Polar geometry is available only from `@tanstack/charts/polar`. The container
-owns responsive center, angle, and radius ranges; granular D3 modules still
-own pie layout, configured scales, and curve factories.
+owns responsive center, angle, and radius ranges. Its eager `pie` transform
+owns value allocation; granular D3 modules still own configured scales, curve
+factories, and final arc/path geometry.
 
 ```ts
 import {
   angleGrid,
+  pie,
   polar,
   radialArc,
   radialArea,
@@ -25,7 +27,7 @@ The package root stays Cartesian-sized when this subpath is not imported.
 
 ## Pie and donut
 
-Use `d3-shape`'s `pie` transform to turn totals into angular intervals.
+Use `pie` to turn totals into flat source-linked angular intervals.
 `radialArc` renders the intervals. A zero inner radius is a pie; a responsive
 nonzero inner radius is a donut.
 
@@ -33,8 +35,14 @@ nonzero inner radius is a donut.
 
 ```ts
 import { defineChart } from '@tanstack/charts'
-import { polar, radialArc } from '@tanstack/charts/polar'
-import { pie } from 'd3-shape'
+import {
+  pie,
+  polar,
+  radialArc,
+  radialRule,
+  radialText,
+} from '@tanstack/charts/polar'
+import { scaleLinear } from 'd3-scale'
 
 interface AlphabetRow {
   letter: string
@@ -51,24 +59,18 @@ const alphabet: readonly AlphabetRow[] = [
 
 const partColors = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316']
 const letters = alphabet.slice(0, 5)
-const pieLayout = pie<AlphabetRow>()
-  .sort(null)
-  .value((row) => row.frequency)
 
 function ring(innerRatio: number) {
-  const slices = pieLayout(letters)
+  const slices = pie(letters, { value: 'frequency' })
   return polar({
     inset: 8,
     radiusRatio: 0.82,
     marks: [
       radialArc(slices, {
-        startAngle: 'startAngle',
-        endAngle: 'endAngle',
-        padAngle: 'padAngle',
         innerRadius: ({ radius }) => radius * innerRatio,
         cornerRadius: 4,
-        color: (slice) => slice.data.letter,
-        key: (slice) => slice.data.letter,
+        color: 'letter',
+        key: 'letter',
       }),
     ],
   })
@@ -83,11 +85,45 @@ const donutChart = defineChart({
   marks: [ring(0.58)],
   color: { domain: letters.map((row) => row.letter), range: partColors },
 })
+
+const labeledSlices = pie(letters, { value: 'frequency' })
+const labeledPie = defineChart({
+  marks: [
+    polar({
+      radiusRatio: 0.72,
+      angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+      radius: { scale: scaleLinear().domain([0, 1]) },
+      marks: [
+        radialArc(labeledSlices, {
+          color: 'letter',
+          key: 'letter',
+        }),
+        radialRule(labeledSlices, {
+          angle: 'angle',
+          radius1: 1,
+          radius2: 1,
+          radius2Offset: 20,
+          key: 'letter',
+        }),
+        radialText(labeledSlices, {
+          angle: 'angle',
+          radius: 1,
+          radiusOffset: 20,
+          text: 'letter',
+          color: 'letter',
+          key: 'letter',
+          anchor: 'outside',
+        }),
+      ],
+    }),
+  ],
+  color: { domain: letters.map((row) => row.letter), range: partColors },
+})
 ```
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/76-pie/?theme=system&height=480"
-  title="English letter-frequency pie chart built from D3 pie intervals and TanStack radial arcs"
+  title="English letter-frequency pie chart built from native pie intervals and radial arcs"
   loading="lazy"
   width="100%"
   height="480"
@@ -96,7 +132,7 @@ const donutChart = defineChart({
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/77-donut/?theme=system&height=480"
-  title="English letter-frequency donut chart built from D3 pie intervals and TanStack radial arcs"
+  title="English letter-frequency donut chart built from native pie intervals and radial arcs"
   loading="lazy"
   width="100%"
   height="480"
@@ -104,7 +140,9 @@ const donutChart = defineChart({
 ></iframe>
 
 The same primitives cover labels, center content, padding, rounded corners,
-and concentric rings:
+and concentric rings. Radial offsets are signed pixels applied after scale
+mapping. They do not change the radius domain or reserve outer margin; leave
+space with `radiusRatio`, `inset`, or chart margins.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/93-labeled-pie/?theme=system&height=480"
@@ -126,7 +164,7 @@ and concentric rings:
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/95-rounded-donut/?theme=system&height=480"
-  title="Rounded English letter-frequency donut chart with padded arcs"
+  title="Rounded English letter-frequency donut chart with angular gaps and rounded arcs"
   loading="lazy"
   width="100%"
   height="480"
@@ -142,20 +180,25 @@ and concentric rings:
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
-Keep `pie().sort(null)` when source order is semantic. Stable arc keys must
-come from the original row, not the generated slice index.
+Source order is the default. Use `orderBy` and `order` only for an explicit
+angular sort. Stable arc keys must come from the original row, not the
+generated slice index.
+
+Each allocated row keeps the original fields plus direct `source` and
+`sourceIndexes` lineage. Fixed allocation fields overwrite source fields with
+the same names. `gapAngle` materializes direct empty space; the returned
+`padAngle: 0` prevents `radialArc` from padding that interval again.
 
 ## Partial-circle gauge
 
-A gauge is the same composition over a restricted D3 pie interval. It is not
+A gauge is the same composition over a restricted pie interval. It is not
 a separate geometry implementation.
 
 <!-- docs-example: polar-partial-gauge typecheck -->
 
 ```ts
 import { defineChart } from '@tanstack/charts'
-import { polar, radialArc } from '@tanstack/charts/polar'
-import { pie } from 'd3-shape'
+import { pie, polar, radialArc } from '@tanstack/charts/polar'
 
 interface SurveyRow {
   Question: string
@@ -192,11 +235,11 @@ const gaugeParts: GaugePart[] = [
   { id: 'agreement', value: agreement },
   { id: 'other', value: 100 - agreement },
 ]
-const gaugeSlices = pie<GaugePart>()
-  .sort(null)
-  .value((part) => part.value)
-  .startAngle(-Math.PI * 0.75)
-  .endAngle(Math.PI * 0.75)(gaugeParts)
+const gaugeSlices = pie(gaugeParts, {
+  value: 'value',
+  startAngle: -Math.PI * 0.75,
+  endAngle: Math.PI * 0.75,
+})
 
 const gauge = defineChart({
   marks: [
@@ -204,11 +247,10 @@ const gauge = defineChart({
       radiusRatio: 0.84,
       marks: [
         radialArc(gaugeSlices, {
-          startAngle: 'startAngle',
-          endAngle: 'endAngle',
           innerRadius: ({ radius }) => radius * 0.72,
           cornerRadius: 999,
-          color: (slice) => slice.data.id,
+          color: 'id',
+          key: 'id',
         }),
       ],
     }),
@@ -222,7 +264,7 @@ const gauge = defineChart({
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/78-gauge/?theme=system&height=480"
-  title="Survey agreement gauge composed from D3 pie intervals and TanStack radial arcs"
+  title="Survey agreement gauge composed from native pie intervals and TanStack radial arcs"
   loading="lazy"
   width="100%"
   height="480"
@@ -249,7 +291,8 @@ polar guides and radial marks. TanStack supplies both responsive ranges.
 <!-- docs-example: polar-radar typecheck -->
 
 ```ts
-import { defineChart } from '@tanstack/charts'
+import { defineChart, normalize, select } from '@tanstack/charts'
+import { fold } from '@tanstack/charts/transform/fold'
 import {
   angleGrid,
   polar,
@@ -258,7 +301,6 @@ import {
   radialGrid,
   radialLine,
 } from '@tanstack/charts/polar'
-import { extent } from 'd3-array'
 import { scaleLinear, scalePoint } from 'd3-scale'
 import { curveLinearClosed } from 'd3-shape'
 
@@ -310,35 +352,36 @@ const events = [
 type RadarEvent = (typeof events)[number]
 
 const timedEvents = new Set<RadarEvent>(['100 Meters', '100 Meter Hurdles'])
-const eventExtents = new Map(
-  events.map((event) => [event, extent(decathlon, (row) => row[event])]),
-)
-
-function radarProfile(row: DecathlonRow) {
-  return events.map((event) => {
-    const [minimum = 0, maximum = 1] = eventExtents.get(event) ?? []
-    const proportion = (row[event] - minimum) / (maximum - minimum || 1)
-    return {
-      Country: row.Country,
-      event,
-      relativePerformance:
-        (timedEvents.has(event) ? 1 - proportion : proportion) * 100,
-    }
-  })
-}
-
-const athlete = decathlon[0]
-if (!athlete) throw new Error('The decathlon data is empty')
-const profile = radarProfile(athlete)
+const folded = fold(decathlon, {
+  fields: events,
+  as: { key: 'event', value: 'result' },
+})
+const normalized = normalize(folded, {
+  by: 'event',
+  value: ({ datum }) =>
+    timedEvents.has(datum.event) ? -datum.result : datum.result,
+  basis: 'extent',
+  as: 'relativePerformance',
+})
+const profile = select(normalized, { by: 'event', select: 'first' })
+const percent = new Intl.NumberFormat('en-US', {
+  style: 'percent',
+  maximumFractionDigits: 0,
+})
 
 const radar = defineChart({
   marks: [
     polar({
       radiusRatio: 0.72,
       angle: { scale: scalePoint<string>().domain(events), wrap: true },
-      radius: { scale: scaleLinear().domain([0, 100]).nice(4) },
+      radius: { scale: scaleLinear().domain([0, 1]) },
       guides: [
-        radialGrid({ ticks: 4, shape: 'polygon', labels: false }),
+        radialGrid({
+          values: [0.25, 0.5, 0.75, 1],
+          shape: 'polygon',
+          labels: true,
+          format: (value) => percent.format(Number(value)),
+        }),
         angleGrid({
           labels: true,
           labelDx: ({ x }) => (x < -1 ? -3 : x > 1 ? 3 : 0),
@@ -546,10 +589,86 @@ const polarScatterChart = defineChart({
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
-## Radial magnitude and hierarchy
+## Radial bars
 
-`radialArc.generator` accepts responsive D3 arc accessors, so variable-radius
-sectors, concentric radial bars, and hierarchy rings remain one primitive.
+Choose the mark by the quantitative direction. A rose extends one bar through
+radius for each angle band. Concentric radial bars extend through angle for
+each radius band. D3 band padding controls the categorical occupancy.
+
+<!-- docs-example: polar-radial-bars typecheck -->
+
+```ts
+import { defineChart } from '@tanstack/charts'
+import { polar, radialBarAngle, radialBarRadius } from '@tanstack/charts/polar'
+import { scaleBand, scaleLinear } from 'd3-scale'
+
+interface FrequencyRow {
+  letter: string
+  frequency: number
+}
+
+const frequencies: readonly FrequencyRow[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
+const letters = frequencies.map((row) => row.letter)
+const maximum = Math.max(...frequencies.map((row) => row.frequency))
+const colors = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#16a34a']
+
+const rose = defineChart({
+  marks: [
+    polar({
+      radiusRatio: 0.8,
+      angle: { scale: () => scaleBand<string>() },
+      radius: {
+        scale: scaleLinear().domain([0, maximum]),
+        range: [({ radius }) => radius * 0.3, ({ radius }) => radius],
+      },
+      marks: [
+        radialBarRadius(frequencies, {
+          angle: 'letter',
+          radius: 'frequency',
+          color: 'letter',
+          key: 'letter',
+        }),
+      ],
+    }),
+  ],
+  color: { domain: letters, range: colors },
+})
+
+const concentricBars = defineChart({
+  marks: [
+    polar({
+      radiusRatio: 0.84,
+      angle: { scale: scaleLinear().domain([0, maximum]) },
+      radius: {
+        scale: () => scaleBand<string>().paddingInner(0.38).paddingOuter(0.19),
+        range: [({ radius }) => radius * 0.2, ({ radius }) => radius],
+      },
+      marks: [
+        radialBarAngle(frequencies, {
+          angle: 'frequency',
+          radius: 'letter',
+          color: 'letter',
+          cornerRadius: 'full',
+          key: 'letter',
+        }),
+      ],
+    }),
+  ],
+  color: { domain: letters, range: colors },
+})
+```
+
+An omitted radius baseline in `radialBarRadius` starts at the physical center;
+the responsive radius range controls the quantitative endpoints. Supply
+`radius1` when both endpoints are semantic values. Signed radius data should
+use `radius1: 0` so semantic zero maps through the scale. `radialBarAngle` maps
+its default angle baseline from semantic zero.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/97-rose/?theme=system&height=480"
@@ -569,9 +688,47 @@ sectors, concentric radial bars, and hierarchy rings remain one primitive.
   style="width:100%;height:480px;border:0;"
 ></iframe>
 
+## Polar hierarchy
+
+The optional `sunburst` mark accepts flat hierarchy rows and owns value
+aggregation, partitioning, responsive rings, and sector geometry:
+
+```ts
+import { defineChart } from '@tanstack/charts'
+import { sunburst } from '@tanstack/charts/hierarchy/sunburst'
+import { polar } from '@tanstack/charts/polar'
+
+const chart = defineChart({
+  marks: [
+    polar({
+      startAngle: Math.PI / 2,
+      endAngle: Math.PI / 2 - Math.PI * 2,
+      marks: [
+        sunburst(rows, {
+          path: 'name',
+          delimiter: '.',
+          value: 'size',
+          innerRadius: ({ radius }) => radius * 0.14,
+          ringPadding: 2,
+          color: 'branchId',
+          stroke: '#fff',
+        }),
+      ],
+    }),
+  ],
+})
+```
+
+Use `nodeId` and `parentId` for explicit parent-reference rows. Responsive
+`innerRadius` and `outerRadius` callbacks receive the final polar radius;
+`ringPadding` remains a fixed pixel gap. Every `SunburstNode` retains its
+direct row and source index, while `branchId` gives descendants the color of
+their first ancestor below the root. See the
+[Sunburst Mark reference](../reference/marks/sunburst.md).
+
 <iframe
   src="https://tanstack.com/charts/catalog/embed/101-sunburst/?theme=system&height=480"
-  title="Flare analytics hierarchy sunburst rendered with native radial arcs"
+  title="Flare analytics hierarchy sunburst rendered with native sectors"
   loading="lazy"
   width="100%"
   height="480"
@@ -586,16 +743,20 @@ then guide foreground labels, and emits ordinary scene nodes and focus points.
 The outer chart therefore omits both Cartesian axes.
 
 The polar entry uses D3 arc and radial path generators internally. Application
-source imports `pie`, configured scales, and curve factories directly from
-`d3-shape` or `d3-scale`. See
+source imports configured scales and curve factories directly from `d3-shape`
+or `d3-scale`; value allocation comes from the polar entry. See
 [Polar Marks](../reference/marks/polar.md) for the complete API and
 [Bundle Size and Performance](../guides/bundle-size-and-performance.md) for
 the isolated consumer budgets.
 
+`radialArc` also accepts existing D3 pie DTOs as interoperability input; native
+`pie` is preferred when flat fields, transform lineage, and direct gap
+semantics are wanted.
+
 ## Production checks
 
 - Keep angle for cyclic order or part-to-whole intervals.
-- Use D3 pie output rather than reimplementing angle accumulation.
+- Use native `pie` output rather than reimplementing angle accumulation.
 - Let marks infer identity from source IDs or unique positions; supply a key
   when neither is available.
 - Preserve original values for tooltips and accessible summaries.

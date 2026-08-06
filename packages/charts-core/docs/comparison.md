@@ -156,7 +156,8 @@ runtime:
 | --------------------------------------------------- | ---------------------------------------------------- |
 | Binning, grouping, stacking, and statistics         | Hoistable TanStack transforms or granular D3 modules |
 | Spatial layouts                                     | Application code using a suitable layout library     |
-| Brush, zoom, scrubber, and editor state             | Application state and optional D3 behavior           |
+| Brush and zoom                                      | Controlled application state plus an exact behavior  |
+| Scrubber and editor state                           | Application state and optional direct manipulation   |
 | Data fetching, cleaning, filtering, and persistence | The application's data and state layers              |
 
 Choose Chart.js when Canvas-first standard charts and its plugin ecosystem fit

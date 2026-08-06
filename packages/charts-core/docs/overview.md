@@ -31,9 +31,8 @@ Native adapter consumes definitions from the universal entry.
 <!-- docs-example: overview typecheck -->
 
 ```ts
-import { mean } from 'd3-array'
 import { scaleLinear, scaleUtc } from 'd3-scale'
-import { areaY, defineChart, lineY } from '@tanstack/charts'
+import { defineChart, differenceY, window } from '@tanstack/charts'
 
 interface ClosingPrice {
   Date: Date
@@ -51,33 +50,26 @@ const observations: readonly ClosingPrice[] = [
   { Date: new Date('2013-05-22T00:00:00Z'), Close: 63.05 },
 ]
 
-const rows = observations.flatMap((row, index) => {
-  if (index < 2) return []
-  const average = mean(
-    observations.slice(index - 2, index + 1),
-    (observation) => observation.Close,
-  )
-  return average === undefined ? [] : [{ ...row, average }]
+const rows = window(observations, {
+  size: 3,
+  orderBy: 'Date',
+  anchor: 'end',
+  partial: false,
+  outputs: {
+    average: { value: 'Close', reduce: 'mean' },
+  },
 })
 
 const closingPriceChart = defineChart({
   marks: [
-    areaY(rows, {
+    differenceY(rows, {
       x: 'Date',
       y1: 'average',
       y2: 'Close',
-      fill: '#2563eb',
-      fillOpacity: 0.18,
-    }),
-    lineY(rows, {
-      x: 'Date',
-      y: 'Close',
-      stroke: '#2563eb',
-    }),
-    lineY(rows, {
-      x: 'Date',
-      y: 'average',
-      stroke: '#64748b',
+      positiveFill: '#16a34a',
+      negativeFill: '#dc2626',
+      stroke: '#166534',
+      comparisonStroke: '#475569',
     }),
   ],
   x: {
@@ -94,11 +86,12 @@ const closingPriceChart = defineChart({
 })
 ```
 
-The rolling average is an ordinary, visible data transform. The direct
-`d3-array` and `d3-scale` imports are application dependencies. Install those
-modules and their matching `@types` packages alongside TanStack Charts.
-[Installation](./installation.md) lists the exact packages, and
-[Scales and D3](./concepts/scales-and-d3.md) explains the ownership boundary.
+The rolling average is an ordinary, visible `window` transform. `differenceY`
+owns sign segmentation and exact crossing interpolation. The direct `d3-scale`
+import is an application dependency. Install it and its matching `@types`
+package alongside TanStack Charts. [Installation](./installation.md) lists the
+exact packages, and [Scales and D3](./concepts/scales-and-d3.md) explains the
+ownership boundary.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/33-difference-chart/?theme=system&height=480"

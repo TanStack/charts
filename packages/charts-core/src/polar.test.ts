@@ -1,9 +1,10 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleBand, scaleLinear, scaleOrdinal, scalePoint } from 'd3-scale'
-import { arc, areaRadial, curveLinearClosed, lineRadial, pie } from 'd3-shape'
+import { arc, areaRadial, curveLinearClosed, lineRadial } from 'd3-shape'
 import * as rootExports from './index'
 import {
   angleGrid,
+  pie,
   polar,
   radialArc,
   radialArea,
@@ -14,7 +15,14 @@ import {
   radialText,
 } from './polar'
 import { createChartScene, defineChart } from './scene'
-import type { ChartDefinition, SceneNode } from './types'
+import type {
+  ChartDefinition,
+  ChartMotionContext,
+  ChartMotionDefinition,
+  ChartMotionTiming,
+  SceneNode,
+} from './types'
+import type { RadialRuleOptions, RadialTextOptions } from './polar'
 
 interface Slice {
   id: string
@@ -29,16 +37,15 @@ const slices: readonly Slice[] = [
 
 describe('polar marks', () => {
   it('renders responsive D3 arcs and emits centroid interaction points', () => {
-    const arcs = pie<Slice>()
-      .sort(null)
-      .value((row) => row.value)([...slices])
+    const arcs = pie(slices, { value: 'value' })
     const definition = defineChart({
       marks: [
         polar({
           radiusRatio: 0.8,
           marks: [
             radialArc(arcs, {
-              z: (slice) => slice.data.label,
+              key: 'id',
+              z: 'label',
               innerRadius: ({ radius }) => radius * 0.55,
               outerRadius: ({ radius }) => radius,
               cornerRadius: 4,
@@ -82,10 +89,49 @@ describe('polar marks', () => {
     )
     const centroid = expectedGenerator.centroid(arcs[0])
     expect(small.points[0]).toMatchObject({
-      key: 'polar-0:arc-0:string:Errors:string:errors',
+      key: 'polar-0:arc-0:string:6:Errors:string:6:errors',
       x: 100 + centroid[0],
       y: 80 + centroid[1],
       datum: arcs[0],
+    })
+    expect(small.points[0]?.datum).not.toHaveProperty('data')
+  })
+
+  it('renders materialized pie gaps without applying arc padding twice', () => {
+    const gapAngle = 0.2
+    const arcs = pie(slices, { value: 'value', gapAngle })
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            marks: [radialArc(arcs, { id: 'gapped-arcs', key: 'id' })],
+          }),
+        ],
+        margin: 0,
+      }),
+      { width: 200, height: 200 },
+    )
+    const areas = flatten(scene.nodes).filter((node) => node.kind === 'area')
+    const expected = arc<(typeof arcs)[number]>()
+      .innerRadius(0)
+      .outerRadius(100)
+    const paddedAgain = arc<(typeof arcs)[number]>()
+      .innerRadius(0)
+      .outerRadius(100)
+      .padAngle(gapAngle)
+    const centroid = expected.centroid(arcs[0]!)
+
+    expect(areas[0]?.kind === 'area' ? areas[0].path : '').toBe(
+      expected(arcs[0]!),
+    )
+    expect(areas[0]?.kind === 'area' ? areas[0].path : '').not.toBe(
+      paddedAgain(arcs[0]!),
+    )
+    expect(scene.points[0]).toMatchObject({
+      key: 'gapped-arcs:object:null:string:6:errors',
+      datum: arcs[0],
+      x: 100 + centroid[0],
+      y: 100 + centroid[1],
     })
   })
 
@@ -443,6 +489,374 @@ describe('polar marks', () => {
     })
   })
 
+  it('applies signed per-datum radial offsets after semantic radius mapping', () => {
+    const rows = [
+      {
+        id: 'valid',
+        angle: Math.PI / 2,
+        radius1: 0.5,
+        radius2: 1,
+        innerOffset: -5,
+        outerOffset: 20,
+        dx: 3,
+        dy: -4,
+      },
+      {
+        id: 'invalid',
+        angle: Math.PI,
+        radius1: 0.5,
+        radius2: 1,
+        innerOffset: 0,
+        outerOffset: Number.NaN,
+        dx: 0,
+        dy: 0,
+      },
+    ] as const
+    const fillCalls: string[] = []
+    const anchorCalls: string[] = []
+    const textMark = radialText(rows, {
+      id: 'offset-labels',
+      angle: 'angle',
+      radius: 'radius2',
+      key: 'id',
+      text: 'id',
+      radiusOffset: (row) => row.outerOffset,
+      dx: (row) => row.dx,
+      dy: (row) => row.dy,
+      fill: (row) => {
+        fillCalls.push(row.id)
+        return '#2563eb'
+      },
+      anchor: (row) => {
+        anchorCalls.push(row.id)
+        return 'outside'
+      },
+    })
+    const ruleMark = radialRule(rows, {
+      id: 'offset-leaders',
+      angle: 'angle',
+      radius1: 'radius1',
+      radius2: 'radius2',
+      radius1Offset: (row) => row.innerOffset,
+      radius2Offset: (row) => row.outerOffset,
+      key: 'id',
+    })
+    const definition = defineChart({
+      marks: [
+        polar({
+          angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+          radius: { scale: scaleLinear().domain([0, 1]) },
+          marks: [ruleMark, textMark],
+        }),
+      ],
+      margin: 0,
+    })
+    const small = createChartScene(definition, { width: 200, height: 200 })
+    const large = createChartScene(definition, { width: 320, height: 320 })
+    const smallNodes = flatten(small.nodes)
+    const largeNodes = flatten(large.nodes)
+    const smallLabel = smallNodes.find(
+      (node) => node.kind === 'label' && node.text === 'valid',
+    )
+    const largeLabel = largeNodes.find(
+      (node) => node.kind === 'label' && node.text === 'valid',
+    )
+    const smallRule = smallNodes.find(
+      (node) => node.kind === 'rule' && node.key.includes('valid'),
+    )
+    const largeRule = largeNodes.find(
+      (node) => node.kind === 'rule' && node.key.includes('valid'),
+    )
+
+    expect(
+      textMark.initialize({ markIndex: 0, parentId: 'test' }).radiusValues,
+    ).toEqual([1, 1])
+    expect(
+      ruleMark.initialize({ markIndex: 0, parentId: 'test' }).radiusValues,
+    ).toEqual([0.5, 0.5, 1, 1])
+    expect(smallLabel).toMatchObject({
+      kind: 'label',
+      x: expect.closeTo(123, 8),
+      y: expect.closeTo(-4, 8),
+      anchor: 'start',
+    })
+    expect(largeLabel).toMatchObject({
+      kind: 'label',
+      x: expect.closeTo(183, 8),
+      y: expect.closeTo(-4, 8),
+      anchor: 'start',
+    })
+    expect(smallRule).toMatchObject({
+      kind: 'rule',
+      x1: expect.closeTo(45, 8),
+      y1: expect.closeTo(0, 8),
+      x2: expect.closeTo(120, 8),
+      y2: expect.closeTo(0, 8),
+    })
+    expect(largeRule).toMatchObject({
+      kind: 'rule',
+      x1: expect.closeTo(75, 8),
+      y1: expect.closeTo(0, 8),
+      x2: expect.closeTo(180, 8),
+      y2: expect.closeTo(0, 8),
+    })
+    expect(
+      smallNodes.filter(
+        (node) =>
+          (node.kind === 'label' || node.kind === 'rule') &&
+          node.key.includes('invalid'),
+      ),
+    ).toHaveLength(0)
+    expect(small.points).toHaveLength(1)
+    expect(small.points[0]).toMatchObject({
+      key: 'offset-labels:object:null:string:5:valid',
+      datum: rows[0],
+      xValue: Math.PI / 2,
+      yValue: 1,
+      x: expect.closeTo(223, 8),
+      y: expect.closeTo(96, 8),
+      color: '#2563eb',
+    })
+    expect(fillCalls).toEqual(['valid', 'valid'])
+    expect(anchorCalls).toEqual(['valid', 'valid'])
+  })
+
+  it('shares outside radial anchors with angle-grid labels', () => {
+    const tau = Math.PI * 2
+    const values = [
+      0,
+      5e-7,
+      2e-6,
+      Math.PI / 4,
+      Math.PI / 2,
+      Math.PI,
+      (Math.PI * 5) / 4,
+      (Math.PI * 3) / 2,
+      tau - 2e-6,
+      tau,
+    ]
+    const expected = [
+      'middle',
+      'middle',
+      'start',
+      'start',
+      'start',
+      'middle',
+      'end',
+      'end',
+      'end',
+      'middle',
+    ]
+    const rows = values.map((angle, index) => ({
+      id: String(index),
+      angle,
+      radius: 1,
+    }))
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            angle: { scale: scaleLinear().domain([0, tau]) },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+            guides: [
+              angleGrid({ values }),
+              angleGrid({
+                id: 'authored-anchor',
+                values: [Math.PI / 2],
+                labelAnchor: 'end',
+              }),
+            ],
+            marks: [
+              radialText(rows, {
+                id: 'outside-labels',
+                angle: 'angle',
+                radius: 'radius',
+                text: 'id',
+                key: 'id',
+                radiusOffset: 8,
+                anchor: 'outside',
+              }),
+            ],
+          }),
+        ],
+        margin: 0,
+      }),
+      { width: 200, height: 200 },
+    )
+    const labels = flatten(scene.nodes).filter((node) => node.kind === 'label')
+    const textAnchors = rows.map((row) =>
+      labels.find((node) =>
+        node.key.endsWith(`string:${row.id.length}:${row.id}`),
+      ),
+    )
+    const gridAnchors = values.map((value) =>
+      labels.find((node) => node.key === `angle-label:number:${value}`),
+    )
+
+    expect(textAnchors.map((node) => node?.anchor)).toEqual(expected)
+    expect(gridAnchors.map((node) => node?.anchor)).toEqual(expected)
+    expect(
+      labels.find(
+        (node) =>
+          node.key === `angle-label:number:${Math.PI / 2}` &&
+          node.anchor === 'end',
+      ),
+    ).toBeDefined()
+    expect(labels.every((node) => node.anchor !== ('outside' as never))).toBe(
+      true,
+    )
+  })
+
+  it('omits every nonfinite radial offset before paint callbacks', () => {
+    const textRows = [
+      { id: 'valid', angle: 0, radius: 1, offset: 4 },
+      { id: 'nan', angle: 0, radius: 1, offset: Number.NaN },
+      { id: 'positive', angle: 0, radius: 1, offset: Number.POSITIVE_INFINITY },
+      { id: 'negative', angle: 0, radius: 1, offset: Number.NEGATIVE_INFINITY },
+      { id: 'semantic', angle: Number.NaN, radius: 1, offset: 4 },
+    ]
+    const ruleRows = [
+      { id: 'valid', angle: 0, inner: 0, outer: 1, offset1: 0, offset2: 4 },
+      {
+        id: 'r1-nan',
+        angle: 0,
+        inner: 0,
+        outer: 1,
+        offset1: Number.NaN,
+        offset2: 0,
+      },
+      {
+        id: 'r1-positive',
+        angle: 0,
+        inner: 0,
+        outer: 1,
+        offset1: Number.POSITIVE_INFINITY,
+        offset2: 0,
+      },
+      {
+        id: 'r1-negative',
+        angle: 0,
+        inner: 0,
+        outer: 1,
+        offset1: Number.NEGATIVE_INFINITY,
+        offset2: 0,
+      },
+      {
+        id: 'r2-nan',
+        angle: 0,
+        inner: 0,
+        outer: 1,
+        offset1: 0,
+        offset2: Number.NaN,
+      },
+      {
+        id: 'r2-positive',
+        angle: 0,
+        inner: 0,
+        outer: 1,
+        offset1: 0,
+        offset2: Number.POSITIVE_INFINITY,
+      },
+      {
+        id: 'r2-negative',
+        angle: 0,
+        inner: 0,
+        outer: 1,
+        offset1: 0,
+        offset2: Number.NEGATIVE_INFINITY,
+      },
+      {
+        id: 'semantic',
+        angle: Number.NaN,
+        inner: 0,
+        outer: 1,
+        offset1: 0,
+        offset2: 4,
+      },
+    ]
+    const textOffsetCalls: string[] = []
+    const textPaintCalls: string[] = []
+    const textAnchorCalls: string[] = []
+    const radius1OffsetCalls: string[] = []
+    const radius2OffsetCalls: string[] = []
+    const rulePaintCalls: string[] = []
+    const textMark = radialText(textRows, {
+      id: 'finite-text',
+      angle: 'angle',
+      radius: 'radius',
+      key: 'id',
+      text: 'id',
+      radiusOffset: (row) => {
+        textOffsetCalls.push(row.id)
+        return row.offset
+      },
+      fill: (row) => {
+        textPaintCalls.push(row.id)
+        return '#2563eb'
+      },
+      anchor: (row) => {
+        textAnchorCalls.push(row.id)
+        return 'outside'
+      },
+    })
+    const ruleMark = radialRule(ruleRows, {
+      id: 'finite-rule',
+      angle: 'angle',
+      radius1: 'inner',
+      radius2: 'outer',
+      key: 'id',
+      radius1Offset: (row) => {
+        radius1OffsetCalls.push(row.id)
+        return row.offset1
+      },
+      radius2Offset: (row) => {
+        radius2OffsetCalls.push(row.id)
+        return row.offset2
+      },
+      stroke: (row) => {
+        rulePaintCalls.push(row.id)
+        return '#94a3b8'
+      },
+    })
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+            marks: [ruleMark, textMark],
+          }),
+        ],
+        margin: 0,
+      }),
+      { width: 200, height: 200 },
+    )
+    const nodes = flatten(scene.nodes)
+
+    expect(nodes.filter((node) => node.kind === 'label')).toHaveLength(1)
+    expect(nodes.filter((node) => node.kind === 'rule')).toHaveLength(1)
+    expect(scene.points).toHaveLength(1)
+    expect(textOffsetCalls).toEqual(['valid', 'nan', 'positive', 'negative'])
+    expect(textPaintCalls).toEqual(['valid'])
+    expect(textAnchorCalls).toEqual(['valid'])
+    expect(radius1OffsetCalls).toEqual(
+      ruleRows.slice(0, -1).map(({ id }) => id),
+    )
+    expect(radius2OffsetCalls).toEqual(
+      ruleRows.slice(0, -1).map(({ id }) => id),
+    )
+    expect(rulePaintCalls).toEqual(['valid'])
+    expect(
+      textMark.initialize({ markIndex: 0, parentId: 'test' }).radiusValues,
+    ).toEqual([1, 1, 1, 1, 1])
+    expect(
+      ruleMark.initialize({ markIndex: 0, parentId: 'test' }).radiusValues,
+    ).toEqual([
+      ...ruleRows.map(({ inner }) => inner),
+      ...ruleRows.map(({ outer }) => outer),
+    ])
+  })
+
   it('requires polar scales only for scale-backed marks', () => {
     const arcOnly = defineChart({
       marks: [
@@ -533,8 +947,8 @@ describe('polar marks', () => {
     expect(scene.points).toHaveLength(2)
     expect(scene.points.map((point) => point.yValue)).toEqual([35, 75])
     expect(scene.points.map((point) => point.key)).toEqual([
-      'polar-0:arc-0:object:null:string:inner',
-      'polar-0:arc-0:object:null:string:outer',
+      'polar-0:arc-0:object:null:string:5:inner',
+      'polar-0:arc-0:object:null:string:5:outer',
     ])
   })
 
@@ -674,8 +1088,50 @@ describe('polar marks', () => {
     expect('polar' in rootExports).toBe(false)
     expect('radialArc' in rootExports).toBe(false)
     expect('radialArea' in rootExports).toBe(false)
+    expect('radialBarAngle' in rootExports).toBe(false)
+    expect('radialBarRadius' in rootExports).toBe(false)
     expect('radialRule' in rootExports).toBe(false)
     expect('radialText' in rootExports).toBe(false)
+  })
+
+  it('snapshots child motion for each reused polar initialization', () => {
+    const mark = polar({
+      motion: {
+        delay: 5,
+        transition: { type: 'tween', duration: 100 },
+      },
+      marks: [
+        {
+          ...radialDot([{ angle: 0, radius: 1 }]),
+          // Structural custom marks may keep motion on the mark only.
+          motion: {
+            delay: 25,
+            transition: { type: 'tween', easing: 'linear' },
+          },
+        },
+      ],
+    })
+    const first = mark.initialize({ markIndex: 0 })
+    const second = mark.initialize({ markIndex: 1 })
+
+    expect(
+      resolveAuthoredMotion(
+        first.motion,
+        authoredMotionContext('polar-0:radial-dot-0'),
+      ),
+    ).toEqual({
+      delay: 25,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    })
+    expect(
+      resolveAuthoredMotion(
+        second.motion,
+        authoredMotionContext('polar-1:radial-dot-0'),
+      ),
+    ).toEqual({
+      delay: 25,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    })
   })
 })
 
@@ -687,6 +1143,28 @@ function flatten(nodes: readonly SceneNode[]): SceneNode[] {
         : [node, ...flatten(node.children)]
       : [node],
   )
+}
+
+function authoredMotionContext(markId: string): ChartMotionContext {
+  return {
+    phase: 'enter',
+    role: 'dot',
+    key: `${markId}:input`,
+    markId,
+    seriesKey: '',
+    seriesIndex: 0,
+    datumIndex: 0,
+    datumCount: 1,
+    datum: undefined,
+    point: undefined,
+  }
+}
+
+function resolveAuthoredMotion(
+  motion: ChartMotionDefinition<any> | undefined,
+  context: ChartMotionContext,
+): ChartMotionTiming | undefined {
+  return typeof motion === 'function' ? motion(context) : motion
 }
 
 if (false) {
@@ -713,5 +1191,42 @@ if (false) {
     angle: 'angle',
     // @ts-expect-error Polar radius channels are quantitative.
     radius: 'enabled',
+  })
+
+  const offsetRows = [{ angle: 0, radius: 1, offset: 8, label: 'A' }] as const
+  const textOptions: RadialTextOptions<(typeof offsetRows)[number]> = {
+    angle: 'angle',
+    radius: 'radius',
+    text: 'label',
+    radiusOffset: (row, index, data) => row.offset + index + data.length,
+    anchor: 'outside',
+  }
+  const ruleOptions: RadialRuleOptions<(typeof offsetRows)[number]> = {
+    angle: 'angle',
+    radius1: 0,
+    radius2: 'radius',
+    radius1Offset: -2,
+    radius2Offset: (row) => row.offset,
+  }
+  radialText(offsetRows, textOptions)
+  radialRule(offsetRows, ruleOptions)
+
+  radialText(offsetRows, {
+    angle: 'angle',
+    radius: 'radius',
+    // @ts-expect-error Radial pixel offsets are numeric visual channels.
+    radiusOffset: 'offset',
+  })
+  radialText(offsetRows, {
+    angle: 'angle',
+    radius: 'radius',
+    // @ts-expect-error Outside is the only automatic radial anchor mode.
+    anchor: 'left',
+  })
+  radialRule(offsetRows, {
+    angle: 'angle',
+    radius2: 'radius',
+    // @ts-expect-error Radial pixel offsets are numeric visual channels.
+    radius2Offset: 'offset',
   })
 }

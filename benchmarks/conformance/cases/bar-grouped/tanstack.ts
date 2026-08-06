@@ -1,29 +1,35 @@
 import { penguins } from '@charts-poc/demo-data/penguins'
-import { barY, colorLegend, defineChart, group } from '@tanstack/charts'
-import { rollups } from 'd3-array'
+import {
+  barY,
+  colorLegend,
+  defineChart,
+  group,
+  groupBy,
+} from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
+import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
 import type { ConformanceInput } from '../../types'
 
 const sexDomain = ['FEMALE', 'MALE']
 const sexColors = ['#2563eb', '#f97316']
 
-const definition = (input: ConformanceInput) =>
+type SexedPenguin = PenguinsRow & { readonly sex: string }
+
+export const groupedBarDefinition = (input: ConformanceInput) =>
   defineChart(({ width }) => {
-    const rows = rollups(
-      penguins
-        .slice(0, penguins.length - input.revision * 12)
-        .filter((row) => row.sex !== null),
-      (values) => values.length,
-      (row) => row.species,
-      (row) => row.sex,
-    ).flatMap(([species, groups]) =>
-      groups.map(([sex, count]) => ({ species, sex, count })),
-    )
+    const observations = penguins
+      .slice(0, penguins.length - input.revision * 12)
+      .filter((row): row is SexedPenguin => row.sex !== null)
+    const rows = groupBy(observations, {
+      by: { species: 'species', sex: 'sex' },
+      outputs: { count: { reduce: 'count' } },
+    })
 
     return {
       marks: [
         barY(rows, {
+          id: 'penguin-count-bars',
           x: 'species',
           y: 'count',
           color: 'sex',
@@ -51,4 +57,7 @@ const definition = (input: ConformanceInput) =>
     }
   })
 
-export const mount = tanstackMount(definition, 'Penguins grouped by species')
+export const mount = tanstackMount(
+  groupedBarDefinition,
+  'Penguins grouped by species',
+)

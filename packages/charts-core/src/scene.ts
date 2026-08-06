@@ -6,21 +6,27 @@ import { chartSceneSource } from './scene-source'
 import type {
   DynamicChartDefinition,
   InitializedMark,
+  MaterializedChannel,
   ChartAxisOptions,
   ChartAxisPresentationOptions,
+  ChartAxisTickLabelContext,
   ChartAxisTickLabelOptions,
+  ChartAxisTickLabelValue,
   ChartBounds,
   ChartBuildContext,
+  ChartHostControl,
   CheckedChartSpec,
   ChartDefinitionOptions,
   DynamicChartConfig,
   ChartColorLegend,
+  ChartFocusFilter,
   ChartLayoutOptions,
   ChartMargin,
   ChartMark,
   ChartMarkDatum,
   ChartMarkPointX,
   ChartMarkPointY,
+  ChartMarkState,
   ChartPoint,
   ResolvedColorScale,
   ChartScene,
@@ -35,6 +41,9 @@ import type {
   ChartTextMeasurer,
   ChartTick,
   ChartValue,
+  MarkRenderContext,
+  MarkResolvedLayoutContext,
+  MarkScene,
   SceneGroup,
   SceneLabel,
   SceneNode,
@@ -172,17 +181,6 @@ function createChartSceneWithScaleResolver<
   const initialized = definition.marks.map((mark, markIndex) =>
     mark.initialize({ markIndex }),
   )
-  const colorChannels = collectScaleChannels(initialized, 'color')
-  const colors = createColorScale(colorChannels.values, definition.color, theme)
-  if (
-    colors.kind !== 'categorical' &&
-    initialized.some((mark) => mark.seriesFromColor)
-  ) {
-    throw new TypeError(
-      'A continuous color channel cannot infer series identity; supply z explicitly',
-    )
-  }
-  const legend = colors.domain.length ? definition.color?.legend : undefined
   const xChannels = collectScaleChannels(initialized, 'x')
   const yChannels = collectScaleChannels(initialized, 'y')
   const axes =
@@ -198,19 +196,26 @@ function createChartSceneWithScaleResolver<
     theme,
     xChannels,
     yChannels,
-    colors,
-    legend,
     axes,
     resolveScale,
     layout,
   )
-  const { margin, chart, scales, axes: axisNodes } = resolvedLayout
+  const {
+    margin,
+    chart,
+    scales,
+    axes: axisNodes,
+    marks,
+    colors,
+    legend,
+    legendBounds,
+  } = resolvedLayout
   const markNodes: SceneNode[] = []
   const points: ChartPoint<TDatum, TXValue, TYValue>[] = []
-  const firstBaseMarkIndex = initialized.findIndex((mark) => !mark.focus)
+  const firstBaseMarkIndex = marks.findIndex((mark) => !mark.focus)
 
-  initialized.forEach((mark, markIndex) => {
-    const rendered = mark.render({
+  marks.forEach((mark, markIndex) => {
+    let rendered = mark.render({
       markIndex,
       chart,
       scales,
@@ -219,11 +224,18 @@ function createChartSceneWithScaleResolver<
       colors,
       layout,
     })
+    if (legend?.filterMark) {
+      rendered = legend.filterMark(rendered, {
+        seriesFromColor: mark.seriesFromColor,
+      })
+    }
+    if (mark.postDomain) rendered = mark.postDomain(rendered)
     const renderedPoints = collectRenderedPoints(
       rendered.nodes,
       rendered.points,
     )
     if (mark.focus) {
+      const retarget = mark.focus.retarget === true
       markNodes.push({
         kind: 'group',
         key: `focus:${mark.id}`,
@@ -236,8 +248,9 @@ function createChartSceneWithScaleResolver<
             firstBaseMarkIndex < 0 || markIndex < firstBaseMarkIndex
               ? 'under'
               : 'over',
+          ...(retarget ? { retarget: true, candidates: rendered.nodes } : {}),
         },
-        children: rendered.nodes,
+        children: retarget ? [] : rendered.nodes,
       })
     } else {
       const markPoints = renderedPoints as readonly ChartPoint<
@@ -280,7 +293,47 @@ function createChartSceneWithScaleResolver<
   if (axes) {
     nodes.push(axisNodes)
   }
-  if (legend) nodes.push(legend.render({ colors, chart, theme, width }))
+  const controls: ChartHostControl[] = []
+  const behaviorIds = new Set<string>()
+  for (const behavior of definition.behaviors ?? []) {
+    if (!behavior.id.trim()) {
+      throw new TypeError('Chart behavior ids must be nonempty')
+    }
+    if (behaviorIds.has(behavior.id)) {
+      throw new TypeError(`Duplicate chart behavior id "${behavior.id}"`)
+    }
+    behaviorIds.add(behavior.id)
+    const resolved = behavior.resolve({
+      chart,
+      scales,
+      colors,
+      theme,
+      width,
+      height,
+    })
+    if (resolved.nodes) nodes.push(...resolved.nodes)
+    if (resolved.controls) controls.push(...resolved.controls)
+  }
+  if (legend && legendBounds) {
+    const legendContext = {
+      colors,
+      chart,
+      bounds: legendBounds,
+      theme,
+      width,
+      height,
+    }
+    nodes.push(legend.render(legendContext))
+    if (legend.control) controls.push(legend.control(legendContext))
+  }
+  const controlIds = new Set<string>()
+  for (const control of controls) {
+    const identity = `${control.extension.id}:${control.key}`
+    if (controlIds.has(identity)) {
+      throw new TypeError(`Duplicate chart host control "${identity}"`)
+    }
+    controlIds.add(identity)
+  }
   if (definition.focusRing !== false && points.length) {
     nodes.push({
       kind: 'group',
@@ -318,6 +371,7 @@ function createChartSceneWithScaleResolver<
     colors,
     gradients: definition.gradients ?? [],
     theme,
+    ...(controls.length ? { controls } : {}),
     [chartSceneSource]: [definition, initialized],
   } as ChartScene<TDatum, TXValue, TYValue> & {
     [chartSceneSource]: readonly [
@@ -373,7 +427,9 @@ function collectRenderedPoints(
 }
 
 function collectScaleChannels(
-  marks: readonly InitializedMark<unknown>[],
+  marks: readonly {
+    channels: Readonly<Record<string, MaterializedChannel>>
+  }[],
   scaleId: string,
 ): CollectedScaleChannels {
   const values: unknown[] = []
@@ -402,6 +458,24 @@ interface ResolvedSceneLayout {
   scales: ChartScene['scales']
   axes: SceneGroup
   guideMargin: ChartMargin
+  marks: readonly ResolvedSceneMark[]
+  colors: ResolvedColorScale
+  legend: ChartColorLegend | undefined
+  legendBounds: ChartBounds | undefined
+}
+
+interface ResolvedSceneMark {
+  id: string
+  channels: Readonly<Record<string, MaterializedChannel>>
+  seriesFromColor?: boolean
+  focus?: ChartFocusFilter
+  states?: {
+    data: readonly unknown[]
+    definitions: readonly ChartMarkState<any>[]
+  }
+  postDomain?: (scene: MarkScene<any, any, any>) => MarkScene<any, any, any>
+  layoutLabels?: (context: MarkRenderContext) => readonly SceneLabel[]
+  render: (context: MarkRenderContext) => MarkScene
 }
 
 interface ResolvedAxes {
@@ -415,14 +489,12 @@ const layoutTolerance = 0.25
 
 function resolveSceneLayout(
   definition: StaticChartDefinition,
-  marks: readonly InitializedMark<unknown>[],
+  initialized: readonly InitializedMark<unknown>[],
   width: number,
   height: number,
   theme: ChartTheme,
   xChannels: CollectedScaleChannels,
   yChannels: CollectedScaleChannels,
-  colors: ResolvedColorScale,
-  legend: ChartColorLegend | undefined,
   axes: number,
   resolveScale: ChartScaleResolver,
   layout: ChartLayoutOptions,
@@ -484,6 +556,46 @@ function resolveSceneLayout(
               includeZero: yChannels.includeZero,
             }),
     }
+    const marks = resolveMarkLayouts(initialized, {
+      chart,
+      scales,
+      theme,
+      layout,
+    })
+    const colorChannels = collectScaleChannels(marks, 'color')
+    const colors = createColorScale(
+      colorChannels.values,
+      definition.color,
+      theme,
+    )
+    if (
+      colors.kind !== 'categorical' &&
+      marks.some((mark) => mark.seriesFromColor)
+    ) {
+      throw new TypeError(
+        'A continuous color channel cannot infer series identity; supply z explicitly',
+      )
+    }
+    const legend = colors.domain.length ? definition.color?.legend : undefined
+    if (legend?.seriesVisible && colors.kind !== 'categorical') {
+      throw new TypeError(
+        'An interactive color legend requires a categorical color scale',
+      )
+    }
+    const legendHeight = legend?.height(
+      colors.domain.length,
+      chart.width,
+      colors,
+    )
+    const legendBounds =
+      legend && legendHeight !== undefined
+        ? {
+            x: chart.x,
+            y: legend.placement === 'bottom' ? height - legendHeight : 0,
+            width: chart.width,
+            height: legendHeight,
+          }
+        : undefined
     const resolvedAxes = createAxes(
       chart,
       scales,
@@ -499,26 +611,36 @@ function resolveSceneLayout(
       scales,
       axes: resolvedAxes.axes,
       guideMargin: resolvedAxes.margin,
+      marks,
+      colors,
+      legend,
+      legendBounds,
     }
   }
 
   function measureMargin(resolved: ResolvedSceneLayout): ChartMargin {
     const automatic = resolved.guideMargin
-    if (legend && locks.top === undefined) {
-      automatic.top = Math.max(
-        automatic.top,
-        legend.height(colors.domain.length, resolved.chart.width, colors),
+    if (resolved.legend) {
+      const legendHeight = resolved.legend.height(
+        resolved.colors.domain.length,
+        resolved.chart.width,
+        resolved.colors,
       )
+      if (resolved.legend.placement === 'bottom') {
+        if (locks.bottom === undefined) automatic.bottom += legendHeight
+      } else if (locks.top === undefined) {
+        automatic.top = Math.max(automatic.top, legendHeight)
+      }
     }
     if (!definition.clip) {
-      marks.forEach((mark, markIndex) => {
+      resolved.marks.forEach((mark, markIndex) => {
         const labels = mark.layoutLabels?.({
           markIndex,
           chart: resolved.chart,
           scales: resolved.scales,
           theme,
-          color: colors.map,
-          colors,
+          color: resolved.colors.map,
+          colors: resolved.colors,
           layout,
         })
         for (const label of labels ?? []) {
@@ -533,6 +655,28 @@ function resolveSceneLayout(
     }
     return mergeMarginLocks(automatic, locks)
   }
+}
+
+function resolveMarkLayouts(
+  marks: readonly InitializedMark[],
+  context: Omit<MarkResolvedLayoutContext, 'markIndex'>,
+): readonly ResolvedSceneMark[] {
+  return marks.map((mark, markIndex) => {
+    if (typeof mark.resolveLayout !== 'function') {
+      return mark
+    }
+    const resolved = mark.resolveLayout({ ...context, markIndex })
+    return {
+      id: mark.id,
+      channels: resolved.channels ?? mark.channels,
+      seriesFromColor: mark.seriesFromColor,
+      focus: mark.focus,
+      states: resolved.states ?? mark.states,
+      postDomain: resolved.postDomain ?? mark.postDomain,
+      layoutLabels: resolved.layoutLabels ?? mark.layoutLabels,
+      render: resolved.render,
+    }
+  })
 }
 
 function includeLabelMargin(
@@ -718,7 +862,6 @@ function createAxes(
   }
   const xTickLabels = tickLabelPresentation(xAxis)
   const yTickLabels = tickLabelPresentation(yAxis)
-  const xTickRotate = xTickLabels === false ? undefined : xTickLabels.rotate
   let xTickBottom = chart.y + chart.height
   let yTickLeft = chart.x
   const inset = axes ? automaticGuideInset : 0
@@ -750,7 +893,8 @@ function createAxes(
           chart,
           xTickSize,
           xTickPadding,
-          xTickRotate,
+          xTickLabels,
+          scales.x.bandwidth,
           width,
           theme,
           measureText,
@@ -764,7 +908,8 @@ function createAxes(
           chart,
           yTickSize,
           yTickPadding,
-          yTickLabels.rotate,
+          yTickLabels,
+          scales.y.bandwidth,
           width,
           theme,
           measureText,
@@ -996,47 +1141,68 @@ function createTickLabelCandidates(
   chart: ChartBounds,
   size: number,
   padding: number,
-  rotate: number | undefined,
+  options: ChartAxisTickLabelOptions,
+  bandwidth: number,
   width: number,
   theme: ChartTheme,
   measureText: ChartTextMeasurer | undefined,
 ): TickLabelCandidate[] {
-  const fontSize = width < 360 ? 10 : 11
-  return ticks.map((tick) => {
+  const defaultFontSize = width < 360 ? 10 : 11
+  return ticks.map((tick, index) => {
+    const context: ChartAxisTickLabelContext = {
+      value: tick.value,
+      index,
+      position: tick.position,
+      bandwidth,
+    }
+    const rotate = options.rotate
+    const fontSize =
+      resolveTickLabelValue(options.fontSize, context) ?? defaultFontSize
+    const fontWeight = resolveTickLabelValue(options.fontWeight, context)
+    const opacity = resolveTickLabelValue(options.opacity, context)
+    const dx = resolveTickLabelValue(options.dx, context) ?? 0
+    const dy = resolveTickLabelValue(options.dy, context) ?? 0
+    const defaultAnchor =
+      axis === 'y'
+        ? 'end'
+        : (rotate ?? 0) < 0
+          ? 'end'
+          : (rotate ?? 0) > 0
+            ? 'start'
+            : 'middle'
+    const anchor =
+      resolveTickLabelValue(options.anchor, context) ?? defaultAnchor
     const label: SceneLabel =
       axis === 'x'
         ? {
             kind: 'label',
             key: `x-tick-label:${valueKey(tick.value)}`,
-            x: tick.position,
-            y: chart.y + chart.height + size + padding + fontSize * 0.8,
+            x: tick.position + dx,
+            y: chart.y + chart.height + size + padding + fontSize * 0.8 + dy,
             text: tick.label,
-            anchor:
-              (rotate ?? 0) < 0
-                ? 'end'
-                : (rotate ?? 0) > 0
-                  ? 'start'
-                  : 'middle',
+            anchor,
             rotate,
             fontSize,
+            fontWeight,
             style: {
               fill: theme.muted,
-              fillOpacity: 0.68,
+              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
             },
           }
         : {
             kind: 'label',
             key: `y-tick-label:${valueKey(tick.value)}`,
-            x: chart.x - size - padding,
-            y: tick.position,
+            x: chart.x - size - padding + dx,
+            y: tick.position + dy,
             text: tick.label,
-            anchor: 'end',
+            anchor,
             baseline: 'middle',
             rotate,
             fontSize,
+            fontWeight,
             style: {
               fill: theme.muted,
-              fillOpacity: 0.68,
+              ...(opacity === undefined ? { fillOpacity: 0.68 } : { opacity }),
             },
           }
     return {
@@ -1046,6 +1212,19 @@ function createTickLabelCandidates(
       hard: tick.hard ?? false,
     }
   })
+}
+
+function resolveTickLabelValue<TValue extends ChartValue, TOutput>(
+  value: ChartAxisTickLabelValue<TValue, TOutput> | undefined,
+  context: ChartAxisTickLabelContext<TValue>,
+): TOutput | undefined {
+  return typeof value === 'function'
+    ? (
+        value as (
+          context: ChartAxisTickLabelContext<TValue>,
+        ) => TOutput | undefined
+      )(context)
+    : value
 }
 
 function thinTickLabels(
