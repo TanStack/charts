@@ -10,6 +10,9 @@ definition changes or when the chart surface changes size.
 ## React
 
 ```tsx
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
 function RankingChart({ rows, metric, accent }: Props) {
   const definition = useMemo(() => {
     const ranked = rankRows(rows, metric)
@@ -102,8 +105,10 @@ velocity.
 Use `motion()` when animation quality is part of the chart contract:
 
 ```ts
+import { scaleUtc } from 'd3-scale'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 const definition = defineChart({
   motion: {
@@ -166,6 +171,11 @@ retargeting preserves the currently painted value and velocity. Keyed
 interaction points move with the presentation geometry rather than jumping to
 the next scene.
 
+A `crosshair` is also keyed focus presentation. With the motion renderer, its
+rules, bands, labels, and marker retain DOM identity and spring velocity while
+focus retargets. Default SVG, Canvas, and native surfaces paint the same guide
+at its current target without importing the browser motion runtime.
+
 Spring updates always retarget immediately; a returned update delay is ignored
 so incoming momentum cannot freeze. Use delays for spring enter/exit
 choreography or any tween phase.
@@ -192,5 +202,38 @@ For high-rate data:
 3. Preserve keys for rows that survive the roll.
 4. Keep viewport state controlled.
 5. Coalesce upstream work when only the latest state matters.
+
+For a scrolling trace, keep enough overscan before the visible x-domain to
+cover the largest expected update batch, enable `clip`, and use a rolling path
+contract:
+
+```ts
+const definition = defineChart({
+  motion: {
+    path: {
+      update: 'rolling',
+      x: 'shift',
+      y: 'reproject',
+      fallback: 'snap',
+    },
+    transition: { type: 'tween', duration: sampleInterval, easing: 'linear' },
+  },
+  marks,
+})
+```
+
+The keyed retained window moves as one affine path. `y: 'reproject'` keeps that
+motion valid while a continuous y-domain changes. A failed rolling invariant
+snaps instead of occasionally becoming a different interpolation. Set
+`fallback: 'morph'` only when path interpolation is intentional. A valid update
+that arrives during another roll composes from the transform currently painted
+on screen.
+
+Keep `viewport.translate` at zero on both the previous and target scene during
+a rolling update. A nonzero transient viewport translation makes the rolling
+contract fail and uses its configured fallback. Commit the viewport domain and
+reset the translation before applying the next live-data window. Keep plot
+margins fixed and prefer linear segments so appending a sample cannot recompute
+a visible curve tangent.
 
 The final definition passed to `host.update` is applied synchronously.

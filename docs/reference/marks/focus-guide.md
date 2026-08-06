@@ -67,8 +67,9 @@ rule or marker values may be datum visual channels.
 
 Label options provide `format`, `side`, `offset`, `paddingX`, `paddingY`,
 `radius`, `background`, `color`, `stroke`, `strokeWidth`, `fontSize`, and
-`fontWeight`. A formatter receives the typed semantic value and the active
-`ChartPoint`, including its original datum reference.
+`fontWeight`. A formatter receives the typed semantic value and a
+`FocusGuideLabelFormatContext` containing `{ point }`, the active `ChartPoint`
+and its original datum reference.
 
 ## Focus and motion
 

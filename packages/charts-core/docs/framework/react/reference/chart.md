@@ -55,8 +55,9 @@ composition.
 
 See [Chart Definition API](../../../reference/chart-definitions.md).
 
-The definition owns `focus`, `maxFocusDistance`, `spatialIndex`, `animate`,
-`keyboard`, and `tooltip`. Adapters do not override them.
+The definition owns `focus`, `focusRing`, `cursor`, `maxFocusDistance`,
+`spatialIndex`, `animate`, `keyboard`, and `tooltip`. Adapters do not override
+them.
 
 Add the `portal` extension to the definition's tooltip options to escape
 clipping and local stacking contexts. The adapter still receives no portal

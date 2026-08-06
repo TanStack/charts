@@ -24,12 +24,12 @@ export function createChartRuntime<
         return createChartScene(definition, size, layout)
       }
 
-      const spec = definition.chart({
+      const { chart, ...options } = definition
+      const spec = chart({
         width: size.width,
         height: size.height,
         theme: defaultChartTheme,
       })
-      const { chart: _chart, ...options } = definition
 
       return createChartScene(
         { ...spec, ...options },

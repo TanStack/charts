@@ -1,6 +1,6 @@
 ---
 title: Tooltips and Focus
-description: Configure grouped focus, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
+description: Configure grouped focus, crosshairs, automatic content, ordering, placement, portaling, pinning, and framework-composed tooltip bodies.
 ---
 
 The DOM host provides a small automatic path for the common case:
@@ -35,13 +35,13 @@ point clears transient focus.
 
 ## Axis focus modes
 
-| Mode        | Result                                     |
-| ----------- | ------------------------------------------ |
-| omitted     | One nearest point in two dimensions        |
-| `nearest-x` | One point, prioritizing x distance         |
-| `nearest-y` | One point, prioritizing y distance         |
-| `group-x`   | One point per group at the nearest x value |
-| `group-y`   | One point per group at the nearest y value |
+| Mode        | Result                                                                    |
+| ----------- | ------------------------------------------------------------------------- |
+| omitted     | One nearest painted geometry or point in two dimensions                   |
+| `nearest-x` | The containing mark, otherwise one point prioritizing x distance          |
+| `nearest-y` | The containing mark, otherwise one point prioritizing y distance          |
+| `group-x`   | The containing mark first, plus its semantic x group; otherwise nearest x |
+| `group-y`   | The containing mark first, plus its semantic y group; otherwise nearest y |
 
 Grouped focus is appropriate for comparing several series at the same date or
 category. A sparse snapped cursor can opt into
@@ -63,11 +63,70 @@ whenFocused(bandY(rows, { y: 'value' }), { match: 'y' })
 
 These are presentation filters, not alternate selection strategies. The first
 paints a vertical band wherever the focused x value exists; the second paints a
-horizontal band wherever the focused y value exists.
+horizontal band wherever the focused y value exists. `whenFocused` can only
+reveal geometry already emitted by its authored mark. It cannot move one
+stable band between values.
+
+Use the data-less `crosshair` mark when one renderer-native guide should follow
+the active focus instead of revealing authored geometry for a matching datum:
+
+```ts
+import { crosshair } from '@tanstack/charts/crosshair'
+
+const definition = defineChart({
+  marks: [
+    crosshair({
+      x: {
+        band: {
+          inset: 0,
+          radius: 3,
+          fill: '#64748b',
+          fillOpacity: 0.16,
+        },
+        label: true,
+      },
+      y: false,
+    }),
+    barY(rows, {
+      x: 'period',
+      y: 'value',
+      color: 'series',
+      inset: 4,
+    }),
+    crosshair({
+      x: false,
+      y: { strokeDasharray: '4 4', label: true },
+    }),
+  ],
+  x: { scale: scaleBand },
+  y: { scale: scaleLinear },
+  focus: 'group-x',
+  focusRing: false,
+  maxFocusDistance: Number.POSITIVE_INFINITY,
+  tooltip,
+})
+```
+
+The x band follows the focused x value for pointer and keyboard focus. It uses
+the categorical scale bandwidth, then applies `inset` to both edges. A bar
+inset of 4 and band inset of 0 makes the cursor 4 pixels wider on each side.
+Its label shows the focused period. The dotted y rule and its label follow the
+primary stacked segment endpoint, while the tooltip still receives the
+complete x group. Keep the finite distance default when empty space should
+clear focus; Infinity is an explicit continuous-snapping policy.
+
+`crosshair` defaults to both axis rules with no labels or marker. Setting
+`band: true` or a band options object replaces that axis rule; axes with zero
+bandwidth emit no band. Guides are clipped to the plot and labels are clamped
+to the surface. They do not change nearest-point selection, add hit targets,
+or suppress the primary focus ring. Use `focusRing: false` only when authored
+cursor geometry deliberately replaces the ring. See
+[Focus and Interaction](../reference/focus-and-interaction.md#crosshair-guides)
+for the complete band paint contract and controlled cursor behavior.
 
 <iframe
-  src="https://tanstack.com/charts/catalog/embed/35-grouped-tooltip/?theme=system&height=480"
-  title="Grouped x-axis focus and tooltip across multiple lines"
+  src="https://tanstack.com/charts/catalog/embed/119-stacked-bar-band-cursor/?theme=system&height=480"
+  title="Stacked bars with a categorical x cursor band and dotted y rule"
   loading="lazy"
   style="width: 100%; height: 480px; border: 0;"
 ></iframe>
@@ -106,8 +165,10 @@ const definition = defineChart({
       {
         id: 'change',
         label: 'Change',
-        text: (point) =>
-          point.datum.change == null ? null : percent(point.datum.change),
+        text: (point, { pinned }) =>
+          pinned && point.datum.change != null
+            ? percent(point.datum.change)
+            : null,
       },
       'x',
     ],
@@ -116,6 +177,11 @@ const definition = defineChart({
 ```
 
 Array order is row order. A nullish field or `text` result omits the row.
+Item `text`, `content`, `format`, and `formatGroup` callbacks receive `pinned`,
+which is `false` during transient inspection and `true` after click, Enter, or
+Space.
+Use it to keep the transient tooltip compact and reveal detailed rows when the
+same tooltip is pinned.
 Grouped focus keeps its shared-axis heading and series rows. By default, rows
 follow the marks top-to-bottom for an x-group and left-to-right for a y-group.
 Override that with `sort: 'color-domain'`, `sort: 'focus'`, or a typed
@@ -129,8 +195,9 @@ Customize plaintext content with typed formatters:
 const formattedDefinition = defineChart(definition, {
   tooltip: {
     use: tooltip,
-    format(point) {
-      return `${point.datum.label}: ${point.datum.value.toLocaleString()}`
+    format(point, { pinned }) {
+      const suffix = pinned ? ' · pinned' : ''
+      return `${point.datum.label}: ${point.datum.value.toLocaleString()}${suffix}`
     },
   },
 })
@@ -142,13 +209,13 @@ For grouped focus:
 const groupedDefinition = defineChart(definition, {
   tooltip: {
     use: tooltip,
-    formatGroup(points) {
+    formatGroup(points, { pinned }) {
       const date = points[0]?.xValue
       const heading =
         date instanceof Date ? date.toLocaleDateString() : String(date ?? '')
 
       return [
-        heading,
+        pinned ? `${heading} · pinned` : heading,
         ...points.map(
           (point) =>
             `${point.groupLabel}: ${point.datum.value.toLocaleString()}`,
@@ -160,8 +227,9 @@ const groupedDefinition = defineChart(definition, {
 ```
 
 Formatting precedence is `content`, `formatGroup`, `format`, then the automatic
-content. `content` returns safe title and row data. `format` and `formatGroup`
-return plain text; returning HTML does not create DOM.
+content. All three callbacks receive the same `ChartTooltipContentContext`.
+`content` returns safe title and row data. `format` and `formatGroup` return
+plain text; returning HTML does not create DOM.
 
 Add `className` to style the native HTML surface. Clicking pins the current
 tooltip for text selection. A later click or Escape unpins it. Set
@@ -171,6 +239,26 @@ Set `visibility: 'pinned'` when focus should style the chart without opening a
 transient tooltip. Click, Enter, or Space can still pin the focused point; only
 the pinned surface and adapter body are mounted. The default is
 `visibility: 'focus'`.
+
+## Application-owned pointer timing
+
+Set definition `pointer: false` when the application decides when inspection
+begins, such as after a touch hold. Resolve the event and paint focus through
+the controller exposed by `host.interaction` or `onRender`:
+
+```ts
+const target = interaction.resolvePointer(event.clientX, event.clientY)
+interaction.setControlledFocus(target)
+
+// On release or cancellation
+interaction.setControlledFocus(null)
+```
+
+This keeps focus marks and tooltip content in the definition. The controller
+uses presentation points, so an active path motion or viewport translation
+does not detach the focus marker and tooltip from the painted datum. See
+[Controlled point inspection](./interactions-and-selections.md#controlled-point-inspection)
+for the complete ownership boundary.
 
 ## Anchoring and placement
 
@@ -237,7 +325,7 @@ const customAnchorDefinition = defineChart(definition, {
   tooltip: {
     use: tooltip,
     anchor: (_points, { focus, pointer, plot, surface, scales }) => ({
-      x: scales.x.map(focus.primary.xValue),
+      x: (scales.x.viewport?.map ?? scales.x.map)(focus.primary.xValue),
       y: plot.y,
     }),
     placement: 'bottom-left',
@@ -480,6 +568,9 @@ search over every raw point.
 - Use native focus for datum inspection.
 - Choose two-dimensional, nearest-axis, or grouped-axis semantics explicitly.
 - Keep a finite distance unless continuous snapping is intended.
+- Use `crosshair` for a single focus-driven guide; use `whenFocused` to reveal
+  existing data-bound geometry.
+- Share semantic cursor state through `createChartCursor`, not copied pixels.
 - Use native plaintext formatting for the 90% case.
 - Use the `portal` extension where clipped ancestors or stacking contexts can
   hide the tooltip.

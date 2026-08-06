@@ -43,7 +43,7 @@ export const densityDefinition = (input: ConformanceInput) => {
       scale: scaleLinear().domain(densityYDomain),
     },
     guides: false,
-    margin: 0,
+    margin: densityBandwidth * 1.5,
   })
 }
 

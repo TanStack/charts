@@ -2,12 +2,13 @@
 
 Date: 2026-08-05
 
-Scope: all 109 catalog directories. The 67 cases previously classified as
+Scope: all 110 catalog directories. The 67 cases previously classified as
 strict custom authoring, preparation review, or shell-only are reviewed beside
 the former 42-case definition-native control group from
 [the custom authoring audit](./CUSTOM-AUTHORING-AUDIT.md). That audit remains
-the historical before-state; this document records the current disposition of
-every case.
+the historical before-state; Case 119 was added afterward and is classified by
+the same ownership test. This document records the current disposition of every
+case.
 
 Delivery status, dependencies, acceptance criteria, and verification gates
 live in the [definition coverage plan](./DEFINITION-COVERAGE-PLAN.md) and its
@@ -15,9 +16,9 @@ live in the [definition coverage plan](./DEFINITION-COVERAGE-PLAN.md) and its
 
 ## Decision
 
-One hundred six of the 109 cases present their visualization as a normal chart
+One hundred seven of the 110 cases present their visualization as a normal chart
 definition. Fifty-eight use the definition API without a new visualization
-primitive. Thirty-four use a reusable first-party primitive, including Case
+primitive. Thirty-five use a reusable first-party primitive, including Case
 70's final-scale bar thickness cap. Fourteen use a tree-shakeable first-party
 adapter around a heavier layout or gesture algorithm.
 
@@ -31,11 +32,11 @@ work:
 | Disposition           |   Cases | Meaning                                                                  |
 | --------------------- | ------: | ------------------------------------------------------------------------ |
 | Definition now        |      58 | Current marks and eager transforms are sufficient                        |
-| First-party primitive |      34 | Add a reusable mark, transform, layout, guide, or controlled signal      |
+| First-party primitive |      35 | Add a reusable mark, transform, layout, guide, or controlled signal      |
 | Optional primitive    |      14 | Keep a heavy dependency granular, but hide its layout DTOs and lifecycle |
 | Application boundary  |       2 | The remaining work is product state, DOM layout, or data arrival         |
 | Inline custom mark    |       1 | The geometry is intentionally case-specific                              |
-| **Total**             | **109** |                                                                          |
+| **Total**             | **110** |                                                                          |
 
 A normal definition does not require every implementation algorithm to live
 in Charts core. D3 may implement an optional `sankeyDiagram`, `densityContour`,
@@ -242,6 +243,7 @@ ownership boundary.
 | [115 — Definition motion](./cases/115-definition-motion/tanstack.ts)             | Definition now        | Chart, mark, datum, axis, tick, and label motion are already definition-owned.                                                                                                                                                                                                                                                                                     |
 | [117 — Focus cursor motion](./cases/117-focus-cursor-motion/tanstack.ts)         | First-party primitive | Add a stable-key focus guide with x/y rules, marker, labels, and normal motion; remove the second SVG and spring loop.                                                                                                                                                                                                                                             |
 | [118 — Token calendar](./cases/118-token-usage-calendar/shell.ts)                | First-party primitive | Add per-tick text style, anchor, and offset accessors so the first month label needs no post-render DOM mutation.                                                                                                                                                                                                                                                  |
+| [119 — Stacked bar cursor](./cases/119-stacked-bar-band-cursor/chart.ts)         | First-party primitive | Use renderer-native `crosshair` axes for the categorical band, endpoint rule, labels, grouped focus, and ordinary definition motion; only conformance observation remains outside.                                                                                                                                                                                 |
 
 ## Reference evidence
 
@@ -273,8 +275,8 @@ bundle.
 
 ## Delivery result
 
-All 109 catalog directories now have one roadmap record and case-local
-evidence. All 106 normal-definition cases are verified against their current
+All 110 catalog directories now have one roadmap record and case-local
+evidence. All 107 normal-definition cases are verified against their current
 boundary; only cases 85, 86, and 116 retain accepted application or bespoke
 geometry work. The roadmap validator compares its IDs with the live catalog
 directories so a new case cannot silently remain outside this review.

@@ -10,7 +10,7 @@ import { decathlon } from '@charts-poc/demo-data/decathlon'
 import { scaleLinear, scalePoint } from 'd3-scale'
 import { curveLinearClosed } from 'd3-shape'
 import { radarEvents, timedEvents } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { PolarGuideLabelContext } from '@tanstack/charts/polar'
 import type { ConformanceInput } from '../../types'
 
@@ -97,7 +97,13 @@ export const radarDefinition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(radarDefinition, 'Decathlon radar chart', {
-  format: ({ datum }) =>
-    `${datum.Country} · ${datum.event} · ${(datum.relativePerformance * 100).toFixed(1)}%`,
-})
+export const catalogCase = tanstackCase(
+  radarDefinition,
+  'Decathlon radar chart',
+  {
+    format: ({ datum }) =>
+      `${datum.Country} · ${datum.event} · ${(datum.relativePerformance * 100).toFixed(1)}%`,
+  },
+)
+
+export const mount = catalogCase.mount

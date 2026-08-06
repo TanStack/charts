@@ -302,6 +302,7 @@ function point<TDatum>(
 function renderContext(): MarkRenderContext {
   return {
     markIndex: 0,
+    surface: { x: 0, y: 0, width: 100, height: 100 },
     chart: { x: 0, y: 0, width: 100, height: 100 },
     scales: {
       x: scale('x', (value) => Number(value) * 10),

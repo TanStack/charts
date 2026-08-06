@@ -228,6 +228,69 @@ describe('React Native SVG scene renderer', () => {
     expect(render([second])).toContain('x1="90"')
     expect(render([second])).not.toContain('x1="10"')
   })
+
+  it('paints focus underlays and overlays around the base scene in one SVG', () => {
+    const base = scene()
+    base.nodes = [
+      {
+        kind: 'rect',
+        key: 'base',
+        x: 20,
+        y: 20,
+        width: 20,
+        height: 20,
+        style: { fill: '#222222' },
+      },
+    ]
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={base}
+        color="#111827"
+        focusFill="#fef3c7"
+        focusPresentation={{
+          under: [
+            {
+              kind: 'rect',
+              key: 'under',
+              x: 0,
+              y: 0,
+              width: 10,
+              height: 10,
+              style: { fill: '#111111' },
+            },
+          ],
+          over: [
+            {
+              kind: 'group',
+              key: 'over',
+              clip: { x: 0, y: 0, width: 80, height: 60 },
+              children: [
+                {
+                  kind: 'dot',
+                  key: 'focus-dot',
+                  x: 50,
+                  y: 30,
+                  radius: 5,
+                  style: {
+                    fill: 'var(--ts-chart-focus-fill, Canvas)',
+                    stroke: '#333333',
+                  },
+                },
+              ],
+            },
+          ],
+        }}
+        idPrefix="native-focus"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup.match(/<svg/g)).toHaveLength(1)
+    expect(markup.indexOf('#111111')).toBeLessThan(markup.indexOf('#222222'))
+    expect(markup.indexOf('#222222')).toBeLessThan(markup.indexOf('#fef3c7'))
+    expect(markup).toContain('<clipPath')
+    expect(markup).toContain('fill="#fef3c7"')
+  })
 })
 
 function scene(): ChartScene {
@@ -310,7 +373,7 @@ function scene(): ChartScene {
     {
       kind: 'group',
       key: 'inactive-focus',
-      focus: { match: 'primary', points: [], placement: 'over' },
+      focus: { match: 'primary', anchors: [], points: [], placement: 'over' },
       children: [
         {
           kind: 'dot',

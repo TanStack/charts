@@ -28,6 +28,19 @@ const bundle = await build({
         container.style.color = '#ff0000'
         const renderer = createCanvasChartRenderer()
         const surface = renderer.mount(container, () => {})
+        const focusPoint = {
+          key: 'focus',
+          markId: 'dots',
+          group: null,
+          groupLabel: 'dots',
+          datum: null,
+          datumIndex: 0,
+          xValue: 0,
+          yValue: 0,
+          x: 80,
+          y: 45,
+          color: '#7c3aed',
+        }
         const makeScene = (width, height) => ({
           width,
           height,
@@ -68,8 +81,27 @@ const bundle = await build({
               height: 20,
               style: { fill: 'url(#smoke-gradient)' },
             },
+            {
+              kind: 'group',
+              key: 'focus-layer',
+              focus: {
+                match: 'primary',
+                points: [focusPoint],
+                placement: 'over',
+              },
+              children: [
+                {
+                  kind: 'dot',
+                  key: 'focus',
+                  x: focusPoint.x,
+                  y: focusPoint.y,
+                  radius: 8,
+                  style: { fill: focusPoint.color },
+                },
+              ],
+            },
           ],
-          points: [],
+          points: [focusPoint],
           scales: {},
           colors: {
             type: 'ordinal',
@@ -131,22 +163,12 @@ const bundle = await build({
         }
         const baseBeforeFocus = sceneCanvas.toDataURL()
         const focusBefore = focusCanvas.toDataURL()
-        surface.paintFocus(
-          {
-            key: 'focus',
-            markId: 'dots',
-            group: null,
-            groupLabel: 'dots',
-            datum: null,
-            datumIndex: 0,
-            xValue: 0,
-            yValue: 0,
-            x: 80,
-            y: 45,
-            color: '#7c3aed',
-          },
-          [],
-        )
+        surface.paintFocus({
+          primary: focusPoint,
+          group: [focusPoint],
+          source: 'programmatic',
+          pinned: false,
+        })
         const baseAfterFocus = sceneCanvas.toDataURL()
         const focusAfter = focusCanvas.toDataURL()
         const rootElement = surface.element

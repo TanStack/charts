@@ -12,8 +12,7 @@
       "{workspaceRoot}/package.json",
       "{workspaceRoot}/pnpm-lock.yaml",
       "{workspaceRoot}/pnpm-workspace.yaml",
-      "{workspaceRoot}/tsconfig.json",
-      { "env": "CI" }
+      "{workspaceRoot}/tsconfig.json"
     ],
     "source": [
       "sharedGlobals",
@@ -22,14 +21,28 @@
       "{workspaceRoot}/benchmarks/**/*",
       "{workspaceRoot}/scripts/**/*",
       "{workspaceRoot}/vitest*.config.ts",
-      "!{workspaceRoot}/**/dist/**/*"
+      "!{workspaceRoot}/**/CHANGELOG.md",
+      "!{workspaceRoot}/**/README.md",
+      "!{workspaceRoot}/**/dist/**/*",
+      "!{workspaceRoot}/packages/*/docs/**/*",
+      "!{workspaceRoot}/packages/*/llms.txt"
+    ],
+    "testDom": [
+      "source",
+      "docsTest",
+      "{workspaceRoot}/.nx/workflows/**/*.yaml",
+      "{workspaceRoot}/.github/actions/**/*.yml",
+      "{workspaceRoot}/.github/workflows/**/*.yml"
     ],
     "format": [
       "{workspaceRoot}/**/*",
       "!{workspaceRoot}/.benchmark-output/**/*",
       "!{workspaceRoot}/.bundle-output/**/*",
       "!{workspaceRoot}/.catalog-artifact/**/*",
-      "!{workspaceRoot}/.nx/**/*",
+      "!{workspaceRoot}/.nx/cache/**/*",
+      "!{workspaceRoot}/.nx/prettier-cache",
+      "!{workspaceRoot}/.nx/typescript/**/*",
+      "!{workspaceRoot}/.nx/workspace-data/**/*",
       "!{workspaceRoot}/.release-artifacts/**/*",
       "!{workspaceRoot}/node_modules/**/*"
     ],
@@ -40,6 +53,7 @@
       "{workspaceRoot}/CHANGELOG.md",
       "{workspaceRoot}/llms.txt",
       "{workspaceRoot}/docs/**/*",
+      "{workspaceRoot}/media/**/*",
       "{workspaceRoot}/packages/*/README.md",
       "{workspaceRoot}/packages/*/package.json",
       "{workspaceRoot}/packages/*/src/**/*",
@@ -54,13 +68,23 @@
       "{workspaceRoot}/scripts/packed-markdown-links.mjs",
       "{workspaceRoot}/scripts/sync-package-docs.mjs"
     ],
+    "docsTest": [
+      "docs",
+      "{workspaceRoot}/API-FRICTION.md",
+      "{workspaceRoot}/MARKETING.md",
+      "{workspaceRoot}/benchmarks/conformance/api-friction.test.ts",
+      "{workspaceRoot}/scripts/sync-release-version.mjs",
+      "{workspaceRoot}/scripts/sync-release-version.test.mjs"
+    ],
     "release": [
       "sharedGlobals",
       "{workspaceRoot}/LICENSE",
       "{workspaceRoot}/README.md",
       "{workspaceRoot}/docs/**/*",
       "{workspaceRoot}/packages/charts-core/**/*",
+      "{workspaceRoot}/packages/charts-scales/**/*",
       "{workspaceRoot}/packages/*-charts/**/*",
+      "{workspaceRoot}/packages/react-charts-catalog/**/*",
       "{workspaceRoot}/examples/charts-react-native/**/*",
       "{workspaceRoot}/examples/charts-expo/**/*",
       "!{workspaceRoot}/packages/*/dist/**/*",
@@ -69,29 +93,76 @@
       "{workspaceRoot}/scripts/check-framework-adapters.mjs",
       "{workspaceRoot}/scripts/check-packed-consumers.mjs",
       "{workspaceRoot}/scripts/packed-react-native-consumers.mjs",
-      "{workspaceRoot}/scripts/packed-markdown-links.mjs"
+      "{workspaceRoot}/scripts/packed-markdown-links.mjs",
+      "{workspaceRoot}/scripts/run-with-concurrency.mjs"
+    ],
+    "reactNativeTypes": [
+      "sharedGlobals",
+      "{workspaceRoot}/scripts/check-react-native-types.mjs",
+      "{workspaceRoot}/packages/charts-core/**/*",
+      "{workspaceRoot}/packages/react-native-charts/**/*",
+      "{workspaceRoot}/examples/charts-react-native/**/*",
+      "{workspaceRoot}/examples/charts-expo/**/*",
+      "!{workspaceRoot}/packages/*/dist/**/*"
     ],
     "testSolid": [
       "sharedGlobals",
       "{workspaceRoot}/vitest.solid*.config.ts",
       "{workspaceRoot}/packages/charts-core/**/*",
       "{workspaceRoot}/packages/solid-charts/**/*",
-      "!{workspaceRoot}/packages/*/dist/**/*"
+      "!{workspaceRoot}/packages/*/dist/**/*",
+      "!{workspaceRoot}/packages/**/CHANGELOG.md",
+      "!{workspaceRoot}/packages/**/README.md",
+      "!{workspaceRoot}/packages/*/docs/**/*",
+      "!{workspaceRoot}/packages/*/llms.txt"
     ],
     "testSvelte": [
       "sharedGlobals",
       "{workspaceRoot}/vitest.svelte*.config.ts",
       "{workspaceRoot}/packages/charts-core/**/*",
       "{workspaceRoot}/packages/svelte-charts/**/*",
-      "!{workspaceRoot}/packages/*/dist/**/*"
+      "!{workspaceRoot}/packages/*/dist/**/*",
+      "!{workspaceRoot}/packages/**/CHANGELOG.md",
+      "!{workspaceRoot}/packages/**/README.md",
+      "!{workspaceRoot}/packages/*/docs/**/*",
+      "!{workspaceRoot}/packages/*/llms.txt"
     ],
     "testOctane": [
       "sharedGlobals",
       "{workspaceRoot}/vitest.octane*.config.ts",
       "{workspaceRoot}/packages/charts-core/**/*",
+      "{workspaceRoot}/packages/core/**/*",
       "{workspaceRoot}/packages/octane/**/*",
       "{workspaceRoot}/packages/octane-charts/**/*",
-      "!{workspaceRoot}/packages/*/dist/**/*"
+      "{workspaceRoot}/packages/plot/**/*",
+      "!{workspaceRoot}/packages/*/dist/**/*",
+      "!{workspaceRoot}/packages/**/CHANGELOG.md",
+      "!{workspaceRoot}/packages/**/README.md",
+      "!{workspaceRoot}/packages/*/docs/**/*",
+      "!{workspaceRoot}/packages/*/llms.txt"
+    ],
+    "catalogSource": [
+      "sharedGlobals",
+      "{workspaceRoot}/examples/conformance/**/*",
+      "{workspaceRoot}/benchmarks/conformance/**/*",
+      "{workspaceRoot}/packages/charts-core/package.json",
+      "{workspaceRoot}/packages/charts-core/src/**/*",
+      "{workspaceRoot}/packages/charts-demo-data/package.json",
+      "{workspaceRoot}/packages/charts-demo-data/src/**/*",
+      "{workspaceRoot}/packages/react-charts/package.json",
+      "{workspaceRoot}/packages/react-charts/src/**/*",
+      "{workspaceRoot}/scripts/build-conformance-artifact.mjs",
+      "{workspaceRoot}/scripts/catalog-artifact.mjs",
+      "{workspaceRoot}/scripts/catalog-source-revision.mjs",
+      "{workspaceRoot}/scripts/catalog-source-files.mjs",
+      "{workspaceRoot}/scripts/check-catalog-loading.mjs",
+      "{workspaceRoot}/scripts/check-conformance-artifact.mjs",
+      "!{workspaceRoot}/examples/conformance/dist/**/*"
+    ],
+    "catalogRevision": [
+      {
+        "runtime": "node scripts/catalog-source-revision.mjs"
+      }
     ],
     "comparisonRevision": [
       {
@@ -108,6 +179,10 @@
       "cache": true,
       "inputs": ["docs"]
     },
+    "docs-test": {
+      "cache": true,
+      "inputs": ["docsTest"]
+    },
     "typecheck": {
       "cache": true,
       "inputs": ["source"]
@@ -115,6 +190,10 @@
     "test-*": {
       "cache": true,
       "inputs": ["source"]
+    },
+    "test-dom": {
+      "cache": true,
+      "inputs": ["testDom"]
     },
     "test-solid": {
       "cache": true,
@@ -144,6 +223,10 @@
       "cache": true,
       "inputs": ["release"]
     },
+    "react-native-types": {
+      "cache": true,
+      "inputs": ["reactNativeTypes"]
+    },
     "package-check": {
       "cache": true,
       "inputs": ["release"]
@@ -165,18 +248,27 @@
     },
     "catalog-check": {
       "cache": true,
-      "inputs": ["source"]
+      "inputs": ["catalogSource"]
     },
-    "catalog-build": {
-      "cache": false
+    "catalog-vite-build": {
+      "cache": true,
+      "inputs": ["catalogSource"],
+      "outputs": ["{workspaceRoot}/examples/conformance/dist"]
+    },
+    "catalog-artifact-build": {
+      "cache": true,
+      "inputs": ["catalogSource", "catalogRevision"],
+      "outputs": ["{workspaceRoot}/.catalog-artifact"]
     },
     "catalog-loading-check": {
-      "cache": false
+      "cache": true,
+      "inputs": ["catalogSource", "catalogRevision"]
     },
     "release-artifacts": {
       "cache": true,
       "inputs": ["release"],
       "outputs": ["{workspaceRoot}/.release-artifacts"]
     }
-  }
+  },
+  "nxCloudId": "6a728964bb91bb09533eb006"
 }

@@ -102,14 +102,14 @@ export function rect<TDatum>(
 
   return createMark(({ markIndex }) => {
     const id = options.id ?? `rect-${markIndex}`
-    const xValues = channelValues(data, options.x, (_datum, index) => index)
-    const x1Values = channelValues(data, options.x1, (_datum, index) =>
+    const xValues = channelValues(data, options.x, (_datum, { index }) => index)
+    const x1Values = channelValues(data, options.x1, (_datum, { index }) =>
       options.x === undefined ? index : xValues[index],
     )
     const x2Values = channelValues(
       data,
       options.x2,
-      (_datum, index) => xValues[index],
+      (_datum, { index }) => xValues[index],
     )
     const yValues = channelValues(data, options.y, (datum) =>
       typeof datum === 'number' ? datum : undefined,
@@ -117,12 +117,12 @@ export function rect<TDatum>(
     const y1Values = channelValues(
       data,
       options.y1,
-      (_datum, index) => yValues[index],
+      (_datum, { index }) => yValues[index],
     )
     const y2Values = channelValues(
       data,
       options.y2,
-      (_datum, index) => yValues[index],
+      (_datum, { index }) => yValues[index],
     )
     const zValues = channelValues(data, options.z, () => null)
     const colorValues =

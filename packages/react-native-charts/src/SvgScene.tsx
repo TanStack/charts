@@ -15,6 +15,7 @@ import {
 } from 'react-native-svg'
 import type { CommonPathProps, Linejoin } from 'react-native-svg'
 import type {
+  ChartFocusPresentation,
   ChartScene,
   SceneGroup,
   SceneNode,
@@ -28,6 +29,8 @@ export interface NativeChartSceneProps {
   fontFamily?: string
   idPrefix: string
   resolvePaint: NativePaintResolver
+  focusFill?: ColorValue
+  focusPresentation?: ChartFocusPresentation
 }
 
 export interface NativeChartSceneNodesProps extends NativeChartSceneProps {
@@ -38,6 +41,7 @@ export function NativeChartSceneNodes({
   scene,
   nodes,
   color,
+  focusFill,
   idPrefix,
   resolvePaint,
 }: NativeChartSceneNodesProps) {
@@ -47,8 +51,15 @@ export function NativeChartSceneNodes({
   )
   const paint = React.useCallback(
     (value: string) =>
-      resolveScenePaint(value, gradientIds, idPrefix, resolvePaint, color),
-    [color, gradientIds, idPrefix, resolvePaint],
+      resolveScenePaint(
+        value,
+        gradientIds,
+        idPrefix,
+        resolvePaint,
+        color,
+        focusFill,
+      ),
+    [color, focusFill, gradientIds, idPrefix, resolvePaint],
   )
   return <>{nodes.map((node) => renderSceneNode(node, idPrefix, paint))}</>
 }
@@ -59,6 +70,8 @@ export const NativeChartScene = React.memo(function NativeChartScene({
   fontFamily,
   idPrefix,
   resolvePaint,
+  focusFill,
+  focusPresentation,
 }: NativeChartSceneProps) {
   const gradientIds = React.useMemo(
     () => new Set(scene.gradients.map((gradient) => gradient.id)),
@@ -66,8 +79,15 @@ export const NativeChartScene = React.memo(function NativeChartScene({
   )
   const paint = React.useCallback(
     (value: string) =>
-      resolveScenePaint(value, gradientIds, idPrefix, resolvePaint, color),
-    [color, gradientIds, idPrefix, resolvePaint],
+      resolveScenePaint(
+        value,
+        gradientIds,
+        idPrefix,
+        resolvePaint,
+        color,
+        focusFill,
+      ),
+    [color, focusFill, gradientIds, idPrefix, resolvePaint],
   )
 
   return (
@@ -112,7 +132,13 @@ export const NativeChartScene = React.memo(function NativeChartScene({
           fill={paint(scene.theme.background)}
         />
       )}
+      {focusPresentation?.under.map((node) =>
+        renderSceneNode(node, idPrefix, paint),
+      )}
       {scene.nodes.map((node) => renderSceneNode(node, idPrefix, paint))}
+      {focusPresentation?.over.map((node) =>
+        renderSceneNode(node, idPrefix, paint),
+      )}
     </Svg>
   )
 })
@@ -279,13 +305,14 @@ function resolveScenePaint(
   idPrefix: string,
   resolvePaint: NativePaintResolver,
   color: ColorValue,
+  canvas: ColorValue | undefined,
 ) {
   const match = /^url\(#([\s\S]*)\)$/.exec(value)
   const id = match?.[1]
   if (id !== undefined && gradientIds.has(id)) {
     return `url(#${scopedId(idPrefix, id)})`
   }
-  return resolvePaint(value, { color })
+  return resolvePaint(value, { color, canvas })
 }
 
 function pointsPath(

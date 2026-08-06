@@ -60,7 +60,8 @@ describe('definition-owned streamgraph stack', () => {
 
     expect(source).toContain("order: 'inside-out'")
     expect(source).toContain("offset: 'wiggle'")
-    expect(source).toContain('areaY(industries')
+    expect(source).toContain('streamgraphChart(industries, true)')
+    expect(source).toContain('areaY(rows')
     expect(source).not.toContain("from 'd3-array'")
     expect(source).not.toContain("from 'd3-shape'")
     expect(source).not.toContain('streamIntervals')

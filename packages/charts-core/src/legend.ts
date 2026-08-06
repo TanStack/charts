@@ -7,5 +7,6 @@ export {
 export { interactiveColorLegend } from './interactive-legend'
 export type {
   InteractiveColorLegendChange,
+  InteractiveColorLegendItemContext,
   InteractiveColorLegendOptions,
 } from './interactive-legend'

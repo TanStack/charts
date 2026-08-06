@@ -61,7 +61,7 @@ export function hexagon<TDatum>(
 
   return createMark(({ markIndex }) => {
     const id = options.id ?? `hexagon-${markIndex}`
-    const xValues = channelValues(data, options.x, (_datum, index) => index)
+    const xValues = channelValues(data, options.x, (_datum, { index }) => index)
     const yValues = channelValues(data, options.y, (datum) =>
       typeof datum === 'number' ? datum : undefined,
     )

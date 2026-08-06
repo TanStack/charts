@@ -190,12 +190,12 @@ importers:
       d3-shape:
         specifier: 3.2.0
         version: 3.2.0
-      d3-zoom:
-        specifier: 3.0.0
-        version: 3.0.0
       d3-time:
         specifier: 3.1.0
         version: 3.1.0
+      d3-zoom:
+        specifier: 3.0.0
+        version: 3.0.0
       echarts:
         specifier: 6.1.0
         version: 6.1.0
@@ -641,12 +641,18 @@ importers:
       d3-sankey:
         specifier: 0.12.3
         version: 0.12.3
+      d3-scale:
+        specifier: 4.0.2
+        version: 4.0.2
       d3-selection:
         specifier: 3.0.0
         version: 3.0.0
       d3-shape:
         specifier: 3.2.0
         version: 3.2.0
+      d3-zoom:
+        specifier: 3.0.0
+        version: 3.0.0
     devDependencies:
       '@types/d3-array':
         specifier: ^3.2.2
@@ -681,9 +687,6 @@ importers:
       '@types/d3-zoom':
         specifier: ^3.0.8
         version: 3.0.8
-      d3-scale:
-        specifier: 4.0.2
-        version: 4.0.2
 
   packages/charts-core-d3:
     dependencies:
@@ -713,11 +716,7 @@ importers:
         specifier: ^3.1.8
         version: 3.1.8
 
-  packages/charts-demo-data:
-    dependencies:
-      d3-dsv:
-        specifier: 3.0.1
-        version: 3.0.1
+  packages/charts-demo-data: {}
 
   packages/charts-fixtures:
     dependencies:
@@ -866,6 +865,66 @@ importers:
       d3-scale:
         specifier: 4.0.2
         version: 4.0.2
+
+  packages/react-charts-catalog:
+    dependencies:
+      '@tanstack/charts':
+        specifier: workspace:*
+        version: link:../charts-core
+      '@tanstack/react-charts':
+        specifier: workspace:*
+        version: link:../react-charts
+      d3-array:
+        specifier: 3.2.4
+        version: 3.2.4
+      d3-brush:
+        specifier: 3.0.0
+        version: 3.0.0
+      d3-contour:
+        specifier: 4.0.2
+        version: 4.0.2
+      d3-delaunay:
+        specifier: 6.0.4
+        version: 6.0.4
+      d3-force:
+        specifier: 3.0.0
+        version: 3.0.0
+      d3-format:
+        specifier: 3.1.2
+        version: 3.1.2
+      d3-geo:
+        specifier: 3.1.1
+        version: 3.1.1
+      d3-hexbin:
+        specifier: 0.2.2
+        version: 0.2.2
+      d3-hierarchy:
+        specifier: 3.1.2
+        version: 3.1.2
+      d3-sankey:
+        specifier: 0.12.3
+        version: 0.12.3
+      d3-scale:
+        specifier: 4.0.2
+        version: 4.0.2
+      d3-selection:
+        specifier: 3.0.0
+        version: 3.0.0
+      d3-shape:
+        specifier: 3.2.0
+        version: 3.2.0
+      d3-time:
+        specifier: 3.1.0
+        version: 3.1.0
+      d3-zoom:
+        specifier: 3.0.0
+        version: 3.0.0
+      react:
+        specifier: ^19.0.0
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.3(react@19.2.3)
 
   packages/react-native-charts:
     dependencies:

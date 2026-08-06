@@ -30,7 +30,9 @@ describe('catalog definition shapes', () => {
             .filter(
               (entry) =>
                 entry.isFile() &&
-                (entry.name === 'tanstack.ts' || entry.name === 'view.tsx'),
+                (entry.name === 'tanstack.ts' ||
+                  entry.name === 'view.tsx' ||
+                  entry.name === 'chart.ts'),
             )
             .map((entry) => path.join(directory, entry.name))
         }),
@@ -55,9 +57,9 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification.parameterless).toEqual([])
-    expect(classification.static).toBe(108)
+    expect(classification.static).toBe(110)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
-    expect(classification.static + classification.responsive.length).toBe(113)
+    expect(classification.static + classification.responsive.length).toBe(115)
   })
 })
 

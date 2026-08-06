@@ -3,6 +3,7 @@ import { d3Curve, defineChart, lineY, rank } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { curveStepAfter } from 'd3-shape'
 import { tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
 import type { ConformanceInput } from '../../types'
 
@@ -22,15 +23,20 @@ export const empiricalCdfDefinition = (input: ConformanceInput) => {
     .slice(input.revision * 8)
     .sort((left, right) => left['economy (mpg)'] - right['economy (mpg)'])
   const ranked = rank(source, { value: 'economy (mpg)', order: 'ascending' })
-  const rows = ranked.map((row) => ({
+  const fullRows = ranked.map((row) => ({
     ...row,
     probability: row.rank / source.length,
   }))
+  const rows = samplePreviewData(fullRows, input, 80, [
+    (row) => row['economy (mpg)'],
+    (row) => row.probability,
+  ])
 
   return defineChart({
     marks: [
       lineY(rows, {
         id: 'empirical-cdf',
+        key: (row) => `${row.name}:${row.year}`,
         x: 'economy (mpg)',
         y: 'probability',
         curve: d3Curve(curveStepAfter),

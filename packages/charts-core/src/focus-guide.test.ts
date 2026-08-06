@@ -2,7 +2,11 @@ import { scaleBand, scaleLinear } from 'd3-scale'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { dot } from './dot'
 import { resolveFocusScene } from './focus-layer'
-import { focusGuideX, focusGuideY } from './focus-guide'
+import {
+  focusGuideX,
+  focusGuideY,
+  type FocusGuideLabelFormatContext,
+} from './focus-guide'
 import { createChartScene, defineChart } from './scene'
 import type {
   ChartFocusState,
@@ -31,14 +35,17 @@ describe('focus guides', () => {
       x: 'period',
       y: 'value',
       xLabel: {
-        format(value, point) {
+        format(value, context) {
           expectTypeOf(value).toEqualTypeOf<string>()
-          expectTypeOf(point).toEqualTypeOf<ChartPoint<Row, string, number>>()
+          expectTypeOf(context).toEqualTypeOf<
+            FocusGuideLabelFormatContext<Row, string, number>
+          >()
+          const { point } = context
           return `${value}:${point.datum.value}`
         },
       },
       yLabel: {
-        format(value, point) {
+        format(value, { point }) {
           expectTypeOf(value).toEqualTypeOf<number>()
           expectTypeOf(point.xValue).toEqualTypeOf<string>()
           return String(value)
@@ -85,7 +92,10 @@ describe('focus guides', () => {
 
   it('builds full-plot rules, a marker, and measured label boxes', () => {
     const formatX = vi.fn(
-      (value: string, point: ChartPoint<Row, string, number>) => {
+      (
+        value: string,
+        { point }: FocusGuideLabelFormatContext<Row, string, number>,
+      ) => {
         expect(point.datum).toBe(rows[point.datumIndex])
         return value
       },
@@ -182,7 +192,7 @@ describe('focus guides', () => {
     })
     expect(
       formatX.mock.calls.some(
-        ([value, point]) => value === 'Q1' && point.datum === rows[0],
+        ([value, { point }]) => value === 'Q1' && point.datum === rows[0],
       ),
     ).toBe(true)
   })
@@ -285,15 +295,15 @@ describe('focus guides', () => {
         marks: [
           dot(values, {
             id: 'source-points',
-            x: (_value, index) => index,
+            x: (_value, { index }) => index,
             y: (value) => value,
-            key: (_value, index) => index,
+            key: (_value, { index }) => index,
           }),
           focusGuideX(values, {
             id: 'cursor',
-            x: (_value, index) => index,
+            x: (_value, { index }) => index,
             y: (value) => value,
-            key: (_value, index) => index,
+            key: (_value, { index }) => index,
           }),
         ],
         x: { scale: scaleLinear().domain([0, 1]) },

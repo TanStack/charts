@@ -117,7 +117,7 @@ guide-free, zero-margin chart. See
 geometry boundary.
 
 Use the official D3 modules linked from
-[Scales and D3](../concepts/scales-and-d3.md) for grouping, binning, summary
+[Scales](../concepts/scales-and-d3.md) for grouping, binning, summary
 statistics, spatial indexing, and shape preparation. TanStack Charts consumes
 the resulting rows and intervals.
 

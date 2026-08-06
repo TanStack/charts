@@ -4,6 +4,7 @@ import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { definitionMotionStages } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type {
   ChartRendererHost,
   ChartRendererHostOptions,
@@ -219,6 +220,16 @@ export function definitionMotionDefinition(
     maxFocusDistance: 32,
   })
 }
+
+export const catalogCase = tanstackCase(
+  (input) =>
+    definitionMotionDefinition(
+      definitionMotionStages[
+        Math.abs(input.revision) % definitionMotionStages.length
+      ] ?? definitionMotionStages[0],
+    ),
+  'Definition-owned chart, mark, datum, and guide motion',
+)
 
 function createControls(document: Document) {
   const root = document.createElement('div')

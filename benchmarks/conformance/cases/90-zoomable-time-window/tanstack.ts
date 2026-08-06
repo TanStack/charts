@@ -8,6 +8,7 @@ import {
   clientPointBounds,
   scenePointToClient,
 } from '../../shared/driver-geometry'
+import { tanstackCase } from '../../shared/mount'
 import {
   initialZoomWindow,
   selectZoomRows,
@@ -91,7 +92,10 @@ export function zoomTimeWindowDefinition(
     behaviors: [
       zoomX({
         id: 'time-window',
-        window: controlledSignal(window, onChange),
+        window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(
+          window,
+          (next, { reason }) => onChange(next, reason),
+        ),
         extent: zoomFullDomain,
         scaleExtent: [1, 8],
         ariaLabel:
@@ -108,6 +112,11 @@ export function zoomTimeWindowDefinition(
     margin: { top: 56, right: 24, bottom: 44, left: 58 },
   })
 }
+
+export const catalogCase = tanstackCase(
+  () => zoomTimeWindowDefinition(copyWindow(initialZoomWindow), () => {}),
+  'Time series with a wheel-zoomable and pannable time viewport',
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

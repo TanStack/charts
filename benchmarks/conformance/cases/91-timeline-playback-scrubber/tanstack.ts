@@ -14,6 +14,7 @@ import {
   playbackIndexFromAnchor,
   selectPlaybackRows,
 } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import type { HandleXChange } from '@tanstack/charts/interaction/handle'
 import type { ChartHost, ChartHostOptions, ChartScene } from '@tanstack/charts'
@@ -88,7 +89,10 @@ export function playbackDefinition(
     behaviors: [
       handleX({
         id: 'playback-frame',
-        value: controlledSignal(frame, onChange),
+        value: controlledSignal<Date, HandleXChange<Date>>(
+          frame,
+          (next, { reason }) => onChange(next, reason),
+        ),
         values: playbackDates,
         cross: { edge: 'bottom', offset: 34 },
         trackStyle: {
@@ -111,6 +115,11 @@ export function playbackDefinition(
     margin,
   })
 }
+
+export const catalogCase = tanstackCase(
+  () => playbackDefinition(initialFrame, () => {}),
+  'AAPL closes with a draggable timeline playback scrubber',
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

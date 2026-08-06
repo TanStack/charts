@@ -243,6 +243,7 @@ function adaptOnRender<
       container: context.container,
       scene: context.scene,
       svg,
+      interaction: context.interaction,
     })
   }
 }

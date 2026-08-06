@@ -2,7 +2,7 @@ import { d3Curve, defineChart, link, rect, text } from '@tanstack/charts'
 import { sankeyDiagram } from '@tanstack/charts/network/sankey'
 import { curveBumpX } from 'd3-shape'
 import { basicSankeyData } from './model'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { SankeyLink, SankeyNode } from '@tanstack/charts/network/sankey'
 import type { ConformanceInput } from '../../types'
 import type { BasicFlowLink, BasicFlowNode } from './model'
@@ -97,9 +97,11 @@ function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
 }
 
-export const mount = tanstackMount(basicSankeyDefinition, 'Basic Sankey', {
+export const catalogCase = tanstackCase(basicSankeyDefinition, 'Basic Sankey', {
   format: ({ datum }) =>
     datum.kind === 'node'
       ? `${datum.data.label} · ${datum.value}`
       : `${datum.sourceNode.data.label} → ${datum.targetNode.data.label} · ${datum.value}`,
 })
+
+export const mount = catalogCase.mount

@@ -2,7 +2,7 @@ import { penguins } from '@charts-poc/demo-data/penguins'
 import { barX, defineChart, groupBy, stack } from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { isSexedPenguin, pyramidSexes } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const colors = ['#2563eb', '#db2777']
@@ -53,7 +53,9 @@ export const populationPyramidDefinition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   populationPyramidDefinition,
   'Palmer penguins by species and sex',
 )
+
+export const mount = catalogCase.mount

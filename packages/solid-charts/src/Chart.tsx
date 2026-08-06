@@ -129,6 +129,7 @@ function toHostOptions<
           container: context.container,
           scene: context.scene,
           svg: element,
+          interaction: context.interaction,
         })
       }
     : undefined

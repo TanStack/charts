@@ -141,7 +141,8 @@ describe('definition-owned brush range', () => {
     }
     expect(source).toContain("from '@tanstack/charts/interaction/brush'")
     expect(source).toContain('brushX({')
-    expect(source).toContain('controlledSignal(range, onChange)')
+    expect(source).toContain('controlledSignal<')
+    expect(source).toContain('(next, { reason }) => onChange(next, reason)')
     expect(source).toContain('decorative(')
   })
 })

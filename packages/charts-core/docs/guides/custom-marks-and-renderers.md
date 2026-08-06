@@ -124,7 +124,8 @@ const threshold = createMark<ThresholdDatum, never, number>(({ markIndex }) => {
 ```
 
 `initialize` materializes channels for one scene build. `render` receives the
-resolved plot bounds, scales, theme, color resolver, and text layout tools.
+required full `surface` bounds, inner `chart` plot bounds, scales, theme, color
+resolver, and text layout tools.
 When a custom mark emits data labels, an optional `layoutLabels(context)` can
 return those positioned `SceneLabel` nodes before render so unlocked margins
 contain them. Keep that method pure because responsive layout may call it more
@@ -200,6 +201,90 @@ node.
 Omit points for decorative geometry. Do not invent fake interactive data for a
 frame, grid, or threshold that should not receive focus.
 
+## Focus-only anchors
+
+A decorative mark can still support `whenFocused` without becoming a pointer
+target. Return `focusAnchors` beside its nodes:
+
+```ts
+return {
+  nodes: [node],
+  focusAnchors: [
+    {
+      key: node.key,
+      markId: id,
+      group: null,
+      datum,
+      datumIndex: index,
+      yValue: datum.value,
+    },
+  ],
+}
+```
+
+The anchor key must identify the node or keyed group it reveals. Include only
+the semantic axes the geometry owns: a horizontal rule supplies `yValue`; a
+vertical rule supplies `xValue`. `focusAnchors` are read only when the mark is
+wrapped in `whenFocused` and never enter pointer hit testing, tooltip data, or
+keyboard navigation.
+
+## Focus-guide marks
+
+A mark that emits only cursor-driven rules, bands, labels, or markers declares that
+role explicitly:
+
+```ts
+import { resolveCrosshairGuide } from '@tanstack/charts/crosshair'
+
+return {
+  id,
+  channels: {},
+  focusGuideOnly: true,
+  render({ chart, surface, scales, theme }) {
+    return {
+      nodes: [],
+      focusGuides: [
+        {
+          key: id,
+          markId: id,
+          chart,
+          surface,
+          x: { style: { stroke: theme.foreground } },
+          projectX: (value) => {
+            const scale = scales.x
+            if (!scale || scale.type === 'none') return undefined
+            const position = (scale.viewport?.map ?? scale.map)(value)
+            return Number.isFinite(position) ? position : undefined
+          },
+          resolve: resolveCrosshairGuide,
+        },
+      ],
+    }
+  },
+}
+```
+
+`focusGuideOnly: true` keeps a guide-only mark from becoming the first ordinary
+mark used to divide underlays from overlays. `MarkScene.focusGuides` accepts
+`MarkFocusGuide`. Its `placement` is optional: omit it for normal mark-order
+placement. An explicit `under` or `over` is reserved for composed nested scenes
+that must retain placement already resolved inside that composition. Authors
+do not need to invent a placement for an ordinary guide mark.
+
+The required `surface` bounds cover the complete chart surface; `chart` covers
+the inner plot. Use `chart` for clipped rules and `surface` for labels that must
+remain visible. Project semantic guide values through
+`scale.viewport?.map ?? scale.map` so a transient viewport translation keeps
+the guide aligned with presented content. Each guide's required `resolve`
+callback receives the final guide, local focus, pointer, and projected cursor,
+then returns one transient scene node or `undefined`. `resolveCrosshairGuide`
+provides the built-in rule, band, label, and marker behavior. A custom guide can
+supply different policy without adding it to renderer bundles that never use
+the guide. A custom renderer receives final `SceneFocusGuide` values after the
+compiler has filled in placement. Pass the scene to
+`resolveFocusPresentation` instead of calling guide resolvers or resolving mark
+order inside the renderer.
+
 ## Separate point and scale values
 
 Most marks use the same value type for interaction and scale domains. When
@@ -220,14 +305,14 @@ chart code should rely on definition inference instead.
 
 ## Custom scales and legends
 
-Configured callable D3 scales are the normal path. `ChartScale`,
+Configured callable scales are the normal path. `ChartScale`,
 `ChartColorScale`, and `ChartColorLegend` exist for context-aware adapters that
 need chart range, theme, or responsive legend geometry.
 
 Keep specialized scale dependencies in the module that uses them. A line-only
 bundle must not pay for a custom scale registered elsewhere.
 
-See [Scales and D3](../concepts/scales-and-d3.md) and
+See [Scales](../concepts/scales-and-d3.md) and
 [Legends and Color](./legends-and-color.md).
 
 ## Custom renderer
@@ -245,13 +330,21 @@ const host = mountChartRenderer(container, {
 ```
 
 The renderer owns server shell markup, its mounted element, scene painting,
-coordinate conversion, focus painting, and cleanup. The host retains sizing,
-runtime, keyboard, tooltip, selection, and focus-strategy behavior. Keep
-`prerender` deterministic and make `mount` adopt compatible server markup.
+focus painting, and cleanup. It can implement `clientToScene` when controlled
+pointer gestures need client-coordinate conversion; the interaction controller
+returns `null` when that optional capability is absent. The host retains
+sizing, runtime, keyboard, tooltip, selection, and focus-strategy behavior.
+Keep `prerender` deterministic and make `mount` adopt compatible server markup.
 
 If `paintFocus` resolves and paints inline mark-state geometry, return that
 destination `ChartScene`. The host will use it for subsequent pointer hits;
 returning nothing preserves base-scene interaction for simpler renderers.
+Call `resolveFocusPresentation(scene, focus, pointer, cursor)` to obtain the
+authored and crosshair nodes for the renderer's underlay and overlay surfaces.
+
+If the renderer animates point geometry, implement `getPresentationPoints`
+and `subscribePresentationPoints`. This keeps stationary pointer focus,
+keyboard focus, and tooltip anchors aligned with the painted frame.
 
 Use the public `resolveFocusScene` and `focusedSceneNodes` helpers when a
 custom surface supports authored focus layers. They keep normal filtered marks
@@ -282,20 +375,26 @@ adapter. Preserve:
 - scoped IDs through `idPrefix`;
 - deterministic server output.
 
-Use `renderChartSvgWithResources` from
-`@tanstack/charts/svg/resources` when the only missing behavior is gradients or
-clipping.
+The default `renderChartSvg` already emits declared gradients and group clips.
+The compatible `renderChartSvgWithResources` export remains available when an
+explicit resource serializer name is useful.
+
+Mounted SVG surfaces also call the selected serializer when focus guides are
+painted. That call contains a single `focus-guide-layer:under` or
+`focus-guide-layer:over` group in `scene.nodes`; preserve its keyed `<g>` and
+apply the same paint, clipping, and resource-ID rules as the base scene.
 
 ## Custom focus and spatial indexes
 
 A `ChartFocusStrategy` owns pointer resolution, grouping, and keyboard
-navigation. Its generic types must remain identical to the chart points it
-receives.
+navigation. Pointer coordinates and the point being grouped arrive through
+the second context bag. Its generic types must remain identical to the chart
+points it receives.
 
 A `ChartSpatialIndexFactory` builds optional nearest-point acceleration from
-scene points and receives the complete resolved scene as its second argument.
-Return original typed points from the index. Do not erase them to `unknown` and
-cast them back in callbacks.
+scene points and receives the complete resolved scene through
+`context.scene`. Return original typed points from the index. Do not erase
+them to `unknown` and cast them back in callbacks.
 
 ## Extension checklist
 

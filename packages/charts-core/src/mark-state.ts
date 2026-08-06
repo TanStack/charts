@@ -1,9 +1,9 @@
-import { matchesFocusPoint } from './focus-layer'
 import {
   createScenePointLookup,
   sceneNodeOwnedPoints,
   type ScenePointLookup,
 } from './scene-point-ownership-internal'
+import { matchesFocusAnchor } from './focus-layer'
 import type {
   ChartAnimationOptions,
   ChartFocusMatch,
@@ -164,7 +164,7 @@ function matchingContext(
   if (
     typeof definition.when !== 'function' &&
     definition.when.focus === 'unmatched' &&
-    candidates.some((point) => matchesFocusPoint(point, focus, 'group'))
+    candidates.some((point) => matchesFocusAnchor(point, focus, 'group'))
   ) {
     return undefined
   }
@@ -176,7 +176,7 @@ function matchingContext(
       point,
       focus,
       pointer,
-      matches: (match) => matchesFocusPoint(point, focus, match),
+      matches: (match) => matchesFocusAnchor(point, focus, match),
     }
     const matches =
       typeof definition.when === 'function'

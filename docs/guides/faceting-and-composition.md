@@ -40,6 +40,8 @@ The canonical grammar is described in
 guide-free outer definition:
 
 ```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
 const definition = facetChart(rows, {
   by: 'group',
   columns: 2,
@@ -79,7 +81,7 @@ Build shared domains once and pass configured scales to every facet. When a
 panel deliberately uses an independent domain, label that policy in the
 surrounding UI.
 
-The [Scales and D3](../concepts/scales-and-d3.md) page owns scale construction
+The [Scales](../concepts/scales-and-d3.md) page owns scale construction
 and responsive range rules.
 
 ## Compose distinct views

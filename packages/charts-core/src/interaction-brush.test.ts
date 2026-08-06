@@ -3,7 +3,10 @@ import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { dot } from './dot'
 import { mountChart } from './dom'
 import { brushX, type BrushRange, type BrushXChange } from './interaction-brush'
-import { controlledSignal } from './interaction-signal'
+import {
+  controlledSignal,
+  type ControlledSignalChangeContext,
+} from './interaction-signal'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
 import type { ChartHost } from './dom-types'
@@ -306,7 +309,7 @@ describe('brushX', () => {
       .toEqualTypeOf<BrushRange<Month>>()
     expectTypeOf(signal.onChange)
       .parameter(1)
-      .toEqualTypeOf<BrushXChange<Month>>()
+      .toEqualTypeOf<ControlledSignalChangeContext<BrushXChange<Month>>>()
     expectTypeOf(behavior.__xValue).toEqualTypeOf<Month | undefined>()
   })
 })
@@ -324,7 +327,10 @@ function definition(
     behaviors: [
       brushX({
         id: 'window',
-        range: controlledSignal(value, onChange),
+        range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
+          value,
+          (next, { reason }) => onChange(next, reason),
+        ),
         values,
         ariaLabel: 'Visible date range',
         format: (date) =>

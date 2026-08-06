@@ -3,7 +3,7 @@
 Angular standalone-component adapter for `@tanstack/charts`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/angular-charts @angular/core @angular/platform-browser d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/angular-charts @angular/core @angular/platform-browser
 ```
 
 ```ts

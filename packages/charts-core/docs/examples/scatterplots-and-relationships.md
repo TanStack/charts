@@ -41,6 +41,8 @@ Set `ci: 0` when only the fitted line is needed. The default `0.95` band uses a
 Student-t interval for the fitted mean. See the
 [linear regression mark](../reference/marks/regression.md) for grouping,
 sampling, and degenerate-fit behavior.
+The dot layer still preserves every observation while the regression mark owns
+only its derived model geometry.
 
 ## Connect observations only when order matters
 
@@ -105,7 +107,7 @@ lookup performance matters but the cells should not be painted.
 
 - Use quantitative scales with intentional domains on both axes. Use a
   logarithmic scale only when multiplicative distance is the intended reading;
-  see [Scales and D3](../concepts/scales-and-d3.md).
+  see [Scales](../concepts/scales-and-d3.md).
 - Map magnitude through an area-preserving radial scale when point size carries
   a third quantitative value.
 - Control opacity or aggregate spatially before thousands of overlapping dots

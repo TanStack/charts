@@ -103,17 +103,19 @@ function createTooltipExtension<
     )
     const contentContext = createTooltipContentContext(
       nextContext.scene,
+      nextContext.pinned,
       options,
     )
     const content = options.content?.(points, contentContext)
     const text =
       content === undefined
-        ? (options.formatGroup?.(points) ?? options.format?.(nextContext.point))
+        ? (options.formatGroup?.(points, contentContext) ??
+          options.format?.(nextContext.point, contentContext))
         : undefined
     const resolvedContent =
       content ??
       text ??
-      defaultTooltipContent(points, nextContext.scene, options)
+      defaultTooltipContent(points, nextContext.scene, options, contentContext)
     const custom = renderTooltipBody(
       tooltipElement,
       points,
@@ -386,11 +388,13 @@ function createTooltip(document: Document) {
 
 function createTooltipContentContext(
   scene: ChartScene,
+  pinned: boolean,
   options?: ChartTooltipOptions<any, any, any>,
 ): ChartTooltipContentContext {
   const x = findTooltipChannelItem(options?.items, 'x')
   const y = findTooltipChannelItem(options?.items, 'y')
   return {
+    pinned,
     xLabel: x?.label ?? findSceneLabel(scene, 'x-label') ?? 'x',
     yLabel: y?.label ?? findSceneLabel(scene, 'y-label') ?? 'y',
     formatX: formatValue,
@@ -401,11 +405,11 @@ function createTooltipContentContext(
 function defaultTooltipContent(
   points: readonly ChartPoint[],
   scene: ChartScene,
-  options?: ChartTooltipOptions<any, any, any>,
+  options: ChartTooltipOptions<any, any, any> | undefined,
+  context: ChartTooltipContentContext,
 ): ChartTooltipContent {
   const point = points[0]
   if (!point) return { rows: [] }
-  const context = createTooltipContentContext(scene, options)
   const x = findTooltipChannelItem(options?.items, 'x')
   const y = findTooltipChannelItem(options?.items, 'y')
   const group = findTooltipChannelItem(options?.items, 'group')
@@ -826,7 +830,8 @@ function resolveTooltipCoordinate(
   if (source === 'pointer') return pointer?.[axis] ?? fallback
   if (source === 'value') {
     const value = axis === 'x' ? point.xValue : point.yValue
-    const position = scene.scales[axis]?.map(value)
+    const scale = scene.scales[axis]
+    const position = (scale?.viewport?.map ?? scale?.map)?.(value)
     return position !== undefined && Number.isFinite(position)
       ? position
       : fallback

@@ -1,5 +1,13 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleBand, scaleLinear, scaleTime, scaleUtc } from 'd3-scale'
+import type {
+  CrosshairAxisOptions as PublicCrosshairAxisOptions,
+  CrosshairBandOptions as PublicCrosshairBandOptions,
+  CrosshairLabelOptions as PublicCrosshairLabelOptions,
+  CrosshairMarkerOptions as PublicCrosshairMarkerOptions,
+  CrosshairOptions as PublicCrosshairOptions,
+  CrosshairRuleOptions as PublicCrosshairRuleOptions,
+} from '@tanstack/charts/types'
 import { barX, barY } from './bar'
 import type { BarYOptions } from './bar'
 import { mountChart } from './dom'
@@ -31,7 +39,10 @@ import { tooltip } from './tooltip'
 import { portal } from './tooltip-portal'
 import type {
   ChartBehavior,
+  ChartAxisOptions,
+  ChartColorLegend,
   ChartDefinition,
+  ChartAxisViewportOptions,
   ChartFocusStrategy,
   ChartMark,
   ChartMarkPointX,
@@ -47,6 +58,7 @@ import type {
   ChartSpecYValue,
   ChartSvgRenderer,
   ChartValue,
+  ResolvedScaleViewport,
 } from './types'
 
 interface Row {
@@ -55,6 +67,15 @@ interface Row {
   value: number
   date: Date
   enabled: boolean
+}
+
+type PublicCrosshairTypeSurface = {
+  axis: PublicCrosshairAxisOptions<string>
+  band: PublicCrosshairBandOptions
+  label: PublicCrosshairLabelOptions<string>
+  marker: PublicCrosshairMarkerOptions
+  options: PublicCrosshairOptions<string, number>
+  rule: PublicCrosshairRuleOptions
 }
 
 const rows: readonly Row[] = [
@@ -363,7 +384,11 @@ const categoricalRectDefinition = defineChart({
 })
 const facetedMark = facet(rows, {
   by: 'category',
-  chart: () => categoricalSpec,
+  chart: (data, { key }) => {
+    expectTypeOf(data).toEqualTypeOf<readonly [Row, ...Row[]]>()
+    expectTypeOf(key).toEqualTypeOf<string | number>()
+    return categoricalSpec
+  },
 })
 const customMark = createMark<Row>(() => ({
   id: 'custom',
@@ -439,6 +464,39 @@ const customScale: ChartScale = {
 }
 
 if (false) {
+  const numericViewport: ChartAxisViewportOptions<number> = {
+    domain: [0, 10],
+  }
+  const temporalViewport: ChartAxisViewportOptions<Date> = {
+    domain: [new Date(0), new Date(10)],
+  }
+  const mixedViewport: ChartAxisViewportOptions = {
+    // @ts-expect-error A viewport tuple cannot mix numeric and temporal values.
+    domain: [0, new Date(10)],
+  }
+  const categoricalAxis: ChartAxisOptions<string> = {
+    scale: scaleBand<string>(),
+    // @ts-expect-error Categorical axes cannot configure a continuous viewport.
+    viewport: { domain: ['Alpha', 'Beta'] },
+  }
+  const unionTemporalAxis: ChartAxisOptions<string | Date> = {
+    scale: scaleUtc(),
+    viewport: { domain: [new Date(0), new Date(10)] },
+  }
+  const mixedResolvedViewport: ResolvedScaleViewport = {
+    contentDomain: [0, 10],
+    // @ts-expect-error A resolved viewport also requires a homogeneous domain.
+    domain: [0, new Date(10)],
+    translate: 0,
+    map: () => 0,
+  }
+  void numericViewport
+  void temporalViewport
+  void mixedViewport
+  void categoricalAxis
+  void unionTemporalAxis
+  void mixedResolvedViewport
+
   expectTypeOf(positionlessDefinition).toMatchTypeOf<
     ChartDefinition<Row, number, number>
   >()
@@ -457,7 +515,6 @@ if (false) {
     marks: [positionlessMark],
     x: { scale: scaleLinear() },
   })
-
   const container = document.createElement('div')
   const temporalBehavior: ChartBehavior<Date, number> = {
     id: 'temporal-behavior',
@@ -466,8 +523,27 @@ if (false) {
   defineChart(temporalDefinition, { behaviors: [temporalBehavior] })
   // @ts-expect-error A Date-x behavior cannot consume a numeric-x chart.
   defineChart(numericDefinition, { behaviors: [temporalBehavior] })
+  const customLegend: ChartColorLegend = {
+    height(itemCount, context) {
+      expectTypeOf(itemCount).toEqualTypeOf<number>()
+      expectTypeOf(context.width).toEqualTypeOf<number>()
+      expectTypeOf(context.colors.domain).toEqualTypeOf<
+        readonly (string | number)[]
+      >()
+      expectTypeOf(context.chart.width).toEqualTypeOf<number>()
+      return itemCount
+    },
+    render(context) {
+      expectTypeOf(context.theme.foreground).toEqualTypeOf<string>()
+      return { kind: 'group', key: 'legend', children: [] }
+    },
+  }
+  void customLegend
   const categoricalFocus: ChartFocusStrategy<Row, string, number> = {
-    resolve(points) {
+    resolve(points, context) {
+      expectTypeOf(context.x).toEqualTypeOf<number>()
+      expectTypeOf(context.y).toEqualTypeOf<number>()
+      expectTypeOf(context.maxDistance).toEqualTypeOf<number>()
       return points.filter(
         (point) =>
           point.datum.enabled &&
@@ -475,7 +551,7 @@ if (false) {
           point.yValue > 0,
       )
     },
-    group(points, point) {
+    group(points, { point }) {
       return points.filter(
         (candidate) =>
           candidate.datum.category === point.datum.category &&
@@ -490,7 +566,7 @@ if (false) {
   }
   const numericFocus: ChartFocusStrategy<Row, number, number> = {
     resolve: (points) => points,
-    group: (_points, point) => [point],
+    group: (_points, { point }) => [point],
     navigation: (points) => points,
   }
   const numericRenderer: ChartSvgRenderer<Row, number, number> = () => ''
@@ -522,6 +598,7 @@ if (false) {
           text(point, context) {
             expectTypeOf(point.datum).toEqualTypeOf<Row>()
             expectTypeOf(context.formatY).toBeFunction()
+            expectTypeOf(context.pinned).toEqualTypeOf<boolean>()
             return point.datum.enabled ? 'enabled' : null
           },
         },
@@ -545,18 +622,24 @@ if (false) {
       },
       placement: ['top', 'bottom-right'],
       offset: 12,
-      format(point) {
+      format(point, context) {
         expectTypeOf(point.datum).toEqualTypeOf<Row>()
         expectTypeOf(point.xValue).toEqualTypeOf<string>()
         expectTypeOf(point.yValue).toEqualTypeOf<number>()
+        expectTypeOf(context.pinned).toEqualTypeOf<boolean>()
+        expectTypeOf(context.xLabel).toEqualTypeOf<string>()
+        expectTypeOf(context.formatX).toBeFunction()
         return point.xValue
       },
-      formatGroup(points) {
+      formatGroup(points, context) {
         expectTypeOf(points).items.toMatchTypeOf<{
           datum: Row
           xValue: string
           yValue: number
         }>()
+        expectTypeOf(context.pinned).toEqualTypeOf<boolean>()
+        expectTypeOf(context.yLabel).toEqualTypeOf<string>()
+        expectTypeOf(context.formatY).toBeFunction()
         return points.map((point) => point.xValue).join(', ')
       },
       content(points, context) {
@@ -566,6 +649,7 @@ if (false) {
           yValue: number
         }>()
         expectTypeOf(context.xLabel).toEqualTypeOf<string>()
+        expectTypeOf(context.pinned).toEqualTypeOf<boolean>()
         return {
           rows: points.map((point) => ({
             label: point.datum.category,
@@ -574,7 +658,7 @@ if (false) {
         }
       },
     },
-    spatialIndex(points, scene) {
+    spatialIndex(points, { scene }) {
       expectTypeOf(points).items.toMatchTypeOf<{
         datum: Row
         xValue: string
@@ -901,6 +985,17 @@ if (false) {
 }
 
 describe('public type contracts', () => {
+  it('exports crosshair options from the type-only entry', () => {
+    expectTypeOf<PublicCrosshairTypeSurface['axis']>().toMatchTypeOf<{
+      band?: boolean | PublicCrosshairTypeSurface['band']
+      label?: boolean | PublicCrosshairTypeSurface['label']
+    }>()
+    expectTypeOf<PublicCrosshairTypeSurface['options']>().toMatchTypeOf<{
+      marker?: boolean | PublicCrosshairTypeSurface['marker']
+      stroke?: PublicCrosshairTypeSurface['rule']['stroke']
+    }>()
+  })
+
   it('types inline state callbacks from one context object', () => {
     dot(rows, {
       x: 'value',

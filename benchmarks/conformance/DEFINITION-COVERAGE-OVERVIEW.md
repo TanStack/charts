@@ -2,7 +2,7 @@
 
 Date: 2026-08-05
 
-The catalog has 109 case directories. One hundred six visualizations now use
+The catalog has 110 case directories. One hundred seven visualizations now use
 normal chart definitions. Cases 85 and 86 retain application shells, and Case
 116 retains one deliberately bespoke inline mark. No other case-owned layout
 or renderer is an accepted endpoint.
@@ -10,11 +10,11 @@ or renderer is an accepted endpoint.
 | Disposition           |   Cases | Result                                            |
 | --------------------- | ------: | ------------------------------------------------- |
 | Definition now        |      58 | Normal definition                                 |
-| First-party primitive |      34 | Normal definition                                 |
+| First-party primitive |      35 | Normal definition                                 |
 | Optional primitive    |      14 | Normal definition                                 |
 | Application boundary  |       2 | Accepted boundary                                 |
 | Inline custom mark    |       1 | Accepted boundary                                 |
-| **Total**             | **109** | **106 normal definitions; 3 accepted boundaries** |
+| **Total**             | **110** | **107 normal definitions; 3 accepted boundaries** |
 
 ## Shared decisions
 
@@ -26,7 +26,7 @@ or renderer is an accepted endpoint.
 | Composite and distribution marks         | 15, 31, 33, 62–64                                                                    | Couple statistics and geometry only where they form a stable named contract; otherwise keep public transforms explicit.                                                                                  |
 | Polar allocation and radial geometry     | 75–78, 93–100                                                                        | Share value allocation, label anchoring, sector geometry, and radial bars. Case-specific selection and presentation remain explicit.                                                                     |
 | View composition                         | 57, 87                                                                               | Use composed child definitions when tracks truly share one chart lifecycle. Case 83 correctly retains two hosts because detail and overview differ in data, domains, axes, margins, sizes, and behavior. |
-| Controlled interactions                  | 81–83, 88–92, 117                                                                    | Share controlled signals, keyed selection, one-dimensional axis mapping, brush, zoom, handle, cursor, and focus-guide lifecycles.                                                                        |
+| Controlled interactions                  | 81–83, 88–92, 117, 119                                                               | Share controlled signals, keyed selection, one-dimensional axis mapping, brush, zoom, handle, cursor, crosshair, and focus-guide lifecycles.                                                             |
 | Final-scale bar cap                      | 70                                                                                   | `barX` and `barY` share one private thickness resolver; public `maxThickness` is a bar option, not a generic layout utility.                                                                             |
 
 Case 43 is the intentional internal round trip: it bins final projected pixels,
@@ -63,17 +63,18 @@ presentation policy.
 
 ## Verification
 
-- The roadmap validator compares all 109 roadmap and audit IDs with the live
+- The roadmap validator compares all 110 roadmap and audit IDs with the live
   catalog directories, requires unique IDs, validates the capability DAG, and
   requires every verified or accepted case to cite evidence under its own
   directory.
-- All 44 capabilities are verified. Cases 55 and 56 now cite their own source
+- All 45 capabilities are verified. Cases 55 and 56 now cite their own source
   and focused tests; Cases 81–84 cite their actual `view.tsx` implementation;
   Case 97 cites its corrected focused test; and Case 109 cites the public geo
   descriptor test.
-- A fresh full quick browser run passed all 109 visual gates, all 18
-  interaction cases, and strict types with zero diagnostics or unsafe
-  assertions. Mean diagnostic geometry was 96.7%.
+- The prior full quick browser run passed all 109 then-existing visual gates,
+  all 18 interaction cases, and strict types with zero diagnostics or unsafe
+  assertions. Case 119 separately verifies its renderer-native band-and-rule
+  cursor lifecycle across revisions. Mean diagnostic geometry was 96.7%.
 
 ## Case catalog
 
@@ -144,7 +145,7 @@ presentation policy.
 | [81-recharts-interactive-legend — Interactive series legend](./cases/81-recharts-interactive-legend/tanstack.ts)                  | First-party primitive | `controlled-signals`, `interactive-legend`                                       | `tanstack.ts`, `tanstack.test.ts`, `view.tsx`      |
 | [82-chart-table-selection — Linked chart and data table selection](./cases/82-chart-table-selection/tanstack.ts)                  | First-party primitive | `controlled-signals`, `keyed-selection`                                          | `tanstack.ts`, `tanstack.test.ts`, `view.tsx`      |
 | [83-focus-context-window — Focus and context time window](./cases/83-focus-context-window/tanstack.ts)                            | Optional primitive    | `controlled-signals`, `keyed-selection`, `configured-scale-inversion`, `brush-x` | `tanstack.ts`, `tanstack.test.ts`, `view.tsx`      |
-| [84-pinned-nested-chart-tooltip — Pinned penguin tooltip with a nested chart](./cases/84-pinned-nested-chart-tooltip/tanstack.ts) | Definition now        | `current-definition-api`                                                         | `tanstack.ts`, `tanstack.test.ts`, `view.tsx`      |
+| [84-pinned-nested-chart-tooltip — Pinned penguin tooltip with a nested chart](./cases/84-pinned-nested-chart-tooltip/tanstack.ts) | Definition now        | `current-definition-api`                                                         | `tanstack.ts`, `model.test.ts`, `view.tsx`         |
 | [85-scrollable-resource-lanes — Scrollable resource timeline lanes](./cases/85-scrollable-resource-lanes/tanstack.ts)             | Application boundary  | `application-boundary`                                                           | `tanstack.ts`, `tanstack.test.ts`, `shell.ts`      |
 | [86-streaming-window-preservation — Streaming window preservation](./cases/86-streaming-window-preservation/data.test.ts)         | Application boundary  | `application-boundary`, `decorative-mark`                                        | `data.test.ts`, `tanstack.test.ts`                 |
 | [87-echarts-synchronized-cursors — Synchronized cursors across views](./cases/87-echarts-synchronized-cursors/tanstack.ts)        | Definition now        | `view-composition`, `focus-guide`, `decorative-mark`                             | `tanstack.ts`, `tanstack.test.ts`                  |
@@ -180,6 +181,7 @@ presentation policy.
 | [116-geometry-morph — Cross-chart geometry morph](./cases/116-geometry-morph/tanstack.ts)                                         | Inline custom mark    | `inline-custom-boundary`                                                         | `tanstack.ts`, `tanstack.test.ts`                  |
 | [117-focus-cursor-motion — Focus and crosshair motion](./cases/117-focus-cursor-motion/tanstack.ts)                               | First-party primitive | `focus-guide`                                                                    | `tanstack.ts`, `tanstack.test.ts`                  |
 | [118-token-usage-calendar — Token use calendar heatmap](./cases/118-token-usage-calendar/tanstack.ts)                             | First-party primitive | `axis-tick-label-accessors`                                                      | `tanstack.ts`, `tanstack.test.ts`, `shell.test.ts` |
+| [119-stacked-bar-band-cursor — Stacked bars with band and rule cursors](./cases/119-stacked-bar-band-cursor/chart.ts)             | First-party primitive | `crosshair`                                                                      | `chart.ts`, `model.test.ts`, `case.json`           |
 | [bar-grouped — Grouped bars](./cases/bar-grouped/tanstack.ts)                                                                     | Definition now        | `current-definition-api`                                                         | `tanstack.ts`                                      |
 | [bar-horizontal-ranking — Horizontal ranking with long labels](./cases/bar-horizontal-ranking/tanstack.ts)                        | Definition now        | `current-definition-api`                                                         | `tanstack.ts`                                      |
 | [bar-stacked — Stacked bars](./cases/bar-stacked/tanstack.ts)                                                                     | Definition now        | `current-definition-api`                                                         | `tanstack.ts`                                      |

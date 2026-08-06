@@ -2,7 +2,7 @@ import { survey } from '@charts-poc/demo-data/survey'
 import { defineChart } from '@tanstack/charts'
 import { pie, polar, radialArc } from '@tanstack/charts/polar'
 import { agreementPercent, gaugeSegments } from './transform'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { GaugeDatum } from './transform'
 import type { ConformanceInput } from '../../types'
 
@@ -41,10 +41,12 @@ export const gaugeDefinition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   gaugeDefinition,
   'Survey agreement share gauge',
   {
     format: ({ datum }) => `${datum.label} · ${datum.value}%`,
   },
 )
+
+export const mount = catalogCase.mount

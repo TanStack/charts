@@ -1198,7 +1198,7 @@ if (false) {
     angle: 'angle',
     radius: 'radius',
     text: 'label',
-    radiusOffset: (row, index, data) => row.offset + index + data.length,
+    radiusOffset: (row, { index, data }) => row.offset + index + data.length,
     anchor: 'outside',
   }
   const ruleOptions: RadialRuleOptions<(typeof offsetRows)[number]> = {

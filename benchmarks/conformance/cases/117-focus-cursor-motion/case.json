@@ -70,7 +70,7 @@
     "url": "https://motion.dev/docs/animate"
   },
   "ai": {
-    "create": "Create a grouped line chart where the primary datum, its shared-x group, the focused series, unmatched marks, and an external crosshair with axis labels all animate distinctly.",
+    "create": "Create a grouped line chart where the primary datum, its shared-x group, the focused series, unmatched marks, and a renderer-native crosshair with axis labels all animate distinctly.",
     "maintain": "Keep focus semantics in mark states, preserve spring velocity and label alignment during rapid pointer retargeting, and support the same focus movement from the keyboard."
   }
 }

@@ -8,6 +8,7 @@ import {
   clientPointBounds,
   scenePointToClient,
 } from '../../shared/driver-geometry'
+import { tanstackCase } from '../../shared/mount'
 import {
   createFreeCursorControls,
   formatFreeCursorValue,
@@ -87,7 +88,10 @@ export function freeCursorDefinition(
     },
     behaviors: [
       continuousCursor({
-        position: controlledSignal(position, onChange),
+        position: controlledSignal<
+          ContinuousCursorPosition<number, number> | null,
+          ContinuousCursorChange<number, number>
+        >(position, (next, { reason }) => onChange(next, reason)),
         xRule: {
           stroke: '#64748b',
           strokeWidth: 1,
@@ -121,6 +125,11 @@ export function freeCursorDefinition(
     margin: { top: 22, right: 24, bottom: 44, left: 58 },
   })
 }
+
+export const catalogCase = tanstackCase(
+  () => freeCursorDefinition(null, () => {}),
+  'Line chart with a free two-dimensional cursor',
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

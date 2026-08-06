@@ -15,7 +15,10 @@ import { renderChartSvg } from './svg'
 import { text } from './text'
 import { waffleY } from './waffle'
 import type { ChartHost } from './dom-types'
-import type { KeyedSelectionChange } from './selection'
+import type {
+  KeyedSelectionChange,
+  KeyedSelectionKeyContext,
+} from './selection'
 import type {
   ChartKey,
   ChartMarkPointX,
@@ -42,13 +45,22 @@ const rows: readonly Row[] = [
 describe('controlled keyed selection', () => {
   it('emits typed semantic changes without mutating its snapshot', () => {
     const onChange = vi.fn()
+    const key = vi.fn(
+      (
+        datum: Row,
+        { point }: KeyedSelectionKeyContext<Row, number, number>,
+      ) => {
+        expect(point.datum).toBe(datum)
+        return datum.id
+      },
+    )
     const selected = controlledSignal<
       RowId | null,
       KeyedSelectionChange<Row, RowId, number, number>
     >(null, onChange)
     const selection = keyedSelection<Row, RowId, number, number>({
       selected,
-      key: (datum) => datum.id,
+      key,
     })
     const point = chartPoint(rows[0])
 
@@ -56,19 +68,27 @@ describe('controlled keyed selection', () => {
     selection.change(point, 'keyboard')
 
     expect(onChange).toHaveBeenNthCalledWith(1, 'a', {
-      type: 'select',
-      value: 'a',
-      point,
-      source: 'pointer',
+      reason: {
+        type: 'select',
+        value: 'a',
+        point,
+        source: 'pointer',
+      },
     })
     expect(onChange).toHaveBeenNthCalledWith(2, 'a', {
-      type: 'select',
-      value: 'a',
-      point,
-      source: 'keyboard',
+      reason: {
+        type: 'select',
+        value: 'a',
+        point,
+        source: 'keyboard',
+      },
     })
     expect(selection.selected.value).toBeNull()
     expect(selection.matches(point)).toBe(false)
+    expect(key).toHaveBeenCalledWith(rows[0], { point })
+    expectTypeOf(key)
+      .parameter(1)
+      .toEqualTypeOf<KeyedSelectionKeyContext<Row, number, number>>()
     expectTypeOf(selection.selected.value).toEqualTypeOf<RowId | null>()
   })
 
@@ -498,8 +518,10 @@ describe('controlled keyed selection', () => {
     expect(markPrimitives(scene.nodes, 'selected-duplicates')).toHaveLength(2)
     selection.change(scene.points[1]!, 'pointer')
     expect(onChange.mock.lastCall?.[1]).toMatchObject({
-      type: 'select',
-      point: scene.points[1],
+      reason: {
+        type: 'select',
+        point: scene.points[1],
+      },
     })
   })
 
@@ -799,7 +821,10 @@ function createSelection(
   ) => void,
 ) {
   return keyedSelection<Row, RowId, number, number>({
-    selected: controlledSignal(selected, onChange),
+    selected: controlledSignal<
+      RowId | null,
+      KeyedSelectionChange<Row, RowId, number, number>
+    >(selected, (next, { reason }) => onChange(next, reason)),
     key: (datum) => datum.id,
   })
 }

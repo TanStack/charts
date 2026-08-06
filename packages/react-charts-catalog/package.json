@@ -1,0 +1,605 @@
+{
+  "name": "@tanstack/react-charts-catalog",
+  "version": "0.6.5",
+  "private": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TanStack/charts.git",
+    "directory": "packages/react-charts-catalog"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./cases/01-line-gaps": "./src/cases/01-line-gaps.ts",
+    "./cases/02-multi-line-end-labels": "./src/cases/02-multi-line-end-labels.ts",
+    "./cases/03-temperature-range-band": "./src/cases/03-temperature-range-band.ts",
+    "./cases/04-stacked-time-area": "./src/cases/04-stacked-time-area.ts",
+    "./cases/bar-vertical-sorted": "./src/cases/bar-vertical-sorted.ts",
+    "./cases/bar-horizontal-ranking": "./src/cases/bar-horizontal-ranking.ts",
+    "./cases/bar-grouped": "./src/cases/bar-grouped.ts",
+    "./cases/bar-stacked": "./src/cases/bar-stacked.ts",
+    "./cases/scatter-bubble": "./src/cases/scatter-bubble.ts",
+    "./cases/histogram": "./src/cases/histogram.ts",
+    "./cases/heatmap-labeled": "./src/cases/heatmap-labeled.ts",
+    "./cases/facets-anscombe": "./src/cases/facets-anscombe.ts",
+    "./cases/13-interval-timeline": "./src/cases/13-interval-timeline.ts",
+    "./cases/14-error-bars": "./src/cases/14-error-bars.ts",
+    "./cases/15-boxplot": "./src/cases/15-boxplot.ts",
+    "./cases/16-lollipop": "./src/cases/16-lollipop.ts",
+    "./cases/17-dumbbell": "./src/cases/17-dumbbell.ts",
+    "./cases/18-cumulative-histogram": "./src/cases/18-cumulative-histogram.ts",
+    "./cases/19-moving-average-line": "./src/cases/19-moving-average-line.ts",
+    "./cases/20-normalized-stacked-area": "./src/cases/20-normalized-stacked-area.ts",
+    "./cases/21-streamgraph": "./src/cases/21-streamgraph.ts",
+    "./cases/22-bollinger-band": "./src/cases/22-bollinger-band.ts",
+    "./cases/24-quantitative-binned-heatmap": "./src/cases/24-quantitative-binned-heatmap.ts",
+    "./cases/25-calendar-heatmap": "./src/cases/25-calendar-heatmap.ts",
+    "./cases/26-diverging-likert": "./src/cases/26-diverging-likert.ts",
+    "./cases/27-parallel-coordinates": "./src/cases/27-parallel-coordinates.ts",
+    "./cases/28-candlestick": "./src/cases/28-candlestick.ts",
+    "./cases/29-waterfall": "./src/cases/29-waterfall.ts",
+    "./cases/30-slopegraph": "./src/cases/30-slopegraph.ts",
+    "./cases/31-linear-regression": "./src/cases/31-linear-regression.ts",
+    "./cases/32-change-arrows": "./src/cases/32-change-arrows.ts",
+    "./cases/33-difference-chart": "./src/cases/33-difference-chart.ts",
+    "./cases/34-pointer-tooltip": "./src/cases/34-pointer-tooltip.ts",
+    "./cases/35-grouped-tooltip": "./src/cases/35-grouped-tooltip.ts",
+    "./cases/36-hierarchy-tree": "./src/cases/36-hierarchy-tree.ts",
+    "./cases/37-delaunay-network": "./src/cases/37-delaunay-network.ts",
+    "./cases/38-contour-topography": "./src/cases/38-contour-topography.ts",
+    "./cases/39-density-contours": "./src/cases/39-density-contours.ts",
+    "./cases/40-geojson-map": "./src/cases/40-geojson-map.ts",
+    "./cases/40-force-directed-network": "./src/cases/40-force-directed-network.ts",
+    "./cases/41-waffle-unit-chart": "./src/cases/41-waffle-unit-chart.ts",
+    "./cases/42-vector-field": "./src/cases/42-vector-field.ts",
+    "./cases/43-hexbin-density": "./src/cases/43-hexbin-density.ts",
+    "./cases/44-framed-scatter": "./src/cases/44-framed-scatter.ts",
+    "./cases/50-empirical-cdf": "./src/cases/50-empirical-cdf.ts",
+    "./cases/51-faceted-distributions": "./src/cases/51-faceted-distributions.ts",
+    "./cases/52-beeswarm-dodge": "./src/cases/52-beeswarm-dodge.ts",
+    "./cases/53-log-scale-scatter": "./src/cases/53-log-scale-scatter.ts",
+    "./cases/54-bump-ranking": "./src/cases/54-bump-ranking.ts",
+    "./cases/55-indexed-multi-line": "./src/cases/55-indexed-multi-line.ts",
+    "./cases/56-connected-scatter": "./src/cases/56-connected-scatter.ts",
+    "./cases/57-scatter-marginal-histograms": "./src/cases/57-scatter-marginal-histograms.ts",
+    "./cases/58-select-extrema": "./src/cases/58-select-extrema.ts",
+    "./cases/59-grouped-reducer-bars": "./src/cases/59-grouped-reducer-bars.ts",
+    "./cases/60-lag-autocorrelation": "./src/cases/60-lag-autocorrelation.ts",
+    "./cases/61-quantile-ribbon": "./src/cases/61-quantile-ribbon.ts",
+    "./cases/62-ridgeline-density": "./src/cases/62-ridgeline-density.ts",
+    "./cases/63-violin-distributions": "./src/cases/63-violin-distributions.ts",
+    "./cases/64-marimekko-mosaic": "./src/cases/64-marimekko-mosaic.ts",
+    "./cases/65-voronoi-nearest-tooltip": "./src/cases/65-voronoi-nearest-tooltip.ts",
+    "./cases/70-composed-chart": "./src/cases/70-composed-chart.ts",
+    "./cases/71-recharts-population-pyramid": "./src/cases/71-recharts-population-pyramid.ts",
+    "./cases/72-recharts-mixed-bars": "./src/cases/72-recharts-mixed-bars.ts",
+    "./cases/73-many-point-scatter": "./src/cases/73-many-point-scatter.ts",
+    "./cases/74-recharts-treemap": "./src/cases/74-recharts-treemap.ts",
+    "./cases/75-radar": "./src/cases/75-radar.ts",
+    "./cases/76-pie": "./src/cases/76-pie.ts",
+    "./cases/77-donut": "./src/cases/77-donut.ts",
+    "./cases/78-gauge": "./src/cases/78-gauge.ts",
+    "./cases/80-echarts-axis-pointer": "./src/cases/80-echarts-axis-pointer.ts",
+    "./cases/81-recharts-interactive-legend": "./src/cases/81-recharts-interactive-legend.ts",
+    "./cases/82-chart-table-selection": "./src/cases/82-chart-table-selection.ts",
+    "./cases/83-focus-context-window": "./src/cases/83-focus-context-window.ts",
+    "./cases/84-pinned-nested-chart-tooltip": "./src/cases/84-pinned-nested-chart-tooltip.ts",
+    "./cases/85-scrollable-resource-lanes": "./src/cases/85-scrollable-resource-lanes.ts",
+    "./cases/86-streaming-window-preservation": "./src/cases/86-streaming-window-preservation.ts",
+    "./cases/87-echarts-synchronized-cursors": "./src/cases/87-echarts-synchronized-cursors.ts",
+    "./cases/88-echarts-free-cursor": "./src/cases/88-echarts-free-cursor.ts",
+    "./cases/89-brush-range-selection": "./src/cases/89-brush-range-selection.ts",
+    "./cases/90-zoomable-time-window": "./src/cases/90-zoomable-time-window.ts",
+    "./cases/91-timeline-playback-scrubber": "./src/cases/91-timeline-playback-scrubber.ts",
+    "./cases/92-editable-event-range": "./src/cases/92-editable-event-range.ts",
+    "./cases/93-labeled-pie": "./src/cases/93-labeled-pie.ts",
+    "./cases/94-center-donut": "./src/cases/94-center-donut.ts",
+    "./cases/95-rounded-donut": "./src/cases/95-rounded-donut.ts",
+    "./cases/96-nested-donut": "./src/cases/96-nested-donut.ts",
+    "./cases/97-rose": "./src/cases/97-rose.ts",
+    "./cases/98-needle-gauge": "./src/cases/98-needle-gauge.ts",
+    "./cases/99-comparative-radar": "./src/cases/99-comparative-radar.ts",
+    "./cases/100-radial-bars": "./src/cases/100-radial-bars.ts",
+    "./cases/101-sunburst": "./src/cases/101-sunburst.ts",
+    "./cases/102-world-choropleth": "./src/cases/102-world-choropleth.ts",
+    "./cases/103-bubble-map": "./src/cases/103-bubble-map.ts",
+    "./cases/104-orthographic-globe": "./src/cases/104-orthographic-globe.ts",
+    "./cases/105-route-map": "./src/cases/105-route-map.ts",
+    "./cases/106-polar-line": "./src/cases/106-polar-line.ts",
+    "./cases/107-polar-scatter": "./src/cases/107-polar-scatter.ts",
+    "./cases/108-country-choropleth": "./src/cases/108-country-choropleth.ts",
+    "./cases/109-us-state-choropleth": "./src/cases/109-us-state-choropleth.ts",
+    "./cases/110-projection-gallery": "./src/cases/110-projection-gallery.ts",
+    "./cases/111-basic-sankey": "./src/cases/111-basic-sankey.ts",
+    "./cases/111-sankey-flow": "./src/cases/111-sankey-flow.ts",
+    "./cases/112-motion-entrance": "./src/cases/112-motion-entrance.ts",
+    "./cases/113-motion-updates": "./src/cases/113-motion-updates.ts",
+    "./cases/114-spring-line-motion": "./src/cases/114-spring-line-motion.ts",
+    "./cases/115-definition-motion": "./src/cases/115-definition-motion.ts",
+    "./cases/116-geometry-morph": "./src/cases/116-geometry-morph.ts",
+    "./cases/117-focus-cursor-motion": "./src/cases/117-focus-cursor-motion.ts",
+    "./cases/118-token-usage-calendar": "./src/cases/118-token-usage-calendar.ts",
+    "./cases/119-stacked-bar-band-cursor": "./src/cases/119-stacked-bar-band-cursor.ts"
+  },
+  "dependencies": {
+    "@tanstack/charts": "workspace:*",
+    "@tanstack/react-charts": "workspace:*",
+    "d3-array": "3.2.4",
+    "d3-brush": "3.0.0",
+    "d3-contour": "4.0.2",
+    "d3-delaunay": "6.0.4",
+    "d3-force": "3.0.0",
+    "d3-format": "3.1.2",
+    "d3-geo": "3.1.1",
+    "d3-hexbin": "0.2.2",
+    "d3-hierarchy": "3.1.2",
+    "d3-sankey": "0.12.3",
+    "d3-scale": "4.0.2",
+    "d3-selection": "3.0.0",
+    "d3-shape": "3.2.0",
+    "d3-time": "3.1.0",
+    "d3-zoom": "3.0.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./cases/01-line-gaps": {
+        "types": "./dist/cases/01-line-gaps.d.ts",
+        "import": "./dist/cases/01-line-gaps.js"
+      },
+      "./cases/02-multi-line-end-labels": {
+        "types": "./dist/cases/02-multi-line-end-labels.d.ts",
+        "import": "./dist/cases/02-multi-line-end-labels.js"
+      },
+      "./cases/03-temperature-range-band": {
+        "types": "./dist/cases/03-temperature-range-band.d.ts",
+        "import": "./dist/cases/03-temperature-range-band.js"
+      },
+      "./cases/04-stacked-time-area": {
+        "types": "./dist/cases/04-stacked-time-area.d.ts",
+        "import": "./dist/cases/04-stacked-time-area.js"
+      },
+      "./cases/bar-vertical-sorted": {
+        "types": "./dist/cases/bar-vertical-sorted.d.ts",
+        "import": "./dist/cases/bar-vertical-sorted.js"
+      },
+      "./cases/bar-horizontal-ranking": {
+        "types": "./dist/cases/bar-horizontal-ranking.d.ts",
+        "import": "./dist/cases/bar-horizontal-ranking.js"
+      },
+      "./cases/bar-grouped": {
+        "types": "./dist/cases/bar-grouped.d.ts",
+        "import": "./dist/cases/bar-grouped.js"
+      },
+      "./cases/bar-stacked": {
+        "types": "./dist/cases/bar-stacked.d.ts",
+        "import": "./dist/cases/bar-stacked.js"
+      },
+      "./cases/scatter-bubble": {
+        "types": "./dist/cases/scatter-bubble.d.ts",
+        "import": "./dist/cases/scatter-bubble.js"
+      },
+      "./cases/histogram": {
+        "types": "./dist/cases/histogram.d.ts",
+        "import": "./dist/cases/histogram.js"
+      },
+      "./cases/heatmap-labeled": {
+        "types": "./dist/cases/heatmap-labeled.d.ts",
+        "import": "./dist/cases/heatmap-labeled.js"
+      },
+      "./cases/facets-anscombe": {
+        "types": "./dist/cases/facets-anscombe.d.ts",
+        "import": "./dist/cases/facets-anscombe.js"
+      },
+      "./cases/13-interval-timeline": {
+        "types": "./dist/cases/13-interval-timeline.d.ts",
+        "import": "./dist/cases/13-interval-timeline.js"
+      },
+      "./cases/14-error-bars": {
+        "types": "./dist/cases/14-error-bars.d.ts",
+        "import": "./dist/cases/14-error-bars.js"
+      },
+      "./cases/15-boxplot": {
+        "types": "./dist/cases/15-boxplot.d.ts",
+        "import": "./dist/cases/15-boxplot.js"
+      },
+      "./cases/16-lollipop": {
+        "types": "./dist/cases/16-lollipop.d.ts",
+        "import": "./dist/cases/16-lollipop.js"
+      },
+      "./cases/17-dumbbell": {
+        "types": "./dist/cases/17-dumbbell.d.ts",
+        "import": "./dist/cases/17-dumbbell.js"
+      },
+      "./cases/18-cumulative-histogram": {
+        "types": "./dist/cases/18-cumulative-histogram.d.ts",
+        "import": "./dist/cases/18-cumulative-histogram.js"
+      },
+      "./cases/19-moving-average-line": {
+        "types": "./dist/cases/19-moving-average-line.d.ts",
+        "import": "./dist/cases/19-moving-average-line.js"
+      },
+      "./cases/20-normalized-stacked-area": {
+        "types": "./dist/cases/20-normalized-stacked-area.d.ts",
+        "import": "./dist/cases/20-normalized-stacked-area.js"
+      },
+      "./cases/21-streamgraph": {
+        "types": "./dist/cases/21-streamgraph.d.ts",
+        "import": "./dist/cases/21-streamgraph.js"
+      },
+      "./cases/22-bollinger-band": {
+        "types": "./dist/cases/22-bollinger-band.d.ts",
+        "import": "./dist/cases/22-bollinger-band.js"
+      },
+      "./cases/24-quantitative-binned-heatmap": {
+        "types": "./dist/cases/24-quantitative-binned-heatmap.d.ts",
+        "import": "./dist/cases/24-quantitative-binned-heatmap.js"
+      },
+      "./cases/25-calendar-heatmap": {
+        "types": "./dist/cases/25-calendar-heatmap.d.ts",
+        "import": "./dist/cases/25-calendar-heatmap.js"
+      },
+      "./cases/26-diverging-likert": {
+        "types": "./dist/cases/26-diverging-likert.d.ts",
+        "import": "./dist/cases/26-diverging-likert.js"
+      },
+      "./cases/27-parallel-coordinates": {
+        "types": "./dist/cases/27-parallel-coordinates.d.ts",
+        "import": "./dist/cases/27-parallel-coordinates.js"
+      },
+      "./cases/28-candlestick": {
+        "types": "./dist/cases/28-candlestick.d.ts",
+        "import": "./dist/cases/28-candlestick.js"
+      },
+      "./cases/29-waterfall": {
+        "types": "./dist/cases/29-waterfall.d.ts",
+        "import": "./dist/cases/29-waterfall.js"
+      },
+      "./cases/30-slopegraph": {
+        "types": "./dist/cases/30-slopegraph.d.ts",
+        "import": "./dist/cases/30-slopegraph.js"
+      },
+      "./cases/31-linear-regression": {
+        "types": "./dist/cases/31-linear-regression.d.ts",
+        "import": "./dist/cases/31-linear-regression.js"
+      },
+      "./cases/32-change-arrows": {
+        "types": "./dist/cases/32-change-arrows.d.ts",
+        "import": "./dist/cases/32-change-arrows.js"
+      },
+      "./cases/33-difference-chart": {
+        "types": "./dist/cases/33-difference-chart.d.ts",
+        "import": "./dist/cases/33-difference-chart.js"
+      },
+      "./cases/34-pointer-tooltip": {
+        "types": "./dist/cases/34-pointer-tooltip.d.ts",
+        "import": "./dist/cases/34-pointer-tooltip.js"
+      },
+      "./cases/35-grouped-tooltip": {
+        "types": "./dist/cases/35-grouped-tooltip.d.ts",
+        "import": "./dist/cases/35-grouped-tooltip.js"
+      },
+      "./cases/36-hierarchy-tree": {
+        "types": "./dist/cases/36-hierarchy-tree.d.ts",
+        "import": "./dist/cases/36-hierarchy-tree.js"
+      },
+      "./cases/37-delaunay-network": {
+        "types": "./dist/cases/37-delaunay-network.d.ts",
+        "import": "./dist/cases/37-delaunay-network.js"
+      },
+      "./cases/38-contour-topography": {
+        "types": "./dist/cases/38-contour-topography.d.ts",
+        "import": "./dist/cases/38-contour-topography.js"
+      },
+      "./cases/39-density-contours": {
+        "types": "./dist/cases/39-density-contours.d.ts",
+        "import": "./dist/cases/39-density-contours.js"
+      },
+      "./cases/40-geojson-map": {
+        "types": "./dist/cases/40-geojson-map.d.ts",
+        "import": "./dist/cases/40-geojson-map.js"
+      },
+      "./cases/40-force-directed-network": {
+        "types": "./dist/cases/40-force-directed-network.d.ts",
+        "import": "./dist/cases/40-force-directed-network.js"
+      },
+      "./cases/41-waffle-unit-chart": {
+        "types": "./dist/cases/41-waffle-unit-chart.d.ts",
+        "import": "./dist/cases/41-waffle-unit-chart.js"
+      },
+      "./cases/42-vector-field": {
+        "types": "./dist/cases/42-vector-field.d.ts",
+        "import": "./dist/cases/42-vector-field.js"
+      },
+      "./cases/43-hexbin-density": {
+        "types": "./dist/cases/43-hexbin-density.d.ts",
+        "import": "./dist/cases/43-hexbin-density.js"
+      },
+      "./cases/44-framed-scatter": {
+        "types": "./dist/cases/44-framed-scatter.d.ts",
+        "import": "./dist/cases/44-framed-scatter.js"
+      },
+      "./cases/50-empirical-cdf": {
+        "types": "./dist/cases/50-empirical-cdf.d.ts",
+        "import": "./dist/cases/50-empirical-cdf.js"
+      },
+      "./cases/51-faceted-distributions": {
+        "types": "./dist/cases/51-faceted-distributions.d.ts",
+        "import": "./dist/cases/51-faceted-distributions.js"
+      },
+      "./cases/52-beeswarm-dodge": {
+        "types": "./dist/cases/52-beeswarm-dodge.d.ts",
+        "import": "./dist/cases/52-beeswarm-dodge.js"
+      },
+      "./cases/53-log-scale-scatter": {
+        "types": "./dist/cases/53-log-scale-scatter.d.ts",
+        "import": "./dist/cases/53-log-scale-scatter.js"
+      },
+      "./cases/54-bump-ranking": {
+        "types": "./dist/cases/54-bump-ranking.d.ts",
+        "import": "./dist/cases/54-bump-ranking.js"
+      },
+      "./cases/55-indexed-multi-line": {
+        "types": "./dist/cases/55-indexed-multi-line.d.ts",
+        "import": "./dist/cases/55-indexed-multi-line.js"
+      },
+      "./cases/56-connected-scatter": {
+        "types": "./dist/cases/56-connected-scatter.d.ts",
+        "import": "./dist/cases/56-connected-scatter.js"
+      },
+      "./cases/57-scatter-marginal-histograms": {
+        "types": "./dist/cases/57-scatter-marginal-histograms.d.ts",
+        "import": "./dist/cases/57-scatter-marginal-histograms.js"
+      },
+      "./cases/58-select-extrema": {
+        "types": "./dist/cases/58-select-extrema.d.ts",
+        "import": "./dist/cases/58-select-extrema.js"
+      },
+      "./cases/59-grouped-reducer-bars": {
+        "types": "./dist/cases/59-grouped-reducer-bars.d.ts",
+        "import": "./dist/cases/59-grouped-reducer-bars.js"
+      },
+      "./cases/60-lag-autocorrelation": {
+        "types": "./dist/cases/60-lag-autocorrelation.d.ts",
+        "import": "./dist/cases/60-lag-autocorrelation.js"
+      },
+      "./cases/61-quantile-ribbon": {
+        "types": "./dist/cases/61-quantile-ribbon.d.ts",
+        "import": "./dist/cases/61-quantile-ribbon.js"
+      },
+      "./cases/62-ridgeline-density": {
+        "types": "./dist/cases/62-ridgeline-density.d.ts",
+        "import": "./dist/cases/62-ridgeline-density.js"
+      },
+      "./cases/63-violin-distributions": {
+        "types": "./dist/cases/63-violin-distributions.d.ts",
+        "import": "./dist/cases/63-violin-distributions.js"
+      },
+      "./cases/64-marimekko-mosaic": {
+        "types": "./dist/cases/64-marimekko-mosaic.d.ts",
+        "import": "./dist/cases/64-marimekko-mosaic.js"
+      },
+      "./cases/65-voronoi-nearest-tooltip": {
+        "types": "./dist/cases/65-voronoi-nearest-tooltip.d.ts",
+        "import": "./dist/cases/65-voronoi-nearest-tooltip.js"
+      },
+      "./cases/70-composed-chart": {
+        "types": "./dist/cases/70-composed-chart.d.ts",
+        "import": "./dist/cases/70-composed-chart.js"
+      },
+      "./cases/71-recharts-population-pyramid": {
+        "types": "./dist/cases/71-recharts-population-pyramid.d.ts",
+        "import": "./dist/cases/71-recharts-population-pyramid.js"
+      },
+      "./cases/72-recharts-mixed-bars": {
+        "types": "./dist/cases/72-recharts-mixed-bars.d.ts",
+        "import": "./dist/cases/72-recharts-mixed-bars.js"
+      },
+      "./cases/73-many-point-scatter": {
+        "types": "./dist/cases/73-many-point-scatter.d.ts",
+        "import": "./dist/cases/73-many-point-scatter.js"
+      },
+      "./cases/74-recharts-treemap": {
+        "types": "./dist/cases/74-recharts-treemap.d.ts",
+        "import": "./dist/cases/74-recharts-treemap.js"
+      },
+      "./cases/75-radar": {
+        "types": "./dist/cases/75-radar.d.ts",
+        "import": "./dist/cases/75-radar.js"
+      },
+      "./cases/76-pie": {
+        "types": "./dist/cases/76-pie.d.ts",
+        "import": "./dist/cases/76-pie.js"
+      },
+      "./cases/77-donut": {
+        "types": "./dist/cases/77-donut.d.ts",
+        "import": "./dist/cases/77-donut.js"
+      },
+      "./cases/78-gauge": {
+        "types": "./dist/cases/78-gauge.d.ts",
+        "import": "./dist/cases/78-gauge.js"
+      },
+      "./cases/80-echarts-axis-pointer": {
+        "types": "./dist/cases/80-echarts-axis-pointer.d.ts",
+        "import": "./dist/cases/80-echarts-axis-pointer.js"
+      },
+      "./cases/81-recharts-interactive-legend": {
+        "types": "./dist/cases/81-recharts-interactive-legend.d.ts",
+        "import": "./dist/cases/81-recharts-interactive-legend.js"
+      },
+      "./cases/82-chart-table-selection": {
+        "types": "./dist/cases/82-chart-table-selection.d.ts",
+        "import": "./dist/cases/82-chart-table-selection.js"
+      },
+      "./cases/83-focus-context-window": {
+        "types": "./dist/cases/83-focus-context-window.d.ts",
+        "import": "./dist/cases/83-focus-context-window.js"
+      },
+      "./cases/84-pinned-nested-chart-tooltip": {
+        "types": "./dist/cases/84-pinned-nested-chart-tooltip.d.ts",
+        "import": "./dist/cases/84-pinned-nested-chart-tooltip.js"
+      },
+      "./cases/85-scrollable-resource-lanes": {
+        "types": "./dist/cases/85-scrollable-resource-lanes.d.ts",
+        "import": "./dist/cases/85-scrollable-resource-lanes.js"
+      },
+      "./cases/86-streaming-window-preservation": {
+        "types": "./dist/cases/86-streaming-window-preservation.d.ts",
+        "import": "./dist/cases/86-streaming-window-preservation.js"
+      },
+      "./cases/87-echarts-synchronized-cursors": {
+        "types": "./dist/cases/87-echarts-synchronized-cursors.d.ts",
+        "import": "./dist/cases/87-echarts-synchronized-cursors.js"
+      },
+      "./cases/88-echarts-free-cursor": {
+        "types": "./dist/cases/88-echarts-free-cursor.d.ts",
+        "import": "./dist/cases/88-echarts-free-cursor.js"
+      },
+      "./cases/89-brush-range-selection": {
+        "types": "./dist/cases/89-brush-range-selection.d.ts",
+        "import": "./dist/cases/89-brush-range-selection.js"
+      },
+      "./cases/90-zoomable-time-window": {
+        "types": "./dist/cases/90-zoomable-time-window.d.ts",
+        "import": "./dist/cases/90-zoomable-time-window.js"
+      },
+      "./cases/91-timeline-playback-scrubber": {
+        "types": "./dist/cases/91-timeline-playback-scrubber.d.ts",
+        "import": "./dist/cases/91-timeline-playback-scrubber.js"
+      },
+      "./cases/92-editable-event-range": {
+        "types": "./dist/cases/92-editable-event-range.d.ts",
+        "import": "./dist/cases/92-editable-event-range.js"
+      },
+      "./cases/93-labeled-pie": {
+        "types": "./dist/cases/93-labeled-pie.d.ts",
+        "import": "./dist/cases/93-labeled-pie.js"
+      },
+      "./cases/94-center-donut": {
+        "types": "./dist/cases/94-center-donut.d.ts",
+        "import": "./dist/cases/94-center-donut.js"
+      },
+      "./cases/95-rounded-donut": {
+        "types": "./dist/cases/95-rounded-donut.d.ts",
+        "import": "./dist/cases/95-rounded-donut.js"
+      },
+      "./cases/96-nested-donut": {
+        "types": "./dist/cases/96-nested-donut.d.ts",
+        "import": "./dist/cases/96-nested-donut.js"
+      },
+      "./cases/97-rose": {
+        "types": "./dist/cases/97-rose.d.ts",
+        "import": "./dist/cases/97-rose.js"
+      },
+      "./cases/98-needle-gauge": {
+        "types": "./dist/cases/98-needle-gauge.d.ts",
+        "import": "./dist/cases/98-needle-gauge.js"
+      },
+      "./cases/99-comparative-radar": {
+        "types": "./dist/cases/99-comparative-radar.d.ts",
+        "import": "./dist/cases/99-comparative-radar.js"
+      },
+      "./cases/100-radial-bars": {
+        "types": "./dist/cases/100-radial-bars.d.ts",
+        "import": "./dist/cases/100-radial-bars.js"
+      },
+      "./cases/101-sunburst": {
+        "types": "./dist/cases/101-sunburst.d.ts",
+        "import": "./dist/cases/101-sunburst.js"
+      },
+      "./cases/102-world-choropleth": {
+        "types": "./dist/cases/102-world-choropleth.d.ts",
+        "import": "./dist/cases/102-world-choropleth.js"
+      },
+      "./cases/103-bubble-map": {
+        "types": "./dist/cases/103-bubble-map.d.ts",
+        "import": "./dist/cases/103-bubble-map.js"
+      },
+      "./cases/104-orthographic-globe": {
+        "types": "./dist/cases/104-orthographic-globe.d.ts",
+        "import": "./dist/cases/104-orthographic-globe.js"
+      },
+      "./cases/105-route-map": {
+        "types": "./dist/cases/105-route-map.d.ts",
+        "import": "./dist/cases/105-route-map.js"
+      },
+      "./cases/106-polar-line": {
+        "types": "./dist/cases/106-polar-line.d.ts",
+        "import": "./dist/cases/106-polar-line.js"
+      },
+      "./cases/107-polar-scatter": {
+        "types": "./dist/cases/107-polar-scatter.d.ts",
+        "import": "./dist/cases/107-polar-scatter.js"
+      },
+      "./cases/108-country-choropleth": {
+        "types": "./dist/cases/108-country-choropleth.d.ts",
+        "import": "./dist/cases/108-country-choropleth.js"
+      },
+      "./cases/109-us-state-choropleth": {
+        "types": "./dist/cases/109-us-state-choropleth.d.ts",
+        "import": "./dist/cases/109-us-state-choropleth.js"
+      },
+      "./cases/110-projection-gallery": {
+        "types": "./dist/cases/110-projection-gallery.d.ts",
+        "import": "./dist/cases/110-projection-gallery.js"
+      },
+      "./cases/111-basic-sankey": {
+        "types": "./dist/cases/111-basic-sankey.d.ts",
+        "import": "./dist/cases/111-basic-sankey.js"
+      },
+      "./cases/111-sankey-flow": {
+        "types": "./dist/cases/111-sankey-flow.d.ts",
+        "import": "./dist/cases/111-sankey-flow.js"
+      },
+      "./cases/112-motion-entrance": {
+        "types": "./dist/cases/112-motion-entrance.d.ts",
+        "import": "./dist/cases/112-motion-entrance.js"
+      },
+      "./cases/113-motion-updates": {
+        "types": "./dist/cases/113-motion-updates.d.ts",
+        "import": "./dist/cases/113-motion-updates.js"
+      },
+      "./cases/114-spring-line-motion": {
+        "types": "./dist/cases/114-spring-line-motion.d.ts",
+        "import": "./dist/cases/114-spring-line-motion.js"
+      },
+      "./cases/115-definition-motion": {
+        "types": "./dist/cases/115-definition-motion.d.ts",
+        "import": "./dist/cases/115-definition-motion.js"
+      },
+      "./cases/116-geometry-morph": {
+        "types": "./dist/cases/116-geometry-morph.d.ts",
+        "import": "./dist/cases/116-geometry-morph.js"
+      },
+      "./cases/117-focus-cursor-motion": {
+        "types": "./dist/cases/117-focus-cursor-motion.d.ts",
+        "import": "./dist/cases/117-focus-cursor-motion.js"
+      },
+      "./cases/118-token-usage-calendar": {
+        "types": "./dist/cases/118-token-usage-calendar.d.ts",
+        "import": "./dist/cases/118-token-usage-calendar.js"
+      },
+      "./cases/119-stacked-bar-band-cursor": {
+        "types": "./dist/cases/119-stacked-bar-band-cursor.d.ts",
+        "import": "./dist/cases/119-stacked-bar-band-cursor.js"
+      }
+    }
+  }
+}

@@ -83,9 +83,11 @@ up the shared render path.
 ## Canvas server shell
 
 `@tanstack/react-charts/canvas` and `@tanstack/octane-charts/canvas` render a
-deterministic accessible shell on the server: a named chart root and two
-`aria-hidden` canvas elements with the initial scene dimensions. No server
-Canvas API or pixel painting is required.
+deterministic accessible shell on the server: a named chart root and five
+`aria-hidden` canvas elements with the initial scene dimensions. The hidden
+stable base bitmap preserves the raw `canvas` surface, while four live layers
+model background, focus underlay, ordinary scene, and focus overlay paint. No
+server Canvas API or pixel painting is required.
 
 The client renders the same shell, adopts its existing root and canvases, sizes
 their backing stores for the device-pixel ratio, paints the scene, and attaches

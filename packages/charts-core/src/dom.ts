@@ -39,14 +39,14 @@ export function mountChart<
       ...common,
       renderer,
       onRender: onRender
-        ? ({ container: hostContainer, scene, surface }) => {
+        ? ({ container: hostContainer, scene, surface, interaction }) => {
             const svg = surface.element
             const SvgElement =
               container.ownerDocument.defaultView?.SVGSVGElement
             if (!SvgElement || !(svg instanceof SvgElement)) {
               throw new TypeError('Expected the SVG chart surface.')
             }
-            onRender({ container: hostContainer, scene, svg })
+            onRender({ container: hostContainer, scene, svg, interaction })
           }
         : undefined,
     }
@@ -59,6 +59,7 @@ export function mountChart<
   )
 
   return {
+    interaction: host.interaction,
     update(options) {
       host.update(rendererOptions(options))
     },

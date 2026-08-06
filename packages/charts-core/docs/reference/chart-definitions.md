@@ -38,6 +38,9 @@ function defineChart<TDatum, TXValue, TYValue>(
 Use a static definition when its data and visual options are already known:
 
 ```ts
+import { scaleUtc } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
   x: { scale: scaleUtc },
@@ -58,6 +61,9 @@ Use a configuration object when the spec depends on the resolved chart
 surface:
 
 ```ts
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
 const definition = defineChart({
   animate: true,
   chart: ({ width }) => ({
@@ -87,15 +93,21 @@ does not return or own them.
 ## Definition behavior
 
 `ChartDefinitionOptions<TDatum, TXValue, TYValue>` contains `focus`,
-`focusRing`, `selection`, `behaviors`, `maxFocusDistance`, `spatialIndex`,
-`animate`, `keyboard`, and `tooltip`. These options belong to both static and
-responsive definitions. Hosts and framework adapters do not override them.
+`focusRing`, `selection`, `behaviors`, `cursor`, `maxFocusDistance`,
+`spatialIndex`, `animate`, `pointer`, `keyboard`, and `tooltip`. These options
+belong to both static and responsive definitions. Hosts and framework adapters
+do not override them.
 
 Each `ChartBehavior` resolves after final scales and plot bounds exist. It can
 provide renderer-neutral fallback nodes and an optional host control. Behavior
 IDs and host-control identities must be unique. Browser hosts remove a
 control's fallback before painting and own its update, renderer replacement,
 event containment, and teardown lifecycle. Static renderers keep the fallback.
+
+`cursor` binds an application-owned controller in focus-snapped or free mode.
+It is behavior, not a mark; add `crosshair(...)` when the cursor should have a
+renderer-native visual guide. See
+[Focus and Interaction](./focus-and-interaction.md#controlled-cursors).
 
 Tooltip placement policy stays with the definition. Add the `portal` extension
 when the surface must escape clipped chart ancestors. Framework-only content
@@ -111,6 +123,9 @@ A definition captures application values. Its identity is the application
 update boundary: keep it stable until a captured value changes.
 
 ```tsx
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
 const definition = useMemo(() => {
   const ranked = rankRows(rows, metric)
 

@@ -258,6 +258,31 @@ Each entry records:
 | F-220 | Framed labels estimate glyph bounds by character count         | API             | monitoring |
 | F-221 | Roadmap evidence existence allowed false verification          | Tooling         | resolved   |
 | F-222 | View composition coupled placement to grid semantics           | API/Docs        | resolved   |
+| F-223 | Remote catalog modules could not participate in SSR            | Tooling/App     | resolved   |
+| F-224 | Packed consumers masked a runtime D3 dependency                | Tooling         | resolved   |
+| F-225 | Noninteractive SSR emitted hidden focus geometry               | API/Tooling     | resolved   |
+| F-226 | Worker runtimes rejected bundled CSV parsing                   | Tooling         | resolved   |
+| F-227 | Catalog bundles omitted data license notices                   | Tooling         | resolved   |
+| F-228 | Catalog definitions captured the initial server width          | Application     | resolved   |
+| F-229 | Catalog publishing raced its React dependency                  | Tooling/Release | resolved   |
+| F-230 | CI repeated unaffected work across every partition             | Tooling         | monitoring |
+| F-231 | Packed consumers serialized independent verification           | Tooling/Release | resolved   |
+| F-232 | Benchmark shards repeated setup and skewed work                | Tooling         | monitoring |
+| F-233 | Dismissal could click through a composed tooltip               | API             | resolved   |
+| F-234 | Recharts point replacement canceled activation events          | Application     | monitoring |
+| F-235 | Structured tooltip rows could not interleave details           | API             | monitoring |
+| F-236 | Paint parity normalized patterns but not gradients             | Tooling         | resolved   |
+| F-237 | Focused rules had no matchable presentation points             | API             | resolved   |
+| F-238 | Callback parameter shapes were inconsistent                    | API/Tooling     | resolved   |
+| F-239 | Example keys collapsed distinct source rows                    | Application     | resolved   |
+| F-240 | Rolling paths morphed samples instead of shifting them         | API             | resolved   |
+| F-241 | Motion ignored authored SVG clips                              | API             | resolved   |
+| F-242 | Paged history required overlaid chart hosts                    | API             | resolved   |
+| F-243 | Long-press focus duplicated host pointer geometry              | API             | resolved   |
+| F-244 | Focus cursor width depended on private band inference          | API             | resolved   |
+| F-245 | Focus-filtered bands could not act as cursor geometry          | API             | resolved   |
+| F-246 | Scene updates cleared active motion guide placement            | API             | resolved   |
+| F-247 | Custom mounts were not React catalog descriptors               | Tooling/App     | resolved   |
 
 ## Findings
 
@@ -1180,7 +1205,7 @@ Each entry records:
   bytes cannot become silent future headroom. Input-boundary checks use only
   modules with retained output bytes, so an imported-but-eliminated module
   cannot create a false pass or failure. The compact React line has a hard
-  15 KiB ceiling; tooltip and portal are measured as separate increments.
+  reviewed ceiling; tooltip and portal are measured as separate increments.
 - Verification: repeated builds match the exact minified and gzip baseline.
   `pnpm bundle:check` passes the locked consumers and the tightened histogram,
   facet, curve, time, transform, spatial, arrow, frame, link, and tick feature
@@ -1197,6 +1222,20 @@ Each entry records:
   Replacing the core-owned D3 ordinal default required reviewed 0.05 KiB
   adjustments to the tick and polar-composition feature ceilings; all other
   policy changes are exact locks or new isolated budgets.
+- Follow-up evidence: merging the declarative-mark audit with the cursor,
+  crosshair, controlled-focus, and live-viewport work preserved both sets of
+  default runtime contracts. The old branch-local ceilings then produced 33
+  failures even though retained-input checks still proved that optional marks,
+  transforms, layouts, interactions, and D3 dependencies remained isolated.
+- Follow-up decision: regenerate the ten exact universal locks from the merged
+  runtime and set every affected product or isolated-feature ceiling tightly
+  above that reviewed output. Keep policy kinds, relative baselines, required
+  and forbidden input groups, and added-module allowlists unchanged.
+- Follow-up verification: all 145 bundle entries pass. The compact scene is
+  10.28 KiB gzip under 10.3 KiB, its React consumer is 26.57 KiB under 26.6
+  KiB, coordinated views add 5.27 KiB under 5.3 KiB, and the merged DOM-host
+  increments are 0.09 KiB for signals, 2.53 for legends, 3.71 for cursors,
+  3.65 for handles, 19.70 for brush, and 20.24 for zoom.
 
 ### F-041 — Bounded segments and caps required custom marks
 
@@ -1882,6 +1921,11 @@ Each entry records:
   playhead without a copied scale or scale inverse. Case 92 supplies its valid
   event-end dates to the same handle and maps its track through the final x and
   semantic y scales without manual scale-to-DOM conversion.
+- Cursor projection verification: the independent cursor-controller tests
+  cover configured-scale `valueAt`, reversed y ranges, normalized resize
+  behavior, semantic programmatic anchors, and scenes without a matching
+  scale. The configured scale remains the owner of any application-supplied
+  inversion, clamping, and precision policy.
 - Decision: no scale-level nearest API is needed. Continuous interactions use
   the configured scale's native inverse; finite interactions use the shared
   explicit-candidate axis. Reopen only if a real interaction cannot fit either
@@ -2273,6 +2317,15 @@ Each entry records:
   mirrors pin toggles from `onSelect`. Keep that observability gap monitoring,
   but do not add controlled focus or a chart-owned store unless an independent-
   host consumer proves it necessary.
+- Independent-host cursor follow-up: `createChartCursor` and `cursorHost`
+  centralize focus-value synchronization and free normalized coordinates when
+  views do not share one host. Controller and renderer-host tests cover
+  programmatic state, pinning, cancellation, Escape, subscription cleanup, and
+  the absence of invented free-cursor keyboard stepping. Faceted regressions
+  retain the exact emitting cell through optional local `origin` identity when
+  semantic values collide, leave `type: 'none'` outer scales unprojected, map
+  values through each cell's scale and formatter, and suppress a guide when
+  its authoritative cell projector rejects the value.
 - Documentation verification:
   the interaction, legend, accessibility, installation, reference, and bundle
   guides document the controlled boundary, categorical series-identity rule,
@@ -5124,6 +5177,17 @@ Each entry records:
   DOM host measurement. Catalog cases expose replayable entrance controls and
   interrupted keyed updates at 320px and 640px without console errors or
   control/chart overlap; both settle to eight bars and one line.
+- Follow-up evidence: after renderer surfaces exposed typed presentation
+  points, the low-level `createSvgChartRenderer(renderChartSvg)` factory became
+  invariant in datum and coordinate types. Adapter tests that relied on
+  inference through an erased renderer boundary no longer typechecked.
+- Follow-up decision: keep the renderer boundary invariant so presentation
+  geometry cannot be paired with an incompatible scene. Low-level adapter
+  tests and custom-renderer authors specify the renderer's datum, x, and y
+  generics explicitly; no assertion or untyped overload was added.
+- Follow-up verification: the two adapter renderer fixtures compile with
+  explicit `<Datum, number, number>` arguments, the full workspace typecheck
+  passes, and the focused core and React Native run passes 902 tests.
 
 ### F-181 — Tween tracks could not preserve interruption velocity
 
@@ -5351,6 +5415,30 @@ Each entry records:
   with a distinct independent-y, shared-x composition contract. The quick
   paired browser matrix passes both renderers, revisions, sizes, themes,
   behavior, visual, and strict type gates at 100.0% diagnostic geometry.
+- Data-less crosshair follow-up: add a `crosshair` mark that emits
+  renderer-neutral focus-guide descriptors instead of scale values, hit
+  targets, or base-scene nodes. `resolveFocusPresentation` maps local focus or
+  projected cursor state into keyed underlay/overlay rules, optional labels,
+  and an optional marker. `focusGuideOnly`, mark-order placement, full surface
+  and plot bounds, and guide-carried resolvers keep crosshair semantics outside
+  generic renderers while SVG, Canvas, motion, and React Native share the same
+  transport. The exact subpath exports `resolveCrosshairGuide` for custom guide
+  marks that want the built-in rule, band, label, and marker behavior.
+- Crosshair verification: scene tests cover stable x/y rules, overrides,
+  labels, markers, clipping, surface clamping, facets, and cursor presentation
+  without datum focus. Mark-order and facet regressions preserve under/over
+  placement. SVG, Canvas, motion, and React Native preserve guide identity and
+  spring velocity; focused export includes guides only with
+  `includeFocus: true`, and Canvas focus repaint leaves the base canvas
+  byte-identical. The isolated crosshair entry is 8.69 kB minified and 2.92 kB
+  gzip with no cursor, renderer, tooltip, or D3 runtime. Shared scene/static-SVG
+  support adds 188–258 minified and 68–103 gzip bytes across the four locked
+  non-host products; DOM-host guide transport adds 9,020–9,032 minified and
+  2,698–2,810 gzip bytes. The optional motion renderer remains 45.93 kB
+  minified and 15.48 kB gzip. Reviewed baselines record the 2,655–2,827 gzip
+  byte increase across the affected controlled consumers, while all 48
+  external-library comparison rows remain unchanged and
+  `pnpm benchmark:check` passes.
 
 ### F-188 — Paired interaction assertions assumed equal timing
 
@@ -6462,3 +6550,669 @@ Each entry records:
   static SVG and below its reviewed 5.25 KiB cap. All 1,529 unit tests pass,
   along with packed exports, declarations, runtime consumers, and seven
   framework adapter package gates.
+
+### F-223 — Remote catalog modules could not participate in SSR
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/App
+- Observed in: replacing the delayed TanStack.com `/charts` landing-page
+  mounts with server-rendered charts
+- Friction: the remote catalog artifact exposed only an imperative `mount`
+  contract. The application could render only an empty host in its initial
+  HTML, then wait for the browser to fetch and execute that artifact before any
+  chart appeared. React could not import that remote mount as a component
+  during server rendering even though the React adapter itself supports
+  complete SVG SSR.
+- Decision: preserve the remote imperative artifact for the conformance app
+  and publish the complete 109-case catalog separately as
+  `@tanstack/react-charts-catalog`. Each published case has a default React
+  component at `/cases/<id>`. The imperative and React paths share the same
+  case implementation, label, and interaction policy. Package builds bundle
+  private fixtures and datasets while externalizing React, React DOM, the
+  Charts packages, and exact declared D3 dependencies. The root entry contains
+  metadata and public prop types only, so importing the catalog index does not
+  load chart cases.
+- Verification: strict workspace TypeScript and the focused React SSR suite
+  pass. The packed-consumer gate imports every published subpath, renders all
+  110 case components through `react-dom/server`, verifies complete SVG view
+  boxes, catalog order, declarations, and package targets, rejects source files
+  and private workspace dependencies, and passes the existing web and React
+  Native package consumers.
+
+### F-224 — Packed consumers masked a runtime D3 dependency
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: installing the packed React catalog into TanStack.com without
+  the Charts development workspace
+- Friction: `@tanstack/charts/bar` imports `d3-scale` at runtime, but the core
+  package listed it only as a development dependency. The packed-consumer
+  fixture also installed `d3-scale` directly for its own examples, so its
+  successful bar imports hid the incomplete package manifest. A standalone
+  catalog install failed unless the application happened to supply the missing
+  module.
+- Decision: make `d3-scale` a runtime dependency of `@tanstack/charts` while
+  keeping its TypeScript package development-only. Add a separate packed
+  catalog consumer whose only direct runtime dependencies are the catalog,
+  React, and React DOM. Its internal Charts packages resolve from the staged
+  tarballs, and it receives no direct D3 dependency.
+- Verification: the standalone fixture installs offline from the packed
+  packages and server-renders the grouped-bar catalog component through the
+  `@tanstack/charts/bar` path. The complete packed web, declaration, bare React
+  Native, and Expo consumer gate passes with that fixture enabled.
+
+### F-225 — Noninteractive SSR emitted hidden focus geometry
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: server-rendering the TanStack.com `/charts` landing page
+- Friction: setting `keyboard: false` and `tooltip: false` disabled interaction
+  handlers but still generated a hidden default focus circle for every scene
+  point. Dense charts therefore shipped hundreds of invisible SVG elements in
+  the initial HTML. Treating `keyboard: false` as equivalent to no focus would
+  be incorrect because pointer-only charts can still use focus resolution.
+- Decision: add `focus: false` as an explicit chart-definition mode. It omits
+  only the generated default focus layer, forces native chart surfaces out of
+  the tab order, skips focus resolution and spatial-index construction, and
+  clears restored focus. Explicitly authored focus marks remain part of the
+  scene. Conformance catalog components set this mode only when
+  `interactive` is false.
+- Verification: scene tests retain semantic points while omitting the generated
+  focus layer. DOM, adapter, renderer-neutral, React SSR/hydration, and React
+  Native tests cover the disabled focus contract. The catalog test and packed
+  consumer gate server-render all 110 catalog components.
+
+### F-226 — Worker runtimes rejected bundled CSV parsing
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: previewing the server-rendered catalog on Cloudflare Workers
+- Friction: large bundled CSV snapshots used `d3-dsv` parsing at module load.
+  Its object-row parser creates a mapper with `new Function`, which Workers
+  rejects even though the chart renderer itself is server-safe.
+- Decision: generate compact CSV modules with a small CSP-safe row parser and
+  static field mappings. Keep `d3-dsv` only in the build-time synchronizer and
+  preserve its auto-typing license notice in the catalog package.
+- Verification: demo-data tests cover quoted fields and typed values, assert
+  that large bundles contain neither `d3-dsv`, `new Function`, nor `eval`, and
+  enforce the asset ceiling. Packed server-runtime checks execute with Node's
+  `--disallow-code-generation-from-strings` flag.
+
+### F-227 — Catalog bundles omitted data license notices
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: publication review of `@tanstack/react-charts-catalog`
+- Friction: the catalog bundled private case modules and complete Observable
+  dataset snapshots, but its tarball shipped only the TanStack license. It also
+  bundled D3 implementations despite those packages already being dependencies.
+- Decision: externalize every case-local D3 import and declare its exact runtime
+  package version. Ship source, revision, attribution, and complete ISC notices
+  for the bundled sample datasets, Plot snapshots, world and U.S. atlases,
+  TopoJSON client, and derived D3 DSV auto-typing.
+- Verification: package validation requires `THIRD_PARTY_NOTICES.md`. A packed
+  standalone consumer declares only the catalog, React, and React DOM while
+  resolving all D3 imports transitively from the catalog manifest.
+
+### F-228 — Catalog definitions captured the initial server width
+
+- Status: resolved
+- Severity: medium
+- Owner: Application
+- Observed in: resizing server-rendered catalog components with omitted widths
+- Friction: descriptor wrappers created definitions from `initialWidth`, while
+  custom React views fixed their input width to the same server value.
+  ResizeObserver could change the SVG viewport without rebuilding captured
+  breakpoints or custom-view layout.
+- Decision: rebuild descriptor definitions from the chart runtime's current
+  build-context width and height. Custom views retain `initialWidth` for SSR,
+  then measure their wrapper with ResizeObserver after hydration.
+- Verification: omitted-width regressions resize a static comparative-radar
+  descriptor and an interactive custom view from 640 to 360 pixels and compare
+  their updated geometry and layout with fixed-width output.
+
+### F-229 — Catalog publishing raced its React dependency
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: adding the catalog to the coordinated Changesets release
+- Friction: the publisher released core first, then all adapters concurrently.
+  The catalog depends on the same-version React adapter, so npm could expose a
+  catalog version before its dependency existed or leave it dangling if the
+  React publication failed.
+- Decision: publish core, then React, before starting concurrent publication of
+  the catalog and remaining adapters.
+- Verification: the release workflow contract asserts the core-to-React order
+  and that both complete before the concurrent publication phase.
+
+### F-230 — CI repeated unaffected work across every partition
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling
+- Observed in: profiling local and GitHub validation on 2026-08-04
+- Friction: a documentation-only pull request still ran the complete static,
+  bundle, comparison, and stress workflow. It consumed 4 minutes 38 seconds of
+  wall time and 18.2 runner-minutes; the eight browser jobs alone consumed 12
+  runner-minutes. Root Nx inputs treated package documentation and the `CI`
+  environment as source, while every job restored the same local Nx cache even
+  when it never invoked Nx. Repeated setup consumed 339 runner-seconds on that
+  run, and the manually shared local cache showed no critical-path reuse for an
+  identical revision.
+- Decision: classify pull-request paths before starting browser partitions and
+  keep one stable aggregate `CI` result that accepts only intentionally skipped
+  jobs. Documentation-only static runs execute format, documentation, focused
+  Markdown invariant tests, and diff checks. Narrow source inputs exclude
+  generated/public documentation, remove runner identity from deterministic
+  hashes, cache the pnpm store, key Playwright from its exact browser metadata
+  and architecture, and stop sharing `.nx/cache` across machines. Full static
+  validation now uses the public TanStack Charts Nx Cloud workspace and assigns
+  the package critical path to one large agent while two medium agents consume
+  the remaining cacheable graph. Documentation-only validation stays local and
+  does not start agents.
+- Verification: classifier and workflow contracts cover package READMEs,
+  media, nested Markdown, mixed source changes, lockfiles, workflow changes,
+  conditional aggregate results, pinned setup actions, Nx Cloud identity,
+  cacheability, agent assignment, and the exact Playwright container canary.
+  The focused documentation graph and complete 18-task local graph pass; a
+  fresh task cache completes in 63.17 seconds and the identical warm graph in
+  0.97 seconds. The next pull request and scheduled run must confirm distributed
+  critical-path and runner-minute savings before this entry closes.
+- Follow-up: record the first production timings and run the opt-in Playwright
+  container A/B.
+
+### F-231 — Packed consumers serialized independent verification
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: reducing the local package validation critical path
+- Friction: five independent package builds and nineteen production bundles ran
+  serially. The bare React Native and Expo consumers also shared Metro's default
+  temporary cache; Expo's `--clear` made concurrent verification unsafe even
+  though their installed projects and bundle outputs were otherwise separate.
+- Decision: retain serial `pnpm pack` and install phases required by F-142, but
+  use bounded, draining worker pools for in-process package builds, web bundles,
+  and post-install consumer verification. Give each native consumer a local
+  `.metro-cache`, preserve deterministic result order, and keep packed and
+  framework adapter gates in one top-level process so their pnpm phases cannot
+  overlap.
+- Verification: the complete packed-consumer gate passes with unchanged bundle
+  boundaries and sizes in 30.38 seconds, down from the 35.30-second baseline.
+  The worker-pool and packed-markdown regressions pass, both native consumers
+  create their isolated caches, and every nested pnpm operation remains serial.
+
+### F-232 — Benchmark shards repeated setup and skewed work
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling
+- Observed in: profiling scheduled comparison, stress, and conformance runs
+- Friction: every conformance shard constructed 28 TypeScript programs and
+  prepared bundles serially. Modulo case assignment left one conformance shard
+  at 222 seconds while another took 80 seconds. Standard stress groups took
+  428, 401, 258, and 137 seconds, and a separate bundle-baseline job rebuilt the
+  same comparison cases that four browser shards built immediately afterward.
+- Decision: compile all conformance baselines and negative probes in one
+  TypeScript program, prepare independent bundles with four-worker draining
+  pools, and assign conformance cases by deterministic estimated cost. Preserve
+  the semantic quick stress groups, but assign standard/full workloads using
+  explicit weights derived from the observed scheduled run. Each comparison
+  shard now checks the filtered baseline and complete configured key set from
+  its existing bundles; the full duplicate job runs only when a maintainer
+  explicitly requests a candidate.
+- Verification: benchmark regressions pass and serial browser measurement is
+  unchanged. Predicted worst conformance weight falls from 4,484 to 2,898
+  (35%), and predicted standard stress load becomes 315, 298, 275, and 336
+  seconds instead of a 428-second maximum. Focused size conformance completes
+  in 7.98 seconds, a one-of-eight size shard in 13.21 seconds, and a filtered
+  stress shard completes with zero failures.
+- Follow-up: replace predicted weights with measured per-case and per-workload
+  cloud durations after the next complete scheduled runs.
+
+### F-233 — Dismissal could click through a composed tooltip
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: the expanding pinned energy-tooltip catalog example
+- Friction: a framework close button called `dismiss()` during its target-phase
+  click handler. The adapter then unmounted that button before the event
+  reached the chart container, so a live descendant check no longer recognized
+  the event as tooltip-owned. When the portaled tooltip overlapped the chart,
+  the same click immediately pinned the point underneath it.
+- Decision: identify tooltip-owned clicks from the event's immutable composed
+  path, filtering that path to DOM nodes, instead of relying only on parentage
+  after target handlers have run.
+- Verification: a renderer regression unmounts its close button synchronously
+  during dismissal and proves the chart stays unfocused. The paired energy
+  case closes correctly at 320 and 640 pixels across both data revisions.
+
+### F-234 — Recharts point replacement canceled activation events
+
+- Status: monitoring
+- Severity: low
+- Owner: Application
+- Observed in: the Recharts reference for the expanding energy tooltip
+- Friction: showing the transient tooltip rerendered Recharts' custom point
+  elements between pointer movement and mouse activation. Browser click
+  synthesis could then lose the original point target even though the pointer
+  remained at the same semantic datum. The same replacement could disconnect a
+  focused point before a subsequent keyboard event.
+- Current decision: make the behavior scenario explicit about its hover-then-
+  click sequence. The reference resolves activation during document capture,
+  scopes it to the chart bounds, ignores the tooltip subtree, and falls back to
+  the nearest current point geometry within the point hit radius. Keyboard
+  focus stays on a stable listbox root while `aria-activedescendant` identifies
+  the current month option.
+- Verification: the paired behavior matrix passes hover, pointer pin, keyboard
+  pin, Escape, and close scenarios at 320 and 640 pixels across both revisions
+  without unsafe type assertions or renderer internals.
+
+### F-235 — Structured tooltip rows could not interleave custom detail
+
+- Status: monitoring
+- Severity: low
+- Owner: API
+- Observed in: matching the expanding pinned energy tooltip to its source clip
+- Friction: `ChartTooltipContent` can describe only a title and flat rows. The
+  source layout expands a consumption breakdown directly below the Consumption
+  row, then places a generation breakdown below the Generation row, followed by
+  a full-width coverage sentence. The framework renderer therefore had to own
+  and repeat the two summary rows instead of composing `defaultBody` with the
+  inserted detail.
+- Current decision: keep the structured callback stable at two summary rows and
+  let the custom body renderer own non-tabular ordering. Do not expand the
+  generic content schema from one application layout.
+- Verification: the paired case reports two summary rows in both transient and
+  pinned states, then adds four nested consumption segments, six detail rows,
+  and the persistent coverage footer only through the custom renderer.
+
+### F-236 — Paint parity normalized patterns but not gradients
+
+- Status: resolved
+- Severity: low
+- Owner: Tooling
+- Observed in: the solid-and-hatched generation bars in the expanding energy
+  tooltip comparison
+- Friction: the visual gate resolved an SVG pattern to its backing rectangle
+  color but left an equivalent linear-gradient paint as a raw resource URL.
+  The Recharts pattern and Charts gradient therefore failed paint parity even
+  though both used the same exported-energy color.
+- Decision: resolve a referenced gradient to its first stop color when no
+  pattern rectangle or path exists, preserving the existing solid-color
+  comparison contract.
+- Verification: the paired energy case compares the pattern and gradient fills
+  as the same exported-energy paint while retaining their rendered hatch
+  treatments.
+
+### F-237 — Focused rules had no matchable presentation points
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: the active-month guide in the expanding energy tooltip example
+- Friction: `whenFocused(ruleX(...), { match: "x" })` typechecked and matched
+  the documented focused-rule recipe, but every rule stayed hidden because
+  rules intentionally emit no interaction points. Replacing the rule with a
+  link would have introduced the wrong semantic mark solely to obtain a focus
+  candidate.
+- Decision: let a mark scene expose presentation-only `focusAnchors`. Each
+  `ChartFocusAnchor` carries the rendered-node key and only the semantic axes
+  the mark owns. Focus layers consume those anchors without adding them to the
+  chart's global interaction points. `ruleX` and `ruleY` therefore remain
+  interaction-free without inventing a zero value for their missing axis.
+- Verification: focused-rule regressions reveal exactly one full-span rule for
+  matching x and y values, keep rule anchors separate from `scene.points`,
+  preserve categorical series matching, and prove that an absent axis does not
+  match zero. The paired energy case retains its native focused `ruleX` guide.
+
+### F-238 — Callback parameter shapes were inconsistent
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Tooling
+- Observed in: review of the expanding pinned-tooltip API
+- Friction: `content(points, context)` exposed pinned and formatting state,
+  while sibling `format(point)` and `formatGroup(points)` did not. A full
+  public-surface audit also found authored callbacks with three or four
+  positional parameters and two-argument callbacks whose second parameter was
+  another unlabelled value. Consumers had to remember a different parameter
+  convention for channels, facets, focus strategies, legends, spatial indexes,
+  and tooltips.
+- Decision: public callbacks accept at most two arguments. Primary data or
+  purpose comes first and additional state comes second in a named context or
+  options object; callbacks without a distinct primary payload receive one
+  object. Migrate channels to `(datum, { index, data })`, facet builders to
+  `(data, { key })`, focus resolution and grouping to `(points, context)`,
+  legend measurement to `(itemCount, context)`, spatial factories to
+  `(points, { scene })`, and all tooltip presentation callbacks to the shared
+  `ChartTooltipContentContext`. Controlled-signal changes now use
+  `(value, { reason })`; keyed-selection keys and focus-guide labels receive
+  `{ point }`; interactive-legend item labels receive `{ visible }`. Keep
+  standard comparators, paired geometry, exact upstream protocols such as D3
+  threshold generators, and consumer-called service methods as classified
+  exceptions.
+- Verification: the public callback inventory follows exported types,
+  functions, and values into nested package-owned types. It classifies all 769
+  reachable callable surfaces, including Alpine's external directive protocol,
+  Vue's nested tooltip slot, live-chart interaction and presentation service
+  handles, cursor controllers and host sessions, focus-guide resolvers, the
+  presentation-points listener callback, and viewport mapping. It
+  rejects unclassified surfaces, callback arity above two, or a non-object
+  second callback argument. Escaped TypeScript unique-symbol member names are
+  canonicalized without rewriting authored string members. Failed parameter
+  type resolution preserves the parameter as a fail-closed non-object bag
+  instead of aborting or undercounting the inventory. Focused core, React
+  Native, React, Octane, channel, facet, focus, legend, tooltip, and contract
+  tests cover the migrated shapes, including configured tooltip item labels in
+  React Native callback context, controlled-signal reasons, keyed-selection
+  points, focus-guide label points, and interactive-legend visibility. The
+  merged packed consumer exercises those context types and uses the same
+  `(datum, { index, data })` contract for radial text and bar channels; the
+  migration guide records every breaking before-and-after signature. Full type,
+  documentation, package, format,
+  bundle, and comparison gates pass. Against `0.6.5`, the reviewed
+  universal bundle baseline increases by at most 476 minified and 137 gzip
+  bytes. The Stats parity and D3 quadtree ceilings each move by 0.2 KiB; the
+  React compact-line and Delaunay integration ceilings each move by 0.1 KiB.
+  The focused expanding tooltip conformance case retains 99.6% geometry
+  similarity and passes visual, behavior, and type gates at both sizes and
+  themes.
+
+### F-239 — Example keys collapsed distinct source rows
+
+- Status: resolved
+- Severity: medium
+- Owner: Application
+- Observed in: the full conformance matrix for the linear-regression,
+  framed-scatter, and many-point-scatter examples
+- Friction: all three examples keyed car rows with only `name` and `year`. The
+  cars dataset contains same-name, same-year rows with different measurements,
+  so keyed scene reconciliation retained fewer dots than requested: 318 of 320
+  in the first two examples and as few as 297 of 300 in the third.
+- Decision: include each example's plotted channel measurements in its key so
+  distinct source observations remain distinct while keys stay stable across
+  revisions.
+- Verification: the first two examples now retain 320 unique keys and the
+  many-point example retains 300 unique keys for their initial and revised
+  windows. Focused standard conformance passes each example's full 320/640/960
+  light/dark visual matrix.
+
+### F-240 — Rolling paths morphed samples instead of shifting them
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: Liveline-inspired streaming React examples
+- Friction: a fixed-length rolling line retained keyed samples, but SVG path
+  interpolation matched commands by array position. Each old y-value therefore
+  bent toward the following sample instead of the trace translating left.
+  Stable datum keys already preserved interaction points but could not change
+  the single path element's interpolation strategy.
+- Decision: add one first-principles rolling object contract,
+  `motion.path: { update: 'rolling', x: 'shift', y, fallback }`, with fixed or
+  affine-reprojected y geometry and an explicit snap-or-morph fallback. Validate
+  the retained key window, balanced batch, stable semantic values, uniform x
+  displacement, stable primitive kind and plot bounds, required clipping,
+  structured path geometry, clip-edge coverage, and the absence of transient x
+  or y viewport translation before installing the target path and animating one
+  matrix to identity. Invalid rolling updates snap by default instead of
+  silently becoming a different interpolation.
+- Follow-up evidence: while a rolling path translated correctly, its SVG focus
+  circles snapped to destination coordinates and an active tooltip received no
+  updates as presentation points advanced. The surface could expose current
+  presentation geometry but had no notification contract for the shared host.
+- Follow-up decision: animate keyed focus-layer geometry with its owning data
+  points and add optional `ChartSurface.subscribePresentationPoints()`. The
+  shared host now re-resolves a stationary pointer or restores pinned and
+  keyboard focus against each published presentation frame, keeping tooltip
+  anchors and focus markers aligned without chart-specific wiring.
+- Follow-up evidence: entering and exiting point dots still used independent
+  fades, snap fallback retained removed presentation points until its nominal
+  duration, and applying an inline focus state cancelled the active data
+  transform.
+- Follow-up decision: associate both previous and target semantic points with
+  each rolling plan. Retained and entering dots, default focus circles,
+  exiting dots, and presentation points now share the path transform and
+  timing; snap removes stale geometry and points in the same commit. Focus
+  layers remain live during data motion, while inline mark-state geometry and
+  style retain the latest request across back-to-back updates and reconcile
+  when data motion becomes idle instead of taking over its transform.
+- Verification: pure planner tests cover valid batches and every rejected
+  invariant, including nonzero x or y viewport translation. Integration tests
+  hold target line and area path data constant while x translation and affine y
+  reprojection animate through one matrix, verify matching presentation points,
+  compose an interrupted A-to-B-to-C update from the currently painted
+  transform, keep retained, entering, and exiting point and focus decorations
+  aligned, keep an authored focus band on the same trajectory, retain a
+  deferred inline focus state across back-to-back rolls, and verify snap removes
+  old DOM and presentation points without scheduling a frame. The live
+  dynamic-y example uses the rolling object contract, clipped overscan, a stable
+  semantic area baseline, and fixed plot margins. The complete motion SVG
+  renderer measures 14.17 KiB gzip under its reviewed 14.4 KiB ceiling.
+
+### F-241 — Motion ignored authored SVG clips
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: Liveline-inspired streaming React examples
+- Friction: the definitions correctly set `clip: true`, but `motion()` used the
+  resource-free SVG serializer. Translated line and area geometry therefore
+  painted through the y-axis labels and beyond the plot instead of being
+  clipped to `scene.chart`. There was no public way to combine the motion
+  renderer with the resource-aware serializer.
+- Decision: make resource-aware SVG serialization the default and use it from
+  `motion()` for both prerendering and updates. SVG hosts now consume clips and
+  gradients already declared in the renderer-neutral scene.
+- Verification: the streaming motion regression asserts that the marks group
+  references a generated clip path whose rectangle exactly matches the
+  resolved chart x, y, width, and height. The running React examples expose
+  three distinct scoped clip paths and keep linear shifted marks inside each
+  plot while guides remain outside. The static SVG line consumer measures
+  17.75 KiB gzip; the reviewed universal baseline records its 1,743-byte gzip
+  increase from making scene resources part of the default renderer.
+
+### F-242 — Paged history required overlaid chart hosts
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: iOS-style paged history React example
+- Friction: stationary guides over a continuously swiped line required two
+  overlaid chart hosts, duplicated scale definitions, manual width measurement,
+  CSS clipping, and pixel offsets. Focus geometry belonged to one host while
+  the visible coordinates belonged to the other.
+- Decision: add a continuous axis `viewport` with a committed semantic domain
+  and transient scene-pixel translation. Resolve guides against the viewport
+  domain and place viewport content in clipped layers per mark and per owned
+  axis. Infer ownership from materialized channels and let custom marks override
+  each axis as `content` or `fixed`, keeping guides and unrelated annotations
+  stationary. Remap scene, node-interaction, focus-layer, and mark-state point
+  references to presented coordinates. Expose the full content domain and
+  presented mapper on the resolved scale. Preserve complete scene points for
+  rendering and diagnostics while `viewportInteractionPoints` and the optional
+  `findNearestPoint` candidate list limit focus and keyboard navigation to
+  clipped content anchors inside the plot while retaining points from
+  fixed-ownership marks outside it.
+- Verification: type tests constrain `ChartContinuousDomain` to homogeneous
+  numeric or Date endpoints. Configured-scale tests require continuous,
+  invertible, unclamped scales with independently configurable domain and range,
+  reject categorical, quantize, getter-only, and clamped configured scales,
+  reject an authored viewport on an opaque custom resolver, accept a custom
+  resolver that returns its own complete viewport, and cover positive,
+  reversed, and negative same-sign logarithmic domains. Scene,
+  SVG, focus, and renderer tests assert screen-direction translation,
+  per-mark/per-axis clips, fixed guides and annotations, explicit custom-mark
+  ownership, presented point references, candidate filtering, and tooltip/focus
+  continuity. The paged example renders its complete history as one line and
+  area in one chart host while the application owns only drag policy and page
+  settling. The locked D3-scale line scene measures 16.18 KiB gzip, a reviewed
+  1,233-byte increase for the default viewport-capable scene contract.
+
+### F-243 — Long-press focus duplicated host pointer geometry
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: iOS-style paged history React example
+- Friction: delaying focus until a touch hold required the application to read
+  SVG bounds, convert client coordinates, search scene points, position a
+  cursor, and render a second tooltip. The chart already owned all of that
+  logic, but its pointer handling was all-or-nothing and not callable.
+- Decision: expose one stable `ChartInteractionController` on the host and
+  render context. `clientToScene()` exposes renderer-correct drag geometry,
+  `resolvePointer()` applies the current presentation and configured focus
+  strategy, and `setControlledFocus()` paints or clears the same focus marks
+  and tooltip as native input. Definition `pointer: false` disables automatic
+  pointer move, leave, and click without disabling keyboard focus, and
+  controlled focus has separate ownership from pointer and keyboard focus.
+  Share SVG client-to-scene conversion between normal and motion surfaces.
+  Keep that surface capability optional for existing custom renderers; the
+  controller returns `null` when it is absent. Passing a pointer resolution to
+  `setControlledFocus()` infers pointer source unless explicitly overridden,
+  while a raw point defaults to programmatic source.
+- Follow-up evidence: the host rebuilt a configured spatial index from the
+  transition-start presentation points immediately after a data update. Motion
+  correctly bypassed that index while presentation points were active, but
+  re-enabled the stale index when the transition settled.
+- Follow-up decision: build spatial indexes from the destination scene's
+  visible points. Presentation points remain authoritative during motion and
+  the destination index becomes authoritative only after they settle.
+- Verification: renderer tests cover resolution, focus groups, clearing,
+  pinning, pointer opt-out, ownership boundaries, presentation updates, and
+  controller identity, including inferred pointer source across a scene update
+  and destination spatial-index resolution after presentation geometry clears.
+  Every DOM framework adapter forwards the controller in `onRender`, and the
+  paged example delegates its long-press cursor and tooltip to the definition
+  without application SVG math. The locked DOM host measures 18.39 KiB gzip;
+  its reviewed 2,583-byte increase includes the default viewport and controlled
+  interaction contracts.
+
+### F-244 — Focus cursor width depended on private band inference
+
+- Status: resolved
+- Severity: low
+- Owner: API
+- Observed in: iOS-style paged history React example
+- Friction: a one-pixel definition-owned cursor could use a focused `bandX`,
+  but its width was always inferred from sample spacing. Producing a precise
+  cursor with `inset` required the application to duplicate the mark's private
+  `0.8` bandwidth factor. At the time, `ruleX` could paint the right geometry
+  but emitted no focus-match points.
+- Decision: add explicit scene-pixel `width` to `bandX` and `height` to
+  `bandY`. Explicit dimensions replace scale or inferred bandwidth before
+  applying `inset`; existing definitions retain inferred sizing.
+- Verification: mark tests assert fixed one- and two-pixel continuous bands,
+  and the paged history definition expresses its cursor as `width: 1` without
+  responsive sample-spacing math.
+- Follow-up: F-237 later added presentation-only `focusAnchors` to rules, so a
+  focused `ruleX` can now express a one-pixel cursor too. Explicit band
+  dimensions remain useful when authored band geometry needs an exact scene-
+  pixel width or height.
+
+### F-245 — Focus-filtered bands could not act as cursor geometry
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: stacked-bar band-and-rule cursor conformance case 119
+- Friction: `whenFocused(bandX(...), { match: "x" })` could reveal the band
+  authored for a focused category, but it could not move one stable band with
+  focus. The first case-119 implementation therefore needed a synthetic row
+  for every category and a complete set of hidden band rectangles. That was
+  correct for a data-bound visibility filter but the wrong ownership model for
+  cursor geometry, which should not require duplicated data or participate in
+  the ordinary mark tree.
+- Decision: add `band` to each `crosshair` axis. `band: true` or a
+  `CrosshairBandOptions` object replaces that axis rule with a renderer-native
+  rectangle centered on the focused semantic value. Its full size comes from
+  the resolved categorical scale bandwidth, so grouped marks use the parent
+  category rather than a subgroup's point coordinate. `inset` applies to both
+  edges and may be negative for an outset. The band spans and clips to the plot
+  in the other direction, accepts radius/fill/stroke/opacity paint, remains
+  outside hit testing, and emits no geometry when bandwidth is zero. Mark order
+  continues to own underlay or overlay placement, so a band and an
+  opposite-axis rule can use separate crosshair marks when their placements
+  differ.
+- Verification: the categorical cursor-band unit regression proves exact
+  inset geometry, a 2-pixel outset from bars whose inset differs by 2, paint
+  options, parent-scale centering for x- and y-grouped bars, and no band on a
+  continuous scale. Case 119's
+  `band-and-rule-follow-stack` scenario checks the full three-point x group,
+  exact 4-pixel left/right outset, focused period and stack-endpoint labels,
+  dotted y rule, responsive revisions, and pointer-leave cleanup. The core
+  stacked-label regression also proves that a difference interval formats its
+  plotted endpoint rather than the raw segment delta. Cursor and crosshair
+  regressions project semantic values through `ResolvedScale.viewport.map` with
+  nonzero x and y translations, keeping controlled guides aligned with
+  presented viewport content.
+
+### F-246 — Scene updates cleared active motion guide placement
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: animating the case-119 band and rule through a data revision
+- Friction: the motion renderer detached persistent focus-guide layers during
+  a scene update, then cleared every recorded visible placement before the
+  host restored focus. The same keyed band and rule therefore became hidden or
+  snapped to the next geometry instead of continuing from their visible
+  positions.
+- Decision: retain each visible under/over placement while the next scene still
+  provides a guide at that placement. Restore the detached keyed layer with its
+  current visibility, then let restored focus animate its geometry. Remove the
+  placement and layer when the next scene no longer provides the guide so the
+  retention rule cannot leave stale cursor paint behind.
+- Verification: focused motion regressions keep the same categorical band and
+  dotted-rule elements while they animate between points, preserve an active
+  guide through a keyed scene update and animate from its prior coordinate,
+  and remove the retained layer when the next scene drops its crosshair.
+  Retained presentation points carry the destination datum and semantic values
+  with their prior x/y geometry, so focus callbacks and cursor labels report
+  the updated row throughout the transition.
+
+### F-247 — Custom conformance mounts were not React catalog descriptors
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling/Application
+- Observed in: publishing stacked-bar cursor conformance case 119
+- Friction: the custom motion mount was a valid conformance implementation,
+  but the React catalog synchronizer did not publish it. A separate static
+  descriptor made case 119 visible, yet its generated wrapper used the base
+  React chart and silently ignored the mark's motion options. The docs-linked
+  demo therefore differed from the implementation under conformance.
+- Decision: route case 119 through the existing custom React view path. Share
+  one revision-aware definition and `motion()` renderer factory between that
+  view and the bespoke conformance mount; keep the conformance driver only for
+  target resolution, state inspection, and deterministic settling. Preview
+  rendering remains fluid and noninteractive while the full catalog view
+  honors its interactive input.
+- Verification: the synchronizer reports 110 matching cases. The catalog
+  regression moves focus between two bar periods and proves that both the
+  under-band and over-rule guide layers enter their running motion state. The
+  focused 25-test catalog suite, workspace typecheck, sync check, and diff check
+  pass.
+- Follow-up evidence: merging the definition-owned interaction migrations for
+  cases 80, 87, 88, 89, and 90 removed their obsolete React views, but the
+  catalog synchronizer still generated imports to those missing files. Their
+  manual conformance mounts were intentionally retained for driver state and
+  geometry, yet those functions did not expose the definition metadata needed
+  by the base React catalog host. The synchronizer also rejected otherwise
+  valid `tanstackMount` exports with explicit type annotations.
+- Follow-up decision: publish each migrated case through a colocated
+  `tanstackCase` descriptor while retaining its manual conformance mount. Remove
+  those five IDs from the custom-view registry, keep case 119 there for its
+  renderer-owned motion, and allow an optional type annotation when recognizing
+  `tanstackMount` exports.
+- Follow-up verification: the five custom view files remain absent, their
+  generated wrappers import `catalogCase` from the native definitions, and
+  `react-catalog:sync --check` reports all 110 cases in sync.

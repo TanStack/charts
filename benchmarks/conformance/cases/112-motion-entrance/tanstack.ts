@@ -4,6 +4,7 @@ import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { entranceRows as rows } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type {
   ChartMotionTweenTransition,
   ChartRenderer,
@@ -179,6 +180,17 @@ export function motionEntranceDefinition(settings: MotionSettings) {
     margin: { top: 20, right: 20, bottom: 20, left: 20 },
   })
 }
+
+export const catalogCase = tanstackCase(
+  () =>
+    motionEntranceDefinition({
+      duration: 1_100,
+      staggerMs: 55,
+      easing: undefined,
+      customTiming: true,
+    }),
+  'Staggered monthly actuals and target',
+)
 
 function readEasing(value: string): MotionSettings['easing'] {
   return value === 'linear' ||

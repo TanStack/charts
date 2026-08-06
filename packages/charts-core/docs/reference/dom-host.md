@@ -84,8 +84,8 @@ is required and `onRender` receives a
 
 For the built-in Canvas renderer, `mountCanvasChart` from
 `@tanstack/charts/canvas` removes the explicit `renderer` option and returns a
-`CanvasChartHost`. Both hosts preserve the same `update`, `getScene`, and
-`destroy` interaction model.
+`CanvasChartHost`. Both hosts preserve the same `interaction`, `update`,
+`getScene`, and `destroy` model.
 
 ## Host options
 
@@ -106,21 +106,23 @@ The default SVG host requires `definition` and `ariaLabel`.
 | `onFocusChange`      | None              | Receives the primary focused point or `null`.                                                          |
 | `onFocusGroupChange` | None              | Receives all points selected by the current focus strategy.                                            |
 | `onSelect`           | None              | Receives the clicked or keyboard-activated point, or `null` for an empty click.                        |
-| `onRender`           | None              | Runs after reconciliation with the container, live SVG, and current scene.                             |
+| `onRender`           | None              | Runs after reconciliation with the container, live SVG, scene, and interaction controller.             |
 | `renderSvg`          | `renderChartSvg`  | Replaces the scene-to-SVG renderer.                                                                    |
 | `measureText`        | DOM font measurer | Replaces guide text measurement.                                                                       |
 
 The definition owns these chart behaviors:
 
-| Option             | Default                   | Meaning                                                  |
-| ------------------ | ------------------------- | -------------------------------------------------------- |
-| `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus   |
-| `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy        |
-| `focusRing`        | `true`                    | Built-in primary-point focus indicator                   |
-| `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                           |
-| `animate`          | `false`                   | Keyed attribute, enter, and exit animation               |
-| `keyboard`         | `true`                    | Keyboard focus and navigation                            |
-| `tooltip`          | `false`                   | Native tooltip content, placement, layering, and pinning |
+| Option             | Default                   | Meaning                                                                                                  |
+| ------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus                                                   |
+| `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy; `false` disables native focus and its generated layer |
+| `focusRing`        | `true`                    | Generated primary-point focus indicator; `false` keeps authored focus layers only                        |
+| `cursor`           | None                      | Focus-snapped or free application-owned cursor binding                                                   |
+| `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                                                                           |
+| `animate`          | `false`                   | Keyed attribute, enter, and exit animation                                                               |
+| `pointer`          | `true`                    | Automatic pointer focus, leave, and click handling                                                       |
+| `keyboard`         | `true`                    | Keyboard focus and navigation                                                                            |
+| `tooltip`          | `false`                   | Native tooltip content, placement, layering, and pinning                                                 |
 
 Definition `keyboard: false` takes precedence over host `tabIndex`. A negative
 custom tab index can keep chart keyboard behavior available for programmatic
@@ -186,11 +188,34 @@ interface ChartHost<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > {
+  readonly interaction: ChartInteractionController<TDatum, TXValue, TYValue>
   update(options: ChartHostOptions<TDatum, TXValue, TYValue>): void
   getScene(): ChartScene<TDatum, TXValue, TYValue>
   destroy(): void
 }
 ```
+
+### `interaction`
+
+The stable interaction controller resolves client coordinates through the
+current renderer presentation and can paint application-owned focus:
+
+```ts
+const position = host.interaction.clientToScene(event.clientX, event.clientY)
+const target = host.interaction.resolvePointer(event.clientX, event.clientY)
+host.interaction.setControlledFocus(target)
+
+host.interaction.setControlledFocus(null)
+```
+
+A pointer resolution preserves pointer ownership across scene updates and
+presentation frames. A raw point uses programmatic ownership unless `source`
+is supplied explicitly.
+
+Use definition `pointer: false` when a long-press, drag mode, or another
+application gesture decides when point inspection begins. Keyboard navigation
+remains enabled independently. See
+[Interactions and Selections](../guides/interactions-and-selections.md#controlled-point-inspection).
 
 ### `update`
 

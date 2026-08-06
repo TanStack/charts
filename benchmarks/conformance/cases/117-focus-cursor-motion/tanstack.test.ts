@@ -2,13 +2,12 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import {
   createChartRuntime,
-  resolveFocusScene,
+  resolveFocusPresentation,
   type ChartDefinition,
   type ChartFocusState,
   type ChartPoint,
   type ChartScene,
   type ChartSpecDatum,
-  type SceneGroup,
   type SceneNode,
 } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
@@ -18,10 +17,9 @@ import type { ConformanceInput } from '../../types'
 import type { FocusMotionRow } from './model'
 
 describe('definition-owned focus cursor motion', () => {
-  it('keeps exact source types and excludes guide candidates from hit testing', () => {
+  it('keeps exact source types and excludes the crosshair from hit testing', () => {
     const definition = focusCursorMotionDefinition()
     const scene = render()
-    const guide = focusLayer(scene)
     type Datum = ChartSpecDatum<ReturnType<typeof focusCursorMotionDefinition>>
 
     expectTypeOf<Datum>().toEqualTypeOf<FocusMotionRow>()
@@ -29,49 +27,61 @@ describe('definition-owned focus cursor motion', () => {
       ChartDefinition<FocusMotionRow, string, number>
     >()
     expect(scene.points).toHaveLength(focusMotionRows.length * 2)
-    expect(scene.points.some(({ markId }) => markId === 'focus-guide')).toBe(
-      false,
-    )
-    expect(guide.children).toEqual([])
-    expect(guide.focus).toMatchObject({
-      match: 'primary',
-      placement: 'over',
-      retarget: true,
+    expect(
+      scene.points.some(({ markId }) => markId === 'focus-motion-crosshair'),
+    ).toBe(false)
+    expect(scene.focusGuides).toHaveLength(1)
+    expect(scene.focusGuides?.[0]).toMatchObject({
+      key: 'focus-motion-crosshair',
+      markId: 'focus-motion-crosshair',
+      motion: {
+        transition: {
+          type: 'spring',
+          stiffness: 320,
+          damping: 28,
+          mass: 0.72,
+          restDelta: 0.02,
+          restSpeed: 0.02,
+        },
+      },
     })
-    const guidePoints = guide.focus?.points as readonly ChartPoint<
-      FocusMotionRow,
-      string,
-      number
-    >[]
-    expect(guidePoints).toHaveLength(focusMotionRows.length)
-    for (const point of guidePoints) {
-      expect(point.datum).toBe(focusMotionRows[point.datumIndex])
-      expect(point.xValue).toBe(point.datum.period)
-      expect(point.yValue).toBe(point.datum.value)
-      expect(point.group).toBe(point.datum.series)
-    }
+    expect(
+      flatten(scene.nodes).some(({ key }) => key === 'focus-motion-crosshair'),
+    ).toBe(false)
   })
 
   it('retargets one stable rule, marker, and label structure', () => {
     const scene = render()
     const monday = sourcePoint(scene, 'Alpha:Mon')
     const saturday = sourcePoint(scene, 'Alpha:Sat')
-    const first = resolveFocusScene(scene, focusState(monday)).scene
-    const second = resolveFocusScene(scene, focusState(saturday)).scene
-    const firstLayer = focusLayer(first)
-    const secondLayer = focusLayer(second)
-    const firstKeys = flatten(firstLayer.children).map(({ key }) => key)
-    const secondKeys = flatten(secondLayer.children).map(({ key }) => key)
-    const firstRule = nodeByKey(firstLayer, 'focus-guide:x-rule', 'rule')
-    const secondRule = nodeByKey(secondLayer, 'focus-guide:x-rule', 'rule')
+    const first = resolveFocusPresentation(scene, focusState(monday))
+    const second = resolveFocusPresentation(scene, focusState(saturday))
+    const firstGuide = nodeByKey(first.over, 'focus-motion-crosshair', 'group')
+    const secondGuide = nodeByKey(
+      second.over,
+      'focus-motion-crosshair',
+      'group',
+    )
+    const firstKeys = flatten(firstGuide.children).map(({ key }) => key)
+    const secondKeys = flatten(secondGuide.children).map(({ key }) => key)
+    const firstRule = nodeByKey(
+      firstGuide.children,
+      'focus-motion-crosshair:x-rule',
+      'rule',
+    )
+    const secondRule = nodeByKey(
+      secondGuide.children,
+      'focus-motion-crosshair:x-rule',
+      'rule',
+    )
     const firstXLabel = nodeByKey(
-      firstLayer,
-      'focus-guide:x-label:text',
+      firstGuide.children,
+      'focus-motion-crosshair:x-label:text',
       'label',
     )
     const secondYLabel = nodeByKey(
-      secondLayer,
-      'focus-guide:y-label:text',
+      secondGuide.children,
+      'focus-motion-crosshair:y-label:text',
       'label',
     )
 
@@ -80,8 +90,8 @@ describe('definition-owned focus cursor motion', () => {
     expect(secondRule.x1).toBe(saturday.x)
     expect(firstXLabel.text).toBe('Mon')
     expect(secondYLabel.text).toBe('84')
-    expect(firstLayer.focus?.activePoints?.[0]?.datum).toBe(monday.datum)
-    expect(secondLayer.focus?.activePoints?.[0]?.datum).toBe(saturday.datum)
+    expect(first.under).toEqual([])
+    expect(second.under).toEqual([])
   })
 
   it('owns guide and focus-state spring policy in the definition', () => {
@@ -153,12 +163,15 @@ describe('definition-owned focus cursor motion', () => {
     const definitionStart = source.indexOf(
       'export function focusCursorMotionDefinition()',
     )
-    const shellStart = source.indexOf('function createStatus', definitionStart)
+    const shellStart = source.indexOf(
+      'function createFocusStatus',
+      definitionStart,
+    )
     const definitionSource = source.slice(definitionStart, shellStart)
 
-    expect(definitionSource).toContain('focusGuideX(focusMotionRows')
-    expect(definitionSource).toContain("id: 'focus-guide'")
-    expect(definitionSource).toContain('motion: { transition: guideSpring }')
+    expect(definitionSource).toContain('crosshair<string, number>({')
+    expect(definitionSource).toContain("id: 'focus-motion-crosshair'")
+    expect(definitionSource).toContain('restDelta: 0.02')
     expect(definitionSource).toContain('focusRing: false')
     expect(definitionSource).not.toContain('querySelector')
     expect(definitionSource).not.toContain('document.')
@@ -167,7 +180,7 @@ describe('definition-owned focus cursor motion', () => {
     expect(source).not.toContain('requestAnimationFrame')
     expect(source).not.toContain('createElementNS')
     expect(source).not.toContain('CrosshairOverlay')
-    expect(source).not.toContain('onRender')
+    expect(source).toContain('onRender(context')
   })
 })
 
@@ -200,21 +213,12 @@ function focusState(
   }
 }
 
-function focusLayer(scene: ChartScene): SceneGroup {
-  const layer = flatten(scene.nodes).find(
-    (node): node is SceneGroup =>
-      node.kind === 'group' && node.key === 'focus:focus-guide',
-  )
-  if (!layer?.focus) throw new Error('Expected focus guide layer')
-  return layer
-}
-
-function nodeByKey<TKind extends Exclude<SceneNode['kind'], 'group'>>(
-  layer: SceneGroup,
+function nodeByKey<TKind extends SceneNode['kind']>(
+  nodes: readonly SceneNode[],
   key: string,
   kind: TKind,
 ): Extract<SceneNode, { kind: TKind }> {
-  const node = flatten(layer.children).find(
+  const node = flatten(nodes).find(
     (candidate) => candidate.key === key && candidate.kind === kind,
   )
   if (!node || node.kind !== kind) throw new Error(`Expected ${key}`)

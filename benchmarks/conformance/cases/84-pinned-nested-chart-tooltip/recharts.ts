@@ -1,389 +1,779 @@
-import { createElement, useId, useRef, useState } from 'react'
+import { createElement, useEffect, useId, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import {
+  Area,
   Bar,
   BarChart,
   CartesianGrid,
-  Scatter,
-  ScatterChart,
+  Cell,
+  ComposedChart,
+  Line,
+  ReferenceLine,
   XAxis,
   YAxis,
 } from 'recharts'
-import { penguins } from '@charts-poc/demo-data/penguins'
 import {
-  isNestedTooltipId,
-  nestedTooltipRows,
-  penguinCohort,
-  penguinTooltipId,
-  penguinTooltipLabel,
+  energyAnnualOverview,
+  energyColors,
+  energyMonths,
+  energyTooltipContent,
+  formatEnergy,
+  formatPercent,
+  isEnergyMonthId,
+  monthFromTarget,
 } from './model'
-import type { ReactNode } from 'react'
-import type { ScatterPointItem, ScatterShapeProps } from 'recharts'
-import type { CompletePenguin, NestedTooltipId } from './model'
+import { EnergyTooltipBody, energyTooltipStyles } from './tooltip-body'
+import type { ChartPoint } from '@tanstack/charts'
 import type {
-  ConformanceInput,
-  ConformanceMount,
-  ConformanceTarget,
-} from '../../types'
+  FocusEvent as ReactFocusEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+  ReactNode,
+} from 'react'
+import type { ConformanceInput, ConformanceMount } from '../../types'
+import type { EnergyMonth, EnergyMonthId } from './model'
 
 interface InteractionState {
-  hoveredId: NestedTooltipId | null
-  pinnedId: NestedTooltipId | null
+  focusedMonth: EnergyMonthId | null
 }
 
-interface NestedTooltipChartProps {
+interface EnergyChartProps {
   input: ConformanceInput
   onInteractionChange: (state: InteractionState) => void
 }
 
-function NestedTooltipChart({
-  input,
-  onInteractionChange,
-}: NestedTooltipChartProps) {
-  const tooltipTitleId = `recharts-nested-tooltip-${useId()}`
-  const pointElements = useRef(new Map<NestedTooltipId, SVGCircleElement>())
-  const [hoveredId, setHoveredId] = useState<NestedTooltipId | null>(null)
-  const [pinnedId, setPinnedId] = useState<NestedTooltipId | null>(null)
-  const rows = nestedTooltipRows(penguins, input.revision)
-  const pinnedDatum = rows.find((row) => penguinTooltipId(row) === pinnedId)
-  const narrow = input.width < 520
-  const panelHeight = Math.max(
-    96,
-    Math.min(154, Math.round(input.height * 0.42)),
+interface EnergyDotProps {
+  cx?: number
+  cy?: number
+  payload?: EnergyMonth
+}
+
+interface EnergyXAxisTickProps {
+  x?: number | string
+  y?: number | string
+  fill?: string
+  payload?: { value?: unknown }
+  activeMonthShort: string | null
+  markerLength: number
+}
+
+function EnergyChart({ input, onInteractionChange }: EnergyChartProps) {
+  const exportedPatternId = `energy-exported-${useId().replaceAll(':', '')}`
+  const viewRef = useRef<HTMLDivElement>(null)
+  const chartFocusRef = useRef<HTMLDivElement>(null)
+  const pointElements = useRef(new Map<EnergyMonthId, SVGCircleElement>())
+  const suppressFocusRef = useRef(false)
+  const [hoveredId, setHoveredId] = useState<EnergyMonthId | null>(null)
+  const [focusedId, setFocusedId] = useState<EnergyMonthId | null>(null)
+  const [pinnedId, setPinnedId] = useState<EnergyMonthId | null>(null)
+  const rows = energyMonths(input.revision)
+  const activeId = pinnedId ?? focusedId ?? hoveredId
+  const activeMonth = rows.find((month) => month.id === activeId) ?? null
+  const pinned = activeMonth !== null && pinnedId === activeMonth.id
+  const chartWidth = Math.max(1, input.width - 24)
+  const chartHeight = Math.max(1, input.height - 48)
+  const annualConsumption = rows.reduce(
+    (total, month) => total + month.consumption,
+    0,
   )
-  const chartHeight =
-    narrow && pinnedDatum
-      ? Math.max(1, input.height - panelHeight - 8)
-      : input.height
 
-  const updateHovered = (nextHoveredId: NestedTooltipId | null) => {
-    setHoveredId(nextHoveredId)
-    onInteractionChange({ hoveredId: nextHoveredId, pinnedId })
+  useEffect(() => {
+    onInteractionChange({ focusedMonth: activeId })
+  }, [activeId, onInteractionChange])
+
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    const document = view.ownerDocument
+    const handleClick = (event: MouseEvent) => {
+      const bounds = view.getBoundingClientRect()
+      if (
+        event.clientX < bounds.left ||
+        event.clientX > bounds.right ||
+        event.clientY < bounds.top ||
+        event.clientY > bounds.bottom
+      ) {
+        return
+      }
+      const id = monthIdAtPointer(
+        event.target,
+        event.clientX,
+        event.clientY,
+        pointElements.current,
+      )
+      if (id) setPinnedId((current) => (current === id ? null : id))
+    }
+    document.addEventListener('click', handleClick, true)
+    return () => document.removeEventListener('click', handleClick, true)
+  }, [])
+
+  const togglePinned = (id: EnergyMonthId) => {
+    setPinnedId((current) => (current === id ? null : id))
   }
 
-  const togglePinned = (id: NestedTooltipId) => {
-    setPinnedId((current) => {
-      const next = current === id ? null : id
-      onInteractionChange({ hoveredId, pinnedId: next })
-      return next
-    })
-  }
-
-  const closePinned = () => {
-    const invokingId = pinnedId
-    if (!invokingId) return
+  const dismiss = () => {
+    if (!activeId) return
+    const invokingId = activeId
     setPinnedId(null)
-    onInteractionChange({ hoveredId, pinnedId: null })
-    const restoreFocus = () => pointElements.current.get(invokingId)?.focus()
+    setHoveredId(null)
+    setFocusedId(null)
+    suppressFocusRef.current = true
+    const restoreFocus = () => {
+      chartFocusRef.current?.focus()
+      suppressFocusRef.current = false
+    }
     const view =
       pointElements.current.get(invokingId)?.ownerDocument.defaultView
     if (view?.requestAnimationFrame) view.requestAnimationFrame(restoreFocus)
     else restoreFocus()
   }
 
-  const renderPoint = (props: ScatterShapeProps): ReactNode => {
-    const datum = rows.find((row) => row === props.payload)
-    if (!datum || props.cx === undefined || props.cy === undefined) return null
-    const id = penguinTooltipId(datum)
-    if (!id) return null
-    const pinned = id === pinnedId
+  const renderPoint = ({ cx, cy, payload }: EnergyDotProps): ReactNode => {
+    if (cx === undefined || cy === undefined || !payload) return null
+    const id = payload.id
+    const isPinned = id === pinnedId
+    const isActive = id === activeId
     return createElement('circle', {
       className: 'recharts-dot',
-      cx: props.cx,
-      cy: props.cy,
-      r: pinned ? 7 : 5,
-      fill: pinned ? '#f97316' : '#2563eb',
-      stroke: '#ffffff',
-      strokeWidth: pinned ? 2 : 1,
-      'data-point-id': id,
+      id: `energy-month-${id}`,
+      cx,
+      cy,
+      r: isPinned ? 5 : isActive ? 4.5 : 3,
+      fill: 'Canvas',
+      stroke: energyColors.consumption,
+      strokeWidth: isPinned ? 2 : isActive ? 1.8 : 1.4,
+      opacity: isActive ? 1 : 0,
+      'data-month-id': id,
       ref: (element: SVGCircleElement | null) => {
         if (element) pointElements.current.set(id, element)
         else pointElements.current.delete(id)
       },
-      role: 'button',
-      tabIndex: 0,
-      focusable: true,
-      'aria-label': `${penguinTooltipLabel(datum)}, ${datum.body_mass_g} grams`,
-      'aria-pressed': pinned,
-      onPointerEnter: () => updateHovered(id),
-      onPointerLeave: () => updateHovered(null),
-      onClick: () => togglePinned(id),
-      onKeyDown: (event: KeyboardEvent) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return
-        event.preventDefault()
-        togglePinned(id)
-      },
+      role: 'option',
+      'aria-label': `${payload.month}: ${payload.consumption} kilowatt-hours consumed and ${payload.generation} generated`,
+      'aria-selected': isPinned,
+      style: { cursor: 'pointer', transition: 'r 160ms ease' },
     })
   }
 
   return createElement(
     'div',
     {
+      ref: viewRef,
       'data-conformance-view': 'main',
       role: 'region',
-      'aria-label': 'Penguin measurements with a pinned nested-chart tooltip',
-      onKeyDown: (event: KeyboardEvent) => {
-        if (event.key !== 'Escape') return
+      tabIndex: -1,
+      'aria-label': 'Monthly household energy with an expanding pinned tooltip',
+      onPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => {
+        if (pinnedId) return
+        setHoveredId(monthIdFromEventTarget(event.target))
+      },
+      onPointerLeave: () => setHoveredId(null),
+      onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => {
+        if (event.key !== 'Escape' || !pinnedId) return
         event.stopPropagation()
-        closePinned()
+        dismiss()
       },
       style: {
         position: 'relative',
         width: `${input.width}px`,
         height: `${input.height}px`,
+        paddingTop: '4px',
+        background: 'Canvas',
+        color: 'CanvasText',
+        boxSizing: 'border-box',
       },
     },
     [
+      createElement('style', { key: 'tooltip-styles' }, energyTooltipStyles),
       createElement(
-        ScatterChart,
+        'header',
         {
-          key: 'chart',
-          width: input.width,
-          height: chartHeight,
-          margin: { top: 18, right: 24, bottom: 20, left: 16 },
-          accessibilityLayer: true,
+          key: 'header',
+          className: 'energy-overview-card',
+          style: {
+            display: 'flex',
+            height: '36px',
+            alignItems: 'center',
+            padding: '0 24px',
+            font: '500 12px/1.3 system-ui, sans-serif',
+          },
+        },
+        createElement(
+          'strong',
+          { style: { fontSize: '13px', fontWeight: 680 } },
+          'Annual overview',
+        ),
+      ),
+      createElement(
+        'div',
+        {
+          key: 'chart-card',
+          style: {
+            position: 'relative',
+            width: `${chartWidth}px`,
+            height: `${chartHeight}px`,
+            margin: '0 12px',
+            border: '1px solid color-mix(in srgb, CanvasText 8%, transparent)',
+            borderRadius: '7px',
+            boxSizing: 'border-box',
+          },
         },
         [
-          createElement(CartesianGrid, {
-            key: 'grid',
-            stroke: '#e2e8f0',
-          }),
-          createElement(XAxis, {
-            key: 'x',
-            type: 'number',
-            dataKey: 'flipper_length_mm',
-            domain: [170, 235],
-            name: 'Flipper length (mm)',
-          }),
-          createElement(YAxis, {
-            key: 'y',
-            type: 'number',
-            dataKey: 'body_mass_g',
-            domain: [3000, 6000],
-            name: 'Body mass (g)',
-            width: 52,
-          }),
-          createElement(Scatter<CompletePenguin, number>, {
-            key: 'points',
-            data: rows,
-            dataKey: 'body_mass_g',
-            fill: '#2563eb',
-            shape: renderPoint,
-            isAnimationActive: false,
-          }),
+          createElement(
+            'div',
+            {
+              key: 'annual-metrics',
+              'aria-hidden': true,
+              style: {
+                position: 'absolute',
+                zIndex: 1,
+                top: '14px',
+                left: '16px',
+                display: 'flex',
+                gap: '26px',
+                pointerEvents: 'none',
+                font: '500 11px/1.2 system-ui, sans-serif',
+              },
+            },
+            [
+              createElement(AnnualMetric, {
+                key: 'generation',
+                label: 'Energy generated',
+                value: formatEnergy(energyAnnualOverview.generation),
+              }),
+              createElement(AnnualMetric, {
+                key: 'consumption',
+                label: 'Total consumption',
+                value: formatEnergy(annualConsumption),
+              }),
+            ],
+          ),
+          createElement(
+            'div',
+            {
+              key: 'chart-focus',
+              ref: chartFocusRef,
+              role: 'listbox',
+              tabIndex: 0,
+              'aria-label': 'Monthly household energy',
+              'aria-orientation': 'horizontal',
+              'aria-activedescendant': activeId
+                ? `energy-month-${activeId}`
+                : undefined,
+              onFocus: (event: ReactFocusEvent<HTMLDivElement>) => {
+                if (
+                  event.target !== event.currentTarget ||
+                  suppressFocusRef.current
+                ) {
+                  return
+                }
+                setFocusedId(
+                  (current) => current ?? pinnedId ?? rows[0]?.id ?? null,
+                )
+              },
+              onBlur: (event: ReactFocusEvent<HTMLDivElement>) => {
+                const NodeConstructor =
+                  event.currentTarget.ownerDocument.defaultView?.Node
+                if (
+                  NodeConstructor &&
+                  event.relatedTarget instanceof NodeConstructor &&
+                  event.currentTarget.contains(event.relatedTarget)
+                ) {
+                  return
+                }
+                if (!pinnedId) setFocusedId(null)
+              },
+              onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => {
+                if (event.key === 'Escape' && pinnedId) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  dismiss()
+                  return
+                }
+                if (event.key === 'Enter' || event.key === ' ') {
+                  const id = focusedId ?? pinnedId ?? rows[0]?.id
+                  if (!id) return
+                  event.preventDefault()
+                  togglePinned(id)
+                  return
+                }
+                const direction =
+                  event.key === 'ArrowRight'
+                    ? 1
+                    : event.key === 'ArrowLeft'
+                      ? -1
+                      : 0
+                if (!direction) return
+                event.preventDefault()
+                const currentId = focusedId ?? pinnedId ?? rows[0]?.id
+                const currentIndex = rows.findIndex(
+                  (month) => month.id === currentId,
+                )
+                const nextIndex = Math.min(
+                  rows.length - 1,
+                  Math.max(0, currentIndex + direction),
+                )
+                setFocusedId(rows[nextIndex]?.id ?? null)
+              },
+            },
+            createElement(
+              ComposedChart,
+              {
+                width: chartWidth,
+                height: chartHeight,
+                data: rows,
+                margin: { top: 82, right: 24, bottom: 8, left: 12 },
+                barCategoryGap: '16%',
+                barGap: 0,
+                accessibilityLayer: true,
+                role: 'group',
+                title: 'Annual household energy overview',
+              },
+              [
+                createElement(
+                  'defs',
+                  { key: 'fills' },
+                  createElement(
+                    'pattern',
+                    {
+                      id: exportedPatternId,
+                      width: 6,
+                      height: 6,
+                      patternUnits: 'userSpaceOnUse',
+                    },
+                    [
+                      createElement('rect', {
+                        key: 'background',
+                        width: 6,
+                        height: 6,
+                        fill: energyColors.exported,
+                      }),
+                      createElement('path', {
+                        key: 'hatch',
+                        d: 'M-1 1L1 -1M0 6L6 0M5 7L7 5',
+                        fill: 'none',
+                        stroke: energyColors.generation,
+                        strokeOpacity: 0.55,
+                        strokeWidth: 1,
+                      }),
+                    ],
+                  ),
+                ),
+                createElement(CartesianGrid, {
+                  key: 'grid',
+                  stroke: 'color-mix(in srgb, CanvasText 13%, transparent)',
+                  vertical: false,
+                }),
+                createElement(XAxis, {
+                  key: 'x',
+                  dataKey: 'monthShort',
+                  tickLine: false,
+                  axisLine: false,
+                  tickMargin: 8,
+                  tick: (props) =>
+                    createElement(EnergyXAxisTick, {
+                      ...props,
+                      activeMonthShort: activeMonth?.monthShort ?? null,
+                      markerLength: Math.max(
+                        14,
+                        ((chartWidth - 72 - 24) / 12) * 0.84,
+                      ),
+                    }),
+                }),
+                createElement(YAxis, {
+                  key: 'y',
+                  domain: [0, 2600],
+                  tickCount: 5,
+                  width: 60,
+                  tickLine: false,
+                  axisLine: false,
+                  tickMargin: 7,
+                  tickFormatter: (value: number) =>
+                    `${value.toLocaleString('en-US')} kWh`,
+                }),
+                createElement(Area, {
+                  key: 'consumption-area',
+                  type: 'monotone',
+                  dataKey: 'consumption',
+                  fill: energyColors.consumption,
+                  fillOpacity: 0.13,
+                  stroke: 'none',
+                  isAnimationActive: false,
+                }),
+                createElement(
+                  Bar,
+                  {
+                    key: 'used-on-site',
+                    dataKey: 'usedOnSite',
+                    stackId: 'generation',
+                    fill: energyColors.generationMuted,
+                    isAnimationActive: false,
+                  },
+                  rows.map((row) =>
+                    createElement(Cell, {
+                      key: row.id,
+                      fill:
+                        row.id === activeId
+                          ? energyColors.generation
+                          : energyColors.generationMuted,
+                    }),
+                  ),
+                ),
+                createElement(Bar, {
+                  key: 'exported',
+                  dataKey: 'exported',
+                  stackId: 'generation',
+                  fill: `url(#${exportedPatternId})`,
+                  radius: [3, 3, 0, 0],
+                  isAnimationActive: false,
+                }),
+                activeMonth
+                  ? createElement(ReferenceLine, {
+                      key: 'focused-month-guide',
+                      x: activeMonth.monthShort,
+                      stroke: 'CanvasText',
+                      strokeOpacity: 0.45,
+                      strokeWidth: 1,
+                      strokeDasharray: '4 4',
+                    })
+                  : null,
+                createElement(Line, {
+                  key: 'consumption-line',
+                  type: 'monotone',
+                  dataKey: 'consumption',
+                  stroke: energyColors.consumption,
+                  strokeWidth: 1.6,
+                  dot: renderPoint,
+                  activeDot: false,
+                  isAnimationActive: false,
+                }),
+              ],
+            ),
+          ),
         ],
       ),
-      pinnedDatum
-        ? createElement(PinnedTooltip, {
+      activeMonth
+        ? createElement(EnergyTooltip, {
             key: 'tooltip',
-            datum: pinnedDatum,
+            month: activeMonth,
+            monthIndex: rows.indexOf(activeMonth),
+            pinned,
             input,
-            chartHeight,
-            panelHeight,
-            titleId: tooltipTitleId,
-            onClose: closePinned,
+            dismiss,
           })
         : null,
     ],
   )
 }
 
-interface PinnedTooltipProps {
-  datum: CompletePenguin
+interface EnergyTooltipProps {
+  month: EnergyMonth
+  monthIndex: number
+  pinned: boolean
   input: ConformanceInput
-  chartHeight: number
-  panelHeight: number
-  titleId: string
-  onClose: () => void
+  dismiss: () => void
 }
 
-function PinnedTooltip({
-  datum,
+function EnergyTooltip({
+  month,
+  monthIndex,
+  pinned,
   input,
-  chartHeight,
-  panelHeight,
-  titleId,
-  onClose,
-}: PinnedTooltipProps) {
-  const narrow = input.width < 520
-  const width = narrow ? Math.max(1, input.width - 16) : 224
-  const miniWidth = narrow ? Math.max(1, input.width - 32) : 208
-  const miniHeight = narrow ? Math.max(48, panelHeight - 60) : 106
-  const cohort = penguinCohort(penguins, datum)
-  const position = tooltipPosition(
-    datum,
-    input,
-    chartHeight,
-    panelHeight,
-    width,
-  )
+  dismiss,
+}: EnergyTooltipProps) {
+  const content = energyTooltipContent([energyPoint(month, monthIndex)], pinned)
+  const coverage = formatPercent(month.usedOnSite / month.consumption)
+  const accessibleLabel = [
+    content.title,
+    ...content.rows.map((row) => `${row.label}: ${row.value}`),
+    ...(pinned
+      ? [
+          `Consumption mix: Household ${formatEnergy(month.household)}, Heat pump ${formatEnergy(month.heatPump)}, Hot water ${formatEnergy(month.hotWater)}, EV charging ${formatEnergy(month.evCharging)}`,
+          `Generation use: Used on site ${formatEnergy(month.usedOnSite)} (${formatPercent(month.usedOnSite / month.generation)}), Exported ${formatEnergy(month.exported)} (${formatPercent(month.exported / month.generation)})`,
+        ]
+      : []),
+    `Solar covered ${coverage} of household consumption`,
+  ]
+    .filter(Boolean)
+    .join('\n')
+  const position = tooltipPosition(input, pinned, monthIndex, month.consumption)
   return createElement(
     'aside',
     {
-      'data-external-tooltip': 'pinned',
-      role: 'dialog',
-      'aria-modal': false,
-      'aria-labelledby': titleId,
+      className: 'energy-reference-tooltip',
+      'data-sticky': String(pinned),
       'data-placement': position.placement,
-      style: { ...tooltipStyle, ...position.style, width },
+      role: pinned ? 'dialog' : 'status',
+      'aria-modal': pinned ? false : undefined,
+      'aria-live': pinned ? undefined : 'polite',
+      'aria-label': accessibleLabel,
+      style: {
+        ...position.style,
+        pointerEvents: 'none',
+        transition: 'top 260ms cubic-bezier(0.22, 1, 0.36, 1)',
+      },
+    },
+    createElement(
+      'div',
+      {
+        className: 'ts-chart-tooltip__body',
+        inert: pinned ? undefined : true,
+      },
+      createElement(EnergyTooltipBody, {
+        month,
+        pinned,
+        dismiss,
+        consumptionChart: createElement(ConsumptionMixChart, { month }),
+      }),
+    ),
+  )
+}
+
+function EnergyXAxisTick({
+  x,
+  y,
+  fill = '#666',
+  payload,
+  activeMonthShort,
+  markerLength,
+}: EnergyXAxisTickProps) {
+  const tickX = Number(x)
+  const tickY = Number(y)
+  const value = typeof payload?.value === 'string' ? payload.value : ''
+  if (!Number.isFinite(tickX) || !Number.isFinite(tickY)) return null
+  const active = value === activeMonthShort
+  return createElement('g', { transform: `translate(${tickX},${tickY})` }, [
+    active
+      ? createElement('line', {
+          key: 'active-line',
+          x1: -markerLength / 2,
+          x2: markerLength / 2,
+          y1: -6,
+          y2: -6,
+          stroke: 'CanvasText',
+          strokeWidth: 1.5,
+        })
+      : null,
+    active
+      ? createElement('line', {
+          key: 'active-tick',
+          x1: 0,
+          x2: 0,
+          y1: -6,
+          y2: 1,
+          stroke: 'CanvasText',
+          strokeWidth: 1.5,
+        })
+      : null,
+    createElement(
+      'text',
+      {
+        key: 'label',
+        x: 0,
+        y: 0,
+        dy: '0.71em',
+        fill,
+        fontSize: 11,
+        textAnchor: 'middle',
+      },
+      value,
+    ),
+  ])
+}
+
+function ConsumptionMixChart({ month }: { month: EnergyMonth }) {
+  return createElement(
+    BarChart,
+    {
+      width: 264,
+      height: 10,
+      data: [month],
+      layout: 'vertical',
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      accessibilityLayer: false,
     },
     [
-      createElement(
-        'div',
-        {
-          key: 'header',
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-            minHeight: '44px',
-          },
-        },
-        [
-          createElement(
-            'strong',
-            { key: 'title', id: titleId },
-            `${penguinTooltipLabel(datum)}: ${datum.body_mass_g.toLocaleString()} g`,
-          ),
-          createElement(
-            'button',
-            {
-              key: 'close',
-              type: 'button',
-              'aria-label': 'Close pinned penguin details',
-              onPointerDown: (event: PointerEvent) => event.stopPropagation(),
-              onClick: onClose,
-              style: {
-                width: '44px',
-                minWidth: '44px',
-                height: '44px',
-                flex: '0 0 44px',
-                padding: 0,
-                border:
-                  '1px solid color-mix(in srgb, CanvasText 24%, transparent)',
-                borderRadius: '6px',
-                background: 'Canvas',
-                color: 'CanvasText',
-                cursor: 'pointer',
-                font: '700 20px/1 system-ui, sans-serif',
-              },
-            },
-            '×',
-          ),
-        ],
-      ),
-      createElement(
-        BarChart,
-        {
-          key: 'mini-chart',
-          width: miniWidth,
-          height: miniHeight,
-          data: cohort,
-          margin: { top: 6, right: 6, bottom: 12, left: 6 },
-          accessibilityLayer: true,
-        },
-        [
-          createElement(XAxis, {
-            key: 'x',
-            dataKey: 'flipper_length_mm',
-            tick: { fontSize: 9 },
-            tickLine: false,
-            axisLine: false,
-          }),
-          createElement(YAxis, {
-            key: 'y',
-            hide: true,
-          }),
-          createElement(Bar, {
-            key: 'bars',
-            dataKey: 'body_mass_g',
-            fill: '#8b5cf6',
-            radius: [2, 2, 0, 0],
-            isAnimationActive: false,
-          }),
-        ],
-      ),
-      createElement(
-        'div',
-        {
-          key: 'history-description',
-          style: {
-            position: 'absolute',
-            width: '1px',
-            height: '1px',
-            overflow: 'hidden',
-            clipPath: 'inset(50%)',
-          },
-        },
-        cohort
-          .map(
-            (row) =>
-              `${row.flipper_length_mm} millimeter flipper: ${row.body_mass_g} grams`,
-          )
-          .join('. '),
-      ),
+      createElement(XAxis, {
+        key: 'x',
+        type: 'number',
+        domain: [0, month.consumption],
+        hide: true,
+      }),
+      createElement(YAxis, {
+        key: 'y',
+        type: 'category',
+        dataKey: 'monthShort',
+        hide: true,
+      }),
+      createElement(Bar, {
+        key: 'household',
+        dataKey: 'household',
+        stackId: 'mix',
+        fill: energyColors.household,
+        isAnimationActive: false,
+      }),
+      createElement(Bar, {
+        key: 'heat-pump',
+        dataKey: 'heatPump',
+        stackId: 'mix',
+        fill: energyColors.heatPump,
+        isAnimationActive: false,
+      }),
+      createElement(Bar, {
+        key: 'hot-water',
+        dataKey: 'hotWater',
+        stackId: 'mix',
+        fill: energyColors.hotWater,
+        isAnimationActive: false,
+      }),
+      createElement(Bar, {
+        key: 'ev-charging',
+        dataKey: 'evCharging',
+        stackId: 'mix',
+        fill: energyColors.evCharging,
+        isAnimationActive: false,
+      }),
     ],
   )
 }
 
-const tooltipStyle = {
-  position: 'absolute',
-  zIndex: 2,
-  boxSizing: 'border-box',
-  padding: '8px',
-  border: '1px solid rgb(100 116 139 / 0.35)',
-  borderRadius: '8px',
-  background: 'Canvas',
-  color: 'CanvasText',
-  boxShadow: '0 8px 28px rgb(15 23 42 / 0.16)',
-  font: '600 12px/1.3 system-ui, sans-serif',
-  pointerEvents: 'auto',
-} as const
+function AnnualMetric({ label, value }: { label: string; value: string }) {
+  const [amount, unit] = value.split(' ')
+  return createElement('div', { style: { display: 'grid', gap: '3px' } }, [
+    createElement(
+      'span',
+      {
+        key: 'label',
+        style: {
+          color: 'color-mix(in srgb, CanvasText 55%, transparent)',
+        },
+      },
+      label,
+    ),
+    createElement(
+      'strong',
+      {
+        key: 'value',
+        style: {
+          fontSize: '19px',
+          fontWeight: 680,
+          letterSpacing: '-0.02em',
+        },
+      },
+      [
+        amount,
+        ' ',
+        createElement(
+          'span',
+          {
+            key: 'unit',
+            style: {
+              fontSize: '11px',
+              fontWeight: 620,
+              letterSpacing: 0,
+            },
+          },
+          unit,
+        ),
+      ],
+    ),
+  ])
+}
+
+function energyPoint(
+  month: EnergyMonth,
+  datumIndex: number,
+): ChartPoint<EnergyMonth, string, number> {
+  return {
+    key: month.id,
+    markId: 'consumption-points',
+    group: null,
+    groupLabel: 'Consumption',
+    datum: month,
+    datumIndex,
+    xValue: month.monthShort,
+    yValue: month.consumption,
+    x: 0,
+    y: 0,
+    color: energyColors.consumption,
+  }
+}
 
 function tooltipPosition(
-  datum: CompletePenguin,
   input: ConformanceInput,
-  chartHeight: number,
-  panelHeight: number,
-  width: number,
+  pinned: boolean,
+  monthIndex: number,
+  consumption: number,
 ) {
-  if (input.width < 520) {
-    return {
-      placement: 'panel',
-      style: {
-        left: '8px',
-        top: `${chartHeight + 4}px`,
-        height: `${panelHeight}px`,
-      },
-    }
-  }
-  const chartLeft = 68
-  const chartRight = input.width - 24
-  const pointX =
-    chartLeft +
-    ((datum.flipper_length_mm - 170) / (235 - 170)) * (chartRight - chartLeft)
-  const pointY =
-    18 +
-    ((6000 - datum.body_mass_g) / (6000 - 3000)) * Math.max(1, chartHeight - 60)
-  const gap = 14
   const edge = 8
-  const estimatedHeight = 168
+  const gap = 12
+  const width = Math.min(292, Math.max(1, input.width - edge * 2))
+  const estimatedHeight = pinned ? 334 : 128
+  const chartWidth = Math.max(1, input.width - 24)
+  const chartHeight = Math.max(1, input.height - 48)
+  const plotWidth = Math.max(1, chartWidth - 72 - 24)
+  const plotHeight = Math.max(1, chartHeight - 82 - 38)
+  const pointX = 12 + 72 + ((monthIndex + 0.5) / 12) * plotWidth
+  const pointY = 40 + 82 + (1 - consumption / 2600) * plotHeight
   const placeRight = pointX + gap + width <= input.width - edge
+  const placeLeft = pointX - gap - width >= edge
+  const verticalOverlay = !placeRight && !placeLeft
+  const left = placeRight
+    ? pointX + gap
+    : placeLeft
+      ? pointX - gap - width
+      : Math.max(edge, Math.min(input.width - width - edge, pointX - width / 2))
+  const top = Math.max(
+    edge,
+    Math.min(
+      input.height - estimatedHeight - edge,
+      pointY - estimatedHeight / 2,
+    ),
+  )
   return {
-    placement: placeRight ? 'right' : 'left',
+    placement: placeRight ? 'right' : placeLeft ? 'left' : 'overlay',
     style: {
-      left: `${Math.max(edge, placeRight ? pointX + gap : pointX - gap - width)}px`,
-      top: `${Math.max(
-        edge,
-        Math.min(
-          input.height - estimatedHeight - edge,
-          pointY - estimatedHeight / 2,
-        ),
-      )}px`,
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${width}px`,
     },
   }
+}
+
+function monthIdFromEventTarget(target: EventTarget | null) {
+  if (!(target instanceof Element)) return null
+  const id =
+    target.closest<SVGCircleElement>('[data-month-id]')?.dataset.monthId
+  return isEnergyMonthId(id) ? id : null
+}
+
+function monthIdAtPointer(
+  target: EventTarget | null,
+  clientX: number,
+  clientY: number,
+  points: ReadonlyMap<EnergyMonthId, SVGCircleElement>,
+) {
+  const direct = monthIdFromEventTarget(target)
+  if (direct) return direct
+  if (
+    !(target instanceof Element) ||
+    target.closest('.energy-reference-tooltip')
+  ) {
+    return null
+  }
+  let nearest: { id: EnergyMonthId; distance: number } | null = null
+  for (const [id, point] of points) {
+    const bounds = point.getBoundingClientRect()
+    const distance = Math.hypot(
+      clientX - (bounds.left + bounds.width / 2),
+      clientY - (bounds.top + bounds.height / 2),
+    )
+    if (distance <= 16 && (!nearest || distance < nearest.distance)) {
+      nearest = { id, distance }
+    }
+  }
+  return nearest?.id ?? null
 }
 
 function center(element: HTMLElement | SVGElement) {
@@ -395,21 +785,12 @@ function center(element: HTMLElement | SVGElement) {
   }
 }
 
-function pointFromTarget(target: ConformanceTarget) {
-  if (target.view !== undefined && target.view !== 'main') return null
-  const [kind, id] = target.anchor.split(':')
-  return kind === 'point' && isNestedTooltipId(id) ? id : null
-}
-
 export const mount: ConformanceMount = (container, input) => {
   const surface = container.ownerDocument.createElement('div')
   container.append(surface)
   const root = createRoot(surface)
   let currentInput = input
-  let interaction: InteractionState = {
-    hoveredId: null,
-    pinnedId: null,
-  }
+  let interaction: InteractionState = { focusedMonth: null }
 
   const onInteractionChange = (next: InteractionState) => {
     interaction = next
@@ -418,7 +799,7 @@ export const mount: ConformanceMount = (container, input) => {
   const render = () => {
     flushSync(() => {
       root.render(
-        createElement(NestedTooltipChart, {
+        createElement(EnergyChart, {
           input: currentInput,
           onInteractionChange,
         }),
@@ -436,44 +817,57 @@ export const mount: ConformanceMount = (container, input) => {
     driver: {
       resolveTarget(target) {
         if (target.anchor === 'tooltip:close') {
-          const close = surface.querySelector<HTMLButtonElement>(
-            'button[aria-label="Close pinned penguin details"]',
+          const close = surface.querySelector<HTMLElement>(
+            '[data-energy-tooltip-close]',
           )
           return close ? center(close) : null
         }
-        const pointId = pointFromTarget(target)
-        if (!pointId) return null
-        const point = [
-          ...surface.querySelectorAll<SVGCircleElement>('[data-point-id]'),
-        ].find((element) => element.dataset.pointId === pointId)
-        return point ? center(point) : null
+        const monthId = monthFromTarget(target)
+        if (!monthId) return null
+        const point = surface.querySelector<SVGCircleElement>(
+          `[data-month-id="${monthId}"]`,
+        )
+        const chartFocus =
+          surface.querySelector<HTMLElement>('[role="listbox"]')
+        if (!point) return null
+        return { ...center(point), focusElement: chartFocus ?? point }
       },
       readState() {
         const tooltip = surface.querySelector<HTMLElement>(
-          '[data-external-tooltip="pinned"]',
+          '.energy-reference-tooltip',
+        )
+        const body = tooltip?.querySelector<HTMLElement>('.energy-tooltip')
+        const reveal = tooltip?.querySelector<HTMLElement>(
+          '.energy-tooltip__reveal',
         )
         return {
-          hoveredId: interaction.hoveredId,
-          chartFocused: surface.contains(surface.ownerDocument.activeElement),
+          focusedMonth: interaction.focusedMonth,
           tooltip: {
             visible: Boolean(tooltip),
-            pinnedId: interaction.pinnedId,
-            miniBarCount:
-              tooltip?.querySelectorAll('.recharts-bar-rectangle').length ?? 0,
-            chartCount: tooltip?.querySelectorAll('svg').length ?? 0,
-            pinnedMarkCount: surface.querySelectorAll(
-              '[data-point-id][aria-pressed="true"]',
-            ).length,
-            flipperLabelCount:
-              tooltip?.querySelectorAll(
-                '.recharts-xAxis .recharts-cartesian-axis-tick',
-              ).length ?? 0,
-            placement: tooltip?.dataset.placement ?? null,
-            closeVisible: Boolean(
-              tooltip?.querySelector(
-                'button[aria-label="Close pinned penguin details"]',
-              ),
+            pinned: tooltip?.dataset.sticky === 'true',
+            role: tooltip?.getAttribute('role') ?? null,
+            inert:
+              tooltip
+                ?.querySelector('.ts-chart-tooltip__body')
+                ?.hasAttribute('inert') ?? false,
+            month:
+              tooltip
+                ?.querySelector('.ts-chart-tooltip__title')
+                ?.textContent?.trim() ?? null,
+            summaryRowCount:
+              tooltip?.querySelectorAll('.ts-chart-tooltip__row').length ?? 0,
+            detailRowCount:
+              tooltip?.querySelectorAll('[data-energy-detail-row]').length ?? 0,
+            detailsExpanded: body?.dataset.expanded === 'true',
+            detailHeight: Math.round(
+              reveal?.getBoundingClientRect().height ?? 0,
             ),
+            nestedBarCount:
+              tooltip?.querySelectorAll('.recharts-bar-rectangle').length ?? 0,
+            closeVisible: Boolean(
+              tooltip?.querySelector('[data-energy-tooltip-close]'),
+            ),
+            text: tooltip?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
           },
         }
       },

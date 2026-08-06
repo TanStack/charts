@@ -3,7 +3,7 @@ import { forceLayout } from '@tanstack/charts/network/force'
 import { miserables } from '@charts-poc/demo-data/miserables'
 import { scaleLinear } from 'd3-scale'
 import { forceNetworkData } from './transform'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const colors = ['#2563eb', '#f97316', '#10b981']
@@ -79,7 +79,7 @@ export const forceDefinition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   forceDefinition,
   'Force-directed Les Misérables character network',
   {
@@ -89,3 +89,5 @@ export const mount = tanstackMount(
         : `${datum.source} → ${datum.target} · Value ${datum.value}`,
   },
 )
+
+export const mount = catalogCase.mount

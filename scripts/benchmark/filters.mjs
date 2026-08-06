@@ -32,6 +32,45 @@ export function selectShard(values, shard) {
   )
 }
 
+export function selectWeightedShard(values, shard, weightFor) {
+  if (!shard) return values
+  if (typeof weightFor !== 'function') {
+    throw new TypeError('Weighted shard selection requires a weight function.')
+  }
+
+  const activeShardCount = Math.min(shard.total, values.length)
+  const shardWeights = Array.from({ length: activeShardCount }, () => 0)
+  const assignments = new Array(values.length)
+  const weightedValues = values.map((value, index) => {
+    const weight = weightFor(value, index)
+    if (!Number.isFinite(weight) || weight < 0) {
+      throw new TypeError(
+        `Shard weight at index ${index} must be a finite non-negative number.`,
+      )
+    }
+    return { index, weight }
+  })
+
+  weightedValues
+    .sort(
+      (left, right) => right.weight - left.weight || left.index - right.index,
+    )
+    .forEach(({ index, weight }) => {
+      let selectedShard = 0
+      for (let candidate = 1; candidate < shardWeights.length; candidate += 1) {
+        if (shardWeights[candidate] < shardWeights[selectedShard]) {
+          selectedShard = candidate
+        }
+      }
+      assignments[index] = selectedShard
+      shardWeights[selectedShard] += weight
+    })
+
+  return values.filter(
+    (_value, index) => assignments[index] === shard.index - 1,
+  )
+}
+
 function pluralize(value, count) {
   return count === 1 ? value : `${value}s`
 }

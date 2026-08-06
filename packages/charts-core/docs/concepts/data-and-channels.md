@@ -42,10 +42,12 @@ dot(rows, {
 Every accessor receives:
 
 ```ts
-;(datum, index, data) => value
+;(datum, { index, data }) => value
 ```
 
-`datum` has the exact source type, `index` is the zero-based position, and `data` is the readonly materialized source array. Accessors are evaluated when the mark initializes; keep expensive cross-row transforms in application code.
+`datum` has the exact source type. The context contains the zero-based `index`
+and readonly materialized `data` array. Accessors are evaluated when the mark
+initializes; keep expensive cross-row transforms in application code.
 
 ## Positional channels
 
@@ -103,9 +105,13 @@ There are two common paths:
 - `fill` and `stroke` are final paint overrides and bypass scale mapping for
   that paint.
 
-The default categorical palette is useful for quick distinctions. Use an explicit D3 ordinal scale when a category must always map to the same color across charts, filters, and sessions.
+The default categorical palette is useful for quick distinctions. Use an
+explicit ordinal scale when a category must always map to the same color across
+charts, filters, and sessions.
 
 ```ts
+import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+
 const segmentColor = scaleOrdinal(
   ['Consumer', 'Enterprise', 'Public'],
   ['#2563eb', '#f97316', '#10b981'],
@@ -128,7 +134,9 @@ const chart = defineChart({
 })
 ```
 
-This snippet directly imports `scaleOrdinal` from `d3-scale` and uses `colorLegend` from `@tanstack/charts`. Install `d3-scale` and `@types/d3-scale` as direct dependencies. [Legends and Color](../guides/legends-and-color.md) covers continuous color, gradients, and application-wide palettes.
+The lightweight ordinal scale owns the stable category mapping. [Legends and
+Color](../guides/legends-and-color.md) covers continuous color, gradients, and
+application-wide palettes.
 
 ## Radius is explicit
 
@@ -273,8 +281,10 @@ responsive layout work.
 ## Complete bubble-scatter example
 
 ```ts
-import { scaleLinear, scaleOrdinal, scaleSqrt } from 'd3-scale'
+import { scaleSqrt } from 'd3-scale'
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
 
 interface PenguinsRow {
   species: string
@@ -376,8 +386,9 @@ const bubbleChart = defineChart({
 ```
 
 The filter only removes observations missing a plotted measurement; the marks
-still use the source dataset's field names. This example imports `d3-scale`
-directly. Install it and `@types/d3-scale`.
+still use the source dataset's field names. The axes and categorical color use
+lightweight scales. Bubble area needs the nonlinear D3 `scaleSqrt`, so install
+`d3-scale` and `@types/d3-scale` for that one mapping.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/scatter-bubble/?theme=system&height=480"

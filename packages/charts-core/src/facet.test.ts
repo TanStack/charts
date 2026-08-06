@@ -7,6 +7,7 @@ import { whenFocused } from './focus-mark'
 import { measureSceneLabelBounds } from './guide-layout'
 import { lineY } from './line'
 import { createMark } from './mark'
+import { ruleX } from './rule'
 import { createChartScene } from './scene'
 import { renderChartSvg } from './svg'
 import { svgChartRenderer } from './svg-surface'
@@ -520,6 +521,63 @@ describe('facets', () => {
     surface.destroy()
   })
 
+  it('prefixes focus-only rule anchors when synchronizing facets', () => {
+    const data = ['North', 'South'].flatMap((panel) =>
+      [72, 88].map((value, x) => ({ panel, x, value })),
+    )
+    const scene = createChartScene(
+      facetChart(data, {
+        by: 'panel',
+        columns: 2,
+        axes: 'cell',
+        chart: (rows) => ({
+          marks: [
+            whenFocused(ruleX(rows, { id: 'cursor', x: 'x' }), {
+              match: 'x',
+            }),
+            barY(rows, { x: 'x', y: 'value' }),
+          ],
+          x: { scale: scaleBand<number>().domain([0, 1]) },
+          y: { scale: scaleLinear().domain([0, 100]) },
+          guides: false,
+          margin: 0,
+        }),
+      }),
+      { width: 640, height: 260 },
+    )
+    const primary = scene.points.find(
+      (point) => point.datum.panel === 'North' && point.datum.x === 1,
+    )
+    expect(primary).toBeDefined()
+    if (!primary) return
+
+    const container = document.createElement('div')
+    const surface = svgChartRenderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Synchronized faceted rules' })
+    surface.paintFocus({
+      primary,
+      group: [primary],
+      source: 'keyboard',
+      pinned: false,
+    })
+
+    const visibleRules = [
+      ...container.querySelectorAll<SVGLineElement>(
+        '.ts-chart__rule-x line[visibility="visible"]',
+      ),
+    ]
+    expect(visibleRules).toHaveLength(2)
+    expect(
+      new Set(visibleRules.map((rule) => rule.getAttribute('x1'))).size,
+    ).toBe(1)
+    expect(
+      visibleRules.every(
+        (rule) => rule.getAttribute('x1') === rule.getAttribute('x2'),
+      ),
+    ).toBe(true)
+    surface.destroy()
+  })
+
   it('synchronizes facet cursors only through an explicit y focus mark', () => {
     const data = ['North', 'South'].flatMap((panel) =>
       [72, 88].map((value, x) => ({ panel, x, value })),
@@ -594,7 +652,7 @@ describe('facets', () => {
         by: 'group',
         columns: 2,
         axes,
-        chart: (group, key) => ({
+        chart: (group, { key }) => ({
           marks: [lineY(group, { y: 'value' })],
           x: { scale: scaleLinear().domain([0, 1]) },
           y: {
@@ -626,7 +684,7 @@ describe('facets', () => {
       facetChart(data, {
         by: 'group',
         columns: 2,
-        chart: (group, key) => ({
+        chart: (group, { key }) => ({
           marks: [lineY(group, { y: 'value' })],
           x: {
             scale: scaleLinear().domain([0, 1]),

@@ -3,7 +3,9 @@ import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
+import type { ConformanceInput } from '../../types'
 
 const annotationColor = '#dc2626'
 const dateKey = (row: AaplRow) => row.Date.getTime()
@@ -17,10 +19,10 @@ export const maximumAapl = select(aapl, {
   select: 'max',
 })
 
-export const selectExtremaDefinition = () => {
+function selectExtremaChart(rows: readonly AaplRow[]) {
   return defineChart({
     marks: [
-      lineY(aapl, {
+      lineY(rows, {
         id: 'close-line',
         x: 'Date',
         y: 'Close',
@@ -75,7 +77,23 @@ export const selectExtremaDefinition = () => {
   })
 }
 
+export const selectExtremaDefinition = () => selectExtremaChart(aapl)
+
+const catalogSelectExtremaDefinition = (input: ConformanceInput) =>
+  selectExtremaChart(
+    samplePreviewData(aapl, input, 80, [
+      (row) => row.Date.getTime(),
+      (row) => row.Close,
+    ]),
+  )
+
 export const mount = tanstackMount(
   selectExtremaDefinition,
   'Apple closing price with minimum and maximum annotations',
+)
+
+export const catalogCase = tanstackCase(
+  catalogSelectExtremaDefinition,
+  mount.ariaLabel,
+  mount.interactiveTooltip,
 )

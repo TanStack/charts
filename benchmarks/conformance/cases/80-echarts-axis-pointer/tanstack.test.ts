@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { industries } from '@charts-poc/demo-data/industries'
 import { createChartScene, resolveFocusScene } from '@tanstack/charts'
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { axisPointerData, axisPointerIndustries } from './selection'
 import { axisPointerDefinition, mount } from './tanstack'
 import type {
@@ -114,7 +114,29 @@ describe('definition-owned snapped axis pointer', () => {
     const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
     if (!svg || !handle.driver) throw new Error('Expected mounted chart driver')
 
-    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: input.width,
+      bottom: input.height,
+      left: 0,
+      width: input.width,
+      height: input.height,
+      toJSON: () => ({}),
+    })
+    const target = handle.driver.resolveTarget({
+      view: 'main',
+      anchor: 'date:2005-01-01',
+    })
+    if (!target) throw new Error('Expected semantic pointer target')
+    svg.dispatchEvent(
+      new MouseEvent('pointermove', {
+        bubbles: true,
+        clientX: target.x,
+        clientY: target.y,
+      }),
+    )
 
     expect(handle.driver.readState()).toMatchObject({
       focus: {

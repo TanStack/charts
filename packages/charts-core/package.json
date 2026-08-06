@@ -1,6 +1,6 @@
 {
   "name": "@tanstack/charts",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "private": false,
   "license": "MIT",
   "repository": {
@@ -29,6 +29,7 @@
     "d3-hexbin": "0.2.2",
     "d3-hierarchy": "3.1.2",
     "d3-sankey": "0.12.3",
+    "d3-scale": "4.0.2",
     "d3-selection": "3.0.0",
     "d3-shape": "3.2.0",
     "d3-zoom": "3.0.0"
@@ -44,8 +45,7 @@
     "@types/d3-sankey": "^0.12.5",
     "@types/d3-selection": "^3.0.11",
     "@types/d3-zoom": "^3.0.8",
-    "@types/d3-scale": "^4.0.9",
-    "d3-scale": "4.0.2"
+    "@types/d3-scale": "^4.0.9"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -58,6 +58,9 @@
     "./band": "./src/band.ts",
     "./box": "./src/box.ts",
     "./canvas": "./src/canvas.ts",
+    "./crosshair": "./src/crosshair.ts",
+    "./cursor": "./src/cursor-public.ts",
+    "./cursor/host": "./src/cursor-host.ts",
     "./d3/area-x": "./src/d3-area-x.ts",
     "./d3/shape": "./src/d3-shape.ts",
     "./difference": "./src/difference.ts",
@@ -180,6 +183,18 @@
       "./canvas": {
         "types": "./dist/canvas.d.ts",
         "import": "./dist/canvas.js"
+      },
+      "./crosshair": {
+        "types": "./dist/crosshair.d.ts",
+        "import": "./dist/crosshair.js"
+      },
+      "./cursor": {
+        "types": "./dist/cursor-public.d.ts",
+        "import": "./dist/cursor-public.js"
+      },
+      "./cursor/host": {
+        "types": "./dist/cursor-host.d.ts",
+        "import": "./dist/cursor-host.js"
       },
       "./d3/area-x": {
         "types": "./dist/d3-area-x.d.ts",

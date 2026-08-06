@@ -19,6 +19,7 @@ import {
   initialEditableEventEnd,
 } from './scenario'
 import { scenePointToClient } from '../../shared/driver-geometry'
+import { tanstackCase } from '../../shared/mount'
 import type { ChartHost, ChartHostOptions, ChartScene } from '@tanstack/charts'
 import type { HandleXChange } from '@tanstack/charts/interaction/handle'
 import type { EditableEvent } from './scenario'
@@ -133,7 +134,10 @@ export function editableEventDefinition(
       behaviors: [
         handleX<Date, string>({
           id: handleId,
-          value: controlledSignal(input.end, onEndChange),
+          value: controlledSignal<Date, HandleXChange<Date>>(
+            input.end,
+            (next, { reason }) => onEndChange(next, reason),
+          ),
           values: editableEventEndValues,
           cross: { value: 'Engineering' },
           trackStyle: {
@@ -157,6 +161,15 @@ export function editableEventDefinition(
     }
   })
 }
+
+export const catalogCase = tanstackCase(
+  (input: ConformanceInput) =>
+    editableEventDefinition(
+      { ...input, end: initialEditableEventEnd },
+      () => {},
+    ),
+  editableAriaLabel(0, initialEditableEventEnd),
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

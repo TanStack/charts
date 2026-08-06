@@ -38,13 +38,13 @@ export function colorLegend(
   const labelOffset = options.label ? 13 : 0
   return {
     placement: options.placement,
-    height(itemCount, width, colors) {
-      if (colors && isQuantitativeLegend(colors.kind)) {
-        return gradient.height(itemCount, width, colors)
+    height(itemCount, context) {
+      if (isQuantitativeLegend(context.colors.kind)) {
+        return gradient.height(itemCount, context)
       }
       const layout = layoutCategoricalLegendItems(
         itemCount,
-        width,
+        context.chart.width,
         minimumItemWidth,
       )
       return 18 + labelOffset + layout.rows * 19

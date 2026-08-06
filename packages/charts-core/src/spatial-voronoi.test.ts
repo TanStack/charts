@@ -20,8 +20,10 @@ describe('spatial Voronoi mark', () => {
     const fill = vi.fn(
       (
         row: (typeof rows)[number],
-        _index: number,
-        _data: readonly (typeof rows)[number][],
+        _context: {
+          index: number
+          data: readonly (typeof rows)[number][]
+        },
       ) => (row.category === 'A' ? '#2563eb' : '#0d9488'),
     )
     const motion = { delay: 10 }
@@ -70,10 +72,10 @@ describe('spatial Voronoi mark', () => {
     expect(
       fill.mock.calls
         .slice(0, 3)
-        .map((call) => call[1])
+        .map((call) => call[1].index)
         .sort(),
     ).toEqual([0, 1, 2])
-    expect(fill.mock.calls.every((call) => call[2] === rows)).toBe(true)
+    expect(fill.mock.calls.every((call) => call[1].data === rows)).toBe(true)
     expect(rows).toEqual(before)
   })
 

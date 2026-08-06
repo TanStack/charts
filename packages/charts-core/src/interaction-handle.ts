@@ -166,10 +166,9 @@ export function handleX<
         format: options.format ?? defaultFormat,
         keyboard: options.keyboard !== false,
         change(next, reason) {
-          options.value.onChange(
-            cloneInteractionValue(next),
-            cloneChange(reason),
-          )
+          options.value.onChange(cloneInteractionValue(next), {
+            reason: cloneChange(reason),
+          })
         },
       }
       return {
@@ -582,7 +581,7 @@ function createHandleXControl({
 
   function valueFromClient(clientX: number, clientY: number) {
     if (!control || !scene) return undefined
-    const position = surface.clientToScene(scene, clientX, clientY)
+    const position = surface.clientToScene?.(scene, clientX, clientY)
     return position ? control.axis.valueAt(position.x) : undefined
   }
 

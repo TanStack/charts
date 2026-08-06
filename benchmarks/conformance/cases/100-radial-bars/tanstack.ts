@@ -3,7 +3,7 @@ import { polar, radialBarAngle } from '@tanstack/charts/polar'
 import { alphabet } from '@charts-poc/demo-data/alphabet'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { selectRadialBarData } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const innerRadiusRatio = 0.2
@@ -46,7 +46,9 @@ export const radialBarsDefinition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   radialBarsDefinition,
   'Concentric letter frequency bars',
 )
+
+export const mount = catalogCase.mount

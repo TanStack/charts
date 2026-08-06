@@ -325,15 +325,16 @@ function differenceChildren<TDatum, TIndependent extends DifferenceIndependent>(
   keys: readonly ChartKey[],
   sharedValid: readonly boolean[],
 ): ChartMark<any, any, any>[] {
-  const lineIndependent = (_datum: TDatum, index: number) =>
+  const lineIndependent = (_datum: TDatum, { index }: { index: number }) =>
     sharedValid[index] ? independentValues[index] : undefined
-  const comparisonValue = (_datum: TDatum, index: number) =>
+  const comparisonValue = (_datum: TDatum, { index }: { index: number }) =>
     sharedValid[index] ? comparisonValues[index] : undefined
-  const primaryValue = (_datum: TDatum, index: number) =>
+  const primaryValue = (_datum: TDatum, { index }: { index: number }) =>
     sharedValid[index] ? primaryValues[index] : undefined
-  const lineGroup = (_datum: TDatum, index: number) =>
+  const lineGroup = (_datum: TDatum, { index }: { index: number }) =>
     isChartKey(groupValues[index]) ? groupValues[index] : null
-  const lineKey = (_datum: TDatum, index: number) => keys[index] ?? index
+  const lineKey = (_datum: TDatum, { index }: { index: number }) =>
+    keys[index] ?? index
   const noColor = () => null
   const children: ChartMark<any, any, any>[] = []
 

@@ -83,7 +83,7 @@ export function lineY<TDatum>(
   const data = Array.isArray(source) ? source : Array.from(source)
 
   return createLineMark(data, options, 'line', () => {
-    const xValues = channelValues(data, options.x, (_datum, index) => index)
+    const xValues = channelValues(data, options.x, (_datum, { index }) => index)
     const yValues = channelValues(data, options.y, (datum) =>
       typeof datum === 'number' ? datum : undefined,
     )
@@ -119,7 +119,7 @@ export function lineX<TDatum>(
     const xValues = channelValues(data, options.x, (datum) =>
       typeof datum === 'number' ? datum : undefined,
     )
-    const yValues = channelValues(data, options.y, (_datum, index) => index)
+    const yValues = channelValues(data, options.y, (_datum, { index }) => index)
 
     return {
       xValues,

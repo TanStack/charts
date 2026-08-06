@@ -3,16 +3,15 @@ title: React Quick Start
 description: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
 ---
 
-Install the framework adapter, core grammar, React peers, and only the granular
-data and scale modules used by the chart:
+Install the framework adapter, core grammar, compact scales, and React peers:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/react-charts react react-dom d3-scale
-pnpm add -D @types/d3-scale @types/react @types/react-dom
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/react-charts react react-dom
+pnpm add -D @types/react @types/react-dom
 ```
 
-The shared [Scales and D3](../../concepts/scales-and-d3.md) page explains why
-scales and optional algorithms remain direct application dependencies.
+The shared [Scales](../../concepts/scales-and-d3.md) page explains the
+compact scale families and when a chart needs D3 instead.
 
 ## Define a chart
 
@@ -21,7 +20,8 @@ Definitions are ordinary framework-independent TypeScript:
 <!-- docs-example: react-quick-start typecheck -->
 
 ```tsx
-import { scaleBand, scaleLinear } from 'd3-scale'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { barY, defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'

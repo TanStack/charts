@@ -8,8 +8,8 @@ channel. Rect marks encode independent x and y intervals and are the general
 primitive for heatmaps, interval blocks, and cells.
 
 ```ts
-import { scaleBand } from 'd3-scale'
 import { barX, barY, cell, group, rect, stack } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
 ```
 
 ## `barY`
@@ -102,7 +102,7 @@ single-position fallback is capped at 48 pixels.
 
 For predictable categorical bars, use a configured band scale and set its
 padding. Scale setup and ownership are documented in
-[Scales and D3](../../concepts/scales-and-d3.md).
+[Scales](../../concepts/scales-and-d3.md).
 
 `inset` is applied after band or inferred layout and is clamped to at least
 zero. A sufficiently large inset produces a zero-width or zero-height bar
@@ -268,8 +268,10 @@ whenFocused(
 ```
 
 `BandXOptions` and `BandYOptions` provide the positional channel, `z`, `color`,
-`key`, `fill`, `fillOpacity`, `inset`, and `radius`. A negative inset expands
-the resolved band. The helpers are also available from
+`key`, `fill`, `fillOpacity`, `inset`, and `radius`. `bandX.width` and
+`bandY.height` can replace scale or inferred bandwidth with an explicit
+nonnegative scene-pixel size, which is useful for a one-pixel focus cursor. A
+negative inset expands the resolved band. The helpers are also available from
 `@tanstack/charts/band`.
 
 ## `rect`

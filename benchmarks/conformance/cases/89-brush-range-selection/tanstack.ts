@@ -8,6 +8,7 @@ import {
   clientPointBounds,
   scenePointToClient,
 } from '../../shared/driver-geometry'
+import { tanstackCase } from '../../shared/mount'
 import {
   brushDateFromAnchor,
   brushDateKey,
@@ -89,7 +90,10 @@ export function brushRangeDefinition(
     behaviors: [
       brushX({
         id: 'monthly-range',
-        range: controlledSignal(range, onChange),
+        range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
+          range,
+          (next, { reason }) => onChange(next, reason),
+        ),
         values: brushDates,
         ariaLabel:
           'Monthly range brush. Drag to select; focus either handle and use arrow keys, Home, or End to adjust.',
@@ -117,6 +121,11 @@ export function brushRangeDefinition(
     margin: { top: 52, right: 24, bottom: 44, left: 58 },
   })
 }
+
+export const catalogCase = tanstackCase(
+  () => brushRangeDefinition(initialBrushRange(brushDates), () => {}),
+  'Time series with a draggable horizontal range brush',
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

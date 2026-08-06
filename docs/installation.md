@@ -1,14 +1,14 @@
 ---
 title: Installation
-description: Install TanStack Charts, a framework adapter, and the granular D3 modules used by your charts.
+description: Install TanStack Charts, compact scales, a framework adapter, and optional D3 capabilities.
 ---
 
-TanStack Charts `0.6.4` publishes the framework-agnostic core and every adapter
-listed below. Install the core in each application that authors chart
-definitions:
+TanStack Charts `0.6.5` publishes the framework-agnostic core and every adapter
+listed below. Install the core and compact scales in each application that
+authors chart definitions:
 
 ```sh
-pnpm add @tanstack/charts
+pnpm add @tanstack/charts @tanstack/charts-scales
 ```
 
 Then add one adapter if the application needs it:
@@ -108,14 +108,14 @@ The React Native adapter is experimental and renders through
 version selected by Expo:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/react-native-charts d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/react-native-charts
 pnpm exec expo install react-native-svg
 ```
 
 Bare React Native 0.86 applications install the renderer directly:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/react-native-charts d3-scale react-native-svg@^15.15.4
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/react-native-charts react-native-svg@^15.15.4
 ```
 
 Run `bundle exec pod install` from `ios/` after adding it to a bare iOS
@@ -130,16 +130,40 @@ import { tooltip } from '@tanstack/react-native-charts/tooltip'
 
 Packed tarballs are typechecked and bundled through default bare React Native
 and Expo Metro configurations on iOS and Android. The workspace Expo 57
-fixture also renders in Expo Go on an iOS simulator. Bare-native and Android
-simulators, physical devices, gestures, visual parity, and screen readers are
-not currently supported.
+fixture also renders in Expo Go on an iOS simulator. Native responder and
+accessibility cursor behavior has component regression coverage. Bare-native
+and Android simulator runs, physical devices, visual parity, and screen-reader
+verification are not currently part of the release gate.
 
-## Install the D3 modules you import
+## Choose scale capabilities
 
-TanStack Charts accepts D3 scale factories, configured scale instances, and
-the output of D3 transforms directly. Your application must declare every
-`d3-*` module that its source imports. Strict package managers do not expose
-transitive dependencies as an application import contract.
+`@tanstack/charts-scales` covers the common numeric linear, band, point, and
+ordinal mappings. Import each family from its exact entry:
+
+```ts
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scalePoint } from '@tanstack/charts-scales/point'
+```
+
+The package has no root export. It includes TypeScript declarations and no D3
+runtime dependency.
+
+Use `d3-scale` when a chart needs time or UTC scales, logarithmic, power,
+symlog, square-root, radial, sequential, diverging, quantile, quantize, or
+threshold scales, piecewise or nonnumeric interpolation, or full D3 formatting
+semantics:
+
+```sh
+pnpm add d3-scale
+pnpm add -D @types/d3-scale
+```
+
+TanStack Charts accepts those D3 factories and configured instances through
+the same scale contract. Your application must declare every `d3-*` module
+that its source imports. Strict package managers do not expose transitive
+dependencies as an application import contract.
 
 The core package declares the `d3-array`, `d3-shape`, `d3-geo`, `d3-delaunay`,
 `d3-hexbin`, `d3-contour`, `d3-force`, `d3-sankey`, `d3-hierarchy`, `d3-brush`,
@@ -148,18 +172,12 @@ features, and optional spatial, network, hierarchy, and brush entries. They are
 normal dependencies, not peer requirements, and bundlers remove unused
 algorithms and geometry from application bundles.
 
-A typical cartesian chart uses:
+Add direct data transforms or shape interpolation only when application source
+imports them:
 
 ```sh
-pnpm add d3-array d3-scale
-pnpm add -D @types/d3-array @types/d3-scale
-```
-
-Add shape interpolation only when a chart imports it:
-
-```sh
-pnpm add d3-shape
-pnpm add -D @types/d3-shape
+pnpm add d3-array d3-shape
+pnpm add -D @types/d3-array @types/d3-shape
 ```
 
 Other capabilities remain equally granular:
@@ -170,43 +188,24 @@ pnpm add d3-geo d3-quadtree d3-delaunay d3-selection d3-zoom d3-brush d3-time d3
 pnpm add -D @types/d3-geo @types/d3-quadtree @types/d3-delaunay @types/d3-selection @types/d3-zoom @types/d3-brush @types/d3-time @types/d3-scale-chromatic
 ```
 
-Do not install the `d3` umbrella package just because a chart uses one D3 capability. Named modules keep ownership visible and make the measured consumer bundle reflect the chart that was actually authored. [Scales and D3](./concepts/scales-and-d3.md) is the single guide to this boundary and links to the corresponding official D3 documentation.
-
-For the common numeric and categorical subset, the smaller scale package is an
-alternative to `d3-scale`:
-
-```sh
-pnpm add @tanstack/charts-scales
-```
-
-```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-```
-
-Use its exact `/linear`, `/band`, `/point`, or `/ordinal` entry. The package
-has no root export. Install `d3-scale` instead when the chart needs temporal,
-logarithmic, piecewise, color-interpolating, or full D3 formatting semantics.
+Do not install the `d3` umbrella package just because a chart uses one D3 capability. Named modules keep ownership visible and make the measured consumer bundle reflect the chart that was actually authored. [Scales](./concepts/scales-and-d3.md) is the single guide to this boundary and links to the corresponding official D3 documentation.
 
 ## Package-manager examples
 
-The core plus a common scale-and-array setup:
+The core plus compact scales:
 
 ```sh
 # npm
-npm install @tanstack/charts d3-array d3-scale
-npm install --save-dev @types/d3-array @types/d3-scale
+npm install @tanstack/charts @tanstack/charts-scales
 
 # yarn
-yarn add @tanstack/charts d3-array d3-scale
-yarn add --dev @types/d3-array @types/d3-scale
+yarn add @tanstack/charts @tanstack/charts-scales
 
 # pnpm
-pnpm add @tanstack/charts d3-array d3-scale
-pnpm add -D @types/d3-array @types/d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales
 
 # bun
-bun add @tanstack/charts d3-array d3-scale
-bun add -D @types/d3-array @types/d3-scale
+bun add @tanstack/charts @tanstack/charts-scales
 ```
 
 Install exactly one adapter package and its required framework peers. A shared
@@ -276,12 +275,12 @@ Cartesian consumers.
 
 ## TypeScript
 
-TanStack Charts ships its own declarations. Install the matching `@types/d3-*` package for each D3 module your TypeScript source imports.
+TanStack Charts and the compact scales ship their own declarations. Install the matching `@types/d3-*` package for each D3 module your TypeScript source imports.
 
 Normal chart authoring should not require adapter generics or casts:
 
 ```ts
-import { scaleLinear } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { defineChart, lineY } from '@tanstack/charts'
 
 const values = [4, 9, 7]
@@ -313,7 +312,7 @@ Create a small scene without mounting it:
 <!-- docs-example: installation-check typecheck -->
 
 ```ts
-import { scaleLinear } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { createChartScene, defineChart, lineY } from '@tanstack/charts'
 
 const chart = defineChart({

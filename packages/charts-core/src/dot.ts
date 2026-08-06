@@ -121,7 +121,7 @@ export function dot<TDatum>(
       const xValues =
         layout?.axis === 'x'
           ? data.map(() => layout.anchor)
-          : channelValues(data, options.x, (_datum, index) => index)
+          : channelValues(data, options.x, (_datum, { index }) => index)
       const yValues =
         layout?.axis === 'y'
           ? data.map(() => layout.anchor)

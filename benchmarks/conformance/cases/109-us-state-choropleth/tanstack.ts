@@ -3,10 +3,14 @@ import { geoShape } from '@tanstack/charts/geo'
 import { geoAlbersUsa } from 'd3-geo'
 import { scaleQuantile } from 'd3-scale'
 import {
+  previewUnemploymentStateCollection,
+  previewUnemploymentStates,
   projectedUnemploymentCounties,
   unemploymentCountyCollection,
 } from './transform'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
+import type { UnemploymentCounty, UnemploymentState } from './transform'
+import type { ExtendedFeatureCollection } from 'd3-geo'
 import type { ConformanceInput } from '../../types'
 
 const colorRanges = [
@@ -54,11 +58,51 @@ export const usStateChoroplethDefinition = (input: ConformanceInput) =>
     margin: 10,
   })
 
+type CatalogUnemploymentFeature = UnemploymentCounty | UnemploymentState
+
+const catalogChoroplethDefinition = (input: ConformanceInput) => {
+  const features: readonly CatalogUnemploymentFeature[] =
+    input.preview === true
+      ? previewUnemploymentStates
+      : projectedUnemploymentCounties
+  const fit: ExtendedFeatureCollection<CatalogUnemploymentFeature> =
+    input.preview === true
+      ? previewUnemploymentStateCollection
+      : unemploymentCountyCollection
+
+  return defineChart({
+    marks: [
+      geoShape(features, {
+        projection: { type: geoAlbersUsa, fit },
+        color: (feature) => feature.properties.rate,
+        stroke: '#f8fafc',
+        strokeWidth: input.preview === true ? 0.75 : 0.35,
+      }),
+    ],
+    color: {
+      scale: scaleQuantile<number, string>,
+      range: colorRanges[input.revision % 2] ?? colorRanges[0],
+    },
+    margin: 10,
+  })
+}
+
 export const mount = tanstackMount(
   usStateChoroplethDefinition,
   'United States county unemployment choropleth',
   {
     format: ({ datum }) =>
       `${datum.properties.county}, ${datum.properties.state} · ${datum.properties.rate}% unemployment`,
+  },
+)
+
+export const catalogCase = tanstackCase(
+  catalogChoroplethDefinition,
+  mount.ariaLabel,
+  {
+    format: ({ datum }) =>
+      'county' in datum.properties
+        ? `${datum.properties.county}, ${datum.properties.state} · ${datum.properties.rate}% unemployment`
+        : `${datum.properties.state} · ${datum.properties.rate.toFixed(1)}% average county unemployment`,
   },
 )

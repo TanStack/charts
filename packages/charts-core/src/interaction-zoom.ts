@@ -143,7 +143,9 @@ export function zoomX<TValue extends ZoomXValue>(
         ariaDescription: options.ariaDescription,
         format: options.format ?? defaultFormat,
         change(value, reason) {
-          options.window.onChange(cloneWindow(value), cloneChange(reason))
+          options.window.onChange(cloneWindow(value), {
+            reason: cloneChange(reason),
+          })
         },
         activeChange: options.onActiveChange,
       }
@@ -351,7 +353,7 @@ function createZoomXControl({
     const vertical = Math.abs(event.deltaY) >= Math.abs(event.deltaX)
     const rawDelta = vertical ? event.deltaY : event.deltaX
     if (!rawDelta) return
-    const anchor = surface.clientToScene(scene, event.clientX, event.clientY)
+    const anchor = surface.clientToScene?.(scene, event.clientX, event.clientY)
     if (!anchor || !containsPoint(control.bounds, anchor.x, anchor.y)) return
 
     event.preventDefault()

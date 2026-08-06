@@ -120,17 +120,19 @@ function facet<TDatum, TChildSpec extends ChartSpec>(
 
 ### Options
 
-| Option     | Type                                                                  | Default                   | Meaning                                                        |
-| ---------- | --------------------------------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
-| `id`       | `string`                                                              | Layer-derived             | Stable outer mark ID                                           |
-| `by`       | `Channel<TDatum, ChartKey>`                                           | Required                  | String or number grouping key                                  |
-| `chart`    | `(data: readonly [TDatum, ...TDatum[]], key: ChartKey) => TChildSpec` | Required                  | Builds one static child spec from a nonempty group             |
-| `columns`  | `number`                                                              | Automatic                 | Requested column count, floored and clamped to `1..groupCount` |
-| `minWidth` | `number`                                                              | `220`                     | Target minimum cell width used for automatic columns           |
-| `gap`      | `number`                                                              | `16`                      | Gap between rows and columns, clamped to at least zero         |
-| `label`    | `boolean \| ((key) => string)`                                        | `true`                    | Shows default key labels, formats them, or disables labels     |
-| `axes`     | `'outer' \| 'cell'`                                                   | `'outer'` where shareable | Shared outside axes or independent axes in every cell          |
-| `motion`   | `ChartMotionDefinition<ChartSpecDatum<TChildSpec>>`                   | None                      | Motion policy over child-mark data                             |
+| Option     | Type                                                                               | Default                   | Meaning                                                        |
+| ---------- | ---------------------------------------------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
+| `id`       | `string`                                                                           | Layer-derived             | Stable outer mark ID                                           |
+| `by`       | `Channel<TDatum, ChartKey>`                                                        | Required                  | String or number grouping key                                  |
+| `chart`    | `(data: readonly [TDatum, ...TDatum[]], context: FacetChartContext) => TChildSpec` | Required                  | Builds one static child spec from a nonempty group             |
+| `columns`  | `number`                                                                           | Automatic                 | Requested column count, floored and clamped to `1..groupCount` |
+| `minWidth` | `number`                                                                           | `220`                     | Target minimum cell width used for automatic columns           |
+| `gap`      | `number`                                                                           | `16`                      | Gap between rows and columns, clamped to at least zero         |
+| `label`    | `boolean \| ((key) => string)`                                                     | `true`                    | Shows default key labels, formats them, or disables labels     |
+| `axes`     | `'outer' \| 'cell'`                                                                | `'outer'` where shareable | Shared outside axes or independent axes in every cell          |
+| `motion`   | `ChartMotionDefinition<ChartSpecDatum<TChildSpec>>`                                | None                      | Motion policy over child-mark data                             |
+
+`FacetChartContext.key` is the materialized value for the current group.
 
 Facet preserves first-seen group order and original row order within each
 group. Non-string and non-number `by` results are skipped.

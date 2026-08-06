@@ -4,7 +4,7 @@ description: Render TanStack Charts with a light-DOM Lit custom element.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/lit-charts lit d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/lit-charts lit
 ```
 
 Register the element once:

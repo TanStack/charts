@@ -58,10 +58,11 @@ The default Node target renders the complete `.ts-chart-host`,
 `.ts-chart-surface`, and accessible SVG at `initialWidth`. The browser target
 hydrates the same structure before mounting the host.
 
-The Canvas entry renders a deterministic named root and three `aria-hidden`
-canvases on the server. It paints no server pixels. The browser adopts the
-elements, paints after mount, and attaches the same focus, keyboard, tooltip,
-and selection host.
+The Canvas entry renders a deterministic named root and five `aria-hidden`
+canvases on the server: one hidden stable base bitmap and four live paint
+layers. It paints no server pixels. The browser adopts the elements, paints
+after mount, and attaches the same focus, keyboard, tooltip, and selection
+host.
 
 Keep data, definitions, scale domains, custom renderers, and dimensions
 deterministic between server and browser. The adapter generates a sanitized
@@ -70,8 +71,9 @@ resource prefix from Octane's `useId()` when `idPrefix` is absent.
 `tabIndex` defaults to `0` on both targets. `keyboard: false` forces it to
 `-1`.
 
-Pass `renderChartSvgWithResources` on both targets for gradients and clipping;
-see [Rendering and export](../../reference/rendering-and-export.md#resource-aware-svg).
+The default SVG renderer emits gradients and clipping on both targets. Custom
+serializers must preserve the same resources; see
+[Rendering and export](../../reference/rendering-and-export.md#svg-resources).
 
 ## Sizing and layout
 
@@ -148,6 +150,6 @@ Octane owns the returned component lifecycle.
 ## Core boundary
 
 The adapter does not redefine chart grammar or data algorithms. Read
-[Scales and D3](../../concepts/scales-and-d3.md) for injected primitives and
+[Scales](../../concepts/scales-and-d3.md) for injected primitives and
 the [core API reference](../../reference/index.md) for marks, interaction,
 renderers, and extension contracts.

@@ -166,7 +166,9 @@ export function brushX<TValue extends ChartValue>(
         selectionStyle,
         handleStyle,
         change(value, reason) {
-          options.range.onChange(cloneRange(value), cloneChange(reason))
+          options.range.onChange(cloneRange(value), {
+            reason: cloneChange(reason),
+          })
         },
       }
       return {
@@ -481,7 +483,7 @@ function createBrushXControl({
     if (!control || !scene) return null
     const client = clientPosition(source)
     if (!client) return null
-    return surface.clientToScene(scene, client.x, client.y)?.x ?? null
+    return surface.clientToScene?.(scene, client.x, client.y)?.x ?? null
   }
 
   function moveTo(range: BrushRange<ChartValue>) {

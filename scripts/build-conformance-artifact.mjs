@@ -1,7 +1,5 @@
-import { execFile } from 'node:child_process'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-import { promisify } from 'node:util'
 import { fileURLToPath } from 'node:url'
 import { parseConformanceCaseMeta } from '../benchmarks/conformance/metadata.ts'
 import { chartEmbedContract } from '../examples/conformance/src/embed-contract.ts'
@@ -12,9 +10,9 @@ import {
   validateCaseEntries,
   validateCatalogArtifactManifest,
 } from './catalog-artifact.mjs'
+import { catalogSourceRevision } from './catalog-source-revision.mjs'
 import { createCatalogSourceModules } from './catalog-source-files.mjs'
 
-const execFileAsync = promisify(execFile)
 const rootDirectory = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -48,7 +46,7 @@ const viteManifest = JSON.parse(
     'utf8',
   ),
 )
-const revision = await readRevision()
+const revision = await catalogSourceRevision(rootDirectory)
 const sourceModules = await createCatalogSourceModules(
   path.join(rootDirectory, 'benchmarks', 'conformance'),
 )
@@ -116,17 +114,6 @@ async function readCases() {
       }
     }),
   )
-}
-
-async function readRevision() {
-  const configured =
-    process.env.CATALOG_SOURCE_REVISION ?? process.env.GITHUB_SHA
-  if (configured) return configured.trim().toLowerCase()
-
-  const { stdout } = await execFileAsync('git', ['rev-parse', 'HEAD'], {
-    cwd: rootDirectory,
-  })
-  return stdout.trim().toLowerCase()
 }
 
 function assertSafeArtifactDirectory(directory) {

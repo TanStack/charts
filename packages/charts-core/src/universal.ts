@@ -4,6 +4,15 @@ export { arrow } from './arrow'
 export { barX, barY } from './bar'
 export { bandX, bandY } from './band'
 export { boxX, boxY } from './box'
+export { crosshair } from './crosshair'
+export type {
+  CrosshairAxisOptions,
+  CrosshairBandOptions,
+  CrosshairLabelOptions,
+  CrosshairMarkerOptions,
+  CrosshairOptions,
+  CrosshairRuleOptions,
+} from './crosshair'
 export { d3AreaXCurve } from './d3-area-x'
 export { d3Curve } from './d3-shape'
 export { differenceX, differenceY } from './difference'
@@ -14,6 +23,7 @@ export { frame } from './frame'
 export { whenFocused } from './focus-mark'
 export { focusedSceneNodes, resolveFocusScene } from './focus-layer'
 export type { ResolvedFocusScene } from './focus-layer'
+export { resolveFocusPresentation } from './focus-presentation'
 export { group } from './group'
 export { hexagon } from './hexagon'
 export { lineX, lineY } from './line'
@@ -30,6 +40,7 @@ export {
   defaultChartTheme,
   defineChart,
   findNearestPoint,
+  viewportInteractionPoints,
 } from './scene'
 export { renderChartSvg } from './svg'
 export { stack } from './stack'

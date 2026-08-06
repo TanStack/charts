@@ -1,11 +1,11 @@
-import { defineChart, dot, lineY } from '@tanstack/charts'
+import { crosshair, defineChart, dot, lineY } from '@tanstack/charts'
 import { focusX } from '@tanstack/charts/focus'
-import { focusGuideX } from '@tanstack/charts/focus/guide'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { readChartMotionState } from '../../shared/motion'
 import { focusMotionPeriods, focusMotionRows, focusMotionSeries } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type {
   ChartPoint,
   ChartRendererHost,
@@ -25,14 +25,6 @@ const focusSpring = {
   damping: 22,
   mass: 0.72,
 }
-const guideSpring = {
-  type: 'spring' as const,
-  stiffness: 320,
-  damping: 28,
-  mass: 0.72,
-  restDelta: 0.02,
-  restSpeed: 0.02,
-}
 const renderer = motion<FocusMotionRow, string, number>({ initial: false })
 
 export const mount: ConformanceMount = (container, input) => {
@@ -51,7 +43,7 @@ export const mount: ConformanceMount = (container, input) => {
     height: '100%',
   })
   surface.append(chartRoot)
-  const status = createStatus(surface)
+  const status = createFocusStatus(surface)
   container.append(surface)
 
   const options = () => ({
@@ -67,6 +59,9 @@ export const mount: ConformanceMount = (container, input) => {
     ) {
       focused = points
       paintStatus(status, points)
+    },
+    onRender(context: { scene: ChartScene<FocusMotionRow, string, number> }) {
+      scene = context.scene
     },
   })
 
@@ -95,20 +90,20 @@ export const mount: ConformanceMount = (container, input) => {
     },
     readState() {
       const primary = focused[0]
-      const guide = surface.querySelector<SVGGElement>(
-        '[data-ts-focus-retarget="true"]',
+      const layer = surface.querySelector<SVGGElement>(
+        '[data-ts-focus-guide-layer="over"]',
       )
-      const xRule = guide?.querySelector<SVGLineElement>(
-        '.ts-chart__focus-guide-x-rule',
+      const xRule = layer?.querySelector<SVGLineElement>(
+        '[data-ts-key="focus-motion-crosshair:x-rule"]',
       )
-      const marker = guide?.querySelector<SVGCircleElement>(
-        '.ts-chart__focus-guide-marker',
+      const marker = layer?.querySelector<SVGCircleElement>(
+        '[data-ts-key="focus-motion-crosshair:marker"]',
       )
-      const xLabel = guide?.querySelector<SVGTextElement>(
-        '.ts-chart__focus-guide-x-label-text',
+      const xLabel = layer?.querySelector<SVGTextElement>(
+        '[data-ts-key="focus-motion-crosshair:x-label:text"]',
       )
-      const yLabel = guide?.querySelector<SVGTextElement>(
-        '.ts-chart__focus-guide-y-label-text',
+      const yLabel = layer?.querySelector<SVGTextElement>(
+        '[data-ts-key="focus-motion-crosshair:y-label:text"]',
       )
       const crosshairX = Number(xRule?.getAttribute('x1'))
       const crosshairY = Number(marker?.getAttribute('cy'))
@@ -116,8 +111,7 @@ export const mount: ConformanceMount = (container, input) => {
         focused: primary?.datum.id ?? null,
         groupSize: focused.length,
         crosshairVisible:
-          Boolean(xRule && marker) &&
-          guide?.getAttribute('visibility') !== 'hidden',
+          layer?.getAttribute('visibility') !== 'hidden' && Boolean(xRule),
         crosshairX,
         crosshairY,
         crosshairXLabel: xLabel?.textContent ?? '',
@@ -143,6 +137,7 @@ export const mount: ConformanceMount = (container, input) => {
       scene = host?.getScene()
     },
     destroy() {
+      status.remove()
       host?.destroy()
       surface.remove()
     },
@@ -202,21 +197,46 @@ export function focusCursorMotionDefinition() {
           },
         ],
       }),
-      focusGuideX(focusMotionRows, {
-        id: 'focus-guide',
-        x: 'period',
-        y: 'value',
-        z: 'series',
-        key: 'id',
-        xRule: {},
-        yRule: {},
-        marker: {},
-        xLabel: { format: (period) => period },
-        yLabel: {
-          side: 'start',
-          format: (value) => String(value),
+      crosshair<string, number>({
+        id: 'focus-motion-crosshair',
+        stroke: 'CanvasText',
+        strokeOpacity: 0.48,
+        strokeWidth: 1,
+        strokeDasharray: '4 4',
+        x: {
+          label: {
+            format: (value) => String(value),
+            offset: 8,
+            fill: 'CanvasText',
+            fontSize: 10,
+            fontWeight: 700,
+          },
         },
-        motion: { transition: guideSpring },
+        y: {
+          label: {
+            format: (value) => String(value),
+            offset: 22,
+            fill: 'CanvasText',
+            fontSize: 10,
+            fontWeight: 700,
+          },
+        },
+        marker: {
+          radius: 5,
+          fill: 'Canvas',
+          stroke: 'CanvasText',
+          strokeWidth: 1.5,
+        },
+        motion: {
+          transition: {
+            type: 'spring',
+            stiffness: 320,
+            damping: 28,
+            mass: 0.72,
+            restDelta: 0.02,
+            restSpeed: 0.02,
+          },
+        },
       }),
     ],
     x: {
@@ -233,7 +253,12 @@ export function focusCursorMotionDefinition() {
   })
 }
 
-function createStatus(surface: HTMLElement) {
+export const catalogCase = tanstackCase(
+  focusCursorMotionDefinition,
+  'Grouped line chart with animated focus and crosshair',
+)
+
+function createFocusStatus(surface: HTMLElement) {
   const status = surface.ownerDocument.createElement('output')
   status.setAttribute('aria-live', 'polite')
   status.textContent = 'Hover or use ← →'

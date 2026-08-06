@@ -133,9 +133,9 @@ export function focusContextOverviewDefinition(
       behaviors: [
         brushX({
           id: 'focus-window',
-          range: controlledSignal(
+          range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
             { start: window.start, end: window.end },
-            onChange,
+            (next, { reason }) => onChange(next, reason),
           ),
           values: focusContextDates,
           ariaLabel: 'Selected time window',
@@ -160,7 +160,7 @@ export function focusContextOverviewDefinition(
 const FocusContextExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function FocusContextExample({ input }, ref) {
+>(function FocusContextExample({ input, idPrefix }, ref) {
   const detailSurfaceRef = useRef<HTMLDivElement>(null)
   const overviewSurfaceRef = useRef<HTMLDivElement>(null)
   const overviewSceneRef = useRef<ChartScene<AaplRow> | null>(null)
@@ -251,6 +251,18 @@ const FocusContextExample = forwardRef<
     [],
   )
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix ? `${idPrefix}-detail` : undefined}
+        definition={detailDefinition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Detail time window"
+      />
+    )
+  }
+
   return (
     <div
       style={{
@@ -263,6 +275,7 @@ const FocusContextExample = forwardRef<
     >
       <div ref={detailSurfaceRef} data-conformance-view="detail">
         <Chart
+          idPrefix={idPrefix ? `${idPrefix}-detail` : undefined}
           definition={detailDefinition}
           width={input.width}
           height={heights.detail}
@@ -275,6 +288,7 @@ const FocusContextExample = forwardRef<
         style={{ position: 'relative' }}
       >
         <Chart
+          idPrefix={idPrefix ? `${idPrefix}-overview` : undefined}
           definition={overviewDefinition}
           width={input.width}
           height={heights.overview}
@@ -319,6 +333,7 @@ const FocusContextExample = forwardRef<
   )
 })
 
+export const catalogComponent = FocusContextExample
 export const mount = reactMount(FocusContextExample)
 
 function viewHeights(height: number) {

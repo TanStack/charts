@@ -9,7 +9,8 @@ import {
 } from '@tanstack/charts'
 import { viewGrid } from '@tanstack/charts/view'
 import { scaleLinear } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
 import type { ConformanceInput } from '../../types'
 
@@ -25,12 +26,18 @@ export const massBoundaries = [
 
 const colors = ['#2563eb', '#ea580c', '#059669']
 
-export const scatterMarginalDefinition = (input: ConformanceInput) => {
-  const rows = penguins
+function scatterRows(input: ConformanceInput) {
+  return penguins
     .filter((row): row is CompletePenguin => {
       return row.flipper_length_mm !== null && row.body_mass_g !== null
     })
     .slice(input.revision * 8, input.revision * 8 + 320)
+}
+
+function scatterMarginalChart(
+  rows: readonly CompletePenguin[],
+  scatter: readonly CompletePenguin[],
+) {
   const xBins = binX(rows, {
     value: 'flipper_length_mm',
     thresholds: flipperBoundaries,
@@ -68,11 +75,21 @@ export const scatterMarginalDefinition = (input: ConformanceInput) => {
         column: 'main',
         chart: defineChart({
           marks: [
-            dot(rows, {
+            dot(scatter, {
               id: 'penguins',
               x: 'flipper_length_mm',
               y: 'body_mass_g',
               color: 'species',
+              key: (row) =>
+                JSON.stringify([
+                  row.species,
+                  row.island,
+                  row.culmen_length_mm,
+                  row.culmen_depth_mm,
+                  row.flipper_length_mm,
+                  row.body_mass_g,
+                  row.sex,
+                ]),
               r: 3,
               fillOpacity: 0.78,
             }),
@@ -147,6 +164,22 @@ export const scatterMarginalDefinition = (input: ConformanceInput) => {
   })
 }
 
+export const scatterMarginalDefinition = (input: ConformanceInput) => {
+  const rows = scatterRows(input)
+  return scatterMarginalChart(rows, rows)
+}
+
+const catalogScatterMarginalDefinition = (input: ConformanceInput) => {
+  const rows = scatterRows(input)
+  return scatterMarginalChart(
+    rows,
+    samplePreviewData(rows, input, 80, [
+      (row) => row.flipper_length_mm,
+      (row) => row.body_mass_g,
+    ]),
+  )
+}
+
 export const mount = tanstackMount(
   scatterMarginalDefinition,
   'Scatterplot with marginal histograms',
@@ -162,4 +195,10 @@ export const mount = tanstackMount(
       return `${datum.species} · ${datum.flipper_length_mm} mm · ${datum.body_mass_g} g`
     },
   },
+)
+
+export const catalogCase = tanstackCase(
+  catalogScatterMarginalDefinition,
+  mount.ariaLabel,
+  mount.interactiveTooltip,
 )

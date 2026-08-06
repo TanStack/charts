@@ -1,5 +1,8 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { controlledSignal } from './interaction-signal'
+import {
+  controlledSignal,
+  type ControlledSignalChangeContext,
+} from './interaction-signal'
 
 describe('controlledSignal', () => {
   it('retains the exact application snapshot and delegates changes', () => {
@@ -8,8 +11,10 @@ describe('controlledSignal', () => {
     const signal = controlledSignal(value, onChange)
 
     expect(signal.value).toBe(value)
-    signal.onChange(['Manufacturing'], { type: 'test' })
-    expect(onChange).toHaveBeenCalledWith(['Manufacturing'], { type: 'test' })
+    signal.onChange(['Manufacturing'], { reason: { type: 'test' } })
+    expect(onChange).toHaveBeenCalledWith(['Manufacturing'], {
+      reason: { type: 'test' },
+    })
     expect(signal.value).toBe(value)
   })
 
@@ -22,6 +27,8 @@ describe('controlledSignal', () => {
     )
 
     expectTypeOf(signal.value).toEqualTypeOf<readonly Series[]>()
-    expectTypeOf(signal.onChange).parameter(1).toEqualTypeOf<Reason>()
+    expectTypeOf(signal.onChange)
+      .parameter(1)
+      .toEqualTypeOf<ControlledSignalChangeContext<Reason>>()
   })
 })

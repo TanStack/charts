@@ -1,14 +1,15 @@
 import { areaY, defineChart, deviation, lineY, window } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
-import { tanstackMount } from '../../shared/mount'
-import type { ConformanceInput, ConformanceMount } from '../../types'
+import { tanstackCase } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
+import type { ConformanceInput } from '../../types'
 import { selectBollingerData } from './selection'
 
 const windowSize = 20
 const deviationMultiplier = 2
 
-export const bollingerDefinition = (input: ConformanceInput) => {
+function bollingerRows(input: ConformanceInput) {
   const rows = window(selectBollingerData(aapl, input.revision), {
     size: windowSize,
     orderBy: 'Date',
@@ -19,7 +20,12 @@ export const bollingerDefinition = (input: ConformanceInput) => {
       closeDeviation: { value: 'Close', reduce: deviation },
     },
   })
+  return rows
+}
 
+function bollingerChart(
+  rows: readonly ReturnType<typeof bollingerRows>[number][],
+) {
   return defineChart({
     marks: [
       areaY(rows, {
@@ -43,7 +49,23 @@ export const bollingerDefinition = (input: ConformanceInput) => {
   })
 }
 
-export const mount: ConformanceMount = tanstackMount(
-  bollingerDefinition,
+export const bollingerDefinition = (input: ConformanceInput) =>
+  bollingerChart(bollingerRows(input))
+
+const catalogBollingerDefinition = (input: ConformanceInput) => {
+  const rows = bollingerRows(input)
+  return bollingerChart(
+    samplePreviewData(rows, input, 80, [
+      (row) => row.Date.getTime(),
+      (row) => row.meanClose - row.closeDeviation * deviationMultiplier,
+      (row) => row.meanClose + row.closeDeviation * deviationMultiplier,
+    ]),
+  )
+}
+
+export const catalogCase = tanstackCase(
+  catalogBollingerDefinition,
   'Twenty-day Apple Bollinger band',
 )
+
+export const mount = catalogCase.mount

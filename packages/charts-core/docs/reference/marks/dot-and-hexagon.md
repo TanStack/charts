@@ -8,7 +8,6 @@ radius does not change when a positional scale zooms or a chart resizes unless
 the application changes `r` or `rScale`.
 
 ```ts
-import { scaleSqrt } from 'd3-scale'
 import { dot, hexagon } from '@tanstack/charts'
 ```
 
@@ -128,6 +127,8 @@ Pass a numeric scale factory to infer `[0, maximum]` from the radius channel.
 Configure its semantic pixel range inside the factory:
 
 ```ts
+import { scaleSqrt } from 'd3-scale'
+
 const rScale = {
   scale: () => scaleSqrt().range([2, 18]),
 }
@@ -135,7 +136,7 @@ const rScale = {
 
 An ordinary numeric mapper or configured scale instance remains valid when
 the application owns the complete mapping. The shared integration boundary is documented in
-[Scales and D3](../../concepts/scales-and-d3.md).
+[Scales](../../concepts/scales-and-d3.md).
 
 Radius does not contribute to x/y guide margins. Add an explicit partial
 margin when large edge symbols must remain fully inside the SVG viewport.

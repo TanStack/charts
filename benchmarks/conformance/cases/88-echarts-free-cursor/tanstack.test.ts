@@ -178,7 +178,8 @@ describe('definition-owned free cursor', () => {
       expect(source).not.toContain(forbidden)
     }
     expect(source).toContain('continuousCursor({')
-    expect(source).toContain('controlledSignal(position, onChange)')
+    expect(source).toContain('controlledSignal<')
+    expect(source).toContain('(next, { reason }) => onChange(next, reason)')
     expect(source).toContain('decorative(')
   })
 })

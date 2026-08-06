@@ -3,16 +3,20 @@ title: Scales, Guides, and Color
 description: Reference for injected positional scales, automatic axes and margins, color scales, legends, themes, and gradients.
 ---
 
-Pass a D3 scale factory when its domain should come from mark channels. Pass a
-scale instance when the domain is fixed application state. TanStack Charts
-copies the resolved scale, assigns its responsive pixel range, and uses that
-copy for marks, ticks, and interaction. A supplied instance is never mutated.
+Pass a compatible scale factory when its domain should come from mark channels.
+Pass a scale instance when the domain is fixed application state. TanStack
+Charts copies the resolved scale, assigns its responsive pixel range, and uses
+that copy for marks, ticks, and interaction. A supplied instance is never
+mutated.
 
-For the architectural boundary and guidance on selecting granular D3 modules,
-read [Scales and D3](../concepts/scales-and-d3.md). This page documents only
-the TanStack Charts contract around those primitives.
+Start with the exact compact scale entry for numeric linear, band, point, or
+ordinal mappings. Upgrade one mapping to D3 only when it needs temporal,
+nonlinear, radial, interpolated, or statistical scale semantics. The
+[Scales](../concepts/scales-and-d3.md) guide owns that decision and direct
+dependency guidance. This page documents the TanStack Charts contract around
+both implementations.
 
-## Compact scale package
+## Default compact scale package
 
 `@tanstack/charts-scales` supplies four exact, tree-shakeable entries:
 
@@ -38,10 +42,10 @@ const y = {
 }
 ```
 
-These factories satisfy `ConfiguredScaleLike` and `ChartScaleInput` directly.
-They are a documented subset, not a complete `d3-scale` compatibility claim.
-Use D3 for temporal or transformed domains, piecewise and nonnumeric
-interpolation, and full formatting semantics.
+The factories and returned instances satisfy `ChartScaleInput` directly. They
+are a documented subset, not a complete `d3-scale` compatibility claim. Use D3
+for temporal or transformed domains, piecewise and nonnumeric interpolation,
+and full D3 formatting semantics.
 
 `ConfiguredScaleLike` may expose `invert(position)`. Charts copies that
 capability onto `ResolvedScale.invert` after assigning the responsive range.
@@ -50,15 +54,15 @@ copying the authored scale. Band scales do not expose inversion.
 
 ## Positional scale factories
 
-The common path passes the D3 factory directly:
+The common path passes a compact factory directly:
 
 ```ts
-import { scaleLinear, scaleUtc } from 'd3-scale'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 const x = {
-  scale: scaleUtc,
-  nice: true,
-  axis: { label: 'Date' },
+  scale: () => scaleBand<string>().padding(0.16),
+  axis: { label: 'Product' },
 }
 
 const y = {
@@ -72,12 +76,14 @@ const y = {
 The chart creates a fresh scale for each layout, derives its domain from every
 materialized channel bound to that axis, applies `nice`, and assigns the
 responsive range. Bar and area baselines contribute zero when their baseline
-is implicit. Empty channels retain the D3 factory's native domain.
+is implicit. Empty channels retain the factory's native domain.
 
 Return a configured scale from a zero-argument factory for options that should
 be applied before domain inference:
 
 ```ts
+import { scaleBand } from '@tanstack/charts-scales/band'
+
 const x = {
   scale: () => scaleBand<string>().padding(0.2),
 }
@@ -85,11 +91,37 @@ const x = {
 
 `nice` is an axis option because it must run after the inferred domain exists.
 
+## D3 scale upgrades
+
+Compact and D3 scales can coexist in one chart. This definition upgrades only
+its temporal x mapping:
+
+```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleUtc } from 'd3-scale'
+
+const x = { scale: scaleUtc, nice: true }
+const y = { scale: scaleLinear, nice: true }
+```
+
+Use `scaleTime` or `scaleUtc` when dates need elapsed-time spacing or
+calendar-aware ticks. Compact band and point scales accept `Date` categories,
+but adjacent categories remain equally spaced regardless of the time between
+them.
+
+Other D3-only scale families cover logarithmic, power, symlog, square-root,
+radial, sequential, diverging, quantile, quantize, and threshold mappings. D3
+linear scales add piecewise domains and ranges, nonnumeric interpolation, and
+custom interpolators. The factory-versus-instance and responsive-range rules
+remain unchanged after an upgrade.
+
 ## Fixed domains
 
 Pass a scale instance when the domain is semantic application state:
 
 ```ts
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
 const y = {
   scale: scaleLinear().domain([0, 100]),
 }
@@ -97,7 +129,7 @@ const y = {
 
 Instances retain:
 
-- its semantic domain
+- their semantic domain
 - continuous, temporal, logarithmic, ordinal, or band mapping behavior
 - tick generation and default tick formatting
 - clamping, unknown values, interpolation, and padding configured by the caller
@@ -116,9 +148,10 @@ Scale copies make one configured scale safe to reuse across responsive scenes.
 
 ```ts
 interface ChartAxisOptions<TValue extends ChartValue> {
-  scale: ChartScale | ConfiguredScaleLike<TValue> | ChartScaleFactory<TValue>
+  scale: ChartScale | ChartScaleInput<TValue>
   nice?: boolean | number
   reverse?: boolean
+  viewport?: ChartAxisViewportOptions<Extract<TValue, ChartContinuousValue>>
   grid?: boolean
   axis?:
     | false
@@ -183,13 +216,46 @@ interface ChartAxisOptions<TValue extends ChartValue> {
 }
 ```
 
-| Option    | Default                     | Meaning                                                                  |
-| --------- | --------------------------- | ------------------------------------------------------------------------ |
-| `scale`   | Required                    | D3 factory, configured instance, or advanced `ChartScale`.               |
-| `nice`    | `false`                     | Nice the resolved domain using the responsive or supplied tick count.    |
-| `reverse` | `false`                     | Reverses the responsive pixel range without changing the caller's scale. |
-| `grid`    | `false` for x; `true` for y | Draws grid rules from semantic tick candidates.                          |
-| `axis`    | Inferred axis               | Axis line, tick candidates, labels, and title; `false` hides the axis.   |
+| Option     | Default                     | Meaning                                                                  |
+| ---------- | --------------------------- | ------------------------------------------------------------------------ |
+| `scale`    | Required                    | Compact or D3 factory, configured instance, or custom `ChartScale`.      |
+| `nice`     | `false`                     | Nice the resolved domain using the responsive or supplied tick count.    |
+| `reverse`  | `false`                     | Reverses the responsive pixel range without changing the caller's scale. |
+| `viewport` | None                        | Commits a continuous semantic window and optional transient translation. |
+| `grid`     | `false` for x; `true` for y | Draws grid rules from semantic tick candidates.                          |
+| `axis`     | Inferred axis               | Axis line, tick candidates, labels, and title; `false` hides the axis.   |
+
+```ts
+type ChartContinuousValue = number | Date
+
+type ChartContinuousDomain<
+  TValue extends ChartContinuousValue = ChartContinuousValue,
+> =
+  | (Extract<TValue, number> extends never ? never : readonly [number, number])
+  | (Extract<TValue, Date> extends never ? never : readonly [Date, Date])
+
+interface ChartAxisViewportOptions<
+  TValue extends ChartContinuousValue = ChartContinuousValue,
+> {
+  domain: ChartContinuousDomain<TValue>
+  translate?: number
+}
+```
+
+`ChartContinuousDomain` keeps numeric and temporal endpoints homogeneous at
+the type boundary. At runtime, a viewport requires two distinct finite values
+and a configured or inferable continuous scale with `invert`, ticks, clamping
+disabled, and independently configurable domain and range behavior. Band,
+ordinal, quantize, clamped, and getter-only scale inputs are rejected. An
+authored `axis.viewport` is also rejected for a custom `ChartScale`.
+Logarithmic content and viewport domains must be finite, nonzero, and stay on
+the same side of zero.
+
+`translate` is applied in screen-direction scene pixels after semantic
+mapping: positive x moves right and positive y moves down, regardless of
+domain order or `reverse`. Guides remain fixed. Viewport-dependent marks are
+clipped and translated per mark and per owned axis; see
+[Continuous viewports](../concepts/layout-axes-and-coordinates.md#continuous-viewports).
 
 Set an axis to `null` only when no mark uses that positional scale. To keep the
 scale while hiding its axis, use `axis: false`. Grid visibility remains
@@ -209,6 +275,8 @@ Tick labels are horizontal and collision-thinned by default. Rotation is
 explicit and independent:
 
 ```ts
+import { scaleUtc } from 'd3-scale'
+
 const x = {
   scale: scaleUtc,
   axis: {
@@ -301,10 +369,11 @@ The returned `x` and `y` locate the painted glyph box relative to the requested
 anchor and baseline. Pass the measurer through a host, adapter, runtime render,
 or `createChartScene` layout options.
 
-## Advanced custom scales
+## Custom scales
 
-`ChartScale` is the unchecked extension boundary for a nonstandard positional
-mapping:
+`ChartScale` is the final extension boundary for a nonstandard positional
+mapping. Prefer a compact scale, then a D3 scale with the required semantics,
+before implementing this contract:
 
 ```ts
 interface ChartScale {
@@ -328,12 +397,24 @@ interface ResolvedScale {
   invert?(position: number): ChartValue
   ticks: readonly { value: ChartValue; label: string; position: number }[]
   bandwidth: number
+  viewport?: {
+    contentDomain: readonly ChartValue[]
+    domain: ChartContinuousDomain
+    translate: number
+    map(value: unknown): number
+  }
 }
 ```
 
-Prefer a configured scale when it can express the mapping. A custom scale owns
-correct domains, finite mapping, ticks, formatting, bandwidth, and response to
-the supplied range.
+Prefer a compact or D3 scale when it can express the mapping. A custom scale
+owns correct domains, finite mapping, ticks, formatting, bandwidth, and
+response to the supplied range. Do not wrap an existing compact or D3 scale in
+`ChartScale`.
+
+The host cannot apply an authored `axis.viewport` to an opaque custom
+`ChartScale`. A custom resolver can return a complete
+`ResolvedScale.viewport` itself, in which case it owns the content domain,
+committed domain, translation, and presented mapper.
 
 ## Color
 
@@ -341,6 +422,21 @@ Data-paint marks accept a semantic `color` channel. On marks that also expose
 `z`, grouping remains independent and supplies the color value only when
 `color` is omitted. `fill` and `stroke` are final paint overrides, so they do
 not contribute to the scale or legend.
+
+Omit `color.scale` to use the theme palette. Use the compact ordinal scale when
+categories need a stable application-owned mapping:
+
+```ts
+import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+
+const statusColor = scaleOrdinal(
+  ['healthy', 'warning', 'critical'],
+  ['#16a34a', '#f59e0b', '#dc2626'],
+)
+```
+
+Upgrade color to D3 for continuous interpolation or quantile, quantize, and
+threshold policy.
 
 ```ts
 interface ConfiguredColorScaleLike<TValue extends ChartKey, TOutput> {
@@ -360,14 +456,14 @@ interface ChartColorOptions {
 }
 ```
 
-| Option   | Default                 | Meaning                                                              |
-| -------- | ----------------------- | -------------------------------------------------------------------- |
-| `scale`  | None                    | D3 factory with inference or configured instance with a fixed domain |
-| `type`   | None                    | Custom color-scale resolver                                          |
-| `domain` | Observed channel values | Domain hint for factory, built-in, or custom resolution              |
-| `range`  | See below               | Range for a factory, the built-in scale, or a custom resolver        |
-| `nice`   | `false`                 | Nice a factory or configured continuous color scale                  |
-| `legend` | None                    | Legend layout and scene renderer above or below the inner chart      |
+| Option   | Default                 | Meaning                                                           |
+| -------- | ----------------------- | ----------------------------------------------------------------- |
+| `scale`  | None                    | Compatible factory with inference or instance with a fixed domain |
+| `type`   | None                    | Custom color-scale resolver                                       |
+| `domain` | Observed channel values | Domain hint for factory, built-in, or custom resolution           |
+| `range`  | See below               | Range for a factory, the built-in scale, or a custom resolver     |
+| `nice`   | `false`                 | Nice a factory or configured continuous color scale               |
+| `legend` | None                    | Legend layout and scene renderer shown above the inner chart      |
 
 Resolution order:
 
@@ -376,7 +472,7 @@ Resolution order:
 3. the built-in ordinal scale using `domain` or observed channel values and
    `range` or the theme palette
 
-A color-scale factory is classified by D3 capabilities:
+A color-scale factory is classified by its capabilities:
 
 - ordinal factories infer first-seen distinct values;
 - continuous and quantize factories infer the finite extent;
@@ -489,6 +585,10 @@ interface InteractiveColorLegendChange<TValue extends ChartKey> {
   visible: boolean
 }
 
+interface InteractiveColorLegendItemContext {
+  visible: boolean
+}
+
 interface InteractiveColorLegendOptions<TValue extends ChartKey> {
   visible: ControlledSignal<
     readonly TValue[],
@@ -498,7 +598,10 @@ interface InteractiveColorLegendOptions<TValue extends ChartKey> {
   ariaLabel?: string
   itemWidth?: number
   format?: (value: TValue) => string
-  itemAriaLabel?: (value: TValue, visible: boolean) => string
+  itemAriaLabel?: (
+    value: TValue,
+    context: InteractiveColorLegendItemContext,
+  ) => string
   emptyLabel?: string
 }
 ```
@@ -520,17 +623,18 @@ implemented by the React Native host.
 
 ```ts
 interface ChartColorLegend {
+  height(itemCount: number, context: ChartColorLegendContext): number
   placement?: 'top' | 'bottom'
-  height(itemCount: number, width: number, colors?: ResolvedColorScale): number
   render(context: ChartColorLegendContext): SceneNode
 }
 ```
 
-`height` reserves space before chart bounds are finalized. `render` receives
-the resolved colors, plot bounds, legend bounds, theme, and full chart size.
-Return one keyed [scene node](./runtime-and-scene.md#scene-nodes). Browser host
-controls are an advanced extension boundary used by `interactiveColorLegend`;
-ordinary custom legends should remain renderer-neutral scene output.
+`height` returns the reserved pixel height before chart bounds are finalized.
+Both callbacks receive the resolved colors, plot and legend bounds, theme, and
+full chart size. `render` returns one keyed
+[scene node](./runtime-and-scene.md#scene-nodes). Browser host controls are an
+advanced extension boundary used by `interactiveColorLegend`; ordinary custom
+legends should remain renderer-neutral scene output.
 
 ## Theme and gradients
 
@@ -552,7 +656,7 @@ interface ChartLinearGradient {
 }
 ```
 
-Coordinates and offsets are normalized from `0` to `1` by the resource-aware
+Coordinates and offsets are normalized from `0` to `1` by the default SVG
 renderer. Omitted coordinates form a vertical gradient from bottom to top.
-Use `renderChartSvgWithResources` and an `idPrefix`; see
-[Rendering and export](./rendering-and-export.md#resource-aware-svg).
+Use an `idPrefix` when charts share a document; see
+[Rendering and export](./rendering-and-export.md#svg-resources).

@@ -140,12 +140,12 @@ describe('definition coverage roadmap', () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
 
-    expect(auditedIds).toHaveLength(109)
-    expect(new Set(auditedIds).size).toBe(109)
-    expect(roadmapIds).toHaveLength(109)
-    expect(new Set(roadmapIds).size).toBe(109)
-    expect(overviewIds).toHaveLength(109)
-    expect(new Set(overviewIds).size).toBe(109)
+    expect(auditedIds).toHaveLength(110)
+    expect(new Set(auditedIds).size).toBe(110)
+    expect(roadmapIds).toHaveLength(110)
+    expect(new Set(roadmapIds).size).toBe(110)
+    expect(overviewIds).toHaveLength(110)
+    expect(new Set(overviewIds).size).toBe(110)
     expect([...roadmapIds].sort()).toEqual([...auditedIds].sort())
     expect([...roadmapIds].sort()).toEqual([...overviewIds].sort())
     expect([...roadmapIds].sort()).toEqual([...catalogIds].sort())
@@ -155,7 +155,7 @@ describe('definition coverage roadmap', () => {
     expect(countBy(roadmap.cases, 'disposition')).toEqual({
       'application-boundary': 2,
       'definition-now': 58,
-      'first-party-primitive': 34,
+      'first-party-primitive': 35,
       'inline-custom-mark': 1,
       'optional-primitive': 14,
     })
@@ -164,14 +164,14 @@ describe('definition coverage roadmap', () => {
       'phase-1': 2,
       'phase-2': 26,
       'phase-3': 11,
-      'phase-4': 10,
+      'phase-4': 11,
     })
 
     const roadmapById = new Map(roadmap.cases.map((entry) => [entry.id, entry]))
     const auditRows = coverageRows(audit, false)
     const overviewRows = coverageRows(overview, true)
-    expect(auditRows).toHaveLength(109)
-    expect(overviewRows).toHaveLength(109)
+    expect(auditRows).toHaveLength(110)
+    expect(overviewRows).toHaveLength(110)
     for (const row of auditRows) {
       expect(dispositionByLabel[row.disposition]).toBe(
         roadmapById.get(row.id)?.disposition,
@@ -202,7 +202,7 @@ describe('definition coverage roadmap', () => {
       0, 1, 2, 3, 4, 5,
     ])
     expect(capabilities.size).toBe(roadmap.capabilities.length)
-    expect(countBy(roadmap.capabilities, 'status')).toEqual({ verified: 44 })
+    expect(countBy(roadmap.capabilities, 'status')).toEqual({ verified: 45 })
 
     const frictionIds = new Set(
       [...frictionLog.matchAll(/^### (F-\d{3}) —/gmu)].map((match) => match[1]),

@@ -3,16 +3,15 @@ title: Octane Quick Start
 description: Install the Octane adapter, define a typed chart, render responsive SSR-safe SVG, and add native interaction.
 ---
 
-Install the framework adapter, core grammar, Octane peer, and only the granular
-data and scale modules used by the chart:
+Install the framework adapter, core grammar, compact scales, and the Octane
+peer:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/octane-charts octane d3-scale
-pnpm add -D @types/d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/octane-charts octane
 ```
 
-The shared [Scales and D3](../../concepts/scales-and-d3.md) page explains the
-injected scale and algorithm boundary.
+The shared [Scales](../../concepts/scales-and-d3.md) page explains the
+compact scale families and when a chart needs D3 instead.
 
 ## Define and render a chart
 
@@ -21,7 +20,8 @@ Definitions are framework-independent and can be shared with any adapter:
 <!-- docs-example: octane-quick-start octane -->
 
 ```tsx
-import { scaleBand, scaleLinear } from 'd3-scale'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { barY, defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/octane-charts'

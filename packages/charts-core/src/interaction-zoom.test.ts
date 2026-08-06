@@ -708,7 +708,10 @@ function numericDefinition(
     behaviors: [
       zoomX({
         id: 'window',
-        window: controlledSignal(window, onChange),
+        window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
+          window,
+          (next, { reason }) => onChange(next, reason),
+        ),
         extent: [0, 10],
         scaleExtent: [1, 8],
         format: (value) => String(value),
@@ -741,7 +744,10 @@ function temporalDefinition(
     behaviors: [
       zoomX({
         id: 'window',
-        window: controlledSignal(window, onChange),
+        window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(
+          window,
+          (next, { reason }) => onChange(next, reason),
+        ),
         extent,
         scaleExtent: [1, 8],
       }),

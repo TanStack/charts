@@ -17,8 +17,8 @@ function Chart<
 >(props: ChartProps<TDatum, TXValue, TYValue>): unknown
 ```
 
-The definition owns focus, tooltip, animation, keyboard policy, focus distance,
-and spatial indexing.
+The definition owns `focus`, `focusRing`, `cursor`, `tooltip`, `animate`,
+`keyboard`, `maxFocusDistance`, and `spatialIndex`.
 
 ## Renderer entry points
 

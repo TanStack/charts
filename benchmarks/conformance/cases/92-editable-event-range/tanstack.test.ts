@@ -130,7 +130,8 @@ describe('definition-owned editable event handle', () => {
     }
     expect(source).toContain("from '@tanstack/charts/interaction/handle'")
     expect(source).toContain('handleX<Date, string>({')
-    expect(source).toContain('controlledSignal(input.end, onEndChange)')
+    expect(source).toContain('controlledSignal<')
+    expect(source).toContain('(next, { reason }) => onEndChange(next, reason)')
     expect(source).toContain("from './controls'")
   })
 })

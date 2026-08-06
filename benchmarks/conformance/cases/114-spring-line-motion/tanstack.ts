@@ -4,6 +4,7 @@ import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { springLineStages } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type {
   ChartRenderer,
   ChartRendererHost,
@@ -201,6 +202,16 @@ export function springLineMotionDefinition(
     margin: { top: 24, right: 24, bottom: 24, left: 24 },
   })
 }
+
+export const catalogCase = tanstackCase(
+  (input) =>
+    springLineMotionDefinition(
+      springLineStages[Math.abs(input.revision) % springLineStages.length] ??
+        springLineStages[0],
+      'spring',
+    ),
+  'Primary and comparison series with spring motion',
+)
 
 function createControls(document: Document) {
   const root = document.createElement('div')

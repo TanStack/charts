@@ -369,7 +369,7 @@ describe('treemap', () => {
       delimiter: '.',
       value: 'value',
       color: (node) => node.ancestorIds[1] ?? node.id,
-      fill: (_node, index) => (index === 0 ? '#111111' : '#222222'),
+      fill: (_node, { index }) => (index === 0 ? '#111111' : '#222222'),
       fillOpacity: 0.8,
       stroke: '#ffffff',
       strokeOpacity: 0.7,

@@ -301,7 +301,8 @@ import {
   radialGrid,
   radialLine,
 } from '@tanstack/charts/polar'
-import { scaleLinear, scalePoint } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scalePoint } from '@tanstack/charts-scales/point'
 import { curveLinearClosed } from 'd3-shape'
 
 interface DecathlonRow {
@@ -439,7 +440,7 @@ and direction explicit, and do not rank profiles by apparent filled area.
 
 ## Numeric polar line and scatter
 
-Continuous D3 scales map numeric angle and radius values without changing the
+Lightweight linear scales map numeric angle and radius values without changing the
 mark API. A visible transform can derive angle and radius from existing source
 measurements without renaming those measurements into chart fields.
 
@@ -454,7 +455,7 @@ import {
   radialGrid,
   radialLine,
 } from '@tanstack/charts/polar'
-import { scaleLinear } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 interface WeatherRow {
   location: string
@@ -743,8 +744,9 @@ then guide foreground labels, and emits ordinary scene nodes and focus points.
 The outer chart therefore omits both Cartesian axes.
 
 The polar entry uses D3 arc and radial path generators internally. Application
-source imports configured scales and curve factories directly from `d3-shape`
-or `d3-scale`; value allocation comes from the polar entry. See
+source can use compact angle and radius scales or upgrade either one to
+`d3-scale`; curve factories and application-owned pie layout can come directly
+from `d3-shape`. See
 [Polar Marks](../reference/marks/polar.md) for the complete API and
 [Bundle Size and Performance](../guides/bundle-size-and-performance.md) for
 the isolated consumer budgets.

@@ -714,6 +714,25 @@
       ]
     },
     {
+      "id": "crosshair",
+      "title": "Renderer-native crosshair marks",
+      "kind": "interaction",
+      "tier": "core",
+      "phase": "phase-4",
+      "status": "verified",
+      "dependsOn": ["focus-guide"],
+      "frictionIds": ["F-187", "F-245", "F-246"],
+      "entryPoint": "@tanstack/charts/crosshair",
+      "bundleFixture": "benchmarks/entries/charts-crosshair-kernel.ts",
+      "evidence": [
+        "../../packages/charts-core/src/crosshair.test.ts",
+        "../../packages/charts-core/src/svg-surface.test.ts",
+        "../entries/charts-crosshair-kernel.ts",
+        "cases/119-stacked-bar-band-cursor/chart.ts",
+        "cases/119-stacked-bar-band-cursor/model.test.ts"
+      ]
+    },
+    {
       "id": "continuous-cursor",
       "title": "Controlled continuous cursor",
       "kind": "interaction",
@@ -2382,7 +2401,7 @@
       "capabilities": ["current-definition-api"],
       "evidence": [
         "cases/84-pinned-nested-chart-tooltip/tanstack.ts",
-        "cases/84-pinned-nested-chart-tooltip/tanstack.test.ts",
+        "cases/84-pinned-nested-chart-tooltip/model.test.ts",
         "../../packages/charts-core/src/runtime.test.ts",
         "../../packages/charts-core/src/svg-surface.test.ts",
         "../../packages/charts-core/src/canvas.test.ts",
@@ -3397,6 +3416,46 @@
           "coordinateSpace": "dom",
           "sources": ["layout.ts", "shell.ts"],
           "summary": "Retain width-derived host sizing and tooltip presentation."
+        }
+      ]
+    },
+    {
+      "id": "119-stacked-bar-band-cursor",
+      "coverage": "declarative",
+      "disposition": "first-party-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": ["crosshair"],
+      "evidence": [
+        "cases/119-stacked-bar-band-cursor/chart.ts",
+        "cases/119-stacked-bar-band-cursor/model.test.ts",
+        "cases/119-stacked-bar-band-cursor/case.json",
+        "../../packages/charts-core/src/crosshair.test.ts",
+        "../../packages/charts-core/src/svg-surface.test.ts",
+        "../../packages/charts-core/src/motion.test.ts",
+        "../entries/charts-crosshair-kernel.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": [
+            "packages/charts-core/src/crosshair.ts",
+            "packages/charts-core/src/crosshair-resolver.ts",
+            "packages/charts-core/src/focus-presentation.ts",
+            "chart.ts"
+          ],
+          "summary": "Resolve stable categorical bands, endpoint rules, labels, grouped focus, and keyed motion through renderer-native crosshair guides."
+        },
+        {
+          "kind": "data-transform",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "data",
+          "sources": ["model.ts"],
+          "summary": "Retain the Crimean War revision fixture, semantic stack identities, and endpoint formatting beside the definition."
         }
       ]
     },

@@ -1,5 +1,12 @@
 import { sceneChildId } from './scene-child-id-internal'
-import type { ChartPoint, ChartScene, SceneNode } from './types'
+import type {
+  ChartBounds,
+  ChartFocusAnchor,
+  ChartPoint,
+  ChartScene,
+  SceneFocusGuide,
+  SceneNode,
+} from './types'
 
 export { sceneChildId } from './scene-child-id-internal'
 
@@ -20,9 +27,13 @@ interface EmbedChartSceneOptions {
 export function embedChartScene<TDatum>(
   scene: ChartScene<TDatum>,
   options: EmbedChartSceneOptions,
-): { nodes: readonly SceneNode[]; points: readonly ChartPoint<TDatum>[] } {
+): {
+  nodes: readonly SceneNode[]
+  points: readonly ChartPoint<TDatum>[]
+  focusGuides: readonly SceneFocusGuide[]
+} {
   const namespace = childNamespace(options.ownerId, options.childId)
-  const pointMap = new Map<ChartPoint, ChartPoint<TDatum>>()
+  const pointMap = new Map<ChartFocusAnchor, ChartPoint<TDatum>>()
   const mapPoint = (point: ChartPoint): ChartPoint<TDatum> => {
     const existing = pointMap.get(point)
     if (existing) return existing
@@ -36,15 +47,45 @@ export function embedChartScene<TDatum>(
     pointMap.set(point, mapped)
     return mapped
   }
+  const mapFocusAnchor = (anchor: ChartFocusAnchor): ChartFocusAnchor =>
+    pointMap.get(anchor) ?? {
+      ...anchor,
+      key: namespace.identity(anchor.key),
+      markId: namespace.identity(anchor.markId),
+    }
+  const points = scene.points.map(mapPoint)
 
   return {
     nodes: mapScenePoints(
       withoutDefaultFocusLayers(scene.nodes),
       mapPoint,
+      mapFocusAnchor,
       namespace,
     ),
-    points: scene.points.map(mapPoint),
+    points,
+    focusGuides: (scene.focusGuides ?? []).map((guide) => ({
+      ...guide,
+      key: namespace.identity(guide.key),
+      markId: namespace.identity(guide.markId),
+      chart: offsetBounds(guide.chart, options.x, options.y),
+      surface: offsetBounds(guide.surface, options.x, options.y),
+      projectX: guide.projectX
+        ? (value) => offsetProjection(guide.projectX!(value), options.x)
+        : undefined,
+      projectY: guide.projectY
+        ? (value) => offsetProjection(guide.projectY!(value), options.y)
+        : undefined,
+      scope: guide.scope ? namespace.identity(guide.scope) : namespace.prefix,
+    })),
   }
+}
+
+function offsetProjection(value: number | undefined, offset: number) {
+  return value === undefined ? undefined : value + offset
+}
+
+function offsetBounds(bounds: ChartBounds, x: number, y: number): ChartBounds {
+  return { ...bounds, x: bounds.x + x, y: bounds.y + y }
 }
 
 interface ChildNamespace {
@@ -90,6 +131,7 @@ function withoutDefaultFocusLayers(
 function mapScenePoints(
   nodes: readonly SceneNode[],
   mapPoint: (point: ChartPoint) => ChartPoint,
+  mapFocusAnchor: (anchor: ChartFocusAnchor) => ChartFocusAnchor,
   namespace: ChildNamespace,
   prefixKeys = false,
 ): readonly SceneNode[] {
@@ -107,6 +149,7 @@ function mapScenePoints(
         children: mapScenePoints(
           node.children,
           mapPoint,
+          mapFocusAnchor,
           namespace,
           shouldPrefixKeys,
         ),
@@ -115,11 +158,15 @@ function mapScenePoints(
               focus: {
                 ...node.focus,
                 points: node.focus.points.map(mapPoint),
+                anchors: (node.focus.anchors ?? node.focus.points).map(
+                  mapFocusAnchor,
+                ),
                 ...(node.focus.candidates
                   ? {
                       candidates: mapScenePoints(
                         node.focus.candidates,
                         mapPoint,
+                        mapFocusAnchor,
                         namespace,
                         shouldPrefixKeys,
                       ),

@@ -3,8 +3,9 @@ title: Interactions and Selections
 description: Build controlled cursors, linked selections, brushes, zooming, scrolling, timelines, and editors around semantic chart state.
 ---
 
-TanStack Charts owns datum focus, selection, and the mechanics of an explicitly
-imported chart behavior. The application owns the accepted semantic value and
+TanStack Charts owns datum focus, selection, crosshair presentation, optional
+cursor bindings, and the mechanics of explicitly imported chart behaviors. The
+application owns accepted semantic values, shared controller identity, and
 product policy.
 
 This boundary keeps the default host small and lets applications use
@@ -16,6 +17,8 @@ Use native chart focus for:
 
 - nearest-point inspection;
 - grouped axis tooltips;
+- snapped crosshairs;
+- synchronized focus cursors;
 - keyboard point navigation;
 - point activation.
 
@@ -31,13 +34,156 @@ Use a first-party controlled behavior for:
 
 Use controlled application state for:
 
-- linked-view layout and domain policy;
+- shared cursor-controller identity and programmatic cursor values;
+- accepted brush, zoom, and pan domains;
+- focus-and-context windows;
+- synchronized-view layout and domain policy;
 - scrollable resource lanes;
 - playback timing and play/pause controls;
 - editable intervals;
 - rich pinned tooltips.
 
 See [Tooltips and Focus](./tooltips-and-focus.md) for the native path.
+
+## Cursors and crosshairs
+
+`crosshair` is presentation; `createChartCursor` is state. A crosshair without
+a cursor binding follows the chart's local `ChartFocusState`:
+
+```ts
+import { crosshair } from '@tanstack/charts/crosshair'
+
+const definition = defineChart({
+  marks: [
+    lineY(rows, { x: 'date', y: 'value' }),
+    crosshair({ x: { label: true }, y: false }),
+  ],
+  x: { scale: scaleUtc },
+  y: { scale: scaleLinear },
+  focus: 'group-x',
+  maxFocusDistance: Number.POSITIVE_INFINITY,
+})
+```
+
+This gives pointer and keyboard users one snapped vertical guide. It does not
+create a point, change the focus strategy, or require an SVG overlay.
+
+On a categorical axis, `x: { band: true }` or `y: { band: true }` replaces
+that axis rule with a cursor band sized from the resolved scale bandwidth. A
+band options object controls inset, radius, fill, stroke, and opacity. Use
+separate crosshair marks when the band should paint below the data and the
+other axis rule should paint above it. Zero-bandwidth axes emit no band.
+
+### Synchronize focus by value
+
+Share one controller between definitions when several browser or React Native
+charts should resolve the same semantic value through their own scales:
+
+```ts
+import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
+
+const sharedDate = createChartCursor<Date, number>()
+const cursor = {
+  use: cursorHost,
+  controller: sharedDate,
+  mode: 'focus' as const,
+  match: 'x' as const,
+  pin: true,
+}
+
+const throughputDefinition = defineChart(throughputSpec, { cursor })
+const errorsDefinition = defineChart(errorsSpec, { cursor })
+```
+
+Focus mode publishes `anchor: 'value'`. Each chart resolves that date to its
+own local point and focus group; no chart copies another chart's pixels.
+Pointer, keyboard, restored, and programmatic sources remain visible in the
+shared state. `match` defaults to `xy` and can be `x` or `y`. Focus state may
+also carry an optional local `origin` point identity to break ties between
+repeated equal values, including facets. A stable `key` plus `markId` survives
+data reordering; `datumIndex` disambiguates duplicate keys. A chart ignores the
+origin when its key and mark do not exist locally and resolves from the
+portable semantic `value` and preferred `group`.
+
+### Track free coordinates
+
+Free mode updates without selecting a datum. The host stores normalized plot
+coordinates and can derive semantic values through `valueAt`:
+
+```ts
+const freeCursor = createChartCursor<Date, number>()
+const xScale = scaleUtc().domain([start, end])
+const yScale = scaleLinear().domain([0, maximum])
+
+const definition = defineChart({
+  marks: [
+    dot(rows, { x: 'date', y: 'value' }),
+    crosshair({
+      x: { label: true },
+      y: { label: true },
+      marker: true,
+    }),
+  ],
+  x: { scale: xScale },
+  y: { scale: yScale },
+  cursor: {
+    use: cursorHost,
+    controller: freeCursor,
+    mode: 'free',
+    pin: true,
+    x: {
+      valueAt: ({ scene, position }) =>
+        xScale
+          .copy()
+          .range([scene.chart.x, scene.chart.x + scene.chart.width])
+          .invert(position),
+    },
+    y: {
+      valueAt: ({ scene, position }) =>
+        yScale
+          .copy()
+          .range([scene.chart.y + scene.chart.height, scene.chart.y])
+          .invert(position),
+    },
+  },
+})
+```
+
+The configured scale remains the owner of inversion, clamping, and rounding.
+Set semantic state directly when another control owns the cursor:
+
+```ts
+freeCursor.setState({
+  anchor: 'value',
+  value: { x: selectedDate, y: selectedValue },
+  source: 'programmatic',
+  pinned: true,
+})
+
+freeCursor.setState(null)
+```
+
+With `pin: true`, click or tap pins the current cursor and another activation
+dismisses it. Browser focus mode also supports Enter, Space, and Escape. React
+Native focus mode exposes equivalent activate and escape accessibility
+actions. Free mode has no invented keyboard or accessibility point order; pair
+it with labeled date/number inputs, a range control, or textual status when
+arbitrary values are part of the reader's task. The crosshair itself is visual
+and `aria-hidden`.
+
+Browser renderer hosts and React Native `Chart` both bind focus and free
+cursors. They share controller state, semantic focus resolution, coordinate
+projection, and crosshair presentation; only their event plumbing differs.
+React Native uses responder gestures and accessibility actions instead of DOM
+pointer and key events.
+
+Application code imports `createChartCursor`, `cursorHost`, and cursor state
+types from `@tanstack/charts/cursor`. Every cursor binding supplies
+`use: cursorHost`, keeping cursor policy out of charts that do not opt in. The
+adapter-facing
+`@tanstack/charts/cursor/host` entry contains the platform-neutral projection
+and focus helpers used to implement a host; ordinary chart definitions do not
+need it.
 
 ## Controlled signals
 
@@ -47,7 +193,7 @@ and a chart-owned behavior:
 ```ts
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 
-const visible = controlledSignal(visibleSeries, (next, reason) => {
+const visible = controlledSignal(visibleSeries, (next, { reason }) => {
   setVisibleSeries(next)
 })
 ```
@@ -68,7 +214,7 @@ import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 
 const selection = keyedSelection<Observation, string, number, number>({
-  selected: controlledSignal(selectedId, (next, reason) => {
+  selected: controlledSignal(selectedId, (next, { reason }) => {
     setSelectedId(next)
   }),
   key: (datum) => datum.id,
@@ -140,7 +286,7 @@ const definition = defineChart({
       position: controlledSignal<
         Position | null,
         ContinuousCursorChange<number, number>
-      >(cursorPosition, (next, reason) => {
+      >(cursorPosition, (next, { reason }) => {
         if (reason.type === 'commit' || reason.type === 'clear') {
           setCursorPosition(next)
         }
@@ -178,11 +324,63 @@ Use this lower-level loop when no first-party behavior owns the gesture:
 2. Read `scene.chart` and resolved scales in `onRender`.
 3. Convert pointer geometry into semantic values.
 4. Clamp, snap, or validate those values as product policy.
-5. update application state.
+5. Update application state.
 6. Let the next definition produce the scene.
 
 Do not mutate SVG geometry directly and then attempt to reconcile application
 state afterward.
+
+## Controlled point inspection
+
+Use the chart's interaction controller when the application owns pointer
+timing but still wants the definition's focus strategy, focus marks, and
+tooltip. Long-press inspection is one example:
+
+```tsx
+let interaction: ChartInteractionController<Row, Date, number> | undefined
+
+const definition = defineChart({
+  marks: [lineY(rows, { x: 'date', y: 'value', key: 'id' })],
+  x: { scale: scaleUtc() },
+  y: { scale: scaleLinear() },
+  focus: 'nearest-x',
+  pointer: false,
+  tooltip,
+})
+
+const chart = (
+  <Chart
+    definition={definition}
+    ariaLabel="Portfolio history"
+    onRender={(context) => {
+      interaction = context.interaction
+    }}
+  />
+)
+
+function inspect(clientX: number, clientY: number) {
+  interaction?.setControlledFocus(interaction.resolvePointer(clientX, clientY))
+}
+
+function stopInspecting() {
+  interaction?.setControlledFocus(null)
+}
+```
+
+`resolvePointer` uses the current renderer presentation, including an active
+motion or viewport transform, and returns the scene position, primary point,
+and complete focus group. `setControlledFocus` paints the same definition-owned
+focus and tooltip as native pointer input. Pass `{ pinned: true }` when the
+configured sticky tooltip should accept interaction.
+
+For a drag that does not require a nearby datum, use
+`interaction.clientToScene(clientX, clientY)`. It applies the renderer's full
+client-to-scene transform without coupling viewport movement to point focus.
+
+`pointer: false` disables automatic pointer move, leave, and click handling. It
+does not disable keyboard navigation. Controlled focus has separate ownership,
+so unrelated mouse-leave and focus-out events cannot clear it. The stable
+controller is available as `host.interaction` and in every `onRender` context.
 
 ## Invert resolved scales
 
@@ -207,13 +405,17 @@ const value = invertY(pointerY)
 
 Apply UTC month snapping, numeric rounding, minimum ranges, and domain clamps
 after inversion. Those policies are application semantics, not scale math.
+This date example uses a D3 time scale; the lightweight linear scale supports
+the same copy, range, and inversion flow for numeric gestures.
+The same scale-copy pattern belongs in a free cursor binding's `valueAt`
+callback.
 
-The [Scales and D3](../concepts/scales-and-d3.md) page is the sole source for
+The [Scales](../concepts/scales-and-d3.md) page is the sole source for
 D3 ownership and official interaction-module links.
 
 ## Disable competing datum focus
 
-When a gesture owns the chart surface, disable native focus explicitly:
+When a gesture has no datum inspection at all, disable native focus explicitly:
 
 ```ts
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
@@ -232,8 +434,13 @@ mountChart(element, {
 
 This prevents an application-owned gesture from competing with the host's
 point marker and tooltip. First-party host controls such as `brushX` and
-`zoomX` isolate their own events. Disabling native chart focus does not remove
-keyboard accessibility from application-owned controls.
+`zoomX` isolate their own events.
+
+Use `pointer: false` plus the interaction controller when the application owns
+the gesture but the chart should still own datum focus. `focusDisabled` does
+not remove keyboard accessibility from application-owned controls.
+A definition `cursor` in `free` mode already owns the host pointer path and
+does not require `pointer: false` or `focusDisabled`.
 
 ## Brush selection
 
@@ -266,7 +473,7 @@ const definition = defineChart({
     brushX({
       range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
         visibleRange,
-        (next, reason) => {
+        (next, { reason }) => {
           if (reason.type === 'commit') setVisibleRange(next)
         },
       ),
@@ -404,7 +611,9 @@ when the application needs a different gesture policy.
 ## Linked views
 
 Store one semantic cursor, selection, or domain and derive every view from it.
-Each view can have an independent y scale while sharing a date or category.
+For focus cursors, share a `createChartCursor` controller with `match: 'x'` or
+`match: 'y'`. Each view can have an independent opposite-axis scale while
+sharing a date or category.
 
 Validate outgoing events by semantic value, not matching pixel positions.
 Different chart sizes and margins should still resolve the same selection.
@@ -439,11 +648,18 @@ capturing the wheel:
 An interaction controller may install pointer capture, event listeners,
 observers, nested chart hosts, or animation frames. `onRender` can update an
 existing controller, but the application surface must destroy every resource
-when the chart unmounts or ownership changes.
+when the chart unmounts or ownership changes. `createChartCursor` itself owns
+no platform resources; hosts unsubscribe when destroyed. A host clears only
+the exact unpinned state object that it most recently published. If the
+application or another host has replaced the controller state, cancellation,
+rebinding, or unmount leaves that newer state intact. Pinned state also
+survives lifecycle cleanup until an explicit dismissal or programmatic clear.
 
 ## Interaction checklist
 
 - State is semantic and controlled.
+- Crosshair presentation is derived from focus or a cursor binding instead of
+  DOM mutation.
 - Geometry comes from `scene.chart` and configured scale copies.
 - Native focus is disabled only when another complete interaction owns the
   surface.

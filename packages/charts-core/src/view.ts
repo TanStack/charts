@@ -23,6 +23,7 @@ import type {
   ChartTheme,
   ChartValue,
   ResolvedScale,
+  SceneFocusGuide,
   SceneGroup,
   StaticChartDefinition,
 } from './types'
@@ -371,6 +372,7 @@ function createViewComposition<
           childMotions.clear()
 
           const points: ChartPoint<TDatum, TXValue, TYValue>[] = []
+          const focusGuides: SceneFocusGuide[] = []
           const children = compiled.map(({ view, bounds: cell, scene }) => {
             collectChildMotions(id, view.id, scene, childMotions)
             const embedded = embedChartScene(scene, {
@@ -386,6 +388,7 @@ function createViewComposition<
                 TYValue
               >[]),
             )
+            focusGuides.push(...embedded.focusGuides)
             return {
               kind: 'group' as const,
               key: `${sceneChildId(id, view.id)}:view`,
@@ -407,6 +410,7 @@ function createViewComposition<
               },
             ],
             points,
+            ...(focusGuides.length ? { focusGuides } : {}),
           }
         },
       }

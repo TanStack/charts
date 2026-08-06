@@ -2,7 +2,7 @@ import { weather } from '@charts-poc/demo-data/weather'
 import { areaY, barY, d3Curve, defineChart, dot, lineY } from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const monotone = d3Curve(curveMonotoneX)
@@ -58,7 +58,9 @@ export const composedChartDefinition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   composedChartDefinition,
   'Layered Seattle weather',
 )
+
+export const mount = catalogCase.mount

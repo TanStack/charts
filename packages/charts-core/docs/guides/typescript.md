@@ -12,8 +12,9 @@ then infer from the definition.
 <!-- docs-example: typescript-inference typecheck -->
 
 ```ts
-import { scaleLinear, scaleTime } from 'd3-scale'
+import { scaleTime } from 'd3-scale'
 import { defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 interface Reading {
   id: string

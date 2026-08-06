@@ -148,7 +148,8 @@ describe('definition-owned zoomable time window', () => {
     }
     expect(source).toContain("from '@tanstack/charts/interaction/zoom'")
     expect(source).toContain('zoomX({')
-    expect(source).toContain('controlledSignal(window, onChange)')
+    expect(source).toContain('controlledSignal<')
+    expect(source).toContain('(next, { reason }) => onChange(next, reason)')
     expect(source).toContain('decorative(')
   })
 })

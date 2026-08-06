@@ -24,6 +24,10 @@ export interface InteractiveColorLegendChange<TValue extends ChartKey> {
   visible: boolean
 }
 
+export interface InteractiveColorLegendItemContext {
+  readonly visible: boolean
+}
+
 export interface InteractiveColorLegendOptions<TValue extends ChartKey> {
   visible: ControlledSignal<
     readonly TValue[],
@@ -33,7 +37,10 @@ export interface InteractiveColorLegendOptions<TValue extends ChartKey> {
   ariaLabel?: string
   itemWidth?: number
   format?: (value: TValue) => string
-  itemAriaLabel?: (value: TValue, visible: boolean) => string
+  itemAriaLabel?: (
+    value: TValue,
+    context: InteractiveColorLegendItemContext,
+  ) => string
   emptyLabel?: string
 }
 
@@ -82,11 +89,11 @@ export function interactiveColorLegend<TValue extends ChartKey>(
           )
         : scene
     },
-    height(itemCount, width, colors) {
-      assertCategorical(colors?.kind)
+    height(itemCount, context) {
+      assertCategorical(context.colors.kind)
       const layout = layoutCategoricalLegendItems(
         itemCount,
-        width + controlGap,
+        context.chart.width + controlGap,
         minimumItemWidth + controlGap,
       )
       return (
@@ -115,7 +122,7 @@ export function interactiveColorLegend<TValue extends ChartKey>(
           ...item,
           visible,
           ariaLabel:
-            options.itemAriaLabel?.(item.value, visible) ??
+            options.itemAriaLabel?.(item.value, { visible }) ??
             `Toggle ${item.label} series`,
         }
       })
@@ -147,9 +154,11 @@ export function interactiveColorLegend<TValue extends ChartKey>(
             (candidate) => valueKey(candidate) === toggledKey,
           )
           options.visible.onChange(nextVisible, {
-            type: 'toggle',
-            value: value as TValue,
-            visible,
+            reason: {
+              type: 'toggle',
+              value: value as TValue,
+              visible,
+            },
           })
         },
       } satisfies InteractiveLegendControl

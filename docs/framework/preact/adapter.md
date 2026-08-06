@@ -3,10 +3,10 @@ title: Preact Adapter
 description: Render and hydrate TanStack Charts with Preact.
 ---
 
-Install the core, adapter, framework peer, and authored D3 modules:
+Install the core, compact scales, adapter, and framework peer:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/preact-charts preact d3-scale
+pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/preact-charts preact
 ```
 
 ```tsx

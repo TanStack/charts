@@ -95,17 +95,17 @@ export function visualValue<TDatum, TValue>(
   fallback: TValue,
 ): TValue {
   return typeof channel === 'function'
-    ? (channel as ChannelAccessor<TDatum, TValue>)(datum, index, data)
+    ? (channel as ChannelAccessor<TDatum, TValue>)(datum, { index, data })
     : (channel ?? fallback)
 }
 
 export function channelValues<TDatum, TValue>(
   data: readonly TDatum[],
   channel: Channel<TDatum, TValue> | undefined,
-  fallback: (datum: TDatum, index: number, data: readonly TDatum[]) => TValue,
+  fallback: ChannelAccessor<TDatum, TValue>,
 ): TValue[] {
   if (typeof channel === 'function') {
-    return data.map((datum, index) => channel(datum, index, data))
+    return data.map((datum, index) => channel(datum, { index, data }))
   }
   if (channel !== undefined) {
     return data.map((datum) =>
@@ -114,7 +114,7 @@ export function channelValues<TDatum, TValue>(
         : undefined,
     ) as TValue[]
   }
-  return data.map(fallback)
+  return data.map((datum, index) => fallback(datum, { index, data }))
 }
 
 export function inferredKeyValues<TDatum>(
@@ -128,7 +128,7 @@ export function inferredKeyValues<TDatum>(
   } = {},
 ): ChartKey[] {
   if (key !== undefined) {
-    return channelValues(data, key, (_datum, index) => index)
+    return channelValues(data, key, (_datum, { index }) => index)
   }
 
   const candidates = [

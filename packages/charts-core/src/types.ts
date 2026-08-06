@@ -18,6 +18,14 @@ export interface ChartScaleResolveContext {
   includeZero: boolean
 }
 
+export type ChartContinuousValue = number | Date
+
+export type ChartContinuousDomain<
+  TValue extends ChartContinuousValue = ChartContinuousValue,
+> =
+  | (Extract<TValue, number> extends never ? never : readonly [number, number])
+  | (Extract<TValue, Date> extends never ? never : readonly [Date, Date])
+
 export interface ChartScale {
   id: string
   resolve: (context: ChartScaleResolveContext) => ResolvedScale
@@ -65,10 +73,14 @@ export type ChartScaleResolver = (
   context: ChartScaleResolveContext,
 ) => ResolvedScale
 
+export interface ChannelAccessorContext<TDatum> {
+  index: number
+  data: readonly TDatum[]
+}
+
 export type ChannelAccessor<TDatum, TValue> = (
   datum: TDatum,
-  index: number,
-  data: readonly TDatum[],
+  context: ChannelAccessorContext<TDatum>,
 ) => TValue
 
 export type ChannelField<TDatum, TValue> = {
@@ -327,6 +339,25 @@ export interface ChartAxisPresentationOptions<TValue extends ChartValue = any> {
   motion?: ChartMotionDefinition
 }
 
+interface ChartAxisViewportBase {
+  /** Transient output-space displacement applied to chart content, in scene pixels. */
+  translate?: number
+}
+
+export type ChartAxisViewportOptions<
+  TValue extends ChartContinuousValue = ChartContinuousValue,
+> = ChartAxisViewportBase & {
+  /** Committed semantic window used by stationary guides. */
+  domain: ChartContinuousDomain<TValue>
+}
+
+type ChartAxisViewportFor<TValue extends ChartValue> =
+  IsAny<TValue> extends true
+    ? ChartAxisViewportOptions
+    : [Extract<TValue, ChartContinuousValue>] extends [never]
+      ? never
+      : ChartAxisViewportOptions<Extract<TValue, ChartContinuousValue>>
+
 export interface ChartAxisOptions<TValue extends ChartValue = any> {
   /**
    * A D3 scale factory infers its domain from materialized mark channels.
@@ -336,6 +367,8 @@ export interface ChartAxisOptions<TValue extends ChartValue = any> {
   /** Applies D3 nicening after an inferred or configured domain is resolved. */
   nice?: boolean | number
   reverse?: boolean
+  /** A semantic window over the scale's complete configured or inferred domain. */
+  viewport?: ChartAxisViewportFor<TValue>
   /** Grid lines use semantic tick candidates before label thinning. */
   grid?: boolean
   /** Axis presentation. False keeps the scale but omits the visible axis. */
@@ -457,11 +490,7 @@ export interface ChartBehavior<
 
 export interface ChartColorLegend {
   placement?: ChartLegendPlacement
-  height: (
-    itemCount: number,
-    width: number,
-    colors?: ResolvedColorScale,
-  ) => number
+  height: (itemCount: number, context: ChartColorLegendContext) => number
   render: (context: ChartColorLegendContext) => SceneNode
   /** Keeps hidden series in scale inference while removing their scene output. */
   seriesVisible?: (value: ChartKey) => boolean
@@ -622,9 +651,20 @@ export interface ChartMotionSpringTransition {
 export type ChartMotionTransition =
   ChartMotionTweenTransition | ChartMotionSpringTransition
 
+export interface ChartRollingPathMotion {
+  update: 'rolling'
+  x: 'shift'
+  y?: 'fixed' | 'reproject'
+  fallback?: 'snap' | 'morph'
+}
+
+export type ChartMotionPath = 'morph' | ChartRollingPathMotion
+
 export interface ChartMotionTiming {
   delay?: number
   transition?: ChartMotionTransition
+  /** How line and area paths move between compatible keyed updates. */
+  path?: ChartMotionPath
 }
 
 export type ChartMotionDefinition<TDatum = unknown> =
@@ -690,10 +730,18 @@ export interface ChartDefinitionOptions<
   focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
   /** Shows the built-in primary-point focus ring. Defaults to true. */
   focusRing?: boolean
+  /** Optional app-owned cursor shared by one or more chart definitions. */
+  cursor?: ChartCursorBinding<
+    NoInfer<TDatum>,
+    NoInfer<TXValue>,
+    NoInfer<TYValue>
+  >
   spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
   animate?: boolean | ChartAnimationOptions
   /** Renderer-neutral motion defaults. An optional motion implementation consumes them. */
   motion?: ChartMotionDefinition<NoInfer<TDatum>>
+  /** Enables chart-owned pointer focus and selection. Defaults to true. */
+  pointer?: boolean
   keyboard?: boolean
   selection?: ChartSelectionController<
     NoInfer<TDatum>,
@@ -710,9 +758,11 @@ interface StoredChartDefinitionOptions {
   maxFocusDistance?: number
   focus?: ChartFocusMode<any, any, any>
   focusRing?: boolean
+  cursor?: ChartCursorBinding<any, any, any>
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
   animate?: boolean | ChartAnimationOptions
   motion?: ChartMotionDefinition<any>
+  pointer?: boolean
   keyboard?: boolean
   selection?: ChartSelectionController<any, any, any>
   behaviors?: readonly ChartBehavior<any, any>[]
@@ -807,6 +857,17 @@ export interface MarkInitializeContext {
   markIndex: number
 }
 
+export interface ResolvedScaleViewport {
+  /** Complete domain resolved before applying the semantic viewport. */
+  contentDomain: readonly ChartValue[]
+  /** Committed semantic window mapped into the plot range. */
+  domain: ChartContinuousDomain
+  /** Transient scene-pixel displacement of presented chart content. */
+  translate: number
+  /** Maps a semantic value to its presented coordinate. */
+  map: (value: unknown) => number
+}
+
 export interface ResolvedScale {
   id: string
   type: string
@@ -815,6 +876,7 @@ export interface ResolvedScale {
   invert?: (position: number) => ChartValue
   ticks: readonly ChartTick[]
   bandwidth: number
+  viewport?: ResolvedScaleViewport
 }
 
 export interface ResolvedColorScale {
@@ -829,6 +891,7 @@ export interface ResolvedColorScale {
 
 export interface MarkRenderContext {
   markIndex: number
+  surface: ChartBounds
   chart: ChartBounds
   scales: Readonly<Record<string, ResolvedScale>>
   theme: ChartTheme
@@ -880,6 +943,10 @@ interface InitializedMarkBase<
   channels: Readonly<Record<string, MaterializedChannel>>
   /** Scene-local motion policy resolved while this mark is initialized. */
   motion?: ChartMotionDefinition<any>
+  /** Overrides channel-inferred ownership of each continuous viewport axis. */
+  viewport?: Readonly<Partial<Record<'x' | 'y', 'content' | 'fixed'>>>
+  /** This mark contributes only dynamic focus-guide presentation. */
+  focusGuideOnly?: boolean
   /** The mark uses a discrete color channel as inferred series identity. */
   seriesFromColor?: boolean
   focus?: ChartFocusFilter
@@ -948,6 +1015,27 @@ export interface MarkScene<
 > {
   nodes: readonly SceneNode[]
   points?: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  /** Semantic anchors used only when this mark is wrapped in `whenFocused`. */
+  focusAnchors?: readonly ChartFocusAnchor[]
+  /** Dynamic focus presentation emitted by data-less guide marks. */
+  focusGuides?: readonly MarkFocusGuide[]
+}
+
+/** Guide emitted by a mark before the scene compiler resolves placement. */
+export type MarkFocusGuide = Omit<SceneFocusGuide, 'placement'> & {
+  /** Overrides mark-order placement, primarily for composed nested scenes. */
+  placement?: SceneFocusGuide['placement']
+}
+
+/** Semantic identity for focus-filtered geometry without pointer hit testing. */
+export interface ChartFocusAnchor {
+  key: string
+  markId: string
+  group: ChartKey | null
+  datum: unknown
+  datumIndex: number
+  xValue?: ChartValue
+  yValue?: ChartValue
 }
 
 export type ChartFocusAffinity = 'x' | 'y' | 'xy' | 'geometry'
@@ -1009,6 +1097,74 @@ export interface SceneStyle {
   strokeDasharray?: string
 }
 
+export interface SceneFocusGuideLabel {
+  format?: (value: ChartValue) => string
+  offset: number
+  fontSize: number
+  fontWeight?: number
+  style: SceneStyle
+}
+
+export interface SceneFocusGuideAxis {
+  style: SceneStyle
+  label?: SceneFocusGuideLabel
+  /** Categorical band geometry that replaces the axis rule when present. */
+  band?: SceneFocusGuideBand
+}
+
+export interface SceneFocusGuideBand {
+  /** Full categorical scale bandwidth before applying `inset`. */
+  bandwidth: number
+  /** Inset from both categorical band edges. Negative values create an outset. */
+  inset: number
+  radius?: number
+  style: SceneStyle
+}
+
+export interface SceneFocusGuideMarker {
+  radius: number
+  style: SceneStyle
+}
+
+export interface SceneFocusGuideResolveContext {
+  scene: ChartScene
+  guide: SceneFocusGuide
+  focus: ChartFocusState | null
+  pointer?: ChartTooltipPosition | null
+  cursor?: ChartCursorPresentation | null
+}
+
+export type SceneFocusGuideResolver = (
+  context: SceneFocusGuideResolveContext,
+) => SceneNode | undefined
+
+/** Renderer-neutral description of presentation derived from chart focus. */
+export interface SceneFocusGuide {
+  key: string
+  markId: string
+  chart: ChartBounds
+  surface: ChartBounds
+  placement: 'under' | 'over'
+  x?: SceneFocusGuideAxis
+  y?: SceneFocusGuideAxis
+  marker?: SceneFocusGuideMarker
+  /** Projects semantic cursor values into this guide's local x coordinate. */
+  projectX?: (value: ChartValue) => number | undefined
+  /** Projects semantic cursor values into this guide's local y coordinate. */
+  projectY?: (value: ChartValue) => number | undefined
+  motion?: ChartMotionDefinition<never>
+  measureText?: ChartTextMeasurer
+  /** Facet-owned point-key prefix. Omitted for a top-level guide. */
+  scope?: string
+  /** Resolves this guide's dynamic presentation without retaining its implementation in every renderer bundle. */
+  resolve: SceneFocusGuideResolver
+}
+
+export interface ChartFocusPresentation {
+  under: readonly SceneNode[]
+  over: readonly SceneNode[]
+}
+
 interface SceneNodeBase {
   key: string
   className?: string
@@ -1033,6 +1189,12 @@ export interface SceneGroup extends SceneNodeBase {
   focusCandidateIndex?: number
   focus?: {
     match: ChartFocusMatch
+    /** Semantic focus anchors; these are not scene hit-test points. */
+    anchors?: readonly ChartFocusAnchor[]
+    /**
+     * Interaction points contributed by the focused mark. Decorative marks can
+     * leave this empty while supplying semantic `anchors`.
+     */
     points: readonly ChartPoint[]
     placement: 'under' | 'over'
     /** Keeps candidate geometry out of paint until focus resolves it. */
@@ -1134,6 +1296,7 @@ export interface ChartScene<
   gradients: readonly ChartLinearGradient[]
   theme: ChartTheme
   controls?: readonly ChartHostControl[]
+  focusGuides?: readonly SceneFocusGuide[]
 }
 
 export interface RenderChartOptions {
@@ -1184,9 +1347,13 @@ export interface ChartTooltipOptions<
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
     context: ChartTooltipContentContext,
   ) => ChartTooltipContent
-  format?: (point: ChartPoint<TDatum, TXValue, TYValue>) => string
+  format?: (
+    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: ChartTooltipContentContext,
+  ) => string
   formatGroup?: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+    context: ChartTooltipContentContext,
   ) => string
   sticky?: boolean
   visibility?: 'focus' | 'pinned'
@@ -1250,6 +1417,183 @@ export interface ChartFocusState<
   group: readonly ChartPoint<TDatum, TXValue, TYValue>[]
   source: ChartFocusSource
   pinned: boolean
+}
+
+/** One or both Cartesian cursor coordinates. */
+export type ChartCursorCoordinates<TValue> =
+  | { readonly x: TValue; readonly y?: TValue }
+  | { readonly x?: TValue; readonly y: TValue }
+
+/** Local point identity used to disambiguate equal semantic cursor values. */
+export interface ChartCursorPointIdentity {
+  readonly key: string
+  readonly markId: string
+  readonly datumIndex: number
+}
+
+/** One or both semantic axis values carried by a cursor. */
+export type ChartCursorValues<
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | { readonly x: TXValue; readonly y?: TYValue }
+  | { readonly x?: TXValue; readonly y: TYValue }
+
+interface ChartCursorStateBase<
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+> {
+  /** The interaction that most recently changed this cursor. */
+  readonly source: ChartFocusSource
+  /** A pinned cursor survives pointer leave, cancellation, and blur. */
+  readonly pinned: boolean
+  /** Preferred series when a semantic focus cursor resolves multiple points. */
+  readonly group?: ChartKey | null
+  /**
+   * Optional host-local tie-breaker for equal semantic values. Consumers ignore
+   * it when the same point identity does not exist in their scene.
+   */
+  readonly origin?: ChartCursorPointIdentity
+  /** Coordinates in the scene that last emitted this state. */
+  readonly scene?: ChartCursorCoordinates<number>
+  /** Plot-relative coordinates where left/top are zero and right/bottom are one. */
+  readonly normalized?: ChartCursorCoordinates<number>
+  /** Semantic values resolved by focus or an authored free-cursor axis callback. */
+  readonly value?: ChartCursorValues<TXValue, TYValue>
+}
+
+/**
+ * App-owned cursor state. `anchor` identifies the authoritative coordinate
+ * space; the other coordinate fields are derived diagnostics from the host
+ * that most recently emitted the state.
+ */
+export type ChartCursorState<
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartCursorStateBase<TXValue, TYValue> &
+  (
+    | {
+        readonly anchor: 'scene'
+        readonly scene: ChartCursorCoordinates<number>
+      }
+    | {
+        readonly anchor: 'normalized'
+        readonly normalized: ChartCursorCoordinates<number>
+      }
+    | {
+        readonly anchor: 'value'
+        readonly value: ChartCursorValues<TXValue, TYValue>
+      }
+  )
+
+export type ChartCursorStateUpdater<
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | ChartCursorState<TXValue, TYValue>
+  | null
+  | ((
+      previous: ChartCursorState<TXValue, TYValue> | null,
+    ) => ChartCursorState<TXValue, TYValue> | null)
+
+/** Framework-neutral observable state shared by one or more chart hosts. */
+export interface ChartCursorController<
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  getState: () => ChartCursorState<TXValue, TYValue> | null
+  subscribe: (listener: () => void) => () => void
+  setState: (next: ChartCursorStateUpdater<TXValue, TYValue>) => void
+}
+
+export interface ChartCursorExtensionToken {
+  readonly id: string
+  readonly create: Function
+  readonly __chartExtensionType?: 'cursor'
+}
+
+export interface ChartCursorAxisContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  axis: 'x' | 'y'
+  scene: ChartScene<TDatum, TXValue, TYValue>
+  /** Position in chart-scene coordinates. */
+  position: number
+  /** Plot-relative position where left/top are zero and right/bottom are one. */
+  normalized: number
+}
+
+export interface ChartCursorAxisOptions<
+  TDatum,
+  TValue extends ChartValue,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+> {
+  /**
+   * Maps a free scene coordinate to a semantic value. The configured scale
+   * remains the owner of inversion and any precision policy.
+   */
+  valueAt?: (
+    context: ChartCursorAxisContext<TDatum, TXValue, TYValue>,
+  ) => TValue | undefined
+}
+
+export interface ChartFocusCursorBinding<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  use: ChartCursorExtensionToken
+  controller: ChartCursorController<TXValue, TYValue>
+  mode: 'focus'
+  /** Semantic axes shared between hosts. Defaults to `xy`. */
+  match?: 'x' | 'y' | 'xy'
+  /** Click, tap, Enter, or Space may pin and dismiss this cursor. */
+  pin?: boolean
+}
+
+export interface ChartFreeCursorBinding<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  use: ChartCursorExtensionToken
+  controller: ChartCursorController<TXValue, TYValue>
+  mode: 'free'
+  /** Click or tap may pin and dismiss this cursor. */
+  pin?: boolean
+  x?: ChartCursorAxisOptions<TDatum, TXValue, TXValue, TYValue>
+  y?: ChartCursorAxisOptions<TDatum, TYValue, TXValue, TYValue>
+}
+
+export type ChartCursorBinding<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | ChartFocusCursorBinding<TDatum, TXValue, TYValue>
+  | ChartFreeCursorBinding<TDatum, TXValue, TYValue>
+
+export interface ChartCursorAxisPresentation<
+  TValue extends ChartValue = ChartValue,
+> {
+  position: number
+  normalized: number
+  value?: TValue
+}
+
+/** Host-local projection of app-owned cursor state into the current scene. */
+export interface ChartCursorPresentation<
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  state: ChartCursorState<TXValue, TYValue>
+  /** Axes enabled by the consuming binding after focus-match policy. */
+  axes: 'x' | 'y' | 'xy'
+  x?: ChartCursorAxisPresentation<TXValue>
+  y?: ChartCursorAxisPresentation<TYValue>
 }
 
 export type ChartFocusMatch = 'primary' | 'group' | 'key' | 'x' | 'y' | 'series'
@@ -1391,6 +1735,7 @@ export interface ChartTooltipContent {
 }
 
 export interface ChartTooltipContentContext {
+  pinned: boolean
   xLabel: string
   yLabel: string
   formatX: (value: ChartValue) => string
@@ -1421,17 +1766,29 @@ export interface ChartFocusStrategy<
 > {
   resolve: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-    x: number,
-    y: number,
-    maxDistance: number,
+    context: ChartFocusResolveContext,
   ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
   group: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: ChartFocusGroupContext<TDatum, TXValue, TYValue>,
   ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
   navigation: (
     points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
   ) => readonly ChartPoint<TDatum, TXValue, TYValue>[]
+}
+
+export interface ChartFocusResolveContext {
+  x: number
+  y: number
+  maxDistance: number
+}
+
+export interface ChartFocusGroupContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  point: ChartPoint<TDatum, TXValue, TYValue>
 }
 
 export type ChartFocusPreset =
@@ -1441,7 +1798,7 @@ export type ChartFocusMode<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> = ChartFocusPreset | ChartFocusStrategy<TDatum, TXValue, TYValue>
+> = false | ChartFocusPreset | ChartFocusStrategy<TDatum, TXValue, TYValue>
 
 export interface ChartSpatialIndex<
   TDatum = unknown,
@@ -1455,13 +1812,21 @@ export interface ChartSpatialIndex<
   ) => ChartPoint<TDatum, TXValue, TYValue> | null
 }
 
+export interface ChartSpatialIndexFactoryContext<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  scene: ChartScene<TDatum, TXValue, TYValue>
+}
+
 export type ChartSpatialIndexFactory<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = (
   points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  scene: ChartScene<TDatum, TXValue, TYValue>,
+  context: ChartSpatialIndexFactoryContext<TDatum, TXValue, TYValue>,
 ) => ChartSpatialIndex<TDatum, TXValue, TYValue>
 
 export interface ChartRuntime<

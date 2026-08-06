@@ -16,7 +16,9 @@ selection, or product record.
 | Reader task                                                  | Start with                                     |
 | ------------------------------------------------------------ | ---------------------------------------------- |
 | Inspect one point or a same-x group                          | Native chart focus and tooltip                 |
-| Paint a band, rule, or mark only for the active datum/group  | `whenFocused` around an ordinary mark          |
+| Follow focus with one rule or crosshair                      | Data-less `crosshair` mark                     |
+| Paint existing geometry for the active datum/group           | `whenFocused` around an ordinary mark          |
+| Synchronize focus or free coordinates between charts         | Shared `createChartCursor` controller          |
 | Resize, recolor, or fade existing marks during focus         | Inline mark `states`                           |
 | Keep rich framework detail open, including another chart     | Pinned composed tooltip body                   |
 | Navigate a wide schedule without changing its semantic scale | Native horizontal scrolling                    |
@@ -77,15 +79,63 @@ marks: [
 [Open the grouped focus example](https://tanstack.com/charts/catalog/35-grouped-tooltip/)
 to inspect its live chart and complete source.
 
-## Pin rich nested detail
+## Follow focus with a crosshair
 
-A rich tooltip can compose framework UI, including a second chart, inside the
-native tooltip body. This example keeps hover as chart focus only and mounts
-the detail after click or keyboard activation.
+A crosshair is one dynamic guide driven by the existing focus state. It is not
+one hidden rule per datum:
+
+```ts
+marks: [
+  crosshair({
+    x: {
+      band: {
+        inset: 0,
+        radius: 3,
+        fill: '#64748b',
+        fillOpacity: 0.16,
+      },
+      label: true,
+    },
+    y: false,
+  }),
+  barY(rows, { x: 'period', y: 'value', color: 'series', inset: 4 }),
+  crosshair({
+    x: false,
+    y: { strokeDasharray: '4 4', label: true },
+  }),
+]
+```
+
+It follows pointer and keyboard focus, stays out of hit testing, and renders
+through SVG, Canvas, motion, and native focus presentation. The first guide
+uses categorical bandwidth to paint below the bars; with bar inset 4 and band
+inset 0, it extends 4 pixels past each bar edge. Its x label shows the focused
+period. The second guide paints the dotted y rule above the bars and labels the
+focused stack endpoint. Set `maxFocusDistance` to
+`Number.POSITIVE_INFINITY` only when the guides should remain snapped across
+the complete plot.
+
+[Open the stacked cursor-band example](https://tanstack.com/charts/catalog/119-stacked-bar-band-cursor/)
+to inspect the live chart and complete source.
+
+For synchronized charts or a free two-dimensional cursor, create one
+controller from `@tanstack/charts/cursor` and bind it through definition
+`cursor`. Focus mode shares semantic x/y values and local charts map them to
+their own pixels. Free mode shares controlled coordinates without selecting a
+datum. The complete state and inversion examples are in
+[Interactions and Selections](../guides/interactions-and-selections.md#cursors-and-crosshairs).
+
+## Pin and expand rich detail
+
+This energy tooltip stays compact on hover or keyboard focus. Click, Enter, or
+Space pins the same surface, adds solar coverage to its native rows, and
+smoothly reveals the detailed consumption and generation breakdown, including
+an ordinary nested chart. Hover remains chart focus only; framework detail
+mounts after click or keyboard activation.
 
 <iframe
   src="https://tanstack.com/charts/catalog/embed/84-pinned-nested-chart-tooltip/?theme=system&height=500"
-  title="Pinned rich tooltip containing a nested detail chart"
+  title="Monthly energy chart with a compact tooltip that expands when pinned"
   loading="lazy"
   width="100%"
   height="500"
@@ -98,9 +148,34 @@ adapter body receives the pinned point and mounts an ordinary nested chart.
 The application retains only the same-species cohort policy, close-button
 presentation, and child-chart content.
 
+The definition's `content` callback receives `pinned`, so it can keep the
+transient summary short and add structured rows only after activation. The
+React `renderTooltipBody` callback receives that updated `defaultBody` and the
+same pinned state:
+
+```tsx
+<TooltipChart
+  definition={definition}
+  renderTooltipBody={({ points, defaultBody, pinned, dismiss }) => (
+    <EnergyTooltip
+      month={points[0].datum}
+      summary={defaultBody}
+      expanded={pinned}
+      onClose={dismiss}
+    />
+  )}
+/>
+```
+
+The detail wrapper stays mounted and transitions from
+`grid-template-rows: 0fr` to `1fr`; its direct child uses `min-height: 0` and
+`overflow: hidden`. This animates intrinsic height without measuring content.
+The transient body remains inert, controls render only while pinned, and the
+nested consumption chart has its own accessible label and lifecycle.
+
 Add the `portal` extension to escape clipped ancestors and use viewport
-collision handling. Wire a close button to `dismiss`; the host restores chart
-focus when dismissal starts inside the body.
+collision handling. Wire the close button to `dismiss`; the shared host also
+owns Escape, focus return, and non-modal dialog semantics.
 
 ## Scroll a wide schedule
 
@@ -193,6 +268,7 @@ Application-owned interaction state should be semantic:
 - Scroll offset
 - Playback index
 - Pinned datum key
+- Shared cursor x/y value
 
 Pixel geometry is derived from `scene.chart` and resolved scales on each
 render. This keeps state valid after responsive layout, font changes, and

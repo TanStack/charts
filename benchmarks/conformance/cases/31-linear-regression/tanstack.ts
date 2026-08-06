@@ -1,7 +1,8 @@
 import { cars } from '@charts-poc/demo-data/cars'
 import { defineChart, dot, linearRegressionY } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
 import type { ConformanceInput } from '../../types'
 
@@ -15,14 +16,20 @@ export const completeCars = cars.filter(
     row['power (hp)'] !== null && row['economy (mpg)'] !== null,
 )
 
-export const regressionDefinition = (input: ConformanceInput) => {
-  const rows = completeCars.slice(input.revision * 8, input.revision * 8 + 320)
+function regressionRows(input: ConformanceInput) {
+  return completeCars.slice(input.revision * 8, input.revision * 8 + 320)
+}
 
+function regressionChart(
+  rows: readonly CompleteCar[],
+  scatterRows: readonly CompleteCar[],
+) {
   return defineChart({
     marks: [
-      dot(rows, {
+      dot(scatterRows, {
         x: 'power (hp)',
         y: 'economy (mpg)',
+        key: (row) => JSON.stringify([row.name, row.year, row['weight (lb)']]),
         fill: '#93c5fd',
         stroke: '#2563eb',
         r: 3,
@@ -45,6 +52,22 @@ export const regressionDefinition = (input: ConformanceInput) => {
   })
 }
 
+export const regressionDefinition = (input: ConformanceInput) => {
+  const rows = regressionRows(input)
+  return regressionChart(rows, rows)
+}
+
+const catalogRegressionDefinition = (input: ConformanceInput) => {
+  const rows = regressionRows(input)
+  return regressionChart(
+    rows,
+    samplePreviewData(rows, input, 80, [
+      (row) => row['power (hp)'],
+      (row) => row['economy (mpg)'],
+    ]),
+  )
+}
+
 export const mount = tanstackMount(
   regressionDefinition,
   'Scatterplot with linear regression',
@@ -60,4 +83,10 @@ export const mount = tanstackMount(
             maximumFractionDigits: 1,
           })} mpg`,
   },
+)
+
+export const catalogCase = tanstackCase(
+  catalogRegressionDefinition,
+  mount.ariaLabel,
+  mount.interactiveTooltip,
 )

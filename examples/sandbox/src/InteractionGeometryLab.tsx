@@ -93,7 +93,7 @@ const canvasProofIds = new Set<string>([
 
 export const legacyPointFocus: ChartFocusStrategy<ProofDatum, number, number> =
   {
-    resolve(points, x, y, maxDistance) {
+    resolve(points, { x, y, maxDistance }) {
       let nearest: ChartPoint<ProofDatum, number, number> | undefined
       let nearestDistance = Number.POSITIVE_INFINITY
       for (const point of points) {
@@ -107,7 +107,7 @@ export const legacyPointFocus: ChartFocusStrategy<ProofDatum, number, number> =
         ? [nearest]
         : []
     },
-    group(_points, point) {
+    group(_points, { point }) {
       return [point]
     },
     navigation(points) {

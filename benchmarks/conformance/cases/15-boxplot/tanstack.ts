@@ -1,7 +1,7 @@
 import { boxY, defineChart } from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { morley } from '@charts-poc/demo-data/morley'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 export const boxplotDefinition = () =>
   defineChart({
@@ -10,7 +10,7 @@ export const boxplotDefinition = () =>
         id: 'morley-boxplot',
         x: 'Expt',
         y: 'Speed',
-        key: 'Run',
+        key: (row) => `${row.Expt}:${row.Run}`,
         fill: '#bfdbfe',
         stroke: '#2563eb',
         inset: 18,
@@ -28,7 +28,7 @@ export const boxplotDefinition = () =>
     },
   })
 
-export const mount = tanstackMount(boxplotDefinition, 'Grouped boxplots', {
+export const catalogCase = tanstackCase(boxplotDefinition, 'Grouped boxplots', {
   format: ({ datum }) =>
     datum.kind === 'summary'
       ? `Experiment ${datum.category} · median ${datum.median.toLocaleString(
@@ -48,3 +48,5 @@ export const mount = tanstackMount(boxplotDefinition, 'Grouped boxplots', {
           },
         )}`,
 })
+
+export const mount = catalogCase.mount

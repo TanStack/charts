@@ -10,7 +10,7 @@ import { fold } from '@tanstack/charts/transform/fold'
 import { decathlon } from '@charts-poc/demo-data/decathlon'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { decathlonEvents, timedEvents } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 const colors = [
   '#2563eb',
@@ -72,7 +72,9 @@ export const parallelCoordinatesDefinition = () =>
     },
   })
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   parallelCoordinatesDefinition,
   'Parallel coordinates model comparison',
 )
+
+export const mount = catalogCase.mount

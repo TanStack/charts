@@ -23,6 +23,15 @@ export type {
   BoxYDatum,
   BoxYOptions,
 } from './box'
+export { crosshair } from './crosshair'
+export type {
+  CrosshairAxisOptions,
+  CrosshairBandOptions,
+  CrosshairLabelOptions,
+  CrosshairMarkerOptions,
+  CrosshairOptions,
+  CrosshairRuleOptions,
+} from './crosshair'
 export { d3Curve } from './d3-shape'
 export { differenceX, differenceY } from './difference'
 export type {
@@ -46,12 +55,13 @@ export type {
 export { dot } from './dot'
 export type { DotOptions } from './dot'
 export { facet, facetChart } from './facet'
-export type { FacetAxes, FacetOptions } from './facet'
+export type { FacetAxes, FacetChartContext, FacetOptions } from './facet'
 export { frame } from './frame'
 export type { FrameOptions } from './frame'
 export { whenFocused } from './focus-mark'
 export { focusedSceneNodes, resolveFocusScene } from './focus-layer'
 export type { ResolvedFocusScene } from './focus-layer'
+export { resolveFocusPresentation } from './focus-presentation'
 export { group } from './group'
 export type { GroupLayout, GroupOptions } from './group'
 export { hexagon } from './hexagon'
@@ -92,6 +102,7 @@ export {
   defaultChartTheme,
   defineChart,
   findNearestPoint,
+  viewportInteractionPoints,
 } from './scene'
 export { renderChartSvg } from './svg'
 export { stack } from './stack'
@@ -218,6 +229,9 @@ export type {
   ChartHost,
   ChartHostCommonOptions,
   ChartHostOptions,
+  ChartInteractionController,
+  ChartControlledFocusOptions,
+  ChartPointerResolution,
   ChartRenderContext,
   ChartRenderer,
   ChartRendererHost,
@@ -239,6 +253,7 @@ export type {
 export type {
   Channel,
   ChannelAccessor,
+  ChannelAccessorContext,
   ChannelField,
   ChannelOutput,
   DynamicChartDefinition,
@@ -248,6 +263,7 @@ export type {
   MarkRenderContext,
   MarkResolvedLayoutContext,
   MarkScene,
+  MarkFocusGuide,
   MaterializedChannel,
   ResolvedLayoutMarkInitialization,
   ResolvedMarkLayout,
@@ -259,6 +275,7 @@ export type {
   ChartAxisTickLabelThinOptions,
   ChartAxisTickLabelValue,
   ChartAxisTickOptions,
+  ChartAxisViewportOptions,
   ChartAxisValue,
   ChartAnimationOptions,
   ChartBehavior,
@@ -273,20 +290,40 @@ export type {
   ChartColorScaleContext,
   ResolvedColorScaleKind,
   InferableColorScaleLike,
+  ChartCursorAxisContext,
+  ChartCursorAxisOptions,
+  ChartCursorAxisPresentation,
+  ChartCursorBinding,
+  ChartCursorController,
+  ChartCursorCoordinates,
+  ChartCursorExtensionToken,
+  ChartCursorPointIdentity,
+  ChartCursorPresentation,
+  ChartCursorState,
+  ChartCursorStateUpdater,
+  ChartCursorValues,
   ChartColorLegend,
   ChartColorLegendContext,
+  ChartContinuousDomain,
+  ChartContinuousValue,
   ChartCurve,
   ChartDefinition,
   ChartDefinitionOptions,
   ChartExtensionInput,
+  ChartFocusAnchor,
+  ChartFocusCursorBinding,
+  ChartFocusPresentation,
   ChartFocusMode,
   ChartFocusFilter,
   ChartFocusAffinity,
+  ChartFocusGroupContext,
   ChartFocusMatch,
   ChartFocusPreset,
+  ChartFocusResolveContext,
   ChartFocusSource,
   ChartFocusState,
   ChartFocusStrategy,
+  ChartFreeCursorBinding,
   ChartGradientStop,
   ChartKey,
   ChartLayoutOptions,
@@ -314,6 +351,8 @@ export type {
   ChartMotionContext,
   ChartMotionDefinition,
   ChartMotionPhase,
+  ChartMotionPath,
+  ChartRollingPathMotion,
   ChartMotionRole,
   ChartMotionSpringTransition,
   ChartMotionTiming,
@@ -333,6 +372,7 @@ export type {
   ChartSize,
   ChartSpatialIndex,
   ChartSpatialIndexFactory,
+  ChartSpatialIndexFactoryContext,
   ChartSpecDatum,
   ChartSpecXValue,
   ChartSpecYValue,
@@ -373,9 +413,17 @@ export type {
   RenderChartSvgOptions,
   RenderChartOptions,
   ResolvedScale,
+  ResolvedScaleViewport,
   ResolvedColorScale,
   SceneDot,
   SceneArea,
+  SceneFocusGuide,
+  SceneFocusGuideAxis,
+  SceneFocusGuideBand,
+  SceneFocusGuideLabel,
+  SceneFocusGuideMarker,
+  SceneFocusGuideResolveContext,
+  SceneFocusGuideResolver,
   SceneInteraction,
   SceneGroup,
   SceneLabel,

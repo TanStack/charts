@@ -1,6 +1,7 @@
 import { colorLegend, defineChart, waffleY } from '@tanstack/charts'
 import { alphabet } from '@charts-poc/demo-data/alphabet'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
 
 const colors = [
   '#8b5cf6',
@@ -12,7 +13,7 @@ const colors = [
 ]
 const letters = alphabet.map((row) => row.letter)
 
-const definition = () =>
+const waffleDefinition = (showLegend: boolean) =>
   defineChart({
     marks: [
       waffleY(alphabet, {
@@ -29,11 +30,22 @@ const definition = () =>
     color: {
       domain: letters,
       range: colors,
-      legend: colorLegend({ label: 'Letter' }),
+      ...(showLegend ? { legend: colorLegend({ label: 'Letter' }) } : {}),
     },
   })
+
+const definition = () => waffleDefinition(true)
+
+const catalogDefinition = (input: ConformanceInput) =>
+  waffleDefinition(input.preview !== true)
 
 export const mount = tanstackMount(
   definition,
   'English letter frequency waffle chart',
+)
+
+export const catalogCase = tanstackCase(
+  catalogDefinition,
+  mount.ariaLabel,
+  mount.interactiveTooltip,
 )

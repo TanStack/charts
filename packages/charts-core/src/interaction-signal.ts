@@ -1,6 +1,13 @@
+export interface ControlledSignalChangeContext<TReason> {
+  readonly reason: TReason
+}
+
 export interface ControlledSignal<TValue, TReason = unknown> {
   readonly value: TValue
-  readonly onChange: (value: TValue, reason: TReason) => void
+  readonly onChange: (
+    value: TValue,
+    context: ControlledSignalChangeContext<TReason>,
+  ) => void
 }
 
 /**
@@ -9,7 +16,10 @@ export interface ControlledSignal<TValue, TReason = unknown> {
  */
 export function controlledSignal<TValue, TReason = unknown>(
   value: TValue,
-  onChange: (value: TValue, reason: TReason) => void,
+  onChange: (
+    value: TValue,
+    context: ControlledSignalChangeContext<TReason>,
+  ) => void,
 ): ControlledSignal<TValue, TReason> {
   return { value, onChange }
 }

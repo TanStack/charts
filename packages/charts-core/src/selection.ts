@@ -31,6 +31,14 @@ export type KeyedSelectionChange<
       source: ChartSelectionSource
     }
 
+export interface KeyedSelectionKeyContext<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  readonly point: ChartPoint<TDatum, TXValue, TYValue>
+}
+
 export interface KeyedSelectionOptions<
   TDatum,
   TKey extends ChartKey,
@@ -44,7 +52,7 @@ export interface KeyedSelectionOptions<
   /** Return null or undefined when a point is not selectable. */
   key: (
     datum: TDatum,
-    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: KeyedSelectionKeyContext<TDatum, TXValue, TYValue>,
   ) => TKey | null | undefined
 }
 
@@ -72,7 +80,7 @@ export function keyedSelection<
 ): KeyedSelection<TDatum, TKey, TXValue, TYValue> {
   const matches = (point: ChartPoint<TDatum, TXValue, TYValue>) => {
     const selected = options.selected.value
-    const key = options.key(point.datum, point)
+    const key = options.key(point.datum, { point })
     return (
       selected !== null &&
       key !== null &&
@@ -88,23 +96,27 @@ export function keyedSelection<
     matches,
     change(point, source) {
       if (point) {
-        const next = options.key(point.datum, point)
+        const next = options.key(point.datum, { point })
         if (next === null || next === undefined) return
         options.selected.onChange(next, {
-          type: 'select',
-          value: next,
-          point,
-          source,
+          reason: {
+            type: 'select',
+            value: next,
+            point,
+            source,
+          },
         })
         return
       }
       if (options.selected.value === null) return
       const next = null
       options.selected.onChange(next, {
-        type: 'clear',
-        value: next,
-        point,
-        source,
+        reason: {
+          type: 'clear',
+          value: next,
+          point,
+          source,
+        },
       })
     },
   }

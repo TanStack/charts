@@ -85,9 +85,10 @@ The client renders the same initial structure, then the layout effect adopts
 and reconciles that SVG. There is no placeholder-only server mode.
 
 The Canvas entry emits the same outer structure with a named Canvas root and
-three `aria-hidden` canvases. It does not paint pixels on the server. The client
-adopts those elements, paints after mount, and attaches the same focus,
-keyboard, tooltip, and selection host.
+five `aria-hidden` canvases: one hidden stable base bitmap and four live paint
+layers. It does not paint pixels on the server. The client adopts those
+elements, paints after mount, and attaches the same focus, keyboard, tooltip,
+and selection host.
 
 Use deterministic data, scale domains, definitions, dimensions, and custom
 renderers on server and client. The adapter generates a sanitized `idPrefix`
@@ -97,9 +98,9 @@ stable through hydration.
 `tabIndex` defaults to `0` on both server and client. `keyboard: false` forces
 it to `-1`.
 
-For resource-aware gradients or clipping, pass the same renderer on both
-server and client. See
-[Rendering and export](../../reference/rendering-and-export.md#resource-aware-svg).
+The default SVG renderer emits gradients and clipping on both server and
+client. Custom serializers must preserve the same resources. See
+[Rendering and export](../../reference/rendering-and-export.md#svg-resources).
 
 ## Sizing and layout
 
@@ -200,10 +201,10 @@ Callback types are inferred from the definition's marks.
 The adapter does not redefine:
 
 - marks or chart specs
-- D3 scale and transform ownership
+- scale selection and D3 transform ownership
 - tooltip and focus semantics
 - animation and reconciliation
 - custom marks or renderers
 
-Use [Scales and D3](../../concepts/scales-and-d3.md) for the injected primitive
+Use [Scales](../../concepts/scales-and-d3.md) for the injected primitive
 boundary and the [core reference](../../reference/index.md) for those APIs.

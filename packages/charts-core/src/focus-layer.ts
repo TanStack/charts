@@ -5,9 +5,14 @@ import {
   type ScenePointLookup,
 } from './scene-point-ownership-internal'
 import type {
+  ChartCursorPresentation,
+  ChartFocusAnchor,
+  ChartFocusPresentation,
   ChartFocusState,
   ChartPoint,
   ChartScene,
+  ChartTooltipPosition,
+  SceneFocusGuide,
   SceneGroup,
   SceneNode,
 } from './types'
@@ -18,6 +23,50 @@ export interface ResolvedFocusScene<TScene extends ChartScene = ChartScene> {
 }
 
 const emptyPoints: readonly ChartPoint[] = []
+
+export function resolveFocusPresentation(
+  scene: ChartScene,
+  focus: ChartFocusState | null,
+  pointer?: ChartTooltipPosition | null,
+  cursor?: ChartCursorPresentation | null,
+): ChartFocusPresentation {
+  const focusedScene = resolveFocusScene(scene, focus).scene
+  const focusedUnder = focusedSceneNodes(focusedScene, focus, 'under')
+  const focusedOver = focusedSceneNodes(focusedScene, focus, 'over')
+  const guides = resolveFocusGuides(scene, focus, pointer, cursor)
+  return {
+    under: [...guides.under, ...focusedUnder],
+    over: [...focusedOver, ...guides.over],
+  }
+}
+
+/** Resolves only renderer-native guide marks, excluding authored focus layers. */
+export function resolveFocusGuides(
+  scene: ChartScene,
+  focus: ChartFocusState | null,
+  pointer?: ChartTooltipPosition | null,
+  cursor?: ChartCursorPresentation | null,
+): ChartFocusPresentation {
+  const under: SceneNode[] = []
+  const over: SceneNode[] = []
+  if (!cursor && !focus) return { under, over }
+
+  for (const guide of scene.focusGuides ?? []) {
+    const localFocus = focus && guideOwnsFocus(guide, focus) ? focus : null
+    if (!cursor && focus && !localFocus) continue
+    const node = guide.resolve({
+      scene,
+      guide,
+      focus: localFocus,
+      pointer,
+      cursor,
+    })
+    if (!node) continue
+    ;(guide.placement === 'under' ? under : over).push(node)
+  }
+
+  return { under, over }
+}
 
 /** Resolves retargeting focus candidates into stable selected scene children. */
 export function resolveFocusScene<TScene extends ChartScene>(
@@ -32,7 +81,7 @@ export function resolveFocusScene<TScene extends ChartScene>(
       if (node.kind !== 'group') return node
       if (node.focus?.retarget) {
         const points = node.focus.points.filter((point) =>
-          matchesFocusPoint(point, focus, node.focus!.match),
+          matchesFocusAnchor(point, focus, node.focus!.match),
         )
         const selected = stabilizeSelectedNodes(
           filterNodes(
@@ -83,8 +132,18 @@ export function focusedNodeKeys(
     visitNodes(layer.children, (node) => keys.add(node.key))
     return keys
   }
+  if (layer.focus.anchors) {
+    const anchors = layer.focus.anchors.filter((anchor) =>
+      matchesFocusAnchor(anchor, focus, layer.focus!.match),
+    )
+    const keys = new Set<string>()
+    visitNodes(filterNodesByAnchors(layer.children, anchors), (node) =>
+      keys.add(node.key),
+    )
+    return keys
+  }
   const points = layer.focus.points.filter((point) =>
-    matchesFocusPoint(point, focus, layer.focus!.match),
+    matchesFocusAnchor(point, focus, layer.focus!.match),
   )
   const filtered = filterNodes(layer.children, points, layer.focus.points)
   const keys = new Set<string>()
@@ -108,8 +167,17 @@ function collectFocusedNodes(
         }
         continue
       }
+      if (node.focus.anchors) {
+        const anchors = node.focus.anchors.filter((anchor) =>
+          matchesFocusAnchor(anchor, focus, node.focus!.match),
+        )
+        const children = filterNodesByAnchors(node.children, anchors)
+        if (children.length)
+          output.push({ ...node, focus: undefined, children })
+        continue
+      }
       const points = node.focus.points.filter((point) =>
-        matchesFocusPoint(point, focus, node.focus!.match),
+        matchesFocusAnchor(point, focus, node.focus!.match),
       )
       const children = filterNodes(node.children, points, node.focus.points)
       if (children.length) output.push({ ...node, focus: undefined, children })
@@ -132,6 +200,30 @@ function filterNodes(
     candidatePoints,
     createScenePointLookup(candidatePoints),
   )
+}
+
+function filterNodesByAnchors(
+  nodes: readonly SceneNode[],
+  anchors: readonly ChartFocusAnchor[],
+): SceneNode[] {
+  const output: SceneNode[] = []
+  for (const node of nodes) {
+    if (node.kind !== 'group') {
+      if (anchors.some((anchor) => keysRelate(node.key, anchor.key))) {
+        output.push(node)
+      }
+      continue
+    }
+    const children = filterNodesByAnchors(node.children, anchors)
+    if (children.length) {
+      output.push({ ...node, children })
+    } else if (
+      anchors.some((anchor) => anchor.key.startsWith(`${node.key}:`))
+    ) {
+      output.push(node)
+    }
+  }
+  return output
 }
 
 function filterNodesWithLookup(
@@ -301,16 +393,22 @@ function exactKeyPoints(
   return candidatePoints.filter((point) => point.key === key)
 }
 
-export function matchesFocusPoint(
-  candidate: ChartPoint,
+export function matchesFocusAnchor(
+  candidate: ChartFocusAnchor,
   focus: ChartFocusState,
   match: NonNullable<SceneGroup['focus']>['match'],
 ) {
   if (match === 'x') {
-    return sameValue(candidate.xValue, focus.primary.xValue)
+    return (
+      candidate.xValue !== undefined &&
+      sameValue(candidate.xValue, focus.primary.xValue)
+    )
   }
   if (match === 'y') {
-    return sameValue(candidate.yValue, focus.primary.yValue)
+    return (
+      candidate.yValue !== undefined &&
+      sameValue(candidate.yValue, focus.primary.yValue)
+    )
   }
   if (match === 'series') {
     return sameValue(candidate.group, focus.primary.group)
@@ -327,10 +425,21 @@ export function matchesFocusPoint(
   return sameFocusedPoint(candidate, focus.primary)
 }
 
-function sameFocusedPoint(left: ChartPoint, right: ChartPoint) {
+/** @deprecated Use `matchesFocusAnchor`; points are valid focus anchors. */
+export const matchesFocusPoint = matchesFocusAnchor
+
+function sameFocusedPoint(left: ChartFocusAnchor, right: ChartFocusAnchor) {
   if (left === right || left.key === right.key) return true
   if (!Object.is(left.datum, right.datum)) return false
   return isReference(left.datum) || left.datumIndex === right.datumIndex
+}
+
+function keysRelate(left: string, right: string) {
+  return (
+    left === right ||
+    left.startsWith(`${right}:`) ||
+    right.startsWith(`${left}:`)
+  )
 }
 
 function sameValue(left: unknown, right: unknown) {
@@ -351,4 +460,15 @@ function visitNodes(
     visit(node)
     if (node.kind === 'group') visitNodes(node.children, visit)
   }
+}
+
+function guideOwnsFocus(
+  guide: SceneFocusGuide,
+  focus: ChartFocusState,
+): boolean {
+  return (
+    guide.scope === undefined ||
+    focus.primary.key === guide.scope ||
+    focus.primary.key.startsWith(`${guide.scope}:`)
+  )
 }

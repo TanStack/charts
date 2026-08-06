@@ -4,13 +4,14 @@ import { voronoi } from '@tanstack/charts/spatial/voronoi'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { scaleLinear } from 'd3-scale'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
-import type { ChartHostOptions } from '@tanstack/charts'
+import type { ChartHostOptions, ChartTooltipOptions } from '@tanstack/charts'
 import type {
   ConformanceHandle,
   ConformanceInput,
   ConformanceMount,
   ConformanceTestDriver,
 } from '../../types'
+import { tanstackCase } from '../../shared/mount'
 
 type CompleteCar = CarsRow & {
   readonly 'economy (mpg)': number
@@ -51,21 +52,30 @@ const definition = (rows: readonly CompleteCar[]) =>
     },
   })
 
+const interactiveTooltip: ChartTooltipOptions<CompleteCar> = {
+  anchor: 'pointer',
+  items: [
+    {
+      id: 'car',
+      label: 'Car',
+      text: (point) => `${point.datum.name} · ${cylinderLabel(point.datum)}`,
+    },
+  ],
+}
+
+export const catalogCase = tanstackCase(
+  (input) => definition(selectedCars(input.revision)),
+  'Voronoi nearest-point interaction',
+  interactiveTooltip,
+)
+
 const configuredDefinition = (rows: readonly CompleteCar[]) =>
   defineChart(definition(rows), {
     animate: false,
     keyboard: true,
     tooltip: {
       use: tooltip,
-      anchor: 'pointer',
-      items: [
-        {
-          id: 'car',
-          label: 'Car',
-          text: (point) =>
-            `${point.datum.name} · ${cylinderLabel(point.datum)}`,
-        },
-      ],
+      ...interactiveTooltip,
     },
   })
 

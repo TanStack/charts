@@ -10,7 +10,7 @@ import {
 } from '@tanstack/charts'
 import type { TransformReduceContext } from '@tanstack/charts'
 import { scaleBand, scaleLinear } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const estimate = new Intl.NumberFormat('en-US', {
@@ -65,6 +65,7 @@ export const errorBarsDefinition = (input: ConformanceInput) => {
         id: 'error-mean',
         x: 'species',
         y: 'mean',
+        key: 'species',
         fill: '#2563eb',
         r: 3.5,
       }),
@@ -76,7 +77,7 @@ export const errorBarsDefinition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   errorBarsDefinition,
   'Point estimates with error bars',
   {
@@ -84,3 +85,5 @@ export const mount = tanstackMount(
       `${point.datum.species} · Mean: ${estimate.format(point.datum.mean)} g · Range: ${estimate.format(point.datum.mean - point.datum.deviation)}–${estimate.format(point.datum.mean + point.datum.deviation)} g`,
   },
 )
+
+export const mount = catalogCase.mount

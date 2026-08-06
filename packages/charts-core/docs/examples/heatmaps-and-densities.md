@@ -70,7 +70,7 @@ cells depends on the chosen grid, not directly on the number of raw points.
 Prepare explicit x and y interval endpoints plus the aggregate value. Use
 thresholds that are stable across comparable views and a color domain that
 states whether absolute count or normalized density is being shown. See
-[Scales and D3](../concepts/scales-and-d3.md) for binning and scale ownership.
+[Scales](../concepts/scales-and-d3.md) for binning and scale ownership.
 
 ## Trace levels through a scalar grid
 

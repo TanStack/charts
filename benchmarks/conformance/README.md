@@ -262,7 +262,7 @@ comparison.
 
 ## Current scope
 
-The executable corpus contains 108 paired cases: 74 sourced from Observable
+The executable corpus contains 110 paired cases: 76 sourced from Observable
 Plot, 23 from Recharts, and 11 from Apache ECharts. It spans the common
 cartesian vocabulary plus the high-value catalog beyond it:
 
@@ -300,7 +300,7 @@ pointer, native horizontal resource scrolling, streaming-window preservation,
 synchronized multi-view cursors, a free two-dimensional cursor, continuous
 brush selection, wheel zoom and pan, timeline scrubbing, and editable event
 ranges. Focus-plus-context uses Plot as its reference. Together with the
-original tooltip cases, 16 cases carry executable interaction scenarios.
+original tooltip cases, 19 cases carry executable interaction scenarios.
 
 All declared interaction scenarios and the prior 79-case full-corpus visual
 matrix pass across both renderers, initial/revised data, 320/640/960 px, and

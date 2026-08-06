@@ -1,17 +1,20 @@
 import { flare } from '@charts-poc/demo-data/flare'
 import { defineChart, dot } from '@tanstack/charts'
 import { scaleLinear, scaleLog } from 'd3-scale'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { FlareRow } from '@charts-poc/demo-data/flare'
 import type { ConformanceInput } from '../../types'
 
 type SizedFlareRow = FlareRow & { readonly size: number }
 
-export const logScaleScatterDefinition = (input: ConformanceInput) => {
-  const rows = flare
+function logScaleRows(input: ConformanceInput) {
+  return flare
     .filter((row): row is SizedFlareRow => row.size !== null && row.size > 0)
     .slice(input.revision * 8, input.revision * 8 + 200)
+}
 
+function logScaleChart(rows: readonly SizedFlareRow[]) {
   return defineChart({
     marks: [
       dot(rows, {
@@ -40,7 +43,26 @@ export const logScaleScatterDefinition = (input: ConformanceInput) => {
   })
 }
 
+export const logScaleScatterDefinition = (input: ConformanceInput) =>
+  logScaleChart(logScaleRows(input))
+
+const catalogLogScaleDefinition = (input: ConformanceInput) => {
+  const rows = logScaleRows(input)
+  return logScaleChart(
+    samplePreviewData(rows, input, 80, [
+      (row) => row.size,
+      (row) => row.name.split('.').length - 1,
+    ]),
+  )
+}
+
 export const mount = tanstackMount(
   logScaleScatterDefinition,
   'Flare class size on a logarithmic scale',
+)
+
+export const catalogCase = tanstackCase(
+  catalogLogScaleDefinition,
+  mount.ariaLabel,
+  mount.interactiveTooltip,
 )

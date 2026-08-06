@@ -4,6 +4,7 @@ import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleLinear } from 'd3-scale'
 import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { morphData, morphModes } from './model'
+import { tanstackCase } from '../../shared/mount'
 import type {
   ChartMotionDefinition,
   ChartPoint,
@@ -188,6 +189,12 @@ export function geometryMorphDefinition(
     margin: 0,
   })
 }
+
+export const catalogCase = tanstackCase(
+  (input) =>
+    geometryMorphDefinition(morphData, modeForRevision(input.revision)),
+  'Data morphing between bars, line, area, rose, and bubbles',
+)
 
 interface NormalizedTopologyMarkOptions {
   id: string

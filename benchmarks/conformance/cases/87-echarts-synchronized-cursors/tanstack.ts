@@ -9,6 +9,7 @@ import {
   clientPointBounds,
   scenePointToClient,
 } from '../../shared/driver-geometry'
+import { tanstackCase } from '../../shared/mount'
 import { synchronizedCursorColors } from './colors'
 import {
   synchronizedCursorAnchorDate,
@@ -23,6 +24,7 @@ import { createSynchronizedSummary, updateSynchronizedSummary } from './summary'
 import type {
   ChartHostOptions,
   ChartScene,
+  ChartTooltipOptions,
   SceneGroup,
   SceneNode,
 } from '@tanstack/charts'
@@ -52,6 +54,15 @@ const month = new Intl.DateTimeFormat('en-US', {
   timeZone: 'UTC',
 })
 
+const synchronizedCursorTooltip: ChartTooltipOptions<TravelersRow> = {
+  sticky: true,
+  visibility: 'pinned',
+  anchor: 'point',
+  placement: ['bottom-right', 'bottom-left', 'right', 'left'],
+  offset: 10,
+  formatGroup: () => 'Pinned · Press Escape to release',
+}
+
 export const synchronizedCursorDefinition = (input: ConformanceInput) => {
   const rows = selectSynchronizedCursorData(travelers, input.revision)
   const composed = viewGrid({
@@ -76,12 +87,7 @@ export const synchronizedCursorDefinition = (input: ConformanceInput) => {
     maxFocusDistance: Number.POSITIVE_INFINITY,
     tooltip: {
       use: tooltip,
-      sticky: true,
-      visibility: 'pinned',
-      anchor: 'point',
-      placement: ['bottom-right', 'bottom-left', 'right', 'left'],
-      offset: 10,
-      formatGroup: () => 'Pinned · Press Escape to release',
+      ...synchronizedCursorTooltip,
     },
   })
 }
@@ -147,6 +153,12 @@ function synchronizedCursorViewDefinition(
     margin: viewMargin,
   })
 }
+
+export const catalogCase = tanstackCase(
+  synchronizedCursorDefinition,
+  'Linked 2020 and 2019 airport traveler time series',
+  synchronizedCursorTooltip,
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

@@ -56,6 +56,31 @@ export function reconcileChartSvg(
   return animation ? runTweens(container, tweens, animation) : () => {}
 }
 
+/** Reconciles one keyed SVG subtree without reparsing or walking the chart. */
+export function reconcileChartSvgFragment(
+  currentRoot: SVGElement,
+  markup: string,
+  animation?: ChartAnimationOptions,
+): () => void {
+  const template = currentRoot.ownerDocument.createElement('template')
+  template.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg">${markup}</svg>`
+  const wrapper = template.content.firstElementChild
+  const nextRoot = wrapper?.firstElementChild
+  if (!nextRoot) return () => {}
+
+  if (
+    currentRoot.namespaceURI !== nextRoot.namespaceURI ||
+    currentRoot.localName !== nextRoot.localName
+  ) {
+    currentRoot.replaceWith(nextRoot)
+    return () => {}
+  }
+
+  const tweens: AttributeTween[] = []
+  reconcileElement(currentRoot, nextRoot, animation ? tweens : undefined)
+  return animation ? runTweens(currentRoot, tweens, animation) : () => {}
+}
+
 function reconcileElement(
   current: Element,
   next: Element,
@@ -173,7 +198,7 @@ function addExitTween(current: Element, tweens: AttributeTween[]) {
 }
 
 function runTweens(
-  container: HTMLElement,
+  container: Element,
   tweens: readonly AttributeTween[],
   options: ChartAnimationOptions,
 ): () => void {

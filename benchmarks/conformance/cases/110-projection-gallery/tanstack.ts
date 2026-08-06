@@ -1,8 +1,12 @@
 import { facetChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
-import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
+import {
+  previewWorldLand,
+  worldLand,
+  worldSphere,
+} from '../../shared/fixtures/country-atlas'
 import { projectionGalleryData } from './projection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 const projectionColors = [
@@ -10,8 +14,8 @@ const projectionColors = [
   ['#1d4ed8', '#6d28d9', '#0e7490', '#c2410c'],
 ]
 
-export const projectionGalleryDefinition = (input: ConformanceInput) => {
-  const projections = projectionGalleryData()
+function projectionGalleryChart(input: ConformanceInput, preview: boolean) {
+  const projections = projectionGalleryData().slice(0, preview ? 2 : undefined)
   const color = {
     domain: projections.map(({ id }) => id),
     range: projectionColors[input.revision % 2] ?? projectionColors[0],
@@ -25,7 +29,7 @@ export const projectionGalleryDefinition = (input: ConformanceInput) => {
     label: false,
     chart: ([entry]) => {
       const projection = {
-        type: entry.create,
+        type: preview ? () => entry.create().precision(2) : entry.create,
         fit: 'sphere' as const,
         inset: 8,
       }
@@ -40,7 +44,7 @@ export const projectionGalleryDefinition = (input: ConformanceInput) => {
             strokeOpacity: 0.5,
             strokeWidth: 0.8,
           }),
-          geoShape([worldLand], {
+          geoShape([preview ? previewWorldLand : worldLand], {
             id: 'land',
             projection,
             color: () => entry.id,
@@ -58,7 +62,19 @@ export const projectionGalleryDefinition = (input: ConformanceInput) => {
   })
 }
 
+export const projectionGalleryDefinition = (input: ConformanceInput) =>
+  projectionGalleryChart(input, false)
+
+const catalogProjectionGalleryDefinition = (input: ConformanceInput) =>
+  projectionGalleryChart(input, input.preview === true)
+
 export const mount = tanstackMount(
   projectionGalleryDefinition,
   'Standard world projection gallery',
+)
+
+export const catalogCase = tanstackCase(
+  catalogProjectionGalleryDefinition,
+  mount.ariaLabel,
+  mount.interactiveTooltip,
 )

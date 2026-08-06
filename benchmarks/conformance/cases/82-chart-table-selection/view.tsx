@@ -85,7 +85,7 @@ export function chartTableSelectionDefinition(
 const ChartTableExample = forwardRef<
   ConformanceTestDriver,
   ReactConformanceProps
->(function ChartTableExample({ input }, ref) {
+>(function ChartTableExample({ input, idPrefix }, ref) {
   const viewRef = useRef<HTMLDivElement>(null)
   const chartSurfaceRef = useRef<HTMLDivElement>(null)
   const renderedChartRef = useRef<{
@@ -160,6 +160,19 @@ const ChartTableExample = forwardRef<
     [announcement, selectedDatum, selectedId],
   )
 
+  if (input.preview) {
+    return (
+      <Chart
+        idPrefix={idPrefix}
+        definition={definition}
+        initialWidth={input.width}
+        aspectRatio={input.width / input.height}
+        ariaLabel="Selectable observations chart"
+        ariaDescription="Use arrow keys to move between observations and Enter or Space to select one. The table below offers the same selections."
+      />
+    )
+  }
+
   return (
     <div
       ref={viewRef}
@@ -175,6 +188,7 @@ const ChartTableExample = forwardRef<
     >
       <div ref={chartSurfaceRef}>
         <Chart
+          idPrefix={idPrefix}
           definition={definition}
           width={input.width}
           height={chartHeight}
@@ -308,6 +322,7 @@ const ChartTableExample = forwardRef<
   )
 })
 
+export const catalogComponent = ChartTableExample
 export const mount = reactMount(ChartTableExample)
 
 function selectionFromTarget(target: ConformanceTarget) {

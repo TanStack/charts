@@ -7,7 +7,10 @@ import {
   type ContinuousCursorChange,
   type ContinuousCursorPosition,
 } from './interaction-cursor'
-import { controlledSignal } from './interaction-signal'
+import {
+  controlledSignal,
+  type ControlledSignalChangeContext,
+} from './interaction-signal'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
 import type { ChartHost } from './dom-types'
@@ -79,7 +82,9 @@ describe('continuousCursor', () => {
     expectTypeOf(behavior.__yValue).toEqualTypeOf<number | undefined>()
     expectTypeOf(signal.onChange)
       .parameter(1)
-      .toEqualTypeOf<ContinuousCursorChange<Date, number>>()
+      .toEqualTypeOf<
+        ControlledSignalChangeContext<ContinuousCursorChange<Date, number>>
+      >()
   })
 
   it('owns pointer preview, touch pinning, leave, and scoped Escape without rerendering previews', () => {
@@ -298,9 +303,9 @@ describe('continuousCursor', () => {
       ),
     )
 
-    const [value, change] = onChange.mock.calls.at(-1)! as [
+    const [value, { reason: change }] = onChange.mock.calls.at(-1)! as [
       ContinuousCursorPosition<Date, number>,
-      ContinuousCursorChange<Date, number>,
+      { reason: ContinuousCursorChange<Date, number> },
     ]
     expect(value.x.toISOString()).toBe('2024-01-02T12:00:00.000Z')
     expect(value.y).toBeCloseTo(2.5)
@@ -367,7 +372,10 @@ function numericDefinition(
     behaviors: [
       continuousCursor({
         id: 'free',
-        position: controlledSignal(position, onChange),
+        position: controlledSignal<
+          ContinuousCursorPosition<number, number> | null,
+          ContinuousCursorChange<number, number>
+        >(position, (next, { reason }) => onChange(next, reason)),
         xRule: { stroke: '#64748b' },
         yRule: { stroke: '#64748b' },
         marker: { fill: '#fff', stroke: '#0f766e' },

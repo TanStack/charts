@@ -65,6 +65,9 @@ required by:
 - inherited font metrics in a DOM host.
 
 ```ts
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
 const definition = defineChart({
   marks: [barX(rows, { x: 'value', y: 'label' })],
   x: {

@@ -19,6 +19,7 @@ import type {
   ChartTheme,
   ChartValue,
   ResolvedScale,
+  SceneFocusGuide,
   SceneGroup,
   SceneLabel,
   SceneNode,
@@ -27,13 +28,20 @@ import type {
 
 export type FacetAxes = 'outer' | 'cell'
 
+export interface FacetChartContext {
+  key: ChartKey
+}
+
 export interface FacetOptions<
   TDatum,
   TChildSpec extends ChartSpec = StaticChartDefinition<TDatum>,
 > extends ChartMarkMotionOptions<ChartSpecDatum<TChildSpec>> {
   id?: string
   by: Channel<TDatum, ChartKey>
-  chart: (data: readonly [TDatum, ...TDatum[]], key: ChartKey) => TChildSpec
+  chart: (
+    data: readonly [TDatum, ...TDatum[]],
+    context: FacetChartContext,
+  ) => TChildSpec
   columns?: number
   minWidth?: number
   gap?: number
@@ -43,7 +51,7 @@ export interface FacetOptions<
 
 type FacetChartInput<TDatum> = (
   data: readonly [TDatum, ...TDatum[]],
-  key: ChartKey,
+  context: FacetChartContext,
 ) => unknown
 
 type FacetOptionsInput<TDatum, TChart extends FacetChartInput<TDatum>> = Omit<
@@ -65,7 +73,7 @@ export function facet<
   TDatum,
   TChart extends FacetChartInput<NoInfer<TDatum>> = (
     data: readonly [TDatum, ...TDatum[]],
-    key: ChartKey,
+    context: FacetChartContext,
   ) => StaticChartDefinition<TDatum>,
 >(
   source: Iterable<TDatum>,
@@ -125,7 +133,7 @@ export function facet<TDatum>(
         const showLabel = options.label !== false
         const labelHeight = showLabel ? 22 : 0
         const definitions = entries.map((entry) =>
-          mergeTheme(options.chart(entry.data, entry.key), theme),
+          mergeTheme(options.chart(entry.data, { key: entry.key }), theme),
         )
 
         if (
@@ -310,6 +318,7 @@ function renderCellAxes<TDatum, TChildDatum>(
     layout,
   } = options
   const points: ChartPoint<TChildDatum>[] = []
+  const focusGuides: SceneFocusGuide[] = []
   const children = entries.map((entry, index) => {
     const column = index % columns
     const row = Math.floor(index / columns)
@@ -328,6 +337,7 @@ function renderCellAxes<TDatum, TChildDatum>(
     const identity = valueKey(entry.key)
     const offset = offsetScene(id, identity, scene, x, y + labelHeight)
     points.push(...offset.points)
+    focusGuides.push(...offset.focusGuides)
     return facetCell({
       id,
       identity,
@@ -342,7 +352,7 @@ function renderCellAxes<TDatum, TChildDatum>(
       nodes: offset.nodes,
     })
   })
-  return facetScene(id, children, points)
+  return facetScene(id, children, points, focusGuides)
 }
 
 interface OuterRenderOptions<TDatum, TChildDatum> extends Omit<
@@ -384,6 +394,7 @@ function renderOuterAxes<TDatum, TChildDatum>(
   const originX = chart.x + margin.left
   const originY = chart.y + margin.top
   const points: ChartPoint<TChildDatum>[] = []
+  const focusGuides: SceneFocusGuide[] = []
   const axes: SceneGroup[] = []
   let xTitle: SceneLabel | undefined
   let yTitle: SceneLabel | undefined
@@ -410,6 +421,7 @@ function renderOuterAxes<TDatum, TChildDatum>(
     deepestPlotBottom = Math.max(deepestPlotBottom, plotY + plotHeight)
     const offset = offsetScene(id, identity, scene, x, plotY)
     points.push(...offset.points)
+    focusGuides.push(...offset.focusGuides)
 
     if (axis && column === 0) {
       const yChildren = axis.children.filter(
@@ -518,6 +530,7 @@ function renderOuterAxes<TDatum, TChildDatum>(
       },
     ],
     points,
+    focusGuides,
   )
 }
 
@@ -589,6 +602,7 @@ function facetScene<TDatum>(
   id: string,
   children: readonly SceneNode[],
   points: readonly ChartPoint<TDatum>[],
+  focusGuides: readonly SceneFocusGuide[],
 ) {
   return {
     nodes: [
@@ -600,6 +614,7 @@ function facetScene<TDatum>(
       },
     ],
     points,
+    ...(focusGuides.length ? { focusGuides } : {}),
   }
 }
 
@@ -807,7 +822,11 @@ function offsetScene<TDatum>(
   scene: ChartScene<TDatum>,
   x: number,
   y: number,
-): { nodes: readonly SceneNode[]; points: readonly ChartPoint<TDatum>[] } {
+): {
+  nodes: readonly SceneNode[]
+  points: readonly ChartPoint<TDatum>[]
+  focusGuides: readonly SceneFocusGuide[]
+} {
   return embedChartScene(scene, { ownerId: id, childId: identity, x, y })
 }
 
@@ -844,7 +863,7 @@ export function facetChart<
   TDatum,
   TChart extends FacetChartInput<NoInfer<TDatum>> = (
     data: readonly [TDatum, ...TDatum[]],
-    key: ChartKey,
+    context: FacetChartContext,
   ) => StaticChartDefinition<TDatum>,
 >(
   source: Iterable<TDatum>,

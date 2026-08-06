@@ -104,7 +104,7 @@ pixel midpoint; semantic `xValue` and `yValue` are the second endpoint.
 
 The optional `d3Curve` bridge and granular algorithm boundary are documented in
 [Line and area](./line-and-area.md#curves) and
-[Scales and D3](../../concepts/scales-and-d3.md).
+[Scales](../../concepts/scales-and-d3.md).
 
 ## `arrow`
 

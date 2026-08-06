@@ -1,7 +1,10 @@
 import { areaY, colorLegend, defineChart, stack } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
+import { samplePreviewSeries } from '../../shared/preview'
+import type { IndustriesRow } from '@charts-poc/demo-data/industries'
+import type { ConformanceInput } from '../../types'
 
 const colors = [
   '#4e79a7',
@@ -16,10 +19,10 @@ const colors = [
   '#bab0ab',
 ]
 
-export const streamgraphDefinition = () =>
-  defineChart({
+function streamgraphChart(rows: readonly IndustriesRow[], showLegend: boolean) {
+  return defineChart({
     marks: [
-      areaY(industries, {
+      areaY(rows, {
         x: 'date',
         y: 'unemployed',
         z: 'industry',
@@ -36,9 +39,18 @@ export const streamgraphDefinition = () =>
     },
     color: {
       range: colors,
-      legend: colorLegend({ label: 'Industry' }),
+      ...(showLegend ? { legend: colorLegend({ label: 'Industry' }) } : {}),
     },
   })
+}
+
+export const streamgraphDefinition = () => streamgraphChart(industries, true)
+
+const catalogStreamgraphDefinition = (input: ConformanceInput) =>
+  streamgraphChart(
+    samplePreviewSeries(industries, input, 24, (row) => row.industry),
+    input.preview !== true,
+  )
 
 export const mount = tanstackMount(
   streamgraphDefinition,
@@ -51,4 +63,10 @@ export const mount = tanstackMount(
         timeZone: 'UTC',
       })} · ${datum.unemployed.toLocaleString('en-US')} thousand unemployed`,
   },
+)
+
+export const catalogCase = tanstackCase(
+  catalogStreamgraphDefinition,
+  mount.ariaLabel,
+  mount.interactiveTooltip,
 )

@@ -1,9 +1,26 @@
 import { focusedNodeKeys, resolveFocusScene } from './focus-layer'
+import { resolveFocusGuides } from './focus-presentation'
 import { resolveMarkStateScene } from './mark-state'
-import { reconcileChartSvg } from './reconcile'
+import { reconcileChartSvg, reconcileChartSvgFragment } from './reconcile'
 import { chartSceneSource } from './scene-source'
+import { viewportTranslationChanged } from './scene-point-map'
 import { createChartSpring } from './spring'
-import { renderChartSvg } from './svg'
+import { renderChartSvgWithResources } from './svg-resources'
+import { svgClientToScene } from './svg-coordinates'
+import { valueKey } from './scales'
+import { resolveRollingPathPlan } from './motion-path'
+import type {
+  RollingPathPlan,
+  RollingPathSnapshot,
+  RollingPathTransform,
+} from './motion-path'
+import { renderFocusGuideLayer } from './svg-renderer'
+import {
+  detachSvgFocusGuideLayers,
+  ensureSvgFocusGuideLayer,
+  removeSvgFocusGuideLayer,
+  restoreSvgFocusGuideLayers,
+} from './svg-focus-guide-layer'
 import type {
   ChartRenderer,
   ChartSurface,
@@ -11,9 +28,12 @@ import type {
 } from './dom-types'
 import type {
   ChartFocusState,
+  ChartCursorPresentation,
   ChartMotionContext,
   ChartMotionDefinition,
+  ChartMotionPath,
   ChartMotionPhase,
+  ChartRollingPathMotion,
   ChartMotionRole,
   ChartMotionSpringTransition,
   ChartMotionTiming,
@@ -23,9 +43,11 @@ import type {
   ChartPoint,
   ChartScene,
   ChartSvgRenderer,
+  ChartTooltipPosition,
   ChartValue,
   InitializedMark,
   SceneGroup,
+  SceneNode,
   StaticChartDefinition,
 } from './types'
 import type { ChartSpring } from './spring'
@@ -33,7 +55,9 @@ import type { ChartSpring } from './spring'
 export type {
   ChartMotionContext,
   ChartMotionDefinition,
+  ChartMotionPath,
   ChartMotionPhase,
+  ChartRollingPathMotion,
   ChartMotionRole,
   ChartMotionSpringTransition,
   ChartMotionTiming,
@@ -64,12 +88,24 @@ interface ChartSvgMotionContext<TDatum = unknown> {
   setPresentationPoints?: (points: readonly ChartPoint<TDatum>[]) => void
 }
 
+interface ChartSvgMotionFragmentContext<TDatum = unknown> {
+  container: HTMLElement
+  root: SVGElement
+  scene: ChartScene<TDatum>
+  previousScene?: ChartScene<TDatum>
+  markup: string
+  transition?: ChartMotionTransition
+}
+
 interface ChartSvgMotionDriver<TDatum = unknown> {
   readonly id: string
   readonly initial: boolean
   readonly resize: boolean
   readonly respectReducedMotion: boolean
   animateSvg: (context: ChartSvgMotionContext<TDatum>) => () => void
+  animateSvgFragment: (
+    context: ChartSvgMotionFragmentContext<TDatum>,
+  ) => () => void
 }
 
 interface MotionValueState {
@@ -134,8 +170,23 @@ type SceneMotionSource = readonly [
   readonly InitializedMark[],
 ]
 
-type ResolvedTiming = Pick<MotionTrack, 'delay' | 'transition'>
+type ResolvedTiming = Pick<MotionTrack, 'delay' | 'transition'> & {
+  path: ChartMotionPath
+}
 type TimingResolver = (context: ChartMotionContext) => ResolvedTiming
+
+interface PlannedRollingPath {
+  key: string
+  outcome: RollingPathPlan
+  points: readonly ChartPoint[]
+  previousPoints: readonly ChartPoint[]
+  timing: ResolvedTiming
+}
+
+interface RollingPathPlans {
+  elements: ReadonlyMap<string, PlannedRollingPath>
+  points: ReadonlyMap<string, PlannedRollingPath>
+}
 
 const defaultDuration = 1_100
 const defaultStaggerRatio = 0.4
@@ -225,7 +276,51 @@ function createSvgMotionRuntime(
         finish: () => context.setPresentationPoints?.(context.scene.points),
       })
     },
+    animateSvgFragment(context) {
+      let runtime = runtimes.get(context.container)
+      if (!runtime) {
+        runtime = {
+          elements: new WeakMap(),
+          points: new Map(),
+        }
+        runtimes.set(context.container, runtime)
+      }
+      const nextRoot = parseSvgFragment(context.root, context.markup)
+      if (
+        !nextRoot ||
+        context.root.namespaceURI !== nextRoot.namespaceURI ||
+        context.root.localName !== nextRoot.localName
+      ) {
+        if (nextRoot) context.root.replaceWith(nextRoot)
+        return () => {}
+      }
+      const tracks: MotionTrack[] = []
+      reconcileMotionElement(context.root, nextRoot, tracks, {
+        scene: context.scene,
+        previousScene: context.previousScene,
+        timingFor: createTimingResolver(
+          options,
+          context.scene,
+          context.transition
+            ? { default: { transition: context.transition } }
+            : undefined,
+        ),
+        options,
+        runtime,
+        pathPlans: {
+          elements: new Map(),
+          points: new Map(),
+        },
+      })
+      return runTracks(context.root, tracks)
+    },
   }
+}
+
+function parseSvgFragment(current: SVGElement, markup: string) {
+  const template = current.ownerDocument.createElement('template')
+  template.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg">${markup}</svg>`
+  return template.content.firstElementChild?.firstElementChild ?? undefined
 }
 
 export function motion<
@@ -235,7 +330,7 @@ export function motion<
 >(options: ChartMotionOptions = {}): ChartRenderer<TDatum, TXValue, TYValue> {
   return createMotionSvgChartRenderer<TDatum, TXValue, TYValue>(
     createSvgMotionDriver(options),
-    renderChartSvg,
+    renderChartSvgWithResources,
   )
 }
 
@@ -245,7 +340,11 @@ function createMotionSvgChartRenderer<
   TYValue extends ChartValue = ChartValue,
 >(
   motion: ChartSvgMotionDriver<TDatum>,
-  renderSvg: ChartSvgRenderer<TDatum, TXValue, TYValue> = renderChartSvg,
+  renderSvg: ChartSvgRenderer<
+    TDatum,
+    TXValue,
+    TYValue
+  > = renderChartSvgWithResources,
 ): ChartRenderer<TDatum, TXValue, TYValue> {
   const renderer: ChartRenderer<TDatum, TXValue, TYValue> = {
     id: `svg:${motion.id}`,
@@ -254,14 +353,37 @@ function createMotionSvgChartRenderer<
       const adoptedRoot =
         container.firstElementChild?.matches('svg.ts-chart') ?? false
       let cancelAnimation = () => {}
+      let cancelFocusAnimation = () => {}
+      const visibleFocusGuides = new Set<'under' | 'over'>()
       let scene: ChartScene<TDatum, TXValue, TYValue> | undefined
       let presentationPoints:
         readonly ChartPoint<TDatum, TXValue, TYValue>[] | undefined
+      const presentationListeners = new Set<
+        (points: readonly ChartPoint<TDatum, TXValue, TYValue>[]) => void
+      >()
       let renderOptions: ChartSurfaceRenderOptions | undefined
       let stateTransition: ChartMarkStateTransition | undefined
       let stateTransitions:
         Readonly<Record<string, ChartMarkStateTransition>> | undefined
       let stateScene: ChartScene<TDatum, TXValue, TYValue> | undefined
+      let dataMotionRevision = 0
+      let dataMotionActive = false
+      let stateFlushQueued = false
+      let destroyed = false
+      let pendingStateFocus:
+        | {
+            focus: ChartFocusState<TDatum, TXValue, TYValue> | null
+            pointer: ChartTooltipPosition | null
+            cursor: ChartCursorPresentation<TXValue, TYValue> | null
+          }
+        | undefined
+      let desiredStateFocus:
+        | {
+            focus: ChartFocusState<TDatum, TXValue, TYValue> | null
+            pointer: ChartTooltipPosition | null
+            cursor: ChartCursorPresentation<TXValue, TYValue> | null
+          }
+        | undefined
       const svgElement = () => {
         const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
         if (!svg) {
@@ -270,6 +392,89 @@ function createMotionSvgChartRenderer<
           )
         }
         return svg
+      }
+      const publishPresentationPoints = (
+        points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
+      ) => {
+        presentationPoints = points
+        for (const listener of presentationListeners) listener(points)
+      }
+      const queuePendingStateFocus = () => {
+        if (stateFlushQueued || !pendingStateFocus) return
+        stateFlushQueued = true
+        queueMicrotask(() => {
+          stateFlushQueued = false
+          if (destroyed || dataMotionActive || !pendingStateFocus) return
+          const pending = pendingStateFocus
+          pendingStateFocus = undefined
+          applyStateFocus(pending.focus, pending.pointer, pending.cursor)
+        })
+      }
+      const applyStateFocus = (
+        focus: ChartFocusState<TDatum, TXValue, TYValue> | null,
+        pointer: ChartTooltipPosition | null,
+        cursor: ChartCursorPresentation<TXValue, TYValue> | null,
+        resolved = scene
+          ? resolveMarkStateScene(scene, focus, pointer)
+          : undefined,
+      ) => {
+        if (!scene || !renderOptions || !resolved) return
+        const presented = resolveFocusScene(resolved.scene, focus)
+        cancelFocusAnimation()
+        cancelFocusAnimation = () => {}
+        const previousTransition = stateTransition
+        const previousTransitions = stateTransitions
+        if (presented.scene !== scene || stateScene || previousTransition) {
+          const focusGuideLayers = detachSvgFocusGuideLayers(svgElement())
+          cancelAnimation()
+          if (presentationPoints !== scene.points) {
+            publishPresentationPoints(scene.points)
+          }
+          const transition = resolved.transition ?? previousTransition
+          const markTransitions = resolved.transitions ?? previousTransitions
+          const reduced =
+            motion.respectReducedMotion &&
+            (transition?.respectReducedMotion ?? true) &&
+            (container.ownerDocument.defaultView?.matchMedia?.(
+              '(prefers-reduced-motion: reduce)',
+            ).matches ??
+              false)
+          const markup = renderSvg(presented.scene, renderOptions)
+          cancelAnimation = reduced
+            ? reconcileChartSvg(container, markup)
+            : motion.animateSvg({
+                container,
+                scene: presented.scene as ChartScene<TDatum>,
+                previousScene: (stateScene ?? scene) as ChartScene<TDatum>,
+                presentationPoints: scene.points,
+                markup,
+                phase: 'update',
+                transition: markTransitions ? undefined : transition,
+                markTransitions,
+              })
+          restoreSvgFocusGuideLayers(svgElement(), focusGuideLayers)
+          stateScene =
+            focus && presented.scene !== scene ? presented.scene : undefined
+        }
+        stateTransition = focus
+          ? (resolved.transition ?? previousTransition)
+          : undefined
+        stateTransitions = focus
+          ? (resolved.transitions ?? previousTransitions)
+          : undefined
+        paintMotionSvgFocus(svgElement(), presented.scene, focus)
+        cancelFocusAnimation = paintMotionSvgFocusGuides({
+          container,
+          svg: svgElement(),
+          scene: presented.scene,
+          focus,
+          pointer,
+          cursor,
+          idPrefix: renderOptions.idPrefix,
+          motion,
+          visible: visibleFocusGuides,
+        })
+        return presented.scene
       }
       const surface: ChartSurface<TDatum, TXValue, TYValue> = {
         renderer,
@@ -297,9 +502,37 @@ function createMotionSvgChartRenderer<
             (initial
               ? motion.initial && !adoptedRoot
               : motion.resize || !resized)
+          const viewportMoved = Boolean(
+            previousScene &&
+            viewportTranslationChanged(previousScene, nextScene),
+          )
           const markup = renderSvg(nextScene, options)
           cancelAnimation()
-          if (animate) {
+          cancelFocusAnimation()
+          cancelFocusAnimation = () => {}
+          const retainsFocusGuideLayers = Boolean(
+            previousScene?.focusGuides?.length,
+          )
+          const focusGuideLayers = retainsFocusGuideLayers
+            ? detachSvgFocusGuideLayers(svgElement())
+            : {}
+          for (const placement of visibleFocusGuides) {
+            if (
+              !nextScene.focusGuides?.some(
+                (guide) => guide.placement === placement,
+              )
+            ) {
+              visibleFocusGuides.delete(placement)
+            }
+          }
+          const revision = ++dataMotionRevision
+          stateScene = undefined
+          stateTransition = undefined
+          scene = nextScene
+          renderOptions = options
+          dataMotionActive = animate && !viewportMoved
+          pendingStateFocus = dataMotionActive ? desiredStateFocus : undefined
+          if (animate && !viewportMoved) {
             if (initial) reconcileChartSvg(container, markup)
             cancelAnimation = motion.animateSvg({
               container,
@@ -310,16 +543,32 @@ function createMotionSvgChartRenderer<
               markup,
               phase: initial ? 'initial' : 'update',
               setPresentationPoints(points) {
-                presentationPoints = points as readonly ChartPoint<
-                  TDatum,
-                  TXValue,
-                  TYValue
-                >[]
+                publishPresentationPoints(
+                  points as readonly ChartPoint<TDatum, TXValue, TYValue>[],
+                )
+                if (
+                  revision === dataMotionRevision &&
+                  points === nextScene.points
+                ) {
+                  dataMotionActive = false
+                  queuePendingStateFocus()
+                }
               },
             })
           } else {
             reconcileChartSvg(container, markup)
-            presentationPoints = nextScene.points
+            publishPresentationPoints(nextScene.points)
+            dataMotionActive = false
+          }
+          if (retainsFocusGuideLayers) {
+            restoreSvgFocusGuideLayers(
+              svgElement(),
+              focusGuideLayers,
+              (placement) =>
+                nextScene.focusGuides?.some(
+                  (guide) => guide.placement === placement,
+                ) === true,
+            )
           }
           scene = nextScene
           stateScene = undefined
@@ -328,12 +577,7 @@ function createMotionSvgChartRenderer<
           stateTransitions = undefined
         },
         clientToScene(currentScene, clientX, clientY) {
-          return motionClientToScene(
-            svgElement(),
-            currentScene,
-            clientX,
-            clientY,
-          )
+          return svgClientToScene(svgElement(), currentScene, clientX, clientY)
         },
         getPresentationPoints() {
           if (
@@ -345,48 +589,51 @@ function createMotionSvgChartRenderer<
           }
           return presentationPoints
         },
-        paintFocus(focus, pointer) {
+        subscribePresentationPoints(listener) {
+          presentationListeners.add(listener)
+          return () => presentationListeners.delete(listener)
+        },
+        paintFocus(focus, pointer, cursor) {
           if (!scene || !renderOptions) return
-          const state = resolveMarkStateScene(scene, focus, pointer)
-          const resolved = resolveFocusScene(state.scene, focus)
-          const previousTransition = stateTransition
-          const previousTransitions = stateTransitions
-          if (resolved.scene !== scene || stateScene || previousTransition) {
-            cancelAnimation()
-            presentationPoints = scene.points
-            const transition = state.transition ?? previousTransition
-            const reduced =
-              motion.respectReducedMotion &&
-              (transition?.respectReducedMotion ?? true) &&
-              (container.ownerDocument.defaultView?.matchMedia?.(
-                '(prefers-reduced-motion: reduce)',
-              ).matches ??
-                false)
-            const markup = renderSvg(resolved.scene, renderOptions)
-            cancelAnimation = reduced
-              ? reconcileChartSvg(container, markup)
-              : motion.animateSvg({
-                  container,
-                  scene: resolved.scene as ChartScene<TDatum>,
-                  previousScene: (stateScene ?? scene) as ChartScene<TDatum>,
-                  presentationPoints: scene.points,
-                  markup,
-                  phase: 'update',
-                  markTransitions: state.transitions ?? previousTransitions,
-                })
-            stateScene =
-              focus && resolved.scene !== scene ? resolved.scene : undefined
+          desiredStateFocus = {
+            focus,
+            pointer: pointer ?? null,
+            cursor: cursor ?? null,
           }
-          stateTransition = focus
-            ? (state.transition ?? previousTransition)
-            : undefined
-          stateTransitions = focus
-            ? (state.transitions ?? previousTransitions)
-            : undefined
-          paintMotionSvgFocus(svgElement(), resolved.scene, focus)
+          const resolved = resolveMarkStateScene(scene, focus, pointer)
+          if (dataMotionActive) {
+            pendingStateFocus = desiredStateFocus
+            paintMotionSvgFocus(svgElement(), resolved.scene, focus)
+            cancelFocusAnimation()
+            cancelFocusAnimation = paintMotionSvgFocusGuides({
+              container,
+              svg: svgElement(),
+              scene: resolved.scene,
+              focus,
+              pointer,
+              cursor,
+              idPrefix: renderOptions.idPrefix,
+              motion,
+              visible: visibleFocusGuides,
+            })
+            return resolved.scene
+          }
+          pendingStateFocus = undefined
+          return applyStateFocus(
+            focus,
+            pointer ?? null,
+            cursor ?? null,
+            resolved,
+          )
         },
         destroy() {
+          destroyed = true
+          dataMotionRevision += 1
+          pendingStateFocus = undefined
+          desiredStateFocus = undefined
           cancelAnimation()
+          presentationListeners.clear()
+          cancelFocusAnimation()
         },
       }
       return surface
@@ -395,27 +642,15 @@ function createMotionSvgChartRenderer<
   return renderer
 }
 
-function motionClientToScene(
-  element: SVGSVGElement,
-  scene: ChartScene,
-  clientX: number,
-  clientY: number,
-) {
-  const bounds = element.getBoundingClientRect()
-  if (!bounds.width || !bounds.height) return null
-  return {
-    x: ((clientX - bounds.left) / bounds.width) * scene.width,
-    y: ((clientY - bounds.top) / bounds.height) * scene.height,
-  }
-}
-
 function paintMotionSvgFocus(
   svg: SVGSVGElement,
   scene: ChartScene,
   focus: ChartFocusState | null,
 ) {
   const sceneLayers = collectMotionFocusLayers(scene.nodes)
-  const elements = svg.querySelectorAll<SVGGElement>('[data-ts-focus-layer]')
+  const elements = svg.querySelectorAll<SVGGElement>(
+    '[data-ts-focus-layer]:not([data-ts-focus-guide-layer])',
+  )
   elements.forEach((element, index) => {
     const layer = sceneLayers[index]
     if (layer?.focus?.retarget) {
@@ -439,6 +674,70 @@ function paintMotionSvgFocus(
       )
     })
   })
+}
+
+function paintMotionSvgFocusGuides<TDatum>(options: {
+  container: HTMLElement
+  svg: SVGSVGElement
+  scene: ChartScene<TDatum>
+  focus: ChartFocusState<TDatum> | null
+  pointer?: Parameters<typeof resolveFocusGuides>[2]
+  cursor?: ChartCursorPresentation | null
+  idPrefix?: string
+  motion: ChartSvgMotionDriver<TDatum>
+  visible: Set<'under' | 'over'>
+}) {
+  const {
+    container,
+    svg,
+    scene,
+    focus,
+    pointer,
+    cursor,
+    idPrefix = '',
+    motion,
+    visible,
+  } = options
+  const presentation = resolveFocusGuides(scene, focus, pointer, cursor)
+  const reduced =
+    motion.respectReducedMotion &&
+    (container.ownerDocument.defaultView?.matchMedia?.(
+      '(prefers-reduced-motion: reduce)',
+    ).matches ??
+      false)
+  const cancellations: (() => void)[] = []
+
+  for (const placement of ['under', 'over'] as const) {
+    if (!scene.focusGuides?.some((guide) => guide.placement === placement)) {
+      removeSvgFocusGuideLayer(svg, placement)
+      visible.delete(placement)
+      continue
+    }
+    const layer = ensureSvgFocusGuideLayer(svg, placement)
+    const nodes = presentation[placement]
+    if (!nodes.length) {
+      layer.setAttribute('visibility', 'hidden')
+      visible.delete(placement)
+      continue
+    }
+
+    const markup = renderFocusGuideLayer(nodes, placement, idPrefix)
+    if (reduced || !visible.has(placement)) {
+      reconcileChartSvgFragment(layer, markup)
+    } else {
+      cancellations.push(
+        motion.animateSvgFragment({
+          container,
+          root: layer,
+          scene,
+          markup,
+        }),
+      )
+    }
+    visible.add(placement)
+  }
+
+  return () => cancellations.forEach((cancel) => cancel())
 }
 
 function collectMotionFocusLayers(nodes: ChartScene['nodes']): SceneGroup[] {
@@ -623,12 +922,20 @@ function reconcileMotionSvg(
   }
 
   const tracks: MotionTrack[] = []
+  const pathPlans = createRollingPathPlans(
+    currentRoot,
+    nextRoot,
+    context.previousScene,
+    context.scene,
+    timingFor,
+  )
   reconcileMotionElement(currentRoot, nextRoot, tracks, {
     scene: context.scene,
     previousScene: context.previousScene,
     timingFor,
     options,
     runtime,
+    pathPlans,
   })
   const root = currentRoot as SVGSVGElement
   const presentation = createPresentationTracks(
@@ -639,6 +946,7 @@ function reconcileMotionSvg(
     context.setPresentationPoints,
     'update',
     runtime,
+    pathPlans,
   )
   return runTracks(root, [...tracks, ...presentation.tracks], {
     publish: presentation.publish,
@@ -652,6 +960,162 @@ interface MotionReconcileContext {
   timingFor: TimingResolver
   options: ResolvedMotionOptions
   runtime: MotionRuntime
+  pathPlans: RollingPathPlans
+}
+
+function createRollingPathPlans(
+  currentRoot: Element,
+  nextRoot: Element,
+  previousScene: ChartScene | undefined,
+  scene: ChartScene,
+  timingFor: TimingResolver,
+): RollingPathPlans {
+  const elements = new Map<string, PlannedRollingPath>()
+  const points = new Map<string, PlannedRollingPath>()
+  if (!previousScene) return { elements, points }
+
+  const currentPaths = keyedElementMap(
+    currentRoot,
+    'g.ts-chart__line path, g.ts-chart__area path',
+  )
+  const nextPaths = keyedElementMap(
+    nextRoot,
+    'g.ts-chart__line path, g.ts-chart__area path',
+  )
+  for (const [key] of nextPaths) {
+    const currentPath = currentPaths.get(key)
+    if (!currentPath) continue
+    const motionContext = elementTimingContext(currentPath, 'update', scene)
+    if (!motionContext) continue
+    const timing = timingFor(motionContext)
+    if (!isRollingPathMotion(timing.path)) continue
+    const previous = scenePathSnapshot(previousScene, key)
+    const next = scenePathSnapshot(scene, key)
+    let outcome: RollingPathPlan =
+      previous && next
+        ? resolveRollingPathPlan(previous, next, timing.path)
+        : {
+            kind: 'fallback',
+            fallback: timing.path.fallback ?? 'snap',
+            reason: 'missing-semantic-points',
+          }
+    if (outcome.kind === 'transform') {
+      outcome = {
+        ...outcome,
+        transform: composeRollingTransform(
+          parseRollingTransform(currentPath.getAttribute('transform')),
+          outcome.transform,
+        ),
+      }
+    }
+    const planned: PlannedRollingPath = {
+      key,
+      outcome,
+      points: next?.points ?? [],
+      previousPoints: previous?.points ?? [],
+      timing,
+    }
+    elements.set(key, planned)
+    for (const point of previous?.points ?? []) {
+      points.set(pointIdentity(point), planned)
+    }
+    for (const point of next?.points ?? []) {
+      points.set(pointIdentity(point), planned)
+    }
+  }
+  return { elements, points }
+}
+
+function scenePathSnapshot(
+  scene: ChartScene,
+  key: string,
+): RollingPathSnapshot | undefined {
+  const context = findSceneNodeContext(scene.nodes, key)
+  const node = context?.node
+  if (!node || (node.kind !== 'polyline' && node.kind !== 'area')) {
+    return undefined
+  }
+  const interaction = node.interaction
+  const points =
+    interaction && 'points' in interaction ? (interaction.points ?? []) : []
+  if (!points.length) return undefined
+  return {
+    kind: node.kind,
+    points,
+    geometry: node.points,
+    chart: scene.chart,
+    yScale: scene.scales.y!,
+    viewportTranslate: {
+      x: context.translateX,
+      y: context.translateY,
+    },
+    clipped: context.clipped,
+    customPath: node.path !== undefined,
+  }
+}
+
+function findSceneNodeContext(
+  nodes: readonly SceneNode[],
+  key: string,
+  translateX = 0,
+  translateY = 0,
+  clipped = false,
+):
+  | {
+      node: SceneNode
+      translateX: number
+      translateY: number
+      clipped: boolean
+    }
+  | undefined {
+  for (const node of nodes) {
+    if (node.key === key) return { node, translateX, translateY, clipped }
+    if (node.kind === 'group') {
+      const nested = findSceneNodeContext(
+        node.children,
+        key,
+        translateX + (node.translateX ?? 0),
+        translateY + (node.translateY ?? 0),
+        clipped || node.clip !== undefined,
+      )
+      if (nested) return nested
+    }
+  }
+  return undefined
+}
+
+function isRollingPathMotion(
+  path: ChartMotionPath,
+): path is ChartRollingPathMotion {
+  return typeof path === 'object' && path.update === 'rolling'
+}
+
+function composeRollingTransform(
+  current: RollingPathTransform,
+  next: RollingPathTransform,
+): RollingPathTransform {
+  return {
+    x: current.x + next.x,
+    yScale: current.yScale * next.yScale,
+    y: current.yScale * next.y + current.y,
+  }
+}
+
+function parseRollingTransform(value: string | null): RollingPathTransform {
+  if (!value) return { x: 0, yScale: 1, y: 0 }
+  const translated = translatedX(value)
+  if (translated !== undefined) return { x: translated, yScale: 1, y: 0 }
+  const match =
+    /^matrix\(\s*1(?:\.0+)?\s+0(?:\.0+)?\s+0(?:\.0+)?\s+(-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)\s+(-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)\s+(-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)\s*\)$/i.exec(
+      value,
+    )
+  if (!match) return { x: 0, yScale: 1, y: 0 }
+  const yScale = Number(match[1])
+  const x = Number(match[2])
+  const y = Number(match[3])
+  return Number.isFinite(x) && Number.isFinite(yScale) && Number.isFinite(y)
+    ? { x, yScale, y }
+    : { x: 0, yScale: 1, y: 0 }
 }
 
 const motionAttributes = new Set([
@@ -668,6 +1132,19 @@ const motionAttributes = new Set([
   'stroke-opacity',
   'stroke-width',
   'transform',
+  'width',
+  'x',
+  'x1',
+  'x2',
+  'y',
+  'y1',
+  'y2',
+])
+
+const rollingPointGeometryAttributes = new Set([
+  'cx',
+  'cy',
+  'height',
   'width',
   'x',
   'x1',
@@ -736,9 +1213,30 @@ function addUpdateTrack(
   tracks: MotionTrack[],
   context: MotionReconcileContext,
 ) {
+  let timingContext = elementTimingContext(current, 'update', context.scene)
+  let timing: ResolvedTiming | undefined
+  const pathKey = current.getAttribute('data-ts-key')
+  const rolling = pathKey ? context.pathPlans.elements.get(pathKey) : undefined
+  const rollingTransform =
+    rolling?.outcome.kind === 'transform'
+      ? rolling.outcome.transform
+      : undefined
+  const rollingSnap =
+    rolling?.outcome.kind === 'fallback' && rolling.outcome.fallback === 'snap'
+  const pointRolling = timingContext?.point
+    ? context.pathPlans.points.get(pointIdentity(timingContext.point))
+    : undefined
+  const pointRollingSnap =
+    pointRolling?.outcome.kind === 'fallback' &&
+    pointRolling.outcome.fallback === 'snap'
   const nextNames = new Set(next.getAttributeNames())
   for (const name of current.getAttributeNames()) {
-    if (!nextNames.has(name)) current.removeAttribute(name)
+    if (
+      !nextNames.has(name) &&
+      !(rollingTransform !== undefined && name === 'transform')
+    ) {
+      current.removeAttribute(name)
+    }
   }
 
   const attributes: MotionAttribute[] = []
@@ -746,6 +1244,22 @@ function addUpdateTrack(
     const target = next.getAttribute(name)
     const previous = current.getAttribute(name)
     if (target === previous) continue
+    if (
+      pointRollingSnap &&
+      rollingPointGeometryAttributes.has(name) &&
+      target !== null
+    ) {
+      current.setAttribute(name, target)
+      continue
+    }
+    if (
+      (rollingTransform !== undefined || rollingSnap) &&
+      name === 'd' &&
+      target !== null
+    ) {
+      current.setAttribute(name, target)
+      continue
+    }
     const parsed =
       previous !== null && target !== null && motionAttributes.has(name)
         ? parseMotionAttribute(previous, target)
@@ -753,13 +1267,46 @@ function addUpdateTrack(
     if (parsed) attributes.push({ name, ...parsed, target })
     else if (target !== null) current.setAttribute(name, target)
   }
+
+  if (rollingTransform && timingContext && rolling) {
+    current.setAttribute('data-ts-motion-role', timingContext.role)
+    const apply = (values: readonly number[]) => {
+      current.setAttribute(
+        'transform',
+        `matrix(1 0 0 ${formatNumber(values[1] ?? 1)} ${formatNumber(values[0] ?? 0)} ${formatNumber(values[2] ?? 0)})`,
+      )
+    }
+    const from = [
+      rollingTransform.x,
+      rollingTransform.yScale,
+      rollingTransform.y,
+    ]
+    apply(from)
+    tracks.push({
+      ...rolling.timing,
+      values: bindMotionValues(undefined, from, [0, 1, 0]),
+      apply,
+      finish() {
+        current.removeAttribute('transform')
+        current.removeAttribute('data-ts-motion-role')
+      },
+      cancel() {
+        current.removeAttribute('data-ts-motion-role')
+      },
+    })
+  }
+
   if (!attributes.length) return
 
-  const timingContext = elementTimingContext(current, 'update', context.scene)
+  timingContext ??= elementTimingContext(current, 'update', context.scene)
   if (!timingContext) {
     finishMotionAttributes(current, attributes)
     return
   }
+  timing ??=
+    pointRolling?.outcome.kind === 'transform'
+      ? pointRolling.timing
+      : context.timingFor(timingContext)
   current.setAttribute('data-ts-motion-role', timingContext.role)
   const states = attributes.flatMap((attribute) =>
     elementValueStates(
@@ -772,7 +1319,7 @@ function addUpdateTrack(
   const from = attributes.flatMap((attribute) => attribute.from)
   const to = attributes.flatMap((attribute) => attribute.to)
   tracks.push({
-    ...context.timingFor(timingContext),
+    ...timing,
     values: bindMotionValues(states, from, to),
     apply(values) {
       let offset = 0
@@ -798,6 +1345,17 @@ function addUpdateTrack(
   })
 }
 
+function translatedX(transform: string | null) {
+  if (!transform) return undefined
+  const match =
+    /^translate\(\s*(-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)\s*(?:[, ]\s*0(?:\.0+)?)?\s*\)$/i.exec(
+      transform,
+    )
+  if (!match) return undefined
+  const value = Number(match[1])
+  return Number.isFinite(value) ? value : undefined
+}
+
 function addEnterMotionTrack(
   element: Element,
   tracks: MotionTrack[],
@@ -807,6 +1365,42 @@ function addEnterMotionTrack(
   if (!timingContext) return
   const timing = context.timingFor(timingContext)
   element.setAttribute('data-ts-motion-role', timingContext.role)
+
+  const pointRolling = timingContext.point
+    ? context.pathPlans.points.get(pointIdentity(timingContext.point))
+    : undefined
+  if (element.localName === 'circle' && pointRolling) {
+    if (pointRolling.outcome.kind === 'fallback') {
+      if (pointRolling.outcome.fallback === 'snap') {
+        element.removeAttribute('data-ts-motion-role')
+        return
+      }
+    } else {
+      const targetX = numberAttribute(element, 'cx')
+      const targetY = numberAttribute(element, 'cy')
+      const { x, yScale, y } = pointRolling.outcome.transform
+      const from = [targetX + x, targetY * yScale + y]
+      const to = [targetX, targetY]
+      const apply = (values: readonly number[]) => {
+        element.setAttribute('cx', formatNumber(values[0] ?? targetX))
+        element.setAttribute('cy', formatNumber(values[1] ?? targetY))
+      }
+      apply(from)
+      tracks.push({
+        ...pointRolling.timing,
+        values: bindMotionValues(undefined, from, to),
+        apply,
+        finish() {
+          apply(to)
+          element.removeAttribute('data-ts-motion-role')
+        },
+        cancel() {
+          element.removeAttribute('data-ts-motion-role')
+        },
+      })
+      return
+    }
+  }
 
   if (
     timingContext.role === 'bar' &&
@@ -891,6 +1485,43 @@ function addExitMotionTrack(
     element.remove()
     return
   }
+  const pointRolling = timingContext.point
+    ? context.pathPlans.points.get(pointIdentity(timingContext.point))
+    : undefined
+  if (
+    pointRolling?.outcome.kind === 'fallback' &&
+    pointRolling.outcome.fallback === 'snap'
+  ) {
+    element.remove()
+    return
+  }
+  if (
+    element.localName === 'circle' &&
+    pointRolling?.outcome.kind === 'transform'
+  ) {
+    const startX = numberAttribute(element, 'cx')
+    const startY = numberAttribute(element, 'cy')
+    const { x, yScale, y } = pointRolling.outcome.transform
+    const targetX = startX - x
+    const targetY = (startY - y) / yScale
+    const apply = (values: readonly number[]) => {
+      element.setAttribute('cx', formatNumber(values[0] ?? targetX))
+      element.setAttribute('cy', formatNumber(values[1] ?? targetY))
+    }
+    element.setAttribute('data-ts-motion-role', timingContext.role)
+    tracks.push({
+      ...pointRolling.timing,
+      values: bindMotionValues(undefined, [startX, startY], [targetX, targetY]),
+      apply,
+      finish() {
+        element.remove()
+      },
+      cancel() {
+        element.removeAttribute('data-ts-motion-role')
+      },
+    })
+    return
+  }
   const target = Number(element.getAttribute('opacity') ?? 1)
   const opacity = Number.isFinite(target) ? target : 1
   element.setAttribute('data-ts-motion-role', timingContext.role)
@@ -946,7 +1577,9 @@ function elementTimingContext(
   const key =
     element.getAttribute('data-ts-key') ??
     (role === 'line' ? seriesKey : `${seriesKey}:0`)
-  const point = scene.points.find((candidate) => candidate.key === key)
+  const point = scene.points.find(
+    (candidate) => candidate.key === key || key === `${candidate.key}:dot`,
+  )
   const rectangles = barGroup
     ? [...barGroup.children].filter((child) => child.localName === 'rect')
     : []
@@ -973,6 +1606,55 @@ function guideOrMarkTimingContext(
 ): ChartMotionContext | undefined {
   const key = element.getAttribute('data-ts-key')
   if (!key) return undefined
+
+  const focusGuide = element.closest<SVGGElement>('g.ts-chart__crosshair')
+  if (focusGuide) {
+    const ownerKey = focusGuide.getAttribute('data-ts-key') ?? key
+    const markId = motionMarkId(scene, ownerKey)
+    return {
+      phase,
+      role: markMotionRole(focusGuide, element),
+      key,
+      markId,
+      seriesKey: ownerKey,
+      seriesIndex: 0,
+      datumIndex: 0,
+      datumCount: 1,
+      datum: undefined,
+      point: undefined,
+    }
+  }
+
+  const presentationFocusLayer = element.closest<SVGGElement>(
+    'g.ts-chart__focus-layer',
+  )
+  if (
+    presentationFocusLayer &&
+    !presentationFocusLayer.hasAttribute('data-ts-focus-retarget')
+  ) {
+    const focusPoints = collectMotionFocusLayers(scene.nodes).flatMap(
+      (layer) => layer.focus?.points ?? [],
+    )
+    const point = focusPoints.find(
+      (candidate) => candidate.key === key || key === `${candidate.key}:dot`,
+    )
+    if (!point) return undefined
+    const markPoints = focusPoints.filter(
+      (candidate) => candidate.markId === point.markId,
+    )
+    return {
+      phase,
+      role: markMotionRole(presentationFocusLayer, element),
+      key,
+      markId: point.markId,
+      seriesKey: `${point.markId}:${motionGroupIdentity(point)}`,
+      seriesIndex: 0,
+      datumIndex: point.datumIndex,
+      datumCount: Math.max(1, markPoints.length),
+      datum: point.datum,
+      point,
+    }
+  }
 
   const axes = element.closest<SVGGElement>('g.ts-chart__axes')
   const grid = element.closest<SVGGElement>('g.ts-chart__grid')
@@ -1160,6 +1842,11 @@ function markMotionRole(owner: Element, element: Element): ChartMotionRole {
 }
 
 function motionMarkId(scene: ChartScene, key: string): string | undefined {
+  const focusGuide = scene.focusGuides
+    ?.slice()
+    .sort((left, right) => right.key.length - left.key.length)
+    .find((guide) => key === guide.key || key.startsWith(`${guide.key}:`))
+  if (focusGuide) return focusGuide.markId
   const source = motionSceneSource(scene)
   const candidates = new Set([
     ...scene.points.map((point) => point.markId),
@@ -1178,6 +1865,7 @@ function createPresentationTracks(
   setPresentationPoints: ((points: readonly ChartPoint[]) => void) | undefined,
   defaultPhase: 'enter' | 'update',
   runtime: MotionRuntime,
+  rollingPlans?: RollingPathPlans,
 ) {
   const verticalBars = keyedElements(root, 'g.ts-chart__bar-y > rect')
   const horizontalBars = keyedElements(root, 'g.ts-chart__bar-x > rect')
@@ -1208,8 +1896,28 @@ function createPresentationTracks(
     const vertical = verticalBars.has(point.key)
     const horizontal = horizontalBars.has(point.key)
     if (!vertical && !horizontal) {
+      const rolling = rollingPlans?.points.get(identity)
+      if (rolling?.outcome.kind === 'transform') {
+        const transform = rolling.outcome.transform
+        presented.set(identity, {
+          ...point,
+          x: point.x + transform.x,
+          y: point.y * transform.yScale + transform.y,
+        })
+        continue
+      }
+      if (
+        rolling?.outcome.kind === 'fallback' &&
+        rolling.outcome.fallback === 'snap'
+      ) {
+        presented.set(identity, point)
+        continue
+      }
       if (seriesElementForPoint(point, pathGroups)) {
-        presented.set(identity, previous ?? point)
+        presented.set(
+          identity,
+          previous ? { ...point, x: previous.x, y: previous.y } : point,
+        )
         continue
       }
       if (!previous || (previous.x === point.x && previous.y === point.y)) {
@@ -1225,7 +1933,7 @@ function createPresentationTracks(
         presented.set(identity, point)
         continue
       }
-      presented.set(identity, previous)
+      presented.set(identity, { ...point, x: previous.x, y: previous.y })
       const states = pointValueStates(runtime, identity, [
         previous.x,
         previous.y,
@@ -1260,7 +1968,7 @@ function createPresentationTracks(
     const start =
       previous ??
       (horizontal ? { ...point, x: baseline } : { ...point, y: baseline })
-    presented.set(identity, start)
+    presented.set(identity, { ...point, x: start.x, y: start.y })
     const timing = timingFor({
       phase: defaultPhase === 'enter' ? 'enter' : phase,
       role: 'bar',
@@ -1290,9 +1998,64 @@ function createPresentationTracks(
     })
   }
 
+  if (rollingPlans) {
+    for (const planned of rollingPlans.elements.values()) {
+      if (planned.outcome.kind !== 'transform') continue
+      const transform = planned.outcome.transform
+      const exiting = planned.previousPoints.flatMap((point) => {
+        const identity = pointIdentity(point)
+        if (targetByIdentity.has(identity)) return []
+        const start = fromByIdentity.get(identity) ?? point
+        return [
+          {
+            identity,
+            point,
+            target: {
+              x: start.x - transform.x,
+              y: (start.y - transform.y) / transform.yScale,
+            },
+          },
+        ]
+      })
+      const from = [transform.x, transform.yScale, transform.y]
+      const apply = (values: readonly number[]) => {
+        for (const point of planned.points) {
+          const x = point.x + (values[0] ?? 0)
+          const y = point.y * (values[1] ?? 1) + (values[2] ?? 0)
+          presented.set(pointIdentity(point), { ...point, x, y })
+        }
+        for (const entry of exiting) {
+          const x = entry.target.x + (values[0] ?? 0)
+          const y = entry.target.y * (values[1] ?? 1) + (values[2] ?? 0)
+          presented.set(entry.identity, { ...entry.point, x, y })
+        }
+      }
+      apply(from)
+      tracks.push({
+        ...planned.timing,
+        values: bindMotionValues(undefined, from, [0, 1, 0]),
+        apply,
+        finish() {
+          for (const point of planned.points) {
+            presented.set(pointIdentity(point), point)
+          }
+          for (const entry of exiting) presented.delete(entry.identity)
+        },
+      })
+    }
+  }
+
   const pathSeries = new Map<string, ChartPoint[]>()
   for (const point of scene.points) {
     if (verticalBars.has(point.key) || horizontalBars.has(point.key)) continue
+    const rolling = rollingPlans?.points.get(pointIdentity(point))
+    if (
+      rolling?.outcome.kind === 'transform' ||
+      (rolling?.outcome.kind === 'fallback' &&
+        rolling.outcome.fallback === 'snap')
+    ) {
+      continue
+    }
     const pathSeriesEntry = seriesElementForPoint(point, pathGroups)
     if (!pathSeriesEntry) continue
     const seriesKey = pathSeriesEntry[0]
@@ -1355,6 +2118,16 @@ function createPresentationTracks(
   for (const point of fromPoints) {
     const identity = pointIdentity(point)
     if (targetByIdentity.has(identity)) continue
+    const rolling = rollingPlans?.points.get(identity)
+    if (rolling?.outcome.kind === 'transform') continue
+    if (
+      rolling?.outcome.kind === 'fallback' &&
+      rolling.outcome.fallback === 'snap'
+    ) {
+      presented.delete(identity)
+      runtime.points.delete(identity)
+      continue
+    }
     const element = elements.get(point.key) ?? elements.get(`${point.key}:dot`)
     const pathSeriesEntry = seriesElementForPoint(point, pathGroups)
     const role: ChartMotionRole =
@@ -1396,7 +2169,7 @@ function keyedElements(root: SVGSVGElement, selector: string) {
   return new Set(keyedElementMap(root, selector).keys())
 }
 
-function keyedElementMap(root: SVGSVGElement, selector: string) {
+function keyedElementMap(root: ParentNode, selector: string) {
   const result = new Map<string, Element>()
   for (const element of root.querySelectorAll(selector)) {
     const key = element.getAttribute('data-ts-key')
@@ -1407,6 +2180,10 @@ function keyedElementMap(root: SVGSVGElement, selector: string) {
 
 function pointIdentity(point: ChartPoint) {
   return `${point.markId}\0${point.key}`
+}
+
+function motionGroupIdentity(point: ChartPoint) {
+  return valueKey(point.group)
 }
 
 function seriesElementForPoint(
@@ -1558,11 +2335,13 @@ function resolveTiming(
       : 0
   let delay = automaticDelay
   let transition = options.transition
+  let path: ChartMotionPath = 'morph'
   const apply = (definition: ChartMotionDefinition<any> | undefined) => {
     const authored =
       typeof definition === 'function' ? definition(context) : definition
     if (!authored) return
     if (authored.delay !== undefined) delay = nonNegative(authored.delay, delay)
+    if (authored.path !== undefined) path = authored.path
     transition = resolveTransition(
       authored.transition,
       transition.type === 'tween' ? transition.duration : defaultDuration,
@@ -1603,7 +2382,7 @@ function resolveTiming(
   // A delayed physical retarget would freeze the sampled velocity. Spring
   // updates therefore begin immediately; use delay for enter/exit choreography.
   if (context.phase === 'update' && transition.type === 'spring') delay = 0
-  return { delay, transition }
+  return { delay, transition, path }
 }
 
 function createTimingResolver(
@@ -1627,48 +2406,59 @@ function motionDefinitions(
   scene: ChartScene,
 ): SceneMotionDefinitions | undefined {
   const source = motionSceneSource(scene)
-  if (!source) return undefined
-  const [definition, initialized] = source
   const marks: Record<string, ChartMotionDefinition<any>> = {}
-  initialized.forEach((mark, index) => {
-    const authored = mark.motion ?? definition.marks[index]?.motion
-    if (authored !== undefined) marks[mark.id] = authored
-  })
+  let defaultDefinition: ChartMotionDefinition<any> | undefined
+  if (source) {
+    const [definition, initialized] = source
+    defaultDefinition = definition.motion
+    initialized.forEach((mark, index) => {
+      const authored = mark.motion ?? definition.marks[index]?.motion
+      if (authored !== undefined) marks[mark.id] = authored
+    })
+  }
+  for (const guide of scene.focusGuides ?? []) {
+    if (guide.motion !== undefined) {
+      marks[guide.markId] = guide.motion as ChartMotionDefinition<any>
+    }
+  }
 
   const guides: Record<string, ChartMotionDefinition<any>> = {}
-  for (const axis of ['x', 'y'] as const) {
-    const configured = definition[axis]
-    const presentation =
-      !configured || configured.axis === false
-        ? undefined
-        : (configured.axis ?? {})
-    if (presentation?.motion !== undefined) {
-      guides[`axis:${axis}`] = presentation.motion
-    }
-    if (presentation?.ticks && presentation.ticks.motion !== undefined) {
-      guides[`tick:${axis}`] = presentation.ticks.motion
-    }
-    if (
-      presentation?.tickLabels &&
-      presentation.tickLabels.motion !== undefined
-    ) {
-      guides[`tick-label:${axis}`] = presentation.tickLabels.motion
-    }
-    if (
-      typeof presentation?.label === 'object' &&
-      presentation.label.motion !== undefined
-    ) {
-      guides[`axis-label:${axis}`] = presentation.label.motion
+  if (source) {
+    const [definition] = source
+    for (const axis of ['x', 'y'] as const) {
+      const configured = definition[axis]
+      const presentation =
+        !configured || configured.axis === false
+          ? undefined
+          : (configured.axis ?? {})
+      if (presentation?.motion !== undefined) {
+        guides[`axis:${axis}`] = presentation.motion
+      }
+      if (presentation?.ticks && presentation.ticks.motion !== undefined) {
+        guides[`tick:${axis}`] = presentation.ticks.motion
+      }
+      if (
+        presentation?.tickLabels &&
+        presentation.tickLabels.motion !== undefined
+      ) {
+        guides[`tick-label:${axis}`] = presentation.tickLabels.motion
+      }
+      if (
+        typeof presentation?.label === 'object' &&
+        presentation.label.motion !== undefined
+      ) {
+        guides[`axis-label:${axis}`] = presentation.label.motion
+      }
     }
   }
 
   const hasMarks = Object.keys(marks).length > 0
   const hasGuides = Object.keys(guides).length > 0
-  if (definition.motion === undefined && !hasMarks && !hasGuides) {
+  if (defaultDefinition === undefined && !hasMarks && !hasGuides) {
     return undefined
   }
   return {
-    ...(definition.motion === undefined ? {} : { default: definition.motion }),
+    ...(defaultDefinition === undefined ? {} : { default: defaultDefinition }),
     ...(hasMarks ? { marks } : {}),
     ...(hasGuides ? { guides } : {}),
   }
@@ -1696,7 +2486,7 @@ function resolveBarBaseline(
 }
 
 function runTracks(
-  root: SVGSVGElement,
+  root: SVGElement,
   tracks: readonly MotionTrack[],
   lifecycle: { publish?: () => void; finish?: () => void } = {},
 ) {

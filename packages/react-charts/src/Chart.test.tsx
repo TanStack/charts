@@ -4,7 +4,10 @@ import { createRoot, hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
-import type { ChartDefinition } from '@tanstack/charts'
+import type {
+  ChartDefinition,
+  ChartInteractionController,
+} from '@tanstack/charts'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal'
@@ -50,6 +53,7 @@ const widenedDefinition: ChartDefinition<
 const broadFocusDefinition = defineChart(definition, {
   maxFocusDistance: 1_000,
 })
+const focusDisabledDefinition = defineChart(definition, { focus: false })
 
 if (false) {
   const legacyStaticArity = (
@@ -77,7 +81,7 @@ if (false) {
         }>()
         return points
       },
-      group(_points, point) {
+      group(_points, { point }) {
         expectTypeOf(point.xValue).toEqualTypeOf<number>()
         return [point]
       },
@@ -156,6 +160,15 @@ if (false) {
         expectTypeOf(point?.xValue).toEqualTypeOf<number | undefined>()
         expectTypeOf(point?.yValue).toEqualTypeOf<number | undefined>()
       }}
+      onRender={({ interaction }) => {
+        const resolved = interaction.resolvePointer(0, 0)
+        expectTypeOf(resolved?.point.datum).toEqualTypeOf<
+          (typeof data)[number] | undefined
+        >()
+        expectTypeOf(resolved?.point.xValue).toEqualTypeOf<number | undefined>()
+        interaction.setControlledFocus(resolved, { source: 'pointer' })
+        interaction.setControlledFocus(resolved?.point ?? null)
+      }}
     />
   )
   const widened = (
@@ -195,6 +208,7 @@ describe('React adapter', () => {
 
     expect(html).toContain('viewBox="0 0 480 240"')
     expect(html).toContain('aspect-ratio:2')
+    expect(html).not.toContain('aspect-ratio:2px')
   })
 
   it('derives proportional initial geometry from an explicit width', () => {
@@ -211,6 +225,7 @@ describe('React adapter', () => {
     expect(html).toContain('viewBox="0 0 900 300"')
     expect(html).toContain('width:900px')
     expect(html).toContain('aspect-ratio:3')
+    expect(html).not.toContain('aspect-ratio:3px')
   })
 
   it.each([0, -2, Number.NaN, Number.POSITIVE_INFINITY])(
@@ -243,6 +258,35 @@ describe('React adapter', () => {
     )
 
     expect(html).toContain('tabindex="4"')
+  })
+
+  it('server-renders focus-disabled markup and hydrates it without replacing the SVG', async () => {
+    const chart = (
+      <Chart
+        definition={focusDisabledDefinition}
+        width={480}
+        height={260}
+        ariaLabel="Static revenue"
+        tabIndex={4}
+      />
+    )
+    const html = renderToString(chart)
+    const target = document.createElement('div')
+    target.innerHTML = html
+    const serverSvg = target.querySelector('svg')
+    let root!: ReturnType<typeof hydrateRoot>
+
+    expect(serverSvg?.getAttribute('tabindex')).toBe('-1')
+    expect(serverSvg?.querySelector('[data-ts-focus-layer]')).toBeNull()
+
+    await act(async () => {
+      root = hydrateRoot(target, chart)
+    })
+
+    expect(target.querySelector('svg')).toBe(serverSvg)
+    expect(serverSvg?.getAttribute('tabindex')).toBe('-1')
+    expect(serverSvg?.querySelector('[data-ts-focus-layer]')).toBeNull()
+    await act(async () => root.unmount())
   })
 
   it('server-renders unique scoped resource IDs for sibling charts', () => {
@@ -342,6 +386,83 @@ describe('React adapter', () => {
     expect(
       target.querySelector('[data-ts-focus-layer]')?.getAttribute('visibility'),
     ).toBe('visible')
+
+    await act(async () => root.unmount())
+  })
+
+  it('exposes controlled focus through the SVG render context', async () => {
+    const controlledDefinition = defineChart(definition, {
+      pointer: false,
+      focus: 'nearest-x',
+      maxFocusDistance: 1_000,
+    })
+    const target = document.createElement('div')
+    const onFocusChange = vi.fn()
+    const root = createRoot(target)
+    let interaction:
+      | ChartInteractionController<(typeof data)[number], number, number>
+      | undefined
+
+    await act(async () => {
+      root.render(
+        <Chart
+          definition={controlledDefinition}
+          width={480}
+          height={260}
+          ariaLabel="Controlled revenue"
+          onFocusChange={onFocusChange}
+          onRender={(context) => {
+            interaction = context.interaction
+          }}
+        />,
+      )
+    })
+
+    const svg = target.querySelector('svg')
+    if (!svg || !interaction) {
+      throw new Error('Expected a controlled SVG chart')
+    }
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 480,
+      bottom: 260,
+      left: 0,
+      width: 480,
+      height: 260,
+      toJSON: () => ({}),
+    })
+
+    await act(async () => {
+      svg.dispatchEvent(
+        new MouseEvent('pointermove', {
+          bubbles: true,
+          clientX: 52,
+          clientY: 200,
+        }),
+      )
+    })
+    expect(onFocusChange).not.toHaveBeenCalled()
+
+    const resolved = interaction.resolvePointer(52, 200)
+    expect(resolved?.point.datum).toBe(data[0])
+    await act(async () => {
+      interaction?.setControlledFocus(resolved, { source: 'pointer' })
+    })
+
+    expect(onFocusChange).toHaveBeenLastCalledWith(resolved?.point)
+    expect(
+      target.querySelector('[data-ts-focus-layer]')?.getAttribute('visibility'),
+    ).toBe('visible')
+
+    await act(async () => {
+      interaction?.setControlledFocus(null)
+    })
+    expect(onFocusChange).toHaveBeenLastCalledWith(null)
+    expect(
+      target.querySelector('[data-ts-focus-layer]')?.getAttribute('visibility'),
+    ).toBe('hidden')
 
     await act(async () => root.unmount())
   })

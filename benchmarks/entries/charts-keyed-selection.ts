@@ -14,7 +14,7 @@ export function activateSelection(
 ) {
   let change: unknown
   const selection = keyedSelection<Row, Row['id'], number, number>({
-    selected: controlledSignal(selected, (next, reason) => {
+    selected: controlledSignal(selected, (next, { reason }) => {
       change = { next, reason }
     }),
     key: (datum) => datum.id,

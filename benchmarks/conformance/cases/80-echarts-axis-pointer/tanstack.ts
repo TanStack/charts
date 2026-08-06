@@ -13,6 +13,7 @@ import {
   clientPointBounds,
   scenePointToClient,
 } from '../../shared/driver-geometry'
+import { tanstackCase } from '../../shared/mount'
 import { axisPointerColors } from './colors'
 import {
   axisPointerAnchorDate,
@@ -21,7 +22,12 @@ import {
   axisPointerTargetValue,
 } from './model'
 import { axisPointerData, axisPointerIndustries } from './selection'
-import type { ChartHostOptions, ChartPoint, ChartScene } from '@tanstack/charts'
+import type {
+  ChartHostOptions,
+  ChartPoint,
+  ChartScene,
+  ChartTooltipOptions,
+} from '@tanstack/charts'
 import type { AxisPointerDatum } from './selection'
 import type {
   ConformanceGeometryQuery,
@@ -42,6 +48,27 @@ const monthYear = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
   timeZone: 'UTC',
 })
+
+const axisPointerTooltip: ChartTooltipOptions<AxisPointerDatum> = {
+  className: 'conformance-tooltip-grouped',
+  sticky: false,
+  anchor: { x: 'value', y: 'plot-top' },
+  placement: ['bottom-right', 'bottom-left', 'right', 'left'],
+  offset: 10,
+  sort: 'color-domain',
+  items: [
+    {
+      channel: 'x',
+      label: '',
+      text: (point) => monthYear.format(point.datum.date),
+    },
+    {
+      channel: 'y',
+      text: (point) => point.datum.unemployed.toLocaleString('en-US'),
+    },
+    { channel: 'group', label: 'Industry' },
+  ],
+}
 
 export const axisPointerDefinition = (input: ConformanceInput) => {
   const rows = axisPointerData(industries, input.revision)
@@ -104,28 +131,17 @@ export const axisPointerDefinition = (input: ConformanceInput) => {
     keyboard: true,
     tooltip: {
       use: tooltip,
-      className: 'conformance-tooltip-grouped',
-      sticky: false,
-      anchor: { x: 'value', y: 'plot-top' },
-      placement: ['bottom-right', 'bottom-left', 'right', 'left'],
-      offset: 10,
-      sort: 'color-domain',
-      items: [
-        {
-          channel: 'x',
-          label: '',
-          text: (point) => monthYear.format(point.datum.date),
-        },
-        {
-          channel: 'y',
-          text: (point) => point.datum.unemployed.toLocaleString('en-US'),
-        },
-        { channel: 'group', label: 'Industry' },
-      ],
+      ...axisPointerTooltip,
     },
     margin: { top: 38, right: 24, bottom: 45, left: 60 },
   })
 }
+
+export const catalogCase = tanstackCase(
+  axisPointerDefinition,
+  'Snapped axis pointer with grouped tooltip',
+  axisPointerTooltip,
+)
 
 export const mount: ConformanceMount = (container, input) => {
   let currentInput = input

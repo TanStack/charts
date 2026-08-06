@@ -7,7 +7,10 @@ import {
   type HandleXChange,
   type HandleXCross,
 } from './interaction-handle'
-import { controlledSignal } from './interaction-signal'
+import {
+  controlledSignal,
+  type ControlledSignalChangeContext,
+} from './interaction-signal'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
 import type { ChartHost } from './dom-types'
@@ -408,7 +411,7 @@ describe('handleX', () => {
     expectTypeOf(signal.onChange).parameter(0).toEqualTypeOf<Stage>()
     expectTypeOf(signal.onChange)
       .parameter(1)
-      .toEqualTypeOf<HandleXChange<Stage>>()
+      .toEqualTypeOf<ControlledSignalChangeContext<HandleXChange<Stage>>>()
     expectTypeOf(behavior.__xValue).toEqualTypeOf<Stage | undefined>()
     expectTypeOf(behavior.__yValue).toEqualTypeOf<Lane | undefined>()
   })
@@ -434,7 +437,10 @@ function edgeDefinition(
     behaviors: [
       handleX({
         id: options.id ?? 'date',
-        value: controlledSignal(value, onChange),
+        value: controlledSignal<Date, HandleXChange<Date>>(
+          value,
+          (next, { reason }) => onChange(next, reason),
+        ),
         values: options.values ?? dates,
         cross: options.cross ?? { edge: 'bottom', offset: 18 },
         hitSize: options.hitSize,

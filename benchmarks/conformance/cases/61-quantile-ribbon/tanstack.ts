@@ -1,7 +1,9 @@
 import { areaY, defineChart, groupBy, lineY, quantile } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
+import type { ConformanceInput } from '../../types'
 
 export const quantileRows = groupBy(industries, {
   by: 'date',
@@ -14,10 +16,13 @@ export const quantileRows = groupBy(industries, {
 
 const dateKey = ({ date }: (typeof quantileRows)[number]) => date.getTime()
 
-export const quantileRibbonDefinition = () => {
+function quantileRibbonChart(
+  rows: readonly (typeof quantileRows)[number][],
+  showAxisLabels: boolean,
+) {
   return defineChart({
     marks: [
-      areaY(quantileRows, {
+      areaY(rows, {
         id: 'quantile-ribbon',
         x: 'date',
         y1: 'lower',
@@ -26,7 +31,7 @@ export const quantileRibbonDefinition = () => {
         fill: '#0ea5e9',
         fillOpacity: 0.22,
       }),
-      lineY(quantileRows, {
+      lineY(rows, {
         id: 'median-line',
         x: 'date',
         y: 'median',
@@ -35,16 +40,40 @@ export const quantileRibbonDefinition = () => {
         strokeWidth: 2.25,
       }),
     ],
-    x: { scale: scaleUtc, axis: { label: 'Month' } },
+    x: {
+      scale: scaleUtc,
+      axis: showAxisLabels ? { label: 'Month' } : {},
+    },
     y: {
       scale: scaleLinear,
       grid: true,
-      axis: { label: 'Unemployed people by industry (thousands)' },
+      axis: showAxisLabels
+        ? { label: 'Unemployed people by industry (thousands)' }
+        : {},
     },
   })
 }
 
+export const quantileRibbonDefinition = () =>
+  quantileRibbonChart(quantileRows, true)
+
+const catalogQuantileRibbonDefinition = (input: ConformanceInput) =>
+  quantileRibbonChart(
+    samplePreviewData(quantileRows, input, 64, [
+      (row) => row.date.getTime(),
+      (row) => row.lower,
+      (row) => row.upper,
+    ]),
+    input.preview !== true,
+  )
+
 export const mount = tanstackMount(
   quantileRibbonDefinition,
   'Monthly industry unemployment distribution',
+)
+
+export const catalogCase = tanstackCase(
+  catalogQuantileRibbonDefinition,
+  mount.ariaLabel,
+  mount.interactiveTooltip,
 )

@@ -46,7 +46,29 @@ export function renderChartSvgWithHooks(
           idPrefix,
         )
 
-  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}" style="display:block;overflow:visible">${description}${definitions}${background}${scene.nodes.map((node) => renderNode(node, hooks, idPrefix)).join('')}</svg>`
+  return `<svg class="${escapeAttribute(className)}" width="100%" height="100%" viewBox="0 0 ${number(scene.width)} ${number(scene.height)}" role="img" aria-roledescription="chart" aria-label="${escapeAttribute(options.ariaLabel)}" tabindex="${number(options.tabIndex ?? 0)}" style="display:block;overflow:visible">${description}${definitions}${background}${renderSceneNodes(scene.nodes, idPrefix, hooks)}</svg>`
+}
+
+export function renderSceneNodes(
+  nodes: readonly SceneNode[],
+  idPrefix = '',
+  hooks?: ChartSvgRenderHooks,
+): string {
+  return nodes.map((node) => renderNode(node, hooks, idPrefix)).join('')
+}
+
+export function renderFocusGuideLayer(
+  nodes: readonly SceneNode[],
+  placement: 'under' | 'over',
+  idPrefix = '',
+  hooks?: ChartSvgRenderHooks,
+): string {
+  const visibility = nodes.length ? 'visible' : 'hidden'
+  return `<g data-ts-key="focus-guide-layer:${placement}" class="ts-chart__focus-guide-layer ts-chart__focus-guide-layer--${placement}" data-ts-focus-layer="${placement}" data-ts-focus-guide-layer="${placement}" aria-hidden="true" visibility="${visibility}">${renderSceneNodes(nodes, idPrefix, hooks ?? focusGuideRenderHooks)}</g>`
+}
+
+const focusGuideRenderHooks: ChartSvgRenderHooks = {
+  renderGroup: renderFocusGuideClip,
 }
 
 function renderNode(
@@ -132,6 +154,24 @@ function pointsPath(
       ([x, y], index) => `${index === 0 ? 'M' : 'L'}${number(x)},${number(y)}`,
     )
     .join('')}${close ? 'Z' : ''}`
+}
+
+function renderFocusGuideClip(node: SceneGroup, idPrefix: string) {
+  if (!node.clip) return undefined
+  const prefix = idPrefix.replaceAll(/[^a-zA-Z0-9_-]/g, '')
+  const id = `${prefix ? `${prefix}-` : ''}ts-chart-clip-${stableId(node.key)}`
+  return {
+    attributes: ` clip-path="url(#${id})"`,
+    content: `<defs data-ts-key="${escapeAttribute(`${node.key}:clip-defs`)}"><clipPath id="${id}"><rect x="${number(node.clip.x)}" y="${number(node.clip.y)}" width="${number(node.clip.width)}" height="${number(node.clip.height)}"/></clipPath></defs>`,
+  }
+}
+
+function stableId(value: string) {
+  let hash = 2166136261
+  for (let index = 0; index < value.length; index += 1) {
+    hash = Math.imul(hash ^ value.charCodeAt(index), 16777619)
+  }
+  return (hash >>> 0).toString(36)
 }
 
 function renderCommon(

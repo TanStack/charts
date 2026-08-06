@@ -2,6 +2,7 @@ import { createColorScale, valueKey } from './scales'
 import { resolveConfiguredScale } from './configured-scale'
 import { measureSceneLabelBounds } from './guide-layout'
 import { nearestScenePoint } from './nearest'
+import { mapScenePointReferences } from './scene-point-map'
 import { chartSceneSource } from './scene-source'
 import type {
   DynamicChartDefinition,
@@ -28,6 +29,7 @@ import type {
   ChartMarkPointY,
   ChartMarkState,
   ChartPoint,
+  SceneFocusGuide,
   ResolvedColorScale,
   ChartScene,
   ChartScaleResolver,
@@ -156,9 +158,13 @@ function resolveSuppliedScale(
   scale: NonNullable<ChartAxisOptions['scale']>,
   context: Parameters<ChartScaleResolver>[0],
 ) {
-  return typeof scale === 'function'
-    ? resolveConfiguredScale(scale, context)
-    : scale.resolve(context)
+  if (typeof scale === 'function') return resolveConfiguredScale(scale, context)
+  if (context.options?.viewport) {
+    throw new TypeError(
+      `Chart viewport "${context.id}" requires a configured or inferable continuous scale`,
+    )
+  }
+  return scale.resolve(context)
 }
 
 function createChartSceneWithScaleResolver<
@@ -210,13 +216,44 @@ function createChartSceneWithScaleResolver<
     legend,
     legendBounds,
   } = resolvedLayout
-  const markNodes: SceneNode[] = []
+  const markEntries: ViewportMarkEntry[] = []
+  const defaultFocusEntries: DefaultFocusEntry<TDatum, TXValue, TYValue>[] = []
   const points: ChartPoint<TDatum, TXValue, TYValue>[] = []
-  const firstBaseMarkIndex = marks.findIndex((mark) => !mark.focus)
+  const translateX = scales.x.viewport?.translate ?? 0
+  const translateY = scales.y.viewport?.translate ?? 0
+  const focusGuides: SceneFocusGuide[] = []
+  const firstBaseMarkIndex = marks.findIndex(
+    (mark) => !mark.focus && !mark.focusGuideOnly,
+  )
 
   marks.forEach((mark, markIndex) => {
+    const viewportX = Boolean(
+      scales.x.viewport && markUsesViewportAxis(mark, 'x'),
+    )
+    const viewportY = Boolean(
+      scales.y.viewport && markUsesViewportAxis(mark, 'y'),
+    )
+    const pointMap = new Map<ChartPoint, ChartPoint<TDatum, TXValue, TYValue>>()
+    const presentPoint = (
+      point: ChartPoint,
+    ): ChartPoint<TDatum, TXValue, TYValue> => {
+      const existing = pointMap.get(point)
+      if (existing) return existing
+      const presented = (
+        viewportX || viewportY
+          ? {
+              ...point,
+              x: point.x + (viewportX ? translateX : 0),
+              y: point.y + (viewportY ? translateY : 0),
+            }
+          : point
+      ) as ChartPoint<TDatum, TXValue, TYValue>
+      pointMap.set(point, presented)
+      return presented
+    }
     let rendered = mark.render({
       markIndex,
+      surface: { x: 0, y: 0, width, height },
       chart,
       scales,
       theme,
@@ -234,35 +271,42 @@ function createChartSceneWithScaleResolver<
       rendered.nodes,
       rendered.points,
     )
+    const renderedNodes =
+      viewportX || viewportY
+        ? mapScenePointReferences(rendered.nodes, presentPoint)
+        : rendered.nodes
+    const presentedPoints = renderedPoints.map(presentPoint)
+    const entryNodes: SceneNode[] = []
+    const placement =
+      firstBaseMarkIndex < 0 || markIndex < firstBaseMarkIndex
+        ? 'under'
+        : 'over'
+    for (const guide of rendered.focusGuides ?? []) {
+      focusGuides.push({ ...guide, placement: guide.placement ?? placement })
+    }
     if (mark.focus) {
       const retarget = mark.focus.retarget === true
-      markNodes.push({
+      entryNodes.push({
         kind: 'group',
         key: `focus:${mark.id}`,
         className: 'ts-chart__focus-layer',
         ariaHidden: true,
         focus: {
           match: mark.focus.match ?? 'primary',
-          points: renderedPoints,
-          placement:
-            firstBaseMarkIndex < 0 || markIndex < firstBaseMarkIndex
-              ? 'under'
-              : 'over',
-          ...(retarget ? { retarget: true, candidates: rendered.nodes } : {}),
+          anchors: rendered.focusAnchors ?? renderedPoints,
+          points: presentedPoints,
+          placement,
+          ...(retarget ? { retarget: true, candidates: renderedNodes } : {}),
         },
-        children: retarget ? [] : rendered.nodes,
+        children: retarget ? [] : renderedNodes,
       })
     } else {
-      const markPoints = renderedPoints as readonly ChartPoint<
-        TDatum,
-        TXValue,
-        TYValue
-      >[]
+      const markPoints = presentedPoints
       if (mark.states) {
-        markNodes.push({
+        entryNodes.push({
           kind: 'group',
           key: `states:${mark.id}`,
-          children: rendered.nodes,
+          children: renderedNodes,
           states: {
             data: mark.states.data,
             definitions: mark.states.definitions,
@@ -270,11 +314,25 @@ function createChartSceneWithScaleResolver<
           },
         })
       } else {
-        for (const node of rendered.nodes) markNodes.push(node)
+        for (const node of renderedNodes) entryNodes.push(node)
       }
       for (const point of markPoints) points.push(point)
+      if (markPoints.length) {
+        defaultFocusEntries.push({
+          markId: mark.id,
+          points: markPoints,
+          clipped: viewportX || viewportY,
+        })
+      }
     }
+    markEntries.push({ key: mark.id, nodes: entryNodes, viewportX, viewportY })
   })
+  const markNodes = arrangeViewportMarkNodes(
+    markEntries,
+    translateX,
+    translateY,
+    chart,
+  )
   const nodes: SceneNode[] = [
     {
       kind: 'group',
@@ -334,30 +392,38 @@ function createChartSceneWithScaleResolver<
     }
     controlIds.add(identity)
   }
-  if (definition.focusRing !== false && points.length) {
-    nodes.push({
-      kind: 'group',
-      key: 'default-focus',
-      className: 'ts-chart__focus-layer ts-chart__focus-layer--default',
-      ariaHidden: true,
-      focus: {
-        match: 'primary',
-        points,
-        placement: 'over',
-      },
-      children: points.map((point) => ({
-        kind: 'dot',
-        key: point.key,
-        x: point.x,
-        y: point.y,
-        radius: 5,
-        style: {
-          fill: 'var(--ts-chart-focus-fill, Canvas)',
-          stroke: point.color,
-          strokeWidth: 2.5,
+  if (
+    definition.focus !== false &&
+    definition.focusRing !== false &&
+    points.length
+  ) {
+    for (const entry of defaultFocusEntries) {
+      nodes.push({
+        kind: 'group',
+        key: `default-focus:${entry.markId}`,
+        className: 'ts-chart__focus-layer ts-chart__focus-layer--default',
+        ariaHidden: true,
+        clip: entry.clipped ? chart : undefined,
+        focus: {
+          match: 'primary',
+          anchors: entry.points,
+          points: entry.points,
+          placement: 'over',
         },
-      })),
-    })
+        children: entry.points.map((point) => ({
+          kind: 'dot',
+          key: point.key,
+          x: point.x,
+          y: point.y,
+          radius: 5,
+          style: {
+            fill: 'var(--ts-chart-focus-fill, Canvas)',
+            stroke: point.color,
+            strokeWidth: 2.5,
+          },
+        })),
+      })
+    }
   }
 
   return {
@@ -372,6 +438,7 @@ function createChartSceneWithScaleResolver<
     gradients: definition.gradients ?? [],
     theme,
     ...(controls.length ? { controls } : {}),
+    ...(focusGuides.length ? { focusGuides } : {}),
     [chartSceneSource]: [definition, initialized],
   } as ChartScene<TDatum, TXValue, TYValue> & {
     [chartSceneSource]: readonly [
@@ -379,6 +446,61 @@ function createChartSceneWithScaleResolver<
       readonly InitializedMark[],
     ]
   }
+}
+
+interface ViewportMarkEntry {
+  key: string
+  nodes: readonly SceneNode[]
+  viewportX: boolean
+  viewportY: boolean
+}
+
+interface DefaultFocusEntry<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+> {
+  markId: string
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[]
+  clipped: boolean
+}
+
+function markUsesViewportAxis(
+  mark: Pick<ResolvedSceneMark, 'channels' | 'viewport'>,
+  axis: 'x' | 'y',
+) {
+  const ownership = mark.viewport?.[axis]
+  if (ownership) return ownership === 'content'
+  return Object.values(mark.channels).some((channel) => channel.scale === axis)
+}
+
+function arrangeViewportMarkNodes(
+  entries: readonly ViewportMarkEntry[],
+  translateX: number,
+  translateY: number,
+  chart: ChartBounds,
+): SceneNode[] {
+  return entries.flatMap((entry): SceneNode[] => {
+    if (!entry.viewportX && !entry.viewportY) return [...entry.nodes]
+    return [
+      {
+        kind: 'group',
+        key: `viewport-clip:${entry.key}`,
+        className: 'ts-chart__viewport-clip',
+        clip: chart,
+        children: [
+          {
+            kind: 'group',
+            key: `viewport-content:${entry.key}`,
+            className: 'ts-chart__viewport-content',
+            ...(entry.viewportX ? { translateX } : {}),
+            ...(entry.viewportY ? { translateY } : {}),
+            children: entry.nodes,
+          },
+        ],
+      },
+    ]
+  })
 }
 
 export function findNearestPoint<
@@ -390,8 +512,47 @@ export function findNearestPoint<
   x: number,
   y: number,
   maxDistance = Infinity,
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[] = scene.points,
 ): ChartPoint<TDatum, TXValue, TYValue> | null {
-  return nearestScenePoint(scene, x, y, maxDistance)
+  return nearestScenePoint(scene, x, y, maxDistance, points)
+}
+
+/** Points whose presented anchors are inside an active viewport clip. */
+export function viewportInteractionPoints<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+  points: readonly ChartPoint<TDatum, TXValue, TYValue>[] = scene.points,
+): readonly ChartPoint<TDatum, TXValue, TYValue>[] {
+  if (!scene.scales.x?.viewport && !scene.scales.y?.viewport) return points
+  const { x, y, width, height } = scene.chart
+  const right = x + width
+  const bottom = y + height
+  const visible = points.filter(
+    (point) =>
+      !pointUsesViewportClip(scene, point) ||
+      (point.x >= x && point.x <= right && point.y >= y && point.y <= bottom),
+  )
+  return visible.length === points.length ? points : visible
+}
+
+function pointUsesViewportClip(scene: ChartScene, point: ChartPoint) {
+  const source = (
+    scene as ChartScene & {
+      [chartSceneSource]?: readonly [
+        StaticChartDefinition,
+        readonly InitializedMark[],
+      ]
+    }
+  )[chartSceneSource]
+  const mark = source?.[1].find((candidate) => candidate.id === point.markId)
+  if (!mark) return true
+  return Boolean(
+    (scene.scales.x?.viewport && markUsesViewportAxis(mark, 'x')) ||
+    (scene.scales.y?.viewport && markUsesViewportAxis(mark, 'y')),
+  )
 }
 
 function collectRenderedPoints(
@@ -467,6 +628,8 @@ interface ResolvedSceneLayout {
 interface ResolvedSceneMark {
   id: string
   channels: Readonly<Record<string, MaterializedChannel>>
+  viewport?: Readonly<Partial<Record<'x' | 'y', 'content' | 'fixed'>>>
+  focusGuideOnly?: boolean
   seriesFromColor?: boolean
   focus?: ChartFocusFilter
   states?: {
@@ -582,11 +745,14 @@ function resolveSceneLayout(
         'An interactive color legend requires a categorical color scale',
       )
     }
-    const legendHeight = legend?.height(
-      colors.domain.length,
-      chart.width,
+    const legendHeight = legend?.height(colors.domain.length, {
       colors,
-    )
+      chart,
+      bounds: { x: chart.x, y: 0, width: chart.width, height: 0 },
+      theme,
+      width,
+      height,
+    })
     const legendBounds =
       legend && legendHeight !== undefined
         ? {
@@ -623,8 +789,19 @@ function resolveSceneLayout(
     if (resolved.legend) {
       const legendHeight = resolved.legend.height(
         resolved.colors.domain.length,
-        resolved.chart.width,
-        resolved.colors,
+        {
+          colors: resolved.colors,
+          chart: resolved.chart,
+          bounds: {
+            x: resolved.chart.x,
+            y: 0,
+            width: resolved.chart.width,
+            height: 0,
+          },
+          theme,
+          width,
+          height,
+        },
       )
       if (resolved.legend.placement === 'bottom') {
         if (locks.bottom === undefined) automatic.bottom += legendHeight
@@ -634,8 +811,14 @@ function resolveSceneLayout(
     }
     if (!definition.clip) {
       resolved.marks.forEach((mark, markIndex) => {
+        const autoClipped = Boolean(
+          (resolved.scales.x.viewport && markUsesViewportAxis(mark, 'x')) ||
+          (resolved.scales.y.viewport && markUsesViewportAxis(mark, 'y')),
+        )
+        if (autoClipped) return
         const labels = mark.layoutLabels?.({
           markIndex,
+          surface: { x: 0, y: 0, width, height },
           chart: resolved.chart,
           scales: resolved.scales,
           theme,
@@ -669,6 +852,8 @@ function resolveMarkLayouts(
     return {
       id: mark.id,
       channels: resolved.channels ?? mark.channels,
+      viewport: mark.viewport,
+      focusGuideOnly: mark.focusGuideOnly,
       seriesFromColor: mark.seriesFromColor,
       focus: mark.focus,
       states: resolved.states ?? mark.states,

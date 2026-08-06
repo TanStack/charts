@@ -41,6 +41,14 @@ export interface FocusGuideMarkerOptions<TDatum> {
   strokeWidth?: VisualChannel<TDatum, number>
 }
 
+export interface FocusGuideLabelFormatContext<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+> {
+  readonly point: ChartPoint<TDatum, TXValue, TYValue>
+}
+
 export interface FocusGuideLabelOptions<
   TDatum,
   TValue extends ChartValue,
@@ -49,7 +57,7 @@ export interface FocusGuideLabelOptions<
 > {
   format?: (
     value: TValue,
-    point: ChartPoint<TDatum, TXValue, TYValue>,
+    context: FocusGuideLabelFormatContext<TDatum, TXValue, TYValue>,
   ) => string
   side?: 'start' | 'end'
   offset?: number
@@ -388,7 +396,7 @@ function resolveLabel<
 ) {
   if (options === false || options === undefined) return false
   return {
-    text: options.format?.(value, point) ?? String(value),
+    text: options.format?.(value, { point }) ?? String(value),
     side: options.side,
     offset: options.offset,
     paddingX: options.paddingX,

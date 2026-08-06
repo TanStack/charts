@@ -11,7 +11,7 @@ import { format } from 'd3-format'
 import { scaleLinear } from 'd3-scale'
 import { survey } from '@charts-poc/demo-data/survey'
 import { isMosaicResponse, mosaicResponses } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 const percent = format('.0%')
 const colors = ['#991b1b', '#ef4444', '#cbd5e1', '#60a5fa', '#1d4ed8']
@@ -76,7 +76,9 @@ export const marimekkoDefinition = () => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   marimekkoDefinition,
   'Marimekko survey composition',
 )
+
+export const mount = catalogCase.mount

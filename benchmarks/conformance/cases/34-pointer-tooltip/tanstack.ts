@@ -1,6 +1,6 @@
 import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
-import type { ChartHostOptions } from '@tanstack/charts'
+import type { ChartHostOptions, ChartTooltipOptions } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
@@ -11,6 +11,7 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 import { selectPointerTooltipData } from './selection'
+import { tanstackCase } from '../../shared/mount'
 
 const definition = (input: ConformanceInput) => {
   const rows = selectPointerTooltipData(aapl, input.revision)
@@ -50,28 +51,38 @@ const definition = (input: ConformanceInput) => {
   })
 }
 
+const interactiveTooltip: ChartTooltipOptions<AaplRow> = {
+  anchor: 'point',
+  placement: ['top', 'right', 'left', 'bottom'],
+  items: [
+    {
+      channel: 'y',
+      label: 'Apple',
+      text: (point) =>
+        point.datum.Close.toLocaleString(undefined, {
+          maximumFractionDigits: 2,
+        }),
+    },
+    {
+      channel: 'x',
+      label: 'Date',
+    },
+  ],
+}
+
+export const catalogCase = tanstackCase(
+  definition,
+  'Interactive Apple closing price',
+  interactiveTooltip,
+)
+
 const configuredDefinition = (input: ConformanceInput) =>
   defineChart(definition(input), {
     animate: false,
     keyboard: true,
     tooltip: {
       use: tooltip,
-      anchor: 'point',
-      placement: ['top', 'right', 'left', 'bottom'],
-      items: [
-        {
-          channel: 'y',
-          label: 'Apple',
-          text: (point) =>
-            point.datum.Close.toLocaleString(undefined, {
-              maximumFractionDigits: 2,
-            }),
-        },
-        {
-          channel: 'x',
-          label: 'Date',
-        },
-      ],
+      ...interactiveTooltip,
     },
   })
 

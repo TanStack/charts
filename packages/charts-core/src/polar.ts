@@ -23,6 +23,7 @@ import { valueKey } from './scales'
 import type { Arc, CurveFactory, CurveFactoryLineOnly } from 'd3-shape'
 import type {
   Channel,
+  ChannelAccessor,
   ChartAxisValue,
   ChartBounds,
   ChartKey,
@@ -443,7 +444,7 @@ export function radialBarRadius<TDatum>(
     const angleValues = channelValues(
       data,
       options.angle,
-      (_datum, index) => index,
+      (_datum, { index }) => index,
     )
     const rawRadiusValues = numericPolarChannelValues(
       data,
@@ -458,7 +459,7 @@ export function radialBarRadius<TDatum>(
     const radius2Values = numericPolarChannelValues(
       data,
       options.radius2 ?? options.radius,
-      (_datum, index) => rawRadiusValues[index],
+      (_datum, { index }) => rawRadiusValues[index],
     )
     const groups = channelValues(data, options.z, () => null)
     const colorValues =
@@ -643,12 +644,12 @@ export function radialBarAngle<TDatum>(
     const angle2Values = numericPolarChannelValues(
       data,
       options.angle2 ?? options.angle,
-      (_datum, index) => rawAngleValues[index],
+      (_datum, { index }) => rawAngleValues[index],
     )
     const radiusValues = channelValues(
       data,
       options.radius,
-      (_datum, index) => index,
+      (_datum, { index }) => index,
     )
     const groups = channelValues(data, options.z, () => null)
     const colorValues =
@@ -831,7 +832,7 @@ export function radialLine<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radiusValues =
       typeof options.radius === 'number'
         ? data.map(() => options.radius as number)
@@ -1005,7 +1006,7 @@ export function radialArea<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radiusValues =
       typeof options.radius === 'number'
         ? data.map(() => options.radius as number)
@@ -1195,7 +1196,7 @@ export function radialText<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radiusValues =
       typeof options.radius === 'number'
         ? data.map(() => options.radius as number)
@@ -1379,7 +1380,7 @@ export function radialRule<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radius1Values =
       typeof options.radius1 === 'number'
         ? data.map(() => options.radius1 as number)
@@ -1531,7 +1532,7 @@ export function radialDot<TDatum>(
     const angleValues =
       typeof options.angle === 'number'
         ? data.map(() => options.angle as number)
-        : channelValues(data, options.angle, (_datum, index) => index)
+        : channelValues(data, options.angle, (_datum, { index }) => index)
     const radiusValues =
       typeof options.radius === 'number'
         ? data.map(() => options.radius as number)
@@ -2094,11 +2095,7 @@ function resolveBarCornerRadius(
 function numericPolarChannelValues<TDatum>(
   data: readonly TDatum[],
   channel: number | Channel<TDatum, number | null | undefined> | undefined,
-  fallback: (
-    datum: TDatum,
-    index: number,
-    data: readonly TDatum[],
-  ) => number | null | undefined,
+  fallback: ChannelAccessor<TDatum, number | null | undefined>,
 ): readonly (number | null | undefined)[] {
   return typeof channel === 'number'
     ? data.map(() => channel)

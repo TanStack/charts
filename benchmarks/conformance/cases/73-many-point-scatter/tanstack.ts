@@ -3,7 +3,8 @@ import { cars } from '@charts-poc/demo-data/cars'
 import type { CarsRow } from '@charts-poc/demo-data/cars'
 import { scaleLinear, scaleSqrt } from 'd3-scale'
 import { selectManyPointData } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase, tanstackMount } from '../../shared/mount'
+import { samplePreviewData } from '../../shared/preview'
 import type { ConformanceInput } from '../../types'
 
 const colors = ['#2563eb', '#7c3aed', '#db2777', '#f97316', '#0f766e']
@@ -35,7 +36,22 @@ export const manyPointScatterDefinition = (points: readonly CarsRow[]) =>
 const definition = (input: ConformanceInput) =>
   manyPointScatterDefinition(selectManyPointData(cars, input.revision))
 
+const catalogDefinition = (input: ConformanceInput) =>
+  manyPointScatterDefinition(
+    samplePreviewData(selectManyPointData(cars, input.revision), input, 80, [
+      (row) => row['weight (lb)'],
+      (row) => row['0-60 mph (s)'],
+      (row) => row['displacement (cc)'],
+    ]),
+  )
+
 export const mount = tanstackMount(
   definition,
   'Automobile specifications scatter',
+)
+
+export const catalogCase = tanstackCase(
+  catalogDefinition,
+  mount.ariaLabel,
+  mount.interactiveTooltip,
 )

@@ -128,7 +128,8 @@ describe('definition-owned playback handle', () => {
     }
     expect(source).toContain("from '@tanstack/charts/interaction/handle'")
     expect(source).toContain('handleX({')
-    expect(source).toContain('controlledSignal(frame, onChange)')
+    expect(source).toContain('controlledSignal<')
+    expect(source).toContain('(next, { reason }) => onChange(next, reason)')
     expect(source).toContain('setInterval(')
   })
 })

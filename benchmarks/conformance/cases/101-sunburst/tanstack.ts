@@ -3,7 +3,7 @@ import { sunburst } from '@tanstack/charts/hierarchy/sunburst'
 import { polar } from '@tanstack/charts/polar'
 import { flare } from '@charts-poc/demo-data/flare'
 import { selectSunburstData } from './selection'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 export const sunburstDefinition = (input: ConformanceInput) => {
@@ -41,7 +41,7 @@ export const sunburstDefinition = (input: ConformanceInput) => {
   })
 }
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   sunburstDefinition,
   'Flare analytics sunburst',
   {
@@ -49,3 +49,5 @@ export const mount = tanstackMount(
       `${(datum.data?.name ?? datum.id).replaceAll('.', ' › ')} · ${datum.value.toLocaleString('en-US')}`,
   },
 )
+
+export const mount = catalogCase.mount

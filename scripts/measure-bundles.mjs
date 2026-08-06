@@ -2,6 +2,8 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { gzipSync } from 'node:zlib'
 import { basename, dirname, resolve } from 'node:path'
 import { build } from 'esbuild'
+import { readBundleConcurrency } from './measure-bundles-options.mjs'
+import { runWithConcurrency } from './run-with-concurrency.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const outputDirectory = resolve(root, '.bundle-output')
@@ -21,6 +23,8 @@ const rendererBoundaryModules = {
   ],
   svg: [
     'packages/charts-core/src/reconcile.ts',
+    'packages/charts-core/src/svg-focus-guide-layer.ts',
+    'packages/charts-core/src/svg-focus-guide-serializer.ts',
     'packages/charts-core/src/svg-renderer.ts',
     'packages/charts-core/src/svg-resources.ts',
     'packages/charts-core/src/svg-surface.ts',
@@ -42,6 +46,8 @@ const rendererBoundaryModules = {
     'packages/charts-core/src/export.ts',
     'packages/charts-core/src/reconcile.ts',
     'packages/charts-core/src/renderer.ts',
+    'packages/charts-core/src/svg-focus-guide-layer.ts',
+    'packages/charts-core/src/svg-focus-guide-serializer.ts',
     'packages/charts-core/src/svg-resources.ts',
     'packages/charts-core/src/svg-surface.ts',
     'packages/react-charts/src/CanvasChart.tsx',
@@ -50,6 +56,17 @@ const rendererBoundaryModules = {
   ],
 }
 const retainedInputGroups = {
+  crosshairRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/crosshair(?:-resolver)?\.ts$/u,
+  ],
+  cursorRuntime: [/(?:^|\/)packages\/charts-core\/src\/cursor\.ts$/u],
+  focusPresentationRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/focus-layer\.ts$/u,
+  ],
+  platformRendererRuntime: [
+    /(?:^|\/)packages\/charts-core\/src\/(?:adapter(?:-renderer)?|canvas|dom(?:-text)?|export|reconcile|renderer|svg(?:-focus-guide-(?:layer|serializer)|-renderer|-resources|-surface)?)\.ts$/u,
+    /(?:^|\/)packages\/(?:react-charts|react-native-charts)\/src\//u,
+  ],
   compactLinear: [/(?:^|\/)packages\/charts-scales\/src\/linear\.ts$/u],
   compactBandEntry: [/(?:^|\/)packages\/charts-scales\/src\/band\.ts$/u],
   compactPointEntry: [/(?:^|\/)packages\/charts-scales\/src\/point\.ts$/u],
@@ -644,37 +661,37 @@ const entries = [
   budgeted(
     'D3-scale lineX + static SVG',
     'benchmarks/entries/charts-line-x-svg.ts',
-    17.1,
+    18.9,
   ),
   budgeted(
     'D3-scale UTC line + static SVG',
     'benchmarks/entries/charts-time-svg.ts',
-    21.8,
+    23.5,
   ),
   budgeted(
     'D3-scale histogram + static SVG',
     'benchmarks/entries/charts-histogram-svg.ts',
-    19.55,
+    21.4,
   ),
   budgeted(
     'D3-scale facets + static SVG',
     'benchmarks/entries/charts-facet-svg.ts',
-    20.4,
+    22.4,
   ),
   budgeted(
     'D3-scale arrows + static SVG',
     'benchmarks/entries/charts-arrow-svg.ts',
-    17,
+    18.85,
   ),
   budgeted(
     'D3-scale areaX + static SVG',
     'benchmarks/entries/charts-area-x-svg.ts',
-    21,
+    22.8,
   ),
   budgeted(
     'D3-scale dots + static SVG',
     'benchmarks/entries/charts-dot-svg.ts',
-    17.45,
+    19.25,
     {
       inputBoundary: {
         forbid: [
@@ -734,7 +751,11 @@ const entries = [
       },
     },
   ),
-  budgeted('Frame + static SVG', 'benchmarks/entries/charts-frame-svg.ts', 8.5),
+  budgeted(
+    'Frame + static SVG',
+    'benchmarks/entries/charts-frame-svg.ts',
+    10.25,
+  ),
   incrementalBudgeted(
     'Spatial density contours + static SVG',
     'benchmarks/entries/charts-spatial-density-svg.ts',
@@ -872,7 +893,7 @@ const entries = [
   budgeted(
     'Composite mark + static SVG',
     'benchmarks/entries/charts-composite-mark.ts',
-    24.3,
+    26.1,
     {
       inputBoundary: {
         require: [
@@ -989,7 +1010,7 @@ const entries = [
     'Coordinated views + static SVG',
     'benchmarks/entries/charts-view-composition.ts',
     'D3-scale dots + static SVG',
-    5.25,
+    5.3,
     {
       inputBoundary: {
         require: [
@@ -1020,10 +1041,28 @@ const entries = [
     'benchmarks/entries/charts-mark-scale-values.ts',
     0.27,
   ),
+  measured(
+    'Crosshair mark extension',
+    'benchmarks/entries/charts-crosshair-kernel.ts',
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['crosshairRuntime'],
+        forbid: [
+          'cursorRuntime',
+          'focusPresentationRuntime',
+          'platformRendererRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+    },
+  ),
   budgeted(
     'D3-scale hexagons + static SVG',
     'benchmarks/entries/charts-hexagon-svg.ts',
-    16.95,
+    18.75,
     { inputBoundary: { forbid: ['d3Hexbin'] } },
   ),
   incrementalBudgeted(
@@ -1053,7 +1092,7 @@ const entries = [
   budgeted(
     'D3-scale link + static SVG',
     'benchmarks/entries/charts-link-svg.ts',
-    16.9,
+    18.75,
     {
       inputBoundary: {
         forbid: [
@@ -1093,22 +1132,22 @@ const entries = [
   budgeted(
     'D3-scale ticks + static SVG',
     'benchmarks/entries/charts-tick-svg.ts',
-    17.95,
+    19.7,
   ),
   budgeted(
     'D3-scale vectors + static SVG',
     'benchmarks/entries/charts-vector-svg.ts',
-    17.15,
+    18.95,
   ),
   budgeted(
     'D3 geo shape + static SVG',
     'benchmarks/entries/charts-geo-svg.ts',
-    14.4,
+    16.2,
   ),
   budgeted(
     'Polar arc + static SVG',
     'benchmarks/entries/charts-polar-arc-svg.ts',
-    12.7,
+    14.45,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   incrementalBudgeted(
@@ -1127,18 +1166,18 @@ const entries = [
   budgeted(
     'Polar gauge composition + static SVG',
     'benchmarks/entries/charts-polar-gauge-svg.ts',
-    21.65,
+    23.45,
   ),
   budgeted(
     'Radial labels + static SVG',
     'benchmarks/entries/charts-radial-label-svg.ts',
-    18.5,
+    20.35,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   budgeted(
     'Polar radial bars + static SVG',
     'benchmarks/entries/charts-radial-bar-svg.ts',
-    22.1,
+    23.85,
     {
       inputBoundary: {
         require: ['polarMarks', 'd3ScaleRuntime', 'd3Shape'],
@@ -1149,7 +1188,7 @@ const entries = [
   budgeted(
     'Polar line + scatter composition + static SVG',
     'benchmarks/entries/charts-polar-line-scatter-svg.ts',
-    23.15,
+    24.95,
   ),
   locked(
     'Representative marks',
@@ -1558,7 +1597,7 @@ const entries = [
   lockedBudgeted(
     'Compact-scale line scene',
     'benchmarks/entries/charts-compact-linear-scene.ts',
-    9,
+    10.3,
     {
       inputBoundary: {
         require: ['compactLinear'],
@@ -1577,7 +1616,7 @@ const entries = [
   lockedBudgeted(
     'React compact-scale line consumer',
     'benchmarks/entries/charts-react-compact-line.ts',
-    21,
+    26.6,
     {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
       rendererBoundary: 'svg',
@@ -1619,7 +1658,7 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    12.2,
+    17.2,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1721,7 +1760,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    45.5,
+    50.6,
   ),
   locked(
     'Custom-scale line scene',
@@ -1747,37 +1786,37 @@ const entries = [
   budgeted(
     'D3 curved line scene',
     'benchmarks/entries/charts-d3-curved-line-scene.ts',
-    18.15,
+    19.5,
   ),
   budgeted(
     'D3 time-scale line scene',
     'benchmarks/entries/charts-d3-time-scene.ts',
-    20.55,
+    21.85,
   ),
   budgeted(
     'Direct D3 monotone + TanStack SVG',
     'benchmarks/entries/charts-d3-curve-svg.ts',
-    19.4,
+    21.2,
   ),
   budgeted(
     'Direct D3 transforms + TanStack histogram',
     'benchmarks/entries/charts-d3-transform-histogram.ts',
-    18.3,
+    20.1,
   ),
   budgeted(
     'Direct D3 time + TanStack UTC line',
     'benchmarks/entries/charts-d3-time-svg.ts',
-    21.8,
+    23.5,
   ),
   budgeted(
     'Direct D3 quadtree + TanStack DOM host',
     'benchmarks/entries/charts-d3-quadtree-dom.ts',
-    29.5,
+    34.95,
   ),
   budgeted(
     'Direct D3 Delaunay + TanStack DOM host',
     'benchmarks/entries/charts-d3-delaunay-dom.ts',
-    34.75,
+    40.2,
   ),
   measured('D3 array numeric kernel', 'benchmarks/entries/d3-array-kernel.ts'),
   measured(
@@ -1917,7 +1956,42 @@ const entries = [
   budgeted(
     'Geometry pointer resolver kernel',
     'benchmarks/entries/charts-pointer-geometry-kernel.ts',
-    2.1,
+    2.25,
+  ),
+  measured(
+    'Application cursor controller',
+    'benchmarks/entries/charts-cursor-controller.ts',
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['cursorRuntime'],
+        forbid: [
+          'crosshairRuntime',
+          'focusPresentationRuntime',
+          'platformRendererRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+    },
+  ),
+  measured(
+    'Cursor host policy',
+    'benchmarks/entries/charts-cursor-host-policy.ts',
+    {
+      rendererBoundary: 'neutral',
+      inputBoundary: {
+        require: ['cursorRuntime', 'focusPresentationRuntime'],
+        forbid: [
+          'crosshairRuntime',
+          'platformRendererRuntime',
+          'tooltipRuntime',
+          'tooltipPortal',
+          'd3Runtime',
+        ],
+      },
+    },
   ),
   budgeted(
     'D3 brush controller kernel',
@@ -1946,7 +2020,7 @@ const entries = [
   budgeted(
     'React Stats parity surface',
     'benchmarks/entries/charts-react-stats-parity.tsx',
-    46.4,
+    51.45,
     { external: ['react', 'react/jsx-runtime', 'react-dom'] },
   ),
   measured('Plot renderer integration', 'benchmarks/entries/plot-renderer.ts'),
@@ -1963,49 +2037,72 @@ const entries = [
 
 await mkdir(outputDirectory, { recursive: true })
 
+const bundleConcurrency = readBundleConcurrency(
+  process.env.BUNDLE_BUILD_CONCURRENCY,
+  4,
+)
+const entryRows = new Array(entries.length)
+await runWithConcurrency(
+  entries,
+  bundleConcurrency,
+  async (
+    {
+      label,
+      entry,
+      external,
+      alias,
+      policy,
+      rendererBoundary,
+      inputBoundary,
+      platform,
+      conditions,
+    },
+    index,
+  ) => {
+    const outfile = resolve(
+      outputDirectory,
+      `${basename(entry, '.ts').replaceAll(/[^a-z0-9-]/gi, '-')}.js`,
+    )
+    const result = await build({
+      entryPoints: [resolve(root, entry)],
+      outfile,
+      bundle: true,
+      minify: true,
+      treeShaking: true,
+      platform: platform ?? 'browser',
+      format: 'esm',
+      target: 'es2022',
+      legalComments: 'none',
+      logLevel: 'silent',
+      external,
+      alias,
+      conditions,
+      metafile: true,
+    })
+    const retainedInputs = collectRetainedInputs(result.metafile)
+    const contents = await readFile(outfile)
+    entryRows[index] = {
+      label,
+      bytes: contents.byteLength,
+      gzip: gzipSync(contents).byteLength,
+      policy,
+      retainedInputs,
+      rendererBoundary,
+      inputBoundary,
+    }
+  },
+)
+
 const rows = []
-for (const {
-  label,
-  entry,
-  external,
-  alias,
-  policy,
-  rendererBoundary,
-  inputBoundary,
-  platform,
-  conditions,
-} of entries) {
-  const outfile = resolve(
-    outputDirectory,
-    `${basename(entry, '.ts').replaceAll(/[^a-z0-9-]/gi, '-')}.js`,
+for (const row of entryRows) {
+  assertRendererBoundary(row.label, row.retainedInputs, row.rendererBoundary)
+  assertRetainedInputBoundary(
+    row.label,
+    row.retainedInputs,
+    row.inputBoundary,
+    rows,
   )
-  const result = await build({
-    entryPoints: [resolve(root, entry)],
-    outfile,
-    bundle: true,
-    minify: true,
-    treeShaking: true,
-    platform: platform ?? 'browser',
-    format: 'esm',
-    target: 'es2022',
-    legalComments: 'none',
-    logLevel: 'silent',
-    external,
-    alias,
-    conditions,
-    metafile: true,
-  })
-  const retainedInputs = collectRetainedInputs(result.metafile)
-  assertRendererBoundary(label, retainedInputs, rendererBoundary)
-  assertRetainedInputBoundary(label, retainedInputs, inputBoundary, rows)
-  const contents = await readFile(outfile)
-  rows.push({
-    label,
-    bytes: contents.byteLength,
-    gzip: gzipSync(contents).byteLength,
-    policy,
-    retainedInputs,
-  })
+  rows.push(row)
 }
 
 for (const [label, directory] of [

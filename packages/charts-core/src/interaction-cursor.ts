@@ -202,7 +202,9 @@ export function continuousCursor<
         position,
         guide,
         change(value, reason) {
-          options.position.onChange(clonePosition(value), cloneChange(reason))
+          options.position.onChange(clonePosition(value), {
+            reason: cloneChange(reason),
+          })
         },
       }
       return {
@@ -586,7 +588,7 @@ function createContinuousCursorControl({
 
   function positionFromClient(clientX: number, clientY: number) {
     if (!control || !scene) return null
-    const point = surface.clientToScene(scene, clientX, clientY)
+    const point = surface.clientToScene?.(scene, clientX, clientY)
     if (!point || !containsPoint(control.bounds, point.x, point.y)) return null
     return {
       x: control.xAxis.valueAt(point.x),

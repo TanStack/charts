@@ -10,7 +10,7 @@ import { waterfall } from '@tanstack/charts/transform/waterfall'
 import type { WaterfallKind } from '@tanstack/charts/transform/waterfall'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { driving } from '@charts-poc/demo-data/driving'
-import { tanstackMount } from '../../shared/mount'
+import { tanstackCase } from '../../shared/mount'
 
 const kinds = [
   'increase',
@@ -81,7 +81,7 @@ export const waterfallDefinition = () =>
     }
   })
 
-export const mount = tanstackMount(
+export const catalogCase = tanstackCase(
   waterfallDefinition,
   'Annual changes in U.S. gasoline prices',
   {
@@ -93,3 +93,5 @@ export const mount = tanstackMount(
           )} · ${signedAmount.format(datum.end)} running change`,
   },
 )
+
+export const mount = catalogCase.mount

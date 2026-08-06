@@ -1,10 +1,14 @@
 import { scaleLinear } from 'd3-scale'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { mountChart } from './dom'
-import { controlledSignal } from './interaction-signal'
+import {
+  controlledSignal,
+  type ControlledSignalChangeContext,
+} from './interaction-signal'
 import {
   interactiveColorLegend,
   type InteractiveColorLegendChange,
+  type InteractiveColorLegendItemContext,
 } from './interactive-legend'
 import { lineY } from './line'
 import { createChartScene, defineChart } from './scene'
@@ -90,6 +94,26 @@ describe('interactiveColorLegend', () => {
     )
 
     expect(labelRows.size).toBe(2)
+  })
+
+  it('passes named visibility context to item aria-label callbacks', () => {
+    const itemAriaLabel = vi.fn(
+      (value: Series, { visible }: InteractiveColorLegendItemContext) =>
+        `${value} is ${visible ? 'visible' : 'hidden'}`,
+    )
+
+    createChartScene(
+      createDefinition(['Manufacturing'], () => {}, undefined, itemAriaLabel),
+      { width: 480, height: 320 },
+    )
+
+    expect(itemAriaLabel.mock.calls).toEqual([
+      ['Manufacturing', { visible: true }],
+      ['Construction', { visible: false }],
+    ])
+    expectTypeOf(itemAriaLabel)
+      .parameter(1)
+      .toEqualTypeOf<InteractiveColorLegendItemContext>()
   })
 
   it('emits domain-ordered controlled changes without internal drift', () => {
@@ -194,7 +218,9 @@ describe('interactiveColorLegend', () => {
       .toEqualTypeOf<readonly Series[]>()
     expectTypeOf(signal.onChange)
       .parameter(1)
-      .toEqualTypeOf<InteractiveColorLegendChange<Series>>()
+      .toEqualTypeOf<
+        ControlledSignalChangeContext<InteractiveColorLegendChange<Series>>
+      >()
     expectTypeOf(legend).not.toBeAny()
   })
 })
@@ -206,6 +232,10 @@ function createDefinition(
     reason: InteractiveColorLegendChange<Series>,
   ) => void,
   itemWidth?: number,
+  itemAriaLabel?: (
+    value: Series,
+    context: InteractiveColorLegendItemContext,
+  ) => string,
 ): StaticChartDefinition<(typeof rows)[number], number, number> {
   return defineChart(
     defineChart({
@@ -223,9 +253,13 @@ function createDefinition(
         domain: ['Manufacturing', 'Construction'],
         range: ['#2563eb', '#f97316'],
         legend: interactiveColorLegend({
-          visible: controlledSignal(visible, onChange),
+          visible: controlledSignal<
+            readonly Series[],
+            InteractiveColorLegendChange<Series>
+          >(visible, (next, { reason }) => onChange(next, reason)),
           ariaLabel: 'Series visibility',
           itemWidth,
+          itemAriaLabel,
         }),
       },
     }),
