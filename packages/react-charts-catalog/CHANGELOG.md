@@ -1,5 +1,17 @@
 # @tanstack/react-charts-catalog
 
+## 0.7.1
+
+### Patch Changes
+
+- [#64](https://github.com/TanStack/charts/pull/64) [`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5) - Publish the stacked-bar band-and-rule cursor as catalog case 119 at
+  `@tanstack/react-charts-catalog/cases/119-stacked-bar-band-cursor`, bringing the
+  published catalog to 110 cases. The case demonstrates mixed cursor
+  presentation, labels, motion, and keyed updates.
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+  - @tanstack/react-charts@0.7.1
+
 ## 0.7.0
 
 ### Patch Changes
