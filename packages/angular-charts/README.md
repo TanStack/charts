@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Angular%20Charts&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20Angular%20Charts"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20Angular%20Charts"
+      alt="TanStack Angular Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # `@tanstack/angular-charts`
 
 Angular standalone-component adapter for `@tanstack/charts`.

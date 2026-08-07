@@ -1,3 +1,21 @@
+<div align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20React%20Native%20Charts&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://tanstack.com/api/readme/charts.png?title=TanStack%20React%20Native%20Charts"
+    />
+    <img
+      src="https://tanstack.com/api/readme/charts.png?title=TanStack%20React%20Native%20Charts"
+      alt="TanStack React Native Charts"
+      width="900"
+    />
+  </picture>
+</div>
+
 # TanStack React Native Charts
 
 Experimental React Native SVG host for `@tanstack/charts` definitions and
