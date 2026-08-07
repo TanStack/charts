@@ -1,9 +1,9 @@
 {
   "schemaVersion": 4,
-  "revision": "2758103ddefafecdd8c45bfd321426a3c94c1fa8",
+  "revision": "b8690671d677244848cff0eebd3d5dd0d5825b18",
   "source": {
     "repo": "tanstack/charts",
-    "ref": "2758103ddefafecdd8c45bfd321426a3c94c1fa8",
+    "ref": "b8690671d677244848cff0eebd3d5dd0d5825b18",
     "pathRoot": "benchmarks/conformance/"
   },
   "runtime": {
@@ -5121,6 +5121,23 @@
       ],
       "dynamicImports": []
     },
+    "assets/tanstack-BHcYV0QK.js": {
+      "bytes": 2532,
+      "sha256": "85e006c2633c223b116353f73613ec0a5edc4b470e87ee8cbee442545413f4f1",
+      "imports": [
+        "assets/dot--mV0y6tH.js",
+        "assets/legend-static-haEzEZiW.js",
+        "assets/linear-i0-N86_8.js",
+        "assets/mount-5Rke3aSP.js",
+        "assets/penguins-D7nxr56v.js",
+        "assets/preview-Bu4XBPQF.js",
+        "assets/rect-BsGMjqKx.js",
+        "assets/svg-coordinates-DGkcyjxD.js",
+        "assets/transform-bin-BZCsIg5y.js",
+        "assets/view-Cfek-E2i.js"
+      ],
+      "dynamicImports": []
+    },
     "assets/tanstack-BHjDpEnz.js": {
       "bytes": 1039,
       "sha256": "7b3e9bfd0c67bb4a667d86015e09ebac518c64ed6de9505eed909b58cf082772",
@@ -6465,23 +6482,6 @@
         "assets/mount-5Rke3aSP.js",
         "assets/preview-Bu4XBPQF.js",
         "assets/svg-coordinates-DGkcyjxD.js"
-      ],
-      "dynamicImports": []
-    },
-    "assets/tanstack-flEc0j0x.js": {
-      "bytes": 2502,
-      "sha256": "041c23a71cebaea068ed704afe9503655b00c5f677c52d7a13293e66629e6ca7",
-      "imports": [
-        "assets/dot--mV0y6tH.js",
-        "assets/legend-static-haEzEZiW.js",
-        "assets/linear-i0-N86_8.js",
-        "assets/mount-5Rke3aSP.js",
-        "assets/penguins-D7nxr56v.js",
-        "assets/preview-Bu4XBPQF.js",
-        "assets/rect-BsGMjqKx.js",
-        "assets/svg-coordinates-DGkcyjxD.js",
-        "assets/transform-bin-BZCsIg5y.js",
-        "assets/view-Cfek-E2i.js"
       ],
       "dynamicImports": []
     },
@@ -17764,16 +17764,16 @@
       "authoredSource": {
         "tanstack": {
           "totalFiles": 1,
-          "totalLines": 204,
-          "totalBytes": 5322,
+          "totalLines": 208,
+          "totalBytes": 5434,
           "datasetIds": [
             "penguins"
           ],
           "roles": {
             "entry": {
               "files": 1,
-              "lines": 204,
-              "bytes": 5322,
+              "lines": 208,
+              "bytes": 5434,
               "paths": [
                 "cases/57-scatter-marginal-histograms/tanstack.ts"
               ]
@@ -17841,7 +17841,7 @@
       },
       "modules": {
         "tanstack": {
-          "path": "assets/tanstack-flEc0j0x.js",
+          "path": "assets/tanstack-BHcYV0QK.js",
           "preload": [
             "assets/bin-CheUVl6b.js",
             "assets/bisect-62C84uQi.js",
