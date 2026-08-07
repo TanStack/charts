@@ -1,5 +1,87 @@
 # Changelog
 
+## 0.7.2
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+### @tanstack/react-charts-catalog
+
+#### Patch Changes
+
+- [#66](https://github.com/TanStack/charts/pull/66) [`7131884`](https://github.com/TanStack/charts/commit/7131884e67a1613a73c5f15cff98b6f72b78618e) - Keep the scatterplot with marginal histograms visible in compact catalog previews by omitting its color legend only in preview mode.
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+  - @tanstack/react-charts@0.7.2
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
 ## 0.7.1
 
 ### @tanstack/charts
