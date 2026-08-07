@@ -3505,9 +3505,10 @@ Each entry records:
 - `0.7.0` follow-up: successful `static` and aggregate `ci` jobs still left
   `publish-catalog` skipped because its job-level condition inherited GitHub's
   implicit `success()` after optional upstream partitions skipped. The job now
-  uses `always()` and explicitly requires both direct prerequisites to have
-  succeeded on a push to `main`. The workflow contract locks that condition so
-  a validated main artifact cannot silently remain unpublished.
+  uses `always()`, rejects cancelled workflows, and explicitly requires both
+  direct prerequisites to have succeeded on a push to `main`. The workflow
+  contract locks that condition so a validated main artifact cannot silently
+  remain unpublished or publish after cancellation.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 

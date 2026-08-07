@@ -348,7 +348,7 @@ jobs:
           require_partition "$CANARY_REQUIRED" "$CANARY_RESULT"
 
   publish-catalog:
-    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.static.result == 'success' && needs.ci.result == 'success'
+    if: always() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.static.result == 'success' && needs.ci.result == 'success'
     needs:
       - static
       - ci

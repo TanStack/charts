@@ -78,9 +78,13 @@ describe('CI workflow contract', () => {
       (packedConsumer.match(/autoInstallPeers: false/g) ?? []).length,
       2,
     )
-    assert.match(
-      packedConsumer,
-      /\['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'\]/,
+    assert.equal(
+      (
+        packedConsumer.match(
+          /\['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'\]/g,
+        ) ?? []
+      ).length,
+      2,
     )
   })
 
@@ -538,7 +542,7 @@ assignment-rules:
     const publish = job('publish-catalog')
     assert.match(
       publish,
-      /if:\s*always\(\) && github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' && needs\.static\.result == 'success' && needs\.ci\.result == 'success'/,
+      /if:\s*always\(\) && !cancelled\(\) && github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' && needs\.static\.result == 'success' && needs\.ci\.result == 'success'/,
     )
     assert.deepEqual(needs(publish), ['static', 'ci'])
     assert.match(publish, /contents:\s*write/)

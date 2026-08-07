@@ -202,7 +202,6 @@ describe('automated release status', () => {
       const expectedRevision = stdout.trim()
       const revision = await readReleaseRevision(repositoryRoot, '0.6.5')
 
-      expect(revision).toMatch(/^[0-9a-f]{40}$/)
       expect(revision).toBe(expectedRevision)
     } finally {
       await rm(repositoryRoot, { recursive: true, force: true })

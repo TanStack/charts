@@ -2,6 +2,7 @@
 '@tanstack/react-charts-catalog': patch
 ---
 
-Document the 110th published catalog case and its exact package subpath. Case
-119 demonstrates a stacked categorical bar chart with mixed x-band and y-rule
-cursors, labels, motion, and keyed updates.
+Publish the stacked-bar band-and-rule cursor as catalog case 119 at
+`@tanstack/react-charts-catalog/cases/119-stacked-bar-band-cursor`, bringing the
+published catalog to 110 cases. The case demonstrates mixed cursor
+presentation, labels, motion, and keyed updates.
