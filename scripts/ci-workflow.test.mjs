@@ -333,6 +333,10 @@ assignment-rules:
       cache: true,
       inputs: ['reactNativeTypes'],
     })
+    assert.deepEqual(nxConfig.targetDefaults['package-check'], {
+      cache: true,
+      inputs: ['release'],
+    })
     assert.ok(
       nxConfig.namedInputs.format.includes(
         '!{workspaceRoot}/.nx/workspace-data/**/*',
