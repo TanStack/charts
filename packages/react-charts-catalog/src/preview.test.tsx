@@ -122,6 +122,59 @@ describe('catalog previews', () => {
     expect(quantileHtml).toContain('ts-chart__area')
   })
 
+  it('keeps the compact scatter-marginal preview visible without changing its full legend', () => {
+    const ScatterMarginals = component('57-scatter-marginal-histograms')
+    const previewHtml = renderToStaticMarkup(
+      <ScatterMarginals
+        initialWidth={288}
+        aspectRatio={1.5}
+        interactive={false}
+        preview
+        idPrefix="preview-layout-57-scatter-marginal-histograms"
+      />,
+    )
+    const previewContainer = document.createElement('div')
+    previewContainer.innerHTML = previewHtml
+    const main = previewContainer.querySelector<SVGGElement>(
+      'g[data-ts-key="penguin-marginals:main:view"]',
+    )
+    const right = previewContainer.querySelector<SVGGElement>(
+      'g[data-ts-key="penguin-marginals:right:view"]',
+    )
+    const yAxis = main?.querySelector<SVGLineElement>(
+      'line[data-ts-key="y-axis"]',
+    )
+    const rightBars = [
+      ...(right?.querySelectorAll<SVGRectElement>('g.ts-chart__rect rect') ??
+        []),
+    ]
+    const mainPlotHeight = Math.abs(
+      Number(yAxis?.getAttribute('y2')) - Number(yAxis?.getAttribute('y1')),
+    )
+    const rightMarginalBarHeight = Math.max(
+      ...rightBars.map((bar) => Number(bar.getAttribute('height'))),
+    )
+
+    expect(previewHtml).toContain('viewBox="0 0 288 192"')
+    expect(previewContainer.querySelector('.ts-chart__legend')).toBeNull()
+    expect(mainPlotHeight).toBeGreaterThan(24)
+    expect(rightMarginalBarHeight).toBeGreaterThan(2)
+
+    const fullHtml = renderToStaticMarkup(
+      <ScatterMarginals
+        initialWidth={640}
+        height={480}
+        interactive={false}
+        idPrefix="full-layout-57-scatter-marginal-histograms"
+      />,
+    )
+    const fullContainer = document.createElement('div')
+    fullContainer.innerHTML = fullHtml
+    expect(
+      fullContainer.querySelector('.ts-chart__legend')?.textContent,
+    ).toContain('Species')
+  })
+
   it('preserves every server-rendered case while reducing the landing payload', () => {
     const full = renderCatalog(false)
     const preview = renderCatalog(true)
