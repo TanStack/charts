@@ -1,5 +1,15 @@
 # @tanstack/react-charts-catalog
 
+## 0.7.2
+
+### Patch Changes
+
+- [#66](https://github.com/TanStack/charts/pull/66) [`7131884`](https://github.com/TanStack/charts/commit/7131884e67a1613a73c5f15cff98b6f72b78618e) - Keep the scatterplot with marginal histograms visible in compact catalog previews by omitting its color legend only in preview mode.
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+  - @tanstack/react-charts@0.7.2
+
 ## 0.7.1
 
 ### Patch Changes

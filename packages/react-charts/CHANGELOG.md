@@ -1,5 +1,12 @@
 # @tanstack/react-charts
 
+## 0.7.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tanstack/charts@0.7.2
+
 ## 0.7.1
 
 ### Patch Changes
