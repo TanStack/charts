@@ -514,7 +514,7 @@ assignment-rules:
     const publish = job('publish-catalog')
     assert.match(
       publish,
-      /if:\s*github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/,
+      /if:\s*always\(\) && github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' && needs\.static\.result == 'success' && needs\.ci\.result == 'success'/,
     )
     assert.deepEqual(needs(publish), ['static', 'ci'])
     assert.match(publish, /contents:\s*write/)

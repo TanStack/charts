@@ -210,7 +210,7 @@ Each entry records:
 | F-171 | Packed declarations assume one platform global set             | Tooling         | resolved   |
 | F-172 | Metro skipped the fixture-owned Babel runtime                  | Tooling         | resolved   |
 | F-173 | Metro retained the complete universal barrel                   | API/Tooling     | monitoring |
-| F-174 | OIDC release cannot claim a new npm package name               | Tooling         | resolved   |
+| F-174 | OIDC release cannot claim a new npm package name               | Tooling         | monitoring |
 | F-175 | Native SVG resource normalization collapsed authored IDs       | Application     | resolved   |
 | F-176 | Large marks were focused by distant anchor points              | API             | monitoring |
 | F-177 | Bubble overlap inherited incidental source order               | Application     | resolved   |
@@ -3502,6 +3502,12 @@ Each entry records:
   manifest, and embed routes passed live HTTP and browser checks. Later
   catalog publications intentionally identify the current `main` commit
   rather than remaining pinned to an npm release tag.
+- `0.7.0` follow-up: successful `static` and aggregate `ci` jobs still left
+  `publish-catalog` skipped because its job-level condition inherited GitHub's
+  implicit `success()` after optional upstream partitions skipped. The job now
+  uses `always()` and explicitly requires both direct prerequisites to have
+  succeeded on a push to `main`. The workflow contract locks that condition so
+  a validated main artifact cannot silently remain unpublished.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 
@@ -4335,6 +4341,12 @@ Each entry records:
 - Verification: focused tests cover version-heading discovery, complete
   replacement, idempotency, and missing-version rejection. Generated package
   docs remain outputs of `pnpm docs:sync`, never hand-edited sources.
+- `0.7.0` follow-up: visible version strings advanced, but the README,
+  installation guide, and four comparison-protocol links still targeted the
+  `0.6.5` source commit. The synchronizer now counts immutable
+  `tree/v<version>` and `blob/v<version>` links as release references, validates
+  their exact count, and advances them with the package version. The focused
+  regression counts only the matching version tag.
 
 ### F-154 — Root barrels crossed the browser host boundary
 
@@ -4986,7 +4998,7 @@ Each entry records:
 
 ### F-174 — OIDC release cannot claim a new npm package name
 
-- Status: resolved
+- Status: monitoring
 - Severity: high
 - Owner: Tooling
 - Observed in: adding `@tanstack/react-native-charts` to the fixed release set
@@ -5010,6 +5022,14 @@ Each entry records:
   reads confirmed `latest=0.5.1`, integrity, and attestations for every package.
   The temporary npm login was revoked and no bootstrap environment secret
   remains.
+- `0.7.0` follow-up: `@tanstack/react-charts-catalog` was added to the fixed
+  set without its own npm trusted-publisher mapping. Release run `31217442235`
+  published the other 12 packages with provenance, then failed with
+  `ENEEDAUTH` on the catalog. The guarded bootstrap workflow proved it was the
+  sole missing fixed-set artifact before using the protected recovery token.
+  Keep this finding open until npm names `TanStack/charts` and `release.yml` as
+  the catalog package's trusted publisher and a tokenless coordinated release
+  verifies it.
 
 ### F-175 — Native SVG resource normalization collapsed authored IDs
 

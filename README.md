@@ -41,7 +41,7 @@ server-rendered application charts.
 > [!IMPORTANT]
 > This README follows unreleased `main`. The latest published release is
 > TanStack Charts `0.7.0`; use its
-> [release-source documentation](https://github.com/TanStack/charts/tree/4f5653e552ddf1d268b49da7046199f11b2be44c/docs).
+> [release-source documentation](https://github.com/TanStack/charts/tree/v0.7.0/docs).
 > It is pre-alpha and not ready for production use.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
