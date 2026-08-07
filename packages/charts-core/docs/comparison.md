@@ -3,7 +3,7 @@ title: Compare Libraries
 description: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
 ---
 
-The latest published TanStack Charts release is `0.6.5`, while this page
+The latest published TanStack Charts release is `0.7.0`, while this page
 measures unreleased workspace source against pinned competitor packages. This
 comparison records architectural differences and reproducible evidence without
 turning untested behavior into a checkmark.
