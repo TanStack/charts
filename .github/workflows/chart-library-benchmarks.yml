@@ -119,7 +119,7 @@ jobs:
         if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
         env:
           NX_PARALLEL: 4
-        run: pnpm exec nx run charts-workspace:ci
+        run: pnpm exec nx run charts-workspace:ci-distributed
 
       - name: Stop Nx Agents
         if: always() && steps.nx-agents.outcome == 'success'

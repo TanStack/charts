@@ -6744,16 +6744,23 @@ Each entry records:
   override. The coordinator's frozen workspace install had populated that
   metadata; the agent's package mirror had not.
 - Release follow-up decision: preserve the package's semver range and the
-  offline consumer fixtures. Run the cacheable `package-check` target on the
-  setup-populated coordinator before starting Nx agents, then let the complete
-  distributed graph replay that result. Distributed checks no longer reserve
-  a large agent for this coordinator-only target.
+  offline consumer fixtures. Run `package-check` on the setup-populated
+  coordinator before starting Nx agents. A dedicated `ci-distributed` target
+  has exactly the normal `ci` dependencies except `package-check`, making the
+  execution boundary explicit instead of depending on a cache handoff. Local
+  `ci` and `validate` retain the complete gate. Distributed checks no longer
+  reserve a large agent for this coordinator-only target.
+- Release follow-up cache evidence: the coordinator package gate passed in
+  correction run `31221086294`, but the complete distributed graph still
+  scheduled `package-check` as a cache miss and reproduced the missing-metadata
+  failure. A successful cache write is therefore not a sufficient ownership
+  boundary for this environment-sensitive gate.
 - Release follow-up verification: the CI workflow contract requires
   `package-check` to run with continuous assignment disabled before Nx agents
-  start, and the distribution contract contains only medium agents. A second
-  coordinator invocation replays the target from Nx cache. The packed web,
-  declarations, runtime, standalone catalog, bare React Native, Expo, and
-  seven-adapter gates pass locally with both fixture installs offline.
+  start, requires `ci-distributed` to contain the exact `ci` dependency list
+  minus `package-check`, and keeps the distribution contract on medium agents.
+  The packed web, declarations, runtime, standalone catalog, bare React Native,
+  Expo, and seven-adapter gates pass locally with both fixture installs offline.
 
 ### F-225 — Noninteractive SSR emitted hidden focus geometry
 

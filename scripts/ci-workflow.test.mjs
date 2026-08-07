@@ -274,7 +274,10 @@ describe('CI workflow contract', () => {
     )
     assert.match(staticChecks, /git cat-file -e "\${BASE_SHA}\^\{commit\}"/)
     assert.match(staticChecks, /git diff --no-renames --name-only -z/)
-    assert.match(staticChecks, /run:\s*pnpm exec nx run charts-workspace:ci/)
+    assert.match(
+      staticChecks,
+      /run:\s*pnpm exec nx run charts-workspace:ci-distributed/,
+    )
     assert.match(staticChecks, /NX_PARALLEL:\s*4/)
     assert.match(
       staticChecks,
@@ -322,12 +325,23 @@ assignment-rules:
     )
   })
 
-  test('keeps every distributed Nx task cacheable', () => {
+  test('keeps the coordinator-only package gate out of distribution', () => {
     const ci = projectConfig.targets.ci
+    const distributedCi = projectConfig.targets['ci-distributed']
     assert.match(nxConfig.nxCloudId, /^[0-9a-f]{24}$/)
     assert.equal(ci.cache, true)
+    assert.equal(distributedCi.cache, true)
+    assert.equal(distributedCi.executor, ci.executor)
+    assert.ok(ci.dependsOn.includes('package-check'))
+    assert.deepEqual(
+      distributedCi.dependsOn,
+      ci.dependsOn.filter((target) => target !== 'package-check'),
+    )
     assert.ok(ci.dependsOn.includes('react-native-types'))
+    assert.ok(distributedCi.dependsOn.includes('react-native-types'))
+    assert.ok(!distributedCi.dependsOn.includes('package-check'))
     assert.ok(!ci.dependsOn.includes('workspace-diff-check'))
+    assert.ok(!distributedCi.dependsOn.includes('workspace-diff-check'))
     assert.equal(projectConfig.targets['workspace-diff-check'].cache, false)
     assert.deepEqual(nxConfig.targetDefaults['react-native-types'], {
       cache: true,
