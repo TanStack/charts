@@ -104,6 +104,12 @@ jobs:
           NX_CLOUD_CONTINUOUS_ASSIGNMENT: 'false'
         run: pnpm exec nx run charts-workspace:benchmark-check
 
+      - name: Verify packed package consumers
+        if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
+        env:
+          NX_CLOUD_CONTINUOUS_ASSIGNMENT: 'false'
+        run: pnpm exec nx run charts-workspace:package-check
+
       - name: Start Nx Agents
         id: nx-agents
         if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'

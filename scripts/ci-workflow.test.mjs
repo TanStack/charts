@@ -256,6 +256,14 @@ describe('CI workflow contract', () => {
         'name: Verify repository-derived comparison provenance',
       ) < staticChecks.indexOf('name: Start Nx Agents'),
     )
+    assert.match(
+      staticChecks,
+      /name:\s*Verify packed package consumers[\s\S]*?NX_CLOUD_CONTINUOUS_ASSIGNMENT:\s*['"]false['"][\s\S]*?pnpm exec nx run charts-workspace:package-check/,
+    )
+    assert.ok(
+      staticChecks.indexOf('name: Verify packed package consumers') <
+        staticChecks.indexOf('name: Start Nx Agents'),
+    )
     assert.ok(
       staticChecks.indexOf('name: Stop Nx Agents') >
         staticChecks.indexOf('name: Run full cached validation graph'),
@@ -298,19 +306,13 @@ describe('CI workflow contract', () => {
     assert.match(staticChecks, /path:\s*\.catalog-artifact/)
   })
 
-  test('assigns the package critical path to a large Nx agent', () => {
+  test('runs distributed checks on medium Nx agents', () => {
     assert.equal(
       nxDistribution,
       `distribute-on:
-  default: 2 linux-medium-js, 1 linux-large-js
+  default: 3 linux-medium-js
 
 assignment-rules:
-  - targets:
-      - package-check
-    run-on:
-      - agent: linux-large-js
-        parallelism: 1
-
   - projects:
       - '*'
     run-on:

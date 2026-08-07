@@ -6736,19 +6736,24 @@ Each entry records:
   packages and server-renders the grouped-bar catalog component through the
   `@tanstack/charts/bar` path. The complete packed web, declaration, bare React
   Native, and Expo consumer gate passes with that fixture enabled.
-- Release follow-up evidence: the correction pull request's isolated pnpm
-  store contained the exact optional peer packages from the root lockfile but
-  not registry metadata for their declared ranges. The packed fixture's
-  offline install therefore tried to resolve `@types/d3-force@>=3.0.10 <4`
-  from missing metadata before using its explicit dependency and override.
-- Release follow-up decision: disable automatic peer installation in both
-  isolated packed-consumer workspaces. The complete fixture continues to list
-  every tested peer directly, while the standalone catalog fixture continues
-  to prove that optional D3 peers are not runtime dependencies.
-- Release follow-up verification: the packed web, declarations, runtime,
-  standalone catalog, bare React Native, Expo, and seven-adapter gates pass
-  with both installs offline. A source contract keeps the two isolated
-  workspaces on `autoInstallPeers: false`.
+- Release follow-up evidence: disabling automatic peer installation did not
+  make the correction pull request hermetic on a distributed Nx agent.
+  `@types/d3-force` is a regular `@tanstack/charts` dependency, and pnpm's
+  offline resolver still needed registry metadata to match its declared
+  `^3.0.10` range even though the agent had the exact linked package and an
+  override. The coordinator's frozen workspace install had populated that
+  metadata; the agent's package mirror had not.
+- Release follow-up decision: preserve the package's semver range and the
+  offline consumer fixtures. Run the cacheable `package-check` target on the
+  setup-populated coordinator before starting Nx agents, then let the complete
+  distributed graph replay that result. Distributed checks no longer reserve
+  a large agent for this coordinator-only target.
+- Release follow-up verification: the CI workflow contract requires
+  `package-check` to run with continuous assignment disabled before Nx agents
+  start, and the distribution contract contains only medium agents. A second
+  coordinator invocation replays the target from Nx cache. The packed web,
+  declarations, runtime, standalone catalog, bare React Native, Expo, and
+  seven-adapter gates pass locally with both fixture installs offline.
 
 ### F-225 — Noninteractive SSR emitted hidden focus geometry
 
