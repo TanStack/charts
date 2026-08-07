@@ -5767,6 +5767,18 @@ Each entry records:
   the same validation graph as type, package, bundle, adapter, and catalog
   gates. Baseline changes remain explicit and require attribution before the
   tracked file or canonical comparison page is refreshed.
+- Release follow-up evidence: the correction pull request's Nx agent received
+  a synthetic merge checkout and resolved that checkout as the latest
+  comparison input revision, even though none of the tracked inputs had
+  changed since `cd7768378f40de237607dc1fc6640e1dc8490571`. The same command
+  resolved the recorded revision correctly in the coordinator's full clone.
+- Release follow-up decision: run the cacheable comparison provenance target
+  on the full-history coordinator before starting continuous Nx assignment.
+  The distributed aggregate then replays that exact result instead of deriving
+  repository provenance inside an agent workspace.
+- Release follow-up verification: the workflow contract fixes the coordinator
+  ordering and disables continuous assignment for that step. The coordinator
+  `benchmark-check` passes against the unchanged `cd7768378` evidence.
 
 ### F-198 — Union-valued axes rejected configured D3 scales
 
@@ -6723,6 +6735,19 @@ Each entry records:
   packages and server-renders the grouped-bar catalog component through the
   `@tanstack/charts/bar` path. The complete packed web, declaration, bare React
   Native, and Expo consumer gate passes with that fixture enabled.
+- Release follow-up evidence: the correction pull request's isolated pnpm
+  store contained the exact optional peer packages from the root lockfile but
+  not registry metadata for their declared ranges. The packed fixture's
+  offline install therefore tried to resolve `@types/d3-force@>=3.0.10 <4`
+  from missing metadata before using its explicit dependency and override.
+- Release follow-up decision: disable automatic peer installation in both
+  isolated packed-consumer workspaces. The complete fixture continues to list
+  every tested peer directly, while the standalone catalog fixture continues
+  to prove that optional D3 peers are not runtime dependencies.
+- Release follow-up verification: the packed web, declarations, runtime,
+  standalone catalog, bare React Native, Expo, and seven-adapter gates pass
+  with both installs offline. A source contract keeps the two isolated
+  workspaces on `autoInstallPeers: false`.
 
 ### F-225 — Noninteractive SSR emitted hidden focus geometry
 
@@ -7369,6 +7394,17 @@ Each entry records:
   release-source evidence stays pinned to its measured commit. The remote tag
   and GitHub release remain absent; publishing them triggers external release
   automation and requires a separate explicit release action.
+- Release follow-up evidence: the historical-revision unit test read this
+  repository's real `0.6.5` merge. It passed in a full clone but failed inside
+  the correction pull request's Nx agent workspace, which did not retain that
+  historical commit.
+- Release follow-up decision: make the unit test construct its own temporary
+  Git repository with a `0.6.4` base, a `changeset-release/main` version commit,
+  and a no-fast-forward `0.6.5` merge. Production release status still reads
+  the full checkout supplied by the release workflow.
+- Release follow-up verification: the hermetic release-status suite passes all
+  ten cases and asserts the exact synthetic merge revision without depending
+  on repository history.
 
 ### F-249 — Interrupted motion retained stale presentation state
 

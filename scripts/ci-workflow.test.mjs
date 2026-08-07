@@ -22,6 +22,10 @@ const comparisonRunner = await readFile(
   resolve(import.meta.dirname, './compare-chart-libraries.mjs'),
   'utf8',
 )
+const packedConsumer = await readFile(
+  resolve(import.meta.dirname, './check-packed-consumers.mjs'),
+  'utf8',
+)
 const nxDistribution = await readFile(
   resolve(import.meta.dirname, '../.nx/workflows/distribution.yaml'),
   'utf8',
@@ -67,6 +71,17 @@ describe('CI workflow contract', () => {
     )
     assert.doesNotMatch(setupAction, /playwright-\${{ hashFiles\('pnpm-lock/)
     assert.doesNotMatch(setupAction, /playwright-\d+\.\d+\.\d+/)
+  })
+
+  test('keeps packed-consumer installs offline without resolving optional peers', () => {
+    assert.equal(
+      (packedConsumer.match(/autoInstallPeers: false/g) ?? []).length,
+      2,
+    )
+    assert.match(
+      packedConsumer,
+      /\['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'\]/,
+    )
   })
 
   test('starts static checks immediately and gates expensive pull request partitions', () => {
@@ -227,6 +242,15 @@ describe('CI workflow contract', () => {
     assert.ok(
       staticChecks.indexOf('name: Start Nx Agents') >
         staticChecks.indexOf('name: Setup'),
+    )
+    assert.match(
+      staticChecks,
+      /name:\s*Verify repository-derived comparison provenance[\s\S]*?NX_CLOUD_CONTINUOUS_ASSIGNMENT:\s*['"]false['"][\s\S]*?pnpm exec nx run charts-workspace:benchmark-check/,
+    )
+    assert.ok(
+      staticChecks.indexOf(
+        'name: Verify repository-derived comparison provenance',
+      ) < staticChecks.indexOf('name: Start Nx Agents'),
     )
     assert.ok(
       staticChecks.indexOf('name: Stop Nx Agents') >

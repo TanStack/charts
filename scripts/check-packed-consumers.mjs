@@ -612,7 +612,7 @@ async function installFixture(tarballs) {
   )
   await writeFile(
     resolve(fixtureDirectory, 'pnpm-workspace.yaml'),
-    `packages:\n  - '.'\noverrides:\n  'd3-sankey': ${JSON.stringify(
+    `packages:\n  - '.'\nautoInstallPeers: false\noverrides:\n  'd3-sankey': ${JSON.stringify(
       installedDependency('d3-sankey'),
     )}\n  '@tanstack/charts': ${JSON.stringify(
       coreTarball,
@@ -699,7 +699,7 @@ async function verifyStandaloneCatalogConsumer(tarballs) {
   )
   await writeFile(
     resolve(standaloneCatalogDirectory, 'pnpm-workspace.yaml'),
-    `packages:\n  - '.'\noverrides:\n  '@tanstack/charts': ${JSON.stringify(
+    `packages:\n  - '.'\nautoInstallPeers: false\noverrides:\n  '@tanstack/charts': ${JSON.stringify(
       coreTarball,
     )}\n  '@tanstack/react-charts': ${JSON.stringify(
       reactTarball,

@@ -98,6 +98,12 @@ jobs:
       - name: Set Nx SHAs
         uses: nrwl/nx-set-shas@afb73a62d26e41464e9254689e1fd6122ee683c1 # v5.0.1
 
+      - name: Verify repository-derived comparison provenance
+        if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
+        env:
+          NX_CLOUD_CONTINUOUS_ASSIGNMENT: 'false'
+        run: pnpm exec nx run charts-workspace:benchmark-check
+
       - name: Start Nx Agents
         id: nx-agents
         if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
