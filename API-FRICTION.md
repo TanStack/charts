@@ -210,7 +210,7 @@ Each entry records:
 | F-171 | Packed declarations assume one platform global set             | Tooling         | resolved   |
 | F-172 | Metro skipped the fixture-owned Babel runtime                  | Tooling         | resolved   |
 | F-173 | Metro retained the complete universal barrel                   | API/Tooling     | monitoring |
-| F-174 | OIDC release cannot claim a new npm package name               | Tooling         | resolved   |
+| F-174 | OIDC release cannot claim a new npm package name               | Tooling         | monitoring |
 | F-175 | Native SVG resource normalization collapsed authored IDs       | Application     | resolved   |
 | F-176 | Large marks were focused by distant anchor points              | API             | monitoring |
 | F-177 | Bubble overlap inherited incidental source order               | Application     | resolved   |
@@ -3502,6 +3502,13 @@ Each entry records:
   manifest, and embed routes passed live HTTP and browser checks. Later
   catalog publications intentionally identify the current `main` commit
   rather than remaining pinned to an npm release tag.
+- `0.7.0` follow-up: successful `static` and aggregate `ci` jobs still left
+  `publish-catalog` skipped because its job-level condition inherited GitHub's
+  implicit `success()` after optional upstream partitions skipped. The job now
+  uses `always()`, rejects cancelled workflows, and explicitly requires both
+  direct prerequisites to have succeeded on a push to `main`. The workflow
+  contract locks that condition so a validated main artifact cannot silently
+  remain unpublished or publish after cancellation.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 
@@ -4335,6 +4342,12 @@ Each entry records:
 - Verification: focused tests cover version-heading discovery, complete
   replacement, idempotency, and missing-version rejection. Generated package
   docs remain outputs of `pnpm docs:sync`, never hand-edited sources.
+- `0.7.0` follow-up: visible version strings advanced, but the README,
+  installation guide, and four comparison-protocol links still targeted the
+  `0.6.5` source commit. The synchronizer now counts immutable
+  `tree/v<version>` and `blob/v<version>` links as release references, validates
+  their exact count, and advances them with the package version. The focused
+  regression counts only the matching version tag.
 
 ### F-154 — Root barrels crossed the browser host boundary
 
@@ -4986,7 +4999,7 @@ Each entry records:
 
 ### F-174 — OIDC release cannot claim a new npm package name
 
-- Status: resolved
+- Status: monitoring
 - Severity: high
 - Owner: Tooling
 - Observed in: adding `@tanstack/react-native-charts` to the fixed release set
@@ -5010,6 +5023,14 @@ Each entry records:
   reads confirmed `latest=0.5.1`, integrity, and attestations for every package.
   The temporary npm login was revoked and no bootstrap environment secret
   remains.
+- `0.7.0` follow-up: `@tanstack/react-charts-catalog` was added to the fixed
+  set without its own npm trusted-publisher mapping. Release run `31217442235`
+  published the other 12 packages with provenance, then failed with
+  `ENEEDAUTH` on the catalog. The guarded bootstrap workflow proved it was the
+  sole missing fixed-set artifact before using the protected recovery token.
+  Keep this finding open until npm names `TanStack/charts` and `release.yml` as
+  the catalog package's trusted publisher and a tokenless coordinated release
+  verifies it.
 
 ### F-175 — Native SVG resource normalization collapsed authored IDs
 
@@ -5747,6 +5768,18 @@ Each entry records:
   the same validation graph as type, package, bundle, adapter, and catalog
   gates. Baseline changes remain explicit and require attribution before the
   tracked file or canonical comparison page is refreshed.
+- Release follow-up evidence: the correction pull request's Nx agent received
+  a synthetic merge checkout and resolved that checkout as the latest
+  comparison input revision, even though none of the tracked inputs had
+  changed since `cd7768378f40de237607dc1fc6640e1dc8490571`. The same command
+  resolved the recorded revision correctly in the coordinator's full clone.
+- Release follow-up decision: run the cacheable comparison provenance target
+  on the full-history coordinator before starting continuous Nx assignment.
+  The distributed aggregate then replays that exact result instead of deriving
+  repository provenance inside an agent workspace.
+- Release follow-up verification: the workflow contract fixes the coordinator
+  ordering and disables continuous assignment for that step. The coordinator
+  `benchmark-check` passes against the unchanged `cd7768378` evidence.
 
 ### F-198 — Union-valued axes rejected configured D3 scales
 
@@ -6703,6 +6736,31 @@ Each entry records:
   packages and server-renders the grouped-bar catalog component through the
   `@tanstack/charts/bar` path. The complete packed web, declaration, bare React
   Native, and Expo consumer gate passes with that fixture enabled.
+- Release follow-up evidence: disabling automatic peer installation did not
+  make the correction pull request hermetic on a distributed Nx agent.
+  `@types/d3-force` is a regular `@tanstack/charts` dependency, and pnpm's
+  offline resolver still needed registry metadata to match its declared
+  `^3.0.10` range even though the agent had the exact linked package and an
+  override. The coordinator's frozen workspace install had populated that
+  metadata; the agent's package mirror had not.
+- Release follow-up decision: preserve the package's semver range and the
+  offline consumer fixtures. Run `package-check` on the setup-populated
+  coordinator before starting Nx agents. A dedicated `ci-distributed` target
+  has exactly the normal `ci` dependencies except `package-check`, making the
+  execution boundary explicit instead of depending on a cache handoff. Local
+  `ci` and `validate` retain the complete gate. Distributed checks no longer
+  reserve a large agent for this coordinator-only target.
+- Release follow-up cache evidence: the coordinator package gate passed in
+  correction run `31221086294`, but the complete distributed graph still
+  scheduled `package-check` as a cache miss and reproduced the missing-metadata
+  failure. A successful cache write is therefore not a sufficient ownership
+  boundary for this environment-sensitive gate.
+- Release follow-up verification: the CI workflow contract requires
+  `package-check` to run with continuous assignment disabled before Nx agents
+  start, requires `ci-distributed` to contain the exact `ci` dependency list
+  minus `package-check`, and keeps the distribution contract on medium agents.
+  The packed web, declarations, runtime, standalone catalog, bare React Native,
+  Expo, and seven-adapter gates pass locally with both fixture installs offline.
 
 ### F-225 — Noninteractive SSR emitted hidden focus geometry
 
@@ -7349,6 +7407,17 @@ Each entry records:
   release-source evidence stays pinned to its measured commit. The remote tag
   and GitHub release remain absent; publishing them triggers external release
   automation and requires a separate explicit release action.
+- Release follow-up evidence: the historical-revision unit test read this
+  repository's real `0.6.5` merge. It passed in a full clone but failed inside
+  the correction pull request's Nx agent workspace, which did not retain that
+  historical commit.
+- Release follow-up decision: make the unit test construct its own temporary
+  Git repository with a `0.6.4` base, a `changeset-release/main` version commit,
+  and a no-fast-forward `0.6.5` merge. Production release status still reads
+  the full checkout supplied by the release workflow.
+- Release follow-up verification: the hermetic release-status suite passes all
+  ten cases and asserts the exact synthetic merge revision without depending
+  on repository history.
 
 ### F-249 — Interrupted motion retained stale presentation state
 

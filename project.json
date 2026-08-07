@@ -202,6 +202,31 @@
         "command": "node -e \"console.log('CI targets passed.')\""
       },
       "cache": true
+    },
+    "ci-distributed": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "format-check",
+        "docs-check",
+        "typecheck",
+        "test-dom",
+        "test-solid",
+        "test-solid-ssr",
+        "test-svelte",
+        "test-svelte-ssr",
+        "test-octane",
+        "test-octane-client",
+        "react-native-types",
+        "bundle-check",
+        "benchmark-check",
+        "catalog-check",
+        "react-catalog-check",
+        "catalog-loading-check"
+      ],
+      "options": {
+        "command": "node -e \"console.log('Distributed CI targets passed.')\""
+      },
+      "cache": true
     }
   }
 }

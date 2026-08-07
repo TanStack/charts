@@ -98,6 +98,18 @@ jobs:
       - name: Set Nx SHAs
         uses: nrwl/nx-set-shas@afb73a62d26e41464e9254689e1fd6122ee683c1 # v5.0.1
 
+      - name: Verify repository-derived comparison provenance
+        if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
+        env:
+          NX_CLOUD_CONTINUOUS_ASSIGNMENT: 'false'
+        run: pnpm exec nx run charts-workspace:benchmark-check
+
+      - name: Verify packed package consumers
+        if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
+        env:
+          NX_CLOUD_CONTINUOUS_ASSIGNMENT: 'false'
+        run: pnpm exec nx run charts-workspace:package-check
+
       - name: Start Nx Agents
         id: nx-agents
         if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
@@ -107,7 +119,7 @@ jobs:
         if: github.event_name != 'pull_request' || steps.static-changes.outputs.static == 'full'
         env:
           NX_PARALLEL: 4
-        run: pnpm exec nx run charts-workspace:ci
+        run: pnpm exec nx run charts-workspace:ci-distributed
 
       - name: Stop Nx Agents
         if: always() && steps.nx-agents.outcome == 'success'
@@ -342,7 +354,7 @@ jobs:
           require_partition "$CANARY_REQUIRED" "$CANARY_RESULT"
 
   publish-catalog:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: always() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.static.result == 'success' && needs.ci.result == 'success'
     needs:
       - static
       - ci

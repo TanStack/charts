@@ -22,6 +22,10 @@ const comparisonRunner = await readFile(
   resolve(import.meta.dirname, './compare-chart-libraries.mjs'),
   'utf8',
 )
+const packedConsumer = await readFile(
+  resolve(import.meta.dirname, './check-packed-consumers.mjs'),
+  'utf8',
+)
 const nxDistribution = await readFile(
   resolve(import.meta.dirname, '../.nx/workflows/distribution.yaml'),
   'utf8',
@@ -67,6 +71,21 @@ describe('CI workflow contract', () => {
     )
     assert.doesNotMatch(setupAction, /playwright-\${{ hashFiles\('pnpm-lock/)
     assert.doesNotMatch(setupAction, /playwright-\d+\.\d+\.\d+/)
+  })
+
+  test('keeps packed-consumer installs offline without resolving optional peers', () => {
+    assert.equal(
+      (packedConsumer.match(/autoInstallPeers: false/g) ?? []).length,
+      2,
+    )
+    assert.equal(
+      (
+        packedConsumer.match(
+          /\['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'\]/g,
+        ) ?? []
+      ).length,
+      2,
+    )
   })
 
   test('starts static checks immediately and gates expensive pull request partitions', () => {
@@ -228,6 +247,23 @@ describe('CI workflow contract', () => {
       staticChecks.indexOf('name: Start Nx Agents') >
         staticChecks.indexOf('name: Setup'),
     )
+    assert.match(
+      staticChecks,
+      /name:\s*Verify repository-derived comparison provenance[\s\S]*?NX_CLOUD_CONTINUOUS_ASSIGNMENT:\s*['"]false['"][\s\S]*?pnpm exec nx run charts-workspace:benchmark-check/,
+    )
+    assert.ok(
+      staticChecks.indexOf(
+        'name: Verify repository-derived comparison provenance',
+      ) < staticChecks.indexOf('name: Start Nx Agents'),
+    )
+    assert.match(
+      staticChecks,
+      /name:\s*Verify packed package consumers[\s\S]*?NX_CLOUD_CONTINUOUS_ASSIGNMENT:\s*['"]false['"][\s\S]*?pnpm exec nx run charts-workspace:package-check/,
+    )
+    assert.ok(
+      staticChecks.indexOf('name: Verify packed package consumers') <
+        staticChecks.indexOf('name: Start Nx Agents'),
+    )
     assert.ok(
       staticChecks.indexOf('name: Stop Nx Agents') >
         staticChecks.indexOf('name: Run full cached validation graph'),
@@ -238,7 +274,10 @@ describe('CI workflow contract', () => {
     )
     assert.match(staticChecks, /git cat-file -e "\${BASE_SHA}\^\{commit\}"/)
     assert.match(staticChecks, /git diff --no-renames --name-only -z/)
-    assert.match(staticChecks, /run:\s*pnpm exec nx run charts-workspace:ci/)
+    assert.match(
+      staticChecks,
+      /run:\s*pnpm exec nx run charts-workspace:ci-distributed/,
+    )
     assert.match(staticChecks, /NX_PARALLEL:\s*4/)
     assert.match(
       staticChecks,
@@ -270,19 +309,13 @@ describe('CI workflow contract', () => {
     assert.match(staticChecks, /path:\s*\.catalog-artifact/)
   })
 
-  test('assigns the package critical path to a large Nx agent', () => {
+  test('runs distributed checks on medium Nx agents', () => {
     assert.equal(
       nxDistribution,
       `distribute-on:
-  default: 2 linux-medium-js, 1 linux-large-js
+  default: 3 linux-medium-js
 
 assignment-rules:
-  - targets:
-      - package-check
-    run-on:
-      - agent: linux-large-js
-        parallelism: 1
-
   - projects:
       - '*'
     run-on:
@@ -292,16 +325,31 @@ assignment-rules:
     )
   })
 
-  test('keeps every distributed Nx task cacheable', () => {
+  test('keeps the coordinator-only package gate out of distribution', () => {
     const ci = projectConfig.targets.ci
+    const distributedCi = projectConfig.targets['ci-distributed']
     assert.match(nxConfig.nxCloudId, /^[0-9a-f]{24}$/)
     assert.equal(ci.cache, true)
+    assert.equal(distributedCi.cache, true)
+    assert.equal(distributedCi.executor, ci.executor)
+    assert.ok(ci.dependsOn.includes('package-check'))
+    assert.deepEqual(
+      distributedCi.dependsOn,
+      ci.dependsOn.filter((target) => target !== 'package-check'),
+    )
     assert.ok(ci.dependsOn.includes('react-native-types'))
+    assert.ok(distributedCi.dependsOn.includes('react-native-types'))
+    assert.ok(!distributedCi.dependsOn.includes('package-check'))
     assert.ok(!ci.dependsOn.includes('workspace-diff-check'))
+    assert.ok(!distributedCi.dependsOn.includes('workspace-diff-check'))
     assert.equal(projectConfig.targets['workspace-diff-check'].cache, false)
     assert.deepEqual(nxConfig.targetDefaults['react-native-types'], {
       cache: true,
       inputs: ['reactNativeTypes'],
+    })
+    assert.deepEqual(nxConfig.targetDefaults['package-check'], {
+      cache: true,
+      inputs: ['release'],
     })
     assert.ok(
       nxConfig.namedInputs.format.includes(
@@ -514,7 +562,7 @@ assignment-rules:
     const publish = job('publish-catalog')
     assert.match(
       publish,
-      /if:\s*github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/,
+      /if:\s*always\(\) && !cancelled\(\) && github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' && needs\.static\.result == 'success' && needs\.ci\.result == 'success'/,
     )
     assert.deepEqual(needs(publish), ['static', 'ci'])
     assert.match(publish, /contents:\s*write/)

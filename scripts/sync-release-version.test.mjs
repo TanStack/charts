@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   changelogVersions,
+  releaseTagReferenceCount,
   releaseVersionSources,
   syncReleaseVersionReference,
 } from './sync-release-version.mjs'
@@ -18,7 +19,7 @@ describe('release version synchronization', () => {
     )
     expect(releaseManifest.version).toMatch(/^\d+\.\d+\.\d+/)
 
-    for (const { path, references } of releaseVersionSources) {
+    for (const { path, references, tagReferences } of releaseVersionSources) {
       const source = await readFile(resolve(repositoryRoot, path), 'utf8')
       expect(
         syncReleaseVersionReference(
@@ -29,6 +30,11 @@ describe('release version synchronization', () => {
           references,
         ),
       ).toBe(source)
+      if (tagReferences !== undefined) {
+        expect(releaseTagReferenceCount(source, releaseManifest.version)).toBe(
+          tagReferences,
+        )
+      }
     }
   })
 
@@ -83,6 +89,20 @@ describe('release version synchronization', () => {
         2,
       ),
     ).toBe('TanStack Charts `0.6.1`; tag /v0.6.1/; Observable Plot `0.6.17`.')
+  })
+
+  it('counts only immutable links for the matching release tag', () => {
+    expect(
+      releaseTagReferenceCount(
+        [
+          'https://github.com/TanStack/charts/tree/v0.7.0/docs',
+          'https://github.com/TanStack/charts/blob/v0.7.0/README.md',
+          'https://github.com/TanStack/charts/blob/main/README.md',
+          'https://github.com/TanStack/charts/blob/4f5653e552ddf1d268b49da7046199f11b2be44c/README.md',
+        ].join('\n'),
+        '0.7.0',
+      ),
+    ).toBe(2)
   })
 
   it('rejects a release-facing file with no recognized version', () => {
