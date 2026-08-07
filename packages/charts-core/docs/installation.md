@@ -4,7 +4,7 @@ description: Install TanStack Charts, compact scales, a framework adapter, and o
 ---
 
 These docs follow unreleased `main`. The latest published pre-alpha is TanStack
-Charts `0.6.5`; use its
+Charts `0.7.0`; use its
 [release-source docs](https://github.com/TanStack/charts/tree/4f5653e552ddf1d268b49da7046199f11b2be44c/docs)
 for the exact surface. Install the core and compact scales in each application
 that authors chart definitions:

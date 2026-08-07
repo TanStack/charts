@@ -1,5 +1,7 @@
 # @tanstack/charts-scales
 
+## 0.7.0
+
 ## 0.6.5
 
 ## 0.6.4
