@@ -1,5 +1,13 @@
 # @tanstack/charts
 
+## 0.7.1
+
+### Patch Changes
+
+- [#64](https://github.com/TanStack/charts/pull/64) [`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5) - Pin packaged documentation and comparison protocol links to the immutable tag
+  for the same package version. Release automation now advances those tag links
+  together with every visible release-version reference.
+
 ## 0.7.0
 
 ### Minor Changes

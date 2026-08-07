@@ -1,5 +1,15 @@
 # @tanstack/react-native-charts
 
+## 0.7.1
+
+### Patch Changes
+
+- [#64](https://github.com/TanStack/charts/pull/64) [`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5) - Document React Native parity for shared focus and free-cursor state,
+  renderer-native focus and state layers, selection activation, pinned tooltip
+  context, viewport-filtered focus, polygon areas, and `NativePaintContext.canvas`.
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
 ## 0.7.0
 
 ### Patch Changes

@@ -1,5 +1,100 @@
 # Changelog
 
+## 0.7.1
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#64](https://github.com/TanStack/charts/pull/64) [`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5) - Pin packaged documentation and comparison protocol links to the immutable tag
+  for the same package version. Release automation now advances those tag links
+  together with every visible release-version reference.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+### @tanstack/react-charts-catalog
+
+#### Patch Changes
+
+- [#64](https://github.com/TanStack/charts/pull/64) [`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5) - Publish the stacked-bar band-and-rule cursor as catalog case 119 at
+  `@tanstack/react-charts-catalog/cases/119-stacked-bar-band-cursor`, bringing the
+  published catalog to 110 cases. The case demonstrates mixed cursor
+  presentation, labels, motion, and keyed updates.
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+  - @tanstack/react-charts@0.7.1
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- [#64](https://github.com/TanStack/charts/pull/64) [`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5) - Document React Native parity for shared focus and free-cursor state,
+  renderer-native focus and state layers, selection activation, pinned tooltip
+  context, viewport-filtered focus, polygon areas, and `NativePaintContext.canvas`.
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`c3f1548`](https://github.com/TanStack/charts/commit/c3f15488bb072e446af61c3e7b04797384c5aca5)]:
+  - @tanstack/charts@0.7.1
+
 ## 0.7.0
 
 ### @tanstack/charts
