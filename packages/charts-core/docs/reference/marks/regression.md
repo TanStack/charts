@@ -1,11 +1,12 @@
 ---
 title: Linear Regression Marks
-description: Reference for linearRegressionY and linearRegressionX least-squares fits, confidence bands, grouping, sampling, lineage, and interaction.
+description: Reference for eager linearRegressionRowsY/X data and linearRegressionY/X least-squares marks, confidence bands, grouping, sampling, lineage, and interaction.
 ---
 
 `linearRegressionY` fits numeric y values over a numeric or temporal x channel.
 `linearRegressionX` transposes the same semantics to fit numeric x values over
-a numeric or temporal y channel.
+a numeric or temporal y channel. `linearRegressionRowsY` and
+`linearRegressionRowsX` expose the sampled semantic rows directly.
 
 ```ts
 import { linearRegressionY } from '@tanstack/charts/regression'
@@ -18,8 +19,8 @@ linearRegressionY(rows, {
 })
 ```
 
-Both marks are also exported from `@tanstack/charts` and
-`@tanstack/charts/universal`.
+The row transforms and both marks are also exported from `@tanstack/charts`
+and `@tanstack/charts/universal`.
 
 ## Signatures
 
@@ -33,6 +34,16 @@ function linearRegressionX<TDatum>(
   source: Iterable<TDatum>,
   options: LinearRegressionXOptions<TDatum>,
 ): ChartMark<LinearRegressionXDatum<TDatum, InferredY>, number, InferredY>
+
+function linearRegressionRowsY<TDatum>(
+  source: Iterable<TDatum>,
+  options: LinearRegressionRowsYOptions<TDatum>,
+): LinearRegressionYDatum<TDatum, InferredX>[]
+
+function linearRegressionRowsX<TDatum>(
+  source: Iterable<TDatum>,
+  options: LinearRegressionRowsXOptions<TDatum>,
+): LinearRegressionXDatum<TDatum, InferredY>[]
 ```
 
 The independent channel accepts finite numbers or valid `Date` values. The
@@ -55,6 +66,28 @@ semantic independent domain. It defaults to `64` and must be an integer of at
 least two. This is deliberately not a pixel precision: changing chart size
 does not change the model data or motion identity. Multiple samples also keep
 the fitted path faithful when the independent scale is nonlinear.
+
+## Eager rows
+
+Use the row transforms when fitted values feed more than the convenience
+mark:
+
+```ts
+import { linearRegressionRowsY } from '@tanstack/charts/regression'
+
+const fitted = linearRegressionRowsY(rows, {
+  x: 'date',
+  y: 'value',
+  z: 'series',
+  samples: 32,
+})
+```
+
+`x`, `y`, and `z` use the standard `TransformValue` contract. Accessors receive
+`{ datum, index, data }`. The transform runs eagerly, does not mutate source
+rows, omits invalid and unfittable groups, and returns only semantic samples
+and lineage. `linearRegressionY` and `linearRegressionX` add presentation
+identity when composing the confidence area and fitted line.
 
 ## Options
 
@@ -94,6 +127,10 @@ interface LinearRegressionYDatum<TDatum, TXValue> {
 `LinearRegressionXDatum` transposes these fields to `x`, optional `x1` and
 `x2`, and independent `y`. Lineage contains only finite observations that
 contributed to that group's fit, in source order.
+
+The public option types are `LinearRegressionRowsYOptions`,
+`LinearRegressionRowsXOptions`, `LinearRegressionYOptions`, and
+`LinearRegressionXOptions`.
 
 The confidence area and fitted line are ordinary `areaY`/`areaX` and
 `lineY`/`lineX` children. Only the fitted line contributes interaction points;

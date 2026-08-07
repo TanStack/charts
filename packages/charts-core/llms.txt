@@ -83,9 +83,9 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/framework/octane/reference/chart.md — Octane Chart: Complete prop and type reference for the @tanstack/octane-charts Chart component.
 - docs/reference/marks/line-and-area.md — Line and Area Marks: Reference for lineY, lineX, areaY, areaX, grouping, null gaps, interval baselines, points, and optional curve bridges.
 - docs/reference/marks/difference.md — Difference Marks: Reference for differenceY and differenceX comparison areas, exact crossings, grouping, gaps, lineage, styling, and interaction.
-- docs/reference/marks/regression.md — Linear Regression Marks: Reference for linearRegressionY and linearRegressionX least-squares fits, confidence bands, grouping, sampling, lineage, and interaction.
+- docs/reference/marks/regression.md — Linear Regression Marks: Reference for eager linearRegressionRowsY/X data and linearRegressionY/X least-squares marks, confidence bands, grouping, sampling, lineage, and interaction.
 - docs/reference/marks/bar-and-rect.md — Bar and Rect Marks: Reference for barY, barX, rect, cell, interval endpoints, band sizing, grouped bars, color, insets, and focus anchors.
-- docs/reference/marks/box.md — Box Marks: Reference for boxY and boxX Tukey summaries, quartiles, whiskers, outliers, lineage, styling, and interaction.
+- docs/reference/marks/box.md — Box Marks: Reference for boxRows, boxY, and boxX Tukey summaries, quartiles, whiskers, outliers, lineage, styling, and interaction.
 - docs/reference/marks/dot-and-hexagon.md — Dot and Hexagon Marks: Reference for dot and hexagon channels, pixel radius, injected radius scales, color, grouping, keys, and interaction points.
 - docs/reference/marks/dodge.md — Dodge Layouts: Reference for responsive dodgeX and dodgeY dot collision layouts, anchors, padding, radii, identity, and scale ownership.
 - docs/reference/marks/waffle.md — Waffle Marks: Reference for responsive waffleY and waffleX unit layouts, cumulative rounding, color, source identity, and interaction.

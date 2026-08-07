@@ -3,23 +3,23 @@ title: Compare Libraries
 description: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
 ---
 
-TanStack Charts `0.6.5` is a pre-alpha release. Its results on this page measure
-the current workspace source and pinned competitor packages. This comparison
-records architectural differences and reproducible evidence without turning
-untested behavior into a checkmark.
+The latest published TanStack Charts release is `0.6.5`, while this page
+measures unreleased workspace source against pinned competitor packages. This
+comparison records architectural differences and reproducible evidence without
+turning untested behavior into a checkmark.
 
 ## Tested versions
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `b261d45` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `cd77683` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `b261d45`.
+at page render time. The measured TanStack workspace revision is `cd77683`.
 
 ## Capability matrix
 
@@ -90,7 +90,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-08-05`.
+Baseline date: `2026-08-07`.
 
 Controlled ranges cover 12 independently built, minified browser consumers:
 line, bar, area, and scatter at basic, interactive, and advanced tiers. Only
@@ -106,7 +106,7 @@ Vega-Lite, AG Charts, and uPlot main exports were read from Bundlephobia on July
 
 | Library            | Bundle size                            | React externalized | Evidence                                                   |
 | ------------------ | -------------------------------------- | -----------------: | ---------------------------------------------------------- |
-| TanStack Charts    | 34.03–39.56 KiB                        |                  — | Controlled suite                                           |
+| TanStack Charts    | 36.73–42.64 KiB                        |                  — | Controlled suite                                           |
 | D3                 | 90 KB gzip                             |                  — | External main export                                       |
 | Chart.js           | 44.70–58.21 KiB                        |                  — | Controlled suite                                           |
 | Apache ECharts     | 153.10–173.18 KiB                      |                  — | Controlled suite                                           |
@@ -170,11 +170,11 @@ Canvas composition while keeping D3 and state ownership explicit.
 
 ## Evidence and reproduction
 
-- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.6.5/benchmarks/comparison/README.md)
+- [Standard comparison protocol](https://github.com/TanStack/charts/blob/4f5653e552ddf1d268b49da7046199f11b2be44c/benchmarks/comparison/README.md)
 - [Current tracked bundle baseline](https://github.com/TanStack/charts/blob/main/benchmarks/comparison/bundle-baseline.json)
-- [0.6.5 tagged bundle baseline](https://github.com/TanStack/charts/blob/v0.6.5/benchmarks/comparison/bundle-baseline.json)
-- [Stress protocol](https://github.com/TanStack/charts/blob/v0.6.5/benchmarks/comparison/stress/README.md)
-- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.6.5/benchmarks/conformance/README.md)
+- [Pinned release-source bundle baseline](https://github.com/TanStack/charts/blob/4f5653e552ddf1d268b49da7046199f11b2be44c/benchmarks/comparison/bundle-baseline.json)
+- [Stress protocol](https://github.com/TanStack/charts/blob/4f5653e552ddf1d268b49da7046199f11b2be44c/benchmarks/comparison/stress/README.md)
+- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/4f5653e552ddf1d268b49da7046199f11b2be44c/benchmarks/conformance/README.md)
 
 ```sh
 pnpm benchmark:size

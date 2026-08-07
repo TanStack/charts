@@ -23,6 +23,8 @@ reactivity.
 | `select`                   | Selected original rows                                   |
 | `stackRowsX`, `stackRowsY` | Flat input rows extended with stack endpoints            |
 | `mosaicX`, `mosaicY`       | Two normalized proportional interval dimensions          |
+| `boxRows`                  | Tukey summary and outlier rows by category               |
+| `linearRegressionRowsX/Y`  | Sampled least-squares fits and confidence bounds         |
 | `waterfall`                | Ordered signed contributions as cumulative intervals     |
 | `quantile`                 | A reusable quantile reducer factory                      |
 | `treeLayout`               | Tidy-tree node and link rows in semantic coordinates     |
@@ -45,6 +47,8 @@ Granular entry points are:
 - `@tanstack/charts/transform/stack`
 - `@tanstack/charts/transform/waterfall`
 - `@tanstack/charts/transform/window`
+- `@tanstack/charts/box`
+- `@tanstack/charts/regression`
 - `@tanstack/charts/hierarchy/tree`
 - `@tanstack/charts/network/force`
 
@@ -308,11 +312,41 @@ const graph = forceLayout(nodes, links, {
 })
 ```
 
-The force descriptors are explicit and applied in authored order. `link`
-accepts link-row distance and strength channels. `manyBody.strength`,
+The built-in force descriptors are explicit and applied in authored order.
+`link` accepts link-row distance and strength channels. `manyBody.strength`,
 `collide.radius`, and the `x` and `y` targets and strengths accept node-row
 channels. `center` coordinates and `collide.strength` are fixed values. Each
-force type may appear at most once.
+built-in force type may appear at most once.
+
+Named custom factories accept any native D3-compatible force:
+
+```ts
+import { forceRadial } from 'd3-force'
+
+const graph = forceLayout(nodes, links, {
+  nodeKey: 'id',
+  source: 'source',
+  target: 'target',
+  forces: [
+    { type: 'manyBody', strength: -80 },
+    {
+      type: 'custom',
+      name: 'radial',
+      create: () => forceRadial(120, 0, 0).strength(0.08),
+    },
+  ],
+})
+```
+
+`create` receives one `ForceFactoryContext` with the private mutable node and
+link clones, immutable resolved endpoint-key arrays, and a `nodeKey` accessor
+compatible with `d3.forceLink().id(...)`. The factory must return a D3 `Force`.
+The working-clone types reserve D3's simulation fields; valid numeric node
+seeds are retained, while conflicting source fields cannot leak into D3 state.
+Names are nonempty and unique across custom and built-in forces. Factories may
+configure or close over the private records, but must not add, remove, or
+reorder them. The transform validates collection identity and final finite
+coordinates.
 
 The transform clones its inputs before D3 mutates simulation state. Output
 nodes retain non-reserved source fields and add `x`, `y`, `vx`, `vy`, `source`,
@@ -322,9 +356,11 @@ resolved node references, source and target indexes, `x1`, `y1`, `x2`, `y2`,
 `yDomain` for configured positional scales.
 
 Node keys must be unique, and every link endpoint must match one. Stable input
-order produces repeatable static settlement. The transform is eager,
-chart-size independent, and uncached; memoize it with other derived data when
-a framework component rebuilds unchanged input.
+and deterministic force factories produce repeatable static settlement. The
+simulation remains stopped and ticks synchronously; a custom force does not
+gain a timer or live-state ownership. The transform is eager, chart-size
+independent, and uncached; memoize it with other derived data when a framework
+component rebuilds unchanged input.
 
 This API does not run a live simulation or own drag state. Products that need
 continuous physics or node dragging should keep that controller and its
@@ -382,8 +418,10 @@ Waterfall exports are `WaterfallKind`, `WaterfallOptions`, `WaterfallDatum`,
 Static force-layout exports are `forceLayout`, `ForceLayoutOptions`,
 `ForceDescriptor`, `ForceNumericValue`, `ForceLinkDescriptor`,
 `ForceManyBodyDescriptor`, `ForceCenterDescriptor`, `ForceCollideDescriptor`,
-`ForceXDescriptor`, `ForceYDescriptor`, `ForceLayoutResult`,
-`ForceLayoutNode`, `ForceLayoutLink`, and `ForceLinkLineage`.
+`ForceXDescriptor`, `ForceYDescriptor`, `ForceFactoryDescriptor`,
+`ForceFactory`, `ForceFactoryContext`, `ForceLayoutWorkingNode`,
+`ForceLayoutWorkingLink`, `ForceLayoutResult`, `ForceLayoutNode`,
+`ForceLayoutLink`, and `ForceLinkLineage`.
 
 Tidy-tree exports are `treeLayout`, `TreeOrientation`, `TreeNodeContext`,
 `TreeNodeComparator`, `TreeNodeSeparation`, `TreeLayoutPathOptions`,

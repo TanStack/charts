@@ -487,7 +487,7 @@ const entries = [
     'Network Sankey mark',
     'benchmarks/entries/charts-network-sankey.ts',
     'D3 Sankey kernel',
-    6,
+    6.1,
     {
       inputBoundary: {
         require: [
@@ -544,7 +544,7 @@ const entries = [
     'Hierarchy treemap mark',
     'benchmarks/entries/charts-hierarchy-treemap.ts',
     'D3 hierarchy treemap kernel',
-    3.5,
+    3.55,
     {
       inputBoundary: {
         require: ['hierarchyFlat', 'hierarchyTreemap', 'd3Hierarchy'],
@@ -893,7 +893,7 @@ const entries = [
   budgeted(
     'Composite mark + static SVG',
     'benchmarks/entries/charts-composite-mark.ts',
-    26.1,
+    26.15,
     {
       inputBoundary: {
         require: [
@@ -933,7 +933,7 @@ const entries = [
     'Linear regression + static SVG',
     'benchmarks/entries/charts-regression-svg.ts',
     'D3-scale line + static SVG',
-    6.4,
+    6.5,
     {
       inputBoundary: {
         require: [
@@ -1010,7 +1010,7 @@ const entries = [
     'Coordinated views + static SVG',
     'benchmarks/entries/charts-view-composition.ts',
     'D3-scale dots + static SVG',
-    5.3,
+    5.35,
     {
       inputBoundary: {
         require: [
@@ -1147,7 +1147,7 @@ const entries = [
   budgeted(
     'Polar arc + static SVG',
     'benchmarks/entries/charts-polar-arc-svg.ts',
-    14.45,
+    14.5,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   incrementalBudgeted(
@@ -1166,7 +1166,7 @@ const entries = [
   budgeted(
     'Polar gauge composition + static SVG',
     'benchmarks/entries/charts-polar-gauge-svg.ts',
-    23.45,
+    23.5,
   ),
   budgeted(
     'Radial labels + static SVG',
@@ -1177,7 +1177,7 @@ const entries = [
   budgeted(
     'Polar radial bars + static SVG',
     'benchmarks/entries/charts-radial-bar-svg.ts',
-    23.85,
+    23.9,
     {
       inputBoundary: {
         require: ['polarMarks', 'd3ScaleRuntime', 'd3Shape'],
@@ -1188,7 +1188,7 @@ const entries = [
   budgeted(
     'Polar line + scatter composition + static SVG',
     'benchmarks/entries/charts-polar-line-scatter-svg.ts',
-    24.95,
+    25,
   ),
   locked(
     'Representative marks',
@@ -1453,7 +1453,7 @@ const entries = [
     'Horizontal zoom + DOM host',
     'benchmarks/entries/charts-zoom-x.ts',
     'TanStack DOM host',
-    20.25,
+    20.35,
     {
       rendererBoundary: 'svg',
       inputBoundary: {

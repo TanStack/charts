@@ -99,7 +99,7 @@ construction, but no DOM host, tooltip, motion runtime, spring solver, React,
 or D3 geometry package.
 
 The controlled-signal snapshot is 0.09 KiB gzip in isolation. The interactive
-categorical legend, including native DOM controls, adds 2.07 KiB gzip over the
+categorical legend, including native DOM controls, adds 2.55 KiB gzip over the
 ordinary DOM host. Neither implementation enters root or universal consumers.
 
 Controlled keyed selection is also exact-subpath-only. Its semantic-key
@@ -112,7 +112,7 @@ The continuous cursor is exact-subpath-only through
 `@tanstack/charts/interaction/cursor`. It reuses the controlled signal, scale
 interaction axis, and renderer-neutral guide-node kernel without importing the
 datum focus guide, tooltip, brush, or a D3 package. Its incremental DOM-host
-fixture adds 3.63 KiB gzip under a 5 KiB cap.
+fixture adds 3.75 KiB gzip under a 5 KiB cap.
 
 The horizontal scale handle is exact-subpath-only through
 `@tanstack/charts/interaction/handle`. It reuses the controlled signal,
@@ -131,7 +131,7 @@ Horizontal zoom is exact-subpath-only through
 behavior, final-scale interaction axis, DOM host control, `d3-zoom`, and
 `d3-selection` only for a consumer that imports it. Root, universal, ordinary
 DOM, brush, cursor, legend, and selection consumers retain none of those
-modules. Its incremental DOM-host fixture adds 19.95 KiB gzip under a 20 KiB
+modules. Its incremental DOM-host fixture adds 20.28 KiB gzip under a 20.35 KiB
 cap.
 
 Your bundler must honor ESM exports and tree shaking. Avoid namespace imports
@@ -149,14 +149,14 @@ const interactive = defineChart(definition, {
 })
 ```
 
-The locked compact React line consumer must remain at or below 18.6 KiB gzip.
+The locked compact React line consumer must remain at or below 26.6 KiB gzip.
 Its retained-module gate rejects tooltip, portal, `d3-scale`, `d3-format`,
 `d3-interpolate`, `d3-color`, transforms, and sibling compact-scale entries.
 Separate incremental gates limit tooltip and portal growth.
 
-The current locked fixtures measure the compact line scene at 8,283 gzip bytes
-versus 15,301 with D3 linear scales. The equivalent React consumers measure
-18,924 and 26,026 gzip bytes with React and React DOM external. These are
+The current locked fixtures measure the compact line scene at 10,526 gzip bytes
+versus 17,646 with D3 linear scales. The equivalent React consumers measure
+27,114 and 34,171 gzip bytes with React and React DOM external. These are
 fixture measurements, not universal savings claims; they show why the compact
 subset is the normal starting point.
 

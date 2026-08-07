@@ -3,8 +3,8 @@ title: Overview
 description: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
 ---
 
-TanStack Charts `0.6.5` is a pre-alpha release. Its API may change between
-releases.
+These docs follow unreleased `main`. The latest published TanStack Charts
+release is `0.6.5`; it is pre-alpha and its API may change between releases.
 
 TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and
 JavaScript. Give each mark its natural data, map fields or accessors to visual
@@ -122,19 +122,19 @@ TanStack Charts owns the parts that make a declarative chart reliable inside an 
 - Light and dark mode defaults based on inherited color and CSS variables
 - Public extension points for custom marks, focus strategies, spatial indexes, and renderers
 
-## What stays outside the library
+## Keep ownership explicit
 
-TanStack Charts keeps data preparation explicit and spatial algorithms outside
-the rendering runtime.
+TanStack Charts keeps data preparation explicit and optional algorithms behind
+narrow imports.
 
-| Responsibility                                                                                         | Owner                                                      |
-| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| Common numeric and categorical scale mappings                                                          | `@tanstack/charts-scales`                                  |
-| Common group, bin, window, normalize, select, and row-stack transforms                                 | TanStack's eager data-transform helpers                    |
-| Temporal, nonlinear, piecewise, spatial, and other specialized algorithms                              | Your application using only the granular D3 modules needed |
-| Fetching, cleaning, profiling, and exploratory analysis                                                | Your data layer, server, or AI workflow                    |
-| Mark-channel domain inference, responsive ranges, guide layout, scenes, rendering, and chart lifecycle | TanStack Charts                                            |
-| Page controls, queries, filters, persistence, memoization, and application state                       | Your application                                           |
+| Responsibility                                                                                         | Owner                                                            |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| Common numeric and categorical scale mappings                                                          | `@tanstack/charts-scales`                                        |
+| Common group, bin, window, normalize, select, and row-stack transforms                                 | TanStack's eager data-transform helpers                          |
+| Temporal, nonlinear, piecewise, spatial, and other specialized algorithms                              | Exact TanStack entries, granular D3 modules, or application code |
+| Fetching, cleaning, profiling, and exploratory analysis                                                | Your data layer, server, or AI workflow                          |
+| Mark-channel domain inference, responsive ranges, guide layout, scenes, rendering, and chart lifecycle | TanStack Charts                                                  |
+| Page controls, queries, filters, persistence, memoization, and application state                       | Your application                                                 |
 
 Prepared data can come from TanStack transforms, D3, SQL, a server, or
 ordinary TypeScript; marks consume it without requiring a special series

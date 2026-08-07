@@ -291,9 +291,9 @@ See [DOM host](./dom-host.md) and
 | `ChartCursorExtensionToken`           | Environment-neutral contract implemented by cursor host extensions        |
 | `ChartCursorBinding`                  | Focus-snapped or free definition binding                                  |
 | `ChartFocusCursorBinding`             | Semantic datum-focus cursor options                                       |
-| `ChartFreeCursorBinding`              | Free coordinate cursor and optional axis inversion callbacks              |
+| `ChartFreeCursorBinding`              | Free coordinate cursor with resolved inversion and axis overrides         |
 | `ChartCursorAxisContext`              | Scene, position, normalized position, and axis given to `valueAt`         |
-| `ChartCursorAxisOptions`              | Optional free-cursor semantic `valueAt` mapping for one axis              |
+| `ChartCursorAxisOptions`              | Optional free-cursor `valueAt` override for one axis                      |
 | `ChartCursorAxisPresentation`         | Host-local position, normalized position, and optional semantic value     |
 | `ChartCursorPresentation`             | Host-local projection of shared cursor state into one chart               |
 | `ChartCursorHostExtension`            | Platform-neutral cursor lifecycle and projection implementation           |
@@ -394,7 +394,16 @@ their behavior:
 - `@tanstack/charts/hierarchy/sunburst`: `SunburstNode`,
   `SunburstNodeComparator`, `SunburstPathOptions`, `SunburstParentOptions`, and
   `SunburstOptions`. See [Sunburst](./marks/sunburst.md).
-- `@tanstack/charts/network/sankey`: `SankeyAlignment`, `SankeyInset`,
+- `@tanstack/charts/hierarchy/treemap`: `TreemapMethod`, `TreemapTileDatum`,
+  `TreemapTile`, `TreemapNode`, `TreemapNodeComparator`,
+  `TreemapPathOptions`, `TreemapParentOptions`, and `TreemapOptions`. See
+  [Treemap](./marks/treemap.md).
+- `@tanstack/charts/network/force`: built-in descriptor types,
+  `ForceFactoryDescriptor`, `ForceFactory`, `ForceFactoryContext`, working
+  clone types, settled node/link result types, and lineage types. See
+  [Static force layouts](./transforms.md#static-force-layouts).
+- `@tanstack/charts/network/sankey`: `SankeyAlignment`,
+  `SankeyAlignmentNode`, `SankeyNodeAligner`, `SankeyInset`,
   `SankeyLayoutValue`, `SankeyEndpointContext`, `SankeyNodeContext`,
   `SankeyLinkContext`, `SankeyNode`, `SankeyLink`, `SankeyDiagramContext`,
   `SankeyNodeComparator`, `SankeyLinkComparator`, and `SankeyDiagramOptions`.

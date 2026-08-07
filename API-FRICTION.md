@@ -1237,10 +1237,11 @@ Each entry records:
   above that reviewed output. Keep policy kinds, relative baselines, required
   and forbidden input groups, and added-module allowlists unchanged.
 - Follow-up verification: all 145 bundle entries pass. The compact scene is
-  10.28 KiB gzip under 10.3 KiB, its React consumer is 26.57 KiB under 26.6
-  KiB, coordinated views add 5.27 KiB under 5.3 KiB, and the merged DOM-host
-  increments are 0.09 KiB for signals, 2.53 for legends, 3.71 for cursors,
-  3.65 for handles, 19.70 for brush, and 20.24 for zoom.
+  10.28 KiB gzip under 10.3 KiB, its React consumer is 26.48 KiB under 26.6
+  KiB, coordinated views add 5.31 KiB under 5.35 KiB, and the audited DOM-host
+  increments are 0.09 KiB for signals, 2.55 for legends, 3.75 for cursors,
+  3.65 for handles, 19.71 for brush, and 20.28 for zoom. Required/forbidden
+  input groups and relative ownership boundaries remain unchanged.
 
 ### F-041 — Bounded segments and caps required custom marks
 

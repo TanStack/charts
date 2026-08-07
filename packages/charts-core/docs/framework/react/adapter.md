@@ -201,7 +201,7 @@ Callback types are inferred from the definition's marks.
 The adapter does not redefine:
 
 - marks or chart specs
-- scale selection and D3 transform ownership
+- scale selection and data-preparation ownership
 - tooltip and focus semantics
 - animation and reconciliation
 - custom marks or renderers

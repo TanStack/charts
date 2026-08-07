@@ -103,10 +103,11 @@ pnpm add d3-scale
 pnpm add -D @types/d3-scale
 ```
 
-Omit every module the application does not import. A chart that upgrades only
-its temporal axis to `d3-scale` should not install or bundle shape, force, geo,
-zoom, or hierarchy code. Apply the same direct-dependency rule when source
-imports `d3-array`, `d3-shape`, or another granular D3 module.
+Do not declare a D3 module merely because another package uses it internally. A
+chart that directly upgrades only its temporal axis should declare only
+`d3-scale`; bundlers should not retain unused shape, force, geo, zoom, or
+hierarchy code. Apply the same direct-dependency rule when source imports
+`d3-array`, `d3-shape`, or another granular D3 module.
 
 This rule also applies when definitions live in framework component source.
 The adapter mounts a definition; it does not own the D3 imports used to author
@@ -407,11 +408,12 @@ const histogram = binX(rows, {
 })
 ```
 
-Pass the result to `rect`, `barY`, `lineY`, `dot`, or a custom mark. The
-helpers use the same granular D3 kernels as the chart runtime while retaining
-typed source lineage. Domain-specific D3 transforms still work directly; no
-adapter or library-owned series shape is required. Keep substantial transforms
-beside the definition and memoize them through application reactivity.
+Pass the result to `rect`, `barY`, `lineY`, `dot`, or a custom mark. The helpers
+use compact row-oriented kernels or isolated granular D3 implementations while
+retaining typed source lineage. Domain-specific D3 transforms still work
+directly; no adapter or library-owned series shape is required. Keep
+substantial transforms beside the definition and memoize them through
+application reactivity.
 
 The same rule applies to stacks, pies, hierarchies, force layouts, and
 server-prepared intervals: preserve the useful output as typed rows, then map
@@ -421,9 +423,9 @@ plot bounds.
 
 ## Pixel-to-value inversion
 
-`brushX`, `continuousCursor`, and `zoomX` own final-scale inversion for their
-normal gestures. A custom crop or gesture can read the same optional inverse
-from the resolved scene scale:
+`brushX`, `continuousCursor`, `zoomX`, and free `cursorHost` bindings own
+final-scale inversion for their normal gestures. A custom crop or gesture can
+read the same optional inverse from the resolved scene scale:
 
 ```ts
 const scene = host.getScene()
@@ -444,6 +446,11 @@ const selectedValue = invertY(pointerY)
 ```
 
 Apply the application’s precision policy after inversion. For example, round a day-based selection with a D3 time interval or round a currency threshold to the supported increment. Pixels do not imply semantic precision.
+
+A free cursor needs no `valueAt` callback for ordinary numeric or temporal
+axes. Provide one only to replace inversion with explicit snapping, rounding,
+or another semantic mapping. Missing and non-invertible scales require that
+override.
 
 When the application owns a custom gesture, disable the native nearest-point
 focus strategy if the two interactions would conflict. See
