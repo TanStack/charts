@@ -1,0 +1,1 @@
+var e=`flare.analytics`;function t(t){return t.filter(t=>t.name===e||t.name.startsWith(`${e}.`))}export{t};

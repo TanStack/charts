@@ -1,0 +1,1 @@
+import{L as e}from"./svg-coordinates-DGkcyjxD.js";function t(t,n){let r=r=>{let i=e(t(r));return n===void 0||i.motion!==void 0?i:{...i,motion:n}};return n===void 0?{initialize:r}:{initialize:r,motion:n}}export{t};

@@ -1,0 +1,1 @@
+function e(e){return e.querySelector(`svg.ts-chart`)?.getAttribute(`data-ts-motion-state`)??null}function t(t,n){let r=t.ownerDocument.defaultView;if(!r)return Promise.resolve();let i=r.performance.now();return new Promise(a=>{let o=()=>{let s=e(t);if(s===`finished`||s===null||r.performance.now()-i>=n){a();return}r.requestAnimationFrame(o)};o()})}export{t as n,e as t};

@@ -1,0 +1,1 @@
+var e=[`Adelie`,`Chinstrap`,`Gentoo`],t=[2500,2750,3e3,3250,3500,3750,4e3,4250,4500,4750,5e3,5250,5500,5750,6e3,6250,6500];function n(t){return t.body_mass_g!==null&&e.includes(t.species)}export{t as n,e as r,n as t};

@@ -1,0 +1,1 @@
+import{V as e,z as t}from"./svg-coordinates-DGkcyjxD.js";function n(n){let r=new Map;for(let t of n){let n=e(t.group),i=r.get(n);i?i.rows.push(t):r.set(n,{group:t.group,rows:[t]})}return[...r.entries()].sort(([,e],[,n])=>t(e.group,n.group)).map(([e,t])=>({identity:e,...t}))}export{n as t};

@@ -1,0 +1,1 @@
+var e=[`100 Meters`,`Long Jump`,`High Jump`,`100 Meter Hurdles`],t=new Set([`100 Meters`,`100 Meter Hurdles`]);function n(e){return[...new Map(e.map(e=>[e.Country,e])).values()]}export{n,t as r,e as t};

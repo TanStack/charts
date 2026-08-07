@@ -1,0 +1,1 @@
+function e(e,t){let[n,r]=e.order(t.start,t.end);return{start:n,end:r}}function t(e,t,n){return e.layoutKey(t.start)===e.layoutKey(n.start)&&e.layoutKey(t.end)===e.layoutKey(n.end)}function n(e){return{start:r(e.start),end:r(e.end)}}function r(e){return e instanceof Date?new Date(e.getTime()):e}export{t as i,r as n,e as r,n as t};

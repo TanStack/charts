@@ -1,0 +1,1 @@
+function e(e,t){return t===e||t.startsWith(`${e}:`)?t:`${e}:${t}`}export{e as t};

@@ -1,0 +1,1 @@
+var e=[`R90_10_1980`,`R90_10_2015`];function t(e){return e===`R90_10_1980`?`1980`:`2015`}export{t as n,e as t};

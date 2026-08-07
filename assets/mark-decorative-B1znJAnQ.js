@@ -1,0 +1,1 @@
+import{t as e}from"./mark-decorative-internal-S9gAPjbt.js";import{n as t}from"./mark-scene-filter-internal-BI4RgmSm.js";function n(n){return e(n,e=>t(e,{conditional:`reject`}),{conditional:`reject`,layoutLabels:`preserve`})}export{n as t};

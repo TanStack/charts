@@ -1,0 +1,1 @@
+function e(e,t={}){return{...e,initialize(n){return{...e.initialize(n),focus:t}}}}export{e as t};

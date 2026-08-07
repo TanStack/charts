@@ -1,0 +1,1 @@
+var e=[`100 Meters`,`Long Jump`,`High Jump`,`100 Meter Hurdles`],t=[`USA`,`GBR`],n=new Set([`100 Meters`,`100 Meter Hurdles`]);function r(e){let t=e.find(e=>e.Country===`USA`),n=e.find(e=>e.Country===`GBR`);if(!t||!n)throw Error(`The decathlon snapshot is missing USA or GBR results`);return{USA:t,GBR:n}}export{n as i,e as n,r,t};

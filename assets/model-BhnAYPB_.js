@@ -1,0 +1,1 @@
+var e=[`Jan`,`Feb`,`Mar`,`Apr`,`May`,`Jun`,`Jul`,`Aug`,`Sep`,`Oct`,`Nov`,`Dec`];function t(t){return e[t.getUTCMonth()]??``}export{t};

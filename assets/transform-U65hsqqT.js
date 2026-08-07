@@ -1,1 +1,0 @@
-import{t as e}from"./mean-4Awewi9R.js";var t=[`Jan`,`Feb`,`Mar`,`Apr`,`May`,`Jun`,`Jul`,`Aug`,`Sep`,`Oct`,`Nov`,`Dec`];function n(e){return t[e.getUTCMonth()]??``}function r(t,n){return t.flatMap((r,i)=>{if(i<n-1)return[];let a=e(t.slice(i-n+1,i+1),e=>e.Close);return a===void 0?[]:[{...r,average:a}]})}export{n,r as t};

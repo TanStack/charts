@@ -1,0 +1,1 @@
+function e(e,t){return{value:e,onChange:t}}export{e as t};

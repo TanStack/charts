@@ -1,0 +1,1 @@
+import{V as e}from"./svg-coordinates-DGkcyjxD.js";function t(t,n=String){return t.domain.map(r=>({key:e(r),value:r,label:n(r),color:t.map(r)}))}function n(e,t,n){let r=Math.max(1,Math.min(e||1,Math.floor(t/n)||1));return{columns:r,rows:Math.ceil(e/r),itemWidth:t/r}}export{t as n,n as t};

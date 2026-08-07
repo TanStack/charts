@@ -1,1 +1,0 @@
-function e(e){let t=[14,28,42],n=[];for(let r of t){let t=e[r-1],i=e[r];t===void 0||i===void 0||n.push({fromYear:t.year,toYear:i.year,miles1:t.miles,gas1:t.gas,miles2:i.miles,gas2:i.gas})}return n}export{e as t};

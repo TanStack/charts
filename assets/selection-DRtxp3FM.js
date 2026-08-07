@@ -1,0 +1,1 @@
+function e(e,t=0){return t%2==0?e.slice(1,12):[...e.slice(1,8),...e.slice(9,13)]}export{e as t};

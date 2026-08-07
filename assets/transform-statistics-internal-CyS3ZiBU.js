@@ -1,0 +1,1 @@
+function e(e,t){if(!e.length)return NaN;let n=(e.length-1)*t,r=Math.floor(n),i=Math.ceil(n),a=e[r];return a+(e[i]-a)*(n-r)}export{e as t};

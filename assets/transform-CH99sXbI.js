@@ -1,1 +1,0 @@
-import{t as e}from"./wind-DOro9cO8.js";var t=80,n=[2,4,6,8,10];function r(n){let r=n%2*8,i=[];for(let n=0;n<60;n++){let a=n*t;for(let t=0;t<64;t++){let n=e[a+r+t];if(!n)throw Error(`Observable Plot wind grid is incomplete.`);i.push(Math.hypot(n.u,n.v))}}return{width:64,height:60,values:i}}export{r as n,n as t};
