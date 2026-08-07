@@ -1,6 +1,7 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { dodgeX, dodgeY } from './dodge'
+import { createDotLayout, dodgeX, dodgeY } from './dodge'
+import type { DotLayoutResolveContext } from './dodge'
 import { dodgeOffsets } from './dodge-internal'
 import { dot } from './dot'
 import { facet } from './facet'
@@ -130,6 +131,48 @@ describe('dot dodge layouts', () => {
     })
   })
 
+  it('accepts custom final-pixel placement through the public layout factory', () => {
+    const resolve = vi.fn(
+      ({ chart, measuredPositions, radii }: DotLayoutResolveContext) =>
+        measuredPositions.map(
+          (_position, index) => chart.y + radii[index]! + index * 12,
+        ),
+    )
+    const layout = createDotLayout({
+      axis: 'y',
+      anchor: 'custom-row',
+      resolve,
+    })
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          dot(
+            [
+              { id: 'a', value: 2 },
+              { id: 'b', value: 8 },
+            ],
+            { x: 'value', key: 'id', r: 4, layout },
+          ),
+        ],
+        guides: false,
+        margin: 0,
+        x: { scale: scaleLinear().domain([0, 10]) },
+      }),
+      { width: 100, height: 80 },
+    )
+
+    expect(resolve).toHaveBeenCalledWith({
+      chart: { x: 0, y: 0, width: 100, height: 80 },
+      measuredPositions: [20, 80],
+      radii: [4, 4],
+    })
+    expect(scene.points.map(({ x, y, yValue }) => ({ x, y, yValue }))).toEqual([
+      { x: 20, y: 4, yValue: 'custom-row' },
+      { x: 80, y: 16, yValue: 'custom-row' },
+    ])
+    expectTypeOf(scene.points[0]!.yValue).toEqualTypeOf<'custom-row'>()
+  })
+
   it('retains source indexes and identity while omitting invalid rows', () => {
     const rows = [
       { id: 'a', value: 2 },
@@ -251,6 +294,27 @@ describe('dot dodge layouts', () => {
     )
     expect(() => dodgeX({ anchor: 'nope' as 'left' })).toThrow('unknown anchor')
     expect(() =>
+      createDotLayout({
+        axis: 'z' as 'x',
+        anchor: 'middle',
+        resolve: () => [],
+      }),
+    ).toThrow('unknown axis')
+    expect(() =>
+      createDotLayout({
+        axis: 'y',
+        anchor: 'middle',
+        resolve: null as never,
+      }),
+    ).toThrow('resolve must be a function')
+    expect(() =>
+      createDotLayout({
+        axis: 'y',
+        anchor: Number.NaN,
+        resolve: () => [],
+      }),
+    ).toThrow('anchor must be a string, finite number, or valid Date')
+    expect(() =>
       createChartScene(
         defineChart({
           marks: [
@@ -264,7 +328,7 @@ describe('dot dodge layouts', () => {
         }),
         { width: 100, height: 100 },
       ),
-    ).toThrow('y is derived by dodgeY')
+    ).toThrow('y is derived by its layout')
   })
 })
 

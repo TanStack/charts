@@ -193,6 +193,7 @@
         "react-native-types",
         "package-check",
         "bundle-check",
+        "benchmark-check",
         "catalog-check",
         "react-catalog-check",
         "catalog-loading-check"

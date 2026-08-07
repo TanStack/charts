@@ -16,15 +16,24 @@ coordinates in case utilities. The exact Sankey entry accepts semantic graph
 rows and composes ordinary child marks over immutable final-pixel node and link
 values without exposing D3 mutation cleanup.
 
+Resolved dot placement is also extensible through `createDotLayout`, which
+receives final plot bounds, measured coordinates, and radii while Charts keeps
+row identity, interaction, state, and motion ownership. Treemap tiling, Sankey
+alignment, and named static-force factories accept D3-compatible callables in
+addition to the built-in shorthands; all operate over private layout copies and
+retain validation, immutability, and source lineage.
+
 Cartesian bars add an orientation-neutral `maxThickness` constraint that caps
 their final painted categorical size after grouping and inset, without asking
 definitions to estimate responsive chart bounds. Absolute inline-state inset
 overrides retain their existing semantics without escaping the cap.
 
-Add raw-row `boxX` and `boxY` marks with Tukey quartiles, observed whiskers,
-outlier lineage, transposed orientation, and one summary interaction target per
-category. Add `compositeMark` for namespaced composition of ordinary child
-marks with preserved datum, channel, interaction, and motion ownership.
+Add eager `boxRows` preparation plus raw-row `boxX` and `boxY` marks with Tukey
+quartiles, observed whiskers, outlier lineage, transposed orientation, and one
+summary interaction target per category. The marks reuse the public semantic
+rows without exposing presentation keys. Add `compositeMark` for namespaced
+composition of ordinary child marks with preserved datum, channel,
+interaction, and motion ownership.
 
 Stack layouts add inside-out series order and a zero-origin wiggle policy.
 Areas, bars, and row transforms now share D3 inside-out ordering, dense sparse
@@ -48,10 +57,12 @@ and resolved packing policy.
 Add `lineX` as the strict transposed counterpart to `lineY`, sharing grouping,
 keys, gaps, styling, interaction, motion, and renderer-neutral path output.
 
-Add `linearRegressionY` and `linearRegressionX` composite marks with centered
+Add eager `linearRegressionRowsY` and `linearRegressionRowsX` preparation plus
+`linearRegressionY` and `linearRegressionX` composite marks with centered
 least-squares fits, optional grouped Student-t confidence bands, semantic-domain
 sampling, aggregate lineage, transposed geometry, and one interactive fitted
-line per group.
+line per group. The marks reuse the public semantic rows without exposing
+presentation keys.
 
 Add `differenceY` and `differenceX` composite marks that split two source-row
 series at exact interpolated crossings, paint stable positive and negative
@@ -138,7 +149,19 @@ Add exact-subpath `composeViews` for heterogeneous complete chart definitions.
 Opaque `fill`, `grid`, `layer`, and anchored `inset` utilities compose responsive
 frames, while `shareX`, `shareY`, `alignX`, and `alignY` keep scale coordination
 separate from layout. `viewGrid` remains as concise grid syntax over the same
-composition engine.
+composition engine. Child pointer and cursor settings now fail explicitly
+instead of disappearing at the adoption boundary; the outer definition owns
+that lifecycle.
+
+Controlled brush, cursor, and handle behaviors repaint the application-accepted
+snapshot after a rejected terminal proposal. Continuous cursor axes invert the
+resolved scale by default while retaining explicit value mapping and
+coordinate-only overrides. Keyboard-disabled zoom no longer advertises or
+enters focus for keyboard semantics it does not implement.
+
+Interrupted motion removes exact stale exit nodes and presentation state while
+preserving live replacements. Composite motion inheritance retains authored
+path timing, including rolling-path policy.
 
 Axis tick labels now accept per-candidate font size, font weight, opacity,
 anchor, and x/y offset values. Accessors receive the semantic tick value,

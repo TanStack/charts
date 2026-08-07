@@ -2066,8 +2066,6 @@ describe('renderer-neutral chart host', () => {
         mode: 'free',
         pin: true,
         controller,
-        x: { valueAt: ({ normalized }) => normalized },
-        y: { valueAt: ({ normalized }) => normalized },
       },
     })
     const fake = createFakeRenderer('free-cursor-host')
@@ -2098,14 +2096,14 @@ describe('renderer-neutral chart host', () => {
     expect(pointerState).toMatchObject({
       anchor: 'normalized',
       normalized: { x: 0.25, y: 0.75 },
-      value: { x: 0.25, y: 0.75 },
+      value: { x: 0.25, y: 2 },
       source: 'pointer',
       pinned: false,
     })
     expect(fake.paintFocus.mock.calls.at(-1)?.[0]).toBeNull()
     expect(fake.paintFocus.mock.calls.at(-1)?.[2]).toMatchObject({
       x: { normalized: 0.25, value: 0.25 },
-      y: { normalized: 0.75, value: 0.75 },
+      y: { normalized: 0.75, value: 2 },
     })
     expect(onFocusChange).not.toHaveBeenCalled()
     expect(fake.render).toHaveBeenCalledOnce()

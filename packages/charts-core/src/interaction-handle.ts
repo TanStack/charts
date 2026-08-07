@@ -490,7 +490,7 @@ function createHandleXControl({
       origin,
       source,
     })
-    paint(control === changedControl ? value : control.value)
+    paintControlledValue()
   }
 
   function handlePointerCancel(event: PointerEvent) {
@@ -530,7 +530,7 @@ function createHandleXControl({
       origin,
       source: 'keyboard',
     })
-    paint(control === changedControl ? next : control.value)
+    paintControlledValue()
   }
 
   function handleFocus() {
@@ -576,7 +576,11 @@ function createHandleXControl({
       origin,
       source,
     })
-    paint(control === changedControl ? origin : control.value)
+    paintControlledValue()
+  }
+
+  function paintControlledValue() {
+    if (control) paint(control.value)
   }
 
   function valueFromClient(clientX: number, clientY: number) {

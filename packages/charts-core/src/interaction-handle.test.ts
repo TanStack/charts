@@ -156,7 +156,7 @@ describe('handleX', () => {
     )
   })
 
-  it('mounts one host-owned slider with stable roles and keyboard commits', () => {
+  it('restores accepted slider paint after unaccepted keyboard commits', () => {
     const onChange = vi.fn()
     const { container, host } = mount(edgeDefinition(dates[1], onChange))
     const target = handleSurface(container)
@@ -209,7 +209,7 @@ describe('handleX', () => {
       source: 'keyboard',
     })
     expect(reason.value).not.toBe(next)
-    expect(target.getAttribute('aria-valuenow')).toBe('2')
+    expect(target.getAttribute('aria-valuenow')).toBe('1')
 
     host.destroy()
     expect(container.childElementCount).toBe(0)
@@ -252,6 +252,7 @@ describe('handleX', () => {
       origin: dates[0],
     })
     expect(onChange.mock.calls[0]?.[0]).not.toBe(dates[1])
+    expect(target.getAttribute('aria-valuenow')).toBe('0')
 
     host.destroy()
     container.remove()

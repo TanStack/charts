@@ -578,6 +578,7 @@ async function installFixture(tarballs) {
     '@types/d3-force': installedDependency('@types/d3-force'),
     '@types/d3-geo': installedDependency('@types/d3-geo'),
     '@types/d3-hierarchy': installedDependency('@types/d3-hierarchy'),
+    '@types/d3-sankey': installedDependency('@types/d3-sankey'),
     '@types/d3-scale': installedDependency('@types/d3-scale'),
     '@types/d3-shape': installedDependency('@types/d3-shape'),
     '@types/d3-zoom': installedDependency('@types/d3-zoom'),
@@ -590,6 +591,7 @@ async function installFixture(tarballs) {
     'd3-geo': installedDependency('d3-geo'),
     'd3-hierarchy': installedDependency('d3-hierarchy'),
     'd3-hexbin': installedDependency('d3-hexbin'),
+    'd3-sankey': installedDependency('d3-sankey'),
     'd3-scale': installedDependency('d3-scale'),
     'd3-selection': installedDependency('d3-selection'),
     'd3-shape': installedDependency('d3-shape'),
@@ -656,6 +658,8 @@ async function installFixture(tarballs) {
       installedDependency('@types/d3-geo'),
     )}\n  '@types/d3-hierarchy': ${JSON.stringify(
       installedDependency('@types/d3-hierarchy'),
+    )}\n  '@types/d3-sankey': ${JSON.stringify(
+      installedDependency('@types/d3-sankey'),
     )}\n`,
   )
   await run(
@@ -701,6 +705,12 @@ async function verifyStandaloneCatalogConsumer(tarballs) {
       reactTarball,
     )}\n  '@types/d3-geo': ${JSON.stringify(
       installedDependency('@types/d3-geo'),
+    )}\n  '@types/d3-force': ${JSON.stringify(
+      installedDependency('@types/d3-force'),
+    )}\n  '@types/d3-hierarchy': ${JSON.stringify(
+      installedDependency('@types/d3-hierarchy'),
+    )}\n  '@types/d3-sankey': ${JSON.stringify(
+      installedDependency('@types/d3-sankey'),
     )}\n  '@types/d3-shape': ${JSON.stringify(
       installedDependency('@types/d3-shape'),
     )}\n  'd3-array': ${JSON.stringify(
@@ -1887,9 +1897,24 @@ async function verifyDeclarations() {
       type SunburstPathOptions,
     } from '@tanstack/charts/hierarchy/sunburst'
     import {
+      treemap,
+      type TreemapTile,
+      type TreemapTileDatum,
+    } from '@tanstack/charts/hierarchy/treemap'
+    import {
+      forceLayout,
+      type ForceFactory,
+      type ForceFactoryContext,
+      type ForceFactoryDescriptor,
+      type ForceLayoutWorkingLink,
+      type ForceLayoutWorkingNode,
+    } from '@tanstack/charts/network/force'
+    import {
       sankeyDiagram,
+      type SankeyAlignmentNode,
       type SankeyLink,
       type SankeyNode,
+      type SankeyNodeAligner,
       type SankeyNodeComparator,
     } from '@tanstack/charts/network/sankey'
     import {
@@ -1942,6 +1967,9 @@ async function verifyDeclarations() {
     import { Chart as OctaneCanvasChart } from '@tanstack/octane-charts/canvas'
     import { Chart as OctaneRendererChart } from '@tanstack/octane-charts/core'
     import { extent, max } from 'd3-array'
+    import { forceRadial } from 'd3-force'
+    import { treemapDice } from 'd3-hierarchy'
+    import { sankeyLeft } from 'd3-sankey'
     import { scaleBand, scaleLinear } from 'd3-scale'
     import { curveMonotoneX } from 'd3-shape'
     import { createElement as createReactElement } from 'react'
@@ -2624,6 +2652,71 @@ async function verifyDeclarations() {
       identifySunburstNode,
     ]
 
+    const packedTreemapTile: TreemapTile<HierarchyRow> = treemapDice
+    const packedTreemapMark = treemap(hierarchyRows, {
+      path: 'path',
+      delimiter: '.',
+      value: 'amount',
+      method: packedTreemapTile,
+    })
+    const identifyTreemapTileDatum = (
+      datum: TreemapTileDatum<HierarchyRow>,
+    ) => datum.datum?.id ?? datum.id
+    void [
+      packedTreemapTile,
+      packedTreemapMark,
+      identifyTreemapTileDatum,
+    ]
+
+    interface ForceNodeRow {
+      id: string
+      radius: number
+    }
+    interface ForceLinkRow {
+      source: string
+      target: string
+    }
+    const forceNodes: readonly ForceNodeRow[] = [
+      { id: 'a', radius: 12 },
+      { id: 'b', radius: 24 },
+    ]
+    const forceLinks: readonly ForceLinkRow[] = [
+      { source: 'a', target: 'b' },
+    ]
+    const radialFactory: ForceFactory<
+      ForceNodeRow,
+      ForceLinkRow,
+      string
+    > = ({ nodes }) =>
+      forceRadial<ForceLayoutWorkingNode<ForceNodeRow>>(
+        (node) => node.radius,
+      ).strength(0.2)
+    const radialDescriptor: ForceFactoryDescriptor<
+      ForceNodeRow,
+      ForceLinkRow,
+      string
+    > = {
+      type: 'custom',
+      name: 'radial',
+      create: radialFactory,
+    }
+    const forceGraph = forceLayout(forceNodes, forceLinks, {
+      nodeKey: 'id',
+      source: 'source',
+      target: 'target',
+      iterations: 20,
+      forces: [radialDescriptor],
+    })
+    const inspectForceFactory = (
+      context: ForceFactoryContext<ForceNodeRow, ForceLinkRow, string>,
+    ) => {
+      const node: ForceLayoutWorkingNode<ForceNodeRow> = context.nodes[0]!
+      const edge: ForceLayoutWorkingLink<ForceNodeRow, ForceLinkRow> =
+        context.links[0]!
+      return [context.nodeKey(node, 0), edge.source] as const
+    }
+    void [radialFactory, radialDescriptor, forceGraph, inspectForceFactory]
+
     interface SankeyNodeRow {
       id: string
       label: string
@@ -2646,6 +2739,14 @@ async function verifyDeclarations() {
       left,
       right,
     ) => left.data.order - right.data.order
+    const sankeyNodeAlign: SankeyNodeAligner<
+      SankeyNodeRow,
+      SankeyLinkRow,
+      string
+    > = sankeyLeft
+    const inspectSankeyAlignmentNode = (
+      node: SankeyAlignmentNode<SankeyNodeRow, SankeyLinkRow, string>,
+    ) => node.data.order + node.sourceIndex
     const sankeyMark = sankeyDiagram({
       nodes: sankeyNodes,
       links: sankeyLinks,
@@ -2653,6 +2754,7 @@ async function verifyDeclarations() {
       source: 'source',
       target: 'target',
       value: 'value',
+      align: sankeyNodeAlign,
       nodeSort: sankeyNodeSort,
       marks: ({ nodes, links }) => [
         link(links, {
@@ -2709,6 +2811,8 @@ async function verifyDeclarations() {
     }
     void [
       sankeyNodeSort,
+      sankeyNodeAlign,
+      inspectSankeyAlignmentNode,
       sankeyMark,
       sankeyDefinition,
       sankeyDatumCheck,
@@ -4562,6 +4666,7 @@ async function verifyProductionBundles() {
       },
       source: `
         import { forceLayout } from '@tanstack/charts/network/force'
+        import { forceRadial } from 'd3-force'
         const nodes = [
           { id: 'a', group: 'one' },
           { id: 'b', group: 'one' },
@@ -4580,6 +4685,11 @@ async function verifyProductionBundles() {
             { type: 'link', distance: 20 },
             { type: 'manyBody', strength: -20 },
             { type: 'center' },
+            {
+              type: 'custom',
+              name: 'radial',
+              create: () => forceRadial(40, 0, 0).strength(0.05),
+            },
           ],
         })
       `,
@@ -4607,6 +4717,7 @@ async function verifyProductionBundles() {
         import { rect } from '@tanstack/charts/rect'
         import { renderChartSvg } from '@tanstack/charts/svg'
         import { sankeyDiagram } from '@tanstack/charts/network/sankey'
+        import { sankeyLeft } from 'd3-sankey'
         const nodes = [
           { id: 'source', label: 'Source' },
           { id: 'middle', label: 'Middle' },
@@ -4624,6 +4735,7 @@ async function verifyProductionBundles() {
             source: 'source',
             target: 'target',
             value: 'value',
+            align: sankeyLeft,
             marks: ({ nodes: laidOutNodes, links: laidOutLinks }) => [
               link(laidOutLinks, {
                 x1: 'x1',
@@ -4774,6 +4886,7 @@ async function verifyProductionBundles() {
       },
       source: `
         import { treemap } from '@tanstack/charts/hierarchy/treemap'
+        import { treemapDice } from 'd3-hierarchy'
         const rows = [
           { name: 'root', size: 0 },
           { name: 'root.alpha', size: 4 },
@@ -4784,7 +4897,7 @@ async function verifyProductionBundles() {
           path: 'name',
           delimiter: '.',
           value: 'size',
-          ratio: 4 / 3,
+          method: treemapDice,
           round: true,
           color: (node) => node.ancestorIds.at(-1) ?? node.id,
           label: 'name',

@@ -1,8 +1,11 @@
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { scaleLinear, scaleUtc } from 'd3-scale'
+import { createChartCursor, cursorHost } from './cursor'
 import { dot } from './dot'
+import { motion } from './motion'
 import { pie, polar, radialArc } from './polar'
 import { createChartScene, defineChart, findNearestPoint } from './scene'
+import { renderChartSvg } from './svg'
 import {
   alignX,
   alignY,
@@ -106,6 +109,86 @@ describe('composed views', () => {
           node.className?.includes('ts-chart__focus-layer--default'),
       ),
     ).toHaveLength(1)
+  })
+
+  it('renders translated and clipped heterogeneous views through static SVG', () => {
+    const { definition } = mixedDefinition()
+    const scene = createChartScene(definition, { width: 600, height: 400 })
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvg(scene, {
+      ariaLabel: 'Composed dashboard',
+    })
+
+    const main = container.querySelector<SVGGElement>(
+      'g[data-ts-key="dashboard:main:view"]',
+    )
+    const summary = container.querySelector<SVGGElement>(
+      'g[data-ts-key="dashboard:summary:view"]',
+    )
+
+    expect(main?.getAttribute('transform')).toBe('translate(0 0)')
+    expect(main?.getAttribute('clip-path')).toMatch(/^url\(#.+\)$/)
+    expect(clipAttributes(main)).toEqual(['0', '0', '600', '400'])
+    expect(main?.querySelector('circle')).not.toBeNull()
+
+    expect(summary?.getAttribute('transform')).toBe('translate(428 12)')
+    expect(summary?.getAttribute('clip-path')).toMatch(/^url\(#.+\)$/)
+    expect(clipAttributes(summary)).toEqual(['0', '0', '160', '160'])
+    expect(summary?.querySelector('path')).not.toBeNull()
+  })
+
+  it('keeps composed-view point namespaces during a motion update', () => {
+    const updatedRows: readonly MainRow[] = [
+      { ...mainRows[0]!, value: 7 },
+      { ...mainRows[1]!, value: 3 },
+    ]
+    const first = createChartScene(mixedDefinition().definition, {
+      width: 600,
+      height: 400,
+    })
+    const next = createChartScene(mixedDefinition(updatedRows).definition, {
+      width: 600,
+      height: 400,
+    })
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(first, { ariaLabel: 'Composed dashboard' })
+    const frames = installManagedFrames()
+
+    try {
+      surface.render(next, { ariaLabel: 'Updated composed dashboard' })
+
+      expectPresentationNamespaces(surface.getPresentationPoints?.(), next)
+      expect(
+        container
+          .querySelector('g[data-ts-key="dashboard:summary:view"]')
+          ?.getAttribute('transform'),
+      ).toBe('translate(428 12)')
+      expect(
+        container
+          .querySelector('g[data-ts-key="dashboard:summary:view"]')
+          ?.getAttribute('clip-path'),
+      ).toMatch(/^url\(#.+\)$/)
+
+      frames.run(0)
+      frames.run(50)
+      expectPresentationNamespaces(surface.getPresentationPoints?.(), next)
+
+      frames.run(100)
+      expect(surface.getPresentationPoints?.()).toBeUndefined()
+      expect(
+        container.querySelector('g[data-ts-key="dashboard:main:view"] circle'),
+      ).not.toBeNull()
+      expect(
+        container.querySelector('g[data-ts-key="dashboard:summary:view"] path'),
+      ).not.toBeNull()
+    } finally {
+      surface.destroy()
+      frames.restore()
+    }
   })
 
   it('shrinks an inset proportionally while preserving namespaced keys', () => {
@@ -431,6 +514,15 @@ describe('composed views', () => {
       ...child,
       behaviors: [{ id: 'child-behavior', resolve: () => ({}) }],
     }
+    const cursorChild: typeof child = {
+      ...child,
+      cursor: {
+        use: cursorHost,
+        controller: createChartCursor<number, number>(),
+        mode: 'focus',
+      },
+    }
+    const pointerChild: typeof child = { ...child, pointer: false }
     const backgroundChild: typeof child = {
       ...child,
       theme: { background: '#fff' },
@@ -448,6 +540,18 @@ describe('composed views', () => {
         layout: fill('child'),
       }),
     ).toThrow(/host option "behaviors"/)
+    expect(() =>
+      composeViews({
+        views: { child: cursorChild },
+        layout: fill('child'),
+      }),
+    ).toThrow(/host option "cursor"/)
+    expect(() =>
+      composeViews({
+        views: { child: pointerChild },
+        layout: fill('child'),
+      }),
+    ).toThrow(/host option "pointer"/)
     expect(() =>
       composeViews({
         views: { child: backgroundChild },
@@ -492,11 +596,11 @@ describe('composed views', () => {
   })
 })
 
-function mixedDefinition() {
+function mixedDefinition(rows: readonly MainRow[] = mainRows) {
   const arcs = pie(sliceRows, { value: 'value' })
   const main = defineChart({
     marks: [
-      dot(mainRows, {
+      dot(rows, {
         id: 'observations',
         x: 'at',
         y: 'value',
@@ -504,7 +608,7 @@ function mixedDefinition() {
       }),
     ],
     x: {
-      scale: scaleUtc().domain(mainRows.map((row) => row.at)),
+      scale: scaleUtc().domain(rows.map((row) => row.at)),
     },
     y: { scale: scaleLinear().domain([0, 10]) },
     guides: false,
@@ -546,6 +650,56 @@ function mixedDefinition() {
         }),
       ),
     }),
+  }
+}
+
+function expectPresentationNamespaces(
+  points:
+    readonly { readonly key: string; readonly markId: string }[] | undefined,
+  scene: { readonly points: readonly { readonly key: string }[] },
+) {
+  expect(points?.map((point) => point.key)).toEqual(
+    expect.arrayContaining(scene.points.map((point) => point.key)),
+  )
+  expect(new Set(points?.map((point) => point.markId))).toEqual(
+    new Set(['dashboard:main:observations', 'dashboard:summary:summary-arcs']),
+  )
+}
+
+function clipAttributes(group: SVGGElement | null) {
+  const clip = group?.querySelector('clipPath rect')
+  return ['x', 'y', 'width', 'height'].map((attribute) =>
+    clip?.getAttribute(attribute),
+  )
+}
+
+function installManagedFrames() {
+  const callbacks = new Map<number, FrameRequestCallback>()
+  let handle = 0
+  const request = vi
+    .spyOn(window, 'requestAnimationFrame')
+    .mockImplementation((callback) => {
+      handle += 1
+      callbacks.set(handle, callback)
+      return handle
+    })
+  const cancel = vi
+    .spyOn(window, 'cancelAnimationFrame')
+    .mockImplementation((frame) => {
+      if (frame !== null && frame !== undefined) callbacks.delete(frame)
+    })
+  return {
+    run(time: number) {
+      const next = callbacks.entries().next().value as
+        [number, FrameRequestCallback] | undefined
+      if (!next) throw new Error(`No animation frame scheduled at ${time}ms`)
+      callbacks.delete(next[0])
+      next[1](time)
+    },
+    restore() {
+      request.mockRestore()
+      cancel.mockRestore()
+    },
   }
 }
 

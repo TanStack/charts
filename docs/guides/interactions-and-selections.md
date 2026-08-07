@@ -108,7 +108,7 @@ portable semantic `value` and preferred `group`.
 ### Track free coordinates
 
 Free mode updates without selecting a datum. The host stores normalized plot
-coordinates and can derive semantic values through `valueAt`:
+coordinates and derives semantic values through each resolved scale's inverse:
 
 ```ts
 const freeCursor = createChartCursor<Date, number>()
@@ -131,25 +131,16 @@ const definition = defineChart({
     controller: freeCursor,
     mode: 'free',
     pin: true,
-    x: {
-      valueAt: ({ scene, position }) =>
-        xScale
-          .copy()
-          .range([scene.chart.x, scene.chart.x + scene.chart.width])
-          .invert(position),
-    },
-    y: {
-      valueAt: ({ scene, position }) =>
-        yScale
-          .copy()
-          .range([scene.chart.y + scene.chart.height, scene.chart.y])
-          .invert(position),
-    },
   },
 })
 ```
 
-The configured scale remains the owner of inversion, clamping, and rounding.
+The resolved final ranges own inversion, including a reversed y range. Add an
+axis `valueAt` only to replace that default with observed-value snapping,
+rounding, or another semantic policy. A missing or non-invertible scale
+requires such an override; returning `undefined` keeps that axis
+coordinate-only.
+
 Set semantic state directly when another control owns the cursor:
 
 ```ts
@@ -300,7 +291,8 @@ const definition = defineChart({
 
 Both scales must be invertible numeric or temporal scales. The behavior uses
 their final resolved ranges, including a reversed y range, and clamps values to
-the plot. Rules and the marker are enabled by default. Axis labels are opt-in.
+the plot. This is the same default inversion used by a free `cursorHost`
+binding. Rules and the marker are enabled by default. Axis labels are opt-in.
 
 A `null` controlled position leaves pointer previews transient. Click or tap
 proposes a `commit`; accepting its non-null position pins the cursor. A second
@@ -406,9 +398,9 @@ const value = invertY(pointerY)
 Apply UTC month snapping, numeric rounding, minimum ranges, and domain clamps
 after inversion. Those policies are application semantics, not scale math.
 This date example uses a D3 time scale; the lightweight linear scale supports
-the same copy, range, and inversion flow for numeric gestures.
-The same scale-copy pattern belongs in a free cursor binding's `valueAt`
-callback.
+the same resolved mapping and inversion flow for numeric gestures.
+Free cursor bindings already consume the resolved inverse. Their `valueAt`
+callback is reserved for snapping or another semantic override.
 
 The [Scales](../concepts/scales-and-d3.md) page is the sole source for
 D3 ownership and official interaction-module links.

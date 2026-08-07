@@ -1,6 +1,13 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
+import { forceRadial } from 'd3-force'
 import { forceLayout } from './network-force'
-import type { ForceDescriptor } from './network-force'
+import type {
+  ForceDescriptor,
+  ForceFactory,
+  ForceFactoryDescriptor,
+  ForceLayoutWorkingLink,
+  ForceLayoutWorkingNode,
+} from './network-force'
 
 interface NodeRow {
   id: string
@@ -201,6 +208,137 @@ describe('forceLayout', () => {
     )
   })
 
+  it('runs named native D3 forces over fresh private working clones', () => {
+    const nodes: readonly Readonly<NodeRow>[] = Object.freeze([
+      Object.freeze({ id: 'a', group: 1 } as NodeRow),
+      Object.freeze({ id: 'b', group: 2 } as NodeRow),
+    ])
+    const links: readonly Readonly<LinkRow>[] = Object.freeze([
+      Object.freeze({ source: 'a', target: 'b', value: 1 } as LinkRow),
+    ])
+    const contexts: unknown[] = []
+    const radial: ForceFactoryDescriptor<NodeRow, LinkRow, string> = {
+      type: 'custom',
+      name: 'radial',
+      create: (context) => {
+        contexts.push(context)
+        expect(Object.isFrozen(context)).toBe(true)
+        expect(Object.isFrozen(context.nodeKeys)).toBe(true)
+        expect(context.nodes[0]).not.toBe(nodes[0])
+        expect(context.links[0]).not.toBe(links[0])
+        expect(context.nodes.map((node) => node.id)).toEqual(['a', 'b'])
+        expect(context.nodeKeys).toEqual(['a', 'b'])
+        expect(context.sourceKeys).toEqual(['a'])
+        expect(context.targetKeys).toEqual(['b'])
+        expect(context.nodeKey(context.nodes[0]!, 0)).toBe('a')
+        expectTypeOf(context.nodes[0]!.group).toEqualTypeOf<number>()
+        return forceRadial<ForceLayoutWorkingNode<NodeRow>>(25, 0, 0).strength(
+          0.4,
+        )
+      },
+    }
+    const settle = () =>
+      forceLayout(nodes, links, {
+        nodeKey: 'id',
+        source: 'source',
+        target: 'target',
+        iterations: 40,
+        forces: [{ type: 'center', x: 0, y: 0 }, radial],
+      })
+
+    const first = settle()
+    const repeated = settle()
+
+    expect(contexts).toHaveLength(2)
+    expect(
+      repeated.nodes.map(({ x, y, vx, vy }) => ({ x, y, vx, vy })),
+    ).toEqual(first.nodes.map(({ x, y, vx, vy }) => ({ x, y, vx, vy })))
+    expect(JSON.stringify(nodes)).toBe(
+      JSON.stringify([
+        { id: 'a', group: 1 },
+        { id: 'b', group: 2 },
+      ]),
+    )
+    expect(JSON.stringify(links)).toBe(
+      JSON.stringify([{ source: 'a', target: 'b', value: 1 }]),
+    )
+  })
+
+  it('keeps conflicting source fields out of D3-owned working state', () => {
+    interface ReservedNodeRow {
+      id: string
+      label: string
+      index: string
+      x: string
+      fx: string
+    }
+    interface ReservedLinkRow {
+      source: string
+      target: string
+      index: string
+    }
+
+    const nodes: ReservedNodeRow[] = [
+      {
+        id: 'a',
+        label: 'Alpha',
+        index: 'source-node-index',
+        x: 'source-x',
+        fx: 'source-fx',
+      },
+    ]
+    const links: ReservedLinkRow[] = [
+      { source: 'a', target: 'a', index: 'source-link-index' },
+    ]
+    const inspect: ForceFactoryDescriptor<
+      ReservedNodeRow,
+      ReservedLinkRow,
+      string
+    > = {
+      type: 'custom',
+      name: 'inspect',
+      create: (context) => {
+        expect(context.nodes[0]).toMatchObject({ id: 'a', label: 'Alpha' })
+        expect(context.nodes[0]!.index).toBeUndefined()
+        expect(context.nodes[0]!.x).toBeUndefined()
+        expect(context.nodes[0]!.fx).toBeUndefined()
+        expectTypeOf(context.nodes[0]!.index).toEqualTypeOf<
+          number | undefined
+        >()
+        expectTypeOf(context.nodes[0]!.x).toEqualTypeOf<number | undefined>()
+        expectTypeOf(context.nodes[0]!.fx).toEqualTypeOf<
+          number | null | undefined
+        >()
+        expect(context.links[0]).toMatchObject({ source: 'a', target: 'a' })
+        expect(context.links[0]!.index).toBeUndefined()
+        expectTypeOf(context.links[0]!.index).toEqualTypeOf<
+          number | undefined
+        >()
+        expectTypeOf(context.links).toEqualTypeOf<
+          ForceLayoutWorkingLink<ReservedNodeRow, ReservedLinkRow>[]
+        >()
+        return () => {}
+      },
+    }
+
+    const layout = forceLayout(nodes, links, {
+      nodeKey: 'id',
+      source: 'source',
+      target: 'target',
+      iterations: 1,
+      forces: [inspect],
+    })
+
+    expect(layout.nodes[0]).toMatchObject({
+      id: 'a',
+      label: 'Alpha',
+      index: 'source-node-index',
+      fx: 'source-fx',
+    })
+    expect(layout.nodes[0]!.x).toEqual(expect.any(Number))
+    expect(layout.links[0]!.index).toBe('source-link-index')
+  })
+
   it('keeps numeric and string keys distinct', () => {
     const nodes = [{ id: 1 }, { id: '1' }]
     const links = [{ source: 1, target: '1' }]
@@ -217,6 +355,8 @@ describe('forceLayout', () => {
   })
 
   it('rejects duplicate keys, missing endpoints, and invalid options before simulation', () => {
+    const noForce: ForceFactory<NodeRow, LinkRow, string> = () => (_alpha) =>
+      undefined
     expect(() =>
       forceLayout([{ id: 'a' }, { id: 'a' }], [] as LinkRow[], {
         nodeKey: 'id',
@@ -290,6 +430,72 @@ describe('forceLayout', () => {
         forces: [{ type: 'x', strength: Number.POSITIVE_INFINITY }],
       }),
     ).toThrow('strength must be between 0 and 1')
+
+    expect(() =>
+      forceLayout([{ id: 'a', group: 1 }], [] as LinkRow[], {
+        nodeKey: 'id',
+        source: 'source',
+        target: 'target',
+        forces: [
+          { type: 'custom', name: 'radial', create: noForce },
+          { type: 'custom', name: 'radial', create: noForce },
+        ],
+      }),
+    ).toThrow('duplicate force name "radial"')
+
+    expect(() =>
+      forceLayout([{ id: 'a', group: 1 }], [] as LinkRow[], {
+        nodeKey: 'id',
+        source: 'source',
+        target: 'target',
+        forces: [{ type: 'custom', name: ' ', create: noForce }],
+      }),
+    ).toThrow('name must be a nonempty string')
+
+    const invalidFactory = (() => null) as unknown as ForceFactory<
+      NodeRow,
+      LinkRow,
+      string
+    >
+    expect(() =>
+      forceLayout([{ id: 'a', group: 1 }], [] as LinkRow[], {
+        nodeKey: 'id',
+        source: 'source',
+        target: 'target',
+        forces: [
+          {
+            type: 'custom',
+            name: 'invalid',
+            create: invalidFactory,
+          },
+        ],
+      }),
+    ).toThrow('create must return a D3-compatible force')
+
+    expect(() =>
+      forceLayout(
+        [
+          { id: 'a', group: 1 },
+          { id: 'b', group: 2 },
+        ],
+        [] as LinkRow[],
+        {
+          nodeKey: 'id',
+          source: 'source',
+          target: 'target',
+          forces: [
+            {
+              type: 'custom',
+              name: 'reorder',
+              create: (context) => {
+                context.nodes.reverse()
+                return (_alpha) => undefined
+              },
+            },
+          ],
+        },
+      ),
+    ).toThrow('custom force changed the private node collection')
   })
 
   it('returns stable empty domains without inventing rows', () => {

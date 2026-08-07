@@ -110,12 +110,12 @@ export function dot<TDatum>(
       const layout = options.layout
       if (layout?.axis === 'x' && options.x !== undefined) {
         throw new TypeError(
-          'dot: x is derived by dodgeX and cannot be configured',
+          'dot: x is derived by its layout and cannot be configured',
         )
       }
       if (layout?.axis === 'y' && options.y !== undefined) {
         throw new TypeError(
-          'dot: y is derived by dodgeY and cannot be configured',
+          'dot: y is derived by its layout and cannot be configured',
         )
       }
       const xValues =

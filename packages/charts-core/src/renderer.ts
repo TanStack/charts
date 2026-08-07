@@ -1,4 +1,5 @@
 import { createChartRuntime } from './runtime'
+import { resolveChartHostTabIndex } from './adapter-shared'
 import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint, viewportInteractionPoints } from './scene'
 import { focusDisabled } from './focus-disabled'
@@ -142,12 +143,10 @@ export function mountChartRenderer<
         ariaLabel: options.ariaLabel,
         ariaDescription: options.ariaDescription,
         className: options.className,
-        tabIndex:
-          options.definition.keyboard === false ||
-          options.definition.focus === false ||
-          options.definition.cursor?.mode === 'free'
-            ? -1
-            : (options.tabIndex ?? 0),
+        tabIndex: resolveChartHostTabIndex(
+          options.definition,
+          options.tabIndex,
+        ),
         idPrefix: options.idPrefix,
         animation: hasRendered
           ? resolveAnimation(options.definition.animate, container, reason)

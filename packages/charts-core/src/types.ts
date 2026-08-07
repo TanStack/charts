@@ -1458,7 +1458,7 @@ interface ChartCursorStateBase<
   readonly scene?: ChartCursorCoordinates<number>
   /** Plot-relative coordinates where left/top are zero and right/bottom are one. */
   readonly normalized?: ChartCursorCoordinates<number>
-  /** Semantic values resolved by focus or an authored free-cursor axis callback. */
+  /** Semantic values resolved by focus or a free cursor's scale/axis policy. */
   readonly value?: ChartCursorValues<TXValue, TYValue>
 }
 
@@ -1532,8 +1532,8 @@ export interface ChartCursorAxisOptions<
   TYValue extends ChartValue,
 > {
   /**
-   * Maps a free scene coordinate to a semantic value. The configured scale
-   * remains the owner of inversion and any precision policy.
+   * Overrides resolved-scale inversion for a free scene coordinate. Use this
+   * for explicit snapping or another semantic mapping policy.
    */
   valueAt?: (
     context: ChartCursorAxisContext<TDatum, TXValue, TYValue>,

@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleLinear, scalePow } from 'd3-scale'
+import { createChartCursor, cursorHost } from './cursor'
 import { dot } from './dot'
 import { rect } from './rect'
 import { createChartScene, defineChart } from './scene'
@@ -291,6 +292,39 @@ describe('view grids', () => {
         ],
       }),
     ).toThrow(/host option "tooltip"/)
+    expect(() =>
+      viewGrid({
+        ...base,
+        views: [
+          {
+            id: 'a',
+            row: 'main',
+            column: 'main',
+            chart: { ...chart, pointer: false },
+          },
+        ],
+      }),
+    ).toThrow(/host option "pointer"/)
+    expect(() =>
+      viewGrid({
+        ...base,
+        views: [
+          {
+            id: 'a',
+            row: 'main',
+            column: 'main',
+            chart: {
+              ...chart,
+              cursor: {
+                use: cursorHost,
+                controller: createChartCursor<number, number>(),
+                mode: 'focus',
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow(/host option "cursor"/)
     expect(() =>
       viewGrid({
         ...base,

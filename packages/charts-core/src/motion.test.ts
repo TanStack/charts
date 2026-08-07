@@ -2261,6 +2261,66 @@ describe('SVG motion', () => {
     frames.restore()
   })
 
+  it('bounds exiting nodes and presentation points across rapid key replacement', () => {
+    const makeScene = (revision: number) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            dot([{ id: `point-${revision}`, x: 1, y: revision }], {
+              id: 'point',
+              x: 'x',
+              y: 'y',
+              key: 'id',
+            }),
+          ],
+          x: { scale: scaleLinear().domain([0, 2]) },
+          y: { scale: scaleLinear().domain([0, 20]) },
+          guides: false,
+        }),
+        { width: 300, height: 200 },
+      )
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 200, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(makeScene(0), { ariaLabel: 'Rapidly replaced point' })
+    const frames = installManagedFrames()
+
+    let current = makeScene(0)
+    for (let revision = 1; revision <= 20; revision += 1) {
+      current = makeScene(revision)
+      surface.render(current, { ariaLabel: 'Rapidly replaced point' })
+      const start = (revision - 1) * 10
+      frames.run(start)
+      frames.run(start + 10)
+
+      expect(
+        container.querySelectorAll('g.ts-chart__dot > circle'),
+      ).toHaveLength(2)
+      expect(surface.getPresentationPoints?.()).toHaveLength(2)
+      expect(
+        container.querySelector(
+          `g.ts-chart__dot > circle[data-ts-key="${current.points[0]?.key}"]`,
+        ),
+      ).not.toBeNull()
+    }
+
+    frames.run(390)
+    expect(container.querySelectorAll('g.ts-chart__dot > circle')).toHaveLength(
+      1,
+    )
+    expect(
+      container.querySelector(
+        `g.ts-chart__dot > circle[data-ts-key="${current.points[0]?.key}"]`,
+      ),
+    ).not.toBeNull()
+    expect(surface.getPresentationPoints?.()).toBeUndefined()
+
+    surface.destroy()
+    frames.restore()
+  })
+
   it('continues keyed updates from painted geometry and publishes interaction points', () => {
     const firstRows = [
       { id: 'a', category: 'A', value: 30 },

@@ -512,7 +512,6 @@ export function Chart<
   const activate = () => {
     const point = focusedPointsRef.current[0] ?? null
     if (!point) return
-    if (sticky) setPinnedKey((current) => (current ? null : point.key))
     definition.selection?.change(point, 'keyboard')
     if (cursorBinding?.mode === 'focus') {
       const canPin = cursorBinding.pin === true || sticky

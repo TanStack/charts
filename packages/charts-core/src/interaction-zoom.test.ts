@@ -109,6 +109,56 @@ describe('zoomX', () => {
     container.remove()
   })
 
+  it('removes keyboard semantics when disabled and publishes active teardown', () => {
+    const changes: ZoomXChange<number>[] = []
+    const activeChanges: boolean[] = []
+    const container = document.createElement('div')
+    document.body.append(container)
+    const host = mountChart(container, {
+      definition: numericDefinition(
+        { start: 0, end: 10 },
+        (_next, reason) => changes.push(reason),
+        (active) => activeChanges.push(active),
+        false,
+      ),
+      width: 480,
+      height: 240,
+      ariaLabel: 'Pointer zoom',
+    })
+    const target = zoomTarget(container)
+
+    expect(target.getAttribute('role')).toBeNull()
+    expect(target.getAttribute('tabindex')).toBe('-1')
+    expect(target.getAttribute('aria-keyshortcuts')).toBeNull()
+    expect(target.getAttribute('aria-description')).not.toContain('plus')
+
+    target.dispatchEvent(key('+'))
+    expect(changes).toEqual([])
+
+    target.focus()
+    expect(activeChanges).toEqual([true])
+    host.destroy()
+    expect(activeChanges).toEqual([true, false])
+    container.remove()
+
+    const inactiveContainer = document.createElement('div')
+    document.body.append(inactiveContainer)
+    const inactiveChanges: boolean[] = []
+    const inactiveHost = mountChart(inactiveContainer, {
+      definition: numericDefinition(
+        { start: 0, end: 10 },
+        () => {},
+        (active) => inactiveChanges.push(active),
+      ),
+      width: 480,
+      height: 240,
+      ariaLabel: 'Inactive zoom',
+    })
+    inactiveHost.destroy()
+    expect(inactiveChanges).toEqual([])
+    inactiveContainer.remove()
+  })
+
   it('leaves unfocused wheel input alone and groups normalized wheel zoom and pan', () => {
     vi.useFakeTimers()
     try {
@@ -700,6 +750,7 @@ function numericDefinition(
   window: ZoomXWindow<number>,
   onChange: (value: ZoomXWindow<number>, reason: ZoomXChange<number>) => void,
   onActiveChange?: (active: boolean) => void,
+  keyboard = true,
 ) {
   return defineChart({
     marks: [dot(numericRows, { x: 'x', y: 'y' })],
@@ -716,6 +767,7 @@ function numericDefinition(
         scaleExtent: [1, 8],
         format: (value) => String(value),
         onActiveChange,
+        keyboard,
       }),
     ],
     keyboard: false,

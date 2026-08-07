@@ -1,8 +1,13 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { treemapDice } from 'd3-hierarchy'
 import { defineChart, createChartScene } from './scene'
 import { treeLayout } from './hierarchy-tree'
 import { treemap } from './hierarchy-treemap'
-import type { TreemapMethod, TreemapNode } from './hierarchy-treemap'
+import type {
+  TreemapMethod,
+  TreemapNode,
+  TreemapTile,
+} from './hierarchy-treemap'
 import type {
   ChartMark,
   ChartScene,
@@ -320,6 +325,31 @@ describe('treemap', () => {
     const [a, b] = allNodes(dice.nodes).filter((node) => node.kind === 'rect')
     expect(a).toMatchObject({ x: 5, y: 5, width: 40, height: 40 })
     expect(b).toMatchObject({ x: 55, y: 5, width: 40, height: 40 })
+
+    const nativeTile: TreemapTile<(typeof source)[number]> = treemapDice
+    const native = createChartScene(
+      defineChart({
+        marks: [
+          treemap(source, {
+            nodeId: 'id',
+            parentId: 'parent',
+            value: 'value',
+            method: nativeTile,
+            paddingInner: 10,
+            paddingOuter: 5,
+            round: true,
+            inset: 0,
+          }),
+        ],
+        guides: false,
+        focusRing: false,
+        margin: 0,
+      }),
+      { width: 100, height: 50 },
+    )
+    expect(
+      allNodes(native.nodes).filter((node) => node.kind === 'rect'),
+    ).toEqual(allNodes(dice.nodes).filter((node) => node.kind === 'rect'))
   })
 
   it('omits leaves whose resolved rectangle has no positive area', () => {
@@ -471,6 +501,14 @@ describe('treemap', () => {
       }),
     ).toThrow('ratio is only valid with method "squarify"')
     expect(() =>
+      treemap(base, {
+        path: 'path',
+        value: 'value',
+        method: treemapDice,
+        ratio: 2,
+      }),
+    ).toThrow('ratio is only valid with method "squarify"')
+    expect(() =>
       treemap(base, { path: 'path', value: 'value', ratio: 0.5 }),
     ).toThrow('ratio must be finite and at least 1')
     expect(() =>
@@ -482,6 +520,32 @@ describe('treemap', () => {
     expect(() =>
       treemap(base, { path: 'path', value: 'value', labelPadding: -1 }),
     ).toThrow('labelPadding must be nonnegative and finite')
+    const malformed = treemap(
+      [
+        { id: 'root', parent: null as string | null, value: 0 },
+        { id: 'leaf', parent: 'root', value: 1 },
+      ],
+      {
+        nodeId: 'id',
+        parentId: 'parent',
+        value: 'value',
+        method: (node) => {
+          const child = node.children?.[0]
+          if (child) child.x0 = Number.POSITIVE_INFINITY
+        },
+      },
+    )
+    expect(() =>
+      createChartScene(
+        defineChart({
+          marks: [malformed],
+          guides: false,
+          focusRing: false,
+          margin: 0,
+        }),
+        { width: 100, height: 50 },
+      ),
+    ).toThrow('layout produced non-finite coordinates for node "leaf"')
     expect(() =>
       treemap(
         [

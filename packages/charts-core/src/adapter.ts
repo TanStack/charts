@@ -2,7 +2,10 @@ import { mountChart } from './dom'
 import { createChartRuntime } from './runtime'
 import { renderChartSvg } from './svg'
 import { createSvgChartRenderer } from './svg-surface'
-import { resolveChartAdapterLayout } from './adapter-shared'
+import {
+  resolveChartAdapterLayout,
+  resolveChartHostTabIndex,
+} from './adapter-shared'
 import type { ChartAdapter } from './adapter-shared'
 import type { ChartHost, ChartHostOptions } from './dom-types'
 import type { ChartRuntime, ChartValue } from './types'
@@ -51,11 +54,10 @@ export function createChartAdapter<
         ariaLabel: options.ariaLabel,
         ariaDescription: options.ariaDescription,
         className: options.className,
-        tabIndex:
-          options.definition.keyboard === false ||
-          options.definition.focus === false
-            ? -1
-            : (options.tabIndex ?? 0),
+        tabIndex: resolveChartHostTabIndex(
+          options.definition,
+          options.tabIndex,
+        ),
         idPrefix: options.idPrefix,
       })
     },

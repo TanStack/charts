@@ -1,7 +1,13 @@
 import { scaleLinear, scaleLog, scaleTime } from 'd3-scale'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { linearRegressionX, linearRegressionY } from './regression'
+import {
+  linearRegressionRowsX,
+  linearRegressionRowsY,
+  linearRegressionX,
+  linearRegressionY,
+} from './regression'
 import type {
+  LinearRegressionRowsYOptions,
   LinearRegressionXDatum,
   LinearRegressionYDatum,
 } from './regression'
@@ -15,6 +21,157 @@ import type {
 } from './types'
 
 describe('linear regression marks', () => {
+  it('exposes the same semantic samples used by the convenience marks', () => {
+    const rows = [
+      { group: 'A', x: 0, y: 1 },
+      { group: 'B', x: 0, y: 6 },
+      { group: 'A', x: 2, y: 5 },
+      { group: 'B', x: 2, y: 2 },
+    ]
+    const before = rows.map((row) => ({ ...row }))
+    const options = {
+      x: 'x',
+      y: 'y',
+      z: 'group',
+      samples: 3,
+    } satisfies LinearRegressionRowsYOptions<(typeof rows)[number]>
+    const prepared = linearRegressionRowsY(rows, options)
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          linearRegressionY(rows, {
+            x: 'x',
+            y: 'y',
+            z: 'group',
+            samples: 3,
+          }),
+        ],
+        x: { scale: scaleLinear },
+        y: { scale: scaleLinear },
+      }),
+      { width: 480, height: 280 },
+    )
+
+    expectTypeOf(prepared).toEqualTypeOf<
+      LinearRegressionYDatum<(typeof rows)[number], number, string>[]
+    >()
+    expect(
+      scene.points.map(({ datum }) => semanticRegressionYDatum(datum)),
+    ).toEqual(prepared)
+    expect(prepared.every((row) => !('markKey' in row))).toBe(true)
+    expect(rows).toEqual(before)
+    prepared.forEach((row) => {
+      row.sourceIndexes.forEach((sourceIndex, index) => {
+        expect(row.source[index]).toBe(rows[sourceIndex])
+      })
+    })
+  })
+
+  it('types temporal samples in both orientations through transform accessors', () => {
+    interface TemporalRow {
+      at: Date
+      value: number
+    }
+    const epoch = 1_750_000_000_000
+    const rows: TemporalRow[] = [
+      { at: new Date(epoch), value: 10 },
+      { at: new Date(epoch + 2), value: 14 },
+    ]
+    const preparedY = linearRegressionRowsY(rows, {
+      x: ({ datum, index, data }) => {
+        expect(data[index]).toBe(datum)
+        return datum.at
+      },
+      y: ({ datum }) => datum.value,
+      ci: 0,
+      samples: 3,
+    })
+    const preparedX = linearRegressionRowsX(rows, {
+      x: 'value',
+      y: 'at',
+      ci: 0,
+      samples: 3,
+    })
+    const sceneX = createChartScene(
+      defineChart({
+        marks: [
+          linearRegressionX(rows, {
+            x: 'value',
+            y: 'at',
+            ci: 0,
+            samples: 3,
+          }),
+        ],
+        x: { scale: scaleLinear },
+        y: { scale: scaleTime },
+      }),
+      { width: 480, height: 280 },
+    )
+
+    expectTypeOf(preparedY).toEqualTypeOf<
+      LinearRegressionYDatum<TemporalRow, Date, null>[]
+    >()
+    expectTypeOf(preparedX).toEqualTypeOf<
+      LinearRegressionXDatum<TemporalRow, Date, null>[]
+    >()
+    expect(preparedY.map(({ x }) => x.getTime())).toEqual([
+      epoch,
+      epoch + 1,
+      epoch + 2,
+    ])
+    expect(preparedX.map(({ y }) => y.getTime())).toEqual([
+      epoch,
+      epoch + 1,
+      epoch + 2,
+    ])
+    expect(preparedX.map(({ x }) => x)).toEqual([10, 12, 14])
+    expect(
+      sceneX.points.map(({ datum }) => semanticRegressionXDatum(datum)),
+    ).toEqual(preparedX)
+  })
+
+  it('omits invalid or degenerate groups and validates eager options', () => {
+    const rows = [
+      { group: 'valid', x: 1, y: 3 },
+      { group: 'single', x: 2, y: 5 },
+      { group: 'constant', x: 4, y: 1 },
+      { group: 'valid', x: 3, y: 7 },
+      { group: 'single', x: Number.NaN, y: 8 },
+      { group: 'constant', x: 4, y: 9 },
+      { group: 'valid', x: 5, y: Number.POSITIVE_INFINITY },
+    ]
+    const before = rows.map((row) => ({ ...row }))
+    const prepared = linearRegressionRowsY(rows, {
+      x: 'x',
+      y: 'y',
+      z: 'group',
+      ci: 0,
+      samples: 2,
+    })
+
+    expect(prepared.map(({ group }) => group)).toEqual(['valid', 'valid'])
+    expect(prepared.map(({ sourceIndexes }) => sourceIndexes)).toEqual([
+      [0, 3],
+      [0, 3],
+    ])
+    expect(rows).toEqual(before)
+    expect(() =>
+      linearRegressionRowsY(rows, {
+        x: 'x',
+        y: 'y',
+        samples: 1,
+      }),
+    ).toThrow('linearRegressionRowsY: samples must be an integer of at least 2')
+
+    const mixed: { x: number | Date; y: number }[] = [
+      { x: 1, y: 2 },
+      { x: new Date(2), y: 3 },
+    ]
+    expect(() => linearRegressionRowsY(mixed, { x: 'x', y: 'y' })).toThrow(
+      'linearRegressionRowsY: independent values must be uniformly numbers or Dates',
+    )
+  })
+
   it('fits raw rows, samples the semantic domain, and gives only the line interaction ownership', () => {
     const rows = [
       { x: 0, y: 1 },
@@ -403,4 +560,32 @@ function flatten(nodes: readonly SceneNode[]): SceneNode[] {
   return nodes.flatMap((node) =>
     node.kind === 'group' ? [node, ...flatten(node.children)] : [node],
   )
+}
+
+function semanticRegressionYDatum<TDatum, TXValue extends number | Date>(
+  datum: LinearRegressionYDatum<TDatum, TXValue>,
+): LinearRegressionYDatum<TDatum, TXValue> {
+  return {
+    x: datum.x,
+    y: datum.y,
+    ...(datum.y1 === undefined ? {} : { y1: datum.y1 }),
+    ...(datum.y2 === undefined ? {} : { y2: datum.y2 }),
+    group: datum.group,
+    source: datum.source,
+    sourceIndexes: datum.sourceIndexes,
+  }
+}
+
+function semanticRegressionXDatum<TDatum, TYValue extends number | Date>(
+  datum: LinearRegressionXDatum<TDatum, TYValue>,
+): LinearRegressionXDatum<TDatum, TYValue> {
+  return {
+    x: datum.x,
+    ...(datum.x1 === undefined ? {} : { x1: datum.x1 }),
+    ...(datum.x2 === undefined ? {} : { x2: datum.x2 }),
+    y: datum.y,
+    group: datum.group,
+    source: datum.source,
+    sourceIndexes: datum.sourceIndexes,
+  }
 }

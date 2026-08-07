@@ -168,10 +168,10 @@ Numeric and 2D bins intentionally use `d3-array`; row stacking uses `d3-shape`;
 grouping, calendar bins, windows, cumulative values, ranks, normalization,
 selection, and advanced reducers do not retain either dependency.
 
-## Import D3 by capability
+## Add D3 by capability
 
-Start with compact scales, then import only the D3 module that owns semantics
-outside that subset. Typical upgrade triggers are continuous time or UTC,
+Start with compact scales, then import a granular D3 module when its full
+semantics fit the chart. Typical upgrade triggers are continuous time or UTC,
 logarithmic and other transformed scales, piecewise or nonnumeric
 interpolation, continuous color, curves, specialized transforms, and spatial
 indexes.

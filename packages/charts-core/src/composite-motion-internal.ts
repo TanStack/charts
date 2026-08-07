@@ -41,8 +41,10 @@ export function mergeCompositeMotion(
 ): ChartMotionTiming | undefined {
   if (!parent) return child
   if (!child) return parent
+  const path = child.path ?? parent.path
   return {
     delay: child.delay ?? parent.delay,
+    ...(path === undefined ? {} : { path }),
     transition: mergeCompositeTransition(parent.transition, child.transition),
   }
 }

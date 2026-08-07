@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { classifyReleaseStatus } from './release-status.mjs'
+import { resolve } from 'node:path'
+import {
+  classifyReleaseStatus,
+  readReleaseRevision,
+} from './release-status.mjs'
 
 describe('automated release status', () => {
   it('waits while changesets still need a version pull request', () => {
@@ -14,6 +18,39 @@ describe('automated release status', () => {
       createTag: false,
       dispatch: false,
       reason: 'pending-changesets',
+    })
+  })
+
+  it('waits by default when a published version has later changesets', () => {
+    expect(
+      classifyReleaseStatus({
+        expectedRevision: 'a'.repeat(40),
+        hasPendingChangesets: true,
+        packageStates: ['published', 'published'],
+        releaseExists: false,
+        tagRevision: null,
+      }),
+    ).toEqual({
+      createTag: false,
+      dispatch: false,
+      reason: 'pending-changesets',
+    })
+  })
+
+  it('explicitly recovers an already-published version despite later changesets', () => {
+    expect(
+      classifyReleaseStatus({
+        allowPublishedRecovery: true,
+        expectedRevision: 'a'.repeat(40),
+        hasPendingChangesets: true,
+        packageStates: ['published', 'published'],
+        releaseExists: false,
+        tagRevision: null,
+      }),
+    ).toEqual({
+      createTag: true,
+      dispatch: true,
+      reason: 'finalize',
     })
   })
 
@@ -90,6 +127,7 @@ describe('automated release status', () => {
   it('does nothing after npm, the tag, and GitHub release all exist', () => {
     expect(
       classifyReleaseStatus({
+        expectedRevision: 'a'.repeat(40),
         hasPendingChangesets: false,
         packageStates: ['published', 'published'],
         releaseExists: true,
@@ -100,5 +138,25 @@ describe('automated release status', () => {
       dispatch: false,
       reason: 'released',
     })
+  })
+
+  it('rejects a GitHub release whose tag points to another revision', () => {
+    expect(() =>
+      classifyReleaseStatus({
+        expectedRevision: 'b'.repeat(40),
+        hasPendingChangesets: false,
+        packageStates: ['published', 'published'],
+        releaseExists: true,
+        tagRevision: 'a'.repeat(40),
+      }),
+    ).toThrow('existing release tag points to a different revision')
+  })
+
+  it('finds the changesets merge that introduced the current version', async () => {
+    const repositoryRoot = resolve(import.meta.dirname, '..')
+    const revision = await readReleaseRevision(repositoryRoot, '0.6.5')
+
+    expect(revision).toMatch(/^[0-9a-f]{40}$/)
+    expect(revision).toBe('4f5653e552ddf1d268b49da7046199f11b2be44c')
   })
 })

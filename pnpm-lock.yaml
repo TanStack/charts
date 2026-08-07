@@ -608,9 +608,18 @@ importers:
 
   packages/charts-core:
     dependencies:
+      '@types/d3-force':
+        specifier: ^3.0.10
+        version: 3.0.10
       '@types/d3-geo':
         specifier: ^3.1.0
         version: 3.1.0
+      '@types/d3-hierarchy':
+        specifier: ^3.1.7
+        version: 3.1.7
+      '@types/d3-sankey':
+        specifier: ^0.12.5
+        version: 0.12.5
       '@types/d3-shape':
         specifier: ^3.1.8
         version: 3.1.8
@@ -666,18 +675,9 @@ importers:
       '@types/d3-delaunay':
         specifier: ^6.0.4
         version: 6.0.4
-      '@types/d3-force':
-        specifier: ^3.0.10
-        version: 3.0.10
       '@types/d3-hexbin':
         specifier: 0.2.5
         version: 0.2.5
-      '@types/d3-hierarchy':
-        specifier: ^3.1.7
-        version: 3.1.7
-      '@types/d3-sankey':
-        specifier: ^0.12.5
-        version: 0.12.5
       '@types/d3-scale':
         specifier: ^4.0.9
         version: 4.0.9

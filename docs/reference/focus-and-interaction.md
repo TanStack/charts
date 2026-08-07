@@ -349,15 +349,18 @@ Every definition cursor binding accepts these common fields:
 
 Mode-specific fields are:
 
-| Mode    | Option  | Default | Meaning                                    |
-| ------- | ------- | ------- | ------------------------------------------ |
-| `focus` | `match` | `xy`    | Semantic axes shared between hosts         |
-| `free`  | `x`     | None    | Optional x-axis `valueAt` semantic mapping |
-| `free`  | `y`     | None    | Optional y-axis `valueAt` semantic mapping |
+| Mode    | Option  | Default       | Meaning                                     |
+| ------- | ------- | ------------- | ------------------------------------------- |
+| `focus` | `match` | `xy`          | Semantic axes shared between hosts          |
+| `free`  | `x`     | Scale inverse | Optional x-axis `valueAt` semantic override |
+| `free`  | `y`     | Scale inverse | Optional y-axis `valueAt` semantic override |
 
-Each free-axis object accepts an optional `valueAt(context)` callback. Without
-it, the cursor still shares scene and normalized coordinates but has no
-semantic value for that axis.
+A free cursor inverts each coordinate through that destination scene's
+resolved scale by default. Reversed ranges and responsive plot geometry need
+no copied scale. A missing or non-invertible scale requires an explicit
+`valueAt(context)` callback for that axis. Use the callback to replace default
+inversion with observed-value snapping, rounding, or another semantic mapping;
+return `undefined` for an intentionally coordinate-only axis.
 
 `createChartCursor` remains a three-method structural store. `cursorHost` opts
 the binding into platform-neutral cursor policy without adding that policy to
@@ -410,28 +413,15 @@ const definition = defineChart(baseDefinition, {
     controller: freeCursor,
     mode: 'free',
     pin: true,
-    x: {
-      valueAt: ({ scene, position }) =>
-        xScale
-          .copy()
-          .range([scene.chart.x, scene.chart.x + scene.chart.width])
-          .invert(position),
-    },
-    y: {
-      valueAt: ({ scene, position }) =>
-        yScale
-          .copy()
-          .range([scene.chart.y + scene.chart.height, scene.chart.y])
-          .invert(position),
-    },
   },
 })
 ```
 
 The host publishes normalized plot coordinates so the free cursor survives a
-responsive relayout. `valueAt` optionally adds semantic values for labels and
-application state; inversion and precision remain owned by the configured
-scale. Programmatic state may instead use `anchor: 'value'`,
+responsive relayout, while resolved-scale inversion adds semantic values for
+labels and application state. `valueAt` is an explicit replacement when the
+interaction needs snapping or another precision policy. Programmatic state may
+instead use `anchor: 'value'`,
 `anchor: 'normalized'`, or `anchor: 'scene'`. Only the anchor's coordinate
 space is authoritative; the other fields are diagnostics from the host that
 last emitted the state.

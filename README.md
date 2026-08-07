@@ -39,8 +39,10 @@ server-rendered application charts.
 <a id="status"></a>
 
 > [!IMPORTANT]
-> TanStack Charts `0.6.5` is pre-alpha. Its API may change between releases,
-> and it is not ready for production use.
+> This README follows unreleased `main`. The latest published release is
+> TanStack Charts `0.6.5`; use its
+> [release-source documentation](https://github.com/TanStack/charts/tree/4f5653e552ddf1d268b49da7046199f11b2be44c/docs).
+> It is pre-alpha and not ready for production use.
 
 Most chart libraries are easy until the chart stops being standard. TanStack
 Charts gives you one typed grammar that can grow from a familiar line or bar
@@ -49,17 +51,17 @@ or dropping down to a separate API.
 
 - **Keep your data as it is.** Marks consume arrays, objects, tuples, and
   iterables directly. Different layers can use different datum types.
-- **Start with compact scales.** Use the small linear, band, point, and ordinal
-  entries for common charts, then add a granular D3 module when a chart needs
-  time, nonlinear, piecewise, or spatial semantics.
+- **Compose the primitives that fit.** Use compact scales and row transforms for
+  common work, and pass native D3 callables directly when their fuller semantics
+  are useful.
 - **Build from common to custom.** Layer built-in marks or implement a custom
   mark against the same public scene protocol.
 - **Get the application runtime too.** Responsive layout, automatic guide
   margins, themes, interaction, animation, accessibility, SVG SSR, opt-in
   Canvas painting, hydration, and export are part of the system.
-- **Pay for what you import.** Marks, renderers, and chart-owned interactions
-  have independent TanStack subpaths; specialized algorithms come directly
-  from granular, tree-shakeable `d3-*` packages.
+- **Pay for what you import.** Marks, transforms, layouts, renderers, and
+  chart-owned interactions have independent subpaths. Optional D3-backed
+  capabilities and direct D3 imports remain granular and tree-shakeable.
 
 ### <a href="https://tanstack.com/charts">Read the docs →</a>
 

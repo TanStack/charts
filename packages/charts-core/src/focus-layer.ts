@@ -1,7 +1,7 @@
 import { valueKey } from './scales'
 import {
   createScenePointLookup,
-  sceneKeyOwnedPoints,
+  sceneNodeOwnedPoints,
   type ScenePointLookup,
 } from './scene-point-ownership-internal'
 import type {
@@ -83,14 +83,17 @@ export function resolveFocusScene<TScene extends ChartScene>(
         const points = node.focus.points.filter((point) =>
           matchesFocusAnchor(point, focus, node.focus!.match),
         )
+        const lookup = createScenePointLookup(node.focus.points)
         const selected = stabilizeSelectedNodes(
-          filterNodes(
+          filterNodesWithLookup(
             node.focus.candidates ?? node.children,
             points,
             node.focus.points,
+            lookup,
           ),
           points,
           node.focus.points,
+          lookup,
           node.key,
         )
         if (!selected.length) return node
@@ -127,27 +130,8 @@ export function focusedNodeKeys(
   focus: ChartFocusState | null,
 ): Set<string> {
   if (!layer.focus || !focus) return new Set()
-  if (layer.focus.retarget) {
-    const keys = new Set<string>()
-    visitNodes(layer.children, (node) => keys.add(node.key))
-    return keys
-  }
-  if (layer.focus.anchors) {
-    const anchors = layer.focus.anchors.filter((anchor) =>
-      matchesFocusAnchor(anchor, focus, layer.focus!.match),
-    )
-    const keys = new Set<string>()
-    visitNodes(filterNodesByAnchors(layer.children, anchors), (node) =>
-      keys.add(node.key),
-    )
-    return keys
-  }
-  const points = layer.focus.points.filter((point) =>
-    matchesFocusAnchor(point, focus, layer.focus!.match),
-  )
-  const filtered = filterNodes(layer.children, points, layer.focus.points)
   const keys = new Set<string>()
-  visitNodes(filtered, (node) => keys.add(node.key))
+  visitNodes(selectedFocusChildren(layer, focus), (node) => keys.add(node.key))
   return keys
 }
 
@@ -161,25 +145,7 @@ function collectFocusedNodes(
     if (node.kind !== 'group') continue
     if (node.focus) {
       if (node.focus.placement !== placement) continue
-      if (node.focus.retarget) {
-        if (node.children.length) {
-          output.push({ ...node, focus: undefined })
-        }
-        continue
-      }
-      if (node.focus.anchors) {
-        const anchors = node.focus.anchors.filter((anchor) =>
-          matchesFocusAnchor(anchor, focus, node.focus!.match),
-        )
-        const children = filterNodesByAnchors(node.children, anchors)
-        if (children.length)
-          output.push({ ...node, focus: undefined, children })
-        continue
-      }
-      const points = node.focus.points.filter((point) =>
-        matchesFocusAnchor(point, focus, node.focus!.match),
-      )
-      const children = filterNodes(node.children, points, node.focus.points)
+      const children = selectedFocusChildren(node, focus)
       if (children.length) output.push({ ...node, focus: undefined, children })
       continue
     }
@@ -187,6 +153,24 @@ function collectFocusedNodes(
     if (children.length) output.push({ ...node, children })
   }
   return output
+}
+
+function selectedFocusChildren(
+  layer: SceneGroup,
+  focus: ChartFocusState,
+): readonly SceneNode[] {
+  const state = layer.focus!
+  if (state.retarget) return layer.children
+  if (state.anchors) {
+    const anchors = state.anchors.filter((anchor) =>
+      matchesFocusAnchor(anchor, focus, state.match),
+    )
+    return filterNodesByAnchors(layer.children, anchors)
+  }
+  const points = state.points.filter((point) =>
+    matchesFocusAnchor(point, focus, state.match),
+  )
+  return filterNodes(layer.children, points, state.points)
 }
 
 function filterNodes(
@@ -236,8 +220,8 @@ function filterNodesWithLookup(
   for (const node of nodes) {
     if (node.kind !== 'group') {
       if (
-        directlyOwnedPoints(node, candidatePoints, lookup).some((point) =>
-          selectedPoints.includes(point),
+        sceneNodeOwnedPoints(node, candidatePoints, lookup, emptyPoints).some(
+          (point) => selectedPoints.includes(point),
         )
       ) {
         output.push(node)
@@ -249,15 +233,15 @@ function filterNodesWithLookup(
       if (selectedPoints.includes(structuralPoint)) output.push(node)
       continue
     }
-    const atomicPoints = atomicGroupPoints(node, candidatePoints)
+    const atomicPoints = atomicGroupPoints(node, candidatePoints, lookup)
     if (atomicPoints.length) {
       if (atomicPoints.some((point) => selectedPoints.includes(point))) {
         output.push(node)
       }
       continue
     }
-    const structuralPoints = sceneKeyOwnedPoints(
-      node.key,
+    const structuralPoints = sceneNodeOwnedPoints(
+      node,
       candidatePoints,
       lookup,
       emptyPoints,
@@ -282,14 +266,17 @@ function stabilizeSelectedNodes(
   nodes: readonly SceneNode[],
   points: readonly ChartPoint[],
   candidatePoints: readonly ChartPoint[],
+  lookup: ScenePointLookup,
   layerKey: string,
 ): SceneNode[] {
   const slots = new Map(points.map((point, index) => [point, index]))
-  const lookup = createScenePointLookup(candidatePoints)
   const visit = (node: SceneNode, path: string): SceneNode => {
-    const related = directlyOwnedPoints(node, candidatePoints, lookup).filter(
-      (point) => slots.has(point),
-    )
+    const related = sceneNodeOwnedPoints(
+      node,
+      candidatePoints,
+      lookup,
+      emptyPoints,
+    ).filter((point) => slots.has(point))
     const point = related.length === 1 ? related[0] : undefined
     let key = node.key
     if (point && node.key !== point.markId) {
@@ -316,63 +303,28 @@ function stabilizeSelectedNodes(
   return nodes.map((node, index) => visit(node, String(index)))
 }
 
-function directlyOwnedPoints(
-  node: SceneNode,
-  candidatePoints: readonly ChartPoint[],
-  lookup: ScenePointLookup,
-): readonly ChartPoint[] {
-  if (node.kind === 'group') {
-    const point = focusCandidatePoint(node, candidatePoints)
-    if (point) return [point]
-  }
-  if (node.pointOwner) {
-    const owned = ownedPointCandidates(node.pointOwner, candidatePoints)
-    if (owned.length) return owned
-  }
-  if ('interaction' in node && node.interaction) {
-    const interactionPoints = node.interaction.point
-      ? [node.interaction.point]
-      : node.interaction.points
-    const owned = interactionPoints.flatMap((point) => {
-      const identical = candidatePoints.filter(
-        (candidate) => candidate === point,
-      )
-      if (identical.length) return identical
-      const keyed = exactKeyPoints(point.key, candidatePoints)
-      if (keyed.length) return keyed
-      return candidatePoints.filter((candidate) =>
-        sameFocusedPoint(candidate, point),
-      )
-    })
-    if (owned.length) return owned
-  }
-  return sceneKeyOwnedPoints(node.key, candidatePoints, lookup, emptyPoints)
-}
-
 function atomicGroupPoints(
   node: SceneGroup,
   candidatePoints: readonly ChartPoint[],
+  lookup: ScenePointLookup,
 ): readonly ChartPoint[] {
   const candidate = focusCandidatePoint(node, candidatePoints)
   if (candidate) return [candidate]
   if (node.pointOwner) {
-    const owned = ownedPointCandidates(node.pointOwner, candidatePoints)
+    const owned = sceneNodeOwnedPoints(
+      node,
+      candidatePoints,
+      lookup,
+      emptyPoints,
+    )
     if (owned.length) return owned
   }
-  return exactKeyPoints(node.key, candidatePoints)
-}
-
-function ownedPointCandidates(
-  owner: ChartPoint,
-  candidatePoints: readonly ChartPoint[],
-): readonly ChartPoint[] {
-  const identical = candidatePoints.filter((candidate) => candidate === owner)
-  if (identical.length) return identical
-  const keyed = exactKeyPoints(owner.key, candidatePoints)
-  if (keyed.length) return keyed
-  return candidatePoints.filter((candidate) =>
-    sameFocusedPoint(candidate, owner),
-  )
+  const exact = lookup.keys
+    .get(node.key)
+    ?.filter((point) => point.key === node.key)
+  return exact === undefined
+    ? emptyPoints
+    : exact.filter((point) => candidatePoints.includes(point))
 }
 
 function focusCandidatePoint(
@@ -384,13 +336,6 @@ function focusCandidatePoint(
     return undefined
   }
   return candidatePoints[index]
-}
-
-function exactKeyPoints(
-  key: string,
-  candidatePoints: readonly ChartPoint[],
-): readonly ChartPoint[] {
-  return candidatePoints.filter((point) => point.key === key)
 }
 
 export function matchesFocusAnchor(

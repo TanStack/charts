@@ -1,6 +1,9 @@
 import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
-import { resolveChartAdapterLayout } from './adapter-shared'
+import {
+  resolveChartAdapterLayout,
+  resolveChartHostTabIndex,
+} from './adapter-shared'
 import type { ChartAdapter } from './adapter-shared'
 import type { ChartRendererHost, ChartRendererHostOptions } from './dom-types'
 import type { ChartRuntime, ChartValue } from './types'
@@ -39,11 +42,10 @@ export function createChartRendererAdapter<
         ariaLabel: options.ariaLabel,
         ariaDescription: options.ariaDescription,
         className: options.className,
-        tabIndex:
-          options.definition.keyboard === false ||
-          options.definition.focus === false
-            ? -1
-            : (options.tabIndex ?? 0),
+        tabIndex: resolveChartHostTabIndex(
+          options.definition,
+          options.tabIndex,
+        ),
         idPrefix: options.idPrefix,
       })
     },

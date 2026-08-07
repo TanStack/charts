@@ -1,6 +1,19 @@
 import { dodgeOffsets } from './dodge-internal'
 import { resolveDotLayout } from './dot-layout'
+import { isChartValue } from './mark'
 import type { DotLayout } from './dot-layout'
+import type { ChartValue } from './types'
+
+export type { DotLayout, DotLayoutResolveContext } from './dot-layout'
+
+export interface CreateDotLayoutOptions<
+  TAxis extends 'x' | 'y',
+  TAnchor extends ChartValue,
+> {
+  readonly axis: TAxis
+  readonly anchor: TAnchor
+  readonly resolve: DotLayout<TAxis, TAnchor>[typeof resolveDotLayout]
+}
 
 export type DodgeXAnchor = 'left' | 'middle' | 'right'
 export type DodgeYAnchor = 'top' | 'middle' | 'bottom'
@@ -22,6 +35,32 @@ export type DodgeXLayout<TAnchor extends DodgeXAnchor = DodgeXAnchor> =
 
 export type DodgeYLayout<TAnchor extends DodgeYAnchor = DodgeYAnchor> =
   DotLayout<'y', TAnchor>
+
+/** Creates a responsive final-pixel layout for one derived dot coordinate. */
+export function createDotLayout<
+  const TAxis extends 'x' | 'y',
+  const TAnchor extends ChartValue,
+>(options: CreateDotLayoutOptions<TAxis, TAnchor>): DotLayout<TAxis, TAnchor> {
+  if (options.axis !== 'x' && options.axis !== 'y') {
+    throw new TypeError(
+      `createDotLayout: unknown axis "${String(options.axis)}"`,
+    )
+  }
+  if (typeof options.resolve !== 'function') {
+    throw new TypeError('createDotLayout: resolve must be a function')
+  }
+  if (!isChartValue(options.anchor)) {
+    throw new TypeError(
+      'createDotLayout: anchor must be a string, finite number, or valid Date',
+    )
+  }
+
+  return {
+    axis: options.axis,
+    anchor: options.anchor,
+    [resolveDotLayout]: options.resolve,
+  }
+}
 
 /** Derives collision-free pixel x positions while preserving scaled y. */
 export function dodgeX<const TAnchor extends DodgeXAnchor = 'left'>(

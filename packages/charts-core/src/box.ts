@@ -10,8 +10,13 @@ import { initializeCompositeMark } from './mark-composite-internal'
 import { link } from './link'
 import { valueKey } from './scales'
 import { tickX, tickY } from './tick'
-import { groupedIndexes } from './transform-internal'
+import { groupedIndexes, toArray, transformValues } from './transform-internal'
 import { quantileSortedValues } from './transform-statistics-internal'
+import type {
+  TransformLineage,
+  TransformValue,
+  TransformValueOutput,
+} from './transform'
 import type {
   Channel,
   ChartKey,
@@ -25,7 +30,7 @@ import type {
 export interface BoxSummaryDatum<
   TDatum,
   TCategory extends ChartValue = ChartValue,
-> {
+> extends TransformLineage<TDatum> {
   readonly kind: 'summary'
   readonly category: TCategory
   readonly q1: number
@@ -34,14 +39,12 @@ export interface BoxSummaryDatum<
   readonly whiskerLow: number
   readonly whiskerHigh: number
   readonly count: number
-  readonly source: readonly TDatum[]
-  readonly sourceIndexes: readonly number[]
 }
 
 export interface BoxOutlierDatum<
   TDatum,
   TCategory extends ChartValue = ChartValue,
-> {
+> extends TransformLineage<TDatum> {
   readonly kind: 'outlier'
   readonly category: TCategory
   readonly value: number
@@ -51,6 +54,19 @@ export interface BoxOutlierDatum<
 
 export type BoxDatum<TDatum, TCategory extends ChartValue = ChartValue> =
   BoxSummaryDatum<TDatum, TCategory> | BoxOutlierDatum<TDatum, TCategory>
+
+export interface BoxRowsOptions<
+  TDatum,
+  TCategory extends TransformValue<TDatum, ChartValue | null | undefined> =
+    TransformValue<TDatum, ChartValue | null | undefined>,
+  TValue extends TransformValue<TDatum, number | null | undefined> =
+    TransformValue<TDatum, number | null | undefined>,
+> {
+  /** Categorical group represented by one summary row. */
+  readonly category: TCategory
+  /** Numeric observation summarized within its category. */
+  readonly value: TValue
+}
 
 interface BoxOptions<
   TDatum,
@@ -110,6 +126,30 @@ type BoxXCallOptions<
 > = Omit<BoxXOptions<NoInfer<TDatum>>, 'motion' | 'y'> & {
   y: TYChannel
   motion?: ChartMotionDefinition<BoxXDatum<TDatum, { y: TYChannel }>>
+}
+
+/** Produces Tukey summary and outlier rows with direct source lineage. */
+export function boxRows<
+  TDatum,
+  const TCategory extends TransformValue<TDatum, ChartValue | null | undefined>,
+  const TValue extends TransformValue<TDatum, number | null | undefined>,
+>(
+  source: Iterable<TDatum>,
+  options: BoxRowsOptions<TDatum, TCategory, TValue>,
+): BoxDatum<
+  TDatum,
+  Extract<TransformValueOutput<TDatum, TCategory>, ChartValue>
+>[] {
+  const data = toArray(source)
+  const { summaries, outliers } = summarizeBoxes(
+    data,
+    transformValues(data, options.category),
+    transformValues(data, options.value),
+  )
+  return [...summaries, ...outliers] as BoxDatum<
+    TDatum,
+    Extract<TransformValueOutput<TDatum, TCategory>, ChartValue>
+  >[]
 }
 
 /** Summarizes raw observations into vertical Tukey boxplots. */
@@ -183,12 +223,27 @@ function box<TDatum>(
       markId: id,
       warningIdentity: options,
     })
-    const { summaries, outliers } = summarizeBoxes(
-      data,
-      categoryValues,
-      numericValues,
-      keys,
+    const rows = boxRows(data, {
+      category: ({ index }) => categoryValues[index],
+      value: ({ index }) => numericValues[index],
+    })
+    const summaries: BoxSummaryMarkDatum<TDatum>[] = rows.flatMap((row) =>
+      row.kind === 'summary'
+        ? [{ ...row, markKey: `box:${valueKey(row.category)}` }]
+        : [],
     )
+    const outliers: BoxOutlierMarkDatum<TDatum>[] = rows.flatMap((row) => {
+      if (row.kind !== 'outlier') return []
+      const sourceIndex = row.sourceIndexes[0]
+      return [
+        {
+          ...row,
+          markKey: `box:${valueKey(row.category)}:outlier:${valueKey(
+            keys[sourceIndex],
+          )}`,
+        },
+      ]
+    })
     const stroke = options.stroke ?? 'currentColor'
     const children =
       orientation === 'y'
@@ -296,13 +351,12 @@ function summarizeBoxes<TDatum>(
   data: readonly TDatum[],
   categoryValues: readonly (ChartValue | null | undefined)[],
   numericValues: readonly (number | null | undefined)[],
-  keys: readonly ChartKey[],
 ): {
-  summaries: BoxSummaryMarkDatum<TDatum>[]
-  outliers: BoxOutlierMarkDatum<TDatum>[]
+  summaries: BoxSummaryDatum<TDatum>[]
+  outliers: BoxOutlierDatum<TDatum>[]
 } {
-  const summaries: BoxSummaryMarkDatum<TDatum>[] = []
-  const outliers: BoxOutlierMarkDatum<TDatum>[] = []
+  const summaries: BoxSummaryDatum<TDatum>[] = []
+  const outliers: BoxOutlierDatum<TDatum>[] = []
 
   for (const { key: category, indexes } of groupedIndexes(categoryValues)) {
     if (!isChartValue(category)) continue
@@ -334,7 +388,6 @@ function summarizeBoxes<TDatum>(
       whiskerHigh = candidate.value
       break
     }
-    const groupKey = `box:${valueKey(category)}`
     summaries.push({
       kind: 'summary',
       category,
@@ -346,7 +399,6 @@ function summarizeBoxes<TDatum>(
       count: sourceIndexes.length,
       source: sourceIndexes.map((index) => data[index] as TDatum),
       sourceIndexes,
-      markKey: groupKey,
     })
 
     for (const { sourceIndex, value } of observations) {
@@ -357,7 +409,6 @@ function summarizeBoxes<TDatum>(
         value,
         source: [data[sourceIndex] as TDatum],
         sourceIndexes: [sourceIndex],
-        markKey: `${groupKey}:outlier:${valueKey(keys[sourceIndex])}`,
       })
     }
   }

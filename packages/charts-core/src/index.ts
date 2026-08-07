@@ -13,10 +13,11 @@ export { barX, barY } from './bar'
 export type { BarXOptions, BarYOptions } from './bar'
 export { bandX, bandY } from './band'
 export type { BandXOptions, BandYOptions } from './band'
-export { boxX, boxY } from './box'
+export { boxRows, boxX, boxY } from './box'
 export type {
   BoxDatum,
   BoxOutlierDatum,
+  BoxRowsOptions,
   BoxSummaryDatum,
   BoxXDatum,
   BoxXOptions,
@@ -42,8 +43,11 @@ export type {
   DifferenceXOptions,
   DifferenceYOptions,
 } from './difference'
-export { dodgeX, dodgeY } from './dodge'
+export { createDotLayout, dodgeX, dodgeY } from './dodge'
 export type {
+  CreateDotLayoutOptions,
+  DotLayout,
+  DotLayoutResolveContext,
   DodgeOptions,
   DodgeXAnchor,
   DodgeXLayout,
@@ -69,8 +73,15 @@ export type { HexagonOptions } from './hexagon'
 export { mountChart } from './dom'
 export { lineX, lineY } from './line'
 export type { LineXOptions, LineYOptions } from './line'
-export { linearRegressionX, linearRegressionY } from './regression'
+export {
+  linearRegressionRowsX,
+  linearRegressionRowsY,
+  linearRegressionX,
+  linearRegressionY,
+} from './regression'
 export type {
+  LinearRegressionRowsXOptions,
+  LinearRegressionRowsYOptions,
   LinearRegressionXDatum,
   LinearRegressionXOptions,
   LinearRegressionYDatum,

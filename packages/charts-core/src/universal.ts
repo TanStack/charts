@@ -3,7 +3,7 @@ export { areaX } from './area-x'
 export { arrow } from './arrow'
 export { barX, barY } from './bar'
 export { bandX, bandY } from './band'
-export { boxX, boxY } from './box'
+export { boxRows, boxX, boxY } from './box'
 export { crosshair } from './crosshair'
 export type {
   CrosshairAxisOptions,
@@ -16,7 +16,7 @@ export type {
 export { d3AreaXCurve } from './d3-area-x'
 export { d3Curve } from './d3-shape'
 export { differenceX, differenceY } from './difference'
-export { dodgeX, dodgeY } from './dodge'
+export { createDotLayout, dodgeX, dodgeY } from './dodge'
 export { dot } from './dot'
 export { facet, facetChart } from './facet'
 export { frame } from './frame'
@@ -27,7 +27,12 @@ export { resolveFocusPresentation } from './focus-presentation'
 export { group } from './group'
 export { hexagon } from './hexagon'
 export { lineX, lineY } from './line'
-export { linearRegressionX, linearRegressionY } from './regression'
+export {
+  linearRegressionRowsX,
+  linearRegressionRowsY,
+  linearRegressionX,
+  linearRegressionY,
+} from './regression'
 export { ridgelineX, ridgelineY } from './ridgeline'
 export { link } from './link'
 export { colorGradientLegend, colorLegend } from './legend-static'

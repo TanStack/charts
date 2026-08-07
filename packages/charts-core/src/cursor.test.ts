@@ -213,14 +213,41 @@ describe('chart cursor controller', () => {
 })
 
 describe('chart cursor projection', () => {
+  it('inverts free coordinates through resolved scales by default', () => {
+    const scene = numericScene()
+    const binding = {
+      mode: 'free',
+      use: cursorHost,
+      controller: createChartCursor<number, number>(),
+    } satisfies ChartCursorBinding<NumericRow, number, number>
+    const position = {
+      x: scene.chart.x + scene.chart.width * 0.25,
+      y: scene.chart.y + scene.chart.height * 0.75,
+    }
+
+    const state = createFreeChartCursorState(scene, binding, position)
+
+    expect(state).toEqual({
+      anchor: 'normalized',
+      scene: position,
+      normalized: { x: 0.25, y: 0.75 },
+      value: { x: 2.5, y: 2.5 },
+      source: 'pointer',
+      pinned: false,
+    })
+    expect(resolveChartCursorPresentation(scene, binding, state)).toMatchObject(
+      {
+        x: { position: position.x, normalized: 0.25, value: 2.5 },
+        y: { position: position.y, normalized: 0.75, value: 2.5 },
+      },
+    )
+  })
+
   it('projects normalized, scene, and semantic anchors through each local scene', () => {
     const scene = numericScene()
-    const xScale = scaleLinear().domain([0, 10])
-    const yScale = scaleLinear().domain([0, 10])
     const xValueAt = vi.fn(
       ({
-        scene,
-        position,
+        normalized,
       }: Parameters<
         NonNullable<
           NonNullable<
@@ -230,16 +257,11 @@ describe('chart cursor projection', () => {
             >['x']
           >['valueAt']
         >
-      >[0]) =>
-        xScale
-          .copy()
-          .range([scene.chart.x, scene.chart.x + scene.chart.width])
-          .invert(position),
+      >[0]) => normalized * 10,
     )
     const yValueAt = vi.fn(
       ({
-        scene,
-        position,
+        normalized,
       }: Parameters<
         NonNullable<
           NonNullable<
@@ -249,11 +271,7 @@ describe('chart cursor projection', () => {
             >['y']
           >['valueAt']
         >
-      >[0]) =>
-        yScale
-          .copy()
-          .range([scene.chart.y + scene.chart.height, scene.chart.y])
-          .invert(position),
+      >[0]) => (1 - normalized) * 10,
     )
     const binding = {
       mode: 'free',
@@ -430,6 +448,57 @@ describe('chart cursor projection', () => {
         pinned: false,
       })?.x,
     ).toMatchObject({ normalized: 0.25, value: undefined })
+  })
+
+  it('requires a scale inverse unless valueAt owns semantic mapping', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          lineY(
+            [
+              { x: 'A', y: 0 },
+              { x: 'B', y: 10 },
+            ],
+            { x: 'x', y: 'y' },
+          ),
+        ],
+        x: { scale: scaleBand().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 10]) },
+        guides: false,
+      }),
+      { width: 320, height: 180 },
+    )
+    const controller = createChartCursor<string, number>()
+    const state: ChartCursorState<string, number> = {
+      anchor: 'normalized',
+      normalized: { x: 0.25 },
+      source: 'programmatic',
+      pinned: false,
+    }
+    const binding = {
+      mode: 'free',
+      use: cursorHost,
+      controller,
+    } satisfies ChartCursorBinding<{ x: string; y: number }, string, number>
+
+    expect(() => resolveChartCursorPresentation(scene, binding, state)).toThrow(
+      'requires an invertible x scale or an explicit x.valueAt callback',
+    )
+
+    const snapped = resolveChartCursorPresentation(
+      scene,
+      { ...binding, x: { valueAt: () => 'A' } },
+      state,
+    )
+    expect(snapped?.x?.value).toBe('A')
+
+    expect(() =>
+      resolveChartCursorPresentation(
+        { ...scene, scales: { y: scene.scales.y } },
+        binding,
+        state,
+      ),
+    ).toThrow('requires an x scale or an explicit x.valueAt callback')
   })
 
   it('preserves the emitting facet when semantic values are not unique', () => {

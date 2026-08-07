@@ -28,7 +28,8 @@ application.
 
 ```tsx
 import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { defineChart, lineY } from '@tanstack/charts/universal'
+import { lineY } from '@tanstack/charts/line'
+import { defineChart } from '@tanstack/charts/scene'
 import { Chart } from '@tanstack/react-native-charts'
 import { tooltip } from '@tanstack/react-native-charts/tooltip'
 
@@ -49,6 +50,10 @@ export function RevenueChart() {
   )
 }
 ```
+
+Exact core subpaths keep Metro from retaining unrelated universal-entry
+exports. The `/universal` barrel remains valid when portability matters more
+than the native bundle floor.
 
 The bare fixture uses React Native 0.86.2 with `react-native-svg` 15.15.5. The
 Expo 57 fixture uses `react-native-svg` 15.15.4 and renders in Expo Go on an iOS

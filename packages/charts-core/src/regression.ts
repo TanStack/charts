@@ -4,8 +4,13 @@ import { lineX, lineY } from './line'
 import { channelValues, createMark, isChartKey, isFiniteNumber } from './mark'
 import { initializeCompositeMark } from './mark-composite-internal'
 import { valueKey } from './scales'
-import { groupedIndexes } from './transform-internal'
-import type { TransformLineage } from './transform'
+import { groupedIndexes, toArray, transformValues } from './transform-internal'
+import type {
+  TransformAccessor,
+  TransformLineage,
+  TransformValue,
+  TransformValueOutput,
+} from './transform'
 import type {
   Channel,
   ChannelOutput,
@@ -40,23 +45,71 @@ interface LinearRegressionOptions<
 export interface LinearRegressionYDatum<
   TDatum,
   TXValue extends RegressionIndependentValue = RegressionIndependentValue,
+  TGroup extends ChartKey | null = ChartKey | null,
 > extends TransformLineage<TDatum> {
   readonly x: TXValue
   readonly y: number
   readonly y1?: number
   readonly y2?: number
-  readonly group: ChartKey | null
+  readonly group: TGroup
 }
 
 export interface LinearRegressionXDatum<
   TDatum,
   TYValue extends RegressionIndependentValue = RegressionIndependentValue,
+  TGroup extends ChartKey | null = ChartKey | null,
 > extends TransformLineage<TDatum> {
   readonly x: number
   readonly x1?: number
   readonly x2?: number
   readonly y: TYValue
-  readonly group: ChartKey | null
+  readonly group: TGroup
+}
+
+export interface LinearRegressionRowsYOptions<
+  TDatum,
+  TX extends TransformValue<
+    TDatum,
+    RegressionIndependentValue | null | undefined
+  > = TransformValue<TDatum, RegressionIndependentValue | null | undefined>,
+  TY extends TransformValue<TDatum, number | null | undefined> = TransformValue<
+    TDatum,
+    number | null | undefined
+  >,
+  TZ extends TransformValue<TDatum, ChartKey | null | undefined> | undefined =
+    TransformValue<TDatum, ChartKey | null | undefined> | undefined,
+> {
+  readonly x: TX
+  readonly y: TY
+  /** Fits one independent regression for each valid series value. */
+  readonly z?: TZ
+  /** Confidence level for the fitted mean. Defaults to 0.95; use 0 to omit. */
+  readonly ci?: number
+  /** Number of semantic x-domain samples. Defaults to 64. */
+  readonly samples?: number
+}
+
+export interface LinearRegressionRowsXOptions<
+  TDatum,
+  TX extends TransformValue<TDatum, number | null | undefined> = TransformValue<
+    TDatum,
+    number | null | undefined
+  >,
+  TY extends TransformValue<
+    TDatum,
+    RegressionIndependentValue | null | undefined
+  > = TransformValue<TDatum, RegressionIndependentValue | null | undefined>,
+  TZ extends TransformValue<TDatum, ChartKey | null | undefined> | undefined =
+    TransformValue<TDatum, ChartKey | null | undefined> | undefined,
+> {
+  readonly x: TX
+  readonly y: TY
+  /** Fits one independent regression for each valid series value. */
+  readonly z?: TZ
+  /** Confidence level for the fitted mean. Defaults to 0.95; use 0 to omit. */
+  readonly ci?: number
+  /** Number of semantic y-domain samples. Defaults to 64. */
+  readonly samples?: number
 }
 
 export interface LinearRegressionYOptions<
@@ -77,6 +130,15 @@ type IndependentOutput<TDatum, TChannel> = Extract<
   ChannelOutput<TDatum, TChannel, number>,
   RegressionIndependentValue
 >
+
+type NormalizedRegressionGroup<TValue> =
+  | Extract<TValue, ChartKey>
+  | ([Extract<TValue, null | undefined>] extends [never] ? never : null)
+
+type RegressionGroupOutput<TDatum, TZ> =
+  TZ extends TransformValue<TDatum, ChartKey | null | undefined>
+    ? NormalizedRegressionGroup<TransformValueOutput<TDatum, TZ>>
+    : null
 
 type LinearRegressionYCallOptions<
   TDatum,
@@ -110,7 +172,6 @@ interface RegressionSample<TDatum> extends TransformLineage<TDatum> {
   readonly lower?: number
   readonly upper?: number
   readonly group: ChartKey | null
-  readonly markKey: string
 }
 
 interface RegressionObservation {
@@ -130,6 +191,84 @@ interface RegressionFit {
 }
 
 const interactiveRegressionChildren = new Set(['line'])
+
+/** Fits and samples least-squares y rows with direct source lineage. */
+export function linearRegressionRowsY<
+  TDatum,
+  const TX extends TransformValue<
+    TDatum,
+    RegressionIndependentValue | null | undefined
+  >,
+  const TY extends TransformValue<TDatum, number | null | undefined>,
+  const TZ extends
+    TransformValue<TDatum, ChartKey | null | undefined> | undefined = undefined,
+>(
+  source: Iterable<TDatum>,
+  options: LinearRegressionRowsYOptions<TDatum, TX, TY, TZ>,
+): LinearRegressionYDatum<
+  TDatum,
+  Extract<TransformValueOutput<TDatum, TX>, RegressionIndependentValue>,
+  RegressionGroupOutput<TDatum, TZ>
+>[] {
+  const data = toArray(source)
+  const normalized = normalizeRegressionOptions(
+    options,
+    'linearRegressionRowsY',
+  )
+  return regressionRowsYFromValues(
+    data,
+    transformValues(data, options.x),
+    transformValues(data, options.y),
+    options.z === undefined
+      ? data.map(() => null)
+      : transformValues(data, options.z),
+    normalized,
+    'linearRegressionRowsY',
+  ) as LinearRegressionYDatum<
+    TDatum,
+    Extract<TransformValueOutput<TDatum, TX>, RegressionIndependentValue>,
+    RegressionGroupOutput<TDatum, TZ>
+  >[]
+}
+
+/** Fits and samples least-squares x rows with direct source lineage. */
+export function linearRegressionRowsX<
+  TDatum,
+  const TX extends TransformValue<TDatum, number | null | undefined>,
+  const TY extends TransformValue<
+    TDatum,
+    RegressionIndependentValue | null | undefined
+  >,
+  const TZ extends
+    TransformValue<TDatum, ChartKey | null | undefined> | undefined = undefined,
+>(
+  source: Iterable<TDatum>,
+  options: LinearRegressionRowsXOptions<TDatum, TX, TY, TZ>,
+): LinearRegressionXDatum<
+  TDatum,
+  Extract<TransformValueOutput<TDatum, TY>, RegressionIndependentValue>,
+  RegressionGroupOutput<TDatum, TZ>
+>[] {
+  const data = toArray(source)
+  const normalized = normalizeRegressionOptions(
+    options,
+    'linearRegressionRowsX',
+  )
+  return regressionRowsXFromValues(
+    data,
+    transformValues(data, options.y),
+    transformValues(data, options.x),
+    options.z === undefined
+      ? data.map(() => null)
+      : transformValues(data, options.z),
+    normalized,
+    'linearRegressionRowsX',
+  ) as LinearRegressionXDatum<
+    TDatum,
+    Extract<TransformValueOutput<TDatum, TY>, RegressionIndependentValue>,
+    RegressionGroupOutput<TDatum, TZ>
+  >[]
+}
 
 /** Fits least-squares y-values from raw observations. */
 export function linearRegressionY<
@@ -155,24 +294,21 @@ export function linearRegressionY<TDatum>(
   return createMark(({ markIndex }) => {
     const id = options.id ?? `linear-regression-y-${markIndex}`
     const normalized = normalizeRegressionOptions(options, 'linearRegressionY')
-    const samples = regressionSamples(
-      data,
-      channelValues(data, options.x, () => undefined),
-      channelValues(data, options.y, () => undefined),
-      channelValues(data, options.z, () => null),
-      normalized,
-      'linearRegressionY',
-    )
-    const rows: RegressionYSample<TDatum>[] = samples.map((sample) => ({
-      x: sample.independent,
-      y: sample.predicted,
-      ...(sample.lower === undefined ? {} : { y1: sample.lower }),
-      ...(sample.upper === undefined ? {} : { y2: sample.upper }),
-      group: sample.group,
-      source: sample.source,
-      sourceIndexes: sample.sourceIndexes,
-      markKey: sample.markKey,
-    }))
+    const independentValues = channelValues(data, options.x, () => undefined)
+    const dependentValues = channelValues(data, options.y, () => undefined)
+    const groups = channelValues(data, options.z, () => null)
+    const semanticRows = linearRegressionRowsY<
+      TDatum,
+      TransformAccessor<TDatum, RegressionIndependentValue | null | undefined>,
+      TransformAccessor<TDatum, number | null | undefined>,
+      TransformAccessor<TDatum, ChartKey | null | undefined>
+    >(data, {
+      x: ({ index }) => independentValues[index],
+      y: ({ index }) => dependentValues[index],
+      z: ({ index }) => groups[index],
+      ...normalized,
+    })
+    const rows = withRegressionMarkKeys(semanticRows)
     const children = [
       ...(normalized.ci === 0
         ? []
@@ -233,24 +369,21 @@ export function linearRegressionX<TDatum>(
   return createMark(({ markIndex }) => {
     const id = options.id ?? `linear-regression-x-${markIndex}`
     const normalized = normalizeRegressionOptions(options, 'linearRegressionX')
-    const samples = regressionSamples(
-      data,
-      channelValues(data, options.y, () => undefined),
-      channelValues(data, options.x, () => undefined),
-      channelValues(data, options.z, () => null),
-      normalized,
-      'linearRegressionX',
-    )
-    const rows: RegressionXSample<TDatum>[] = samples.map((sample) => ({
-      x: sample.predicted,
-      ...(sample.lower === undefined ? {} : { x1: sample.lower }),
-      ...(sample.upper === undefined ? {} : { x2: sample.upper }),
-      y: sample.independent,
-      group: sample.group,
-      source: sample.source,
-      sourceIndexes: sample.sourceIndexes,
-      markKey: sample.markKey,
-    }))
+    const independentValues = channelValues(data, options.y, () => undefined)
+    const dependentValues = channelValues(data, options.x, () => undefined)
+    const groups = channelValues(data, options.z, () => null)
+    const semanticRows = linearRegressionRowsX<
+      TDatum,
+      TransformAccessor<TDatum, number | null | undefined>,
+      TransformAccessor<TDatum, RegressionIndependentValue | null | undefined>,
+      TransformAccessor<TDatum, ChartKey | null | undefined>
+    >(data, {
+      x: ({ index }) => dependentValues[index],
+      y: ({ index }) => independentValues[index],
+      z: ({ index }) => groups[index],
+      ...normalized,
+    })
+    const rows = withRegressionMarkKeys(semanticRows)
     const children = [
       ...(normalized.ci === 0
         ? []
@@ -287,17 +420,15 @@ export function linearRegressionX<TDatum>(
   })
 }
 
-type RegressionYSample<TDatum> = LinearRegressionYDatum<TDatum> & {
-  readonly markKey: string
-}
-
-type RegressionXSample<TDatum> = LinearRegressionXDatum<TDatum> & {
-  readonly markKey: string
-}
+type LinearRegressionOwner =
+  | 'linearRegressionX'
+  | 'linearRegressionY'
+  | 'linearRegressionRowsX'
+  | 'linearRegressionRowsY'
 
 function normalizeRegressionOptions(
   options: { ci?: number; samples?: number },
-  owner: 'linearRegressionX' | 'linearRegressionY',
+  owner: LinearRegressionOwner,
 ): { ci: number; samples: number } {
   const ci = options.ci ?? 0.95
   const samples = options.samples ?? 64
@@ -310,13 +441,78 @@ function normalizeRegressionOptions(
   return { ci, samples }
 }
 
+function regressionRowsYFromValues<TDatum>(
+  data: readonly TDatum[],
+  independentValues: readonly (RegressionIndependentValue | null | undefined)[],
+  dependentValues: readonly (number | null | undefined)[],
+  groups: readonly (ChartKey | null | undefined)[],
+  options: { ci: number; samples: number },
+  owner: LinearRegressionOwner,
+): LinearRegressionYDatum<TDatum>[] {
+  return regressionSamples(
+    data,
+    independentValues,
+    dependentValues,
+    groups,
+    options,
+    owner,
+  ).map((sample) => ({
+    x: sample.independent,
+    y: sample.predicted,
+    ...(sample.lower === undefined ? {} : { y1: sample.lower }),
+    ...(sample.upper === undefined ? {} : { y2: sample.upper }),
+    group: sample.group,
+    source: sample.source,
+    sourceIndexes: sample.sourceIndexes,
+  }))
+}
+
+function regressionRowsXFromValues<TDatum>(
+  data: readonly TDatum[],
+  independentValues: readonly (RegressionIndependentValue | null | undefined)[],
+  dependentValues: readonly (number | null | undefined)[],
+  groups: readonly (ChartKey | null | undefined)[],
+  options: { ci: number; samples: number },
+  owner: LinearRegressionOwner,
+): LinearRegressionXDatum<TDatum>[] {
+  return regressionSamples(
+    data,
+    independentValues,
+    dependentValues,
+    groups,
+    options,
+    owner,
+  ).map((sample) => ({
+    x: sample.predicted,
+    ...(sample.lower === undefined ? {} : { x1: sample.lower }),
+    ...(sample.upper === undefined ? {} : { x2: sample.upper }),
+    y: sample.independent,
+    group: sample.group,
+    source: sample.source,
+    sourceIndexes: sample.sourceIndexes,
+  }))
+}
+
+function withRegressionMarkKeys<
+  TDatum,
+  TRow extends LinearRegressionYDatum<TDatum> | LinearRegressionXDatum<TDatum>,
+>(rows: readonly TRow[]): (TRow & { readonly markKey: string })[] {
+  const groupIndexes = new Map<string, number>()
+  return rows.map((row) => {
+    const groupKey = valueKey(row.group)
+    const sampleIndex = groupIndexes.get(groupKey) ?? 0
+    groupIndexes.set(groupKey, sampleIndex + 1)
+    return { ...row, markKey: `${groupKey}:${sampleIndex}` }
+  })
+}
+
 function regressionSamples<TDatum>(
   data: readonly TDatum[],
   independentValues: readonly (RegressionIndependentValue | null | undefined)[],
   dependentValues: readonly (number | null | undefined)[],
   rawGroups: readonly (ChartKey | null | undefined)[],
   options: { ci: number; samples: number },
-  owner: 'linearRegressionX' | 'linearRegressionY',
+  owner: LinearRegressionOwner,
 ): RegressionSample<TDatum>[] {
   const groups = rawGroups.map((group) => (isChartKey(group) ? group : null))
   const independentKind = validateIndependentKind(
@@ -344,8 +540,6 @@ function regressionSamples<TDatum>(
     })
     const sourceIndexes = observations.map(({ sourceIndex }) => sourceIndex)
     const lineageSource = sourceIndexes.map((index) => data[index] as TDatum)
-    const groupKey = valueKey(group)
-
     return Array.from({ length: options.samples }, (_value, sampleIndex) => {
       const independent =
         sampleIndex === 0
@@ -376,7 +570,6 @@ function regressionSamples<TDatum>(
         group,
         source: lineageSource,
         sourceIndexes,
-        markKey: `${groupKey}:${sampleIndex}`,
       }
     })
   })
@@ -385,7 +578,7 @@ function regressionSamples<TDatum>(
 function validateIndependentKind(
   independentValues: readonly (RegressionIndependentValue | null | undefined)[],
   dependentValues: readonly (number | null | undefined)[],
-  owner: 'linearRegressionX' | 'linearRegressionY',
+  owner: LinearRegressionOwner,
 ): 'date' | 'number' {
   let kind: 'date' | 'number' | undefined
   independentValues.forEach((value, index) => {

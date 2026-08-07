@@ -131,7 +131,11 @@ describe('compositeMark', () => {
       ],
       {
         id: 'compound',
-        motion: { delay: 5, transition: { type: 'spring', damping: 18 } },
+        motion: {
+          delay: 5,
+          path: { update: 'rolling', x: 'shift' },
+          transition: { type: 'spring', damping: 18 },
+        },
       },
     )
     const initialized = mark.initialize({ markIndex: 0 })
@@ -154,6 +158,7 @@ describe('compositeMark', () => {
         : initialized.motion,
     ).toEqual({
       delay: 20,
+      path: { update: 'rolling', x: 'shift' },
       transition: { type: 'spring', damping: 18, mass: 2 },
     })
   })

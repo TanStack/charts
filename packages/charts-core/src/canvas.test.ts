@@ -15,10 +15,13 @@ import {
 import { handleX, type HandleXChange } from './interaction-handle'
 import { zoomX, type ZoomXChange, type ZoomXWindow } from './interaction-zoom'
 import { interactiveColorLegend } from './interactive-legend'
+import { dot } from './dot'
 import { lineX, lineY } from './line'
+import { pie, polar, radialArc } from './polar'
 import { resolveCrosshairGuide } from './crosshair-resolver'
-import { defineChart } from './scene'
+import { createChartScene, defineChart } from './scene'
 import { tooltip } from './tooltip'
+import { composeViews, fill, inset, layer } from './view'
 import type { ChartSurfaceRenderOptions } from './dom-types'
 import type { ChartScene, SceneNode } from './types'
 
@@ -82,6 +85,91 @@ describe('Canvas renderer', () => {
     expect(markup).toContain('ts-chart-canvas__focus')
     expect(markup).toContain('ts-chart-canvas__base')
     expect(getContextSpy).not.toHaveBeenCalled()
+  })
+
+  it('paints translated and clipped heterogeneous composed views', () => {
+    const observations = [
+      { id: 'first', x: 1, y: 2 },
+      { id: 'second', x: 2, y: 8 },
+    ]
+    const arcs = pie(
+      [
+        { id: 'complete', value: 7 },
+        { id: 'remaining', value: 3 },
+      ],
+      { value: 'value' },
+    )
+    const definition = composeViews({
+      id: 'canvas-dashboard',
+      views: {
+        main: defineChart({
+          marks: [
+            dot(observations, {
+              id: 'observations',
+              x: 'x',
+              y: 'y',
+              key: 'id',
+            }),
+          ],
+          x: { scale: scaleLinear().domain([1, 2]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+          guides: false,
+          margin: 0,
+        }),
+        summary: defineChart({
+          marks: [
+            polar({
+              marks: [
+                radialArc(arcs, {
+                  id: 'summary-arcs',
+                  key: 'id',
+                  innerRadius: ({ radius }) => radius * 0.55,
+                }),
+              ],
+            }),
+          ],
+          x: null,
+          y: null,
+          guides: false,
+          margin: 0,
+        }),
+      },
+      layout: layer(
+        fill('main'),
+        inset('summary', {
+          relativeTo: 'main',
+          anchor: 'top-right',
+          width: 160,
+          height: 160,
+          offset: 12,
+        }),
+      ),
+    })
+    const composedScene = createChartScene(definition, {
+      width: 600,
+      height: 400,
+    })
+    const container = document.createElement('div')
+    const surface = createCanvasChartRenderer().mount(container, () => {})
+
+    try {
+      surface.render(composedScene, renderOptions())
+      const painted = contexts.get(surface.sceneCanvas)
+      if (!painted) throw new Error('Expected a painted scene canvas')
+
+      expect(painted.operations).toContain('translate:428,12')
+      expect(painted.operations).toContain('rect:0,0,600,400')
+      expect(painted.operations).toContain('rect:0,0,160,160')
+      expect(
+        painted.operations.filter((operation) => operation === 'clip'),
+      ).toHaveLength(2)
+      expect(
+        painted.operations.some((operation) => operation.startsWith('arc:')),
+      ).toBe(true)
+      expect(painted.operations).toContain('fill:path')
+    } finally {
+      surface.destroy()
+    }
   })
 
   it('paints every scene primitive with DPR, nested clipping, and inherited styles', () => {
@@ -1473,7 +1561,9 @@ describe('Canvas renderer', () => {
         }),
       }),
     )
-    expect(target.getAttribute('aria-valuenow')).toBe('2')
+    // The host proposed the last candidate, but the controlled signal still
+    // accepts the first. Paint and accessibility must reflect accepted state.
+    expect(target.getAttribute('aria-valuenow')).toBe('0')
     expect(container.querySelector('.ts-chart-canvas')).not.toBeNull()
 
     host.update({

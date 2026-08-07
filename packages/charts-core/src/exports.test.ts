@@ -1,9 +1,29 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import packageJson from '../package.json'
+import type {
+  CreateDotLayoutOptions as RootCreateDotLayoutOptions,
+  DotLayout as RootDotLayout,
+  DotLayoutResolveContext as RootDotLayoutResolveContext,
+} from '@tanstack/charts'
+import type {
+  CreateDotLayoutOptions as UniversalCreateDotLayoutOptions,
+  DotLayout as UniversalDotLayout,
+  DotLayoutResolveContext as UniversalDotLayoutResolveContext,
+} from '@tanstack/charts/universal'
 
 const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
 
 describe('public package exports', () => {
+  it('keeps public dot-layout types aligned across authoring barrels', () => {
+    expectTypeOf<UniversalCreateDotLayoutOptions<'y', 'row'>>().toEqualTypeOf<
+      RootCreateDotLayoutOptions<'y', 'row'>
+    >()
+    expectTypeOf<UniversalDotLayout<'y', 'row'>>().toEqualTypeOf<
+      RootDotLayout<'y', 'row'>
+    >()
+    expectTypeOf<UniversalDotLayoutResolveContext>().toEqualTypeOf<RootDotLayoutResolveContext>()
+  })
+
   it('resolves every manifest capability subpath', async () => {
     const specifiers = Object.keys(packageJson.exports).map((subpath) =>
       subpath === '.'
@@ -378,6 +398,7 @@ describe('public package exports', () => {
     ])
 
     for (const module of [root, universal, box]) {
+      expect(module).toHaveProperty('boxRows')
       expect(module).toHaveProperty('boxX')
       expect(module).toHaveProperty('boxY')
     }
@@ -403,6 +424,7 @@ describe('public package exports', () => {
     ])
 
     for (const module of [root, universal, dodge]) {
+      expect(module).toHaveProperty('createDotLayout')
       expect(module).toHaveProperty('dodgeX')
       expect(module).toHaveProperty('dodgeY')
     }
@@ -466,6 +488,8 @@ describe('public package exports', () => {
     ])
 
     for (const module of [root, universal, regression]) {
+      expect(module).toHaveProperty('linearRegressionRowsX')
+      expect(module).toHaveProperty('linearRegressionRowsY')
       expect(module).toHaveProperty('linearRegressionX')
       expect(module).toHaveProperty('linearRegressionY')
     }

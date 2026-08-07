@@ -40,6 +40,23 @@ import type { HierarchyRectangularNode, TreemapLayout } from 'd3-hierarchy'
 export type TreemapMethod =
   'squarify' | 'binary' | 'dice' | 'slice' | 'slice-dice'
 
+export interface TreemapTileDatum<TDatum> {
+  readonly id: string
+  readonly parentId: string | null
+  readonly name: string
+  readonly datum: TDatum | null
+  readonly sourceIndex: number | null
+}
+
+/** A native D3-compatible tiler over the mark's private hierarchy copy. */
+export type TreemapTile<TDatum = unknown> = (
+  node: HierarchyRectangularNode<TreemapTileDatum<TDatum>>,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+) => void
+
 export interface TreemapNode<TDatum> {
   readonly id: string
   readonly parentId: string | null
@@ -66,8 +83,8 @@ interface TreemapSharedOptions<TDatum> extends ChartMarkMotionOptions<
   /** Mark identity. Explicit hierarchy identity uses `nodeId`. */
   readonly id?: string
   readonly value: TransformValue<TDatum, number | null | undefined>
-  /** Built-in tiling method. Defaults to `squarify`. */
-  readonly method?: TreemapMethod
+  /** Built-in shorthand or a D3-compatible tiler. Defaults to `squarify`. */
+  readonly method?: TreemapMethod | TreemapTile<TDatum>
   /** Target squarify aspect ratio. Defaults to the golden ratio. */
   readonly ratio?: number
   readonly round?: boolean
@@ -219,8 +236,9 @@ export function treemap<TDatum>(
           paddingInner,
           paddingOuter,
         )(root)
-        const cells = laidOut
-          .leaves()
+        const leaves = laidOut.leaves()
+        assertLayoutCoordinates(leaves, chart.width, chart.height)
+        const cells = leaves
           .map((node) => materializeCell(node, chart.x, chart.y))
           .filter((cell) => cell.x1 > cell.x0 && cell.y1 > cell.y0)
         const nodes = cells.map((cell) => cell.node)
@@ -342,25 +360,27 @@ export function treemap<TDatum>(
 }
 
 function configureLayout<TDatum>(
-  layout: TreemapLayout<TDatum>,
+  layout: TreemapLayout<FlatHierarchyDatum<TDatum>>,
   width: number,
   height: number,
-  method: TreemapMethod,
+  method: TreemapMethod | TreemapTile<TDatum>,
   ratio: number,
   round: boolean,
   paddingInner: number,
   paddingOuter: number,
-): TreemapLayout<TDatum> {
+): TreemapLayout<FlatHierarchyDatum<TDatum>> {
   const tile =
-    method === 'squarify'
-      ? treemapSquarify.ratio(ratio)
-      : method === 'binary'
-        ? treemapBinary
-        : method === 'dice'
-          ? treemapDice
-          : method === 'slice'
-            ? treemapSlice
-            : treemapSliceDice
+    typeof method === 'function'
+      ? method
+      : method === 'squarify'
+        ? treemapSquarify.ratio(ratio)
+        : method === 'binary'
+          ? treemapBinary
+          : method === 'dice'
+            ? treemapDice
+            : method === 'slice'
+              ? treemapSlice
+              : treemapSliceDice
   return layout
     .size([width, height])
     .tile(tile)
@@ -407,6 +427,31 @@ function materializeCell<TDatum>(
     x: (x0 + x1) / 2,
     y: (y0 + y1) / 2,
   }
+}
+
+function assertLayoutCoordinates<TDatum>(
+  nodes: readonly HierarchyRectangularNode<FlatHierarchyDatum<TDatum>>[],
+  width: number,
+  height: number,
+): void {
+  nodes.forEach((node) => {
+    const coordinates = [node.x0, node.y0, node.x1, node.y1]
+    if (!coordinates.every(Number.isFinite)) {
+      throw new TypeError(
+        `treemap: layout produced non-finite coordinates for node "${node.data.id}"`,
+      )
+    }
+    if (node.x1 < node.x0 || node.y1 < node.y0) {
+      throw new TypeError(
+        `treemap: layout produced reversed coordinates for node "${node.data.id}"`,
+      )
+    }
+    if (node.x0 < 0 || node.y0 < 0 || node.x1 > width || node.y1 > height) {
+      throw new TypeError(
+        `treemap: layout produced out-of-bounds coordinates for node "${node.data.id}"`,
+      )
+    }
+  })
 }
 
 function materializeLabels<TDatum>(
@@ -457,7 +502,10 @@ function materializeLabels<TDatum>(
   return labels
 }
 
-function assertMethod(value: string): asserts value is TreemapMethod {
+function assertMethod(
+  value: unknown,
+): asserts value is TreemapMethod | TreemapTile<unknown> {
+  if (typeof value === 'function') return
   if (
     value !== 'squarify' &&
     value !== 'binary' &&

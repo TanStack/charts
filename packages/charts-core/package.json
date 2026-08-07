@@ -18,7 +18,10 @@
     "llms.txt"
   ],
   "dependencies": {
+    "@types/d3-force": "^3.0.10",
     "@types/d3-geo": "^3.1.0",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-sankey": "^0.12.5",
     "@types/d3-shape": "^3.1.8",
     "d3-array": "3.2.4",
     "d3-brush": "3.0.0",
@@ -39,10 +42,7 @@
     "@types/d3-brush": "^3.0.6",
     "@types/d3-contour": "^3.0.6",
     "@types/d3-delaunay": "^6.0.4",
-    "@types/d3-force": "^3.0.10",
     "@types/d3-hexbin": "0.2.5",
-    "@types/d3-hierarchy": "^3.1.7",
-    "@types/d3-sankey": "^0.12.5",
     "@types/d3-selection": "^3.0.11",
     "@types/d3-zoom": "^3.0.8",
     "@types/d3-scale": "^4.0.9"

@@ -6,6 +6,7 @@ export type { BandXOptions, BandYOptions } from './band'
 export type {
   BoxDatum,
   BoxOutlierDatum,
+  BoxRowsOptions,
   BoxSummaryDatum,
   BoxXDatum,
   BoxXOptions,
@@ -13,6 +14,9 @@ export type {
   BoxYOptions,
 } from './box'
 export type {
+  CreateDotLayoutOptions,
+  DotLayout,
+  DotLayoutResolveContext,
   DodgeOptions,
   DodgeXAnchor,
   DodgeXLayout,
@@ -44,6 +48,8 @@ export type { GroupLayout, GroupOptions } from './group'
 export type { HexagonOptions } from './hexagon'
 export type { LineXOptions, LineYOptions } from './line'
 export type {
+  LinearRegressionRowsXOptions,
+  LinearRegressionRowsYOptions,
   LinearRegressionXDatum,
   LinearRegressionXOptions,
   LinearRegressionYDatum,

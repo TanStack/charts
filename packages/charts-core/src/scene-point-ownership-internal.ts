@@ -2,8 +2,7 @@ import type { ChartPoint, SceneNode } from './types'
 
 export interface ScenePointLookup {
   points: readonly ChartPoint[]
-  exact: ReadonlyMap<string, readonly ChartPoint[]>
-  descendants: ReadonlyMap<string, readonly ChartPoint[]>
+  keys: ReadonlyMap<string, readonly ChartPoint[]>
   marks: ReadonlyMap<string, readonly ChartPoint[]>
 }
 
@@ -11,8 +10,7 @@ export interface ScenePointLookup {
 export function createScenePointLookup(
   points: readonly ChartPoint[],
 ): ScenePointLookup {
-  const exact = new Map<string, ChartPoint[]>()
-  const descendants = new Map<string, ChartPoint[]>()
+  const keys = new Map<string, ChartPoint[]>()
   const marks = new Map<string, ChartPoint[]>()
   const append = (
     map: Map<string, ChartPoint[]>,
@@ -25,16 +23,15 @@ export function createScenePointLookup(
   }
 
   for (const point of points) {
-    append(exact, point.key, point)
     append(marks, point.markId, point)
-    let separator = point.key.indexOf(':')
-    while (separator >= 0) {
-      append(descendants, point.key.slice(0, separator), point)
-      separator = point.key.indexOf(':', separator + 1)
+    let end = point.key.length
+    while (end > 0) {
+      append(keys, point.key.slice(0, end), point)
+      end = point.key.lastIndexOf(':', end - 1)
     }
   }
 
-  return { points, exact, descendants, marks }
+  return { points, keys, marks }
 }
 
 /** Returns the semantic points explicitly or structurally owned by one node. */
@@ -83,7 +80,8 @@ export function sceneKeyOwnedPoints(
         ? candidates
         : candidates.filter((point) => scope.includes(point))
 
-  const exact = withinScope(lookup.exact.get(key))
+  const related = withinScope(lookup.keys.get(key))
+  const exact = related.filter((point) => point.key === key)
   if (exact.length) return exact
 
   // Generated geometry may suffix its point key. Resolve longest-first so
@@ -92,12 +90,13 @@ export function sceneKeyOwnedPoints(
   while (candidate.includes(':')) {
     const separator = candidate.lastIndexOf(':')
     candidate = candidate.slice(0, separator)
-    const fragments = withinScope(lookup.exact.get(candidate))
+    const fragments = withinScope(lookup.keys.get(candidate)).filter(
+      (point) => point.key === candidate,
+    )
     if (fragments.length) return fragments
   }
 
-  const descendants = withinScope(lookup.descendants.get(key))
-  if (descendants.length) return descendants
+  if (related.length) return related
   const mark = withinScope(lookup.marks.get(key))
   if (mark.length) return mark
 

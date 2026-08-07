@@ -563,6 +563,11 @@ function createContinuousCursorControl({
     pinned = next !== null
     paint(transient)
     changed.change(next, reason)
+    awaitingControl = false
+    const accepted = clonePosition(control?.position ?? null)
+    transient = accepted
+    pinned = accepted !== null
+    paint(accepted)
   }
 
   function emit(

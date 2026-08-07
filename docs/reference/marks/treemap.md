@@ -61,34 +61,53 @@ when it contains a slash.
 `TreemapPathOptions<TDatum>` and `TreemapParentOptions<TDatum>` form the
 `TreemapOptions<TDatum>` union.
 
-| Option                                        | Type                                                    | Default                 | Meaning                                                |
-| --------------------------------------------- | ------------------------------------------------------- | ----------------------- | ------------------------------------------------------ |
-| `path`                                        | `TransformValue<TDatum, string>`                        | Path mode only          | Full hierarchy path                                    |
-| `delimiter`                                   | `string`                                                | `/`                     | One-character path separator                           |
-| `nodeId`                                      | `TransformValue<TDatum, string>`                        | Parent mode only        | Explicit node identity                                 |
-| `parentId`                                    | `TransformValue<TDatum, string?>`                       | Parent mode only        | Explicit parent identity                               |
-| `value`                                       | `TransformValue<TDatum, number?>`                       | Required                | Nonnegative contribution summed through the hierarchy  |
-| `method`                                      | `TreemapMethod`                                         | `squarify`              | `squarify`, `binary`, `dice`, `slice`, or `slice-dice` |
-| `ratio`                                       | `number`                                                | Golden ratio            | Squarify target aspect ratio, at least `1`             |
-| `round`                                       | `boolean`                                               | `false`                 | Round final rectangle coordinates to pixels            |
-| `paddingInner`                                | `number`                                                | `0`                     | Pixel gap between adjacent children                    |
-| `paddingOuter`                                | `number`                                                | `0`                     | Pixel gap between parent edges and children            |
-| `sort`                                        | `TreemapNodeComparator<TDatum>`                         | Authored order          | Sibling comparator over immutable node contexts        |
-| `id`                                          | `string`                                                | Layer-derived           | Stable mark identity                                   |
-| `color`                                       | `Channel<TreemapNode<TDatum>, ChartKey?>`               | No group                | Node value sent to the color scale                     |
-| `fill`, `stroke`                              | `VisualChannel<TreemapNode<TDatum>, string>`            | Resolved color / none   | Per-node paint                                         |
-| `fillOpacity`, `strokeOpacity`, `strokeWidth` | `number`                                                | Renderer default        | Rectangle presentation                                 |
-| `inset`, `radius`                             | `number`                                                | `0.75` / none           | Painted rectangle inset and corner radius              |
-| `label`                                       | `Channel<TreemapNode<TDatum>, string \| number?>`       | None                    | Centered in-cell label                                 |
-| `labelFill`                                   | `VisualChannel<TreemapNode<TDatum>, string>`            | Theme foreground        | Label paint                                            |
-| `labelFontSize`, `labelFontWeight`            | `number`                                                | `11` / renderer default | Label typography                                       |
-| `labelPadding`                                | `number`                                                | `4`                     | Minimum painted pixels around a label                  |
-| `states`                                      | `readonly ChartMarkState[]`                             | None                    | Focus-driven rectangle states                          |
-| `motion`                                      | `ChartMarkMotionOptions<TreemapNode<TDatum>>['motion']` | None                    | Per-node motion policy                                 |
+| Option                                        | Type                                                    | Default                 | Meaning                                               |
+| --------------------------------------------- | ------------------------------------------------------- | ----------------------- | ----------------------------------------------------- |
+| `path`                                        | `TransformValue<TDatum, string>`                        | Path mode only          | Full hierarchy path                                   |
+| `delimiter`                                   | `string`                                                | `/`                     | One-character path separator                          |
+| `nodeId`                                      | `TransformValue<TDatum, string>`                        | Parent mode only        | Explicit node identity                                |
+| `parentId`                                    | `TransformValue<TDatum, string?>`                       | Parent mode only        | Explicit parent identity                              |
+| `value`                                       | `TransformValue<TDatum, number?>`                       | Required                | Nonnegative contribution summed through the hierarchy |
+| `method`                                      | `TreemapMethod \| TreemapTile<TDatum>`                  | `squarify`              | Built-in shorthand or D3-compatible tile callable     |
+| `ratio`                                       | `number`                                                | Golden ratio            | Squarify target aspect ratio, at least `1`            |
+| `round`                                       | `boolean`                                               | `false`                 | Round final rectangle coordinates to pixels           |
+| `paddingInner`                                | `number`                                                | `0`                     | Pixel gap between adjacent children                   |
+| `paddingOuter`                                | `number`                                                | `0`                     | Pixel gap between parent edges and children           |
+| `sort`                                        | `TreemapNodeComparator<TDatum>`                         | Authored order          | Sibling comparator over immutable node contexts       |
+| `id`                                          | `string`                                                | Layer-derived           | Stable mark identity                                  |
+| `color`                                       | `Channel<TreemapNode<TDatum>, ChartKey?>`               | No group                | Node value sent to the color scale                    |
+| `fill`, `stroke`                              | `VisualChannel<TreemapNode<TDatum>, string>`            | Resolved color / none   | Per-node paint                                        |
+| `fillOpacity`, `strokeOpacity`, `strokeWidth` | `number`                                                | Renderer default        | Rectangle presentation                                |
+| `inset`, `radius`                             | `number`                                                | `0.75` / none           | Painted rectangle inset and corner radius             |
+| `label`                                       | `Channel<TreemapNode<TDatum>, string \| number?>`       | None                    | Centered in-cell label                                |
+| `labelFill`                                   | `VisualChannel<TreemapNode<TDatum>, string>`            | Theme foreground        | Label paint                                           |
+| `labelFontSize`, `labelFontWeight`            | `number`                                                | `11` / renderer default | Label typography                                      |
+| `labelPadding`                                | `number`                                                | `4`                     | Minimum painted pixels around a label                 |
+| `states`                                      | `readonly ChartMarkState[]`                             | None                    | Focus-driven rectangle states                         |
+| `motion`                                      | `ChartMarkMotionOptions<TreemapNode<TDatum>>['motion']` | None                    | Per-node motion policy                                |
 
 Nullish values contribute zero. Other values must be nonnegative and finite.
 `ratio` is valid only with `squarify`. Padding, inset, and label padding are
 nonnegative CSS-pixel values.
+
+`method` also accepts a native D3 tiler or a compatible callable:
+
+```ts
+import { treemapBinary } from 'd3-hierarchy'
+
+treemap(rows, {
+  path: 'name',
+  value: 'size',
+  method: treemapBinary,
+})
+```
+
+A callable receives a `HierarchyRectangularNode<TreemapTileDatum<TDatum>>`
+from the mark's private hierarchy copy plus the tile bounds. It must assign
+child coordinates synchronously using the D3 tile contract. The datum wrapper
+contains hierarchy identity, the nullable raw row, and its source index. Do
+not retain or mutate the authored row. Configure callable-specific behavior in
+the callable itself; `ratio` remains exclusive to the `squarify` shorthand.
 
 ## Responsive layout
 
@@ -120,6 +139,6 @@ scene estimator otherwise.
 
 ## Types
 
-The exact entry exports `treemap`, `TreemapMethod`, `TreemapNode`,
-`TreemapNodeComparator`, `TreemapPathOptions`, `TreemapParentOptions`, and
-`TreemapOptions`.
+The exact entry exports `treemap`, `TreemapMethod`, `TreemapTileDatum`,
+`TreemapTile`, `TreemapNode`, `TreemapNodeComparator`, `TreemapPathOptions`,
+`TreemapParentOptions`, and `TreemapOptions`.

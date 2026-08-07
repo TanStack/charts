@@ -483,8 +483,6 @@ function createMotionSvgChartRenderer<
         },
         render(nextScene, options) {
           const previousScene = scene
-          const previousPresentation =
-            presentationPoints ?? previousScene?.points ?? []
           const initial = previousScene === undefined
           const resized = Boolean(
             previousScene &&
@@ -508,6 +506,8 @@ function createMotionSvgChartRenderer<
           )
           const markup = renderSvg(nextScene, options)
           cancelAnimation()
+          const previousPresentation =
+            presentationPoints ?? previousScene?.points ?? []
           cancelFocusAnimation()
           cancelFocusAnimation = () => {}
           const retainsFocusGuideLayers = Boolean(
@@ -1476,13 +1476,19 @@ function addExitMotionTrack(
   const retargetLayer = element.closest<SVGGElement>(
     'g[data-ts-focus-retarget]',
   )
+  const cleanup = () => {
+    element.remove()
+    if (retargetLayer && !retargetLayer.children.length) {
+      retargetLayer.setAttribute('visibility', 'hidden')
+    }
+  }
   const timingContext = elementTimingContext(
     element,
     'exit',
     context.previousScene ?? context.scene,
   )
   if (!timingContext) {
-    element.remove()
+    cleanup()
     return
   }
   const pointRolling = timingContext.point
@@ -1492,7 +1498,7 @@ function addExitMotionTrack(
     pointRolling?.outcome.kind === 'fallback' &&
     pointRolling.outcome.fallback === 'snap'
   ) {
-    element.remove()
+    cleanup()
     return
   }
   if (
@@ -1513,12 +1519,8 @@ function addExitMotionTrack(
       ...pointRolling.timing,
       values: bindMotionValues(undefined, [startX, startY], [targetX, targetY]),
       apply,
-      finish() {
-        element.remove()
-      },
-      cancel() {
-        element.removeAttribute('data-ts-motion-role')
-      },
+      finish: cleanup,
+      cancel: cleanup,
     })
     return
   }
@@ -1534,15 +1536,8 @@ function addExitMotionTrack(
     apply(values) {
       element.setAttribute('opacity', formatNumber(values[0] ?? 0))
     },
-    finish() {
-      element.remove()
-      if (retargetLayer && !retargetLayer.children.length) {
-        retargetLayer.setAttribute('visibility', 'hidden')
-      }
-    },
-    cancel() {
-      element.removeAttribute('data-ts-motion-role')
-    },
+    finish: cleanup,
+    cancel: cleanup,
   })
 }
 
@@ -2010,6 +2005,7 @@ function createPresentationTracks(
           {
             identity,
             point,
+            state: runtime.points.get(identity),
             target: {
               x: start.x - transform.x,
               y: (start.y - transform.y) / transform.yScale,
@@ -2031,6 +2027,14 @@ function createPresentationTracks(
         }
       }
       apply(from)
+      const cleanupExiting = () => {
+        for (const entry of exiting) {
+          presented.delete(entry.identity)
+          if (runtime.points.get(entry.identity) === entry.state) {
+            runtime.points.delete(entry.identity)
+          }
+        }
+      }
       tracks.push({
         ...planned.timing,
         values: bindMotionValues(undefined, from, [0, 1, 0]),
@@ -2039,8 +2043,9 @@ function createPresentationTracks(
           for (const point of planned.points) {
             presented.set(pointIdentity(point), point)
           }
-          for (const entry of exiting) presented.delete(entry.identity)
+          cleanupExiting()
         },
+        cancel: cleanupExiting,
       })
     }
   }
@@ -2138,6 +2143,13 @@ function createPresentationTracks(
           : element
             ? markMotionRole(element, element)
             : 'mark'
+    const state = runtime.points.get(identity)
+    const cleanup = () => {
+      presented.delete(identity)
+      if (runtime.points.get(identity) === state) {
+        runtime.points.delete(identity)
+      }
+    }
     tracks.push({
       ...timingFor({
         phase: 'exit',
@@ -2153,10 +2165,8 @@ function createPresentationTracks(
       }),
       values: bindMotionValues(undefined, [0], [1]),
       apply() {},
-      finish() {
-        presented.delete(identity)
-        runtime.points.delete(identity)
-      },
+      finish: cleanup,
+      cancel: cleanup,
     })
   }
 
@@ -2558,6 +2568,7 @@ function runTracks(
     tracks.forEach((track) => {
       if (!finished.has(track)) track.cancel?.()
     })
+    lifecycle.publish?.()
     root.dataset.tsMotionState = 'cancelled'
   }
 }

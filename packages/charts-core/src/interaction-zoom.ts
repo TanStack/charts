@@ -180,8 +180,6 @@ function createZoomXControl({
   })
   hitTarget.setAttribute('fill', 'transparent')
   hitTarget.setAttribute('pointer-events', 'all')
-  hitTarget.setAttribute('role', 'application')
-  hitTarget.setAttribute('tabindex', '0')
   hitTarget.setAttribute('vector-effect', 'non-scaling-stroke')
   hitTarget.style.outline = 'none'
 
@@ -272,11 +270,15 @@ function createZoomXControl({
         next.ariaDescription ?? defaultDescription(next),
       )
       if (next.keyboard) {
+        hitTarget.setAttribute('role', 'application')
+        hitTarget.setAttribute('tabindex', '0')
         hitTarget.setAttribute(
           'aria-keyshortcuts',
           'ArrowLeft ArrowRight + - Home Escape',
         )
       } else {
+        hitTarget.removeAttribute('role')
+        hitTarget.setAttribute('tabindex', '-1')
         hitTarget.removeAttribute('aria-keyshortcuts')
       }
       if (!root.isConnected || root.parentElement !== container) {
@@ -303,6 +305,10 @@ function createZoomXControl({
       hitTarget.removeEventListener('wheel', handleWheel)
       hitTarget.removeEventListener('keydown', handleKeyDown)
       selection.on('.zoom', null)
+      if (active) {
+        active = false
+        control?.activeChange?.(false)
+      }
       root.remove()
       control = undefined
       scene = undefined
@@ -896,7 +902,10 @@ function cloneChange<TValue extends ZoomXValue>(
 }
 
 function defaultDescription(control: ZoomXControl<ZoomXValue>) {
-  return `${control.format(control.window.start)} to ${control.format(control.window.end)}. Focus before wheel zoom. Drag or use a horizontal wheel to pan. Use plus, minus, arrow keys, or Home.`
+  const pointerInstructions = `${control.format(control.window.start)} to ${control.format(control.window.end)}. Focus before wheel zoom. Drag or use a horizontal wheel to pan.`
+  return control.keyboard
+    ? `${pointerInstructions} Use plus, minus, arrow keys, or Home.`
+    : pointerInstructions
 }
 
 function defaultFormat(value: ZoomXValue) {

@@ -1,10 +1,11 @@
 ---
 title: Box Marks
-description: Reference for boxY and boxX Tukey summaries, quartiles, whiskers, outliers, lineage, styling, and interaction.
+description: Reference for boxRows, boxY, and boxX Tukey summaries, quartiles, whiskers, outliers, lineage, styling, and interaction.
 ---
 
 `boxY` summarizes raw observations into vertical boxplots. `boxX` transposes
 the same statistical and interaction semantics into horizontal boxplots.
+`boxRows` exposes their eager semantic preparation for reuse outside a mark.
 
 ```ts
 import { boxY } from '@tanstack/charts/box'
@@ -18,7 +19,7 @@ boxY(rows, {
 })
 ```
 
-Both marks are also exported from `@tanstack/charts` and
+The transform and both marks are also exported from `@tanstack/charts` and
 `@tanstack/charts/universal`.
 
 ## Signatures
@@ -33,6 +34,11 @@ function boxX<TDatum>(
   source: Iterable<TDatum>,
   options: BoxXOptions<TDatum>,
 ): ChartMark<BoxDatum<TDatum, InferredY>, number, InferredY>
+
+function boxRows<TDatum>(
+  source: Iterable<TDatum>,
+  options: BoxRowsOptions<TDatum>,
+): BoxDatum<TDatum, InferredCategory>[]
 ```
 
 `boxY` requires a categorical `x` channel and numeric `y` channel. `boxX`
@@ -58,6 +64,26 @@ than a separate fallback.
 The mark composes a whisker link, interquartile bar, median tick, and outlier
 dots. Those native children remain renderer-neutral; the mark does not emit a
 custom SVG path.
+
+## Eager rows
+
+Use `boxRows` when the same summary feeds multiple marks, a table, or
+application logic:
+
+```ts
+import { boxRows } from '@tanstack/charts/box'
+
+const prepared = boxRows(rows, {
+  category: 'group',
+  value: 'measurement',
+})
+```
+
+`category` and `value` use the standard `TransformValue` contract. A field
+name reads that field. An accessor receives `{ datum, index, data }`.
+Preparation is eager, does not mutate source rows, and returns all summary rows
+followed by outliers in global source order. The result contains semantic data
+and lineage only; child-mark identity remains internal to `boxX` and `boxY`.
 
 ## Options
 
@@ -112,7 +138,8 @@ every finite contributing observation in source order. An outlier retains its
 exact source row and index.
 
 The public type surface includes `BoxDatum`, `BoxYDatum`, `BoxXDatum`,
-`BoxSummaryDatum`, `BoxOutlierDatum`, `BoxYOptions`, and `BoxXOptions`.
+`BoxSummaryDatum`, `BoxOutlierDatum`, `BoxRowsOptions`, `BoxYOptions`, and
+`BoxXOptions`.
 
 ## Interaction
 

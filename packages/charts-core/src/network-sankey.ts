@@ -14,7 +14,10 @@ import {
 } from './resolved-layout-child'
 import { valueKey } from './scales'
 import { transformValues } from './transform-internal'
-import type { SankeyLink as D3SankeyLink } from 'd3-sankey'
+import type {
+  SankeyLink as D3SankeyLink,
+  SankeyNode as D3SankeyNode,
+} from 'd3-sankey'
 import type { TransformValue, TransformValueOutput } from './transform'
 import type {
   ChartBounds,
@@ -35,6 +38,41 @@ type ResolvedKey<TDatum, TValue> = Extract<
 >
 
 export type SankeyAlignment = 'left' | 'right' | 'center' | 'justify'
+
+type SankeyAlignmentNodeDatum<
+  TNode extends object,
+  TNodeKey extends ChartKey,
+> = {
+  readonly data: TNode
+  readonly key: TNodeKey
+  readonly sourceIndex: number
+}
+
+type SankeyAlignmentLinkDatum<TLink extends object> = {
+  readonly data: TLink
+  readonly key: ChartKey
+  readonly sourceIndex: number
+}
+
+/** The private D3 node supplied to a custom alignment callable. */
+export type SankeyAlignmentNode<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey = ChartKey,
+> = D3SankeyNode<
+  SankeyAlignmentNodeDatum<TNode, TNodeKey>,
+  SankeyAlignmentLinkDatum<TLink>
+>
+
+/** A native D3-compatible horizontal node-layer aligner. */
+export type SankeyNodeAligner<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey = ChartKey,
+> = (
+  node: SankeyAlignmentNode<TNode, TLink, TNodeKey>,
+  columnCount: number,
+) => number
 
 export interface SankeyInset {
   readonly top?: number
@@ -166,8 +204,10 @@ export interface SankeyDiagramOptions<
   readonly target: TTarget
   readonly value: TValue
   readonly linkKey?: TransformValue<TLink, ChartKey>
-  /** Horizontal node alignment. Defaults to `justify`. */
-  readonly align?: SankeyAlignment
+  /** Built-in shorthand or D3-compatible node aligner. Defaults to `justify`. */
+  readonly align?:
+    | SankeyAlignment
+    | SankeyNodeAligner<TNode, TLink, ResolvedKey<TNode, TNodeKey>>
   /** `undefined` lets the layout order nodes; `null` preserves input order. */
   readonly nodeSort?: SankeyNodeComparator<
     TNode,
@@ -249,7 +289,7 @@ export function sankeyDiagram<
   const iterations = options.iterations ?? 6
   assertNonnegativeInteger(iterations, 'iterations')
   const align = options.align ?? 'justify'
-  const aligner = sankeyAligner(align)
+  const aligner = sankeyAligner<TNode, TLink, TResolvedNodeKey>(align)
 
   return createMarkWithScaleValues<
     ChartMarkDatum<TMarks[number]>,
@@ -305,7 +345,16 @@ export function sankeyDiagram<
             ? { nodes: [], links: [] }
             : createSankey<WorkingNode<TNode>, WorkingLink<TLink>>()
                 .nodeId((node) => node.key)
-                .nodeAlign(aligner)
+                .nodeAlign((node, columnCount) =>
+                  aligner(
+                    node as unknown as SankeyAlignmentNode<
+                      TNode,
+                      TLink,
+                      TResolvedNodeKey
+                    >,
+                    columnCount,
+                  ),
+                )
                 .nodeWidth(nodeWidth)
                 .nodePadding(nodePadding)
                 .extent([
@@ -617,18 +666,36 @@ function resolvedNodeBounds<TNode>(node: WorkingNode<TNode>, index: number) {
   }
 }
 
-function sankeyAligner(align: SankeyAlignment) {
-  switch (align) {
-    case 'left':
-      return sankeyLeft
-    case 'right':
-      return sankeyRight
-    case 'center':
-      return sankeyCenter
-    case 'justify':
-      return sankeyJustify
-    default:
-      throw new TypeError(`sankeyDiagram: invalid alignment "${String(align)}"`)
+function sankeyAligner<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey,
+>(
+  align: SankeyAlignment | SankeyNodeAligner<TNode, TLink, TNodeKey>,
+): SankeyNodeAligner<TNode, TLink, TNodeKey> {
+  const selected =
+    typeof align === 'function'
+      ? align
+      : align === 'left'
+        ? sankeyLeft
+        : align === 'right'
+          ? sankeyRight
+          : align === 'center'
+            ? sankeyCenter
+            : align === 'justify'
+              ? sankeyJustify
+              : undefined
+  if (!selected) {
+    throw new TypeError(`sankeyDiagram: invalid alignment "${String(align)}"`)
+  }
+  return (node, columnCount) => {
+    const layer = selected(node, columnCount)
+    if (!Number.isInteger(layer) || layer < 0 || layer >= columnCount) {
+      throw new TypeError(
+        `sankeyDiagram: align result must be an integer between 0 and ${columnCount - 1}`,
+      )
+    }
+    return layer
   }
 }
 

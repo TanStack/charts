@@ -18,8 +18,9 @@ Last updated: 2026-08-06
 | Tooling       | The issue is imports, bundle inspection, testing, or generation          |
 
 Do not hide API problems in a skill. Do not add runtime inference merely to
-save an agent a few tokens. Prefer an explicit D3 value when it already
-expresses the required semantics.
+save an agent a few tokens. Treat direct D3 values and compact TanStack
+primitives as peers: preserve D3-compatible inputs and output while choosing
+the clearest, smallest ownership boundary for the task.
 
 ## Entry format
 
@@ -283,6 +284,10 @@ Each entry records:
 | F-245 | Focus-filtered bands could not act as cursor geometry          | API             | resolved   |
 | F-246 | Scene updates cleared active motion guide placement            | API             | resolved   |
 | F-247 | Custom mounts were not React catalog descriptors               | Tooling/App     | resolved   |
+| F-248 | Release finalization targeted the workflow head                | Tooling/Release | monitoring |
+| F-249 | Interrupted motion retained stale presentation state           | API             | resolved   |
+| F-250 | Host accessibility diverged across render paths                | API             | resolved   |
+| F-251 | The architecture made D3 implementation sound mandatory        | Documentation   | resolved   |
 
 ## Findings
 
@@ -1252,10 +1257,11 @@ Each entry records:
   existing rule scene node. Link owns typed endpoint channels and interaction
   identity; ticks derive their default length from the perpendicular band
   scale and accept an explicit pixel length. Repeated statistical composition
-  is a separate boundary: `boxX` and `boxY` accept raw observations, own the
-  complete Tukey summary, and render through native link, bar, tick, and dot
-  children. The private summary remains atomic; exposing quartile, fence,
-  whisker, and outlier substeps would let independently filtered calls drift.
+  is a separate boundary: `boxRows` eagerly turns arbitrary source rows into
+  Tukey summary and outlier rows with direct lineage, while `boxX` and `boxY`
+  reuse that transform and render through native link, bar, tick, and dot
+  children. The Tukey operation stays atomic; separate quartile, fence,
+  whisker, and outlier calls could still drift after independent filtering.
 - Shared contracts: box marks reuse the same private sorted-quantile kernel as
   the public quantile reducer, the established grouped-index and source-lineage
   conventions, and the generic child-mark composition kernel. They add no
@@ -1270,6 +1276,11 @@ Each entry records:
   case-owned quantile or summary module. Isolated link, tick, and box consumers
   protect their respective bundle boundaries while byte-locked ordinary
   consumers remain unchanged.
+- Preparation follow-up: direct `boxRows` tests prove field and accessor input,
+  exact equivalence with both convenience marks, precise category inference,
+  immutable source data, invalid-group handling, aggregate and single-row
+  lineage, and the absence of presentation-only mark keys. Root, universal,
+  and exact-subpath exports expose the same eager transform.
 
 ### F-042 — Hoisted host tooltip options lose callback context
 
@@ -1570,9 +1581,14 @@ Each entry records:
 - Decision: add tree-shakeable `dodgeX` / `dodgeY` dot layouts on the
   resolved-layout lifecycle from F-048. A greedy dodge preserves the measured
   coordinate exactly and avoids teaching authors a heavier force simulation.
-  Radius stays configured once on `dot`; the private layout resolver receives
-  those final pixel radii. The public descriptor exposes only orientation,
-  anchor, and padding, so this does not create a generic layout callback.
+  Radius stays configured once on `dot`; the layout resolver receives final
+  plot bounds, scaled measured positions, and final pixel radii.
+- First-principles follow-up: expose that narrow seam as `createDotLayout`.
+  Authors choose the derived axis and semantic anchor, then return one final
+  coordinate per materialized row from `DotLayoutResolveContext`. The utility
+  validates the public descriptor while `dot` retains scheduling, row
+  identity, interaction, state, and motion. This is reusable custom placement,
+  not an arbitrary resolved-mark lifecycle or a second renderer API.
 - Verification: case 52 now passes source cars directly to `dot` with
   `layout: dodgeY(...)`; it owns no force simulation, parallel scale, inverted
   coordinate, or positioned DTO. The full 320/640/960 light/dark matrix passes
@@ -1589,6 +1605,10 @@ Each entry records:
   Dense identical inputs remain quadratic: 1,000 dots took roughly 0.5–0.8
   seconds and 2,000 took roughly 2–6 seconds, so an indexed neighbor query is
   the follow-up before documenting this layout for large swarms.
+- Extension verification: focused tests cover custom x and y placement,
+  responsive bounds, variable radii, output-length and finite-coordinate
+  validation, raw-row identity, exports, and unchanged built-in dodge behavior.
+  Consumers that do not instantiate a dot layout retain none of its resolver.
 
 ### F-052 — Ranking preparation depended on D3 callback overloads
 
@@ -1739,8 +1759,11 @@ Each entry records:
   and reuses the private flat-hierarchy builder and node-context materializer
   established by `treeLayout`. Authored child order is the default; optional
   immutable sort contexts and the `squarify`, `binary`, `dice`, `slice`, and
-  `slice-dice` methods remain Charts-owned. Each resolved-layout pass tiles a
-  private hierarchy copy against the final plot width and height, retains D3's
+  `slice-dice` shorthands cover common tiling. `method` also accepts a
+  D3-compatible treemap tiler over the mark's private hierarchy copy,
+  preserving direct algorithm composition without exposing mutable hierarchy
+  nodes as chart data. Each resolved-layout pass tiles that private copy
+  against the final plot width and height, retains D3's
   downward-increasing screen coordinates internally, and emits interactive
   leaf rectangles without x/y scales or coordinate DTO preparation. Stable
   `TreemapNode` values carry hierarchy metadata, aggregate value, ancestor IDs,
@@ -1762,6 +1785,11 @@ Each entry records:
   45 lines versus 129 for Recharts, its measured consumer is 25.49 kB versus
   138.09 kB gzip, and its median mount and update times are 0.37x and 0.50x the
   reference.
+- Callable-method follow-up: focused tests pass a native D3 tiler directly,
+  reject non-finite, reversed, and out-of-bounds leaf coordinates, and prove
+  the shorthand path remains deterministic. Public types and exact-subpath
+  documentation expose the callable without adding it to ordinary chart
+  bundles.
 
 ### F-058 — Radar checks ignored polar labels
 
@@ -2326,6 +2354,22 @@ Each entry records:
   semantic values collide, leave `type: 'none'` outer scales unprojected, map
   values through each cell's scale and formatter, and suppress a guide when
   its authoritative cell projector rejects the value.
+- Controlled-authority follow-up: brush, handle, and continuous-cursor hosts
+  previously left the proposed terminal geometry painted when the application
+  rejected a synchronous change. They now repaint from the accepted signal
+  snapshot after pointer, touch, keyboard, pin, and clear proposals. Focused
+  tests assert both the proposed callback value and the restored visible and
+  ARIA state without relying on a framework rerender.
+- Inversion follow-up: a continuous cursor with an omitted `valueAt` now uses
+  the resolved invertible scale. Explicit callbacks still override that
+  default, and an explicit `undefined` keeps coordinate-only behavior for a
+  scale-less axis. Missing or non-invertible scales fail with an axis-specific
+  diagnostic. This removes repeated scale-copy/range/invert glue while keeping
+  direct control available.
+- Accessibility follow-up: `zoomX({ keyboard: false })` no longer advertises
+  an application role, keyboard shortcuts, or instructions and keeps its
+  surface out of sequential focus order. Destroying an active zoom reports
+  `onActiveChange(false)` so application state cannot outlive its owner.
 - Documentation verification:
   the interaction, legend, accessibility, installation, reference, and bundle
   guides document the controlled boundary, categorical series-identity rule,
@@ -3976,6 +4020,15 @@ Each entry records:
   installation, and comparison pages render the released copy and package
   names without the former `0.0.0` warning. Keep future public documentation
   deployments coupled to the npm release they describe.
+- `0.6.5` follow-up: after a long unreleased main sequence, the README,
+  installation, overview, comparison, and marketing copy again described APIs
+  newer than the latest public artifact without saying so. They now label
+  repository documentation as unreleased `main`, identify `0.6.5` as the
+  latest published pre-alpha, and point release consumers to documentation at
+  its verified release source revision. React Native guidance uses exact mark
+  and scene imports for Metro; the optional `/universal` barrel is documented
+  as a portability convenience with a wider module graph rather than the
+  default native import.
 
 ### F-138 — The publisher pin predated explicit trust permissions
 
@@ -4654,6 +4707,12 @@ Each entry records:
   validation, endpoint resolution, proportional widths, stable identity,
   immutable node/link values, lineage, and final-pixel child-mark composition.
   Consumers that do not import the subpath do not retain `d3-sankey`.
+- Alignment follow-up: `align` keeps the four concise string shorthands and
+  also accepts a D3-compatible node aligner. The callback sees the private D3
+  node whose `data` retains the immutable source row, resolved key, and source
+  index. Its integer layer result is validated before layout. This preserves
+  arbitrary D3 column policy without exporting Sankey's mutable output as an
+  intermediate chart DTO.
 - Shared decomposition: force and Sankey layouts now share private graph
   accessor, key, duplicate, and endpoint validation. Sankey's ordinary child
   marks use a renderer-neutral resolved-child composition helper, and its
@@ -4680,6 +4739,9 @@ Each entry records:
   published exports, declarations, runtime, framework consumers, and
   production isolation pass; every non-Sankey bundle fixture rejects both the
   adapter and `d3-sankey`.
+- Callable verification passes a native D3 aligner directly, covers custom
+  valid and invalid layers, preserves source identity, exports complete public
+  types, and executes from the packed exact subpath.
 
 ### F-165 — Incidental D3 utilities leaked into core paths
 
@@ -4695,7 +4757,8 @@ Each entry records:
 - Decision: implement nearest-point, quantile, and compact tick math locally.
   Keep `d3-array` inside numeric-bin transforms, `d3-shape` inside stack,
   polar, and curve features, and `d3-geo` inside geo features as normal
-  dependencies, not peers or caller-supplied `use` capabilities. Keep
+  isolated implementation dependencies. Public algorithm choices may still
+  accept D3-compatible callables when that preserves useful composition. Keep
   `d3-hexbin` behind the exact `@tanstack/charts/spatial/hexbin` subpath. Keep
   the tree-shakable D3 curve bridges available from the root, universal, and
   exact barrels. Compact scales declare no production D3 dependency.
@@ -5678,9 +5741,11 @@ Each entry records:
 - Decision: refresh the comparison evidence whenever a change advances one of
   its tracked TanStack inputs, and run `pnpm benchmark:check` alongside the
   workspace validation before release.
-- Verification: the 60-case comparison baseline records revision `e4b5249`
-  and package version 0.6.2, the canonical comparison page identifies the same
-  revision, and `pnpm benchmark:check` passes locally and in pull-request CI.
+- Verification: the workspace `ci` target now depends directly on
+  `benchmark-check`, which runs the source-provenance and size comparison in
+  the same validation graph as type, package, bundle, adapter, and catalog
+  gates. Baseline changes remain explicit and require attribution before the
+  tracked file or canonical comparison page is refreshed.
 
 ### F-198 — Union-valued axes rejected configured D3 scales
 
@@ -5935,10 +6000,13 @@ Each entry records:
   keys, attaches node and link lineage, resolves native link coordinates, and
   returns padded quantitative domains. It has no resolved-layout dependency:
   the force topology is data-space work, and ordinary scales map the settled
-  rows after chart layout. Keep arbitrary custom forces, asynchronous ticking,
-  dragging, reheating, and controlled live positions in an application-owned
-  D3 controller rather than expanding this static transform into a second
-  runtime.
+  rows after chart layout. Named `custom` descriptors may return any
+  D3-compatible force from a factory receiving the private node/link clones,
+  immutable resolved endpoint keys, and a node-key accessor. Factories may
+  configure those records but cannot add, remove, or reorder them. Keep
+  asynchronous ticking, dragging, reheating, and controlled live positions in
+  an application-owned D3 controller rather than expanding this static
+  transform into a second runtime.
 - Verification: focused transform tests cover raw-row field and accessor
   channels, all six force descriptors, authored order, private-clone
   immutability, exact node and link lineage, endpoint identity, padded and empty
@@ -5953,6 +6021,15 @@ Each entry records:
   complete responsive, theme, and revision browser matrix renders 13 nodes, 15
   links, and 13 labels with clean diagnostics, visual parity, and 100% geometry
   similarity.
+- Custom-force follow-up: focused tests pass `forceRadial` directly, exercise
+  factory context and authored order, reject duplicate or empty names, foreign
+  node lookup, invalid return values, and collection mutation, and preserve
+  deterministic synchronous settlement and source immutability. Packed exact-
+  subpath declarations and runtime cover the D3-compatible factory types.
+  Working-clone types omit D3-owned node and link fields before adding the D3
+  datum contracts, and runtime coverage verifies that conflicting raw-row
+  fields do not leak into private simulation state while raw output fields stay
+  intact.
 
 ### F-206 — Tidy trees hid hierarchy construction in definition builders
 
@@ -6159,13 +6236,14 @@ Each entry records:
   independent extents. That indirection hid the model, provided no grouped or
   confidence-band path, discarded aggregate source lineage, and would have to
   be transposed again for a horizontal regression.
-- Decision: add `linearRegressionY` and `linearRegressionX` composite marks.
-  They accept raw numeric or temporal observations, use a centered
-  least-squares fit, optionally group by `z`, sample the observed semantic
-  independent domain, and render an optional Student-t fitted-mean confidence
-  band plus the fitted line through ordinary area and line children. Only the
-  line owns interaction. `ci` defaults to `0.95`, `0` suppresses the band, and
-  `samples` defaults to 64 semantic vertices rather than renderer pixels.
+- Decision: add eager `linearRegressionRowsY` and `linearRegressionRowsX`
+  transforms for the centered least-squares fit, optional grouping, observed
+  semantic-domain sampling, aggregate lineage, and optional Student-t fitted-
+  mean confidence bounds. `linearRegressionY` and `linearRegressionX` reuse
+  those rows, then render the confidence band and fitted line through ordinary
+  area and line children. Only the line owns interaction. `ci` defaults to
+  `0.95`, `0` suppresses the band, and `samples` defaults to 64 semantic
+  vertices rather than renderer pixels.
 - Shared boundary: the two orientations reuse `lineX`/`lineY`, `areaX`/`areaY`,
   composite namespacing and motion, first-seen grouping, and aggregate lineage.
   The centered fit, residual error, Student-t quantile, and confidence interval
@@ -6180,6 +6258,11 @@ Each entry records:
   The isolated regression fixture is 22.47 KiB gzip, a 5.82 KiB increment under
   its 6 KiB cap. Exact package and universal declarations, packed runtime,
   documentation, full TypeScript, and bundle-isolation gates pass.
+- Preparation follow-up: direct transforms accept field or context accessors,
+  preserve precise independent and group types, omit presentation-only mark
+  keys, do not mutate input, and match both convenience-mark orientations
+  exactly. Tests cover invalid groups, degeneracy, temporal output, lineage,
+  and root, universal, and exact-subpath exports.
 
 ### F-214 — Marginal views required reserved-domain manual plotting
 
@@ -6412,9 +6495,12 @@ Each entry records:
   preserved automatic label margins, exact scale/point types, and explicit
   rejection of focus/state behavior. The isolated decorative line adds 0.38
   KiB gzip over the ordinary static line within its 0.5 KiB cap and tree-shakes
-  the point-ownership lookup. Ordinary root line fixtures retain none of the
-  decorator, scene-filter, or ownership modules; the packed exact-subpath
-  runtime, declaration, production-isolation, and React Native gates pass.
+  the decorator and scene-filter modules. The collision-safe ownership kernel
+  is now shared by ordinary focus, retargeting, and mark-state resolution, so
+  host fixtures retain that compact kernel without retaining optional
+  decorator, composite, view, spatial, or network families. Packed exact-
+  subpath runtime, declaration, production-isolation, and React Native gates
+  pass.
 - Linked-view follow-up: both Case 87 line layers now use the decorator, so 16
   dots are the only outer-scene interaction points. View identity remains on
   the dots for grouped x focus, while the decorative lines still contribute
@@ -6425,6 +6511,13 @@ Each entry records:
   interaction points while preserving label geometry and automatic margins.
   Its focused test rejects label-owned points; quick browser conformance passes
   visual and strict-type gates at 98.5% diagnostic geometry similarity.
+- Bundle-audit follow-up: focus filtering and stable-key assignment reuse one
+  ownership lookup and one structural-key index. This removes 563 minified and
+  113–143 gzip bytes from every comparison case while preserving exact key,
+  descendant, point-owner, interaction, mark-root, and retarget semantics. The
+  remaining ordinary-line growth versus the older comparison baseline is
+  attributable to shared scene, renderer, focus, state, and behavior contracts;
+  metafile review found no optional layout or algorithm leakage.
 
 ### F-219 — Responsive bar caps required guessed plot widths
 
@@ -6550,6 +6643,13 @@ Each entry records:
   static SVG and below its reviewed 5.25 KiB cap. All 1,529 unit tests pass,
   along with packed exports, declarations, runtime consumers, and seven
   framework adapter package gates.
+- Ownership follow-up: child `cursor` and `pointer` settings were not adopted
+  by composed scenes and could therefore disappear silently. `composeViews`
+  and `viewGrid` now reject both beside the already rejected child host
+  controls; one outer definition owns pointer and cursor lifecycle. Direct
+  renderer tests exercise the same Cartesian-plus-donut composition through
+  static SVG, Canvas, motion SVG, and React Native, including transforms,
+  clips, paint kinds, namespaces, presentation points, updates, and settling.
 
 ### F-223 — Remote catalog modules could not participate in SSR
 
@@ -6900,13 +7000,16 @@ Each entry records:
   threshold generators, and consumer-called service methods as classified
   exceptions.
 - Verification: the public callback inventory follows exported types,
-  functions, and values into nested package-owned types. It classifies all 769
+  functions, and values into nested package-owned types. It classifies all 778
   reachable callable surfaces, including Alpine's external directive protocol,
   Vue's nested tooltip slot, live-chart interaction and presentation service
   handles, cursor controllers and host sessions, focus-guide resolvers, the
   presentation-points listener callback, and viewport mapping. It
   rejects unclassified surfaces, callback arity above two, or a non-object
-  second callback argument. Escaped TypeScript unique-symbol member names are
+  second callback argument. Dot-layout and force factories use one context
+  object; D3-compatible treemap, Sankey, and returned force protocols remain
+  classified upstream exceptions; the force factory's `nodeKey` lookup is a
+  consumer-called service handle. Escaped TypeScript unique-symbol member names are
   canonicalized without rewriting authored string members. Failed parameter
   type resolution preserves the parameter as a fail-closed non-object bag
   instead of aborting or undercounting the inventory. Focused core, React
@@ -7216,3 +7319,102 @@ Each entry records:
 - Follow-up verification: the five custom view files remain absent, their
   generated wrappers import `catalogCase` from the native definitions, and
   `react-catalog:sync --check` reports all 110 cases in sync.
+
+### F-248 — Release finalization targeted the workflow head
+
+- Status: monitoring
+- Severity: high
+- Owner: Tooling/Release
+- Observed in: pre-release audit after publishing `0.6.5` without its repository
+  tag or GitHub release
+- Friction: later pending changesets made the release-status step treat an
+  already-published coordinated version as unfinished. If finalization did run,
+  the workflow created the missing tag at the current workflow commit, which
+  could include unreleased main work rather than the revision that produced the
+  npm provenance.
+- Decision: distinguish packages still missing from npm from later pending
+  changesets. When every coordinated package version is published, derive its
+  source revision from the matching Changesets release merge in full history,
+  expose that revision in release status, and create the tag at that exact
+  commit. Ordinary pushes with later changesets remain inert. An explicit
+  `recover_published_release` workflow dispatch skips the Changesets action and
+  lets a previously interrupted finalization recover independently.
+- Verification: release-status tests cover incomplete publication, ordinary
+  pending releases, all-published recovery, historical revision discovery, and
+  invalid history. The live audit resolves `v0.6.5` to
+  `4f5653e552ddf1d268b49da7046199f11b2be44c`, not current main, and a local
+  annotated tag points there. Release-version synchronization owns only the
+  mutable latest-release declaration in the comparison page; immutable
+  release-source evidence stays pinned to its measured commit. The remote tag
+  and GitHub release remain absent; publishing them triggers external release
+  automation and requires a separate explicit release action.
+
+### F-249 — Interrupted motion retained stale presentation state
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: repeated keyed exits and composite path updates during the
+  pre-release runtime audit
+- Friction: interrupting an exit could leave its old DOM node, presentation
+  identity, and runtime track behind. A later live node with the same identity
+  could then inherit stale state. Composite parent/child motion merging also
+  preserved ordinary timing fields while dropping `timing.path`, changing an
+  authored rolling-path policy at the composition boundary.
+- Decision: cancelled exits remove the exact stale DOM element, prune its
+  presentation identity and runtime state, preserve a live replacement, and
+  publish the cleaned presentation snapshot. Composite motion merging carries
+  the complete path timing policy with the other inherited fields.
+- Verification: focused regressions cover live replacements, cleanup and
+  republished points, composite path inheritance, and twenty updates spaced ten
+  milliseconds apart. The full focused motion matrix passes across ordinary
+  and composed geometry.
+
+### F-250 — Host accessibility diverged across render paths
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: static prerender, adapter renderer, mounted DOM, React Native,
+  and keyboard-disabled zoom comparison
+- Friction: each host independently decided whether its SVG belonged in the
+  tab order. A free cursor could be focusable after mount but not in prerendered
+  output, while adapter and mounted paths could disagree. React Native sticky
+  activation invoked the same toggle path twice. Keyboard-disabled zoom still
+  advertised application keyboard semantics it did not implement.
+- Decision: centralize host tab-index resolution and use it from prerender,
+  adapter, renderer, and mounted-host paths. Free cursors have the same initial
+  focusability as their hydrated host. Native activation toggles sticky state
+  once. A keyboard-disabled zoom exposes neither application role, shortcuts,
+  nor instructions and is removed from sequential keyboard focus.
+- Verification: adapter, renderer, cursor, zoom, and React Native regressions
+  cover prerender/mount parity, authored tab-index precedence, free cursors,
+  one activation callback, disabled-keyboard semantics, and teardown. Focused
+  accessibility and composition suites pass with root TypeScript.
+
+### F-251 — The architecture made D3 implementation sound mandatory
+
+- Status: resolved
+- Severity: medium
+- Owner: Documentation
+- Observed in: harmonizing the custom-authoring audit with compact transforms,
+  resolved layouts, and optional D3 callables
+- Friction: governing and marketing copy treated direct D3 implementation as
+  the goal rather than interoperability. That contradicted smaller row-based
+  utilities already justified by lineage, immutability, bundle isolation, or a
+  clearer application contract, and made those useful primitives sound like
+  architectural exceptions.
+- Decision: govern on D3 compatibility and composition. Direct granular D3
+  inputs and compact TanStack primitives are peers. Local utilities must state
+  their supported semantics, determinism, lineage, and edge cases and must not
+  claim exact D3 behavior. Where D3 already expresses an author-controlled
+  algorithm choice, accept its callable shape without forcing authors through a
+  string-only abstraction. Keep optional algorithms and convenience barrels
+  independently tree-shakeable.
+- Verification: the product charter, README, marketing, acknowledgements,
+  scale guide, bundle guide, overview, and framework docs use the compatibility
+  boundary. `createDotLayout`, eager Box and regression rows, callable treemap
+  tilers and Sankey aligners, and named D3 force factories exercise both local
+  and direct-D3 sides of the same grammar. Focused type/runtime tests and packed
+  exact-subpath consumers pass without adding these algorithms to ordinary
+  imports.

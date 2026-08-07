@@ -90,10 +90,17 @@ describe('continuousCursor', () => {
   it('owns pointer preview, touch pinning, leave, and scoped Escape without rerendering previews', () => {
     const onChange = vi.fn()
     let renderCount = 0
+    let accepted: ContinuousCursorPosition<number, number> | null = null
     const container = document.createElement('div')
     document.body.append(container)
-    const host = mountChart(container, {
-      definition: numericDefinition(null, onChange),
+    let host: ChartHost<(typeof rows)[number], number, number>
+    const options = () => ({
+      definition: numericDefinition(accepted, (next, reason) => {
+        onChange(next, reason)
+        if (reason.type === 'preview') return
+        accepted = next
+        host.update(options())
+      }),
       width: 480,
       height: 240,
       ariaLabel: 'Interactive free cursor',
@@ -101,6 +108,7 @@ describe('continuousCursor', () => {
         renderCount += 1
       },
     })
+    host = mountChart(container, options())
     const scene = host.getScene()
     const surface = container.querySelector<SVGSVGElement>('svg.ts-chart')!
     const overlay = cursorOverlay(container)
@@ -212,32 +220,23 @@ describe('continuousCursor', () => {
       }),
     )
     expect(overlay.dataset.visible).toBe('false')
-    expect(renderCount).toBe(1)
+    expect(renderCount).toBe(5)
 
     host.destroy()
     expect(container.childElementCount).toBe(0)
     container.remove()
   })
 
-  it('lets synchronous controlled rejection override optimistic pinning', () => {
+  it('restores accepted cursor paint when a terminal proposal is rejected without an update', () => {
     const container = document.createElement('div')
     document.body.append(container)
     const onChange = vi.fn()
-    const options = () => ({
-      definition: numericDefinition(null, reject),
+    const host = mountChart(container, {
+      definition: numericDefinition(null, onChange),
       width: 480,
       height: 240,
       ariaLabel: 'Controlled free cursor',
     })
-    let host: ChartHost<(typeof rows)[number], number, number>
-    function reject(
-      next: ContinuousCursorPosition<number, number> | null,
-      reason: ContinuousCursorChange<number, number>,
-    ) {
-      onChange(next, reason)
-      if (reason.type === 'commit') host.update(options())
-    }
-    host = mountChart(container, options())
     const scene = host.getScene()
     const surface = container.querySelector<SVGSVGElement>('svg.ts-chart')!
     const overlay = cursorOverlay(container)
@@ -253,6 +252,28 @@ describe('continuousCursor', () => {
     expect(onChange.mock.calls.at(-1)?.[1]).toMatchObject({ type: 'commit' })
     expect(overlay.dataset.visible).toBe('false')
     expect(overlay.dataset.pinned).toBe('false')
+
+    host.destroy()
+    container.remove()
+  })
+
+  it('keeps an accepted pin when clearing is rejected without an update', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const onChange = vi.fn()
+    const host = mountChart(container, {
+      definition: numericDefinition({ x: 5, y: 5 }, onChange),
+      width: 480,
+      height: 240,
+      ariaLabel: 'Pinned free cursor',
+    })
+    const overlay = cursorOverlay(container)
+
+    overlay.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+    expect(onChange.mock.calls.at(-1)?.[1]).toMatchObject({ type: 'clear' })
+    expect(overlay.dataset.visible).toBe('true')
+    expect(overlay.dataset.pinned).toBe('true')
 
     host.destroy()
     container.remove()

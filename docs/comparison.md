@@ -3,10 +3,10 @@ title: Compare Libraries
 description: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
 ---
 
-TanStack Charts `0.6.5` is a pre-alpha release. Its results on this page measure
-the current workspace source and pinned competitor packages. This comparison
-records architectural differences and reproducible evidence without turning
-untested behavior into a checkmark.
+The latest published TanStack Charts release is `0.6.5`, while this page
+measures unreleased workspace source against pinned competitor packages. This
+comparison records architectural differences and reproducible evidence without
+turning untested behavior into a checkmark.
 
 ## Tested versions
 
@@ -170,11 +170,11 @@ Canvas composition while keeping D3 and state ownership explicit.
 
 ## Evidence and reproduction
 
-- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.6.5/benchmarks/comparison/README.md)
+- [Standard comparison protocol](https://github.com/TanStack/charts/blob/4f5653e552ddf1d268b49da7046199f11b2be44c/benchmarks/comparison/README.md)
 - [Current tracked bundle baseline](https://github.com/TanStack/charts/blob/main/benchmarks/comparison/bundle-baseline.json)
-- [0.6.5 tagged bundle baseline](https://github.com/TanStack/charts/blob/v0.6.5/benchmarks/comparison/bundle-baseline.json)
-- [Stress protocol](https://github.com/TanStack/charts/blob/v0.6.5/benchmarks/comparison/stress/README.md)
-- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.6.5/benchmarks/conformance/README.md)
+- [Pinned release-source bundle baseline](https://github.com/TanStack/charts/blob/4f5653e552ddf1d268b49da7046199f11b2be44c/benchmarks/comparison/bundle-baseline.json)
+- [Stress protocol](https://github.com/TanStack/charts/blob/4f5653e552ddf1d268b49da7046199f11b2be44c/benchmarks/comparison/stress/README.md)
+- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/4f5653e552ddf1d268b49da7046199f11b2be44c/benchmarks/conformance/README.md)
 
 ```sh
 pnpm benchmark:size

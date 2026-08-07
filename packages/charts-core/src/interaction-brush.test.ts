@@ -9,7 +9,6 @@ import {
 } from './interaction-signal'
 import { createChartScene, defineChart } from './scene'
 import { renderChartSvg } from './svg'
-import type { ChartHost } from './dom-types'
 
 const dates = [
   new Date('2024-01-01T00:00:00.000Z'),
@@ -129,23 +128,17 @@ describe('brushX', () => {
     container.remove()
   })
 
-  it('lets a synchronous controlled rejection win over keyboard paint', () => {
+  it('restores the accepted range after an unaccepted keyboard proposal', () => {
     const container = document.createElement('div')
     document.body.append(container)
     const value = range(dates[0], dates[2])
-    const chartOptions = () => ({
-      definition: definition(value, reject),
+    const onChange = vi.fn()
+    const host = mountChart(container, {
+      definition: definition(value, onChange),
       width: 480,
       height: 240,
       ariaLabel: 'Controlled date range',
     })
-    let host: ChartHost<(typeof rows)[number], Date, number>
-    const onChange = vi.fn()
-    function reject(next: BrushRange<Date>, reason: BrushXChange<Date>) {
-      onChange(next, reason)
-      host.update(chartOptions())
-    }
-    host = mountChart(container, chartOptions())
     const start = container.querySelector<SVGRectElement>(
       '[data-chart-brush-handle="start"]',
     )
@@ -269,6 +262,7 @@ describe('brushX', () => {
     dispatchTouch(overlay, 'touchmove', [nextMoved], [nextMoved])
     dispatchTouch(overlay, 'touchend', [], [nextMoved])
     expect(onChange.mock.calls.at(-1)?.[1]).toMatchObject({ type: 'commit' })
+    expect(rectGeometry(selection)).toEqual(externalGeometry)
 
     host.destroy()
     container.remove()

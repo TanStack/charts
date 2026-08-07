@@ -9,6 +9,7 @@ import type {
   SankeyDiagramContext,
   SankeyLink,
   SankeyNode,
+  SankeyNodeAligner,
 } from './network-sankey'
 import type {
   ChartMark,
@@ -184,6 +185,8 @@ describe('sankeyDiagram', () => {
   it('matches the configured D3 Sankey kernel exactly', () => {
     let resolved: SankeyDiagramContext<NodeRow, LinkRow, string> | undefined
     const size = { width: 400, height: 260 }
+    const nativeAligner: SankeyNodeAligner<NodeRow, LinkRow, string> =
+      sankeyLeft
     const definition = defineChart({
       marks: [
         sankeyDiagram({
@@ -193,7 +196,7 @@ describe('sankeyDiagram', () => {
           source: 'from',
           target: 'to',
           value: 'amount',
-          align: 'left',
+          align: nativeAligner,
           nodeSort: (left, right) => left.data.order - right.data.order,
           nodeWidth: 14,
           nodePadding: 22,
@@ -409,6 +412,17 @@ describe('sankeyDiagram', () => {
     expect(() => sankeyDiagram({ ...base, iterations: 1.5 })).toThrow(
       'iterations must be a nonnegative integer',
     )
+
+    const invalidAlignment = sankeyDiagram({
+      ...base,
+      align: () => Number.NaN,
+    })
+    expect(() =>
+      createChartRuntime().render(
+        defineChart({ marks: [invalidAlignment], guides: false, margin: 0 }),
+        { width: 320, height: 200 },
+      ),
+    ).toThrow('align result must be an integer between 0 and 2')
 
     const invalidSize = sankeyDiagram({ ...base, nodeWidth: 500 })
     expect(() =>

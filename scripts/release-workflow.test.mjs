@@ -59,12 +59,17 @@ describe('release workflow contract', () => {
 
   test('uses the standard push-to-main Changesets flow', () => {
     assert.match(workflow, /push:\s*\n\s+branches:\s*\n\s+- main/)
-    assert.doesNotMatch(workflow, /workflow_run:|workflow_dispatch:|tags:/)
+    assert.doesNotMatch(workflow, /workflow_run:|tags:/)
+    assert.match(
+      workflow,
+      /workflow_dispatch:\s*\n\s+inputs:\s*\n\s+recover_published_release:/,
+    )
     assert.match(workflow, /group:\s*charts-release-\${{ github\.ref }}/)
     assert.match(workflow, /cancel-in-progress:\s*false/)
 
     const release = job('release')
     assert.match(release, /github\.repository_owner == 'TanStack'/)
+    assert.match(release, /github\.ref == 'refs\/heads\/main'/)
     assert.match(release, /contents:\s*write/)
     assert.match(release, /id-token:\s*write/)
     assert.match(release, /pull-requests:\s*write/)
@@ -117,6 +122,8 @@ describe('release workflow contract', () => {
       release,
       /if:\s*steps\.changesets\.outputs\.hasChangesets == 'false'/,
     )
+    assert.match(release, /inputs\.recover_published_release == true/)
+    assert.match(release, /ALLOW_PUBLISHED_RECOVERY:/)
     assert.match(release, /node scripts\/release-status\.mjs/)
     assert.match(release, /if:\s*steps\.status\.outputs\.create_tag == 'true'/)
     assert.match(release, /git tag -a "\$RELEASE_TAG" "\$RELEASE_REVISION"/)

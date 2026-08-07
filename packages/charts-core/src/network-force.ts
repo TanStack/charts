@@ -54,17 +54,70 @@ export interface ForceYDescriptor<TNode> {
   readonly strength?: ForceNumericValue<TNode>
 }
 
-export type ForceDescriptor<TNode, TLink> =
+/** A private node clone initialized and mutated only by the D3 simulation. */
+export type ForceLayoutWorkingNode<TNode extends object> = Omit<
+  TNode,
+  keyof SimulationNodeDatum
+> &
+  SimulationNodeDatum
+
+/** A private link clone whose endpoints may be resolved by a D3 link force. */
+export type ForceLayoutWorkingLink<
+  TNode extends object,
+  TLink extends object,
+> = Omit<TLink, keyof SimulationLinkDatum<ForceLayoutWorkingNode<TNode>>> &
+  SimulationLinkDatum<ForceLayoutWorkingNode<TNode>>
+
+export interface ForceFactoryContext<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey = ChartKey,
+> {
+  readonly nodes: ForceLayoutWorkingNode<TNode>[]
+  readonly links: ForceLayoutWorkingLink<TNode, TLink>[]
+  readonly nodeKeys: readonly TNodeKey[]
+  readonly sourceKeys: readonly ChartKey[]
+  readonly targetKeys: readonly ChartKey[]
+  readonly nodeKey: (
+    node: ForceLayoutWorkingNode<TNode>,
+    index: number,
+  ) => TNodeKey
+}
+
+export type ForceFactory<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey = ChartKey,
+> = (
+  context: ForceFactoryContext<TNode, TLink, TNodeKey>,
+) => Force<ForceLayoutWorkingNode<TNode>, ForceLayoutWorkingLink<TNode, TLink>>
+
+export interface ForceFactoryDescriptor<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey = ChartKey,
+> {
+  readonly type: 'custom'
+  readonly name: string
+  readonly create: ForceFactory<TNode, TLink, TNodeKey>
+}
+
+export type ForceDescriptor<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey = ChartKey,
+> =
   | ForceLinkDescriptor<TLink>
   | ForceManyBodyDescriptor<TNode>
   | ForceCenterDescriptor
   | ForceCollideDescriptor<TNode>
   | ForceXDescriptor<TNode>
   | ForceYDescriptor<TNode>
+  | ForceFactoryDescriptor<TNode, TLink, TNodeKey>
 
 export interface ForceLayoutOptions<
-  TNode,
-  TLink,
+  TNode extends object,
+  TLink extends object,
   TNodeKey extends TransformValue<TNode, ChartKey> = TransformValue<
     TNode,
     ChartKey
@@ -86,7 +139,11 @@ export interface ForceLayoutOptions<
   /** Fraction of each positional span added to both domain ends. Defaults to 0.2. */
   readonly domainPadding?: number
   /** Forces are initialized and applied in authored order. */
-  readonly forces: readonly ForceDescriptor<TNode, TLink>[]
+  readonly forces: readonly ForceDescriptor<
+    TNode,
+    TLink,
+    Extract<TransformValueOutput<TNode, TNodeKey>, ChartKey>
+  >[]
 }
 
 export type ForceLayoutNode<TNode> = Omit<
@@ -169,12 +226,11 @@ type EndpointKey<TDatum, TValue> = Extract<
   ChartKey
 >
 
-type WorkingNode<TNode extends object> = TNode & SimulationNodeDatum
-type WorkingLink<TNode extends object, TLink extends object> = Omit<
-  TLink,
-  'source' | 'target'
-> &
-  SimulationLinkDatum<WorkingNode<TNode>>
+type WorkingNode<TNode extends object> = ForceLayoutWorkingNode<TNode>
+type WorkingLink<
+  TNode extends object,
+  TLink extends object,
+> = ForceLayoutWorkingLink<TNode, TLink>
 
 /** Settles a deterministic, synchronous D3 force simulation over private clones. */
 export function forceLayout<
@@ -215,18 +271,27 @@ export function forceLayout<
   const domainPadding = options.domainPadding ?? 0.2
   assertNonnegativeInteger(iterations, 'iterations')
   assertNonnegativeFinite(domainPadding, 'domainPadding')
-  assertUniqueForceTypes(options.forces)
+  assertUniqueForces(options.forces)
 
   const { nodeKeys, sourceKeys, targetKeys, nodeIndexes } = graph
 
-  const workingNodes = nodeData.map((node) => ({
-    ...node,
-  })) as WorkingNode<TNode>[]
-  const workingLinks = linkData.map((link, index) => ({
-    ...link,
-    source: sourceKeys[index] as ChartKey,
-    target: targetKeys[index] as ChartKey,
-  })) as WorkingLink<TNode, TLink>[]
+  const workingNodes = nodeData.map(createWorkingNode)
+  const workingLinks = linkData.map((link, index) =>
+    createWorkingLink<TNode, TLink>(
+      link,
+      sourceKeys[index] as ChartKey,
+      targetKeys[index] as ChartKey,
+    ),
+  )
+  const originalWorkingNodes = [...workingNodes]
+  const originalWorkingLinks = [...workingLinks]
+  const factoryContext = createForceFactoryContext(
+    workingNodes,
+    workingLinks,
+    nodeKeys as readonly EndpointKey<TNode, TNodeKey>[],
+    sourceKeys as readonly ChartKey[],
+    targetKeys as readonly ChartKey[],
+  )
   const preparedForces = options.forces.map((descriptor, index) => ({
     descriptor,
     force: createForce(
@@ -236,17 +301,22 @@ export function forceLayout<
       linkData,
       nodeKeys as readonly ChartKey[],
       workingLinks,
+      factoryContext,
     ),
   }))
+  assertWorkingCollection(workingNodes, originalWorkingNodes, 'node')
+  assertWorkingCollection(workingLinks, originalWorkingLinks, 'link')
   const simulation = forceSimulation<
     WorkingNode<TNode>,
     WorkingLink<TNode, TLink>
   >(workingNodes).stop()
 
   preparedForces.forEach(({ descriptor, force }, index) => {
-    simulation.force(`${index}:${descriptor.type}`, force)
+    simulation.force(`${index}:${forceName(descriptor)}`, force)
   })
   simulation.tick(iterations)
+  assertWorkingCollection(workingNodes, originalWorkingNodes, 'node')
+  assertWorkingCollection(workingLinks, originalWorkingLinks, 'link')
 
   const outputNodes = workingNodes.map((node, index) => {
     const datum = nodeData[index] as TNode
@@ -305,15 +375,55 @@ export function forceLayout<
   }
 }
 
-function createForce<TNode extends object, TLink extends object>(
-  descriptor: ForceDescriptor<TNode, TLink>,
+const simulationNodeFields = ['x', 'y', 'vx', 'vy', 'fx', 'fy'] as const
+
+function createWorkingNode<TNode extends object>(
+  node: TNode,
+): WorkingNode<TNode> {
+  const working = { ...node } as Record<string, unknown>
+  delete working.index
+  for (const field of simulationNodeFields) {
+    const value = working[field]
+    const validFixedValue = (field === 'fx' || field === 'fy') && value === null
+    if (
+      value !== undefined &&
+      !validFixedValue &&
+      (typeof value !== 'number' || !Number.isFinite(value))
+    ) {
+      delete working[field]
+    }
+  }
+  return working as WorkingNode<TNode>
+}
+
+function createWorkingLink<TNode extends object, TLink extends object>(
+  link: TLink,
+  source: ChartKey,
+  target: ChartKey,
+): WorkingLink<TNode, TLink> {
+  const working = {
+    ...link,
+    source,
+    target,
+  } as Record<string, unknown>
+  delete working.index
+  return working as WorkingLink<TNode, TLink>
+}
+
+function createForce<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey,
+>(
+  descriptor: ForceDescriptor<TNode, TLink, TNodeKey>,
   descriptorIndex: number,
   nodes: readonly TNode[],
   links: readonly TLink[],
   nodeKeys: readonly ChartKey[],
   workingLinks: WorkingLink<TNode, TLink>[],
+  factoryContext: ForceFactoryContext<TNode, TLink, TNodeKey>,
 ): Force<WorkingNode<TNode>, WorkingLink<TNode, TLink>> {
-  const name = `forces[${descriptorIndex}] (${descriptor.type})`
+  const name = `forces[${descriptorIndex}] (${forceName(descriptor)})`
   switch (descriptor.type) {
     case 'link': {
       const force = forceLink<WorkingNode<TNode>, WorkingLink<TNode, TLink>>(
@@ -390,6 +500,15 @@ function createForce<TNode extends object, TLink extends object>(
       if (strength !== undefined) force.strength(strength)
       return force
     }
+    case 'custom': {
+      const force = descriptor.create(factoryContext)
+      if (typeof force !== 'function') {
+        throw new TypeError(
+          `forceLayout: ${name}.create must return a D3-compatible force`,
+        )
+      }
+      return force
+    }
   }
 }
 
@@ -412,12 +531,39 @@ function forceValue<TDatum, TWorkingDatum>(
   return (_datum, index) => values[index] as number
 }
 
-function assertUniqueForceTypes<TNode, TLink>(
-  descriptors: readonly ForceDescriptor<TNode, TLink>[],
-) {
+function assertUniqueForces<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey,
+>(descriptors: readonly ForceDescriptor<TNode, TLink, TNodeKey>[]) {
   const types = new Set<string>()
+  const names = new Set<string>()
   descriptors.forEach((descriptor, index) => {
     const type = (descriptor as { readonly type?: unknown }).type
+    if (type === 'custom') {
+      const custom = descriptor as ForceFactoryDescriptor<
+        TNode,
+        TLink,
+        TNodeKey
+      >
+      if (typeof custom.name !== 'string' || !custom.name.trim()) {
+        throw new TypeError(
+          `forceLayout: forces[${index}].name must be a nonempty string`,
+        )
+      }
+      if (typeof custom.create !== 'function') {
+        throw new TypeError(
+          `forceLayout: forces[${index}] (${custom.name}).create must be a function`,
+        )
+      }
+      if (names.has(custom.name)) {
+        throw new TypeError(
+          `forceLayout: duplicate force name "${custom.name}"`,
+        )
+      }
+      names.add(custom.name)
+      return
+    }
     if (
       type !== 'link' &&
       type !== 'manyBody' &&
@@ -431,8 +577,67 @@ function assertUniqueForceTypes<TNode, TLink>(
     if (types.has(type)) {
       throw new TypeError(`forceLayout: duplicate force type "${type}"`)
     }
+    if (names.has(type)) {
+      throw new TypeError(`forceLayout: duplicate force name "${type}"`)
+    }
     types.add(type)
+    names.add(type)
   })
+}
+
+function forceName<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey,
+>(descriptor: ForceDescriptor<TNode, TLink, TNodeKey>): string {
+  return descriptor.type === 'custom' ? descriptor.name : descriptor.type
+}
+
+function createForceFactoryContext<
+  TNode extends object,
+  TLink extends object,
+  TNodeKey extends ChartKey,
+>(
+  nodes: WorkingNode<TNode>[],
+  links: WorkingLink<TNode, TLink>[],
+  nodeKeys: readonly TNodeKey[],
+  sourceKeys: readonly ChartKey[],
+  targetKeys: readonly ChartKey[],
+): ForceFactoryContext<TNode, TLink, TNodeKey> {
+  const keyByNode = new Map(
+    nodes.map((node, index) => [node, nodeKeys[index] as TNodeKey] as const),
+  )
+  return Object.freeze({
+    nodes,
+    links,
+    nodeKeys: Object.freeze([...nodeKeys]),
+    sourceKeys: Object.freeze([...sourceKeys]),
+    targetKeys: Object.freeze([...targetKeys]),
+    nodeKey: (node: WorkingNode<TNode>) => {
+      const key = keyByNode.get(node)
+      if (key === undefined) {
+        throw new TypeError(
+          'forceLayout: custom force requested the key of a foreign node',
+        )
+      }
+      return key
+    },
+  })
+}
+
+function assertWorkingCollection<TValue>(
+  values: readonly TValue[],
+  expected: readonly TValue[],
+  name: 'node' | 'link',
+): void {
+  if (
+    values.length !== expected.length ||
+    values.some((value, index) => value !== expected[index])
+  ) {
+    throw new TypeError(
+      `forceLayout: custom force changed the private ${name} collection`,
+    )
+  }
 }
 
 function assertNonnegativeInteger(value: number, name: string) {

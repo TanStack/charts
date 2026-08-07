@@ -55,6 +55,7 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/difference.ts:DifferenceXOptions', 'x1 x2 y'],
     ['@tanstack/charts:src/difference.ts:DifferenceYOptions', 'x y1 y2'],
+    ['@tanstack/charts:src/dodge.ts:CreateDotLayoutOptions', 'resolve'],
     [
       '@tanstack/charts:src/dom-types.ts:ChartHostCommonOptions',
       'measureText onFocusChange onFocusGroupChange onRender onSelect renderSvg',
@@ -178,6 +179,8 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/network-force.ts:ForceXDescriptor', 'strength x'],
     ['@tanstack/charts:src/network-force.ts:ForceYDescriptor', 'strength y'],
+    ['@tanstack/charts:src/network-force.ts:ForceFactory', '$call'],
+    ['@tanstack/charts:src/network-force.ts:ForceFactoryDescriptor', 'create'],
     [
       '@tanstack/charts:src/network-sankey.ts:SankeyDiagramOptions',
       'inset linkKey marks motion nodePadding nodeWidth',
@@ -517,6 +520,14 @@ const callbackInventory = {
     ['@tanstack/charts:src/geo.ts:GeoProjectionDescriptor', 'type.$return'],
     ['@tanstack/charts:src/geo.ts:GeoProjectionInput', '$call.$return'],
     [
+      '@tanstack/charts:src/hierarchy-treemap.ts:TreemapSharedOptions',
+      'method',
+    ],
+    ['@tanstack/charts:src/hierarchy-treemap.ts:TreemapTile', '$call'],
+    ['@tanstack/charts:src/network-force.ts:ForceFactory', '$call.$return'],
+    ['@tanstack/charts:src/network-sankey.ts:SankeyDiagramOptions', 'align'],
+    ['@tanstack/charts:src/network-sankey.ts:SankeyNodeAligner', '$call'],
+    [
       '@tanstack/charts:src/transform-bin-time.ts:TimeIntervalLike',
       'floor offset range',
     ],
@@ -617,6 +628,7 @@ const callbackInventory = {
       '@tanstack/charts:src/polar-mark-internal.ts:PolarResolvedScale',
       'map ticks',
     ],
+    ['@tanstack/charts:src/network-force.ts:ForceFactoryContext', 'nodeKey'],
     [
       '@tanstack/charts:src/polar-mark-internal.ts:PolarMarkRenderContext',
       'color',

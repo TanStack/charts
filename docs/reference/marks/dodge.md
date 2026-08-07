@@ -22,7 +22,7 @@ dot(rows, {
 })
 ```
 
-The layouts are also exported from `@tanstack/charts` and
+The layouts and `createDotLayout` are also exported from `@tanstack/charts` and
 `@tanstack/charts/universal`.
 
 ## Signatures
@@ -37,15 +37,44 @@ function dodgeX(options?: {
   anchor?: 'left' | 'middle' | 'right'
   padding?: number
 }): DodgeXLayout
+
+function createDotLayout(options: {
+  axis: 'x' | 'y'
+  anchor: ChartValue
+  resolve(context: {
+    chart: ChartBounds
+    measuredPositions: readonly number[]
+    radii: readonly number[]
+  }): readonly number[]
+}): DotLayout
 ```
 
 `dodgeY` defaults to `bottom`; `dodgeX` defaults to `left`. `padding` is the
 empty pixel distance between neighboring circle edges and defaults to `1`.
 It must be finite and nonnegative.
 
-The public type surface includes `DodgeOptions`, `DodgeXOptions`,
-`DodgeYOptions`, `DodgeXAnchor`, `DodgeYAnchor`, `DodgeXLayout`, and
-`DodgeYLayout`.
+The public type surface also includes `CreateDotLayoutOptions`, `DotLayout`,
+`DotLayoutResolveContext`, `DodgeOptions`, `DodgeXAnchor`, `DodgeYAnchor`,
+`DodgeXOptions`, and `DodgeYOptions`.
+
+## Custom layouts
+
+Use `createDotLayout` when placement depends on final plot bounds but is not a
+dodge. The resolver receives the preserved channel's scaled pixel positions
+and the final radii in materialized valid-row order. Return one finite
+cross-axis pixel position per materialized row. `dot` validates the result and
+retains the authored `anchor` as the derived interaction-point value.
+
+```ts
+const rowLayout = createDotLayout({
+  axis: 'y',
+  anchor: 'rows',
+  resolve: ({ chart, measuredPositions, radii }) =>
+    measuredPositions.map(
+      (_position, index) => chart.y + radii[index] + index * 12,
+    ),
+})
+```
 
 ## Scale ownership
 

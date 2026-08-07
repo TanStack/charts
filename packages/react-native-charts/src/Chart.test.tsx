@@ -6,8 +6,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { dot } from '@tanstack/charts/dot'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { lineY } from '@tanstack/charts/line'
+import { pie, polar, radialArc } from '@tanstack/charts/polar'
 import { defineChart } from '@tanstack/charts/scene'
 import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
+import { composeViews, fill, inset, layer } from '@tanstack/charts/view'
 import { bandX } from '@tanstack/charts/band'
 import { barY } from '@tanstack/charts/bar'
 import { crosshair } from '@tanstack/charts/crosshair'
@@ -198,6 +200,130 @@ describe('React Native Chart', () => {
     expect(markup).toContain('<circle')
     expect(markup).toContain('#2563eb')
     expect(markup).not.toContain('var(--')
+  })
+
+  it('renders translated and clipped heterogeneous composed views', () => {
+    const arcs = pie(
+      [
+        { id: 'complete', value: 7 },
+        { id: 'remaining', value: 3 },
+      ],
+      { value: 'value' },
+    )
+    const composed = composeViews({
+      id: 'native-dashboard',
+      views: {
+        main: defineChart({
+          marks: [
+            dot(
+              [
+                { id: 'first', x: 1, y: 2 },
+                { id: 'second', x: 2, y: 8 },
+              ],
+              { id: 'observations', x: 'x', y: 'y', key: 'id' },
+            ),
+          ],
+          x: { scale: scaleLinear().domain([1, 2]) },
+          y: { scale: scaleLinear().domain([0, 10]) },
+          guides: false,
+          margin: 0,
+        }),
+        summary: defineChart({
+          marks: [
+            polar({
+              marks: [
+                radialArc(arcs, {
+                  id: 'summary-arcs',
+                  key: 'id',
+                  innerRadius: ({ radius }) => radius * 0.55,
+                }),
+              ],
+            }),
+          ],
+          x: null,
+          y: null,
+          guides: false,
+          margin: 0,
+        }),
+      },
+      layout: layer(
+        fill('main'),
+        inset('summary', {
+          relativeTo: 'main',
+          anchor: 'top-right',
+          width: 120,
+          height: 120,
+          offset: 8,
+        }),
+      ),
+    })
+
+    const markup = renderToStaticMarkup(
+      <Chart
+        definition={composed}
+        accessibilityLabel="Composed dashboard"
+        width={400}
+        height={280}
+      />,
+    )
+
+    expect(markup).toContain('transform="translate(0 0)"')
+    expect(markup).toContain('transform="translate(272 8)"')
+    expect(markup).toContain('clip-path="url(#')
+    expect(markup.match(/<clipPath/g)?.length).toBeGreaterThanOrEqual(2)
+    expect(markup).toContain('width="120" height="120"')
+    expect(markup).toContain('<circle')
+    expect(markup).toContain('<path')
+  })
+
+  it('toggles an unbound sticky tooltip once per accessibility activation', async () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      await React.act(() => {
+        root.render(
+          <Chart
+            definition={definition}
+            accessibilityLabel="Revenue"
+            testID="sticky-keyboard-chart"
+            width={480}
+            height={260}
+          />,
+        )
+      })
+      const chart = container.querySelector<HTMLElement>(
+        '[data-testid="sticky-keyboard-chart"]',
+      )
+      if (!chart) throw new Error('Expected sticky keyboard chart')
+
+      await React.act(() => {
+        chart.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+      })
+      expect(
+        container.querySelector('[data-accessibility-role="summary"]'),
+      ).toBeNull()
+
+      await React.act(() => {
+        chart.dispatchEvent(
+          new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+        )
+      })
+      expect(
+        container.querySelector('[data-accessibility-role="summary"]'),
+      ).not.toBeNull()
+
+      await React.act(() => {
+        chart.dispatchEvent(
+          new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }),
+        )
+      })
+      expect(
+        container.querySelector('[data-accessibility-role="summary"]'),
+      ).toBeNull()
+    } finally {
+      await React.act(() => root.unmount())
+    }
   })
 
   it('renders and activates controlled keyed selection through native input', async () => {
@@ -1318,6 +1444,8 @@ describe('React Native Chart', () => {
         controller,
         mode: 'free',
         pin: true,
+        x: { valueAt: () => undefined },
+        y: { valueAt: () => undefined },
       },
     })
     const onFocusChange = vi.fn()
@@ -1424,6 +1552,8 @@ describe('React Native Chart', () => {
         use: cursorHost,
         controller,
         mode: 'free',
+        x: { valueAt: () => undefined },
+        y: { valueAt: () => undefined },
       },
     })
     const container = document.createElement('div')
@@ -1625,7 +1755,13 @@ describe('React Native Chart', () => {
       defineChart({
         marks: [crosshair({ x: true, y: true })],
         guides: false,
-        cursor: { use: cursorHost, controller, mode: 'free' },
+        cursor: {
+          use: cursorHost,
+          controller,
+          mode: 'free',
+          x: { valueAt: () => undefined },
+          y: { valueAt: () => undefined },
+        },
       })
     const container = document.createElement('div')
     const root = createRoot(container)
@@ -1711,7 +1847,13 @@ describe('React Native Chart', () => {
     const methodDefinition = defineChart({
       marks: [crosshair({ x: true, y: true })],
       guides: false,
-      cursor: { use: cursorHost, controller, mode: 'free' },
+      cursor: {
+        use: cursorHost,
+        controller,
+        mode: 'free',
+        x: { valueAt: () => undefined },
+        y: { valueAt: () => undefined },
+      },
     })
     const container = document.createElement('div')
     const root = createRoot(container)
@@ -1743,7 +1885,13 @@ describe('React Native Chart', () => {
     const bound = defineChart({
       marks: [crosshair({ x: true, y: true })],
       guides: false,
-      cursor: { use: cursorHost, controller, mode: 'free' },
+      cursor: {
+        use: cursorHost,
+        controller,
+        mode: 'free',
+        x: { valueAt: () => undefined },
+        y: { valueAt: () => undefined },
+      },
     })
     const unbound = defineChart({
       marks: [crosshair({ x: true, y: true })],

@@ -2,12 +2,77 @@ import { scaleBand, scaleLinear } from 'd3-scale'
 import { morley } from '@charts-poc/demo-data/morley'
 import type { MorleyRow } from '@charts-poc/demo-data/morley'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { boxX, boxY } from './box'
+import { boxRows, boxX, boxY } from './box'
 import type { BoxDatum, BoxSummaryDatum } from './box'
 import { createChartScene, defineChart } from './scene'
 import type { ChartSpecDatum, SceneNode, SceneRect } from './types'
 
 describe('box marks', () => {
+  it('exposes the same semantic rows used by the convenience mark', () => {
+    const rows = [
+      { id: 'a', group: 'A', value: 0 },
+      { id: 'b', group: 'A', value: 0 },
+      { id: 'c', group: 'A', value: 0 },
+      { id: 'd', group: 'A', value: 0 },
+      { id: 'e', group: 'A', value: 10 },
+      { id: 'f', group: 'B', value: 4 },
+    ]
+    const before = rows.map((row) => ({ ...row }))
+    const prepared = boxRows(rows, {
+      category: 'group',
+      value: 'value',
+    })
+    const scene = createChartScene(
+      defineChart({
+        marks: [boxY(rows, { x: 'group', y: 'value', key: 'id' })],
+        x: { scale: scaleBand<string> },
+        y: { scale: scaleLinear },
+      }),
+      { width: 480, height: 280 },
+    )
+
+    expect(scene.points.map(({ datum }) => semanticBoxDatum(datum))).toEqual(
+      prepared,
+    )
+    expect(prepared.every((row) => !('markKey' in row))).toBe(true)
+    expect(rows).toEqual(before)
+    prepared.forEach((row) => {
+      row.sourceIndexes.forEach((sourceIndex, index) => {
+        expect(row.source[index]).toBe(rows[sourceIndex])
+      })
+    })
+  })
+
+  it('uses transform accessors and omits invalid categories and observations', () => {
+    interface Row {
+      group: 'A' | 'B' | null
+      value: number | null
+    }
+    const rows: Row[] = [
+      { group: 'A', value: 1 },
+      { group: 'A', value: 3 },
+      { group: 'B', value: Number.NaN },
+      { group: 'B', value: null },
+      { group: null, value: 5 },
+    ]
+    const prepared = boxRows(rows, {
+      category: ({ datum, index, data }) => {
+        expect(data[index]).toBe(datum)
+        return datum.group
+      },
+      value: ({ datum }) => datum.value,
+    })
+
+    expectTypeOf(prepared).toEqualTypeOf<BoxDatum<Row, 'A' | 'B'>[]>()
+    expect(prepared).toHaveLength(1)
+    expect(prepared[0]).toMatchObject({
+      kind: 'summary',
+      category: 'A',
+      count: 2,
+      sourceIndexes: [0, 1],
+    })
+  })
+
   it('summarizes Morley rows once with exact Tukey statistics and lineage', () => {
     const definition = defineChart({
       marks: [
@@ -336,6 +401,32 @@ function summaryValues<TDatum>(datum: BoxSummaryDatum<TDatum>) {
     datum.whiskerLow,
     datum.whiskerHigh,
   ]
+}
+
+function semanticBoxDatum<TDatum, TCategory extends string | number | Date>(
+  datum: BoxDatum<TDatum, TCategory>,
+): BoxDatum<TDatum, TCategory> {
+  if (datum.kind === 'outlier') {
+    return {
+      kind: datum.kind,
+      category: datum.category,
+      value: datum.value,
+      source: datum.source,
+      sourceIndexes: datum.sourceIndexes,
+    }
+  }
+  return {
+    kind: datum.kind,
+    category: datum.category,
+    q1: datum.q1,
+    median: datum.median,
+    q3: datum.q3,
+    whiskerLow: datum.whiskerLow,
+    whiskerHigh: datum.whiskerHigh,
+    count: datum.count,
+    source: datum.source,
+    sourceIndexes: datum.sourceIndexes,
+  }
 }
 
 function flatten(nodes: readonly SceneNode[]): SceneNode[] {

@@ -3,9 +3,11 @@ title: Installation
 description: Install TanStack Charts, compact scales, a framework adapter, and optional D3 capabilities.
 ---
 
-TanStack Charts `0.6.5` publishes the framework-agnostic core and every adapter
-listed below. Install the core and compact scales in each application that
-authors chart definitions:
+These docs follow unreleased `main`. The latest published pre-alpha is TanStack
+Charts `0.6.5`; use its
+[release-source docs](https://github.com/TanStack/charts/tree/4f5653e552ddf1d268b49da7046199f11b2be44c/docs)
+for the exact surface. Install the core and compact scales in each application
+that authors chart definitions:
 
 ```sh
 pnpm add @tanstack/charts @tanstack/charts-scales
@@ -119,11 +121,12 @@ pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/react-native-charts 
 ```
 
 Run `bundle exec pod install` from `ios/` after adding it to a bare iOS
-application. Import shared definitions through the universal entry and choose
-the native host explicitly:
+application. Metro does not reliably remove unused exports from a large barrel,
+so import exact chart capabilities and choose the native host explicitly:
 
 ```tsx
-import { defineChart, lineY } from '@tanstack/charts/universal'
+import { lineY } from '@tanstack/charts/line'
+import { defineChart } from '@tanstack/charts/scene'
 import { Chart } from '@tanstack/react-native-charts'
 import { tooltip } from '@tanstack/react-native-charts/tooltip'
 ```

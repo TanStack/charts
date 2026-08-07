@@ -104,7 +104,7 @@ responsive layout passes use fresh private graph records.
 | `target`      | `TransformValue<TLink, ChartKey>`                   | Required      | Target-node identity                                         |
 | `value`       | `TransformValue<TLink, number>`                     | Required      | Nonnegative link weight                                      |
 | `linkKey`     | `TransformValue<TLink, ChartKey>`                   | Inferred      | Stable link identity                                         |
-| `align`       | `left \| right \| center \| justify`                | `justify`     | Horizontal node-layer alignment                              |
+| `align`       | `SankeyAlignment \| SankeyNodeAligner`              | `justify`     | Built-in shorthand or D3-compatible node aligner             |
 | `nodeSort`    | `SankeyNodeComparator<TNode> \| null`               | D3 order      | Same-column ordering; `null` preserves input order           |
 | `linkSort`    | `SankeyLinkComparator<TNode, TLink> \| null`        | D3 order      | Link ordering inside each node; `null` preserves input order |
 | `nodeWidth`   | `number \| (chart: ChartBounds) => number`          | `24`          | Positive final-pixel node width                              |
@@ -119,6 +119,24 @@ Responsive `nodeWidth`, `nodePadding`, and `inset` callbacks receive the final
 `ChartBounds`. Insets may be one number or separate `top`, `right`, `bottom`,
 and `left` values. The remaining extent must fit the node width and have a
 positive height.
+
+`align` also accepts a native D3 Sankey aligner or compatible callable:
+
+```ts
+import { sankeyLeft } from 'd3-sankey'
+
+sankeyDiagram({
+  // graph channels and marks
+  align: sankeyLeft,
+})
+```
+
+The callable receives a private `SankeyAlignmentNode` and the total column
+count. Its raw node row is `node.data`; D3 topology fields such as `depth`,
+`height`, `sourceLinks`, and `targetLinks` are available on the same record.
+It must synchronously return an integer from `0` through `columnCount - 1`.
+The mark validates that result and creates fresh working records for every
+layout pass, so do not retain or mutate them.
 
 ## Child marks
 
@@ -166,7 +184,8 @@ sort, tooltip, and motion callbacks can reach the original row through
 
 ## Types
 
-The exact entry exports `sankeyDiagram`, `SankeyAlignment`, `SankeyInset`,
+The exact entry exports `sankeyDiagram`, `SankeyAlignment`,
+`SankeyAlignmentNode`, `SankeyNodeAligner`, `SankeyInset`,
 `SankeyLayoutValue`, `SankeyEndpointContext`, `SankeyNodeContext`,
 `SankeyLinkContext`, `SankeyNode`, `SankeyLink`, `SankeyDiagramContext`,
 `SankeyNodeComparator`, `SankeyLinkComparator`, and `SankeyDiagramOptions`.

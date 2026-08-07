@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { scaleLinear } from 'd3-scale'
 import { createChartAdapter, resolveChartAdapterLayout } from './adapter'
 import { createChartRendererAdapter } from './adapter-renderer'
+import { createChartCursor, cursorHost } from './cursor'
 import { lineY } from './line'
 import { defineChart } from './scene'
 import { createSvgChartRenderer } from './svg-surface'
@@ -18,6 +19,13 @@ const definition = defineChart({
   y: { scale: scaleLinear().domain([0, 4]) },
 })
 const focusDisabledDefinition = defineChart(definition, { focus: false })
+const freeCursorDefinition = defineChart(definition, {
+  cursor: {
+    use: cursorHost,
+    controller: createChartCursor<number, number>(),
+    mode: 'free',
+  },
+})
 
 describe('chart adapter controller', () => {
   it('mounts a prerendered dynamic definition', () => {
@@ -142,6 +150,43 @@ describe('chart adapter controller', () => {
 
     expect(container.querySelector('svg')?.getAttribute('tabindex')).toBe('-1')
     expect(container.querySelector('[data-ts-focus-layer]')).toBeNull()
+    adapter.destroy()
+  })
+
+  it('keeps a free cursor SVG prerender out of the tab order', () => {
+    const adapter = createChartAdapter({
+      definition: freeCursorDefinition,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Free cursor revenue',
+      tabIndex: 4,
+    })
+    const container = document.createElement('div')
+    container.innerHTML = adapter.prerender()
+
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('role')).toBe('img')
+    expect(svg?.getAttribute('tabindex')).toBe('-1')
+    adapter.destroy()
+  })
+
+  it('keeps a free cursor renderer prerender out of the tab order', () => {
+    const adapter = createChartRendererAdapter({
+      definition: freeCursorDefinition,
+      renderer: createSvgChartRenderer<(typeof rows)[number], number, number>(
+        renderChartSvg,
+      ),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Free cursor revenue',
+      tabIndex: 4,
+    })
+    const container = document.createElement('div')
+    container.innerHTML = adapter.prerender()
+
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('role')).toBe('img')
+    expect(svg?.getAttribute('tabindex')).toBe('-1')
     adapter.destroy()
   })
 

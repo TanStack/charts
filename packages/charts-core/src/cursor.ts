@@ -341,7 +341,7 @@ function resolveCursorAxis<
     const options = binding.mode === 'free' ? binding[axis] : undefined
     value = options?.valueAt
       ? options.valueAt({ axis, scene, position, normalized })
-      : (state.value?.[axis] as TXValue | TYValue | undefined)
+      : invertFreeCursorAxis(scene, axis, position)
   }
 
   return { position, normalized, value } as {
@@ -349,6 +349,41 @@ function resolveCursorAxis<
     normalized: number
     value?: TAxis extends 'x' ? TXValue : TYValue
   }
+}
+
+function invertFreeCursorAxis<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+  TAxis extends 'x' | 'y',
+>(
+  scene: ChartScene<TDatum, TXValue, TYValue>,
+  axis: TAxis,
+  position: number,
+): TAxis extends 'x' ? TXValue : TYValue {
+  const scale = scene.scales[axis]
+  if (!scale || scale.type === 'none') {
+    throw new TypeError(
+      `A free chart cursor requires an ${axis} scale or an explicit ${axis}.valueAt callback`,
+    )
+  }
+  if (!scale.invert) {
+    throw new TypeError(
+      `A free chart cursor requires an invertible ${axis} scale or an explicit ${axis}.valueAt callback`,
+    )
+  }
+  const value = scale.invert(position)
+  if (
+    (typeof value === 'number' && !Number.isFinite(value)) ||
+    (value instanceof Date && !Number.isFinite(value.getTime()))
+  ) {
+    throw new TypeError(
+      `The free chart cursor ${axis} scale inversion returned an invalid value`,
+    )
+  }
+  return (
+    value instanceof Date ? new Date(value.getTime()) : value
+  ) as TAxis extends 'x' ? TXValue : TYValue
 }
 
 function cursorValues<TXValue extends ChartValue, TYValue extends ChartValue>(

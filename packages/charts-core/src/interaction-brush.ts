@@ -413,7 +413,7 @@ function createBrushXControl({
       source: 'pointer',
       target,
     })
-    moveTo(control === changedControl ? next : control.range)
+    moveToControlledRange()
     finishGesture()
   }
 
@@ -442,9 +442,11 @@ function createBrushXControl({
       source,
       target,
     })
-    const displayed = control === changedControl ? restored : control.range
-    if (cancellingTouch) cancelledTouchRange = cloneRange(displayed)
-    moveTo(displayed)
+    const displayed = control?.range
+    if (displayed && cancellingTouch) {
+      cancelledTouchRange = cloneRange(displayed)
+    }
+    if (displayed) moveTo(displayed)
     finishGesture()
   }
 
@@ -497,6 +499,10 @@ function createBrushXControl({
     ])
     moving = false
     decorate(range)
+  }
+
+  function moveToControlledRange() {
+    if (control) moveTo(control.range)
   }
 
   function decorate(range = control?.range) {
@@ -610,7 +616,7 @@ function createBrushXControl({
       source: 'keyboard',
       target: handleTarget,
     })
-    moveTo(control === changedControl ? next : control.range)
+    moveToControlledRange()
   }
 }
 
