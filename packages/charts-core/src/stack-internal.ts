@@ -1,6 +1,5 @@
 import {
   stack as d3Stack,
-  stackOffsetDiverging,
   stackOffsetExpand,
   stackOffsetNone,
   stackOffsetSilhouette,
@@ -81,7 +80,7 @@ export function stackExtents(
         ? stackOffsetSilhouette
         : options.offset === 'wiggle'
           ? stackOffsetWiggle
-          : stackOffsetDiverging
+          : stackOffsetDivergingZeroAware
   const generator = d3Stack<Record<string, number>, string>()
     .keys(identities)
     .value((row, key) => row[key] ?? 0)
@@ -109,6 +108,60 @@ export function stackExtents(
     })
   })
   return output
+}
+
+/**
+ * d3's `stackOffsetDiverging` assigns `[0, 0]` to a cell whose value is exactly zero, which
+ * parks it on the axis instead of on its stack's running baseline. That is invisible for bars
+ * but not for area and line marks, whose paths interpolate between adjacent positions: the band
+ * collapses to the axis and back, cutting through the layers below.
+ *
+ * Zero-valued cells here instead keep the baseline of the side their own series occupies, so the
+ * band pinches flat against its neighbours. Non-finite values are left to d3's original branch so
+ * marks still see them as gaps.
+ */
+function stackOffsetDivergingZeroAware(
+  series: Series<any, any>[],
+  order: Iterable<number>,
+): void {
+  const n = series.length
+  if (n === 0) return
+
+  // A zero has no sign of its own, so take the side from the series it belongs to. Only an
+  // exclusively negative series stacks downward; positive, mixed and all-zero series stack up.
+  const negativeSide = series.map((values) => {
+    let negative = false
+    let positive = false
+    for (const [start, end] of values) {
+      const dy = end - start
+      if (dy < 0) negative = true
+      else if (dy > 0) positive = true
+    }
+    return negative && !positive
+  })
+
+  const indices = [...order]
+  const m = series[indices[0]!]!.length
+  for (let j = 0; j < m; j += 1) {
+    let yp = 0
+    let yn = 0
+    for (const i of indices) {
+      const d = series[i]![j]!
+      const dy = d[1] - d[0]
+      if (dy > 0) {
+        d[0] = yp
+        d[1] = yp += dy
+      } else if (dy < 0) {
+        d[1] = yn
+        d[0] = yn += dy
+      } else if (dy === 0) {
+        d[0] = d[1] = negativeSide[i] ? yn : yp
+      } else {
+        d[0] = 0
+        d[1] = dy // non-finite, preserved as in d3
+      }
+    }
+  }
 }
 
 function resolveAnchorFraction(options: Readonly<StackOptions>) {
