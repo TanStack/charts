@@ -55,6 +55,6 @@ const definition = (input: ConformanceInput) =>
 export const mount = tanstackMount(definition, 'World population bubble map', {
   format: ({ datum }) =>
     'properties' in datum && 'population' in datum.properties
-      ? `${datum.properties['Country Name']} · ${datum.properties.population.toLocaleString()} people`
+      ? `${datum.properties['Country Name']} · ${datum.properties.population.toLocaleString('en-US')} people`
       : 'World land',
 })

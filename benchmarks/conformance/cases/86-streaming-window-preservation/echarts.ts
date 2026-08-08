@@ -84,7 +84,7 @@ export const mount: ConformanceMount = (container, input) => {
       state.viewport = streamingViewportForMode(state.rows, state.viewportMode)
       const added = state.rows.at(-1)
       state.announcement = added
-        ? `Added ${formatStreamingDate(added.date)} (${added.downloads.toLocaleString()} downloads). ${
+        ? `Added ${formatStreamingDate(added.date)} (${added.downloads.toLocaleString('en-US')} downloads). ${
             visibleStreamingData([added], state.viewport).length
               ? 'The new sample is visible.'
               : `It is outside the locked viewport ending ${formatStreamingDate(state.viewport[1])}.`

@@ -116,7 +116,7 @@ function playbackOption(_input: ConformanceInput): PlaybackOption {
       max: playbackEnd.getTime(),
       axisLabel: {
         formatter(value: number) {
-          return new Date(value).toLocaleDateString(undefined, {
+          return new Date(value).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
             timeZone: 'UTC',

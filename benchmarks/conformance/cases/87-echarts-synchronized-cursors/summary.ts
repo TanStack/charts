@@ -76,8 +76,8 @@ export function updateSynchronizedSummary(
   const rows = selectSynchronizedCursorData(travelers, input.revision)
   const row = synchronizedCursorDatumAtDate(rows, date)
   summary.date.textContent = `${formatDate(date)}${pinned ? ' · pinned' : ''}`
-  summary.current.textContent = row?.current.toLocaleString() ?? '—'
-  summary.previous.textContent = row?.previous.toLocaleString() ?? '—'
+  summary.current.textContent = row?.current.toLocaleString('en-US') ?? '—'
+  summary.previous.textContent = row?.previous.toLocaleString('en-US') ?? '—'
   summary.root.dataset.date = synchronizedCursorDateKey(date)
   summary.root.dataset.pinned = String(pinned)
 }
@@ -125,7 +125,7 @@ function summaryOutput(document: Document, labelText: string, color: string) {
 }
 
 function formatDate(date: Date) {
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
