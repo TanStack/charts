@@ -107,7 +107,7 @@ export function editableEventDefinition(
         axis: {
           ticks: {
             format: (value: Date) =>
-              value.toLocaleDateString(undefined, {
+              value.toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 timeZone: 'UTC',
@@ -494,7 +494,7 @@ function editableSummaryText(end: Date) {
 }
 
 function compactDate(date: Date) {
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC',

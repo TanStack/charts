@@ -73,7 +73,7 @@ export function playbackDefinition(
       axis: {
         ticks: {
           format: (value) =>
-            value.toLocaleDateString(undefined, {
+            value.toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               timeZone: 'UTC',

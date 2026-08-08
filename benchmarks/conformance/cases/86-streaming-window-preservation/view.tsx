@@ -68,7 +68,7 @@ export function streamingWindowDefinition(
       axis: {
         ticks: {
           format: (value) =>
-            value.toLocaleDateString(undefined, {
+            value.toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               timeZone: 'UTC',
@@ -88,7 +88,7 @@ export function streamingWindowDefinition(
     tooltip: {
       use: tooltip,
       format: (point) =>
-        `${formatStreamingDate(point.datum.date)} · ${point.datum.downloads.toLocaleString()} downloads`,
+        `${formatStreamingDate(point.datum.date)} · ${point.datum.downloads.toLocaleString('en-US')} downloads`,
     },
   })
 }
@@ -158,7 +158,7 @@ const StreamingExample = forwardRef<
     setAppended(nextAppended)
     setAnnouncement(
       added
-        ? `Added ${formatStreamingDate(added.date)} (${added.downloads.toLocaleString()} downloads). ${
+        ? `Added ${formatStreamingDate(added.date)} (${added.downloads.toLocaleString('en-US')} downloads). ${
             visibleStreamingData([added], nextViewport).length
               ? 'The new sample is visible.'
               : `It is outside the locked viewport ending ${formatStreamingDate(nextViewport[1])}.`
