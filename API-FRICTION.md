@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-06
+Last updated: 2026-08-08
 
 ## Triage rule
 
@@ -3509,6 +3509,19 @@ Each entry records:
   direct prerequisites to have succeeded on a push to `main`. The workflow
   contract locks that condition so a validated main artifact cannot silently
   remain unpublished or publish after cancellation.
+- Schema-v5 follow-up: the Charts landing gallery still depended on
+  `@tanstack/react-charts-catalog` and kept one generated SVG per case in the
+  site repository. The catalog build now server-renders `preview: true` through
+  the generated React wrappers that import each canonical `tanstack.ts` case,
+  applies a portable light/dark image theme, and publishes one content-addressed
+  288 by 192 SVG per case. Each case declares the exact relative path, media
+  type, dimensions, bytes, and full SHA-256 digest, so tanstack.com can remain a
+  generic immutable-artifact consumer without a filename convention or chart
+  package dependency. The artifact validator rejects missing, extra, unsafe,
+  oversized, dimensionally invalid, or integrity-mismatched previews. Focused
+  manifest and preview tests pass, all 110 canonical preview renders pass, and
+  the complete artifact verifies 501 modules at 5.93 MiB plus 110 previews at
+  1.47 MiB.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 
@@ -6713,6 +6726,11 @@ Each entry records:
   boxes, catalog order, declarations, and package targets, rejects source files
   and private workspace dependencies, and passes the existing web and React
   Native package consumers.
+- Schema-v5 follow-up: the package remains the supported React SSR catalog, but
+  tanstack.com no longer needs it to own the landing gallery. Charts CI now uses
+  those generated wrappers at build time to publish manifest-declared static
+  previews beside the remote mount modules. The site consumes only the generic
+  immutable artifact; see F-119 for the publication and integrity contract.
 
 ### F-224 — Packed consumers masked a runtime D3 dependency
 

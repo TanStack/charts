@@ -12,6 +12,7 @@ import {
   catalogSourceClosureMetadata,
   createCatalogSourceModules,
 } from './catalog-source-files.mjs'
+import { validateCatalogPreviewSvg } from './catalog-preview.mjs'
 
 const rootDirectory = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -44,25 +45,21 @@ assert(
   `unexpected comparison counts ${JSON.stringify(summary.referenceCounts)}`,
 )
 
-const expectedFiles = new Set(['catalog.json', ...Object.keys(catalog.assets)])
+const expectedFiles = new Set([
+  'catalog.json',
+  ...Object.keys(catalog.assets),
+  ...catalog.cases.map((entry) => entry.preview.path),
+])
 const actualFiles = new Set(await listArtifactFiles(artifactDirectory))
 assertSetEqual(actualFiles, expectedFiles, 'catalog artifact files')
 
 for (const [assetPath, expected] of Object.entries(catalog.assets)) {
-  const content = await fs.readFile(
-    path.join(artifactDirectory, ...assetPath.split('/')),
-  )
-  assert(
-    content.byteLength === expected.bytes,
-    `${assetPath} has ${content.byteLength} bytes, expected ${expected.bytes}`,
-  )
-  assert(
-    createHash('sha256').update(content).digest('hex') === expected.sha256,
-    `${assetPath} does not match its sha256`,
-  )
+  await verifyArtifactFile(assetPath, expected)
 }
 
 for (const entry of catalog.cases) {
+  const preview = await verifyArtifactFile(entry.preview.path, entry.preview)
+  validateCatalogPreviewSvg(preview.toString('utf8'), entry.id)
   for (const sourcePath of Object.values(entry.code)) {
     const sourceFile = path.join(rootDirectory, ...sourcePath.split('/'))
     const stats = await fs.lstat(sourceFile)
@@ -107,8 +104,23 @@ for (const entry of catalog.cases) {
 }
 
 console.log(
-  `Verified schema v${catalog.schemaVersion} catalog artifact: ${summary.caseCount} cases, ${summary.assetCount} allowlisted modules, ${formatBytes(summary.assetBytes)}, revision ${catalog.revision}.`,
+  `Verified schema v${catalog.schemaVersion} catalog artifact: ${summary.caseCount} cases, ${summary.assetCount} allowlisted modules, ${summary.previewCount} previews, ${formatBytes(summary.totalBytes)}, revision ${catalog.revision}.`,
 )
+
+async function verifyArtifactFile(assetPath, expected) {
+  const content = await fs.readFile(
+    path.join(artifactDirectory, ...assetPath.split('/')),
+  )
+  assert(
+    content.byteLength === expected.bytes,
+    `${assetPath} has ${content.byteLength} bytes, expected ${expected.bytes}`,
+  )
+  assert(
+    createHash('sha256').update(content).digest('hex') === expected.sha256,
+    `${assetPath} does not match its sha256`,
+  )
+  return content
+}
 
 async function listArtifactFiles(directory) {
   const files = []

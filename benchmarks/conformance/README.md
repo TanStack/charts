@@ -96,21 +96,22 @@ The Vite application remains the local authoring surface at
 `http://localhost:5194/`. Production pages are native `tanstack.com` routes
 rendered from the generated artifact:
 
-| Route                                                      | Purpose                                    |
-| ---------------------------------------------------------- | ------------------------------------------ |
-| `/charts/catalog/`                                         | Searchable case catalog                    |
-| `/charts/catalog/all/`                                     | Every TanStack implementation              |
-| `/charts/catalog/charts/:id/`                              | One implementation, source, and embed code |
-| `/charts/catalog/embed/:id/`                               | Chrome-free responsive chart               |
-| `/charts/catalog/catalog.json`                             | Versioned content and runtime contract     |
-| `/charts/catalog/assets/<artifact-sha>/assets/<module>.js` | Allowlisted module from the exact revision |
+| Route                                                       | Purpose                                    |
+| ----------------------------------------------------------- | ------------------------------------------ |
+| `/charts/catalog/`                                          | Searchable case catalog                    |
+| `/charts/catalog/all/`                                      | Every TanStack implementation              |
+| `/charts/catalog/charts/:id/`                               | One implementation, source, and embed code |
+| `/charts/catalog/embed/:id/`                                | Chrome-free responsive chart               |
+| `/charts/catalog/catalog.json`                              | Versioned content and runtime contract     |
+| `/charts/catalog/assets/<artifact-sha>/assets/<module>.js`  | Allowlisted module from the exact revision |
+| `/charts/catalog/assets/<artifact-sha>/previews/<file>.svg` | Manifest-declared static gallery preview   |
 
 Append the exact `?compare=1` debug flag to the catalog, all-cases, or detail
 route to expose the reference implementation. Comparison modules remain
 separate roots and are marked `visibility: "debug"` in the artifact; the site
 must not serialize, preload, or import them without that flag.
 
-`catalog.json` schema version 3 contains:
+`catalog.json` schema version 5 contains:
 
 - the exact 40-character Charts revision, repository, and source path root;
 - the runtime `mount` export contract;
@@ -123,11 +124,37 @@ must not serialize, preload, or import them without that flag.
 - one TanStack module and one debug-only comparison module per case;
 - a byte count, SHA-256 digest, static imports, and dynamic imports for every
   allowlisted module.
+- one content-addressed 288 by 192 SVG preview per case, with its exact relative
+  path, media type, dimensions, byte count, and SHA-256 digest.
 
-Only the recursive ESM closure of the 200 case implementations is published.
-The standalone application entry, route code, raw-source wrappers, tests, CSS,
-and unrelated Vite output are excluded. The site resolves code from the
-recorded Charts revision rather than shipping raw-source JavaScript wrappers.
+Only the recursive ESM closure of the 220 case implementations and the 110
+declared previews are published. The standalone application entry, route code,
+raw-source wrappers, tests, CSS, and unrelated Vite output are excluded. The
+site resolves code from the recorded Charts revision rather than shipping
+raw-source JavaScript wrappers.
+
+Every case carries this preview contract:
+
+```ts
+{
+  preview: {
+    path: `previews/${caseId}-${sha256}.svg`,
+    mediaType: 'image/svg+xml',
+    width: 288,
+    height: 192,
+    bytes: number,
+    sha256: string,
+  }
+}
+```
+
+`sha256` is the full lowercase digest of the published bytes and is repeated in
+the filename. `path` is relative to the artifact root. Consumers resolve that
+declared path through the same immutable `catalog-dist` commit namespace as
+modules; they must not derive a preview filename from the case ID. The SVGs are
+rendered with `preview: true` from the generated React catalog wrappers, which
+import the canonical `tanstack.ts` cases, and carry self-contained light/dark
+theme variables for use as image assets.
 
 An embed accepts `theme=system|light|dark`, `height=120..1200`, and an optional
 numeric `revision`. Width always follows the iframe container:
@@ -188,8 +215,8 @@ directory names.
 
 Charts owns the examples and build. TanStack.com owns the page routes, chrome,
 SEO, security headers, and embed response. The repositories meet through a
-generated `catalog-dist` branch containing only `catalog.json` and its
-allowlisted `assets/*.js` closure.
+generated `catalog-dist` branch containing only `catalog.json`, its allowlisted
+`assets/*.js` closure, and the manifest-declared `previews/*.svg` files.
 
 ```sh
 # Build and validate the exact publication artifact
@@ -203,11 +230,11 @@ Main-branch CI publishes a new generated commit only after the static,
 package, bundle, comparison, and stress gates pass. Conformance runs
 independently as nightly rotating, weekly complete, manual, and labeled-PR
 monitoring. TanStack.com's existing content pipeline reads the generated branch
-and verifies the schema, revision, module allowlist, sizes, and hashes before
-serving it. It composes `site.assetBasePath`, the resolved `catalog-dist` commit
-SHA, and each relative module path into the immutable asset URL. A rollback
-points `catalog-dist` back to a prior generated commit; the catalog has no
-mutable runtime state.
+and verifies the schema, revision, complete file allowlist, sizes, and hashes
+before serving it. It composes `site.assetBasePath`, the resolved `catalog-dist`
+commit SHA, and each manifest-declared module or preview path into the immutable
+asset URL. A rollback points `catalog-dist` back to a prior generated commit;
+the catalog has no mutable runtime state.
 
 ## What is and is not equivalent
 

@@ -3,7 +3,7 @@ import path from 'node:path'
 import { loadCatalogSourceClosure } from '../benchmarks/conformance/catalog-loader.ts'
 import { catalogSourceClosureMetadata } from './catalog-source-files.mjs'
 
-export const catalogArtifactSchemaVersion = 4
+export const catalogArtifactSchemaVersion = 5
 export const catalogModuleContractVersion = 1
 export const catalogSourceRepository = 'tanstack/charts'
 export const catalogSourcePathRoot = 'benchmarks/conformance/'
@@ -11,8 +11,14 @@ export const catalogBasePath = '/charts/catalog/'
 export const catalogOrigin = 'https://tanstack.com'
 export const catalogArtifactFileLimit = 1_000
 export const catalogArtifactFileSizeLimit = 1024 * 1024
-export const catalogArtifactManifestSizeLimit = 1152 * 1024
-export const catalogArtifactTotalSizeLimit = 6 * 1024 * 1024
+export const catalogArtifactManifestSizeLimit = 1280 * 1024
+export const catalogModuleTotalSizeLimit = 6 * 1024 * 1024
+export const catalogPreviewFileSizeLimit = 256 * 1024
+export const catalogPreviewTotalSizeLimit = 2 * 1024 * 1024
+export const catalogArtifactTotalSizeLimit = 8 * 1024 * 1024
+export const catalogPreviewWidth = 288
+export const catalogPreviewHeight = 192
+export const catalogPreviewMediaType = 'image/svg+xml'
 export const catalogBuildGraphPath = '.vite/catalog-graph.json'
 export const catalogBuildGraphSchemaVersion = 1
 export const expectedCatalogImplementationCounts = Object.freeze({
@@ -26,6 +32,8 @@ const revisionPattern = /^[a-f0-9]{40}$/
 const caseIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const assetPathPattern =
   /^assets\/[A-Za-z0-9][A-Za-z0-9._-]*-[A-Za-z0-9_-]{5,}\.js$/
+const previewPathPattern =
+  /^previews\/([a-z0-9]+(?:-[a-z0-9]+)*)-([a-f0-9]{64})\.svg$/
 
 export async function createCatalogArtifact({
   cases,
@@ -33,6 +41,7 @@ export async function createCatalogArtifact({
   viteManifest,
   readAsset,
   sourceModules,
+  previewContents,
 }) {
   assertRevision(revision)
   validateCaseEntries(cases)
@@ -41,6 +50,7 @@ export async function createCatalogArtifact({
   const rootKeys = new Set()
   const publishedCases = []
   const publishedDatasets = new Map()
+  const previewAssetContents = new Map()
 
   for (const { metadata } of [...cases].sort(
     (left, right) => left.metadata.order - right.metadata.order,
@@ -82,6 +92,21 @@ export async function createCatalogArtifact({
         referenceEntryPath,
       ),
     }
+    const previewContent = previewContents.get(metadata.id)
+    assert(
+      ArrayBuffer.isView(previewContent) &&
+        previewContent.BYTES_PER_ELEMENT === 1,
+      `catalog preview generator did not return bytes for ${metadata.id}`,
+    )
+    const previewSha256 = createHash('sha256')
+      .update(previewContent)
+      .digest('hex')
+    const previewPath = `previews/${metadata.id}-${previewSha256}.svg`
+    assert(
+      !previewAssetContents.has(previewPath),
+      `multiple catalog cases emit ${previewPath}`,
+    )
+    previewAssetContents.set(previewPath, previewContent)
 
     publishedCases.push({
       ...metadata,
@@ -94,6 +119,14 @@ export async function createCatalogArtifact({
         reference: referenceSource,
       },
       authoredSource,
+      preview: {
+        path: previewPath,
+        mediaType: catalogPreviewMediaType,
+        width: catalogPreviewWidth,
+        height: catalogPreviewHeight,
+        bytes: previewContent.byteLength,
+        sha256: previewSha256,
+      },
       modules: {
         tanstack: {
           path: normalizeAssetPath(tanstackEntry.file),
@@ -118,6 +151,11 @@ export async function createCatalogArtifact({
       },
     })
   }
+
+  assert(
+    previewContents.size === publishedCases.length,
+    'catalog preview output contains cases outside the catalog',
+  )
 
   const assetKeys = new Set()
   for (const rootKey of rootKeys) {
@@ -196,7 +234,10 @@ export async function createCatalogArtifact({
     cases: publishedCases,
   }
 
-  return { assetContents, catalog }
+  return {
+    assetContents: new Map([...assetContents, ...previewAssetContents]),
+    catalog,
+  }
 }
 
 export function attachEmbedContract(catalog, embed) {
@@ -248,8 +289,8 @@ export function validateCatalogArtifactManifest(catalog) {
 
   const assetEntries = Object.entries(catalog.assets)
   assert(
-    assetEntries.length <= catalogArtifactFileLimit,
-    `catalog has ${assetEntries.length} assets; limit is ${catalogArtifactFileLimit}`,
+    assetEntries.length + catalog.cases.length + 1 <= catalogArtifactFileLimit,
+    `catalog has ${assetEntries.length + catalog.cases.length + 1} files; limit is ${catalogArtifactFileLimit}`,
   )
 
   let totalAssetBytes = 0
@@ -283,13 +324,15 @@ export function validateCatalogArtifactManifest(catalog) {
     }
   }
   assert(
-    totalAssetBytes <= catalogArtifactTotalSizeLimit,
-    `catalog assets total ${totalAssetBytes} bytes; limit is ${catalogArtifactTotalSizeLimit}`,
+    totalAssetBytes <= catalogModuleTotalSizeLimit,
+    `catalog modules total ${totalAssetBytes} bytes; limit is ${catalogModuleTotalSizeLimit}`,
   )
 
   const ids = new Set()
   const orders = new Set()
   const roots = new Set()
+  const previewPaths = new Set()
+  let totalPreviewBytes = 0
   const referenceCounts = {
     'observable-plot': 0,
     recharts: 0,
@@ -338,6 +381,13 @@ export function validateCatalogArtifactManifest(catalog) {
       isRecord(entry.authoredSource),
       `catalog case ${entry.id} has invalid authored source`,
     )
+    validatePreviewReference(entry.preview, entry.id)
+    assert(
+      !previewPaths.has(entry.preview.path),
+      `duplicate catalog preview path ${entry.preview.path}`,
+    )
+    previewPaths.add(entry.preview.path)
+    totalPreviewBytes += entry.preview.bytes
     validateCatalogSourceClosure(
       entry.authoredSource.tanstack,
       `catalog case ${entry.id} TanStack authored source`,
@@ -380,6 +430,14 @@ export function validateCatalogArtifactManifest(catalog) {
     roots.add(entry.modules.tanstack.path)
     roots.add(comparison.path)
   }
+  assert(
+    totalPreviewBytes <= catalogPreviewTotalSizeLimit,
+    `catalog previews total ${totalPreviewBytes} bytes; limit is ${catalogPreviewTotalSizeLimit}`,
+  )
+  assert(
+    totalAssetBytes + totalPreviewBytes <= catalogArtifactTotalSizeLimit,
+    `catalog artifact totals ${totalAssetBytes + totalPreviewBytes} bytes; limit is ${catalogArtifactTotalSizeLimit}`,
+  )
 
   const reachableAssets = new Set()
   const visit = (assetPath) => {
@@ -399,9 +457,46 @@ export function validateCatalogArtifactManifest(catalog) {
   return {
     assetBytes: totalAssetBytes,
     assetCount: assetEntries.length,
+    previewBytes: totalPreviewBytes,
+    previewCount: previewPaths.size,
+    totalBytes: totalAssetBytes + totalPreviewBytes,
+    fileCount: assetEntries.length + previewPaths.size + 1,
     caseCount: catalog.cases.length,
     referenceCounts,
   }
+}
+
+function validatePreviewReference(preview, caseId) {
+  assert(isRecord(preview), `catalog case ${caseId} has invalid preview`)
+  assertExactKeys(
+    preview,
+    ['path', 'mediaType', 'width', 'height', 'bytes', 'sha256'],
+    `catalog case ${caseId} preview`,
+  )
+  const match =
+    typeof preview.path === 'string'
+      ? preview.path.match(previewPathPattern)
+      : null
+  assert(
+    match?.[1] === caseId && match[2] === preview.sha256,
+    `catalog case ${caseId} has invalid preview path`,
+  )
+  assert(
+    preview.mediaType === catalogPreviewMediaType &&
+      preview.width === catalogPreviewWidth &&
+      preview.height === catalogPreviewHeight,
+    `catalog case ${caseId} has invalid preview contract`,
+  )
+  assert(
+    Number.isSafeInteger(preview.bytes) &&
+      preview.bytes > 0 &&
+      preview.bytes <= catalogPreviewFileSizeLimit,
+    `catalog case ${caseId} has invalid preview bytes`,
+  )
+  assert(
+    typeof preview.sha256 === 'string' && /^[a-f0-9]{64}$/.test(preview.sha256),
+    `catalog case ${caseId} has invalid preview sha256`,
+  )
 }
 
 export function serializeCatalogManifest(catalog) {

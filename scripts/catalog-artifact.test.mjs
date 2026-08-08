@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import {
   attachEmbedContract,
@@ -60,6 +61,12 @@ const contents = new Map([
   ['assets/shared-DDDD4444.js', bytes('shared')],
   ['assets/plot-runtime-EEEE5555.js', bytes('plot-runtime')],
 ])
+const previewContent = bytes(
+  '<svg class="ts-chart" viewBox="0 0 288 192"></svg>',
+)
+const previewSha256 = createHash('sha256').update(previewContent).digest('hex')
+const previewPath = `previews/01-line-${previewSha256}.svg`
+const previewContents = new Map([['01-line', previewContent]])
 const sourceText = {
   tanstack:
     "import { rows } from './data'\nimport { derive } from './transform'\nimport { mount } from '../../shared/mount'\nexport { derive, mount, rows }\n",
@@ -87,13 +94,13 @@ describe('catalog artifact', () => {
     const summary = validateCatalogArtifactManifest(catalog)
 
     expect([...artifact.assetContents.keys()].sort()).toEqual(
-      [...contents.keys()].sort(),
+      [...contents.keys(), previewPath].sort(),
     )
     expect(Object.keys(catalog.assets).sort()).toEqual(
       [...contents.keys()].sort(),
     )
     expect(catalog).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       source: {
         repo: 'tanstack/charts',
         ref: revision,
@@ -114,6 +121,14 @@ describe('catalog artifact', () => {
         ],
         visibility: 'debug',
       },
+    })
+    expect(catalog.cases[0].preview).toEqual({
+      path: previewPath,
+      mediaType: 'image/svg+xml',
+      width: 288,
+      height: 192,
+      bytes: previewContent.byteLength,
+      sha256: previewSha256,
     })
     expect(catalog.cases[0].code).toEqual({
       tanstack: 'benchmarks/conformance/cases/01-line/tanstack.ts',
@@ -157,6 +172,8 @@ describe('catalog artifact', () => {
     })
     expect(summary).toMatchObject({
       assetCount: 4,
+      previewCount: 1,
+      fileCount: 6,
       caseCount: 1,
       referenceCounts: {
         'observable-plot': 1,
@@ -190,6 +207,7 @@ describe('catalog artifact', () => {
       revision,
       viteManifest: cyclicManifest,
       sourceModules,
+      previewContents,
       readAsset: async (assetPath) => contents.get(assetPath),
     })
     const catalog = attachEmbedContract(artifact.catalog, {
@@ -212,6 +230,7 @@ describe('catalog artifact', () => {
         revision,
         viteManifest: invalidManifest,
         sourceModules,
+        previewContents,
         readAsset: async (assetPath) => contents.get(assetPath),
       }),
     ).rejects.toThrow('invalid catalog asset path')
@@ -227,6 +246,7 @@ describe('catalog artifact', () => {
         revision,
         viteManifest: invalidManifest,
         sourceModules,
+        previewContents,
         readAsset: async (assetPath) => contents.get(assetPath),
       }),
     ).rejects.toThrow('invalid catalog asset path')
@@ -259,6 +279,46 @@ describe('catalog artifact', () => {
     expect(() => validateCatalogArtifactManifest(catalog)).toThrow(
       'comparison must be debug-only',
     )
+  })
+
+  it('rejects preview paths that do not match their case and digest', async () => {
+    const artifact = await createArtifact()
+    const catalog = attachEmbedContract(artifact.catalog, {
+      protocol: { version: 1 },
+    })
+    catalog.cases[0].preview.path = `previews/other-${previewSha256}.svg`
+
+    expect(() => validateCatalogArtifactManifest(catalog)).toThrow(
+      'invalid preview path',
+    )
+  })
+
+  it('rejects preview dimensions outside the static contract', async () => {
+    const artifact = await createArtifact()
+    const catalog = attachEmbedContract(artifact.catalog, {
+      protocol: { version: 1 },
+    })
+    catalog.cases[0].preview.width = 640
+
+    expect(() => validateCatalogArtifactManifest(catalog)).toThrow(
+      'invalid preview contract',
+    )
+  })
+
+  it('rejects preview output for cases outside the catalog', async () => {
+    const extraPreviews = new Map(previewContents)
+    extraPreviews.set('other', previewContent)
+
+    await expect(
+      createCatalogArtifact({
+        cases,
+        revision,
+        viteManifest,
+        sourceModules,
+        previewContents: extraPreviews,
+        readAsset: async (assetPath) => contents.get(assetPath),
+      }),
+    ).rejects.toThrow('preview output contains cases outside the catalog')
   })
 
   it('rejects source references to datasets outside the registry', async () => {
@@ -370,6 +430,7 @@ function createArtifact() {
     revision,
     viteManifest,
     sourceModules,
+    previewContents,
     readAsset: async (assetPath) => contents.get(assetPath),
   })
 }

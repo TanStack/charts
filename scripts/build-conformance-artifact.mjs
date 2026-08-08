@@ -12,6 +12,7 @@ import {
 } from './catalog-artifact.mjs'
 import { catalogSourceRevision } from './catalog-source-revision.mjs'
 import { createCatalogSourceModules } from './catalog-source-files.mjs'
+import { createCatalogPreviews } from './catalog-preview.mjs'
 
 const rootDirectory = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -50,11 +51,13 @@ const revision = await catalogSourceRevision(rootDirectory)
 const sourceModules = await createCatalogSourceModules(
   path.join(rootDirectory, 'benchmarks', 'conformance'),
 )
+const previewContents = await createCatalogPreviews(cases, rootDirectory)
 const artifact = await createCatalogArtifact({
   cases,
   revision,
   viteManifest,
   sourceModules,
+  previewContents,
   readAsset: (assetPath) =>
     fs.readFile(path.join(buildDirectory, ...assetPath.split('/'))),
 })
@@ -78,7 +81,7 @@ await fs.writeFile(
 )
 
 console.log(
-  `Generated schema v${catalog.schemaVersion} catalog artifact for ${summary.caseCount} cases in ${summary.assetCount} modules (${formatBytes(summary.assetBytes)}) at ${revision}.`,
+  `Generated schema v${catalog.schemaVersion} catalog artifact for ${summary.caseCount} cases in ${summary.assetCount} modules (${formatBytes(summary.assetBytes)}) and ${summary.previewCount} previews (${formatBytes(summary.previewBytes)}) at ${revision}.`,
 )
 
 async function readCases() {
