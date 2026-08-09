@@ -911,7 +911,7 @@ export function typedCodeFenceSyntaxErrors(source) {
 export function documentedStandaloneExamples(source) {
   const examples = []
   const pattern =
-    /<!--\s*docs-example:\s*([a-z\d-]+)\s+(typecheck|octane)\s*-->\s*```(ts|tsx|typescript)\r?\n([\s\S]*?)```/g
+    /<!--\s*docs-example:\s*([a-z\d-]+)\s+(typecheck|octane)\s*-->\s*```(ts|tsx|typescript)(?:[ \t]+[^\r\n]*)?\r?\n([\s\S]*?)```/g
   for (const match of source.matchAll(pattern)) {
     examples.push({
       id: match[1],
@@ -1155,7 +1155,7 @@ function updateMarkdownFence(fence, marker) {
 function typedCodeFences(source) {
   return [
     ...source.matchAll(
-      /```(?:ts|tsx|js|jsx|typescript|javascript)\r?\n([\s\S]*?)```/g,
+      /```(?:ts|tsx|js|jsx|typescript|javascript)(?:[ \t]+[^\r\n]*)?\r?\n([\s\S]*?)```/g,
     ),
   ].map((match) => match[1])
 }

@@ -19,7 +19,7 @@ Definitions are ordinary framework-independent TypeScript:
 
 <!-- docs-example: react-quick-start typecheck -->
 
-```tsx
+```tsx live=react-quick-start file=/src/LetterFrequencyChart.tsx entry=/src/main.tsx
 import { scaleBand } from '@tanstack/charts-scales/band'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { barY, defineChart } from '@tanstack/charts'
@@ -75,6 +75,19 @@ export function LetterFrequencyChart() {
     />
   )
 }
+```
+
+```tsx live=react-quick-start file=/src/main.tsx
+import { createRoot } from 'react-dom/client'
+import { LetterFrequencyChart } from './LetterFrequencyChart'
+
+const root = document.getElementById('root')
+
+if (!root) {
+  throw new Error('Missing #root element')
+}
+
+createRoot(root).render(<LetterFrequencyChart />)
 ```
 
 The definition infers the original row and semantic x/y types. Do not add

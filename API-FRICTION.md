@@ -3252,6 +3252,12 @@ Each entry records:
   named-import extraction, heading slugs, and example discovery; 17 executable
   examples, all 81 canonical pages, and the public READMEs pass against the
   current package manifests.
+- Follow-up (2026-08-08): the first progressive live React quick start added
+  `live`, `file`, and `entry` fence metadata. The typed-fence and standalone
+  example extractors treated any info string beyond the language as an opt-out,
+  which would have silently removed the example from syntax, import, and strict
+  type validation. Both extractors now accept fence metadata, and helper tests
+  cover a component-first live group with a separate browser entry.
 
 ### F-116 — Build context was mistaken for resolved plot geometry
 

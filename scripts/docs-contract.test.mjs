@@ -209,7 +209,7 @@ import * as d3 from 'd3-scale'
 const valid = { value: 1 }
 \`\`\`
 
-\`\`\`tsx
+\`\`\`tsx live=broken-example file=/src/main.tsx
 const invalid = {
 \`\`\`
 `),
@@ -242,8 +242,11 @@ const invalid = {
       documentedStandaloneExamples(`
 <!-- docs-example: quick-start typecheck -->
 
-\`\`\`tsx
+\`\`\`tsx live=quick-start file=/src/Chart.tsx entry=/src/main.tsx
 const value = <span />
+\`\`\`
+\`\`\`tsx live=quick-start file=/src/main.tsx
+createRoot(document.getElementById('root')!).render(value)
 \`\`\`
 `),
     ).toEqual([
