@@ -1,5 +1,13 @@
 # @tanstack/charts-scales
 
+## 0.9.0
+
+### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+
 ## 0.8.0
 
 ### Minor Changes

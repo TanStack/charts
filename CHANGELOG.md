@@ -1,5 +1,123 @@
 # Changelog
 
+## 0.9.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+
+### @tanstack/charts-scales
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- [#76](https://github.com/TanStack/charts/pull/76) [`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7) - Install `@tanstack/charts` once and import compact scales and framework adapters
+  from exact package subpaths. Existing package names remain supported for
+  compatibility.
+- Updated dependencies [[`667dd4c`](https://github.com/TanStack/charts/commit/667dd4cd5e7949b9dfac864f416d1686395d6dc7)]:
+  - @tanstack/charts@0.9.0
+
 ## 0.8.0
 
 ### @tanstack/charts
