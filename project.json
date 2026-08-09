@@ -124,8 +124,15 @@
     },
     "catalog-check": {
       "executor": "nx:run-commands",
+      "dependsOn": ["catalog-index-check"],
       "options": {
         "command": "pnpm --filter @charts-poc/conformance-example check:catalog"
+      }
+    },
+    "catalog-index-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/catalog-index.mjs --check"
       }
     },
     "react-catalog-check": {

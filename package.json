@@ -27,6 +27,8 @@
     "canvas:check": "node scripts/check-canvas-renderer.mjs",
     "catalog:build": "nx run charts-workspace:catalog-build",
     "catalog:check": "nx run charts-workspace:catalog-check",
+    "catalog:index": "node scripts/catalog-index.mjs --write",
+    "catalog:index:check": "nx run charts-workspace:catalog-index-check",
     "catalog:loading:check": "nx run charts-workspace:catalog-loading-check",
     "react-catalog:check": "nx run charts-workspace:react-catalog-check",
     "react-catalog:sync": "node scripts/sync-react-charts-catalog.mjs",

@@ -90,6 +90,24 @@ all 109 dispositions. The
 [definition coverage overview](./DEFINITION-COVERAGE-OVERVIEW.md) catalogs the
 current boundary and case-local evidence for every case.
 
+## Source catalog index
+
+`catalog-index.json` is the checked-in contract for consumers that load source
+directly from the Charts repository. It contains every parsed `case.json`
+field plus the TanStack and reference entry paths. It does not contain compiled
+modules, source closures, previews, datasets, or assets.
+
+```sh
+# Regenerate after adding or changing a case
+pnpm catalog:index
+
+# Validate metadata, entry files, ordering, and checked-in index drift
+pnpm catalog:index:check
+```
+
+Consumers resolve the Charts revision independently, then fetch the index and
+its source entries from that same revision.
+
 ## Published catalog and documentation embeds
 
 The Vite application remains the local authoring surface at

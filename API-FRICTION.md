@@ -3529,6 +3529,18 @@ Each entry records:
   manifest and preview tests pass, all 110 canonical preview renders pass, and
   the complete artifact verifies 501 modules at 5.93 MiB plus 110 previews at
   1.47 MiB.
+- Source-index follow-up: the generated modules and preview assets remained a
+  second rendering and publication system after tanstack.com gained a
+  client-only notebook runtime. A checked-in
+  `benchmarks/conformance/catalog-index.json` now exposes the complete parsed
+  case metadata plus TanStack and reference entry paths from `main`, with no
+  compiled modules, source closures, previews, datasets, or assets. The site
+  can resolve one Charts revision and load the index and source from that same
+  revision while owning its lightweight catalog previews. `pnpm catalog:index`
+  regenerates the file; the cached `catalog-index-check` target verifies strict
+  metadata, ordering, IDs, entry paths, entry-file existence, and byte-for-byte
+  drift before the existing artifact check. Keep `catalog-dist` until the site
+  consumers have cut over, then remove its artifact and publication pipeline.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 
