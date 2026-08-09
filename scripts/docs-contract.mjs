@@ -191,8 +191,8 @@ export function isPublicChartLibraryLinkAllowed(path, href) {
 
 export function comparisonBaselineContractFailures(baseline, expectedVersions) {
   const failures = []
-  if (baseline.schemaVersion !== 3) {
-    failures.push('comparison bundle baseline must use schema version 3')
+  if (baseline.schemaVersion !== 4) {
+    failures.push('comparison bundle baseline must use schema version 4')
   }
   if (
     !sameStrings(baseline.matrix?.chartTypes ?? [], comparisonChartTypes) ||
@@ -219,6 +219,11 @@ export function comparisonBaselineContractFailures(baseline, expectedVersions) {
       ) {
         failures.push(
           'comparison bundle baseline must record the TanStack workspace revision',
+        )
+      }
+      if (!/^sha256:[0-9a-f]{64}$/u.test(source?.inputDigest)) {
+        failures.push(
+          'comparison bundle baseline must record the TanStack workspace input digest',
         )
       }
     } else if (

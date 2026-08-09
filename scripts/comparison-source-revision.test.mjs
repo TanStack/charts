@@ -5,6 +5,7 @@ import { dirname, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   comparisonInstalledVersionFailure,
+  tanstackComparisonInputDigest,
   tanstackComparisonInputPaths,
   tanstackComparisonRevision,
   tanstackComparisonSourceFailure,
@@ -44,24 +45,65 @@ describe('TanStack comparison source provenance', () => {
     expect(tanstackComparisonRevision(repository)).toBe(measuredRevision)
   })
 
-  it('rejects a well-formed revision from different inputs', () => {
+  it('uses an input digest that survives rewritten history', async () => {
+    const repository = await mkdtemp(
+      resolve(tmpdir(), 'charts-comparison-digest-'),
+    )
+    temporaryRepositories.push(repository)
+    const inputPath = tanstackComparisonInputPaths[1]
+    const coreInput = resolve(repository, inputPath, 'index.ts')
+    await mkdir(dirname(coreInput), { recursive: true })
+    await writeFile(coreInput, 'export const value = 1\n')
+
+    const inputDigest = tanstackComparisonInputDigest(repository, [inputPath])
+    expect(inputDigest).toMatch(/^sha256:[0-9a-f]{64}$/u)
+    expect(
+      tanstackComparisonSourceFailure(
+        {
+          kind: 'workspace',
+          revision: 'a'.repeat(40),
+          inputDigest,
+        },
+        'b'.repeat(40),
+        inputDigest,
+      ),
+    ).toBeUndefined()
+
+    await writeFile(coreInput, 'export const value = 2\n')
+    expect(tanstackComparisonInputDigest(repository, [inputPath])).not.toBe(
+      inputDigest,
+    )
+  })
+
+  it('rejects a well-formed digest from different inputs', () => {
     const expectedRevision = 'a'.repeat(40)
     const recordedRevision = 'b'.repeat(40)
+    const expectedInputDigest = `sha256:${'c'.repeat(64)}`
+    const recordedInputDigest = `sha256:${'d'.repeat(64)}`
 
     expect(
       tanstackComparisonSourceFailure(
-        { kind: 'workspace', revision: recordedRevision },
+        {
+          kind: 'workspace',
+          revision: recordedRevision,
+          inputDigest: recordedInputDigest,
+        },
         expectedRevision,
+        expectedInputDigest,
       ),
     ).toBe(
-      `bundle baseline workspace revision ${recordedRevision} does not match measured inputs ${expectedRevision}`,
+      `bundle baseline workspace input digest ${recordedInputDigest} does not match measured inputs ${expectedInputDigest} at ${expectedRevision}`,
     )
   })
 
   it('uses source revisions for workspaces and versions for installed packages', () => {
     expect(
       comparisonInstalledVersionFailure(
-        { kind: 'workspace', revision: 'a'.repeat(40) },
+        {
+          kind: 'workspace',
+          revision: 'a'.repeat(40),
+          inputDigest: `sha256:${'b'.repeat(64)}`,
+        },
         '0.0.2',
         '0.0.1',
       ),
