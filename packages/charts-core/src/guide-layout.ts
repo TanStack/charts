@@ -4,6 +4,7 @@ import type {
   ChartTextMeasurer,
   ChartTextMeasureOptions,
   ChartTextMetrics,
+  ChartTextTypography,
   SceneGroup,
   SceneLabel,
   SceneNode,
@@ -12,6 +13,14 @@ import type {
 const defaultFontSize = 16
 const defaultFontWeight = 400
 const defaultOuterInset = 4
+const defaultTypography = {
+  fontFamily: 'sans-serif',
+  fontStyle: 'normal',
+  fontStretch: 'normal',
+  letterSpacing: 0,
+  direction: 'inherit' as const,
+  fontScale: 1,
+}
 
 export interface GuideMarginOptions {
   inset?: number
@@ -22,8 +31,11 @@ export function estimateSceneText(
   text: string,
   style: ChartTextMeasureOptions,
 ): ChartTextMetrics {
-  const fontSize = finiteNonNegative(style.fontSize, defaultFontSize)
+  const fontScale = finitePositive(style.fontScale, 1)
+  const fontSize =
+    finiteNonNegative(style.fontSize, defaultFontSize) * fontScale
   const fontWeight = finiteNonNegative(style.fontWeight, defaultFontWeight)
+  const letterSpacing = finiteNumber(style.letterSpacing, 0) * fontScale
 
   if (!text || fontSize === 0) {
     return { x: 0, y: 0, width: 0, height: 0 }
@@ -37,7 +49,11 @@ export function estimateSceneText(
   const clampedWeight = Math.min(900, Math.max(100, fontWeight))
   const weightFactor = 1 + (clampedWeight - 400) / 12_500
 
-  const width = emWidth * fontSize * weightFactor
+  const width = Math.max(
+    0,
+    emWidth * fontSize * weightFactor +
+      Math.max(0, Array.from(text).length - 1) * letterSpacing,
+  )
   const height = fontSize
   const x =
     style.anchor === 'middle' ? -width / 2 : style.anchor === 'end' ? -width : 0
@@ -64,6 +80,7 @@ export function measureSceneLabelBounds(
       : measureText(label.text, {
           fontSize,
           fontWeight: label.fontWeight,
+          ...defaultTypography,
           anchor,
           baseline,
         })
@@ -83,6 +100,22 @@ export function measureSceneLabelBounds(
   }
 
   return rotateBounds(bounds, label.x, label.y, label.rotate)
+}
+
+export function withChartTextTypography(
+  measureText: ChartTextMeasurer = estimateSceneText,
+  typography: ChartTextTypography = {},
+): ChartTextMeasurer {
+  const resolved = {
+    ...defaultTypography,
+    ...typography,
+    fontFamily: typography.fontFamily || defaultTypography.fontFamily,
+    fontStyle: typography.fontStyle || defaultTypography.fontStyle,
+    fontStretch: typography.fontStretch || defaultTypography.fontStretch,
+    letterSpacing: finiteNumber(typography.letterSpacing, 0),
+    fontScale: finitePositive(typography.fontScale, 1),
+  }
+  return (text, options) => measureText(text, { ...options, ...resolved })
 }
 
 export function resolveGuideMargins(
@@ -184,4 +217,10 @@ function finiteNonNegative(
 
 function finiteNumber(value: number | undefined, fallback: number): number {
   return value !== undefined && Number.isFinite(value) ? value : fallback
+}
+
+function finitePositive(value: number | undefined, fallback: number): number {
+  return value !== undefined && Number.isFinite(value) && value > 0
+    ? value
+    : fallback
 }

@@ -18,7 +18,7 @@ and application-owned interaction.
 | Positional scales, axes, color, legends, and gradients      | [Scales, guides, and color](./scales-guides-and-color.md) |
 | Vanilla DOM mounting and responsive sizing                  | [DOM host](./dom-host.md)                                 |
 | Framework prerender, mount, update, and layout lifecycle    | [Adapter controller](./adapter-controller.md)             |
-| Dynamic scene compilation and runtime behavior              | [Runtime and scene](./runtime-and-scene.md)               |
+| Responsive scene compilation and runtime behavior           | [Runtime and scene](./runtime-and-scene.md)               |
 | Eager row, hierarchy, and static force transforms           | [Data transforms](./transforms.md)                        |
 | Pointer focus, keyboard navigation, tooltips, and selection | [Focus and interaction](./focus-and-interaction.md)       |
 | SVG, Canvas, custom rendering, reconciliation, and export   | [Rendering and export](./rendering-and-export.md)         |
@@ -74,6 +74,14 @@ React and Octane keep the default `Chart` SVG-based. Their `/canvas` entries
 select the optional Canvas renderer; their `/core` entries require an explicit
 `ChartRenderer`. The other adapters currently expose the default SVG surface.
 
+## Surface tiers
+
+| Tier                        | Use                                                     | Entries                                                                                                                                |
+| --------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Ordinary authoring          | Define and render charts                                | `@tanstack/charts`, exact mark entries, `@tanstack/charts-scales/*`, and one framework adapter                                         |
+| Optional capability         | Add only when the chart needs it                        | transforms, motion, spatial indexes, controlled interaction, tooltip, Canvas, export, hierarchy, network, and view composition entries |
+| Host and renderer extension | Implement an adapter, renderer, or host-owned extension | adapter, renderer, scene, reconciliation, SVG renderer, cursor host, and tooltip model entries                                         |
+
 ## Import map
 
 The root `@tanstack/charts` entry point exports the common grammar, runtime,
@@ -110,7 +118,7 @@ has no root export.
 | `@tanstack/charts/dot`                 | `dot`                                                                                                                                                                                                                           |
 | `@tanstack/charts/export`              | SVG serialization/download and browser image export                                                                                                                                                                             |
 | `@tanstack/charts/facet`               | `facet`, `facetChart`                                                                                                                                                                                                           |
-| `@tanstack/charts/focus`               | `focusX`, `focusY`, `focusNearestX`, `focusNearestY`                                                                                                                                                                            |
+| `@tanstack/charts/focus`               | `focusGroupX`, `focusGroupY`, `focusNearestX`, `focusNearestY`                                                                                                                                                                  |
 | `@tanstack/charts/focus/disabled`      | `focusDisabled`                                                                                                                                                                                                                 |
 | `@tanstack/charts/focus/guide`         | `focusGuideX`, `focusGuideY`, `FocusGuideLabelFormatContext`, and focus-guide option types                                                                                                                                      |
 | `@tanstack/charts/focus/mark`          | `whenFocused`                                                                                                                                                                                                                   |
@@ -142,7 +150,7 @@ has no root export.
 | `@tanstack/charts/renderer`            | `mountChartRenderer`                                                                                                                                                                                                            |
 | `@tanstack/charts/ridgeline`           | `ridgelineY`, `ridgelineX`, `RidgelineYOptions`, `RidgelineXOptions`, `RidgelinePosition`, `RidgelineCurve`, and `RidgelineStateStyle`                                                                                          |
 | `@tanstack/charts/rule`                | `ruleX`, `ruleY`                                                                                                                                                                                                                |
-| `@tanstack/charts/runtime`             | `createChartRuntime`, `isDynamicChartDefinition`                                                                                                                                                                                |
+| `@tanstack/charts/runtime`             | `createChartRuntime`, `isResponsiveChartDefinition`                                                                                                                                                                             |
 | `@tanstack/charts/selection`           | `keyedSelection`, `whenSelected`, `KeyedSelectionChange`, `KeyedSelectionKeyContext`, `KeyedSelectionOptions`, and `KeyedSelection`                                                                                             |
 | `@tanstack/charts/scene`               | `defineChart`, `createChartScene`, `defaultChartTheme`, `findNearestPoint`, `viewportInteractionPoints`                                                                                                                         |
 | `@tanstack/charts/svg`                 | `renderChartSvg`                                                                                                                                                                                                                |
@@ -157,6 +165,7 @@ has no root export.
 | `@tanstack/charts/spatial/voronoi`     | `voronoi` and `VoronoiOptions`                                                                                                                                                                                                  |
 | `@tanstack/charts/text`                | `text`                                                                                                                                                                                                                          |
 | `@tanstack/charts/tick`                | `tickX`, `tickY`                                                                                                                                                                                                                |
+| `@tanstack/charts/tooltip/model`       | Environment-neutral tooltip ordering, content, anchor, placement, value-formatting, and geometry types for host adapters                                                                                                        |
 | `@tanstack/charts/transform/fold`      | `fold`, `FoldField`, `FoldOutputNames`, `FoldOptions`, and `FoldDatum`                                                                                                                                                          |
 | `@tanstack/charts/transform/waterfall` | `waterfall`, `WaterfallKind`, `WaterfallOptions`, `WaterfallDatum`, `WaterfallStepDatum`, and `WaterfallTotalDatum`                                                                                                             |
 | `@tanstack/charts/types`               | Universal definition, mark, scene, runtime, focus, and tooltip-model types                                                                                                                                                      |

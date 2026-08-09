@@ -756,7 +756,7 @@ function numericDefinition(
     marks: [dot(numericRows, { x: 'x', y: 'y' })],
     x: { scale: scaleLinear().domain([window.start, window.end]) },
     y: { scale: scaleLinear().domain([0, 10]) },
-    behaviors: [
+    controls: [
       zoomX({
         id: 'window',
         window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
@@ -793,7 +793,7 @@ function temporalDefinition(
       reverse,
     },
     y: { scale: scaleLinear().domain([0, 1]) },
-    behaviors: [
+    controls: [
       zoomX({
         id: 'window',
         window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(

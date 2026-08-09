@@ -72,7 +72,7 @@ describe('definition-owned Bollinger band', () => {
       'utf8',
     )
 
-    expect(source).toContain('const rows = window(')
+    expect(source).toContain('const rows = rollingWindow(')
     expect(source).toContain("anchor: 'end'")
     expect(source).toContain("meanClose: { value: 'Close', reduce: 'mean' }")
     expect(source).toContain(

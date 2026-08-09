@@ -83,7 +83,7 @@ export function streamingWindowDefinition(
       axis: { ticks: { count: 5 }, label: 'Downloads' },
     },
     margin: { top: 18, right: 24, bottom: 44, left: 58 },
-    animate: false,
+    svgAnimation: false,
     keyboard: true,
     tooltip: {
       use: tooltip,

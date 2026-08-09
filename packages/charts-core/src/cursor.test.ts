@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { scaleBand, scaleLinear, scaleUtc } from 'd3-scale'
 import { facetChart } from './facet'
-import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
+import { focusNearestX, focusNearestY, focusGroupX, focusGroupY } from './focus'
 import {
   createChartCursor,
   createFocusChartCursorState,
@@ -63,11 +63,11 @@ describe('chart cursor controller', () => {
       { mode: 'nearest-x', scene: xScene, x: 50, y: 80, grouped: false },
       { mode: focusNearestX, scene: xScene, x: 50, y: 80, grouped: false },
       { mode: 'group-x', scene: xScene, x: 50, y: 80, grouped: true },
-      { mode: focusX, scene: xScene, x: 50, y: 80, grouped: true },
+      { mode: focusGroupX, scene: xScene, x: 50, y: 80, grouped: true },
       { mode: 'nearest-y', scene: yScene, x: 80, y: 50, grouped: false },
       { mode: focusNearestY, scene: yScene, x: 80, y: 50, grouped: false },
       { mode: 'group-y', scene: yScene, x: 80, y: 50, grouped: true },
-      { mode: focusY, scene: yScene, x: 80, y: 50, grouped: true },
+      { mode: focusGroupY, scene: yScene, x: 80, y: 50, grouped: true },
     ]
 
     for (const testCase of cases) {

@@ -167,7 +167,7 @@ describe('SVG motion', () => {
   it('is the sole animation owner when the definition also enables animate', () => {
     const makeDefinition = (value: number) =>
       defineChart({
-        animate: { duration: 1, easing: 'linear' },
+        svgAnimation: { duration: 1, easing: 'linear' },
         motion: {
           transition: { type: 'tween', duration: 100, easing: 'linear' },
         },

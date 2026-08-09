@@ -107,7 +107,7 @@ export { compositeMark } from './mark-composite'
 export type { CompositeMarkOptions } from './mark-composite'
 export { cell, rect } from './rect'
 export type { CellOptions, RectOptions } from './rect'
-export { createChartRuntime, isDynamicChartDefinition } from './runtime'
+export { createChartRuntime, isResponsiveChartDefinition } from './runtime'
 export {
   createChartScene,
   defaultChartTheme,
@@ -155,12 +155,12 @@ export type {
   BinTimeOptions,
   TimeIntervalLike,
 } from './transform-bin-time'
-export { window } from './transform-window'
+export { rollingWindow } from './transform-rolling-window'
 export type {
-  WindowAnchor,
-  WindowDatum,
-  WindowOptions,
-} from './transform-window'
+  RollingWindowAnchor,
+  RollingWindowDatum,
+  RollingWindowOptions,
+} from './transform-rolling-window'
 export { normalize } from './transform-normalize'
 export type {
   NormalizeBasis,
@@ -210,7 +210,7 @@ export type {
 } from './transform-reduce'
 export {
   deviation,
-  difference,
+  delta,
   first,
   last,
   median,
@@ -267,7 +267,7 @@ export type {
   ChannelAccessorContext,
   ChannelField,
   ChannelOutput,
-  DynamicChartDefinition,
+  ResponsiveChartDefinition,
   InitializedMark,
   MarkInitialization,
   MarkInitializeContext,
@@ -289,9 +289,9 @@ export type {
   ChartAxisViewportOptions,
   ChartAxisValue,
   ChartAnimationOptions,
-  ChartBehavior,
-  ChartBehaviorContext,
-  ChartBehaviorScene,
+  ChartControl,
+  ChartControlContext,
+  ChartControlScene,
   ChartBounds,
   ChartBuildContext,
   ChartColorOptions,
@@ -319,7 +319,9 @@ export type {
   ChartContinuousValue,
   ChartCurve,
   ChartDefinition,
+  ChartDefinitionForTooltipHost,
   ChartDefinitionOptions,
+  DomChartDefinition,
   ChartExtensionInput,
   ChartFocusAnchor,
   ChartFocusCursorBinding,
@@ -371,6 +373,7 @@ export type {
   ChartMotionTweenTransition,
   ChartPoint,
   ChartRuntime,
+  ChartRuntimeOptions,
   ChartScene,
   ChartScale,
   ChartScaleFactory,
@@ -393,6 +396,7 @@ export type {
   ChartTextMeasurer,
   ChartTextMeasureOptions,
   ChartTextMetrics,
+  ChartTextTypography,
   ChartTick,
   ChartTooltipBodyContext,
   ChartTooltipContent,
@@ -418,7 +422,7 @@ export type {
   ChartTooltipRow,
   ChartTooltipSort,
   ChartValue,
-  DynamicChartConfig,
+  ResponsiveChartConfig,
   VisualChannel,
   WidenChartValue,
   RenderChartSvgOptions,

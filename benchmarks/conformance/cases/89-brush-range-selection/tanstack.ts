@@ -87,7 +87,7 @@ export function brushRangeDefinition(
       grid: true,
       axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
     },
-    behaviors: [
+    controls: [
       brushX({
         id: 'monthly-range',
         range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
@@ -115,7 +115,7 @@ export function brushRangeDefinition(
         },
       }),
     ],
-    animate: false,
+    svgAnimation: false,
     keyboard: false,
     focusRing: false,
     margin: { top: 52, right: 24, bottom: 44, left: 58 },

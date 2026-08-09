@@ -128,5 +128,9 @@ if (false) {
     },
   })
 
-  Chart({ definition: widenedDefinition, ariaLabel: 'Widened definition' })
+  Chart({
+    // @ts-expect-error DOM hosts require a definition refined to the DOM tooltip host.
+    definition: widenedDefinition,
+    ariaLabel: 'Widened definition',
+  })
 }

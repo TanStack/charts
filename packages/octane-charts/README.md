@@ -17,7 +17,7 @@ import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/octane-charts'
 
 const interactiveDefinition = defineChart(definition, {
-  animate: true,
+  svgAnimation: true,
   tooltip,
 })
 

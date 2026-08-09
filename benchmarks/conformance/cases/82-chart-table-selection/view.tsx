@@ -75,7 +75,7 @@ export function chartTableSelectionDefinition(
       axis: { ticks: { count: 5 }, label: 'Body mass (g)' },
     },
     margin: { top: 16, right: 24, bottom: 42, left: 62 },
-    animate: false,
+    svgAnimation: false,
     keyboard: true,
     maxFocusDistance: 40,
     selection,

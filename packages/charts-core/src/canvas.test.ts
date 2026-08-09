@@ -1447,7 +1447,7 @@ describe('Canvas renderer', () => {
       marks: [lineY(data, { x: 'x', y: 'y' })],
       x: { scale: scaleLinear().domain([0, 10]) },
       y: { scale: scaleLinear().domain([0, 10]) },
-      behaviors: [
+      controls: [
         continuousCursor({
           id: 'canvas-cursor',
           position: controlledSignal<
@@ -1516,7 +1516,7 @@ describe('Canvas renderer', () => {
         marks: [lineY(data, { x: 'x', y: 'y' })],
         x: { scale: scaleLinear().domain([0, 10]) },
         y: { scale: scaleLinear().domain([0, 10]) },
-        behaviors: withHandle
+        controls: withHandle
           ? [
               handleX({
                 id: 'canvas-handle',
@@ -1595,7 +1595,7 @@ describe('Canvas renderer', () => {
         scale: scaleLinear().domain([acceptedWindow.start, acceptedWindow.end]),
       },
       y: { scale: scaleLinear().domain([0, 10]) },
-      behaviors: [
+      controls: [
         zoomX({
           id: 'canvas-zoom',
           window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(

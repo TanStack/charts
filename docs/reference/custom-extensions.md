@@ -320,7 +320,9 @@ See [Color](./scales-guides-and-color.md#color) and
 
 `ChartTextMeasurer` lets nonbrowser rendering, special fonts, or an
 application-owned typography engine provide painted glyph bounds. It affects
-guide geometry, not mark text rendering.
+guide geometry, not mark text rendering. It is synchronous and receives the
+complete resolved `ChartTextTypography`; hosts re-render after asynchronous
+font readiness changes.
 
 See [Automatic guide layout](./scales-guides-and-color.md#automatic-guide-layout)
 for the contract.

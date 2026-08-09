@@ -65,6 +65,42 @@ const sliceRows: readonly SliceRow[] = [
 ]
 
 describe('composed views', () => {
+  it('resolves responsive children against their allocated frames', () => {
+    const contexts: Array<{
+      width: number
+      height: number
+      foreground: string
+    }> = []
+    const responsive = defineChart(({ width, height, defaultTheme }) => {
+      contexts.push({
+        width,
+        height,
+        foreground: defaultTheme.foreground,
+      })
+      return {
+        marks: [dot([{ x: width, y: height }], { x: 'x', y: 'y' })],
+        x: { scale: scaleLinear().domain([0, width]) },
+        y: { scale: scaleLinear().domain([0, height]) },
+        guides: false,
+        margin: 0,
+      }
+    })
+    const definition = composeViews({
+      views: { responsive },
+      layout: fill('responsive'),
+    })
+
+    const scene = createChartScene(
+      { ...definition, theme: { foreground: '#123456' } },
+      { width: 120, height: 80 },
+    )
+
+    expect(contexts).toEqual([
+      { width: 120, height: 80, foreground: '#123456' },
+    ])
+    expect(scene.points).toHaveLength(1)
+  })
+
   it('layers a polar donut inset over a Cartesian view with one stable scene', () => {
     const { definition, arcs } = mixedDefinition()
     type Datum = ChartSpecDatum<typeof definition>
@@ -506,54 +542,57 @@ describe('composed views', () => {
 
   it('rejects child-owned host state, backgrounds, and compiled controls', () => {
     const child = linearChild([0, 10])
-    const selectionChild: typeof child = {
+    const selectionChild = {
       ...child,
       selection: { type: 'keyed', change: () => undefined },
-    }
-    const behaviorChild: typeof child = {
+    } as unknown as StaticChartDefinition
+    const behaviorChild = {
       ...child,
-      behaviors: [{ id: 'child-behavior', resolve: () => ({}) }],
-    }
-    const cursorChild: typeof child = {
+      controls: [{ id: 'child-behavior', resolve: () => ({}) }],
+    } as unknown as StaticChartDefinition
+    const cursorChild = {
       ...child,
       cursor: {
         use: cursorHost,
         controller: createChartCursor<number, number>(),
         mode: 'focus',
       },
-    }
-    const pointerChild: typeof child = { ...child, pointer: false }
-    const backgroundChild: typeof child = {
+    } as unknown as StaticChartDefinition
+    const pointerChild = {
+      ...child,
+      pointer: false,
+    } as unknown as StaticChartDefinition
+    const backgroundChild = {
       ...child,
       theme: { background: '#fff' },
-    }
+    } as unknown as StaticChartDefinition
 
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: selectionChild },
         layout: fill('child'),
       }),
     ).toThrow(/host option "selection"/)
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: behaviorChild },
         layout: fill('child'),
       }),
-    ).toThrow(/host option "behaviors"/)
+    ).toThrow(/host option "controls"/)
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: cursorChild },
         layout: fill('child'),
       }),
     ).toThrow(/host option "cursor"/)
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: pointerChild },
         layout: fill('child'),
       }),
     ).toThrow(/host option "pointer"/)
     expect(() =>
-      composeViews({
+      unsafeCompose({
         views: { child: backgroundChild },
         layout: fill('child'),
       }),
@@ -749,7 +788,7 @@ function controlledLegendChild() {
 }
 
 const unsafeCompose = composeViews as unknown as (
-  options: ComposeViewsOptions,
+  options: object,
 ) => StaticChartDefinition
 
 function forgedLink(value: unknown): ViewScaleLink {

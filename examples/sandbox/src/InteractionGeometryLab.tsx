@@ -60,12 +60,12 @@ interface ProofCase {
   beforeExpected: string
   afterExpected: string
   source: string
-  before: StaticChartDefinition<ProofDatum, number, number>
-  after: StaticChartDefinition<ProofDatum, number, number>
+  before: StaticChartDefinition<ProofDatum, number, number, 'dom'>
+  after: StaticChartDefinition<ProofDatum, number, number, 'dom'>
   grouped?: {
     axis: 'x' | 'y'
     expected: readonly string[]
-    definition: StaticChartDefinition<ProofDatum, number, number>
+    definition: StaticChartDefinition<ProofDatum, number, number, 'dom'>
   }
   probe: (
     scene: ChartScene<ProofDatum, number, number>,
@@ -251,7 +251,7 @@ export const animatedDestinationDefinition = defineChart(
   animatedDestinationBase,
   {
     maxFocusDistance: 12,
-    animate: false,
+    svgAnimation: false,
     tooltip: {
       use: tooltip,
       className: 'hit-region-proof__tooltip',
@@ -2552,14 +2552,14 @@ function createProofCases(): ProofCase[] {
 }
 
 function baseDefinition(
-  marks: StaticChartDefinition<ProofDatum, number, number>['marks'],
+  marks: StaticChartDefinition<ProofDatum, number, number, 'dom'>['marks'],
   xScale:
     | ReturnType<typeof scaleLinear<number, number>>
     | ReturnType<typeof scaleBand<number>>,
   yScale:
     | ReturnType<typeof scaleLinear<number, number>>
     | ReturnType<typeof scaleBand<number>>,
-): StaticChartDefinition<ProofDatum, number, number> {
+): StaticChartDefinition<ProofDatum, number, number, 'dom'> {
   return {
     marks,
     x: { scale: xScale, grid: true },
@@ -2581,7 +2581,7 @@ function makeCase(
     ProofCase,
     'before' | 'after' | 'grouped' | 'renderer' | 'source'
   > & {
-    base: StaticChartDefinition<ProofDatum, number, number>
+    base: StaticChartDefinition<ProofDatum, number, number, 'dom'>
     grouped?: {
       axis: 'x' | 'y'
       expected: readonly string[]
@@ -2605,13 +2605,13 @@ function makeCase(
 }
 
 function interactiveDefinition(
-  base: StaticChartDefinition<ProofDatum, number, number>,
+  base: StaticChartDefinition<ProofDatum, number, number, 'dom'>,
   focus?: ChartFocusStrategy<ProofDatum, number, number>,
 ) {
   return defineChart(base, {
     focus,
     maxFocusDistance: 48,
-    animate: false,
+    svgAnimation: false,
     tooltip: {
       use: tooltip,
       className: 'hit-region-proof__tooltip',
@@ -2623,13 +2623,13 @@ function interactiveDefinition(
 }
 
 function groupedInteractiveDefinition(
-  base: StaticChartDefinition<ProofDatum, number, number>,
+  base: StaticChartDefinition<ProofDatum, number, number, 'dom'>,
   axis: 'x' | 'y',
 ) {
   return defineChart(base, {
     focus: axis === 'x' ? 'group-x' : 'group-y',
     maxFocusDistance: 48,
-    animate: false,
+    svgAnimation: false,
     tooltip: {
       use: tooltip,
       className: 'hit-region-proof__tooltip',

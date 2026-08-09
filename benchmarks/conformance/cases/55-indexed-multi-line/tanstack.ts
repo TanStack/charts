@@ -39,7 +39,7 @@ export const indexedIndustryDefinition = (source: readonly IndustriesRow[]) => {
   )
   const labels = select(rows, {
     by: 'industry',
-    value: ({ datum }) => datum.date.getTime(),
+    value: (datum) => datum.date.getTime(),
     select: 'max',
   })
 

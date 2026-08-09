@@ -321,7 +321,7 @@ interface ChartAnimationOptions {
 | `respectReducedMotion` | `true`       | Lets a host suppress animation for reduced-motion mode |
 | `resize`               | `false`      | Animates responsive and explicit host size changes     |
 
-On a definition, `animate: true` uses `240` milliseconds, `ease-out`, and respects
+On a definition, `svgAnimation: true` uses `240` milliseconds, `ease-out`, and respects
 `prefers-reduced-motion: reduce`. A numeric duration is clamped to at least
 zero. A custom easing receives raw progress from `0` to `1`.
 
@@ -399,7 +399,7 @@ The browser image functions are `renderChartImage` and
 `downloadChartImage`.
 
 ```ts
-interface RenderChartPngOptions extends SerializeChartSvgOptions {
+interface RenderChartImageOptions extends SerializeChartSvgOptions {
   scale?: number
   background?: string
   type?: 'image/png' | 'image/jpeg' | 'image/webp'
@@ -407,7 +407,7 @@ interface RenderChartPngOptions extends SerializeChartSvgOptions {
 }
 ```
 
-Despite its historical name, `RenderChartPngOptions` supports PNG, JPEG, and
+Despite its historical name, `RenderChartImageOptions` supports PNG, JPEG, and
 WebP. `scale` defaults to `2` and is clamped to at least `0.1`. `type` defaults
 to `image/png`.
 
@@ -547,7 +547,7 @@ drive a crosshair without datum focus. This is the same path used by the SVG,
 Canvas, and React Native surfaces.
 
 The shared host continues to own runtime updates, responsive sizing, text
-measurement, focus resolution, keyboard behavior, native tooltips, selection,
+measurement, focus resolution, keyboard behavior, built-in tooltips, selection,
 and callbacks. `ChartRendererRenderContext` reports the live `surface` and the
 stable interaction controller instead of assuming an SVG element.
 
@@ -589,7 +589,7 @@ renderer should preserve:
 
 - an SVG root discoverable by the host
 - stable `data-ts-key` identities for reconciliation
-- focus-filtered scene groups and data-less guides when native focus paint is
+- focus-filtered scene groups and data-less guides when chart-owned focus paint is
   desired
 - the scene coordinate system and accessible name
 

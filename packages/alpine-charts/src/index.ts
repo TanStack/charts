@@ -278,4 +278,7 @@ function applyLayout(
       : initial.aspectRatio
 }
 
-export type { ChartDefinition, ChartPoint } from '@tanstack/charts'
+export type {
+  DomChartDefinition as ChartDefinition,
+  ChartPoint,
+} from '@tanstack/charts'

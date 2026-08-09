@@ -27,8 +27,8 @@ interface LinkRow {
 const forces = [
   {
     type: 'link',
-    distance: ({ datum }: { datum: LinkRow }) => 40 - datum.value,
-    strength: ({ datum }: { datum: LinkRow }) => 0.2 + datum.value * 0.05,
+    distance: (datum: LinkRow) => 40 - datum.value,
+    strength: (datum: LinkRow) => 0.2 + datum.value * 0.05,
   },
   { type: 'manyBody', strength: -80 },
   { type: 'center', x: 0, y: 0 },
@@ -133,22 +133,22 @@ describe('forceLayout', () => {
     const observedLinkData: (readonly (typeof links)[number][])[] = []
 
     const layout = forceLayout(nodes, links, {
-      nodeKey: ({ datum, index, data }) => {
+      nodeKey: (datum, { index, data }) => {
         expect(datum).toBe(nodes[index])
         observedNodeData.push(data)
         return datum.id
       },
-      source: ({ datum, index, data }) => {
+      source: (datum, { index, data }) => {
         expect(datum).toBe(links[index])
         observedLinkData.push(data)
         return datum.from
       },
-      target: ({ datum }) => datum.to,
+      target: (datum) => datum.to,
       iterations: 2,
       forces: [
         {
           type: 'link',
-          distance: ({ datum, index, data }) => {
+          distance: (datum, { index, data }) => {
             expect(datum).toBe(links[index])
             observedLinkData.push(data)
             return datum.distance
@@ -157,7 +157,7 @@ describe('forceLayout', () => {
         },
         {
           type: 'manyBody',
-          strength: ({ datum, index, data }) => {
+          strength: (datum, { index, data }) => {
             expect(datum).toBe(nodes[index])
             observedNodeData.push(data)
             return -datum.group * 10

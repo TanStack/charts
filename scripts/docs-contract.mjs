@@ -98,6 +98,12 @@ export async function validateDocsContract(repositoryRoot) {
     publicSources,
     failures,
   )
+  const apiExampleFragments = [...publicSources].flatMap(([path, source]) =>
+    documentedApiExampleFragments(source).map((_, index) => ({
+      path,
+      fragment: index + 1,
+    })),
+  )
 
   return {
     config,
@@ -105,6 +111,7 @@ export async function validateDocsContract(repositoryRoot) {
     failures,
     markdownFiles: [...markdownSources.keys()].sort(),
     standaloneExamples,
+    apiExampleFragments,
   }
 }
 
@@ -683,10 +690,17 @@ async function validatePackageCoverage(
     await readFile(resolve(packageRoot, 'package.json'), 'utf8'),
   )
   const names = new Set()
+  const exportedSpecifiers = new Set()
+  const documentedSpecifiers = new Set(
+    [...reference.matchAll(/^\|\s*`(@tanstack\/[^`]+)`\s*\|/gm)].map(
+      (match) => match[1],
+    ),
+  )
 
   for (const [subpath, sourcePath] of Object.entries(manifest.exports)) {
     const specifier =
       subpath === '.' ? packageName : `${packageName}/${subpath.slice(2)}`
+    exportedSpecifiers.add(specifier)
     if (!reference.includes(specifier)) {
       failures.push(`API reference does not name package export ${specifier}`)
     }
@@ -697,6 +711,15 @@ async function validatePackageCoverage(
     )
     for (const name of exportedNames(source, resolvedSourcePath))
       names.add(name)
+  }
+
+  for (const specifier of documentedSpecifiers) {
+    if (
+      (specifier === packageName || specifier.startsWith(`${packageName}/`)) &&
+      !exportedSpecifiers.has(specifier)
+    ) {
+      failures.push(`API reference import map names stale export ${specifier}`)
+    }
   }
 
   for (const name of [...names].sort()) {
@@ -889,6 +912,18 @@ export function documentedStandaloneExamples(source) {
     })
   }
   return examples
+}
+
+export function documentedApiExampleFragments(source) {
+  const fragments = []
+  const pattern = /```(ts|tsx|typescript)\r?\n([\s\S]*?)```/g
+  for (const match of source.matchAll(pattern)) {
+    if (!match[2].includes('@tanstack/')) continue
+    const prefix = source.slice(Math.max(0, match.index - 100), match.index)
+    if (/<!--\s*docs-example:[^>]+-->\s*$/.test(prefix)) continue
+    fragments.push({ language: match[1], source: match[2] })
+  }
+  return fragments
 }
 
 export function markdownHeadingAnchors(source) {

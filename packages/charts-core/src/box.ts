@@ -224,8 +224,8 @@ function box<TDatum>(
       warningIdentity: options,
     })
     const rows = boxRows(data, {
-      category: ({ index }) => categoryValues[index],
-      value: ({ index }) => numericValues[index],
+      category: (_datum, { index }) => categoryValues[index],
+      value: (_datum, { index }) => numericValues[index],
     })
     const summaries: BoxSummaryMarkDatum<TDatum>[] = rows.flatMap((row) =>
       row.kind === 'summary'

@@ -6,8 +6,8 @@ import type {
   ChartValue,
 } from './types'
 
-export const focusX = axisFocus('x', true)
-export const focusY = axisFocus('y', true)
+export const focusGroupX = axisFocus('x', true)
+export const focusGroupY = axisFocus('y', true)
 export const focusNearestX = axisFocus('x', false)
 export const focusNearestY = axisFocus('y', false)
 

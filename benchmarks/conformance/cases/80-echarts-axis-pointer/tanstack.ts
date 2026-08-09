@@ -127,7 +127,7 @@ export const axisPointerDefinition = (input: ConformanceInput) => {
     focus: 'group-x',
     focusRing: false,
     maxFocusDistance: Number.POSITIVE_INFINITY,
-    animate: false,
+    svgAnimation: false,
     keyboard: true,
     tooltip: {
       use: tooltip,

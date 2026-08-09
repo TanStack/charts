@@ -371,7 +371,7 @@ adapter. Preserve:
 
 - the accessible label and description;
 - stable `data-ts-key` identity when DOM reconciliation should reuse nodes;
-- the focus marker contract when native focus remains enabled;
+- the focus marker contract when chart-owned focus remains enabled;
 - scoped IDs through `idPrefix`;
 - deterministic server output.
 

@@ -68,7 +68,7 @@ describe('continuousCursor', () => {
       ],
       x: { scale: scaleUtc().domain(dates) },
       y: { scale: scaleLinear().domain([0, 1]) },
-      behaviors: [behavior],
+      controls: [behavior],
     })
     const scene = createChartScene(definition, { width: 480, height: 240 })
     const fallback = scene.nodes.find(
@@ -298,7 +298,7 @@ describe('continuousCursor', () => {
       ],
       x: { scale: scaleUtc().domain([dates[1], dates[0]]) },
       y: { scale: scaleLinear().domain([10, 0]) },
-      behaviors: [continuousCursor({ id: 'temporal', position })],
+      controls: [continuousCursor({ id: 'temporal', position })],
       keyboard: false,
     })
     const container = document.createElement('div')
@@ -390,7 +390,7 @@ function numericDefinition(
     marks: [dot(rows, { x: 'x', y: 'y' })],
     x: { scale: scaleLinear().domain([0, 10]) },
     y: { scale: scaleLinear().domain([0, 10]) },
-    behaviors: [
+    controls: [
       continuousCursor({
         id: 'free',
         position: controlledSignal<

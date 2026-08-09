@@ -86,7 +86,7 @@ export function playbackDefinition(
       grid: true,
       axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
     },
-    behaviors: [
+    controls: [
       handleX({
         id: 'playback-frame',
         value: controlledSignal<Date, HandleXChange<Date>>(
@@ -109,7 +109,7 @@ export function playbackDefinition(
         format: (value) => playbackValueText(rowForDate(value)),
       }),
     ],
-    animate: false,
+    svgAnimation: false,
     keyboard: false,
     focusRing: false,
     margin,

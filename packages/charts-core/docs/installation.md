@@ -251,7 +251,7 @@ Optional capabilities have explicit entries:
 ```ts
 import { d3Curve } from '@tanstack/charts/d3/shape'
 import { renderChartImage } from '@tanstack/charts/export'
-import { focusX } from '@tanstack/charts/focus'
+import { focusGroupX } from '@tanstack/charts/focus'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
 import { mountCanvasChart } from '@tanstack/charts/canvas'

@@ -13,7 +13,7 @@ export const multiLineEndLabelsDefinition = (
 ) => {
   const endpoints = select(rows, {
     by: 'industry',
-    value: ({ datum }) => datum.date.getTime(),
+    value: (datum) => datum.date.getTime(),
     select: 'max',
   })
 

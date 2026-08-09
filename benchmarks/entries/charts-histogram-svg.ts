@@ -9,7 +9,7 @@ import {
 import { scaleLinear } from 'd3-scale'
 
 const bins = binX([1, 2, 2, 3, 5, 8, 13, 21], {
-  value: ({ datum }) => datum,
+  value: (datum) => datum,
   thresholds: 5,
 })
 const definition = defineChart({

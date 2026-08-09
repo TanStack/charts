@@ -70,7 +70,7 @@ describe('definition-owned connected-scatter direction', () => {
     )
 
     expect(source).toContain('directionTargetIndexes = [14, 28, 42]')
-    expect(source).toContain('directionPairs = window(driving')
+    expect(source).toContain('directionPairs = rollingWindow(driving')
     expect(source).toContain("orderBy: 'year'")
     expect(source).toContain('size: 2')
     expect(source).toContain('partial: false')

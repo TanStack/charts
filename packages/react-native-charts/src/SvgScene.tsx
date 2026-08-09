@@ -13,10 +13,11 @@ import {
   Svg,
   Text,
 } from 'react-native-svg'
-import type { CommonPathProps, Linejoin } from 'react-native-svg'
+import type { CommonPathProps, Linejoin, SvgProps } from 'react-native-svg'
 import type {
   ChartFocusPresentation,
   ChartScene,
+  ChartTextTypography,
   SceneGroup,
   SceneNode,
   SceneStyle,
@@ -27,6 +28,11 @@ export interface NativeChartSceneProps {
   scene: ChartScene
   color: ColorValue
   fontFamily?: string
+  fontStyle?: SvgProps['fontStyle']
+  fontStretch?: SvgProps['fontStretch']
+  letterSpacing?: number
+  direction?: ChartTextTypography['direction']
+  fontScale?: number
   idPrefix: string
   resolvePaint: NativePaintResolver
   focusFill?: ColorValue
@@ -42,6 +48,7 @@ export function NativeChartSceneNodes({
   nodes,
   color,
   focusFill,
+  fontScale,
   idPrefix,
   resolvePaint,
 }: NativeChartSceneNodesProps) {
@@ -61,13 +68,23 @@ export function NativeChartSceneNodes({
       ),
     [color, focusFill, gradientIds, idPrefix, resolvePaint],
   )
-  return <>{nodes.map((node) => renderSceneNode(node, idPrefix, paint))}</>
+  return (
+    <>
+      {nodes.map((node) =>
+        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+      )}
+    </>
+  )
 }
 
 export const NativeChartScene = React.memo(function NativeChartScene({
   scene,
   color,
   fontFamily,
+  fontStyle,
+  fontStretch,
+  letterSpacing,
+  fontScale,
   idPrefix,
   resolvePaint,
   focusFill,
@@ -97,6 +114,13 @@ export const NativeChartScene = React.memo(function NativeChartScene({
       viewBox={`0 0 ${scene.width} ${scene.height}`}
       color={color}
       fontFamily={fontFamily}
+      fontStyle={fontStyle}
+      fontStretch={fontStretch}
+      letterSpacing={
+        letterSpacing === undefined
+          ? undefined
+          : letterSpacing * positiveFinite(fontScale, 1)
+      }
       pointerEvents="none"
       accessible={false}
     >
@@ -133,11 +157,13 @@ export const NativeChartScene = React.memo(function NativeChartScene({
         />
       )}
       {focusPresentation?.under.map((node) =>
-        renderSceneNode(node, idPrefix, paint),
+        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
       )}
-      {scene.nodes.map((node) => renderSceneNode(node, idPrefix, paint))}
+      {scene.nodes.map((node) =>
+        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
+      )}
       {focusPresentation?.over.map((node) =>
-        renderSceneNode(node, idPrefix, paint),
+        renderSceneNode(node, idPrefix, paint, positiveFinite(fontScale, 1)),
       )}
     </Svg>
   )
@@ -147,13 +173,14 @@ function renderSceneNode(
   node: SceneNode,
   idPrefix: string,
   paint: (value: string) => ColorValue,
+  fontScale: number,
 ): React.ReactNode {
   if (node.kind === 'group' && node.focus) return null
   const style = nativeSceneStyle(node.style, paint)
 
   switch (node.kind) {
     case 'group':
-      return renderGroup(node, idPrefix, paint, style)
+      return renderGroup(node, idPrefix, paint, style, fontScale)
     case 'rule':
       return (
         <Line
@@ -226,7 +253,7 @@ function renderSceneNode(
               ? undefined
               : `rotate(${node.rotate} ${node.x} ${node.y})`
           }
-          fontSize={node.fontSize}
+          fontSize={(node.fontSize ?? 16) * fontScale}
           fontWeight={node.fontWeight}
         >
           {node.text}
@@ -240,6 +267,7 @@ function renderGroup(
   idPrefix: string,
   paint: (value: string) => ColorValue,
   style: ReturnType<typeof nativeSceneStyle>,
+  fontScale: number,
 ) {
   const clipId = node.clip
     ? scopedId(idPrefix, `clip-${stableId(node.key)}`)
@@ -268,7 +296,9 @@ function renderGroup(
           </ClipPath>
         </Defs>
       ) : null}
-      {node.children.map((child) => renderSceneNode(child, idPrefix, paint))}
+      {node.children.map((child) =>
+        renderSceneNode(child, idPrefix, paint, fontScale),
+      )}
     </G>
   )
 }
@@ -358,4 +388,10 @@ function stableId(value: string) {
 
 function percent(value: number) {
   return `${Math.max(0, Math.min(1, value)) * 100}%`
+}
+
+function positiveFinite(value: number | undefined, fallback: number) {
+  return value !== undefined && Number.isFinite(value) && value > 0
+    ? value
+    : fallback
 }

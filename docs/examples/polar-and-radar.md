@@ -303,7 +303,7 @@ const folded = fold(decathlon, {
 })
 const normalized = normalize(folded, {
   by: 'event',
-  value: ({ datum }) =>
+  value: (datum) =>
     timedEvents.has(datum.event) ? -datum.result : datum.result,
   basis: 'extent',
   as: 'relativePerformance',

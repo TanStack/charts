@@ -14,6 +14,7 @@ import {
 } from './view-layout'
 import type {
   ChartMargin,
+  ChartDefinition,
   ChartMotionDefinition,
   ChartPoint,
   ChartScene,
@@ -23,6 +24,7 @@ import type {
   ChartTheme,
   ChartValue,
   ResolvedScale,
+  ResponsiveChartDefinition,
   SceneFocusGuide,
   SceneGroup,
   StaticChartDefinition,
@@ -48,8 +50,64 @@ export type {
 }
 
 type AnyStaticChartDefinition = StaticChartDefinition<any, any, any>
+type AnyChartDefinition = ChartDefinition<any, any, any>
 
-export type ViewDefinitions = Readonly<Record<string, AnyStaticChartDefinition>>
+type EmbeddedHostOption =
+  | 'maxFocusDistance'
+  | 'focus'
+  | 'focusRing'
+  | 'cursor'
+  | 'spatialIndex'
+  | 'svgAnimation'
+  | 'keyboard'
+  | 'pointer'
+  | 'selection'
+  | 'controls'
+  | 'tooltip'
+  | 'motion'
+
+type WithoutEmbeddedHostOptions<TDefinition> = Omit<
+  TDefinition,
+  EmbeddedHostOption
+> & {
+  [TOption in EmbeddedHostOption]?: never
+}
+
+/** A chart definition that can be embedded without creating a second host. */
+export type ComposableStaticChartDefinition<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = Omit<
+  WithoutEmbeddedHostOptions<StaticChartDefinition<TDatum, TXValue, TYValue>>,
+  'gradients' | 'theme'
+> & {
+  gradients?: readonly []
+  theme?: Omit<Partial<ChartTheme>, 'background'> & { background?: never }
+}
+
+/** A responsive chart definition whose resolved spec can be embedded in a view. */
+export type ComposableResponsiveChartDefinition<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = WithoutEmbeddedHostOptions<
+  ResponsiveChartDefinition<TDatum, TXValue, TYValue>
+>
+
+export type ComposableChartDefinition<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> =
+  | ComposableStaticChartDefinition<TDatum, TXValue, TYValue>
+  | ComposableResponsiveChartDefinition<TDatum, TXValue, TYValue>
+
+type AnyComposableChartDefinition = ComposableChartDefinition<any, any, any>
+
+export type ViewDefinitions = Readonly<
+  Record<string, AnyComposableChartDefinition>
+>
 
 export interface ViewLink {
   x?: string
@@ -57,7 +115,7 @@ export interface ViewLink {
 }
 
 export interface ViewGridItem<
-  TChart extends AnyStaticChartDefinition = AnyStaticChartDefinition,
+  TChart extends AnyComposableChartDefinition = AnyComposableChartDefinition,
   TRow extends string = string,
   TColumn extends string = string,
 > {
@@ -77,11 +135,11 @@ export interface ViewGridOptions<
   TRows extends readonly ViewTrack[] = readonly ViewTrack[],
   TColumns extends readonly ViewTrack[] = readonly ViewTrack[],
   TViews extends readonly ViewGridItem<
-    AnyStaticChartDefinition,
+    AnyComposableChartDefinition,
     TrackId<TRows>,
     TrackId<TColumns>
   >[] = readonly ViewGridItem<
-    AnyStaticChartDefinition,
+    AnyComposableChartDefinition,
     TrackId<TRows>,
     TrackId<TColumns>
   >[],
@@ -98,28 +156,46 @@ export interface ViewGridOptions<
 type ViewDefinition<TView> =
   TView extends ViewGridItem<infer TDefinition, any, any> ? TDefinition : never
 
-type ViewDatum<TViews extends readonly ViewGridItem[]> = ChartSpecDatum<
+type DefinitionDatum<TDefinition> = TDefinition extends {
+  readonly __datum?: infer TDatum
+}
+  ? TDatum
+  : never
+
+type DefinitionXValue<TDefinition> = TDefinition extends {
+  readonly __xValue?: infer TXValue extends ChartValue
+}
+  ? TXValue
+  : never
+
+type DefinitionYValue<TDefinition> = TDefinition extends {
+  readonly __yValue?: infer TYValue extends ChartValue
+}
+  ? TYValue
+  : never
+
+type ViewDatum<TViews extends readonly ViewGridItem[]> = DefinitionDatum<
   ViewDefinition<TViews[number]>
 >
 
-type ViewXValue<TViews extends readonly ViewGridItem[]> = ChartSpecXValue<
+type ViewXValue<TViews extends readonly ViewGridItem[]> = DefinitionXValue<
   ViewDefinition<TViews[number]>
 >
 
-type ViewYValue<TViews extends readonly ViewGridItem[]> = ChartSpecYValue<
+type ViewYValue<TViews extends readonly ViewGridItem[]> = DefinitionYValue<
   ViewDefinition<TViews[number]>
 >
 
 type NamedViewId<TViews extends ViewDefinitions> = Extract<keyof TViews, string>
 type NamedViewDefinition<TViews extends ViewDefinitions> =
   TViews[NamedViewId<TViews>]
-type NamedViewDatum<TViews extends ViewDefinitions> = ChartSpecDatum<
+type NamedViewDatum<TViews extends ViewDefinitions> = DefinitionDatum<
   NamedViewDefinition<TViews>
 >
-type NamedViewXValue<TViews extends ViewDefinitions> = ChartSpecXValue<
+type NamedViewXValue<TViews extends ViewDefinitions> = DefinitionXValue<
   NamedViewDefinition<TViews>
 >
-type NamedViewYValue<TViews extends ViewDefinitions> = ChartSpecYValue<
+type NamedViewYValue<TViews extends ViewDefinitions> = DefinitionYValue<
   NamedViewDefinition<TViews>
 >
 
@@ -207,7 +283,7 @@ function viewScaleLink<TSource extends string, TTarget extends string>(
 
 interface PreparedView {
   id: string
-  chart: AnyStaticChartDefinition
+  chart: AnyChartDefinition
 }
 
 interface CompiledView {
@@ -244,7 +320,12 @@ export function composeViews<
   NamedViewDatum<TViews>,
   NamedViewXValue<TViews>,
   NamedViewYValue<TViews>
-> {
+> &
+  ComposableStaticChartDefinition<
+    NamedViewDatum<TViews>,
+    NamedViewXValue<TViews>,
+    NamedViewYValue<TViews>
+  > {
   const id = compositionId(options.id, 'composeViews', 'view-composition-0')
   const prepared = prepareComposition(
     options.views,
@@ -264,7 +345,7 @@ export function viewGrid<
   const TRows extends readonly ViewTrack[],
   const TColumns extends readonly ViewTrack[],
   const TViews extends readonly ViewGridItem<
-    AnyStaticChartDefinition,
+    AnyComposableChartDefinition,
     TrackId<TRows>,
     TrackId<TColumns>
   >[],
@@ -274,7 +355,12 @@ export function viewGrid<
   ViewDatum<TViews>,
   ViewXValue<TViews>,
   ViewYValue<TViews>
-> {
+> &
+  ComposableStaticChartDefinition<
+    ViewDatum<TViews>,
+    ViewXValue<TViews>,
+    ViewYValue<TViews>
+  > {
   const id = compositionId(options.id, 'viewGrid', 'view-grid-0')
   const lowered = lowerViewGrid(options)
   const prepared = prepareComposition(
@@ -298,7 +384,7 @@ function createViewComposition<
   id: string,
   viewLayout: ViewLayout<any, any>,
   prepared: PreparedComposition,
-): StaticChartDefinition<TDatum, TXValue, TYValue> {
+): ComposableStaticChartDefinition<TDatum, TXValue, TYValue> {
   const childMotions = new Map<string, ChartMotionDefinition<any>>()
   const mark = createMarkWithScaleValues<
     TDatum,
@@ -331,8 +417,8 @@ function createViewComposition<
             return frame
           })
           assertLinkedFrames(id, prepared.views, prepared.links, bounds)
-          const definitions = prepared.views.map((view) =>
-            mergeTheme(view.chart, theme),
+          const definitions = prepared.views.map((view, index) =>
+            resolveChildDefinition(view, bounds[index]!, theme),
           )
           const marginLocks = prepared.views.map(
             () => ({}) as Partial<ChartMargin>,
@@ -435,7 +521,7 @@ function lowerViewGrid(options: ViewGridOptions): {
   if (!options.views.length) {
     throw new TypeError('viewGrid requires at least one view')
   }
-  const views: Record<string, AnyStaticChartDefinition> = {}
+  const views: Record<string, AnyComposableChartDefinition> = {}
   const cells: Record<string, ViewGridCell> = {}
   const items = new Map<string, ViewGridItem>()
   for (const view of options.views) {
@@ -623,19 +709,14 @@ function compositionId(
 
 function assertChildDefinition(
   id: string,
-  definition: AnyStaticChartDefinition,
+  definition: AnyChartDefinition,
 ): void {
   if (
     !definition ||
     typeof definition !== 'object' ||
-    !Array.isArray(definition.marks)
+    (!('chart' in definition) && !Array.isArray(definition.marks))
   ) {
-    throw new TypeError(`View "${id}" requires a static chart definition`)
-  }
-  if ('chart' in definition) {
-    throw new TypeError(
-      `View "${id}" requires a static chart definition; resolve dynamic chart builders before composition`,
-    )
+    throw new TypeError(`View "${id}" requires a chart definition`)
   }
   const hostOptions = [
     'maxFocusDistance',
@@ -643,11 +724,11 @@ function assertChildDefinition(
     'focusRing',
     'cursor',
     'spatialIndex',
-    'animate',
+    'svgAnimation',
     'keyboard',
     'pointer',
     'selection',
-    'behaviors',
+    'controls',
     'tooltip',
     'motion',
   ] as const
@@ -659,6 +740,7 @@ function assertChildDefinition(
       `View "${id}" cannot own chart host option "${hostOption}"; configure it on the outer definition`,
     )
   }
+  if ('chart' in definition) return
   if (definition.gradients?.length) {
     throw new TypeError(
       `View "${id}" cannot embed gradients until child scene resources can be adopted by the outer scene`,
@@ -688,6 +770,30 @@ function assertChildDefinition(
       )
     }
   }
+}
+
+function resolveChildDefinition(
+  view: PreparedView,
+  frame: ResolvedViewFrame,
+  theme: ChartTheme,
+): AnyStaticChartDefinition {
+  const definition = view.chart
+  const resolved =
+    'chart' in definition
+      ? (() => {
+          const { chart, ...options } = definition
+          return {
+            ...chart({
+              width: frame.width,
+              height: frame.height,
+              defaultTheme: theme,
+            }),
+            ...options,
+          } as AnyStaticChartDefinition
+        })()
+      : definition
+  assertChildDefinition(view.id, resolved)
+  return mergeTheme(resolved, theme)
 }
 
 function compileViews(

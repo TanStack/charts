@@ -136,7 +136,7 @@ Vanilla code makes that boundary explicit:
 const createProductRanking = (rows: readonly ProductRow[], metric: Metric) => {
   const ranked = rankProducts(rows, metric)
   return defineChart({
-    animate: true,
+    svgAnimation: true,
     chart: ({ width }) => buildRankingSpec(ranked, width),
   })
 }

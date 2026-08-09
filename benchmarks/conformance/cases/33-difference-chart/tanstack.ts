@@ -1,12 +1,12 @@
 import { aapl } from '@charts-poc/demo-data/aapl'
-import { defineChart, differenceY, window } from '@tanstack/charts'
+import { defineChart, differenceY, rollingWindow } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { formatDifferenceMonth } from './model'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
 export const differenceRows = (input: ConformanceInput) =>
-  window(aapl.slice(input.revision * 10, input.revision * 10 + 120), {
+  rollingWindow(aapl.slice(input.revision * 10, input.revision * 10 + 120), {
     size: 20,
     orderBy: 'Date',
     anchor: 'end',
