@@ -142,7 +142,7 @@ use an explicit paint instead.
 
 ## HTML tooltip styling
 
-The native tooltip is an HTML element inside the chart container by default.
+The built-in DOM tooltip is an HTML element inside the chart container by default.
 Give it a class through `tooltip.className` and style that class in application
 CSS:
 

@@ -37,7 +37,7 @@ Native adapter consumes definitions from the universal entry.
 <!-- docs-example: overview typecheck -->
 
 ```ts
-import { defineChart, differenceY, window } from '@tanstack/charts'
+import { defineChart, differenceY, rollingWindow } from '@tanstack/charts'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { scaleUtc } from 'd3-scale'
 
@@ -57,7 +57,7 @@ const observations: readonly ClosingPrice[] = [
   { Date: new Date('2013-05-22T00:00:00Z'), Close: 63.05 },
 ]
 
-const rows = window(observations, {
+const rows = rollingWindow(observations, {
   size: 3,
   orderBy: 'Date',
   anchor: 'end',
@@ -93,7 +93,7 @@ const closingPriceChart = defineChart({
 })
 ```
 
-The rolling average is an ordinary, visible `window` transform. `differenceY`
+The rolling average is an ordinary, visible `rollingWindow` transform. `differenceY`
 owns sign segmentation and exact crossing interpolation. The y axis uses the
 compact numeric scale; the calendar-aware x axis upgrades only that mapping to
 D3's `scaleUtc`. [Installation](./installation.md) lists the exact packages,
@@ -110,7 +110,7 @@ TanStack Charts owns the parts that make a declarative chart reliable inside an 
 - A renderer-neutral scene with stable keys
 - Default SVG rendering, keyed DOM reconciliation, optional Canvas painting,
   and interruptible animation
-- Pointer and keyboard focus, selection callbacks, and native tooltips
+- Pointer and keyboard focus, selection callbacks, and built-in tooltips
 - Framework-agnostic runtime state with thin framework adapters
 - Light and dark mode defaults based on inherited color and CSS variables
 - Public extension points for custom marks, focus strategies, spatial indexes, and renderers
@@ -123,7 +123,7 @@ narrow imports.
 | Responsibility                                                                                         | Owner                                                            |
 | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
 | Common numeric and categorical scale mappings                                                          | `@tanstack/charts-scales`                                        |
-| Common group, bin, window, normalize, select, and row-stack transforms                                 | TanStack's eager data-transform helpers                          |
+| Common group, bin, rollingWindow, normalize, select, and row-stack transforms                          | TanStack's eager data-transform helpers                          |
 | Temporal, nonlinear, piecewise, spatial, and other specialized algorithms                              | Exact TanStack entries, granular D3 modules, or application code |
 | Fetching, cleaning, profiling, and exploratory analysis                                                | Your data layer, server, or AI workflow                          |
 | Mark-channel domain inference, responsive ranges, guide layout, scenes, rendering, and chart lifecycle | TanStack Charts                                                  |
@@ -140,7 +140,7 @@ The normal path is intentionally short:
 - Omit `width` to follow the chart container.
 - Omit `margin` to measure axes, tick labels, rotation, and titles automatically.
 - Supply `ariaLabel`; keyboard focus is enabled by default.
-- Add the `tooltip` extension when a native value tooltip is enough.
+- Add the `tooltip` extension when a built-in value tooltip is enough.
 - Start with compact linear, band, point, and ordinal scales; upgrade only the
   scale that needs fuller D3 semantics.
 - Let built-in marks infer stable identity from IDs or unique positions; supply

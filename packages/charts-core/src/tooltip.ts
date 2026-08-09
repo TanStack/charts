@@ -1,4 +1,9 @@
 import { placeTooltip } from './tooltip-position'
+import {
+  createChartTooltipContent,
+  orderChartTooltipPoints,
+  resolveChartTooltipAnchor,
+} from './tooltip-model'
 import type {
   ChartTooltipExtension,
   ChartTooltipExtensionContext,
@@ -22,6 +27,8 @@ import type {
 
 export const tooltip: ChartTooltipExtension = {
   id: 'tooltip',
+  __chartExtensionType: 'tooltip',
+  __chartTooltipHost: 'dom',
   create: createTooltipExtension,
 }
 
@@ -96,26 +103,18 @@ function createTooltipExtension<
     tooltipElement.className = options.className
       ? `ts-chart-tooltip ${options.className}`
       : 'ts-chart-tooltip'
-    const points = orderTooltipPoints(
+    const points = orderChartTooltipPoints(
       nextContext.points,
       nextContext.scene,
       options.sort,
     )
-    const contentContext = createTooltipContentContext(
+    const resolvedContent = createChartTooltipContent(
+      points,
       nextContext.scene,
       nextContext.pinned,
       options,
+      nextContext.point,
     )
-    const content = options.content?.(points, contentContext)
-    const text =
-      content === undefined
-        ? (options.formatGroup?.(points, contentContext) ??
-          options.format?.(nextContext.point, contentContext))
-        : undefined
-    const resolvedContent =
-      content ??
-      text ??
-      defaultTooltipContent(points, nextContext.scene, options, contentContext)
     const custom = renderTooltipBody(
       tooltipElement,
       points,
@@ -140,7 +139,7 @@ function createTooltipExtension<
     tooltipElement.dataset.sticky = String(nextContext.pinned)
     tooltipElement.style.visibility = 'hidden'
     tooltipElement.removeAttribute('hidden')
-    anchor = resolveTooltipAnchor(
+    anchor = resolveChartTooltipAnchor(
       nextContext.point,
       points,
       nextContext.scene,

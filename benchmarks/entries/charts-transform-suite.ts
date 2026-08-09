@@ -4,7 +4,7 @@ import { normalize } from '@tanstack/charts/transform/normalize'
 import { select } from '@tanstack/charts/transform/select'
 import { stackRowsY } from '@tanstack/charts/transform/stack'
 import { waterfall } from '@tanstack/charts/transform/waterfall'
-import { window } from '@tanstack/charts/transform/window'
+import { rollingWindow } from '@tanstack/charts/transform/rolling-window'
 import { binXY } from '@tanstack/charts/transform/bin-xy'
 import { cumulative } from '@tanstack/charts/transform/cumulative'
 import { fold } from '@tanstack/charts/transform/fold'
@@ -32,7 +32,7 @@ export const transformed = {
     orderBy: 'value',
     total: true,
   }),
-  rolling: window(rows, {
+  rolling: rollingWindow(rows, {
     size: 2,
     outputs: { average: { value: 'value', reduce: 'mean' } },
   }),

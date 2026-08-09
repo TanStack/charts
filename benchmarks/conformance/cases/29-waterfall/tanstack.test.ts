@@ -92,8 +92,8 @@ describe('definition-owned waterfall layout', () => {
       'utf8',
     )
 
-    expect(source).toContain('window(observations')
-    expect(source).toContain("delta: { value: 'gas', reduce: difference }")
+    expect(source).toContain('rollingWindow(observations')
+    expect(source).toContain("delta: { value: 'gas', reduce: delta }")
     expect(source).toContain('waterfall(yearlyChanges')
     expect(source).toContain('barY(waterfallRows')
     expect(source).not.toContain("from 'd3-array'")

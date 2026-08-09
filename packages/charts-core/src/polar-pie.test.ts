@@ -17,7 +17,7 @@ describe('pie', () => {
     ]
     const fieldSlices = pie(rows, { value: 'amount' })
     const accessorSlices = pie(rows, {
-      value: ({ datum, index, data }) => {
+      value: (datum, { index, data }) => {
         expectTypeOf(datum).toEqualTypeOf<(typeof rows)[number]>()
         expectTypeOf(index).toEqualTypeOf<number>()
         expectTypeOf(data).toEqualTypeOf<readonly (typeof rows)[number][]>()
@@ -350,7 +350,7 @@ describe('pie', () => {
       { id: 'zero', value: 0 },
     ]
     const slices = pie(rows, {
-      value: ({ datum }) => datum.value,
+      value: (datum) => datum.value,
     })
 
     expect(slices.map(({ id }) => id)).toEqual(['finite', 'zero'])

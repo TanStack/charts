@@ -69,7 +69,7 @@ export function App() {
       defineChart(
         createRankingChart(rankingMetric, 'var(--ts-chart-4, #8b5cf6)'),
         {
-          animate: { duration: 420, easing: 'ease-in-out' },
+          svgAnimation: { duration: 420, easing: 'ease-in-out' },
           tooltip: {
             use: tooltip,
             format: (point) =>
@@ -84,7 +84,7 @@ export function App() {
       defineChart(
         createIndustryHistoryChart(historyMode, industryWindow, historyZoomed),
         {
-          animate: { duration: 500, easing: 'ease-out' },
+          svgAnimation: { duration: 500, easing: 'ease-out' },
           focus: 'group-x',
           tooltip: { use: tooltip, formatGroup: formatIndustryGroup },
         },
@@ -94,7 +94,7 @@ export function App() {
   const penguinDefinition = React.useMemo(
     () =>
       defineChart(createPenguinChart(barOrientation, barsStacked), {
-        animate: { duration: 500, easing: 'ease-out' },
+        svgAnimation: { duration: 500, easing: 'ease-out' },
         focus: barOrientation === 'vertical' ? 'group-x' : 'group-y',
         tooltip: { use: tooltip, format: formatPenguinPoint },
       }),

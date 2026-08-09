@@ -384,7 +384,7 @@ recipes shipped with the local package.
 
 - Marks consume materialized rows; keep TanStack data transforms beside the
   definition and memoize them through application reactivity.
-- \`defineChart({ marks, x, y, animate: false, keyboard: false })\` creates a
+- \`defineChart({ marks, x, y, svgAnimation: false, keyboard: false })\` creates a
   static definition. Chart behavior belongs to the definition.
 - Each materialized positional dimension requires a D3 scale factory or
   configured instance. A factory infers its domain from mark channels; an

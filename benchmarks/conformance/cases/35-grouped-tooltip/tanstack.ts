@@ -99,7 +99,7 @@ export const catalogCase = tanstackCase(
 
 const configuredDefinition = (input: ConformanceInput) =>
   defineChart(definition(input), {
-    animate: false,
+    svgAnimation: false,
     keyboard: true,
     focus: 'group-x',
     tooltip: {

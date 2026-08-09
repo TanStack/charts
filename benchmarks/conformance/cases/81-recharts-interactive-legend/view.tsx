@@ -72,7 +72,7 @@ export function interactiveLegendDefinition(
       },
       margin: { top: 20, right: 24, left: 62 },
     }),
-    { animate: false, keyboard: false },
+    { svgAnimation: false, keyboard: false },
   )
 }
 

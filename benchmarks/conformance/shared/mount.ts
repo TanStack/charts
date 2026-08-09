@@ -1,11 +1,11 @@
 import {
   defineChart,
-  isDynamicChartDefinition,
+  isResponsiveChartDefinition,
   mountChart,
 } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import type {
-  ChartDefinition,
+  DomChartDefinition,
   ChartDefinitionOptions,
   ChartValue,
   ChartTooltipOptions,
@@ -43,7 +43,7 @@ export function tanstackMount<
 >(
   createDefinition: (
     input: ConformanceInput,
-  ) => ChartDefinition<TDatum, TXValue, TYValue>,
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>,
   ariaLabel: string,
   interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
 ): TanStackConformanceCase<TDatum, TXValue, TYValue> {
@@ -96,7 +96,7 @@ export interface TanStackConformanceCase<
   (container: HTMLElement, input: ConformanceInput): ConformanceHandle
   createDefinition: (
     input: ConformanceInput,
-  ) => ChartDefinition<TDatum, TXValue, TYValue>
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>
   ariaLabel: string
   interactiveTooltip: true | ChartTooltipOptions<TDatum>
   mount: ConformanceMount
@@ -109,7 +109,7 @@ export function tanstackCase<
 >(
   createDefinition: (
     input: ConformanceInput,
-  ) => ChartDefinition<TDatum, TXValue, TYValue>,
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>,
   ariaLabel: string,
   interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
 ): TanStackConformanceCase<TDatum, TXValue, TYValue> {
@@ -121,12 +121,12 @@ export function withConformanceBehavior<
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  definition: ChartDefinition<TDatum, TXValue, TYValue>,
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>,
   input: ConformanceInput,
   interactiveTooltip: true | ChartTooltipOptions<TDatum>,
-): ChartDefinition<TDatum, TXValue, TYValue> {
-  const behavior: ChartDefinitionOptions<TDatum, TXValue, TYValue> = {
-    animate: false,
+): DomChartDefinition<TDatum, TXValue, TYValue> {
+  const behavior: ChartDefinitionOptions<TDatum, TXValue, TYValue, 'dom'> = {
+    svgAnimation: false,
     ...(input.interactive === true ? {} : { focus: false }),
     keyboard: input.interactive === true,
     tooltip:
@@ -137,7 +137,7 @@ export function withConformanceBehavior<
           : { use: tooltip, ...interactiveTooltip },
   }
 
-  if (isDynamicChartDefinition(definition)) {
+  if (isResponsiveChartDefinition(definition)) {
     return defineChart(definition, behavior)
   }
   return defineChart(definition, behavior)

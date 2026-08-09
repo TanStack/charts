@@ -7,7 +7,8 @@ import {
   lineY,
   mountChart,
   renderChartSvg,
-  type DynamicChartDefinition,
+  type ChartValue,
+  type ResponsiveChartDefinition,
   type StaticChartDefinition,
 } from '../packages/charts-core/src/index'
 import {
@@ -448,7 +449,9 @@ function measureD3(
 }
 
 function measureNativeHostUpdates<TInput>(
-  createDefinition: (input: TInput) => DynamicChartDefinition<unknown>,
+  createDefinition: (
+    input: TInput,
+  ) => ResponsiveChartDefinition<unknown, ChartValue, ChartValue, 'dom'>,
   inputs: readonly [TInput, TInput],
   width: number,
   height: number,

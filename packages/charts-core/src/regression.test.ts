@@ -78,11 +78,11 @@ describe('linear regression marks', () => {
       { at: new Date(epoch + 2), value: 14 },
     ]
     const preparedY = linearRegressionRowsY(rows, {
-      x: ({ datum, index, data }) => {
+      x: (datum, { index, data }) => {
         expect(data[index]).toBe(datum)
         return datum.at
       },
-      y: ({ datum }) => datum.value,
+      y: (datum) => datum.value,
       ci: 0,
       samples: 3,
     })

@@ -13,7 +13,7 @@ import type { BarYOptions } from './bar'
 import { mountChart } from './dom'
 import { dot } from './dot'
 import { facet } from './facet'
-import { focusX } from './focus'
+import { focusGroupX } from './focus'
 import { brushX, type BrushRange } from './interaction-brush'
 import {
   continuousCursor,
@@ -38,7 +38,7 @@ import { createChartScene, defineChart } from './scene'
 import { tooltip } from './tooltip'
 import { portal } from './tooltip-portal'
 import type {
-  ChartBehavior,
+  ChartControl,
   ChartAxisOptions,
   ChartColorLegend,
   ChartDefinition,
@@ -57,6 +57,7 @@ import type {
   ChartSpecXValue,
   ChartSpecYValue,
   ChartSvgRenderer,
+  ChartTooltipExtensionToken,
   ChartValue,
   ResolvedScaleViewport,
 } from './types'
@@ -262,23 +263,23 @@ const temporalDefinition = defineChart({
   y: { scale: scaleLinear().domain([0, 4]) },
 })
 
-defineChart(temporalDefinition, { behaviors: [dateBrush] })
+defineChart(temporalDefinition, { controls: [dateBrush] })
 // @ts-expect-error The brush x-value must match the chart x-value.
-defineChart(numericDefinition, { behaviors: [dateBrush] })
-defineChart(temporalDefinition, { behaviors: [dateNumberCursor] })
+defineChart(numericDefinition, { controls: [dateBrush] })
+defineChart(temporalDefinition, { controls: [dateNumberCursor] })
 // @ts-expect-error The cursor x-value must match the chart x-value.
-defineChart(numericDefinition, { behaviors: [dateNumberCursor] })
+defineChart(numericDefinition, { controls: [dateNumberCursor] })
 // @ts-expect-error The cursor y-value must match the chart y-value.
-defineChart(temporalDefinition, { behaviors: [dateDateCursor] })
-defineChart(temporalDefinition, { behaviors: [dateNumberHandle] })
+defineChart(temporalDefinition, { controls: [dateDateCursor] })
+defineChart(temporalDefinition, { controls: [dateNumberHandle] })
 // @ts-expect-error The handle x-value must match the chart x-value.
-defineChart(numericDefinition, { behaviors: [dateNumberHandle] })
+defineChart(numericDefinition, { controls: [dateNumberHandle] })
 // @ts-expect-error A semantic handle cross must match the chart y-value.
-defineChart(temporalDefinition, { behaviors: [dateStringHandle] })
-defineChart(temporalDefinition, { behaviors: [dateZoom] })
-defineChart(numericDefinition, { behaviors: [numberZoom] })
+defineChart(temporalDefinition, { controls: [dateStringHandle] })
+defineChart(temporalDefinition, { controls: [dateZoom] })
+defineChart(numericDefinition, { controls: [numberZoom] })
 // @ts-expect-error The zoom x-value must match the chart x-value.
-defineChart(numericDefinition, { behaviors: [dateZoom] })
+defineChart(numericDefinition, { controls: [dateZoom] })
 const unionPositionMark = rows.length > 0 ? temporalMark : categoricalMark
 const unionPositionDefinition = defineChart({
   marks: [unionPositionMark],
@@ -301,6 +302,15 @@ const responsiveDefinition = defineChart(() => ({
 }))
 const widenedDefinition: ChartDefinition<Row, string, number> =
   rows.length > 0 ? staticDefinition : responsiveDefinition
+const nativeTooltipToken: ChartTooltipExtensionToken<'react-native'> = {
+  id: 'native-tooltip',
+  __chartExtensionType: 'tooltip',
+  __chartTooltipHost: 'react-native',
+  create: () => undefined,
+}
+const nativeTooltipDefinition = defineChart(staticDefinition, {
+  tooltip: nativeTooltipToken,
+})
 
 interface LineRow {
   kind: 'line'
@@ -516,13 +526,13 @@ if (false) {
     x: { scale: scaleLinear() },
   })
   const container = document.createElement('div')
-  const temporalBehavior: ChartBehavior<Date, number> = {
+  const temporalBehavior: ChartControl<Date, number> = {
     id: 'temporal-behavior',
     resolve: () => ({}),
   }
-  defineChart(temporalDefinition, { behaviors: [temporalBehavior] })
+  defineChart(temporalDefinition, { controls: [temporalBehavior] })
   // @ts-expect-error A Date-x behavior cannot consume a numeric-x chart.
-  defineChart(numericDefinition, { behaviors: [temporalBehavior] })
+  defineChart(numericDefinition, { controls: [temporalBehavior] })
   const customLegend: ChartColorLegend = {
     height(itemCount, context) {
       expectTypeOf(itemCount).toEqualTypeOf<number>()
@@ -713,9 +723,16 @@ if (false) {
     yValue: number
   }>()
   mountChart(container, {
-    definition: defineChart(staticDefinition, { focus: focusX }),
+    definition: defineChart(staticDefinition, { focus: focusGroupX }),
     ariaLabel: 'Built-in focus remains polymorphic',
   })
+  if (false) {
+    mountChart(container, {
+      // @ts-expect-error DOM hosts reject React Native tooltip tokens.
+      definition: nativeTooltipDefinition,
+      ariaLabel: 'Native tooltip definition',
+    })
+  }
   mountChart(container, {
     definition: defineChart(staticDefinition, { focus: 'group-x' }),
     ariaLabel: 'Built-in focus preset',
@@ -752,7 +769,7 @@ if (false) {
   mountChart(container, {
     definition: staticDefinition,
     ariaLabel: 'Definition-only tooltip configuration',
-    // @ts-expect-error Chart behavior belongs to the definition, not the host.
+    // @ts-expect-error Chart controls belong to the definition, not the host.
     tooltip,
   })
   mountChart<Row, string, number>(container, {
@@ -815,7 +832,7 @@ if (false) {
   }>()
 
   const heterogeneousHost = mountChart(container, {
-    definition: defineChart(heterogeneousDefinition, { focus: focusX }),
+    definition: defineChart(heterogeneousDefinition, { focus: focusGroupX }),
     ariaLabel: 'Heterogeneous values',
     onFocusChange(point) {
       if (!point) return
@@ -864,6 +881,7 @@ if (false) {
   })
 
   mountChart(container, {
+    // @ts-expect-error DOM hosts require a definition refined to the DOM tooltip host.
     definition: widenedDefinition,
     ariaLabel: 'Widened definition',
   })

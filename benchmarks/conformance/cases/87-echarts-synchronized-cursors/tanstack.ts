@@ -80,7 +80,7 @@ export const synchronizedCursorDefinition = (input: ConformanceInput) => {
   })
 
   return defineChart(composed, {
-    animate: false,
+    svgAnimation: false,
     keyboard: true,
     focus: 'group-x',
     focusRing: false,

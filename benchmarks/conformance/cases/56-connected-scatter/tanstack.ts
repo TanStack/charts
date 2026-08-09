@@ -5,7 +5,7 @@ import {
   dot,
   lineY,
   text,
-  window,
+  rollingWindow,
 } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { curveCatmullRom } from 'd3-shape'
@@ -16,7 +16,7 @@ export const directionTargetIndexes = [14, 28, 42] as const
 const directionTargetIndexSet: ReadonlySet<number> = new Set(
   directionTargetIndexes,
 )
-export const directionPairs = window(driving, {
+export const directionPairs = rollingWindow(driving, {
   orderBy: 'year',
   size: 2,
   partial: false,

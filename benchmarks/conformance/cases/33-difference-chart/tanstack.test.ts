@@ -89,7 +89,7 @@ describe('definition-owned difference chart', () => {
       'utf8',
     )
 
-    expect(source).toContain('window(aapl.slice(')
+    expect(source).toContain('rollingWindow(aapl.slice(')
     expect(source).toContain("average: { value: 'Close', reduce: 'mean' }")
     expect(source).toContain('differenceY(rows')
     expect(source).not.toContain('rollingCloseAverage')

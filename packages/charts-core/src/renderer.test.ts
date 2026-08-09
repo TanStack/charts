@@ -18,6 +18,8 @@ import type {
   ChartPoint,
   ChartScene,
   ChartTooltipAnchorContext,
+  ChartTooltipExtensionToken,
+  DomChartDefinition,
   SceneNode,
 } from './types'
 
@@ -47,6 +49,28 @@ const definition = defineChart({
 })
 
 describe('renderer-neutral chart host', () => {
+  it('rejects tooltip extensions owned by another host', () => {
+    const nativeTooltip: ChartTooltipExtensionToken<'react-native'> = {
+      id: 'native-tooltip',
+      __chartExtensionType: 'tooltip',
+      __chartTooltipHost: 'react-native',
+      create: () => undefined,
+    }
+    const foreignDefinition = defineChart(definition, {
+      tooltip: nativeTooltip,
+    }) as unknown as DomChartDefinition<Datum, number, number>
+
+    expect(() =>
+      mountChartRenderer(document.createElement('div'), {
+        definition: foreignDefinition,
+        renderer: createFakeRenderer().renderer,
+        width: 480,
+        height: 260,
+        ariaLabel: 'Foreign tooltip',
+      }),
+    ).toThrow('tooltip extension from @tanstack/charts/tooltip')
+  })
+
   it('delegates rendering, coordinates, focus, keyboard, and selection to a surface', () => {
     const fake = createFakeRenderer()
     const container = document.createElement('div')
@@ -545,7 +569,7 @@ describe('renderer-neutral chart host', () => {
       height: 260,
       ariaLabel: 'Indexed presentation geometry',
     }
-    const host = mountChartRenderer(container, options)
+    const host = mountChartRenderer<Datum, number, number>(container, options)
     presentation = host.getScene().points
 
     host.update({ ...options, definition: makeDefinition(1) })
@@ -1662,7 +1686,7 @@ describe('renderer-neutral chart host', () => {
         ...definition,
         maxFocusDistance: 1_000,
         tooltip: tooltipExtension,
-        animate: true,
+        svgAnimation: true,
       },
       renderer: first.renderer,
       width: 480,
@@ -1747,7 +1771,7 @@ describe('renderer-neutral chart host', () => {
       }),
     }
     const controlledDefinition = defineChart(definition, {
-      behaviors: [
+      controls: [
         {
           id: 'test-behavior',
           resolve: () => ({
@@ -1879,7 +1903,7 @@ describe('renderer-neutral chart host', () => {
     }))
     const options = {
       definition: defineChart(definition, {
-        animate: { duration: 120 },
+        svgAnimation: { duration: 120 },
       }),
       renderer: fake.renderer,
       height: 260,
@@ -1896,7 +1920,7 @@ describe('renderer-neutral chart host', () => {
     host.update({
       ...options,
       definition: defineChart(definition, {
-        animate: { duration: 120, resize: true },
+        svgAnimation: { duration: 120, resize: true },
       }),
     })
     width = 640
@@ -1918,7 +1942,7 @@ describe('renderer-neutral chart host', () => {
     const container = document.createElement('div')
     const options = {
       definition: defineChart(definition, {
-        animate: { duration: 120 },
+        svgAnimation: { duration: 120 },
       }),
       renderer: fake.renderer,
       width: 320,
@@ -1934,7 +1958,7 @@ describe('renderer-neutral chart host', () => {
       ...options,
       width: 640,
       definition: defineChart(definition, {
-        animate: { duration: 120, resize: true },
+        svgAnimation: { duration: 120, resize: true },
       }),
     })
     expect(fake.render.mock.calls[2]?.[1].animation).toEqual({

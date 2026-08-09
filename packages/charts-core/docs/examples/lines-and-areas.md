@@ -41,8 +41,8 @@ separate legend is the better choice.
 ## Show a derived trend honestly
 
 A moving average is a derived series, not a visual curve setting. Prepare the
-rolling values with the public `window` transform beside the definition, keep
-the original time domain, and name the window in surrounding text or a legend.
+rolling values with the public `rollingWindow` transform beside the definition, keep
+the original time domain, and name the rolling window in surrounding text or a legend.
 
 <!-- ::chart-example id=19-moving-average-line height=480 -->
 
@@ -88,7 +88,7 @@ Compute the rolling statistics once and share those rows between the interval
 and center line:
 
 ```ts
-const bands = window(aapl, {
+const bands = rollingWindow(aapl, {
   size: 20,
   orderBy: 'Date',
   anchor: 'end',
@@ -108,7 +108,7 @@ areaY(bands, {
 lineY(bands, { x: 'Date', y: 'meanClose' })
 ```
 
-The window length, estimator, and multiplier are authored statistical meaning.
+The rolling-window length, estimator, and multiplier are authored statistical meaning.
 The transform owns ordering and source lineage; the area owns interval
 geometry. See [Line and Area Marks](../reference/marks/line-and-area.md) for
 the channel contracts.

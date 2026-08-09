@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { focusNearestX, focusNearestY, focusX, focusY } from './focus'
+import { focusNearestX, focusNearestY, focusGroupX, focusGroupY } from './focus'
 import { focusDisabled } from './focus-disabled'
 import type { ChartPoint } from './types'
 
@@ -36,12 +36,12 @@ describe('axis focus strategies', () => {
 
   it('retains grouped x and y focus as separate modes', () => {
     expect(
-      focusX
+      focusGroupX
         .resolve(points, { x: 12, y: 70, maxDistance: 100 })
         .map((candidate) => candidate.key),
     ).toEqual(['b', 'a'])
     expect(
-      focusY
+      focusGroupY
         .resolve(points, { x: 55, y: 23, maxDistance: 100 })
         .map((candidate) => candidate.key),
     ).toEqual(['c', 'a'])
@@ -55,7 +55,7 @@ describe('axis focus strategies', () => {
     ]
 
     expect(
-      focusX
+      focusGroupX
         .group(groupedPoints, { point: groupedPoints[1]! })
         .map((candidate) => candidate.key),
     ).toEqual(['a-focused', 'b'])

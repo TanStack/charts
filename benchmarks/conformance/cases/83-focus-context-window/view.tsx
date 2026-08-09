@@ -96,7 +96,7 @@ export function focusContextDetailDefinition(window: FocusContextWindow) {
       },
       margin: detailMargin,
     }),
-    { animate: false, keyboard: false },
+    { svgAnimation: false, keyboard: false },
   )
 }
 
@@ -130,7 +130,7 @@ export function focusContextOverviewDefinition(
       },
       y: { scale: scaleLinear, axis: false },
       margin: overviewMargin,
-      behaviors: [
+      controls: [
         brushX({
           id: 'focus-window',
           range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
@@ -153,7 +153,7 @@ export function focusContextOverviewDefinition(
         }),
       ],
     }),
-    { animate: false, keyboard: false },
+    { svgAnimation: false, keyboard: false },
   )
 }
 

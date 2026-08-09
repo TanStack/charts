@@ -306,7 +306,7 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/types.ts:ChartAxisTickLabelValue', '$call'],
     ['@tanstack/charts:src/types.ts:ChartAxisTickOptions', 'format motion'],
-    ['@tanstack/charts:src/types.ts:ChartBehavior', 'resolve'],
+    ['@tanstack/charts:src/types.ts:ChartControl', 'resolve'],
     [
       '@tanstack/charts:src/types.ts:ChartColorLegend',
       'control filterMark height render seriesVisible',
@@ -355,8 +355,8 @@ const callbackInventory = {
       '@tanstack/charts:src/types.ts:ChartTooltipOptions',
       'anchor content format formatGroup',
     ],
-    ['@tanstack/charts:src/types.ts:DynamicChartConfig', 'chart'],
-    ['@tanstack/charts:src/types.ts:DynamicChartDefinition', 'chart'],
+    ['@tanstack/charts:src/types.ts:ResponsiveChartConfig', 'chart'],
+    ['@tanstack/charts:src/types.ts:ResponsiveChartDefinition', 'chart'],
     ['@tanstack/charts:src/types.ts:InitializedMark', 'render resolveLayout'],
     [
       '@tanstack/charts:src/types.ts:InitializedMarkBase',
@@ -383,7 +383,7 @@ const callbackInventory = {
       '@tanstack/charts:src/reconcile.ts:reconcileChartSvgFragment',
       '$call.$return',
     ],
-    ['@tanstack/charts:src/scene.ts:defineChart', '$call.chart'],
+    ['@tanstack/charts:src/scene.ts:defineChart', '$call.chart chart'],
     [
       '@tanstack/charts:src/svg-surface.ts:createSvgChartRenderer',
       '$call.renderSvg',
@@ -479,6 +479,10 @@ const callbackInventory = {
     ['@tanstack/charts:src/network-sankey.ts:SankeyNodeComparator', '$call'],
     ['@tanstack/charts:src/types.ts:ChartTooltipOptions', 'sort'],
     ['@tanstack/charts:src/types.ts:ChartTooltipSort', '$call'],
+    [
+      '@tanstack/charts:src/tooltip-model.ts:orderChartTooltipPoints',
+      '$call.sort',
+    ],
   ],
   // Curve protocols inherently receive paired geometry collections.
   pairedGeometry: [

@@ -89,7 +89,7 @@ export function zoomTimeWindowDefinition(
       grid: true,
       axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
     },
-    behaviors: [
+    controls: [
       zoomX({
         id: 'time-window',
         window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(
@@ -106,7 +106,7 @@ export function zoomTimeWindowDefinition(
         onActiveChange,
       }),
     ],
-    animate: false,
+    svgAnimation: false,
     keyboard: false,
     focusRing: false,
     margin: { top: 56, right: 24, bottom: 44, left: 58 },

@@ -15,7 +15,7 @@ Use that path until the product needs richer interaction.
 
 ## Default nearest point
 
-Import the native tooltip extension and add it to the definition:
+Import the built-in tooltip extension and add it to the definition:
 
 ```ts
 import { tooltip } from '@tanstack/charts/tooltip'
@@ -560,7 +560,7 @@ search over every raw point.
 
 ## Ownership checklist
 
-- Use native focus for datum inspection.
+- Use chart-owned focus for datum inspection.
 - Choose two-dimensional, nearest-axis, or grouped-axis semantics explicitly.
 - Keep a finite distance unless continuous snapping is intended.
 - Use `crosshair` for a single focus-driven guide; use `whenFocused` to reveal

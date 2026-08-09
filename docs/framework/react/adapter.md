@@ -32,7 +32,7 @@ import { Chart as RendererChart } from '@tanstack/react-charts/core'
 a `renderer` prop. The default `Chart` remains SVG-based, so importing the
 default adapter does not pull Canvas into its module graph.
 
-The base entries render the native tooltip without the React tooltip-body
+The base entries render the built-in tooltip without the React tooltip-body
 bridge. Import from the optional tooltip entry when passing
 `renderTooltipBody`:
 
@@ -158,7 +158,7 @@ The React adapter's `className` intentionally owns the outer element instead.
 ## Tooltip body composition
 
 The components from `@tanstack/react-charts/tooltip` accept
-`renderTooltipBody`, which mounts React content into the native tooltip
+`renderTooltipBody`, which mounts React content into the built-in tooltip
 surface. Its context provides `points`, `content`, `defaultBody`, `pinned`,
 and `dismiss`. Composing `defaultBody` keeps the core title, rows, formatting,
 and swatches; arbitrary React content can sit beside it.

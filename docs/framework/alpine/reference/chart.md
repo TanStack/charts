@@ -10,7 +10,7 @@ import { charts } from '@tanstack/alpine-charts'
 Register `charts` with `Alpine.plugin`, then make `x-chart` evaluate to a
 complete `ChartOptions` value. Replace the definition identity when captured
 application values change.
-The definition also owns `focus`, `focusRing`, `cursor`, `tooltip`, `animate`,
+The definition also owns `focus`, `focusRing`, `cursor`, `tooltip`, `svgAnimation`,
 `keyboard`, `maxFocusDistance`, and `spatialIndex`.
 
 ## Directive options
@@ -33,7 +33,7 @@ The definition also owns `focus`, `focusRing`, `cursor`, `tooltip`, `animate`,
 | `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`                            | None                                     | Grouped focus callback                               |
 | `onSelect`           | `(point: ChartPoint \| null) => void`                                | None                                     | Pointer or keyboard activation callback              |
 | `onRender`           | `(context: ChartRenderContext) => void`                              | None                                     | Live SVG, container, and scene after rendering       |
-| `renderTooltipBody`  | `(context: ChartTooltipBodyRenderContext) => AlpineChartTooltipBody` | None                                     | Returns DOM content for the native tooltip body      |
+| `renderTooltipBody`  | `(context: ChartTooltipBodyRenderContext) => AlpineChartTooltipBody` | None                                     | Returns DOM content for the built-in tooltip body    |
 
 The directive element becomes `.ts-chart-host`; use its normal HTML class and
 style attributes for outer presentation. Directive cleanup removes the chart

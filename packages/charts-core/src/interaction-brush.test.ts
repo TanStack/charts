@@ -318,7 +318,7 @@ function definition(
     marks: [dot(rows, { x: 'date', y: 'value' })],
     x: { scale: scaleUtc().domain(dates), reverse },
     y: { scale: scaleLinear },
-    behaviors: [
+    controls: [
       brushX({
         id: 'window',
         range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(

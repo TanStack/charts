@@ -7,13 +7,14 @@ import { rect } from './rect'
 import { createChartRuntime } from './runtime'
 import { defineChart } from './scene'
 import { renderChartSvgWithResources } from './svg-resources'
-import { focusX } from './focus'
+import { focusGroupX } from './focus'
 import { bandXAxes, bandYAxes, linearAxes, utcXAxes } from './test-scales'
 import { tooltip as tooltipExtension } from './tooltip'
 import { portal as portalExtension } from './tooltip-portal'
 import type {
   ChartDefinition,
   ChartDefinitionOptions,
+  DomChartDefinition,
   ChartPoint,
   ChartTextMeasurer,
   ChartTooltipContentContext,
@@ -32,6 +33,33 @@ interface Input {
 }
 
 describe('dynamic chart runtime', () => {
+  it('uses one platform theme for responsive builders and final scenes', () => {
+    const build = vi.fn(({ defaultTheme }) => ({
+      marks: [dot([{ id: 'a', x: 1, y: 2 }], { x: 'x', y: 'y' })],
+      ...linearAxes([0, 2], [0, 3]),
+      theme: {
+        foreground: defaultTheme.foreground,
+        muted: '#authored-muted',
+      },
+    }))
+    const runtime = createChartRuntime<Datum>({
+      defaultTheme: {
+        foreground: '#platform-foreground',
+        muted: '#platform-muted',
+      },
+    })
+    const scene = runtime.render(defineChart(build), {
+      width: 480,
+      height: 260,
+    })
+
+    expect(build.mock.calls[0]?.[0].defaultTheme.foreground).toBe(
+      '#platform-foreground',
+    )
+    expect(scene.theme.foreground).toBe('#platform-foreground')
+    expect(scene.theme.muted).toBe('#authored-muted')
+  })
+
   it('compiles dynamic specifications through the strict scale path', () => {
     const definition = {
       chart: () => ({
@@ -97,7 +125,7 @@ describe('dynamic chart runtime', () => {
         ...linearAxes([0, 1], [0, 4]),
       })),
       {
-        behaviors: [{ id: 'dynamic-behavior', resolve }],
+        controls: [{ id: 'dynamic-behavior', resolve }],
         focusRing: false,
       },
     )
@@ -1417,7 +1445,7 @@ describe('dynamic chart runtime', () => {
     const onRender = vi.fn()
     const host = mountChart(container, {
       definition: withChartOptions(definition, {
-        focus: focusX,
+        focus: focusGroupX,
         maxFocusDistance: 1_000,
         tooltip: {
           use: tooltipExtension,
@@ -1773,14 +1801,14 @@ describe('dynamic chart runtime', () => {
 
     host.update({
       ...options,
-      definition: withChartOptions(createDefinition(8), { animate: true }),
+      definition: withChartOptions(createDefinition(8), { svgAnimation: true }),
     })
     expect(requestFrame).not.toHaveBeenCalled()
 
     host.update({
       ...options,
       definition: withChartOptions(createDefinition(12), {
-        animate: { respectReducedMotion: false },
+        svgAnimation: { respectReducedMotion: false },
       }),
     })
     expect(requestFrame).toHaveBeenCalled()
@@ -1796,9 +1824,9 @@ function withChartOptions<
   TXValue extends ChartValue,
   TYValue extends ChartValue,
 >(
-  definition: ChartDefinition<TDatum, TXValue, TYValue>,
-  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
-): ChartDefinition<TDatum, TXValue, TYValue> {
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>,
+  options: ChartDefinitionOptions<TDatum, TXValue, TYValue, 'dom'>,
+): DomChartDefinition<TDatum, TXValue, TYValue> {
   return { ...definition, ...options }
 }
 

@@ -384,7 +384,7 @@ function energyDefinition(rows: readonly EnergyMonth[], chartWidth: number) {
       ],
     }),
     {
-      animate: false,
+      svgAnimation: false,
       keyboard: true,
       focus: 'group-x',
       focusRing: false,
@@ -431,7 +431,7 @@ function ConsumptionMixChart({
         },
         margin: 0,
       }),
-      { animate: false, keyboard: false, tooltip: false },
+      { svgAnimation: false, keyboard: false, tooltip: false },
     )
   }, [month])
 

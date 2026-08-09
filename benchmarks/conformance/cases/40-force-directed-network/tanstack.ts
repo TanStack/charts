@@ -20,9 +20,9 @@ export const forceDefinition = (input: ConformanceInput) => {
     forces: [
       {
         type: 'link',
-        distance: ({ datum }) =>
+        distance: (datum) =>
           54 - Math.min(datum.value, 10) * 1.8 + distanceDelta,
-        strength: ({ datum }) => 0.2 + Math.min(datum.value, 10) * 0.045,
+        strength: (datum) => 0.2 + Math.min(datum.value, 10) * 0.045,
       },
       { type: 'manyBody', strength: -165 },
       { type: 'center', x: 0, y: 0 },

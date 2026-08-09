@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-08
+Last updated: 2026-08-06
 
 ## Triage rule
 
@@ -35,260 +35,264 @@ Each entry records:
 
 ## Index
 
-| ID    | Finding                                                        | Owner           | Status     |
-| ----- | -------------------------------------------------------------- | --------------- | ---------- |
-| F-001 | Configured D3 scales required a TanStack wrapper               | API             | resolved   |
-| F-002 | Responsive range ownership was unclear                         | Documentation   | resolved   |
-| F-003 | Scale requirements ignored mark dimensionality                 | API             | resolved   |
-| F-004 | A radius channel silently imported continuous D3               | API             | resolved   |
-| F-005 | Curved area topology was implemented independently             | API             | resolved   |
-| F-006 | Explicit domain construction is repetitive                     | API/Skill       | resolved   |
-| F-007 | Runtime and adapters bypassed strict scales                    | API             | resolved   |
-| F-008 | D3 motion would currently burden every DOM host                | API             | resolved   |
-| F-009 | Color semantics were overloaded onto grouping and paint        | API             | resolved   |
-| F-010 | D3 curves require one TanStack grammar bridge                  | API             | resolved   |
-| F-011 | Adapters performed dynamic preparation twice                   | API             | resolved   |
-| F-012 | Render callbacks omit diagnostic metrics                       | API             | resolved   |
-| F-013 | Bar series identity also changed bar geometry                  | API             | resolved   |
-| F-014 | Responsive nicing duplicates layout calculations               | API             | resolved   |
-| F-015 | Legacy scale helpers compete with the D3-first API             | API             | resolved   |
-| F-016 | Stats animated export still renders through Plot               | Integration/API | resolved   |
-| F-017 | React migration rebuilt a static definition                    | Documentation   | resolved   |
-| F-018 | Stats derivations still invalidate dynamic input               | Application     | resolved   |
-| F-019 | Custom tooltip formatting leaked float artifacts               | Application     | resolved   |
-| F-020 | Axis focus could not select a single nearest point             | API             | resolved   |
-| F-021 | Native tooltips only accept plain text                         | API             | resolved   |
-| F-022 | Native tooltips could not be pinned                            | API             | resolved   |
-| F-023 | Fixed margins clip or waste guide space                        | API             | resolved   |
-| F-024 | Co-located benchmark cases defeated tree shaking               | Tooling         | resolved   |
-| F-025 | Bundle maintenance clobbered comparison reports                | Tooling         | resolved   |
-| F-026 | Facet summaries omitted the overall result                     | Tooling         | resolved   |
-| F-027 | Pnpm validation attempted an interactive purge                 | Tooling         | resolved   |
-| F-028 | Field channels accepted incompatible value types               | API             | resolved   |
-| F-029 | Dynamic hosts allowed omitted input                            | API             | resolved   |
-| F-030 | Heterogeneous dynamic marks erased datum types                 | API             | resolved   |
-| F-031 | Positional scales were disconnected from channels              | API             | resolved   |
-| F-032 | Memoized adapter internals erase generic types                 | API             | resolved   |
-| F-033 | Point coordinate values remain broad                           | API/Docs        | resolved   |
-| F-034 | Text color and offset required mark duplication                | API             | resolved   |
-| F-035 | Plot legends confused the primary SVG measurement              | Tooling         | resolved   |
-| F-036 | Presence-only visual checks overstated parity                  | Tooling         | resolved   |
-| F-037 | Facets repeat shared axes in every panel                       | API             | resolved   |
-| F-038 | Plot and D3 threshold arrays mean different things             | Documentation   | resolved   |
-| F-039 | Dots could not express stroke opacity                          | API             | resolved   |
-| F-040 | Bundle ceilings allowed silent universal growth                | Tooling         | resolved   |
-| F-041 | Bounded segments and caps required custom marks                | API             | resolved   |
-| F-042 | Hoisted tooltip options lose callback context                  | API/Docs        | resolved   |
-| F-043 | Streamgraph layout escaped the native stack                    | API/Docs        | resolved   |
-| F-044 | Difference fills need crossing interpolation                   | API/Docs        | resolved   |
-| F-045 | Arrow endpoints could not express vector fields                | API             | resolved   |
-| F-046 | Mirrored labels required duplicate text marks                  | API             | resolved   |
-| F-047 | Unique Delaunay edges are not obvious                          | API/Docs        | resolved   |
-| F-048 | Responsive waffle packing lacks final bounds                   | API/Docs        | resolved   |
-| F-049 | Plot and d3-hexbin use different units                         | Documentation   | resolved   |
-| F-050 | Plot proportion units depend on transform scope                | Documentation   | resolved   |
-| F-051 | Beeswarm layout needs responsive pixel preparation             | API/Docs        | resolved   |
-| F-052 | Ranking preparation depended on D3 callback overloads          | API/Docs        | resolved   |
-| F-053 | Data-bound annotations can escape auto margins                 | API/Docs        | resolved   |
-| F-054 | D3 reducer output needs empty-safe narrowing                   | Documentation   | monitoring |
-| F-055 | Horizontal areas required renderer internals                   | API             | resolved   |
-| F-056 | Conformance tooling assumed Plot was the reference             | Tooling         | resolved   |
-| F-057 | D3 hierarchy coordinates use screen-space y                    | API/Docs        | resolved   |
-| F-058 | Radar checks ignored polar labels                              | Tooling         | resolved   |
-| F-059 | Vite cached a newly added package subpath                      | Tooling/API     | resolved   |
-| F-060 | Geometry similarity could not gate exact layouts               | Tooling         | resolved   |
-| F-061 | Catalog metadata validation was browser-bound                  | Tooling         | resolved   |
-| F-062 | Interaction checks were selector-bound                         | Tooling         | resolved   |
-| F-063 | Resolved scales cannot map pixels back to values               | API/Docs        | resolved   |
-| F-064 | Scroll-clipped labels failed containment                       | Tooling         | resolved   |
-| F-065 | Logical views required fake DOM roots                          | Tooling         | resolved   |
-| F-066 | Disabling native focus required a custom strategy              | API             | resolved   |
-| F-067 | Reference wrappers duplicated accessible roots                 | Tooling         | resolved   |
-| F-068 | Source audit omitted shared implementation files               | Tooling         | resolved   |
-| F-069 | Strict containment exposed a clipped Plot guide                | Application     | resolved   |
-| F-070 | ECharts brush injected an undeclared toolbox                   | Application     | resolved   |
-| F-071 | Formatter crossed into the Stats parity worktree               | Tooling         | resolved   |
-| F-072 | Wide brush ticks exceeded a locked right margin                | Application     | resolved   |
-| F-073 | Scenario state overstated interaction quality                  | Tooling         | resolved   |
-| F-074 | Axis focus distance created sparse cursor gaps                 | Documentation   | monitoring |
-| F-075 | Controlled interactions omitted behavior semantics             | API/Docs        | resolved   |
-| F-076 | Compact charts could not keep only one axis guide              | API             | resolved   |
-| F-077 | Transient host focus survived blur and cancellation            | API             | resolved   |
-| F-078 | Renderer completion signals were incomparable                  | Tooling         | resolved   |
-| F-079 | Large-data timing hid representation cost                      | Tooling/Skill   | resolved   |
-| F-080 | Benchmark adapters drifted from shared geometry                | Tooling         | resolved   |
-| F-081 | Pointer probes confused tooltip presence with state            | Tooling         | resolved   |
-| F-082 | Dormant DOM-host work accumulated across dashboards            | API             | resolved   |
-| F-083 | One-shot pointer timing hid sustained cursor work              | Tooling         | resolved   |
-| F-084 | Gesture and viewport costs were conflated                      | Tooling         | resolved   |
-| F-085 | Grid style repeated on every rule                              | API             | resolved   |
-| F-086 | Finding status drifted from the index                          | Tooling         | resolved   |
-| F-087 | Custom focus strategies erased application types               | API             | resolved   |
-| F-088 | Update counts hid key and latest-wins correctness              | Tooling         | resolved   |
-| F-089 | Custom SVG renderers erased scene point types                  | API             | resolved   |
-| F-090 | Source exports hid packed-package failures                     | Tooling         | resolved   |
-| F-091 | Adapter coordinate generics broke explicit arity               | API             | resolved   |
-| F-092 | Packed documentation linked outside its tarball                | Docs/Tooling    | resolved   |
-| F-093 | Filtered stress runs overwrote canonical reports               | Tooling         | resolved   |
-| F-094 | Custom marks conflated point and scale values                  | API/Docs        | resolved   |
-| F-095 | Long matrices treated one browser stall as deterministic       | Tooling         | resolved   |
-| F-096 | Export smoke tests drifted from package manifests              | Tooling         | resolved   |
-| F-097 | Lifecycle page errors passed the memory soak                   | Tooling         | resolved   |
-| F-098 | Filtered conformance runs overwrote full reports               | Tooling         | resolved   |
-| F-099 | Invalid cells remained eligible for fastest rankings           | Tooling         | resolved   |
-| F-100 | Spatial-index updates skipped focused UI repaint               | API             | resolved   |
-| F-101 | Page errors could age into retryable timeouts                  | Tooling         | resolved   |
-| F-102 | AI recipes hid direct D3 dependency ownership                  | Docs/Tooling    | resolved   |
-| F-103 | Mixed valid and unknown filters narrowed benchmark scope       | Tooling         | resolved   |
-| F-104 | Catalog embeds lacked a production-safe contract               | Tooling         | resolved   |
-| F-105 | Competing documentation roots drifted                          | Docs/Tooling    | resolved   |
-| F-106 | Build-context theme looked fully resolved                      | Documentation   | resolved   |
-| F-107 | Authored SVG tab indexes were ignored                          | API             | resolved   |
-| F-108 | Interaction point color differed from rendered fill            | API             | resolved   |
-| F-109 | Grouped focus could duplicate the focused series               | API             | resolved   |
-| F-110 | Hexagon radius mapping accepted invalid source values          | API             | resolved   |
-| F-111 | Adapter aspect-ratio geometry diverged on first render         | API             | resolved   |
-| F-112 | Reference rules could not render dashed strokes                | API             | resolved   |
-| F-113 | Direct runtime factories cannot infer later definitions        | API/Docs        | monitoring |
-| F-114 | Gradient stop tokens disappeared from standalone exports       | API             | resolved   |
-| F-115 | Documentation checks did not validate code snippets            | Tooling         | resolved   |
-| F-116 | Build context was mistaken for resolved plot geometry          | Documentation   | resolved   |
-| F-117 | Non-Cartesian examples duplicated coordinate engines           | API             | resolved   |
-| F-118 | Serialized SVG discarded interaction semantics                 | API/Application | monitoring |
-| F-119 | Catalog hosting crossed repository ownership                   | Tooling         | resolved   |
-| F-120 | Key-only focus collapsed duplicate observations                | API             | resolved   |
-| F-121 | SVG callback was not a rendering-pipeline boundary             | API             | resolved   |
-| F-122 | Dense scene aggregation overflowed the call stack              | API             | resolved   |
-| F-123 | Framework adapters repeated runtime ownership                  | API             | resolved   |
-| F-124 | Name-only inventories masked undocumented contracts            | Docs/Tooling    | resolved   |
-| F-125 | Adapter surface classes disappeared across lifecycles          | API             | resolved   |
-| F-126 | Executable comparisons had no public documentation             | Docs/Tooling    | resolved   |
-| F-127 | Catalog source hid data transformation dependencies            | Docs/Tooling    | resolved   |
-| F-128 | Chart-owned data reactivity duplicated application state       | API             | resolved   |
-| F-129 | Responsive relayout restarted chart animation                  | API             | resolved   |
-| F-130 | Adapter options duplicated chart behavior                      | API             | resolved   |
-| F-131 | Stable identity repeated inferable key channels                | API             | resolved   |
-| F-132 | Factory unions disrupt D3's generic inference                  | API             | monitoring |
-| F-133 | Clipped ancestors trapped native tooltips                      | API             | resolved   |
-| F-134 | Demo fixtures modeled charts instead of source data            | Docs/Tooling    | resolved   |
-| F-135 | Published release lacked a repository baseline marker          | Tooling/Release | resolved   |
-| F-136 | Comparison conflated workspace and published source            | Tooling/Docs    | resolved   |
-| F-137 | Latest docs installed an incompatible published API            | Docs/Release    | resolved   |
-| F-138 | Publisher pin predated explicit trust permissions              | Tooling/Release | resolved   |
-| F-139 | Top-level entries bypassed tarball validation                  | Tooling/Release | resolved   |
-| F-140 | Behavior config could erase responsive datum inference         | API             | monitoring |
-| F-141 | Vitest followed pnpm workspace symlinks                        | Tooling         | resolved   |
-| F-142 | Package verification reinstalled during release builds         | Tooling/Release | resolved   |
-| F-143 | The `ci` script name collided with pnpm's clean install        | Tooling/Docs    | resolved   |
-| F-144 | Action pin checks accepted invalid commit lengths              | Tooling         | resolved   |
-| F-145 | Changesets included private workspaces in version plans        | Tooling/Release | resolved   |
-| F-146 | Octane hydration used a unit-test timeout                      | Tooling         | resolved   |
-| F-147 | Release automation duplicated validated work                   | Tooling/Release | resolved   |
-| F-148 | Publisher failure returned before its workers settled          | Tooling/Release | resolved   |
-| F-149 | Release checks could stall or accept an unbound tag            | Tooling/Release | resolved   |
-| F-150 | Nx worktree caches followed the common Git directory           | Tooling         | monitoring |
-| F-151 | Artifact actions targeted deprecated Node 20                   | Tooling         | resolved   |
-| F-152 | Version bumps invalidated workspace bundle evidence            | Tooling/Release | resolved   |
-| F-153 | Changesets left release-facing version claims behind           | Tooling/Release | resolved   |
-| F-154 | Root barrels crossed the browser host boundary                 | API/Tooling     | resolved   |
-| F-155 | Optional tooltip code burdened every chart consumer            | API             | resolved   |
-| F-156 | Releases stranded manual Unreleased migration notes            | Tooling/Release | monitoring |
-| F-157 | Conformance monitoring blocked unrelated changes               | Tooling         | resolved   |
-| F-158 | Focus presentation was fixed to one renderer marker            | API             | resolved   |
-| F-159 | Axis scale and presentation controls were interleaved          | API             | resolved   |
-| F-160 | Responsive tick labels had no collision policy                 | API             | resolved   |
-| F-161 | Tooltip anchors could not fix coordinates independently        | API             | resolved   |
-| F-162 | Focus styling required duplicate marks                         | API             | resolved   |
-| F-163 | Cross-row transforms lacked a public ownership boundary        | API             | resolved   |
-| F-164 | Sankey widths required a custom scene renderer                 | API             | resolved   |
-| F-165 | Incidental D3 utilities leaked into core paths                 | API/Tooling     | resolved   |
-| F-166 | Grouped tooltip order diverged from mark position              | API             | resolved   |
-| F-167 | D3 declarations require a browser image global                 | Tooling         | monitoring |
-| F-168 | Native interaction copied DOM-renderer policy                  | API             | monitoring |
-| F-169 | CSS theme defaults reach the native scene compiler             | API             | monitoring |
-| F-170 | Text measurement omits native typography                       | API             | monitoring |
-| F-171 | Packed declarations assume one platform global set             | Tooling         | resolved   |
-| F-172 | Metro skipped the fixture-owned Babel runtime                  | Tooling         | resolved   |
-| F-173 | Metro retained the complete universal barrel                   | API/Tooling     | monitoring |
-| F-174 | OIDC release cannot claim a new npm package name               | Tooling         | monitoring |
-| F-175 | Native SVG resource normalization collapsed authored IDs       | Application     | resolved   |
-| F-176 | Large marks were focused by distant anchor points              | API             | monitoring |
-| F-177 | Bubble overlap inherited incidental source order               | Application     | resolved   |
-| F-178 | Custom-template examples exposed DOM mutation plumbing         | Docs/Tooling    | resolved   |
-| F-179 | Animation clocks drift at fixed frame indices                  | Tooling         | monitoring |
-| F-180 | Chart host hid animated presentation geometry                  | Tooling/API     | resolved   |
-| F-181 | Tween tracks could not preserve interruption velocity          | API             | resolved   |
-| F-182 | Per-series transition overrides did not inherit defaults       | API             | resolved   |
-| F-183 | Motion policy was centralized in renderer setup                | API/Tooling     | resolved   |
-| F-184 | Cross-type marks lacked a shared morph topology                | API             | monitoring |
-| F-185 | Control reflow turned a morph into a resize                    | Application     | resolved   |
-| F-186 | Focus states bypassed the optional physics runtime             | API             | resolved   |
-| F-187 | Crosshair motion required an application-owned frame loop      | API             | resolved   |
-| F-188 | Paired interaction assertions assumed equal timing             | Tooling         | monitoring |
-| F-189 | The motion spike exposed duplicate configuration surfaces      | API             | resolved   |
-| F-190 | Static conformance sampled active motion                       | Tooling         | resolved   |
-| F-191 | Axis tick styling and edge alignment required shell work       | API             | resolved   |
-| F-192 | SVG letterboxing shifted pointer hit testing                   | API             | resolved   |
-| F-193 | Fixed catalog height hid compact responsive examples           | Tooling/App     | resolved   |
-| F-194 | Behavior runs omitted the interactive input                    | Tooling         | resolved   |
-| F-195 | Release versions matched dependency substrings                 | Tooling         | resolved   |
-| F-196 | Focus decorations suppressed the primary indicator             | API             | resolved   |
-| F-197 | Workspace validation omitted comparison provenance             | Tooling         | resolved   |
-| F-198 | Union-valued axes rejected configured D3 scales                | API             | resolved   |
-| F-199 | Support metadata hid outside-definition authoring              | Docs/Tooling    | monitoring |
-| F-200 | Generic mark composition widened channel types                 | API             | resolved   |
-| F-201 | Visible Voronoi cells required custom D3 paths                 | API/Docs        | resolved   |
-| F-202 | Density contours hid responsive geometry behind a custom mark  | API/Docs        | resolved   |
-| F-203 | D3 contour v4 runtime APIs were absent from its declarations   | Tooling         | resolved   |
-| F-204 | Scalar-grid contours hid topology behind a custom mark         | API/Docs        | resolved   |
-| F-205 | Force layouts hid static settlement behind case utilities      | API/Docs        | resolved   |
-| F-206 | Tidy trees hid hierarchy construction in definition builders   | API/Docs        | resolved   |
-| F-207 | D3 arc contexts overstated the required Canvas surface         | Tooling/API     | resolved   |
-| F-208 | Sunburst definitions exposed partition and arc DTOs            | API/Docs        | resolved   |
-| F-209 | Facets typed child points as grouping rows                     | API             | resolved   |
-| F-210 | Definition-shape audit ignored complete definition factories   | Tooling         | resolved   |
-| F-211 | Responsive builders defer nested axis callback inference       | API             | monitoring |
-| F-212 | Transposed composites lacked a horizontal line mark            | API             | resolved   |
-| F-213 | Regression fits were hidden in case-owned endpoint preparation | API/Docs        | resolved   |
-| F-214 | Marginal views required reserved-domain manual plotting        | API/Docs        | resolved   |
-| F-215 | Ridgeline profiles lost categories to numeric surrogates       | API/Docs        | resolved   |
-| F-216 | Violin envelopes encoded categories as numeric endpoints       | API/Docs        | resolved   |
-| F-217 | Mosaic cells hid two normalization denominators                | API/Docs        | resolved   |
-| F-218 | Decorative scene fragments lost point ownership                | API             | resolved   |
-| F-219 | Responsive bar caps required guessed plot widths               | API/Docs        | resolved   |
-| F-220 | Framed labels estimate glyph bounds by character count         | API             | monitoring |
-| F-221 | Roadmap evidence existence allowed false verification          | Tooling         | resolved   |
-| F-222 | View composition coupled placement to grid semantics           | API/Docs        | resolved   |
-| F-223 | Remote catalog modules could not participate in SSR            | Tooling/App     | resolved   |
-| F-224 | Packed consumers masked a runtime D3 dependency                | Tooling         | resolved   |
-| F-225 | Noninteractive SSR emitted hidden focus geometry               | API/Tooling     | resolved   |
-| F-226 | Worker runtimes rejected bundled CSV parsing                   | Tooling         | resolved   |
-| F-227 | Catalog bundles omitted data license notices                   | Tooling         | resolved   |
-| F-228 | Catalog definitions captured the initial server width          | Application     | resolved   |
-| F-229 | Catalog publishing raced its React dependency                  | Tooling/Release | resolved   |
-| F-230 | CI repeated unaffected work across every partition             | Tooling         | monitoring |
-| F-231 | Packed consumers serialized independent verification           | Tooling/Release | resolved   |
-| F-232 | Benchmark shards repeated setup and skewed work                | Tooling         | monitoring |
-| F-233 | Dismissal could click through a composed tooltip               | API             | resolved   |
-| F-234 | Recharts point replacement canceled activation events          | Application     | monitoring |
-| F-235 | Structured tooltip rows could not interleave details           | API             | monitoring |
-| F-236 | Paint parity normalized patterns but not gradients             | Tooling         | resolved   |
-| F-237 | Focused rules had no matchable presentation points             | API             | resolved   |
-| F-238 | Callback parameter shapes were inconsistent                    | API/Tooling     | resolved   |
-| F-239 | Example keys collapsed distinct source rows                    | Application     | resolved   |
-| F-240 | Rolling paths morphed samples instead of shifting them         | API             | resolved   |
-| F-241 | Motion ignored authored SVG clips                              | API             | resolved   |
-| F-242 | Paged history required overlaid chart hosts                    | API             | resolved   |
-| F-243 | Long-press focus duplicated host pointer geometry              | API             | resolved   |
-| F-244 | Focus cursor width depended on private band inference          | API             | resolved   |
-| F-245 | Focus-filtered bands could not act as cursor geometry          | API             | resolved   |
-| F-246 | Scene updates cleared active motion guide placement            | API             | resolved   |
-| F-247 | Custom mounts were not React catalog descriptors               | Tooling/App     | resolved   |
-| F-248 | Release finalization targeted the workflow head                | Tooling/Release | monitoring |
-| F-249 | Interrupted motion retained stale presentation state           | API             | resolved   |
-| F-250 | Host accessibility diverged across render paths                | API             | resolved   |
-| F-251 | The architecture made D3 implementation sound mandatory        | Documentation   | resolved   |
-| F-252 | Catalog sidebar links duplicated case metadata                 | Docs/Tooling    | resolved   |
+| ID    | Finding                                                        | Owner                 | Status     |
+| ----- | -------------------------------------------------------------- | --------------------- | ---------- |
+| F-001 | Configured D3 scales required a TanStack wrapper               | API                   | resolved   |
+| F-002 | Responsive range ownership was unclear                         | Documentation         | resolved   |
+| F-003 | Scale requirements ignored mark dimensionality                 | API                   | resolved   |
+| F-004 | A radius channel silently imported continuous D3               | API                   | resolved   |
+| F-005 | Curved area topology was implemented independently             | API                   | resolved   |
+| F-006 | Explicit domain construction is repetitive                     | API/Skill             | resolved   |
+| F-007 | Runtime and adapters bypassed strict scales                    | API                   | resolved   |
+| F-008 | D3 motion would currently burden every DOM host                | API                   | resolved   |
+| F-009 | Color semantics were overloaded onto grouping and paint        | API                   | resolved   |
+| F-010 | D3 curves require one TanStack grammar bridge                  | API                   | resolved   |
+| F-011 | Adapters performed dynamic preparation twice                   | API                   | resolved   |
+| F-012 | Render callbacks omit diagnostic metrics                       | API                   | resolved   |
+| F-013 | Bar series identity also changed bar geometry                  | API                   | resolved   |
+| F-014 | Responsive nicing duplicates layout calculations               | API                   | resolved   |
+| F-015 | Legacy scale helpers compete with the D3-first API             | API                   | resolved   |
+| F-016 | Stats animated export still renders through Plot               | Integration/API       | resolved   |
+| F-017 | React migration rebuilt a static definition                    | Documentation         | resolved   |
+| F-018 | Stats derivations still invalidate dynamic input               | Application           | resolved   |
+| F-019 | Custom tooltip formatting leaked float artifacts               | Application           | resolved   |
+| F-020 | Axis focus could not select a single nearest point             | API                   | resolved   |
+| F-021 | Native tooltips only accept plain text                         | API                   | resolved   |
+| F-022 | Native tooltips could not be pinned                            | API                   | resolved   |
+| F-023 | Fixed margins clip or waste guide space                        | API                   | resolved   |
+| F-024 | Co-located benchmark cases defeated tree shaking               | Tooling               | resolved   |
+| F-025 | Bundle maintenance clobbered comparison reports                | Tooling               | resolved   |
+| F-026 | Facet summaries omitted the overall result                     | Tooling               | resolved   |
+| F-027 | Pnpm validation attempted an interactive purge                 | Tooling               | resolved   |
+| F-028 | Field channels accepted incompatible value types               | API                   | resolved   |
+| F-029 | Dynamic hosts allowed omitted input                            | API                   | resolved   |
+| F-030 | Heterogeneous dynamic marks erased datum types                 | API                   | resolved   |
+| F-031 | Positional scales were disconnected from channels              | API                   | resolved   |
+| F-032 | Memoized adapter internals erase generic types                 | API                   | resolved   |
+| F-033 | Point coordinate values remain broad                           | API/Docs              | resolved   |
+| F-034 | Text color and offset required mark duplication                | API                   | resolved   |
+| F-035 | Plot legends confused the primary SVG measurement              | Tooling               | resolved   |
+| F-036 | Presence-only visual checks overstated parity                  | Tooling               | resolved   |
+| F-037 | Facets repeat shared axes in every panel                       | API                   | resolved   |
+| F-038 | Plot and D3 threshold arrays mean different things             | Documentation         | resolved   |
+| F-039 | Dots could not express stroke opacity                          | API                   | resolved   |
+| F-040 | Bundle ceilings allowed silent universal growth                | Tooling               | resolved   |
+| F-041 | Bounded segments and caps required custom marks                | API                   | resolved   |
+| F-042 | Hoisted tooltip options lose callback context                  | API/Docs              | resolved   |
+| F-043 | Streamgraph layout escaped the native stack                    | API/Docs              | resolved   |
+| F-044 | Difference fills need crossing interpolation                   | API/Docs              | resolved   |
+| F-045 | Arrow endpoints could not express vector fields                | API                   | resolved   |
+| F-046 | Mirrored labels required duplicate text marks                  | API                   | resolved   |
+| F-047 | Unique Delaunay edges are not obvious                          | API/Docs              | resolved   |
+| F-048 | Responsive waffle packing lacks final bounds                   | API/Docs              | resolved   |
+| F-049 | Plot and d3-hexbin use different units                         | Documentation         | resolved   |
+| F-050 | Plot proportion units depend on transform scope                | Documentation         | resolved   |
+| F-051 | Beeswarm layout needs responsive pixel preparation             | API/Docs              | resolved   |
+| F-052 | Ranking preparation depended on D3 callback overloads          | API/Docs              | resolved   |
+| F-053 | Data-bound annotations can escape auto margins                 | API/Docs              | resolved   |
+| F-054 | D3 reducer output needs empty-safe narrowing                   | Documentation         | monitoring |
+| F-055 | Horizontal areas required renderer internals                   | API                   | resolved   |
+| F-056 | Conformance tooling assumed Plot was the reference             | Tooling               | resolved   |
+| F-057 | D3 hierarchy coordinates use screen-space y                    | API/Docs              | resolved   |
+| F-058 | Radar checks ignored polar labels                              | Tooling               | resolved   |
+| F-059 | Vite cached a newly added package subpath                      | Tooling/API           | resolved   |
+| F-060 | Geometry similarity could not gate exact layouts               | Tooling               | resolved   |
+| F-061 | Catalog metadata validation was browser-bound                  | Tooling               | resolved   |
+| F-062 | Interaction checks were selector-bound                         | Tooling               | resolved   |
+| F-063 | Resolved scales cannot map pixels back to values               | API/Docs              | resolved   |
+| F-064 | Scroll-clipped labels failed containment                       | Tooling               | resolved   |
+| F-065 | Logical views required fake DOM roots                          | Tooling               | resolved   |
+| F-066 | Disabling native focus required a custom strategy              | API                   | resolved   |
+| F-067 | Reference wrappers duplicated accessible roots                 | Tooling               | resolved   |
+| F-068 | Source audit omitted shared implementation files               | Tooling               | resolved   |
+| F-069 | Strict containment exposed a clipped Plot guide                | Application           | resolved   |
+| F-070 | ECharts brush injected an undeclared toolbox                   | Application           | resolved   |
+| F-071 | Formatter crossed into the Stats parity worktree               | Tooling               | resolved   |
+| F-072 | Wide brush ticks exceeded a locked right margin                | Application           | resolved   |
+| F-073 | Scenario state overstated interaction quality                  | Tooling               | resolved   |
+| F-074 | Axis focus distance created sparse cursor gaps                 | Documentation         | monitoring |
+| F-075 | Controlled interactions omitted behavior semantics             | API/Docs              | resolved   |
+| F-076 | Compact charts could not keep only one axis guide              | API                   | resolved   |
+| F-077 | Transient host focus survived blur and cancellation            | API                   | resolved   |
+| F-078 | Renderer completion signals were incomparable                  | Tooling               | resolved   |
+| F-079 | Large-data timing hid representation cost                      | Tooling/Skill         | resolved   |
+| F-080 | Benchmark adapters drifted from shared geometry                | Tooling               | resolved   |
+| F-081 | Pointer probes confused tooltip presence with state            | Tooling               | resolved   |
+| F-082 | Dormant DOM-host work accumulated across dashboards            | API                   | resolved   |
+| F-083 | One-shot pointer timing hid sustained cursor work              | Tooling               | resolved   |
+| F-084 | Gesture and viewport costs were conflated                      | Tooling               | resolved   |
+| F-085 | Grid style repeated on every rule                              | API                   | resolved   |
+| F-086 | Finding status drifted from the index                          | Tooling               | resolved   |
+| F-087 | Custom focus strategies erased application types               | API                   | resolved   |
+| F-088 | Update counts hid key and latest-wins correctness              | Tooling               | resolved   |
+| F-089 | Custom SVG renderers erased scene point types                  | API                   | resolved   |
+| F-090 | Source exports hid packed-package failures                     | Tooling               | resolved   |
+| F-091 | Adapter coordinate generics broke explicit arity               | API                   | resolved   |
+| F-092 | Packed documentation linked outside its tarball                | Docs/Tooling          | resolved   |
+| F-093 | Filtered stress runs overwrote canonical reports               | Tooling               | resolved   |
+| F-094 | Custom marks conflated point and scale values                  | API/Docs              | resolved   |
+| F-095 | Long matrices treated one browser stall as deterministic       | Tooling               | resolved   |
+| F-096 | Export smoke tests drifted from package manifests              | Tooling               | resolved   |
+| F-097 | Lifecycle page errors passed the memory soak                   | Tooling               | resolved   |
+| F-098 | Filtered conformance runs overwrote full reports               | Tooling               | resolved   |
+| F-099 | Invalid cells remained eligible for fastest rankings           | Tooling               | resolved   |
+| F-100 | Spatial-index updates skipped focused UI repaint               | API                   | resolved   |
+| F-101 | Page errors could age into retryable timeouts                  | Tooling               | resolved   |
+| F-102 | AI recipes hid direct D3 dependency ownership                  | Docs/Tooling          | resolved   |
+| F-103 | Mixed valid and unknown filters narrowed benchmark scope       | Tooling               | resolved   |
+| F-104 | Catalog embeds lacked a production-safe contract               | Tooling               | resolved   |
+| F-105 | Competing documentation roots drifted                          | Docs/Tooling          | resolved   |
+| F-106 | Build-context theme looked fully resolved                      | Documentation         | resolved   |
+| F-107 | Authored SVG tab indexes were ignored                          | API                   | resolved   |
+| F-108 | Interaction point color differed from rendered fill            | API                   | resolved   |
+| F-109 | Grouped focus could duplicate the focused series               | API                   | resolved   |
+| F-110 | Hexagon radius mapping accepted invalid source values          | API                   | resolved   |
+| F-111 | Adapter aspect-ratio geometry diverged on first render         | API                   | resolved   |
+| F-112 | Reference rules could not render dashed strokes                | API                   | resolved   |
+| F-113 | Direct runtime factories cannot infer later definitions        | API/Docs              | monitoring |
+| F-114 | Gradient stop tokens disappeared from standalone exports       | API                   | resolved   |
+| F-115 | Documentation checks did not validate code snippets            | Tooling               | resolved   |
+| F-116 | Build context was mistaken for resolved plot geometry          | Documentation         | resolved   |
+| F-117 | Non-Cartesian examples duplicated coordinate engines           | API                   | resolved   |
+| F-118 | Serialized SVG discarded interaction semantics                 | API/Application       | monitoring |
+| F-119 | Catalog hosting crossed repository ownership                   | Tooling               | resolved   |
+| F-120 | Key-only focus collapsed duplicate observations                | API                   | resolved   |
+| F-121 | SVG callback was not a rendering-pipeline boundary             | API                   | resolved   |
+| F-122 | Dense scene aggregation overflowed the call stack              | API                   | resolved   |
+| F-123 | Framework adapters repeated runtime ownership                  | API                   | resolved   |
+| F-124 | Name-only inventories masked undocumented contracts            | Docs/Tooling          | resolved   |
+| F-125 | Adapter surface classes disappeared across lifecycles          | API                   | resolved   |
+| F-126 | Executable comparisons had no public documentation             | Docs/Tooling          | resolved   |
+| F-127 | Catalog source hid data transformation dependencies            | Docs/Tooling          | resolved   |
+| F-128 | Chart-owned data reactivity duplicated application state       | API                   | resolved   |
+| F-129 | Responsive relayout restarted chart animation                  | API                   | resolved   |
+| F-130 | Adapter options duplicated chart behavior                      | API                   | resolved   |
+| F-131 | Stable identity repeated inferable key channels                | API                   | resolved   |
+| F-132 | Factory unions disrupt D3's generic inference                  | API                   | monitoring |
+| F-133 | Clipped ancestors trapped native tooltips                      | API                   | resolved   |
+| F-134 | Demo fixtures modeled charts instead of source data            | Docs/Tooling          | resolved   |
+| F-135 | Published release lacked a repository baseline marker          | Tooling/Release       | resolved   |
+| F-136 | Comparison conflated workspace and published source            | Tooling/Docs          | resolved   |
+| F-137 | Latest docs installed an incompatible published API            | Docs/Release          | resolved   |
+| F-138 | Publisher pin predated explicit trust permissions              | Tooling/Release       | resolved   |
+| F-139 | Top-level entries bypassed tarball validation                  | Tooling/Release       | resolved   |
+| F-140 | Behavior config could erase responsive datum inference         | API                   | monitoring |
+| F-141 | Vitest followed pnpm workspace symlinks                        | Tooling               | resolved   |
+| F-142 | Package verification reinstalled during release builds         | Tooling/Release       | resolved   |
+| F-143 | The `ci` script name collided with pnpm's clean install        | Tooling/Docs          | resolved   |
+| F-144 | Action pin checks accepted invalid commit lengths              | Tooling               | resolved   |
+| F-145 | Changesets included private workspaces in version plans        | Tooling/Release       | resolved   |
+| F-146 | Octane hydration used a unit-test timeout                      | Tooling               | resolved   |
+| F-147 | Release automation duplicated validated work                   | Tooling/Release       | resolved   |
+| F-148 | Publisher failure returned before its workers settled          | Tooling/Release       | resolved   |
+| F-149 | Release checks could stall or accept an unbound tag            | Tooling/Release       | resolved   |
+| F-150 | Nx worktree caches followed the common Git directory           | Tooling               | monitoring |
+| F-151 | Artifact actions targeted deprecated Node 20                   | Tooling               | resolved   |
+| F-152 | Version bumps invalidated workspace bundle evidence            | Tooling/Release       | resolved   |
+| F-153 | Changesets left release-facing version claims behind           | Tooling/Release       | resolved   |
+| F-154 | Root barrels crossed the browser host boundary                 | API/Tooling           | resolved   |
+| F-155 | Optional tooltip code burdened every chart consumer            | API                   | resolved   |
+| F-156 | Releases stranded manual Unreleased migration notes            | Tooling/Release       | monitoring |
+| F-157 | Conformance monitoring blocked unrelated changes               | Tooling               | resolved   |
+| F-158 | Focus presentation was fixed to one renderer marker            | API                   | resolved   |
+| F-159 | Axis scale and presentation controls were interleaved          | API                   | resolved   |
+| F-160 | Responsive tick labels had no collision policy                 | API                   | resolved   |
+| F-161 | Tooltip anchors could not fix coordinates independently        | API                   | resolved   |
+| F-162 | Focus styling required duplicate marks                         | API                   | resolved   |
+| F-163 | Cross-row transforms lacked a public ownership boundary        | API                   | resolved   |
+| F-164 | Sankey widths required a custom scene renderer                 | API                   | resolved   |
+| F-165 | Incidental D3 utilities leaked into core paths                 | API/Tooling           | resolved   |
+| F-166 | Grouped tooltip order diverged from mark position              | API                   | resolved   |
+| F-167 | D3 declarations require a browser image global                 | Tooling               | monitoring |
+| F-168 | Native interaction copied DOM-renderer policy                  | API                   | resolved   |
+| F-169 | CSS theme defaults reach the native scene compiler             | API                   | resolved   |
+| F-170 | Text measurement omits native typography                       | API                   | resolved   |
+| F-171 | Packed declarations assume one platform global set             | Tooling               | resolved   |
+| F-172 | Metro skipped the fixture-owned Babel runtime                  | Tooling               | resolved   |
+| F-173 | Metro retained the complete universal barrel                   | API/Tooling           | monitoring |
+| F-174 | OIDC release cannot claim a new npm package name               | Tooling               | monitoring |
+| F-175 | Native SVG resource normalization collapsed authored IDs       | Application           | resolved   |
+| F-176 | Large marks were focused by distant anchor points              | API                   | monitoring |
+| F-177 | Bubble overlap inherited incidental source order               | Application           | resolved   |
+| F-178 | Custom-template examples exposed DOM mutation plumbing         | Docs/Tooling          | resolved   |
+| F-179 | Animation clocks drift at fixed frame indices                  | Tooling               | monitoring |
+| F-180 | Chart host hid animated presentation geometry                  | Tooling/API           | resolved   |
+| F-181 | Tween tracks could not preserve interruption velocity          | API                   | resolved   |
+| F-182 | Per-series transition overrides did not inherit defaults       | API                   | resolved   |
+| F-183 | Motion policy was centralized in renderer setup                | API/Tooling           | resolved   |
+| F-184 | Cross-type marks lacked a shared morph topology                | API                   | monitoring |
+| F-185 | Control reflow turned a morph into a resize                    | Application           | resolved   |
+| F-186 | Focus states bypassed the optional physics runtime             | API                   | resolved   |
+| F-187 | Crosshair motion required an application-owned frame loop      | API                   | resolved   |
+| F-188 | Paired interaction assertions assumed equal timing             | Tooling               | monitoring |
+| F-189 | The motion spike exposed duplicate configuration surfaces      | API                   | resolved   |
+| F-190 | Static conformance sampled active motion                       | Tooling               | resolved   |
+| F-191 | Axis tick styling and edge alignment required shell work       | API                   | resolved   |
+| F-192 | SVG letterboxing shifted pointer hit testing                   | API                   | resolved   |
+| F-193 | Fixed catalog height hid compact responsive examples           | Tooling/App           | resolved   |
+| F-194 | Behavior runs omitted the interactive input                    | Tooling               | resolved   |
+| F-195 | Release versions matched dependency substrings                 | Tooling               | resolved   |
+| F-196 | Focus decorations suppressed the primary indicator             | API                   | resolved   |
+| F-197 | Workspace validation omitted comparison provenance             | Tooling               | resolved   |
+| F-198 | Union-valued axes rejected configured D3 scales                | API                   | resolved   |
+| F-199 | Support metadata hid outside-definition authoring              | Docs/Tooling          | monitoring |
+| F-200 | Generic mark composition widened channel types                 | API                   | resolved   |
+| F-201 | Visible Voronoi cells required custom D3 paths                 | API/Docs              | resolved   |
+| F-202 | Density contours hid responsive geometry behind a custom mark  | API/Docs              | resolved   |
+| F-203 | D3 contour v4 runtime APIs were absent from its declarations   | Tooling               | resolved   |
+| F-204 | Scalar-grid contours hid topology behind a custom mark         | API/Docs              | resolved   |
+| F-205 | Force layouts hid static settlement behind case utilities      | API/Docs              | resolved   |
+| F-206 | Tidy trees hid hierarchy construction in definition builders   | API/Docs              | resolved   |
+| F-207 | D3 arc contexts overstated the required Canvas surface         | Tooling/API           | resolved   |
+| F-208 | Sunburst definitions exposed partition and arc DTOs            | API/Docs              | resolved   |
+| F-209 | Facets typed child points as grouping rows                     | API                   | resolved   |
+| F-210 | Definition-shape audit ignored complete definition factories   | Tooling               | resolved   |
+| F-211 | Responsive builders defer nested axis callback inference       | API                   | monitoring |
+| F-212 | Transposed composites lacked a horizontal line mark            | API                   | resolved   |
+| F-213 | Regression fits were hidden in case-owned endpoint preparation | API/Docs              | resolved   |
+| F-214 | Marginal views required reserved-domain manual plotting        | API/Docs              | resolved   |
+| F-215 | Ridgeline profiles lost categories to numeric surrogates       | API/Docs              | resolved   |
+| F-216 | Violin envelopes encoded categories as numeric endpoints       | API/Docs              | resolved   |
+| F-217 | Mosaic cells hid two normalization denominators                | API/Docs              | resolved   |
+| F-218 | Decorative scene fragments lost point ownership                | API                   | resolved   |
+| F-219 | Responsive bar caps required guessed plot widths               | API/Docs              | resolved   |
+| F-220 | Framed labels estimate glyph bounds by character count         | API                   | monitoring |
+| F-221 | Roadmap evidence existence allowed false verification          | Tooling               | resolved   |
+| F-222 | View composition coupled placement to grid semantics           | API/Docs              | resolved   |
+| F-223 | Remote catalog modules could not participate in SSR            | Tooling/App           | resolved   |
+| F-224 | Packed consumers masked a runtime D3 dependency                | Tooling               | resolved   |
+| F-225 | Noninteractive SSR emitted hidden focus geometry               | API/Tooling           | resolved   |
+| F-226 | Worker runtimes rejected bundled CSV parsing                   | Tooling               | resolved   |
+| F-227 | Catalog bundles omitted data license notices                   | Tooling               | resolved   |
+| F-228 | Catalog definitions captured the initial server width          | Application           | resolved   |
+| F-229 | Catalog publishing raced its React dependency                  | Tooling/Release       | resolved   |
+| F-230 | CI repeated unaffected work across every partition             | Tooling               | monitoring |
+| F-231 | Packed consumers serialized independent verification           | Tooling/Release       | resolved   |
+| F-232 | Benchmark shards repeated setup and skewed work                | Tooling               | monitoring |
+| F-233 | Dismissal could click through a composed tooltip               | API                   | resolved   |
+| F-234 | Recharts point replacement canceled activation events          | Application           | monitoring |
+| F-235 | Structured tooltip rows could not interleave details           | API                   | monitoring |
+| F-236 | Paint parity normalized patterns but not gradients             | Tooling               | resolved   |
+| F-237 | Focused rules had no matchable presentation points             | API                   | resolved   |
+| F-238 | Callback parameter shapes were inconsistent                    | API/Tooling           | resolved   |
+| F-239 | Example keys collapsed distinct source rows                    | Application           | resolved   |
+| F-240 | Rolling paths morphed samples instead of shifting them         | API                   | resolved   |
+| F-241 | Motion ignored authored SVG clips                              | API                   | resolved   |
+| F-242 | Paged history required overlaid chart hosts                    | API                   | resolved   |
+| F-243 | Long-press focus duplicated host pointer geometry              | API                   | resolved   |
+| F-244 | Focus cursor width depended on private band inference          | API                   | resolved   |
+| F-245 | Focus-filtered bands could not act as cursor geometry          | API                   | resolved   |
+| F-246 | Scene updates cleared active motion guide placement            | API                   | resolved   |
+| F-247 | Custom mounts were not React catalog descriptors               | Tooling/App           | resolved   |
+| F-248 | Release finalization targeted the workflow head                | Tooling/Release       | monitoring |
+| F-249 | Interrupted motion retained stale presentation state           | API                   | resolved   |
+| F-250 | Host accessibility diverged across render paths                | API                   | resolved   |
+| F-251 | The architecture made D3 implementation sound mandatory        | Documentation         | resolved   |
+| F-252 | Catalog sidebar links duplicated case metadata                 | Docs/Tooling          | resolved   |
+| F-253 | Compact scales accepted structurally invalid pairs             | API                   | resolved   |
+| F-254 | View composition types were broader than runtime               | API                   | resolved   |
+| F-255 | Public import maps could drift from package exports            | Documentation/Tooling | resolved   |
+| F-256 | Shared host policy retained browser-only modules               | API/Tooling           | resolved   |
 
 ## Findings
 
@@ -4852,7 +4856,7 @@ Each entry records:
 
 ### F-168 — Native interaction copied DOM-renderer policy
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: API
 - Observed in: restacking the React Native focus, selection, and tooltip proof
@@ -4882,43 +4886,19 @@ Each entry records:
   Restacking onto the visual grouped-tooltip ordering change then exposed the
   same drift again: the DOM host defaulted to visual order while the native
   copy still used color-domain order.
-- Current decision: keep the duplication confined to the private proof. The
-  native adapter exports a branded extension from its optional `/tooltip`
-  subpath, accepts duplicate package copies and custom native implementations,
-  and rejects tokens owned by another host. The environment-neutral `/types`
-  entry exposes the generic token contract so an adapter does not need a hidden
-  core import. That generic contract means the wrong host token is rejected at
-  native render time rather than by the shared definition type; production
-  typing may need a host-refined definition. A definition becomes host-specific
-  when decorated with a tooltip token, while applications can still share the
-  chart spec and options before that platform step. A supported native package
-  still requires extracting renderer-neutral interaction and tooltip state,
-  with the DOM and native hosts consuming the same implementation. The proof
-  omits shared focus-layer groups from its base scene and uses a generic native
-  overlay; authored focus marks and inline mark states remain unsupported until
-  scene-state resolution is shared. It now preserves the original primary and
-  focus group independently from sorted tooltip rows, refreshes restored point
-  objects, re-emits callbacks when public point values or geometry change,
-  silently refreshes equivalent point references, and keeps callback refs out
-  of restoration effect dependencies.
-- Verification: focused native tests cover strategy selection, grouping,
-  restoration, navigation, axis and custom anchors, supported default content,
-  placement, and extension ownership. The native type and Metro gates use the
-  native token without web tooltip modules, and retained-input gates prove the
-  base native entry does not include the optional tooltip implementation.
-  Browser portal tokens fail explicitly instead of being ignored. The default
-  native tooltip still lacks the complete `items` formatting contract. A
-  regression verifies inactive focus-layer paint is absent from the native
-  scene. Component regressions cover a primary point that sorts after another
-  series, restored coordinates and callbacks after resize, and stable focus
-  source when only callback props change. An inline-definition regression
-  verifies an equivalent restored scene does not re-emit focus into the
-  parent. A grouped-tooltip regression now verifies visual default order and
-  explicit color-domain order in both hosts.
+- Decision: share environment-neutral focus, restoration, scene-state,
+  tooltip ordering, content, anchor, and placement policy across hosts. Brand
+  tooltip tokens by host and carry that host through definition types. A chart
+  spec remains portable until a platform tooltip is attached; DOM and React
+  Native boundaries then reject the other platform's exact token.
+- Verification: root TypeScript rejects both exact cross-host directions.
+  Deliberately widened values retain explicit runtime guards. Focused core and
+  native tests cover shared formatting, anchors, placement, restoration,
+  authored focus layers, inline mark states, and visual ordering.
 
 ### F-169 — CSS theme defaults reach the native scene compiler
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: API
 - Observed in: React Native paint resolution
@@ -4926,18 +4906,19 @@ Each entry records:
   and CSS custom properties. The native proof can resolve final paint strings
   and their fallbacks, but a dynamic chart builder still receives the web
   default theme before the host sees the scene.
-- Current decision: the private host resolves final paints explicitly and
-  never evaluates application CSS. Before release, runtime construction needs
-  an additive platform-default-theme option used both by dynamic build context
-  and final theme merging. Structured paint references may be warranted if
-  more host semantics appear.
-- Verification: native paint and full-scene tests contain no unresolved CSS
-  variable or `currentColor` output. Device themes and dynamic native-theme
-  builders remain unverified.
+- Decision: `createChartRuntime({ defaultTheme })` establishes platform
+  defaults once. The runtime passes the same resolved value to responsive
+  builders and applies it between the library defaults and the authored theme
+  during final scene compilation. React Native derives its foreground, muted,
+  and grid defaults from the host color.
+- Verification: the runtime regression proves one platform theme reaches both
+  build and merge phases, static and responsive runtimes compile with the same
+  precedence, React Native has no unresolved `currentColor` paint, and root
+  TypeScript passes.
 
 ### F-170 — Text measurement omits native typography
 
-- Status: monitoring
+- Status: resolved
 - Severity: high
 - Owner: API
 - Observed in: React Native SVG labels and automatic guide layout
@@ -4945,12 +4926,15 @@ Each entry records:
   family, style, stretch, letter spacing, direction, locale, or font-scale
   policy. The native painter accepts a `fontFamily`, while the shared layout
   cannot ask a native measurer for the same font.
-- Current decision: expose the existing injected measurer in the proof and do
-  not claim text parity. Production work must complete the typography contract
-  and decide how native asynchronous measurement feeds deterministic scene
-  layout without hidden mounted views.
-- Verification: injected-measurer core tests pass. No iOS or Android font-scale
-  and clipping matrix has been run.
+- Decision: keep scene compilation synchronous. `ChartTextMeasureOptions`
+  carries family, style, stretch, letter spacing, direction, locale, and font
+  scale in addition to label-local size, weight, anchor, and baseline. Hosts
+  own asynchronous font readiness and compile another scene when metrics
+  change. React Native exposes matching typography props and applies font scale
+  to measurement and SVG label paint.
+- Verification: core tests cover complete resolved measure options, DOM tests
+  cover inherited typography, React Native tests cover the full callback
+  contract, and root TypeScript passes.
 
 ### F-171 — Packed declarations assume one platform global set
 
@@ -7124,6 +7108,11 @@ Each entry records:
   The focused expanding tooltip conformance case retains 99.6% geometry
   similarity and passes visual, behavior, and type gates at both sizes and
   themes.
+- Follow-up decision: transform accessors follow the same primary-payload
+  convention as channels: `(datum, { index, data })`. The transform executor
+  supplies one stable context shape and all first-party examples use it.
+- Follow-up verification: transform regressions cover datum, index, and complete
+  data; the public callback inventory and root TypeScript pass.
 
 ### F-239 — Example keys collapsed distinct source rows
 
@@ -7545,3 +7534,73 @@ Each entry records:
   emits one canonical catalog detail link per case, and reports the checked-in
   configuration as synchronized. The documentation helper regression proves
   site-level and external links do not become nonexistent Markdown paths.
+
+### F-253 — Compact scales accepted structurally invalid domains and ranges
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: the public API harmonization audit
+- Friction: linear domains and band ranges accepted arrays with missing or
+  extra positions, then failed later through invalid mapping. Ordinal scales
+  could also return `undefined` for an empty range while their callable type
+  promised a range value.
+- Decision: positional compact scales require exactly two finite values. The
+  ordinal callable returns `TRange | undefined`, and configured color scales
+  convert an absent output to the documented `currentColor` fallback.
+- Verification: 45 focused scale regressions cover short, long, nonfinite,
+  empty-range, unknown, and configured-color cases; root TypeScript passes.
+
+### F-254 — View composition exposed a broader type than its runtime contract
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: composing responsive panels and host-owned extensions
+- Friction: `composeViews` accepted any chart definition in TypeScript, then
+  rejected tooltips, controls, host interaction, gradients, backgrounds, and
+  guide motion only while compiling. It also rejected responsive children even
+  though the layout had already allocated an exact frame.
+- Decision: expose composable static, responsive, and union definition types.
+  Reject embedded host ownership in exact authored types, retain runtime guards
+  for widened JavaScript/TypeScript values, and resolve responsive children
+  against their allocated frames with the outer platform theme.
+- Verification: focused type and runtime regressions cover exact rejection,
+  forged invalid values, frame-local responsive builders, scale links, and
+  scene embedding.
+
+### F-255 — Public reference inventories could drift from package exports
+
+- Status: resolved
+- Severity: medium
+- Owner: Documentation/Tooling
+- Observed in: adding the environment-neutral tooltip host model
+- Friction: the documentation contract detected missing package exports but not
+  stale import-map rows. Renames could therefore leave a documented subpath
+  that no package published.
+- Decision: verify the canonical import map in both directions against package
+  export maps and classify entries as ordinary authoring, optional capability,
+  or host/renderer extension surfaces.
+- Verification: the docs contract rejects both missing and stale import-map
+  entries and covers the tooltip model subpath and every newly exported symbol.
+
+### F-256 — Shared host policy retained browser-only modules
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: packed React Native declarations, Metro bundles, and retained-
+  input bundle boundaries after extracting shared tooltip and mark-state policy
+- Friction: the renderer-neutral tooltip model re-exported placement from a
+  module that also read `HTMLElement` and `Document`. The shared mark-state
+  resolver lived beside reduced-motion DOM inspection. React Native therefore
+  inherited browser declarations and implementation inputs through APIs that
+  were intended to be portable.
+- Decision: isolate pure tooltip placement and mark-state resolution from DOM
+  positioning and transition inspection. Publish explicit React Native export
+  conditions for the shared cursor-host and tooltip-model subpaths, and classify
+  the portable tooltip modules in retained-input policy.
+- Verification: root TypeScript and focused tooltip/host tests pass. Packed
+  declarations compile without DOM libraries, bare React Native and Expo Metro
+  bundles resolve the new subpaths, and the package and bundle boundary gates
+  pass.

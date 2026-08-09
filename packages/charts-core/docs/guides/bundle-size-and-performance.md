@@ -40,7 +40,7 @@ import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { motion } from '@tanstack/charts/motion'
 import { createChartSpring } from '@tanstack/charts/spring'
 import { renderChartImage } from '@tanstack/charts/export'
-import { focusX } from '@tanstack/charts/focus'
+import { focusGroupX } from '@tanstack/charts/focus'
 import { focusGuideX } from '@tanstack/charts/focus/guide'
 import { brushX } from '@tanstack/charts/interaction/brush'
 import { continuousCursor } from '@tanstack/charts/interaction/cursor'
@@ -54,7 +54,7 @@ import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { groupBy } from '@tanstack/charts/transform/group'
-import { window } from '@tanstack/charts/transform/window'
+import { rollingWindow } from '@tanstack/charts/transform/rolling-window'
 ```
 
 Canvas is opt-in. The default core and every default framework entry remain

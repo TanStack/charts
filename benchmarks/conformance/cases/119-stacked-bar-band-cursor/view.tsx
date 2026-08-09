@@ -16,7 +16,7 @@ const StackedCursorCatalogView = forwardRef<
       defineChart(
         stackedCursorDefinition(stackedCursorRowsForRevision(input.revision)),
         {
-          animate: false,
+          svgAnimation: false,
           ...(input.interactive ? {} : { focus: false }),
           keyboard: input.interactive,
           tooltip: false,

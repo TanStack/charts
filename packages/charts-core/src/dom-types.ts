@@ -1,7 +1,7 @@
 import type {
   ChartAnimationOptions,
   ChartCursorPresentation,
-  ChartDefinition,
+  DomChartDefinition,
   ChartFocusState,
   ChartHostControl,
   ChartHostControlExtensionToken,
@@ -158,7 +158,7 @@ export interface ChartTooltipBodyTarget<
   element: HTMLElement
 }
 
-export interface ChartTooltipExtension extends ChartTooltipExtensionToken {
+export interface ChartTooltipExtension extends ChartTooltipExtensionToken<'dom'> {
   create: <TDatum, TXValue extends ChartValue, TYValue extends ChartValue>(
     context: ChartTooltipExtensionContext<TDatum, TXValue, TYValue>,
   ) => ChartTooltipExtensionInstance<TDatum, TXValue, TYValue>
@@ -299,7 +299,7 @@ export type ChartRendererHostOptions<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = ChartRendererHostCommonOptions<TDatum, TXValue, TYValue> & {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>
 }
 
 export type ChartHostOptions<
@@ -307,7 +307,7 @@ export type ChartHostOptions<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = ChartHostCommonOptions<TDatum, TXValue, TYValue> & {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>
 }
 
 export interface ChartHost<

@@ -4,7 +4,7 @@ description: Build controlled cursors, linked selections, brushes, zooming, scro
 ---
 
 TanStack Charts owns datum focus, selection, crosshair presentation, optional
-cursor bindings, and the mechanics of explicitly imported chart behaviors. The
+cursor bindings, and the mechanics of explicitly imported chart controls. The
 application owns accepted semantic values, shared controller identity, and
 product policy.
 
@@ -22,7 +22,7 @@ Use native chart focus for:
 - keyboard point navigation;
 - point activation.
 
-Use a first-party controlled behavior for:
+Use a first-party controlled chart control for:
 
 - categorical series visibility through `interactiveColorLegend`;
 - semantic point selection through `keyedSelection`;
@@ -30,7 +30,7 @@ Use a first-party controlled behavior for:
 - one ordered scale value through `handleX`;
 - a scale-bound horizontal range through `brushX`;
 - a controlled numeric or temporal x window through `zoomX`;
-- other behaviors that explicitly accept a `ControlledSignal`.
+- other controls that explicitly accept a `ControlledSignal`.
 
 Use controlled application state for:
 
@@ -43,7 +43,7 @@ Use controlled application state for:
 - editable intervals;
 - rich pinned tooltips.
 
-See [Tooltips and Focus](./tooltips-and-focus.md) for the native path.
+See [Tooltips and Focus](./tooltips-and-focus.md) for chart-owned datum inspection.
 
 ## Cursors and crosshairs
 
@@ -156,7 +156,7 @@ freeCursor.setState(null)
 
 With `pin: true`, click or tap pins the current cursor and another activation
 dismisses it. Browser focus mode also supports Enter, Space, and Escape. React
-Native focus mode exposes equivalent activate and escape accessibility
+Chart-owned focus exposes equivalent activate and escape accessibility
 actions. Free mode has no invented keyboard or accessibility point order; pair
 it with labeled date/number inputs, a range control, or textual status when
 arbitrary values are part of the reader's task. The crosshair itself is visual
@@ -272,7 +272,7 @@ const definition = defineChart({
   marks: [dot(rows, { x: 'horsepower', y: 'economy' })],
   x: { scale: horsepowerScale },
   y: { scale: economyScale },
-  behaviors: [
+  controls: [
     continuousCursor({
       position: controlledSignal<
         Position | null,
@@ -362,7 +362,7 @@ function stopInspecting() {
 `resolvePointer` uses the current renderer presentation, including an active
 motion or viewport transform, and returns the scene position, primary point,
 and complete focus group. `setControlledFocus` paints the same definition-owned
-focus and tooltip as native pointer input. Pass `{ pinned: true }` when the
+focus and tooltip as chart-owned pointer input. Pass `{ pinned: true }` when the
 configured sticky tooltip should accept interaction.
 
 For a drag that does not require a nearby datum, use
@@ -407,7 +407,7 @@ D3 ownership and official interaction-module links.
 
 ## Disable competing datum focus
 
-When a gesture has no datum inspection at all, disable native focus explicitly:
+When a gesture has no datum inspection at all, disable chart-owned focus explicitly:
 
 ```ts
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
@@ -461,7 +461,7 @@ import { controlledSignal } from '@tanstack/charts/interaction/signal'
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
   x: { scale: utcScale },
-  behaviors: [
+  controls: [
     brushX({
       range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
         visibleRange,
@@ -512,7 +512,7 @@ import { controlledSignal } from '@tanstack/charts/interaction/signal'
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
   x: { scale: utcScale },
-  behaviors: [
+  controls: [
     handleX({
       value: controlledSignal<Date, HandleXChange<Date>>(currentDate, (next) =>
         setCurrentDate(next),
@@ -562,7 +562,7 @@ import { controlledSignal } from '@tanstack/charts/interaction/signal'
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
   x: { scale: utcScale.copy().domain([window.start, window.end]) },
-  behaviors: [
+  controls: [
     zoomX({
       window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(
         window,
@@ -648,7 +648,7 @@ survives lifecycle cleanup until an explicit dismissal or programmatic clear.
 - Crosshair presentation is derived from focus or a cursor binding instead of
   DOM mutation.
 - Geometry comes from `scene.chart` and configured scale copies.
-- Native focus is disabled only when another complete interaction owns the
+- Chart-owned focus is disabled only when another complete interaction owns the
   surface.
 - Pointer, keyboard, and touch reach equivalent outcomes.
 - Wheel capture does not unexpectedly trap page scrolling.

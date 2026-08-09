@@ -1,13 +1,13 @@
 ---
 title: Focus and Interaction
-description: Configure pointer focus, grouped focus, crosshairs, controlled cursors, keyboard navigation, native tooltips, selection, and spatial indexes.
+description: Configure pointer focus, grouped focus, crosshairs, controlled cursors, keyboard navigation, built-in tooltips, selection, and spatial indexes.
 ---
 
 The DOM hosts, framework adapters, and React Native `Chart` provide point-level
 interaction from each mark's emitted `ChartPoint` values and rendered scene
 primitives. The defaults cover geometry-aware pointer or responder focus,
 linear keyboard or accessibility navigation, activation, and an optional
-native tooltip. Definitions own these policies; adapters mount them and report
+built-in tooltip. Definitions own these policies; adapters mount them and report
 events.
 
 ## Default behavior
@@ -133,7 +133,7 @@ const groupedDownloads = defineChart(definition, {
 Grouping compares semantic values, including dates by timestamp. Duplicate
 points with the same `group` value are reduced to one member in grouped focus.
 
-The equivalent `focusX`, `focusY`, `focusNearestX`, and `focusNearestY`
+The equivalent `focusGroupX`, `focusGroupY`, `focusNearestX`, and `focusNearestY`
 strategy objects remain available from `@tanstack/charts/focus` for composition
 or direct strategy use. The exact exported objects receive the same host-level
 containment behavior as their presets. A strategy that wraps or copies one of
@@ -503,7 +503,7 @@ definition and can update the same controlled key.
 ## Continuous cursor
 
 Import `continuousCursor` from `@tanstack/charts/interaction/cursor` and place
-it in `ChartDefinitionOptions.behaviors`. Its `position` is a controlled
+it in `ChartDefinitionOptions.controls`. Its `position` is a controlled
 `ContinuousCursorPosition<TXValue, TYValue> | null`. Both values must be
 numbers or dates backed by invertible scales.
 
@@ -551,7 +551,7 @@ The public cursor types divide state, event, and presentation concerns:
 ## Horizontal brush
 
 Import `brushX` from `@tanstack/charts/interaction/brush` and place it in
-`ChartDefinitionOptions.behaviors`. Its `range` is a controlled
+`ChartDefinitionOptions.controls`. Its `range` is a controlled
 `BrushRange<TValue>` with inclusive semantic `start` and `end` values.
 
 `BrushXChange` reports `preview`, `commit`, or `cancel`, the proposed and
@@ -577,7 +577,7 @@ status text, persistence, and any native semantic control.
 ## Horizontal scale handle
 
 Import `handleX` from `@tanstack/charts/interaction/handle` and place it in
-`ChartDefinitionOptions.behaviors`. It binds one controlled x value to an
+`ChartDefinitionOptions.controls`. It binds one controlled x value to an
 explicit ordered candidate list. The controlled value must equal one of those
 candidates.
 
@@ -624,7 +624,7 @@ controls.
 ## Horizontal zoom
 
 Import `zoomX` from `@tanstack/charts/interaction/zoom` and place it in
-`ChartDefinitionOptions.behaviors`. Its `window` is a controlled
+`ChartDefinitionOptions.controls`. Its `window` is a controlled
 `ZoomXWindow<TValue>` with semantic `start` and `end` values. `TValue` must be
 a number or Date backed by an invertible x scale.
 
@@ -670,7 +670,7 @@ The public zoom types are:
 
 ## Disabling chart-owned focus
 
-Set `focus: false` to disable native pointer and keyboard point focus. The
+Set `focus: false` to disable chart-owned pointer and keyboard point focus. The
 scene keeps its semantic points but omits the generated default focus layer,
 and the DOM host forces the chart surface out of the tab order. Explicit
 focus-only marks remain available to custom renderers and programmatic paint.
@@ -936,7 +936,7 @@ selections can listen on a wrapper or use `onRender` to attach application
 behavior to the live SVG. Use `handleX` for one ordered scale value, `brushX`
 for a normal horizontal semantic range, and `zoomX` for a normal controlled x
 window. For custom gestures, keep semantic state outside the scene and update a
-dynamic definition by replacing its identity.
+responsive definition by replacing its identity.
 
 Use a definition cursor binding for snapped or free crosshairs. Keep other
 semantic state outside the scene.

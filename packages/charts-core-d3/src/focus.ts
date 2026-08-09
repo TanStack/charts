@@ -1,8 +1,8 @@
 import { valueKey } from './scales'
 import type { ChartFocusStrategy, ChartPoint, ChartValue } from './types'
 
-export const focusX = axisFocus('x')
-export const focusY = axisFocus('y')
+export const focusGroupX = axisFocus('x')
+export const focusGroupY = axisFocus('y')
 
 function axisFocus(axis: 'x' | 'y'): ChartFocusStrategy {
   const coordinate = (point: ChartPoint) => (axis === 'x' ? point.x : point.y)

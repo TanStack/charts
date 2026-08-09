@@ -16,10 +16,13 @@ import { crosshair } from '@tanstack/charts/crosshair'
 import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
 import { whenFocused } from '@tanstack/charts/focus/mark'
 import type {
+  ChartDefinition,
   ChartCursorController,
   ChartCursorState,
   ChartCursorStateUpdater,
   ChartScene,
+  ChartTextMeasureOptions,
+  ChartTooltipExtensionToken,
 } from '@tanstack/charts/types'
 import { Chart } from './Chart'
 import {
@@ -200,6 +203,45 @@ describe('React Native Chart', () => {
     expect(markup).toContain('<circle')
     expect(markup).toContain('#2563eb')
     expect(markup).not.toContain('var(--')
+  })
+
+  it('passes complete host typography to synchronous text measurement', () => {
+    const measureText = vi.fn(
+      (text: string, options: ChartTextMeasureOptions) => ({
+        x: 0,
+        y: -options.fontSize * options.fontScale,
+        width: text.length * options.fontSize * options.fontScale,
+        height: options.fontSize * options.fontScale,
+      }),
+    )
+
+    renderToStaticMarkup(
+      <Chart
+        definition={definition}
+        accessibilityLabel="Localized revenue"
+        width={480}
+        height={260}
+        fontFamily="Inter"
+        fontStyle="italic"
+        fontStretch="condensed"
+        letterSpacing={0.5}
+        direction="rtl"
+        locale="ar-EG"
+        fontScale={1.25}
+        measureText={measureText}
+      />,
+    )
+
+    expect(measureText).toHaveBeenCalled()
+    expect(measureText.mock.calls[0]?.[1]).toMatchObject({
+      fontFamily: 'Inter',
+      fontStyle: 'italic',
+      fontStretch: 'condensed',
+      letterSpacing: 0.5,
+      direction: 'rtl',
+      locale: 'ar-EG',
+      fontScale: 1.25,
+    })
   })
 
   it('renders translated and clipped heterogeneous composed views', () => {
@@ -495,20 +537,38 @@ describe('React Native Chart', () => {
   })
 
   it('rejects tooltip extensions owned by another host', () => {
+    const foreignTooltip: ChartTooltipExtensionToken<'dom'> = {
+      id: 'foreign-tooltip',
+      __chartExtensionType: 'tooltip',
+      __chartTooltipHost: 'dom',
+      create: (): undefined => undefined,
+    }
     const foreignDefinition = defineChart({
       marks: [lineY(data, { x: 'month', y: 'value' })],
       x: { scale: scaleLinear().domain([1, 2]) },
       y: { scale: scaleLinear().domain([8, 12]) },
-      tooltip: {
-        id: 'foreign-tooltip',
-        create: (): undefined => undefined,
-      },
+      tooltip: foreignTooltip,
     })
+
+    if (false) {
+      void (
+        <Chart
+          // @ts-expect-error React Native rejects a DOM tooltip token.
+          definition={foreignDefinition}
+          accessibilityLabel="Revenue"
+        />
+      )
+    }
+    const forgedDefinition = foreignDefinition as unknown as ChartDefinition<
+      (typeof data)[number],
+      number,
+      number
+    >
 
     expect(() =>
       renderToStaticMarkup(
         <Chart
-          definition={foreignDefinition}
+          definition={forgedDefinition}
           accessibilityLabel="Revenue"
           width={480}
           height={260}
@@ -523,7 +583,7 @@ describe('React Native Chart', () => {
     const customTooltip: NativeChartTooltipExtension = {
       id: 'custom-native-tooltip',
       __chartExtensionType: 'tooltip',
-      __nativeChartHost: 'react-native',
+      __chartTooltipHost: 'react-native',
       create,
     }
     const customDefinition = defineChart({
@@ -600,7 +660,7 @@ describe('React Native Chart', () => {
     const trackingTooltip: NativeChartTooltipExtension = {
       id: 'tracking-native-tooltip',
       __chartExtensionType: 'tooltip',
-      __nativeChartHost: 'react-native',
+      __chartTooltipHost: 'react-native',
       create: () => TrackingTooltip,
     }
     const trackingDefinition = defineChart({
@@ -1211,7 +1271,7 @@ describe('React Native Chart', () => {
     const trackingTooltip: NativeChartTooltipExtension = {
       id: 'cursor-tracking-tooltip',
       __chartExtensionType: 'tooltip',
-      __nativeChartHost: 'react-native',
+      __chartTooltipHost: 'react-native',
       create: () => TrackingTooltip,
     }
     const controller = createChartCursor<number, number>()
@@ -1652,7 +1712,7 @@ describe('React Native Chart', () => {
     const trackingTooltip: NativeChartTooltipExtension = {
       id: 'switching-cursor-tooltip',
       __chartExtensionType: 'tooltip',
-      __nativeChartHost: 'react-native',
+      __chartTooltipHost: 'react-native',
       create: () => TrackingTooltip,
     }
     const baseDefinition = defineChart({

@@ -10,7 +10,7 @@ import { Chart } from '@tanstack/angular-charts'
 `Chart` is a standalone component with selector `tanstack-chart`. Its required
 `options` input accepts a chart definition. Replace the definition identity
 when captured application values change.
-The definition also owns `focus`, `focusRing`, `cursor`, `tooltip`, `animate`,
+The definition also owns `focus`, `focusRing`, `cursor`, `tooltip`, `svgAnimation`,
 `keyboard`, `maxFocusDistance`, and `spatialIndex`.
 
 ## `options`

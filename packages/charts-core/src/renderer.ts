@@ -66,6 +66,7 @@ export function mountChartRenderer<
     TYValue
   >(),
 ): ChartRendererHost<TDatum, TXValue, TYValue> {
+  resolveTooltipInput(initialOptions.definition.tooltip)
   let options = initialOptions
   let scene!: ChartScene<TDatum, TXValue, TYValue>
   let interactionScene!: ChartScene<TDatum, TXValue, TYValue>
@@ -149,7 +150,7 @@ export function mountChartRenderer<
         ),
         idPrefix: options.idPrefix,
         animation: hasRendered
-          ? resolveAnimation(options.definition.animate, container, reason)
+          ? resolveAnimation(options.definition.svgAnimation, container, reason)
           : undefined,
       })
     } finally {
@@ -772,6 +773,7 @@ export function mountChartRenderer<
     interaction,
     update(nextOptions) {
       if (destroyed) return
+      resolveTooltipInput(nextOptions.definition.tooltip)
       const fontChanged =
         nextOptions.measureText === undefined && domText.refresh()
       const definitionChanged = options.definition !== nextOptions.definition
@@ -874,7 +876,10 @@ export function mountChartRenderer<
             ? width / options.aspectRatio
             : 320),
       },
-      { measureText: options.measureText ?? domText.measureText },
+      {
+        measureText: options.measureText ?? domText.measureText,
+        typography: domText.typography(),
+      },
     )
   }
 
@@ -1118,13 +1123,20 @@ function resolveTooltipInput<
   options: ChartTooltipOptions<TDatum, TXValue, TYValue>
 } | null {
   if (!input) return null
+  const extension = 'create' in input ? input : input.use
+  if (extension.__chartTooltipHost !== 'dom') {
+    throw new TypeError(
+      'DOM chart hosts require a tooltip extension from @tanstack/charts/tooltip.',
+    )
+  }
+  const domExtension = extension as ChartTooltipExtension
   return 'create' in input
     ? {
-        extension: input as ChartTooltipExtension,
+        extension: domExtension,
         options: emptyTooltipOptions,
       }
     : {
-        extension: input.use as ChartTooltipExtension,
+        extension: domExtension,
         options: input,
       }
 }

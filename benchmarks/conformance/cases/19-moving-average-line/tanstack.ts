@@ -1,4 +1,4 @@
-import { defineChart, lineY, ruleY, window } from '@tanstack/charts'
+import { defineChart, lineY, ruleY, rollingWindow } from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { sfTemperatures } from '@charts-poc/demo-data/sf-temperatures'
 import { tanstackMount } from '../../shared/mount'
@@ -8,7 +8,7 @@ import type { ConformanceInput } from '../../types'
 const windowSize = 14
 
 const definition = (input: ConformanceInput) => {
-  const completeRows = window(sfTemperatures, {
+  const completeRows = rollingWindow(sfTemperatures, {
     size: windowSize,
     partial: false,
     outputs: {

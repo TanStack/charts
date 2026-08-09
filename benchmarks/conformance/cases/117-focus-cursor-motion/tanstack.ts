@@ -1,5 +1,5 @@
 import { crosshair, defineChart, dot, lineY } from '@tanstack/charts'
-import { focusX } from '@tanstack/charts/focus'
+import { focusGroupX } from '@tanstack/charts/focus'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleBand, scaleLinear } from 'd3-scale'
@@ -244,7 +244,7 @@ export function focusCursorMotionDefinition() {
     },
     y: { scale: scaleLinear().domain([20, 90]), grid: true },
     color: { domain: focusMotionSeries, range: colors },
-    focus: focusX,
+    focus: focusGroupX,
     focusRing: false,
     maxFocusDistance: Number.POSITIVE_INFINITY,
     tooltip: false,

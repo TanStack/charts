@@ -1,6 +1,6 @@
 ---
 title: Interactive Charts
-description: Choose native focus or controlled application interactions for pinned detail, scrolling, zooming, and editing.
+description: Choose chart-owned focus or controlled application interactions for pinned detail, scrolling, zooming, and editing.
 ---
 
 Interaction should help the reader inspect, navigate, select, or edit semantic
@@ -100,7 +100,7 @@ marks: [
 ```
 
 It follows pointer and keyboard focus, stays out of hit testing, and renders
-through SVG, Canvas, motion, and native focus presentation. The first guide
+through SVG, Canvas, motion, and chart-owned focus presentation. The first guide
 uses categorical bandwidth to paint below the bars; with bar inset 4 and band
 inset 0, it extends 4 pixels past each bar edge. Its x label shows the focused
 period. The second guide paints the dotted y rule above the bars and labels the

@@ -353,6 +353,13 @@ interface ChartTextMeasurer {
     options: {
       fontSize: number
       fontWeight?: number
+      fontFamily: string
+      fontStyle: string
+      fontStretch: string
+      letterSpacing: number
+      direction: 'ltr' | 'rtl' | 'inherit'
+      locale?: string
+      fontScale: number
       anchor: 'start' | 'middle' | 'end'
       baseline: 'auto' | 'middle' | 'hanging'
     },
@@ -367,7 +374,10 @@ interface ChartTextMeasurer {
 
 The returned `x` and `y` locate the painted glyph box relative to the requested
 anchor and baseline. Pass the measurer through a host, adapter, runtime render,
-or `createChartScene` layout options.
+or `createChartScene` layout options. The callback is synchronous; a host owns
+font loading or asynchronous native measurement and recompiles the scene when
+those metrics become ready. `fontScale` applies to the painted font size and
+letter spacing, so custom measurers must include it in their result.
 
 ## Custom scales
 
@@ -448,7 +458,7 @@ interface ConfiguredColorScaleLike<TValue extends ChartKey, TOutput> {
 
 interface ChartColorOptions {
   scale?: ConfiguredColorScaleLike<any, any> | ChartColorScaleFactory<any, any>
-  type?: ChartColorScale
+  resolver?: ChartColorScale
   domain?: readonly ChartKey[]
   range?: readonly string[]
   nice?: boolean | number
@@ -456,19 +466,19 @@ interface ChartColorOptions {
 }
 ```
 
-| Option   | Default                 | Meaning                                                           |
-| -------- | ----------------------- | ----------------------------------------------------------------- |
-| `scale`  | None                    | Compatible factory with inference or instance with a fixed domain |
-| `type`   | None                    | Custom color-scale resolver                                       |
-| `domain` | Observed channel values | Domain hint for factory, built-in, or custom resolution           |
-| `range`  | See below               | Range for a factory, the built-in scale, or a custom resolver     |
-| `nice`   | `false`                 | Nice a factory or configured continuous color scale               |
-| `legend` | None                    | Legend layout and scene renderer shown above the inner chart      |
+| Option     | Default                 | Meaning                                                           |
+| ---------- | ----------------------- | ----------------------------------------------------------------- |
+| `scale`    | None                    | Compatible factory with inference or instance with a fixed domain |
+| `resolver` | None                    | Custom color-scale resolver                                       |
+| `domain`   | Observed channel values | Domain hint for factory, built-in, or custom resolution           |
+| `range`    | See below               | Range for a factory, the built-in scale, or a custom resolver     |
+| `nice`     | `false`                 | Nice a factory or configured continuous color scale               |
+| `legend`   | None                    | Legend layout and scene renderer shown above the inner chart      |
 
 Resolution order:
 
 1. `color.scale`, created or copied before use
-2. custom `color.type`
+2. custom `color.resolver`
 3. the built-in ordinal scale using `domain` or observed channel values and
    `range` or the theme palette
 
