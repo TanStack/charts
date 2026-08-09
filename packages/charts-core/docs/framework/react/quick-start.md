@@ -17,27 +17,13 @@ compact scale families and when a chart needs D3 instead.
 
 Definitions are ordinary framework-independent TypeScript:
 
-<!-- docs-example: react-quick-start typecheck -->
-
-```tsx live=react-quick-start file=/src/LetterFrequencyChart.tsx entry=/src/main.tsx
+```tsx group=react-quick-start env=charts-react file=/src/App.tsx entry
 import { scaleBand } from '@tanstack/charts-scales/band'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { barY, defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
-
-interface AlphabetRow {
-  letter: string
-  frequency: number
-}
-
-const alphabet: readonly AlphabetRow[] = [
-  { letter: 'E', frequency: 0.12702 },
-  { letter: 'T', frequency: 0.09056 },
-  { letter: 'A', frequency: 0.08167 },
-  { letter: 'O', frequency: 0.07507 },
-  { letter: 'I', frequency: 0.06966 },
-]
+import { alphabet } from './data'
 
 const percent = new Intl.NumberFormat('en-US', {
   style: 'percent',
@@ -66,7 +52,7 @@ const letterFrequencyChart = defineChart({
   tooltip,
 })
 
-export function LetterFrequencyChart() {
+export default function App() {
   return (
     <Chart
       definition={letterFrequencyChart}
@@ -77,17 +63,19 @@ export function LetterFrequencyChart() {
 }
 ```
 
-```tsx live=react-quick-start file=/src/main.tsx
-import { createRoot } from 'react-dom/client'
-import { LetterFrequencyChart } from './LetterFrequencyChart'
-
-const root = document.getElementById('root')
-
-if (!root) {
-  throw new Error('Missing #root element')
+```ts group=react-quick-start file=/src/data.ts collapsed
+export interface AlphabetRow {
+  letter: string
+  frequency: number
 }
 
-createRoot(root).render(<LetterFrequencyChart />)
+export const alphabet: readonly AlphabetRow[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
 ```
 
 The definition infers the original row and semantic x/y types. Do not add
@@ -218,13 +206,6 @@ import { Chart } from '@tanstack/react-charts/tooltip'
 Existing `renderTooltipBody` users should migrate the component import from
 `@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. The definition
 still uses `tooltip` from `@tanstack/charts/tooltip`.
-
-## Example
-
-This catalog example uses multiple line layers and endpoint labels through the
-same React adapter:
-
-<!-- ::chart-example id=02-multi-line-end-labels height=480 -->
 
 Continue with the [React adapter](./adapter.md) for lifecycle and SSR, the
 [`Chart` reference](./reference/chart.md) for every prop, or the

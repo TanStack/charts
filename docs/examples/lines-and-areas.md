@@ -23,6 +23,45 @@ interval—not merely because a filled chart looks stronger.
 The x domain must have a meaningful order. Do not connect nominal categories
 just because they appear in an array.
 
+## Start with one ordered series
+
+Use one line when the first task is reading change over a shared sequence.
+Points keep the individual observations available for focus and tooltips.
+
+```ts group=basic-line env=charts file=/src/chart.ts entry
+import { defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scalePoint } from '@tanstack/charts-scales/point'
+
+const rows = [
+  { month: 'Jan', downloads: 42 },
+  { month: 'Feb', downloads: 58 },
+  { month: 'Mar', downloads: 51 },
+  { month: 'Apr', downloads: 73 },
+  { month: 'May', downloads: 81 },
+]
+
+const chart = defineChart({
+  marks: [
+    lineY(rows, {
+      x: 'month',
+      y: 'downloads',
+      points: true,
+      stroke: '#2563eb',
+    }),
+  ],
+  x: { scale: () => scalePoint<string>().padding(0.2) },
+  y: {
+    scale: scaleLinear,
+    nice: true,
+    grid: true,
+    axis: { label: 'Downloads (thousands)' },
+  },
+})
+
+export default chart
+```
+
 ## Compare several series from a common baseline
 
 Indexing each series to its first observation compares relative change when the

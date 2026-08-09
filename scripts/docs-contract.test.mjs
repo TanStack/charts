@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   apiReferenceCoversExport,
   comparisonBaselineContractFailures,
+  documentationEnvironmentBootstrap,
+  documentedExampleGroupErrors,
+  documentedExampleGroups,
   exportedNames,
   documentedStandaloneExamples,
   flattenConfigPaths,
@@ -15,6 +18,7 @@ import {
   stripNameOnlyApiInventories,
   typedCodeFenceSyntaxErrors,
   validateChartExamples,
+  validateExampleGroups,
 } from './docs-contract.mjs'
 
 describe('documentation contract helpers', () => {
@@ -305,16 +309,26 @@ const invalid = {
     )
   })
 
-  it('extracts designated standalone examples', () => {
+  it('extracts designated standalone examples that are not grouped projects', () => {
     expect(
       documentedStandaloneExamples(`
 <!-- docs-example: quick-start typecheck -->
 
-\`\`\`tsx live=quick-start file=/src/Chart.tsx entry=/src/main.tsx
+\`\`\`tsx group=quick-start env=charts-react file=/src/Chart.tsx entry
 const value = <span />
 \`\`\`
-\`\`\`tsx live=quick-start file=/src/main.tsx
+\`\`\`tsx group=quick-start file=/src/main.tsx
 createRoot(document.getElementById('root')!).render(value)
+\`\`\`
+`),
+    ).toEqual([])
+
+    expect(
+      documentedStandaloneExamples(`
+<!-- docs-example: quick-start typecheck -->
+
+\`\`\`tsx
+const value = <span />
 \`\`\`
 `),
     ).toEqual([
@@ -325,6 +339,209 @@ createRoot(document.getElementById('root')!).render(value)
         source: 'const value = <span />\n',
       },
     ])
+  })
+
+  it('groups runnable documentation files and validates their metadata', () => {
+    const source = `
+\`\`\`tsx group=letter-frequency env=charts-react file=/src/App.tsx entry
+import { rows } from './data'
+export default function App() { return <span>{rows.length}</span> }
+\`\`\`
+
+\`\`\`ts group=letter-frequency file=/src/data.ts collapsed
+export const rows = [{ value: 1 }]
+\`\`\`
+`
+
+    expect(documentedExampleGroupErrors(source)).toEqual([])
+    expect(documentedExampleGroups(source)).toEqual([
+      {
+        id: 'letter-frequency',
+        env: 'charts-react',
+        files: [
+          expect.objectContaining({
+            path: '/src/App.tsx',
+            entry: true,
+          }),
+          expect.objectContaining({
+            path: '/src/data.ts',
+            collapsed: true,
+          }),
+        ],
+      },
+    ])
+  })
+
+  it('rejects incomplete runnable documentation metadata', () => {
+    expect(
+      documentedExampleGroupErrors(`
+\`\`\`ts group=broken env=unknown file=/src/chart.ts
+export const chart = {}
+\`\`\`
+
+\`\`\`ts group=broken file=/src/chart.ts collapsed hidden
+export const duplicate = {}
+\`\`\`
+`),
+    ).toEqual([
+      'group broken file /src/chart.ts cannot declare hidden; environments own hidden files',
+      'group broken uses unknown documentation environment "unknown"',
+      'group broken repeats file /src/chart.ts',
+      'group broken must declare exactly one entry file',
+    ])
+  })
+
+  it('rejects unknown grouped fence metadata', () => {
+    expect(
+      documentedExampleGroupErrors(`
+\`\`\`ts group=broken env=charts file=/src/chart.ts entry collasped title=Example
+export default {}
+\`\`\`
+`),
+    ).toEqual([
+      'code fence 1 uses unknown grouped metadata "collasped"',
+      'code fence 1 uses unknown grouped metadata "title"',
+    ])
+  })
+
+  it('recognizes CommonMark fences without parsing literal nested examples', () => {
+    const groups = documentedExampleGroups(`
+\`\`\`\`md
+\`\`\`ts group=literal env=charts file=/src/chart.ts entry
+export default {}
+\`\`\`
+\`\`\`\`
+
+~~~ts group=tilde env=charts file=/src/chart.ts entry
+export default {}
+~~~
+
+\`\`\`\`ts group=long-fence env=charts file=/src/chart.ts entry
+export default {}
+\`\`\`\`
+`)
+
+    expect(groups.map(({ id }) => id)).toEqual(['tilde', 'long-fence'])
+  })
+
+  it('rejects authored hidden files, escaped imports, and unavailable dependencies', () => {
+    const errors = documentedExampleGroupErrors(`
+\`\`\`ts group=isolated env=charts file=/src/chart.ts entry
+import React from 'react'
+import { secret } from '../../private'
+export default secret ?? React
+\`\`\`
+
+\`\`\`ts group=isolated file=/src/private.ts hidden
+export const secret = 1
+\`\`\`
+`)
+
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        'group isolated file /src/private.ts cannot declare hidden; environments own hidden files',
+        'group isolated file /src/chart.ts imports "react", which env=charts does not provide',
+        'group isolated file /src/chart.ts imports "../../private" outside /src',
+      ]),
+    )
+  })
+
+  it('typechecks runnable groups as isolated projects', () => {
+    const failures = []
+    validateExampleGroups(
+      process.cwd(),
+      new Map([
+        [
+          'first.md',
+          `
+\`\`\`tsx group=first env=charts-react file=/src/App.tsx entry
+export default function App() { return null }
+\`\`\`
+\`\`\`ts group=first file=/src/globals.ts collapsed
+declare const leaked: number
+\`\`\`
+`,
+        ],
+        [
+          'second.md',
+          `
+\`\`\`tsx group=second env=charts-react file=/src/App.tsx entry
+export default function App() { return leaked }
+\`\`\`
+`,
+        ],
+      ]),
+      failures,
+    )
+
+    expect(failures).toEqual([
+      expect.stringContaining("Cannot find name 'leaked'"),
+    ])
+  })
+
+  it('validates multi-file Octane projects and their default entry semantically', () => {
+    const validFailures = []
+    validateExampleGroups(
+      process.cwd(),
+      new Map([
+        [
+          'valid.md',
+          `
+\`\`\`tsx group=octane-valid env=charts-octane file=/src/App.tsrx entry
+import Child from './Child.tsrx'
+export default function App() { return <Child /> }
+\`\`\`
+\`\`\`tsx group=octane-valid file=/src/Child.tsrx collapsed
+import { value } from './data'
+export default function Child() { return <span>{value}</span> }
+\`\`\`
+\`\`\`ts group=octane-valid file=/src/data.ts collapsed
+export const value: number = 1
+\`\`\`
+`,
+        ],
+      ]),
+      validFailures,
+    )
+    expect(validFailures).toEqual([])
+
+    const invalidFailures = []
+    validateExampleGroups(
+      process.cwd(),
+      new Map([
+        [
+          'invalid.md',
+          `
+\`\`\`tsx group=octane-invalid env=charts-octane file=/src/App.tsrx entry
+import { value } from './data'
+export function App() { return <span>{value}</span> }
+\`\`\`
+\`\`\`ts group=octane-invalid file=/src/data.ts collapsed
+export const value: number = 'wrong'
+\`\`\`
+`,
+        ],
+      ]),
+      invalidFailures,
+    )
+    expect(invalidFailures).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('must default-export'),
+        expect.stringContaining(
+          "Type 'string' is not assignable to type 'number'",
+        ),
+      ]),
+    )
+  })
+
+  it('uses the group ID in the generated chart aria label', () => {
+    expect(
+      documentationEnvironmentBootstrap(
+        'charts',
+        'monthly-signups',
+        './src/chart',
+      ),
+    ).toContain('Documentation example: monthly-signups')
   })
 
   it('strips name-only API inventories without removing reference content', () => {

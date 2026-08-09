@@ -106,14 +106,35 @@ container CSS for palette variables, inherited color, and typography.
 
 Gradients are opt-in resources. Declare them on the chart:
 
-```ts
-const definition = defineChart({
-  marks,
-  x,
-  y,
+```ts group=gradient-area env=charts file=/src/chart.ts entry
+import { areaY, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scalePoint } from '@tanstack/charts-scales/point'
+import { rows } from './data'
+
+export default defineChart({
+  marks: [
+    areaY(rows, {
+      x: 'month',
+      y: 'revenue',
+      fill: 'url(#revenue-fill)',
+    }),
+    lineY(rows, {
+      x: 'month',
+      y: 'revenue',
+      stroke: '#2563eb',
+      strokeWidth: 2,
+    }),
+  ],
+  x: { scale: () => scalePoint<string>().padding(0.2) },
+  y: {
+    scale: scaleLinear,
+    grid: true,
+    axis: { label: 'Revenue (USD)' },
+  },
   gradients: [
     {
-      id: 'area-fill',
+      id: 'revenue-fill',
       x1: 0,
       y1: 1,
       x2: 0,
@@ -124,10 +145,22 @@ const definition = defineChart({
       ],
     },
   ],
+  clip: true,
 })
 ```
 
-Use `url(#area-fill)` as the mark paint. Default SVG hosts emit and scope the
+```ts group=gradient-area file=/src/data.ts collapsed
+export const rows = [
+  { month: 'Jan', revenue: 36_000 },
+  { month: 'Feb', revenue: 48_000 },
+  { month: 'Mar', revenue: 45_000 },
+  { month: 'Apr', revenue: 62_000 },
+  { month: 'May', revenue: 76_000 },
+  { month: 'Jun', revenue: 71_000 },
+]
+```
+
+Use `url(#revenue-fill)` as the mark paint. Default SVG hosts emit and scope the
 resource; `idPrefix` keeps resource and clip IDs distinct when several charts
 share a document.
 
@@ -137,8 +170,6 @@ Clipping is a geometry policy, not a substitute for correct scale domains.
 Canvas consumes the same declared gradients and group clips. A Canvas gradient
 needs measurable node bounds; path-only geometry with no point bounds should
 use an explicit paint instead.
-
-<!-- ::chart-example id=heatmap-labeled height=480 -->
 
 ## HTML tooltip styling
 

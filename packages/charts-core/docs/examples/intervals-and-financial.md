@@ -42,17 +42,69 @@ The chart renders the supplied interval; it does not decide whether the bounds
 are standard deviation, standard error, a confidence interval, or a credible
 interval.
 
-<!-- ::chart-example id=14-error-bars height=480 -->
+```ts group=error-bar env=charts file=/src/chart.ts entry
+import { defineChart, dot, link, tickY } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { estimates } from './data'
+
+export default defineChart({
+  marks: [
+    link(estimates, {
+      x1: 'treatment',
+      y1: 'low',
+      x2: 'treatment',
+      y2: 'high',
+      stroke: '#2563eb',
+      strokeWidth: 1.5,
+    }),
+    tickY(estimates, {
+      x: 'treatment',
+      y: 'low',
+      stroke: '#2563eb',
+      strokeWidth: 1.5,
+    }),
+    tickY(estimates, {
+      x: 'treatment',
+      y: 'high',
+      stroke: '#2563eb',
+      strokeWidth: 1.5,
+    }),
+    dot(estimates, {
+      x: 'treatment',
+      y: 'estimate',
+      key: 'treatment',
+      fill: '#2563eb',
+      r: 4,
+    }),
+  ],
+  x: { scale: () => scaleBand<string>().padding(0.3) },
+  y: {
+    scale: scaleLinear,
+    grid: true,
+    axis: { label: 'Mean response (95% confidence interval)' },
+  },
+})
+```
+
+```ts group=error-bar file=/src/data.ts collapsed
+export const estimates = [
+  { treatment: 'Control', estimate: 42, low: 36, high: 48 },
+  { treatment: 'Low dose', estimate: 51, low: 45, high: 57 },
+  { treatment: 'High dose', estimate: 63, low: 56, high: 70 },
+]
+```
 
 Name the interval in the chart description or surrounding prose. Compose the
 link, caps, and point as separate layers using the
 [Rules, Links, Arrows, Vectors, and Ticks reference](../reference/marks/rules-links-arrows-vectors-and-ticks.md)
 and [Dot and Hexagon Marks](../reference/marks/dot-and-hexagon.md).
 
-This example groups contributing observations once with `groupBy`, emits typed
-mean and sample-deviation outputs, and derives low and high values in the mark
-channel accessors. The estimator and singleton policy remain authored chart
-meaning; no dedicated error-bar mark or prepared endpoint DTO is required.
+The [full catalog example](https://tanstack.com/charts/catalog/14-error-bars/)
+starts with contributing observations, groups them once with `groupBy`, and
+derives the interval from typed mean and sample-deviation outputs. The
+estimator and singleton policy remain authored chart meaning; no dedicated
+error-bar mark is required.
 
 ## Encode open, high, low, and close
 

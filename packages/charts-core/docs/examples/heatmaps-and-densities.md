@@ -24,6 +24,71 @@ the question instead of defaulting to one color per raw observation.
 color channels. [Legends and Color](../guides/legends-and-color.md) covers
 continuous color meaning and accessible legend design.
 
+## Start with a labeled matrix
+
+An ordinal matrix uses categories on both axes and one quantitative value for
+each cell. Direct labels preserve exact values while color makes broad patterns
+visible.
+
+```ts group=labeled-matrix env=charts file=/src/chart.ts entry
+import { cell, colorGradientLegend, defineChart, text } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from 'd3-scale'
+import { quarters, scores, teams } from './data'
+
+export default defineChart({
+  marks: [
+    cell(scores, {
+      x: 'quarter',
+      y: 'team',
+      color: 'score',
+      key: (row) => `${row.team}-${row.quarter}`,
+      inset: 1,
+    }),
+    text(scores, {
+      x: 'quarter',
+      y: 'team',
+      text: (row) => row.score.toFixed(0),
+      fill: '#0f172a',
+      fontWeight: 650,
+    }),
+  ],
+  x: {
+    scale: () => scaleBand<string>().domain(quarters).padding(0.04),
+    axis: { label: 'Quarter' },
+  },
+  y: {
+    scale: () => scaleBand<string>().domain(teams).padding(0.04),
+    axis: { label: 'Team' },
+  },
+  color: {
+    scale: () =>
+      scaleLinear<string>().domain([60, 100]).range(['#eff6ff', '#60a5fa']),
+    legend: colorGradientLegend({ label: 'Score', steps: 8 }),
+  },
+})
+```
+
+```ts group=labeled-matrix file=/src/data.ts collapsed
+export const quarters = ['Q1', 'Q2', 'Q3', 'Q4']
+export const teams = ['Core', 'Cloud', 'Mobile']
+
+export const scores = [
+  { team: 'Core', quarter: 'Q1', score: 72 },
+  { team: 'Core', quarter: 'Q2', score: 78 },
+  { team: 'Core', quarter: 'Q3', score: 84 },
+  { team: 'Core', quarter: 'Q4', score: 88 },
+  { team: 'Cloud', quarter: 'Q1', score: 66 },
+  { team: 'Cloud', quarter: 'Q2', score: 74 },
+  { team: 'Cloud', quarter: 'Q3', score: 81 },
+  { team: 'Cloud', quarter: 'Q4', score: 86 },
+  { team: 'Mobile', quarter: 'Q1', score: 82 },
+  { team: 'Mobile', quarter: 'Q2', score: 79 },
+  { team: 'Mobile', quarter: 'Q3', score: 91 },
+  { team: 'Mobile', quarter: 'Q4', score: 94 },
+]
+```
+
 ## Bin events into a calendar
 
 A contribution-style calendar exposes both long-term activity and weekday

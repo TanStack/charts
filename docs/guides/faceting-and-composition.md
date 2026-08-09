@@ -39,22 +39,49 @@ The canonical grammar is described in
 `facetChart` repeats a mark composition for each group and returns a complete
 guide-free outer definition:
 
-```ts
+```ts group=regional-facets env=charts file=/src/chart.ts entry
+import { dot, facetChart, lineY } from '@tanstack/charts'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { rows } from './data'
 
-const definition = facetChart(rows, {
-  by: 'group',
-  columns: 2,
-  gap: 20,
+export default facetChart(rows, {
+  by: 'region',
+  columns: 3,
+  gap: 16,
   axes: 'outer',
+  label: (region) => String(region),
   chart(data) {
     return {
-      marks: [dot(data, { x: 'x', y: 'y' })],
-      x: { scale: scaleLinear().domain(sharedX) },
-      y: { scale: scaleLinear().domain(sharedY) },
+      marks: [
+        lineY(data, { x: 'week', y: 'orders', strokeWidth: 2 }),
+        dot(data, { x: 'week', y: 'orders', r: 3.5 }),
+      ],
+      x: { scale: scaleLinear().domain([1, 4]) },
+      y: {
+        scale: scaleLinear().domain([0, 80]),
+        grid: true,
+        axis: { label: 'Orders' },
+      },
     }
   },
 })
+```
+
+```ts group=regional-facets file=/src/data.ts collapsed
+export const rows = [
+  { region: 'North', week: 1, orders: 32 },
+  { region: 'North', week: 2, orders: 46 },
+  { region: 'North', week: 3, orders: 51 },
+  { region: 'North', week: 4, orders: 64 },
+  { region: 'South', week: 1, orders: 45 },
+  { region: 'South', week: 2, orders: 42 },
+  { region: 'South', week: 3, orders: 57 },
+  { region: 'South', week: 4, orders: 61 },
+  { region: 'West', week: 1, orders: 25 },
+  { region: 'West', week: 2, orders: 39 },
+  { region: 'West', week: 3, orders: 48 },
+  { region: 'West', week: 4, orders: 70 },
+]
 ```
 
 Use `facet(rows, options)` instead when the repeated panels need to be one mark
@@ -65,7 +92,7 @@ grid. Use `axes: 'cell'` when each panel needs its own guides. Cell axes and
 incompatible independent scales cannot be presented as one shared outer axis;
 choose the option that matches the comparison.
 
-<!-- ::chart-example id=facets-anscombe height=480 -->
+[Open the Anscombe quartet catalog case](https://tanstack.com/charts/catalog/facets-anscombe/).
 
 ## Share domains intentionally
 

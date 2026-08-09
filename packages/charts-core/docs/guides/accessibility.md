@@ -162,7 +162,145 @@ Use `keyedSelection` and `whenSelected` for chart activation and selected
 geometry. Keep the semantic HTML table, status announcement, and clear control
 in the application, bound to the same controlled selected key.
 
-<!-- ::chart-example id=82-chart-table-selection height=480 -->
+```tsx group=linked-chart-table env=charts-react file=/src/App.tsx entry
+import { useMemo, useState } from 'react'
+import { Chart } from '@tanstack/react-charts'
+import { createDefinition } from './chart'
+import { rows } from './data'
+
+export default function App() {
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const definition = useMemo(
+    () => createDefinition(selectedId, setSelectedId),
+    [selectedId],
+  )
+
+  const selected = rows.find((row) => row.id === selectedId)
+
+  return (
+    <section>
+      <Chart
+        definition={definition}
+        height={280}
+        ariaLabel="Customer onboarding observations"
+        ariaDescription="Select a point or a table row to inspect the same observation."
+      />
+      <div>
+        <p role="status" aria-live="polite">
+          {selected
+            ? `${selected.product}: ${selected.setupMinutes} minutes, satisfaction ${selected.satisfaction}`
+            : 'No observation selected'}
+        </p>
+        <button
+          type="button"
+          disabled={!selected}
+          onClick={() => setSelectedId(null)}
+        >
+          Clear selection
+        </button>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <caption>Customer onboarding observations</caption>
+        <thead>
+          <tr>
+            <th scope="col">Product</th>
+            <th scope="col">Setup minutes</th>
+            <th scope="col">Satisfaction</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => {
+            const isSelected = row.id === selectedId
+            return (
+              <tr key={row.id}>
+                <th scope="row">
+                  <button
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => setSelectedId(row.id)}
+                    style={{
+                      minHeight: 44,
+                      fontWeight: isSelected ? 700 : undefined,
+                    }}
+                  >
+                    {row.product}
+                    {isSelected ? ' — selected' : ''}
+                  </button>
+                </th>
+                <td>{row.setupMinutes}</td>
+                <td>{row.satisfaction}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </section>
+  )
+}
+```
+
+```ts group=linked-chart-table file=/src/chart.ts
+import { defineChart, dot } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
+import { rows, type Observation } from './data'
+
+export function createDefinition(
+  selectedId: string | null,
+  onSelect: (id: string | null) => void,
+) {
+  const selection = keyedSelection<Observation, string, number, number>({
+    selected: controlledSignal(selectedId, (next) => onSelect(next)),
+    key: (datum) => datum.id,
+  })
+
+  return defineChart({
+    marks: [
+      dot(rows, {
+        id: 'observations',
+        x: 'setupMinutes',
+        y: 'satisfaction',
+        key: 'id',
+        r: 5,
+      }),
+      whenSelected(
+        dot(rows, {
+          id: 'selected-observation',
+          x: 'setupMinutes',
+          y: 'satisfaction',
+          key: 'id',
+          r: 8,
+          strokeWidth: 3,
+        }),
+        selection,
+      ),
+    ],
+    x: { scale: scaleLinear, axis: { label: 'Setup time (minutes)' } },
+    y: { scale: scaleLinear, grid: true, axis: { label: 'Satisfaction' } },
+    selection,
+  })
+}
+```
+
+```ts group=linked-chart-table file=/src/data.ts collapsed
+export interface Observation {
+  id: string
+  product: string
+  setupMinutes: number
+  satisfaction: number
+}
+
+export const rows: readonly Observation[] = [
+  { id: 'atlas', product: 'Atlas', setupMinutes: 18, satisfaction: 9 },
+  { id: 'beacon', product: 'Beacon', setupMinutes: 31, satisfaction: 7 },
+  { id: 'comet', product: 'Comet', setupMinutes: 24, satisfaction: 8 },
+  { id: 'delta', product: 'Delta', setupMinutes: 42, satisfaction: 6 },
+  { id: 'ember', product: 'Ember', setupMinutes: 15, satisfaction: 10 },
+]
+```
+
+[Open the full linked chart-and-table catalog case](https://tanstack.com/charts/catalog/82-chart-table-selection/).
 
 ## Testing checklist
 

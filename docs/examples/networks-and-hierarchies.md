@@ -39,20 +39,19 @@ recombining into one output. Link width is the only quantitative encoding in
 this example; nodes and links use the chart theme, and every node gets one
 short name.
 
-<!-- ::chart-example id=111-basic-sankey height=480 -->
-
 Use this version as the starting point when the structure matters more than
-styling. Its four explicit links start with a 60/40 split. **Update data**
-varies that split while preserving a total flow of 10 through both paths.
+styling. Its four explicit links preserve a total flow of 10 through a 60/40
+split.
 
 The definition supplies semantic rows and composes ordinary marks after the
 responsive layout resolves:
 
-```ts
+```ts group=basic-sankey env=charts file=/src/chart.ts entry
 import { defineChart, link, rect, text } from '@tanstack/charts'
 import { sankeyDiagram } from '@tanstack/charts/network/sankey'
+import { links, nodes } from './data'
 
-const chart = defineChart({
+export default defineChart({
   marks: [
     sankeyDiagram({
       nodes,
@@ -62,6 +61,8 @@ const chart = defineChart({
       target: 'target',
       value: 'value',
       align: 'left',
+      nodePadding: 28,
+      inset: { left: 16, right: 16, top: 24, bottom: 12 },
       marks: ({ nodes: layoutNodes, links: layoutLinks }) =>
         [
           link(layoutLinks, {
@@ -69,8 +70,8 @@ const chart = defineChart({
             y1: 'y1',
             x2: 'x2',
             y2: 'y2',
-            strokeWidth: 'width',
             key: 'key',
+            strokeWidth: (flow) => flow.width,
           }),
           rect(layoutNodes, {
             x1: 'x0',
@@ -82,16 +83,38 @@ const chart = defineChart({
           }),
           text(layoutNodes, {
             x: 'x',
-            y: 'y',
+            y: (node) => node.y0 - 8,
             text: (node) => node.data.label,
             key: 'key',
+            fill: 'currentColor',
+            fontSize: 12,
+            fontWeight: 650,
           }),
         ] as const,
     }),
   ],
   guides: false,
+  margin: 0,
 })
 ```
+
+```ts group=basic-sankey file=/src/data.ts collapsed
+export const nodes = [
+  { id: 'input', label: 'Input' },
+  { id: 'path-a', label: 'Path A' },
+  { id: 'path-b', label: 'Path B' },
+  { id: 'output', label: 'Output' },
+]
+
+export const links = [
+  { source: 'input', target: 'path-a', value: 6 },
+  { source: 'input', target: 'path-b', value: 4 },
+  { source: 'path-a', target: 'output', value: 6 },
+  { source: 'path-b', target: 'output', value: 4 },
+]
+```
+
+[Open the interactive basic Sankey catalog example](https://tanstack.com/charts/catalog/111-basic-sankey/).
 
 ## Customize a Sankey
 
@@ -121,21 +144,20 @@ A tidy tree assigns one position per node and one link per parent-child
 relationship. Direct labels make a small hierarchy readable without requiring
 hover.
 
-<!-- ::chart-example id=36-hierarchy-tree height=480 -->
-
 Use the exact optional transform for a static tidy tree:
 
-```ts
+```ts group=hierarchy-tree env=charts file=/src/chart.ts entry
 import { defineChart, dot, link, text } from '@tanstack/charts'
 import { treeLayout } from '@tanstack/charts/hierarchy/tree'
-import { scaleLinear } from 'd3-scale'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { rows } from './data'
 
 const hierarchy = treeLayout(rows, {
   path: 'name',
   delimiter: '.',
 })
 
-const chart = defineChart({
+export default defineChart({
   marks: [
     link(hierarchy.links, {
       x1: 'x1',
@@ -143,20 +165,46 @@ const chart = defineChart({
       x2: 'x2',
       y2: 'y2',
       key: 'id',
+      stroke: '#94a3b8',
+      strokeWidth: 1.5,
     }),
-    dot(hierarchy.nodes, { x: 'x', y: 'y', key: 'id' }),
+    dot(hierarchy.nodes, {
+      x: 'x',
+      y: 'y',
+      key: 'id',
+      fill: '#2563eb',
+      r: 4,
+    }),
     text(hierarchy.nodes, {
       x: 'x',
       y: 'y',
       text: 'name',
       key: 'id',
+      fill: '#2563eb',
+      anchor: (node) => (node.internal ? 'end' : 'start'),
+      dx: (node) => (node.internal ? -7 : 7),
     }),
   ],
   x: { scale: scaleLinear },
   y: { scale: scaleLinear },
   guides: false,
+  margin: { top: 24, right: 110, bottom: 24, left: 64 },
 })
 ```
+
+```ts group=hierarchy-tree file=/src/data.ts collapsed
+export const rows = [
+  { name: 'Product' },
+  { name: 'Product.Analytics' },
+  { name: 'Product.Analytics.Reports' },
+  { name: 'Product.Analytics.Dashboards' },
+  { name: 'Product.Platform' },
+  { name: 'Product.Platform.API' },
+  { name: 'Product.Platform.Workers' },
+]
+```
+
+[Open the larger Flare hierarchy catalog example](https://tanstack.com/charts/catalog/36-hierarchy-tree/).
 
 Use `id` and `parentId` instead of `path` for explicit parent-reference rows.
 Path input may omit ancestors; the result includes those structural nodes with

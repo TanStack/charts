@@ -280,20 +280,69 @@ responsive layout work.
 
 ## Complete bubble-scatter example
 
-```ts
+```ts group=bubble-scatter env=charts file=/src/chart.ts entry
 import { scaleSqrt } from 'd3-scale'
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { penguins, type PenguinsRow } from './data'
 
-interface PenguinsRow {
+type CompletePenguin = PenguinsRow & {
+  culmen_length_mm: number
+  culmen_depth_mm: number
+  body_mass_g: number
+}
+
+const rows = penguins.filter(
+  (row): row is CompletePenguin =>
+    row.culmen_length_mm !== null &&
+    row.culmen_depth_mm !== null &&
+    row.body_mass_g !== null,
+)
+const species = ['Adelie', 'Chinstrap', 'Gentoo']
+
+export default defineChart({
+  marks: [
+    dot(rows, {
+      x: 'culmen_length_mm',
+      y: 'culmen_depth_mm',
+      color: 'species',
+      r: 'body_mass_g',
+      rScale: {
+        scale: () => scaleSqrt().range([3, 11]),
+      },
+      fillOpacity: 0.78,
+      stroke: 'currentColor',
+      strokeOpacity: 0.28,
+      strokeWidth: 0.75,
+    }),
+  ],
+  x: {
+    scale: scaleLinear,
+    grid: true,
+    axis: { label: 'Bill length (mm)' },
+  },
+  y: {
+    scale: scaleLinear,
+    grid: true,
+    axis: { label: 'Bill depth (mm)' },
+  },
+  color: {
+    scale: scaleOrdinal(species, ['#2563eb', '#f97316', '#10b981']),
+    legend: colorLegend({ label: 'Species' }),
+  },
+})
+```
+
+```ts group=bubble-scatter file=/src/data.ts collapsed
+export interface PenguinsRow {
   species: string
   culmen_length_mm: number | null
   culmen_depth_mm: number | null
   body_mass_g: number | null
 }
 
-const penguins: readonly PenguinsRow[] = [
+export const penguins: readonly PenguinsRow[] = [
   {
     species: 'Adelie',
     culmen_length_mm: 39.1,
@@ -337,59 +386,11 @@ const penguins: readonly PenguinsRow[] = [
     body_mass_g: null,
   },
 ]
-
-type CompletePenguin = PenguinsRow & {
-  culmen_length_mm: number
-  culmen_depth_mm: number
-  body_mass_g: number
-}
-
-const rows = penguins.filter(
-  (row): row is CompletePenguin =>
-    row.culmen_length_mm !== null &&
-    row.culmen_depth_mm !== null &&
-    row.body_mass_g !== null,
-)
-const species = ['Adelie', 'Chinstrap', 'Gentoo']
-
-const bubbleChart = defineChart({
-  marks: [
-    dot(rows, {
-      x: 'culmen_length_mm',
-      y: 'culmen_depth_mm',
-      color: 'species',
-      r: 'body_mass_g',
-      rScale: {
-        scale: () => scaleSqrt().range([3, 11]),
-      },
-      fillOpacity: 0.78,
-      stroke: 'currentColor',
-      strokeOpacity: 0.28,
-      strokeWidth: 0.75,
-    }),
-  ],
-  x: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Bill length (mm)' },
-  },
-  y: {
-    scale: scaleLinear,
-    grid: true,
-    axis: { label: 'Bill depth (mm)' },
-  },
-  color: {
-    scale: scaleOrdinal(species, ['#2563eb', '#f97316', '#10b981']),
-    legend: colorLegend({ label: 'Species' }),
-  },
-})
 ```
 
 The filter only removes observations missing a plotted measurement; the marks
 still use the source dataset's field names. The axes and categorical color use
 lightweight scales. Bubble area needs the nonlinear D3 `scaleSqrt`, so install
 `d3-scale` and `@types/d3-scale` for that one mapping.
-
-<!-- ::chart-example id=scatter-bubble height=480 -->
 
 For every built-in channel, see the relevant [Mark Reference](../reference/marks/line-and-area.md). For inference rules and custom datum unions, see [TypeScript](../guides/typescript.md).

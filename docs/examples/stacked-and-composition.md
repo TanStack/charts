@@ -34,16 +34,51 @@ A stacked area combines a shared ordered x domain with one length per series.
 The top boundary carries the total; the thickness of each layer carries its
 contribution.
 
-```ts
-areaY(rows, {
-  x: 'date',
-  y: 'value',
-  color: 'series',
-  layout: stack({ order: ['Core', 'Services'] }),
+```ts group=stacked-area env=charts file=/src/chart.ts entry
+import { areaY, colorLegend, defineChart, ruleY, stack } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scalePoint } from '@tanstack/charts-scales/point'
+import { rows } from './data'
+
+export default defineChart({
+  marks: [
+    areaY(rows, {
+      x: 'quarter',
+      y: 'revenue',
+      color: 'business',
+      layout: stack({ order: ['Core', 'Services'] }),
+      fillOpacity: 0.8,
+    }),
+    ruleY([0]),
+  ],
+  x: { scale: () => scalePoint<string>().padding(0.15) },
+  y: {
+    scale: scaleLinear,
+    grid: true,
+    axis: { label: 'Revenue (USD thousands)' },
+  },
+  color: {
+    domain: ['Core', 'Services'],
+    range: ['#2563eb', '#14b8a6'],
+    legend: colorLegend({ label: 'Business' }),
+  },
 })
 ```
 
-<!-- ::chart-example id=04-stacked-time-area height=480 -->
+```ts group=stacked-area file=/src/data.ts collapsed
+export const rows = [
+  { quarter: 'Q1', business: 'Core', revenue: 42 },
+  { quarter: 'Q1', business: 'Services', revenue: 18 },
+  { quarter: 'Q2', business: 'Core', revenue: 48 },
+  { quarter: 'Q2', business: 'Services', revenue: 24 },
+  { quarter: 'Q3', business: 'Core', revenue: 53 },
+  { quarter: 'Q3', business: 'Services', revenue: 31 },
+  { quarter: 'Q4', business: 'Core', revenue: 59 },
+  { quarter: 'Q4', business: 'Services', revenue: 38 },
+]
+```
+
+[Open the full unemployment-by-industry catalog example](https://tanstack.com/charts/catalog/04-stacked-time-area/).
 
 Keep series order stable across updates. Reordering layers can make unchanged
 values appear to move substantially and breaks the reader's spatial memory.

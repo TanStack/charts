@@ -64,21 +64,41 @@ required by:
 - legends;
 - inherited font metrics in a DOM host.
 
-```ts
+```ts group=responsive-long-labels env=charts file=/src/chart.ts entry
+import { barX, defineChart } from '@tanstack/charts'
 import { scaleBand } from '@tanstack/charts-scales/band'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { rows } from './data'
 
-const definition = defineChart({
-  marks: [barX(rows, { x: 'value', y: 'label' })],
+export default defineChart({
+  marks: [
+    barX(rows, {
+      x: 'weeklyRequests',
+      y: 'feature',
+      fill: '#7c3aed',
+      inset: 1,
+    }),
+  ],
   x: {
     scale: scaleLinear,
     nice: true,
-    axis: { label: 'Weekly downloads' },
+    grid: true,
+    axis: { ticks: { count: 5 }, label: 'Weekly requests' },
   },
   y: {
     scale: () => scaleBand<string>().padding(0.1),
   },
 })
+```
+
+```ts group=responsive-long-labels file=/src/data.ts collapsed
+export const rows = [
+  { feature: 'Self-service account recovery', weeklyRequests: 128 },
+  { feature: 'Saved searches and alerting', weeklyRequests: 95 },
+  { feature: 'Audit log export', weeklyRequests: 72 },
+  { feature: 'Custom retention policies', weeklyRequests: 44 },
+  { feature: 'Role-based access controls', weeklyRequests: 31 },
+]
 ```
 
 An explicit side locks only that side:
@@ -94,7 +114,7 @@ Axis labels thin automatically after candidate generation and optional
 rotation. Use `axis.ticks.spacing`, `axis.tickLabels.rotate`, hard-kept labels,
 or a different representation when labels compete for the same axis space.
 
-<!-- ::chart-example id=44-framed-scatter height=480 -->
+[Open the full horizontal-ranking catalog case](https://tanstack.com/charts/catalog/bar-horizontal-ranking/).
 
 ## Text measurement
 

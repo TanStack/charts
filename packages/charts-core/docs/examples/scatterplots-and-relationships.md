@@ -21,6 +21,48 @@ that relationship.
 Do not infer causation from proximity or a fitted trend. Show the model and
 preparation only when they answer the stated question.
 
+## Start with two quantitative measures
+
+A plain scatterplot should establish the relationship before adding a fitted
+model, chronology, or spatial partition.
+
+```ts group=basic-scatter env=charts file=/src/chart.ts entry
+import { defineChart, dot } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
+const rows = [
+  { temperature: 12, sales: 18 },
+  { temperature: 16, sales: 25 },
+  { temperature: 20, sales: 31 },
+  { temperature: 24, sales: 46 },
+  { temperature: 29, sales: 52 },
+  { temperature: 32, sales: 61 },
+]
+
+const chart = defineChart({
+  marks: [
+    dot(rows, {
+      x: 'temperature',
+      y: 'sales',
+      r: 5,
+      fill: '#2563eb',
+    }),
+  ],
+  x: {
+    scale: scaleLinear,
+    grid: true,
+    axis: { label: 'Temperature (°C)' },
+  },
+  y: {
+    scale: scaleLinear,
+    grid: true,
+    axis: { label: 'Daily sales' },
+  },
+})
+
+export default chart
+```
+
 ## Add a linear regression
 
 Pass the observations directly to `linearRegressionY`. The mark owns the

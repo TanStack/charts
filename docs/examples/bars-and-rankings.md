@@ -28,7 +28,41 @@ Sorting the scale domain makes the intended ranking explicit. Sorting only the
 input rows is insufficient when several layers or prepared datasets share the
 same categorical axis.
 
-<!-- ::chart-example id=bar-vertical-sorted height=480 -->
+```ts group=sorted-bars env=charts file=/src/chart.ts entry
+import { barY, defineChart } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
+const rows = [
+  { category: 'Search', value: 84 },
+  { category: 'Direct', value: 63 },
+  { category: 'Referral', value: 47 },
+  { category: 'Social', value: 31 },
+]
+
+const ranked = [...rows].sort((a, b) => b.value - a.value)
+
+const chart = defineChart({
+  marks: [barY(ranked, { x: 'category', y: 'value', inset: 2 })],
+  x: {
+    scale: () =>
+      scaleBand<string>()
+        .domain(ranked.map((row) => row.category))
+        .padding(0.16),
+  },
+  y: {
+    scale: scaleLinear,
+    nice: true,
+    grid: true,
+    axis: { label: 'Weekly signups' },
+  },
+})
+
+export default chart
+```
+
+[Open the larger catalog case](https://tanstack.com/charts/catalog/bar-vertical-sorted/)
+to inspect responsive label rotation and data updates.
 
 Bar charts normally include zero on the quantitative domain. Truncating that
 baseline turns small differences into large apparent changes.

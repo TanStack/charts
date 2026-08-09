@@ -3263,6 +3263,18 @@ Each entry records:
   which would have silently removed the example from syntax, import, and strict
   type validation. Both extractors now accept fence metadata, and helper tests
   cover a component-first live group with a separate browser entry.
+- Follow-up (2026-08-09): a repository-wide runnable-example audit found that
+  adjacent catalog embeds often rendered different source than the teaching
+  snippet, while multi-file examples had no environment or project boundary.
+  Runnable fences now use a `group`, `env`, `file`, and `entry` contract. The
+  documentation checker validates CommonMark fence metadata, isolated `/src`
+  imports, environment dependency allowlists, one visible entry,
+  environment-specific default exports, strict semantic TypeScript, and
+  multi-file Octane client/server compilation from actual `.tsrx` paths.
+  Thirty-two focused groups now provide the exact source for their future
+  previews; catalog renderings fell from 89 to 52 and are retained only when
+  the richer catalog case is itself the subject. Eight intentionally
+  standalone snippets remain under the existing strict check.
 
 ### F-116 — Build context was mistaken for resolved plot geometry
 

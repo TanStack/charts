@@ -110,7 +110,48 @@ The legend reserves its own layout height. It is visual guidance and is hidden
 from the SVG accessibility tree; essential category meaning should also be
 available through direct labels, surrounding HTML, or a table.
 
-<!-- ::chart-example id=bar-grouped height=480 -->
+```ts group=automatic-color-legend env=charts file=/src/chart.ts entry
+import { colorLegend, defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scalePoint } from '@tanstack/charts-scales/point'
+import { rows } from './data'
+
+export default defineChart({
+  marks: [
+    lineY(rows, {
+      x: 'week',
+      y: 'downloads',
+      z: 'package',
+      strokeWidth: 2.5,
+    }),
+  ],
+  x: {
+    scale: () => scalePoint<string>().padding(0.2),
+    axis: { label: 'Week' },
+  },
+  y: {
+    scale: scaleLinear,
+    grid: true,
+    axis: { ticks: { count: 5 }, label: 'Downloads' },
+  },
+  color: { legend: colorLegend({ label: 'Package' }) },
+})
+```
+
+```ts group=automatic-color-legend file=/src/data.ts collapsed
+export const rows = [
+  { week: 'May 4', package: 'core', downloads: 820 },
+  { week: 'May 11', package: 'core', downloads: 960 },
+  { week: 'May 18', package: 'core', downloads: 1_140 },
+  { week: 'May 25', package: 'core', downloads: 1_280 },
+  { week: 'May 4', package: 'react', downloads: 610 },
+  { week: 'May 11', package: 'react', downloads: 730 },
+  { week: 'May 18', package: 'react', downloads: 810 },
+  { week: 'May 25', package: 'react', downloads: 940 },
+]
+```
+
+[Open the grouped-bar catalog case](https://tanstack.com/charts/catalog/bar-grouped/).
 
 ## Explicit gradient legend
 

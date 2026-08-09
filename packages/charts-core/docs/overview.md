@@ -34,72 +34,49 @@ Native adapter consumes definitions from the universal entry.
 
 ## A chart is a composition
 
-<!-- docs-example: overview typecheck -->
-
-```ts
-import { defineChart, differenceY, rollingWindow } from '@tanstack/charts'
+```ts group=overview-composition env=charts file=/src/chart.ts entry
+import { defineChart, dot, lineY } from '@tanstack/charts'
+import { scaleBand } from '@tanstack/charts-scales/band'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scaleUtc } from 'd3-scale'
 
-interface ClosingPrice {
-  Date: Date
-  Close: number
-}
-
-const observations: readonly ClosingPrice[] = [
-  { Date: new Date('2013-05-13T00:00:00Z'), Close: 64.96 },
-  { Date: new Date('2013-05-14T00:00:00Z'), Close: 63.41 },
-  { Date: new Date('2013-05-15T00:00:00Z'), Close: 61.26 },
-  { Date: new Date('2013-05-16T00:00:00Z'), Close: 62.08 },
-  { Date: new Date('2013-05-17T00:00:00Z'), Close: 61.89 },
-  { Date: new Date('2013-05-20T00:00:00Z'), Close: 63.28 },
-  { Date: new Date('2013-05-21T00:00:00Z'), Close: 62.81 },
-  { Date: new Date('2013-05-22T00:00:00Z'), Close: 63.05 },
+const signups = [
+  { month: 'Jan', value: 42 },
+  { month: 'Feb', value: 58 },
+  { month: 'Mar', value: 51 },
+  { month: 'Apr', value: 73 },
+  { month: 'May', value: 86 },
 ]
 
-const rows = rollingWindow(observations, {
-  size: 3,
-  orderBy: 'Date',
-  anchor: 'end',
-  partial: false,
-  outputs: {
-    average: { value: 'Close', reduce: 'mean' },
-  },
-})
-
-const closingPriceChart = defineChart({
+export default defineChart({
   marks: [
-    differenceY(rows, {
-      x: 'Date',
-      y1: 'average',
-      y2: 'Close',
-      positiveFill: '#16a34a',
-      negativeFill: '#dc2626',
-      stroke: '#166534',
-      comparisonStroke: '#475569',
+    lineY(signups, {
+      x: 'month',
+      y: 'value',
+      stroke: '#2563eb',
+      strokeWidth: 2,
+    }),
+    dot(signups, {
+      x: 'month',
+      y: 'value',
+      fill: '#2563eb',
+      r: 4,
     }),
   ],
   x: {
-    scale: scaleUtc,
-    nice: true,
-    axis: { label: 'Date' },
+    scale: () => scaleBand<string>().padding(0.2),
   },
   y: {
     scale: scaleLinear,
     nice: true,
     grid: true,
-    axis: { label: 'Close (USD)' },
+    axis: { label: 'Signups' },
   },
 })
 ```
 
-The rolling average is an ordinary, visible `rollingWindow` transform. `differenceY`
-owns sign segmentation and exact crossing interpolation. The y axis uses the
-compact numeric scale; the calendar-aware x axis upgrades only that mapping to
-D3's `scaleUtc`. [Installation](./installation.md) lists the exact packages,
-and [Scales](./concepts/scales-and-d3.md) explains the ownership boundary.
-
-<!-- ::chart-example id=33-difference-chart height=480 -->
+The line and dots use the same rows and scales. Their array order puts the
+points above the line. [Scales](./concepts/scales-and-d3.md) explains when to
+replace these compact scales with specialized mappings.
 
 ## What TanStack Charts owns
 

@@ -70,50 +70,47 @@ stable band between values.
 Use the data-less `crosshair` mark when one renderer-native guide should follow
 the active focus instead of revealing authored geometry for a matching datum:
 
-```ts
+```ts group=focused-crosshair env=charts file=/src/chart.ts entry
+import { defineChart, lineY } from '@tanstack/charts'
 import { crosshair } from '@tanstack/charts/crosshair'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scalePoint } from '@tanstack/charts-scales/point'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { rows } from './data'
 
-const definition = defineChart({
+export default defineChart({
   marks: [
-    crosshair({
-      x: {
-        band: {
-          inset: 0,
-          radius: 3,
-          fill: '#64748b',
-          fillOpacity: 0.16,
-        },
-        label: true,
-      },
-      y: false,
-    }),
-    barY(rows, {
-      x: 'period',
+    lineY(rows, {
+      x: 'week',
       y: 'value',
-      color: 'series',
-      inset: 4,
+      points: true,
+      stroke: '#2563eb',
+      strokeWidth: 2.5,
     }),
-    crosshair({
-      x: false,
-      y: { strokeDasharray: '4 4', label: true },
-    }),
+    crosshair({ x: { label: true }, y: false }),
   ],
-  x: { scale: scaleBand },
-  y: { scale: scaleLinear },
-  focus: 'group-x',
-  focusRing: false,
+  x: { scale: () => scalePoint<string>().padding(0.2) },
+  y: { scale: scaleLinear, grid: true, axis: { label: 'Active users' } },
+  focus: 'nearest-x',
   maxFocusDistance: Number.POSITIVE_INFINITY,
   tooltip,
 })
 ```
 
-The x band follows the focused x value for pointer and keyboard focus. It uses
-the categorical scale bandwidth, then applies `inset` to both edges. A bar
-inset of 4 and band inset of 0 makes the cursor 4 pixels wider on each side.
-Its label shows the focused period. The dotted y rule and its label follow the
-primary stacked segment endpoint, while the tooltip still receives the
-complete x group. Keep the finite distance default when empty space should
-clear focus; Infinity is an explicit continuous-snapping policy.
+```ts group=focused-crosshair file=/src/data.ts collapsed
+export const rows = [
+  { week: 'May 4', value: 820 },
+  { week: 'May 11', value: 960 },
+  { week: 'May 18', value: 1_140 },
+  { week: 'May 25', value: 1_280 },
+  { week: 'Jun 1', value: 1_210 },
+  { week: 'Jun 8', value: 1_390 },
+]
+```
+
+The vertical rule follows pointer and keyboard focus. The infinite distance is
+an explicit continuous-snapping policy; keep the finite default when empty
+space should clear focus.
 
 `crosshair` defaults to both axis rules with no labels or marker. Setting
 `band: true` or a band options object replaces that axis rule; axes with zero
@@ -124,7 +121,7 @@ cursor geometry deliberately replaces the ring. See
 [Focus and Interaction](../reference/focus-and-interaction.md#crosshair-guides)
 for the complete band paint contract and controlled cursor behavior.
 
-<!-- ::chart-example id=119-stacked-bar-band-cursor height=480 -->
+[Open the stacked cursor-band catalog case](https://tanstack.com/charts/catalog/119-stacked-bar-band-cursor/).
 
 ## Automatic tooltip mapping
 

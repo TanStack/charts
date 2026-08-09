@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict'
 import { readFile, readdir } from 'node:fs/promises'
-import { dirname, extname, join, relative, resolve, sep } from 'node:path'
+import {
+  dirname,
+  extname,
+  join,
+  posix,
+  relative,
+  resolve,
+  sep,
+} from 'node:path'
 import { compile as compileOctane } from 'octane/compiler'
 import ts from 'typescript'
 import { chartLibraries } from './benchmark/chart-libraries.mjs'
@@ -93,6 +101,11 @@ export async function validateDocsContract(repositoryRoot) {
     publicSources,
     failures,
   )
+  const exampleGroups = validateExampleGroups(
+    repositoryRoot,
+    markdownSources,
+    failures,
+  )
   const standaloneExamples = validateStandaloneExamples(
     repositoryRoot,
     publicSources,
@@ -108,6 +121,7 @@ export async function validateDocsContract(repositoryRoot) {
   return {
     config,
     catalogExamples: [...catalogExamples.keys()].sort(),
+    exampleGroups,
     failures,
     markdownFiles: [...markdownSources.keys()].sort(),
     standaloneExamples,
@@ -906,14 +920,28 @@ export function typedCodeFenceSyntaxErrors(source) {
 
 export function documentedStandaloneExamples(source) {
   const examples = []
+  const fences = codeFences(source)
   const pattern =
-    /<!--\s*docs-example:\s*([a-z\d-]+)\s+(typecheck|octane)\s*-->\s*```(ts|tsx|typescript)(?:[ \t]+[^\r\n]*)?\r?\n([\s\S]*?)```/g
+    /<!--\s*docs-example:\s*([a-z\d-]+)\s+(typecheck|octane)\s*-->/g
   for (const match of source.matchAll(pattern)) {
+    const markerEnd = match.index + match[0].length
+    const fence = fences.find(
+      (candidate) =>
+        candidate.start >= markerEnd &&
+        /^\s*$/.test(source.slice(markerEnd, candidate.start)),
+    )
+    if (
+      !fence ||
+      !['typescript', 'tsx', 'ts', 'tsrx'].includes(fence.language)
+    ) {
+      continue
+    }
+    if (/(?:^|\s)group=/.test(fence.meta)) continue
     examples.push({
       id: match[1],
       mode: match[2],
-      language: match[3],
-      source: match[4],
+      language: fence.language,
+      source: fence.source,
     })
   }
   return examples
@@ -929,6 +957,356 @@ export function documentedApiExampleFragments(source) {
     fragments.push({ language: match[1], source: match[2] })
   }
   return fragments
+}
+
+const chartDocumentationDependencies = [
+  '@tanstack/charts',
+  '@tanstack/charts-scales',
+  'd3-geo',
+  'd3-scale',
+  'd3-shape',
+]
+
+const documentationEnvironments = new Map([
+  [
+    'charts',
+    {
+      compiler: 'typescript',
+      dependencies: new Set(chartDocumentationDependencies),
+      entryExtensions: new Set(['.ts', '.tsx']),
+      fileExtensions: new Set(['.ts', '.tsx']),
+      bootstrapExtension: '.ts',
+      bootstrap: (importPath, groupId) =>
+        `import definition from ${JSON.stringify(importPath)}\nimport { mountChart } from '@tanstack/charts'\nconst host = mountChart(document.createElement('div'), { definition, height: 320, ariaLabel: ${JSON.stringify(`Documentation example: ${groupId}`)} })\nhost.destroy()\n`,
+    },
+  ],
+  [
+    'charts-octane',
+    {
+      compiler: 'octane',
+      dependencies: new Set([
+        ...chartDocumentationDependencies,
+        '@tanstack/octane-charts',
+        'octane',
+      ]),
+      entryExtensions: new Set(['.tsrx']),
+      fileExtensions: new Set(['.ts', '.tsx', '.tsrx']),
+      bootstrapExtension: '.ts',
+      bootstrap: (importPath) =>
+        `import App from ${JSON.stringify(importPath)}\nconst entry = App\nvoid entry\n`,
+    },
+  ],
+  [
+    'charts-react',
+    {
+      compiler: 'typescript',
+      dependencies: new Set([
+        ...chartDocumentationDependencies,
+        '@tanstack/react-charts',
+        'react',
+        'react-dom',
+      ]),
+      entryExtensions: new Set(['.tsx']),
+      fileExtensions: new Set(['.ts', '.tsx']),
+      bootstrapExtension: '.tsx',
+      bootstrap: (importPath) =>
+        `import App from ${JSON.stringify(importPath)}\nconst example = <App />\nvoid example\n`,
+    },
+  ],
+])
+
+export function documentationEnvironmentBootstrap(
+  environment,
+  groupId,
+  importPath,
+) {
+  return documentationEnvironments
+    .get(environment)
+    ?.bootstrap(importPath, groupId)
+}
+
+export function documentedExampleGroups(source) {
+  return parseDocumentedExampleGroups(source).groups
+}
+
+export function documentedExampleGroupErrors(source) {
+  return parseDocumentedExampleGroups(source).errors
+}
+
+function parseDocumentedExampleGroups(source) {
+  const groups = new Map()
+  const errors = []
+
+  for (const fence of codeFences(source)) {
+    const metadata = parseCodeFenceMetadata(fence.meta)
+    const groupId = metadata.values.get('group')
+    const hasGroupedMetadata =
+      groupId !== undefined ||
+      metadata.values.has('env') ||
+      metadata.values.has('file') ||
+      metadata.flags.has('entry') ||
+      metadata.flags.has('collapsed') ||
+      metadata.flags.has('hidden')
+
+    if (!hasGroupedMetadata) continue
+    if (!groupId) {
+      errors.push(
+        `code fence ${fence.index} has grouped metadata without group=<id>`,
+      )
+      continue
+    }
+    if (!/^[a-z\d]+(?:-[a-z\d]+)*$/.test(groupId)) {
+      errors.push(
+        `code fence ${fence.index} has invalid group ID ${JSON.stringify(groupId)}`,
+      )
+    }
+    for (const duplicate of metadata.duplicates) {
+      errors.push(
+        `code fence ${fence.index} repeats metadata key ${JSON.stringify(duplicate)}`,
+      )
+    }
+    for (const unknown of metadata.unknown) {
+      errors.push(
+        `code fence ${fence.index} uses unknown grouped metadata ${JSON.stringify(unknown)}`,
+      )
+    }
+
+    const file = metadata.values.get('file')
+    if (!file) {
+      errors.push(
+        `group ${groupId} code fence ${fence.index} must declare file=/src/...`,
+      )
+      continue
+    }
+    if (
+      !file.startsWith('/src/') ||
+      file.includes('\\') ||
+      posix.normalize(file) !== file
+    ) {
+      errors.push(
+        `group ${groupId} code fence ${fence.index} has invalid file path ${JSON.stringify(file)}`,
+      )
+      continue
+    }
+    if (metadata.flags.has('hidden')) {
+      errors.push(
+        `group ${groupId} file ${file} cannot declare hidden; environments own hidden files`,
+      )
+    }
+
+    const group = groups.get(groupId) ?? {
+      id: groupId,
+      environments: [],
+      files: [],
+    }
+    const environment = metadata.values.get('env')
+    if (environment) group.environments.push(environment)
+    group.files.push({
+      path: file,
+      language: fence.language,
+      source: fence.source,
+      entry: metadata.flags.has('entry'),
+      collapsed: metadata.flags.has('collapsed'),
+      hidden: metadata.flags.has('hidden'),
+      environment,
+      fence: fence.index,
+    })
+    groups.set(groupId, group)
+  }
+
+  for (const group of groups.values()) {
+    const environments = new Set(group.environments)
+    if (group.environments.length !== 1) {
+      errors.push(
+        `group ${group.id} must declare env=<name> on exactly one fence`,
+      )
+    }
+    const environment = group.environments[0]
+    const environmentContract = documentationEnvironments.get(environment)
+    if (environment && !environmentContract) {
+      errors.push(
+        `group ${group.id} uses unknown documentation environment ${JSON.stringify(environment)}`,
+      )
+    }
+    if (environments.size > 1) {
+      errors.push(`group ${group.id} declares conflicting environments`)
+    }
+    group.env = environment
+    delete group.environments
+
+    const paths = new Set()
+    for (const file of group.files) {
+      if (paths.has(file.path)) {
+        errors.push(`group ${group.id} repeats file ${file.path}`)
+      }
+      paths.add(file.path)
+    }
+    const entries = group.files.filter((file) => file.entry)
+    if (entries.length !== 1) {
+      errors.push(`group ${group.id} must declare exactly one entry file`)
+    } else if (entries[0].collapsed || entries[0].hidden) {
+      errors.push(`group ${group.id} entry file must be visible`)
+    } else if (!environment) {
+      // The missing environment is already reported above.
+    } else if (entries[0].environment !== environment) {
+      errors.push(`group ${group.id} must declare env=<name> on its entry file`)
+    }
+
+    if (environmentContract) {
+      for (const file of group.files) {
+        const extension = posix.extname(file.path)
+        if (!environmentContract.fileExtensions.has(extension)) {
+          errors.push(
+            `group ${group.id} file ${file.path} is not supported by env=${environment}`,
+          )
+        }
+        for (const specifier of importedModuleSpecifiers(
+          file.source,
+          file.path,
+        )) {
+          if (specifier.startsWith('.')) {
+            const target = posix.resolve(posix.dirname(file.path), specifier)
+            if (target !== '/src' && !target.startsWith('/src/')) {
+              errors.push(
+                `group ${group.id} file ${file.path} imports ${JSON.stringify(specifier)} outside /src`,
+              )
+            }
+            continue
+          }
+          if (specifier.startsWith('/')) {
+            errors.push(
+              `group ${group.id} file ${file.path} must use relative imports for project files, not ${JSON.stringify(specifier)}`,
+            )
+            continue
+          }
+          const dependency = packageNameFromSpecifier(specifier)
+          if (!environmentContract.dependencies.has(dependency)) {
+            errors.push(
+              `group ${group.id} file ${file.path} imports ${JSON.stringify(specifier)}, which env=${environment} does not provide`,
+            )
+          }
+        }
+      }
+      if (
+        entries.length === 1 &&
+        !environmentContract.entryExtensions.has(posix.extname(entries[0].path))
+      ) {
+        errors.push(
+          `group ${group.id} entry ${entries[0].path} must use ${formatAllowedExtensions(environmentContract.entryExtensions)} for env=${environment}`,
+        )
+      }
+    }
+  }
+
+  return { groups: [...groups.values()], errors }
+}
+
+function parseCodeFenceMetadata(meta) {
+  const valueKeys = new Set(['group', 'env', 'file'])
+  const flagKeys = new Set(['entry', 'collapsed', 'hidden'])
+  const values = new Map()
+  const flags = new Set()
+  const duplicates = []
+  const unknown = []
+  for (const token of meta.trim().split(/\s+/).filter(Boolean)) {
+    const separator = token.indexOf('=')
+    if (separator === -1) {
+      if (flags.has(token)) duplicates.push(token)
+      if (!flagKeys.has(token)) unknown.push(token)
+      flags.add(token)
+      continue
+    }
+    const key = token.slice(0, separator)
+    const value = token.slice(separator + 1)
+    if (values.has(key)) duplicates.push(key)
+    if (!valueKeys.has(key)) unknown.push(key)
+    values.set(key, value)
+  }
+  return { values, flags, duplicates, unknown }
+}
+
+function importedModuleSpecifiers(source, filename) {
+  const file = ts.createSourceFile(
+    filename,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    filename.endsWith('.tsx') || filename.endsWith('.tsrx')
+      ? ts.ScriptKind.TSX
+      : ts.ScriptKind.TS,
+  )
+  const specifiers = new Set()
+
+  function visit(node) {
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteralLike(node.moduleSpecifier)
+    ) {
+      specifiers.add(node.moduleSpecifier.text)
+    } else if (
+      ts.isImportEqualsDeclaration(node) &&
+      ts.isExternalModuleReference(node.moduleReference) &&
+      node.moduleReference.expression &&
+      ts.isStringLiteralLike(node.moduleReference.expression)
+    ) {
+      specifiers.add(node.moduleReference.expression.text)
+    } else if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
+      node.arguments.length === 1 &&
+      ts.isStringLiteralLike(node.arguments[0])
+    ) {
+      specifiers.add(node.arguments[0].text)
+    }
+    ts.forEachChild(node, visit)
+  }
+
+  visit(file)
+  return specifiers
+}
+
+function packageNameFromSpecifier(specifier) {
+  const segments = specifier.split('/')
+  return specifier.startsWith('@')
+    ? segments.slice(0, 2).join('/')
+    : segments[0]
+}
+
+function formatAllowedExtensions(extensions) {
+  return [...extensions].join(' or ')
+}
+
+function hasDefaultExport(source, filename) {
+  const file = ts.createSourceFile(
+    filename,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    filename.endsWith('.tsx') || filename.endsWith('.tsrx')
+      ? ts.ScriptKind.TSX
+      : ts.ScriptKind.TS,
+  )
+  return file.statements.some((statement) => {
+    if (ts.isExportAssignment(statement) && !statement.isExportEquals) {
+      return true
+    }
+    if (
+      statement.modifiers?.some(
+        (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
+      )
+    ) {
+      return true
+    }
+    return (
+      ts.isExportDeclaration(statement) &&
+      statement.exportClause &&
+      ts.isNamedExports(statement.exportClause) &&
+      statement.exportClause.elements.some(
+        (element) => element.name.text === 'default',
+      )
+    )
+  })
 }
 
 export function markdownHeadingAnchors(source) {
@@ -1017,8 +1395,22 @@ function validateStandaloneExamples(repositoryRoot, sources, failures) {
     const baseHost = ts.createCompilerHost(options)
     const host = {
       ...baseHost,
+      directoryExists: (directory) =>
+        [...virtualSources.keys()].some((filename) =>
+          filename.startsWith(`${directory}${sep}`),
+        ) || baseHost.directoryExists(directory),
       fileExists: (filename) =>
         virtualSources.has(filename) || baseHost.fileExists(filename),
+      getDirectories: (directory) => {
+        const directories = new Set(baseHost.getDirectories(directory))
+        for (const filename of virtualSources.keys()) {
+          if (!filename.startsWith(`${directory}${sep}`)) continue
+          const remainder = filename.slice(directory.length + 1)
+          const child = remainder.split(sep)[0]
+          if (child && child !== remainder) directories.add(child)
+        }
+        return [...directories]
+      },
       readFile: (filename) =>
         virtualSources.get(filename) ?? baseHost.readFile(filename),
       getSourceFile: (filename, languageVersion, onError, shouldCreate) => {
@@ -1061,6 +1453,240 @@ function validateStandaloneExamples(repositoryRoot, sources, failures) {
   }
 
   return examples.map(({ id, mode, path }) => ({ id, mode, path }))
+}
+
+export function validateExampleGroups(repositoryRoot, sources, failures) {
+  const groups = []
+  const seen = new Map()
+
+  for (const [path, source] of sources) {
+    for (const error of documentedExampleGroupErrors(source)) {
+      failures.push(`${path} has invalid runnable example metadata: ${error}`)
+    }
+    for (const group of documentedExampleGroups(source)) {
+      const previous = seen.get(group.id)
+      if (previous && previous !== path) {
+        failures.push(
+          `Runnable documentation group ${group.id} is duplicated in ${previous} and ${path}`,
+        )
+        continue
+      }
+      seen.set(group.id, path)
+      groups.push({ ...group, path })
+    }
+  }
+
+  for (const group of groups) {
+    if (!group.env || group.files.filter((file) => file.entry).length !== 1) {
+      continue
+    }
+    const entry = group.files.find((file) => file.entry)
+    const environment = documentationEnvironments.get(group.env)
+    if (!environment) continue
+    if (!hasDefaultExport(entry.source, entry.path)) {
+      failures.push(
+        `${group.path}#${group.id} entry ${entry.path} must default-export the value loaded by env=${group.env}`,
+      )
+    }
+    if (environment.compiler === 'octane') {
+      validateOctaneCompilation(group, failures)
+    }
+    validateExampleGroupTypes(repositoryRoot, group, environment, failures)
+  }
+
+  return groups.map(({ id, env, path, files }) => ({
+    id,
+    env,
+    path,
+    files: files.map((file) => file.path),
+  }))
+}
+
+function validateOctaneCompilation(group, failures) {
+  for (const file of group.files.filter(({ path }) => path.endsWith('.tsrx'))) {
+    for (const mode of ['client', 'server']) {
+      const compiled = compileOctane(file.source, file.path, {
+        mode,
+        dev: false,
+        hmr: false,
+      })
+      for (const diagnostic of compiled.diagnostics) {
+        failures.push(
+          `${group.path}#${group.id}${file.path} failed Octane ${mode} compilation: ${diagnostic.message}`,
+        )
+      }
+    }
+  }
+}
+
+function validateExampleGroupTypes(
+  repositoryRoot,
+  group,
+  environment,
+  failures,
+) {
+  const groupRoot = resolve(
+    repositoryRoot,
+    'docs',
+    '.typecheck',
+    'groups',
+    group.id,
+  )
+  const virtualSources = new Map()
+  const virtualOrigins = new Map()
+  const roots = []
+
+  for (const file of group.files) {
+    const semanticPath = semanticExamplePath(file.path)
+    const filename = resolve(groupRoot, semanticPath.slice(1))
+    if (virtualSources.has(filename)) {
+      failures.push(
+        `${group.path}#${group.id} files collide during semantic checking at ${semanticPath}`,
+      )
+      continue
+    }
+    virtualSources.set(filename, file.source)
+    virtualOrigins.set(filename, `${group.path}#${group.id}${file.path}`)
+    roots.push(filename)
+  }
+
+  const entry = group.files.find((file) => file.entry)
+  const semanticEntryPath = semanticExamplePath(entry.path)
+  const importPath = `.${semanticEntryPath.replace(/\.(?:ts|tsx)$/u, '')}`
+  const bootstrapFilename = resolve(
+    groupRoot,
+    `__entry${environment.bootstrapExtension}`,
+  )
+  const bootstrapSource = documentationEnvironmentBootstrap(
+    group.env,
+    group.id,
+    importPath,
+  )
+  virtualSources.set(bootstrapFilename, bootstrapSource)
+  virtualOrigins.set(bootstrapFilename, `${group.path}#${group.id} bootstrap`)
+  roots.push(bootstrapFilename)
+
+  const isOctane = environment.compiler === 'octane'
+  if (isOctane) {
+    const jsxTypesFilename = resolve(groupRoot, '__octane-jsx.d.ts')
+    virtualSources.set(
+      jsxTypesFilename,
+      `declare namespace JSX {\n  interface IntrinsicElements {\n    [name: string]: Record<string, unknown>\n  }\n}\n`,
+    )
+    virtualOrigins.set(
+      jsxTypesFilename,
+      `${group.path}#${group.id} Octane JSX environment`,
+    )
+    roots.push(jsxTypesFilename)
+  }
+  const options = {
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+    lib: ['lib.es2022.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
+    strict: true,
+    noEmit: true,
+    skipLibCheck: true,
+    jsx: isOctane ? ts.JsxEmit.Preserve : ts.JsxEmit.ReactJSX,
+    types: [],
+    verbatimModuleSyntax: true,
+  }
+  const baseHost = ts.createCompilerHost(options)
+  const insideGroupRoot = (filename) =>
+    filename === groupRoot || filename.startsWith(`${groupRoot}${sep}`)
+  const virtualDirectoryExists = (directory) =>
+    directory === groupRoot ||
+    [...virtualSources.keys()].some((filename) =>
+      filename.startsWith(`${directory}${sep}`),
+    )
+  const host = {
+    ...baseHost,
+    resolveModuleNames: (moduleNames, containingFile) =>
+      moduleNames.map((moduleName) => {
+        if (
+          isOctane &&
+          moduleName.startsWith('.') &&
+          moduleName.endsWith('.tsrx')
+        ) {
+          const resolvedFileName = resolve(
+            dirname(containingFile),
+            `${moduleName.slice(0, -5)}.tsx`,
+          )
+          if (virtualSources.has(resolvedFileName)) {
+            return {
+              resolvedFileName,
+              extension: ts.Extension.Tsx,
+              isExternalLibraryImport: false,
+            }
+          }
+        }
+        return ts.resolveModuleName(moduleName, containingFile, options, host)
+          .resolvedModule
+      }),
+    directoryExists: (directory) =>
+      insideGroupRoot(directory)
+        ? virtualDirectoryExists(directory)
+        : baseHost.directoryExists(directory),
+    fileExists: (filename) =>
+      insideGroupRoot(filename)
+        ? virtualSources.has(filename)
+        : baseHost.fileExists(filename),
+    getDirectories: (directory) => {
+      if (!insideGroupRoot(directory)) return baseHost.getDirectories(directory)
+      const directories = new Set()
+      for (const filename of virtualSources.keys()) {
+        if (!filename.startsWith(`${directory}${sep}`)) continue
+        const remainder = filename.slice(directory.length + 1)
+        const child = remainder.split(sep)[0]
+        if (child && child !== remainder) directories.add(child)
+      }
+      return [...directories]
+    },
+    readFile: (filename) =>
+      virtualSources.get(filename) ??
+      (insideGroupRoot(filename) ? undefined : baseHost.readFile(filename)),
+    getSourceFile: (filename, languageVersion, onError, shouldCreate) => {
+      const source = virtualSources.get(filename)
+      if (source === undefined) {
+        if (insideGroupRoot(filename)) return undefined
+        return baseHost.getSourceFile(
+          filename,
+          languageVersion,
+          onError,
+          shouldCreate,
+        )
+      }
+      return ts.createSourceFile(
+        filename,
+        source,
+        languageVersion,
+        true,
+        filename.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+      )
+    },
+  }
+  const program = ts.createProgram(roots, options, host)
+  for (const diagnostic of ts.getPreEmitDiagnostics(program)) {
+    const filename = diagnostic.file?.fileName
+    const origin = filename
+      ? (virtualOrigins.get(filename) ??
+        slash(relative(repositoryRoot, filename)))
+      : `${group.path}#${group.id}`
+    const position =
+      diagnostic.file && diagnostic.start !== undefined
+        ? diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start)
+        : null
+    failures.push(
+      `${origin}${position ? `:${position.line + 1}:${position.character + 1}` : ''} failed type checking: ${ts.flattenDiagnosticMessageText(
+        diagnostic.messageText,
+        '\n',
+      )}`,
+    )
+  }
+}
+
+function semanticExamplePath(path) {
+  return path.endsWith('.tsrx') ? `${path.slice(0, -5)}.tsx` : path
 }
 
 async function readCatalogCases(repositoryRoot) {
@@ -1167,11 +1793,80 @@ function updateMarkdownFence(fence, marker) {
 }
 
 function typedCodeFences(source) {
-  return [
-    ...source.matchAll(
-      /```(?:ts|tsx|js|jsx|typescript|javascript)(?:[ \t]+[^\r\n]*)?\r?\n([\s\S]*?)```/g,
-    ),
-  ].map((match) => match[1])
+  return codeFences(source)
+    .filter(({ language }) =>
+      ['ts', 'tsx', 'tsrx', 'js', 'jsx', 'typescript', 'javascript'].includes(
+        language,
+      ),
+    )
+    .map(({ source }) => source)
+}
+
+function codeFences(source) {
+  const fences = []
+  const lines = source.match(/[^\r\n]*(?:\r\n|\n|$)/g) ?? []
+  let offset = 0
+  let open = null
+
+  for (const rawLine of lines) {
+    if (!rawLine) continue
+    const line = rawLine.replace(/\r?\n$/u, '')
+    if (!open) {
+      const match = line.match(/^( {0,3})(`{3,}|~{3,})(.*)$/u)
+      if (match) {
+        const marker = match[2]
+        const info = match[3].trim()
+        if (marker[0] !== '`' || !info.includes('`')) {
+          const separator = info.search(/[ \t]/u)
+          open = {
+            start: offset,
+            indent: match[1].length,
+            marker: marker[0],
+            length: marker.length,
+            language: separator === -1 ? info : info.slice(0, separator),
+            meta: separator === -1 ? '' : info.slice(separator).trim(),
+            content: [],
+          }
+        }
+      }
+    } else {
+      const closing = line.match(/^( {0,3})(`+|~+)[ \t]*$/u)
+      if (
+        closing &&
+        closing[2][0] === open.marker &&
+        closing[2].length >= open.length
+      ) {
+        fences.push({
+          index: fences.length + 1,
+          start: open.start,
+          language: open.language,
+          meta: open.meta,
+          source: open.content.join(''),
+        })
+        open = null
+      } else {
+        open.content.push(stripFenceIndent(rawLine, open.indent))
+      }
+    }
+    offset += rawLine.length
+  }
+
+  if (open) {
+    fences.push({
+      index: fences.length + 1,
+      start: open.start,
+      language: open.language,
+      meta: open.meta,
+      source: open.content.join(''),
+    })
+  }
+  return fences
+}
+
+function stripFenceIndent(line, indent) {
+  let removed = 0
+  while (removed < indent && line[removed] === ' ') removed += 1
+  return line.slice(removed)
 }
 
 function unquote(value) {

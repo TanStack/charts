@@ -458,34 +458,17 @@ focus strategy if the two interactions would conflict. See
 
 ## Log-scale example
 
-<!-- docs-example: log-scale typecheck -->
-
-```ts
+```ts group=log-scale env=charts file=/src/chart.ts entry
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { scaleLog } from 'd3-scale'
 import { defineChart, dot } from '@tanstack/charts'
-
-interface FlareRow {
-  name: string
-  size: number | null
-}
-
-const flare: readonly FlareRow[] = [
-  { name: 'flare.analytics.cluster', size: 3938 },
-  { name: 'flare.analytics.graph', size: 10_871 },
-  { name: 'flare.analytics.optimization', size: 5731 },
-  { name: 'flare.display', size: 12_867 },
-  { name: 'flare.query', size: 2779 },
-  { name: 'flare.unresolved', size: null },
-]
+import { flare, type FlareRow } from './data'
 
 type SizedFlareRow = FlareRow & { size: number }
 
-const rows = flare
-  .filter((row): row is SizedFlareRow => row.size !== null)
-  .slice(0, 200)
+const rows = flare.filter((row): row is SizedFlareRow => row.size !== null)
 
-const logChart = defineChart({
+export default defineChart({
   marks: [
     dot(rows, {
       x: 'size',
@@ -508,10 +491,24 @@ const logChart = defineChart({
 })
 ```
 
+```ts group=log-scale file=/src/data.ts collapsed
+export interface FlareRow {
+  name: string
+  size: number | null
+}
+
+export const flare: readonly FlareRow[] = [
+  { name: 'flare.analytics.cluster', size: 3938 },
+  { name: 'flare.analytics.graph', size: 10_871 },
+  { name: 'flare.analytics.optimization', size: 5731 },
+  { name: 'flare.display', size: 12_867 },
+  { name: 'flare.query', size: 2779 },
+  { name: 'flare.unresolved', size: null },
+]
+```
+
 This chart upgrades only x. Install `d3-scale` and `@types/d3-scale` for
 `scaleLog`; the ordinary numeric y mapping remains compact.
-
-<!-- ::chart-example id=53-log-scale-scatter height=480 -->
 
 ## Custom scales are the final extension
 

@@ -87,16 +87,33 @@ Give `geoShape` a projection factory and an explicit fit target. This
 self-contained example uses a small planar floor plan. The mark fits the
 projection to the final plot bounds again whenever the chart resizes.
 
-<!-- docs-example: geo-shape-responsive typecheck -->
-
-```ts
+```ts group=floor-plan env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
 import { geoShape } from '@tanstack/charts/geo'
 import { geoIdentity } from 'd3-geo'
+import { floorPlan } from './data'
 
+export default defineChart({
+  marks: [
+    geoShape(floorPlan.features, {
+      key: (feature) => feature.properties.id,
+      projection: {
+        type: geoIdentity,
+        fit: floorPlan,
+      },
+      fill: '#dbeafe',
+      stroke: '#2563eb',
+      strokeWidth: 1.5,
+    }),
+  ],
+  margin: 12,
+})
+```
+
+```ts group=floor-plan file=/src/data.ts collapsed
 interface FloorPlanFeature {
   type: 'Feature'
-  properties: { id: number }
+  properties: { id: number; name: string }
   geometry: {
     type: 'Polygon'
     coordinates: [number, number][][]
@@ -108,12 +125,12 @@ interface FloorPlan {
   features: FloorPlanFeature[]
 }
 
-const westportHouse: FloorPlan = {
+export const floorPlan: FloorPlan = {
   type: 'FeatureCollection',
   features: [
     {
       type: 'Feature',
-      properties: { id: 1 },
+      properties: { id: 1, name: 'Studio' },
       geometry: {
         type: 'Polygon',
         coordinates: [
@@ -129,7 +146,7 @@ const westportHouse: FloorPlan = {
     },
     {
       type: 'Feature',
-      properties: { id: 2 },
+      properties: { id: 2, name: 'Office' },
       geometry: {
         type: 'Polygon',
         coordinates: [
@@ -145,21 +162,6 @@ const westportHouse: FloorPlan = {
     },
   ],
 }
-
-const map = defineChart({
-  marks: [
-    geoShape(westportHouse.features, {
-      key: (feature) => feature.properties.id,
-      projection: {
-        type: geoIdentity,
-        fit: westportHouse,
-      },
-      fill: 'none',
-      stroke: '#2563eb',
-      strokeWidth: 1,
-    }),
-  ],
-})
 ```
 
 `geoShape` uses `geoPath` for each feature and D3 centroids for focus. The
@@ -168,7 +170,7 @@ only when a geographic feature needs a different semantic longitude/latitude
 than its spherical centroid. The complete option contract is in
 [Geo Shape Mark](../reference/marks/geo.md).
 
-<!-- ::chart-example id=40-geojson-map height=480 -->
+[Open the complete 121-polygon Westport House catalog example](https://tanstack.com/charts/catalog/40-geojson-map/).
 
 ## Project points by magnitude
 

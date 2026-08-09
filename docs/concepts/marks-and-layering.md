@@ -217,27 +217,13 @@ Clipping applies to the chart’s mark group, not axes or legends. Leave it off 
 
 ## Complete range-band composition
 
-```ts
+```ts group=temperature-range env=charts file=/src/chart.ts entry
 import { scaleUtc } from 'd3-scale'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { sfTemperatures } from './data'
 
-interface DailyTemperature {
-  date: Date
-  high: number
-  low: number
-}
-
-const sfTemperatures: readonly DailyTemperature[] = [
-  { date: new Date('2026-07-01T00:00:00Z'), high: 68, low: 55 },
-  { date: new Date('2026-07-02T00:00:00Z'), high: 71, low: 56 },
-  { date: new Date('2026-07-03T00:00:00Z'), high: 66, low: 54 },
-  { date: new Date('2026-07-04T00:00:00Z'), high: 69, low: 55 },
-  { date: new Date('2026-07-05T00:00:00Z'), high: 73, low: 57 },
-  { date: new Date('2026-07-06T00:00:00Z'), high: 70, low: 56 },
-]
-
-const temperatureChart = defineChart({
+export default defineChart({
   marks: [
     areaY(sfTemperatures, {
       id: 'daily-range',
@@ -275,11 +261,26 @@ const temperatureChart = defineChart({
 })
 ```
 
+```ts group=temperature-range file=/src/data.ts collapsed
+export interface DailyTemperature {
+  date: Date
+  high: number
+  low: number
+}
+
+export const sfTemperatures: readonly DailyTemperature[] = [
+  { date: new Date('2026-07-01T00:00:00Z'), high: 68, low: 55 },
+  { date: new Date('2026-07-02T00:00:00Z'), high: 71, low: 56 },
+  { date: new Date('2026-07-03T00:00:00Z'), high: 66, low: 54 },
+  { date: new Date('2026-07-04T00:00:00Z'), high: 69, low: 55 },
+  { date: new Date('2026-07-05T00:00:00Z'), high: 73, low: 57 },
+  { date: new Date('2026-07-06T00:00:00Z'), high: 70, low: 56 },
+]
+```
+
 The numeric y axis uses the lightweight linear scale. The x axis upgrades to
 D3 UTC so spacing and ticks preserve elapsed time; install `d3-scale` and
 `@types/d3-scale` for that mapping.
-
-<!-- ::chart-example id=03-temperature-range-band height=480 -->
 
 ## Custom marks
 

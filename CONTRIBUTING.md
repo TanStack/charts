@@ -61,6 +61,58 @@ pnpm benchmark -- --profile=ci --chart=line
 pnpm benchmark:stress:quick -- --workload=raw-line
 ```
 
+## Runnable documentation
+
+Runnable examples are virtual projects assembled from fenced code blocks. The
+entry fence declares the project group and execution environment:
+
+````md
+```tsx group=letter-frequency env=charts-react file=/src/App.tsx entry
+export default function App() {
+  return <div />
+}
+```
+
+```ts group=letter-frequency file=/src/data.ts collapsed
+export const rows = []
+```
+````
+
+- `group` identifies every file in one project.
+- `env` selects the dependency, bootstrap, and rendering contract. Charts docs
+  use `charts`, `charts-react`, or `charts-octane`.
+- `file` is the virtual project path.
+- `entry` marks the one visible file loaded by the environment.
+- `collapsed` keeps supporting source inspectable without making it the active
+  file. Do not put `hidden` on an authored fence; environments alone may add
+  invariant hidden files.
+
+Declare `env` only on the entry fence. A `charts` entry default-exports a chart
+definition from a `.ts` or `.tsx` file. A `charts-react` entry default-exports a
+React component from a `.tsx` file. A `charts-octane` entry default-exports an
+Octane component from a `.tsrx` file. All three environments support additional
+inspectable `.ts` and `.tsx` files; Octane groups may also contain `.tsrx`
+components.
+
+Project-relative imports must stay within `/src`. Each environment exposes an
+explicit dependency set:
+
+- `charts`: `@tanstack/charts`, `@tanstack/charts-scales`, `d3-geo`,
+  `d3-scale`, and `d3-shape`.
+- `charts-react`: the Charts dependencies plus `@tanstack/react-charts`,
+  `react`, and `react-dom`.
+- `charts-octane`: the Charts dependencies plus `@tanstack/octane-charts` and
+  `octane`.
+
+Keep data preparation, scale choices, definitions, and application behavior
+in inspectable files. The environment may hide only invariant bootstrap such
+as HTML, the DOM root, package metadata, and error handling.
+
+Plain code fences remain intentional excerpts or API signatures and do not get
+run controls. `pnpm docs:check` validates grouped metadata, relative imports,
+entry exports, strict types, public package imports, and Octane client/server
+compilation.
+
 ## Changesets
 
 Add and commit a changeset for every user-visible package change:

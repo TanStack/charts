@@ -50,7 +50,41 @@ A histogram groups quantitative observations into intervals. Keep thresholds
 stable when comparing revisions or groups; otherwise a changed binning decision
 can look like a changed distribution.
 
-<!-- ::chart-example id=histogram height=480 -->
+```ts group=basic-histogram env=charts file=/src/chart.ts entry
+import { binX, defineChart, rect } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
+
+const responseTimes = [
+  82, 91, 96, 103, 108, 112, 118, 121, 127, 131, 138, 144, 149, 153, 162, 171,
+  184, 196,
+]
+
+const bins = binX(responseTimes, {
+  value: (datum) => datum,
+  thresholds: [80, 100, 120, 140, 160, 180, 200],
+  outputs: { count: { reduce: 'count' } },
+})
+
+const chart = defineChart({
+  marks: [
+    rect(bins, {
+      x1: 'x1',
+      x2: 'x2',
+      y1: () => 0,
+      y2: 'count',
+      inset: 1,
+      fill: '#2563eb',
+    }),
+  ],
+  x: { scale: scaleLinear, axis: { label: 'Response time (ms)' } },
+  y: { scale: scaleLinear, grid: true, axis: { label: 'Requests' } },
+})
+
+export default chart
+```
+
+[Open the catalog histogram](https://tanstack.com/charts/catalog/histogram/)
+for the complete vehicle dataset and update behavior.
 
 The prepared rows should carry each bin's lower bound, upper bound, and count or
 proportion. Render those intervals with

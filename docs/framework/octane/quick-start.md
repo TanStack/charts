@@ -17,27 +17,13 @@ compact scale families and when a chart needs D3 instead.
 
 Definitions are framework-independent and can be shared with any adapter:
 
-<!-- docs-example: octane-quick-start octane -->
-
-```tsx
+```tsx group=octane-quick-start env=charts-octane file=/src/App.tsrx entry
 import { scaleBand } from '@tanstack/charts-scales/band'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 import { barY, defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/octane-charts'
-
-interface AlphabetRow {
-  letter: string
-  frequency: number
-}
-
-const alphabet: readonly AlphabetRow[] = [
-  { letter: 'E', frequency: 0.12702 },
-  { letter: 'T', frequency: 0.09056 },
-  { letter: 'A', frequency: 0.08167 },
-  { letter: 'O', frequency: 0.07507 },
-  { letter: 'I', frequency: 0.06966 },
-]
+import { alphabet } from './data'
 
 const percent = new Intl.NumberFormat('en-US', {
   style: 'percent',
@@ -66,7 +52,7 @@ const letterFrequencyChart = defineChart({
   tooltip,
 })
 
-export function LetterFrequencyChart() {
+export default function App() {
   return (
     <Chart
       definition={letterFrequencyChart}
@@ -75,6 +61,21 @@ export function LetterFrequencyChart() {
     />
   )
 }
+```
+
+```ts group=octane-quick-start file=/src/data.ts collapsed
+export interface AlphabetRow {
+  letter: string
+  frequency: number
+}
+
+export const alphabet: readonly AlphabetRow[] = [
+  { letter: 'E', frequency: 0.12702 },
+  { letter: 'T', frequency: 0.09056 },
+  { letter: 'A', frequency: 0.08167 },
+  { letter: 'O', frequency: 0.07507 },
+  { letter: 'I', frequency: 0.06966 },
+]
 ```
 
 The definition infers the row, scale, and callback types. Normal TSRX authoring
@@ -174,13 +175,6 @@ host when captured values changed. See
 Grouped focus, tooltip formatting, keyboard behavior, and application-owned
 interaction are documented in
 [Focus and interaction](../../reference/focus-and-interaction.md).
-
-## Example
-
-This calendar heatmap uses typed cells and responsive guide layout through the
-same Octane adapter:
-
-<!-- ::chart-example id=25-calendar-heatmap height=480 -->
 
 Continue with the [Octane adapter](./adapter.md) for lifecycle and SSR, the
 [`Chart` reference](./reference/chart.md) for every prop, or the

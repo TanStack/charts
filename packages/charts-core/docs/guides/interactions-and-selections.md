@@ -449,31 +449,93 @@ A complete brush owns:
 
 Import the optional first-party behavior and bind it to application state:
 
-```ts
+```tsx group=controlled-brush env=charts-react file=/src/App.tsx entry
+import { useMemo, useState } from 'react'
 import { defineChart, lineY } from '@tanstack/charts'
+import { scaleLinear } from '@tanstack/charts-scales/linear'
 import {
   brushX,
   type BrushRange,
   type BrushXChange,
 } from '@tanstack/charts/interaction/brush'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { Chart } from '@tanstack/react-charts'
+import { rows } from './data'
 
-const definition = defineChart({
-  marks: [lineY(rows, { x: 'date', y: 'value' })],
-  x: { scale: utcScale },
-  controls: [
-    brushX({
-      range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
-        visibleRange,
-        (next, { reason }) => {
-          if (reason.type === 'commit') setVisibleRange(next)
-        },
-      ),
-      values: observedMonths,
-      format: (date) => monthFormat(date),
-    }),
-  ],
-})
+const weeks = rows.map((row) => row.week)
+const initialRange: BrushRange<number> = { start: 2, end: 6 }
+
+export default function App() {
+  const [range, setRange] = useState<BrushRange<number>>(initialRange)
+  const definition = useMemo(
+    () =>
+      defineChart({
+        marks: [
+          lineY(rows, {
+            x: 'week',
+            y: 'signups',
+            points: true,
+            stroke: '#2563eb',
+            strokeWidth: 2.5,
+          }),
+        ],
+        x: { scale: scaleLinear().domain([1, 8]) },
+        y: { scale: scaleLinear, grid: true, axis: { label: 'Signups' } },
+        controls: [
+          brushX({
+            range: controlledSignal<BrushRange<number>, BrushXChange<number>>(
+              range,
+              (next, { reason }) => {
+                if (reason.type === 'commit') setRange(next)
+              },
+            ),
+            values: weeks,
+            format: (week) => `Week ${week}`,
+            ariaLabel: 'Reporting range',
+            startAriaLabel: 'Range start',
+            endAriaLabel: 'Range end',
+          }),
+        ],
+      }),
+    [range],
+  )
+
+  const isInitial =
+    range.start === initialRange.start && range.end === initialRange.end
+
+  return (
+    <section>
+      <Chart
+        definition={definition}
+        height={280}
+        ariaLabel="Weekly signups with a selectable reporting range"
+      />
+      <p role="status" aria-live="polite">
+        Current range: weeks {range.start}–{range.end}
+      </p>
+      <button
+        type="button"
+        disabled={isInitial}
+        onClick={() => setRange({ ...initialRange })}
+      >
+        Reset range
+      </button>
+    </section>
+  )
+}
+```
+
+```ts group=controlled-brush file=/src/data.ts collapsed
+export const rows = [
+  { week: 1, signups: 18 },
+  { week: 2, signups: 24 },
+  { week: 3, signups: 31 },
+  { week: 4, signups: 29 },
+  { week: 5, signups: 42 },
+  { week: 6, signups: 48 },
+  { week: 7, signups: 46 },
+  { week: 8, signups: 57 },
+]
 ```
 
 `values` defines semantic order, snapping, and keyboard steps. It is required
@@ -494,7 +556,7 @@ native applications must supply their own semantic range control. Import
 `d3-brush` and `d3-selection` directly only for a different application-owned
 gesture.
 
-<!-- ::chart-example id=89-brush-range-selection height=480 -->
+[Open the monthly time-series brush catalog case](https://tanstack.com/charts/catalog/89-brush-range-selection/).
 
 ## Scale-bound handle
 
