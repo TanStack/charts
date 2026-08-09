@@ -1,5 +1,23 @@
 # @tanstack/vue-charts
 
+## 0.8.0
+
+### Minor Changes
+
+- [#73](https://github.com/TanStack/charts/pull/73) [`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282) - Harmonize the pre-alpha public API: tighten compact scales, rename responsive,
+  control, focus, color, SVG animation, export, reducer, and rolling-window
+  contracts, standardize transform callbacks, type composable views and
+  host-owned tooltip tokens, share DOM/native interaction policy, and add one
+  platform-default runtime theme. DOM and React Native definitions now reject
+  cross-host tooltip tokens, while synchronous text measurement receives the
+  complete host typography and font scale. Every DOM adapter now exposes the
+  host-refined definition type at its chart boundary.
+
+### Patch Changes
+
+- Updated dependencies [[`35832f7`](https://github.com/TanStack/charts/commit/35832f753fd0e17b5215c76529dd7e4bbc222282)]:
+  - @tanstack/charts@0.8.0
+
 ## 0.7.2
 
 ### Patch Changes
