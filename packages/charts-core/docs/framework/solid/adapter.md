@@ -4,13 +4,13 @@ description: Render and hydrate TanStack Charts with Solid.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/solid-charts solid-js
+pnpm add @tanstack/charts solid-js
 ```
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/solid-charts'
+import { Chart } from '@tanstack/charts/solid'
 
 const definition = createMemo(() =>
   defineChart(createRevenueChart(rows()), { tooltip }),

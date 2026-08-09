@@ -23,8 +23,8 @@ import {
   type StaticChartDefinition,
 } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
-import { Chart as CanvasChart } from '@tanstack/react-charts/canvas'
+import { Chart } from '@tanstack/charts/react'
+import { Chart as CanvasChart } from '@tanstack/charts/react/canvas'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import proofSource from './InteractionGeometryLab.tsx?raw'
 

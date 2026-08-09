@@ -2,7 +2,7 @@ import * as React from 'react'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
 import { defineChart, type ChartPoint } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import {
   createDashboardData,
   industryColors,

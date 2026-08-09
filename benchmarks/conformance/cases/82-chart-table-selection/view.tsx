@@ -8,7 +8,7 @@ import {
 import { defineChart, dot } from '@tanstack/charts'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { penguins } from '@charts-poc/demo-data/penguins'
 import { scaleLinear } from 'd3-scale'
 import { catalogPreviewDefinition } from '../../shared/preview'

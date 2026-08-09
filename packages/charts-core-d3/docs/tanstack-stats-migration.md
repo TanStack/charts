@@ -71,7 +71,7 @@ Stats uses two capabilities that stay out of a basic line-chart bundle:
 ```tsx
 import { focusGroupX, focusGroupY } from '@tanstack/charts/focus'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 
 ;<Chart
   definition={historyChart}

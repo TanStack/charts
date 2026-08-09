@@ -128,7 +128,7 @@ describe('definition-owned zoomable time window', () => {
     expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
     for (const forbidden of [
       "from 'react'",
-      '@tanstack/react-charts',
+      '@tanstack/charts/react',
       "from 'd3-zoom'",
       "from 'd3-selection'",
       'createElementNS',

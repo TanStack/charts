@@ -35,7 +35,64 @@
     "d3-scale": "4.0.2",
     "d3-selection": "3.0.0",
     "d3-shape": "3.2.0",
-    "d3-zoom": "3.0.0"
+    "d3-zoom": "3.0.0",
+    "tslib": "^2.8.1"
+  },
+  "peerDependencies": {
+    "@angular/core": ">=19",
+    "@angular/platform-browser": ">=19",
+    "alpinejs": ">=3.15",
+    "lit": ">=3.1.3",
+    "octane": "^0.1.13",
+    "preact": ">=10",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-native": "^0.86.0",
+    "react-native-svg": ">=15.15.4 <16",
+    "solid-js": ">=1.8",
+    "svelte": "^5.20.0",
+    "vue": ">=3.5"
+  },
+  "peerDependenciesMeta": {
+    "@angular/core": {
+      "optional": true
+    },
+    "@angular/platform-browser": {
+      "optional": true
+    },
+    "alpinejs": {
+      "optional": true
+    },
+    "lit": {
+      "optional": true
+    },
+    "octane": {
+      "optional": true
+    },
+    "preact": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    },
+    "react-native-svg": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.2",
@@ -51,6 +108,8 @@
     ".": "./src/index.ts",
     "./adapter": "./src/adapter.ts",
     "./adapter/renderer": "./src/adapter-renderer.ts",
+    "./alpine": "./src/alpine.ts",
+    "./angular": "./src/angular.ts",
     "./area": "./src/area.ts",
     "./area-x": "./src/area-x.ts",
     "./arrow": "./src/arrow.ts",
@@ -88,13 +147,24 @@
     "./legend": "./src/legend.ts",
     "./line": "./src/line.ts",
     "./link": "./src/link.ts",
+    "./lit": "./src/lit.ts",
     "./motion": "./src/motion.ts",
     "./network/force": "./src/network-force.ts",
     "./network/sankey": "./src/network-sankey.ts",
+    "./octane": "./src/octane.ts",
+    "./octane/canvas": "./src/octane-canvas.ts",
+    "./octane/core": "./src/octane-core.ts",
     "./mark/composite": "./src/mark-composite.ts",
     "./mark/decorative": "./src/mark-decorative.ts",
     "./mark/scale-values": "./src/mark-with-scale-values.ts",
     "./polar": "./src/polar.ts",
+    "./preact": "./src/preact.ts",
+    "./react": "./src/react.ts",
+    "./react/canvas": "./src/react-canvas.ts",
+    "./react/core": "./src/react-core.ts",
+    "./react/tooltip": "./src/react-tooltip.ts",
+    "./react-native": "./src/react-native.ts",
+    "./react-native/tooltip": "./src/react-native-tooltip.ts",
     "./universal": "./src/universal.ts",
     "./reconcile": "./src/reconcile.ts",
     "./rect": "./src/rect.ts",
@@ -104,7 +174,12 @@
     "./ridgeline": "./src/ridgeline.ts",
     "./rule": "./src/rule.ts",
     "./runtime": "./src/runtime.ts",
+    "./scales/band": "./src/scales-band.ts",
+    "./scales/linear": "./src/scales-linear.ts",
+    "./scales/ordinal": "./src/scales-ordinal.ts",
+    "./scales/point": "./src/scales-point.ts",
     "./scene": "./src/scene.ts",
+    "./solid": "./src/solid.ts",
     "./svg": "./src/svg.ts",
     "./svg/renderer": "./src/svg-surface.ts",
     "./svg/resources": "./src/svg-resources.ts",
@@ -115,6 +190,7 @@
     "./spatial/density": "./src/spatial-density.ts",
     "./spatial/hexbin": "./src/spatial-hexbin.ts",
     "./spatial/voronoi": "./src/spatial-voronoi.ts",
+    "./svelte": "./src/svelte.ts",
     "./transform": "./src/transform.ts",
     "./transform/bin": "./src/transform-bin.ts",
     "./transform/bin-time": "./src/transform-bin-time.ts",
@@ -139,6 +215,7 @@
     "./vector": "./src/vector.ts",
     "./violin": "./src/violin.ts",
     "./view": "./src/view.ts",
+    "./vue": "./src/vue.ts",
     "./waffle": "./src/waffle.ts"
   },
   "publishConfig": {
@@ -156,6 +233,14 @@
       "./adapter/renderer": {
         "types": "./dist/adapter-renderer.d.ts",
         "import": "./dist/adapter-renderer.js"
+      },
+      "./alpine": {
+        "types": "./dist/alpine/index.d.ts",
+        "import": "./dist/alpine/index.js"
+      },
+      "./angular": {
+        "types": "./dist/angular/types/tanstack-angular-charts.d.ts",
+        "default": "./dist/angular/fesm2022/tanstack-angular-charts.mjs"
       },
       "./area": {
         "types": "./dist/area.d.ts",
@@ -306,6 +391,10 @@
         "types": "./dist/link.d.ts",
         "import": "./dist/link.js"
       },
+      "./lit": {
+        "types": "./dist/lit/index.d.ts",
+        "import": "./dist/lit/index.js"
+      },
       "./motion": {
         "types": "./dist/motion.d.ts",
         "import": "./dist/motion.js"
@@ -317,6 +406,24 @@
       "./network/sankey": {
         "types": "./dist/network-sankey.d.ts",
         "import": "./dist/network-sankey.js"
+      },
+      "./octane": {
+        "types": "./dist/octane/index.d.ts",
+        "browser": "./dist/octane/index.js",
+        "node": "./dist/octane/server/index.js",
+        "import": "./dist/octane/index.js"
+      },
+      "./octane/canvas": {
+        "types": "./dist/octane/canvas.d.ts",
+        "browser": "./dist/octane/canvas.js",
+        "node": "./dist/octane/server/canvas.js",
+        "import": "./dist/octane/canvas.js"
+      },
+      "./octane/core": {
+        "types": "./dist/octane/core.d.ts",
+        "browser": "./dist/octane/core.js",
+        "node": "./dist/octane/server/core.js",
+        "import": "./dist/octane/core.js"
       },
       "./mark/composite": {
         "types": "./dist/mark-composite.d.ts",
@@ -350,6 +457,11 @@
         "types": "./dist/spatial-voronoi.d.ts",
         "import": "./dist/spatial-voronoi.js"
       },
+      "./svelte": {
+        "types": "./dist/svelte/index.d.ts",
+        "svelte": "./dist/svelte/index.js",
+        "import": "./dist/svelte/index.js"
+      },
       "./mark/scale-values": {
         "types": "./dist/mark-with-scale-values.d.ts",
         "import": "./dist/mark-with-scale-values.js"
@@ -357,6 +469,36 @@
       "./polar": {
         "types": "./dist/polar.d.ts",
         "import": "./dist/polar.js"
+      },
+      "./preact": {
+        "types": "./dist/preact/index.d.ts",
+        "import": "./dist/preact/index.js"
+      },
+      "./react": {
+        "types": "./dist/react/index.d.ts",
+        "import": "./dist/react/index.js"
+      },
+      "./react/canvas": {
+        "types": "./dist/react/canvas.d.ts",
+        "import": "./dist/react/canvas.js"
+      },
+      "./react/core": {
+        "types": "./dist/react/core.d.ts",
+        "import": "./dist/react/core.js"
+      },
+      "./react/tooltip": {
+        "types": "./dist/react/tooltip.d.ts",
+        "import": "./dist/react/tooltip.js"
+      },
+      "./react-native": {
+        "types": "./dist/react-native/index.d.ts",
+        "react-native": "./dist/react-native/index.native.js",
+        "import": "./dist/react-native/index.js"
+      },
+      "./react-native/tooltip": {
+        "types": "./dist/react-native/tooltip-entry.d.ts",
+        "react-native": "./dist/react-native/tooltip-entry.native.js",
+        "import": "./dist/react-native/tooltip-entry.js"
       },
       "./universal": {
         "types": "./dist/universal.d.ts",
@@ -394,9 +536,30 @@
         "types": "./dist/runtime.d.ts",
         "import": "./dist/runtime.js"
       },
+      "./scales/band": {
+        "types": "./dist/scales/band.d.ts",
+        "import": "./dist/scales/band.js"
+      },
+      "./scales/linear": {
+        "types": "./dist/scales/linear.d.ts",
+        "import": "./dist/scales/linear.js"
+      },
+      "./scales/ordinal": {
+        "types": "./dist/scales/ordinal.d.ts",
+        "import": "./dist/scales/ordinal.js"
+      },
+      "./scales/point": {
+        "types": "./dist/scales/point.d.ts",
+        "import": "./dist/scales/point.js"
+      },
       "./scene": {
         "types": "./dist/scene.d.ts",
         "import": "./dist/scene.js"
+      },
+      "./solid": {
+        "types": "./dist/solid/index.d.ts",
+        "solid": "./dist/solid/index.js",
+        "import": "./dist/solid/index.js"
       },
       "./svg": {
         "types": "./dist/svg.d.ts",
@@ -510,6 +673,10 @@
       "./view": {
         "types": "./dist/view.d.ts",
         "import": "./dist/view.js"
+      },
+      "./vue": {
+        "types": "./dist/vue/index.d.ts",
+        "import": "./dist/vue/index.js"
       },
       "./waffle": {
         "types": "./dist/waffle.d.ts",

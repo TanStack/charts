@@ -1,4 +1,4 @@
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { useMemo } from 'react'
 import { defineChart } from '@tanstack/charts'
 import { focusGroupX, focusGroupY } from '@tanstack/charts/focus'

@@ -4,7 +4,7 @@ import { defineChart, lineY } from '@tanstack/charts';
 import type { ChartPoint } from '@tanstack/charts';
 import { tooltip } from '@tanstack/charts/tooltip';
 import { portal as tooltipPortal } from '@tanstack/charts/tooltip/portal';
-import { Chart } from '@tanstack/octane-charts';
+import { Chart } from '@tanstack/charts/octane';
 import { scaleLinear } from 'd3-scale';
 
 interface Datum {

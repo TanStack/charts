@@ -27,22 +27,22 @@ wants a narrower import.
 
 ## Start with compact scales
 
-Install the compact package for ordinary numeric and categorical charts:
+Install TanStack Charts for ordinary numeric and categorical charts:
 
 ```sh
-pnpm add @tanstack/charts-scales
+pnpm add @tanstack/charts
 ```
 
 Import one exact family:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scalePoint } from '@tanstack/charts-scales/point'
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scalePoint } from '@tanstack/charts/scales/point'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
 ```
 
-There is intentionally no `@tanstack/charts-scales` root export. Each factory
+There is intentionally no aggregate `/scales` export. Each exact scale subpath
 fits the same callable, `domain`, `range`, and `copy` contract consumed by
 TanStack Charts.
 
@@ -55,10 +55,10 @@ Choose the smallest family that preserves the data's meaning:
 
 | Mapping                                                    | Start with                           | Upgrade when                                                                    |
 | ---------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------- |
-| Numeric x or y                                             | `@tanstack/charts-scales/linear`     | The mapping needs piecewise domains, nonnumeric output, or custom interpolation |
-| Categories with width, such as bars                        | `@tanstack/charts-scales/band`       | The mapping needs behavior outside the documented compact band contract         |
-| Categories without width, such as line or dot positions    | `@tanstack/charts-scales/point`      | The values must instead be spaced by elapsed time                               |
-| Stable categorical colors                                  | `@tanstack/charts-scales/ordinal`    | The color mapping is sequential, diverging, quantile, quantize, or threshold    |
+| Numeric x or y                                             | `@tanstack/charts/scales/linear`     | The mapping needs piecewise domains, nonnumeric output, or custom interpolation |
+| Categories with width, such as bars                        | `@tanstack/charts/scales/band`       | The mapping needs behavior outside the documented compact band contract         |
+| Categories without width, such as line or dot positions    | `@tanstack/charts/scales/point`      | The values must instead be spaced by elapsed time                               |
+| Stable categorical colors                                  | `@tanstack/charts/scales/ordinal`    | The color mapping is sequential, diverging, quantile, quantize, or threshold    |
 | Dates spaced by elapsed time and calendar-aware ticks      | `d3-scale` `scaleTime` or `scaleUtc` | —                                                                               |
 | Logarithmic, power, symlog, square-root, or radial mapping | The corresponding `d3-scale` family  | —                                                                               |
 
@@ -80,7 +80,7 @@ time-series chart upgrades x to D3 while keeping its ordinary numeric y scale
 compact:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scaleUtc } from 'd3-scale'
 
 const chart = defineChart({
@@ -91,7 +91,7 @@ const chart = defineChart({
 ```
 
 Add `d3-scale` and `@types/d3-scale` because this source imports `scaleUtc`.
-The compact package ships its own declarations.
+The compact scale entries ship their own declarations.
 
 ## Direct dependency ownership
 
@@ -159,8 +159,8 @@ Charts force entry owns deterministic static settlement only.
 Every materialized positional dimension declares its scale:
 
 ```ts
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const spec = {
   marks,
@@ -188,8 +188,8 @@ chooses the mapping; materialized mark channels supply its domain.
 Pass the factory itself when the domain should cover the rendered data:
 
 ```ts
-import { scalePoint } from '@tanstack/charts-scales/point'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const chart = defineChart({
   marks: [lineY(rows, { x: 'month', y: 'value' })],
@@ -207,7 +207,7 @@ Return a scale from a zero-argument factory when it needs configuration before
 domain inference:
 
 ```ts
-import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleBand } from '@tanstack/charts/scales/band'
 
 const x = {
   scale: () => scaleBand<string>().padding(0.16),
@@ -221,7 +221,7 @@ Use the axis `nice` option because nicening must happen after inference.
 Pass a scale instance when the domain must not follow the rendered marks:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scaleUtc } from 'd3-scale'
 
 const normalizedY = {
@@ -277,7 +277,7 @@ const y = {
 Pass the compact band-scale factory for categorical positions:
 
 ```ts
-import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleBand } from '@tanstack/charts/scales/band'
 
 const categoryScale = () =>
   scaleBand<string>().paddingInner(0.12).paddingOuter(0.06)
@@ -304,7 +304,7 @@ const chart = defineChart({
 Use a configured compact ordinal scale for semantic stability:
 
 ```ts
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
 
 const regionColor = scaleOrdinal(
   ['North', 'South', 'West'],
@@ -459,7 +459,7 @@ focus strategy if the two interactions would conflict. See
 ## Log-scale example
 
 ```ts group=log-scale env=charts file=/src/chart.ts entry
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scaleLog } from 'd3-scale'
 import { defineChart, dot } from '@tanstack/charts'
 import { flare, type FlareRow } from './data'

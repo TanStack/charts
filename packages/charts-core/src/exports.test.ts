@@ -12,6 +12,15 @@ import type {
 } from '@tanstack/charts/universal'
 
 const typeOnlySpecifiers = new Set(['@tanstack/charts/types'])
+const specializedLoaderSpecifiers = new Set([
+  '@tanstack/charts/angular',
+  '@tanstack/charts/octane',
+  '@tanstack/charts/octane/canvas',
+  '@tanstack/charts/octane/core',
+  '@tanstack/charts/react-native',
+  '@tanstack/charts/react-native/tooltip',
+  '@tanstack/charts/svelte',
+])
 
 describe('public package exports', () => {
   it('keeps public dot-layout types aligned across authoring barrels', () => {
@@ -24,21 +33,26 @@ describe('public package exports', () => {
     expectTypeOf<UniversalDotLayoutResolveContext>().toEqualTypeOf<RootDotLayoutResolveContext>()
   })
 
-  it('resolves every manifest capability subpath', async () => {
+  it('resolves every manifest capability subpath supported by the generic loader', async () => {
     const specifiers = Object.keys(packageJson.exports).map((subpath) =>
       subpath === '.'
         ? '@tanstack/charts'
         : `@tanstack/charts${subpath.slice(1)}`,
     )
+    const runtimeSpecifiers = specifiers.filter(
+      (specifier) => !specializedLoaderSpecifiers.has(specifier),
+    )
     const modules = await Promise.all(
-      specifiers.map((specifier) => import(/* @vite-ignore */ specifier)),
+      runtimeSpecifiers.map(
+        (specifier) => import(/* @vite-ignore */ specifier),
+      ),
     )
 
-    expect(modules).toHaveLength(specifiers.length)
+    expect(modules).toHaveLength(runtimeSpecifiers.length)
     expect(
       modules.every(
         (module, index) =>
-          typeOnlySpecifiers.has(specifiers[index]!) ||
+          typeOnlySpecifiers.has(runtimeSpecifiers[index]!) ||
           Object.keys(module).length > 0,
       ),
     ).toBe(true)

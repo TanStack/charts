@@ -12,8 +12,8 @@ import {
   whenFocused,
 } from '@tanstack/charts'
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources'
-import { Chart as NestedChart } from '@tanstack/react-charts'
-import { Chart as TooltipChart } from '@tanstack/react-charts/tooltip'
+import { Chart as NestedChart } from '@tanstack/charts/react'
+import { Chart as TooltipChart } from '@tanstack/charts/react/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'

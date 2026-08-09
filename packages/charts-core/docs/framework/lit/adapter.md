@@ -4,13 +4,13 @@ description: Render TanStack Charts with a light-DOM Lit custom element.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/lit-charts lit
+pnpm add @tanstack/charts lit
 ```
 
 Register the element once:
 
 ```ts
-import { defineChartElement } from '@tanstack/lit-charts'
+import { defineChartElement } from '@tanstack/charts/lit'
 
 defineChartElement()
 ```

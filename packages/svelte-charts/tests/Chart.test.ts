@@ -3,11 +3,13 @@ import type { Snippet } from 'svelte'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
 import type { ChartTooltipContent } from '@tanstack/charts'
+import {
+  Chart,
+  type ChartTooltipBodySnippetContext,
+} from '@tanstack/charts/svelte'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
 import { scaleLinear } from 'd3-scale'
-import Chart from '../src/Chart.svelte'
-import type { ChartTooltipBodySnippetContext } from '../src/types'
 import TooltipBodyFixture from './TooltipBodyFixture.svelte'
 
 const rows = [

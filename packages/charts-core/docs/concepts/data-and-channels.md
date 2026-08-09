@@ -110,7 +110,7 @@ explicit ordinal scale when a category must always map to the same color across
 charts, filters, and sessions.
 
 ```ts
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
 
 const segmentColor = scaleOrdinal(
   ['Consumer', 'Enterprise', 'Public'],
@@ -283,8 +283,8 @@ responsive layout work.
 ```ts group=bubble-scatter env=charts file=/src/chart.ts entry
 import { scaleSqrt } from 'd3-scale'
 import { colorLegend, defineChart, dot } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
 import { penguins, type PenguinsRow } from './data'
 
 type CompletePenguin = PenguinsRow & {

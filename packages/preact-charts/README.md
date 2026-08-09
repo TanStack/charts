@@ -1,15 +1,16 @@
 # `@tanstack/preact-charts`
 
-Preact lifecycle adapter for `@tanstack/charts`.
+This compatibility package remains supported for existing applications. New
+applications use the Preact adapter from `@tanstack/charts/preact`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/preact-charts preact
+pnpm add @tanstack/charts preact
 ```
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/preact-charts'
+import { Chart } from '@tanstack/charts/preact'
 
 const interactiveDefinition = defineChart(definition, { tooltip })
 

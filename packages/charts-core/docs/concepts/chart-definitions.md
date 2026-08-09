@@ -15,8 +15,8 @@ Pass a complete spec when the chart does not need its resolved surface size:
 
 ```ts
 import { barY, defineChart } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 interface AlphabetRow {
   letter: string

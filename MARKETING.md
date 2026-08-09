@@ -1,6 +1,6 @@
 # TanStack Charts Marketing Strategy
 
-Last updated: 2026-08-06
+Last updated: 2026-08-09
 
 ## Status
 
@@ -51,9 +51,10 @@ visual encodings. Compact TanStack primitives and native D3 callables compose
 inside the same definition. TanStack compiles it into a renderer-neutral keyed
 scene and owns the application runtime around it.
 
-**Framework position:** The core is framework-independent. `0.8.0` ships thin
-adapters for React, Vue, Svelte, Solid, Angular, Preact, Lit, Alpine, and
-Octane. React and Octane also have Canvas components over the same runtime.
+**Framework position:** The core is framework-independent. One
+`@tanstack/charts` installation exposes thin adapter subpaths for React, Vue,
+Svelte, Solid, Angular, Preact, Lit, Alpine, Octane, and React Native. React and
+Octane also have Canvas components over the same runtime.
 
 **Lineage:** TanStack Charts builds on the grammar-of-graphics tradition
 established by Leland Wilkinson and developed through ggplot2, Vega-Lite, and
@@ -181,8 +182,10 @@ and scene protocol to their lifecycle.
 ### Capability-level bundle ownership
 
 Marks, transforms, layouts, renderers, interaction helpers, export, and
-optional D3-backed algorithms are independently imported. There is no global
-module registry or side-effectful feature installation.
+optional D3-backed algorithms are independently imported from exact
+`@tanstack/charts` subpaths. Framework adapters and compact scales use the same
+package without collapsing those module boundaries. There is no global module
+registry or side-effectful feature installation.
 
 ## Competitive landscape
 

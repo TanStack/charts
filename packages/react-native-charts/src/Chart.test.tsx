@@ -15,6 +15,12 @@ import { barY } from '@tanstack/charts/bar'
 import { crosshair } from '@tanstack/charts/crosshair'
 import { createChartCursor, cursorHost } from '@tanstack/charts/cursor'
 import { whenFocused } from '@tanstack/charts/focus/mark'
+import { Chart } from '@tanstack/charts/react-native'
+import {
+  tooltip,
+  type NativeChartTooltipComponent,
+  type NativeChartTooltipExtension,
+} from '@tanstack/charts/react-native/tooltip'
 import type {
   ChartDefinition,
   ChartCursorController,
@@ -24,12 +30,6 @@ import type {
   ChartTextMeasureOptions,
   ChartTooltipExtensionToken,
 } from '@tanstack/charts/types'
-import { Chart } from './Chart'
-import {
-  tooltip,
-  type NativeChartTooltipComponent,
-  type NativeChartTooltipExtension,
-} from './tooltip-entry'
 
 const nativeChartRoot = vi.hoisted(() => ({
   props: null as null | Record<string, unknown>,
@@ -574,7 +574,7 @@ describe('React Native Chart', () => {
           height={260}
         />,
       ),
-    ).toThrow('tooltip extension from @tanstack/react-native-charts/tooltip')
+    ).toThrow('tooltip extension from @tanstack/charts/react-native/tooltip')
   })
 
   it('creates branded native tooltip extensions without singleton identity', () => {

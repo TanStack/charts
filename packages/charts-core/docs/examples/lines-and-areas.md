@@ -30,8 +30,8 @@ Points keep the individual observations available for focus and tooltips.
 
 ```ts group=basic-line env=charts file=/src/chart.ts entry
 import { defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 
 const rows = [
   { month: 'Jan', downloads: 42 },

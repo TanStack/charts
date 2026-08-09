@@ -4,7 +4,7 @@ description: Render and hydrate TanStack Charts with Vue 3.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/vue-charts vue
+pnpm add @tanstack/charts vue
 ```
 
 ```vue
@@ -12,7 +12,7 @@ pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/vue-charts vue
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { computed } from 'vue'
-import { Chart } from '@tanstack/vue-charts'
+import { Chart } from '@tanstack/charts/vue'
 
 const definition = computed(() =>
   defineChart(createRevenueChart(rows.value), { tooltip }),

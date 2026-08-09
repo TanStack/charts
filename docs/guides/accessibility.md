@@ -164,7 +164,7 @@ in the application, bound to the same controlled selected key.
 
 ```tsx group=linked-chart-table env=charts-react file=/src/App.tsx entry
 import { useMemo, useState } from 'react'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { createDefinition } from './chart'
 import { rows } from './data'
 
@@ -241,7 +241,7 @@ export default function App() {
 
 ```ts group=linked-chart-table file=/src/chart.ts
 import { defineChart, dot } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 import { rows, type Observation } from './data'

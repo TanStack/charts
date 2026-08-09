@@ -452,14 +452,14 @@ Import the optional first-party behavior and bind it to application state:
 ```tsx group=controlled-brush env=charts-react file=/src/App.tsx entry
 import { useMemo, useState } from 'react'
 import { defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import {
   brushX,
   type BrushRange,
   type BrushXChange,
 } from '@tanstack/charts/interaction/brush'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { rows } from './data'
 
 const weeks = rows.map((row) => row.week)

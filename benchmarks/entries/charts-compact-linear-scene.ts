@@ -1,5 +1,5 @@
 import { createChartScene, defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const definition = defineChart({
   marks: [lineY([4, 9, 7])],

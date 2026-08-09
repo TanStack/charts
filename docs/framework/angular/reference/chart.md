@@ -1,10 +1,10 @@
 ---
 title: Angular Chart
-description: Complete option and type reference for the @tanstack/angular-charts standalone component.
+description: Complete option and type reference for the @tanstack/charts/angular standalone component.
 ---
 
 ```ts
-import { Chart } from '@tanstack/angular-charts'
+import { Chart } from '@tanstack/charts/angular'
 ```
 
 `Chart` is a standalone component with selector `tanstack-chart`. Its required

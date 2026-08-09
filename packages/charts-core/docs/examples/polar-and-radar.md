@@ -105,7 +105,7 @@ separate geometry implementation.
 ```ts group=polar-partial-gauge env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
 import { pie, polar, radialArc, radialText } from '@tanstack/charts/polar'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const value = Math.max(0, Math.min(100, 72))
 const reading = { id: 'complete', value } as const
@@ -170,8 +170,8 @@ import {
   radialGrid,
   radialLine,
 } from '@tanstack/charts/polar'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 import { curveLinearClosed } from 'd3-shape'
 import { events } from './data'
 import { profile } from './normalize'
@@ -304,7 +304,7 @@ import {
   radialGrid,
   radialLine,
 } from '@tanstack/charts/polar'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { dayOfYearAngle, seattle2012 } from './weather'
 
 export default defineChart({
@@ -367,7 +367,7 @@ as explicit transforms over source `u` and `v` measurements.
 ```ts group=polar-scatter env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
 import { angleGrid, polar, radialDot, radialGrid } from '@tanstack/charts/polar'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { latitudeBand, windDirection, windSpeed } from './wind'
 
 export default defineChart({
@@ -430,8 +430,8 @@ each radius band. Band padding controls categorical occupancy.
 ```ts group=polar-radial-bars env=charts file=/src/chart.ts entry
 import { defineChart } from '@tanstack/charts'
 import { polar, radialBarRadius } from '@tanstack/charts/polar'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { frequencies } from './data'
 
 const letters = frequencies.map((row) => row.letter)

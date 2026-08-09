@@ -49,10 +49,10 @@ Use this order before adding `d3-scale`:
 
 | Semantic need                                        | First choice                      |
 | ---------------------------------------------------- | --------------------------------- |
-| Numeric two-stop axis                                | `@tanstack/charts-scales/linear`  |
-| Categorical intervals such as bars                   | `@tanstack/charts-scales/band`    |
-| Categorical positions such as dots                   | `@tanstack/charts-scales/point`   |
-| Categorical colors                                   | `@tanstack/charts-scales/ordinal` |
+| Numeric two-stop axis                                | `@tanstack/charts/scales/linear`  |
+| Categorical intervals such as bars                   | `@tanstack/charts/scales/band`    |
+| Categorical positions such as dots                   | `@tanstack/charts/scales/point`   |
+| Categorical colors                                   | `@tanstack/charts/scales/ordinal` |
 | Time, UTC, nonlinear, piecewise, or continuous color | Granular `d3-scale` import        |
 
 Pass the compact factory itself when the rendered channels should determine
@@ -79,7 +79,7 @@ Generated code should include:
 - stable inferred or explicit identity;
 - empty and constant-domain policies when applicable.
 
-For a compact chart, import exact `@tanstack/charts-scales/*` entries and do not
+For a compact chart, import exact `@tanstack/charts/scales/*` entries and do not
 add `d3-scale` or `@types/d3-scale`. If an advanced scale requires D3, declare
 the granular runtime and matching type package as direct application
 dependencies and state which missing compact capability required the upgrade.

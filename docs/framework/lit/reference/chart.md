@@ -1,10 +1,10 @@
 ---
 title: Lit Chart
-description: Complete option and type reference for the @tanstack/lit-charts custom element.
+description: Complete option and type reference for the @tanstack/charts/lit custom element.
 ---
 
 ```ts
-import { Chart, defineChartElement } from '@tanstack/lit-charts'
+import { Chart, defineChartElement } from '@tanstack/charts/lit'
 ```
 
 `defineChartElement()` registers `Chart` as `tanstack-chart`. Pass the complete

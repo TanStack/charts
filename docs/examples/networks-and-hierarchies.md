@@ -149,7 +149,7 @@ Use the exact optional transform for a static tidy tree:
 ```ts group=hierarchy-tree env=charts file=/src/chart.ts entry
 import { defineChart, dot, link, text } from '@tanstack/charts'
 import { treeLayout } from '@tanstack/charts/hierarchy/tree'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { rows } from './data'
 
 const hierarchy = treeLayout(rows, {

@@ -6,7 +6,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 
 - docs/overview.md — Overview: Learn what TanStack Charts provides, how its grammar works, and where charting responsibilities belong.
 - docs/comparison.md — Compare Libraries: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
-- docs/installation.md — Installation: Install TanStack Charts, compact scales, a framework adapter, and optional D3 capabilities.
+- docs/installation.md — Installation: Install TanStack Charts with compact scales, framework adapters, and optional capabilities behind exact subpaths.
 - docs/quick-start.md — Quick Start: Build, mount, update, and clean up a responsive TanStack Charts line chart with fully inferred types.
 - docs/framework/react/quick-start.md — React Quick Start: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
 - docs/framework/react/adapter.md — React Adapter: Understand the thin React lifecycle, SSR, hydration, update, sizing, class, and style behavior around the shared chart host.
@@ -72,15 +72,15 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/reference/motion.md — Motion: Optional SVG tween and spring motion, definition-local timing, interruption behavior, reduced motion, and the standalone spring sampler.
 - docs/reference/custom-extensions.md — Custom Extensions: Extend TanStack Charts with custom marks, distinct scale values, curves, scales, color, legends, text measurement, spatial indexes, and renderers.
 - docs/reference/types.md — Types: Public TypeScript types, inference rules, channels, definitions, scenes, hosts, focus, rendering, and custom extension contracts.
-- docs/framework/react/reference/chart.md — React Chart: Complete prop and type reference for the @tanstack/react-charts Chart component.
-- docs/framework/preact/reference/chart.md — Preact Chart: Complete prop and type reference for the @tanstack/preact-charts Chart component.
-- docs/framework/vue/reference/chart.md — Vue Chart: Complete prop and type reference for the @tanstack/vue-charts Chart component.
-- docs/framework/solid/reference/chart.md — Solid Chart: Complete prop and type reference for the @tanstack/solid-charts Chart component.
-- docs/framework/svelte/reference/chart.md — Svelte Chart: Complete prop and type reference for the @tanstack/svelte-charts Chart component.
-- docs/framework/angular/reference/chart.md — Angular Chart: Complete option and type reference for the @tanstack/angular-charts standalone component.
-- docs/framework/lit/reference/chart.md — Lit Chart: Complete option and type reference for the @tanstack/lit-charts custom element.
-- docs/framework/alpine/reference/chart.md — Alpine Chart: Complete option and type reference for the @tanstack/alpine-charts x-chart directive.
-- docs/framework/octane/reference/chart.md — Octane Chart: Complete prop and type reference for the @tanstack/octane-charts Chart component.
+- docs/framework/react/reference/chart.md — React Chart: Complete prop and type reference for the @tanstack/charts/react Chart component.
+- docs/framework/preact/reference/chart.md — Preact Chart: Complete prop and type reference for the @tanstack/charts/preact Chart component.
+- docs/framework/vue/reference/chart.md — Vue Chart: Complete prop and type reference for the @tanstack/charts/vue Chart component.
+- docs/framework/solid/reference/chart.md — Solid Chart: Complete prop and type reference for the @tanstack/charts/solid Chart component.
+- docs/framework/svelte/reference/chart.md — Svelte Chart: Complete prop and type reference for the @tanstack/charts/svelte Chart component.
+- docs/framework/angular/reference/chart.md — Angular Chart: Complete option and type reference for the @tanstack/charts/angular standalone component.
+- docs/framework/lit/reference/chart.md — Lit Chart: Complete option and type reference for the @tanstack/charts/lit custom element.
+- docs/framework/alpine/reference/chart.md — Alpine Chart: Complete option and type reference for the @tanstack/charts/alpine x-chart directive.
+- docs/framework/octane/reference/chart.md — Octane Chart: Complete prop and type reference for the @tanstack/charts/octane Chart component.
 - docs/reference/marks/line-and-area.md — Line and Area Marks: Reference for lineY, lineX, areaY, areaX, grouping, null gaps, interval baselines, points, and optional curve bridges.
 - docs/reference/marks/difference.md — Difference Marks: Reference for differenceY and differenceX comparison areas, exact crossings, grouping, gaps, lineage, styling, and interaction.
 - docs/reference/marks/regression.md — Linear Regression Marks: Reference for eager linearRegressionRowsY/X data and linearRegressionY/X least-squares marks, confidence bands, grouping, sampling, lineage, and interaction.
@@ -108,7 +108,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 Authoring rules:
 
 - Use TanStack data transforms for common group, bin, window, cumulative, rank, normalize, select, and row-stack preparation.
-- Start with exact @tanstack/charts-scales/linear, @tanstack/charts-scales/band, @tanstack/charts-scales/point, or @tanstack/charts-scales/ordinal entries. Upgrade only the mapping that needs temporal, nonlinear, radial, interpolated, statistical, or other complete D3 semantics; never import the d3 umbrella.
+- Start with exact @tanstack/charts/scales/linear, @tanstack/charts/scales/band, @tanstack/charts/scales/point, or @tanstack/charts/scales/ordinal entries. Upgrade only the mapping that needs temporal, nonlinear, radial, interpolated, statistical, or other complete D3 semantics; never import the d3 umbrella.
 - Treat Date values on compact band or point scales as equally spaced categories. Use d3-scale scaleTime or scaleUtc when elapsed-time spacing or calendar-aware ticks matter.
 - Let TanStack Charts own responsive pixel ranges. Scale factories infer domains from mark channels; configured instances preserve application-owned domains.
 - Keep data in its application shape. Map fields or accessors into marks instead of creating a library-owned series model.

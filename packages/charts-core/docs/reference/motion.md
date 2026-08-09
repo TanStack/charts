@@ -72,8 +72,8 @@ or axis label is inert policy. The optional renderer consumes it. Definitions
 remain valid for static SVG and Canvas, which paint the final state.
 
 ```ts
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const definition = defineChart({
   motion: {

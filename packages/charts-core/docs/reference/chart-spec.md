@@ -49,7 +49,7 @@ channels and defaults live in the [mark reference](./index.md#mark-reference).
 ```ts
 import { areaY, defineChart, lineY, ruleY } from '@tanstack/charts'
 import { scaleUtc } from 'd3-scale'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const definition = defineChart({
   marks: [

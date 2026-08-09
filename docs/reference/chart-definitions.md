@@ -39,7 +39,7 @@ Use a static definition when its data and visual options are already known:
 
 ```ts
 import { scaleUtc } from 'd3-scale'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const definition = defineChart({
   marks: [lineY(rows, { x: 'date', y: 'value' })],
@@ -61,8 +61,8 @@ Use a configuration object when the spec depends on the resolved chart
 surface:
 
 ```ts
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const definition = defineChart({
   svgAnimation: true,
@@ -131,8 +131,8 @@ A definition captures application values. Its identity is the application
 update boundary: keep it stable until a captured value changes.
 
 ```tsx
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const definition = useMemo(() => {
   const ranked = rows

@@ -1,10 +1,10 @@
 ---
 title: Preact Chart
-description: Complete prop and type reference for the @tanstack/preact-charts Chart component.
+description: Complete prop and type reference for the @tanstack/charts/preact Chart component.
 ---
 
 ```tsx
-import { Chart } from '@tanstack/preact-charts'
+import { Chart } from '@tanstack/charts/preact'
 ```
 
 The definition infers datum and coordinate types for every callback. Replace

@@ -2,7 +2,7 @@ import { scaleLinear } from 'd3-scale'
 import { lineY } from '@tanstack/charts/line'
 import { defineChart } from '@tanstack/charts/scene'
 
-export { Chart } from '@tanstack/react-native-charts'
+export { Chart } from '@tanstack/charts/react-native'
 
 export const definition = defineChart({
   marks: [lineY([4, 9, 7])],

@@ -1,5 +1,5 @@
 import { defineChart, lineY } from '@tanstack/charts'
-import { Chart } from '@tanstack/octane-charts/canvas'
+import { Chart } from '@tanstack/charts/octane/canvas'
 import { scaleLinear } from 'd3-scale'
 
 const data = [

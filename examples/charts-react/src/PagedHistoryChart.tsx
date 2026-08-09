@@ -11,7 +11,7 @@ import {
   type ChartScene,
 } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 
 const pageCount = 4

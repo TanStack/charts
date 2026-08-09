@@ -36,8 +36,8 @@ Native adapter consumes definitions from the universal entry.
 
 ```ts group=overview-composition env=charts file=/src/chart.ts entry
 import { defineChart, dot, lineY } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const signups = [
   { month: 'Jan', value: 42 },
@@ -99,7 +99,7 @@ narrow imports.
 
 | Responsibility                                                                                         | Owner                                                            |
 | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
-| Common numeric and categorical scale mappings                                                          | `@tanstack/charts-scales`                                        |
+| Common numeric and categorical scale mappings                                                          | Exact `@tanstack/charts/scales/*` subpaths                       |
 | Common group, bin, rollingWindow, normalize, select, and row-stack transforms                          | TanStack's eager data-transform helpers                          |
 | Temporal, nonlinear, piecewise, spatial, and other specialized algorithms                              | Exact TanStack entries, granular D3 modules, or application code |
 | Fetching, cleaning, profiling, and exploratory analysis                                                | Your data layer, server, or AI workflow                          |
@@ -127,29 +127,19 @@ The normal path is intentionally short:
 
 Every automatic behavior has an explicit escape hatch. The [Guides](./guides/responsive-charts.md) cover those controls by task rather than repeating the API reference.
 
-## Packages
+## Package subpaths
 
-| Package                         | Use it for                                                       |
-| ------------------------------- | ---------------------------------------------------------------- |
-| `@tanstack/charts`              | Definitions, marks, scenes, SVG, Canvas, export, and vanilla DOM |
-| `@tanstack/charts-scales`       | Compact linear, band, point, and ordinal scales                  |
-| `@tanstack/react-charts`        | React `<Chart>`                                                  |
-| `@tanstack/react-native-charts` | Experimental React Native SVG `<Chart>`                          |
-| `@tanstack/preact-charts`       | Preact `<Chart>`                                                 |
-| `@tanstack/vue-charts`          | Vue `<Chart>`                                                    |
-| `@tanstack/solid-charts`        | Solid `<Chart>`                                                  |
-| `@tanstack/svelte-charts`       | Svelte `<Chart>`                                                 |
-| `@tanstack/angular-charts`      | Angular `<tanstack-chart>`                                       |
-| `@tanstack/lit-charts`          | Lit `<tanstack-chart>`                                           |
-| `@tanstack/alpine-charts`       | Alpine `x-chart`                                                 |
-| `@tanstack/octane-charts`       | Octane `<Chart>`                                                 |
-
-All packages are ESM and tree-shakeable. Built-in marks and optional capabilities also have subpath exports when a library or design system needs tighter bundle boundaries.
+Install only `@tanstack/charts`. Its ESM subpaths expose compact scales,
+framework adapters, renderers, and optional capabilities while preserving
+their tree-shakeable module boundaries. For example, React uses
+`@tanstack/charts/react`, React Native uses
+`@tanstack/charts/react-native`, and compact linear scales use
+`@tanstack/charts/scales/linear`.
 
 ## Where to go next
 
 - [Compare Libraries](./comparison.md) — evaluate Chart.js, Apache ECharts, Recharts, Observable Plot, and TanStack Charts against the pinned evidence.
-- [Installation](./installation.md) — install the core, compact scales, an adapter, and any advanced D3 modules your charts import.
+- [Installation](./installation.md) — install Charts, framework peers, and any D3 modules your source imports directly.
 - [Quick Start](./quick-start.md) — define, mount, update, and destroy a responsive chart.
 - [Grammar of Graphics](./concepts/grammar-of-graphics.md) — understand how data, marks, channels, scales, and layers fit together.
 - [Choosing a Chart](./guides/choosing-a-chart.md) — start from the analytical question.

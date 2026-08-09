@@ -7,10 +7,10 @@ This walkthrough uses the framework-agnostic DOM host. The same chart
 definition passes unchanged to any supported
 [framework adapter](./installation.md#framework-compatibility).
 
-Install the core and compact scales:
+Install TanStack Charts:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales
+pnpm add @tanstack/charts
 ```
 
 ## 1. Add a chart container
@@ -26,8 +26,8 @@ The host follows the container width when `width` is omitted.
 <!-- docs-example: core-quick-start typecheck -->
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 import { defineChart, lineY, mountChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 

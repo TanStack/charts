@@ -97,12 +97,9 @@ components.
 Project-relative imports must stay within `/src`. Each environment exposes an
 explicit dependency set:
 
-- `charts`: `@tanstack/charts`, `@tanstack/charts-scales`, `d3-geo`,
-  `d3-scale`, and `d3-shape`.
-- `charts-react`: the Charts dependencies plus `@tanstack/react-charts`,
-  `react`, and `react-dom`.
-- `charts-octane`: the Charts dependencies plus `@tanstack/octane-charts` and
-  `octane`.
+- `charts`: `@tanstack/charts`, `d3-geo`, `d3-scale`, and `d3-shape`.
+- `charts-react`: the Charts dependencies plus `react` and `react-dom`.
+- `charts-octane`: the Charts dependencies plus `octane`.
 
 Keep data preparation, scale choices, definitions, and application behavior
 in inspectable files. The environment may hide only invariant bootstrap such

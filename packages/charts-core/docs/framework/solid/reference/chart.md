@@ -1,10 +1,10 @@
 ---
 title: Solid Chart
-description: Complete prop and type reference for the @tanstack/solid-charts Chart component.
+description: Complete prop and type reference for the @tanstack/charts/solid Chart component.
 ---
 
 ```tsx
-import { Chart } from '@tanstack/solid-charts'
+import { Chart } from '@tanstack/charts/solid'
 ```
 
 The definition infers datum and coordinate types for every callback. Replace

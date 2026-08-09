@@ -1,11 +1,11 @@
 ---
 title: Svelte Chart
-description: Complete prop and type reference for the @tanstack/svelte-charts Chart component.
+description: Complete prop and type reference for the @tanstack/charts/svelte Chart component.
 ---
 
 ```svelte
 <script lang="ts">
-  import { Chart } from '@tanstack/svelte-charts'
+  import { Chart } from '@tanstack/charts/svelte'
 </script>
 ```
 

@@ -9,7 +9,7 @@ primitive for heatmaps, interval blocks, and cells.
 
 ```ts
 import { barX, barY, cell, group, rect, stack } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleBand } from '@tanstack/charts/scales/band'
 ```
 
 ## `barY`

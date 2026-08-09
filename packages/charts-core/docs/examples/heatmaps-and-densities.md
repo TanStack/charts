@@ -32,7 +32,7 @@ visible.
 
 ```ts group=labeled-matrix env=charts file=/src/chart.ts entry
 import { cell, colorGradientLegend, defineChart, text } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from 'd3-scale'
 import { quarters, scores, teams } from './data'
 

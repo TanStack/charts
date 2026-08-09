@@ -15,21 +15,22 @@ The package root is the ergonomic path for ordinary charts:
 import { defineChart, lineY } from '@tanstack/charts'
 ```
 
-Use the compact scale package for common numeric and categorical mappings:
+The same package provides exact scale subpaths for common numeric and
+categorical mappings:
 
 ```sh
-pnpm add @tanstack/charts-scales
+pnpm add @tanstack/charts
 ```
 
 ```ts
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
+import { scalePoint } from '@tanstack/charts/scales/point'
 ```
 
-There is no package root export. Each exact entry retains only its family, and
-the package has no production D3 dependency.
+There is no aggregate `/scales` export. Each exact entry retains only its
+family and has no production D3 dependency.
 
 Capability subpaths make optional boundaries explicit:
 
@@ -52,15 +53,15 @@ import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 import { d3Curve } from '@tanstack/charts/d3/shape'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { groupBy } from '@tanstack/charts/transform/group'
 import { rollingWindow } from '@tanstack/charts/transform/rolling-window'
 ```
 
 Canvas is opt-in. The default core and every default framework entry remain
 SVG-based. Canvas enters the module graph only through
-`@tanstack/charts/canvas`, `@tanstack/react-charts/canvas`, or
-`@tanstack/octane-charts/canvas`. The React and Octane `/core` entries accept
+`@tanstack/charts/canvas`, `@tanstack/charts/react/canvas`, or
+`@tanstack/charts/octane/canvas`. The React and Octane `/core` entries accept
 an application-supplied renderer without importing Canvas.
 
 Non-cartesian geometry is subpath-only:
@@ -180,7 +181,7 @@ The upgrade is per scale. A calendar x axis can use D3 while its numeric y axis
 stays compact:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scaleUtc } from 'd3-scale'
 
 const x = { scale: scaleUtc, nice: true }

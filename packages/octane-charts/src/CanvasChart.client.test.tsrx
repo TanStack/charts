@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
 import type { ChartPoint, ChartRendererRenderContext } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/octane-charts/canvas'
+import { Chart } from '@tanstack/charts/octane/canvas'
 import { scaleLinear } from 'd3-scale'
 import { createServer } from 'vite'
 import { HydrationCanvasChart } from './CanvasChart.hydration.fixture'
@@ -228,7 +228,7 @@ async function renderServerHydrationFixture(): Promise<string> {
     },
     server: { middlewareMode: true },
     ssr: {
-      noExternal: ['@tanstack/octane-charts'],
+      noExternal: ['@tanstack/charts'],
     },
   })
   try {

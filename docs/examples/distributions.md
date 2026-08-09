@@ -52,7 +52,7 @@ can look like a changed distribution.
 
 ```ts group=basic-histogram env=charts file=/src/chart.ts entry
 import { binX, defineChart, rect } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const responseTimes = [
   82, 91, 96, 103, 108, 112, 118, 121, 127, 131, 138, 144, 149, 153, 162, 171,

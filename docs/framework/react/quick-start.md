@@ -3,10 +3,10 @@ title: React Quick Start
 description: Install the React adapter, define a typed chart, render responsive SVG, and add native interaction.
 ---
 
-Install the framework adapter, core grammar, compact scales, and React peers:
+Install TanStack Charts and its React peers:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/react-charts react react-dom
+pnpm add @tanstack/charts react react-dom
 pnpm add -D @types/react @types/react-dom
 ```
 
@@ -18,11 +18,11 @@ compact scale families and when a chart needs D3 instead.
 Definitions are ordinary framework-independent TypeScript:
 
 ```tsx group=react-quick-start env=charts-react file=/src/App.tsx entry
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { barY, defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { alphabet } from './data'
 
 const percent = new Intl.NumberFormat('en-US', {
@@ -183,12 +183,12 @@ and application-owned interaction are documented in
 
 ## Render React tooltip content
 
-Keep `Chart` from `@tanstack/react-charts` when the built-in tooltip is enough.
+Keep `Chart` from `@tanstack/charts/react` when the built-in tooltip is enough.
 To pass `renderTooltipBody`, switch the component import to the optional React
 tooltip entry:
 
 ```tsx
-import { Chart } from '@tanstack/react-charts/tooltip'
+import { Chart } from '@tanstack/charts/react/tooltip'
 
 ;<Chart
   definition={letterFrequencyChart}
@@ -204,7 +204,7 @@ import { Chart } from '@tanstack/react-charts/tooltip'
 ```
 
 Existing `renderTooltipBody` users should migrate the component import from
-`@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. The definition
+`@tanstack/charts/react` to `@tanstack/charts/react/tooltip`. The definition
 still uses `tooltip` from `@tanstack/charts/tooltip`.
 
 Continue with the [React adapter](./adapter.md) for lifecycle and SSR, the

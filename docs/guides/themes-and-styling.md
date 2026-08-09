@@ -108,8 +108,8 @@ Gradients are opt-in resources. Declare them on the chart:
 
 ```ts group=gradient-area env=charts file=/src/chart.ts entry
 import { areaY, defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 import { rows } from './data'
 
 export default defineChart({

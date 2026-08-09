@@ -220,7 +220,7 @@ Clipping applies to the chart’s mark group, not axes or legends. Leave it off 
 ```ts group=temperature-range env=charts file=/src/chart.ts entry
 import { scaleUtc } from 'd3-scale'
 import { areaY, defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { sfTemperatures } from './data'
 
 export default defineChart({

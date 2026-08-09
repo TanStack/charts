@@ -3,11 +3,10 @@ title: Octane Quick Start
 description: Install the Octane adapter, define a typed chart, render responsive SSR-safe SVG, and add native interaction.
 ---
 
-Install the framework adapter, core grammar, compact scales, and the Octane
-peer:
+Install TanStack Charts and its Octane peer:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/octane-charts octane
+pnpm add @tanstack/charts octane
 ```
 
 The shared [Scales](../../concepts/scales-and-d3.md) page explains the
@@ -18,11 +17,11 @@ compact scale families and when a chart needs D3 instead.
 Definitions are framework-independent and can be shared with any adapter:
 
 ```tsx group=octane-quick-start env=charts-octane file=/src/App.tsrx entry
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { barY, defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/octane-charts'
+import { Chart } from '@tanstack/charts/octane'
 import { alphabet } from './data'
 
 const percent = new Intl.NumberFormat('en-US', {

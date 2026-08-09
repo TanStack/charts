@@ -1,7 +1,7 @@
 import { renderToString } from 'octane/server'
 import { describe, expect, it, vi } from 'vitest'
 import { defineChart, lineY } from '@tanstack/charts'
-import { Chart } from '@tanstack/octane-charts/canvas'
+import { Chart } from '@tanstack/charts/octane/canvas'
 import { scaleLinear } from 'd3-scale'
 
 const data = [

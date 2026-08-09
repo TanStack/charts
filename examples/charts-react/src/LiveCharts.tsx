@@ -2,7 +2,7 @@ import * as React from 'react'
 import { areaY, defineChart, dot, lineY, ruleY } from '@tanstack/charts'
 import { motion } from '@tanstack/charts/motion'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts/core'
+import { Chart } from '@tanstack/charts/react/core'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 
 const tickMs = 800

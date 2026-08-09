@@ -28,7 +28,7 @@ model, chronology, or spatial partition.
 
 ```ts group=basic-scatter env=charts file=/src/chart.ts entry
 import { defineChart, dot } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const rows = [
   { temperature: 12, sales: 18 },

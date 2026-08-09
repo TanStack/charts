@@ -44,8 +44,8 @@ interval.
 
 ```ts group=error-bar env=charts file=/src/chart.ts entry
 import { defineChart, dot, link, tickY } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { estimates } from './data'
 
 export default defineChart({

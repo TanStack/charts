@@ -471,20 +471,7 @@ async function validateDocumentedTanStackImports(
   markdownSources,
   failures,
 ) {
-  const packages = [
-    ['packages/charts-core', '@tanstack/charts'],
-    ['packages/charts-scales', '@tanstack/charts-scales'],
-    ['packages/preact-charts', '@tanstack/preact-charts'],
-    ['packages/react-charts', '@tanstack/react-charts'],
-    ['packages/react-native-charts', '@tanstack/react-native-charts'],
-    ['packages/vue-charts', '@tanstack/vue-charts'],
-    ['packages/solid-charts', '@tanstack/solid-charts'],
-    ['packages/svelte-charts', '@tanstack/svelte-charts'],
-    ['packages/angular-charts', '@tanstack/angular-charts'],
-    ['packages/lit-charts', '@tanstack/lit-charts'],
-    ['packages/alpine-charts', '@tanstack/alpine-charts'],
-    ['packages/octane-charts', '@tanstack/octane-charts'],
-  ]
+  const packages = [['packages/charts-core', '@tanstack/charts']]
   const exportsBySpecifier = new Map()
 
   for (const [packagePath, packageName] of packages) {
@@ -496,13 +483,11 @@ async function validateDocumentedTanStackImports(
       const specifier =
         subpath === '.' ? packageName : `${packageName}/${subpath.slice(2)}`
       const resolvedSourcePath = resolveExportSource(sourcePath)
-      const source = await readFile(
-        resolve(packageRoot, resolvedSourcePath),
-        'utf8',
-      )
       exportsBySpecifier.set(
         specifier,
-        new Set(exportedNames(source, resolvedSourcePath)),
+        await exportedNamesFromSourceFile(
+          resolve(packageRoot, resolvedSourcePath),
+        ),
       )
     }
   }
@@ -541,34 +526,15 @@ async function validateDocumentedTanStackImports(
 }
 
 async function validateApiCoverage(repositoryRoot, markdownSources, failures) {
-  const packages = [
-    ['charts-core', '@tanstack/charts', 'reference/'],
-    ['charts-scales', '@tanstack/charts-scales', 'reference/'],
-    ['react-charts', '@tanstack/react-charts', 'framework/react/'],
-    ['preact-charts', '@tanstack/preact-charts', 'framework/preact/'],
-    ['vue-charts', '@tanstack/vue-charts', 'framework/vue/'],
-    ['solid-charts', '@tanstack/solid-charts', 'framework/solid/'],
-    ['svelte-charts', '@tanstack/svelte-charts', 'framework/svelte/'],
-    ['angular-charts', '@tanstack/angular-charts', 'framework/angular/'],
-    ['lit-charts', '@tanstack/lit-charts', 'framework/lit/'],
-    ['alpine-charts', '@tanstack/alpine-charts', 'framework/alpine/'],
-    ['octane-charts', '@tanstack/octane-charts', 'framework/octane/'],
-  ]
-
-  for (const [directory, packageName, referencePath] of packages) {
-    const referenceSources = [...markdownSources].filter(([path]) =>
-      path.startsWith(referencePath),
-    )
-    await validatePackageCoverage(
-      resolve(repositoryRoot, 'packages', directory),
-      packageName,
-      joinSources(markdownSources, referencePath),
-      referenceSources
-        .map(([path, source]) => stripNameOnlyApiInventories(path, source))
-        .join('\n'),
-      failures,
-    )
-  }
+  await validatePackageCoverage(
+    resolve(repositoryRoot, 'packages/charts-core'),
+    '@tanstack/charts',
+    joinSources(markdownSources, ''),
+    [...markdownSources]
+      .map(([path, source]) => stripNameOnlyApiInventories(path, source))
+      .join('\n'),
+    failures,
+  )
 }
 
 async function validateComparisonEvidence(
@@ -724,12 +690,11 @@ async function validatePackageCoverage(
       failures.push(`API reference does not name package export ${specifier}`)
     }
     const resolvedSourcePath = resolveExportSource(sourcePath)
-    const source = await readFile(
+    for (const name of await exportedNamesFromSourceFile(
       resolve(packageRoot, resolvedSourcePath),
-      'utf8',
-    )
-    for (const name of exportedNames(source, resolvedSourcePath))
+    )) {
       names.add(name)
+    }
   }
 
   for (const specifier of documentedSpecifiers) {
@@ -822,6 +787,68 @@ function resolveExportSource(source) {
     if (typeof source?.[condition] === 'string') return source[condition]
   }
   throw new TypeError('Package export does not identify a source file')
+}
+
+async function exportedNamesFromSourceFile(filename, seen = new Set()) {
+  const resolvedFilename = resolve(filename)
+  if (seen.has(resolvedFilename)) return new Set()
+  seen.add(resolvedFilename)
+
+  const source = await readFile(resolvedFilename, 'utf8')
+  const names = new Set(exportedNames(source, resolvedFilename))
+  const file = ts.createSourceFile(
+    resolvedFilename,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    resolvedFilename.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  )
+
+  for (const statement of file.statements) {
+    if (
+      !ts.isExportDeclaration(statement) ||
+      statement.exportClause ||
+      !statement.moduleSpecifier ||
+      !ts.isStringLiteral(statement.moduleSpecifier) ||
+      !statement.moduleSpecifier.text.startsWith('.')
+    ) {
+      continue
+    }
+    const target = await resolveReexportSourceFile(
+      resolvedFilename,
+      statement.moduleSpecifier.text,
+    )
+    for (const name of await exportedNamesFromSourceFile(target, seen)) {
+      names.add(name)
+    }
+  }
+
+  return names
+}
+
+async function resolveReexportSourceFile(importer, specifier) {
+  const base = resolve(dirname(importer), specifier)
+  const candidates = extname(base)
+    ? [base]
+    : [
+        `${base}.ts`,
+        `${base}.tsx`,
+        `${base}.tsrx`,
+        resolve(base, 'index.ts'),
+        resolve(base, 'index.tsx'),
+        resolve(base, 'index.tsrx'),
+      ]
+
+  for (const candidate of candidates) {
+    try {
+      await readFile(candidate, 'utf8')
+      return candidate
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error
+    }
+  }
+
+  throw new Error(`${importer} re-exports missing source ${specifier}`)
 }
 
 export function exportedNames(source, filename = 'source.ts') {
@@ -961,7 +988,6 @@ export function documentedApiExampleFragments(source) {
 
 const chartDocumentationDependencies = [
   '@tanstack/charts',
-  '@tanstack/charts-scales',
   'd3-geo',
   'd3-scale',
   'd3-shape',
@@ -984,11 +1010,7 @@ const documentationEnvironments = new Map([
     'charts-octane',
     {
       compiler: 'octane',
-      dependencies: new Set([
-        ...chartDocumentationDependencies,
-        '@tanstack/octane-charts',
-        'octane',
-      ]),
+      dependencies: new Set([...chartDocumentationDependencies, 'octane']),
       entryExtensions: new Set(['.tsrx']),
       fileExtensions: new Set(['.ts', '.tsx', '.tsrx']),
       bootstrapExtension: '.ts',
@@ -1002,7 +1024,6 @@ const documentationEnvironments = new Map([
       compiler: 'typescript',
       dependencies: new Set([
         ...chartDocumentationDependencies,
-        '@tanstack/react-charts',
         'react',
         'react-dom',
       ]),
