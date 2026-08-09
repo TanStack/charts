@@ -12,6 +12,10 @@ import type {
   SceneNode,
 } from './types'
 
+const unsafeViewGrid = viewGrid as unknown as (
+  options: object,
+) => import('./types').StaticChartDefinition
+
 interface MainRow {
   id: string
   x: number
@@ -202,7 +206,7 @@ describe('view grids', () => {
       bottom: ReturnType<typeof child>,
       bottomColumn = 'main' as 'main' | 'side',
     ) =>
-      viewGrid({
+      unsafeViewGrid({
         rows: [
           { id: 'top', size: 80 },
           { id: 'bottom', grow: 1 },
@@ -257,7 +261,7 @@ describe('view grids', () => {
     } as const
 
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           { id: 'a', row: 'main', column: 'main', chart },
@@ -266,7 +270,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/same grid cell/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {
@@ -280,7 +284,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/unknown view/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {
@@ -293,7 +297,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/host option "tooltip"/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {
@@ -306,7 +310,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/host option "pointer"/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {
@@ -326,7 +330,7 @@ describe('view grids', () => {
       }),
     ).toThrow(/host option "cursor"/)
     expect(() =>
-      viewGrid({
+      unsafeViewGrid({
         ...base,
         views: [
           {

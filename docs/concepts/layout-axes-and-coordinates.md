@@ -56,7 +56,7 @@ Use `aspectRatio` when height should follow width:
 
 Set a fixed `width` only for an intentionally fixed graphic such as export, print, or email.
 
-Dynamic definitions receive the current `width` and `height`, so presentation can adapt to the chart container:
+Responsive definitions receive the current `width` and `height`, so presentation can adapt to the chart container:
 
 ```ts
 const chart = defineChart(({ width }) => ({
@@ -361,7 +361,7 @@ const overlayStyle = {
 ```
 
 DOM pointer coordinates must first be converted into scene coordinates using
-the rendered surface bounds. Native focus and the first-party brush, cursor,
+the rendered surface bounds. Chart-owned focus and the first-party brush, cursor,
 and zoom behaviors do this automatically against resolved scales. A custom
 gesture can use the resolved scale's optional `invert` operation.
 

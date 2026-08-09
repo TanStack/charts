@@ -3,6 +3,7 @@ import type {
   ChartTextMeasurer,
   ChartTextMeasureOptions,
   ChartTextMetrics,
+  ChartTextTypography,
 } from './types'
 
 interface FontStyle {
@@ -11,11 +12,12 @@ interface FontStyle {
   stretch: CanvasFontStretch
   weight: string
   direction: CanvasDirection
-  letterSpacing: string
+  letterSpacing: number
 }
 
 export interface DomTextMeasurer {
   measureText: ChartTextMeasurer
+  typography: () => ChartTextTypography
   refresh: () => boolean
   invalidate: () => void
 }
@@ -33,15 +35,24 @@ export function createDomTextMeasurer(container: HTMLElement): DomTextMeasurer {
   return {
     measureText(text, options) {
       if (!context) return estimateSceneText(text, options)
-      const key = `${signature}\u0000${options.fontSize}\u0000${options.fontWeight ?? ''}\u0000${options.anchor}\u0000${options.baseline}\u0000${text}`
+      const key = `${signature}\u0000${options.fontSize}\u0000${options.fontWeight ?? ''}\u0000${options.fontFamily}\u0000${options.fontStyle}\u0000${options.fontStretch}\u0000${options.letterSpacing}\u0000${options.direction}\u0000${options.locale ?? ''}\u0000${options.fontScale}\u0000${options.anchor}\u0000${options.baseline}\u0000${text}`
       const cached = cache.get(key)
       if (cached) return cached
 
-      configureContext(context, style, options)
+      configureContext(context, style.weight, options)
       const measured = context.measureText(text)
       const metrics = paintedBounds(measured, options)
       cache.set(key, metrics)
       return metrics
+    },
+    typography() {
+      return {
+        fontFamily: style.family,
+        fontStyle: style.style,
+        fontStretch: style.stretch,
+        letterSpacing: style.letterSpacing,
+        direction: style.direction,
+      }
     },
     refresh() {
       const nextStyle = readFontStyle()
@@ -70,32 +81,34 @@ export function createDomTextMeasurer(container: HTMLElement): DomTextMeasurer {
           : computed?.direction === 'ltr'
             ? 'ltr'
             : 'inherit',
-      letterSpacing: computed?.letterSpacing || '0px',
+      letterSpacing: finiteCssPixels(computed?.letterSpacing),
     }
   }
 }
 
 function configureContext(
   context: CanvasRenderingContext2D,
-  style: FontStyle,
+  defaultWeight: string,
   options: ChartTextMeasureOptions,
 ): void {
-  const weight = options.fontWeight ?? style.weight
+  const fontScale = positiveFinite(options.fontScale, 1)
+  const fontSize = options.fontSize * fontScale
+  const weight = options.fontWeight ?? defaultWeight
   context.font = [
-    style.style,
+    options.fontStyle,
     weight,
-    `${options.fontSize}px`,
-    style.family,
+    `${fontSize}px`,
+    options.fontFamily,
   ].join(' ')
   if ('fontStretch' in context) {
-    context.fontStretch = style.stretch
+    context.fontStretch = normalizeFontStretch(options.fontStretch)
   }
   context.textAlign = options.anchor === 'middle' ? 'center' : options.anchor
   context.textBaseline =
     options.baseline === 'auto' ? 'alphabetic' : options.baseline
-  context.direction = style.direction
+  context.direction = options.direction
   if ('letterSpacing' in context) {
-    context.letterSpacing = style.letterSpacing
+    context.letterSpacing = `${options.letterSpacing * fontScale}px`
   }
 }
 
@@ -103,6 +116,7 @@ function paintedBounds(
   measured: TextMetrics,
   options: ChartTextMeasureOptions,
 ): ChartTextMetrics {
+  const fontSize = options.fontSize * positiveFinite(options.fontScale, 1)
   const left = measured.actualBoundingBoxLeft
   const right = measured.actualBoundingBoxRight
   const ascent = measured.actualBoundingBoxAscent
@@ -131,11 +145,11 @@ function paintedBounds(
         : 0
   const y =
     options.baseline === 'middle'
-      ? -options.fontSize / 2
+      ? -fontSize / 2
       : options.baseline === 'hanging'
         ? 0
-        : -options.fontSize * 0.8
-  return { x, y, width, height: options.fontSize }
+        : -fontSize * 0.8
+  return { x, y, width, height: fontSize }
 }
 
 function fontSignature(style: FontStyle): string {
@@ -174,4 +188,15 @@ function normalizeFontStretch(value: string | undefined): CanvasFontStretch {
   if (percentage < 150) return 'expanded'
   if (percentage < 200) return 'extra-expanded'
   return 'ultra-expanded'
+}
+
+function finiteCssPixels(value: string | undefined): number {
+  const parsed = Number.parseFloat(value ?? '')
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function positiveFinite(value: number | undefined, fallback: number): number {
+  return value !== undefined && Number.isFinite(value) && value > 0
+    ? value
+    : fallback
 }

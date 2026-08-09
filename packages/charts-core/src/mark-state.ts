@@ -5,7 +5,6 @@ import {
 } from './scene-point-ownership-internal'
 import { matchesFocusAnchor } from './focus-layer'
 import type {
-  ChartAnimationOptions,
   ChartFocusMatch,
   ChartFocusState,
   ChartMarkStateTransition,
@@ -99,23 +98,6 @@ export function resolveMarkStateScene<TScene extends ChartScene>(
     transition,
     ...(Object.keys(transitions).length ? { transitions } : {}),
   }
-}
-
-export function resolveMarkStateTransition(
-  transition: ChartMarkStateTransition | undefined,
-  element: Element,
-): ChartAnimationOptions | undefined {
-  if (!transition || transition.type !== 'tween') return undefined
-  if (
-    (transition.respectReducedMotion ?? true) &&
-    element.ownerDocument.defaultView?.matchMedia?.(
-      '(prefers-reduced-motion: reduce)',
-    ).matches
-  ) {
-    return undefined
-  }
-  const { type: _type, ...resolved } = transition
-  return resolved
 }
 
 export function sceneHasMarkStates(nodes: readonly SceneNode[]): boolean {

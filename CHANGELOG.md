@@ -1,5 +1,58 @@
 # Changelog
 
+## Unreleased
+
+### Public API harmonization
+
+- Track the pre-alpha public API cleanup in
+  [`API-HARMONIZATION-ROADMAP.md`](./API-HARMONIZATION-ROADMAP.md). This release
+  will tighten compact-scale contracts, make platform-specific definition
+  boundaries type-safe, harmonize responsive, interaction, callback, focus,
+  color, animation, export, and transform names, strengthen view composition,
+  and make the public reference mechanically complete.
+
+#### Breaking migrations
+
+| Before                                                                     | After                                                                               |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `DynamicChartConfig`, `DynamicChartDefinition`, `isDynamicChartDefinition` | `ResponsiveChartConfig`, `ResponsiveChartDefinition`, `isResponsiveChartDefinition` |
+| responsive builder `{ theme }`                                             | `{ defaultTheme }`                                                                  |
+| definition `behaviors` and `ChartBehavior*`                                | `controls` and `ChartControl*`                                                      |
+| definition `animate`                                                       | `svgAnimation`                                                                      |
+| `color.type`                                                               | `color.resolver`                                                                    |
+| `focusX`, `focusY`                                                         | `focusGroupX`, `focusGroupY`                                                        |
+| `RenderChartPngOptions`                                                    | `RenderChartImageOptions`                                                           |
+| transform `window` and `/transform/window`                                 | `rollingWindow` and `/transform/rolling-window`                                     |
+| reduce helper `difference`                                                 | `delta`                                                                             |
+| transform accessor `(context)`                                             | `(datum, { index, data })`                                                          |
+
+Compact linear domains and band ranges now require exactly two finite values.
+Ordinal scales return `undefined` when no range value can be resolved.
+
+Tooltip extension tokens now declare `__chartExtensionType: 'tooltip'` and a
+`__chartTooltipHost` brand. DOM adapters reject exact React Native tooltip
+definitions, React Native rejects exact DOM tooltip definitions, and both
+retain runtime guards for deliberately widened values. `StaticChartDefinition`,
+`ResponsiveChartDefinition`, and `ChartDefinition` accept an optional tooltip
+host type parameter. Host adapters can share the environment-neutral
+`@tanstack/charts/tooltip/model` policy.
+
+Text measurement is now a synchronous, deterministic host contract with font
+family, style, stretch, letter spacing, direction, locale, and font scale.
+Browser hosts pass inherited typography and re-layout after fonts load. React
+Native exposes matching typography props and applies font scale to measurement
+and SVG label paint; hosts own any asynchronous font-readiness lifecycle.
+
+View composition accepts `ComposableChartDefinition`, including responsive
+children resolved against their allocated frames. Embedded host options,
+gradients, and scene backgrounds are rejected by exact types and guarded at
+runtime. `createChartRuntime({ defaultTheme })` now supplies one platform theme
+to both responsive builders and final scene compilation.
+
+Documentation checks now validate syntax and public imports for all 503 typed
+fences and fully compile the 18 examples presented as complete. Contextual
+fragments do not receive hidden fixture declarations.
+
 ## 0.7.2
 
 ### @tanstack/react-charts

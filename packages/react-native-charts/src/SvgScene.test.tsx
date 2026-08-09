@@ -48,6 +48,28 @@ describe('React Native SVG scene renderer', () => {
     expect(markup).not.toContain('var(--')
   })
 
+  it('applies native typography and font scale to scene labels', () => {
+    const markup = renderToStaticMarkup(
+      <NativeChartScene
+        scene={scene()}
+        color="#111827"
+        fontFamily="Inter"
+        fontStyle="italic"
+        fontStretch="condensed"
+        letterSpacing={0.5}
+        fontScale={2}
+        idPrefix="native-type"
+        resolvePaint={resolveNativePaint}
+      />,
+    )
+
+    expect(markup).toContain('font-family="Inter"')
+    expect(markup).toContain('font-style="italic"')
+    expect(markup).toContain('font-stretch="condensed"')
+    expect(markup).toContain('letter-spacing="1"')
+    expect(markup).toContain('font-size="24"')
+  })
+
   it('makes the two unsupported SVG joins an explicit lossy mapping', () => {
     expect(resolveNativeLineJoin('arcs')).toBe('round')
     expect(resolveNativeLineJoin('miter-clip')).toBe('miter')

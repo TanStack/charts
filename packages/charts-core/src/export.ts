@@ -4,7 +4,7 @@ export interface SerializeChartSvgOptions {
   includeFocus?: boolean
 }
 
-export interface RenderChartPngOptions extends SerializeChartSvgOptions {
+export interface RenderChartImageOptions extends SerializeChartSvgOptions {
   scale?: number
   background?: string
   type?: 'image/png' | 'image/jpeg' | 'image/webp'
@@ -66,7 +66,7 @@ export function downloadChartSvg(
 
 export async function renderChartImage(
   target: Element,
-  options: RenderChartPngOptions = {},
+  options: RenderChartImageOptions = {},
 ): Promise<Blob> {
   const svg = findSvg(target)
   const canvasSurface = svg ? null : findCanvasSurface(target)
@@ -158,7 +158,7 @@ export async function renderChartImage(
 export async function downloadChartImage(
   target: Element,
   filename = 'chart.png',
-  options?: RenderChartPngOptions,
+  options?: RenderChartImageOptions,
 ) {
   downloadBlob(
     target.ownerDocument,

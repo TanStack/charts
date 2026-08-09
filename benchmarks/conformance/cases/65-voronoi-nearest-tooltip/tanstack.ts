@@ -71,7 +71,7 @@ export const catalogCase = tanstackCase(
 
 const configuredDefinition = (rows: readonly CompleteCar[]) =>
   defineChart(definition(rows), {
-    animate: false,
+    svgAnimation: false,
     keyboard: true,
     tooltip: {
       use: tooltip,

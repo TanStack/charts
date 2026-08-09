@@ -1,4 +1,10 @@
-import { areaY, defineChart, deviation, lineY, window } from '@tanstack/charts'
+import {
+  areaY,
+  defineChart,
+  deviation,
+  lineY,
+  rollingWindow,
+} from '@tanstack/charts'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import { tanstackCase } from '../../shared/mount'
@@ -10,7 +16,7 @@ const windowSize = 20
 const deviationMultiplier = 2
 
 function bollingerRows(input: ConformanceInput) {
-  const rows = window(selectBollingerData(aapl, input.revision), {
+  const rows = rollingWindow(selectBollingerData(aapl, input.revision), {
     size: windowSize,
     orderBy: 'Date',
     anchor: 'end',

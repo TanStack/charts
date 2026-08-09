@@ -134,7 +134,7 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
         scale: scaleLinear,
         nice: true,
       },
-      animate: true,
+      svgAnimation: true,
       tooltip,
     })
   })

@@ -21,16 +21,16 @@ function defineChart<const TMarks, const TSpec>(
 
 function defineChart<const TSpec>(
   chart: (context: ChartBuildContext) => TSpec,
-): DynamicChartDefinition<InferredDatum, InferredX, InferredY>
+): ResponsiveChartDefinition<InferredDatum, InferredX, InferredY>
 
 function defineChart<const TSpec>(
-  config: DynamicChartConfig<TSpec>,
-): DynamicChartDefinition<InferredDatum, InferredX, InferredY>
+  config: ResponsiveChartConfig<TSpec>,
+): ResponsiveChartDefinition<InferredDatum, InferredX, InferredY>
 
-function defineChart<TDatum, TXValue, TYValue>(
-  definition: ChartDefinition<TDatum, TXValue, TYValue>,
-  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
-): ChartDefinition<TDatum, TXValue, TYValue>
+function defineChart<TDefinition, TOptions>(
+  definition: TDefinition,
+  options: TOptions,
+): Omit<TDefinition, keyof TOptions> & TOptions
 ```
 
 ## Static definitions
@@ -65,7 +65,7 @@ import { scaleBand } from '@tanstack/charts-scales/band'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 const definition = defineChart({
-  animate: true,
+  svgAnimation: true,
   chart: ({ width }) => ({
     marks: [barY(rows, { x: 'category', y: 'value' })],
     x: { scale: scaleBand },
@@ -81,11 +81,11 @@ const definition = defineChart({
 
 The builder receives:
 
-| Property | Type         | Meaning                         |
-| -------- | ------------ | ------------------------------- |
-| `width`  | `number`     | Current full surface width      |
-| `height` | `number`     | Current full surface height     |
-| `theme`  | `ChartTheme` | Default build-time theme tokens |
+| Property       | Type         | Meaning                                                      |
+| -------------- | ------------ | ------------------------------------------------------------ |
+| `width`        | `number`     | Current full surface width                                   |
+| `height`       | `number`     | Current full surface height                                  |
+| `defaultTheme` | `ChartTheme` | Platform defaults before the returned spec applies its theme |
 
 `width` and `height` are controlled by the host. The builder can read them but
 does not return or own them.
@@ -93,13 +93,13 @@ does not return or own them.
 ## Definition behavior
 
 `ChartDefinitionOptions<TDatum, TXValue, TYValue>` contains `focus`,
-`focusRing`, `selection`, `behaviors`, `cursor`, `maxFocusDistance`,
-`spatialIndex`, `animate`, `pointer`, `keyboard`, and `tooltip`. These options
+`focusRing`, `selection`, `controls`, `cursor`, `maxFocusDistance`,
+`spatialIndex`, `svgAnimation`, `pointer`, `keyboard`, and `tooltip`. These options
 belong to both static and responsive definitions. Hosts and framework adapters
 do not override them.
 
-Each `ChartBehavior` resolves after final scales and plot bounds exist. It can
-provide renderer-neutral fallback nodes and an optional host control. Behavior
+Each `ChartControl` resolves after final scales and plot bounds exist. It can
+provide renderer-neutral fallback nodes and an optional host control. Control
 IDs and host-control identities must be unique. Browser hosts remove a
 control's fallback before painting and own its update, renderer replacement,
 event containment, and teardown lifecycle. Static renderers keep the fallback.
@@ -113,9 +113,17 @@ Tooltip placement policy stays with the definition. Add the `portal` extension
 when the surface must escape clipped chart ancestors. Framework-only content
 composition remains an adapter prop, slot, snippet, or template.
 
-`DynamicChartConfig<TSpec>` combines those options with the responsive `chart`
+`ResponsiveChartConfig<TSpec>` combines those options with the responsive `chart`
 builder. The two-argument `defineChart(definition, options)` form creates a new
 definition when a reusable base needs a different interaction policy.
+
+Definitions carry an optional fourth tooltip-host type parameter:
+`ChartDefinition<TDatum, TXValue, TYValue, TTooltipHost>`. `DomChartDefinition`
+fixes that host to `"dom"`; DOM adapter exports expose it as their local
+`ChartDefinition`. Adding a DOM or React Native tooltip therefore makes that
+definition host-specific. A definition without a tooltip remains assignable to
+either host. Deliberately widening it to the generic three-parameter
+`ChartDefinition` erases that proof and is rejected by strict host props.
 
 ## Identity and updates
 
@@ -127,7 +135,9 @@ import { scaleBand } from '@tanstack/charts-scales/band'
 import { scaleLinear } from '@tanstack/charts-scales/linear'
 
 const definition = useMemo(() => {
-  const ranked = rankRows(rows, metric)
+  const ranked = rows
+    .map((row) => ({ label: row.label, value: row[metric] }))
+    .sort((left, right) => right.value - left.value)
 
   return defineChart(({ width }) => ({
     marks: [barX(ranked, { x: 'value', y: 'label' })],
@@ -152,12 +162,12 @@ creates the next definition and passes it to `host.update`.
 interface ChartBuildContext {
   width: number
   height: number
-  theme: ChartTheme
+  defaultTheme: ChartTheme
 }
 
 type ChartDefinition<TDatum, TXValue, TYValue> =
   | StaticChartDefinition<TDatum, TXValue, TYValue>
-  | DynamicChartDefinition<TDatum, TXValue, TYValue>
+  | ResponsiveChartDefinition<TDatum, TXValue, TYValue>
 ```
 
-`isDynamicChartDefinition` narrows the union to a builder definition.
+`isResponsiveChartDefinition` narrows the union to a builder definition.

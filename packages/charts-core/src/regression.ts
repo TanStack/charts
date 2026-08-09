@@ -303,9 +303,9 @@ export function linearRegressionY<TDatum>(
       TransformAccessor<TDatum, number | null | undefined>,
       TransformAccessor<TDatum, ChartKey | null | undefined>
     >(data, {
-      x: ({ index }) => independentValues[index],
-      y: ({ index }) => dependentValues[index],
-      z: ({ index }) => groups[index],
+      x: (_datum, { index }) => independentValues[index],
+      y: (_datum, { index }) => dependentValues[index],
+      z: (_datum, { index }) => groups[index],
       ...normalized,
     })
     const rows = withRegressionMarkKeys(semanticRows)
@@ -378,9 +378,9 @@ export function linearRegressionX<TDatum>(
       TransformAccessor<TDatum, RegressionIndependentValue | null | undefined>,
       TransformAccessor<TDatum, ChartKey | null | undefined>
     >(data, {
-      x: ({ index }) => dependentValues[index],
-      y: ({ index }) => independentValues[index],
-      z: ({ index }) => groups[index],
+      x: (_datum, { index }) => dependentValues[index],
+      y: (_datum, { index }) => independentValues[index],
+      z: (_datum, { index }) => groups[index],
       ...normalized,
     })
     const rows = withRegressionMarkKeys(semanticRows)

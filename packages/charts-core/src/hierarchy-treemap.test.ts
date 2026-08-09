@@ -61,7 +61,7 @@ describe('treemap', () => {
   it('renders path leaves in final chart bounds with exact metadata and lineage', () => {
     const source = Object.freeze(rows.map((row) => Object.freeze({ ...row })))
     const before = JSON.stringify(source)
-    const value = vi.fn(({ datum }: { datum: PathRow }) => datum.value)
+    const value = vi.fn((datum: PathRow) => datum.value)
     const rendered = scene(
       treemap(source, {
         path: 'path',
@@ -440,6 +440,12 @@ describe('treemap', () => {
     expect(measureText).toHaveBeenCalledWith('a', {
       fontSize: 9,
       fontWeight: 600,
+      fontFamily: 'sans-serif',
+      fontStyle: 'normal',
+      fontStretch: 'normal',
+      letterSpacing: 0,
+      direction: 'inherit',
+      fontScale: 1,
       anchor: 'middle',
       baseline: 'middle',
     })

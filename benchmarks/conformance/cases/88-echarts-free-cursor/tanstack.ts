@@ -86,7 +86,7 @@ export function freeCursorDefinition(
       grid: true,
       axis: { ticks: { count: 7 }, label: 'Fuel economy (mpg)' },
     },
-    behaviors: [
+    controls: [
       continuousCursor({
         position: controlledSignal<
           ContinuousCursorPosition<number, number> | null,
@@ -119,7 +119,7 @@ export function freeCursorDefinition(
         },
       }),
     ],
-    animate: false,
+    svgAnimation: false,
     keyboard: false,
     focusRing: false,
     margin: { top: 22, right: 24, bottom: 44, left: 58 },

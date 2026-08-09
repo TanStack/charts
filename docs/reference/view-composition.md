@@ -20,14 +20,18 @@ import {
 } from '@tanstack/charts/view'
 ```
 
-`composeViews(options)` combines named static chart definitions into one static
-chart definition. Each child remains a complete chart with its own marks,
-scales, guides, margins, color, clipping, and static legends.
+`composeViews(options)` combines named composable chart definitions into one
+static chart definition. A child may be static or responsive. Responsive
+builders receive the allocated child frame and the outer runtime's
+`defaultTheme`. Each child retains its own marks, scales, guides, margins,
+color, clipping, and static legends.
 
 The public types are `ComposeViewsOptions`, `ViewDefinitions`, `ViewLayout`,
 `ViewAnchor`, `ViewInsetOptions`, `ViewGridCell`, `ViewAxis`,
 `ViewScaleLinkMode`, `ViewScaleLink`, `ViewTrack`, `ViewLink`, `ViewGridItem`,
-and `ViewGridOptions`.
+`ViewGridOptions`, `ComposableChartDefinition`,
+`ComposableStaticChartDefinition`, and
+`ComposableResponsiveChartDefinition`.
 
 ## Overlay a donut summary
 
@@ -166,11 +170,14 @@ const interactiveDefinition = defineChart(definition, {
 })
 ```
 
-Children must be static definitions. Child-owned host behavior and resources
-that cannot be adopted into the outer scene are rejected, including selection,
-behaviors, interactive controls, tooltips, keyboard options, definition-level
-motion, gradients, scene backgrounds, and guide motion. Mark-local motion and
-static legends remain supported. Use an ordinary mark for a child background.
+Children must satisfy `ComposableChartDefinition`. Host-owned options and
+resources that cannot be adopted into the outer scene are rejected by the
+public type, including selection, controls, tooltips, keyboard options,
+definition-level motion, gradients, and scene backgrounds. Runtime validation
+still protects JavaScript and deliberately widened TypeScript values. Guide
+motion is also rejected after a responsive child resolves. Mark-local motion
+and static legends remain supported. Use an ordinary mark for a child
+background.
 
 Use separate chart hosts when panels need independent host behavior or
 independent accessible labels.

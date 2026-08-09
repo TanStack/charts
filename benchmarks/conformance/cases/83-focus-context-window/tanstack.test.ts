@@ -109,7 +109,7 @@ describe('definition-owned focus/context brush', () => {
     }
     expect(source).toContain("from '@tanstack/charts/interaction/brush'")
     expect(source).toContain("from '@tanstack/charts/selection'")
-    expect(source).toContain('behaviors: [')
+    expect(source).toContain('controls: [')
     expect(source).toContain('brushX({')
     expect(source).toContain('keyedSelection<')
     expect(source).toContain('whenSelected(')

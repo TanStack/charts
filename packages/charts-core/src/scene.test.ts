@@ -15,7 +15,7 @@ import { renderChartSvg } from './svg'
 import { linearAxes, utcXAxes } from './test-scales'
 import { text } from './text'
 import type {
-  ChartBehaviorContext,
+  ChartControlContext,
   ChartDefinition,
   ChartPoint,
   ChartScene,
@@ -117,7 +117,7 @@ describe('native mark and channel scene', () => {
         throw new Error('Scene creation must not mount host controls')
       },
     }
-    const resolve = vi.fn((_context: ChartBehaviorContext) => ({
+    const resolve = vi.fn((_context: ChartControlContext) => ({
       nodes: [
         {
           kind: 'group' as const,
@@ -137,7 +137,7 @@ describe('native mark and channel scene', () => {
     const scene = createChartScene(
       defineChart({
         marks: [lineY([1, 3, 2])],
-        behaviors: [{ id: 'test-behavior', resolve }],
+        controls: [{ id: 'test-behavior', resolve }],
         ...linearAxes([0, 2], [0, 3]),
       }),
       { width: 480, height: 260 },
@@ -173,19 +173,19 @@ describe('native mark and channel scene', () => {
     )
   })
 
-  it('rejects duplicate behavior ids', () => {
+  it('rejects duplicate control ids', () => {
     const behavior = { id: 'duplicate', resolve: () => ({}) }
 
     expect(() =>
       createChartScene(
         defineChart({
           marks: [lineY([1, 3, 2])],
-          behaviors: [behavior, behavior],
+          controls: [behavior, behavior],
           ...linearAxes([0, 2], [0, 3]),
         }),
         { width: 480, height: 260 },
       ),
-    ).toThrow('Duplicate chart behavior id "duplicate"')
+    ).toThrow('Duplicate chart control id "duplicate"')
   })
 
   it('rejects duplicate host-control identities from behavior output', () => {
@@ -195,7 +195,7 @@ describe('native mark and channel scene', () => {
       createChartScene(
         defineChart({
           marks: [lineY([1, 3, 2])],
-          behaviors: [
+          controls: [
             {
               id: 'controls',
               resolve: () => ({

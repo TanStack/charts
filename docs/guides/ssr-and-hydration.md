@@ -100,12 +100,18 @@ Automatic guide margins depend on text metrics. The server uses deterministic
 fallback measurement unless you provide `measureText`. The browser host
 remeasures when fonts become available and schedules a new layout.
 
+`ChartTextMeasurer` is deliberately synchronous. Its options include the
+resolved family, style, stretch, letter spacing, direction, locale, and font
+scale so server and native implementations can use the same typography
+contract. Hosts own asynchronous font readiness and request another render
+after their available metrics change.
+
 For strict pixel parity:
 
 1. Use a font available in both environments.
 2. Supply a deterministic `ChartTextMeasurer`.
-3. Keep font size and weight in chart configuration rather than ambient,
-   late-changing CSS.
+3. Supply the same `ChartTextTypography`, including locale and font scale, in
+   both environments.
 
 Most applications should allow the browser's post-font layout correction
 instead of shipping a font engine to the server.

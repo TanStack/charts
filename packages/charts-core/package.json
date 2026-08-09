@@ -129,10 +129,11 @@
     "./transform/select": "./src/transform-select.ts",
     "./transform/stack": "./src/transform-stack.ts",
     "./transform/waterfall": "./src/transform-waterfall.ts",
-    "./transform/window": "./src/transform-window.ts",
+    "./transform/rolling-window": "./src/transform-rolling-window.ts",
     "./text": "./src/text.ts",
     "./tick": "./src/tick.ts",
     "./tooltip": "./src/tooltip.ts",
+    "./tooltip/model": "./src/tooltip-model.ts",
     "./tooltip/portal": "./src/tooltip-portal.ts",
     "./types": "./src/universal-types.ts",
     "./vector": "./src/vector.ts",
@@ -194,6 +195,7 @@
       },
       "./cursor/host": {
         "types": "./dist/cursor-host.d.ts",
+        "react-native": "./dist/cursor-host.js",
         "import": "./dist/cursor-host.js"
       },
       "./d3/area-x": {
@@ -468,9 +470,9 @@
         "types": "./dist/transform-waterfall.d.ts",
         "import": "./dist/transform-waterfall.js"
       },
-      "./transform/window": {
-        "types": "./dist/transform-window.d.ts",
-        "import": "./dist/transform-window.js"
+      "./transform/rolling-window": {
+        "types": "./dist/transform-rolling-window.d.ts",
+        "import": "./dist/transform-rolling-window.js"
       },
       "./text": {
         "types": "./dist/text.d.ts",
@@ -483,6 +485,11 @@
       "./tooltip": {
         "types": "./dist/tooltip.d.ts",
         "import": "./dist/tooltip.js"
+      },
+      "./tooltip/model": {
+        "types": "./dist/tooltip-model.d.ts",
+        "react-native": "./dist/tooltip-model.js",
+        "import": "./dist/tooltip-model.js"
       },
       "./tooltip/portal": {
         "types": "./dist/tooltip-portal.d.ts",

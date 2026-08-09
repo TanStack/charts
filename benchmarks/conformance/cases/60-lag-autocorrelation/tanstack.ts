@@ -1,4 +1,4 @@
-import { defineChart, dot, first, lineY, window } from '@tanstack/charts'
+import { defineChart, dot, first, lineY, rollingWindow } from '@tanstack/charts'
 import { scaleLinear } from 'd3-scale'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import { tanstackMount } from '../../shared/mount'
@@ -16,7 +16,7 @@ const identity: readonly ReferencePoint[] = [
 ]
 
 export const lagAutocorrelationDefinition = () => {
-  const rows = window(observations, {
+  const rows = rollingWindow(observations, {
     size: 2,
     orderBy: 'Date',
     partial: false,

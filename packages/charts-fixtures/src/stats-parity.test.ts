@@ -117,7 +117,7 @@ describe('TanStack Stats parity fixtures', () => {
       createStatsLatestChart(input).chart({
         width: 760,
         height: 420,
-        theme: {
+        defaultTheme: {
           foreground: 'currentColor',
           muted: 'currentColor',
           grid: 'currentColor',

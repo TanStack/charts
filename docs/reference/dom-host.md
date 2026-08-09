@@ -5,7 +5,7 @@ description: Mount, update, size, interact with, and destroy a TanStack Chart in
 
 `mountChart` is the framework-neutral default SVG browser host. It owns
 responsive measurement, scene updates, keyed SVG reconciliation, animation,
-pointer and keyboard interaction, native tooltips, font relayout, and cleanup.
+pointer and keyboard interaction, built-in DOM tooltips, font relayout, and cleanup.
 
 ```ts
 import { defineChart } from '@tanstack/charts'
@@ -110,19 +110,19 @@ The default SVG host requires `definition` and `ariaLabel`.
 | `renderSvg`          | `renderChartSvg`  | Replaces the scene-to-SVG renderer.                                                                    |
 | `measureText`        | DOM font measurer | Replaces guide text measurement.                                                                       |
 
-The definition owns these chart behaviors:
+The definition owns these chart controls:
 
-| Option             | Default                   | Meaning                                                                                                  |
-| ------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus                                                   |
-| `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy; `false` disables native focus and its generated layer |
-| `focusRing`        | `true`                    | Generated primary-point focus indicator; `false` keeps authored focus layers only                        |
-| `cursor`           | None                      | Focus-snapped or free application-owned cursor binding                                                   |
-| `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                                                                           |
-| `animate`          | `false`                   | Keyed attribute, enter, and exit animation                                                               |
-| `pointer`          | `true`                    | Automatic pointer focus, leave, and click handling                                                       |
-| `keyboard`         | `true`                    | Keyboard focus and navigation                                                                            |
-| `tooltip`          | `false`                   | Native tooltip content, placement, layering, and pinning                                                 |
+| Option             | Default                   | Meaning                                                                                                       |
+| ------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `maxFocusDistance` | `48`                      | Maximum scene-pixel distance for default pointer focus                                                        |
+| `focus`            | Nearest point             | Pointer grouping and keyboard navigation strategy; `false` disables chart-owned focus and its generated layer |
+| `focusRing`        | `true`                    | Generated primary-point focus indicator; `false` keeps authored focus layers only                             |
+| `cursor`           | None                      | Focus-snapped or free application-owned cursor binding                                                        |
+| `spatialIndex`     | Linear nearest-point scan | Dense-data nearest-point index                                                                                |
+| `svgAnimation`     | `false`                   | Keyed attribute, enter, and exit animation                                                                    |
+| `pointer`          | `true`                    | Automatic pointer focus, leave, and click handling                                                            |
+| `keyboard`         | `true`                    | Keyboard focus and navigation                                                                                 |
+| `tooltip`          | `false`                   | Built-in DOM tooltip content, placement, layering, and pinning                                                |
 
 Definition `keyboard: false` takes precedence over host `tabIndex`. A negative
 custom tab index can keep chart keyboard behavior available for programmatic
@@ -156,10 +156,10 @@ The fallback order is:
 Height is explicit `height`, then a positive finite `aspectRatio`, then `320`.
 The host schedules responsive relayout on the document's animation frame and
 skips renders when the measured width has not changed. Resize relayout commits
-immediately by default; set `animate.resize` to `true` to animate it.
+immediately by default; set `svgAnimation.resize` to `true` to animate it.
 
 The host temporarily assigns `position: relative` when the container's
-computed position is static, because local native tooltips are absolutely
+computed position is static, because local DOM tooltips are absolutely
 positioned inside it. Adding the `portal` extension to the tooltip options
 instead places the tooltip in the browser top layer through a manual Popover,
 or directly under the `ownerDocument` body as a fixed fallback, and positions

@@ -1,6 +1,8 @@
 import {
   resolveChartFocusStrategy,
   resolveChartPointerFocus,
+  restoreChartFocusPoint,
+  sameChartPointIdentity,
 } from '@tanstack/charts/cursor/host'
 import { focusDisabled } from '@tanstack/charts/focus/disabled'
 import {
@@ -110,14 +112,7 @@ export function samePointIdentity<
   left: ChartPoint<TDatum, TXValue, TYValue> | null,
   right: ChartPoint<TDatum, TXValue, TYValue> | null,
 ) {
-  return (
-    left === right ||
-    (left !== null &&
-      right !== null &&
-      left.key === right.key &&
-      left.markId === right.markId &&
-      left.datumIndex === right.datumIndex)
-  )
+  return sameChartPointIdentity(left, right)
 }
 
 export function samePointReferences<
@@ -161,46 +156,4 @@ function sceneOrder<
     .map(({ point }) => point)
 }
 
-function restoreFocusedPoint<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
->(
-  points: readonly ChartPoint<TDatum, TXValue, TYValue>[],
-  previous: ChartPoint<TDatum, TXValue, TYValue>,
-) {
-  const matches = points.filter((point) => point.key === previous.key)
-  if (matches.length < 2) return matches[0] ?? null
-
-  const datumType = typeof previous.datum
-  const hasReferenceIdentity =
-    previous.datum !== null &&
-    (datumType === 'object' || datumType === 'function')
-  if (hasReferenceIdentity) {
-    const sameDatum = matches.find((point) => point.datum === previous.datum)
-    if (sameDatum) return sameDatum
-  }
-
-  return (
-    matches.find(
-      (point) =>
-        point.markId === previous.markId &&
-        Object.is(point.group, previous.group) &&
-        chartValueEqual(point.xValue, previous.xValue) &&
-        chartValueEqual(point.yValue, previous.yValue),
-    ) ??
-    matches.find(
-      (point) =>
-        point.markId === previous.markId &&
-        point.datumIndex === previous.datumIndex,
-    ) ??
-    matches[0] ??
-    null
-  )
-}
-
-function chartValueEqual(left: ChartValue, right: ChartValue) {
-  return left instanceof Date && right instanceof Date
-    ? left.getTime() === right.getTime()
-    : Object.is(left, right)
-}
+const restoreFocusedPoint = restoreChartFocusPoint

@@ -56,7 +56,7 @@ describe('native bump-ranking labels', () => {
       'utf8',
     )
 
-    expect(source).toContain('value: ({ datum }) => datum.date.getTime()')
+    expect(source).toContain('value: (datum) => datum.date.getTime()')
     expect(source).toContain("select: 'max'")
     expect(source).not.toContain("select: 'last'")
   })

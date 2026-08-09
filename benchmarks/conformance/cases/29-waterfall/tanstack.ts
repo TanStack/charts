@@ -2,9 +2,9 @@ import {
   barY,
   colorLegend,
   defineChart,
-  difference,
+  delta,
   ruleY,
-  window,
+  rollingWindow,
 } from '@tanstack/charts'
 import { waterfall } from '@tanstack/charts/transform/waterfall'
 import type { WaterfallKind } from '@tanstack/charts/transform/waterfall'
@@ -33,12 +33,12 @@ const totalLabel =
     ? 'Total'
     : `${firstYear}–${String(lastYear).slice(-2)}`
 
-export const yearlyChanges = window(observations, {
+export const yearlyChanges = rollingWindow(observations, {
   orderBy: 'year',
   size: 2,
   partial: false,
   outputs: {
-    delta: { value: 'gas', reduce: difference },
+    delta: { value: 'gas', reduce: delta },
   },
 })
 

@@ -82,7 +82,7 @@ const downloads = defineChart({
       scaleOrdinal<string, string>().range(['#0ea5e9', '#f97316', '#10b981']),
     legend: colorLegend({ label: 'Package' }),
   },
-  animate: true,
+  svgAnimation: true,
   tooltip,
 })
 ```
@@ -262,8 +262,10 @@ Static scenes use deterministic text estimates. The DOM host and browser
 framework adapters measure the painted glyph bounds with the inherited
 container font and relayout after web fonts load. Advanced renderers can
 supply `measureText` on the host, adapter, runtime, or `createChartScene`
-layout options. Its returned `x` and `y` are the painted box offsets relative
-to the requested anchor and baseline.
+layout options. The synchronous callback receives resolved family, style,
+stretch, spacing, direction, locale, and font scale. Its returned `x` and `y`
+are the painted box offsets relative to the requested anchor and baseline.
+Hosts own font readiness and render again when metrics change.
 
 Definitions accept scale factories for inferred domains and configured
 instances for application-owned domains. `createChartScene` rejects missing

@@ -1,11 +1,14 @@
 import { createColorScale, valueKey } from './scales'
 import { resolveConfiguredScale } from './configured-scale'
-import { measureSceneLabelBounds } from './guide-layout'
+import {
+  measureSceneLabelBounds,
+  withChartTextTypography,
+} from './guide-layout'
 import { nearestScenePoint } from './nearest'
 import { mapScenePointReferences } from './scene-point-map'
 import { chartSceneSource } from './scene-source'
 import type {
-  DynamicChartDefinition,
+  ResponsiveChartDefinition,
   InitializedMark,
   MaterializedChannel,
   ChartAxisOptions,
@@ -18,7 +21,8 @@ import type {
   ChartHostControl,
   CheckedChartSpec,
   ChartDefinitionOptions,
-  DynamicChartConfig,
+  ChartDefinition,
+  ResponsiveChartConfig,
   ChartColorLegend,
   ChartFocusFilter,
   ChartLayoutOptions,
@@ -66,6 +70,43 @@ export const defaultChartTheme: ChartTheme = {
   ],
 }
 
+type DefinedStaticChart<
+  TMarks extends readonly ChartMark<unknown, any, any>[],
+  TSpec extends ChartSpec<TMarks>,
+> = Omit<
+  StaticChartDefinition<
+    ChartMarkDatum<TMarks[number]>,
+    ChartMarkPointX<TMarks[number]>,
+    ChartMarkPointY<TMarks[number]>
+  >,
+  keyof ChartDefinitionOptions | keyof ChartSpec
+> &
+  Omit<TSpec, keyof ChartDefinitionOptions> &
+  Pick<
+    StaticChartDefinition<
+      ChartMarkDatum<TMarks[number]>,
+      ChartMarkPointX<TMarks[number]>,
+      ChartMarkPointY<TMarks[number]>
+    >,
+    Exclude<Extract<keyof TSpec, keyof ChartDefinitionOptions>, 'tooltip'>
+  > &
+  Pick<TSpec, Extract<keyof TSpec, 'tooltip'>>
+
+type ChartDefinitionDatum<TDefinition> =
+  TDefinition extends ChartDefinition<infer TDatum, any, any> ? TDatum : never
+
+type ChartDefinitionXValue<TDefinition> =
+  TDefinition extends ChartDefinition<any, infer TXValue, any> ? TXValue : never
+
+type ChartDefinitionYValue<TDefinition> =
+  TDefinition extends ChartDefinition<any, any, infer TYValue> ? TYValue : never
+
+type ChartDefinitionWithOptions<TDefinition, TOptions> = Omit<
+  TDefinition,
+  keyof TOptions
+> &
+  TOptions
+
 export function defineChart<
   const TMarks extends readonly ChartMark<unknown, any, any>[],
   const TSpec extends ChartSpec<TMarks>,
@@ -75,25 +116,25 @@ export function defineChart<
       ChartMarkPointX<TMarks[number]>,
       ChartMarkPointY<TMarks[number]>
     >,
-): StaticChartDefinition<
-  ChartMarkDatum<TMarks[number]>,
-  ChartMarkPointX<TMarks[number]>,
-  ChartMarkPointY<TMarks[number]>
-> &
-  Omit<TSpec, keyof ChartDefinitionOptions>
+): DefinedStaticChart<TMarks, TSpec>
 export function defineChart<
   const TSpec extends {
     marks: readonly ChartMark<unknown, any, any>[]
     x?: ChartAxisOptions<any> | null
     y?: ChartAxisOptions<any> | null
   },
+  TTooltipHost extends string = never,
 >(
-  config: DynamicChartConfig<TSpec>,
-): DynamicChartDefinition<
-  ChartSpecDatum<TSpec>,
-  ChartSpecXValue<TSpec>,
-  ChartSpecYValue<TSpec>
->
+  config: ResponsiveChartConfig<TSpec, TTooltipHost>,
+): Omit<
+  ResponsiveChartDefinition<
+    ChartSpecDatum<TSpec>,
+    ChartSpecXValue<TSpec>,
+    ChartSpecYValue<TSpec>
+  >,
+  keyof ChartDefinitionOptions
+> &
+  ResponsiveChartConfig<TSpec, TTooltipHost>
 export function defineChart<
   const TSpec extends {
     marks: readonly ChartMark<unknown, any, any>[]
@@ -102,32 +143,43 @@ export function defineChart<
   },
 >(
   chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>,
-): DynamicChartDefinition<
-  ChartSpecDatum<TSpec>,
-  ChartSpecXValue<TSpec>,
-  ChartSpecYValue<TSpec>
->
+): Omit<
+  ResponsiveChartDefinition<
+    ChartSpecDatum<TSpec>,
+    ChartSpecXValue<TSpec>,
+    ChartSpecYValue<TSpec>
+  >,
+  keyof ChartDefinitionOptions
+> & {
+  chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>
+}
 export function defineChart<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
+  const TDefinition extends StaticChartDefinition<any, any, any>,
+  const TOptions extends ChartDefinitionOptions<
+    ChartSpecDatum<TDefinition>,
+    ChartSpecXValue<TDefinition>,
+    ChartSpecYValue<TDefinition>
+  >,
 >(
-  definition: StaticChartDefinition<TDatum, TXValue, TYValue>,
-  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
-): StaticChartDefinition<TDatum, TXValue, TYValue>
+  definition: TDefinition,
+  options: TOptions,
+): ChartDefinitionWithOptions<NoInfer<TDefinition>, NoInfer<TOptions>>
 export function defineChart<
-  TDatum,
-  TXValue extends ChartValue,
-  TYValue extends ChartValue,
+  const TDefinition extends ResponsiveChartDefinition<any, any, any>,
+  const TOptions extends ChartDefinitionOptions<
+    ChartDefinitionDatum<TDefinition>,
+    ChartDefinitionXValue<TDefinition>,
+    ChartDefinitionYValue<TDefinition>
+  >,
 >(
-  definition: DynamicChartDefinition<TDatum, TXValue, TYValue>,
-  options: ChartDefinitionOptions<TDatum, TXValue, TYValue>,
-): DynamicChartDefinition<TDatum, TXValue, TYValue>
+  definition: TDefinition,
+  options: TOptions,
+): ChartDefinitionWithOptions<NoInfer<TDefinition>, NoInfer<TOptions>>
 export function defineChart(definition?: any, options?: any): any {
   if (options) return { ...definition, ...options }
   return (
     typeof definition === 'function' ? { chart: definition } : definition
-  ) as StaticChartDefinition | DynamicChartDefinition
+  ) as StaticChartDefinition | ResponsiveChartDefinition
 }
 
 export function createChartScene<
@@ -179,10 +231,19 @@ function createChartSceneWithScaleResolver<
 ): ChartScene<TDatum, TXValue, TYValue> {
   const width = finiteSize(size.width)
   const height = finiteSize(size.height)
-  const theme: ChartTheme = {
+  const layoutOptions: ChartLayoutOptions = {
+    ...layout,
+    measureText: withChartTextTypography(layout.measureText, layout.typography),
+  }
+  const platformTheme: ChartTheme = {
     ...defaultChartTheme,
+    ...layoutOptions.defaultTheme,
+    palette: layoutOptions.defaultTheme?.palette ?? defaultChartTheme.palette,
+  }
+  const theme: ChartTheme = {
+    ...platformTheme,
     ...definition.theme,
-    palette: definition.theme?.palette ?? defaultChartTheme.palette,
+    palette: definition.theme?.palette ?? platformTheme.palette,
   }
   const initialized = definition.marks.map((mark, markIndex) =>
     mark.initialize({ markIndex }),
@@ -204,7 +265,7 @@ function createChartSceneWithScaleResolver<
     yChannels,
     axes,
     resolveScale,
-    layout,
+    layoutOptions,
   )
   const {
     margin,
@@ -259,7 +320,7 @@ function createChartSceneWithScaleResolver<
       theme,
       color: colors.map,
       colors,
-      layout,
+      layout: layoutOptions,
     })
     if (legend?.filterMark) {
       rendered = legend.filterMark(rendered, {
@@ -352,16 +413,16 @@ function createChartSceneWithScaleResolver<
     nodes.push(axisNodes)
   }
   const controls: ChartHostControl[] = []
-  const behaviorIds = new Set<string>()
-  for (const behavior of definition.behaviors ?? []) {
-    if (!behavior.id.trim()) {
-      throw new TypeError('Chart behavior ids must be nonempty')
+  const controlIds = new Set<string>()
+  for (const control of definition.controls ?? []) {
+    if (!control.id.trim()) {
+      throw new TypeError('Chart control ids must be nonempty')
     }
-    if (behaviorIds.has(behavior.id)) {
-      throw new TypeError(`Duplicate chart behavior id "${behavior.id}"`)
+    if (controlIds.has(control.id)) {
+      throw new TypeError(`Duplicate chart control id "${control.id}"`)
     }
-    behaviorIds.add(behavior.id)
-    const resolved = behavior.resolve({
+    controlIds.add(control.id)
+    const resolved = control.resolve({
       chart,
       scales,
       colors,
@@ -384,13 +445,13 @@ function createChartSceneWithScaleResolver<
     nodes.push(legend.render(legendContext))
     if (legend.control) controls.push(legend.control(legendContext))
   }
-  const controlIds = new Set<string>()
+  const hostControlIds = new Set<string>()
   for (const control of controls) {
     const identity = `${control.extension.id}:${control.key}`
-    if (controlIds.has(identity)) {
+    if (hostControlIds.has(identity)) {
       throw new TypeError(`Duplicate chart host control "${identity}"`)
     }
-    controlIds.add(identity)
+    hostControlIds.add(identity)
   }
   if (
     definition.focus !== false &&

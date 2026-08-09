@@ -2,7 +2,8 @@ import { mountChartRenderer } from './renderer'
 import { createChartRuntime } from './runtime'
 import { resolveFocusScene } from './focus-layer'
 import { resolveFocusPresentation } from './focus-presentation'
-import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
+import { resolveMarkStateScene } from './mark-state'
+import { resolveMarkStateTransition } from './mark-state-transition'
 import type {
   ChartInteractionController,
   ChartRenderer,

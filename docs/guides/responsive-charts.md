@@ -108,8 +108,12 @@ measure painted text with the inherited container font and relayout after web
 fonts finish loading.
 
 Use `measureText` only when another renderer or layout system owns text
-measurement. It receives the text, font size, weight, anchor, and baseline and
-returns the painted box relative to the requested origin.
+measurement. It runs synchronously during scene compilation and receives the
+text plus the resolved font family, style, stretch, size, weight, letter
+spacing, direction, locale, font scale, anchor, and baseline. It returns the
+painted box relative to the requested origin. A host that loads fonts or
+measures them asynchronously owns that readiness lifecycle and renders the
+scene again when its synchronous metrics change.
 
 The resolved geometry is available after every render:
 
@@ -177,7 +181,7 @@ plot can coincide. Do not assume that equivalence for ordinary automatic
 layout.
 
 Responsive relayout commits immediately even when animation is enabled for
-data updates. Set `animate: { resize: true }` only when size interpolation is
+data updates. Set `svgAnimation: { resize: true }` only when size interpolation is
 intentional.
 
 The [Dynamic Data and Animation](./dynamic-data-and-animation.md) guide explains

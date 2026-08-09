@@ -868,11 +868,16 @@ export function facetChart<
 >(
   source: Iterable<TDatum>,
   options: FacetOptionsInput<NoInfer<TDatum>, TChart>,
-): StaticChartDefinition<ChartSpecDatum<Extract<ReturnType<TChart>, ChartSpec>>>
+): StaticChartDefinition<
+  ChartSpecDatum<Extract<ReturnType<TChart>, ChartSpec>>,
+  ChartValue,
+  ChartValue,
+  never
+>
 export function facetChart<TDatum>(
   source: Iterable<TDatum>,
   options: FacetOptions<TDatum, ChartSpec>,
-): StaticChartDefinition<unknown> {
+): StaticChartDefinition<unknown, ChartValue, ChartValue, never> {
   return {
     marks: [facet(source, options)],
     guides: false,

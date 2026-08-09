@@ -8,10 +8,12 @@ import type {
   ViewStyle,
 } from 'react-native'
 import { View } from 'react-native'
+import type { SvgProps } from 'react-native-svg'
 import {
   createChartCursorHostSession,
   resolveChartFocusStrategy,
   resolveFocusPresentation,
+  resolveMarkStateScene,
 } from '@tanstack/charts/cursor/host'
 import { createChartRuntime } from '@tanstack/charts/runtime'
 import { viewportInteractionPoints } from '@tanstack/charts/scene'
@@ -23,6 +25,7 @@ import type {
   ChartPoint,
   ChartScene,
   ChartTextMeasurer,
+  ChartTextTypography,
   ChartTooltipExtensionToken,
   ChartTooltipInput,
   ChartTooltipOptions,
@@ -55,8 +58,10 @@ export interface ChartProps<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
+  TDefinition extends ChartDefinition<TDatum, TXValue, TYValue> =
+    ChartDefinition<TDatum, TXValue, TYValue>,
 > {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: TDefinition & NativeTooltipCompatibility<TDefinition>
   accessibilityLabel: string
   accessibilityHint?: string
   width?: number
@@ -66,6 +71,12 @@ export interface ChartProps<
   color?: ColorValue
   focusFill?: ColorValue
   fontFamily?: string
+  fontStyle?: SvgProps['fontStyle']
+  fontStretch?: SvgProps['fontStretch']
+  letterSpacing?: number
+  direction?: ChartTextTypography['direction']
+  locale?: string
+  fontScale?: number
   idPrefix?: string
   testID?: string
   measureText?: ChartTextMeasurer
@@ -83,38 +94,75 @@ export interface ChartProps<
   ) => React.ReactNode
 }
 
-export function Chart<
-  TDatum,
-  TXValue extends ChartValue = ChartValue,
-  TYValue extends ChartValue = ChartValue,
->({
-  definition,
-  accessibilityLabel,
-  accessibilityHint,
-  width,
-  height,
-  aspectRatio,
-  style,
-  color = '#111827',
-  focusFill = '#ffffff',
-  fontFamily,
-  idPrefix: idPrefixOption,
-  testID,
-  measureText,
-  resolvePaint = resolveNativePaint,
-  onFocusChange,
-  onFocusGroupChange,
-  onSelect,
-  onRender,
-  renderTooltip,
-}: ChartProps<TDatum, TXValue, TYValue>) {
+type DefinitionDatum<TDefinition> = TDefinition extends {
+  readonly __datum?: infer TDatum
+}
+  ? TDatum
+  : unknown
+
+type DefinitionXValue<TDefinition> = TDefinition extends {
+  readonly __xValue?: infer TXValue extends ChartValue
+}
+  ? TXValue
+  : ChartValue
+
+type DefinitionYValue<TDefinition> = TDefinition extends {
+  readonly __yValue?: infer TYValue extends ChartValue
+}
+  ? TYValue
+  : ChartValue
+
+export function Chart<const TDefinition extends ChartDefinition<any, any, any>>(
+  props: ChartProps<
+    DefinitionDatum<TDefinition>,
+    DefinitionXValue<TDefinition>,
+    DefinitionYValue<TDefinition>,
+    TDefinition
+  >,
+) {
+  type TDatum = DefinitionDatum<TDefinition>
+  type TXValue = DefinitionXValue<TDefinition>
+  type TYValue = DefinitionYValue<TDefinition>
+  const {
+    definition,
+    accessibilityLabel,
+    accessibilityHint,
+    width,
+    height,
+    aspectRatio,
+    style,
+    color = '#111827',
+    focusFill = '#ffffff',
+    fontFamily,
+    fontStyle,
+    fontStretch,
+    letterSpacing,
+    direction,
+    locale,
+    fontScale,
+    idPrefix: idPrefixOption,
+    testID,
+    measureText,
+    resolvePaint = resolveNativePaint,
+    onFocusChange,
+    onFocusGroupChange,
+    onSelect,
+    onRender,
+    renderTooltip,
+  } = props
   const generatedId = React.useId()
   const idPrefix =
     idPrefixOption ??
     `ts-chart-${generatedId.replaceAll(/[^a-zA-Z0-9_-]/g, '')}`
   const runtime = React.useMemo(
-    () => createChartRuntime<TDatum, TXValue, TYValue>(),
-    [],
+    () =>
+      createChartRuntime<TDatum, TXValue, TYValue>({
+        defaultTheme:
+          typeof color === 'string'
+            ? { foreground: color, muted: color, grid: color }
+            : undefined,
+      }),
+    [color],
   )
   const [layout, setLayout] = React.useState<{
     width: number
@@ -131,8 +179,34 @@ export function Chart<
   )
   const scene = React.useMemo(
     () =>
-      sceneSize ? runtime.render(definition, sceneSize, { measureText }) : null,
-    [definition, measureText, runtime, sceneSize?.height, sceneSize?.width],
+      sceneSize
+        ? runtime.render(definition, sceneSize, {
+            measureText,
+            typography: {
+              fontFamily,
+              fontStyle,
+              fontStretch,
+              letterSpacing,
+              direction,
+              locale,
+              fontScale,
+            },
+          })
+        : null,
+    [
+      definition,
+      direction,
+      fontFamily,
+      fontScale,
+      fontStretch,
+      fontStyle,
+      letterSpacing,
+      locale,
+      measureText,
+      runtime,
+      sceneSize?.height,
+      sceneSize?.width,
+    ],
   )
   const focusModel = React.useMemo(
     () => (scene ? createNativeChartFocusModel(scene, definition) : null),
@@ -557,17 +631,22 @@ export function Chart<
         : null,
     [focusedPoint, focusedPoints, interactionPinned, resolvedFocusSource],
   )
+  const presentedScene = React.useMemo(
+    () =>
+      scene ? resolveMarkStateScene(scene, focus, resolvedPointer).scene : null,
+    [focus, resolvedPointer, scene],
+  )
   const focusPresentation = React.useMemo(
     () =>
-      scene
+      presentedScene
         ? resolveFocusPresentation(
-            scene,
+            presentedScene,
             focus,
             resolvedPointer,
             cursorPresentation,
           )
         : { under: [], over: [] },
-    [cursorPresentation, focus, resolvedPointer, scene],
+    [cursorPresentation, focus, presentedScene, resolvedPointer],
   )
 
   return (
@@ -619,9 +698,14 @@ export function Chart<
       {scene ? (
         <>
           <NativeChartScene
-            scene={scene}
+            scene={presentedScene ?? scene}
             color={color}
             fontFamily={fontFamily}
+            fontStyle={fontStyle}
+            fontStretch={fontStretch}
+            letterSpacing={letterSpacing}
+            direction={direction}
+            fontScale={fontScale}
             idPrefix={idPrefix}
             resolvePaint={resolvePaint}
             focusFill={focusFill}
@@ -648,6 +732,14 @@ export function Chart<
     </View>
   )
 }
+
+type NativeTooltipCompatibility<TDefinition> = TDefinition extends {
+  tooltip: infer TTooltip
+}
+  ? TTooltip extends false | ChartTooltipInput<any, any, any, 'react-native'>
+    ? unknown
+    : never
+  : unknown
 
 const emptyChartPoints = [] as const
 
@@ -747,7 +839,7 @@ function isNativeTooltipExtension(
   const candidate = extension as Partial<NativeChartTooltipExtension>
   return (
     candidate.__chartExtensionType === 'tooltip' &&
-    candidate.__nativeChartHost === 'react-native'
+    candidate.__chartTooltipHost === 'react-native'
   )
 }
 

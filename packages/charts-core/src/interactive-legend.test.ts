@@ -236,7 +236,7 @@ function createDefinition(
     value: Series,
     context: InteractiveColorLegendItemContext,
   ) => string,
-): StaticChartDefinition<(typeof rows)[number], number, number> {
+): StaticChartDefinition<(typeof rows)[number], number, number, 'dom'> {
   return defineChart(
     defineChart({
       marks: [
@@ -263,7 +263,7 @@ function createDefinition(
         }),
       },
     }),
-    { animate: false, keyboard: false },
+    { svgAnimation: false, keyboard: false },
   )
 }
 

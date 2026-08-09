@@ -3,7 +3,7 @@ title: Chart Spec
 description: Reference for marks, axes, color, gradients, clipping, margins, guides, and themes in a TanStack Charts spec.
 ---
 
-Every static definition and dynamic chart builder resolves to a `ChartSpec`.
+Every static definition and responsive chart builder resolves to a `ChartSpec`.
 The spec owns chart composition, scale factories or fixed scale instances, and
 presentation.
 

@@ -9,7 +9,7 @@ import { Chart } from '@tanstack/vue-charts'
 
 The definition infers datum and coordinate types for every callback. Replace
 its identity when captured application values change.
-It also owns `focus`, `focusRing`, `cursor`, `tooltip`, `animate`, `keyboard`,
+It also owns `focus`, `focusRing`, `cursor`, `tooltip`, `svgAnimation`, `keyboard`,
 `maxFocusDistance`, and `spatialIndex`.
 
 ## Props

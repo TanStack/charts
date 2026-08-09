@@ -171,10 +171,13 @@ export function createBandScale<TDomain extends ScaleDomainValue>(
 
 function pair(values: Iterable<number>): [number, number] {
   const resolved = Array.from(values, number)
-  if (resolved.length < 2) {
-    throw new TypeError('A scale range requires two numeric values')
+  if (
+    resolved.length !== 2 ||
+    resolved.some((value) => !Number.isFinite(value))
+  ) {
+    throw new TypeError('A scale range requires exactly two finite numbers')
   }
-  return [resolved[0]!, resolved[resolved.length - 1]!]
+  return [resolved[0]!, resolved[1]!]
 }
 
 function number(value: unknown): number {

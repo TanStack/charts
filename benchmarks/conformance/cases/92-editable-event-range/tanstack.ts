@@ -131,7 +131,7 @@ export function editableEventDefinition(
           editableEventColor('release'),
         ],
       },
-      behaviors: [
+      controls: [
         handleX<Date, string>({
           id: handleId,
           value: controlledSignal<Date, HandleXChange<Date>>(
@@ -154,7 +154,7 @@ export function editableEventDefinition(
           format: (value) => editableHandleValueText(value),
         }),
       ],
-      animate: false,
+      svgAnimation: false,
       keyboard: false,
       focusRing: false,
       margin,

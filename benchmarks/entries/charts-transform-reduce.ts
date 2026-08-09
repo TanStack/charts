@@ -1,6 +1,6 @@
 import {
   deviation,
-  difference,
+  delta,
   first,
   last,
   median,
@@ -10,7 +10,7 @@ import {
 } from '@tanstack/charts/transform/reduce'
 export const output = {
   deviation,
-  difference,
+  delta,
   first,
   last,
   median,

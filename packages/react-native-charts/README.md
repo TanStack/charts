@@ -51,6 +51,15 @@ export function RevenueChart() {
 }
 ```
 
+## Typography
+
+`fontFamily`, `fontStyle`, `fontStretch`, `letterSpacing`, `direction`,
+`locale`, and `fontScale` are passed to the synchronous `measureText` contract.
+The SVG painter applies the corresponding family, style, stretch, spacing, and
+font scale. If native font metrics become available asynchronously, keep them
+in application state and render the chart again with an updated `measureText`
+function or typography prop.
+
 Exact core subpaths keep Metro from retaining unrelated universal-entry
 exports. The `/universal` barrel remains valid when portability matters more
 than the native bundle floor.

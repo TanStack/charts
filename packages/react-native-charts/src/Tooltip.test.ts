@@ -44,7 +44,7 @@ describe('native tooltip model', () => {
     const points = [point('alpha', 'Alpha', 3), point('beta', 'Beta', 7)]
 
     expect(createNativeTooltipContent(points, scene(points))).toEqual({
-      title: 'x: 1',
+      title: '1',
       rows: [
         { label: 'Alpha', value: '3', color: '#2563eb' },
         { label: 'Beta', value: '7', color: '#f97316' },

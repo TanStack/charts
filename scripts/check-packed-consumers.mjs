@@ -3290,6 +3290,8 @@ async function verifyDeclarations() {
     }
     const tooltipToken: ChartTooltipExtensionToken = {
       id: 'host-tooltip',
+      __chartExtensionType: 'tooltip',
+      __chartTooltipHost: 'dom',
       create: () => undefined,
     }
     const portalToken: ChartTooltipPortalExtensionToken = {
@@ -3455,7 +3457,7 @@ async function verifyProductionBundles() {
       '/@tanstack/charts/dist/transform-reduce-internal.js',
       '/@tanstack/charts/dist/transform-select.js',
       '/@tanstack/charts/dist/transform-stack.js',
-      '/@tanstack/charts/dist/transform-window.js',
+      '/@tanstack/charts/dist/transform-rolling-window.js',
     ],
     spatialHexbin: ['/@tanstack/charts/dist/spatial-hexbin.js'],
     spatialDensity: ['/@tanstack/charts/dist/spatial-density.js'],

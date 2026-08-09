@@ -56,11 +56,11 @@ describe('box marks', () => {
       { group: null, value: 5 },
     ]
     const prepared = boxRows(rows, {
-      category: ({ datum, index, data }) => {
+      category: (datum, { index, data }) => {
         expect(data[index]).toBe(datum)
         return datum.group
       },
-      value: ({ datum }) => datum.value,
+      value: (datum) => datum.value,
     })
 
     expectTypeOf(prepared).toEqualTypeOf<BoxDatum<Row, 'A' | 'B'>[]>()

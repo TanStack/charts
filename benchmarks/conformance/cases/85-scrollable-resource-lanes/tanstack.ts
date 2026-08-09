@@ -85,7 +85,7 @@ export const resourceTimelineDefinition = (input: ConformanceInput) => {
       }
     }),
     {
-      animate: false,
+      svgAnimation: false,
       keyboard: true,
       tooltip: {
         use: tooltip,
@@ -139,7 +139,7 @@ export const mount: ConformanceMount = (container, input) => {
 
   const chartOptions = (
     nextInput: ConformanceInput,
-  ): ChartHostOptions<ResourceTask> => ({
+  ): ChartHostOptions<ResourceTask, number, string> => ({
     definition: resourceTimelineDefinition(nextInput),
     width: timelineContentWidth(
       nextInput.width - timelineLaneRailWidth(nextInput.width),
@@ -189,7 +189,7 @@ function createDriver(
   viewport: HTMLDivElement,
   chartSurface: HTMLDivElement,
   getInput: () => ConformanceInput,
-  host: ChartHost<ResourceTask>,
+  host: ChartHost<ResourceTask, number, string>,
   focusState: TimelineFocusState,
 ): ConformanceTestDriver {
   return {
@@ -214,7 +214,7 @@ function createDriver(
 function timelineTarget(
   viewport: HTMLDivElement,
   chartSurface: HTMLDivElement,
-  host: ChartHost<ResourceTask>,
+  host: ChartHost<ResourceTask, number, string>,
   target: ConformanceTarget,
 ) {
   if (target.view !== undefined && target.view !== 'main') {

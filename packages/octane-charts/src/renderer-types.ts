@@ -5,7 +5,7 @@ import type {
   ChartTextMeasurer,
   ChartTooltipBodyContext,
   ChartValue,
-  ChartDefinition,
+  DomChartDefinition,
 } from '@tanstack/charts'
 import type { OctaneNode } from 'octane'
 
@@ -52,5 +52,5 @@ export type RendererChartProps<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 > = RendererChartCommonProps<TDatum, TXValue, TYValue> & {
-  definition: ChartDefinition<TDatum, TXValue, TYValue>
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>
 }

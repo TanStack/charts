@@ -44,7 +44,7 @@ The Canvas `Chart` accepts the same adapter props except `renderSvg`. Its
 surfaces. Both entries export `ChartCommonProps`, `ChartProps`,
 `ChartDefinition`, and `ChartPoint`.
 
-These base entries render the native tooltip without React tooltip-body
+These base entries render the built-in tooltip without React tooltip-body
 composition.
 
 ## Definition props
@@ -56,7 +56,7 @@ composition.
 See [Chart Definition API](../../../reference/chart-definitions.md).
 
 The definition owns `focus`, `focusRing`, `cursor`, `maxFocusDistance`,
-`spatialIndex`, `animate`, `keyboard`, and `tooltip`. Adapters do not override
+`spatialIndex`, `svgAnimation`, `keyboard`, and `tooltip`. Adapters do not override
 them.
 
 Add the `portal` extension to the definition's tooltip options to escape

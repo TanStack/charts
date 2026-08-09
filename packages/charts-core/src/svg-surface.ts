@@ -10,7 +10,8 @@ import {
   removeSvgFocusGuideLayer,
   restoreSvgFocusGuideLayers,
 } from './svg-focus-guide-layer'
-import { resolveMarkStateScene, resolveMarkStateTransition } from './mark-state'
+import { resolveMarkStateScene } from './mark-state'
+import { resolveMarkStateTransition } from './mark-state-transition'
 import { viewportTranslationChanged } from './scene-point-map'
 import { svgClientToScene } from './svg-coordinates'
 import type {

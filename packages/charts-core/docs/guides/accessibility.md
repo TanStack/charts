@@ -51,11 +51,11 @@ and print than text embedded in SVG.
 
 ## Keyboard focus and selection
 
-Native focus supports pointer and keyboard navigation over chart points.
+Chart-owned focus supports pointer and keyboard navigation over chart points.
 Leave `keyboard` enabled when a chart is interactive. Focus callbacks expose
 the same typed `ChartPoint` data regardless of input method.
 
-If the application replaces native focus with a brush, zoom, editor, or rich
+If the application replaces chart-owned focus with a brush, zoom, editor, or rich
 overlay:
 
 - provide semantic buttons, sliders, inputs, or table rows;
@@ -136,7 +136,7 @@ lightweight tween and optional spring renderer boundaries.
 
 ## Tooltips are supplemental
 
-The native tooltip exposes its structured rows through a polite status region.
+The built-in tooltip exposes its structured rows through a polite status region.
 It is not a replacement for a label, axis, legend, or data table. Essential
 information must remain available without hovering.
 

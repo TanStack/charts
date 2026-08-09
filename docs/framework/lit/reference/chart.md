@@ -10,32 +10,32 @@ import { Chart, defineChartElement } from '@tanstack/lit-charts'
 `defineChartElement()` registers `Chart` as `tanstack-chart`. Pass the complete
 chart value through the element's `options` property, not HTML attributes.
 Replace the definition identity when captured application values change.
-The definition also owns `focus`, `focusRing`, `cursor`, `tooltip`, `animate`,
+The definition also owns `focus`, `focusRing`, `cursor`, `tooltip`, `svgAnimation`,
 `keyboard`, `maxFocusDistance`, and `spatialIndex`.
 
 ## `options`
 
-| Option               | Type                                                  | Default               | Meaning                                              |
-| -------------------- | ----------------------------------------------------- | --------------------- | ---------------------------------------------------- |
-| `definition`         | `ChartDefinition`                                     | Required              | Framework-neutral chart definition                   |
-| `ariaLabel`          | `string`                                              | Required              | Accessible chart name                                |
-| `ariaDescription`    | `string`                                              | None                  | Optional accessible description                      |
-| `height`             | `number`                                              | `320` without a ratio | Fixed CSS and scene height                           |
-| `aspectRatio`        | `number`                                              | None                  | Positive width-to-height ratio when height is absent |
-| `width`              | `number`                                              | Responsive            | Fixed CSS and scene width                            |
-| `initialWidth`       | `number`                                              | `640`                 | Initial width before responsive measurement          |
-| `tabIndex`           | `number`                                              | `0`                   | Surface tab index; `keyboard: false` forces `-1`     |
-| `idPrefix`           | `string`                                              | Generated             | Prefix for renderer-owned document IDs               |
-| `renderSvg`          | `ChartSvgRenderer<TDatum, TXValue, TYValue>`          | `renderChartSvg`      | Scene-to-SVG renderer                                |
-| `measureText`        | `ChartTextMeasurer`                                   | Host measurer         | Guide text measurement                               |
-| `onFocusChange`      | `(point: ChartPoint \| null) => void`                 | None                  | Primary focus callback                               |
-| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`             | None                  | Grouped focus callback                               |
-| `onSelect`           | `(point: ChartPoint \| null) => void`                 | None                  | Pointer or keyboard activation callback              |
-| `onRender`           | `(context: ChartRenderContext) => void`               | None                  | Live SVG, container, and scene after rendering       |
-| `renderTooltipBody`  | `(context: ChartTooltipBodyRenderContext) => unknown` | None                  | Composes Lit content inside the native tooltip body  |
-| `class`              | `string`                                              | None                  | Extra class on the inner `.ts-chart-host`            |
-| `style`              | `string`                                              | None                  | Inner host declarations applied after adapter sizing |
-| `className`          | `string`                                              | None                  | Extra class on the rendered SVG surface              |
+| Option               | Type                                                  | Default               | Meaning                                               |
+| -------------------- | ----------------------------------------------------- | --------------------- | ----------------------------------------------------- |
+| `definition`         | `ChartDefinition`                                     | Required              | Framework-neutral chart definition                    |
+| `ariaLabel`          | `string`                                              | Required              | Accessible chart name                                 |
+| `ariaDescription`    | `string`                                              | None                  | Optional accessible description                       |
+| `height`             | `number`                                              | `320` without a ratio | Fixed CSS and scene height                            |
+| `aspectRatio`        | `number`                                              | None                  | Positive width-to-height ratio when height is absent  |
+| `width`              | `number`                                              | Responsive            | Fixed CSS and scene width                             |
+| `initialWidth`       | `number`                                              | `640`                 | Initial width before responsive measurement           |
+| `tabIndex`           | `number`                                              | `0`                   | Surface tab index; `keyboard: false` forces `-1`      |
+| `idPrefix`           | `string`                                              | Generated             | Prefix for renderer-owned document IDs                |
+| `renderSvg`          | `ChartSvgRenderer<TDatum, TXValue, TYValue>`          | `renderChartSvg`      | Scene-to-SVG renderer                                 |
+| `measureText`        | `ChartTextMeasurer`                                   | Host measurer         | Guide text measurement                                |
+| `onFocusChange`      | `(point: ChartPoint \| null) => void`                 | None                  | Primary focus callback                                |
+| `onFocusGroupChange` | `(points: readonly ChartPoint[]) => void`             | None                  | Grouped focus callback                                |
+| `onSelect`           | `(point: ChartPoint \| null) => void`                 | None                  | Pointer or keyboard activation callback               |
+| `onRender`           | `(context: ChartRenderContext) => void`               | None                  | Live SVG, container, and scene after rendering        |
+| `renderTooltipBody`  | `(context: ChartTooltipBodyRenderContext) => unknown` | None                  | Composes Lit content inside the built-in tooltip body |
+| `class`              | `string`                                              | None                  | Extra class on the inner `.ts-chart-host`             |
+| `style`              | `string`                                              | None                  | Inner host declarations applied after adapter sizing  |
+| `className`          | `string`                                              | None                  | Extra class on the rendered SVG surface               |
 
 ```ts
 const options = {

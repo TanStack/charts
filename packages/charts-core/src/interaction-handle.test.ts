@@ -80,7 +80,7 @@ describe('handleX', () => {
       ],
       x: { scale: scaleUtc().domain(dates) },
       y: { scale: scaleBand().domain(teams) },
-      behaviors: [
+      controls: [
         handleX({
           value: controlledSignal<Date, HandleXChange<Date>>(
             dates[0],
@@ -113,7 +113,7 @@ describe('handleX', () => {
       style: { fill: '#f97316' },
     })
     expectTypeOf(definition).toMatchTypeOf<{
-      behaviors?: readonly { readonly __yValue?: 'Engineering' | undefined }[]
+      controls?: readonly { readonly __yValue?: 'Engineering' | undefined }[]
     }>()
   })
 
@@ -435,7 +435,7 @@ function edgeDefinition(
     marks: [dot(rows, { x: 'date', y: 'value' })],
     x: { scale: scaleUtc().domain(dates) },
     y: { scale: scaleLinear().domain([0, dates.length - 1]) },
-    behaviors: [
+    controls: [
       handleX({
         id: options.id ?? 'date',
         value: controlledSignal<Date, HandleXChange<Date>>(

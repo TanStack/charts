@@ -534,6 +534,9 @@ describe('public package exports', () => {
       'resolveChartFocusStrategy',
       'resolveChartPointerFocus',
       'resolveFocusPresentation',
+      'resolveMarkStateScene',
+      'restoreChartFocusPoint',
+      'sameChartPointIdentity',
     ])
   })
 

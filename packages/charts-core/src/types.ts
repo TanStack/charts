@@ -250,8 +250,26 @@ export interface ChartMargin {
 export interface ChartTextMeasureOptions {
   fontSize: number
   fontWeight?: number
+  fontFamily: string
+  fontStyle: string
+  fontStretch: string
+  letterSpacing: number
+  direction: 'ltr' | 'rtl' | 'inherit'
+  locale?: string
+  fontScale: number
   anchor: 'start' | 'middle' | 'end'
   baseline: 'auto' | 'middle' | 'hanging'
+}
+
+export interface ChartTextTypography {
+  fontFamily?: string
+  fontStyle?: string
+  fontStretch?: string
+  letterSpacing?: number
+  direction?: 'ltr' | 'rtl' | 'inherit'
+  locale?: string
+  /** Host text scale, such as the React Native accessibility font scale. */
+  fontScale?: number
 }
 
 export interface ChartTextMetrics {
@@ -270,6 +288,15 @@ export type ChartTextMeasurer = (
 
 export interface ChartLayoutOptions {
   measureText?: ChartTextMeasurer
+  /** Host typography used for measurement and deterministic layout. */
+  typography?: ChartTextTypography
+  /** Host defaults applied before the authored definition theme. */
+  defaultTheme?: Partial<ChartTheme>
+}
+
+export interface ChartRuntimeOptions {
+  /** Platform theme passed to responsive builders and final scene resolution. */
+  defaultTheme?: Partial<ChartTheme>
 }
 
 export interface ChartAxisTickOptions<TValue extends ChartValue = any> {
@@ -381,7 +408,7 @@ export interface ChartColorOptions {
    * A scale instance retains its configured domain.
    */
   scale?: ConfiguredColorScaleLike<any, any> | ChartColorScaleFactory<any, any>
-  type?: ChartColorScale
+  resolver?: ChartColorScale
   domain?: readonly ChartKey[]
   range?: readonly string[]
   nice?: boolean | number
@@ -392,7 +419,7 @@ export type ResolvedColorScaleKind =
   'categorical' | 'continuous' | 'quantile' | 'quantize' | 'threshold'
 
 export interface ConfiguredColorScaleLike<TValue extends ChartKey, TOutput> {
-  (value: TValue): TOutput
+  (value: TValue): TOutput | undefined
   copy: () => ConfiguredColorScaleLike<TValue, TOutput>
   domain?: () => readonly TValue[]
   range?: () => readonly TOutput[]
@@ -463,7 +490,7 @@ export interface ChartHostControl {
   readonly fallbackNodeKey?: string
 }
 
-export interface ChartBehaviorContext {
+export interface ChartControlContext {
   chart: ChartBounds
   scales: Readonly<Record<string, ResolvedScale>>
   colors: ResolvedColorScale
@@ -472,18 +499,18 @@ export interface ChartBehaviorContext {
   height: number
 }
 
-export interface ChartBehaviorScene {
+export interface ChartControlScene {
   nodes?: readonly SceneNode[]
   controls?: readonly ChartHostControl[]
 }
 
 /** Resolves renderer-neutral interaction output after scales and bounds exist. */
-export interface ChartBehavior<
+export interface ChartControl<
   TXValue extends ChartValue = any,
   TYValue extends ChartValue = any,
 > {
   readonly id: string
-  resolve: (context: ChartBehaviorContext) => ChartBehaviorScene
+  resolve: (context: ChartControlContext) => ChartControlScene
   readonly __xValue?: TXValue
   readonly __yValue?: TYValue
 }
@@ -725,6 +752,7 @@ export interface ChartDefinitionOptions<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
+  TTooltipHost extends string = string,
 > {
   maxFocusDistance?: number
   focus?: ChartFocusMode<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
@@ -737,7 +765,7 @@ export interface ChartDefinitionOptions<
     NoInfer<TYValue>
   >
   spatialIndex?: ChartSpatialIndexFactory<TDatum, TXValue, TYValue>
-  animate?: boolean | ChartAnimationOptions
+  svgAnimation?: boolean | ChartAnimationOptions
   /** Renderer-neutral motion defaults. An optional motion implementation consumes them. */
   motion?: ChartMotionDefinition<NoInfer<TDatum>>
   /** Enables chart-owned pointer focus and selection. Defaults to true. */
@@ -748,33 +776,39 @@ export interface ChartDefinitionOptions<
     NoInfer<TXValue>,
     NoInfer<TYValue>
   >
-  behaviors?: readonly ChartBehavior<NoInfer<TXValue>, NoInfer<TYValue>>[]
+  controls?: readonly ChartControl<NoInfer<TXValue>, NoInfer<TYValue>>[]
   tooltip?:
     | false
-    | ChartTooltipInput<NoInfer<TDatum>, NoInfer<TXValue>, NoInfer<TYValue>>
+    | ChartTooltipInput<
+        NoInfer<TDatum>,
+        NoInfer<TXValue>,
+        NoInfer<TYValue>,
+        TTooltipHost
+      >
 }
 
-interface StoredChartDefinitionOptions {
+interface StoredChartDefinitionOptions<TTooltipHost extends string = string> {
   maxFocusDistance?: number
   focus?: ChartFocusMode<any, any, any>
   focusRing?: boolean
   cursor?: ChartCursorBinding<any, any, any>
   spatialIndex?: ChartSpatialIndexFactory<any, any, any>
-  animate?: boolean | ChartAnimationOptions
+  svgAnimation?: boolean | ChartAnimationOptions
   motion?: ChartMotionDefinition<any>
   pointer?: boolean
   keyboard?: boolean
   selection?: ChartSelectionController<any, any, any>
-  behaviors?: readonly ChartBehavior<any, any>[]
-  tooltip?: false | ChartTooltipInput<any, any, any>
+  controls?: readonly ChartControl<any, any>[]
+  tooltip?: false | ChartTooltipInput<any, any, any, TTooltipHost>
 }
 
 export interface StaticChartDefinition<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
+  TTooltipHost extends string = string,
 >
-  extends StoredChartSpec, StoredChartDefinitionOptions {
+  extends StoredChartSpec, StoredChartDefinitionOptions<TTooltipHost> {
   marks: readonly ChartMark<unknown, any, any>[]
   readonly __datum?: TDatum
   readonly __xValue?: TXValue
@@ -784,27 +818,31 @@ export interface StaticChartDefinition<
 export interface ChartBuildContext {
   width: number
   height: number
-  theme: ChartTheme
+  /** Platform default tokens before a returned chart spec applies its theme. */
+  defaultTheme: ChartTheme
 }
 
 export type CheckedChartSpec<TSpec extends StoredChartSpec> = TSpec &
   ChartSpec<TSpec['marks']>
 
-export interface DynamicChartConfig<
+export interface ResponsiveChartConfig<
   TSpec extends StoredChartSpec = StoredChartSpec,
+  TTooltipHost extends string = string,
 > extends ChartDefinitionOptions<
   ChartSpecDatum<TSpec>,
   ChartSpecXValue<TSpec>,
-  ChartSpecYValue<TSpec>
+  ChartSpecYValue<TSpec>,
+  TTooltipHost
 > {
   chart: (context: ChartBuildContext) => CheckedChartSpec<TSpec>
 }
 
-export interface DynamicChartDefinition<
+export interface ResponsiveChartDefinition<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
-> extends StoredChartDefinitionOptions {
+  TTooltipHost extends string = string,
+> extends StoredChartDefinitionOptions<TTooltipHost> {
   chart: (context: ChartBuildContext) => StoredChartSpec
   readonly __datum?: TDatum
   readonly __xValue?: TXValue
@@ -815,9 +853,37 @@ export type ChartDefinition<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
+  TTooltipHost extends string = string,
 > =
-  | StaticChartDefinition<TDatum, TXValue, TYValue>
-  | DynamicChartDefinition<TDatum, TXValue, TYValue>
+  | StaticChartDefinition<TDatum, TXValue, TYValue, TTooltipHost>
+  | ResponsiveChartDefinition<TDatum, TXValue, TYValue, TTooltipHost>
+
+export type ChartDefinitionForTooltipHost<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+  TTooltipHost extends string = string,
+> =
+  | (Omit<
+      StaticChartDefinition<TDatum, TXValue, TYValue, TTooltipHost>,
+      'tooltip'
+    > & {
+      tooltip?:
+        false | ChartTooltipInput<TDatum, TXValue, TYValue, TTooltipHost>
+    })
+  | (Omit<
+      ResponsiveChartDefinition<TDatum, TXValue, TYValue, TTooltipHost>,
+      'tooltip'
+    > & {
+      tooltip?:
+        false | ChartTooltipInput<TDatum, TXValue, TYValue, TTooltipHost>
+    })
+
+export type DomChartDefinition<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> = ChartDefinitionForTooltipHost<TDatum, TXValue, TYValue, 'dom'>
 
 export type ChartMarkDatum<TMark> =
   TMark extends ChartMark<infer TDatum, any, any> ? TDatum : never
@@ -1362,18 +1428,20 @@ export interface ChartTooltipOptions<
 export type ChartExtensionInput<TExtension, TOptions> =
   TExtension | ({ use: TExtension } & TOptions)
 
-export interface ChartTooltipExtensionToken {
+export interface ChartTooltipExtensionToken<THost extends string = string> {
   readonly id: string
   readonly create: Function
-  readonly __chartExtensionType?: 'tooltip'
+  readonly __chartExtensionType: 'tooltip'
+  readonly __chartTooltipHost: THost
 }
 
 export type ChartTooltipInput<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
+  THost extends string = string,
 > = ChartExtensionInput<
-  ChartTooltipExtensionToken,
+  ChartTooltipExtensionToken<THost>,
   ChartTooltipOptions<TDatum, TXValue, TYValue>
 >
 

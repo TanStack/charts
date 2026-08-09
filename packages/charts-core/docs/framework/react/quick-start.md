@@ -150,7 +150,7 @@ export function LiveLetterFrequency({ rows, accent }: LetterFrequencyInput) {
         scale: scaleLinear,
         nice: true,
       },
-      animate: true,
+      svgAnimation: true,
       tooltip,
     })
   }, [rows, accent])
@@ -189,13 +189,13 @@ Callback types flow from the marks:
 />
 ```
 
-The native tooltip is optional. Grouped focus, formatting, keyboard behavior,
+The built-in tooltip is optional. Grouped focus, formatting, keyboard behavior,
 and application-owned interaction are documented in
 [Focus and interaction](../../reference/focus-and-interaction.md).
 
 ## Render React tooltip content
 
-Keep `Chart` from `@tanstack/react-charts` when the native tooltip is enough.
+Keep `Chart` from `@tanstack/react-charts` when the built-in tooltip is enough.
 To pass `renderTooltipBody`, switch the component import to the optional React
 tooltip entry:
 
