@@ -4385,6 +4385,15 @@ Each entry records:
 - Verification: focused contracts accept a workspace release changing from
   0.0.1 to 0.0.2, still reject external package-version drift, and retain the
   exact workspace source-revision check.
+- `0.9.0` release evidence: the generated version pull request changed only
+  package versions and release-facing docs, but the catalog preview source hash
+  included raw package manifests and therefore rejected the release branch.
+- `0.9.0` release decision: normalize package-manifest preview inputs by omitting
+  only their own `version`. Continue hashing exports, dependencies, conditions,
+  source files, and every stored preview checksum.
+- `0.9.0` release verification: the focused preview contract proves version-only
+  manifests hash identically while an export change does not. The generated
+  `0.9.0` preview manifest and the full release validation pass.
 
 ### F-153 — Changesets left release-facing version claims behind
 
