@@ -5796,6 +5796,19 @@ Each entry records:
 - Release follow-up verification: the workflow contract fixes the coordinator
   ordering and disables continuous assignment for that step. The coordinator
   `benchmark-check` passes against the unchanged `cd7768378` evidence.
+- `0.8.0` release evidence: squash-merging the fully validated API
+  harmonization PR rewrote measured source commit `5a1c893` as `35832f7`
+  without changing any measured bytes. Both the main push and version-PR
+  comparison gates rejected the exact-SHA baseline.
+- `0.8.0` release decision: keep the source revision as human-readable
+  attribution, but make the deterministic SHA-256 digest of every tracked
+  comparison input the authoritative equality boundary. Rewritten history can
+  retain evidence when its measured content is identical; any byte change
+  still requires a new baseline.
+- `0.8.0` release verification: focused provenance tests cover history rewrite,
+  content drift, malformed metadata, and workspace version-only changes. The
+  schema-4 baseline records both commit attribution and the input digest, and
+  the full validation graph passes after the squash merge.
 
 ### F-198 — Union-valued axes rejected configured D3 scales
 

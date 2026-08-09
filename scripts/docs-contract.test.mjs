@@ -179,12 +179,13 @@ Body
       'observable-plot': '0.6.17',
     }
     const baseline = {
-      schemaVersion: 3,
+      schemaVersion: 4,
       packageVersions: versions,
       sources: {
         tanstack: {
           kind: 'workspace',
           revision: '1'.repeat(40),
+          inputDigest: `sha256:${'2'.repeat(64)}`,
         },
         chartjs: {
           kind: 'package',
@@ -231,11 +232,13 @@ Body
     const stale = structuredClone(baseline)
     stale.packageVersions.chartjs = '4.5.0'
     stale.sources.tanstack.revision = 'unknown'
+    stale.sources.tanstack.inputDigest = 'unknown'
     delete stale.bundles['tanstack-line-basic']
     expect(comparisonBaselineContractFailures(stale, versions)).toEqual(
       expect.arrayContaining([
         'comparison bundle baseline version is stale for Chart.js: expected 4.5.1',
         'comparison bundle baseline must record the TanStack workspace revision',
+        'comparison bundle baseline must record the TanStack workspace input digest',
         'comparison bundle baseline must contain the complete 60-case matrix',
       ]),
     )
