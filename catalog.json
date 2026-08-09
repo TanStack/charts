@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 4,
-  "revision": "b8690671d677244848cff0eebd3d5dd0d5825b18",
+  "schemaVersion": 5,
+  "revision": "06278a4c0abad51ec08938ce6afa7ed113741da8",
   "source": {
     "repo": "tanstack/charts",
-    "ref": "b8690671d677244848cff0eebd3d5dd0d5825b18",
+    "ref": "06278a4c0abad51ec08938ce6afa7ed113741da8",
     "pathRoot": "benchmarks/conformance/"
   },
   "runtime": {
@@ -7121,6 +7121,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/01-line-gaps-62942d090ed3895b2d1c2c4cc6b0ff1478bf92220f54c1331509db7ff363248a.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5771,
+        "sha256": "62942d090ed3895b2d1c2c4cc6b0ff1478bf92220f54c1331509db7ff363248a"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CXjsWlDv.js",
@@ -7339,6 +7347,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/02-multi-line-end-labels-670cb95e4d89799a4a602e3fecca0d7541d8fbb5ed7fc6719edc605e01258fcf.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6527,
+        "sha256": "670cb95e4d89799a4a602e3fecca0d7541d8fbb5ed7fc6719edc605e01258fcf"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-MA3_wotC.js",
@@ -7555,6 +7571,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/03-temperature-range-band-df7e72e754cb41b5934dbdaf91907cc4c60df261eade2ec4563859bb18b0a6bb.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 8702,
+        "sha256": "df7e72e754cb41b5934dbdaf91907cc4c60df261eade2ec4563859bb18b0a6bb"
       },
       "modules": {
         "tanstack": {
@@ -7774,6 +7798,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/04-stacked-time-area-c995267b87501e3882d892368609054beab89b3c52b32f3927026a5630d10eae.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 18007,
+        "sha256": "c995267b87501e3882d892368609054beab89b3c52b32f3927026a5630d10eae"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CGONjiUM.js",
@@ -7988,6 +8020,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/bar-vertical-sorted-55262e5ba8e948400834c84aca187bd84cb774b21e2f94fe6859453defc9ba40.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 13404,
+        "sha256": "55262e5ba8e948400834c84aca187bd84cb774b21e2f94fe6859453defc9ba40"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CYex4ERE.js",
@@ -8181,6 +8221,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/bar-horizontal-ranking-e2d068d77605d3eee9da4c4dd47c09a833401e093e811a031e7610ebef9c2f29.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 7902,
+        "sha256": "e2d068d77605d3eee9da4c4dd47c09a833401e093e811a031e7610ebef9c2f29"
       },
       "modules": {
         "tanstack": {
@@ -8389,6 +8437,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/bar-grouped-4f19dc5f108dd6226d7e2f932d07a9ea40022122e02c2ea76cd18f5f1dfaf9eb.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6225,
+        "sha256": "4f19dc5f108dd6226d7e2f932d07a9ea40022122e02c2ea76cd18f5f1dfaf9eb"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-Ci0Fpla9.js",
@@ -8595,6 +8651,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/bar-stacked-512159c89d11e2b50c17098458491a2ab04ad8462302b42dc54a913c3dede0b1.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 17685,
+        "sha256": "512159c89d11e2b50c17098458491a2ab04ad8462302b42dc54a913c3dede0b1"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DNORfsRS.js",
@@ -8798,6 +8862,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/scatter-bubble-92e87e4458f9b795cf79996e0d6189f95c9d885108cf7f72a9e4602c0804115e.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 21827,
+        "sha256": "92e87e4458f9b795cf79996e0d6189f95c9d885108cf7f72a9e4602c0804115e"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DLaCRZBn2.js",
@@ -8989,6 +9061,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/histogram-1b689c4624a4584095f42090ab053769b6da83fd7bfa1a8cfa2ae44da143597c.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5504,
+        "sha256": "1b689c4624a4584095f42090ab053769b6da83fd7bfa1a8cfa2ae44da143597c"
       },
       "modules": {
         "tanstack": {
@@ -9191,6 +9271,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/heatmap-labeled-bd0810e5afeaad26755fc478e4007e76b476ca735d35d1f5d8e13f3ce3d4d6e6.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 88167,
+        "sha256": "bd0810e5afeaad26755fc478e4007e76b476ca735d35d1f5d8e13f3ce3d4d6e6"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BGa6jMSX2.js",
@@ -9391,6 +9479,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/facets-anscombe-5bfee046c8718b5de107aa0b0d7dffa544880b3d6205b08719f03ddb10091dec.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 20273,
+        "sha256": "5bfee046c8718b5de107aa0b0d7dffa544880b3d6205b08719f03ddb10091dec"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CEPJJV4s.js",
@@ -9580,6 +9676,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/13-interval-timeline-73d420c2fb6011b8ab411fd0dd4220ad9e9d117f40dd13751307a77fc3c00436.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6531,
+        "sha256": "73d420c2fb6011b8ab411fd0dd4220ad9e9d117f40dd13751307a77fc3c00436"
       },
       "modules": {
         "tanstack": {
@@ -9789,6 +9893,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/14-error-bars-6d7d24f0ab207510d991a3457565ec5847bb4db0e7ced1ac8e520e1b873f6836.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5829,
+        "sha256": "6d7d24f0ab207510d991a3457565ec5847bb4db0e7ced1ac8e520e1b873f6836"
       },
       "modules": {
         "tanstack": {
@@ -10005,6 +10117,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/15-boxplot-1a7efbafe64bb4b5e17add525674896bf119267245dda6aec74d4aad5fe0a156.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 8558,
+        "sha256": "1a7efbafe64bb4b5e17add525674896bf119267245dda6aec74d4aad5fe0a156"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BmSBt830.js",
@@ -10220,6 +10340,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/16-lollipop-87060d2e0d2feb86fd3975f3075555abc6c8a0b46c43840fb08255e869907acd.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 15804,
+        "sha256": "87060d2e0d2feb86fd3975f3075555abc6c8a0b46c43840fb08255e869907acd"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BCff11xc.js",
@@ -10412,6 +10540,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/17-dumbbell-aab13d6368dab86456c2744391eb9e61308ee8d18e701d15e6944db39e616d1c.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 8753,
+        "sha256": "aab13d6368dab86456c2744391eb9e61308ee8d18e701d15e6944db39e616d1c"
       },
       "modules": {
         "tanstack": {
@@ -10612,6 +10748,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/18-cumulative-histogram-6a68c65a877b90f13f492f642fbfd84b79a474fcedff42691ac8a7fe2afaf541.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 18312,
+        "sha256": "6a68c65a877b90f13f492f642fbfd84b79a474fcedff42691ac8a7fe2afaf541"
       },
       "modules": {
         "tanstack": {
@@ -10818,6 +10962,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/19-moving-average-line-05254ab326411d10146a5955c9faea3a7cdf9da4b9a88a70ef87fe2e41797431.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6247,
+        "sha256": "05254ab326411d10146a5955c9faea3a7cdf9da4b9a88a70ef87fe2e41797431"
       },
       "modules": {
         "tanstack": {
@@ -11037,6 +11189,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/20-normalized-stacked-area-3b0afac4e465313c6357e95b73c9b4d552706361b6ce4cd4befce35f347750d3.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 17437,
+        "sha256": "3b0afac4e465313c6357e95b73c9b4d552706361b6ce4cd4befce35f347750d3"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DxdI7cyF2.js",
@@ -11253,6 +11413,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/21-streamgraph-fa59577113399f1c10e32cfa5f10d3da4b3130d8664e78cfd9aa34ad221ec820.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 14885,
+        "sha256": "fa59577113399f1c10e32cfa5f10d3da4b3130d8664e78cfd9aa34ad221ec820"
       },
       "modules": {
         "tanstack": {
@@ -11478,6 +11646,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/22-bollinger-band-458650cc18b52edb25a20bafe784b3f6dc699ffb3ae5a91bde98db1644880034.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 7309,
+        "sha256": "458650cc18b52edb25a20bafe784b3f6dc699ffb3ae5a91bde98db1644880034"
       },
       "modules": {
         "tanstack": {
@@ -11705,6 +11881,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/24-quantitative-binned-heatmap-c6655f4f95c1a2767ffaef38516ef7229609171157862762a4146e99681094fb.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 14506,
+        "sha256": "c6655f4f95c1a2767ffaef38516ef7229609171157862762a4146e99681094fb"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BbbF5Q2f.js",
@@ -11911,6 +12095,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/25-calendar-heatmap-50695fdd4348422c1d3d7e41f56f1196219e2179f779851fff203e5668e55c9c.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 29618,
+        "sha256": "50695fdd4348422c1d3d7e41f56f1196219e2179f779851fff203e5668e55c9c"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DrGo9odE.js",
@@ -12114,6 +12306,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/26-diverging-likert-85d626859b58413d2c69a17bcf9ffe481d0c87f4574f5ae24334a12d35b3afaf.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 9488,
+        "sha256": "85d626859b58413d2c69a17bcf9ffe481d0c87f4574f5ae24334a12d35b3afaf"
       },
       "modules": {
         "tanstack": {
@@ -12326,6 +12526,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/27-parallel-coordinates-2f02438bd7e77b7b333c545919301f90ec4481fef8028db07f7fdfc6f1cc15e6.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 11632,
+        "sha256": "2f02438bd7e77b7b333c545919301f90ec4481fef8028db07f7fdfc6f1cc15e6"
       },
       "modules": {
         "tanstack": {
@@ -12549,6 +12757,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/28-candlestick-0514f7507c652cafb1f2b8b67cb6a23191b9c87860fd6ab2417648d4d91a14be.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 15255,
+        "sha256": "0514f7507c652cafb1f2b8b67cb6a23191b9c87860fd6ab2417648d4d91a14be"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CclX2EwJ.js",
@@ -12742,6 +12958,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/29-waterfall-794201420191c1961ba16ba5752a03966261922685887d6185d0bd09e2c22fdd.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 7186,
+        "sha256": "794201420191c1961ba16ba5752a03966261922685887d6185d0bd09e2c22fdd"
       },
       "modules": {
         "tanstack": {
@@ -12956,6 +13180,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/30-slopegraph-b058ea2b757a77699b553c2545959cad263d00443abba52abfb38ab46310d8ed.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 10896,
+        "sha256": "b058ea2b757a77699b553c2545959cad263d00443abba52abfb38ab46310d8ed"
       },
       "modules": {
         "tanstack": {
@@ -13176,6 +13408,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/31-linear-regression-d2c70bda6e6fe8b7e9197ef6d9fd2e8d3e9c257a7a860371eece6cb6bcb25a5b.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 17581,
+        "sha256": "d2c70bda6e6fe8b7e9197ef6d9fd2e8d3e9c257a7a860371eece6cb6bcb25a5b"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-Ch0lRszo.js",
@@ -13382,6 +13622,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/32-change-arrows-abba7c3fa2fdca767d65c209954e7c5d1f79ccd1288dec5f2a1c73445a73e7ff.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 12944,
+        "sha256": "abba7c3fa2fdca767d65c209954e7c5d1f79ccd1288dec5f2a1c73445a73e7ff"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DJI3lZQM.js",
@@ -13586,6 +13834,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/33-difference-chart-4e2258d8f2bb8b6384efecbf11e93c829a28a1dd4b13a412ad07c59b787113f0.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 14099,
+        "sha256": "4e2258d8f2bb8b6384efecbf11e93c829a28a1dd4b13a412ad07c59b787113f0"
       },
       "modules": {
         "tanstack": {
@@ -13866,6 +14122,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/34-pointer-tooltip-8c6fd5b69ae02107013b100a4390ad97a6b007ed73c60ab4bd77aa657b231646.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 9051,
+        "sha256": "8c6fd5b69ae02107013b100a4390ad97a6b007ed73c60ab4bd77aa657b231646"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-lz6YFKR7.js",
@@ -14143,6 +14407,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/35-grouped-tooltip-097304f9dc1e500a83ae206b7604917d63425d84e1f5b8557b731364db082ddd.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 24870,
+        "sha256": "097304f9dc1e500a83ae206b7604917d63425d84e1f5b8557b731364db082ddd"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-LnNzQLMb.js",
@@ -14374,6 +14646,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/36-hierarchy-tree-6f0cc096018d2133716f5b308db70fcd59be3f907354ec4cd47b5b92265ef5dd.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 7434,
+        "sha256": "6f0cc096018d2133716f5b308db70fcd59be3f907354ec4cd47b5b92265ef5dd"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-wHfa57A-.js",
@@ -14582,6 +14862,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/37-delaunay-network-5932f8c533ee0dd09a87833ba66e4ce2f8e0a4519d6df0def74c5a3c6f4e9434.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 28477,
+        "sha256": "5932f8c533ee0dd09a87833ba66e4ce2f8e0a4519d6df0def74c5a3c6f4e9434"
       },
       "modules": {
         "tanstack": {
@@ -14793,6 +15081,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/38-contour-topography-ff74dec4050dc3f72e18cb2f521b2eb705ba187dd4dedf69f0bb732fbeb06194.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 20022,
+        "sha256": "ff74dec4050dc3f72e18cb2f521b2eb705ba187dd4dedf69f0bb732fbeb06194"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-B8qZasaG.js",
@@ -14991,6 +15287,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/39-density-contours-5fad6f46f14bdf938f63e5f6eefd71e3f667462fd860e091da8ef8a7af400709.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 17394,
+        "sha256": "5fad6f46f14bdf938f63e5f6eefd71e3f667462fd860e091da8ef8a7af400709"
       },
       "modules": {
         "tanstack": {
@@ -15193,6 +15497,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/40-geojson-map-1816c0d5b4235705756e430f116221686f4bcf814f17c105341a42f38012d1ca.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 36166,
+        "sha256": "1816c0d5b4235705756e430f116221686f4bcf814f17c105341a42f38012d1ca"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DH8wwZOV.js",
@@ -15391,6 +15703,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/40-force-directed-network-dbdc15e13dd283f1e8c7b6580e283b349f9add6a7a334f72a9b7c80876373243.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 9937,
+        "sha256": "dbdc15e13dd283f1e8c7b6580e283b349f9add6a7a334f72a9b7c80876373243"
       },
       "modules": {
         "tanstack": {
@@ -15593,6 +15913,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/41-waffle-unit-chart-b02bc00cdf201029910761d5a5b2542f3d0d5fdb2acd9de100efedf4a6a501c5.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 14554,
+        "sha256": "b02bc00cdf201029910761d5a5b2542f3d0d5fdb2acd9de100efedf4a6a501c5"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-Dx9DjQFd2.js",
@@ -15778,6 +16106,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/42-vector-field-0aecf90a470cad2d68e0545fc113477641cf092a2df9d978851ed9c7d1e81fe4.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 24800,
+        "sha256": "0aecf90a470cad2d68e0545fc113477641cf092a2df9d978851ed9c7d1e81fe4"
       },
       "modules": {
         "tanstack": {
@@ -15966,6 +16302,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/43-hexbin-density-260fa1a841e8a2047057acd2b4368311dbfdf6af50ff9fb4f87152831d7dcc7a.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 9792,
+        "sha256": "260fa1a841e8a2047057acd2b4368311dbfdf6af50ff9fb4f87152831d7dcc7a"
       },
       "modules": {
         "tanstack": {
@@ -16163,6 +16507,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/44-framed-scatter-d06845a6839a01576494dfafe33b9c96ababc7ec7eb390f5e67c2102ea6ad942.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 12933,
+        "sha256": "d06845a6839a01576494dfafe33b9c96ababc7ec7eb390f5e67c2102ea6ad942"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CFvUn6g8.js",
@@ -16350,6 +16702,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/50-empirical-cdf-20a7fc0ac9e45f9d8aacfa802c8a040dca449a5c9cccdfb5d93fd485c07673ba.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6509,
+        "sha256": "20a7fc0ac9e45f9d8aacfa802c8a040dca449a5c9cccdfb5d93fd485c07673ba"
       },
       "modules": {
         "tanstack": {
@@ -16565,6 +16925,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/51-faceted-distributions-47c8b840991a2ac89eb94a8d5e0aa4f56d3ef4f5c3399476377c5d52b2f567f1.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 13620,
+        "sha256": "47c8b840991a2ac89eb94a8d5e0aa4f56d3ef4f5c3399476377c5d52b2f567f1"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-B82L1HQd.js",
@@ -16767,6 +17135,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/52-beeswarm-dodge-49f71fbb9a46088d352bcf607050f03b8977daa84cbf450522441671595058a4.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 12394,
+        "sha256": "49f71fbb9a46088d352bcf607050f03b8977daa84cbf450522441671595058a4"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CCNsnTQ3.js",
@@ -16954,6 +17330,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/53-log-scale-scatter-53c4cc21e7efdac14f63bd1bcf39e5f9068e843964ea6b587db44d6294860b61.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 17366,
+        "sha256": "53c4cc21e7efdac14f63bd1bcf39e5f9068e843964ea6b587db44d6294860b61"
       },
       "modules": {
         "tanstack": {
@@ -17152,6 +17536,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/54-bump-ranking-52bfe2b738c3e21a5e076e717faffa2ac7d23afa084a5cc7c5bbdfcf9bc9e225.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 15360,
+        "sha256": "52bfe2b738c3e21a5e076e717faffa2ac7d23afa084a5cc7c5bbdfcf9bc9e225"
       },
       "modules": {
         "tanstack": {
@@ -17385,6 +17777,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/55-indexed-multi-line-66f5cccf3aadf230b47ef2862a29e3e7c233c8a56204282242a0568de612710e.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 7365,
+        "sha256": "66f5cccf3aadf230b47ef2862a29e3e7c233c8a56204282242a0568de612710e"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BR2MvYhY.js",
@@ -17613,6 +18013,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/56-connected-scatter-1d54ad43ff3b82cf344e3dbdba6a643b3a90a1eb50b2fff52ed2cb14589afee9.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 17061,
+        "sha256": "1d54ad43ff3b82cf344e3dbdba6a643b3a90a1eb50b2fff52ed2cb14589afee9"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-C9I4T7CG.js",
@@ -17839,6 +18247,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/57-scatter-marginal-histograms-2754b6a960727473de6e10cc740d53e76fb9b91ca93214f56935feb8d0436c46.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 26268,
+        "sha256": "2754b6a960727473de6e10cc740d53e76fb9b91ca93214f56935feb8d0436c46"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BHcYV0QK.js",
@@ -18054,6 +18470,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/58-select-extrema-79daf4466f6819f5cc52ab69803c17963c3c6c20a40f549e010c4e4cd61eb3f5.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6041,
+        "sha256": "79daf4466f6819f5cc52ab69803c17963c3c6c20a40f549e010c4e4cd61eb3f5"
       },
       "modules": {
         "tanstack": {
@@ -18280,6 +18704,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/59-grouped-reducer-bars-3065aefc8781372cd2030701c95f94cb344834c250d5658440f919519d852f60.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5084,
+        "sha256": "3065aefc8781372cd2030701c95f94cb344834c250d5658440f919519d852f60"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DoaC9uaC2.js",
@@ -18479,6 +18911,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/60-lag-autocorrelation-6100f8fedefa7b17ac2dfb9329799bdaa031b98fe802b1ae11d08a5a440afd4d.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 25006,
+        "sha256": "6100f8fedefa7b17ac2dfb9329799bdaa031b98fe802b1ae11d08a5a440afd4d"
       },
       "modules": {
         "tanstack": {
@@ -18698,6 +19138,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/61-quantile-ribbon-83379e59c4d69e0b40300a0ab62e224a6670555c2ad30ffd7e9bf25b8bbaa4c6.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 7131,
+        "sha256": "83379e59c4d69e0b40300a0ab62e224a6670555c2ad30ffd7e9bf25b8bbaa4c6"
       },
       "modules": {
         "tanstack": {
@@ -18930,6 +19378,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/62-ridgeline-density-58f1c7f8ba9cd3893e62bf190d9cb4f068ff4c729e6625d3d8bc2a1c9621aefb.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 12107,
+        "sha256": "58f1c7f8ba9cd3893e62bf190d9cb4f068ff4c729e6625d3d8bc2a1c9621aefb"
       },
       "modules": {
         "tanstack": {
@@ -19179,6 +19635,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/63-violin-distributions-237a0496aeb391ffd0319a2247d3dc27389ac375e77218d1b012cea495563c25.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 10356,
+        "sha256": "237a0496aeb391ffd0319a2247d3dc27389ac375e77218d1b012cea495563c25"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-Zife-0iW2.js",
@@ -19422,6 +19886,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/64-marimekko-mosaic-7358c8f9dac1e5269286e4af703ca945b6fb4dd943de191fc61068e55a4af23a.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 9544,
+        "sha256": "7358c8f9dac1e5269286e4af703ca945b6fb4dd943de191fc61068e55a4af23a"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CgNGLmUp.js",
@@ -19658,6 +20130,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/65-voronoi-nearest-tooltip-cda7f1f28965fe24d5aae2fc67cb7e53ef2a08ba90bab3cef096b865e776958c.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 11638,
+        "sha256": "cda7f1f28965fe24d5aae2fc67cb7e53ef2a08ba90bab3cef096b865e776958c"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BmJ3q461.js",
@@ -19871,6 +20351,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/70-composed-chart-604e7eb4c19a2c708635964888afb32db51ad4216b1f878432becc1b98a15fe0.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 9114,
+        "sha256": "604e7eb4c19a2c708635964888afb32db51ad4216b1f878432becc1b98a15fe0"
       },
       "modules": {
         "tanstack": {
@@ -20098,6 +20586,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/71-recharts-population-pyramid-42f984576ad1063aded6257f01216833c31bb2d49f2d2ac27bd2111c83a74df1.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 4881,
+        "sha256": "42f984576ad1063aded6257f01216833c31bb2d49f2d2ac27bd2111c83a74df1"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DcTVo60t.js",
@@ -20290,6 +20786,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/72-recharts-mixed-bars-4ffb8acd92355d22163ba3b2bc3641933e036811960a191cd46452c2ee4b183d.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 9446,
+        "sha256": "4ffb8acd92355d22163ba3b2bc3641933e036811960a191cd46452c2ee4b183d"
       },
       "modules": {
         "tanstack": {
@@ -20488,6 +20992,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/73-many-point-scatter-1596af347aefdc4a4b34f6984b318b591883ff02653a2edd5a805bafcd3b0a96.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 19471,
+        "sha256": "1596af347aefdc4a4b34f6984b318b591883ff02653a2edd5a805bafcd3b0a96"
       },
       "modules": {
         "tanstack": {
@@ -20702,6 +21214,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/74-recharts-treemap-ee2a997ba71c68227724d3a0bf265353f43a81be6c29d314ede85251616dde4c.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 4099,
+        "sha256": "ee2a997ba71c68227724d3a0bf265353f43a81be6c29d314ede85251616dde4c"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-Boz2pzYM.js",
@@ -20893,6 +21413,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/75-radar-1b76574ca4c3fa40d6a33f9e48fd627fb0bbad8070a49df1736b9e26796d10a7.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5163,
+        "sha256": "1b76574ca4c3fa40d6a33f9e48fd627fb0bbad8070a49df1736b9e26796d10a7"
       },
       "modules": {
         "tanstack": {
@@ -21105,6 +21633,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/76-pie-5f6fee62beadd7f2cf9828ae7d0ea1c8e2949a8af31765383b7da3e6682ad697.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 2140,
+        "sha256": "5f6fee62beadd7f2cf9828ae7d0ea1c8e2949a8af31765383b7da3e6682ad697"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-Dd1oJO5q2.js",
@@ -21313,6 +21849,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/77-donut-57833f027ee1e7d899264bc0f295c0e68ce2038f0ba4c318be4280d78ae51186.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 2540,
+        "sha256": "57833f027ee1e7d899264bc0f295c0e68ce2038f0ba4c318be4280d78ae51186"
       },
       "modules": {
         "tanstack": {
@@ -21523,6 +22067,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/78-gauge-4f0f82dbfabd321565b537ad6f63dd70ba2de9a3e171167002069da584007c97.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 1883,
+        "sha256": "4f0f82dbfabd321565b537ad6f63dd70ba2de9a3e171167002069da584007c97"
       },
       "modules": {
         "tanstack": {
@@ -21894,6 +22446,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/80-echarts-axis-pointer-4a1cc5b1a79eda070ed2a2688f8aae5db199efa7a51e3d9211384773ba446f88.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 10875,
+        "sha256": "4a1cc5b1a79eda070ed2a2688f8aae5db199efa7a51e3d9211384773ba446f88"
       },
       "modules": {
         "tanstack": {
@@ -22314,6 +22874,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/81-recharts-interactive-legend-f07617e679749cba9f6fad0e91d35b3344103e494c1a2244888ea24d9de972f4.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 7815,
+        "sha256": "f07617e679749cba9f6fad0e91d35b3344103e494c1a2244888ea24d9de972f4"
       },
       "modules": {
         "tanstack": {
@@ -22785,6 +23353,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/82-chart-table-selection-d8fa6f8f9ebd09eac890414e9113734dac80af9c39e9f8805d749d35e061e117.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6921,
+        "sha256": "d8fa6f8f9ebd09eac890414e9113734dac80af9c39e9f8805d749d35e061e117"
       },
       "modules": {
         "tanstack": {
@@ -23562,6 +24138,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/83-focus-context-window-0433a6b70bb53d35e258aac16da21de2674557c7952687dca5d93b7f4e93757d.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6724,
+        "sha256": "0433a6b70bb53d35e258aac16da21de2674557c7952687dca5d93b7f4e93757d"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-kWFjNALQ.js",
@@ -24123,6 +24707,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/84-pinned-nested-chart-tooltip-9e24e2261a594308938b14d6e4c2f1c8f4a42a95dee60e4c41e507c7a9d9de6b.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 22565,
+        "sha256": "9e24e2261a594308938b14d6e4c2f1c8f4a42a95dee60e4c41e507c7a9d9de6b"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-XCenzywr.js",
@@ -24611,6 +25203,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/85-scrollable-resource-lanes-c6c571dd82952bb008c2ddc011f8c2b5f7e651af9dd034ab7ebc22b0a92f01b0.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6275,
+        "sha256": "c6c571dd82952bb008c2ddc011f8c2b5f7e651af9dd034ab7ebc22b0a92f01b0"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-rEMcfny5.js",
@@ -25072,6 +25672,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/86-streaming-window-preservation-e478399923da2b4bbe0b15f2b12652b8f4714f12c9016fe10846d135cac49631.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 8259,
+        "sha256": "e478399923da2b4bbe0b15f2b12652b8f4714f12c9016fe10846d135cac49631"
       },
       "modules": {
         "tanstack": {
@@ -25583,6 +26191,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/87-echarts-synchronized-cursors-9e8477312f9a3bf58da648a2d4dd9048f805cbdc3dd6b44cb1fe1149aadeabd9.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 13974,
+        "sha256": "9e8477312f9a3bf58da648a2d4dd9048f805cbdc3dd6b44cb1fe1149aadeabd9"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CwcWg_Ti.js",
@@ -26002,6 +26618,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/88-echarts-free-cursor-851286e69035172b92476f4cf08883f7141e0a76d756c7f6eeb41eb5db41c8d1.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 7056,
+        "sha256": "851286e69035172b92476f4cf08883f7141e0a76d756c7f6eeb41eb5db41c8d1"
       },
       "modules": {
         "tanstack": {
@@ -26599,6 +27223,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/89-brush-range-selection-2d9e0dd72d6132966ab88b652214a8412c7831c3a1f674819e5578e7b11d5c07.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 8213,
+        "sha256": "2d9e0dd72d6132966ab88b652214a8412c7831c3a1f674819e5578e7b11d5c07"
       },
       "modules": {
         "tanstack": {
@@ -27449,6 +28081,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/90-zoomable-time-window-2cd537c85506465e245e1031c6ff56fa398c8c4df1b10df1fa58df3a7db7f487.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6398,
+        "sha256": "2cd537c85506465e245e1031c6ff56fa398c8c4df1b10df1fa58df3a7db7f487"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-B99A78dJ.js",
@@ -28257,6 +28897,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/91-timeline-playback-scrubber-c5856dfe2d667ea0c6586d4275c8e8aa933df4e9d31ff7bf7439214f9ec5ebb3.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5775,
+        "sha256": "c5856dfe2d667ea0c6586d4275c8e8aa933df4e9d31ff7bf7439214f9ec5ebb3"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BIc9OoFK.js",
@@ -28995,6 +29643,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/92-editable-event-range-028b26ef666748544dc960b405802b073c53fba234bd5347bc264c861c316126.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5978,
+        "sha256": "028b26ef666748544dc960b405802b073c53fba234bd5347bc264c861c316126"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CNoNk4oF.js",
@@ -29177,6 +29833,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/93-labeled-pie-e80654bfc6808a5467bdc7cb1dfd5052adbcc4e7a59f7cfdd63a168820f84b38.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 3801,
+        "sha256": "e80654bfc6808a5467bdc7cb1dfd5052adbcc4e7a59f7cfdd63a168820f84b38"
       },
       "modules": {
         "tanstack": {
@@ -29398,6 +30062,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/94-center-donut-054ce84ea7a9f214c426d7a3a18ce3660ce1faa7a05877fad2161db246e544e1.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 2381,
+        "sha256": "054ce84ea7a9f214c426d7a3a18ce3660ce1faa7a05877fad2161db246e544e1"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-Dc--__Jd.js",
@@ -29613,6 +30285,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/95-rounded-donut-3600ec6a6bb60440fe09d97617261a04b3864c8ce5acec87d01e5855aa0845c5.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 3039,
+        "sha256": "3600ec6a6bb60440fe09d97617261a04b3864c8ce5acec87d01e5855aa0845c5"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BO48c-_M.js",
@@ -29821,6 +30501,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/96-nested-donut-15f4843a876e63f035d2f9ecb66973a0641e0692a61aee93d2f15ebc384ac84a.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 2944,
+        "sha256": "15f4843a876e63f035d2f9ecb66973a0641e0692a61aee93d2f15ebc384ac84a"
       },
       "modules": {
         "tanstack": {
@@ -30032,6 +30720,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/97-rose-53f52f490bdbd2b033f6ddd027e77e7cd0a9d8f20b7e1eade823f1ce0141a9d0.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 2782,
+        "sha256": "53f52f490bdbd2b033f6ddd027e77e7cd0a9d8f20b7e1eade823f1ce0141a9d0"
       },
       "modules": {
         "tanstack": {
@@ -30261,6 +30957,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/98-needle-gauge-acde4251d0fa4ae0a69547ecbd58ef8a69d0be0299b59a6cd24bc839c522d37f.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 4922,
+        "sha256": "acde4251d0fa4ae0a69547ecbd58ef8a69d0be0299b59a6cd24bc839c522d37f"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DUeEgOo9.js",
@@ -30486,6 +31190,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/99-comparative-radar-38f627a187f8d61c0a1144fe56e5353d463d885fdcbc7ee63f33be5cbd41048d.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5371,
+        "sha256": "38f627a187f8d61c0a1144fe56e5353d463d885fdcbc7ee63f33be5cbd41048d"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-gcvLCCtY.js",
@@ -30697,6 +31409,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/100-radial-bars-c4e952ffd5f8626c16f277c7308572cdceff68a7e1b92911285023a830f87732.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 2723,
+        "sha256": "c4e952ffd5f8626c16f277c7308572cdceff68a7e1b92911285023a830f87732"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-D8X3M_8Y.js",
@@ -30903,6 +31623,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/101-sunburst-1046ffa520064d8f18331011dc9969604c25623c543577897dab5fb0cab7dc7c.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 4386,
+        "sha256": "1046ffa520064d8f18331011dc9969604c25623c543577897dab5fb0cab7dc7c"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-nIvmqbYp.js",
@@ -31100,6 +31828,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/102-world-choropleth-920295591c9f09b2c8bd36293af0f28273bc71b553b5d6643cdac71c285e95fc.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 59083,
+        "sha256": "920295591c9f09b2c8bd36293af0f28273bc71b553b5d6643cdac71c285e95fc"
       },
       "modules": {
         "tanstack": {
@@ -31309,6 +32045,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/103-bubble-map-0a7a87e2d12a3207bf9946f9feaf5614afa5dea6a5d60469d70c2c40dd778866.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 43954,
+        "sha256": "0a7a87e2d12a3207bf9946f9feaf5614afa5dea6a5d60469d70c2c40dd778866"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DCx4ha2c.js",
@@ -31512,6 +32256,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/104-orthographic-globe-c03c1892bf38fdaa874410b08879c45294d93b2f92da7771e256ec285469b6ed.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 21404,
+        "sha256": "c03c1892bf38fdaa874410b08879c45294d93b2f92da7771e256ec285469b6ed"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-Djb1vvsz.js",
@@ -31713,6 +32465,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/105-route-map-d4694bb16c42ad717b573b659480d91ed59dae8c11f9b8265af3dd6016363137.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 35881,
+        "sha256": "d4694bb16c42ad717b573b659480d91ed59dae8c11f9b8265af3dd6016363137"
       },
       "modules": {
         "tanstack": {
@@ -31917,6 +32677,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/106-polar-line-2582b95e4793350ec79a1f079b531d5d3fdaa569089392d1646fb005101324f0.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5034,
+        "sha256": "2582b95e4793350ec79a1f079b531d5d3fdaa569089392d1646fb005101324f0"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-Cx1PiKkS2.js",
@@ -32090,6 +32858,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/107-polar-scatter-ad238a99544ae5bab790edeb31924a45d64541575aa6c28a72217db6b59e32ee.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 15017,
+        "sha256": "ad238a99544ae5bab790edeb31924a45d64541575aa6c28a72217db6b59e32ee"
       },
       "modules": {
         "tanstack": {
@@ -32267,6 +33043,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/108-country-choropleth-ee39c330cb83a5025a78cb5485ec4913d823d34c5da166346a1f5b03db2d137a.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 61784,
+        "sha256": "ee39c330cb83a5025a78cb5485ec4913d823d34c5da166346a1f5b03db2d137a"
       },
       "modules": {
         "tanstack": {
@@ -32479,6 +33263,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/109-us-state-choropleth-c1f253197a974ecf7b50936fe44d98f63a282cdd677b145da32618c4aafda02d.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 47641,
+        "sha256": "c1f253197a974ecf7b50936fe44d98f63a282cdd677b145da32618c4aafda02d"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DJRg8tdz.js",
@@ -32684,6 +33476,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/110-projection-gallery-fa7176b8e81f6ae4c20694d212e3e254d6e67b742610c6cd65eb4d107f4860d5.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 37522,
+        "sha256": "fa7176b8e81f6ae4c20694d212e3e254d6e67b742610c6cd65eb4d107f4860d5"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-BNkH-J76.js",
@@ -32885,6 +33685,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/111-basic-sankey-4197f752f11c00a415f54a067f5c4c1970771b6a78d966fd98afaa1808707b45.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 4295,
+        "sha256": "4197f752f11c00a415f54a067f5c4c1970771b6a78d966fd98afaa1808707b45"
       },
       "modules": {
         "tanstack": {
@@ -33089,6 +33897,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/111-sankey-flow-af8a6c2d18262dff00f3a41da1f0c47d74ff766b6720c8d99d4bd01a86f38ba7.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 20322,
+        "sha256": "af8a6c2d18262dff00f3a41da1f0c47d74ff766b6720c8d99d4bd01a86f38ba7"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CUccb7dF.js",
@@ -33284,6 +34100,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/112-motion-entrance-23585aa3ec70e2a0b2785cd8fbb4f195636a47975e6f3c4e5541326f2e3257b4.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 2643,
+        "sha256": "23585aa3ec70e2a0b2785cd8fbb4f195636a47975e6f3c4e5541326f2e3257b4"
       },
       "modules": {
         "tanstack": {
@@ -33502,6 +34326,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/113-motion-updates-ca0acf42e32106ac61ffe78e407dfa4bec3329af54cc524e37b3715830f450b1.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 2641,
+        "sha256": "ca0acf42e32106ac61ffe78e407dfa4bec3329af54cc524e37b3715830f450b1"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CcLQxacU.js",
@@ -33712,6 +34544,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/114-spring-line-motion-39b47dc85706c755eefabefb8f5f7b9a299e9fdb31ba1a7eaf809e6f76d50da6.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 1965,
+        "sha256": "39b47dc85706c755eefabefb8f5f7b9a299e9fdb31ba1a7eaf809e6f76d50da6"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-DHBmELq82.js",
@@ -33921,6 +34761,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/115-definition-motion-20ee0188ff2856af5b225f22ac51d16090caa15f04f6035ca236256ad126a375.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 6213,
+        "sha256": "20ee0188ff2856af5b225f22ac51d16090caa15f04f6035ca236256ad126a375"
       },
       "modules": {
         "tanstack": {
@@ -34135,6 +34983,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/116-geometry-morph-07827cbfc65a607cd389110acdf33dc79c4ee5cca5a63528410fef21648b16bc.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 5989,
+        "sha256": "07827cbfc65a607cd389110acdf33dc79c4ee5cca5a63528410fef21648b16bc"
       },
       "modules": {
         "tanstack": {
@@ -34424,6 +35280,14 @@
           }
         }
       },
+      "preview": {
+        "path": "previews/117-focus-cursor-motion-5150606425919a72df6db9c8243dbb63f154bc3dc494474725beef79a0b373d9.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 8619,
+        "sha256": "5150606425919a72df6db9c8243dbb63f154bc3dc494474725beef79a0b373d9"
+      },
       "modules": {
         "tanstack": {
           "path": "assets/tanstack-CqEVI94H.js",
@@ -34677,6 +35541,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/118-token-usage-calendar-930f5ffe4773d4cec914e4a01bd5bd8ddf85c0fd52d982242bceaa9d2ca3ebb9.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 48860,
+        "sha256": "930f5ffe4773d4cec914e4a01bd5bd8ddf85c0fd52d982242bceaa9d2ca3ebb9"
       },
       "modules": {
         "tanstack": {
@@ -35117,6 +35989,14 @@
             }
           }
         }
+      },
+      "preview": {
+        "path": "previews/119-stacked-bar-band-cursor-f425b07e488cd6e954c4ce9f3a879e342461a534098b197a5be9503dd596fec0.svg",
+        "mediaType": "image/svg+xml",
+        "width": 288,
+        "height": 192,
+        "bytes": 12450,
+        "sha256": "f425b07e488cd6e954c4ce9f3a879e342461a534098b197a5be9503dd596fec0"
       },
       "modules": {
         "tanstack": {
