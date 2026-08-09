@@ -1,10 +1,10 @@
 ---
 title: Vue Chart
-description: Complete prop and type reference for the @tanstack/vue-charts Chart component.
+description: Complete prop and type reference for the @tanstack/charts/vue Chart component.
 ---
 
 ```ts
-import { Chart } from '@tanstack/vue-charts'
+import { Chart } from '@tanstack/charts/vue'
 ```
 
 The definition infers datum and coordinate types for every callback. Replace

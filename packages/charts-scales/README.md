@@ -1,21 +1,20 @@
-# TanStack Charts Scales
+# `@tanstack/charts-scales`
 
-Small callable scales for the common TanStack Charts path. They cover numeric
-linear axes, categorical band and point axes, and categorical ordinal output
-without retaining `d3-scale` or its interpolation and formatting stack.
+This compatibility package remains supported for existing applications. New
+applications can install only `@tanstack/charts` and use its exact scale
+subpaths.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales
+pnpm add @tanstack/charts
 ```
 
-There is no `@tanstack/charts-scales` root export. Import only the required
-family:
+Import only the required family:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scalePoint } from '@tanstack/charts-scales/point'
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scalePoint } from '@tanstack/charts/scales/point'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
 ```
 
 ## Common chart
@@ -24,8 +23,8 @@ Pass a factory when Charts should infer the domain from mark channels:
 
 ```ts
 import { barY, defineChart } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const revenue = [
   { month: 'Jan', value: 42 },
@@ -81,7 +80,7 @@ Compact and D3 scales share the callable, `domain`, `range`, and `copy`
 contract used by Charts, so they can be mixed:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scaleUtc } from 'd3-scale'
 
 const axes = {

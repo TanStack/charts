@@ -82,7 +82,7 @@ up the shared render path.
 
 ## Canvas server shell
 
-`@tanstack/react-charts/canvas` and `@tanstack/octane-charts/canvas` render a
+`@tanstack/charts/react/canvas` and `@tanstack/charts/octane/canvas` render a
 deterministic accessible shell on the server: a named chart root and five
 `aria-hidden` canvas elements with the initial scene dimensions. The hidden
 stable base bitmap preserves the raw `canvas` surface, while four live layers

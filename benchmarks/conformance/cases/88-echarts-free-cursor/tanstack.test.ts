@@ -208,7 +208,7 @@ describe('definition-owned free cursor', () => {
     expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
     for (const forbidden of [
       "from 'react'",
-      '@tanstack/react-charts',
+      '@tanstack/charts/react',
       'createElementNS',
       'data-conformance-overlay',
       '.copy()',

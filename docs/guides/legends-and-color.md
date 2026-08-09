@@ -19,7 +19,7 @@ For persistent product semantics, supply an explicit configured ordinal scale:
 
 ```ts
 import { colorLegend, defineChart, lineY } from '@tanstack/charts'
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
 
 const series = ['core', 'react', 'octane'] as const
 const color = scaleOrdinal<string, string>()
@@ -112,8 +112,8 @@ available through direct labels, surrounding HTML, or a table.
 
 ```ts group=automatic-color-legend env=charts file=/src/chart.ts entry
 import { colorLegend, defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 import { rows } from './data'
 
 export default defineChart({

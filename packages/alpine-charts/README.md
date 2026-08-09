@@ -1,14 +1,15 @@
 # `@tanstack/alpine-charts`
 
-Alpine directive adapter for `@tanstack/charts`.
+This compatibility package remains supported for existing applications. New
+applications use the Alpine directive adapter from `@tanstack/charts/alpine`.
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/alpine-charts alpinejs
+pnpm add @tanstack/charts alpinejs
 ```
 
 ```ts
 import Alpine from 'alpinejs'
-import { charts } from '@tanstack/alpine-charts'
+import { charts } from '@tanstack/charts/alpine'
 
 Alpine.plugin(charts)
 Alpine.start()

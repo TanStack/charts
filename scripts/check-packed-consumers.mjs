@@ -21,6 +21,10 @@ import ts from 'typescript'
 import { validatePackedMarkdownLinks } from './packed-markdown-links.mjs'
 import { verifyPackedReactNativeConsumers } from './packed-react-native-consumers.mjs'
 import { runWithConcurrency } from './run-with-concurrency.mjs'
+import {
+  isUnifiedCoreExport,
+  unifiedPackageSources,
+} from './unified-package-artifact.mjs'
 
 const optionalHierarchyInputGroups = [
   'hierarchyFlat',
@@ -91,6 +95,7 @@ try {
 
   await Promise.all(packages.map(loadPackageManifest))
   await runWithConcurrency(packages, packageBuildConcurrency, buildPackage)
+  await overlayBuiltUnifiedCoreTrees()
 
   const tarballs = new Map()
   for (const packageInfo of packages) {
@@ -163,7 +168,25 @@ async function buildPackage(packageInfo) {
   await buildRuntime(packageInfo)
   await buildDeclarations(packageInfo)
   await rewriteGeneratedSpecifiers(resolve(packageInfo.stageDirectory, 'dist'))
+  await materializeUnifiedCoreWrapperTargets(packageInfo)
   await validatePublishedTargets(packageInfo)
+}
+
+async function overlayBuiltUnifiedCoreTrees() {
+  const core = packages.find(({ kind }) => kind === 'core')
+  assert.ok(core)
+  for (const source of unifiedPackageSources) {
+    const builtPackage = packages.find(
+      ({ name }) => name === source.packageName,
+    )
+    if (!builtPackage) continue
+    const target = resolve(core.stageDirectory, 'dist', source.namespace)
+    await rm(target, { recursive: true, force: true })
+    await cp(resolve(builtPackage.stageDirectory, 'dist'), target, {
+      recursive: true,
+    })
+    await rm(resolve(target, 'package.json'), { force: true })
+  }
 }
 
 function validateManifest(packageInfo) {
@@ -251,7 +274,10 @@ async function copyPackageFiles(packageInfo) {
 async function buildRuntime(packageInfo) {
   const sourceRoot = resolve(packageInfo.sourceDirectory, 'src')
   const outputRoot = resolve(packageInfo.stageDirectory, 'dist')
-  const entryPoints = (await walk(sourceRoot)).filter(isRuntimeSource)
+  const wrapperEntries = unifiedCoreSourceEntries(packageInfo)
+  const entryPoints = (await walk(sourceRoot)).filter(
+    (file) => isRuntimeSource(file) && !wrapperEntries.has(file),
+  )
 
   await build({
     entryPoints,
@@ -340,9 +366,11 @@ async function buildDeclarations(packageInfo) {
   const outputRoot = resolve(packageInfo.stageDirectory, 'dist')
   const rootNames = [
     ...new Set(
-      Object.values(packageInfo.manifest.exports).map((entry) =>
-        resolve(packageInfo.sourceDirectory, entry),
-      ),
+      Object.entries(packageInfo.manifest.exports)
+        .filter(
+          ([key]) => packageInfo.kind !== 'core' || !isUnifiedCoreExport(key),
+        )
+        .map(([, entry]) => resolve(packageInfo.sourceDirectory, entry)),
     ),
   ]
   const isReactNative = packageInfo.kind === 'react-native'
@@ -386,6 +414,29 @@ async function buildDeclarations(packageInfo) {
         resolve(sourceRoot, `${name}.tsrx.d.ts`),
         resolve(outputRoot, `${name}.d.ts`),
       )
+    }
+  }
+}
+
+function unifiedCoreSourceEntries(packageInfo) {
+  if (packageInfo.kind !== 'core') return new Set()
+  return new Set(
+    Object.entries(packageInfo.manifest.exports)
+      .filter(([key]) => isUnifiedCoreExport(key))
+      .map(([, entry]) => resolve(packageInfo.sourceDirectory, entry)),
+  )
+}
+
+async function materializeUnifiedCoreWrapperTargets(packageInfo) {
+  if (packageInfo.kind !== 'core') return
+  for (const [key, conditions] of Object.entries(
+    packageInfo.manifest.publishConfig.exports,
+  )) {
+    if (!isUnifiedCoreExport(key)) continue
+    for (const target of Object.values(conditions)) {
+      const targetPath = resolve(packageInfo.stageDirectory, target)
+      await mkdir(dirname(targetPath), { recursive: true })
+      await writeFile(targetPath, 'export {}\n')
     }
   }
 }
@@ -517,6 +568,7 @@ async function installFixture(tarballs) {
     octane: installedDependency('octane'),
     react: installedDependency('react'),
     'react-dom': installedDependency('react-dom'),
+    tslib: installedPackageDependency('angular-charts', 'tslib'),
   }
   const manifest = {
     name: 'tanstack-charts-packed-consumer',
@@ -530,7 +582,9 @@ async function installFixture(tarballs) {
   )
   await writeFile(
     resolve(fixtureDirectory, 'pnpm-workspace.yaml'),
-    `packages:\n  - '.'\nautoInstallPeers: false\noverrides:\n  'd3-sankey': ${JSON.stringify(
+    `packages:\n  - '.'\nautoInstallPeers: false\noverrides:\n  'tslib': ${JSON.stringify(
+      installedPackageDependency('angular-charts', 'tslib'),
+    )}\n  'd3-sankey': ${JSON.stringify(
       installedDependency('d3-sankey'),
     )}\n  '@tanstack/charts': ${JSON.stringify(
       coreTarball,
@@ -600,8 +654,19 @@ function installedDependency(name) {
   return `link:${resolve(root, 'node_modules', ...name.split('/'))}`
 }
 
+function installedPackageDependency(directory, name) {
+  return `link:${resolve(
+    root,
+    'packages',
+    directory,
+    'node_modules',
+    ...name.split('/'),
+  )}`
+}
+
 function publishedSpecifiers(packageInfo) {
   return Object.keys(packageInfo.manifest.publishConfig.exports)
+    .filter((key) => packageInfo.kind !== 'core' || !isUnifiedCoreExport(key))
     .sort()
     .map((key) => `${packageInfo.name}${key === '.' ? '' : key.slice(1)}`)
 }

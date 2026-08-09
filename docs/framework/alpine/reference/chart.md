@@ -1,10 +1,10 @@
 ---
 title: Alpine Chart
-description: Complete option and type reference for the @tanstack/alpine-charts x-chart directive.
+description: Complete option and type reference for the @tanstack/charts/alpine x-chart directive.
 ---
 
 ```ts
-import { charts } from '@tanstack/alpine-charts'
+import { charts } from '@tanstack/charts/alpine'
 ```
 
 Register `charts` with `Alpine.plugin`, then make `x-chart` evaluate to a

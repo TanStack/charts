@@ -3,16 +3,16 @@ title: Preact Adapter
 description: Render and hydrate TanStack Charts with Preact.
 ---
 
-Install the core, compact scales, adapter, and framework peer:
+Install TanStack Charts and its Preact peer:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/preact-charts preact
+pnpm add @tanstack/charts preact
 ```
 
 ```tsx
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/preact-charts'
+import { Chart } from '@tanstack/charts/preact'
 
 export function RevenueChart() {
   const definition = useMemo(

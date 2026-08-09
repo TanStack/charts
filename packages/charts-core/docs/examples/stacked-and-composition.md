@@ -36,8 +36,8 @@ contribution.
 
 ```ts group=stacked-area env=charts file=/src/chart.ts entry
 import { areaY, colorLegend, defineChart, ruleY, stack } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 import { rows } from './data'
 
 export default defineChart({

@@ -1,10 +1,10 @@
 ---
 title: React Chart
-description: Complete prop and type reference for the @tanstack/react-charts Chart component.
+description: Complete prop and type reference for the @tanstack/charts/react Chart component.
 ---
 
 ```tsx
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 ```
 
 The supplied definition infers the datum, semantic x/y values, and callbacks.
@@ -23,8 +23,8 @@ The default entry uses SVG. The optional entries keep other renderer code
 explicit:
 
 ```tsx
-import { Chart as CanvasChart } from '@tanstack/react-charts/canvas'
-import { Chart as RendererChart } from '@tanstack/react-charts/core'
+import { Chart as CanvasChart } from '@tanstack/charts/react/canvas'
+import { Chart as RendererChart } from '@tanstack/charts/react/core'
 
 const canvasChart = (
   <CanvasChart definition={definition} ariaLabel="Weekly revenue" />
@@ -101,7 +101,7 @@ import {
   Chart,
   CanvasChart,
   RendererChart,
-} from '@tanstack/react-charts/tooltip'
+} from '@tanstack/charts/react/tooltip'
 ```
 
 | Prop                | Type                                                    | Default | Meaning                                          |
@@ -133,7 +133,7 @@ should mount only after activation. Returning `null` is not needed to suppress
 a transient native shell.
 
 Existing users of this prop should move `Chart` from
-`@tanstack/react-charts` to `@tanstack/react-charts/tooltip`. Replace
+`@tanstack/charts/react` to `@tanstack/charts/react/tooltip`. Replace
 `Chart as CanvasChart` from `/canvas` or `Chart as RendererChart` from `/core`
 with the corresponding named component from `/tooltip`. Ordering, anchoring,
 placement, portaling, and sticky behavior remain in the chart definition.

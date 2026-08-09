@@ -16,16 +16,16 @@ nonlinear, radial, interpolated, or statistical scale semantics. The
 dependency guidance. This page documents the TanStack Charts contract around
 both implementations.
 
-## Default compact scale package
+## Default compact scale entries
 
-`@tanstack/charts-scales` supplies four exact, tree-shakeable entries:
+`@tanstack/charts` supplies four exact, tree-shakeable scale entries:
 
 | Entry                             | Runtime export | Type contract  |
 | --------------------------------- | -------------- | -------------- |
-| `@tanstack/charts-scales/linear`  | `scaleLinear`  | `LinearScale`  |
-| `@tanstack/charts-scales/band`    | `scaleBand`    | `BandScale`    |
-| `@tanstack/charts-scales/point`   | `scalePoint`   | `PointScale`   |
-| `@tanstack/charts-scales/ordinal` | `scaleOrdinal` | `OrdinalScale` |
+| `@tanstack/charts/scales/linear`  | `scaleLinear`  | `LinearScale`  |
+| `@tanstack/charts/scales/band`    | `scaleBand`    | `BandScale`    |
+| `@tanstack/charts/scales/point`   | `scalePoint`   | `PointScale`   |
+| `@tanstack/charts/scales/ordinal` | `scaleOrdinal` | `OrdinalScale` |
 
 `LinearScale` supports numeric two-stop domains and ranges, `invert`, `clamp`,
 `ticks`, basic `tickFormat`, `nice`, and `copy`. `BandScale` supports
@@ -35,7 +35,7 @@ operations with zero bandwidth. `OrdinalScale` supports explicit or implicit
 domains, cyclic ranges, `unknown`, and `copy`.
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const y = {
   scale: scaleLinear().domain([0, 100]),
@@ -57,8 +57,8 @@ copying the authored scale. Band scales do not expose inversion.
 The common path passes a compact factory directly:
 
 ```ts
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const x = {
   scale: () => scaleBand<string>().padding(0.16),
@@ -82,7 +82,7 @@ Return a configured scale from a zero-argument factory for options that should
 be applied before domain inference:
 
 ```ts
-import { scaleBand } from '@tanstack/charts-scales/band'
+import { scaleBand } from '@tanstack/charts/scales/band'
 
 const x = {
   scale: () => scaleBand<string>().padding(0.2),
@@ -97,7 +97,7 @@ Compact and D3 scales can coexist in one chart. This definition upgrades only
 its temporal x mapping:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scaleUtc } from 'd3-scale'
 
 const x = { scale: scaleUtc, nice: true }
@@ -120,7 +120,7 @@ remain unchanged after an upgrade.
 Pass a scale instance when the domain is semantic application state:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const y = {
   scale: scaleLinear().domain([0, 100]),
@@ -437,7 +437,7 @@ Omit `color.scale` to use the theme palette. Use the compact ordinal scale when
 categories need a stable application-owned mapping:
 
 ```ts
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
 
 const statusColor = scaleOrdinal(
   ['healthy', 'warning', 'critical'],

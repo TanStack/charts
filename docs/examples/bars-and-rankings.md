@@ -30,8 +30,8 @@ same categorical axis.
 
 ```ts group=sorted-bars env=charts file=/src/chart.ts entry
 import { barY, defineChart } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const rows = [
   { category: 'Search', value: 84 },

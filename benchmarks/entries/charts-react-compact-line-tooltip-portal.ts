@@ -1,9 +1,9 @@
 import { defineChart, lineY } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { portal } from '@tanstack/charts/tooltip/portal'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
-export { Chart } from '@tanstack/react-charts'
+export { Chart } from '@tanstack/charts/react'
 
 export const definition = defineChart({
   marks: [lineY([4, 9, 7])],

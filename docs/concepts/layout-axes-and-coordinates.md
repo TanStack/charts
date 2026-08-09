@@ -384,8 +384,8 @@ Automatic margins only reserve space for chart-owned guides and legends. Applica
 
 ```ts group=horizontal-ranking env=charts file=/src/chart.ts entry
 import { barX, defineChart, ruleX } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { citywages } from './data'
 
 const rows = [...citywages]

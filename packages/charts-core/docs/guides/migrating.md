@@ -49,6 +49,27 @@ Map each visible layer independently:
 Then assign explicit scales and guides. Complex charts are usually several
 ordinary marks sharing a coordinate system, not one specialized chart type.
 
+## Consolidate package imports
+
+Install `@tanstack/charts` once and keep the framework peers and D3 modules
+that application source imports directly. Move TanStack scale and adapter
+imports to package subpaths:
+
+| Previous import                         | Current import                          |
+| --------------------------------------- | --------------------------------------- |
+| `@tanstack/charts-scales/<family>`      | `@tanstack/charts/scales/<family>`      |
+| `@tanstack/react-charts`                | `@tanstack/charts/react`                |
+| `@tanstack/react-charts/<capability>`   | `@tanstack/charts/react/<capability>`   |
+| `@tanstack/react-native-charts`         | `@tanstack/charts/react-native`         |
+| `@tanstack/react-native-charts/tooltip` | `@tanstack/charts/react-native/tooltip` |
+| `@tanstack/octane-charts`               | `@tanstack/charts/octane`               |
+| `@tanstack/octane-charts/<capability>`  | `@tanstack/charts/octane/<capability>`  |
+| `@tanstack/<framework>-charts`          | `@tanstack/charts/<framework>`          |
+
+The same mapping applies to React and Octane `/core` entries and React
+`/tooltip`. Exact ESM entry graphs and `sideEffects: false` preserve capability
+and framework tree shaking inside the single published package.
+
 For the current breaking API:
 
 - move axis presentation under `axis`;

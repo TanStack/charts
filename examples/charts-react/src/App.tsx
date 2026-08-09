@@ -17,7 +17,7 @@ import {
 } from './charts'
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart, type ChartPoint } from '@tanstack/react-charts'
+import { Chart, type ChartPoint } from '@tanstack/charts/react'
 import { LiveCharts } from './LiveCharts'
 import { PagedHistoryChart } from './PagedHistoryChart'
 

@@ -14,7 +14,7 @@ then infer from the definition.
 ```ts
 import { scaleTime } from 'd3-scale'
 import { defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 interface Reading {
   id: string

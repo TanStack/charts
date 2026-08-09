@@ -66,8 +66,8 @@ required by:
 
 ```ts group=responsive-long-labels env=charts file=/src/chart.ts entry
 import { barX, defineChart } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { rows } from './data'
 
 export default defineChart({

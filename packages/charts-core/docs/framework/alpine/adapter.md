@@ -4,12 +4,12 @@ description: Mount TanStack Charts with an Alpine directive.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/alpine-charts alpinejs
+pnpm add @tanstack/charts alpinejs
 ```
 
 ```ts
 import Alpine from 'alpinejs'
-import { charts } from '@tanstack/alpine-charts'
+import { charts } from '@tanstack/charts/alpine'
 
 Alpine.plugin(charts)
 Alpine.start()

@@ -3,14 +3,14 @@ title: Octane Adapter
 description: Understand the native TSRX lifecycle, conditional SSR target, hydration, sizing, class, and style behavior around the shared chart host.
 ---
 
-`@tanstack/octane-charts` is the native TSRX lifecycle and SSR adapter around
+`@tanstack/charts/octane` is the native TSRX lifecycle and SSR adapter around
 `@tanstack/charts`. Definitions, scenes, responsive layout, rendering,
 interaction, and animation remain framework-neutral.
 
 ## Public exports
 
 ```ts
-export { Chart } from '@tanstack/octane-charts'
+export { Chart } from '@tanstack/charts/octane'
 
 export type {
   ChartCommonProps,
@@ -18,15 +18,15 @@ export type {
   ChartTooltipBodyRenderContext,
   ChartDefinition,
   ChartPoint,
-} from '@tanstack/octane-charts'
+} from '@tanstack/charts/octane'
 ```
 
 Choose Canvas or an application-supplied renderer through an explicit
 subpath:
 
 ```tsx
-import { Chart as CanvasChart } from '@tanstack/octane-charts/canvas'
-import { Chart as RendererChart } from '@tanstack/octane-charts/core'
+import { Chart as CanvasChart } from '@tanstack/charts/octane/canvas'
+import { Chart as RendererChart } from '@tanstack/charts/octane/core'
 ```
 
 The default `Chart` remains SVG-based. `CanvasChart` selects the optional

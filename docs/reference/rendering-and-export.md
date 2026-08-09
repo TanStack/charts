@@ -21,24 +21,58 @@ Renderer code stays behind explicit entry points:
 | Vanilla Canvas host              | `mountCanvasChart` from `@tanstack/charts/canvas`     |
 | Tween and spring SVG renderer    | `motion` from `@tanstack/charts/motion`               |
 | Renderer-neutral host            | `mountChartRenderer` from `@tanstack/charts/renderer` |
-| Default React SVG component      | `Chart` from `@tanstack/react-charts`                 |
-| Default Preact SVG component     | `Chart` from `@tanstack/preact-charts`                |
-| Default Vue SVG component        | `Chart` from `@tanstack/vue-charts`                   |
-| Default Solid SVG component      | `Chart` from `@tanstack/solid-charts`                 |
-| Default Svelte SVG component     | `Chart` from `@tanstack/svelte-charts`                |
-| Default Angular SVG component    | `Chart` from `@tanstack/angular-charts`               |
-| Default Lit SVG element          | `Chart` from `@tanstack/lit-charts`                   |
-| Default Alpine SVG directive     | `charts` from `@tanstack/alpine-charts`               |
-| React Canvas component           | `Chart` from `@tanstack/react-charts/canvas`          |
-| React custom-renderer component  | `Chart` from `@tanstack/react-charts/core`            |
-| Default Octane SVG component     | `Chart` from `@tanstack/octane-charts`                |
-| Octane Canvas component          | `Chart` from `@tanstack/octane-charts/canvas`         |
-| Octane custom-renderer component | `Chart` from `@tanstack/octane-charts/core`           |
+| Default React SVG component      | `Chart` from `@tanstack/charts/react`                 |
+| Default Preact SVG component     | `Chart` from `@tanstack/charts/preact`                |
+| Default Vue SVG component        | `Chart` from `@tanstack/charts/vue`                   |
+| Default Solid SVG component      | `Chart` from `@tanstack/charts/solid`                 |
+| Default Svelte SVG component     | `Chart` from `@tanstack/charts/svelte`                |
+| Default Angular SVG component    | `Chart` from `@tanstack/charts/angular`               |
+| Default Lit SVG element          | `Chart` from `@tanstack/charts/lit`                   |
+| Default Alpine SVG directive     | `charts` from `@tanstack/charts/alpine`               |
+| React Native SVG component       | `Chart` from `@tanstack/charts/react-native`          |
+| React Canvas component           | `Chart` from `@tanstack/charts/react/canvas`          |
+| React custom-renderer component  | `Chart` from `@tanstack/charts/react/core`            |
+| Default Octane SVG component     | `Chart` from `@tanstack/charts/octane`                |
+| Octane Canvas component          | `Chart` from `@tanstack/charts/octane/canvas`         |
+| Octane custom-renderer component | `Chart` from `@tanstack/charts/octane/core`           |
 
 The default package and adapter entries do not import Canvas. Applications pay
 for it only when they import a Canvas entry. Motion is likewise isolated behind
 `@tanstack/charts/motion`. The `/core` adapter entries accept an explicit
 `renderer` without choosing one for the application.
+
+## React Native adapter
+
+The React Native entry selects its native build through the package export
+conditions and renders the shared scene with `react-native-svg`.
+
+```ts
+import {
+  Chart,
+  resolveNativePaint,
+  type NativeChartRenderContext,
+  type NativeChartTooltipRenderContext,
+  type NativePaintContext,
+  type NativePaintResolver,
+} from '@tanstack/charts/react-native'
+import {
+  tooltip,
+  type NativeChartTooltipComponent,
+  type NativeChartTooltipExtension,
+  type NativeChartTooltipProps,
+} from '@tanstack/charts/react-native/tooltip'
+```
+
+`NativeChartRenderContext` is passed to `Chart`'s `onRender` callback.
+`NativeChartTooltipRenderContext` is passed to a custom tooltip renderer.
+`NativeChartTooltipProps` describes the built-in native tooltip component,
+whose component and extension contracts are `NativeChartTooltipComponent` and
+`NativeChartTooltipExtension`.
+
+Use `resolveNativePaint` as the default `NativePaintResolver`. It resolves
+`currentColor`, Canvas system colors, and CSS-variable fallbacks against a
+`NativePaintContext`. Pass a custom resolver through `Chart` when the
+application owns additional paint tokens.
 
 ## `renderChartSvg`
 

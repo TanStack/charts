@@ -1,12 +1,13 @@
 # TanStack React Native Charts
 
-Experimental React Native SVG host for `@tanstack/charts` definitions and
-scene graphs.
+This compatibility package remains supported for existing applications. New
+applications use the experimental React Native SVG host from
+`@tanstack/charts/react-native`.
 
 ## Install
 
 ```sh
-npm install @tanstack/react-native-charts @tanstack/charts @tanstack/charts-scales
+npm install @tanstack/charts
 ```
 
 Expo applications also need the SDK-compatible SVG renderer:
@@ -27,11 +28,11 @@ application.
 ## Usage
 
 ```tsx
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { lineY } from '@tanstack/charts/line'
 import { defineChart } from '@tanstack/charts/scene'
-import { Chart } from '@tanstack/react-native-charts'
-import { tooltip } from '@tanstack/react-native-charts/tooltip'
+import { Chart } from '@tanstack/charts/react-native'
+import { tooltip } from '@tanstack/charts/react-native/tooltip'
 
 const definition = defineChart({
   marks: [lineY([4, 9, 7])],

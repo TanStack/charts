@@ -2,8 +2,8 @@ import * as React from 'react'
 import { SafeAreaView, Text, View } from 'react-native'
 import { scaleLinear } from 'd3-scale'
 import type { ChartDefinition } from '@tanstack/charts/types'
-import { Chart } from '@tanstack/react-native-charts'
-import { tooltip } from '@tanstack/react-native-charts/tooltip'
+import { Chart } from '@tanstack/charts/react-native'
+import { tooltip } from '@tanstack/charts/react-native/tooltip'
 
 const data = [
   { month: 1, revenue: 12 },

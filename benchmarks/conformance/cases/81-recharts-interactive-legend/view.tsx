@@ -8,7 +8,7 @@ import {
 import { colorLegend, defineChart, lineY } from '@tanstack/charts'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { interactiveColorLegend } from '@tanstack/charts/legend'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { industries } from '@charts-poc/demo-data/industries'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { catalogPreviewDefinition } from '../../shared/preview'

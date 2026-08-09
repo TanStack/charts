@@ -9,7 +9,7 @@ import {
 import { defineChart, dot, lineY } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { downloads } from '@charts-poc/demo-data/downloads'
 import { scaleLinear, scaleUtc } from 'd3-scale'
 import { catalogPreviewDefinition } from '../../shared/preview'

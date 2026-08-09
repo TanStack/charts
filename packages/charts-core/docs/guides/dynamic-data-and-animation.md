@@ -10,8 +10,8 @@ definition changes or when the chart surface changes size.
 ## React
 
 ```tsx
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 function RankingChart({ rows, metric, accent }: Props) {
   const definition = useMemo(() => {
@@ -110,7 +110,7 @@ Use `motion()` when animation quality is part of the chart contract:
 import { scaleUtc } from 'd3-scale'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const definition = defineChart({
   motion: {

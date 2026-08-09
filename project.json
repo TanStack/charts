@@ -101,7 +101,7 @@
     "package-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "node scripts/check-packed-consumers.mjs && node scripts/check-framework-adapters.mjs"
+        "command": "node scripts/check-release-packages.mjs"
       }
     },
     "bundle": {

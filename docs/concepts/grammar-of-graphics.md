@@ -27,8 +27,8 @@ The result is one `ChartSpec` compiled into a renderer-neutral scene.
 
 ```ts
 import { barY, defineChart } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 interface LetterFrequency {
   letter: string
@@ -137,8 +137,8 @@ Read [Data and Channels](./data-and-channels.md) for missing values, accessors, 
 Pass a factory when its domain should follow the mark channels:
 
 ```ts
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 
 const axes = {
   x: {
@@ -186,8 +186,8 @@ Marks render in array order. Put context behind the primary data and annotations
 
 ```ts group=layered-chart env=charts file=/src/chart.ts entry
 import { areaY, defineChart, dot, lineY } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const rows = [
   { month: 'Jan', value: 14 },

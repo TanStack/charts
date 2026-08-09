@@ -6,7 +6,7 @@ import { readReleasePackages } from './release-package-config.mjs'
 
 export const releaseVersionSources = [
   { path: 'README.md', references: 2, tagReferences: 1 },
-  { path: 'MARKETING.md', references: 6 },
+  { path: 'MARKETING.md', references: 5 },
   { path: 'docs/overview.md', references: 1 },
   { path: 'docs/installation.md', references: 2, tagReferences: 1 },
   { path: 'docs/comparison.md', references: 5, tagReferences: 4 },

@@ -4,12 +4,12 @@ description: Render TanStack Charts with an Angular standalone component.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/angular-charts @angular/common @angular/core @angular/platform-browser
+pnpm add @tanstack/charts @angular/common @angular/core @angular/platform-browser
 ```
 
 ```ts
 import { Component } from '@angular/core'
-import { Chart } from '@tanstack/angular-charts'
+import { Chart } from '@tanstack/charts/angular'
 import { defineChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
 

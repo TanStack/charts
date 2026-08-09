@@ -73,8 +73,8 @@ the active focus instead of revealing authored geometry for a matching datum:
 ```ts group=focused-crosshair env=charts file=/src/chart.ts entry
 import { defineChart, lineY } from '@tanstack/charts'
 import { crosshair } from '@tanstack/charts/crosshair'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scalePoint } from '@tanstack/charts/scales/point'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { rows } from './data'
 
@@ -410,7 +410,7 @@ continues to own focus, ordering, anchoring, placement, portal coordinates,
 and dismissal. This React example places a nested pie beside the native rows:
 
 ```tsx
-import { Chart as TooltipChart } from '@tanstack/react-charts/tooltip'
+import { Chart as TooltipChart } from '@tanstack/charts/react/tooltip'
 
 export function RevenueChart() {
   return (
@@ -447,7 +447,7 @@ The nested component is an ordinary chart built from the focused group:
 import * as React from 'react'
 import { defineChart, type ChartPoint } from '@tanstack/charts'
 import { polar, radialArc } from '@tanstack/charts/polar'
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 import { pie } from 'd3-shape'
 
 interface RevenueRow {

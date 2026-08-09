@@ -4,14 +4,14 @@ description: Render and hydrate TanStack Charts with Svelte 5.
 ---
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales @tanstack/svelte-charts svelte
+pnpm add @tanstack/charts svelte
 ```
 
 ```svelte
 <script lang="ts">
   import { defineChart } from '@tanstack/charts'
   import { tooltip } from '@tanstack/charts/tooltip'
-  import { Chart } from '@tanstack/svelte-charts'
+  import { Chart } from '@tanstack/charts/svelte'
 
   const definition = $derived(
     defineChart(createRevenueChart(rows), { tooltip }),

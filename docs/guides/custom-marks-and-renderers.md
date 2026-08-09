@@ -353,7 +353,7 @@ renderer-neutral selection path as the built-in surfaces.
 
 Use `ChartRendererRenderContext.surface` instead of assuming `onRender` exposes
 an SVG element. Framework consumers pass `renderer` through
-`@tanstack/react-charts/core` or `@tanstack/octane-charts/core`.
+`@tanstack/charts/react/core` or `@tanstack/charts/octane/core`.
 
 ## Custom SVG serializer
 

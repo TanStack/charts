@@ -124,7 +124,7 @@ describe('definition-owned brush range', () => {
     expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
     for (const forbidden of [
       "from 'react'",
-      '@tanstack/react-charts',
+      '@tanstack/charts/react',
       "from 'd3-brush'",
       "from 'd3-selection'",
       'createElementNS',

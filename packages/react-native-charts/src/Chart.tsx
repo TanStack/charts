@@ -819,7 +819,7 @@ function resolveNativeTooltipInput<
   const extension = 'create' in input ? input : input.use
   if (!isNativeTooltipExtension(extension)) {
     throw new Error(
-      'React Native charts require a tooltip extension from @tanstack/react-native-charts/tooltip.',
+      'React Native charts require a tooltip extension from @tanstack/charts/react-native/tooltip.',
     )
   }
   if (!('create' in input) && input.portal) {

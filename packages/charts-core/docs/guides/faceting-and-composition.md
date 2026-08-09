@@ -41,7 +41,7 @@ guide-free outer definition:
 
 ```ts group=regional-facets env=charts file=/src/chart.ts entry
 import { dot, facetChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { rows } from './data'
 
 export default facetChart(rows, {

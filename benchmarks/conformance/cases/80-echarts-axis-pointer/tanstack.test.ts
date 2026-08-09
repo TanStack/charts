@@ -207,7 +207,7 @@ describe('definition-owned snapped axis pointer', () => {
     expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
     for (const forbidden of [
       "from 'react'",
-      '@tanstack/react-charts',
+      '@tanstack/charts/react',
       'useState',
       'onRender',
       'positionTooltip',

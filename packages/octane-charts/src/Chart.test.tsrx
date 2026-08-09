@@ -2,7 +2,7 @@ import { renderToString } from 'octane/server';
 import { describe, expect, it } from 'vitest';
 import { areaY, defineChart, lineY } from '@tanstack/charts';
 import { renderChartSvgWithResources } from '@tanstack/charts/svg/resources';
-import { Chart } from '@tanstack/octane-charts';
+import { Chart } from '@tanstack/charts/octane';
 import { scaleLinear } from 'd3-scale';
 
 const data = [

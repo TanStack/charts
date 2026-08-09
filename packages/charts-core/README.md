@@ -10,22 +10,22 @@ TanStack Charts is an independent implementation for typed application
 infrastructure. Project lineage is recorded in the repository
 [`ACKNOWLEDGEMENTS.md`](https://github.com/TanStack/charts/blob/main/ACKNOWLEDGEMENTS.md).
 
-Install the grammar and compact scales for the common path:
+Install the chart package:
 
 ```sh
-pnpm add @tanstack/charts @tanstack/charts-scales
+pnpm add @tanstack/charts
 ```
 
-The scale package has no root export. Import only the required `/linear`,
-`/band`, `/point`, or `/ordinal` entry.
+Import compact scales and framework adapters from exact subpaths. This keeps
+unrelated frameworks and capabilities out of the application bundle.
 
 <!-- docs-example: core-readme-definition typecheck -->
 
 ```ts
 import { colorLegend, defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
-import { scaleOrdinal } from '@tanstack/charts-scales/ordinal'
-import { scalePoint } from '@tanstack/charts-scales/point'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
+import { scaleOrdinal } from '@tanstack/charts/scales/ordinal'
+import { scalePoint } from '@tanstack/charts/scales/point'
 import { tooltip } from '@tanstack/charts/tooltip'
 
 interface DownloadRow {
@@ -103,7 +103,7 @@ pnpm add -D @types/d3-scale
 
 ```ts
 import { defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { scaleUtc } from 'd3-scale'
 
 const history = [
@@ -151,10 +151,10 @@ const host = mountCanvasChart(element, options)
 `@tanstack/charts/svg/renderer` exposes the default SVG surface. Canvas,
 renderer-neutral, and SVG implementations remain separate bundle boundaries.
 
-Or use a thin framework adapter:
+Or use a framework adapter from the same package:
 
 ```tsx
-import { Chart } from '@tanstack/react-charts'
+import { Chart } from '@tanstack/charts/react'
 
 ;<Chart
   definition={downloads}
@@ -162,6 +162,11 @@ import { Chart } from '@tanstack/react-charts'
   ariaLabel="Monthly package downloads"
 />
 ```
+
+React also exposes exact `/react/canvas`, `/react/core`, and
+`/react/tooltip` entries. The other adapters are available from `/preact`,
+`/vue`, `/solid`, `/svelte`, `/angular`, `/lit`, `/alpine`, `/octane`, and
+`/react-native`. Install only the framework peer used by your application.
 
 ## Type inference
 
@@ -227,8 +232,8 @@ but marks render once against the final plot rectangle.
 
 ```ts
 import { barX, defineChart } from '@tanstack/charts'
-import { scaleBand } from '@tanstack/charts-scales/band'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleBand } from '@tanstack/charts/scales/band'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const rankingRows = [
   { package: 'Query', downloads: 1_480_000 },
@@ -274,7 +279,7 @@ range, and centers band output without mutating the source:
 
 ```ts
 import { createChartScene, defineChart, lineY } from '@tanstack/charts'
-import { scaleLinear } from '@tanstack/charts-scales/linear'
+import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 const values = [32, 48, 41, 57]
 const definition = defineChart({

@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-06
+Last updated: 2026-08-09
 
 ## Triage rule
 
@@ -293,6 +293,7 @@ Each entry records:
 | F-254 | View composition types were broader than runtime               | API                   | resolved   |
 | F-255 | Public import maps could drift from package exports            | Documentation/Tooling | resolved   |
 | F-256 | Shared host policy retained browser-only modules               | API/Tooling           | resolved   |
+| F-257 | The release package graph leaked into application setup        | API/Docs/Tooling      | resolved   |
 
 ## Findings
 
@@ -7641,3 +7642,32 @@ Each entry records:
   declarations compile without DOM libraries, bare React Native and Expo Metro
   bundles resolve the new subpaths, and the package and bundle boundary gates
   pass.
+
+### F-257 — The release package graph leaked into application setup
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation/Tooling
+- Observed in: migrating runnable documentation, examples, benchmarks, and
+  packed consumers to one install surface
+- Friction: applications had to install separate TanStack packages for the
+  grammar, compact scales, and one framework adapter even though tree shaking
+  depended on exact ESM entries rather than npm package count. Public package
+  exports cannot target files in another package, framework peers cannot be
+  scoped to individual subpaths, and Svelte, Angular, Octane, and React Native
+  require distinct compiled output or export conditions. Angular's compiled
+  tree also embeds its legacy package identity and workspace dependency.
+- Decision: publish compact scales and every adapter from exact
+  `@tanstack/charts/*` subpaths while retaining the existing packages for
+  compatibility. Keep all framework peers optional on the unified manifest.
+  Build each implementation with its native toolchain, copy its compiled tree
+  into a namespaced core artifact, remove nested package manifests, and preserve
+  the original condition order and `sideEffects: false` boundaries.
+- Verification: active docs, examples, conformance cases, and bundle entries
+  use only `@tanstack/charts` plus framework peers. The docs contract derives
+  import validity from the unified export map. The packed gate installs only
+  `@tanstack/charts`, resolves and bundles every new scale and adapter entry,
+  rejects legacy runtime imports, nested package manifests, and cross-adapter
+  retention, and passes bare React Native and Expo Metro. The full 1,756-test
+  unit matrix, root TypeScript, package artifact, documentation, and bundle-size
+  gates pass.
