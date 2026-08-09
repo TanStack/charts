@@ -222,6 +222,6 @@ interface CatalogAuthoring {
 }
 ```
 
-The catalog already publishes transitive authored-source paths and totals.
-The reviewed fields should sit beside those generated signals rather than
-replace them.
+The conformance report already records transitive authored-source paths and
+totals. If these reviewed fields become public catalog metadata, keep them
+beside those generated signals rather than replacing them.

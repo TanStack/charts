@@ -1614,9 +1614,7 @@ pnpm docs:sync
 pnpm docs:check
 pnpm package:check
 pnpm bundle:check
-pnpm catalog:check
-pnpm catalog:build
-pnpm catalog:loading:check
+pnpm catalog:index:check
 pnpm conformance:quick -- --case=<comma-separated-case-ids>
 pnpm conformance -- --case=<comma-separated-case-ids>
 pnpm validate

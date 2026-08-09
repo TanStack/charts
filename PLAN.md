@@ -2256,47 +2256,32 @@ paired agent protocol is defined in
 agents receive the data, intent, scaffold, and pinned documentation, never the
 human implementations or hidden acceptance checks.
 
-#### Publishable catalog surface
+#### Source-backed catalog surface
 
 Status: implemented.
 
-The conformance corpus also powers a durable supporting site. It is proof and
-reference material, not the TanStack.com marketing landing page:
+The conformance corpus also powers the public catalog on TanStack.com. The
+checked-in `catalog-index.json` carries case metadata and immutable source entry
+paths. TanStack.com reads that index and the authored case files from one pinned
+Charts revision, then runs detail pages and embeds in its notebook runtime.
+Landing and catalog grids use lightweight previews owned by the site.
 
-| Surface             | Route           | Contract                                                    |
-| ------------------- | --------------- | ----------------------------------------------------------- |
-| Browse              | `/`             | Searchable metadata catalog without mounting every renderer |
-| Full gallery        | `/all/`         | Existing side-by-side comparison surface                    |
-| Case proof          | `/charts/:id/`  | One comparison, source, provenance, metrics, and embed code |
-| Documentation embed | `/embed/:id/`   | Responsive, chrome-free TanStack renderer only              |
-| Machine index       | `/catalog.json` | Versioned case metadata plus canonical page/embed paths     |
-
-The existing `case.json` glob remains the only case index. The browser, static
-publisher, conformance runner, and documentation tooling must not maintain
-parallel manifests. The metadata parser is environment-neutral and shared by
-the browser and Node publisher. A build emits physical deep-route HTML files,
-`404.html`, per-route canonical/robots/Open Graph metadata, and an optional
-sitemap when a deployment origin is configured.
-
-Embeds accept explicit theme, height, and revision query parameters; width is
-always container-responsive. They send namespaced ready, resize, and error
-messages to a parent document without exposing internal chart state. The
-generated machine index is the docs integration point: documentation can
-select a case ID and embed its published route instead of copying example
-implementations.
+The existing `case.json` glob remains the only authored case index. The local
+browser, conformance runner, source index, and documentation tooling must not
+maintain parallel case implementations. There is no generated module bundle,
+preview artifact, publication branch, or renderable catalog package.
 
 Maintenance gates:
 
 1. A case ID must match its directory and IDs/orders must be unique.
-2. All metadata must pass the same strict parser before publishing.
+2. All metadata must pass the same strict parser before indexing.
 3. New renderer types and interaction metadata must be preserved by the shared
    parser before their cases can enter the catalog.
-4. Direct detail/embed routes, base-path deployment, and production output are
-   tested independently from the SPA navigation path.
-5. Generated files remain build artifacts; authored case metadata stays the
-   source of truth.
+4. The checked-in source index must match the authored cases and source entries.
+5. Authored case metadata and source stay the source of truth.
 
-Commands are `pnpm catalog:check` and `pnpm catalog:build`.
+The maintenance command is `pnpm catalog:index:check`; the local authoring app
+build is `pnpm --filter @charts-poc/conformance-example build`.
 
 The executable smoke harness covers sorted bars and fixed-boundary histograms
 for both renderers. It creates immutable external workspaces, keeps canonical
@@ -3299,8 +3284,8 @@ Each optional capability should have a real consumer, independent entry point, b
   labels and titles inside the chart. Numeric per-side margins remain hard
   overrides.
 - The conformance `case.json` corpus is the canonical manifest for the
-  publishable catalog, per-case proof pages, documentation embeds, and
-  generated machine index.
+  source-backed catalog, per-case proof pages, documentation embeds, and
+  checked-in source index.
 
 ### Provisional
 

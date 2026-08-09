@@ -55,11 +55,11 @@ pnpm conformance:quick -- --case=line-gaps,histogram
 # Interactive side-by-side gallery
 pnpm dev:conformance
 
-# Validate publishable case metadata and route uniqueness
-pnpm catalog:check
+# Validate case metadata, source entries, ordering, and index drift
+pnpm catalog:index:check
 
-# Build the standalone authoring app and schema-v3 publication artifact
-pnpm catalog:build
+# Build the standalone authoring app
+pnpm --filter @charts-poc/conformance-example build
 ```
 
 Reports are written to
@@ -108,151 +108,19 @@ pnpm catalog:index:check
 Consumers resolve the Charts revision independently, then fetch the index and
 its source entries from that same revision.
 
-## Published catalog and documentation embeds
+## Catalog consumers
 
-The Vite application remains the local authoring surface at
-`http://localhost:5194/`. Production pages are native `tanstack.com` routes
-rendered from the generated artifact:
+The Vite application remains the local authoring and conformance surface at
+`http://localhost:5194/`. TanStack.com owns the public catalog routes, chrome,
+and lightweight gallery previews. It reads `catalog-index.json` and the case
+source from one pinned Charts revision, then runs full examples in the site
+notebook runtime. The site does not consume a generated catalog branch or a
+published renderable-catalog package.
 
-| Route                                                       | Purpose                                    |
-| ----------------------------------------------------------- | ------------------------------------------ |
-| `/charts/catalog/`                                          | Searchable case catalog                    |
-| `/charts/catalog/all/`                                      | Every TanStack implementation              |
-| `/charts/catalog/charts/:id/`                               | One implementation, source, and embed code |
-| `/charts/catalog/embed/:id/`                                | Chrome-free responsive chart               |
-| `/charts/catalog/catalog.json`                              | Versioned content and runtime contract     |
-| `/charts/catalog/assets/<artifact-sha>/assets/<module>.js`  | Allowlisted module from the exact revision |
-| `/charts/catalog/assets/<artifact-sha>/previews/<file>.svg` | Manifest-declared static gallery preview   |
-
-Append the exact `?compare=1` debug flag to the catalog, all-cases, or detail
-route to expose the reference implementation. Comparison modules remain
-separate roots and are marked `visibility: "debug"` in the artifact; the site
-must not serialize, preload, or import them without that flag.
-
-`catalog.json` schema version 5 contains:
-
-- the exact 40-character Charts revision, repository, and source path root;
-- the runtime `mount` export contract;
-- the production origin, route base, and asset base;
-- the versioned embed protocol;
-- parsed case metadata and canonical page/embed routes;
-- immutable repository source paths;
-- per-implementation authored-source totals and entry, support, fixture, and
-  excluded-harness role paths;
-- one TanStack module and one debug-only comparison module per case;
-- a byte count, SHA-256 digest, static imports, and dynamic imports for every
-  allowlisted module.
-- one content-addressed 288 by 192 SVG preview per case, with its exact relative
-  path, media type, dimensions, byte count, and SHA-256 digest.
-
-Only the recursive ESM closure of the 220 case implementations and the 110
-declared previews are published. The standalone application entry, route code,
-raw-source wrappers, tests, CSS, and unrelated Vite output are excluded. The
-site resolves code from the recorded Charts revision rather than shipping
-raw-source JavaScript wrappers.
-
-Every case carries this preview contract:
-
-```ts
-{
-  preview: {
-    path: `previews/${caseId}-${sha256}.svg`,
-    mediaType: 'image/svg+xml',
-    width: 288,
-    height: 192,
-    bytes: number,
-    sha256: string,
-  }
-}
-```
-
-`sha256` is the full lowercase digest of the published bytes and is repeated in
-the filename. `path` is relative to the artifact root. Consumers resolve that
-declared path through the same immutable `catalog-dist` commit namespace as
-modules; they must not derive a preview filename from the case ID. The SVGs are
-rendered with `preview: true` from the generated React catalog wrappers, which
-import the canonical `tanstack.ts` cases, and carry self-contained light/dark
-theme variables for use as image assets.
-
-An embed accepts `theme=system|light|dark`, `height=120..1200`, and an optional
-numeric `revision`. Width always follows the iframe container:
-
-```html
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/01-line-gaps/?theme=system&height=480"
-  title="Line chart with gaps"
-  width="640"
-  height="480"
-  loading="lazy"
-  referrerpolicy="strict-origin-when-cross-origin"
-  style="display: block; width: 100%; height: 480px; border: 0"
-></iframe>
-```
-
-Embeds have no catalog chrome and are `noindex`. They send versioned status
-messages only to the exact HTTP(S) origin derived from `document.referrer`:
-
-```ts
-{
-  type: 'tanstack-charts:embed',
-  version: 1,
-  status: 'ready' | 'resize' | 'error',
-  caseId: '01-line-gaps',
-  height: 480,
-}
-```
-
-A parent may propagate its explicit theme without reloading an interactive
-chart:
-
-```ts
-iframe.contentWindow?.postMessage(
-  {
-    type: 'tanstack-charts:embed',
-    version: 1,
-    command: 'set-theme',
-    caseId: '01-line-gaps',
-    theme: 'light', // 'system' | 'light' | 'dark'
-  },
-  'https://tanstack.com',
-)
-```
-
-The child accepts that command only from `window.parent` at the exact referrer
-origin. A documentation host that listens for status must likewise validate
-both `event.origin` against the iframe URL and
-`event.source === iframe.contentWindow`. A missing or opaque referrer disables
-both directions of messaging rather than falling back to `*`.
-
-Adding or changing a case updates every catalog surface automatically.
-`catalog:check` uses the same strict metadata parser as the browser and rejects
-invalid schemas, duplicate IDs or orders, and case IDs that drift from their
-directory names.
-
-## Generated content publication
-
-Charts owns the examples and build. TanStack.com owns the page routes, chrome,
-SEO, security headers, and embed response. The repositories meet through a
-generated `catalog-dist` branch containing only `catalog.json`, its allowlisted
-`assets/*.js` closure, and the manifest-declared `previews/*.svg` files.
-
-```sh
-# Build and validate the exact publication artifact
-pnpm catalog:build
-
-# Prove local authoring isolation and the published module graph
-pnpm catalog:loading:check
-```
-
-Main-branch CI publishes a new generated commit only after the static,
-package, bundle, comparison, and stress gates pass. Conformance runs
-independently as nightly rotating, weekly complete, manual, and labeled-PR
-monitoring. TanStack.com's existing content pipeline reads the generated branch
-and verifies the schema, revision, complete file allowlist, sizes, and hashes
-before serving it. It composes `site.assetBasePath`, the resolved `catalog-dist`
-commit SHA, and each manifest-declared module or preview path into the immutable
-asset URL. A rollback points `catalog-dist` back to a prior generated commit;
-the catalog has no mutable runtime state.
+Adding or changing a case requires regenerating the checked-in index. The index
+check uses the same strict metadata parser as the browser and rejects invalid
+schemas, duplicate IDs or orders, missing source entries, and IDs that drift
+from their directory names.
 
 ## What is and is not equivalent
 

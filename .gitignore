@@ -7,7 +7,6 @@ dist-paged
 .svelte-kit
 .bundle-output
 .benchmark-output
-.catalog-artifact
 .release-artifacts
 .expo/
 .nx/cache

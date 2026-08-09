@@ -7,7 +7,7 @@ The gallery is organized by analytical question, not by package export. Start
 with what the reader needs to compare, then open the family page for examples
 and implementation guidance.
 
-Each embedded chart is a production catalog case rendered with TanStack Charts.
+Each embedded chart is a canonical catalog case rendered with TanStack Charts.
 The examples demonstrate complete compositions, while the concept and reference
 pages remain the source of truth for individual APIs.
 

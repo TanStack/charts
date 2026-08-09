@@ -50,8 +50,8 @@ exact shard. Add the `full-conformance` label to a risky pull request to run
 the complete standard matrix against that pull request; later commits rerun
 it while the label remains.
 
-Browser measurements and the revision-stamped catalog artifact are not cached
-because their results depend on the browser environment or exact Git commit.
+Browser measurements are not cached because their results depend on the browser
+environment.
 Install Chromium before running a browser suite locally:
 
 ```sh
@@ -70,8 +70,8 @@ pnpm changeset
 ```
 
 Choose the release impact and write the summary that should appear in the
-changelog. All thirteen public Charts packages form one fixed release group, so one
-package change advances every package to the same version. Documentation,
+changelog. All twelve public Charts packages form one fixed release group, so
+one package change advances every package to the same version. Documentation,
 tests, benchmarks, and build-only changes do not need a changeset unless they
 alter the published package contract.
 
@@ -92,15 +92,15 @@ Every push to `main` starts the release workflow:
    publisher checks npm and builds fresh, consumer-tested tarballs only when
    the coordinated version is unpublished.
 4. npm trusted publishing uses the workflow's OIDC identity to publish core,
-   then React, before compact scales, the React catalog, and the remaining nine
-   adapters with provenance. The repository has no long-lived npm token.
-5. After all thirteen registry entries report the expected integrity and
+   then React, before compact scales and the remaining nine adapters with
+   provenance. The repository has no long-lived npm token.
+5. After all twelve registry entries report the expected integrity and
    attestations, the workflow creates one annotated `vX.Y.Z` tag and GitHub
    release from the root changelog.
 
-The chart comparison, stress, and catalog workflow still runs on `main`, but
-it is independent from npm publication. Scheduled conformance monitoring is
-also independent from release and catalog publication. User-visible package
+The chart comparison, stress, and catalog-index checks still run on `main`, but
+they are independent from npm publication. Scheduled conformance monitoring is
+also independent from release publication. User-visible package
 work must pass normal validation in its feature pull request before merging.
 
 Never move or reuse a release tag. If publishing succeeds but tag or GitHub
@@ -109,4 +109,4 @@ preflight resumes finalization without republishing existing versions.
 
 Changing the repository name or
 `.github/workflows/release.yml` requires updating the trusted-publisher
-configuration for all thirteen packages on npm.
+configuration for all twelve packages on npm.

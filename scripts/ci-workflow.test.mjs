@@ -44,7 +44,7 @@ describe('CI workflow contract', () => {
   test('uses least-privilege permissions and public Nx Cloud access', () => {
     assert.match(workflow, /^permissions:\s*\n\s+contents:\s*read\s*$/m)
     assert.match(workflow, /^\s+actions:\s*read\s*$/m)
-    assert.equal((workflow.match(/contents:\s*write/g) ?? []).length, 1)
+    assert.equal((workflow.match(/contents:\s*write/g) ?? []).length, 0)
     assert.doesNotMatch(workflow, /id-token:\s*write/)
     assert.doesNotMatch(workflow, /pull-requests:\s*write/)
     assert.doesNotMatch(workflow, /secrets\.|NX_CLOUD_ACCESS_TOKEN/)
@@ -76,7 +76,7 @@ describe('CI workflow contract', () => {
   test('keeps packed-consumer installs offline without resolving optional peers', () => {
     assert.equal(
       (packedConsumer.match(/autoInstallPeers: false/g) ?? []).length,
-      2,
+      1,
     )
     assert.equal(
       (
@@ -84,7 +84,7 @@ describe('CI workflow contract', () => {
           /\['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'\]/g,
         ) ?? []
       ).length,
-      2,
+      1,
     )
   })
 
@@ -231,7 +231,7 @@ describe('CI workflow contract', () => {
     }
   })
 
-  test('runs the cached workspace graph and builds the main catalog fully', () => {
+  test('runs the cached workspace graph and checks the source catalog', () => {
     const staticChecks = job('static')
     assert.match(staticChecks, /fetch-depth:\s*0/)
     assert.match(staticChecks, /persist-credentials:\s*false/)
@@ -268,10 +268,6 @@ describe('CI workflow contract', () => {
       staticChecks.indexOf('name: Stop Nx Agents') >
         staticChecks.indexOf('name: Run full cached validation graph'),
     )
-    assert.ok(
-      staticChecks.indexOf('name: Stop Nx Agents') <
-        staticChecks.indexOf('name: Upload production catalog'),
-    )
     assert.match(staticChecks, /git cat-file -e "\${BASE_SHA}\^\{commit\}"/)
     assert.match(staticChecks, /git diff --no-renames --name-only -z/)
     assert.match(
@@ -301,12 +297,7 @@ describe('CI workflow contract', () => {
       /uses:\s*nrwl\/nx-set-shas@[0-9a-f]{40}\s*# v5\.0\.1/,
     )
     assert.doesNotMatch(staticChecks, /nx affected|pnpm ci:/)
-    assert.match(
-      staticChecks,
-      /if:\s*github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/,
-    )
-    assert.match(staticChecks, /name:\s*charts-catalog-\${{ github\.sha }}/)
-    assert.match(staticChecks, /path:\s*\.catalog-artifact/)
+    assert.doesNotMatch(staticChecks, /Upload production catalog/)
   })
 
   test('runs distributed checks on medium Nx agents', () => {
@@ -339,6 +330,8 @@ assignment-rules:
     )
     assert.ok(ci.dependsOn.includes('react-native-types'))
     assert.ok(distributedCi.dependsOn.includes('react-native-types'))
+    assert.ok(ci.dependsOn.includes('conformance-app-build'))
+    assert.ok(distributedCi.dependsOn.includes('conformance-app-build'))
     assert.ok(!distributedCi.dependsOn.includes('package-check'))
     assert.ok(!ci.dependsOn.includes('workspace-diff-check'))
     assert.ok(!distributedCi.dependsOn.includes('workspace-diff-check'))
@@ -558,27 +551,8 @@ assignment-rules:
     assert.match(candidate, /retention-days:\s*14/)
   })
 
-  test('publishes the catalog only from a successful exact-main CI artifact', () => {
-    const publish = job('publish-catalog')
-    assert.match(
-      publish,
-      /if:\s*always\(\) && !cancelled\(\) && github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' && needs\.static\.result == 'success' && needs\.ci\.result == 'success'/,
-    )
-    assert.deepEqual(needs(publish), ['static', 'ci'])
-    assert.match(publish, /contents:\s*write/)
-    assert.match(publish, /cancel-in-progress:\s*false/)
-    assert.match(publish, /name:\s*charts-catalog-\${{ github\.sha }}/)
-    assert.match(publish, /path:\s*\.catalog-artifact/)
-    assert.match(publish, /if \[ "\$source_revision" != "\$GITHUB_SHA" \]/)
-    assert.match(
-      publish,
-      /git merge-base --is-ancestor "\$source_revision" origin\/main/,
-    )
-    assert.match(
-      publish,
-      /git(?: -C "\$publication_dir")? push origin "HEAD:\$CATALOG_BRANCH"/,
-    )
-    assert.doesNotMatch(publish, /id-token:\s*write/)
+  test('does not publish a generated catalog branch', () => {
+    assert.doesNotMatch(workflow, /publish-catalog|catalog-dist-publication/)
   })
 })
 

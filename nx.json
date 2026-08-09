@@ -38,7 +38,6 @@
       "{workspaceRoot}/**/*",
       "!{workspaceRoot}/.benchmark-output/**/*",
       "!{workspaceRoot}/.bundle-output/**/*",
-      "!{workspaceRoot}/.catalog-artifact/**/*",
       "!{workspaceRoot}/.nx/cache/**/*",
       "!{workspaceRoot}/.nx/prettier-cache",
       "!{workspaceRoot}/.nx/typescript/**/*",
@@ -84,7 +83,6 @@
       "{workspaceRoot}/packages/charts-core/**/*",
       "{workspaceRoot}/packages/charts-scales/**/*",
       "{workspaceRoot}/packages/*-charts/**/*",
-      "{workspaceRoot}/packages/react-charts-catalog/**/*",
       "{workspaceRoot}/examples/charts-react-native/**/*",
       "{workspaceRoot}/examples/charts-expo/**/*",
       "!{workspaceRoot}/packages/*/dist/**/*",
@@ -151,21 +149,9 @@
       "{workspaceRoot}/packages/charts-demo-data/src/**/*",
       "{workspaceRoot}/packages/react-charts/package.json",
       "{workspaceRoot}/packages/react-charts/src/**/*",
-      "{workspaceRoot}/packages/react-charts-catalog/src/**/*",
-      "{workspaceRoot}/scripts/build-conformance-artifact.mjs",
-      "{workspaceRoot}/scripts/catalog-artifact.mjs",
       "{workspaceRoot}/scripts/catalog-index.mjs",
-      "{workspaceRoot}/scripts/catalog-preview.mjs",
-      "{workspaceRoot}/scripts/catalog-source-revision.mjs",
       "{workspaceRoot}/scripts/catalog-source-files.mjs",
-      "{workspaceRoot}/scripts/check-catalog-loading.mjs",
-      "{workspaceRoot}/scripts/check-conformance-artifact.mjs",
       "!{workspaceRoot}/examples/conformance/dist/**/*"
-    ],
-    "catalogRevision": [
-      {
-        "runtime": "node scripts/catalog-source-revision.mjs"
-      }
     ],
     "comparisonRevision": [
       {
@@ -249,27 +235,14 @@
       "inputs": ["source", "comparisonRevision"],
       "outputs": ["{workspaceRoot}/.benchmark-output/results"]
     },
-    "catalog-check": {
-      "cache": true,
-      "inputs": ["catalogSource"]
-    },
     "catalog-index-check": {
       "cache": true,
       "inputs": ["catalogSource"]
     },
-    "catalog-vite-build": {
+    "conformance-app-build": {
       "cache": true,
       "inputs": ["catalogSource"],
       "outputs": ["{workspaceRoot}/examples/conformance/dist"]
-    },
-    "catalog-artifact-build": {
-      "cache": true,
-      "inputs": ["catalogSource", "catalogRevision"],
-      "outputs": ["{workspaceRoot}/.catalog-artifact"]
-    },
-    "catalog-loading-check": {
-      "cache": true,
-      "inputs": ["catalogSource", "catalogRevision"]
     },
     "release-artifacts": {
       "cache": true,

@@ -43,7 +43,6 @@ const publicEntryPaths = [
   'packages/charts-scales/README.md',
   'packages/preact-charts/README.md',
   'packages/react-charts/README.md',
-  'packages/react-charts-catalog/README.md',
   'packages/react-native-charts/README.md',
   'packages/vue-charts/README.md',
   'packages/solid-charts/README.md',
