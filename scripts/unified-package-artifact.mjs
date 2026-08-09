@@ -118,6 +118,43 @@ export function mappedUnifiedExportConditions(namespace, conditions) {
   )
 }
 
+export function linkedUnifiedConsumerDependencies({
+  repositoryRoot,
+  packageDirectory,
+  dependencies,
+}) {
+  return Object.fromEntries(
+    Object.keys(dependencies ?? {})
+      .sort()
+      .map((packageName) => [
+        packageName,
+        `link:${resolve(
+          repositoryRoot,
+          'packages',
+          packageDirectory,
+          'node_modules',
+          ...packageName.split('/'),
+        )}`,
+      ]),
+  )
+}
+
+export function unifiedConsumerWorkspace(linkedDependencies) {
+  const overrides = Object.entries(linkedDependencies).map(
+    ([packageName, target]) =>
+      `  ${JSON.stringify(packageName)}: ${JSON.stringify(target)}`,
+  )
+  assert.ok(overrides.length > 0, '@tanstack/charts must declare dependencies')
+  return [
+    'packages:',
+    "  - '.'",
+    'autoInstallPeers: false',
+    'overrides:',
+    ...overrides,
+    '',
+  ].join('\n')
+}
+
 export function validateUnifiedCoreExports(coreExports, sourceManifests) {
   assert.ok(coreExports && typeof coreExports === 'object')
 
@@ -252,6 +289,18 @@ export async function verifyUnifiedCoreArtifact({
     await validateNoNestedPackageManifests(resolve(packedRoot, 'dist'))
     await validateNoLegacyRuntimeImports(resolve(packedRoot, 'dist'))
 
+    const linkedDependencies = linkedUnifiedConsumerDependencies({
+      repositoryRoot,
+      packageDirectory: coreInfo.directory,
+      dependencies: packedManifest.dependencies,
+    })
+    for (const [packageName, target] of Object.entries(linkedDependencies)) {
+      assert.ok(
+        (await stat(target.slice('link:'.length))).isDirectory(),
+        `Workspace install omitted ${packageName}`,
+      )
+    }
+
     await mkdir(fixtureRoot, { recursive: true })
     await writeFile(
       resolve(fixtureRoot, 'package.json'),
@@ -270,13 +319,25 @@ export async function verifyUnifiedCoreArtifact({
     )
     await writeFile(
       resolve(fixtureRoot, 'pnpm-workspace.yaml'),
-      "packages:\n  - '.'\nautoInstallPeers: false\n",
+      unifiedConsumerWorkspace(linkedDependencies),
     )
     await run(
       'pnpm',
-      ['install', '--offline', '--ignore-scripts', '--frozen-lockfile=false'],
+      [
+        'install',
+        '--offline',
+        '--ignore-scripts',
+        '--frozen-lockfile=false',
+        '--store-dir',
+        resolve(temporaryRoot, 'store'),
+      ],
       fixtureRoot,
-      { npm_config_offline: 'true' },
+      {
+        npm_config_offline: 'true',
+        XDG_CACHE_HOME: resolve(temporaryRoot, 'cache'),
+        XDG_DATA_HOME: resolve(temporaryRoot, 'data'),
+        XDG_STATE_HOME: resolve(temporaryRoot, 'state'),
+      },
     )
 
     const installedScope = resolve(fixtureRoot, 'node_modules', '@tanstack')

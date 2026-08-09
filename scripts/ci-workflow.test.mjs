@@ -26,6 +26,10 @@ const packedConsumer = await readFile(
   resolve(import.meta.dirname, './check-packed-consumers.mjs'),
   'utf8',
 )
+const unifiedArtifact = await readFile(
+  resolve(import.meta.dirname, './unified-package-artifact.mjs'),
+  'utf8',
+)
 const nxDistribution = await readFile(
   resolve(import.meta.dirname, '../.nx/workflows/distribution.yaml'),
   'utf8',
@@ -86,6 +90,20 @@ describe('CI workflow contract', () => {
       ).length,
       1,
     )
+    assert.match(unifiedArtifact, /'autoInstallPeers: false'/)
+    assert.match(unifiedArtifact, /linkedUnifiedConsumerDependencies\(/)
+    assert.match(
+      unifiedArtifact,
+      /\[\s*'install',\s*'--offline',\s*'--ignore-scripts',\s*'--frozen-lockfile=false',\s*'--store-dir'/,
+    )
+    for (const directory of [
+      'XDG_CACHE_HOME',
+      'XDG_DATA_HOME',
+      'XDG_STATE_HOME',
+    ]) {
+      assert.match(unifiedArtifact, new RegExp(`${directory}: resolve\\(`))
+    }
+    assert.doesNotMatch(unifiedArtifact, /--prefer-offline/)
   })
 
   test('starts static checks immediately and gates expensive pull request partitions', () => {
