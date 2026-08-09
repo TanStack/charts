@@ -12,6 +12,7 @@ import { curveBumpX } from 'd3-shape'
 import { industries } from '@charts-poc/demo-data/industries'
 import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import { tanstackMount } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
 
 const colors = ['#2563eb', '#ea580c', '#059669', '#7c3aed', '#db2777']
 const includedIndustries = [
@@ -29,7 +30,7 @@ const observations = industries.filter(
     includedIndustrySet.has(row.industry),
 )
 
-export const bumpRankingDefinition = () => {
+export const bumpRankingDefinition = (input?: ConformanceInput) => {
   const rows = rank(observations, {
     by: 'date',
     value: 'unemployed',
@@ -59,15 +60,19 @@ export const bumpRankingDefinition = () => {
         color: 'industry',
         r: 3,
       }),
-      text(labels, {
-        id: 'newest-industry-labels',
-        x: 'date',
-        y: 'rank',
-        text: 'industry',
-        color: 'industry',
-        anchor: 'start',
-        dx: 6,
-      }),
+      ...(input?.preview === true
+        ? []
+        : [
+            text(labels, {
+              id: 'newest-industry-labels',
+              x: 'date',
+              y: 'rank',
+              text: 'industry',
+              color: 'industry',
+              anchor: 'start',
+              dx: 6,
+            }),
+          ]),
     ],
     x: {
       scale: scaleUtc,

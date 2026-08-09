@@ -38,6 +38,7 @@ function scatterMarginalChart(
   rows: readonly CompletePenguin[],
   scatter: readonly CompletePenguin[],
   showLegend: boolean,
+  preview: boolean,
 ) {
   const xBins = binX(rows, {
     value: 'flipper_length_mm',
@@ -61,14 +62,14 @@ function scatterMarginalChart(
   return viewGrid({
     id: 'penguin-marginals',
     rows: [
-      { id: 'top', size: 82 },
+      { id: 'top', size: preview ? 48 : 82 },
       { id: 'main', grow: 1 },
     ],
     columns: [
       { id: 'main', grow: 1 },
-      { id: 'right', size: 82 },
+      { id: 'right', size: preview ? 48 : 82 },
     ],
-    gap: 8,
+    gap: preview ? 4 : 8,
     views: [
       {
         id: 'main',
@@ -111,6 +112,7 @@ function scatterMarginalChart(
               ? { legend: colorLegend({ label: 'Species' }) }
               : {}),
           },
+          ...(preview ? { guides: false, margin: 0 } : {}),
         }),
       },
       {
@@ -169,7 +171,7 @@ function scatterMarginalChart(
 
 export const scatterMarginalDefinition = (input: ConformanceInput) => {
   const rows = scatterRows(input)
-  return scatterMarginalChart(rows, rows, true)
+  return scatterMarginalChart(rows, rows, true, false)
 }
 
 const catalogScatterMarginalDefinition = (input: ConformanceInput) => {
@@ -181,6 +183,7 @@ const catalogScatterMarginalDefinition = (input: ConformanceInput) => {
       (row) => row.body_mass_g,
     ]),
     input.preview !== true,
+    input.preview === true,
   )
 }
 

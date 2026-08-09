@@ -53,7 +53,7 @@ export const facetedDistributionDefinition = (input: ConformanceInput) => {
         by: 'species',
         columns: 1,
         gap: 8,
-        label: (group) => String(group),
+        label: input.preview === true ? false : (group) => String(group),
         chart: (facetBins) => ({
           marks: [
             rect(facetBins, {
@@ -65,6 +65,7 @@ export const facetedDistributionDefinition = (input: ConformanceInput) => {
               inset: 0.75,
             }),
           ],
+          ...(input.preview ? { guides: false, margin: 0 } : {}),
           x: {
             scale: scaleLinear().domain([2500, 6500]),
             grid: true,

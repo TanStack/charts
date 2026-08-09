@@ -128,6 +128,12 @@
         "command": "node scripts/catalog-index.mjs --check"
       }
     },
+    "catalog-preview-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node scripts/catalog-preview.mjs --check"
+      }
+    },
     "conformance-app-build": {
       "executor": "nx:run-commands",
       "options": {
@@ -165,6 +171,7 @@
         "bundle-check",
         "benchmark-check",
         "catalog-index-check",
+        "catalog-preview-check",
         "conformance-app-build"
       ],
       "options": {
@@ -189,6 +196,7 @@
         "bundle-check",
         "benchmark-check",
         "catalog-index-check",
+        "catalog-preview-check",
         "conformance-app-build"
       ],
       "options": {

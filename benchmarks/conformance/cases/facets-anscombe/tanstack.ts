@@ -4,14 +4,14 @@ import { scaleLinear } from 'd3-scale'
 import { tanstackMount } from '../../shared/mount'
 import type { ConformanceInput } from '../../types'
 
-const definition = (_input: ConformanceInput) =>
+const definition = (input: ConformanceInput) =>
   defineChart({
     marks: [
       facet(anscombe, {
         by: 'series',
         columns: 4,
-        gap: 12,
-        label: (series) => String(series),
+        gap: input.preview === true ? 4 : 12,
+        label: input.preview === true ? false : (series) => String(series),
         chart: (facetRows) => ({
           marks: [
             dot(facetRows, {
@@ -23,13 +23,13 @@ const definition = (_input: ConformanceInput) =>
           ],
           x: {
             scale: scaleLinear().domain([3, 20]),
-            grid: true,
-            axis: { ticks: { count: 5 } },
+            grid: input.preview !== true,
+            axis: input.preview === true ? false : { ticks: { count: 5 } },
           },
           y: {
             scale: scaleLinear().domain([2, 14]),
-            grid: true,
-            axis: { ticks: { count: 4 } },
+            grid: input.preview !== true,
+            axis: input.preview === true ? false : { ticks: { count: 4 } },
           },
         }),
       }),
@@ -40,4 +40,5 @@ const definition = (_input: ConformanceInput) =>
 export const mount = tanstackMount(
   definition,
   "Anscombe's quartet small multiples",
+  true,
 )

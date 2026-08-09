@@ -5,12 +5,13 @@ import {
   useRef,
   useState,
 } from 'react'
-import { defineChart, lineY } from '@tanstack/charts'
+import { colorLegend, defineChart, lineY } from '@tanstack/charts'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { interactiveColorLegend } from '@tanstack/charts/legend'
 import { Chart } from '@tanstack/react-charts'
 import { industries } from '@charts-poc/demo-data/industries'
 import { scaleLinear, scaleUtc } from 'd3-scale'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import { isLegendSeriesId, legendRows, legendSeries } from './model'
 import type { ConformanceTarget, ConformanceTestDriver } from '../../types'
@@ -31,6 +32,7 @@ export function interactiveLegendDefinition(
   revision: number,
   visibleSeries: readonly LegendSeriesId[],
   onVisibleSeriesChange: (visible: readonly LegendSeriesId[]) => void,
+  preview = false,
 ) {
   const rows = legendRows(industries, revision)
   return defineChart(
@@ -64,13 +66,17 @@ export function interactiveLegendDefinition(
       color: {
         domain: legendSeries.map((series) => series.id),
         range: legendSeries.map((series) => seriesColors[series.id]),
-        legend: interactiveColorLegend({
-          visible: controlledSignal(visibleSeries, onVisibleSeriesChange),
-          placement: 'bottom',
-          ariaLabel: 'Series visibility',
-        }),
+        legend: preview
+          ? colorLegend({ label: 'Series', placement: 'bottom' })
+          : interactiveColorLegend({
+              visible: controlledSignal(visibleSeries, onVisibleSeriesChange),
+              placement: 'bottom',
+              ariaLabel: 'Series visibility',
+            }),
       },
-      margin: { top: 20, right: 24, left: 62 },
+      margin: preview
+        ? { top: 0, right: 0, left: 0 }
+        : { top: 20, right: 24, left: 62 },
     }),
     { svgAnimation: false, keyboard: false },
   )
@@ -88,8 +94,9 @@ const InteractiveLegendExample = forwardRef<
         input.revision,
         visibleSeries,
         setVisibleSeries,
+        input.preview,
       ),
-    [input.revision, visibleSeries],
+    [input.preview, input.revision, visibleSeries],
   )
 
   useImperativeHandle(
@@ -127,7 +134,10 @@ const InteractiveLegendExample = forwardRef<
     return (
       <Chart
         idPrefix={idPrefix}
-        definition={definition}
+        definition={catalogPreviewDefinition(definition, {
+          legend: true,
+          margin: true,
+        })}
         initialWidth={input.width}
         aspectRatio={input.width / input.height}
         ariaLabel="Manufacturing and construction unemployment chart"

@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { decathlon } from '@charts-poc/demo-data/decathlon'
 import { describe, expect, it } from 'vitest'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { radarEvents, timedEvents } from './selection'
 import {
   foldedDecathlon,
@@ -70,6 +71,33 @@ describe('folded radar profile', () => {
     expect(repeated.points.map(({ key }) => key)).toEqual(
       first.points.map(({ key }) => key),
     )
+  })
+
+  it('maximizes the rings, spokes, and area without preview labels', () => {
+    const previewInput = {
+      width: 288,
+      height: 192,
+      revision: 0,
+      preview: true,
+    } satisfies ConformanceInput
+    const scene = createChartRuntime().render(
+      catalogPreviewDefinition(radarDefinition(previewInput)),
+      previewInput,
+    )
+    const nodes = flatten(scene.nodes)
+    expect(nodes.filter((node) => node.kind === 'label')).toHaveLength(0)
+    expect(
+      nodes.filter(
+        (node) =>
+          node.kind === 'polyline' && node.key.startsWith('ring:number:'),
+      ),
+    ).toHaveLength(5)
+    expect(
+      nodes.filter(
+        (node) => node.kind === 'rule' && node.key.startsWith('spoke:string:'),
+      ),
+    ).toHaveLength(radarEvents.length)
+    expect(nodes.filter((node) => node.kind === 'area')).toHaveLength(1)
   })
 
   it('keeps the transform composition visible and removes D3 extent preparation', () => {

@@ -232,6 +232,7 @@ async function renderEmbed(entry: ConformanceCaseMeta, generation: number) {
   const params = new URLSearchParams(window.location.search)
   const height = parseChartEmbedHeight(params.get('height'))
   const embedRevision = parseChartEmbedRevision(params.get('revision'))
+  const preview = params.get('preview') === '1'
   let theme = parseChartEmbedTheme(params.get('theme'))
   const parentOrigin = resolveChartEmbedParentOrigin(document.referrer)
   const media = window.matchMedia('(prefers-color-scheme: dark)')
@@ -290,11 +291,16 @@ async function renderEmbed(entry: ConformanceCaseMeta, generation: number) {
     }
 
     let width = measureEmbedWidth(container)
-    const handle = implementation.mount(container, {
+    const mount =
+      preview && implementation.catalogCase
+        ? implementation.catalogCase.mount
+        : implementation.mount
+    const handle = mount(container, {
       width,
       height,
       revision: embedRevision,
-      interactive: true,
+      interactive: !preview,
+      preview,
     })
     mounted.set(`${entry.id}:tanstack`, handle)
 
@@ -305,7 +311,8 @@ async function renderEmbed(entry: ConformanceCaseMeta, generation: number) {
         width,
         height,
         revision: embedRevision,
-        interactive: true,
+        interactive: !preview,
+        preview,
       })
       postEmbedMessage('resize', entry, height, parentOrigin)
     }

@@ -13,6 +13,7 @@ import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 import { Chart } from '@tanstack/react-charts'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import { scaleLinear, scaleUtc } from 'd3-scale'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import {
   dateFromAnchor,
@@ -252,14 +253,36 @@ const FocusContextExample = forwardRef<
   )
 
   if (input.preview) {
+    const previewGap = 4
+    const previewOverviewHeight = 56
+    const previewDetailHeight =
+      input.height - previewOverviewHeight - previewGap
     return (
-      <Chart
-        idPrefix={idPrefix ? `${idPrefix}-detail` : undefined}
-        definition={detailDefinition}
-        initialWidth={input.width}
-        aspectRatio={input.width / input.height}
-        ariaLabel="Detail time window"
-      />
+      <div
+        data-catalog-preview-composition="focus-context"
+        style={{
+          display: 'grid',
+          gridTemplateRows: `${previewDetailHeight}px ${previewOverviewHeight}px`,
+          gap: previewGap,
+          width: input.width,
+          height: input.height,
+        }}
+      >
+        <Chart
+          idPrefix={idPrefix ? `${idPrefix}-detail` : undefined}
+          definition={catalogPreviewDefinition(detailDefinition)}
+          width={input.width}
+          height={previewDetailHeight}
+          ariaLabel="Detail time window"
+        />
+        <Chart
+          idPrefix={idPrefix ? `${idPrefix}-overview` : undefined}
+          definition={catalogPreviewDefinition(overviewDefinition)}
+          width={input.width}
+          height={previewOverviewHeight}
+          ariaLabel="Overview time series with selected detail window"
+        />
+      </div>
     )
   }
 

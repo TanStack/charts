@@ -10,6 +10,7 @@ import { scaleLinear, scaleUtc } from 'd3-scale'
 import { industries } from '@charts-poc/demo-data/industries'
 import type { IndustriesRow } from '@charts-poc/demo-data/industries'
 import { tanstackMount } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
 
 const colors = ['#2563eb', '#ea580c', '#059669', '#7c3aed']
 const formatIndex = (value: number) => `${Math.round((value - 1) * 100)}%`
@@ -25,7 +26,10 @@ export const indexedIndustryObservations = industries.filter(
     includedIndustries.has(row.industry),
 )
 
-export const indexedIndustryDefinition = (source: readonly IndustriesRow[]) => {
+export const indexedIndustryDefinition = (
+  source: readonly IndustriesRow[],
+  preview = false,
+) => {
   const rows = normalize(
     [...source].sort(
       (left, right) => left.date.getTime() - right.date.getTime(),
@@ -42,7 +46,6 @@ export const indexedIndustryDefinition = (source: readonly IndustriesRow[]) => {
     value: (datum) => datum.date.getTime(),
     select: 'max',
   })
-
   return defineChart({
     marks: [
       ruleY([1], { strokeOpacity: 0.65 }),
@@ -53,15 +56,19 @@ export const indexedIndustryDefinition = (source: readonly IndustriesRow[]) => {
         color: 'industry',
         strokeWidth: 2.25,
       }),
-      text(labels, {
-        id: 'end-labels',
-        x: 'date',
-        y: 'indexed',
-        text: 'industry',
-        color: 'industry',
-        anchor: 'start',
-        dx: 5,
-      }),
+      ...(preview
+        ? []
+        : [
+            text(labels, {
+              id: 'end-labels',
+              x: 'date',
+              y: 'indexed',
+              text: 'industry',
+              color: 'industry',
+              anchor: 'start',
+              dx: 5,
+            }),
+          ]),
     ],
     x: { scale: scaleUtc, axis: { label: 'Month' } },
     y: {
@@ -80,7 +87,11 @@ export const indexedIndustryDefinition = (source: readonly IndustriesRow[]) => {
 }
 
 export const mount = tanstackMount(
-  () => indexedIndustryDefinition(indexedIndustryObservations),
+  (input: ConformanceInput) =>
+    indexedIndustryDefinition(
+      indexedIndustryObservations,
+      input.preview === true,
+    ),
   'Indexed U.S. industry unemployment',
   {
     format: ({ datum }) =>

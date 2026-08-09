@@ -256,6 +256,17 @@ export function focusCursorMotionDefinition() {
 export const catalogCase = tanstackCase(
   focusCursorMotionDefinition,
   'Grouped line chart with animated focus and crosshair',
+  true,
+  {
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'series-points' && point.datum.id === 'Alpha:Sat',
+        ) ?? null
+      )
+    },
+  },
 )
 
 function createFocusStatus(surface: HTMLElement) {

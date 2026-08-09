@@ -4,7 +4,7 @@ import { travelers } from '@charts-poc/demo-data/travelers'
 import { createChartScene, resolveFocusScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { selectSynchronizedCursorData } from './selection'
-import { mount, synchronizedCursorDefinition } from './tanstack'
+import { catalogCase, mount, synchronizedCursorDefinition } from './tanstack'
 import type {
   ChartDefinition,
   ChartFocusState,
@@ -171,6 +171,30 @@ describe('definition-owned synchronized cursors', () => {
       container.querySelector('[data-conformance-synchronized-date]')
         ?.textContent,
     ).toBe('Focus either chart')
+
+    handle.destroy()
+    container.remove()
+  })
+
+  it('paints aligned native cursors without ordinary guides in previews', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = catalogCase.mount(container, {
+      ...input,
+      width: 288,
+      height: 192,
+      interactive: false,
+      preview: true,
+    })
+
+    expect(
+      container.querySelectorAll('.ts-chart__focus-guide-x-rule'),
+    ).toHaveLength(2)
+    expect(
+      container.querySelectorAll('.ts-chart__focus-guide-marker'),
+    ).toHaveLength(2)
+    expect(container.querySelectorAll('.ts-chart__axes')).toHaveLength(0)
+    expect(container.querySelectorAll('.ts-chart__grid')).toHaveLength(0)
 
     handle.destroy()
     container.remove()

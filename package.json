@@ -27,6 +27,8 @@
     "canvas:check": "node scripts/check-canvas-renderer.mjs",
     "catalog:index": "node scripts/catalog-index.mjs --write",
     "catalog:index:check": "nx run charts-workspace:catalog-index-check",
+    "catalog:previews": "node scripts/catalog-preview.mjs --write",
+    "catalog:previews:check": "nx run charts-workspace:catalog-preview-check",
     "dev:charts-react": "pnpm --filter @charts-poc/react-example dev",
     "dev:charts-octane": "pnpm --filter @charts-poc/octane-example dev",
     "dev:conformance": "pnpm --filter @charts-poc/conformance-example dev",

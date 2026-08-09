@@ -60,25 +60,28 @@ export const comparativeRadarDefinition = (input: ConformanceInput) => {
         angle: { scale: angleScale, wrap: true },
         radius: { scale: radiusScale },
         inset: 0,
-        radiusRatio: 0.78,
+        radiusRatio: input.preview === true ? 0.94 : 0.78,
         guides: [
           radialGrid({
             values: ringValues,
             shape: 'polygon',
-            labels: true,
+            labels: input.preview !== true,
             labelAngle: Math.PI / 3,
             labelRotate: 60,
             labelBaseline: 'auto',
+            labelFontSize: 12,
             format: (value) => String(Number(value) * 100),
             labelFill: '#cccccc',
             stroke: '#cbd5e1',
           }),
           angleGrid({
             values: radarEvents,
-            labels: true,
+            labels: input.preview !== true,
             labelOffset: 8,
             labelDy: angleLabelDy,
             labelFill: '#808080',
+            labelFontSize: 12,
+            format: String,
             stroke: '#cbd5e1',
           }),
         ],
@@ -100,7 +103,7 @@ export const comparativeRadarDefinition = (input: ConformanceInput) => {
       domain: radarCountries,
       range: colors,
     },
-    margin,
+    margin: input.preview === true ? 0 : margin,
   })
 }
 

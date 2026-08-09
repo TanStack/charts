@@ -16,6 +16,16 @@ const colors = [
   '#ca8a04',
   '#64748b',
 ]
+const previewLabelOffsets = new Map([
+  ['Houston', 7],
+  ['New York', 12],
+  ['Los Angeles', 18],
+  ['Washington, D.C.', 12],
+  ['Dallas', 6],
+  ['Chicago', 0],
+  ['Philadelphia', 12],
+  ['Miami', 24],
+])
 
 export const slopegraphDefinition = (input: ConformanceInput) => {
   const source = citywages.slice(input.revision * 4, input.revision * 4 + 8)
@@ -52,8 +62,17 @@ export const slopegraphDefinition = (input: ConformanceInput) => {
         text: 'nyt_display',
         color: 'nyt_display',
         key: ({ Metro, wageField }) => `${Metro}:${wageField}`,
-        dx: 6,
-        anchor: 'start',
+        dx: ({ wageField }) =>
+          input.preview === true && wageField === wageFields[1] ? -6 : 6,
+        anchor: ({ wageField }) =>
+          input.preview === true && wageField === wageFields[1]
+            ? 'end'
+            : 'start',
+        dy: ({ nyt_display }) =>
+          input.preview === true
+            ? (previewLabelOffsets.get(nyt_display) ?? 0)
+            : 0,
+        fontSize: input.preview === true ? 9 : 12,
       }),
     ],
     x: {

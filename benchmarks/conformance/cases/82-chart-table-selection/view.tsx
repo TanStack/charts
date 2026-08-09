@@ -11,6 +11,7 @@ import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 import { Chart } from '@tanstack/react-charts'
 import { penguins } from '@charts-poc/demo-data/penguins'
 import { scaleLinear } from 'd3-scale'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import {
   isSelectionId,
@@ -24,6 +25,8 @@ import type { KeyedSelectionChange } from '@tanstack/charts/selection'
 import type { ConformanceTarget, ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 import type { CompletePenguin, SelectionId } from './model'
+
+const catalogPreviewSelectionId = 'adelie-biscoe-female' satisfies SelectionId
 
 export function chartTableSelectionDefinition(
   revision: number,
@@ -92,7 +95,9 @@ const ChartTableExample = forwardRef<
     scene: ChartScene<CompletePenguin, number, number>
     svg: SVGSVGElement
   } | null>(null)
-  const [selectedId, setSelectedId] = useState<SelectionId | null>(null)
+  const [selectedId, setSelectedId] = useState<SelectionId | null>(
+    input.preview ? catalogPreviewSelectionId : null,
+  )
   const rows = useMemo(
     () => selectionRows(penguins, input.revision),
     [input.revision],
@@ -164,7 +169,7 @@ const ChartTableExample = forwardRef<
     return (
       <Chart
         idPrefix={idPrefix}
-        definition={definition}
+        definition={catalogPreviewDefinition(definition)}
         initialWidth={input.width}
         aspectRatio={input.width / input.height}
         ariaLabel="Selectable observations chart"

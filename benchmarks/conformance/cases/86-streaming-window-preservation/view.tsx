@@ -12,6 +12,7 @@ import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/react-charts'
 import { downloads } from '@charts-poc/demo-data/downloads'
 import { scaleLinear, scaleUtc } from 'd3-scale'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { clientPointBounds } from '../../shared/driver-geometry'
 import { reactMount } from '../../shared/react-mount'
 import { streamingData } from './selection'
@@ -171,7 +172,7 @@ const StreamingExample = forwardRef<
     return (
       <Chart
         idPrefix={idPrefix}
-        definition={definition}
+        definition={catalogPreviewDefinition(definition)}
         initialWidth={input.width}
         aspectRatio={input.width / input.height}
         ariaLabel="Package downloads in a locked time viewport"

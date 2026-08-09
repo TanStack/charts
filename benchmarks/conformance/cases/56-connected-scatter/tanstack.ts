@@ -11,6 +11,7 @@ import { scaleLinear } from 'd3-scale'
 import { curveCatmullRom } from 'd3-shape'
 import { driving } from '@charts-poc/demo-data/driving'
 import { tanstackMount } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
 
 export const directionTargetIndexes = [14, 28, 42] as const
 const directionTargetIndexSet: ReadonlySet<number> = new Set(
@@ -26,7 +27,7 @@ export const directionPairs = rollingWindow(driving, {
 )
 const labels = driving.filter((row) => row.year % 5 === 0)
 
-export const connectedScatterDefinition = () =>
+export const connectedScatterDefinition = (input?: ConformanceInput) =>
   defineChart({
     marks: [
       lineY(driving, {
@@ -54,14 +55,19 @@ export const connectedScatterDefinition = () =>
         strokeWidth: 1.5,
         headLength: 7,
       }),
-      text(labels, {
-        id: 'year-labels',
-        x: 'miles',
-        y: 'gas',
-        text: (row) => `${row.year}`,
-        fill: '#0f172a',
-        dy: -9,
-      }),
+      ...(input?.preview === true
+        ? []
+        : [
+            text(labels, {
+              id: 'year-labels',
+              x: 'miles',
+              y: 'gas',
+              text: (row) => `${row.year}`,
+              fill: '#0f172a',
+              anchor: 'middle',
+              dy: -9,
+            }),
+          ]),
     ],
     x: {
       scale: scaleLinear,

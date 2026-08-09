@@ -10,6 +10,7 @@ const colors = ['#2563eb', '#ea580c', '#059669']
 
 export const multiLineEndLabelsDefinition = (
   rows: readonly MultiLineDatum[],
+  preview = false,
 ) => {
   const endpoints = select(rows, {
     by: 'industry',
@@ -32,8 +33,8 @@ export const multiLineEndLabelsDefinition = (
         y: 'unemployed',
         text: 'industry',
         color: 'industry',
-        anchor: 'start',
-        dx: 5,
+        anchor: preview ? 'end' : 'start',
+        dx: preview ? -5 : 5,
         fontWeight: 600,
       }),
     ],
@@ -51,7 +52,10 @@ export const multiLineEndLabelsDefinition = (
 }
 
 const definition = (input: ConformanceInput) =>
-  multiLineEndLabelsDefinition(selectMultiLineData(industries, input.revision))
+  multiLineEndLabelsDefinition(
+    selectMultiLineData(industries, input.revision),
+    input.preview === true,
+  )
 
 export const catalogCase = tanstackCase(
   definition,

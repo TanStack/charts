@@ -142,6 +142,7 @@ export const mount: ConformanceMount = (container, input) => {
 
 export function definitionMotionDefinition(
   rows: readonly DefinitionMotionRow[],
+  preview = false,
 ) {
   const maximum = Math.max(100, ...rows.map((row) => row.actual))
   const yMaximum = Math.ceil(maximum / 20) * 20
@@ -216,7 +217,9 @@ export function definitionMotionDefinition(
         label: { text: 'Value', motion: guideMotion },
       },
     },
-    margin: { top: 20, right: 24 },
+    margin: preview
+      ? { top: 12, right: 4, bottom: 40, left: 46 }
+      : { top: 20, right: 24 },
     maxFocusDistance: 32,
   })
 }
@@ -227,8 +230,11 @@ export const catalogCase = tanstackCase(
       definitionMotionStages[
         Math.abs(input.revision) % definitionMotionStages.length
       ] ?? definitionMotionStages[0],
+      input.preview === true,
     ),
   'Definition-owned chart, mark, datum, and guide motion',
+  true,
+  { guides: true, margin: true },
 )
 
 function createControls(document: Document) {

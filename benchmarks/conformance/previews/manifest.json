@@ -1,0 +1,558 @@
+{
+  "schemaVersion": 1,
+  "width": 288,
+  "height": 192,
+  "sourceHash": "523b2fc3d22154f5da87d1f78278c708d6f97eabf6be594814602c1cb79ac2ad",
+  "assets": [
+    {
+      "id": "01-line-gaps",
+      "sha256": "51680de1ad7c16ad1ede898ff973c49213597661bc994f53b8f1476b12372cd6",
+      "bytes": 2987
+    },
+    {
+      "id": "02-multi-line-end-labels",
+      "sha256": "9604bd31080690c872ccd5364186c026ac54d1c89487f21281a931be3e401405",
+      "bytes": 4023
+    },
+    {
+      "id": "03-temperature-range-band",
+      "sha256": "10af9b9796b9d8d131e2cf216f9f773b2c9879b91c0e0fe85666ea9aacda5694",
+      "bytes": 5707
+    },
+    {
+      "id": "04-stacked-time-area",
+      "sha256": "2526abafdadaf70a3e137fd11240bc0b1db8a866f3b4d9861552c5d45cc60e4d",
+      "bytes": 14945
+    },
+    {
+      "id": "bar-vertical-sorted",
+      "sha256": "619bb54274e95dee9d0fdf744c31559b6fe9e48834960007ac829256d0deecca",
+      "bytes": 4129
+    },
+    {
+      "id": "bar-horizontal-ranking",
+      "sha256": "8a330ef99ea0a41b827545435be244fa4b948bba4518500686ed95e53a80c320",
+      "bytes": 6010
+    },
+    {
+      "id": "bar-grouped",
+      "sha256": "513ab2ff52f8e765ebe0fa2e25b1f85860872609a67e8accdd039ed0944237be",
+      "bytes": 1944
+    },
+    {
+      "id": "bar-stacked",
+      "sha256": "b3d39b0dbaf4753352d3b15fd319777102796262aba9385813f5d16595e25b0c",
+      "bytes": 11479
+    },
+    {
+      "id": "scatter-bubble",
+      "sha256": "3ddd8931616063fc3b8d852ac76f70571f0a6f7b93b8c2c75ba14c66ff0c721d",
+      "bytes": 18082
+    },
+    {
+      "id": "histogram",
+      "sha256": "21ea15a88cd3f6955472d7adb27b62618cb90769c3af34024009d5badc878d14",
+      "bytes": 2869
+    },
+    {
+      "id": "heatmap-labeled",
+      "sha256": "249fdf02b5c09823a5c386cedd8eed3468fff9520f3b61fa9f9c23a1f6571a54",
+      "bytes": 10153
+    },
+    {
+      "id": "facets-anscombe",
+      "sha256": "a4ac9844770ecd3dddd7875fe8360e89824a9ec2ed645fcffea6fb4c57a03994",
+      "bytes": 7443
+    },
+    {
+      "id": "13-interval-timeline",
+      "sha256": "490ab60daf095965b3da1a265dd0b6d1556442f280cdd7429c54f015a6f38604",
+      "bytes": 2263
+    },
+    {
+      "id": "14-error-bars",
+      "sha256": "460b02b9f7d3f2ef796fdbd243d1d8f5e21af9006443fc6776c74c9d967b6e0c",
+      "bytes": 3206
+    },
+    {
+      "id": "15-boxplot",
+      "sha256": "48abc37817fe79e93a36ca02f82ca0d4f1b19089b66e2576030507443ef9e37f",
+      "bytes": 5119
+    },
+    {
+      "id": "16-lollipop",
+      "sha256": "750dd6726071a147e289ff2f49f4ba52a9d9c5dd03ad14eeab892ab770d46c81",
+      "bytes": 8563
+    },
+    {
+      "id": "17-dumbbell",
+      "sha256": "b329c1ec40d3534f61a05257a12887ae4b8051326c151f52ac792aa32a844220",
+      "bytes": 4403
+    },
+    {
+      "id": "18-cumulative-histogram",
+      "sha256": "1e69bab2e264436ea4e3cd19f3d3bc506af17d929cfb5185844f9725d18a9370",
+      "bytes": 15700
+    },
+    {
+      "id": "19-moving-average-line",
+      "sha256": "1e9194565783f5409f5fd07d45c75fd4f072ef0ae51dc342dcb31669d4a07c51",
+      "bytes": 3720
+    },
+    {
+      "id": "20-normalized-stacked-area",
+      "sha256": "1b69d2a7545e3f093e9ac964ad466a79892ef9edea1e678d18c059806f6ee7d1",
+      "bytes": 14116
+    },
+    {
+      "id": "21-streamgraph",
+      "sha256": "a05828d714e187216366855052791f27e4d1b03d44b0d545dd47c6508a9ba658",
+      "bytes": 11480
+    },
+    {
+      "id": "22-bollinger-band",
+      "sha256": "b7662fee3ddceb31b5acdc6fff72c12e53ec3c6e2d1428d204cd70dafc8779b7",
+      "bytes": 4511
+    },
+    {
+      "id": "24-quantitative-binned-heatmap",
+      "sha256": "78c24510e4f02d5d86b13133f37e13666e283bec86831343549dab046ed3cdec",
+      "bytes": 10786
+    },
+    {
+      "id": "25-calendar-heatmap",
+      "sha256": "0f07bfbbf0a20b5f8c12e718acc5fa6414d517a6cf357deb647fba457d70eed4",
+      "bytes": 23386
+    },
+    {
+      "id": "26-diverging-likert",
+      "sha256": "cefa185aaa4c38ced8f3bcf23da42878c5b47eafc13a339f509214d9be144bc0",
+      "bytes": 4989
+    },
+    {
+      "id": "27-parallel-coordinates",
+      "sha256": "fe430c9abdb967196a8a0dbd5016df1944c882fa3025f6499005d8e11689add5",
+      "bytes": 6935
+    },
+    {
+      "id": "28-candlestick",
+      "sha256": "abf980e993897a2ffbcd80d9c91548989a1bd88f15842e44e298c4f1c865c394",
+      "bytes": 12430
+    },
+    {
+      "id": "29-waterfall",
+      "sha256": "1a328367909686681a28df949e72fe9c9ec7437c5caf62958575894410ea9534",
+      "bytes": 2229
+    },
+    {
+      "id": "30-slopegraph",
+      "sha256": "11f6b09c08e9982fa36b26b95076a5e803432bdadf0a29a4abdf181e56072242",
+      "bytes": 7892
+    },
+    {
+      "id": "31-linear-regression",
+      "sha256": "76c382ec09b0a0aa80f2131db69e19a3c1923155968f9fbc0ee4f66892af199c",
+      "bytes": 14155
+    },
+    {
+      "id": "32-change-arrows",
+      "sha256": "3372f39848b9f4105027d09fa45aece19fc472ee89c59de00f6d9dec0f8faa11",
+      "bytes": 9457
+    },
+    {
+      "id": "33-difference-chart",
+      "sha256": "a1fe95d27eb8cc685a1b6e6d031bedd1d6af76b6f0447ab988c87a933f830216",
+      "bytes": 10535
+    },
+    {
+      "id": "34-pointer-tooltip",
+      "sha256": "633a45d6bb17e3774ff7a16ccd82683f594710ba86cbbd992da619488ca1c46b",
+      "bytes": 13704
+    },
+    {
+      "id": "35-grouped-tooltip",
+      "sha256": "09c182990ef7014b290c2b7836d2801f5212aa46aada7fd792cf433e138a1e9d",
+      "bytes": 49543
+    },
+    {
+      "id": "36-hierarchy-tree",
+      "sha256": "d7e4e4bc2b5b0e7df9ba9f4d7dba9e47ddde74fcfdada625b27c14e99d0a3f80",
+      "bytes": 7231
+    },
+    {
+      "id": "37-delaunay-network",
+      "sha256": "61b56b76288ce8859791e05b6419328302d9f445f2e4e4f0a7819c40acebd8f8",
+      "bytes": 25883
+    },
+    {
+      "id": "38-contour-topography",
+      "sha256": "88e7614753d6bf5ee21ae1edf79ccfe9ce10468d0eaf4472261d007fddde8351",
+      "bytes": 19843
+    },
+    {
+      "id": "39-density-contours",
+      "sha256": "49157fd7802c844c3de89899675aeda857a91d3086f36bd93b0fd52eb2b2f978",
+      "bytes": 19727
+    },
+    {
+      "id": "40-geojson-map",
+      "sha256": "b241c12551918acdd3de6a21b6c52f8cb7cc9edd8deb511fd93a4e5282597c2e",
+      "bytes": 35892
+    },
+    {
+      "id": "40-force-directed-network",
+      "sha256": "0510f2046f90852b41b2f42b9f277f82f428f557707767056fdf2fdc3acbccbf",
+      "bytes": 6732
+    },
+    {
+      "id": "41-waffle-unit-chart",
+      "sha256": "60e7b52cda057da54781fe507dea42368f306a5ff99d834fe23b82a68d8594d4",
+      "bytes": 14364
+    },
+    {
+      "id": "42-vector-field",
+      "sha256": "975e267f8a88cb5e3935f9c4fe0fdb4e5daeb6d180b460996b74c708e5f5bae5",
+      "bytes": 22521
+    },
+    {
+      "id": "43-hexbin-density",
+      "sha256": "c3925fb0e336a1f72241e4541f5af4e54ebf9a4c4cfab582c1e1d7fe1982cccd",
+      "bytes": 11134
+    },
+    {
+      "id": "44-framed-scatter",
+      "sha256": "c5805f843b23b44344921e561ba0ad5b00c0bff45e5c5be656e4c815a912a49c",
+      "bytes": 12730
+    },
+    {
+      "id": "50-empirical-cdf",
+      "sha256": "f988a646a6672a30f7ac3e15e360b1b57fce9396299515edf5804a9c735d73cc",
+      "bytes": 3544
+    },
+    {
+      "id": "51-faceted-distributions",
+      "sha256": "1247228edebf87645a97cbd22b8b9ae4794656f66df80850356d2dd272c49068",
+      "bytes": 6120
+    },
+    {
+      "id": "52-beeswarm-dodge",
+      "sha256": "6a8bfa83f55c67ed6e6f8bddbe291459253e964fe0f49172b6ccd9012c3b16b2",
+      "bytes": 12112
+    },
+    {
+      "id": "53-log-scale-scatter",
+      "sha256": "96d63b6eb2cc293e4b8404442a0bf322a08dd9974aec24e3a5657c37b2762a5d",
+      "bytes": 14417
+    },
+    {
+      "id": "54-bump-ranking",
+      "sha256": "8361042ab8d27157c8f3c6b4f81564a6ff3ab4b404f88256de6650e72f108ed5",
+      "bytes": 9960
+    },
+    {
+      "id": "55-indexed-multi-line",
+      "sha256": "23e75137aa94acffc72dd2fb64f1963bf405faed1fc377ba266c7d5143b59258",
+      "bytes": 3772
+    },
+    {
+      "id": "56-connected-scatter",
+      "sha256": "0f115815633df74799cf41818b5de70c63ddb9a6a6bce49507034cc5a1112536",
+      "bytes": 12347
+    },
+    {
+      "id": "57-scatter-marginal-histograms",
+      "sha256": "b0ede85fc11bda7cdaa0a8f690b357e98333a5f759020c73fc26b9950af013e0",
+      "bytes": 23643
+    },
+    {
+      "id": "58-select-extrema",
+      "sha256": "7d5f0cad7846cd00abc67ba07e70cd9914f362d659691501ccf115776d654b20",
+      "bytes": 3232
+    },
+    {
+      "id": "59-grouped-reducer-bars",
+      "sha256": "6b7f891770cdee0886b174576454f012e0a7285ea7986999e02001753eda56a8",
+      "bytes": 2074
+    },
+    {
+      "id": "60-lag-autocorrelation",
+      "sha256": "f3e9deb40a13e5c472596bf6b5fa17c62cf0c221f0380d278cae26ab1b4e808c",
+      "bytes": 22402
+    },
+    {
+      "id": "61-quantile-ribbon",
+      "sha256": "b0b30325ad2af7ea91c601674647b7b375a36a2863e53a91d3a6373adcd7bac3",
+      "bytes": 3894
+    },
+    {
+      "id": "62-ridgeline-density",
+      "sha256": "75228df3b572980b1505c1176bf05c620a37d61820bdea1e3309c53efe1cabcf",
+      "bytes": 7040
+    },
+    {
+      "id": "63-violin-distributions",
+      "sha256": "cf7de9ee1b15afc4562aeed781faea155ea6b02d2185deee1db1df0598b7f99d",
+      "bytes": 6454
+    },
+    {
+      "id": "64-marimekko-mosaic",
+      "sha256": "f206931f2a51cc36124192806e77f21379cf9b91e6464304ca1308b50054a410",
+      "bytes": 4501
+    },
+    {
+      "id": "65-voronoi-nearest-tooltip",
+      "sha256": "caf7e49776bc1e6a1c2d69710035e9e53bf3f71b66e69e38d87bf619f0c3ecac",
+      "bytes": 13476
+    },
+    {
+      "id": "70-composed-chart",
+      "sha256": "cbce365589d75552c75a43d305516bc7737f102fec6d4858d188c43639a50f14",
+      "bytes": 3655
+    },
+    {
+      "id": "71-recharts-population-pyramid",
+      "sha256": "98c5c30195522236c31885a9426bfe59dd1aa0ffb6e0a4ecdcacdc2b7109bb1c",
+      "bytes": 1967
+    },
+    {
+      "id": "72-recharts-mixed-bars",
+      "sha256": "20633e483b48ec10866b44800e43d6c8b4ac154b73d3f8748cc1647e83ee9e6c",
+      "bytes": 4251
+    },
+    {
+      "id": "73-many-point-scatter",
+      "sha256": "3be3f80014992552da83e4cc6ef59572995ec400aefb0015001968d373d5b9f7",
+      "bytes": 13551
+    },
+    {
+      "id": "74-recharts-treemap",
+      "sha256": "b85c6b1bf8cf9947933d65dc3ad0dfc80e2b8a44644c502d29c1c84d8ac486a7",
+      "bytes": 2915
+    },
+    {
+      "id": "75-radar",
+      "sha256": "e2f52022e52f0a76c370d5144ab4db7e8cabc0c2838442318913af0adf245b65",
+      "bytes": 2917
+    },
+    {
+      "id": "76-pie",
+      "sha256": "088b43c6a75638c0bc4f654510b5b6e069a0334fda05a250d40bfc78bdafcfc6",
+      "bytes": 1950
+    },
+    {
+      "id": "77-donut",
+      "sha256": "9442a19d4e8b3a5466368412174d2881600501efbde2762683a7bb8024d3a608",
+      "bytes": 2350
+    },
+    {
+      "id": "78-gauge",
+      "sha256": "6d133522d4977653075abb9003ef4ad4501d46499e18b37ddf3254f5b40eb35b",
+      "bytes": 1693
+    },
+    {
+      "id": "80-echarts-axis-pointer",
+      "sha256": "443ee7d408865eeeaf4979bf7ca25a2f41ef398c3d73b4ae6beb6e9fbfb766e2",
+      "bytes": 9585
+    },
+    {
+      "id": "81-recharts-interactive-legend",
+      "sha256": "2f456f50772dc7e0118d277f97a155edc5988f9dee183c6a752d9e664c18ab55",
+      "bytes": 5131
+    },
+    {
+      "id": "82-chart-table-selection",
+      "sha256": "abd44ff254f6635f93724430b22d7ff384dfde37b1c6bbc7507d01c91f0735db",
+      "bytes": 3185
+    },
+    {
+      "id": "83-focus-context-window",
+      "sha256": "46e33574e2c53a4bab59ec2fdd425c93615e5ed1b1fa2e730c5769b7f9631c29",
+      "bytes": 8489
+    },
+    {
+      "id": "84-pinned-nested-chart-tooltip",
+      "sha256": "8b9cb3866d0069a78f61d210e3c6977ab945496163d36e3b590149b3bf25a6cc",
+      "bytes": 21966
+    },
+    {
+      "id": "85-scrollable-resource-lanes",
+      "sha256": "10c3bea46f35d6ed7def82fc0a4c9f7c64eedbd0a341b534fb3fb9e161bbd804",
+      "bytes": 2812
+    },
+    {
+      "id": "86-streaming-window-preservation",
+      "sha256": "c5c11e5486b49f89667004d82fbdeb284f6e863f344a3e2252883cd030e76e92",
+      "bytes": 4375
+    },
+    {
+      "id": "87-echarts-synchronized-cursors",
+      "sha256": "827f8aa0a720d26a538ac69f7781e7326d34d40348b31e46d3fd85bb1a859b10",
+      "bytes": 8113
+    },
+    {
+      "id": "88-echarts-free-cursor",
+      "sha256": "09562b6e79b509587accd832036d79081648a43e152bf6ac900dde092515d004",
+      "bytes": 4192
+    },
+    {
+      "id": "89-brush-range-selection",
+      "sha256": "c4dc3221081914087a82f5b8b1233571527210b52c1cf1091144bb3336d3d41a",
+      "bytes": 4844
+    },
+    {
+      "id": "90-zoomable-time-window",
+      "sha256": "c150b3546c0b4033875e0b48b367aa23666bc48ff8f861eb50018b21f3730725",
+      "bytes": 3251
+    },
+    {
+      "id": "91-timeline-playback-scrubber",
+      "sha256": "a9a86275474a3fbebdf4d5097e842409ec3d96132d05cc88c23557ad714460b8",
+      "bytes": 3342
+    },
+    {
+      "id": "92-editable-event-range",
+      "sha256": "dab0da55e917a05bd360d882f09012516ebb70e624ec07e721aa57a22d8d1d05",
+      "bytes": 2462
+    },
+    {
+      "id": "93-labeled-pie",
+      "sha256": "fc76840f5d3b8e6623b996ef8685860bb039fa36cb8bfa6ba9d321d7af3ba890",
+      "bytes": 3611
+    },
+    {
+      "id": "94-center-donut",
+      "sha256": "9513de4a74476a5b1424b8ccf08f3650c4eb179d1487ae5ca023db33d8de677a",
+      "bytes": 2191
+    },
+    {
+      "id": "95-rounded-donut",
+      "sha256": "0dd24819c456428648eb6c9c23a7d317f7ac98a9f41ffd9ffd450c4e2dde9510",
+      "bytes": 2849
+    },
+    {
+      "id": "96-nested-donut",
+      "sha256": "66f281ea27f361d67a5592fcee59a1fb4369048d037b2cead91b094f451fc1f2",
+      "bytes": 2754
+    },
+    {
+      "id": "97-rose",
+      "sha256": "63c14d40cf94b9489413974bbe703303c45ca3881d2b07218de8edef3431c2df",
+      "bytes": 2592
+    },
+    {
+      "id": "98-needle-gauge",
+      "sha256": "f1529f0526130e7e59472aa4f732fd4f377128b992d42da1a90381c55a8f3057",
+      "bytes": 4732
+    },
+    {
+      "id": "99-comparative-radar",
+      "sha256": "082aa4e754ca01a21bd2b80f3698df0ec12653ca56e83011f2b9bb9568499bb3",
+      "bytes": 3095
+    },
+    {
+      "id": "100-radial-bars",
+      "sha256": "d14a1d18ecc3f888942a857dc1e9df70df0585e4bc42b805bd6b1239437c2b45",
+      "bytes": 2533
+    },
+    {
+      "id": "101-sunburst",
+      "sha256": "8b6d47d41a26e2cb90087e44a38327e3f21a156a9adc0e4c0cd73641f89fe15e",
+      "bytes": 4196
+    },
+    {
+      "id": "102-world-choropleth",
+      "sha256": "dc76a49a030b8b2b4f10b2e83c8da6efb465dd88b4186e3caa229cd298fa9caf",
+      "bytes": 58859
+    },
+    {
+      "id": "103-bubble-map",
+      "sha256": "d45f6d61b77745579cd8a96127b2764300b7e8919f9e25831c0595279fc712ac",
+      "bytes": 43752
+    },
+    {
+      "id": "104-orthographic-globe",
+      "sha256": "06e8bd26334885bf305dc4f5ae9694fea5ee1e04a02c3029c6a97b1404538eeb",
+      "bytes": 21009
+    },
+    {
+      "id": "105-route-map",
+      "sha256": "8b398a1455671989524a424f8aee754c238c89278098d8ae3de54bd85ce2f0ef",
+      "bytes": 35350
+    },
+    {
+      "id": "106-polar-line",
+      "sha256": "ef6f3971a3efe151f2501e32e8203f24bcee40a814b15e6855946e0cac779c7b",
+      "bytes": 4844
+    },
+    {
+      "id": "107-polar-scatter",
+      "sha256": "8d25aec505def49d07ea47b0b9af52c6598ee0565920c10c3a8c02978560b3bd",
+      "bytes": 14827
+    },
+    {
+      "id": "108-country-choropleth",
+      "sha256": "97fb8f0008997ec0f502a394a949bd1a7666c6ef6378399941fcc53084010d2d",
+      "bytes": 61522
+    },
+    {
+      "id": "109-us-state-choropleth",
+      "sha256": "5a621e61cfd1bc20a785f973249a71696156f873df89484b295b4bcdca2831c5",
+      "bytes": 797953
+    },
+    {
+      "id": "110-projection-gallery",
+      "sha256": "e036cc78ad4dec74a13068cb5cf114fe8455932f562f4ebeab3de8cbcd1053ef",
+      "bytes": 71929
+    },
+    {
+      "id": "111-basic-sankey",
+      "sha256": "488ba4d45d8254c8185fc08447ae1da11bfe1628f4a21c8326d40300366e8888",
+      "bytes": 3094
+    },
+    {
+      "id": "111-sankey-flow",
+      "sha256": "ab3abba802ee4c17e45fdeb038b5933cfbb6f5c5c06dde642dfc6e8127802b6d",
+      "bytes": 9500
+    },
+    {
+      "id": "112-motion-entrance",
+      "sha256": "0296b7d31ec88ae89163516d5ad396ee4c564ae415606f5c58e471a35ac822c1",
+      "bytes": 2437
+    },
+    {
+      "id": "113-motion-updates",
+      "sha256": "1492bbf6f2927727597251d0a2ab01551db65c5a8ae1c3b791bd014492237236",
+      "bytes": 2435
+    },
+    {
+      "id": "114-spring-line-motion",
+      "sha256": "045e53cf3d51460e7e45229b37b9c8ca5bbb0d5aaa1d5812a0fc2266e13f3504",
+      "bytes": 1775
+    },
+    {
+      "id": "115-definition-motion",
+      "sha256": "c6bced9e93514edc33a3887ed0d6fd57075123aa7c73d7ad11f75fd4abdaaeb3",
+      "bytes": 6012
+    },
+    {
+      "id": "116-geometry-morph",
+      "sha256": "6697ad31f6755011eedd098c4b9c98d8c5d59909ffa3e19d633e8339ac8f7db9",
+      "bytes": 5799
+    },
+    {
+      "id": "117-focus-cursor-motion",
+      "sha256": "2522d2085e751a7c96854adee1c9161063df4f21b83ca345bb5f5160fcfbfcdc",
+      "bytes": 8484
+    },
+    {
+      "id": "118-token-usage-calendar",
+      "sha256": "2f05072bacc6e763b0d6cb660ed161b8f22ae0758662b12db875f2360a07071b",
+      "bytes": 50290
+    },
+    {
+      "id": "119-stacked-bar-band-cursor",
+      "sha256": "5044b45076c324852f65d30f7c60369caa9c9abbae769ce73cf7176b81fcd898",
+      "bytes": 7610
+    }
+  ]
+}

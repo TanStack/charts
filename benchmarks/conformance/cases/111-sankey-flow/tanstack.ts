@@ -46,30 +46,67 @@ export type IncomeSankeyDatum =
   IncomeSankeyNodeRow | IncomeSankeyLinkRow | IncomeSankeyTitleRow
 
 export const sankeyDefinition = (input: ConformanceInput) => {
-  const { nodes, links } = incomeStatementData(input.revision)
+  const sourceData = incomeStatementData(input.revision)
 
   return defineChart({
     marks: [
       sankeyDiagram({
         id: 'income-sankey',
-        nodes,
-        links,
+        nodes: sourceData.nodes,
+        links: sourceData.links,
         nodeKey: 'id',
         source: 'source',
         target: 'target',
         value: 'value',
         align: 'left',
         nodeSort: (left, right) => left.data.order - right.data.order,
-        nodeWidth: ({ width }) => clamp(width * 0.032, 10, 24),
-        nodePadding: ({ height }) => clamp(height * 0.11, 12, 40),
-        inset: ({ width, height }) => ({
-          left: clamp(width * 0.15, 56, 122),
-          right: clamp(width * 0.13, 48, 105),
-          top: clamp(height * 0.14, 38, 70),
-          bottom: clamp(height * 0.025, 8, 14),
-        }),
+        nodeWidth:
+          input.preview === true
+            ? 8
+            : ({ width }) => clamp(width * 0.032, 10, 24),
+        nodePadding:
+          input.preview === true
+            ? 3
+            : ({ height }) => clamp(height * 0.11, 12, 40),
+        inset:
+          input.preview === true
+            ? 4
+            : ({ width, height }) => ({
+                left: clamp(width * 0.15, 56, 122),
+                right: clamp(width * 0.13, 48, 105),
+                top: clamp(height * 0.14, 38, 70),
+                bottom: clamp(height * 0.025, 8, 14),
+              }),
         iterations: 32,
         marks: ({ chart, nodes: sankeyNodes, links: sankeyLinks }) => {
+          const flowMarks = [
+            link(sankeyLinks, {
+              id: 'links',
+              x1: 'x1',
+              y1: 'y1',
+              x2: 'x2',
+              y2: 'y2',
+              key: 'key',
+              stroke: (flow) => linkColors[flow.data.tone],
+              strokeOpacity: (flow) =>
+                flow.data.tone === 'Neutral' ? 0.58 : 0.64,
+              strokeWidth: (flow) => Math.max(1, flow.width),
+              lineCap: 'butt',
+              curve: d3Curve(curveBumpX),
+            }),
+            rect(sankeyNodes, {
+              id: 'nodes',
+              x1: 'x0',
+              x2: 'x1',
+              y1: 'y0',
+              y2: 'y1',
+              key: 'key',
+              color: (node) => node.data.tone,
+              inset: 0,
+            }),
+          ] as const
+          if (input.preview === true) return flowMarks
+
           const labelFontSize = clamp(chart.width * 0.013, 6.5, 10.5)
           const labelOffset = clamp(chart.width * 0.008, 3, 6)
           const labelRows = sankeyNodes.map((node): IncomeSankeyLabelRow => {
@@ -118,30 +155,7 @@ export const sankeyDefinition = (input: ConformanceInput) => {
           ]
 
           return [
-            link(sankeyLinks, {
-              id: 'links',
-              x1: 'x1',
-              y1: 'y1',
-              x2: 'x2',
-              y2: 'y2',
-              key: 'key',
-              stroke: (flow) => linkColors[flow.data.tone],
-              strokeOpacity: (flow) =>
-                flow.data.tone === 'Neutral' ? 0.58 : 0.64,
-              strokeWidth: (flow) => Math.max(1, flow.width),
-              lineCap: 'butt',
-              curve: d3Curve(curveBumpX),
-            }),
-            rect(sankeyNodes, {
-              id: 'nodes',
-              x1: 'x0',
-              x2: 'x1',
-              y1: 'y0',
-              y2: 'y1',
-              key: 'key',
-              color: (node) => node.data.tone,
-              inset: 0,
-            }),
+            ...flowMarks,
             rect(backdropRows, {
               id: 'label-backdrops',
               x1: 'backdropX0',

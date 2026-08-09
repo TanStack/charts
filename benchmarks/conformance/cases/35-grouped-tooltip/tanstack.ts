@@ -22,6 +22,7 @@ import type { GroupedTooltipDatum } from './selection'
 import { tanstackCase } from '../../shared/mount'
 
 const colors = ['#2563eb', '#f97316', '#10b981']
+const catalogPreviewDate = '2001-07-01'
 
 const definition = (input: ConformanceInput) => {
   const rows = selectGroupedTooltipData(industries, input.revision)
@@ -30,6 +31,7 @@ const definition = (input: ConformanceInput) => {
     marks: [
       whenFocused(
         bandX(dates, {
+          id: 'focus-date-band',
           x: 'date',
           fill: '#64748b',
           fillOpacity: 0.14,
@@ -46,6 +48,7 @@ const definition = (input: ConformanceInput) => {
         }),
       ),
       dot(rows, {
+        id: 'grouped-points',
         x: 'date',
         y: 'unemployed',
         z: 'industry',
@@ -95,6 +98,18 @@ export const catalogCase = tanstackCase(
   catalogDefinition,
   'Grouped industry unemployment tooltip',
   interactiveTooltip,
+  {
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'grouped-points' &&
+            point.datum.industry === industryNames[0] &&
+            dateKey(point.datum.date) === catalogPreviewDate,
+        ) ?? null
+      )
+    },
+  },
 )
 
 const configuredDefinition = (input: ConformanceInput) =>

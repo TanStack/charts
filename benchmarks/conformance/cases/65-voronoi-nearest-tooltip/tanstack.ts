@@ -18,11 +18,13 @@ type CompleteCar = CarsRow & {
 }
 
 const colors = ['#2563eb', '#0d9488', '#d97706']
+const catalogPreviewCarKey = 'AMC Gremlin:71:2634'
 
 const definition = (rows: readonly CompleteCar[]) =>
   defineChart({
     marks: [
       voronoi(rows, {
+        id: 'nearest-cells',
         x: 'weight (lb)',
         y: 'economy (mpg)',
         key: carKey,
@@ -32,6 +34,7 @@ const definition = (rows: readonly CompleteCar[]) =>
         strokeWidth: 1,
       }),
       dot(rows, {
+        id: 'voronoi-points',
         x: 'weight (lb)',
         y: 'economy (mpg)',
         key: carKey,
@@ -39,6 +42,16 @@ const definition = (rows: readonly CompleteCar[]) =>
         stroke: '#ffffff',
         strokeWidth: 1,
         r: 4,
+        states: [
+          {
+            when: { focus: 'primary' },
+            style: { r: 7, stroke: 'Canvas', strokeWidth: 2 },
+          },
+          {
+            when: { focus: 'unmatched' },
+            style: { opacity: 0.45 },
+          },
+        ],
       }),
     ],
     x: { scale: scaleLinear, grid: true, axis: { label: 'Weight (lb)' } },
@@ -67,6 +80,17 @@ export const catalogCase = tanstackCase(
   (input) => definition(selectedCars(input.revision)),
   'Voronoi nearest-point interaction',
   interactiveTooltip,
+  {
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'voronoi-points' &&
+            carKey(point.datum) === catalogPreviewCarKey,
+        ) ?? null
+      )
+    },
+  },
 )
 
 const configuredDefinition = (rows: readonly CompleteCar[]) =>

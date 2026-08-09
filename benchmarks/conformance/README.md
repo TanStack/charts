@@ -58,6 +58,12 @@ pnpm dev:conformance
 # Validate case metadata, source entries, ordering, and index drift
 pnpm catalog:index:check
 
+# Render the checked-in source-derived catalog previews
+pnpm catalog:previews
+
+# Validate preview source and asset drift
+pnpm catalog:previews:check
+
 # Build the standalone authoring app
 pnpm --filter @charts-poc/conformance-example build
 ```
@@ -92,10 +98,19 @@ current boundary and case-local evidence for every case.
 
 ## Source catalog index
 
-`catalog-index.json` is the checked-in contract for consumers that load source
-directly from the Charts repository. It contains every parsed `case.json`
-field plus the TanStack and reference entry paths. It does not contain compiled
-modules, source closures, previews, datasets, or assets.
+`catalog-index.json` is the checked-in metadata contract for consumers that load
+source directly from the Charts repository. It contains every parsed
+`case.json` field plus the TanStack and reference entry paths. The index does
+not embed compiled modules, source closures, previews, datasets, or assets.
+
+Every case also has a checked-in source-derived preview at
+`benchmarks/conformance/previews/<caseId>.svg`. The generator mounts the actual
+TanStack case at 288 by 192 pixels with its source data, marks, transforms, and
+light/dark catalog palette. Preview mode removes axes, grids, margins, and
+legends by default so the data marks fill the card. A case keeps a guide,
+margin, legend, or direct label only when that feature is part of the case's
+purpose. These SVGs are generated views of the canonical implementation, not a
+parallel chart implementation or a renderable npm module.
 
 ```sh
 # Regenerate after adding or changing a case
@@ -103,6 +118,12 @@ pnpm catalog:index
 
 # Validate metadata, entry files, ordering, and checked-in index drift
 pnpm catalog:index:check
+
+# Regenerate previews after a visual source change
+pnpm catalog:previews
+
+# Validate preview coverage, integrity, dimensions, and source drift
+pnpm catalog:previews:check
 ```
 
 Consumers resolve the Charts revision independently, then fetch the index and
@@ -111,16 +132,17 @@ its source entries from that same revision.
 ## Catalog consumers
 
 The Vite application remains the local authoring and conformance surface at
-`http://localhost:5194/`. TanStack.com owns the public catalog routes, chrome,
-and lightweight gallery previews. It reads `catalog-index.json` and the case
-source from one pinned Charts revision, then runs full examples in the site
-notebook runtime. The site does not consume a generated catalog branch or a
-published renderable-catalog package.
+`http://localhost:5194/`. TanStack.com owns the public catalog routes and chrome.
+It reads `catalog-index.json`, case source, and the checked-in preview SVGs from
+one pinned Charts revision, then runs full examples in the site notebook
+runtime. The site does not maintain parallel preview implementations or consume
+a generated catalog branch or published renderable-catalog package.
 
-Adding or changing a case requires regenerating the checked-in index. The index
-check uses the same strict metadata parser as the browser and rejects invalid
-schemas, duplicate IDs or orders, missing source entries, and IDs that drift
-from their directory names.
+Adding or changing a case requires regenerating the checked-in index and
+previews. The index check uses the same strict metadata parser as the browser
+and rejects invalid schemas, duplicate IDs or orders, missing source entries,
+and IDs that drift from their directory names. The preview check rejects
+missing, stale, incorrectly sized, or integrity-mismatched assets.
 
 ## What is and is not equivalent
 

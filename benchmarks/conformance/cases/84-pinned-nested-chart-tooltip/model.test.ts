@@ -6,6 +6,7 @@ import {
   energyTooltipContent,
   monthFromTarget,
 } from './model'
+import { mount } from './view'
 
 describe('expanding energy tooltip model', () => {
   it('keeps monthly totals and breakdown segments internally consistent', () => {
@@ -68,5 +69,33 @@ describe('expanding energy tooltip model', () => {
     expect(monthFromTarget({ view: 'nested', anchor: 'month:jun' })).toBeNull()
     expect(monthFromTarget({ anchor: 'tooltip:jun' })).toBeNull()
     expect(monthFromTarget({ anchor: 'month:smarch' })).toBeNull()
+  })
+
+  it('pins a source month and mounts the real nested chart in the catalog preview', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = mount(container, {
+      width: 288,
+      height: 192,
+      revision: 0,
+      preview: true,
+    })
+
+    expect(container.querySelectorAll('svg.ts-chart')).toHaveLength(2)
+    expect(
+      container.querySelector('.ts-chart-tooltip[data-sticky="true"]'),
+    ).not.toBeNull()
+    expect(
+      container.querySelectorAll(
+        '.energy-catalog-preview-nested .ts-chart__bar rect',
+      ),
+    ).toHaveLength(4)
+    expect(container.querySelector('.energy-tooltip')).toBeNull()
+    expect(
+      container.querySelector('[data-ts-key="focused-month-guide"]'),
+    ).not.toBeNull()
+
+    handle.destroy()
+    container.remove()
   })
 })

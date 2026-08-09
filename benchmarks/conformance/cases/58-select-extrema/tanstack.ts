@@ -19,7 +19,7 @@ export const maximumAapl = select(aapl, {
   select: 'max',
 })
 
-function selectExtremaChart(rows: readonly AaplRow[]) {
+function selectExtremaChart(rows: readonly AaplRow[], preview = false) {
   return defineChart({
     marks: [
       lineY(rows, {
@@ -54,8 +54,9 @@ function selectExtremaChart(rows: readonly AaplRow[]) {
           key: dateKey,
           text: ({ Close }) => `Low $${Close.toFixed(2)}`,
           fill: annotationColor,
-          anchor: 'middle',
-          dy: 13,
+          anchor: preview ? 'start' : 'middle',
+          dx: preview ? 6 : 0,
+          dy: preview ? -13 : 13,
         }),
       ),
       decorative(
@@ -68,7 +69,7 @@ function selectExtremaChart(rows: readonly AaplRow[]) {
           fill: annotationColor,
           anchor: 'end',
           dx: -7,
-          dy: -13,
+          dy: preview ? 13 : -13,
         }),
       ),
     ],
@@ -85,6 +86,7 @@ const catalogSelectExtremaDefinition = (input: ConformanceInput) =>
       (row) => row.Date.getTime(),
       (row) => row.Close,
     ]),
+    input.preview === true,
   )
 
 export const mount = tanstackMount(

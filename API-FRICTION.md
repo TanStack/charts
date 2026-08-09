@@ -3557,6 +3557,18 @@ Each entry records:
   metadata, ordering, IDs, entry paths, entry-file existence, and byte-for-byte
   drift before the existing artifact check. Keep `catalog-dist` until the site
   consumers have cut over, then remove its artifact and publication pipeline.
+- Source-derived preview follow-up: site-owned approximation SVGs drifted from
+  the canonical chart cases even after source loading moved to the checked-in
+  index. Charts now generates
+  `benchmarks/conformance/previews/<caseId>.svg` by mounting each actual
+  TanStack implementation at 288 by 192 pixels with its source data, palette,
+  marks, transforms, stacking, and curves. Preview mode omits axes, grids,
+  margins, and legends unless the case exists to demonstrate one of those
+  features. The checked-in assets let tanstack.com render fast gallery cards
+  from the same pinned revision without a second chart implementation,
+  generated branch, or renderable npm module. The cached
+  `catalog-preview-check` target validates case coverage, dimensions, source
+  drift, and asset integrity in both local and distributed CI.
 
 ### F-120 — Key-only focus collapsed duplicate observations
 

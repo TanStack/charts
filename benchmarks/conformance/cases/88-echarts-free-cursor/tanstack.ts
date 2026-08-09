@@ -48,6 +48,10 @@ interface CursorState {
 
 const cursorControlsHeight = 68
 const rows = freeCursorRows(cars)
+const catalogPreviewCursor = {
+  x: 101.8,
+  y: 20.8,
+} satisfies ContinuousCursorPosition<number, number>
 
 export function freeCursorDefinition(
   position: ContinuousCursorPosition<number, number> | null,
@@ -55,6 +59,7 @@ export function freeCursorDefinition(
     value: ContinuousCursorPosition<number, number> | null,
     reason: ContinuousCursorChange<number, number>,
   ) => void,
+  preview = false,
 ) {
   return defineChart({
     marks: [
@@ -111,24 +116,55 @@ export function freeCursorDefinition(
         xLabel: {
           format: (value) =>
             formatFreeCursorValue('HP', roundCursorValue(value)),
+          ...(preview
+            ? {
+                offset: 2,
+                paddingX: 3,
+                paddingY: 2,
+                fontSize: 8,
+                color: 'Canvas',
+                background: 'CanvasText',
+                stroke: 'Canvas',
+              }
+            : {}),
         },
         yLabel: {
           side: 'start',
           format: (value) =>
             formatFreeCursorValue('MPG', roundCursorValue(value)),
+          ...(preview
+            ? {
+                offset: 2,
+                paddingX: 3,
+                paddingY: 2,
+                fontSize: 8,
+                color: 'Canvas',
+                background: 'CanvasText',
+                stroke: 'Canvas',
+              }
+            : {}),
         },
       }),
     ],
     svgAnimation: false,
     keyboard: false,
     focusRing: false,
-    margin: { top: 22, right: 24, bottom: 44, left: 58 },
+    margin: preview
+      ? { top: 0, right: 0, bottom: 14, left: 40 }
+      : { top: 22, right: 24, bottom: 44, left: 58 },
   })
 }
 
 export const catalogCase = tanstackCase(
-  () => freeCursorDefinition(null, () => {}),
+  (input) =>
+    freeCursorDefinition(
+      input.preview ? catalogPreviewCursor : null,
+      () => {},
+      input.preview === true,
+    ),
   'Line chart with a free two-dimensional cursor',
+  true,
+  { margin: true },
 )
 
 export const mount: ConformanceMount = (container, input) => {

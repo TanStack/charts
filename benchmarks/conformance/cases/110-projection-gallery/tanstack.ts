@@ -15,7 +15,7 @@ const projectionColors = [
 ]
 
 function projectionGalleryChart(input: ConformanceInput, preview: boolean) {
-  const projections = projectionGalleryData().slice(0, preview ? 2 : undefined)
+  const projections = projectionGalleryData()
   const color = {
     domain: projections.map(({ id }) => id),
     range: projectionColors[input.revision % 2] ?? projectionColors[0],

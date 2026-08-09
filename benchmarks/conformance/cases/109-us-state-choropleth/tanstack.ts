@@ -3,14 +3,12 @@ import { geoShape } from '@tanstack/charts/geo'
 import { geoAlbersUsa } from 'd3-geo'
 import { scaleQuantile } from 'd3-scale'
 import {
-  previewUnemploymentStateCollection,
-  previewUnemploymentStates,
+  previewUnemploymentCounties,
+  previewUnemploymentCountyCollection,
   projectedUnemploymentCounties,
   unemploymentCountyCollection,
 } from './transform'
 import { tanstackCase, tanstackMount } from '../../shared/mount'
-import type { UnemploymentCounty, UnemploymentState } from './transform'
-import type { ExtendedFeatureCollection } from 'd3-geo'
 import type { ConformanceInput } from '../../types'
 
 const colorRanges = [
@@ -58,16 +56,14 @@ export const usStateChoroplethDefinition = (input: ConformanceInput) =>
     margin: 10,
   })
 
-type CatalogUnemploymentFeature = UnemploymentCounty | UnemploymentState
-
 const catalogChoroplethDefinition = (input: ConformanceInput) => {
-  const features: readonly CatalogUnemploymentFeature[] =
+  const features =
     input.preview === true
-      ? previewUnemploymentStates
+      ? previewUnemploymentCounties
       : projectedUnemploymentCounties
-  const fit: ExtendedFeatureCollection<CatalogUnemploymentFeature> =
+  const fit =
     input.preview === true
-      ? previewUnemploymentStateCollection
+      ? previewUnemploymentCountyCollection
       : unemploymentCountyCollection
 
   return defineChart({
@@ -76,7 +72,7 @@ const catalogChoroplethDefinition = (input: ConformanceInput) => {
         projection: { type: geoAlbersUsa, fit },
         color: (feature) => feature.properties.rate,
         stroke: '#f8fafc',
-        strokeWidth: input.preview === true ? 0.75 : 0.35,
+        strokeWidth: input.preview === true ? 0.25 : 0.35,
       }),
     ],
     color: {
@@ -101,8 +97,6 @@ export const catalogCase = tanstackCase(
   mount.ariaLabel,
   {
     format: ({ datum }) =>
-      'county' in datum.properties
-        ? `${datum.properties.county}, ${datum.properties.state} · ${datum.properties.rate}% unemployment`
-        : `${datum.properties.state} · ${datum.properties.rate.toFixed(1)}% average county unemployment`,
+      `${datum.properties.county}, ${datum.properties.state} · ${datum.properties.rate}% unemployment`,
   },
 )

@@ -3,6 +3,7 @@ import { scaleBand, scaleLinear } from 'd3-scale'
 import { penguins } from '@charts-poc/demo-data/penguins'
 import type { PenguinsRow } from '@charts-poc/demo-data/penguins'
 import { tanstackCase } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
 
 type PenguinWithMass = PenguinsRow & { body_mass_g: number }
 
@@ -12,7 +13,7 @@ const observations = penguins.filter(
 const formatMass = (value: number) =>
   value.toLocaleString('en-US', { maximumFractionDigits: 3 })
 
-const definition = () => {
+const definition = (input?: ConformanceInput) => {
   const rows = groupBy(observations, {
     by: 'species',
     outputs: {
@@ -33,7 +34,7 @@ const definition = () => {
         y: 'meanBodyMass',
         text: (row) => formatMass(row.meanBodyMass),
         fill: '#0c4a6e',
-        dy: -8,
+        dy: input?.preview === true ? 10 : -8,
       }),
     ],
     x: {

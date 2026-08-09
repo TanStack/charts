@@ -13,6 +13,8 @@ import type {
 import { selectPointerTooltipData } from './selection'
 import { tanstackCase } from '../../shared/mount'
 
+const catalogPreviewDate = '2013-06-06'
+
 const definition = (input: ConformanceInput) => {
   const rows = selectPointerTooltipData(aapl, input.revision)
   return defineChart({
@@ -25,6 +27,7 @@ const definition = (input: ConformanceInput) => {
         }),
       ),
       dot(rows, {
+        id: 'apple-points',
         x: 'Date',
         y: 'Close',
         fill: '#2563eb',
@@ -74,6 +77,17 @@ export const catalogCase = tanstackCase(
   definition,
   'Interactive Apple closing price',
   interactiveTooltip,
+  {
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'apple-points' &&
+            dateKey(point.datum.Date) === catalogPreviewDate,
+        ) ?? null
+      )
+    },
+  },
 )
 
 const configuredDefinition = (input: ConformanceInput) =>

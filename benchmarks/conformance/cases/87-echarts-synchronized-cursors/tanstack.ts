@@ -69,13 +69,17 @@ export const synchronizedCursorDefinition = (input: ConformanceInput) => {
     id: 'synchronized-cursors',
     rows: synchronizedCursorViews.map((view) => ({ id: view, grow: 1 })),
     columns: [{ id: 'main', grow: 1 }],
-    rowGap: viewGap,
+    rowGap: input.preview ? 4 : viewGap,
     views: synchronizedCursorViews.map((view) => ({
       id: view,
       row: view,
       column: 'main' as const,
       ...(view === 'previous' ? { share: { x: 'current' as const } } : {}),
-      chart: synchronizedCursorViewDefinition(rows, view),
+      chart: synchronizedCursorViewDefinition(
+        rows,
+        view,
+        input.preview === true,
+      ),
     })),
   })
 
@@ -95,6 +99,7 @@ export const synchronizedCursorDefinition = (input: ConformanceInput) => {
 function synchronizedCursorViewDefinition(
   rows: readonly TravelersRow[],
   view: SynchronizedCursorView,
+  preview: boolean,
 ) {
   const group = () => view
   return defineChart({
@@ -140,17 +145,21 @@ function synchronizedCursorViewDefinition(
     ],
     x: {
       scale: scaleUtc,
-      axis: { ticks: { format: (value) => month.format(value) } },
+      axis: preview
+        ? false
+        : { ticks: { format: (value) => month.format(value) } },
     },
     y: {
       scale: scaleLinear().domain(synchronizedCursorYDomains[view]),
-      grid: true,
-      axis: {
-        ticks: { count: 4, format: travelerCountFormat.format },
-        label: view === 'current' ? '2020 travelers' : '2019 travelers',
-      },
+      grid: !preview,
+      axis: preview
+        ? false
+        : {
+            ticks: { count: 4, format: travelerCountFormat.format },
+            label: view === 'current' ? '2020 travelers' : '2019 travelers',
+          },
     },
-    margin: viewMargin,
+    margin: preview ? 0 : viewMargin,
   })
 }
 
@@ -158,6 +167,17 @@ export const catalogCase = tanstackCase(
   synchronizedCursorDefinition,
   'Linked 2020 and 2019 airport traveler time series',
   synchronizedCursorTooltip,
+  {
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'synchronized-cursors:current:current-points' &&
+            synchronizedCursorDateKey(point.datum.date) === '2020-12-13',
+        ) ?? null
+      )
+    },
+  },
 )
 
 export const mount: ConformanceMount = (container, input) => {

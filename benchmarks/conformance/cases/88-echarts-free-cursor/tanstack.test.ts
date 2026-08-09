@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { freeCursorDefinition, mount } from './tanstack'
+import { catalogCase, freeCursorDefinition, mount } from './tanstack'
 import type {
   ChartDefinition,
   ChartSpecDatum,
@@ -65,6 +65,48 @@ describe('definition-owned free cursor', () => {
           node.className === 'ts-chart__continuous-cursor-y-label-text',
       ),
     ).toMatchObject({ kind: 'label', text: 'MPG 20.8' })
+  })
+
+  it('renders the actual free cursor and crosshair in the catalog preview', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = catalogCase.mount(container, {
+      width: 288,
+      height: 192,
+      revision: 0,
+      preview: true,
+    })
+
+    expect(
+      container.querySelectorAll('.ts-chart__continuous-cursor-x-rule'),
+    ).toHaveLength(1)
+    expect(
+      container.querySelectorAll('.ts-chart__continuous-cursor-y-rule'),
+    ).toHaveLength(1)
+    expect(
+      container.querySelector('.ts-chart__continuous-cursor-marker'),
+    ).not.toBeNull()
+    expect(
+      container.querySelector('.ts-chart__continuous-cursor-x-label-text')
+        ?.textContent,
+    ).toBe('HP 101.8')
+    expect(
+      container.querySelector('.ts-chart__continuous-cursor-y-label-text')
+        ?.textContent,
+    ).toBe('MPG 20.8')
+    expect(
+      container
+        .querySelector('.ts-chart__continuous-cursor-x-label-text')
+        ?.getAttribute('fill'),
+    ).toBe('Canvas')
+    expect(
+      container
+        .querySelector('.ts-chart__continuous-cursor-x-label-box')
+        ?.getAttribute('fill'),
+    ).toBe('CanvasText')
+
+    handle.destroy()
+    container.remove()
   })
 
   it('previews without rendering, pins on touch, survives leave, and clears on Escape', () => {

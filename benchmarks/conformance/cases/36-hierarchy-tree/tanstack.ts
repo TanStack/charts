@@ -40,9 +40,25 @@ export const treeDefinition = (input: ConformanceInput) => {
         text: 'name',
         key: 'id',
         fill: '#2563eb',
-        fontSize: 10,
-        anchor: (node) => (node.internal ? 'end' : 'start'),
-        dx: (node) => (node.internal ? -6 : 6),
+        fontSize: input.preview === true ? 8 : 10,
+        anchor: (node) =>
+          input.preview === true
+            ? node.internal
+              ? 'start'
+              : 'end'
+            : node.internal
+              ? 'end'
+              : 'start',
+        dx: (node) =>
+          input.preview === true
+            ? node.internal
+              ? 4
+              : -4
+            : node.internal
+              ? -6
+              : 6,
+        dy: (node) =>
+          input.preview !== true ? 0 : node.y >= 1 ? 5 : node.y <= 0 ? -5 : 0,
       }),
     ],
     x: { scale: scaleLinear },

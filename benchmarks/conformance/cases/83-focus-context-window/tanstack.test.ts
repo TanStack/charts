@@ -6,6 +6,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   focusContextDetailDefinition,
   focusContextOverviewDefinition,
+  mount,
 } from './tanstack'
 import {
   initialFocusContextWindow,
@@ -81,6 +82,33 @@ describe('definition-owned focus/context brush', () => {
     expect(selected[0]).not.toHaveProperty('interaction')
   })
 
+  it('renders both native chart hosts and the selected brush window in the catalog preview', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = mount(container, {
+      width: 288,
+      height: 192,
+      revision: 0,
+      preview: true,
+    })
+
+    expect(container.querySelectorAll('svg.ts-chart')).toHaveLength(2)
+    expect(
+      container.querySelector('[data-chart-brush="focus-window"]'),
+    ).not.toBeNull()
+    expect(
+      container.querySelector('[data-chart-brush-selection]'),
+    ).not.toBeNull()
+    expect(
+      container.querySelector(
+        '.ts-chart__dot[data-ts-key$="selected-point"] circle',
+      ),
+    ).not.toBeNull()
+
+    handle.destroy()
+    container.remove()
+  })
+
   it('audits the transitive view implementation and keeps each behavior in its own host', () => {
     const directory = resolve(
       process.cwd(),
@@ -114,9 +142,15 @@ describe('definition-owned focus/context brush', () => {
     expect(source).toContain('keyedSelection<')
     expect(source).toContain('whenSelected(')
     expect(source).toContain('if (input.preview)')
-    expect(source.match(/<Chart\b/g)).toHaveLength(3)
-    expect(source.match(/definition=\{detailDefinition\}/g)).toHaveLength(2)
+    expect(source.match(/<Chart\b/g)).toHaveLength(4)
+    expect(source.match(/definition=\{detailDefinition\}/g)).toHaveLength(1)
     expect(source.match(/definition=\{overviewDefinition\}/g)).toHaveLength(1)
+    expect(source).toContain(
+      'definition={catalogPreviewDefinition(detailDefinition)}',
+    )
+    expect(source).toContain(
+      'definition={catalogPreviewDefinition(overviewDefinition)}',
+    )
     expect(source).not.toContain("from '@tanstack/charts/view'")
     expect(source).not.toContain('viewGrid(')
   })

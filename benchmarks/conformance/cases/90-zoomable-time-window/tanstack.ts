@@ -49,6 +49,10 @@ const zoomDateFormatter = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
   timeZone: 'UTC',
 })
+const catalogPreviewWindow: ZoomXWindow<Date> = {
+  start: new Date(Date.UTC(2018, 0, 8)),
+  end: new Date(Date.UTC(2018, 0, 16)),
+}
 
 export function zoomTimeWindowDefinition(
   window: ZoomXWindow<Date>,
@@ -114,7 +118,11 @@ export function zoomTimeWindowDefinition(
 }
 
 export const catalogCase = tanstackCase(
-  () => zoomTimeWindowDefinition(copyWindow(initialZoomWindow), () => {}),
+  (input) =>
+    zoomTimeWindowDefinition(
+      copyWindow(input.preview ? catalogPreviewWindow : initialZoomWindow),
+      () => {},
+    ),
   'Time series with a wheel-zoomable and pannable time viewport',
 )
 

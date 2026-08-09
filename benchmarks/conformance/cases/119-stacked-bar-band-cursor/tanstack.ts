@@ -1,5 +1,7 @@
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { createStackedCursorRenderer, stackedCursorDefinition } from './chart'
+import { catalogPreviewDefinition } from '../../shared/preview'
+import { tanstackCase } from '../../shared/mount'
 import {
   formatStackedCursorEndpoint,
   stackedCursorRowsForRevision,
@@ -12,6 +14,25 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
+export const catalogCase = tanstackCase(
+  (input) =>
+    stackedCursorDefinition(stackedCursorRowsForRevision(input.revision)),
+  'Crimean War deaths with x band and y rule cursors',
+  true,
+  {
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'stacked-cursor-bars' &&
+            point.datum.period === 'Nov' &&
+            point.datum.cause === 'wounds',
+        ) ?? null
+      )
+    },
+  },
+)
+
 export const mount: ConformanceMount = (container, input) => {
   const renderer = createStackedCursorRenderer()
   let focused: readonly ChartPoint<StackedCursorRow, string, number>[] = []
@@ -19,7 +40,10 @@ export const mount: ConformanceMount = (container, input) => {
   const options = (nextInput: ConformanceInput) => {
     rows = stackedCursorRowsForRevision(nextInput.revision)
     return {
-      definition: stackedCursorDefinition(rows),
+      definition:
+        nextInput.preview === true
+          ? catalogPreviewDefinition(stackedCursorDefinition(rows))
+          : stackedCursorDefinition(rows),
       renderer,
       width: nextInput.width,
       height: nextInput.height,
@@ -34,6 +58,7 @@ export const mount: ConformanceMount = (container, input) => {
     }
   }
   const host = mountChartRenderer(container, options(input))
+  applyPreviewFocus(host, input)
 
   const driver: ConformanceTestDriver = {
     resolveTarget(target) {
@@ -186,11 +211,30 @@ export const mount: ConformanceMount = (container, input) => {
     driver,
     update(nextInput) {
       host.update(options(nextInput))
+      applyPreviewFocus(host, nextInput)
     },
     destroy() {
       host.destroy()
     },
   }
+}
+
+function applyPreviewFocus(
+  host: ReturnType<typeof mountChartRenderer<StackedCursorRow, string, number>>,
+  input: ConformanceInput,
+) {
+  if (input.preview !== true) return
+  const point = host
+    .getScene()
+    .points.find(
+      (candidate) =>
+        candidate.markId === 'stacked-cursor-bars' &&
+        candidate.datum.period === 'Nov' &&
+        candidate.datum.cause === 'wounds',
+    )
+  host.interaction.setControlledFocus(point ?? null, {
+    source: 'programmatic',
+  })
 }
 
 function isStackedBarPoint(

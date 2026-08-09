@@ -3,12 +3,13 @@ import { treemap } from '@tanstack/charts/hierarchy/treemap'
 import { flare } from '@charts-poc/demo-data/flare'
 import { selectTreemapData } from './selection'
 import { tanstackMount } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
 
 const colors = ['#2563eb', '#8b5cf6', '#10b981']
 
 const rows = selectTreemapData(flare)
 
-export const treemapDefinition = () =>
+export const treemapDefinition = (input?: ConformanceInput) =>
   defineChart({
     marks: [
       treemap(rows, {
@@ -22,7 +23,7 @@ export const treemapDefinition = () =>
         inset: 1,
         stroke: '#ffffff',
         strokeWidth: 1,
-        label: 'name',
+        label: input?.preview === true ? undefined : 'name',
         labelFill: '#ffffff',
         labelFontSize: 8,
         labelFontWeight: 600,

@@ -50,16 +50,20 @@ export const tokenUsageCalendarDefinition = (input: ConformanceInput) => {
         ticks: {
           values: monthTicks.values,
           size: 0,
-          padding: 7,
+          padding: input.preview === true ? 3 : 7,
           format: (week: number) => monthTicks.labels.get(week) ?? '',
         },
         tickLabels: {
           fontSize: 13,
+          ...(input.preview === true ? { fontSize: 8 } : {}),
           opacity: 0.62,
           anchor: ({ index }) => (index === 0 ? 'start' : undefined),
           dx: ({ index, bandwidth }) =>
             index === 0 ? -bandwidth / 2 : undefined,
-          thin: { minGap: 8, priority: 'ends' },
+          thin: {
+            minGap: input.preview === true ? 2 : 8,
+            priority: 'ends',
+          },
         },
       },
     },
@@ -75,10 +79,13 @@ export const tokenUsageCalendarDefinition = (input: ConformanceInput) => {
         .domain(usageLevels)
         .range(usageColors),
     },
-    margin: {
-      ...calendarMargin,
-      bottom: calendarBottomMargin(input.width, input.height),
-    },
+    margin:
+      input.preview === true
+        ? { top: 0, right: 0, bottom: 16, left: 0 }
+        : {
+            ...calendarMargin,
+            bottom: calendarBottomMargin(input.width, input.height),
+          },
   })
 }
 
@@ -100,6 +107,7 @@ export const catalogCase = tanstackCase(
   tokenUsageCalendarDefinition,
   ariaLabel,
   interactiveTooltip,
+  { guides: true, margin: true },
 )
 
 export const mount = withTokenActivityShell(

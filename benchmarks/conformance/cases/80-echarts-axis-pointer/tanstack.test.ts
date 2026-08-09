@@ -4,7 +4,7 @@ import { industries } from '@charts-poc/demo-data/industries'
 import { createChartScene, resolveFocusScene } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { axisPointerData, axisPointerIndustries } from './selection'
-import { axisPointerDefinition, mount } from './tanstack'
+import { axisPointerDefinition, catalogCase, mount } from './tanstack'
 import type {
   ChartDefinition,
   ChartFocusState,
@@ -168,6 +168,30 @@ describe('definition-owned snapped axis pointer', () => {
       crosshair: { visible: false },
       tooltip: { visible: false },
     })
+
+    handle.destroy()
+    container.remove()
+  })
+
+  it('paints a deterministic native axis pointer in catalog previews', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = catalogCase.mount(container, {
+      ...input,
+      width: 288,
+      height: 192,
+      interactive: false,
+      preview: true,
+    })
+
+    expect(
+      container.querySelectorAll('.ts-chart__focus-guide-x-rule'),
+    ).toHaveLength(1)
+    expect(
+      container
+        .querySelector('[data-ts-focus-guide-layer="over"]')
+        ?.getAttribute('visibility'),
+    ).not.toBe('hidden')
 
     handle.destroy()
     container.remove()

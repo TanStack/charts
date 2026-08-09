@@ -114,8 +114,11 @@ export const axisPointerDefinition = (input: ConformanceInput) => {
     },
     y: {
       scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 5 }, label: 'Unemployed (thousands)' },
+      grid: input.preview !== true,
+      axis: {
+        ticks: { count: 5 },
+        ...(input.preview === true ? {} : { label: 'Unemployed (thousands)' }),
+      },
     },
     color: {
       domain: axisPointerIndustries,
@@ -133,7 +136,10 @@ export const axisPointerDefinition = (input: ConformanceInput) => {
       use: tooltip,
       ...axisPointerTooltip,
     },
-    margin: { top: 38, right: 24, bottom: 45, left: 60 },
+    margin:
+      input.preview === true
+        ? { top: 4, right: 4, bottom: 22, left: 38 }
+        : { top: 38, right: 24, bottom: 45, left: 60 },
   })
 }
 
@@ -141,6 +147,20 @@ export const catalogCase = tanstackCase(
   axisPointerDefinition,
   'Snapped axis pointer with grouped tooltip',
   axisPointerTooltip,
+  {
+    guides: true,
+    margin: true,
+    focus(scene) {
+      return (
+        scene.points.find(
+          (point) =>
+            point.markId === 'industry-points' &&
+            point.datum.industry === axisPointerIndustries[0] &&
+            axisPointerDateKey(point.datum.date) === '2005-05-01',
+        ) ?? null
+      )
+    },
+  },
 )
 
 export const mount: ConformanceMount = (container, input) => {

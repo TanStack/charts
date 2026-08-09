@@ -17,6 +17,7 @@ import { Chart as TooltipChart } from '@tanstack/react-charts/tooltip'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { curveMonotoneX } from 'd3-shape'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import {
   consumptionBreakdown,
@@ -39,6 +40,7 @@ const EnergyTooltipExample = forwardRef<
 >(function EnergyTooltipExample({ input, idPrefix }, ref) {
   const viewRef = useRef<HTMLDivElement>(null)
   const focusedIdRef = useRef<EnergyMonthId | null>(null)
+  const previewPinnedRevisionRef = useRef<number | null>(null)
   const renderedRef = useRef<{
     scene: ChartScene<EnergyMonth, string, number>
     svg: SVGSVGElement
@@ -119,12 +121,36 @@ const EnergyTooltipExample = forwardRef<
     return (
       <TooltipChart
         idPrefix={idPrefix ? `${idPrefix}-main` : undefined}
-        definition={mainDefinition}
+        definition={catalogPreviewDefinition(mainDefinition)}
         initialWidth={input.width}
         aspectRatio={input.width / input.height}
         renderSvg={renderChartSvgWithResources}
         ariaLabel="Annual household energy overview"
         ariaDescription="A gray area tracks monthly electricity consumption. Stacked gold bars show solar energy used on site and exported."
+        onRender={({ scene, interaction }) => {
+          if (previewPinnedRevisionRef.current === input.revision) return
+          const point = scene.points.find(
+            (candidate) =>
+              candidate.markId === 'consumption-points' &&
+              candidate.datum.id === 'jun',
+          )
+          if (!point) return
+          previewPinnedRevisionRef.current = input.revision
+          interaction.setControlledFocus(point, {
+            source: 'programmatic',
+            pinned: true,
+          })
+        }}
+        renderTooltipBody={({ points }) => {
+          const month = points[0]?.datum
+          return month ? (
+            <ConsumptionMixChart
+              month={month}
+              idPrefix={idPrefix ? `${idPrefix}-nested` : undefined}
+              catalogPreview
+            />
+          ) : null
+        }}
       />
     )
   }
@@ -403,9 +429,11 @@ function energyDefinition(rows: readonly EnergyMonth[], chartWidth: number) {
 function ConsumptionMixChart({
   month,
   idPrefix,
+  catalogPreview = false,
 }: {
   readonly month: EnergyMonth
   readonly idPrefix?: string
+  readonly catalogPreview?: boolean
 }) {
   const definition = useMemo(() => {
     const parts = consumptionBreakdown(month)
@@ -438,6 +466,7 @@ function ConsumptionMixChart({
   return (
     <NestedChart
       idPrefix={idPrefix}
+      className={catalogPreview ? 'energy-catalog-preview-nested' : undefined}
       definition={definition}
       width={264}
       height={10}

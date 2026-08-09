@@ -1,4 +1,71 @@
+import { isResponsiveChartDefinition } from '@tanstack/charts'
+import type {
+  ChartPoint,
+  ChartScene,
+  ChartValue,
+  DomChartDefinition,
+} from '@tanstack/charts'
 import type { ConformanceInput } from '../types'
+
+export interface CatalogPreviewOptions<
+  TDatum = unknown,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+> {
+  /** Keep the source definition's Cartesian axes and grid. */
+  guides?: boolean
+  /** Keep the source definition's color legend. */
+  legend?: boolean
+  /** Keep the source definition's authored or automatic margins. */
+  margin?: boolean
+  /** Paint one deterministic source point through the chart's focus strategy. */
+  focus?: (
+    scene: ChartScene<TDatum, TXValue, TYValue>,
+    input: ConformanceInput,
+  ) => ChartPoint<TDatum, TXValue, TYValue> | null
+}
+
+export function catalogPreviewDefinition<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+>(
+  definition: DomChartDefinition<TDatum, TXValue, TYValue>,
+  options: CatalogPreviewOptions<TDatum, TXValue, TYValue> = {},
+): DomChartDefinition<TDatum, TXValue, TYValue> {
+  if (isResponsiveChartDefinition(definition)) {
+    return {
+      ...definition,
+      chart(context) {
+        const spec = definition.chart(context)
+        const color = previewColor(spec.color, options.legend === true)
+        return {
+          ...spec,
+          ...(options.guides === true ? {} : { guides: false }),
+          ...(options.margin === true ? {} : { margin: 0 }),
+          ...(color ? { color } : {}),
+        }
+      },
+    }
+  }
+
+  const color = previewColor(definition.color, options.legend === true)
+  return {
+    ...definition,
+    ...(options.guides === true ? {} : { guides: false }),
+    ...(options.margin === true ? {} : { margin: 0 }),
+    ...(color ? { color } : {}),
+  }
+}
+
+function previewColor<TColor extends { legend?: unknown }>(
+  color: TColor | undefined,
+  keepLegend: boolean,
+): Omit<TColor, 'legend'> | TColor | undefined {
+  if (!color || keepLegend) return color
+  const { legend: _legend, ...withoutLegend } = color
+  return withoutLegend
+}
 
 export function samplePreviewData<TDatum>(
   data: readonly TDatum[],

@@ -12,7 +12,7 @@ import {
 } from '@tanstack/charts'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { focusMotionRows } from './model'
-import { focusCursorMotionDefinition, mount } from './tanstack'
+import { catalogCase, focusCursorMotionDefinition, mount } from './tanstack'
 import type { ConformanceInput } from '../../types'
 import type { FocusMotionRow } from './model'
 
@@ -149,6 +149,32 @@ describe('definition-owned focus cursor motion', () => {
 
     mounted.destroy()
     expect(status.isConnected).toBe(false)
+    container.remove()
+  })
+
+  it('paints the native focused state and labeled crosshair in previews', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    const handle = catalogCase.mount(container, {
+      width: 288,
+      height: 192,
+      revision: 0,
+      interactive: false,
+      preview: true,
+    })
+
+    expect(
+      container.querySelector('[data-ts-key="focus-motion-crosshair:x-rule"]'),
+    ).not.toBeNull()
+    expect(
+      container.querySelector(
+        '[data-ts-key="focus-motion-crosshair:x-label:text"]',
+      )?.textContent,
+    ).toBe('Sat')
+    expect(container.querySelectorAll('.ts-chart__axes')).toHaveLength(0)
+    expect(container.querySelectorAll('.ts-chart__grid')).toHaveLength(0)
+
+    handle.destroy()
     container.remove()
   })
 

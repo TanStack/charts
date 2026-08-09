@@ -12,11 +12,12 @@ import { scaleLinear } from 'd3-scale'
 import { survey } from '@charts-poc/demo-data/survey'
 import { isMosaicResponse, mosaicResponses } from './selection'
 import { tanstackCase } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
 
 const percent = format('.0%')
 const colors = ['#991b1b', '#ef4444', '#cbd5e1', '#60a5fa', '#1d4ed8']
 
-export const marimekkoDefinition = () => {
+export const marimekkoDefinition = (input?: ConformanceInput) => {
   const observations = survey.filter(isMosaicResponse)
   const counts = groupBy(observations, {
     by: {
@@ -50,15 +51,19 @@ export const marimekkoDefinition = () => {
         key: (datum) => `${datum.xValue}:${datum.yValue}`,
         inset: 1,
       }),
-      text(labels, {
-        id: 'question-labels',
-        x: 'x',
-        y: () => 1.055,
-        text: 'Question',
-        key: 'xValue',
-        fill: '#334155',
-        fontSize: 11,
-      }),
+      ...(input?.preview === true
+        ? []
+        : [
+            text(labels, {
+              id: 'question-labels',
+              x: 'x',
+              y: () => 1.055,
+              text: 'Question',
+              key: 'xValue',
+              fill: '#334155',
+              fontSize: 11,
+            }),
+          ]),
     ],
     x: {
       scale: scaleLinear().domain([0, 1]),

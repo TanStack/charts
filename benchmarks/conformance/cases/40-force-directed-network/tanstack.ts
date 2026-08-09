@@ -55,16 +55,20 @@ export const forceDefinition = (input: ConformanceInput) => {
         stroke: '#ffffff',
         strokeWidth: 1.5,
       }),
-      text(graph.nodes, {
-        id: 'network-labels',
-        x: 'x',
-        y: 'y',
-        text: 'id',
-        key: 'id',
-        dy: -12,
-        fontSize: 10,
-        fontWeight: 600,
-      }),
+      ...(input.preview === true
+        ? []
+        : [
+            text(graph.nodes, {
+              id: 'network-labels',
+              x: 'x',
+              y: 'y',
+              text: 'id',
+              key: 'id',
+              dy: -12,
+              fontSize: 10,
+              fontWeight: 600,
+            }),
+          ]),
     ],
     x: {
       scale: scaleLinear().domain(graph.xDomain),

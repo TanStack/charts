@@ -1,6 +1,5 @@
 import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployment'
 import countiesAtlasJson from 'us-atlas/counties-10m.json'
-import statesAtlasJson from 'us-atlas/states-10m.json'
 import { geoAlbersUsa, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
 import { simplifyPolygonGeometry } from '../../shared/fixtures/simplify-geo'
@@ -24,17 +23,6 @@ export interface UnemploymentCountyProperties extends UsCountyUnemploymentRow {
 export type UnemploymentCounty = ExtendedFeature<
   CountyGeometry,
   UnemploymentCountyProperties
->
-
-export interface UnemploymentStateProperties {
-  name: string
-  state: string
-  rate: number
-}
-
-export type UnemploymentState = ExtendedFeature<
-  CountyGeometry,
-  UnemploymentStateProperties
 >
 
 export interface ProjectionBounds {
@@ -62,14 +50,6 @@ if (convertedCounties.type !== 'FeatureCollection') {
 const unemploymentByFips = new Map(
   usCountyUnemployment.map((row) => [String(row.id).padStart(5, '0'), row]),
 )
-
-const stateRates = new Map<string, { count: number; total: number }>()
-for (const row of usCountyUnemployment) {
-  const aggregate = stateRates.get(row.state) ?? { count: 0, total: 0 }
-  aggregate.count += 1
-  aggregate.total += row.rate
-  stateRates.set(row.state, aggregate)
-}
 
 export const unemploymentCounties: readonly UnemploymentCounty[] =
   convertedCounties.features.flatMap<UnemploymentCounty>((county) => {
@@ -126,57 +106,16 @@ export const unemploymentCountyCollection: ExtendedFeatureCollection<Unemploymen
     features: [...projectedUnemploymentCounties],
   }
 
-const stateAtlasSource: unknown = statesAtlasJson
-if (!isAtlasTopology(stateAtlasSource)) {
-  throw new TypeError('us-atlas states-10m is not valid TopoJSON')
-}
+export const previewUnemploymentCounties: readonly UnemploymentCounty[] =
+  projectedUnemploymentCounties.map((county) => ({
+    ...county,
+    geometry: simplifyPolygonGeometry(county.geometry, 0.08),
+  }))
 
-const statesObject = stateAtlasSource.objects.states
-if (!statesObject) {
-  throw new TypeError('us-atlas states-10m is missing states')
-}
-
-const convertedStates = feature(stateAtlasSource, statesObject)
-if (convertedStates.type !== 'FeatureCollection') {
-  throw new TypeError('us-atlas states did not produce a collection')
-}
-
-export const previewUnemploymentStates: readonly UnemploymentState[] =
-  convertedStates.features.flatMap<UnemploymentState>((state) => {
-    if (
-      !isCountyGeometry(state.geometry) ||
-      !isRecord(state.properties) ||
-      typeof state.properties.name !== 'string'
-    ) {
-      return []
-    }
-    const aggregate = stateRates.get(state.properties.name)
-    if (!aggregate || albersUsaPath(state) === null) return []
-
-    return [
-      {
-        type: 'Feature',
-        id: state.id === undefined ? state.properties.name : String(state.id),
-        geometry: simplifyPolygonGeometry(state.geometry, 0.5),
-        properties: {
-          name: state.properties.name,
-          state: state.properties.name,
-          rate: aggregate.total / aggregate.count,
-        },
-      },
-    ]
-  })
-
-if (previewUnemploymentStates.length !== 51) {
-  throw new TypeError(
-    `Expected 51 Albers-USA states, got ${previewUnemploymentStates.length}`,
-  )
-}
-
-export const previewUnemploymentStateCollection: ExtendedFeatureCollection<UnemploymentState> =
+export const previewUnemploymentCountyCollection: ExtendedFeatureCollection<UnemploymentCounty> =
   {
     type: 'FeatureCollection',
-    features: [...previewUnemploymentStates],
+    features: [...previewUnemploymentCounties],
   }
 
 export function fitUnemploymentProjection({
@@ -205,7 +144,7 @@ export function fitPreviewUnemploymentProjection({
       [x, y],
       [x + width, y + height],
     ],
-    previewUnemploymentStateCollection,
+    previewUnemploymentCountyCollection,
   )
 }
 

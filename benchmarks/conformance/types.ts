@@ -371,4 +371,6 @@ export interface ConformanceCaseMeta {
 
 export interface ConformanceImplementationModule {
   mount: ConformanceMount
+  /** Definition-only mount used by compact generated catalog previews. */
+  catalogCase?: { mount: ConformanceMount }
 }

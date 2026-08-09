@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { decathlon } from '@charts-poc/demo-data/decathlon'
 import { describe, expect, it } from 'vitest'
+import { catalogPreviewDefinition } from '../../shared/preview'
 import { radarCountries, radarEvents } from './selection'
 import {
   comparativeRadarDefinition,
@@ -60,6 +61,33 @@ describe('folded comparative radar profiles', () => {
     expect(repeated.points.map(({ key }) => key)).toEqual(
       first.points.map(({ key }) => key),
     )
+  })
+
+  it('maximizes both areas, rings, and spokes without preview labels', () => {
+    const previewInput = {
+      width: 288,
+      height: 192,
+      revision: 0,
+      preview: true,
+    } satisfies ConformanceInput
+    const scene = createChartRuntime().render(
+      catalogPreviewDefinition(comparativeRadarDefinition(previewInput)),
+      previewInput,
+    )
+    const nodes = flatten(scene.nodes)
+    expect(nodes.filter((node) => node.kind === 'label')).toHaveLength(0)
+    expect(
+      nodes.filter(
+        (node) =>
+          node.kind === 'polyline' && node.key.startsWith('ring:number:'),
+      ),
+    ).toHaveLength(5)
+    expect(
+      nodes.filter(
+        (node) => node.kind === 'rule' && node.key.startsWith('spoke:string:'),
+      ),
+    ).toHaveLength(radarEvents.length)
+    expect(nodes.filter((node) => node.kind === 'area')).toHaveLength(2)
   })
 
   it('keeps fold, normalization, filtering, and selection beside the definition', () => {

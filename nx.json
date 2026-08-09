@@ -150,6 +150,7 @@
       "{workspaceRoot}/packages/react-charts/package.json",
       "{workspaceRoot}/packages/react-charts/src/**/*",
       "{workspaceRoot}/scripts/catalog-index.mjs",
+      "{workspaceRoot}/scripts/catalog-preview.mjs",
       "{workspaceRoot}/scripts/catalog-source-files.mjs",
       "!{workspaceRoot}/examples/conformance/dist/**/*"
     ],
@@ -236,6 +237,10 @@
       "outputs": ["{workspaceRoot}/.benchmark-output/results"]
     },
     "catalog-index-check": {
+      "cache": true,
+      "inputs": ["catalogSource"]
+    },
+    "catalog-preview-check": {
       "cache": true,
       "inputs": ["catalogSource"]
     },

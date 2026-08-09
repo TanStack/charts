@@ -46,6 +46,7 @@ if (!initialFrame) throw new Error('Playback requires an initial frame.')
 export function playbackDefinition(
   frame: Date,
   onChange: (value: Date, reason: HandleXChange<Date>) => void,
+  preview = false,
 ) {
   return defineChart({
     marks: [
@@ -94,7 +95,7 @@ export function playbackDefinition(
           (next, { reason }) => onChange(next, reason),
         ),
         values: playbackDates,
-        cross: { edge: 'bottom', offset: 34 },
+        cross: { edge: 'bottom', offset: preview ? -18 : 34 },
         trackStyle: {
           fill: 'color-mix(in srgb, currentColor 52%, transparent)',
         },
@@ -112,12 +113,12 @@ export function playbackDefinition(
     svgAnimation: false,
     keyboard: false,
     focusRing: false,
-    margin,
+    margin: preview ? 0 : margin,
   })
 }
 
 export const catalogCase = tanstackCase(
-  () => playbackDefinition(initialFrame, () => {}),
+  () => playbackDefinition(initialFrame, () => {}, true),
   'AAPL closes with a draggable timeline playback scrubber',
 )
 

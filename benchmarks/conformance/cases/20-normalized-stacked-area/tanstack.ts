@@ -49,4 +49,8 @@ const definition = (input: ConformanceInput) =>
     },
   })
 
-export const mount = tanstackMount(definition, 'Industry share of unemployment')
+export const mount = tanstackMount(
+  definition,
+  'Industry share of unemployment',
+  true,
+)

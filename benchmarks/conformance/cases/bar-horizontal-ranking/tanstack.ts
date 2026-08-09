@@ -21,8 +21,11 @@ const definition = (input: ConformanceInput) => {
     ],
     x: {
       scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 5 }, label: '2015 population' },
+      grid: input.preview !== true,
+      axis:
+        input.preview === true
+          ? false
+          : { ticks: { count: 5 }, label: '2015 population' },
     },
     y: {
       scale: () => scaleBand<string>().paddingInner(0.1).paddingOuter(0.05),
@@ -33,4 +36,6 @@ const definition = (input: ConformanceInput) => {
 export const mount = tanstackMount(
   definition,
   'Horizontal ranking with long labels',
+  true,
+  { guides: true, margin: true },
 )
