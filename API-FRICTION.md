@@ -7680,3 +7680,14 @@ Each entry records:
   retention, and passes bare React Native and Expo Metro. The full 1,756-test
   unit matrix, root TypeScript, package artifact, documentation, and bundle-size
   gates pass.
+- Release evidence: release run `31340548562` built every `0.9.0` artifact but
+  the new core-only consumer performed a second unlocked resolution. Its
+  `@types/d3-geo` range selected `3.1.1` while the frozen workspace install had
+  populated `3.1.0`, so the offline gate failed before npm publishing.
+- Release decision: preserve public dependency ranges and the offline boundary.
+  Derive fixture overrides from every packed core dependency, link them to the
+  setup-populated core workspace, and give the fixture an isolated empty pnpm
+  store so a missing override cannot pass from a developer cache.
+- Release verification: the focused contract covers ranged and unscoped
+  dependencies. All 12 `0.9.0` release artifacts pass with the unified fixture
+  installing from its isolated store.

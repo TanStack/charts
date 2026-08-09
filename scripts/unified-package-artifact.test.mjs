@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   isUnifiedCoreExport,
+  linkedUnifiedConsumerDependencies,
   mappedUnifiedExportConditions,
   mappedUnifiedExportKey,
+  unifiedConsumerWorkspace,
   unifiedPackageSources,
   validateUnifiedCoreExports,
 } from './unified-package-artifact.mjs'
@@ -73,6 +75,26 @@ describe('unified package export mapping', () => {
       validateUnifiedCoreExports(coreExports, sourceManifests),
     ).toThrow(
       '@tanstack/charts/react exports drifted from @tanstack/react-charts',
+    )
+  })
+
+  it('links every packed dependency without resolving its published range', () => {
+    const linkedDependencies = linkedUnifiedConsumerDependencies({
+      repositoryRoot: '/workspace',
+      packageDirectory: 'charts-core',
+      dependencies: {
+        tslib: '^2.8.1',
+        '@types/d3-geo': '^3.1.0',
+      },
+    })
+
+    expect(linkedDependencies).toEqual({
+      '@types/d3-geo':
+        'link:/workspace/packages/charts-core/node_modules/@types/d3-geo',
+      tslib: 'link:/workspace/packages/charts-core/node_modules/tslib',
+    })
+    expect(unifiedConsumerWorkspace(linkedDependencies)).toBe(
+      `packages:\n  - '.'\nautoInstallPeers: false\noverrides:\n  "@types/d3-geo": "link:/workspace/packages/charts-core/node_modules/@types/d3-geo"\n  "tslib": "link:/workspace/packages/charts-core/node_modules/tslib"\n`,
     )
   })
 })
