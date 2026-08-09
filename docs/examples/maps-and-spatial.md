@@ -28,32 +28,11 @@ scene paths and interaction points. See
 A choropleth joins one value to each named geographic feature and maps that
 value through a color scale.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/102-world-choropleth/?theme=system&height=480"
-  title="World learning-poverty choropleth over Natural Earth land"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=102-world-choropleth height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/108-country-choropleth/?theme=system&height=480"
-  title="World population-density choropleth for 95 matched countries"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=108-country-choropleth height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/109-us-state-choropleth/?theme=system&height=480"
-  title="Albers USA choropleth of 3,141 county unemployment rates"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=109-us-state-choropleth height=480 -->
 
 The join is part of data preparation. Match features through stable IDs, report
 unmatched records, and distinguish missing values from zero. Keep the color
@@ -189,78 +168,36 @@ only when a geographic feature needs a different semantic longitude/latitude
 than its spherical centroid. The complete option contract is in
 [Geo Shape Mark](../reference/marks/geo.md).
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/40-geojson-map/?theme=system&height=480"
-  title="Westport House floor plan from 121 published GeoJSON polygons"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=40-geojson-map height=480 -->
 
 ## Project points by magnitude
 
 Point and MultiPoint features use D3 `geoPath().pointRadius()`. The `r`
 channel can carry pixels directly; `rScale` maps a quantitative value first.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/103-bubble-map/?theme=system&height=480"
-  title="World population bubbles for 95 atlas-matched countries"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=103-bubble-map height=480 -->
 
 ## Change the projection
 
 The same GeoJSON can use any D3 projection factory. Sphere and graticule
 geometry are ordinary `geoShape` layers.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/104-orthographic-globe/?theme=system&height=480"
-  title="Orthographic globe with sphere and graticule layers"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=104-orthographic-globe height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/110-projection-gallery/?theme=system&height=520"
-  title="Two-by-two gallery comparing four standard world projections"
-  loading="lazy"
-  width="100%"
-  height="520"
-  style="width:100%;height:520px;border:0;"
-></iframe>
+<!-- ::chart-example id=110-projection-gallery height=520 -->
 
 ## Layer routes over geography
 
 Polygon, LineString, and Point features can share one responsive projection.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/105-route-map/?theme=system&height=480"
-  title="Recorded HMS Beagle voyage projected over 50m world land"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=105-route-map height=480 -->
 
 ## Show direction and magnitude
 
 A vector field places an arrow at each sampled position. Direction uses angle;
 magnitude can use length, color, or both.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/42-vector-field/?theme=system&height=480"
-  title="Surface-wind vectors derived from longitude, latitude, u, and v"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=42-vector-field height=480 -->
 
 Choose a sampling density that remains legible at the smallest container. More
 arrows can obscure the flow instead of adding evidence. When pixel length

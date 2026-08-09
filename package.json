@@ -145,7 +145,6 @@
     "vite": "^8.0.16",
     "vite-plugin-solid": "^2.11.12",
     "vitest": "^4.1.9",
-    "world-atlas": "2.0.2",
-    "wrangler": "4.103.0"
+    "world-atlas": "2.0.2"
   }
 }

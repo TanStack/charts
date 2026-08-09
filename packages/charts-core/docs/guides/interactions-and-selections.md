@@ -494,12 +494,7 @@ native applications must supply their own semantic range control. Import
 `d3-brush` and `d3-selection` directly only for a different application-owned
 gesture.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/89-brush-range-selection/?theme=system&height=480"
-  title="Monthly-snapped brush with pointer and keyboard range selection"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+<!-- ::chart-example id=89-brush-range-selection height=480 -->
 
 ## Scale-bound handle
 

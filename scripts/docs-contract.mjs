@@ -11,10 +11,10 @@ import {
   comparisonTiers,
   formatComparisonImplementation,
 } from './benchmark/comparison-capabilities.mjs'
-import { extractMarkdownLinks } from './packed-markdown-links.mjs'
-
-export const catalogOrigin = 'https://tanstack.com'
-export const catalogBasePath = '/charts/catalog/'
+import {
+  extractMarkdownLinks,
+  maskMarkdownCode,
+} from './packed-markdown-links.mjs'
 
 const bannedChartLibraryHosts = new Set([
   'ag-grid.com',
@@ -63,7 +63,7 @@ export async function validateDocsContract(repositoryRoot) {
   validateConfig(config, markdownFiles, docsRoot, failures)
 
   const cases = await readCatalogCases(repositoryRoot)
-  const embeddedCases = new Map()
+  const catalogExamples = new Map()
   const markdownSources = new Map()
 
   for (const file of markdownFiles) {
@@ -73,7 +73,7 @@ export async function validateDocsContract(repositoryRoot) {
     validateFrontmatter(path, source, failures)
     validatePublicLinks(path, source, failures)
     await validateMarkdownLinks(path, source, markdownFiles, docsRoot, failures)
-    validateIframes(path, source, cases, embeddedCases, failures)
+    validateChartExamples(path, source, cases, catalogExamples, failures)
   }
 
   const publicEntrySources = new Map()
@@ -101,7 +101,7 @@ export async function validateDocsContract(repositoryRoot) {
 
   return {
     config,
-    embeddedCases: [...embeddedCases.keys()].sort(),
+    catalogExamples: [...catalogExamples.keys()].sort(),
     failures,
     markdownFiles: [...markdownSources.keys()].sort(),
     standaloneExamples,
@@ -146,13 +146,12 @@ export function parseFrontmatter(source) {
   return values
 }
 
-export function parseHtmlAttributes(source) {
-  const attributes = {}
-  const pattern = /([:\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g
-  for (const match of source.matchAll(pattern)) {
-    attributes[match[1].toLowerCase()] = match[2] ?? match[3] ?? ''
-  }
-  return attributes
+export function parseChartExampleDirective(source) {
+  const match = source.match(
+    /^ {0,3}<!--\s*::chart-example\s+id=([a-z0-9]+(?:-[a-z0-9]+)*)\s+height=(\d+)\s*-->\s*$/,
+  )
+  if (!match) return null
+  return { id: match[1], height: Number(match[2]) }
 }
 
 export function markdownTableRows(source) {
@@ -391,76 +390,46 @@ async function validateMarkdownLinks(
   }
 }
 
-function validateIframes(path, source, cases, embeddedCases, failures) {
-  const iframePattern = /<iframe\b([^>]*)>/gi
-  for (const match of source.matchAll(iframePattern)) {
-    const attributes = parseHtmlAttributes(match[1])
-    const title = attributes.title?.trim()
-    if (!title)
-      failures.push(`${path} has an iframe without a meaningful title`)
-    if (attributes.loading !== 'lazy') {
-      failures.push(`${path} iframe must use loading="lazy"`)
-    }
+export function validateChartExamples(
+  path,
+  source,
+  cases,
+  catalogExamples,
+  failures,
+) {
+  const visibleSource = maskMarkdownCode(source)
 
-    const style = attributes.style ?? ''
-    if (!/width\s*:\s*100%/.test(style)) {
-      failures.push(`${path} iframe must use width: 100%`)
-    }
-    if (!/border\s*:\s*0(?:[;\s]|$)/.test(style)) {
-      failures.push(`${path} iframe must use border: 0`)
-    }
-
-    let url
-    try {
-      url = new URL(attributes.src)
-    } catch {
-      failures.push(
-        `${path} iframe must use an absolute URL: ${attributes.src ?? ''}`,
-      )
-      continue
-    }
-    if (url.origin !== catalogOrigin) {
-      failures.push(`${path} iframe must use ${catalogOrigin}: ${url.href}`)
-      continue
-    }
-
-    const expectedPrefix = `${catalogBasePath}embed/`
-    if (
-      !url.pathname.startsWith(expectedPrefix) ||
-      !url.pathname.endsWith('/')
-    ) {
-      failures.push(
-        `${path} iframe does not use the catalog embed route: ${url.href}`,
-      )
-      continue
-    }
-
-    const caseId = decodeURIComponent(
-      url.pathname.slice(expectedPrefix.length, -1),
+  if (/<iframe\b/i.test(visibleSource)) {
+    failures.push(
+      `${path} must use a chart-example directive instead of an iframe`,
     )
-    if (!cases.has(caseId)) {
-      failures.push(`${path} embeds an unknown catalog case: ${caseId}`)
+  }
+
+  for (const line of visibleSource.split(/\r?\n/)) {
+    if (!line.includes('::chart-example')) continue
+
+    const example = parseChartExampleDirective(line)
+    if (!example) {
+      failures.push(
+        `${path} has an invalid chart-example directive; expected <!-- ::chart-example id=case-id height=480 -->`,
+      )
+      continue
     }
-    const previous = embeddedCases.get(caseId)
+    if (!cases.has(example.id)) {
+      failures.push(`${path} references an unknown catalog case: ${example.id}`)
+    }
+
+    const previous = catalogExamples.get(example.id)
     if (previous) {
       failures.push(
-        `${path} duplicates catalog embed ${caseId} already used by ${previous}`,
+        `${path} duplicates catalog example ${example.id} already used by ${previous}`,
       )
     } else {
-      embeddedCases.set(caseId, path)
+      catalogExamples.set(example.id, path)
     }
 
-    const theme = url.searchParams.get('theme')
-    if (!['system', 'light', 'dark'].includes(theme)) {
-      failures.push(`${path} iframe must declare theme=system|light|dark`)
-    }
-    const height = Number(url.searchParams.get('height'))
-    if (!Number.isFinite(height) || height < 480 || height > 1_200) {
-      failures.push(`${path} iframe height query must be between 480 and 1200`)
-    } else if (!new RegExp(`height\\s*:\\s*${height}px`).test(style)) {
-      failures.push(
-        `${path} iframe CSS height must match its height query (${height}px)`,
-      )
+    if (example.height < 480 || example.height > 1_200) {
+      failures.push(`${path} chart-example height must be between 480 and 1200`)
     }
   }
 }

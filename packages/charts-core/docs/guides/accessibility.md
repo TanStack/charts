@@ -162,12 +162,7 @@ Use `keyedSelection` and `whenSelected` for chart activation and selected
 geometry. Keep the semantic HTML table, status announcement, and clear control
 in the application, bound to the same controlled selected key.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/82-chart-table-selection/?theme=system&height=480"
-  title="Accessible linked chart and data table selection"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+<!-- ::chart-example id=82-chart-table-selection height=480 -->
 
 ## Testing checklist
 

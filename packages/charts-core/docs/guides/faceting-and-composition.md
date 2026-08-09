@@ -65,12 +65,7 @@ grid. Use `axes: 'cell'` when each panel needs its own guides. Cell axes and
 incompatible independent scales cannot be presented as one shared outer axis;
 choose the option that matches the comparison.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/facets-anscombe/?theme=system&height=480"
-  title="Anscombe quartet rendered as responsive small multiples"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+<!-- ::chart-example id=facets-anscombe height=480 -->
 
 ## Share domains intentionally
 

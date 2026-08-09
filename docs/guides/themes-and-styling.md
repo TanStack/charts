@@ -138,12 +138,7 @@ Canvas consumes the same declared gradients and group clips. A Canvas gradient
 needs measurable node bounds; path-only geometry with no point bounds should
 use an explicit paint instead.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/heatmap-labeled/?theme=system&height=480"
-  title="Theme-aware labeled heatmap with a quantitative color legend"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+<!-- ::chart-example id=heatmap-labeled height=480 -->
 
 ## HTML tooltip styling
 

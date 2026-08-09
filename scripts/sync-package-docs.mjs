@@ -93,6 +93,7 @@ export async function createLlmsIndex(root) {
     '- Preserve inferable datum identity across updates; add explicit keys only when IDs or unique positions are unavailable.',
     '- Prefer built-in marks, then composition, then a custom mark or application-owned overlay.',
     '- Treat docs/concepts/scales-and-d3.md as the sole scale-selection and D3 integration contract and follow its official D3 links for D3 API details.',
+    '- Reference a canonical catalog case with `<!-- ::chart-example id=case-id height=480 -->`. The documentation site resolves its source-backed workspace; never author a catalog iframe or duplicate the case source in a docs page.',
     '- Do not use casts, suppression comments, private imports, or adapter generics to force a chart through TypeScript.',
   )
 

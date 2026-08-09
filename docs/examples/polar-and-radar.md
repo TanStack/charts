@@ -121,64 +121,22 @@ const labeledPie = defineChart({
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/76-pie/?theme=system&height=480"
-  title="English letter-frequency pie chart built from native pie intervals and radial arcs"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=76-pie height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/77-donut/?theme=system&height=480"
-  title="English letter-frequency donut chart built from native pie intervals and radial arcs"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=77-donut height=480 -->
 
 The same primitives cover labels, center content, padding, rounded corners,
 and concentric rings. Radial offsets are signed pixels applied after scale
 mapping. They do not change the radius domain or reserve outer margin; leave
 space with `radiusRatio`, `inset`, or chart margins.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/93-labeled-pie/?theme=system&height=480"
-  title="English letter-frequency pie chart with native radial labels and leader rules"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=93-labeled-pie height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/94-center-donut/?theme=system&height=480"
-  title="English letter-frequency donut chart with native center value"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=94-center-donut height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/95-rounded-donut/?theme=system&height=480"
-  title="Rounded English letter-frequency donut chart with angular gaps and rounded arcs"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=95-rounded-donut height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/96-nested-donut/?theme=system&height=480"
-  title="Nested Flare package-size donut chart"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=96-nested-donut height=480 -->
 
 Source order is the default. Use `orderBy` and `order` only for an explicit
 angular sort. Stable arc keys must come from the original row, not the
@@ -262,23 +220,9 @@ const gauge = defineChart({
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/78-gauge/?theme=system&height=480"
-  title="Survey agreement gauge composed from native pie intervals and TanStack radial arcs"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=78-gauge height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/98-needle-gauge/?theme=system&height=480"
-  title="County unemployment gauge with radial ticks, needle, hub, and value label"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=98-needle-gauge height=480 -->
 
 Bound the input before layout and expose the exact value outside the arc. Arc
 length is useful for a compact status summary, not fine comparison.
@@ -417,23 +361,9 @@ const radar = defineChart({
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/75-radar/?theme=system&height=480"
-  title="Normalized decathlon radar profile with polygon guides built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=75-radar height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/99-comparative-radar/?theme=system&height=480"
-  title="Normalized USA and Great Britain decathlon radar profiles"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=99-comparative-radar height=480 -->
 
 Use radar for a small, fixed set of compatible dimensions. Keep every domain
 and direction explicit, and do not rank profiles by apparent filled area.
@@ -572,23 +502,9 @@ const polarScatterChart = defineChart({
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/106-polar-line/?theme=system&height=480"
-  title="Seattle daily high temperatures through 2012 on a polar line"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=106-polar-line height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/107-polar-scatter/?theme=system&height=480"
-  title="Surface wind observations by derived direction and speed"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=107-polar-scatter height=480 -->
 
 ## Radial bars
 
@@ -671,23 +587,9 @@ the responsive radius range controls the quantitative endpoints. Supply
 use `radius1: 0` so semantic zero maps through the scale. `radialBarAngle` maps
 its default angle baseline from semantic zero.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/97-rose/?theme=system&height=480"
-  title="English letter-frequency rose with equal angles and variable radii"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=97-rose height=480 -->
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/100-radial-bars/?theme=system&height=480"
-  title="Concentric English letter-frequency radial bars"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=100-radial-bars height=480 -->
 
 ## Polar hierarchy
 
@@ -727,14 +629,7 @@ direct row and source index, while `branchId` gives descendants the color of
 their first ancestor below the root. See the
 [Sunburst Mark reference](../reference/marks/sunburst.md).
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/101-sunburst/?theme=system&height=480"
-  title="Flare analytics hierarchy sunburst rendered with native sectors"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=101-sunburst height=480 -->
 
 ## Coordinate and bundle boundary
 

@@ -180,14 +180,7 @@ interaction are documented in
 This calendar heatmap uses typed cells and responsive guide layout through the
 same Octane adapter:
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/25-calendar-heatmap/?theme=system&height=480"
-  title="Precipitation calendar heatmap"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width: 100%; height: 480px; border: 0"
-></iframe>
+<!-- ::chart-example id=25-calendar-heatmap height=480 -->
 
 Continue with the [Octane adapter](./adapter.md) for lifecycle and SSR, the
 [`Chart` reference](./reference/chart.md) for every prop, or the

@@ -298,14 +298,7 @@ This example imports `d3-shape` for the curves, so add it and
 `@types/d3-shape` as direct dependencies. `d3Curve` is the bridge from a D3
 curve factory to the mark curve contract.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/70-composed-chart/?theme=system&height=480"
-  title="Layered Seattle weather area, bars, line, and wind points built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=70-composed-chart height=480 -->
 
 ## Definitions compile the grammar
 

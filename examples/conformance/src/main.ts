@@ -111,8 +111,8 @@ function renderCatalogIndex() {
   setDocumentMeta(
     'TanStack Charts Catalog',
     comparisonMode
-      ? 'Browse executable chart examples, conformance comparisons, source, and embeddable TanStack Charts proofs.'
-      : 'Browse executable TanStack Charts examples, source, and embeddable proofs.',
+      ? 'Browse executable chart examples, conformance comparisons, source, and documentation-ready TanStack Charts proofs.'
+      : 'Browse executable TanStack Charts examples, source, and documentation-ready proofs.',
   )
 
   app.innerHTML = `
@@ -124,8 +124,8 @@ function renderCatalogIndex() {
         <p class="lede">
           ${
             comparisonMode
-              ? 'Browse typed examples, inspect source, compare established references, and embed any TanStack chart directly into documentation.'
-              : 'Browse typed examples, inspect source, and embed any TanStack chart directly into documentation.'
+              ? 'Browse typed examples, inspect source, compare established references, and reference any TanStack chart from documentation.'
+              : 'Browse typed examples, inspect source, and reference any TanStack chart from documentation.'
           }
         </p>
       </div>
@@ -190,8 +190,8 @@ function renderCasePage(entry: ConformanceCaseMeta) {
   setDocumentMeta(
     `${entry.title} · TanStack Charts Catalog`,
     comparisonMode
-      ? `${entry.intent} Compare the reference implementation with TanStack Charts, inspect source, or embed the chart.`
-      : `${entry.intent} Inspect the source or embed the chart.`,
+      ? `${entry.intent} Compare the reference implementation with TanStack Charts, inspect source, or reference the chart in documentation.`
+      : `${entry.intent} Inspect the source or reference the chart in documentation.`,
   )
 
   app.innerHTML = `
@@ -394,7 +394,7 @@ function renderCatalogCard(entry: ConformanceCaseMeta): string {
             View proof
           </a>
           <a href="${routeHref({ view: 'embed', caseId: entry.id })}" target="_blank">
-            Embed
+            Isolated preview
           </a>
         </div>
       </footer>
@@ -405,11 +405,7 @@ function renderCatalogCard(entry: ConformanceCaseMeta): string {
 function renderCaseCard(entry: ConformanceCaseMeta): string {
   const comparisonMode = comparisonModeEnabled()
   const referenceRenderer = getConformanceReferenceRenderer(entry)
-  const embedUrl = new URL(
-    routeHref({ view: 'embed', caseId: entry.id }),
-    window.location.origin,
-  ).href
-  const embedCode = `<iframe src="${embedUrl}?theme=system&height=${chartHeight}" title="${entry.title}" width="640" height="${chartHeight}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="display:block;width:100%;height:${chartHeight}px;border:0"></iframe>`
+  const docsDirective = `<!-- ::chart-example id=${entry.id} height=${chartHeight} -->`
 
   return `
     <article class="case" id="case-${escapeHtml(entry.id)}">
@@ -453,13 +449,13 @@ function renderCaseCard(entry: ConformanceCaseMeta): string {
               : ''
           }
           <a href="${routeHref({ view: 'embed', caseId: entry.id })}" target="_blank">
-            Chrome-free embed
+            Isolated preview
           </a>
         </div>
         <div class="case-details">
           <details>
-            <summary>Embed code</summary>
-            <pre><code>${escapeHtml(embedCode)}</code></pre>
+            <summary>Docs directive</summary>
+            <pre><code>${escapeHtml(docsDirective)}</code></pre>
           </details>
           <details>
             <summary>Agent tasks</summary>

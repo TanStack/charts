@@ -29,14 +29,7 @@ Indexing each series to its first observation compares relative change when the
 original magnitudes are not directly comparable. Direct end labels reduce the
 work of matching line colors to a separate legend.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/55-indexed-multi-line/?theme=system&height=480"
-  title="Indexed multi-series performance lines with direct end labels built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=55-indexed-multi-line height=480 -->
 
 Prepare the indexed values in the application, state the baseline, and retain
 the original values for exact-value disclosure. Use a stable series channel so
@@ -51,14 +44,7 @@ A moving average is a derived series, not a visual curve setting. Prepare the
 rolling values with the public `window` transform beside the definition, keep
 the original time domain, and name the window in surrounding text or a legend.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/19-moving-average-line/?theme=system&height=480"
-  title="Multi-series moving-average time chart built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=19-moving-average-line height=480 -->
 
 Changing interpolation only changes the path between observations. It does not
 perform smoothing or create evidence between samples. See
@@ -96,14 +82,7 @@ A Bollinger band combines a rolling center line with an interval derived from
 local variation. The band is context for the observed series; it is not a
 confidence interval unless the underlying calculation actually defines one.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/22-bollinger-band/?theme=system&height=480"
-  title="Time-series line with a Bollinger volatility band built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=22-bollinger-band height=480 -->
 
 Compute the rolling statistics once and share those rows between the interval
 and center line:
@@ -140,14 +119,7 @@ Annotations should explain a small number of meaningful points. Selecting the
 minimum and maximum in data preparation makes the intent auditable and avoids
 placing a text label on every observation.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/58-select-extrema/?theme=system&height=480"
-  title="Time-series line with selected minimum and maximum annotations built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=58-select-extrema height=480 -->
 
 Layer dots and text over the same scales rather than baking labels into a line
 renderer. [Marks and Layering](../concepts/marks-and-layering.md) explains why

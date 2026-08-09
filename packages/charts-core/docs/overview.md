@@ -99,14 +99,7 @@ compact numeric scale; the calendar-aware x axis upgrades only that mapping to
 D3's `scaleUtc`. [Installation](./installation.md) lists the exact packages,
 and [Scales](./concepts/scales-and-d3.md) explains the ownership boundary.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/33-difference-chart/?theme=system&height=480"
-  title="Apple close versus moving-average difference chart built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=33-difference-chart height=480 -->
 
 ## What TanStack Charts owns
 
@@ -183,6 +176,6 @@ All packages are ESM and tree-shakeable. Built-in marks and optional capabilitie
 - [Quick Start](./quick-start.md) — define, mount, update, and destroy a responsive chart.
 - [Grammar of Graphics](./concepts/grammar-of-graphics.md) — understand how data, marks, channels, scales, and layers fit together.
 - [Choosing a Chart](./guides/choosing-a-chart.md) — start from the analytical question.
-- [Example Gallery](./examples/index.md) — browse complete, embeddable compositions.
+- [Example Gallery](./examples/index.md) — run and edit complete compositions.
 - [Migrating](./guides/migrating.md) — preserve semantics and establish parity before removing an existing renderer.
 - [AI Authoring](./guides/ai-authoring.md) — give an agent the smallest reliable path from intent to verified output.

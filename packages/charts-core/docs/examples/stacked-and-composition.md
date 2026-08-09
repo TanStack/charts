@@ -43,14 +43,7 @@ areaY(rows, {
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/04-stacked-time-area/?theme=system&height=480"
-  title="Multi-series stacked time area built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=04-stacked-time-area height=480 -->
 
 Keep series order stable across updates. Reordering layers can make unchanged
 values appear to move substantially and breaks the reader's spatial memory.
@@ -88,14 +81,7 @@ The grouping transform owns counts and lineage. The stack owns ordered
 endpoints and the per-question zero translation. Response order, neutral
 choice, and anchor fraction remain explicit chart meaning.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/26-diverging-likert/?theme=system&height=480"
-  title="Diverging Likert response counts built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=26-diverging-likert height=480 -->
 
 ## Compare proportional mix
 
@@ -103,14 +89,7 @@ A normalized stack gives every x position the same total height. It answers
 which series gained or lost share, but deliberately removes the original total
 magnitude.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/20-normalized-stacked-area/?theme=system&height=480"
-  title="Normalized one-hundred-percent stacked area built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=20-normalized-stacked-area height=480 -->
 
 Format the quantitative guide as a percentage and state the denominator. Keep
 raw totals available in a tooltip, table, or companion view when the reader may
@@ -125,14 +104,7 @@ A streamgraph offsets and orders layers to reduce visible oscillation around a
 central baseline. It is effective for the broad shape of many positive series,
 but the displaced baseline makes precise values and totals difficult to read.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/21-streamgraph/?theme=system&height=480"
-  title="Time-series streamgraph with a centered flowing baseline built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=21-streamgraph height=480 -->
 
 The source can stay in tidy form; stacking belongs to the area definition:
 
@@ -168,14 +140,7 @@ waffleY(alphabet, {
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/41-waffle-unit-chart/?theme=system&height=480"
-  title="English letter frequency waffle chart built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=41-waffle-unit-chart height=480 -->
 
 `waffleY` expands source values internally and preserves each source row for
 tooltips and selection. `unit` defines one complete cell; `round: true` rounds
@@ -189,14 +154,7 @@ A Marimekko chart uses column width for one categorical total and vertical
 composition for a second. Each cell is an explicit rectangle with both
 horizontal and vertical interval endpoints.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/64-marimekko-mosaic/?theme=system&height=480"
-  title="Marimekko survey-response composition built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=64-marimekko-mosaic height=480 -->
 
 The two dimensions have independent denominators: response totals determine
 each question's column width, while response-category shares determine height

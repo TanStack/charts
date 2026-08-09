@@ -440,13 +440,6 @@ const rankingChart = defineChart({
 
 This chart needs only the lightweight linear and band scale entries.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/bar-horizontal-ranking/?theme=system&height=480"
-  title="Metropolitan population ranking with long source labels and automatic axis margins"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=bar-horizontal-ranking height=480 -->
 
 For responsive layout recipes, see [Responsive Charts](../guides/responsive-charts.md). For the exact shape of scenes and resolved bounds, see [Runtime and Scene Reference](../reference/runtime-and-scene.md).

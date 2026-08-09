@@ -124,12 +124,7 @@ cursor geometry deliberately replaces the ring. See
 [Focus and Interaction](../reference/focus-and-interaction.md#crosshair-guides)
 for the complete band paint contract and controlled cursor behavior.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/119-stacked-bar-band-cursor/?theme=system&height=480"
-  title="Stacked bars with a categorical x cursor band and dotted y rule"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+<!-- ::chart-example id=119-stacked-bar-band-cursor height=480 -->
 
 ## Automatic tooltip mapping
 

@@ -29,14 +29,7 @@ This view maps each AAPL trading date to a categorical lane and its `Open` and
 `Close` fields to a horizontal rectangle. Color distinguishes gains from
 losses, while the endpoints carry the price movement directly.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/13-interval-timeline/?theme=system&height=480"
-  title="Apple daily open-to-close price intervals with gain and loss colors"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=13-interval-timeline height=480 -->
 
 Keep trading dates stable and lane order explicit. Date labels rely on automatic
 guide measurement; verify them at the smallest supported width with
@@ -49,14 +42,7 @@ The chart renders the supplied interval; it does not decide whether the bounds
 are standard deviation, standard error, a confidence interval, or a credible
 interval.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/14-error-bars/?theme=system&height=480"
-  title="Categorical point estimates with low-high error bars built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=14-error-bars height=480 -->
 
 Name the interval in the chart description or surrounding prose. Compose the
 link, caps, and point as separate layers using the
@@ -74,14 +60,7 @@ A candlestick uses a high-low wick and an open-close body. Directional color is
 secondary to the body endpoints and should not be the only way to distinguish
 an increasing period from a decreasing one.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/28-candlestick/?theme=system&height=480"
-  title="Open-high-low-close candlestick chart built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=28-candlestick height=480 -->
 
 Use one row per period with all four values. Render the wick as a link and the
 body as a ranged rectangle; preserve missing trading periods on the temporal
@@ -92,14 +71,7 @@ domain instead of silently inventing observations.
 A quantile ribbon combines a prepared lower percentile, median, and upper
 percentile for each time group. It shows how both location and spread evolve.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/61-quantile-ribbon/?theme=system&height=480"
-  title="Time-varying percentile ribbon with a median line built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=61-quantile-ribbon height=480 -->
 
 Use `groupBy` with `quantile` reducers to preserve each time group's source
 rows, then give the ribbon and median their own marks. [Transforms and

@@ -31,14 +31,7 @@ rhythm without drawing one long daily time axis. This example aggregates raw,
 session-level token events into a complete twelve-month UTC day domain, then
 maps Sunday weeks to columns and weekdays to rows.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/118-token-usage-calendar/?theme=system&height=480"
-  title="Token use calendar heatmap built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=118-token-usage-calendar height=480 -->
 
 The example uses `binTimeX` with D3's `utcDay` interval and an explicit
 twelve-month domain. Each output row contains the day interval, the summed token
@@ -58,14 +51,7 @@ around daylight-saving transitions.
 A two-dimensional binned heatmap makes density bounded: the number of rendered
 cells depends on the chosen grid, not directly on the number of raw points.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/24-quantitative-binned-heatmap/?theme=system&height=480"
-  title="Two-dimensional quantitative binned heatmap built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=24-quantitative-binned-heatmap height=480 -->
 
 Prepare explicit x and y interval endpoints plus the aggregate value. Use
 thresholds that are stable across comparable views and a color domain that
@@ -77,14 +63,7 @@ states whether absolute count or normalized density is being shown. See
 A scalar-grid contour shows where a sampled field crosses chosen values. The
 input is a regular row-major grid rather than a set of x/y observations.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/38-contour-topography/?theme=system&height=480"
-  title="Wind-speed scalar-grid contours built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=38-contour-topography height=480 -->
 
 The optional [`contour` mark](../reference/marks/contour.md) accepts the raw
 grid, dimensions, value channel, and levels. It owns marching-squares topology
@@ -97,14 +76,7 @@ sample window.
 Density contours turn many points into nested level sets. They are useful for
 revealing cluster shape and overlap when raw dots would occlude one another.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/39-density-contours/?theme=system&height=480"
-  title="Nested point-density contours built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=39-density-contours height=480 -->
 
 Bandwidth and thresholds change the visible shape. Treat them as analytical
 parameters, keep them stable for comparisons, and explain them when they affect
@@ -119,14 +91,7 @@ Hexagonal bins aggregate nearby points in pixel space and encode each bin's
 count or statistic. They provide a compact alternative when a rectangular grid
 would impose stronger horizontal and vertical edges.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/43-hexbin-density/?theme=system&height=480"
-  title="Pixel-space hexagonally binned density chart built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=43-hexbin-density height=480 -->
 
 Pixel-space binning is responsive work: a changed container changes the spatial
 layout. The optional [`hexbin` mark](../reference/marks/hexbin.md) owns that

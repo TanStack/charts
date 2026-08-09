@@ -390,13 +390,6 @@ still use the source dataset's field names. The axes and categorical color use
 lightweight scales. Bubble area needs the nonlinear D3 `scaleSqrt`, so install
 `d3-scale` and `@types/d3-scale` for that one mapping.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/scatter-bubble/?theme=system&height=480"
-  title="Bubble scatterplot with color and radius channels built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=scatter-bubble height=480 -->
 
 For every built-in channel, see the relevant [Mark Reference](../reference/marks/line-and-area.md). For inference rules and custom datum unions, see [TypeScript](../guides/typescript.md).

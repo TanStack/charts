@@ -279,14 +279,7 @@ The numeric y axis uses the lightweight linear scale. The x axis upgrades to
 D3 UTC so spacing and ticks preserve elapsed time; install `d3-scale` and
 `@types/d3-scale` for that mapping.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/03-temperature-range-band/?theme=system&height=480"
-  title="Temperature range band with layered lines built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=03-temperature-range-band height=480 -->
 
 ## Custom marks
 

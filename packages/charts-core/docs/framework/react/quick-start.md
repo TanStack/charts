@@ -224,14 +224,7 @@ still uses `tooltip` from `@tanstack/charts/tooltip`.
 This catalog example uses multiple line layers and endpoint labels through the
 same React adapter:
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/02-multi-line-end-labels/?theme=system&height=480"
-  title="Multi-line chart with endpoint labels"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width: 100%; height: 480px; border: 0"
-></iframe>
+<!-- ::chart-example id=02-multi-line-end-labels height=480 -->
 
 Continue with the [React adapter](./adapter.md) for lifecycle and SSR, the
 [`Chart` reference](./reference/chart.md) for every prop, or the

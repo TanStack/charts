@@ -39,14 +39,7 @@ recombining into one output. Link width is the only quantitative encoding in
 this example; nodes and links use the chart theme, and every node gets one
 short name.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/111-basic-sankey/?theme=system&height=480"
-  title="Basic Sankey diagram built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=111-basic-sankey height=480 -->
 
 Use this version as the starting point when the structure matters more than
 styling. Its four explicit links start with a 60/40 split. **Update data**
@@ -108,14 +101,7 @@ or outcome. This Apple FY22 income statement follows product and service
 revenue through gross profit, operating costs, operating profit, and net
 profit.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/111-sankey-flow/?theme=system&height=500"
-  title="Apple FY22 income statement Sankey diagram built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="500"
-  style="width:100%;height:500px;border:0;"
-></iframe>
+<!-- ::chart-example id=111-sankey-flow height=500 -->
 
 `sankeyDiagram` owns the responsive flow layout, D3 mutation isolation,
 endpoint resolution, proportional widths, identity, and source lineage. Its
@@ -135,14 +121,7 @@ A tidy tree assigns one position per node and one link per parent-child
 relationship. Direct labels make a small hierarchy readable without requiring
 hover.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/36-hierarchy-tree/?theme=system&height=480"
-  title="Directly labeled tidy Flare toolkit hierarchy built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=36-hierarchy-tree height=480 -->
 
 Use the exact optional transform for a static tidy tree:
 
@@ -204,14 +183,7 @@ A treemap encodes each leaf's contribution as area while keeping leaves inside
 their parent branch. Use it when branch size matters more than exact depth or
 link tracing.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/74-recharts-treemap/?theme=system&height=480"
-  title="Flare analytics package-size treemap built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=74-recharts-treemap height=480 -->
 
 The exact optional mark accepts the same flat path or parent-reference input as
 the tidy-tree transform, but it owns final-pixel rectangles and labels:
@@ -268,14 +240,7 @@ A Delaunay network connects points that are neighbors in a triangulation. It
 answers local spatial adjacency; it does not imply a business or causal
 relationship unless the data model defines one.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/37-delaunay-network/?theme=system&height=480"
-  title="Delaunay spatial adjacency network built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=37-delaunay-network height=480 -->
 
 The optional [`delaunayLink` mark](../reference/marks/delaunay.md) accepts the
 source points directly. It projects both configured axes after final layout,
@@ -293,14 +258,7 @@ A force-directed layout can reveal clusters and bridges when positions are not
 already meaningful. It also introduces motion, stochastic initialization, and
 collision policy that can make comparison unstable.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/40-force-directed-network/?theme=system&height=480"
-  title="Force-directed Les Misérables character network built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=40-force-directed-network height=480 -->
 
 Use the exact optional transform for a settled static network:
 

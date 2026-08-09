@@ -11,9 +11,10 @@ import {
   markdownTableRows,
   markdownHeadingAnchors,
   parseFrontmatter,
-  parseHtmlAttributes,
+  parseChartExampleDirective,
   stripNameOnlyApiInventories,
   typedCodeFenceSyntaxErrors,
+  validateChartExamples,
 } from './docs-contract.mjs'
 
 describe('documentation contract helpers', () => {
@@ -60,18 +61,72 @@ Body
     })
   })
 
-  it('parses multiline iframe attributes', () => {
+  it('parses canonical chart example directives', () => {
     expect(
-      parseHtmlAttributes(`
-        src="https://tanstack.com/charts/catalog/embed/01-line-gaps/"
-        title='Line chart'
-        loading="lazy"
-      `),
+      parseChartExampleDirective(
+        '<!-- ::chart-example id=01-line-gaps height=480 -->',
+      ),
     ).toEqual({
-      src: 'https://tanstack.com/charts/catalog/embed/01-line-gaps/',
-      title: 'Line chart',
-      loading: 'lazy',
+      id: '01-line-gaps',
+      height: 480,
     })
+    expect(
+      parseChartExampleDirective(
+        '<iframe src="https://tanstack.com/charts/catalog/embed/01-line-gaps/"></iframe>',
+      ),
+    ).toBeNull()
+  })
+
+  it('validates chart example directives and rejects catalog iframes', () => {
+    const failures = chartExampleFailures([
+      [
+        'first.md',
+        [
+          '<iframe src="https://tanstack.com/charts/catalog/embed/01-line-gaps/"></iframe>',
+          '<!-- ::chart-example id=missing-case height=480 -->',
+          '<!-- ::chart-example id=01-line-gaps height=479 -->',
+          '<!-- ::chart-example height=480 id=01-line-gaps -->',
+        ].join('\n'),
+      ],
+      [
+        'second.md',
+        [
+          '<!-- ::chart-example id=01-line-gaps height=1201 -->',
+          '<!-- ::chart-example id=02-multi-line-end-labels height=480 source=expanded -->',
+        ].join('\n'),
+      ],
+    ])
+
+    expect(failures).toEqual([
+      'first.md must use a chart-example directive instead of an iframe',
+      'first.md references an unknown catalog case: missing-case',
+      'first.md chart-example height must be between 480 and 1200',
+      'first.md has an invalid chart-example directive; expected <!-- ::chart-example id=case-id height=480 -->',
+      'second.md duplicates catalog example 01-line-gaps already used by first.md',
+      'second.md chart-example height must be between 480 and 1200',
+      'second.md has an invalid chart-example directive; expected <!-- ::chart-example id=case-id height=480 -->',
+    ])
+  })
+
+  it('ignores chart example syntax inside fenced and inline code', () => {
+    const failures = chartExampleFailures([
+      [
+        'authoring.md',
+        [
+          '```md',
+          '<!-- ::chart-example id=missing-case height=479 -->',
+          '<iframe src="https://tanstack.com/charts/catalog/embed/01-line-gaps/"></iframe>',
+          '```',
+          '',
+          'Use `<iframe src="https://tanstack.com/charts/catalog/embed/01-line-gaps/"></iframe>` only when documenting legacy markup.',
+          'The directive is `<!-- ::chart-example id=missing-case height=479 -->`.',
+          '',
+          '<!-- ::chart-example id=01-line-gaps height=480 -->',
+        ].join('\n'),
+      ],
+    ])
+
+    expect(failures).toEqual([])
   })
 
   it('normalizes comparison table rows and byte ranges', () => {
@@ -338,3 +393,15 @@ Exports: \`CodeExample\`
     )
   })
 })
+
+function chartExampleFailures(sources) {
+  const cases = new Set(['01-line-gaps', '02-multi-line-end-labels'])
+  const catalogExamples = new Map()
+  const failures = []
+
+  for (const [path, source] of sources) {
+    validateChartExamples(path, source, cases, catalogExamples, failures)
+  }
+
+  return failures
+}

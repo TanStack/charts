@@ -511,14 +511,7 @@ const logChart = defineChart({
 This chart upgrades only x. Install `d3-scale` and `@types/d3-scale` for
 `scaleLog`; the ordinary numeric y mapping remains compact.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/53-log-scale-scatter/?theme=system&height=480"
-  title="Flare class sizes and hierarchy depth using an explicit D3 logarithmic x scale"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=53-log-scale-scatter height=480 -->
 
 ## Custom scales are the final extension
 

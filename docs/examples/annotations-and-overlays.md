@@ -29,14 +29,7 @@ for render order and stable layer identity.
 A slopegraph gives both periods a shared quantitative scale, connects each
 category's endpoints, and labels the values directly.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/30-slopegraph/?theme=system&height=480"
-  title="Two-period slopegraph with direct endpoint labels built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=30-slopegraph height=480 -->
 
 Preserve category identity for the links and endpoints; supply `key` only when
 the mark cannot infer it. Direct labels remove a legend lookup, but they need
@@ -52,14 +45,7 @@ quantitative scale.
 A change arrow connects one quantitative state to another. Position carries
 the start and end values; the arrowhead carries direction.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/32-change-arrows/?theme=system&height=480"
-  title="Two-dimensional directed change arrows built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=32-change-arrows height=480 -->
 
 Keep both endpoints in the prepared row. Do not infer direction from color or
 row order inside the renderer. Label the compared states and retain original

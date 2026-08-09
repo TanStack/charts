@@ -110,12 +110,7 @@ The legend reserves its own layout height. It is visual guidance and is hidden
 from the SVG accessibility tree; essential category meaning should also be
 available through direct labels, surrounding HTML, or a table.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/bar-grouped/?theme=system&height=480"
-  title="Grouped bars with a responsive categorical color legend"
-  loading="lazy"
-  style="width: 100%; height: 480px; border: 0;"
-></iframe>
+<!-- ::chart-example id=bar-grouped height=480 -->
 
 ## Explicit gradient legend
 

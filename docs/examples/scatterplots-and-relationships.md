@@ -28,14 +28,7 @@ least-squares fit, semantic-domain samples, optional confidence band, and
 aggregate source lineage. Keep the dot layer separate so each observation
 remains independently focusable.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/31-linear-regression/?theme=system&height=480"
-  title="Scatterplot with a linear regression mark built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=31-linear-regression height=480 -->
 
 Set `ci: 0` when only the fitted line is needed. The default `0.95` band uses a
 Student-t interval for the fitted mean. See the
@@ -50,14 +43,7 @@ A connected scatterplot turns sequence into a path through two-dimensional
 measure space. Chronological labels and direction arrows make that additional
 ordering visible.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/56-connected-scatter/?theme=system&height=480"
-  title="Chronologically connected scatterplot with direction cues built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=56-connected-scatter height=480 -->
 
 Without an explicit order, connecting points invents a relationship. Keep the
 path, arrow, selected labels, and points as separate layers so each can use the
@@ -69,14 +55,7 @@ A lag plot moves time out of the axis and into data preparation. Each point
 pairs a current value with the previous value; an identity rule shows where
 those values would be equal.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/60-lag-autocorrelation/?theme=system&height=480"
-  title="Lag-one autocorrelation scatterplot with an identity reference built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=60-lag-autocorrelation height=480 -->
 
 Make the lag length explicit and decide how the first observation is handled.
 The chart should receive the resulting pairs rather than conceal the shift
@@ -89,14 +68,7 @@ mark paints those cells but deliberately adds no focus candidates. A layered
 `dot` mark remains the semantic source for pointer focus, keyboard navigation,
 and tooltips.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/65-voronoi-nearest-tooltip/?theme=system&height=480"
-  title="Scatterplot with two-dimensional nearest-point focus built with TanStack Charts"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=65-voronoi-nearest-tooltip height=480 -->
 
 See the [`voronoi` mark](../reference/marks/voronoi.md) for final-screen cell
 geometry and stable identity. [Tooltips and Focus](../guides/tooltips-and-focus.md)

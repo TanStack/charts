@@ -49,14 +49,7 @@ dot(rows, {
 })
 ```
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/34-pointer-tooltip/?theme=system&height=480"
-  title="Focused dot emphasizing the nearest Apple closing price"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=34-pointer-tooltip height=480 -->
 
 A focused band emphasizes the shared x value for every series. Its position
 before the lines places it underneath them:
@@ -133,14 +126,7 @@ smoothly reveals the detailed consumption and generation breakdown, including
 an ordinary nested chart. Hover remains chart focus only; framework detail
 mounts after click or keyboard activation.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/84-pinned-nested-chart-tooltip/?theme=system&height=500"
-  title="Monthly energy chart with a compact tooltip that expands when pinned"
-  loading="lazy"
-  width="100%"
-  height="500"
-  style="width:100%;height:500px;border:0;"
-></iframe>
+<!-- ::chart-example id=84-pinned-nested-chart-tooltip height=500 -->
 
 The definition owns stable point identity, the pinned mark state,
 `visibility: 'pinned'`, placement, portaling, Escape, and focus return. The
@@ -183,14 +169,7 @@ Native horizontal scrolling is often better than zoom for resource lanes. It
 preserves a stable time scale and gives the browser proven wheel, touch, and
 keyboard behavior.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/85-scrollable-resource-lanes/?theme=system&height=480"
-  title="Horizontally scrollable resource timeline with fixed lane labels"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=85-scrollable-resource-lanes height=480 -->
 
 Keep lane labels in a fixed rail and place the timeline in the scroll region.
 Preserve lane order, task keys, scroll position, and viewport-relative geometry
@@ -209,14 +188,7 @@ to align labels and the plotted region.
 The x scale, wheel, drag, touch, keyboard, and reset control all use the same
 start and end values.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/90-zoomable-time-window/?theme=system&height=480"
-  title="Controlled time-domain wheel zoom and pan with keyboard and reset controls"
-  loading="lazy"
-  width="100%"
-  height="480"
-  style="width:100%;height:480px;border:0;"
-></iframe>
+<!-- ::chart-example id=90-zoomable-time-window height=480 -->
 
 Import `zoomX` from `@tanstack/charts/interaction/zoom`, bind its `window` to a
 controlled signal, and provide the full `extent` and allowed `scaleExtent`.
@@ -235,14 +207,7 @@ An editable timeline combines direct manipulation with native semantic
 controls. The chart renders the current record; application validation decides
 which edit can commit.
 
-<iframe
-  src="https://tanstack.com/charts/catalog/embed/92-editable-event-range/?theme=system&height=500"
-  title="Editable scheduled event range with drag, keyboard, and date controls"
-  loading="lazy"
-  width="100%"
-  height="500"
-  style="width:100%;height:500px;border:0;"
-></iframe>
+<!-- ::chart-example id=92-editable-event-range height=500 -->
 
 A complete editor should:
 
