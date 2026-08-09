@@ -499,10 +499,23 @@ export async function createCatalogPreviewSourceHash() {
   for (const file of files) {
     hash.update(file)
     hash.update('\0')
-    hash.update(await fs.readFile(path.join(rootDirectory, file)))
+    hash.update(
+      catalogPreviewSourceHashInput(
+        file,
+        await fs.readFile(path.join(rootDirectory, file)),
+      ),
+    )
     hash.update('\0')
   }
   return hash.digest('hex')
+}
+
+export function catalogPreviewSourceHashInput(file, contents) {
+  if (path.basename(file) !== 'package.json') return contents
+
+  const manifest = JSON.parse(contents.toString('utf8'))
+  delete manifest.version
+  return JSON.stringify(manifest)
 }
 
 function portableThemeStyle(paints) {

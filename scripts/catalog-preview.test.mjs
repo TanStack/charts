@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { JSDOM } from 'jsdom'
 import {
   catalogPreviewHeight,
+  catalogPreviewSourceHashInput,
   catalogPreviewWidth,
   catalogGuidePreviewCaseIds,
   catalogLegendPreviewCaseIds,
@@ -162,6 +163,36 @@ describe('catalog previews', () => {
   it('fingerprints the complete rendering path', async () => {
     await expect(createCatalogPreviewSourceHash()).resolves.toMatch(
       /^[a-f0-9]{64}$/u,
+    )
+  })
+
+  it('ignores package release versions without ignoring manifest contracts', () => {
+    const input = (version, exports = { '.': './src/index.ts' }) =>
+      Buffer.from(
+        JSON.stringify({ name: '@tanstack/charts', version, exports }),
+      )
+
+    expect(
+      catalogPreviewSourceHashInput(
+        'packages/charts-core/package.json',
+        input('0.8.0'),
+      ),
+    ).toBe(
+      catalogPreviewSourceHashInput(
+        'packages/charts-core/package.json',
+        input('0.9.0'),
+      ),
+    )
+    expect(
+      catalogPreviewSourceHashInput(
+        'packages/charts-core/package.json',
+        input('0.9.0', { '.': './src/next.ts' }),
+      ),
+    ).not.toBe(
+      catalogPreviewSourceHashInput(
+        'packages/charts-core/package.json',
+        input('0.9.0'),
+      ),
     )
   })
 })
