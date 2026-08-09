@@ -288,6 +288,7 @@ Each entry records:
 | F-249 | Interrupted motion retained stale presentation state           | API             | resolved   |
 | F-250 | Host accessibility diverged across render paths                | API             | resolved   |
 | F-251 | The architecture made D3 implementation sound mandatory        | Documentation   | resolved   |
+| F-252 | Catalog sidebar links duplicated case metadata                 | Docs/Tooling    | resolved   |
 
 ## Findings
 
@@ -7512,3 +7513,23 @@ Each entry records:
   and direct-D3 sides of the same grammar. Focused type/runtime tests and packed
   exact-subpath consumers pass without adding these algorithms to ordinary
   imports.
+
+### F-252 — Catalog sidebar links duplicated case metadata
+
+- Status: resolved
+- Severity: medium
+- Owner: Documentation/Tooling
+- Observed in: aligning the Examples docs sidebar with the published chart
+  catalog
+- Friction: the docs navigation could list catalog detail routes, but the docs
+  contract treated every navigation target as a local Markdown page. Manually
+  copying more than one hundred case titles and routes into `docs/config.json`
+  would also drift whenever catalog metadata changed.
+- Decision: generate the collapsed individual-chart navigation group from each
+  case's ordered `case.json` metadata during `docs:sync`. Keep chart-selection
+  guides in their own group, exclude site-level navigation targets from the
+  local-page inventory, and reject stale generated navigation in `docs:check`.
+- Verification: the navigation generator validates unique case IDs and orders,
+  emits one canonical catalog detail link per case, and reports the checked-in
+  configuration as synchronized. The documentation helper regression proves
+  site-level and external links do not become nonexistent Markdown paths.

@@ -1084,7 +1084,13 @@ async function walkMarkdown(directory) {
 
 function visitNavigationNodes(nodes, paths) {
   for (const node of nodes ?? []) {
-    if (typeof node.to === 'string') paths.push(node.to)
+    if (
+      typeof node.to === 'string' &&
+      !node.to.startsWith('http') &&
+      !node.to.startsWith('/')
+    ) {
+      paths.push(node.to)
+    }
     visitNavigationNodes(node.children, paths)
   }
 }

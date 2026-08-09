@@ -22,7 +22,17 @@ describe('documentation contract helpers', () => {
       flattenConfigPaths({
         sections: [
           {
-            children: [{ label: 'Overview', to: 'overview' }],
+            children: [
+              { label: 'Overview', to: 'overview' },
+              {
+                label: 'Catalog example',
+                to: '/charts/catalog/charts/01-line-gaps/',
+              },
+              {
+                label: 'External resource',
+                to: 'https://example.com/',
+              },
+            ],
             frameworks: [
               {
                 label: 'react',

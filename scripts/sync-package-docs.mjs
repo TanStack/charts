@@ -4,6 +4,10 @@ import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { flattenConfigPaths, parseFrontmatter } from './docs-contract.mjs'
+import {
+  assertDocsCatalogNavigationSynced,
+  syncDocsCatalogNavigation,
+} from './docs-catalog-navigation.mjs'
 
 const repositoryRoot = resolve(import.meta.dirname, '..')
 const canonicalDocs = resolve(repositoryRoot, 'docs')
@@ -17,6 +21,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 }
 
 export async function syncPackageDocs(root) {
+  await syncDocsCatalogNavigation(root)
   const source = resolve(root, 'docs')
   const destination = resolve(root, 'packages/charts-core/docs')
   await rm(destination, { recursive: true, force: true })
@@ -27,6 +32,7 @@ export async function syncPackageDocs(root) {
 }
 
 export async function assertPackageDocsSynced(root) {
+  await assertDocsCatalogNavigationSynced(root)
   const temporaryRoot = await mkdtemp(resolve(tmpdir(), 'charts-docs-check-'))
   try {
     const expectedDocs = resolve(temporaryRoot, 'docs')

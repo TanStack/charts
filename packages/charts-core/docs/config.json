@@ -229,10 +229,10 @@
       ]
     },
     {
-      "label": "Examples",
+      "label": "Chart Guides",
       "children": [
         {
-          "label": "Example Gallery",
+          "label": "Overview",
           "to": "examples/index"
         },
         {
@@ -286,6 +286,454 @@
         {
           "label": "Interactive Charts",
           "to": "examples/interactive-charts"
+        }
+      ]
+    },
+    {
+      "label": "Individual Charts",
+      "tab": "examples",
+      "collapsible": true,
+      "defaultCollapsed": true,
+      "children": [
+        {
+          "label": "Apple stock line with seasonal gaps",
+          "to": "/charts/catalog/charts/01-line-gaps/"
+        },
+        {
+          "label": "Industry unemployment with end labels",
+          "to": "/charts/catalog/charts/02-multi-line-end-labels/"
+        },
+        {
+          "label": "San Francisco temperature range band",
+          "to": "/charts/catalog/charts/03-temperature-range-band/"
+        },
+        {
+          "label": "Industry unemployment stacked area",
+          "to": "/charts/catalog/charts/04-stacked-time-area/"
+        },
+        {
+          "label": "Sorted vertical bars",
+          "to": "/charts/catalog/charts/bar-vertical-sorted/"
+        },
+        {
+          "label": "Horizontal ranking with long labels",
+          "to": "/charts/catalog/charts/bar-horizontal-ranking/"
+        },
+        {
+          "label": "Grouped bars",
+          "to": "/charts/catalog/charts/bar-grouped/"
+        },
+        {
+          "label": "Stacked bars",
+          "to": "/charts/catalog/charts/bar-stacked/"
+        },
+        {
+          "label": "Bubble scatterplot",
+          "to": "/charts/catalog/charts/scatter-bubble/"
+        },
+        {
+          "label": "Histogram",
+          "to": "/charts/catalog/charts/histogram/"
+        },
+        {
+          "label": "Labeled ordinal heatmap",
+          "to": "/charts/catalog/charts/heatmap-labeled/"
+        },
+        {
+          "label": "Anscombe quartet small multiples",
+          "to": "/charts/catalog/charts/facets-anscombe/"
+        },
+        {
+          "label": "Open-to-close price intervals",
+          "to": "/charts/catalog/charts/13-interval-timeline/"
+        },
+        {
+          "label": "Point estimates with error bars",
+          "to": "/charts/catalog/charts/14-error-bars/"
+        },
+        {
+          "label": "Grouped boxplot",
+          "to": "/charts/catalog/charts/15-boxplot/"
+        },
+        {
+          "label": "Ranked lollipop chart",
+          "to": "/charts/catalog/charts/16-lollipop/"
+        },
+        {
+          "label": "Dumbbell comparison",
+          "to": "/charts/catalog/charts/17-dumbbell/"
+        },
+        {
+          "label": "Cumulative histogram",
+          "to": "/charts/catalog/charts/18-cumulative-histogram/"
+        },
+        {
+          "label": "San Francisco temperature moving averages",
+          "to": "/charts/catalog/charts/19-moving-average-line/"
+        },
+        {
+          "label": "Industry share of unemployment",
+          "to": "/charts/catalog/charts/20-normalized-stacked-area/"
+        },
+        {
+          "label": "Streamgraph",
+          "to": "/charts/catalog/charts/21-streamgraph/"
+        },
+        {
+          "label": "Bollinger band",
+          "to": "/charts/catalog/charts/22-bollinger-band/"
+        },
+        {
+          "label": "Quantitative binned heatmap",
+          "to": "/charts/catalog/charts/24-quantitative-binned-heatmap/"
+        },
+        {
+          "label": "Precipitation calendar heatmap",
+          "to": "/charts/catalog/charts/25-calendar-heatmap/"
+        },
+        {
+          "label": "Diverging Likert responses",
+          "to": "/charts/catalog/charts/26-diverging-likert/"
+        },
+        {
+          "label": "Parallel coordinates",
+          "to": "/charts/catalog/charts/27-parallel-coordinates/"
+        },
+        {
+          "label": "Candlestick chart",
+          "to": "/charts/catalog/charts/28-candlestick/"
+        },
+        {
+          "label": "Annual gasoline-price waterfall",
+          "to": "/charts/catalog/charts/29-waterfall/"
+        },
+        {
+          "label": "Two-period slopegraph",
+          "to": "/charts/catalog/charts/30-slopegraph/"
+        },
+        {
+          "label": "Scatterplot with linear regression",
+          "to": "/charts/catalog/charts/31-linear-regression/"
+        },
+        {
+          "label": "Metro inequality change arrows",
+          "to": "/charts/catalog/charts/32-change-arrows/"
+        },
+        {
+          "label": "Apple close versus moving average",
+          "to": "/charts/catalog/charts/33-difference-chart/"
+        },
+        {
+          "label": "Pointer-selected tooltip",
+          "to": "/charts/catalog/charts/34-pointer-tooltip/"
+        },
+        {
+          "label": "Grouped X tooltip",
+          "to": "/charts/catalog/charts/35-grouped-tooltip/"
+        },
+        {
+          "label": "Tidy hierarchy tree",
+          "to": "/charts/catalog/charts/36-hierarchy-tree/"
+        },
+        {
+          "label": "Delaunay spatial network",
+          "to": "/charts/catalog/charts/37-delaunay-network/"
+        },
+        {
+          "label": "Filled wind-speed contours",
+          "to": "/charts/catalog/charts/38-contour-topography/"
+        },
+        {
+          "label": "Point density contours",
+          "to": "/charts/catalog/charts/39-density-contours/"
+        },
+        {
+          "label": "Westport House floor plan",
+          "to": "/charts/catalog/charts/40-geojson-map/"
+        },
+        {
+          "label": "Les Misérables character network",
+          "to": "/charts/catalog/charts/40-force-directed-network/"
+        },
+        {
+          "label": "English letter frequency waffle",
+          "to": "/charts/catalog/charts/41-waffle-unit-chart/"
+        },
+        {
+          "label": "Two-dimensional vector field",
+          "to": "/charts/catalog/charts/42-vector-field/"
+        },
+        {
+          "label": "Hexagonally binned density",
+          "to": "/charts/catalog/charts/43-hexbin-density/"
+        },
+        {
+          "label": "Framed guide-free scatterplot",
+          "to": "/charts/catalog/charts/44-framed-scatter/"
+        },
+        {
+          "label": "Empirical cumulative distribution",
+          "to": "/charts/catalog/charts/50-empirical-cdf/"
+        },
+        {
+          "label": "Faceted distributions",
+          "to": "/charts/catalog/charts/51-faceted-distributions/"
+        },
+        {
+          "label": "Beeswarm distribution",
+          "to": "/charts/catalog/charts/52-beeswarm-dodge/"
+        },
+        {
+          "label": "Log-scale Flare class sizes",
+          "to": "/charts/catalog/charts/53-log-scale-scatter/"
+        },
+        {
+          "label": "Industry unemployment bump chart",
+          "to": "/charts/catalog/charts/54-bump-ranking/"
+        },
+        {
+          "label": "Indexed industry unemployment",
+          "to": "/charts/catalog/charts/55-indexed-multi-line/"
+        },
+        {
+          "label": "Directed connected scatterplot",
+          "to": "/charts/catalog/charts/56-connected-scatter/"
+        },
+        {
+          "label": "Scatterplot with marginal histograms",
+          "to": "/charts/catalog/charts/57-scatter-marginal-histograms/"
+        },
+        {
+          "label": "Annotated AAPL extrema",
+          "to": "/charts/catalog/charts/58-select-extrema/"
+        },
+        {
+          "label": "Mean penguin mass reducer bars",
+          "to": "/charts/catalog/charts/59-grouped-reducer-bars/"
+        },
+        {
+          "label": "AAPL lag-one autocorrelation",
+          "to": "/charts/catalog/charts/60-lag-autocorrelation/"
+        },
+        {
+          "label": "Industry unemployment percentile ribbon",
+          "to": "/charts/catalog/charts/61-quantile-ribbon/"
+        },
+        {
+          "label": "Ridgeline density comparison",
+          "to": "/charts/catalog/charts/62-ridgeline-density/"
+        },
+        {
+          "label": "Violin distribution comparison",
+          "to": "/charts/catalog/charts/63-violin-distributions/"
+        },
+        {
+          "label": "Marimekko survey composition",
+          "to": "/charts/catalog/charts/64-marimekko-mosaic/"
+        },
+        {
+          "label": "Voronoi nearest-point interaction",
+          "to": "/charts/catalog/charts/65-voronoi-nearest-tooltip/"
+        },
+        {
+          "label": "Layered Seattle weather chart",
+          "to": "/charts/catalog/charts/70-composed-chart/"
+        },
+        {
+          "label": "Palmer penguins by species and sex",
+          "to": "/charts/catalog/charts/71-recharts-population-pyramid/"
+        },
+        {
+          "label": "Stacked and adjacent Seattle weather bars",
+          "to": "/charts/catalog/charts/72-recharts-mixed-bars/"
+        },
+        {
+          "label": "Automobile specifications scatter",
+          "to": "/charts/catalog/charts/73-many-point-scatter/"
+        },
+        {
+          "label": "Flare analytics treemap",
+          "to": "/charts/catalog/charts/74-recharts-treemap/"
+        },
+        {
+          "label": "Simple radar chart",
+          "to": "/charts/catalog/charts/75-radar/"
+        },
+        {
+          "label": "English letter frequency pie",
+          "to": "/charts/catalog/charts/76-pie/"
+        },
+        {
+          "label": "English letter frequency donut",
+          "to": "/charts/catalog/charts/77-donut/"
+        },
+        {
+          "label": "Survey agreement share gauge",
+          "to": "/charts/catalog/charts/78-gauge/"
+        },
+        {
+          "label": "Snapped axis pointer with grouped tooltip",
+          "to": "/charts/catalog/charts/80-echarts-axis-pointer/"
+        },
+        {
+          "label": "Interactive series legend",
+          "to": "/charts/catalog/charts/81-recharts-interactive-legend/"
+        },
+        {
+          "label": "Linked chart and data table selection",
+          "to": "/charts/catalog/charts/82-chart-table-selection/"
+        },
+        {
+          "label": "Focus and context time window",
+          "to": "/charts/catalog/charts/83-focus-context-window/"
+        },
+        {
+          "label": "Expanding pinned energy tooltip",
+          "to": "/charts/catalog/charts/84-pinned-nested-chart-tooltip/"
+        },
+        {
+          "label": "Scrollable resource timeline lanes",
+          "to": "/charts/catalog/charts/85-scrollable-resource-lanes/"
+        },
+        {
+          "label": "Streaming window preservation",
+          "to": "/charts/catalog/charts/86-streaming-window-preservation/"
+        },
+        {
+          "label": "Synchronized cursors across views",
+          "to": "/charts/catalog/charts/87-echarts-synchronized-cursors/"
+        },
+        {
+          "label": "Free cursor over car measurements",
+          "to": "/charts/catalog/charts/88-echarts-free-cursor/"
+        },
+        {
+          "label": "Observed monthly AAPL brush selection",
+          "to": "/charts/catalog/charts/89-brush-range-selection/"
+        },
+        {
+          "label": "Wheel zoom and pan over AAPL closes",
+          "to": "/charts/catalog/charts/90-zoomable-time-window/"
+        },
+        {
+          "label": "AAPL close playback scrubber",
+          "to": "/charts/catalog/charts/91-timeline-playback-scrubber/"
+        },
+        {
+          "label": "Editable event range",
+          "to": "/charts/catalog/charts/92-editable-event-range/"
+        },
+        {
+          "label": "Letter frequency pie with labels",
+          "to": "/charts/catalog/charts/93-labeled-pie/"
+        },
+        {
+          "label": "Letter frequency donut with total",
+          "to": "/charts/catalog/charts/94-center-donut/"
+        },
+        {
+          "label": "Rounded letter frequency donut",
+          "to": "/charts/catalog/charts/95-rounded-donut/"
+        },
+        {
+          "label": "Nested Flare package sizes",
+          "to": "/charts/catalog/charts/96-nested-donut/"
+        },
+        {
+          "label": "English letter frequency rose",
+          "to": "/charts/catalog/charts/97-rose/"
+        },
+        {
+          "label": "County unemployment gauge",
+          "to": "/charts/catalog/charts/98-needle-gauge/"
+        },
+        {
+          "label": "Comparative radar chart",
+          "to": "/charts/catalog/charts/99-comparative-radar/"
+        },
+        {
+          "label": "Concentric letter frequency bars",
+          "to": "/charts/catalog/charts/100-radial-bars/"
+        },
+        {
+          "label": "Flare analytics sunburst",
+          "to": "/charts/catalog/charts/101-sunburst/"
+        },
+        {
+          "label": "World learning-poverty choropleth",
+          "to": "/charts/catalog/charts/102-world-choropleth/"
+        },
+        {
+          "label": "World population bubble map",
+          "to": "/charts/catalog/charts/103-bubble-map/"
+        },
+        {
+          "label": "Orthographic globe with graticule",
+          "to": "/charts/catalog/charts/104-orthographic-globe/"
+        },
+        {
+          "label": "HMS Beagle voyage",
+          "to": "/charts/catalog/charts/105-route-map/"
+        },
+        {
+          "label": "Seattle daily high-temperature polar line",
+          "to": "/charts/catalog/charts/106-polar-line/"
+        },
+        {
+          "label": "Surface wind polar scatter",
+          "to": "/charts/catalog/charts/107-polar-scatter/"
+        },
+        {
+          "label": "World population-density choropleth",
+          "to": "/charts/catalog/charts/108-country-choropleth/"
+        },
+        {
+          "label": "United States county unemployment choropleth",
+          "to": "/charts/catalog/charts/109-us-state-choropleth/"
+        },
+        {
+          "label": "Standard world projection gallery",
+          "to": "/charts/catalog/charts/110-projection-gallery/"
+        },
+        {
+          "label": "Basic Sankey",
+          "to": "/charts/catalog/charts/111-basic-sankey/"
+        },
+        {
+          "label": "Sankey",
+          "to": "/charts/catalog/charts/111-sankey-flow/"
+        },
+        {
+          "label": "Staggered entrance motion",
+          "to": "/charts/catalog/charts/112-motion-entrance/"
+        },
+        {
+          "label": "Interrupted spring updates",
+          "to": "/charts/catalog/charts/113-motion-updates/"
+        },
+        {
+          "label": "Spring line updates",
+          "to": "/charts/catalog/charts/114-spring-line-motion/"
+        },
+        {
+          "label": "Definition-owned motion",
+          "to": "/charts/catalog/charts/115-definition-motion/"
+        },
+        {
+          "label": "Cross-chart geometry morph",
+          "to": "/charts/catalog/charts/116-geometry-morph/"
+        },
+        {
+          "label": "Focus and crosshair motion",
+          "to": "/charts/catalog/charts/117-focus-cursor-motion/"
+        },
+        {
+          "label": "Token use calendar heatmap",
+          "to": "/charts/catalog/charts/118-token-usage-calendar/"
+        },
+        {
+          "label": "Stacked bars with band and rule cursors",
+          "to": "/charts/catalog/charts/119-stacked-bar-band-cursor/"
         }
       ]
     },
