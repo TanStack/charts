@@ -1,6 +1,6 @@
 ---
 title: Stacked and Composed Charts
-description: Choose stacked, normalized, streamgraph, and mosaic compositions for part-to-whole comparisons.
+description: Choose stacked, normalized, streamgraph, funnel, and mosaic compositions for part-to-whole and stage-retention comparisons.
 ---
 
 Stacked charts answer how a total divides into contributions. They work best
@@ -21,6 +21,7 @@ values remain available elsewhere.
 | How does proportional mix change independently of the total?    | Normalized 100% stack                   |
 | How does the overall shape of many positive series evolve?      | Streamgraph                             |
 | How do two categorical part-to-whole dimensions interact?       | Marimekko or mosaic                     |
+| How much volume remains at each ordered conversion stage?       | Funnel                                  |
 | Which subgroup values must be compared precisely across groups? | Grouped bars or aligned small multiples |
 | Do contributions extend in positive and negative directions?    | Diverging stack around an explicit zero |
 
@@ -158,6 +159,18 @@ provide exact values through
 [Tooltips and Focus](../guides/tooltips-and-focus.md).
 
 Use an ordinary stacked area when totals or baselines are part of the question.
+
+## Show stage attrition
+
+A funnel encodes the remaining volume at each ordered stage. Use it when the
+sequence is fixed and values decrease toward one outcome. Use bars when stages
+can grow, reorder, or need precise comparison on a shared baseline.
+
+<!-- ::chart-example id=125-sales-funnel height=480 -->
+
+The example derives centered left and right endpoints from each raw stage value,
+then uses one `areaX` trapezoid per stage. Keep the raw value available to the
+tooltip and label; the narrowing shape alone is not precise enough for lookup.
 
 ## Show shares as fixed units
 

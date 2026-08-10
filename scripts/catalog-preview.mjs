@@ -116,6 +116,7 @@ export const catalogTextPreviewCaseIds = [
   '120-themed-interactive-area',
   '121-active-bar-dashboard',
   '123-active-donut-metric',
+  '125-sales-funnel',
   'bar-horizontal-ranking',
   'heatmap-labeled',
 ]
