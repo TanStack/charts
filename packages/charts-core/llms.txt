@@ -51,7 +51,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/examples/distributions.md — Distributions: Choose histograms, boxplots, empirical cumulative distributions, and violins for shape, spread, and rank.
 - docs/examples/heatmaps-and-densities.md — Heatmaps and Densities: Choose quantitative matrix cells, contours, or hexagonal bins to show concentration across two dimensions.
 - docs/examples/intervals-and-financial.md — Intervals and Financial Charts: Compose timelines, uncertainty intervals, candlesticks, and percentile ribbons from explicit endpoints.
-- docs/examples/stacked-and-composition.md — Stacked and Composed Charts: Choose stacked, normalized, streamgraph, and mosaic compositions for part-to-whole comparisons.
+- docs/examples/stacked-and-composition.md — Stacked and Composed Charts: Choose stacked, normalized, streamgraph, funnel, and mosaic compositions for part-to-whole and stage-retention comparisons.
 - docs/examples/facets-and-multiple-views.md — Facets and Multiple Views: Choose shared-scale facets, marginal views, and focus-plus-context layouts for coordinated comparisons.
 - docs/examples/networks-and-hierarchies.md — Networks and Hierarchies: Choose tidy trees, Sankey flows, spatial adjacency graphs, and force-directed networks for connected or nested data.
 - docs/examples/maps-and-spatial.md — Maps and Spatial Charts: Build choropleths, bubble maps, globes, routes, and vector fields for geographic or projected spatial questions.

@@ -3460,6 +3460,37 @@
       ]
     },
     {
+      "id": "120-sales-funnel",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/120-sales-funnel/tanstack.ts",
+        "cases/120-sales-funnel/model.test.ts",
+        "cases/120-sales-funnel/case.json"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "data",
+          "sources": ["model.ts"],
+          "summary": "Derive centered stage boundary endpoints and label positions from semantic ordered stage values."
+        },
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose native areaX groups and direct text labels over explicit linear domains with stable stage keys."
+        }
+      ]
+    },
+    {
       "id": "bar-grouped",
       "coverage": "declarative",
       "disposition": "definition-now",

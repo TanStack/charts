@@ -734,6 +734,10 @@
         {
           "label": "Stacked bars with band and rule cursors",
           "to": "/charts/catalog/charts/119-stacked-bar-band-cursor/"
+        },
+        {
+          "label": "Sales conversion funnel",
+          "to": "/charts/catalog/charts/120-sales-funnel/"
         }
       ]
     },

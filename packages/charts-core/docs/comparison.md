@@ -135,7 +135,7 @@ browser run, so this page does not publish a cross-machine timing leaderboard.
 
 ## Broader conformance
 
-The catalog corpus contains 110 TanStack/reference pairs: 76 sourced from
+The catalog corpus contains 111 TanStack/reference pairs: 77 sourced from
 Observable Plot, 23 from Recharts, and 11 from Apache ECharts. Nineteen pairs
 carry executable interaction scenarios. Those counts describe selected
 reference coverage, not each library's feature ceiling or a list of built-in

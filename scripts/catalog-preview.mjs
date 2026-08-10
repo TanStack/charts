@@ -104,6 +104,7 @@ export const catalogTextPreviewCaseIds = [
   '117-focus-cursor-motion',
   '118-token-usage-calendar',
   '119-stacked-bar-band-cursor',
+  '120-sales-funnel',
   'bar-horizontal-ranking',
   'heatmap-labeled',
 ]
