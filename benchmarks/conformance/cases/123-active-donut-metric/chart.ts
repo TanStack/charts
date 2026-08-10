@@ -43,8 +43,8 @@ export function activeDonutDefinition(
   activeId: string,
 ) {
   const rows = browserRows(input.revision)
-  const { arcs, active } = activeDonutArcs(rows, activeId)
   const selected = rows.find((row) => row.id === activeId) ?? rows[0]!
+  const { arcs, active } = activeDonutArcs(rows, selected.id)
   const centerRows: readonly DonutCenterRow[] = [
     {
       id: `${selected.id}:value`,

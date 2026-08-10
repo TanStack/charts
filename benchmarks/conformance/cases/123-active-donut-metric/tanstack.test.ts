@@ -65,6 +65,26 @@ describe('active donut metric', () => {
     expect(centerKeys(safari.nodes)).not.toEqual(centerKeys(chrome.nodes))
   })
 
+  it('keeps fallback overlays and center rows on the same browser', () => {
+    const scene = createChartScene(
+      activeDonutDefinition(input, 'unknown-browser'),
+      input,
+    )
+    const nodes = flatten(scene.nodes)
+    const overlays = nodes.filter(
+      (node) =>
+        node.kind === 'area' && node.key.startsWith('selected-browser-'),
+    )
+    const centerRows = nodes.filter(
+      (node) => node.kind === 'label' && node.key.startsWith('donut-center-'),
+    )
+
+    expect(overlays).toHaveLength(2)
+    expect(overlays.every((node) => node.key.endsWith(':chrome'))).toBe(true)
+    expect(centerRows).toHaveLength(2)
+    expect(centerRows.every((node) => node.key.includes('chrome:'))).toBe(true)
+  })
+
   it('renders the same native active composition in compact previews', () => {
     const scene = createChartScene(
       activeDonutDefinition(
