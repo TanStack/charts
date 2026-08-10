@@ -775,7 +775,10 @@ The text formatters do not parse HTML, and newlines are preserved. `className`
 is appended to `ts-chart-tooltip`.
 
 The default DOM surface inherits these optional CSS variables from the chart
-container while retaining its built-in fallback values:
+container while retaining its built-in fallback values. A portaled Popover
+keeps that ancestry. If the portal fallback moves the tooltip under
+`ownerDocument.body`, chart-container-only variables no longer inherit; set
+them on the tooltip class or a shared document ancestor instead:
 
 | Variable                           | Controls                    |
 | ---------------------------------- | --------------------------- |

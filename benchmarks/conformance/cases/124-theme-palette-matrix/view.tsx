@@ -124,6 +124,7 @@ const ThemePaletteMatrix = forwardRef<
             style={{
               ...style,
               boxSizing: 'border-box',
+              colorScheme: 'light dark',
               display: input.preview ? 'block' : 'grid',
               gridTemplateColumns: input.preview
                 ? undefined

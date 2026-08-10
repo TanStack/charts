@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createChartScene, type SceneNode } from '@tanstack/charts'
 import { activeDonutDefinition, donutSummary } from './chart'
 import { activeDonutLayout } from './layout'
-import { mount as rechartsMount } from './recharts'
+import { mount as rechartsMount, sectorAngles } from './recharts'
 import { mount as tanstackMount } from './view'
 
 const input = {
@@ -79,6 +79,25 @@ describe('active donut metric', () => {
       flatten(scene.nodes).filter((node) => node.kind === 'area'),
     ).toHaveLength(7)
     expect(scene.nodes).toHaveLength(1)
+  })
+
+  it('aligns active overlays with Recharts padding-aware sector angles', () => {
+    const rows = [
+      { id: 'first', label: 'First', visitors: 10 },
+      { id: 'empty', label: 'Empty', visitors: 0 },
+      { id: 'last', label: 'Last', visitors: 30 },
+    ]
+
+    const first = sectorAngles(rows, 0)
+    const empty = sectorAngles(rows, 1)
+    const last = sectorAngles(rows, 2)
+
+    expect(first.start).toBe(90)
+    expect(first.end).toBeCloseTo(1.4)
+    expect(empty.start).toBeCloseTo(1.4)
+    expect(empty.end).toBeCloseTo(1.4)
+    expect(last.start).toBeCloseTo(-1.4)
+    expect(last.end).toBeCloseTo(-267.2)
   })
 
   it.each([

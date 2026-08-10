@@ -7,6 +7,9 @@ import { readCatalogCases } from './catalog-index.mjs'
 export const catalogPreviewWidth = 288
 export const catalogPreviewHeight = 192
 
+const transientBrowserNetworkError =
+  /net::ERR_(?:NETWORK_IO_SUSPENDED|SOCKET_NOT_CONNECTED)\b/u
+
 const rootDirectory = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -143,37 +146,30 @@ export async function writeCatalogPreviews() {
     },
   })
   let browser
+  let context
 
   try {
     await server.listen()
     const origin = server.resolvedUrls?.local[0]
     assert(origin, 'catalog preview server did not publish a local URL')
     browser = await chromium.launch({ headless: true })
-    const context = await browser.newContext({
-      colorScheme: 'light',
-      deviceScaleFactor: 1,
-      reducedMotion: 'reduce',
-      viewport: {
-        width: catalogPreviewWidth,
-        height: catalogPreviewHeight,
-      },
-    })
+    context = await createCatalogPreviewContext(browser)
     const assets = []
     await fs.mkdir(previewsDirectory, { recursive: true })
 
     for (const entry of cases) {
-      const lightSvg = await renderCatalogPreviewVariant(
-        context,
-        origin,
-        entry,
-        'light',
-      )
-      const darkSvg = await renderCatalogPreviewVariant(
-        context,
-        origin,
-        entry,
-        'dark',
-      )
+      const renderVariant = (theme) =>
+        retryCatalogPreviewBrowserRender(
+          `${entry.id} (${theme})`,
+          () => renderCatalogPreviewVariant(context, origin, entry, theme),
+          async () => {
+            const previousContext = context
+            context = await createCatalogPreviewContext(browser)
+            await previousContext?.close().catch(() => {})
+          },
+        )
+      const lightSvg = await renderVariant('light')
+      const darkSvg = await renderVariant('dark')
       const portableSvg = createPortableCatalogPreviewSvg(
         lightSvg,
         darkSvg,
@@ -204,9 +200,50 @@ export async function writeCatalogPreviews() {
     await removeStalePreviewAssets(new Set(cases.map((entry) => entry.id)))
     console.log(`Generated ${assets.length} source-derived catalog previews.`)
   } finally {
+    await context?.close().catch(() => {})
     await browser?.close()
     await server.close()
   }
+}
+
+export async function retryCatalogPreviewBrowserRender(
+  label,
+  render,
+  replaceContext,
+) {
+  let firstError
+  try {
+    return await render()
+  } catch (error) {
+    if (!isTransientCatalogPreviewBrowserError(error)) throw error
+    firstError = error
+  }
+
+  console.warn(
+    `Retrying catalog preview ${label} in a fresh browser context after a transient Chromium network failure.`,
+  )
+
+  try {
+    await replaceContext()
+    return await render()
+  } catch (secondError) {
+    const errors = [firstError, secondError]
+    throw new AggregateError(
+      errors,
+      `catalog preview ${label} failed after a fresh-context retry:\n${errors
+        .map(
+          (error, index) =>
+            `Attempt ${index + 1}: ${error instanceof Error ? error.message : String(error)}`,
+        )
+        .join('\n')}`,
+    )
+  }
+}
+
+export function isTransientCatalogPreviewBrowserError(error) {
+  return (
+    error instanceof Error && transientBrowserNetworkError.test(error.message)
+  )
 }
 
 export async function checkCatalogPreviews() {
@@ -674,6 +711,18 @@ function parseCatalogPreviewXml(svg, caseId, JSDOM) {
     throw error
   }
   return document
+}
+
+function createCatalogPreviewContext(browser) {
+  return browser.newContext({
+    colorScheme: 'light',
+    deviceScaleFactor: 1,
+    reducedMotion: 'reduce',
+    viewport: {
+      width: catalogPreviewWidth,
+      height: catalogPreviewHeight,
+    },
+  })
 }
 
 async function renderCatalogPreviewVariant(context, origin, entry, theme) {

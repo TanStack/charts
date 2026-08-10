@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { JSDOM } from 'jsdom'
 import {
   catalogPreviewHeight,
@@ -10,6 +10,8 @@ import {
   catalogTextPreviewCaseIds,
   createCatalogPreviewSourceHash,
   createPortableCatalogPreviewSvg,
+  isTransientCatalogPreviewBrowserError,
+  retryCatalogPreviewBrowserRender,
   validateCatalogPreviewPresentation,
   validateCatalogPreviewSvg,
   validateCatalogPreviewXml,
@@ -289,5 +291,84 @@ describe('catalog previews', () => {
         input('0.9.0'),
       ),
     )
+  })
+
+  it('retries only Chromium suspend transport failures', async () => {
+    expect(
+      isTransientCatalogPreviewBrowserError(
+        new Error('Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED'),
+      ),
+    ).toBe(true)
+    expect(
+      isTransientCatalogPreviewBrowserError(
+        new Error('Failed to load resource: net::ERR_SOCKET_NOT_CONNECTED'),
+      ),
+    ).toBe(true)
+    expect(
+      isTransientCatalogPreviewBrowserError(
+        new Error('Failed to load resource: net::ERR_CONNECTION_REFUSED'),
+      ),
+    ).toBe(false)
+    expect(
+      isTransientCatalogPreviewBrowserError(
+        new Error('Catalog preview has clipped SVG labels'),
+      ),
+    ).toBe(false)
+
+    const render = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new Error('Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED'),
+      )
+      .mockResolvedValue('<svg></svg>')
+    const replaceContext = vi.fn().mockResolvedValue(undefined)
+
+    await expect(
+      retryCatalogPreviewBrowserRender(
+        'line-gaps (light)',
+        render,
+        replaceContext,
+      ),
+    ).resolves.toBe('<svg></svg>')
+    expect(render).toHaveBeenCalledTimes(2)
+    expect(replaceContext).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps chart errors and repeated network failures hard', async () => {
+    const chartError = new Error('Catalog preview has clipped SVG labels')
+    const chartRender = vi.fn().mockRejectedValue(chartError)
+    const chartContext = vi.fn()
+
+    await expect(
+      retryCatalogPreviewBrowserRender(
+        'line-gaps (light)',
+        chartRender,
+        chartContext,
+      ),
+    ).rejects.toBe(chartError)
+    expect(chartRender).toHaveBeenCalledTimes(1)
+    expect(chartContext).not.toHaveBeenCalled()
+
+    const firstError = new Error(
+      'Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED',
+    )
+    const secondError = new Error(
+      'Failed to load resource: net::ERR_SOCKET_NOT_CONNECTED',
+    )
+    const networkRender = vi
+      .fn()
+      .mockRejectedValueOnce(firstError)
+      .mockRejectedValueOnce(secondError)
+
+    await expect(
+      retryCatalogPreviewBrowserRender(
+        'line-gaps (dark)',
+        networkRender,
+        vi.fn().mockResolvedValue(undefined),
+      ),
+    ).rejects.toMatchObject({
+      errors: [firstError, secondError],
+      message: expect.stringContaining('failed after a fresh-context retry'),
+    })
   })
 })

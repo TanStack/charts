@@ -70,11 +70,6 @@ function ThemedAreaReference({
   const animationTracker = useRef<ReturnType<
     typeof createBoundedAnimationTracker
   > | null>(null)
-  if (!animationTracker.current) {
-    animationTracker.current = createBoundedAnimationTracker((animating) =>
-      onAnimationChangeRef.current(animating),
-    )
-  }
   const reducedMotion = useMemo(prefersReducedMotion, [])
   const gradientId = `recharts-themed-area-${useId().replaceAll(':', '')}`
   const rows = useMemo(
@@ -96,6 +91,7 @@ function ThemedAreaReference({
   useEffect(
     () => () => {
       animationTracker.current?.dispose()
+      animationTracker.current = null
     },
     [],
   )
@@ -115,7 +111,14 @@ function ThemedAreaReference({
     onStateChange(range, rows, id)
   }
 
-  const startAnimation = () => animationTracker.current?.start()
+  const startAnimation = () => {
+    if (!animationTracker.current) {
+      animationTracker.current = createBoundedAnimationTracker((animating) =>
+        onAnimationChangeRef.current(animating),
+      )
+    }
+    animationTracker.current.start()
+  }
   const endAnimation = () => animationTracker.current?.end()
 
   const renderPoint = ({ cx, cy, payload }: AreaDotProps): ReactNode => {

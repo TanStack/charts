@@ -3,6 +3,7 @@ import { createChartScene } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
 import { paletteMatrixDefinition } from './chart'
 import { paletteMatrixRows, palettePaint, paletteTreatments } from './model'
+import { mount as plotMount } from './plot'
 import { mount } from './tanstack'
 import type { ConformanceInput } from '../../types'
 
@@ -103,6 +104,35 @@ describe('theme palette matrix', () => {
     })
     container.remove()
   })
+
+  it.each([
+    ['TanStack', mount],
+    ['Plot', plotMount],
+  ] as const)(
+    'opts every %s palette into both color schemes',
+    async (_, mountCase) => {
+      const container = document.createElement('div')
+      document.body.append(container)
+      let handle!: ReturnType<typeof mountCase>
+
+      await act(async () => {
+        handle = mountCase(container, input)
+      })
+
+      const panels = [
+        ...container.querySelectorAll<HTMLElement>('[data-palette-treatment]'),
+      ]
+      expect(panels).toHaveLength(3)
+      expect(
+        panels.every((panel) => panel.style.colorScheme === 'light dark'),
+      ).toBe(true)
+
+      await act(async () => {
+        handle.destroy()
+      })
+      container.remove()
+    },
+  )
 
   it('reserves enough compact label width for every palette name', async () => {
     const container = document.createElement('div')

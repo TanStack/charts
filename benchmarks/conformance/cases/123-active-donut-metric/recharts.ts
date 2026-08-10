@@ -451,16 +451,24 @@ export const mount: ConformanceMount = (container, input) => {
   }
 }
 
-function sectorAngles(rows: readonly BrowserRow[], index: number) {
+export function sectorAngles(rows: readonly BrowserRow[], index: number) {
   const total = browserTotal(rows)
-  const before = rows
-    .slice(0, index)
-    .reduce((sum, row) => sum + row.visitors, 0)
-  const value = rows[index]?.visitors ?? 0
-  return {
-    start: 90 - (before / total) * 360 - gapAngle / 2,
-    end: 90 - ((before + value) / total) * 360 + gapAngle / 2,
+  if (total <= 0) return { start: 90, end: 90 }
+
+  const paddingAngle = rows.length <= 1 ? 0 : gapAngle
+  const nonZeroCount = rows.filter((row) => row.visitors !== 0).length
+  const drawableSweep = 360 - nonZeroCount * paddingAngle
+  let cursor = 90
+
+  for (const [rowIndex, row] of rows.entries()) {
+    if (rowIndex > 0 && row.visitors !== 0) cursor -= paddingAngle
+    const start = cursor
+    const end = start - (row.visitors / total) * drawableSweep
+    if (rowIndex === index) return { start, end }
+    cursor = end
   }
+
+  return { start: 90, end: 90 }
 }
 
 function formatTooltipValue(value: TooltipValueType | undefined) {

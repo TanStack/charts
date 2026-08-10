@@ -118,6 +118,7 @@ function renderPanel(
   }
   Object.assign(panel.style, {
     boxSizing: 'border-box',
+    colorScheme: 'light dark',
     display: preview ? 'block' : 'grid',
     gridTemplateColumns: preview ? undefined : `${labelWidth}px minmax(0, 1fr)`,
     alignItems: 'center',

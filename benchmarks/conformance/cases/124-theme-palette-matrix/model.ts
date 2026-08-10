@@ -94,6 +94,7 @@ export function paletteVariable(
   return `--ts-matrix-${treatment.id}-${token}`
 }
 
+/** Resolve inside an element whose `color-scheme` includes `light dark`. */
 export function paletteValue(treatment: PaletteTreatment, token: PaletteToken) {
   const tone = treatment.tokens[token]
   return `light-dark(${tone.light}, ${tone.dark})`

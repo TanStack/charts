@@ -49,7 +49,9 @@ describe('themed interactive area', () => {
       line: false,
       ticks: { values: expect.any(Array), size: 0 },
     })
-    expect(definition.x.axis.ticks.values).toHaveLength(3)
+    expect(definition.x?.axis).toMatchObject({
+      ticks: { values: expect.objectContaining({ length: 3 }) },
+    })
     expect(definition.y?.axis).toMatchObject({
       line: false,
       ticks: { values: expect.arrayContaining([0]), size: 0 },
@@ -220,13 +222,16 @@ describe('themed interactive area', () => {
     const originalMatchMedia = window.matchMedia
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
-      value: () => ({ matches: true }),
+      value: (query: string) => ({
+        matches: query === '(prefers-reduced-motion: reduce)',
+      }),
     })
     const container = document.createElement('div')
     document.body.append(container)
+    let handle: ReturnType<typeof mount> | undefined
 
     try {
-      const handle = mount(container, {
+      handle = mount(container, {
         width: 640,
         height: 380,
         revision: 0,
@@ -245,8 +250,8 @@ describe('themed interactive area', () => {
         rowCount: 7,
         motionState: null,
       })
-      handle.destroy()
     } finally {
+      handle?.destroy()
       Object.defineProperty(window, 'matchMedia', {
         configurable: true,
         value: originalMatchMedia,

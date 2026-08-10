@@ -299,6 +299,7 @@ Each entry records:
 | F-260 | Static guides cannot express stroke treatment                  | API                   | open       |
 | F-261 | Cartesian bars cannot round only exposed corners               | API                   | open       |
 | F-262 | Mark inference accepted an unsupported style option            | API                   | open       |
+| F-263 | Chromium transport suspension interrupted catalog previews     | Tooling               | resolved   |
 
 ## Findings
 
@@ -7779,3 +7780,23 @@ Each entry records:
   zero, then restores them in focused states. Keep an exact-options check or a
   consistent base-opacity contract open for the mark family; do not add a
   runtime-only special case for dots.
+
+### F-263 — Chromium transport suspension interrupted catalog previews
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: release validation of all 115 light and dark catalog previews
+- Friction: two clean generator starts failed at unrelated cases 29 and 84
+  after each chart had rendered. On macOS, Chromium logged
+  `ERR_NETWORK_IO_SUSPENDED` and `ERR_SOCKET_NOT_CONNECTED` for local Vite
+  resource requests. Restarting the complete 230-navigation matrix only moved
+  the infrastructure failure later in the run.
+- Decision: retry only those two Chromium transport errors, once, after
+  replacing the browser context so the local connection pool is fresh. Keep
+  every chart, protocol, and other console error non-retryable. Preserve both
+  failures when the fresh attempt does not recover.
+- Verification: the focused 13-test preview suite covers both exact transport
+  codes, recovery, non-retryable chart failures, and retained repeated-failure
+  evidence. A full browser-backed run generated all 115 previews in both
+  themes without changing any SVG asset; only the source hash changed.
