@@ -185,6 +185,25 @@ const definition = defineChart(baseDefinition, {
 })
 ```
 
+The default tooltip chrome also reads CSS variables from the chart container.
+This avoids selector specificity fights with its positioning styles:
+
+```css
+.revenue-chart {
+  --ts-chart-tooltip-background: color-mix(in srgb, Canvas 92%, transparent);
+  --ts-chart-tooltip-color: CanvasText;
+  --ts-chart-tooltip-border: 1px solid
+    color-mix(in srgb, CanvasText 12%, transparent);
+  --ts-chart-tooltip-border-radius: 0.625rem;
+  --ts-chart-tooltip-shadow: 0 12px 34px
+    color-mix(in srgb, CanvasText 14%, transparent);
+}
+```
+
+`--ts-chart-tooltip-max-width`, `--ts-chart-tooltip-padding`, and
+`--ts-chart-tooltip-font` control the remaining surface defaults. A
+`className` is still useful for content-specific layout.
+
 With the `portal` extension, the preferred manual-Popover path keeps the
 element under the chart in the DOM, so inheritance and scoped selectors
 continue to work. If Popover is unavailable or fails, the fixed fallback moves
@@ -194,6 +213,9 @@ shared document ancestor.
 
 Every framework adapter can compose native application content with the
 default rows. See [Tooltips and Focus](./tooltips-and-focus.md).
+
+See [Themes and Motion examples](../examples/themes-and-motion.md) for complete
+cards with inherited palettes, gradients, controls, and optional motion.
 
 ## Theme checklist
 

@@ -98,6 +98,8 @@ describe('catalog previews', () => {
     expect(catalogGuidePreviewCaseIds).toEqual([
       '115-definition-motion',
       '118-token-usage-calendar',
+      '120-themed-interactive-area',
+      '121-active-bar-dashboard',
       '80-echarts-axis-pointer',
       'bar-horizontal-ranking',
     ])
@@ -110,6 +112,10 @@ describe('catalog previews', () => {
       '80-echarts-axis-pointer',
       '81-recharts-interactive-legend',
       '88-echarts-free-cursor',
+      '120-themed-interactive-area',
+      '121-active-bar-dashboard',
+      '122-premium-kpi-sparklines',
+      '124-theme-palette-matrix',
       'bar-horizontal-ranking',
     ])
     expect(catalogTextPreviewCaseIds).toEqual([
@@ -128,6 +134,9 @@ describe('catalog previews', () => {
       '117-focus-cursor-motion',
       '118-token-usage-calendar',
       '119-stacked-bar-band-cursor',
+      '120-themed-interactive-area',
+      '121-active-bar-dashboard',
+      '123-active-donut-metric',
       'bar-horizontal-ranking',
       'heatmap-labeled',
     ])
@@ -158,6 +167,92 @@ describe('catalog previews', () => {
     expect(() =>
       validateCatalogPreviewPresentation('', '93-labeled-pie'),
     ).toThrow('must retain its feature-defining text')
+  })
+
+  it('requires the active bar dashboard preview composition', () => {
+    const bars = Array.from(
+      { length: 24 },
+      (_, index) =>
+        `<rect data-ts-key="daily-visitors:null:${String(index + 1).padStart(2, '0')}"></rect>`,
+    ).join('')
+    const preview = `${bars}<linearGradient data-ts-key="gradient:visitor-bars"></linearGradient><text x="0">May 1</text>`
+
+    expect(() =>
+      validateCatalogPreviewPresentation(preview, '121-active-bar-dashboard'),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        preview.replace('daily-visitors:null:24', 'missing-bar:null:24'),
+        '121-active-bar-dashboard',
+      ),
+    ).toThrow('must retain all 24 keyed bars')
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        preview.replace('gradient:visitor-bars', 'gradient:missing'),
+        '121-active-bar-dashboard',
+      ),
+    ).toThrow('must retain all 24 keyed bars')
+  })
+
+  it('requires the active donut preview composition', () => {
+    const arcs = ['chrome', 'safari', 'firefox', 'edge', 'other']
+      .map((id) => `<path data-ts-key="browser-arcs:null:${id}"></path>`)
+      .join('')
+    const preview = `${arcs}<path data-ts-key="selected-browser-wedge:null:chrome"></path><path data-ts-key="selected-browser-ring:null:chrome"></path><text data-ts-key="donut-center-value:null:chrome:value">500</text><text data-ts-key="donut-center-label:null:chrome:label">Chrome</text>`
+
+    expect(() =>
+      validateCatalogPreviewPresentation(preview, '123-active-donut-metric'),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        preview.replace('browser-arcs:null:other', 'missing-arc:null:other'),
+        '123-active-donut-metric',
+      ),
+    ).toThrow('must retain five base arcs')
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        preview.replace('donut-center-label:', 'missing-center-label:'),
+        '123-active-donut-metric',
+      ),
+    ).toThrow('must retain five base arcs')
+  })
+
+  it('guards every new multi-layer theme preview contract', () => {
+    const area =
+      '<g data-ts-key="visitor-crosshair:x-rule"></g><circle data-ts-key="visitor-points:null:2026-06-29"></circle><text x="0">Jun 29</text>'
+    expect(() =>
+      validateCatalogPreviewPresentation(area, '120-themed-interactive-area'),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        area.replace('visitor-crosshair:x-rule', 'missing-crosshair:x-rule'),
+        '120-themed-interactive-area',
+      ),
+    ).toThrow('must retain its focused source point')
+
+    const kpis =
+      '<svg class="ts-chart" data-tanstack-catalog-preview-surfaces><svg class="ts-chart"><path data-ts-key="revenue-line:null"></path></svg><svg class="ts-chart"><path data-ts-key="customers-line:null"></path></svg><svg class="ts-chart"><path data-ts-key="churn-line:null"></path></svg></svg>'
+    expect(() =>
+      validateCatalogPreviewPresentation(kpis, '122-premium-kpi-sparklines'),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        kpis.replace('customers-line', 'missing-series'),
+        '122-premium-kpi-sparklines',
+      ),
+    ).toThrow('must retain all three real chart surfaces')
+
+    const palettes =
+      '<svg class="ts-chart" data-tanstack-catalog-preview-surfaces><svg class="ts-chart"><path data-ts-key="value-area:neutral"></path></svg><svg class="ts-chart"><path data-ts-key="value-area:vibrant"></path></svg><svg class="ts-chart"><path data-ts-key="value-area:monochrome"></path></svg></svg>'
+    expect(() =>
+      validateCatalogPreviewPresentation(palettes, '124-theme-palette-matrix'),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        palettes.replace('class="ts-chart"', 'class="missing-chart"'),
+        '124-theme-palette-matrix',
+      ),
+    ).toThrow('must retain all three themed chart surfaces')
   })
 
   it('fingerprints the complete rendering path', async () => {

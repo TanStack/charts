@@ -28,6 +28,7 @@ pages remain the source of truth for individual APIs.
 | How should cyclic or radial dimensions be compared?                              | [Polar and Radar Charts](./polar-and-radar.md)                        |
 | Which thresholds, events, or derived values need explanation?                    | [Annotations and Overlays](./annotations-and-overlays.md)             |
 | How can a reader inspect, select, navigate, or edit the view?                    | [Interactive Charts](./interactive-charts.md)                         |
+| How should charts inherit an application theme and move during updates?          | [Themes and Motion](./themes-and-motion.md)                           |
 
 If two families seem plausible, use
 [Choosing a Chart](../guides/choosing-a-chart.md) to compare the reader task,

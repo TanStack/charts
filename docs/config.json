@@ -286,6 +286,10 @@
         {
           "label": "Interactive Charts",
           "to": "examples/interactive-charts"
+        },
+        {
+          "label": "Themes and Motion",
+          "to": "examples/themes-and-motion"
         }
       ]
     },
@@ -734,6 +738,26 @@
         {
           "label": "Stacked bars with band and rule cursors",
           "to": "/charts/catalog/charts/119-stacked-bar-band-cursor/"
+        },
+        {
+          "label": "Themed interactive area card",
+          "to": "/charts/catalog/charts/120-themed-interactive-area/"
+        },
+        {
+          "label": "Active bar dashboard",
+          "to": "/charts/catalog/charts/121-active-bar-dashboard/"
+        },
+        {
+          "label": "Premium KPI sparklines",
+          "to": "/charts/catalog/charts/122-premium-kpi-sparklines/"
+        },
+        {
+          "label": "Active donut metric",
+          "to": "/charts/catalog/charts/123-active-donut-metric/"
+        },
+        {
+          "label": "Theme palette matrix",
+          "to": "/charts/catalog/charts/124-theme-palette-matrix/"
         }
       ]
     },

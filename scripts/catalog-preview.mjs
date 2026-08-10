@@ -76,6 +76,8 @@ const themePaintAttributes = new Set([
 export const catalogGuidePreviewCaseIds = [
   '115-definition-motion',
   '118-token-usage-calendar',
+  '120-themed-interactive-area',
+  '121-active-bar-dashboard',
   '80-echarts-axis-pointer',
   'bar-horizontal-ranking',
 ]
@@ -86,6 +88,10 @@ export const catalogMarginPreviewCaseIds = [
   '80-echarts-axis-pointer',
   '81-recharts-interactive-legend',
   '88-echarts-free-cursor',
+  '120-themed-interactive-area',
+  '121-active-bar-dashboard',
+  '122-premium-kpi-sparklines',
+  '124-theme-palette-matrix',
   'bar-horizontal-ranking',
 ]
 export const catalogTextPreviewCaseIds = [
@@ -104,6 +110,9 @@ export const catalogTextPreviewCaseIds = [
   '117-focus-cursor-motion',
   '118-token-usage-calendar',
   '119-stacked-bar-band-cursor',
+  '120-themed-interactive-area',
+  '121-active-bar-dashboard',
+  '123-active-donut-metric',
   'bar-horizontal-ranking',
   'heatmap-labeled',
 ]
@@ -431,6 +440,48 @@ export function validateCatalogPreviewPresentation(svg, caseId) {
         svg.includes('stacked-cursor-band:x-label:text') &&
         svg.includes('stacked-cursor-rule:y-label:text'),
       'catalog preview 119-stacked-bar-band-cursor must retain its native band, rule, and cursor labels',
+    )
+  }
+  if (caseId === '120-themed-interactive-area') {
+    assert(
+      svg.includes('visitor-crosshair:x-rule') &&
+        svg.includes('data-ts-key="visitor-points'),
+      'catalog preview 120-themed-interactive-area must retain its focused source point and native crosshair',
+    )
+  }
+  if (caseId === '121-active-bar-dashboard') {
+    assert(
+      countOccurrences(svg, '<rect data-ts-key="daily-visitors:') === 24 &&
+        svg.includes('data-ts-key="gradient:visitor-bars"'),
+      'catalog preview 121-active-bar-dashboard must retain all 24 keyed bars and its gradient',
+    )
+  }
+  if (caseId === '122-premium-kpi-sparklines') {
+    assert(
+      svg.includes('data-tanstack-catalog-preview-surfaces') &&
+        countOccurrences(svg, 'class="ts-chart') >= 4 &&
+        svg.includes('revenue-line') &&
+        svg.includes('customers-line') &&
+        svg.includes('churn-line'),
+      'catalog preview 122-premium-kpi-sparklines must retain all three real chart surfaces',
+    )
+  }
+  if (caseId === '123-active-donut-metric') {
+    assert(
+      countOccurrences(svg, 'data-ts-key="browser-arcs:') === 5 &&
+        countOccurrences(svg, 'data-ts-key="selected-browser-wedge:') === 1 &&
+        countOccurrences(svg, 'data-ts-key="selected-browser-ring:') === 1 &&
+        countOccurrences(svg, 'data-ts-key="donut-center-value:') === 1 &&
+        countOccurrences(svg, 'data-ts-key="donut-center-label:') === 1,
+      'catalog preview 123-active-donut-metric must retain five base arcs, its active wedge and ring, and both center labels',
+    )
+  }
+  if (caseId === '124-theme-palette-matrix') {
+    assert(
+      svg.includes('data-tanstack-catalog-preview-surfaces') &&
+        countOccurrences(svg, 'class="ts-chart') >= 4 &&
+        countOccurrences(svg, 'value-area') >= 3,
+      'catalog preview 124-theme-palette-matrix must retain all three themed chart surfaces',
     )
   }
   if (caseId === '91-timeline-playback-scrubber') {

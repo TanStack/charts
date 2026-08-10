@@ -195,6 +195,9 @@ See the [Motion reference](../reference/motion.md) for the complete cascade,
 types, focus-state transitions, compatibility limits, and standalone spring
 sampler.
 
+See [Themes and Motion examples](../examples/themes-and-motion.md) for complete
+cards that separate keyed chart motion from controls, labels, and palette CSS.
+
 ## Streaming
 
 For high-rate data:

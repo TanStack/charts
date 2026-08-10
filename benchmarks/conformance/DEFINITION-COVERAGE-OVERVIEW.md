@@ -1,20 +1,20 @@
 # Definition coverage overview
 
-Date: 2026-08-05
+Date: 2026-08-10
 
-The catalog has 110 case directories. One hundred seven visualizations now use
+The catalog has 115 case directories. One hundred twelve visualizations now use
 normal chart definitions. Cases 85 and 86 retain application shells, and Case
 116 retains one deliberately bespoke inline mark. No other case-owned layout
 or renderer is an accepted endpoint.
 
 | Disposition           |   Cases | Result                                            |
 | --------------------- | ------: | ------------------------------------------------- |
-| Definition now        |      58 | Normal definition                                 |
+| Definition now        |      63 | Normal definition                                 |
 | First-party primitive |      35 | Normal definition                                 |
 | Optional primitive    |      14 | Normal definition                                 |
 | Application boundary  |       2 | Accepted boundary                                 |
 | Inline custom mark    |       1 | Accepted boundary                                 |
-| **Total**             | **110** | **107 normal definitions; 3 accepted boundaries** |
+| **Total**             | **115** | **112 normal definitions; 3 accepted boundaries** |
 
 ## Shared decisions
 
@@ -63,7 +63,7 @@ presentation policy.
 
 ## Verification
 
-- The roadmap validator compares all 110 roadmap and audit IDs with the live
+- The roadmap validator compares all 115 roadmap and audit IDs with the live
   catalog directories, requires unique IDs, validates the capability DAG, and
   requires every verified or accepted case to cite evidence under its own
   directory.
@@ -182,6 +182,11 @@ presentation policy.
 | [117-focus-cursor-motion — Focus and crosshair motion](./cases/117-focus-cursor-motion/tanstack.ts)                               | First-party primitive | `focus-guide`                                                                    | `tanstack.ts`, `tanstack.test.ts`                  |
 | [118-token-usage-calendar — Token use calendar heatmap](./cases/118-token-usage-calendar/tanstack.ts)                             | First-party primitive | `axis-tick-label-accessors`                                                      | `tanstack.ts`, `tanstack.test.ts`, `shell.test.ts` |
 | [119-stacked-bar-band-cursor — Stacked bars with band and rule cursors](./cases/119-stacked-bar-band-cursor/chart.ts)             | First-party primitive | `crosshair`                                                                      | `chart.ts`, `model.test.ts`, `case.json`           |
+| [120-themed-interactive-area — Themed interactive area card](./cases/120-themed-interactive-area/chart.ts)                        | Definition now        | `current-definition-api`                                                         | `chart.ts`, `tanstack.ts`, `tanstack.test.ts`      |
+| [121-active-bar-dashboard — Active bar dashboard](./cases/121-active-bar-dashboard/chart.ts)                                      | Definition now        | `current-definition-api`                                                         | `chart.ts`, `tanstack.test.ts`, `view.tsx`         |
+| [122-premium-kpi-sparklines — Premium KPI sparklines](./cases/122-premium-kpi-sparklines/chart.ts)                                | Definition now        | `current-definition-api`                                                         | `chart.ts`, `tanstack.test.ts`, `view.tsx`         |
+| [123-active-donut-metric — Active donut metric](./cases/123-active-donut-metric/chart.ts)                                         | Definition now        | `current-definition-api`                                                         | `chart.ts`, `tanstack.test.ts`, `view.tsx`         |
+| [124-theme-palette-matrix — Theme palette matrix](./cases/124-theme-palette-matrix/chart.ts)                                      | Definition now        | `current-definition-api`                                                         | `chart.ts`, `tanstack.test.ts`, `view.tsx`         |
 | [bar-grouped — Grouped bars](./cases/bar-grouped/tanstack.ts)                                                                     | Definition now        | `current-definition-api`                                                         | `tanstack.ts`                                      |
 | [bar-horizontal-ranking — Horizontal ranking with long labels](./cases/bar-horizontal-ranking/tanstack.ts)                        | Definition now        | `current-definition-api`                                                         | `tanstack.ts`                                      |
 | [bar-stacked — Stacked bars](./cases/bar-stacked/tanstack.ts)                                                                     | Definition now        | `current-definition-api`                                                         | `tanstack.ts`                                      |

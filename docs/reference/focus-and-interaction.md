@@ -774,6 +774,23 @@ Formatting precedence is `content`, `formatGroup`, `format`, then the default.
 The text formatters do not parse HTML, and newlines are preserved. `className`
 is appended to `ts-chart-tooltip`.
 
+The default DOM surface inherits these optional CSS variables from the chart
+container while retaining its built-in fallback values:
+
+| Variable                           | Controls                    |
+| ---------------------------------- | --------------------------- |
+| `--ts-chart-tooltip-background`    | Surface background          |
+| `--ts-chart-tooltip-color`         | Text color                  |
+| `--ts-chart-tooltip-border`        | Complete border declaration |
+| `--ts-chart-tooltip-border-radius` | Corner radius               |
+| `--ts-chart-tooltip-shadow`        | Box shadow                  |
+| `--ts-chart-tooltip-max-width`     | Maximum width               |
+| `--ts-chart-tooltip-padding`       | Inner spacing               |
+| `--ts-chart-tooltip-font`          | Complete font shorthand     |
+
+Use `className` for content structure or additional selectors. Use the
+variables for ordinary surface theming without specificity overrides.
+
 `ChartTooltipContentContext.pinned` is `false` during transient inspection and
 `true` after activation. `content`, `format`, `formatGroup`, and item `text`
 receive the same context, so either structured or plaintext content can reveal

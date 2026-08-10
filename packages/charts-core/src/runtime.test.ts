@@ -362,6 +362,31 @@ describe('dynamic chart runtime', () => {
     svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
     const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
     expect(tooltip?.hidden).toBe(false)
+    expect(tooltip?.style.background).toBe(
+      'var(--ts-chart-tooltip-background, Canvas)',
+    )
+    expect(tooltip?.style.color).toBe(
+      'var(--ts-chart-tooltip-color, CanvasText)',
+    )
+    expect(tooltip?.style.maxWidth).toBe(
+      'var(--ts-chart-tooltip-max-width, min(24rem, 80%))',
+    )
+    expect(tooltip?.style.padding).toBe(
+      'var(--ts-chart-tooltip-padding, 0.4rem 0.55rem)',
+    )
+    expect(tooltip?.style.border).toBe(
+      'var(--ts-chart-tooltip-border, 1px solid color-mix(in srgb, CanvasText 18%, transparent))',
+    )
+    expect(tooltip?.style.borderRadius).toBe(
+      'var(--ts-chart-tooltip-border-radius, 0.45rem)',
+    )
+    expect(tooltip?.style.boxShadow).toBe(
+      'var(--ts-chart-tooltip-shadow, 0 6px 24px rgb(0 0 0 / 0.14))',
+    )
+    expect(tooltip?.style.font).toBe(
+      'var(--ts-chart-tooltip-font, 500 0.75rem/1.3 system-ui, sans-serif)',
+    )
+    expect(tooltip?.style.backdropFilter).toBe('')
 
     host.update({
       ...options,

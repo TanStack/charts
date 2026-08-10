@@ -370,14 +370,15 @@ function createTooltip(document: Document) {
   Object.assign(tooltipElement.style, {
     position: 'absolute',
     zIndex: '1',
-    maxWidth: 'min(24rem, 80%)',
-    padding: '0.4rem 0.55rem',
-    border: '1px solid color-mix(in srgb, CanvasText 18%, transparent)',
-    borderRadius: '0.45rem',
-    background: 'Canvas',
-    color: 'CanvasText',
-    boxShadow: '0 6px 24px rgb(0 0 0 / 0.14)',
-    font: '500 0.75rem/1.3 system-ui, sans-serif',
+    maxWidth: 'var(--ts-chart-tooltip-max-width, min(24rem, 80%))',
+    padding: 'var(--ts-chart-tooltip-padding, 0.4rem 0.55rem)',
+    border:
+      'var(--ts-chart-tooltip-border, 1px solid color-mix(in srgb, CanvasText 18%, transparent))',
+    borderRadius: 'var(--ts-chart-tooltip-border-radius, 0.45rem)',
+    background: 'var(--ts-chart-tooltip-background, Canvas)',
+    color: 'var(--ts-chart-tooltip-color, CanvasText)',
+    boxShadow: 'var(--ts-chart-tooltip-shadow, 0 6px 24px rgb(0 0 0 / 0.14))',
+    font: 'var(--ts-chart-tooltip-font, 500 0.75rem/1.3 system-ui, sans-serif)',
     pointerEvents: 'none',
     overflowWrap: 'anywhere',
   })
