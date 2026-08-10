@@ -7781,7 +7781,7 @@ Each entry records:
   consistent base-opacity contract open for the mark family; do not add a
   runtime-only special case for dots.
 
-### F-263 — Chromium transport suspension interrupted catalog previews
+### F-263 — Chromium transport and context churn interrupted catalog previews
 
 - Status: resolved
 - Severity: medium
@@ -7791,12 +7791,16 @@ Each entry records:
   after each chart had rendered. On macOS, Chromium logged
   `ERR_NETWORK_IO_SUSPENDED` and `ERR_SOCKET_NOT_CONNECTED` for local Vite
   resource requests. Restarting the complete 230-navigation matrix only moved
-  the infrastructure failure later in the run.
-- Decision: retry only those two Chromium transport errors, once, after
-  replacing the browser context so the local connection pool is fresh. Keep
-  every chart, protocol, and other console error non-retryable. Preserve both
-  failures when the fresh attempt does not recover.
+  the infrastructure failure later in the run. A later clean run reached the
+  SVG inspection step before Playwright reported that its execution context
+  had been destroyed, despite the preview page having no post-load navigation.
+- Decision: retry only those two Chromium transport errors and Playwright's
+  exact execution-context-destroyed signature, once, after replacing the
+  browser context. Keep every chart, protocol, and other console error
+  non-retryable. Preserve both failures when the fresh attempt does not recover,
+  so a deterministic reload still fails on its second attempt.
 - Verification: the focused 13-test preview suite covers both exact transport
-  codes, recovery, non-retryable chart failures, and retained repeated-failure
-  evidence. A full browser-backed run generated all 115 previews in both
-  themes without changing any SVG asset; only the source hash changed.
+  codes, the exact context-destroyed signature, recovery, non-retryable chart
+  failures, and retained repeated-failure evidence. A full browser-backed run
+  generated all 115 previews in both themes without changing any SVG asset;
+  only the source hash changed.

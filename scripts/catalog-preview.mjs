@@ -7,8 +7,8 @@ import { readCatalogCases } from './catalog-index.mjs'
 export const catalogPreviewWidth = 288
 export const catalogPreviewHeight = 192
 
-const transientBrowserNetworkError =
-  /net::ERR_(?:NETWORK_IO_SUSPENDED|SOCKET_NOT_CONNECTED)\b/u
+const transientBrowserError =
+  /(?:net::ERR_(?:NETWORK_IO_SUSPENDED|SOCKET_NOT_CONNECTED)\b|Execution context was destroyed, most likely because of a navigation\.?$)/u
 
 const rootDirectory = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -220,7 +220,7 @@ export async function retryCatalogPreviewBrowserRender(
   }
 
   console.warn(
-    `Retrying catalog preview ${label} in a fresh browser context after a transient Chromium network failure.`,
+    `Retrying catalog preview ${label} in a fresh browser context after a transient Chromium failure.`,
   )
 
   try {
@@ -241,9 +241,7 @@ export async function retryCatalogPreviewBrowserRender(
 }
 
 export function isTransientCatalogPreviewBrowserError(error) {
-  return (
-    error instanceof Error && transientBrowserNetworkError.test(error.message)
-  )
+  return error instanceof Error && transientBrowserError.test(error.message)
 }
 
 export async function checkCatalogPreviews() {

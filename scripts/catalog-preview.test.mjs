@@ -293,7 +293,10 @@ describe('catalog previews', () => {
     )
   })
 
-  it('retries only Chromium suspend transport failures', async () => {
+  it('retries only known transient Chromium failures', async () => {
+    const contextErrorMessage =
+      'locator.evaluateAll: Execution context was destroyed, most likely because of a navigation'
+
     expect(
       isTransientCatalogPreviewBrowserError(
         new Error('Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED'),
@@ -303,6 +306,9 @@ describe('catalog previews', () => {
       isTransientCatalogPreviewBrowserError(
         new Error('Failed to load resource: net::ERR_SOCKET_NOT_CONNECTED'),
       ),
+    ).toBe(true)
+    expect(
+      isTransientCatalogPreviewBrowserError(new Error(contextErrorMessage)),
     ).toBe(true)
     expect(
       isTransientCatalogPreviewBrowserError(
@@ -317,9 +323,7 @@ describe('catalog previews', () => {
 
     const render = vi
       .fn()
-      .mockRejectedValueOnce(
-        new Error('Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED'),
-      )
+      .mockRejectedValueOnce(new Error(contextErrorMessage))
       .mockResolvedValue('<svg></svg>')
     const replaceContext = vi.fn().mockResolvedValue(undefined)
 
@@ -334,7 +338,7 @@ describe('catalog previews', () => {
     expect(replaceContext).toHaveBeenCalledTimes(1)
   })
 
-  it('keeps chart errors and repeated network failures hard', async () => {
+  it('keeps chart errors and repeated transient failures hard', async () => {
     const chartError = new Error('Catalog preview has clipped SVG labels')
     const chartRender = vi.fn().mockRejectedValue(chartError)
     const chartContext = vi.fn()
@@ -349,13 +353,11 @@ describe('catalog previews', () => {
     expect(chartRender).toHaveBeenCalledTimes(1)
     expect(chartContext).not.toHaveBeenCalled()
 
-    const firstError = new Error(
-      'Failed to load resource: net::ERR_NETWORK_IO_SUSPENDED',
-    )
-    const secondError = new Error(
-      'Failed to load resource: net::ERR_SOCKET_NOT_CONNECTED',
-    )
-    const networkRender = vi
+    const contextErrorMessage =
+      'locator.evaluateAll: Execution context was destroyed, most likely because of a navigation'
+    const firstError = new Error(contextErrorMessage)
+    const secondError = new Error(contextErrorMessage)
+    const transientRender = vi
       .fn()
       .mockRejectedValueOnce(firstError)
       .mockRejectedValueOnce(secondError)
@@ -363,7 +365,7 @@ describe('catalog previews', () => {
     await expect(
       retryCatalogPreviewBrowserRender(
         'line-gaps (dark)',
-        networkRender,
+        transientRender,
         vi.fn().mockResolvedValue(undefined),
       ),
     ).rejects.toMatchObject({

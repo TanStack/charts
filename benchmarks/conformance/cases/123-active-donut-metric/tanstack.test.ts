@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createChartScene, type SceneNode } from '@tanstack/charts'
-import { activeDonutDefinition, donutSummary } from './chart'
+import { activeDonutArcs, activeDonutDefinition, donutSummary } from './chart'
 import { activeDonutLayout } from './layout'
 import { mount as rechartsMount, sectorAngles } from './recharts'
 import { mount as tanstackMount } from './view'
@@ -91,6 +91,18 @@ describe('active donut metric', () => {
     const first = sectorAngles(rows, 0)
     const empty = sectorAngles(rows, 1)
     const last = sectorAngles(rows, 2)
+
+    rows.forEach((row, index) => {
+      if (row.visitors === 0) return
+      const native = activeDonutArcs(rows, row.id).active[0]
+      const reference = sectorAngles(rows, index)
+
+      expect(native).toBeDefined()
+      expect(90 - (native!.startAngle * 180) / Math.PI).toBeCloseTo(
+        reference.start,
+      )
+      expect(90 - (native!.endAngle * 180) / Math.PI).toBeCloseTo(reference.end)
+    })
 
     expect(first.start).toBe(90)
     expect(first.end).toBeCloseTo(1.4)

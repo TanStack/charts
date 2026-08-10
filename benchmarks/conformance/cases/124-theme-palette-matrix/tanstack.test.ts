@@ -113,24 +113,33 @@ describe('theme palette matrix', () => {
     async (_, mountCase) => {
       const container = document.createElement('div')
       document.body.append(container)
-      let handle!: ReturnType<typeof mountCase>
+      let handle: ReturnType<typeof mountCase> | undefined
 
-      await act(async () => {
-        handle = mountCase(container, input)
-      })
+      try {
+        await act(async () => {
+          handle = mountCase(container, input)
+        })
 
-      const panels = [
-        ...container.querySelectorAll<HTMLElement>('[data-palette-treatment]'),
-      ]
-      expect(panels).toHaveLength(3)
-      expect(
-        panels.every((panel) => panel.style.colorScheme === 'light dark'),
-      ).toBe(true)
-
-      await act(async () => {
-        handle.destroy()
-      })
-      container.remove()
+        const panels = [
+          ...container.querySelectorAll<HTMLElement>(
+            '[data-palette-treatment]',
+          ),
+        ]
+        expect(panels).toHaveLength(3)
+        expect(
+          panels.every((panel) => panel.style.colorScheme === 'light dark'),
+        ).toBe(true)
+      } finally {
+        try {
+          if (handle) {
+            await act(async () => {
+              handle?.destroy()
+            })
+          }
+        } finally {
+          container.remove()
+        }
+      }
     },
   )
 

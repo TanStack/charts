@@ -43,8 +43,7 @@ export function activeDonutDefinition(
   activeId: string,
 ) {
   const rows = browserRows(input.revision)
-  const arcs = pie(rows, { value: 'visitors', gapAngle })
-  const active = arcs.filter((row) => row.id === activeId)
+  const { arcs, active } = activeDonutArcs(rows, activeId)
   const selected = rows.find((row) => row.id === activeId) ?? rows[0]!
   const centerRows: readonly DonutCenterRow[] = [
     {
@@ -167,6 +166,14 @@ export function activeDonutDefinition(
       tooltip: input.interactive ? { use: tooltip, ...tooltipOptions } : false,
     },
   )
+}
+
+export function activeDonutArcs(rows: readonly BrowserRow[], activeId: string) {
+  const arcs = pie(rows, { value: 'visitors', gapAngle })
+  return {
+    arcs,
+    active: arcs.filter((row) => row.id === activeId),
+  }
 }
 
 export function donutSummary(input: ConformanceInput, activeId: string) {
