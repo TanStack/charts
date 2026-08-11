@@ -1,5 +1,11 @@
 # @tanstack/charts
 
+## 0.11.0
+
+### Minor Changes
+
+- [#81](https://github.com/TanStack/charts/pull/81) [`38ad7e5`](https://github.com/TanStack/charts/commit/38ad7e5749d5480045bbd80b0be4259071570ed8) - Add controlled sunburst drill-down roots, bounded visible depth, and hierarchy-aware polar motion that keeps animated sectors centered. Add funnel and drillable sunburst catalog examples.
+
 ## 0.10.0
 
 ### Minor Changes
