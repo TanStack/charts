@@ -122,7 +122,7 @@ export function focusContextOverviewDefinition(
           ticks: {
             count: 4,
             format: (value) =>
-              value.toLocaleDateString(undefined, {
+              value.toLocaleDateString('en-US', {
                 month: 'short',
                 timeZone: 'UTC',
               }),
@@ -396,7 +396,7 @@ function rangeLabel(window: FocusContextWindow) {
 }
 
 function monthLabel(date: Date) {
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
