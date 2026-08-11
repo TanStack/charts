@@ -1,5 +1,84 @@
 # Changelog
 
+## 0.10.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#79](https://github.com/TanStack/charts/pull/79) [`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e) - Let chart containers theme the built-in DOM tooltip surface through inherited
+  `--ts-chart-tooltip-*` CSS variables while preserving the existing defaults.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e)]:
+  - @tanstack/charts@0.10.0
+
 ## 0.9.0
 
 ### @tanstack/charts
