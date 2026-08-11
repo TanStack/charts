@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-10
+Last updated: 2026-08-11
 
 ## Triage rule
 
@@ -303,6 +303,7 @@ Each entry records:
 | F-264 | Drillable sunbursts required rebuilding hierarchy rows         | API/Documentation     | resolved   |
 | F-265 | Sunburst motion lost hierarchy across enter and exit           | API                   | resolved   |
 | F-266 | Path-token motion distorted polar sectors                      | API/Tooling           | resolved   |
+| F-267 | Stress timeouts entered a class temporal dead zone             | Tooling               | resolved   |
 
 ## Findings
 
@@ -7872,3 +7873,22 @@ Each entry records:
   reduced motion snaps, and retained-input bundle gates require only the small
   scene-motion contract while forbidding sunburst, hierarchy, polar-sector,
   d3-shape, and d3-path inputs from the isolated motion bundle.
+
+### F-267 — Stress timeouts entered a class temporal dead zone
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: release pull request stress partition 1
+- Friction: the stress runner began its top-level browser workload before
+  evaluating a later `CellTimeoutError` class declaration. When one cell
+  reached the intended 120-second outer limit, the timeout callback threw a
+  `ReferenceError` instead of returning the retryable timeout result, aborting
+  the complete partition before its fresh-context retry.
+- Decision: define the timeout error in an imported benchmark module. Module
+  dependencies finish evaluation before the stress runner starts top-level
+  work, so the timeout path cannot observe an uninitialized class.
+- Verification: the focused timeout regression constructs the imported error
+  with the expected prototype, name, and duration message. The retry suite,
+  stress-runner syntax check, full repository validation, and rerun GitHub
+  stress partition pass.

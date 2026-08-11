@@ -7,6 +7,7 @@ import {
   launchBenchmarkBrowser,
   startBenchmarkServer,
 } from './benchmark/browser.mjs'
+import { CellTimeoutError } from './benchmark/cell-timeout.mjs'
 import { chartLibraries } from './benchmark/chart-libraries.mjs'
 import {
   assertKnownFilterValues,
@@ -337,13 +338,6 @@ async function runIsolated(
   } finally {
     clearTimeout(timeout)
     await context?.close().catch(() => {})
-  }
-}
-
-class CellTimeoutError extends Error {
-  constructor(timeoutMs) {
-    super(`Cell exceeded ${timeoutMs} ms.`)
-    this.name = 'CellTimeoutError'
   }
 }
 
