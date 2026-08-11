@@ -758,6 +758,14 @@
         {
           "label": "Theme palette matrix",
           "to": "/charts/catalog/charts/124-theme-palette-matrix/"
+        },
+        {
+          "label": "Sales conversion funnel",
+          "to": "/charts/catalog/charts/125-sales-funnel/"
+        },
+        {
+          "label": "Drillable Flare sunburst",
+          "to": "/charts/catalog/charts/126-drillable-sunburst/"
         }
       ]
     },

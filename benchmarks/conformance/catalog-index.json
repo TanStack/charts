@@ -10541,6 +10541,95 @@
           "path": "benchmarks/conformance/cases/124-theme-palette-matrix/plot.ts"
         }
       }
+    },
+    {
+      "schemaVersion": 1,
+      "order": 1260,
+      "id": "125-sales-funnel",
+      "title": "Sales conversion funnel",
+      "family": "composition",
+      "intent": "Show how 12,400 visitors narrow through leads, qualification, proposals, and closed sales while preserving every stage value.",
+      "support": "native",
+      "features": [
+        "ordered funnel stages",
+        "native transposed areas",
+        "centered quantitative extents",
+        "separate keyed trapezoids",
+        "direct stage labels",
+        "raw stage values",
+        "responsive layout"
+      ],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 5,
+          "maxCount": 5
+        },
+        {
+          "role": "text",
+          "count": 5,
+          "maxCount": 5
+        }
+      ],
+      "source": {
+        "title": "Bklit UI Funnel Chart",
+        "url": "https://bklit.com/docs/components/funnel-chart"
+      },
+      "ai": {
+        "create": "Create a sales funnel from five raw stage values. Derive centered left and right endpoints for two boundaries per stage, render each stage as a separate native areaX trapezoid, and label every stage with its raw value.",
+        "maintain": "Keep stage order, semantic keys, proportional widths, centered extents, direct labels, raw values, and the tapered final edge stable across responsive sizes and data revisions."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/125-sales-funnel/tanstack.ts",
+        "reference": {
+          "renderer": "observable-plot",
+          "path": "benchmarks/conformance/cases/125-sales-funnel/plot.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "order": 1270,
+      "id": "126-drillable-sunburst",
+      "title": "Drillable Flare sunburst",
+      "family": "hierarchy",
+      "intent": "Navigate a large hierarchy two levels at a time while retained and newly revealed sectors follow their hierarchy through each transition.",
+      "support": "native",
+      "features": [
+        "native sunburst hierarchy mark",
+        "focused hierarchy root",
+        "bounded visible depth",
+        "drill-down and drill-up",
+        "pointer and keyboard activation",
+        "stable node identity",
+        "hierarchy-aware enter and exit",
+        "semantic polar interpolation",
+        "reduced-motion support"
+      ],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 13,
+          "maxCount": 13
+        }
+      ],
+      "minimumGeometrySimilarity": 0.99,
+      "source": {
+        "title": "D3 zoomable sunburst",
+        "url": "https://observablehq.com/@d3/zoomable-sunburst"
+      },
+      "ai": {
+        "create": "Create a drillable Flare sunburst that renders two descendant rings below a controlled root, uses semantic node selection for pointer and keyboard navigation, and animates retained, entering, and exiting sectors by interpolating polar geometry through hierarchy relationships.",
+        "maintain": "Keep the full flat hierarchy as source data, preserve canonical node IDs and ancestry across root changes, leave navigation state and the center back control in the application, and keep motion centered by interpolating sector angles and radii before regenerating each path."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/126-drillable-sunburst/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/126-drillable-sunburst/recharts.ts"
+        }
+      }
     }
   ]
 }

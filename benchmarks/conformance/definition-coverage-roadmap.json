@@ -615,11 +615,12 @@
       "phase": "phase-3",
       "status": "verified",
       "dependsOn": [],
-      "frictionIds": ["F-208"],
+      "frictionIds": ["F-208", "F-264"],
       "entryPoint": "@tanstack/charts/hierarchy/sunburst",
       "bundleFixture": "benchmarks/entries/charts-hierarchy-sunburst.ts",
       "evidence": [
         "cases/101-sunburst/tanstack.ts",
+        "cases/126-drillable-sunburst/tanstack.ts",
         "../../packages/charts-core/src/hierarchy-sunburst.test.ts",
         "../entries/charts-hierarchy-sunburst.ts"
       ]
@@ -3611,6 +3612,70 @@
           "coordinateSpace": "dom",
           "sources": ["view.tsx"],
           "summary": "Retain the responsive three-card matrix and palette labels as application composition around real chart surfaces."
+        }
+      ]
+    },
+    {
+      "id": "125-sales-funnel",
+      "coverage": "prepared",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/125-sales-funnel/tanstack.ts",
+        "cases/125-sales-funnel/model.test.ts",
+        "cases/125-sales-funnel/case.json"
+      ],
+      "work": [
+        {
+          "kind": "data-space-layout",
+          "stage": "before-definition",
+          "owner": "case",
+          "coordinateSpace": "data",
+          "sources": ["model.ts"],
+          "summary": "Derive centered stage boundary endpoints and label positions from semantic ordered stage values."
+        },
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["tanstack.ts"],
+          "summary": "Compose native areaX groups and direct text labels over explicit linear domains with stable stage keys."
+        }
+      ]
+    },
+    {
+      "id": "126-drillable-sunburst",
+      "coverage": "app-composed",
+      "disposition": "optional-primitive",
+      "phase": "phase-4",
+      "status": "verified",
+      "capabilities": ["hierarchy-sunburst"],
+      "evidence": [
+        "cases/126-drillable-sunburst/tanstack.ts",
+        "cases/126-drillable-sunburst/tanstack.test.ts",
+        "cases/126-drillable-sunburst/model.test.ts",
+        "../../packages/charts-core/src/hierarchy-sunburst.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "responsive-pixel-layout",
+          "stage": "mark-render",
+          "owner": "charts",
+          "coordinateSpace": "resolved-plot",
+          "sources": ["packages/charts-core/src/hierarchy-sunburst.ts"],
+          "dependencies": ["d3-hierarchy", "d3-shape"],
+          "summary": "Own focused-root partitioning, bounded visible depth, full-tree aggregation, responsive rings, and stable node geometry."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["model.ts", "center.ts", "tanstack.ts"],
+          "summary": "Retain selected-root state, semantic drill selection, the center back control, and conformance observation."
         }
       ]
     },

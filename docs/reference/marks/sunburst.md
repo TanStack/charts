@@ -22,6 +22,8 @@ const chart = defineChart({
           path: 'name',
           delimiter: '.',
           value: 'size',
+          rootId: '/flare/analytics',
+          visibleDepth: 2,
           innerRadius: ({ radius }) => radius * 0.14,
           ringPadding: 2,
           color: 'branchId',
@@ -84,6 +86,8 @@ independent of the authored delimiter. The original row and path remain on
 | `parentId`                                    | `TransformValue<TDatum, string?>`                        | Parent mode    | Explicit parent identity                            |
 | `value`                                       | `TransformValue<TDatum, number?>`                        | Required       | Nonnegative contribution aggregated through parents |
 | `sort`                                        | `SunburstNodeComparator<TDatum>`                         | Source order   | Sibling comparator over immutable node values       |
+| `rootId`                                      | `string`                                                 | Hierarchy root | Node whose children form the first rendered ring    |
+| `visibleDepth`                                | `number`                                                 | All depths     | Maximum descendant rings below the active root      |
 | `innerRadius`                                 | `PolarLength`                                            | `0`            | Responsive inner edge of the first rendered ring    |
 | `outerRadius`                                 | `PolarLength`                                            | Layout radius  | Responsive outer edge of the last rendered ring     |
 | `ringPadding`                                 | `number`                                                 | `0`            | Fixed CSS-pixel gap between hierarchy depths        |
@@ -113,6 +117,49 @@ direction.
 change the hierarchy values or angular allocation. Sectors replay the shared
 renderer-neutral D3 path commands into a sampled interaction polygon, so
 rounded, reversed, and complete sectors retain paint-faithful focus geometry.
+
+## Drill-down and motion
+
+`rootId` makes an existing hierarchy node the structural root without changing
+its canonical ID or rebuilding source rows. Its children become depth one, and
+the root itself is not painted. `visibleDepth` is relative to that root; hidden
+descendants still contribute to aggregate values and `internal` metadata.
+
+```ts
+const definition = (rootId: string) =>
+  defineChart({
+    marks: [
+      polar({
+        marks: [
+          sunburst(rows, {
+            id: 'package-sunburst',
+            path: 'name',
+            delimiter: '.',
+            value: 'size',
+            rootId,
+            visibleDepth: 2,
+          }),
+        ],
+      }),
+    ],
+    motion: {
+      transition: { type: 'tween', duration: 720, easing: 'ease-in-out' },
+    },
+  })
+```
+
+Rebuild the definition when application navigation changes `rootId`, and mount
+it with the optional `motion()` renderer. Retained descendants keep their node
+keys. Sunburst motion interpolates each sector's angles and radii, then
+regenerates a valid concentric arc around the fixed polar center every frame.
+Newly revealed descendants unfold from their nearest disappearing ancestor
+sector. During drill-up, removed descendants collapse into their nearest
+appearing ancestor. Nodes without an overlapping lineage use the normal enter
+or exit opacity transition. The renderer snaps these updates when the user
+requests reduced motion.
+
+In path mode, pass the canonical slash ID such as `/flare/analytics`, not the
+authored delimiter spelling. Explicit-parent IDs remain opaque.
 
 ## Nodes and lineage
 

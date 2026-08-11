@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "7b5c4f82e6d298db7532ccf26f93768e0680e0beabe3c45e1f6f974ae876cdfe",
+  "sourceHash": "f71b56214bc650eab205bd970fb5c9ddabae61717dd5b6378f85a1514081441d",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -578,6 +578,16 @@
       "id": "124-theme-palette-matrix",
       "sha256": "98ef62e53130e9d0ba3ddb375dbde209b56b8348af95b859e593106855345cde",
       "bytes": 9796
+    },
+    {
+      "id": "125-sales-funnel",
+      "sha256": "67d8bd5f4dd650c1c633a9b37c61988d9d235c36752e0f333c44ee425eb0b442",
+      "bytes": 3255
+    },
+    {
+      "id": "126-drillable-sunburst",
+      "sha256": "163fd17e46238cb53209a371477b7bc78e196ccd66a385ee3ed2f6b60f675fc6",
+      "bytes": 9111
     }
   ]
 }

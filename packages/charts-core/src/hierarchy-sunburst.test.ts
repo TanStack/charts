@@ -201,6 +201,88 @@ describe('sunburst', () => {
     expect(JSON.stringify(source)).toBe(before)
   })
 
+  it('focuses a stable hierarchy root and limits visible descendant rings', () => {
+    const source = [
+      { id: 'root', parent: null as string | null, value: 0 },
+      { id: 'alpha', parent: 'root', value: 0 },
+      { id: 'beta', parent: 'root', value: 7 },
+      { id: 'branch', parent: 'alpha', value: 0 },
+      { id: 'sibling', parent: 'alpha', value: 3 },
+      { id: 'leaf', parent: 'branch', value: 5 },
+    ]
+    const scene = render(
+      sunburst(source, {
+        id: 'focused',
+        nodeId: 'id',
+        parentId: 'parent',
+        value: 'value',
+        rootId: 'alpha',
+        visibleDepth: 1,
+      }),
+    )
+    const byId = new Map(scene.points.map((point) => [point.datum.id, point]))
+
+    expect([...byId.keys()]).toEqual(['branch', 'sibling'])
+    expect(byId.get('branch')?.datum).toMatchObject({
+      parentId: 'alpha',
+      ancestorIds: ['alpha'],
+      branchId: 'branch',
+      depth: 1,
+      height: 1,
+      internal: true,
+      external: false,
+      value: 5,
+    })
+    expect(byId.get('sibling')?.datum.value).toBe(3)
+    expect(scene.points.map((point) => point.key)).toEqual([
+      'focused:node:string:6:branch',
+      'focused:node:string:7:sibling',
+    ])
+    expect(areaNodes(scene.nodes).map(radialExtent)).toEqual([
+      { minimum: 0, maximum: 80 },
+      { minimum: 0, maximum: 80 },
+    ])
+  })
+
+  it('keeps retained node keys stable while changing the active root', () => {
+    const source = [
+      { id: 'root', parent: null as string | null, value: 0 },
+      { id: 'alpha', parent: 'root', value: 0 },
+      { id: 'branch', parent: 'alpha', value: 0 },
+      { id: 'leaf', parent: 'branch', value: 5 },
+    ]
+    const mark = (rootId: string) =>
+      sunburst(source, {
+        id: 'drill',
+        nodeId: 'id',
+        parentId: 'parent',
+        value: 'value',
+        rootId,
+        visibleDepth: 2,
+      })
+    const overview = render(mark('root'))
+    const focused = render(mark('alpha'))
+    const overviewBranch = overview.points.find(
+      (point) => point.datum.id === 'branch',
+    )
+    const focusedBranch = focused.points.find(
+      (point) => point.datum.id === 'branch',
+    )
+
+    expect(overview.points.map((point) => point.datum.id)).toEqual([
+      'alpha',
+      'branch',
+    ])
+    expect(focused.points.map((point) => point.datum.id)).toEqual([
+      'branch',
+      'leaf',
+    ])
+    expect(focusedBranch?.key).toBe(overviewBranch?.key)
+    expect(focusedBranch?.datum.depth).toBe(1)
+    expect(overviewBranch?.datum.depth).toBe(2)
+    expect(focusedBranch?.yValue).toBeLessThan(overviewBranch?.yValue ?? 0)
+  })
+
   it('preserves slash-containing explicit ids as opaque names', () => {
     const scene = render(
       sunburst(
@@ -384,7 +466,7 @@ describe('sunburst', () => {
     expect(colors(withZero)).toEqual(colors(withoutZero))
   })
 
-  it('rejects invalid values, sorting, padding, and responsive radii', () => {
+  it('rejects invalid values, sorting, roots, depth, padding, and responsive radii', () => {
     for (const value of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(() =>
         sunburst(
@@ -427,6 +509,35 @@ describe('sunburst', () => {
         sort: () => Number.NaN,
       }),
     ).toThrow('sunburst: sort result must be finite')
+
+    expect(() =>
+      sunburst(pathRows, {
+        path: 'path',
+        delimiter: '.',
+        value: 'value',
+        rootId: '',
+      }),
+    ).toThrow('sunburst: rootId must be a nonempty string')
+
+    expect(() =>
+      sunburst(pathRows, {
+        path: 'path',
+        delimiter: '.',
+        value: 'value',
+        rootId: '/root/missing',
+      }),
+    ).toThrow('sunburst: rootId "/root/missing" does not exist')
+
+    for (const visibleDepth of [0, -1, 1.5, Number.NaN]) {
+      expect(() =>
+        sunburst(pathRows, {
+          path: 'path',
+          delimiter: '.',
+          value: 'value',
+          visibleDepth,
+        }),
+      ).toThrow('sunburst: visibleDepth must be a positive integer')
+    }
 
     expect(() =>
       render(
