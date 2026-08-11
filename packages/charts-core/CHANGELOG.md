@@ -1,5 +1,12 @@
 # @tanstack/charts
 
+## 0.10.0
+
+### Minor Changes
+
+- [#79](https://github.com/TanStack/charts/pull/79) [`39242bd`](https://github.com/TanStack/charts/commit/39242bd95f6d502a8a3e0e17679fc9389ac5a38e) - Let chart containers theme the built-in DOM tooltip surface through inherited
+  `--ts-chart-tooltip-*` CSS variables while preserving the existing defaults.
+
 ## 0.9.0
 
 ### Minor Changes
