@@ -304,6 +304,9 @@ Each entry records:
 | F-265 | Sunburst motion lost hierarchy across enter and exit           | API                   | resolved   |
 | F-266 | Path-token motion distorted polar sectors                      | API/Tooling           | resolved   |
 | F-267 | Stress timeouts entered a class temporal dead zone             | Tooling               | resolved   |
+| F-268 | Animated arc flags became invalid fractional path values       | API                   | resolved   |
+| F-269 | Angular mounted its browser host during server rendering       | API                   | resolved   |
+| F-270 | Catalog migration left generated release evidence stale        | Tooling               | resolved   |
 
 ## Findings
 
@@ -7898,3 +7901,55 @@ Each entry records:
   with the expected prototype, name, and duration message. The retry suite,
   stress-runner syntax check, full repository validation, and rerun GitHub
   stress partition pass.
+
+### F-268 — Animated arc flags became invalid fractional path values
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: GitHub issue #71 and the SVG reconciliation regression
+- Friction: the default motion renderer interpolated every number in a path's
+  `d` attribute. SVG arc flags are discrete `0` or `1` values, so a flag change
+  produced invalid fractional flags and could hide an arc during its tween.
+- Decision: identify the large-arc and sweep positions in every `A`/`a`
+  command, snap those values to the target flag, and continue interpolating the
+  remaining path geometry.
+- Verification: the focused reconciliation test changes both flags while
+  interpolating arc radii and endpoints, and asserts valid flags at the
+  midpoint and exact target geometry at completion. Bundle review attributes
+  196 minified and 84–92 gzip bytes across the four locked DOM consumers to
+  the shared correctness fix; the exact baselines and six complete-consumer
+  ceilings record that reviewed cost.
+
+### F-269 — Angular mounted its browser host during server rendering
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: GitHub issue #56 and Angular server-rendering regression
+- Friction: `ngAfterViewInit` runs during Angular SSR, so the adapter mounted
+  the DOM host against the server element and called browser-only measurement
+  or mutation methods.
+- Decision: keep synchronous SVG prerendering in the shared adapter and defer
+  only browser-host mounting through Angular's `afterNextRender`, which does
+  not run on the server.
+- Verification: the official Angular `renderApplication` pipeline emits the
+  complete labeled SVG without mounting the DOM host, while the existing
+  browser test still covers mount, update, and destroy.
+
+### F-270 — Catalog migration left generated release evidence stale
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: release validation after the React catalog migration in #84
+- Friction: the migration moved four application shells into React views and
+  renamed the token-calendar shell to TSX without updating roadmap ownership
+  or the audit link. It also changed catalog source inputs without refreshing
+  preview provenance. Current `main` therefore failed both the unit and
+  catalog-preview release gates.
+- Decision: point roadmap ownership at the active `view.tsx` and `shell.tsx`
+  files, repair the audit link, and regenerate catalog preview provenance.
+- Verification: the focused roadmap test and catalog preview check pass. The
+  only rendered asset change normalizes synchronized-cursor point keys from
+  timestamp labels to the migrated ISO date labels; geometry is unchanged.

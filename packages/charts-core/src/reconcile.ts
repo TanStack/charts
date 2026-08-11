@@ -157,7 +157,7 @@ function syncAttributes(
       previous !== null &&
       target !== null &&
       interpolatedAttributes.has(name)
-        ? interpolateAttribute(previous, target)
+        ? interpolateAttribute(name, previous, target)
         : undefined
     if (interpolate && tweens) {
       tweens.push({ element: current, name, interpolate, target })
@@ -247,6 +247,7 @@ function finishTweens(tweens: readonly AttributeTween[]) {
 }
 
 function interpolateAttribute(
+  name: string,
   previous: string,
   next: string,
 ): ((progress: number) => string) | undefined {
@@ -260,15 +261,34 @@ function interpolateAttribute(
     return undefined
   }
 
+  const template =
+    name === 'd' ? markSvgArcFlags(nextNumbers.skeleton) : nextNumbers.skeleton
   return (progress) => {
     let index = 0
-    return nextNumbers.skeleton.replaceAll('#', () => {
+    return template.replaceAll(/[#!]/g, (placeholder) => {
       const start = previousNumbers.values[index]
       const end = nextNumbers.values[index]
       index += 1
-      return formatNumber(start + (end - start) * progress)
+      return formatNumber(
+        placeholder === '!' ? end : start + (end - start) * progress,
+      )
     })
   }
+}
+
+function markSvgArcFlags(path: string) {
+  let arc = false
+  let argument = 0
+  return path.replace(/[a-z]|#/gi, (token) => {
+    if (token !== '#') {
+      arc = /a/i.test(token)
+      argument = 0
+    } else {
+      const position = argument++ % 7
+      if (arc && position > 2 && position < 5) return '!'
+    }
+    return token
+  })
 }
 
 function extractNumbers(value: string) {

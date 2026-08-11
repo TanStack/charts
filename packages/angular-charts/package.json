@@ -31,6 +31,7 @@
     "@angular/core": "^22.0.2",
     "@angular/platform-browser": "^22.0.2",
     "@angular/platform-browser-dynamic": "^22.0.2",
+    "@angular/platform-server": "^22.0.2",
     "ng-packagr": "^22.0.0"
   },
   "publishConfig": {

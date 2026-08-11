@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "f71b56214bc650eab205bd970fb5c9ddabae61717dd5b6378f85a1514081441d",
+  "sourceHash": "f336ff6c868e46cf5f90d0eb5efcca497a9596e56ba018c0cd81524687922a5a",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -386,8 +386,8 @@
     },
     {
       "id": "87-echarts-synchronized-cursors",
-      "sha256": "827f8aa0a720d26a538ac69f7781e7326d34d40348b31e46d3fd85bb1a859b10",
-      "bytes": 8113
+      "sha256": "b801e38c12e28147beba54e0a3b6dcb123d1d49463620b8758ef429ce2478119",
+      "bytes": 7985
     },
     {
       "id": "88-echarts-free-cursor",
