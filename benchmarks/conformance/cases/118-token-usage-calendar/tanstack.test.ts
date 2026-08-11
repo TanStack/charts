@@ -110,7 +110,7 @@ describe('definition-owned token activity calendar', () => {
     const shellSource = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/118-token-usage-calendar/shell.ts',
+        'benchmarks/conformance/cases/118-token-usage-calendar/shell.tsx',
       ),
       'utf8',
     )

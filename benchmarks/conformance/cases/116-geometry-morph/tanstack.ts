@@ -1,153 +1,19 @@
 import { createMark, defineChart } from '@tanstack/charts'
-import { motion } from '@tanstack/charts/motion'
-import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { scaleLinear } from 'd3-scale'
-import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { morphData, morphModes } from './model'
 import { tanstackCase } from '../../shared/mount'
 import type {
   ChartMotionDefinition,
   ChartPoint,
-  ChartRendererHost,
-  ChartRendererHostOptions,
   SceneNode,
 } from '@tanstack/charts'
 import type { MorphDatum, MorphMode } from './model'
-import type {
-  ConformanceInput,
-  ConformanceMount,
-  ConformanceTestDriver,
-} from '../../types'
 
 type Point = readonly [number, number]
 
 const sampleCount = 48
-const renderer = motion<MorphDatum, number, number>()
 
-export const mount: ConformanceMount = (container, input) => {
-  let currentInput = input
-  let mode = modeForRevision(input.revision)
-  let interruptionCount = 0
-  let timer: number | undefined
-  let host: ChartRendererHost<MorphDatum, number, number> | undefined
-  const view = container.ownerDocument.createElement('div')
-  const controls = createControls(container.ownerDocument)
-  const chart = container.ownerDocument.createElement('div')
-  view.dataset.conformanceView = 'main'
-  Object.assign(view.style, {
-    display: 'grid',
-    gridTemplateRows: 'auto minmax(0, 1fr)',
-    height: `${input.height}px`,
-    color: 'CanvasText',
-  })
-  chart.style.minHeight = '0'
-  view.append(controls.root, chart)
-  container.append(view)
-
-  const chartHeight = () =>
-    Math.max(
-      220,
-      currentInput.height - controls.root.getBoundingClientRect().height,
-    )
-  const options = (): ChartRendererHostOptions<MorphDatum, number, number> => ({
-    definition: geometryMorphDefinition(morphData, mode),
-    renderer,
-    width: currentInput.width,
-    height: chartHeight(),
-    ariaLabel: `Data morphing as ${mode}`,
-  })
-  const updateChart = () => {
-    host?.update(options())
-    controls.status.value = modeLabel(mode)
-  }
-  const selectMode = (next: MorphMode) => {
-    clearTimer(container.ownerDocument.defaultView, timer)
-    timer = undefined
-    mode = next
-    updateChart()
-  }
-  const advance = () => {
-    const index = morphModes.indexOf(mode)
-    selectMode(morphModes[(index + 1) % morphModes.length] ?? 'bars')
-  }
-  const interrupt = () => {
-    clearTimer(container.ownerDocument.defaultView, timer)
-    mode = 'rose'
-    updateChart()
-    controls.status.value = 'Rose → bubbles in 180 ms'
-    timer = container.ownerDocument.defaultView?.setTimeout(() => {
-      mode = 'bubbles'
-      interruptionCount += 1
-      updateChart()
-      timer = undefined
-    }, 180)
-  }
-  const replay = () => {
-    clearTimer(container.ownerDocument.defaultView, timer)
-    timer = undefined
-    host?.destroy()
-    mode = 'bars'
-    host = mountChartRenderer(chart, options())
-    controls.status.value = modeLabel(mode)
-  }
-
-  for (const [buttonMode, button] of controls.modes) {
-    button.addEventListener('click', () => selectMode(buttonMode))
-  }
-  controls.next.addEventListener('click', advance)
-  controls.interrupt.addEventListener('click', interrupt)
-  controls.replay.addEventListener('click', replay)
-  host = mountChartRenderer(chart, options())
-  controls.status.value = modeLabel(mode)
-
-  const driver: ConformanceTestDriver = {
-    resolveTarget(target) {
-      if (target.view && target.view !== 'main') return null
-      const control =
-        target.anchor === 'control:update'
-          ? controls.next
-          : target.anchor === 'control:interrupt'
-            ? controls.interrupt
-            : target.anchor === 'control:replay'
-              ? controls.replay
-              : null
-      if (!control) return null
-      const bounds = control.getBoundingClientRect()
-      return {
-        x: bounds.left + bounds.width / 2,
-        y: bounds.top + bounds.height / 2,
-        focusElement: control,
-      }
-    },
-    readState() {
-      return {
-        mode,
-        interruptionCount,
-        pathCount: chart.querySelectorAll('g.ts-chart__geometry-morph > path')
-          .length,
-        motionState: readChartMotionState(chart),
-      }
-    },
-    settle: () => settleChartMotion(chart, 5_000),
-  }
-
-  return {
-    driver,
-    update(nextInput: ConformanceInput) {
-      clearTimer(container.ownerDocument.defaultView, timer)
-      timer = undefined
-      currentInput = nextInput
-      mode = modeForRevision(nextInput.revision)
-      view.style.height = `${nextInput.height}px`
-      updateChart()
-    },
-    destroy() {
-      clearTimer(container.ownerDocument.defaultView, timer)
-      host?.destroy()
-      view.remove()
-    },
-  }
-}
+export { mount } from './view'
 
 export function geometryMorphDefinition(
   data: readonly MorphDatum[],
@@ -414,58 +280,10 @@ function sampleSector(
   return points
 }
 
-function createControls(document: Document) {
-  const root = document.createElement('div')
-  root.setAttribute('role', 'group')
-  root.setAttribute('aria-label', 'Geometry morph controls')
-  Object.assign(root.style, {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: '8px',
-    padding: '10px',
-    font: '500 12px/1.2 system-ui, sans-serif',
-  })
-  const modes = new Map<MorphMode, HTMLButtonElement>()
-  for (const mode of morphModes) {
-    const control = button(document, modeLabel(mode))
-    modes.set(mode, control)
-    root.append(control)
-  }
-  const next = button(document, 'Next')
-  const interrupt = button(document, 'Interrupt')
-  const replay = button(document, 'Replay')
-  const status = document.createElement('output')
-  status.setAttribute('aria-live', 'polite')
-  Object.assign(status.style, {
-    display: 'inline-block',
-    width: '150px',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    opacity: '0.7',
-  })
-  root.append(next, interrupt, replay, status)
-  return { root, modes, next, interrupt, replay, status }
-}
-
-function button(document: Document, label: string) {
-  const control = document.createElement('button')
-  control.type = 'button'
-  control.textContent = label
-  control.style.padding = '0 12px'
-  return control
-}
-
-function modeForRevision(revision: number) {
+export function modeForRevision(revision: number) {
   return morphModes[Math.abs(revision) % morphModes.length] ?? 'bars'
 }
 
-function modeLabel(mode: MorphMode) {
+export function modeLabel(mode: MorphMode) {
   return mode[0]!.toUpperCase() + mode.slice(1)
-}
-
-function clearTimer(view: Window | null, timer: number | undefined) {
-  if (timer !== undefined) view?.clearTimeout(timer)
 }

@@ -1,5 +1,5 @@
 import { cars } from '@charts-poc/demo-data/cars'
-import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { defineChart, dot, lineY } from '@tanstack/charts'
 import { continuousCursor } from '@tanstack/charts/interaction/cursor'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { decorative } from '@tanstack/charts/mark/decorative'
@@ -9,35 +9,29 @@ import {
   scenePointToClient,
 } from '../../shared/driver-geometry'
 import { tanstackCase } from '../../shared/mount'
-import {
-  createFreeCursorControls,
-  formatFreeCursorValue,
-  updateFreeCursorControls,
-} from './controls'
+import { formatFreeCursorValue } from './format'
 import {
   freeCursorFractionFromAnchor,
   freeCursorRows,
   freeCursorXDomain,
   freeCursorYDomain,
 } from './model'
-import type { ChartHost, ChartHostOptions, ChartScene } from '@tanstack/charts'
+import type { ChartScene } from '@tanstack/charts'
 import type {
   ContinuousCursorChange,
   ContinuousCursorPosition,
 } from '@tanstack/charts/interaction/cursor'
-import type { FreeCursorControls } from './controls'
 import type { CompleteCar } from './model'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
   ConformanceInput,
   ConformanceJsonObject,
-  ConformanceMount,
   ConformanceTarget,
   ConformanceTestDriver,
 } from '../../types'
 
-interface CursorState {
+export interface CursorState {
   visible: boolean
   xNormalized: number | null
   yNormalized: number | null
@@ -46,7 +40,7 @@ interface CursorState {
   pinned: boolean
 }
 
-const cursorControlsHeight = 68
+export const cursorControlsHeight = 68
 const rows = freeCursorRows(cars)
 const catalogPreviewCursor = {
   x: 101.8,
@@ -167,105 +161,16 @@ export const catalogCase = tanstackCase(
   { margin: true },
 )
 
-export const mount: ConformanceMount = (container, input) => {
-  let currentInput = input
-  let accepted: ContinuousCursorPosition<number, number> | null = null
-  let state = clearedCursor()
-  let renderCount = 0
-  let host: ChartHost<CompleteCar, number, number> | undefined
+export { mount } from './view'
 
-  const shell = container.ownerDocument.createElement('div')
-  const chartFrame = container.ownerDocument.createElement('div')
-  const controls = createFreeCursorControls(
-    container.ownerDocument,
-    (x, y) => accept({ x, y }),
-    {
-      xDomain: freeCursorXDomain,
-      yDomain: freeCursorYDomain,
-      xLabel: 'Horsepower',
-      yLabel: 'Fuel economy',
-      xStep: 0.1,
-      yStep: 0.1,
-    },
-  )
-  shell.style.display = 'grid'
-  shell.style.gridTemplateRows = `${cursorControlsHeight}px minmax(0, 1fr)`
-  chartFrame.style.minHeight = '0'
-  chartFrame.dataset.conformanceView = 'main'
-  shell.append(controls.root, chartFrame)
-  container.append(shell)
-  sizeShell(shell, chartFrame, input)
-
-  const handleCursorChange = (
-    value: ContinuousCursorPosition<number, number> | null,
-    reason: ContinuousCursorChange<number, number>,
-  ) => {
-    if (reason.type === 'preview') {
-      state = value ? cursorState(value, false) : clearedCursor()
-      updateControls(controls, state)
-      return
-    }
-    accepted = value ? roundedPosition(value) : null
-    state = accepted ? cursorState(accepted, true) : clearedCursor()
-    updateControls(controls, state)
-    host?.update(options())
-  }
-
-  const options = (): ChartHostOptions<CompleteCar, number, number> => ({
-    definition: freeCursorDefinition(accepted, handleCursorChange),
-    width: currentInput.width,
-    height: chartHeight(currentInput.height),
-    ariaLabel: 'Line chart with a free two-dimensional cursor',
-    ariaDescription:
-      'Move across the plot to inspect arbitrary horsepower and fuel-economy coordinates. Select to pin the cursor; press Escape to clear it.',
-    onRender() {
-      renderCount += 1
-    },
-  })
-
-  function accept(next: ContinuousCursorPosition<number, number> | null) {
-    accepted = next ? roundedPosition(next) : null
-    state = accepted ? cursorState(accepted, true) : clearedCursor()
-    updateControls(controls, state)
-    host?.update(options())
-  }
-
-  const handleControlKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Escape' || !state.visible) return
-    event.preventDefault()
-    accept(null)
-  }
-  controls.root.addEventListener('keydown', handleControlKeyDown)
-
-  host = mountChart(chartFrame, options())
-  updateControls(controls, state)
-
-  const driver = createDriver(
-    chartFrame,
-    controls,
-    () => host!.getScene(),
-    () => state,
-    () => renderCount,
-  )
-
-  return {
-    driver,
-    update(nextInput) {
-      currentInput = nextInput
-      sizeShell(shell, chartFrame, nextInput)
-      host!.update(options())
-    },
-    destroy() {
-      controls.root.removeEventListener('keydown', handleControlKeyDown)
-      host!.destroy()
-      shell.remove()
-    },
-  }
+export interface FreeCursorControlRefs {
+  x: HTMLInputElement
+  y: HTMLInputElement
 }
 
-function createDriver(
+export function createDriver(
   surface: HTMLElement,
-  controls: FreeCursorControls,
+  controls: FreeCursorControlRefs,
   getScene: () => ChartScene<CompleteCar, number, number>,
   getState: () => CursorState,
   getRenderCount: () => number,
@@ -295,7 +200,7 @@ function createDriver(
 
 function resolveTarget(
   surface: HTMLElement,
-  controls: FreeCursorControls,
+  controls: FreeCursorControlRefs,
   scene: ChartScene<CompleteCar, number, number>,
   target: ConformanceTarget,
 ) {
@@ -366,7 +271,7 @@ function geometry(
   return sample ? [sample] : []
 }
 
-function cursorState(
+export function cursorState(
   position: ContinuousCursorPosition<number, number>,
   pinned: boolean,
 ): CursorState {
@@ -387,7 +292,7 @@ function cursorState(
   }
 }
 
-function clearedCursor(): CursorState {
+export function clearedCursor(): CursorState {
   return {
     visible: false,
     xNormalized: null,
@@ -417,16 +322,7 @@ function interactionState(
   }
 }
 
-function updateControls(controls: FreeCursorControls, state: CursorState) {
-  updateFreeCursorControls(controls, {
-    visible: state.visible,
-    x: state.xValue,
-    y: state.yValue,
-    pinned: state.pinned,
-  })
-}
-
-function roundedPosition(
+export function roundedPosition(
   position: ContinuousCursorPosition<number, number>,
 ): ContinuousCursorPosition<number, number> {
   return {
@@ -439,17 +335,6 @@ function roundCursorValue(value: number) {
   return Math.round(value * 10) / 10
 }
 
-function sizeShell(
-  shell: HTMLDivElement,
-  chartFrame: HTMLDivElement,
-  input: ConformanceInput,
-) {
-  shell.style.width = `${input.width}px`
-  shell.style.height = `${input.height}px`
-  chartFrame.style.width = `${input.width}px`
-  chartFrame.style.height = `${chartHeight(input.height)}px`
-}
-
-function chartHeight(height: number) {
+export function chartHeight(height: number) {
   return Math.max(180, height - cursorControlsHeight)
 }

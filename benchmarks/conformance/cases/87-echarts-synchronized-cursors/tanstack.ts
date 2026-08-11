@@ -1,5 +1,5 @@
 import { travelers } from '@charts-poc/demo-data/travelers'
-import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { defineChart, dot, lineY } from '@tanstack/charts'
 import { focusGuideX } from '@tanstack/charts/focus/guide'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { tooltip } from '@tanstack/charts/tooltip'
@@ -20,9 +20,7 @@ import {
   synchronizedCursorYDomains,
 } from './model'
 import { selectSynchronizedCursorData } from './selection'
-import { createSynchronizedSummary, updateSynchronizedSummary } from './summary'
 import type {
-  ChartHostOptions,
   ChartScene,
   ChartTooltipOptions,
   SceneGroup,
@@ -35,12 +33,11 @@ import type {
   ConformanceGeometrySample,
   ConformanceInput,
   ConformanceJsonObject,
-  ConformanceMount,
   ConformanceTarget,
   ConformanceTestDriver,
 } from '../../types'
 
-const summaryHeight = 56
+export const summaryHeight = 56
 const viewGap = 8
 const viewMargin = { top: 16, right: 24, bottom: 34, left: 62 } as const
 
@@ -107,6 +104,7 @@ function synchronizedCursorViewDefinition(
       decorative(
         lineY(rows, {
           id: `${view}-line`,
+          key: (row) => synchronizedCursorDateKey(row.date),
           x: 'date',
           y: view,
           z: group,
@@ -116,6 +114,7 @@ function synchronizedCursorViewDefinition(
       ),
       dot(rows, {
         id: `${view}-points`,
+        key: (row) => synchronizedCursorDateKey(row.date),
         x: 'date',
         y: view,
         z: group,
@@ -126,6 +125,7 @@ function synchronizedCursorViewDefinition(
       }),
       focusGuideX(rows, {
         id: `${view}-guide`,
+        key: (row) => synchronizedCursorDateKey(row.date),
         x: 'date',
         y: view,
         z: group,
@@ -180,68 +180,9 @@ export const catalogCase = tanstackCase(
   },
 )
 
-export const mount: ConformanceMount = (container, input) => {
-  let currentInput = input
-  let focusedDate: Date | null = null
-  let pinned = false
-  const shell = container.ownerDocument.createElement('div')
-  const summary = createSynchronizedSummary(container.ownerDocument)
-  const chartFrame = container.ownerDocument.createElement('div')
-  shell.style.display = 'grid'
-  shell.style.gridTemplateRows = `${summaryHeight}px minmax(0, 1fr)`
-  chartFrame.style.minHeight = '0'
-  shell.append(summary.root, chartFrame)
-  container.append(shell)
-  sizeShell(shell, chartFrame, input)
+export { mount } from './view'
 
-  const updateSummary = () =>
-    updateSynchronizedSummary(summary, focusedDate, currentInput, pinned)
-  const options = (): ChartHostOptions<TravelersRow, Date, number> => ({
-    definition: synchronizedCursorDefinition(currentInput),
-    width: currentInput.width,
-    height: chartHeight(currentInput),
-    ariaLabel: 'Linked 2020 and 2019 airport traveler time series',
-    ariaDescription:
-      'Move across either view or use the arrow keys to compare both years at the same date. Select a point to pin the cursor.',
-    onFocusGroupChange(points) {
-      const date = points[0]?.datum.date ?? null
-      focusedDate = date
-      if (!date) pinned = false
-      updateSummary()
-    },
-    onSelect(point) {
-      if (!point) return
-      focusedDate = point.datum.date
-      pinned = !pinned
-      updateSummary()
-    },
-  })
-  const host = mountChart(chartFrame, options())
-  updateSummary()
-
-  const driver = createDriver(
-    chartFrame,
-    () => currentInput,
-    () => host.getScene(),
-    () => ({ date: focusedDate, pinned }),
-  )
-
-  return {
-    driver,
-    update(nextInput) {
-      currentInput = nextInput
-      sizeShell(shell, chartFrame, nextInput)
-      host.update(options())
-      updateSummary()
-    },
-    destroy() {
-      host.destroy()
-      shell.remove()
-    },
-  }
-}
-
-function createDriver(
+export function createDriver(
   surface: HTMLElement,
   getInput: () => ConformanceInput,
   getScene: () => ChartScene<TravelersRow, Date, number>,
@@ -446,17 +387,6 @@ function renderedCrosshairState(
   }
 }
 
-function chartHeight(input: ConformanceInput) {
+export function chartHeight(input: ConformanceInput) {
   return Math.max(280, input.height - summaryHeight)
-}
-
-function sizeShell(
-  shell: HTMLElement,
-  chartFrame: HTMLElement,
-  input: ConformanceInput,
-) {
-  shell.style.width = `${input.width}px`
-  shell.style.height = `${input.height}px`
-  chartFrame.style.width = `${input.width}px`
-  chartFrame.style.height = `${chartHeight(input)}px`
 }
