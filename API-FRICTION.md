@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-10
+Last updated: 2026-08-11
 
 ## Triage rule
 
@@ -300,6 +300,10 @@ Each entry records:
 | F-261 | Cartesian bars cannot round only exposed corners               | API                   | open       |
 | F-262 | Mark inference accepted an unsupported style option            | API                   | open       |
 | F-263 | Chromium transport suspension interrupted catalog previews     | Tooling               | resolved   |
+| F-264 | Drillable sunbursts required rebuilding hierarchy rows         | API/Documentation     | resolved   |
+| F-265 | Sunburst motion lost hierarchy across enter and exit           | API                   | resolved   |
+| F-266 | Path-token motion distorted polar sectors                      | API/Tooling           | resolved   |
+| F-267 | Stress timeouts entered a class temporal dead zone             | Tooling               | resolved   |
 
 ## Findings
 
@@ -7804,3 +7808,87 @@ Each entry records:
   failures, and retained repeated-failure evidence. A full browser-backed run
   generated all 115 previews in both themes without changing any SVG asset;
   only the source hash changed.
+
+### F-264 — Drillable sunbursts required rebuilding hierarchy rows
+
+- Status: resolved
+- Severity: high
+- Owner: API/Documentation
+- Observed in: drillable Flare sunburst catalog case 126
+- Friction: focusing a branch while limiting visible rings required the
+  application to filter and re-parent flat rows, re-aggregate boundary values,
+  and preserve canonical IDs manually. That duplicated hierarchy work already
+  owned by the mark and made animated continuity depend on case preparation.
+- Decision: add `rootId` and `visibleDepth` to the optional `sunburst` mark.
+  The mark copies the selected hierarchy node as its structural layout root,
+  retains the complete hierarchy for aggregation and internal-node metadata,
+  and keeps canonical node keys across root changes. Application state still
+  owns selection, breadcrumbs, and drill-up controls.
+- Verification: focused mark tests cover relative depth, hidden descendant
+  aggregation, stable keys, validation, and ring allocation. Case 126 passes
+  the full flat Flare source directly, limits the displayed window in the mark,
+  and verifies that one retained leaf path interpolates from the outer ring to
+  the inner ring during a root update.
+
+### F-265 — Sunburst motion lost hierarchy across enter and exit
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: drill-down and drill-up transitions in the Flare sunburst case
+- Friction: stable keys animated nodes visible under both roots, but newly
+  revealed descendants had no identity in common with their disappearing
+  parent. Generic enter and exit opacity made a hierarchy change look
+  intermittent even though the retained-node paths were moving.
+- Decision: sunburst sectors carry an internal ancestry relationship into the
+  motion scene. An entering descendant begins at the live geometry of its
+  nearest disappearing ancestor, and an exiting descendant collapses into the
+  live geometry of its nearest appearing ancestor. Unrelated nodes keep the
+  normal enter and exit behavior, and reduced-motion updates still snap.
+- Verification: case 126 asserts the initial, intermediate, and final path for
+  retained descendants, drill-down entries, and drill-up exits. The live
+  catalog case confirms the entering `cluster` sector begins in the departing
+  `analytics` sector and separates over the authored tween.
+
+### F-266 — Path-token motion distorted polar sectors
+
+- Status: resolved
+- Severity: high
+- Owner: API/Tooling
+- Observed in: retained, entering, and exiting arcs in the drillable Flare
+  sunburst case
+- Friction: generic SVG path interpolation paired numeric tokens from two `d`
+  strings. Intermediate endpoints therefore left their common circles, making
+  sectors skew around the chart even though both endpoint layouts were valid
+  concentric arcs.
+- Decision: optional marks may attach an opaque numeric geometry vector and a
+  stable projector to a scene path. Sunburst supplies start angle, end angle,
+  inner radius, and outer radius; motion interpolates those four values and the
+  sunburst-owned projector regenerates a valid sector each frame. The shared
+  contract contains no polar or D3 import, so ordinary motion consumers retain
+  none of the hierarchy implementation.
+- Verification: focused temporal tests measure every intermediate outer and
+  inner endpoint against its declared radius for retained, entering, and
+  exiting sectors. Interrupted transitions retain their live numeric state,
+  reduced motion snaps, and retained-input bundle gates require only the small
+  scene-motion contract while forbidding sunburst, hierarchy, polar-sector,
+  d3-shape, and d3-path inputs from the isolated motion bundle.
+
+### F-267 — Stress timeouts entered a class temporal dead zone
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: release pull request stress partition 1
+- Friction: the stress runner began its top-level browser workload before
+  evaluating a later `CellTimeoutError` class declaration. When one cell
+  reached the intended 120-second outer limit, the timeout callback threw a
+  `ReferenceError` instead of returning the retryable timeout result, aborting
+  the complete partition before its fresh-context retry.
+- Decision: define the timeout error in an imported benchmark module. Module
+  dependencies finish evaluation before the stress runner starts top-level
+  work, so the timeout path cannot observe an uninitialized class.
+- Verification: the focused timeout regression constructs the imported error
+  with the expected prototype, name, and duration message. The retry suite,
+  stress-runner syntax check, full repository validation, and rerun GitHub
+  stress partition pass.

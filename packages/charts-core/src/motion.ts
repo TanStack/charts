@@ -3,6 +3,12 @@ import { resolveFocusGuides } from './focus-presentation'
 import { resolveMarkStateScene } from './mark-state'
 import { reconcileChartSvg, reconcileChartSvgFragment } from './reconcile'
 import { chartSceneSource } from './scene-source'
+import {
+  sceneMotionNode,
+  type SceneMotionMetadata,
+  type SceneMotionNode,
+  type SceneMotionPathGeometry,
+} from './scene-motion-internal'
 import { viewportTranslationChanged } from './scene-point-map'
 import { createChartSpring } from './spring'
 import { renderChartSvgWithResources } from './svg-resources'
@@ -1229,6 +1235,13 @@ function addUpdateTrack(
   const pointRollingSnap =
     pointRolling?.outcome.kind === 'fallback' &&
     pointRolling.outcome.fallback === 'snap'
+  const semanticPath = addSemanticPathUpdateTrack(
+    current,
+    next,
+    tracks,
+    context,
+    timingContext,
+  )
   const nextNames = new Set(next.getAttributeNames())
   for (const name of current.getAttributeNames()) {
     if (
@@ -1244,6 +1257,7 @@ function addUpdateTrack(
     const target = next.getAttribute(name)
     const previous = current.getAttribute(name)
     if (target === previous) continue
+    if (semanticPath && name === 'd') continue
     if (
       pointRollingSnap &&
       rollingPointGeometryAttributes.has(name) &&
@@ -1343,6 +1357,84 @@ function addUpdateTrack(
       current.removeAttribute('data-ts-motion-role')
     },
   })
+}
+
+function addSemanticPathUpdateTrack(
+  current: Element,
+  next: Element,
+  tracks: MotionTrack[],
+  context: MotionReconcileContext,
+  timingContext: ChartMotionContext | undefined,
+) {
+  if (current.localName !== 'path') return false
+  const key = current.getAttribute('data-ts-key')
+  const targetPath = next.getAttribute('d')
+  if (!key || !targetPath || !context.previousScene) return false
+  const previous = sceneMotionEntry(context.previousScene, key)?.metadata.path
+  const target = sceneMotionEntry(context.scene, key)?.metadata.path
+  const geometry = compatiblePathGeometry(previous, target)
+  if (!geometry) return false
+  const resolvedContext =
+    timingContext ?? elementTimingContext(current, 'update', context.scene)
+  if (!resolvedContext) return false
+  const sourceValues = livePathGeometryValues(
+    current,
+    geometry.source,
+    context.runtime,
+  )
+  current.setAttribute('data-ts-motion-role', resolvedContext.role)
+  tracks.push(
+    semanticPathTrack({
+      element: current,
+      sourceValues,
+      target: geometry.target,
+      targetPath,
+      timing: context.timingFor(resolvedContext),
+      runtime: context.runtime,
+      finish() {
+        current.removeAttribute('data-ts-motion-role')
+      },
+      cancel() {
+        current.removeAttribute('data-ts-motion-role')
+      },
+    }),
+  )
+  return true
+}
+
+function semanticPathTrack(options: {
+  element: Element
+  sourceValues: readonly number[]
+  target: SceneMotionPathGeometry
+  targetPath: string
+  timing: ResolvedTiming
+  runtime: MotionRuntime
+  finish: () => void
+  cancel: () => void
+}): MotionTrack {
+  const states = elementValueStates(
+    options.runtime,
+    options.element,
+    'semantic-path',
+    options.sourceValues,
+  )
+  return {
+    ...options.timing,
+    values: bindMotionValues(
+      states,
+      options.sourceValues,
+      options.target.values,
+    ),
+    apply(values) {
+      const path = options.target.project(values)
+      if (path) options.element.setAttribute('d', path)
+    },
+    finish() {
+      options.element.setAttribute('d', options.targetPath)
+      options.finish()
+    },
+    cancel: options.cancel,
+  }
 }
 
 function translatedX(transform: string | null) {
@@ -1447,8 +1539,36 @@ function addEnterMotionTrack(
     return
   }
 
+  const hierarchyGeometry = hierarchyRelatedGeometry(
+    element,
+    context.scene,
+    context.previousScene,
+    'enter',
+  )
+  if (hierarchyGeometry) {
+    const sourceValues = livePathGeometryValues(
+      hierarchyGeometry.relatedElement,
+      hierarchyGeometry.source,
+      context.runtime,
+    )
+    const sourcePath = hierarchyGeometry.target.project(sourceValues)
+    if (sourcePath) element.setAttribute('d', sourcePath)
+    tracks.push(
+      semanticPathTrack({
+        element,
+        sourceValues,
+        target: hierarchyGeometry.target,
+        targetPath: hierarchyGeometry.targetPath,
+        timing,
+        runtime: context.runtime,
+        finish() {},
+        cancel() {},
+      }),
+    )
+  }
+
   const targetOpacity = element.getAttribute('opacity')
-  const opacity = Number(targetOpacity ?? 1)
+  const opacity = finiteOpacity(targetOpacity)
   element.setAttribute('opacity', '0')
   const states = elementValueStates(context.runtime, element, 'opacity', [0])
   tracks.push({
@@ -1524,6 +1644,36 @@ function addExitMotionTrack(
     })
     return
   }
+  const hierarchyGeometry = hierarchyRelatedGeometry(
+    element,
+    context.previousScene,
+    context.scene,
+    'exit',
+  )
+  if (hierarchyGeometry) {
+    const targetPath = hierarchyGeometry.target.project(
+      hierarchyGeometry.target.values,
+    )
+    if (targetPath) {
+      const sourceValues = livePathGeometryValues(
+        element,
+        hierarchyGeometry.source,
+        context.runtime,
+      )
+      tracks.push(
+        semanticPathTrack({
+          element,
+          sourceValues,
+          target: hierarchyGeometry.target,
+          targetPath,
+          timing: context.timingFor(timingContext),
+          runtime: context.runtime,
+          finish() {},
+          cancel() {},
+        }),
+      )
+    }
+  }
   const target = Number(element.getAttribute('opacity') ?? 1)
   const opacity = Number.isFinite(target) ? target : 1
   element.setAttribute('data-ts-motion-role', timingContext.role)
@@ -1539,6 +1689,143 @@ function addExitMotionTrack(
     finish: cleanup,
     cancel: cleanup,
   })
+}
+
+function hierarchyRelatedGeometry(
+  element: Element,
+  ownerScene: ChartScene | undefined,
+  relatedScene: ChartScene | undefined,
+  phase: 'enter' | 'exit',
+) {
+  const relation = hierarchyMotionRelation(element, ownerScene, relatedScene)
+  if (!relation) return undefined
+  const source =
+    phase === 'enter'
+      ? relation.related.metadata.path
+      : relation.owner.metadata.path
+  const target =
+    phase === 'enter'
+      ? relation.owner.metadata.path
+      : relation.related.metadata.path
+  const geometry = compatiblePathGeometry(source, target)
+  if (!geometry) return undefined
+  return {
+    ...geometry,
+    relatedElement: relation.relatedElement,
+    targetPath: phase === 'enter' ? relation.ownerPath : relation.relatedPath,
+  }
+}
+
+function hierarchyMotionRelation(
+  element: Element,
+  ownerScene: ChartScene | undefined,
+  relatedScene: ChartScene | undefined,
+) {
+  if (element.localName !== 'path' || !ownerScene || !relatedScene) {
+    return undefined
+  }
+  const key = element.getAttribute('data-ts-key')
+  const ownerPath = element.getAttribute('d')
+  if (!key || !ownerPath) return undefined
+  const owner = sceneMotionEntry(ownerScene, key)
+  const hierarchy = owner?.metadata.hierarchy
+  if (!owner || !hierarchy) return undefined
+  const related = sceneMotionEntries(relatedScene)
+  let ancestor: SceneMotionEntry | undefined
+  for (let index = hierarchy.ancestorIds.length - 1; index >= 0; index -= 1) {
+    const ancestorId = hierarchy.ancestorIds[index]
+    ancestor = related.find(
+      (entry) =>
+        entry.metadata.hierarchy?.markId === hierarchy.markId &&
+        entry.metadata.hierarchy.id === ancestorId,
+    )
+    if (ancestor) break
+  }
+  if (!ancestor) return undefined
+  const root = element.closest<SVGSVGElement>('svg')
+  const relatedElement = root
+    ? [...root.querySelectorAll<Element>('path[data-ts-key]')].find(
+        (candidate) =>
+          candidate.getAttribute('data-ts-key') === ancestor.node.key,
+      )
+    : undefined
+  const relatedPath = relatedElement?.getAttribute('d')
+  if (!relatedElement || !relatedPath) return undefined
+  return {
+    owner,
+    related: ancestor,
+    relatedElement,
+    ownerPath,
+    relatedPath,
+  }
+}
+
+interface SceneMotionEntry {
+  node: SceneNode
+  metadata: SceneMotionMetadata
+}
+
+const sceneMotionEntriesCache = new WeakMap<
+  ChartScene,
+  readonly SceneMotionEntry[]
+>()
+
+function sceneMotionEntries(scene: ChartScene) {
+  const cached = sceneMotionEntriesCache.get(scene)
+  if (cached) return cached
+  const entries: SceneMotionEntry[] = []
+  const visit = (nodes: readonly SceneNode[]) => {
+    for (const node of nodes) {
+      const metadata = (node as SceneMotionNode)[sceneMotionNode]
+      if (metadata) entries.push({ node, metadata })
+      if (node.kind === 'group') visit(node.children)
+    }
+  }
+  visit(scene.nodes)
+  sceneMotionEntriesCache.set(scene, entries)
+  return entries
+}
+
+function sceneMotionEntry(scene: ChartScene, key: string) {
+  return sceneMotionEntries(scene).find((entry) => entry.node.key === key)
+}
+
+function compatiblePathGeometry(
+  source: SceneMotionPathGeometry | undefined,
+  target: SceneMotionPathGeometry | undefined,
+) {
+  if (
+    !source ||
+    !target ||
+    source.project !== target.project ||
+    source.values.length !== target.values.length ||
+    source.values.length === 0
+  ) {
+    return undefined
+  }
+  return { source, target }
+}
+
+function livePathGeometryValues(
+  element: Element,
+  geometry: SceneMotionPathGeometry,
+  runtime: MotionRuntime,
+) {
+  const states = elementValueStates(
+    runtime,
+    element,
+    'semantic-path',
+    geometry.values,
+  )
+  const staticPath = geometry.project(geometry.values)
+  return staticPath && element.getAttribute('d') === staticPath
+    ? geometry.values
+    : states.map((state) => state.value)
+}
+
+function finiteOpacity(value: string | null) {
+  const opacity = Number(value ?? 1)
+  return Number.isFinite(opacity) ? opacity : 1
 }
 
 function elementTimingContext(

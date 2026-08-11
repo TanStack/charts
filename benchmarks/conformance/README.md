@@ -197,8 +197,8 @@ comparison.
 
 ## Current scope
 
-The executable corpus contains 110 paired cases: 76 sourced from Observable
-Plot, 23 from Recharts, and 11 from Apache ECharts. It spans the common
+The executable corpus contains 112 paired cases: 77 sourced from Observable
+Plot, 24 from Recharts, and 11 from Apache ECharts. It spans the common
 cartesian vocabulary plus the high-value catalog beyond it:
 
 - lines, areas, bars, intervals, heatmaps, histograms, facets, and framed
@@ -207,11 +207,11 @@ cartesian vocabulary plus the high-value catalog beyond it:
   moving windows, Bollinger bands, contours, density contours, and hexbins;
 - normalized and wiggle stacks, Likert charts, waterfalls, difference fills,
   rankings, indexed lines, marginal distributions, ridgelines, violins,
-  Marimekko layouts, and waffles;
+  Marimekko layouts, funnels, and waffles;
 - pointer, grouped, and Voronoi-nearest tooltips;
 - pie, labeled pie, basic/centered/rounded/nested donuts, partial and needle
   gauges, single/comparative radar, numeric polar line/scatter, rose, radial
-  bars, and sunburst layouts;
+  bars, and static and drillable sunburst layouts;
 - trees, Delaunay links, force networks, vector fields, and GeoJSON maps.
 - regional and world choropleths, proportional symbols, orthographic globe
   and graticule layers, projected routes, 177 real country boundaries, 51 US

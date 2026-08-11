@@ -12,14 +12,14 @@ turning untested behavior into a checkmark.
 
 | Library                                                                                | Package              | Measured source     |
 | -------------------------------------------------------------------------------------- | -------------------- | ------------------- |
-| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `49b9f1e` |
+| [TanStack Charts](./overview.md)                                                       | `@tanstack/charts`   | workspace `7ac3c32` |
 | [Chart.js](https://www.chartjs.org/docs/latest/)                                       | `chart.js`           | npm `4.5.1`         |
 | [Apache ECharts](https://echarts.apache.org/handbook/en/best-practices/canvas-vs-svg/) | `echarts`            | npm `6.1.0`         |
 | [Recharts](https://recharts.github.io/en-US/)                                          | `recharts`           | npm `3.10.1`        |
 | [Observable Plot](https://observablehq.com/plot/features/plots)                        | `@observablehq/plot` | npm `0.6.17`        |
 
 The competitor versions are exact package pins, not latest versions inferred
-at page render time. The measured TanStack workspace revision is `49b9f1e`.
+at page render time. The measured TanStack workspace revision is `7ac3c32`.
 
 ## Capability matrix
 
@@ -90,7 +90,7 @@ output model.
 
 ## Bundle snapshot
 
-Baseline date: `2026-08-10`.
+Baseline date: `2026-08-11`.
 
 Controlled ranges cover 12 independently built, minified browser consumers:
 line, bar, area, and scatter at basic, interactive, and advanced tiers. Only
@@ -135,8 +135,8 @@ browser run, so this page does not publish a cross-machine timing leaderboard.
 
 ## Broader conformance
 
-The catalog corpus contains 115 TanStack/reference pairs: 78 sourced from
-Observable Plot, 26 from Recharts, and 11 from Apache ECharts. Twenty-two pairs
+The catalog corpus contains 117 TanStack/reference pairs: 79 sourced from
+Observable Plot, 27 from Recharts, and 11 from Apache ECharts. Twenty-two pairs
 carry executable interaction scenarios. Those counts describe selected
 reference coverage, not each library's feature ceiling or a list of built-in
 TanStack chart types. Chart.js participates in the standard and stress suites,

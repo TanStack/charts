@@ -2,11 +2,11 @@
 
 Date: 2026-08-10
 
-Scope: all 115 catalog directories. The 67 cases previously classified as
+Scope: all 117 catalog directories. The 67 cases previously classified as
 strict custom authoring, preparation review, or shell-only are reviewed beside
 the former 42-case definition-native control group from
 [the custom authoring audit](./CUSTOM-AUTHORING-AUDIT.md). That audit remains
-the historical before-state; Cases 119–124 were added afterward and are
+the historical before-state; Cases 119–126 were added afterward and are
 classified by the same ownership test. This document records the current
 disposition of every case.
 
@@ -16,10 +16,10 @@ live in the [definition coverage plan](./DEFINITION-COVERAGE-PLAN.md) and its
 
 ## Decision
 
-One hundred twelve of the 115 cases present their visualization as a normal
-chart definition. Sixty-three use the definition API without a new visualization
+One hundred fourteen of the 117 cases present their visualization as a normal
+chart definition. Sixty-four use the definition API without a new visualization
 primitive. Thirty-five use a reusable first-party primitive, including Case
-70's final-scale bar thickness cap. Fourteen use a tree-shakeable first-party
+70's final-scale bar thickness cap. Fifteen use a tree-shakeable first-party
 adapter around a heavier layout or gesture algorithm.
 
 Only two application shells and one custom mark justify case-owned custom
@@ -31,12 +31,12 @@ work:
 
 | Disposition           |   Cases | Meaning                                                                  |
 | --------------------- | ------: | ------------------------------------------------------------------------ |
-| Definition now        |      63 | Current marks and eager transforms are sufficient                        |
+| Definition now        |      64 | Current marks and eager transforms are sufficient                        |
 | First-party primitive |      35 | Add a reusable mark, transform, layout, guide, or controlled signal      |
-| Optional primitive    |      14 | Keep a heavy dependency granular, but hide its layout DTOs and lifecycle |
+| Optional primitive    |      15 | Keep a heavy dependency granular, but hide its layout DTOs and lifecycle |
 | Application boundary  |       2 | The remaining work is product state, DOM layout, or data arrival         |
 | Inline custom mark    |       1 | The geometry is intentionally case-specific                              |
-| **Total**             | **115** |                                                                          |
+| **Total**             | **117** |                                                                          |
 
 A normal definition does not require every implementation algorithm to live
 in Charts core. D3 may implement an optional `sankeyDiagram`, `densityContour`,
@@ -249,6 +249,8 @@ ownership boundary.
 | [122 — KPI sparklines](./cases/122-premium-kpi-sparklines/chart.ts)              | Definition now        | Three guide-free definitions use ordinary area and line marks, gradients, CSS-variable paint, and keyed spring updates; metric copy and responsive card layout remain application content.                                                                                                                                                                         |
 | [123 — Active donut](./cases/123-active-donut-metric/chart.ts)                   | Definition now        | Native pie allocation, rounded arcs, selected wedge and ring layers, center text, tooltip, and spring motion own the visualization; legend buttons own persistent selection.                                                                                                                                                                                       |
 | [124 — Theme matrix](./cases/124-theme-palette-matrix/chart.ts)                  | Definition now        | The same area-and-line definition is rendered through three scoped CSS-variable themes with identical geometry; only the three-card matrix and labels are application composition.                                                                                                                                                                                 |
+| [125 — Sales funnel](./cases/125-sales-funnel/tanstack.ts)                       | Definition now        | Derive centered stage boundaries from the ordered raw values, then compose one native `areaX` group per stage with direct labels and stable semantic keys.                                                                                                                                                                                                         |
+| [126 — Drillable sunburst](./cases/126-drillable-sunburst/tanstack.ts)           | Optional primitive    | The optional sunburst mark owns focused-root partitioning, bounded visible depth, hierarchy-aware polar motion, and stable node geometry; the application owns selected-root state and the center back control.                                                                                                                                                    |
 
 ## Reference evidence
 
@@ -280,8 +282,8 @@ bundle.
 
 ## Delivery result
 
-All 115 catalog directories now have one roadmap record and case-local
-evidence. All 112 normal-definition cases are verified against their current
+All 117 catalog directories now have one roadmap record and case-local
+evidence. All 114 normal-definition cases are verified against their current
 boundary; only cases 85, 86, and 116 retain accepted application or bespoke
 geometry work. The roadmap validator compares its IDs with the live catalog
 directories so a new case cannot silently remain outside this review.

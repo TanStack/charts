@@ -2,19 +2,19 @@
 
 Date: 2026-08-10
 
-The catalog has 115 case directories. One hundred twelve visualizations now use
+The catalog has 117 case directories. One hundred fourteen visualizations now use
 normal chart definitions. Cases 85 and 86 retain application shells, and Case
 116 retains one deliberately bespoke inline mark. No other case-owned layout
 or renderer is an accepted endpoint.
 
 | Disposition           |   Cases | Result                                            |
 | --------------------- | ------: | ------------------------------------------------- |
-| Definition now        |      63 | Normal definition                                 |
+| Definition now        |      64 | Normal definition                                 |
 | First-party primitive |      35 | Normal definition                                 |
-| Optional primitive    |      14 | Normal definition                                 |
+| Optional primitive    |      15 | Normal definition                                 |
 | Application boundary  |       2 | Accepted boundary                                 |
 | Inline custom mark    |       1 | Accepted boundary                                 |
-| **Total**             | **115** | **112 normal definitions; 3 accepted boundaries** |
+| **Total**             | **117** | **114 normal definitions; 3 accepted boundaries** |
 
 ## Shared decisions
 
@@ -22,7 +22,7 @@ or renderer is an accepted endpoint.
 | ---------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Eager typed transforms                   | 02, 14, 18–22, 24, 26–31, 50–64, 71, 75, 78, 94, 96, 98–99, grouped and stacked bars | Keep row work eager and visible beside its consuming marks; do not add a chart-owned reactive preparation graph.                                                                                         |
 | Resolved mark layout                     | 33, 37, 39, 41, 43, 52, 74, both 111 cases                                           | Schedule only work that needs final scales or bounds. Reuse internal projection, grouping, child adoption, and composition contracts without exposing a universal layout callback.                       |
-| Spatial, hierarchy, and network adapters | 36–39, 40-force, 43, 65, 74, 101, both 111 cases                                     | Keep heavy algorithms in exact optional subpaths while definitions accept semantic source rows.                                                                                                          |
+| Spatial, hierarchy, and network adapters | 36–39, 40-force, 43, 65, 74, 101, both 111 cases, 126                                | Keep heavy algorithms in exact optional subpaths while definitions accept semantic source rows.                                                                                                          |
 | Composite and distribution marks         | 15, 31, 33, 62–64                                                                    | Couple statistics and geometry only where they form a stable named contract; otherwise keep public transforms explicit.                                                                                  |
 | Polar allocation and radial geometry     | 75–78, 93–100                                                                        | Share value allocation, label anchoring, sector geometry, and radial bars. Case-specific selection and presentation remain explicit.                                                                     |
 | View composition                         | 57, 87                                                                               | Use composed child definitions when tracks truly share one chart lifecycle. Case 83 correctly retains two hosts because detail and overview differ in data, domains, axes, margins, sizes, and behavior. |
@@ -63,7 +63,7 @@ presentation policy.
 
 ## Verification
 
-- The roadmap validator compares all 115 roadmap and audit IDs with the live
+- The roadmap validator compares all 117 roadmap and audit IDs with the live
   catalog directories, requires unique IDs, validates the capability DAG, and
   requires every verified or accepted case to cite evidence under its own
   directory.
@@ -187,6 +187,8 @@ presentation policy.
 | [122-premium-kpi-sparklines — Premium KPI sparklines](./cases/122-premium-kpi-sparklines/chart.ts)                                | Definition now        | `current-definition-api`                                                         | `chart.ts`, `tanstack.test.ts`, `view.tsx`         |
 | [123-active-donut-metric — Active donut metric](./cases/123-active-donut-metric/chart.ts)                                         | Definition now        | `current-definition-api`                                                         | `chart.ts`, `tanstack.test.ts`, `view.tsx`         |
 | [124-theme-palette-matrix — Theme palette matrix](./cases/124-theme-palette-matrix/chart.ts)                                      | Definition now        | `current-definition-api`                                                         | `chart.ts`, `tanstack.test.ts`, `view.tsx`         |
+| [125-sales-funnel — Sales conversion funnel](./cases/125-sales-funnel/tanstack.ts)                                                | Definition now        | `current-definition-api`                                                         | `tanstack.ts`, `model.test.ts`, `case.json`        |
+| [126-drillable-sunburst — Drillable Flare sunburst](./cases/126-drillable-sunburst/tanstack.ts)                                   | Optional primitive    | `hierarchy-sunburst`                                                             | `tanstack.ts`, `tanstack.test.ts`, `model.test.ts` |
 | [bar-grouped — Grouped bars](./cases/bar-grouped/tanstack.ts)                                                                     | Definition now        | `current-definition-api`                                                         | `tanstack.ts`                                      |
 | [bar-horizontal-ranking — Horizontal ranking with long labels](./cases/bar-horizontal-ranking/tanstack.ts)                        | Definition now        | `current-definition-api`                                                         | `tanstack.ts`                                      |
 | [bar-stacked — Stacked bars](./cases/bar-stacked/tanstack.ts)                                                                     | Definition now        | `current-definition-api`                                                         | `tanstack.ts`                                      |

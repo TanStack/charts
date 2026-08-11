@@ -88,6 +88,9 @@ const retainedInputGroups = {
   tooltipExtension: [/(?:^|\/)packages\/charts-core\/src\/tooltip\.ts$/u],
   tooltipPortal: [/(?:^|\/)packages\/charts-core\/src\/tooltip-portal\.ts$/u],
   motionRuntime: [/(?:^|\/)packages\/charts-core\/src\/motion\.ts$/u],
+  sceneMotionContract: [
+    /(?:^|\/)packages\/charts-core\/src\/scene-motion-internal\.ts$/u,
+  ],
   springRuntime: [/(?:^|\/)packages\/charts-core\/src\/spring\.ts$/u],
   focusGuide: [/(?:^|\/)packages\/charts-core\/src\/focus-guide\.ts$/u],
   focusMark: [/(?:^|\/)packages\/charts-core\/src\/focus-mark\.ts$/u],
@@ -572,12 +575,13 @@ const entries = [
     'Hierarchy sunburst mark',
     'benchmarks/entries/charts-hierarchy-sunburst.ts',
     'D3 hierarchy partition kernel',
-    5.1,
+    5.4,
     {
       inputBoundary: {
         require: [
           'hierarchyFlat',
           'hierarchySunburst',
+          'sceneMotionContract',
           'polarMarkInfrastructure',
           'polarSector',
           'd3Hierarchy',
@@ -588,6 +592,7 @@ const entries = [
         allowAdded: [
           'hierarchyFlat',
           'hierarchySunburst',
+          'sceneMotionContract',
           'polarMarkInfrastructure',
           'polarSector',
           'markInfrastructure',
@@ -1660,17 +1665,21 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    17.2,
+    18.1,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
-        require: ['motionRuntime', 'springRuntime'],
+        require: ['motionRuntime', 'sceneMotionContract', 'springRuntime'],
         forbid: [
           'tooltipExtension',
           'tooltipPortal',
           'transformRuntime',
           'd3Array',
           'd3ScaleRuntime',
+          'd3Shape',
+          'd3Path',
+          'polarSector',
+          ...optionalHierarchyInputGroups,
         ],
       },
     },

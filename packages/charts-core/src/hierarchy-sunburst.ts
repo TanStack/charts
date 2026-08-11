@@ -11,6 +11,10 @@ import {
 import { channelValues, isChartKey, isFiniteNumber, visualValue } from './mark'
 import { createPolarMark } from './polar-mark-internal'
 import { resolvePolarSector } from './polar-sector-internal'
+import {
+  sceneMotionNode,
+  type SceneMotionMetadata,
+} from './scene-motion-internal'
 import { valueKey } from './scales'
 import type {
   FlatHierarchyDatum,
@@ -25,6 +29,7 @@ import type {
   ChartKey,
   ChartMarkMotionOptions,
   ChartPoint,
+  SceneArea,
   SceneNode,
   VisualChannel,
 } from './types'
@@ -58,6 +63,10 @@ interface SunburstSharedOptions<TDatum> extends ChartMarkMotionOptions<
   readonly className?: string
   readonly value: TransformValue<TDatum, number | null | undefined>
   readonly sort?: SunburstNodeComparator<TDatum>
+  /** Hierarchy node whose children form the first rendered ring. */
+  readonly rootId?: string
+  /** Maximum descendant rings rendered below the active root. */
+  readonly visibleDepth?: number
   readonly innerRadius?: PolarLength
   readonly outerRadius?: PolarLength
   /** Fixed pixel gap between adjacent hierarchy rings. Defaults to zero. */
@@ -154,18 +163,24 @@ export function sunburst<TDatum>(
     })
   }
 
+  const layoutRoot = resolveLayoutRoot(hierarchy.root, options.rootId)
+  const visibleDepth = options.visibleDepth ?? layoutRoot.height
+  if (options.visibleDepth !== undefined) {
+    assertPositiveInteger(visibleDepth, 'visibleDepth')
+  }
+
   const ringPadding = options.ringPadding ?? 0
   assertNonnegativeFinite(ringPadding, 'ringPadding')
-  const ringCount = hierarchy.root.height
+  const ringCount = Math.min(layoutRoot.height, visibleDepth)
   const partitioned = createPartition<FlatHierarchyDatum<TDatum>>().size([
     1,
-    Math.max(1, ringCount + 1),
-  ])(hierarchy.root) as HierarchyRectangularNode<FlatHierarchyDatum<TDatum>> &
+    Math.max(1, layoutRoot.height + 1),
+  ])(layoutRoot) as HierarchyRectangularNode<FlatHierarchyDatum<TDatum>> &
     FlatHierarchyNode<TDatum>
   const nodes = partitioned
     .descendants()
     .slice(1)
-    .filter((node) => node.x1 > node.x0)
+    .filter((node) => node.depth <= visibleDepth && node.x1 > node.x0)
     .map((node) => ({
       node: context(node as FlatHierarchyNode<TDatum>),
       start: node.x0,
@@ -267,7 +282,7 @@ export function sunburst<TDatum>(
               y: layout.centerY + y,
               color: fill,
             }
-            children.push({
+            const area = {
               kind: 'area',
               key,
               points: sector.points,
@@ -283,7 +298,21 @@ export function sunburst<TDatum>(
                 opacity: options.opacity,
                 lineJoin: 'round',
               },
-            })
+              [sceneMotionNode]: {
+                path: {
+                  values: [startAngle, endAngle, radius1, radius2],
+                  project: projectSunburstSectorPath,
+                },
+                hierarchy: {
+                  markId: id,
+                  id: node.id,
+                  ancestorIds: node.ancestorIds,
+                },
+              },
+            } satisfies SceneArea & {
+              readonly [sceneMotionNode]: SceneMotionMetadata
+            }
+            children.push(area)
             points.push(point)
           })
 
@@ -307,6 +336,25 @@ export function sunburst<TDatum>(
     },
     options.motion,
   )
+}
+
+function projectSunburstSectorPath(values: readonly number[]) {
+  const [startAngle, endAngle, innerRadius, outerRadius] = values
+  if (
+    startAngle === undefined ||
+    endAngle === undefined ||
+    innerRadius === undefined ||
+    outerRadius === undefined
+  ) {
+    return undefined
+  }
+  return resolvePolarSector({
+    startAngle,
+    endAngle,
+    innerRadius,
+    outerRadius,
+    cornerRadius: 0,
+  })?.path
 }
 
 function sunburstNodeContext<TDatum>(
@@ -338,6 +386,30 @@ function assertNonnegativeFinite(value: unknown, description: string) {
       `sunburst: ${description} must be nonnegative and finite`,
     )
   }
+}
+
+function assertPositiveInteger(value: unknown, description: string) {
+  if (!Number.isInteger(value) || (value as number) < 1) {
+    throw new TypeError(`sunburst: ${description} must be a positive integer`)
+  }
+}
+
+function resolveLayoutRoot<TDatum>(
+  root: FlatHierarchyNode<TDatum>,
+  rootId: string | undefined,
+): FlatHierarchyNode<TDatum> {
+  if (rootId === undefined) return root.copy() as FlatHierarchyNode<TDatum>
+  if (typeof rootId !== 'string' || rootId.length === 0) {
+    throw new TypeError('sunburst: rootId must be a nonempty string')
+  }
+  const selected = root
+    .descendants()
+    .find((node) => node.data.id === rootId) as
+    FlatHierarchyNode<TDatum> | undefined
+  if (!selected) {
+    throw new TypeError(`sunburst: rootId "${rootId}" does not exist`)
+  }
+  return selected.copy() as FlatHierarchyNode<TDatum>
 }
 
 function classes(base: string, custom: string | undefined): string {
