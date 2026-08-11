@@ -1635,11 +1635,11 @@ changing any locked entry.
 
 The focused roadmap test enforces:
 
-- all 109 roadmap and audit IDs equal the live catalog directories exactly,
+- all 115 roadmap and audit IDs equal the live catalog directories exactly,
   including `111-basic-sankey` and `111-sankey-flow`;
 - every verified or accepted case has evidence under its own case directory;
-- disposition totals remain 58 / 34 / 14 / 2 / 1;
-- phase totals remain 60 / 2 / 26 / 11 / 10, with closure covering all 109;
+- disposition totals remain 63 / 35 / 14 / 2 / 1;
+- phase totals remain 65 / 2 / 26 / 11 / 11, with closure covering all 115;
 - phases, capabilities, dependencies, statuses, and source paths are valid;
 - the capability graph is acyclic;
 - application and inline-custom boundaries are limited to cases 85, 86, and

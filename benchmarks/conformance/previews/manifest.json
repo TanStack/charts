@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "c1996ef7bf39f0a713d322673571fbe4a1de6bed78c867bafa6d177cb6ec7346",
+  "sourceHash": "7b5c4f82e6d298db7532ccf26f93768e0680e0beabe3c45e1f6f974ae876cdfe",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -553,6 +553,31 @@
       "id": "119-stacked-bar-band-cursor",
       "sha256": "5044b45076c324852f65d30f7c60369caa9c9abbae769ce73cf7176b81fcd898",
       "bytes": 7610
+    },
+    {
+      "id": "120-themed-interactive-area",
+      "sha256": "3b16cb8ebc8efbc268e263306af6310a6ceed77b2ab096ec4d33645f835b4146",
+      "bytes": 14973
+    },
+    {
+      "id": "121-active-bar-dashboard",
+      "sha256": "fe4a57c4e21f73f6e270d0746c76e7a9b1c72ad441477bbe5cbf0a328be073f7",
+      "bytes": 11458
+    },
+    {
+      "id": "122-premium-kpi-sparklines",
+      "sha256": "693cb2455e18177b944e711c3b74aa61487f610a81a0c6294a20008168e23b71",
+      "bytes": 7708
+    },
+    {
+      "id": "123-active-donut-metric",
+      "sha256": "c1f03b0d54adc519549835c3dd1f1442586e0586530a49c77c40ff40f6ff22f4",
+      "bytes": 4777
+    },
+    {
+      "id": "124-theme-palette-matrix",
+      "sha256": "98ef62e53130e9d0ba3ddb375dbde209b56b8348af95b859e593106855345cde",
+      "bytes": 9796
     }
   ]
 }

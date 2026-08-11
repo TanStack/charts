@@ -7,6 +7,9 @@ import { readCatalogCases } from './catalog-index.mjs'
 export const catalogPreviewWidth = 288
 export const catalogPreviewHeight = 192
 
+const transientBrowserError =
+  /(?:net::ERR_(?:NETWORK_IO_SUSPENDED|SOCKET_NOT_CONNECTED)\b|Execution context was destroyed, most likely because of a navigation\.?$)/u
+
 const rootDirectory = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -76,6 +79,8 @@ const themePaintAttributes = new Set([
 export const catalogGuidePreviewCaseIds = [
   '115-definition-motion',
   '118-token-usage-calendar',
+  '120-themed-interactive-area',
+  '121-active-bar-dashboard',
   '80-echarts-axis-pointer',
   'bar-horizontal-ranking',
 ]
@@ -86,6 +91,10 @@ export const catalogMarginPreviewCaseIds = [
   '80-echarts-axis-pointer',
   '81-recharts-interactive-legend',
   '88-echarts-free-cursor',
+  '120-themed-interactive-area',
+  '121-active-bar-dashboard',
+  '122-premium-kpi-sparklines',
+  '124-theme-palette-matrix',
   'bar-horizontal-ranking',
 ]
 export const catalogTextPreviewCaseIds = [
@@ -104,6 +113,9 @@ export const catalogTextPreviewCaseIds = [
   '117-focus-cursor-motion',
   '118-token-usage-calendar',
   '119-stacked-bar-band-cursor',
+  '120-themed-interactive-area',
+  '121-active-bar-dashboard',
+  '123-active-donut-metric',
   'bar-horizontal-ranking',
   'heatmap-labeled',
 ]
@@ -134,37 +146,30 @@ export async function writeCatalogPreviews() {
     },
   })
   let browser
+  let context
 
   try {
     await server.listen()
     const origin = server.resolvedUrls?.local[0]
     assert(origin, 'catalog preview server did not publish a local URL')
     browser = await chromium.launch({ headless: true })
-    const context = await browser.newContext({
-      colorScheme: 'light',
-      deviceScaleFactor: 1,
-      reducedMotion: 'reduce',
-      viewport: {
-        width: catalogPreviewWidth,
-        height: catalogPreviewHeight,
-      },
-    })
+    context = await createCatalogPreviewContext(browser)
     const assets = []
     await fs.mkdir(previewsDirectory, { recursive: true })
 
     for (const entry of cases) {
-      const lightSvg = await renderCatalogPreviewVariant(
-        context,
-        origin,
-        entry,
-        'light',
-      )
-      const darkSvg = await renderCatalogPreviewVariant(
-        context,
-        origin,
-        entry,
-        'dark',
-      )
+      const renderVariant = (theme) =>
+        retryCatalogPreviewBrowserRender(
+          `${entry.id} (${theme})`,
+          () => renderCatalogPreviewVariant(context, origin, entry, theme),
+          async () => {
+            const previousContext = context
+            context = await createCatalogPreviewContext(browser)
+            await previousContext?.close().catch(() => {})
+          },
+        )
+      const lightSvg = await renderVariant('light')
+      const darkSvg = await renderVariant('dark')
       const portableSvg = createPortableCatalogPreviewSvg(
         lightSvg,
         darkSvg,
@@ -195,9 +200,48 @@ export async function writeCatalogPreviews() {
     await removeStalePreviewAssets(new Set(cases.map((entry) => entry.id)))
     console.log(`Generated ${assets.length} source-derived catalog previews.`)
   } finally {
+    await context?.close().catch(() => {})
     await browser?.close()
     await server.close()
   }
+}
+
+export async function retryCatalogPreviewBrowserRender(
+  label,
+  render,
+  replaceContext,
+) {
+  let firstError
+  try {
+    return await render()
+  } catch (error) {
+    if (!isTransientCatalogPreviewBrowserError(error)) throw error
+    firstError = error
+  }
+
+  console.warn(
+    `Retrying catalog preview ${label} in a fresh browser context after a transient Chromium failure.`,
+  )
+
+  try {
+    await replaceContext()
+    return await render()
+  } catch (secondError) {
+    const errors = [firstError, secondError]
+    throw new AggregateError(
+      errors,
+      `catalog preview ${label} failed after a fresh-context retry:\n${errors
+        .map(
+          (error, index) =>
+            `Attempt ${index + 1}: ${error instanceof Error ? error.message : String(error)}`,
+        )
+        .join('\n')}`,
+    )
+  }
+}
+
+export function isTransientCatalogPreviewBrowserError(error) {
+  return error instanceof Error && transientBrowserError.test(error.message)
 }
 
 export async function checkCatalogPreviews() {
@@ -433,6 +477,48 @@ export function validateCatalogPreviewPresentation(svg, caseId) {
       'catalog preview 119-stacked-bar-band-cursor must retain its native band, rule, and cursor labels',
     )
   }
+  if (caseId === '120-themed-interactive-area') {
+    assert(
+      svg.includes('visitor-crosshair:x-rule') &&
+        svg.includes('data-ts-key="visitor-points'),
+      'catalog preview 120-themed-interactive-area must retain its focused source point and native crosshair',
+    )
+  }
+  if (caseId === '121-active-bar-dashboard') {
+    assert(
+      countOccurrences(svg, '<rect data-ts-key="daily-visitors:') === 24 &&
+        svg.includes('data-ts-key="gradient:visitor-bars"'),
+      'catalog preview 121-active-bar-dashboard must retain all 24 keyed bars and its gradient',
+    )
+  }
+  if (caseId === '122-premium-kpi-sparklines') {
+    assert(
+      svg.includes('data-tanstack-catalog-preview-surfaces') &&
+        countOccurrences(svg, 'class="ts-chart') >= 4 &&
+        svg.includes('revenue-line') &&
+        svg.includes('customers-line') &&
+        svg.includes('churn-line'),
+      'catalog preview 122-premium-kpi-sparklines must retain all three real chart surfaces',
+    )
+  }
+  if (caseId === '123-active-donut-metric') {
+    assert(
+      countOccurrences(svg, 'data-ts-key="browser-arcs:') === 5 &&
+        countOccurrences(svg, 'data-ts-key="selected-browser-wedge:') === 1 &&
+        countOccurrences(svg, 'data-ts-key="selected-browser-ring:') === 1 &&
+        countOccurrences(svg, 'data-ts-key="donut-center-value:') === 1 &&
+        countOccurrences(svg, 'data-ts-key="donut-center-label:') === 1,
+      'catalog preview 123-active-donut-metric must retain five base arcs, its active wedge and ring, and both center labels',
+    )
+  }
+  if (caseId === '124-theme-palette-matrix') {
+    assert(
+      svg.includes('data-tanstack-catalog-preview-surfaces') &&
+        countOccurrences(svg, 'class="ts-chart') >= 4 &&
+        countOccurrences(svg, 'value-area') >= 3,
+      'catalog preview 124-theme-palette-matrix must retain all three themed chart surfaces',
+    )
+  }
   if (caseId === '91-timeline-playback-scrubber') {
     assert(
       svg.includes('data-chart-handle-role="rule"') &&
@@ -623,6 +709,18 @@ function parseCatalogPreviewXml(svg, caseId, JSDOM) {
     throw error
   }
   return document
+}
+
+function createCatalogPreviewContext(browser) {
+  return browser.newContext({
+    colorScheme: 'light',
+    deviceScaleFactor: 1,
+    reducedMotion: 'reduce',
+    viewport: {
+      width: catalogPreviewWidth,
+      height: catalogPreviewHeight,
+    },
+  })
 }
 
 async function renderCatalogPreviewVariant(context, origin, entry, theme) {

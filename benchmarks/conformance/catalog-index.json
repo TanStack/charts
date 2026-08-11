@@ -10007,6 +10007,540 @@
           "path": "benchmarks/conformance/cases/119-stacked-bar-band-cursor/plot.ts"
         }
       }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "order": 1210,
+      "id": "120-themed-interactive-area",
+      "title": "Themed interactive area card",
+      "family": "theme",
+      "intent": "Present a polished traffic card whose inherited light and dark tokens, focused tooltip, and keyed range transitions work without application-specific chart drawing.",
+      "support": "native",
+      "features": [
+        "inherited light and dark CSS tokens",
+        "gradient area fill",
+        "monotone line",
+        "sparse responsive guides",
+        "segmented range controls",
+        "keyed range motion",
+        "reduced-motion preference",
+        "grouped focus and tooltip",
+        "288 by 192 preview"
+      ],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 1
+        },
+        {
+          "role": "line",
+          "count": 1
+        },
+        {
+          "role": "dot",
+          "count": 30
+        }
+      ],
+      "interactionScenarios": [
+        {
+          "id": "range-motion-and-focus",
+          "steps": [
+            {
+              "type": "click",
+              "target": {
+                "view": "main",
+                "anchor": "control:7d"
+              }
+            },
+            {
+              "type": "wait",
+              "durationMs": 1200
+            },
+            {
+              "type": "assert",
+              "assertions": [
+                {
+                  "path": "range",
+                  "equals": "7d"
+                },
+                {
+                  "path": "rowCount",
+                  "equals": 7
+                },
+                {
+                  "path": "expectedDays",
+                  "equals": 7
+                },
+                {
+                  "path": "firstId",
+                  "equals": "2026-06-24"
+                },
+                {
+                  "path": "lastId",
+                  "equals": "2026-06-30"
+                },
+                {
+                  "path": "motionState",
+                  "equals": "finished"
+                }
+              ]
+            },
+            {
+              "type": "pointerMove",
+              "target": {
+                "view": "main",
+                "anchor": "date:2026-06-29"
+              }
+            },
+            {
+              "type": "wait",
+              "durationMs": 240
+            },
+            {
+              "type": "assert",
+              "assertions": [
+                {
+                  "path": "focusedId",
+                  "equals": "2026-06-29"
+                },
+                {
+                  "path": "tooltip.visible",
+                  "equals": true
+                }
+              ]
+            },
+            {
+              "type": "screenshot",
+              "name": "themed-area-seven-days"
+            },
+            {
+              "type": "click",
+              "target": {
+                "view": "main",
+                "anchor": "control:90d"
+              }
+            },
+            {
+              "type": "wait",
+              "durationMs": 1400
+            },
+            {
+              "type": "assert",
+              "assertions": [
+                {
+                  "path": "range",
+                  "equals": "90d"
+                },
+                {
+                  "path": "rowCount",
+                  "equals": 90
+                },
+                {
+                  "path": "expectedDays",
+                  "equals": 90
+                },
+                {
+                  "path": "firstId",
+                  "equals": "2026-04-02"
+                },
+                {
+                  "path": "lastId",
+                  "equals": "2026-06-30"
+                },
+                {
+                  "path": "motionState",
+                  "equals": "finished"
+                }
+              ]
+            },
+            {
+              "type": "pointerLeave",
+              "view": "main"
+            },
+            {
+              "type": "assert",
+              "assertions": [
+                {
+                  "path": "focusedId",
+                  "equals": null
+                },
+                {
+                  "path": "tooltip.visible",
+                  "equals": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui Area Chart - Interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-interactive"
+      },
+      "ai": {
+        "create": "Create a polished daily-traffic area card with inherited light and dark tokens, a blue vertical gradient, sparse guides, selectable 7, 30, and 90 day windows, and a compact focused tooltip.",
+        "maintain": "Preserve stable date keys across range changes, motion with reduced-motion fallback, three-label 288 by 192 preview readability, and complete visual ownership through theme tokens rather than custom SVG overlays."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/120-themed-interactive-area/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/120-themed-interactive-area/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "order": 1220,
+      "id": "121-active-bar-dashboard",
+      "title": "Active bar dashboard",
+      "family": "theme",
+      "intent": "Use metric totals as the series controls for a dense daily bar chart with gradient paint, focused-bar emphasis, and spring updates.",
+      "support": "native",
+      "features": [
+        "integrated KPI controls",
+        "CSS-variable gradient",
+        "focus-driven bar dimming",
+        "animated band ring",
+        "spring data updates",
+        "light and dark inheritance",
+        "reduced-motion support"
+      ],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 24
+        },
+        {
+          "role": "rule",
+          "count": 0,
+          "maxCount": 1
+        }
+      ],
+      "interactionScenarios": [
+        {
+          "id": "switch-dashboard-metric",
+          "steps": [
+            {
+              "type": "click",
+              "target": {
+                "view": "main",
+                "anchor": "metric:mobile"
+              }
+            },
+            {
+              "type": "assert",
+              "assertions": [
+                {
+                  "path": "metric",
+                  "equals": "mobile"
+                }
+              ]
+            },
+            {
+              "type": "pointerMove",
+              "target": {
+                "view": "main",
+                "anchor": "day:10"
+              }
+            },
+            {
+              "type": "wait",
+              "durationMs": 240
+            },
+            {
+              "type": "assert",
+              "assertions": [
+                {
+                  "path": "focusedId",
+                  "equals": "10"
+                },
+                {
+                  "path": "tooltip.visible",
+                  "equals": true
+                },
+                {
+                  "path": "tooltip.text",
+                  "includes": "May 10"
+                },
+                {
+                  "path": "tooltip.text",
+                  "includes": "mobile visitors"
+                }
+              ]
+            },
+            {
+              "type": "screenshot",
+              "name": "mobile-metric-focused"
+            },
+            {
+              "type": "pointerLeave",
+              "view": "main"
+            },
+            {
+              "type": "assert",
+              "assertions": [
+                {
+                  "path": "focusedId",
+                  "equals": null
+                },
+                {
+                  "path": "tooltip.visible",
+                  "equals": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source": {
+        "title": "shadcn Bar Chart — Interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-interactive"
+      },
+      "ai": {
+        "create": "Create a polished visitor dashboard whose two KPI totals are also accessible series selectors. Use native bars, a declared CSS-variable gradient, spring transitions, a focused band ring, sparse date labels, and inherited light/dark colors.",
+        "maintain": "Preserve 24 stable day keys, metric-specific totals and tooltips, keyboard-operable selectors, reduced-motion behavior, and one native chart definition rather than drawing the active state in React."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/121-active-bar-dashboard/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/121-active-bar-dashboard/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "order": 1230,
+      "id": "122-premium-kpi-sparklines",
+      "title": "Premium KPI sparklines",
+      "family": "composition",
+      "intent": "Present three business metrics as restrained, theme-aware cards with compact line and area trends that remain coherent during live data updates.",
+      "support": "composed",
+      "features": [
+        "three native chart surfaces",
+        "guide-free line and area sparklines",
+        "CSS-variable palette inheritance",
+        "light and dark themes",
+        "keyed spring updates",
+        "reduced-motion preference",
+        "responsive catalog composition"
+      ],
+      "geometry": [
+        {
+          "id": "revenue-area",
+          "role": "area",
+          "count": 1
+        },
+        {
+          "id": "revenue-line",
+          "role": "line",
+          "count": 1
+        },
+        {
+          "id": "customers-line",
+          "role": "line",
+          "count": 1
+        },
+        {
+          "id": "churn-area",
+          "role": "area",
+          "count": 1
+        },
+        {
+          "id": "churn-line",
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "Bklit UI chart blocks",
+        "url": "https://bklit.com/blocks"
+      },
+      "ai": {
+        "create": "Create three polished KPI cards for monthly revenue, active customers, and net churn. Use compact native line and area charts without guides, inherit every chart color from the card palette, and keep the preview composed from the same real chart surfaces.",
+        "maintain": "Preserve the three stable keyed series, spring continuity across revisions, reduced-motion behavior, inherited light and dark tokens, restrained metric copy, and responsive three-surface preview."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/122-premium-kpi-sparklines/tanstack.ts",
+        "reference": {
+          "renderer": "observable-plot",
+          "path": "benchmarks/conformance/cases/122-premium-kpi-sparklines/plot.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "order": 1240,
+      "id": "123-active-donut-metric",
+      "title": "Active donut metric",
+      "family": "theme",
+      "intent": "Keep one browser share selected across pointer and button input while its wedge, detached ring, center value, and legend state move together.",
+      "support": "native",
+      "features": [
+        "native pie allocation",
+        "rounded donut arcs",
+        "expanded active wedge",
+        "detached active ring",
+        "animated center metric",
+        "persistent accessible selection",
+        "CSS-variable palette",
+        "spring transitions"
+      ],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 7
+        },
+        {
+          "role": "text",
+          "count": 2
+        }
+      ],
+      "interactionScenarios": [
+        {
+          "id": "select-chart-then-legend",
+          "steps": [
+            {
+              "type": "pointerMove",
+              "target": {
+                "view": "main",
+                "anchor": "wedge:firefox"
+              }
+            },
+            {
+              "type": "wait",
+              "durationMs": 240
+            },
+            {
+              "type": "assert",
+              "assertions": [
+                {
+                  "path": "activeId",
+                  "equals": "firefox"
+                },
+                {
+                  "path": "focusedId",
+                  "equals": "firefox"
+                },
+                {
+                  "path": "tooltip.visible",
+                  "equals": true
+                },
+                {
+                  "path": "tooltip.id",
+                  "equals": "firefox"
+                },
+                {
+                  "path": "tooltip.label",
+                  "equals": "Firefox"
+                },
+                {
+                  "path": "tooltip.text",
+                  "includes": "Firefox"
+                }
+              ]
+            },
+            {
+              "type": "click",
+              "target": {
+                "view": "main",
+                "anchor": "browser:edge"
+              }
+            },
+            {
+              "type": "wait",
+              "durationMs": 900
+            },
+            {
+              "type": "assert",
+              "assertions": [
+                {
+                  "path": "activeId",
+                  "equals": "edge"
+                },
+                {
+                  "path": "focusedId",
+                  "equals": null
+                },
+                {
+                  "path": "tooltip.visible",
+                  "equals": false
+                }
+              ]
+            },
+            {
+              "type": "screenshot",
+              "name": "edge-legend-active"
+            }
+          ]
+        }
+      ],
+      "source": {
+        "title": "shadcn Pie Chart — Interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-interactive"
+      },
+      "ai": {
+        "create": "Create a polished browser-share donut with rounded source-linked arcs, an expanded selected wedge, a detached selected ring, a two-line center metric, and accessible persistent selection from either the chart or legend.",
+        "maintain": "Preserve stable browser identities, native pie allocation, CSS-variable colors, the seven-arc composition, synchronized center and legend state, spring continuity, and reduced-motion behavior without custom SVG paths."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/123-active-donut-metric/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/123-active-donut-metric/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "order": 1250,
+      "id": "124-theme-palette-matrix",
+      "title": "Theme palette matrix",
+      "family": "theme",
+      "intent": "Render one compact gradient area and comparison line with neutral, vibrant, and monochrome CSS-variable palettes that follow light and dark color schemes.",
+      "support": "native",
+      "features": [
+        "three actual chart surfaces",
+        "shared source data",
+        "CSS-variable paint tokens",
+        "automatic light and dark inheritance",
+        "linear area gradients",
+        "keyed spring updates",
+        "reduced-motion policy"
+      ],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 3
+        },
+        {
+          "role": "line",
+          "count": 6
+        },
+        {
+          "role": "dot",
+          "count": 3
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui gradient area chart",
+        "url": "https://ui.shadcn.com/charts/area"
+      },
+      "ai": {
+        "create": "Create three compact copies of the same area-and-line chart using neutral, vibrant, and monochrome CSS-variable palettes, including a real gradient resource and automatic light/dark paint without rebuilding the shared data.",
+        "maintain": "Preserve one shared row array per revision, three real SVG chart surfaces, stable datum keys, palette-scoped CSS variables with light-dark fallbacks, unique resource prefixes, reduced-motion handling, and matching geometry across treatments."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/124-theme-palette-matrix/tanstack.ts",
+        "reference": {
+          "renderer": "observable-plot",
+          "path": "benchmarks/conformance/cases/124-theme-palette-matrix/plot.ts"
+        }
+      }
     }
   ]
 }

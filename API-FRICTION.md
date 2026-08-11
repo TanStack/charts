@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-09
+Last updated: 2026-08-10
 
 ## Triage rule
 
@@ -294,6 +294,12 @@ Each entry records:
 | F-255 | Public import maps could drift from package exports            | Documentation/Tooling | resolved   |
 | F-256 | Shared host policy retained browser-only modules               | API/Tooling           | resolved   |
 | F-257 | The release package graph leaked into application setup        | API/Docs/Tooling      | resolved   |
+| F-258 | Tooltip chrome required specificity overrides                  | API/Documentation     | resolved   |
+| F-259 | Chart resources cannot declare patterns                        | API                   | open       |
+| F-260 | Static guides cannot express stroke treatment                  | API                   | open       |
+| F-261 | Cartesian bars cannot round only exposed corners               | API                   | open       |
+| F-262 | Mark inference accepted an unsupported style option            | API                   | open       |
+| F-263 | Chromium transport suspension interrupted catalog previews     | Tooling               | resolved   |
 
 ## Findings
 
@@ -7691,3 +7697,110 @@ Each entry records:
 - Release verification: the focused contract covers ranged and unscoped
   dependencies. All 12 `0.9.0` release artifacts pass with the unified fixture
   installing from its isolated store.
+
+### F-258 — Tooltip chrome required specificity overrides
+
+- Status: resolved
+- Severity: medium
+- Owner: API/Documentation
+- Observed in: reproducing shadcn and Bklit dashboard cards in catalog cases
+  120, 121, and 123
+- Friction: the DOM tooltip applied its background, border, radius, shadow, and
+  font as fixed inline declarations. A chart could attach a `className`, but a
+  branded card had to use `!important` for ordinary surface theming even when
+  all positioning and interaction behavior remained first party.
+- Decision: retain inline layout and safe defaults while resolving tooltip
+  chrome through inherited `--ts-chart-tooltip-*` CSS variables. Keep
+  `className` for content-specific structure rather than as a specificity
+  escape hatch.
+- Verification: the runtime tooltip regression asserts variable-backed inline
+  defaults; the active bar and donut cards set scoped variables without a
+  stylesheet or `!important`; the styling guide documents the supported
+  surface tokens. Focused unit tests, root TypeScript, and light/dark browser
+  audits pass.
+
+### F-259 — Chart resources cannot declare patterns
+
+- Status: open
+- Severity: medium
+- Owner: API
+- Observed in: the theme-treatment audit for catalog cases 120–124 and the
+  Bklit-derived card references
+- Friction: `ChartSpec.gradients` keeps CSS-variable linear gradients inside
+  the renderer-neutral definition. The same resource model cannot declare a
+  hatch, dot, or line pattern. An author must omit that treatment or leave the
+  native definition and renderer resource boundary.
+- Current decision: case 124 uses the same declared linear gradient across its
+  palette treatments. Do not inject an application-owned SVG pattern as a
+  catalog workaround. Keep a native pattern resource open until one contract
+  covers SVG, Canvas, export, CSS-variable paint, and `idPrefix` scoping.
+
+### F-260 — Static guides cannot express stroke treatment
+
+- Status: open
+- Severity: medium
+- Owner: API
+- Observed in: the themed area and active bar dashboard cases 120 and 121
+- Friction: `grid` is a boolean, and the static axis line is a boolean. The
+  theme can set one guide paint, but an author cannot set grid or axis stroke
+  width, dash, or opacity. F-112 added dashes to rule marks, and F-191 added
+  tick-label styling. Neither entry covers static axis and grid strokes.
+- Current decision: keep the catalog cases on native solid grids with
+  `theme.grid`. Use rule marks for styled annotations and `crosshair` for
+  styled focus guides. Do not synthesize repeated grid rules in an application
+  shell. Keep a guide-style object open for renderer, facet, export, and motion
+  evaluation.
+
+### F-261 — Cartesian bars cannot round only exposed corners
+
+- Status: open
+- Severity: medium
+- Owner: API
+- Observed in: the active bar dashboard case 121
+- Friction: `barX` and `barY` accept one numeric `radius`, which becomes one SVG
+  rectangle radius for all four corners. The reference treatment needs rounded
+  value-end corners and square baseline corners. The current option cannot
+  express that distinction or preserve it across negative and stacked bars.
+- Current decision: keep case 121 on the native uniform radius. Do not replace
+  bars with application paths. Keep endpoint or per-corner radii open until the
+  contract accounts for orientation, sign, stack seams, focus geometry,
+  motion, Canvas, and native output.
+
+### F-262 — Mark inference accepted an unsupported style option
+
+- Status: open
+- Severity: medium
+- Owner: API
+- Observed in: hiding the unfocused dots in the themed area case 120
+- Friction: `dot(rows, { opacity: 0 })` typechecked because the literal-
+  preserving generic options overload accepts extra keys, but `DotOptions`
+  does not own base `opacity` and the renderer silently ignored it. State
+  styles do accept `opacity`, so the boundary was especially easy to misread.
+- Current decision: case 120 sets both `fillOpacity` and `strokeOpacity` to
+  zero, then restores them in focused states. Keep an exact-options check or a
+  consistent base-opacity contract open for the mark family; do not add a
+  runtime-only special case for dots.
+
+### F-263 — Chromium transport and context churn interrupted catalog previews
+
+- Status: resolved
+- Severity: medium
+- Owner: Tooling
+- Observed in: release validation of all 115 light and dark catalog previews
+- Friction: two clean generator starts failed at unrelated cases 29 and 84
+  after each chart had rendered. On macOS, Chromium logged
+  `ERR_NETWORK_IO_SUSPENDED` and `ERR_SOCKET_NOT_CONNECTED` for local Vite
+  resource requests. Restarting the complete 230-navigation matrix only moved
+  the infrastructure failure later in the run. A later clean run reached the
+  SVG inspection step before Playwright reported that its execution context
+  had been destroyed, despite the preview page having no post-load navigation.
+- Decision: retry only those two Chromium transport errors and Playwright's
+  exact execution-context-destroyed signature, once, after replacing the
+  browser context. Keep every chart, protocol, and other console error
+  non-retryable. Preserve both failures when the fresh attempt does not recover,
+  so a deterministic reload still fails on its second attempt.
+- Verification: the focused 13-test preview suite covers both exact transport
+  codes, the exact context-destroyed signature, recovery, non-retryable chart
+  failures, and retained repeated-failure evidence. A full browser-backed run
+  generated all 115 previews in both themes without changing any SVG asset;
+  only the source hash changed.

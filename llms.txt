@@ -58,6 +58,7 @@ Read the canonical pages below. Each concept is documented once; guides and exam
 - docs/examples/polar-and-radar.md — Polar and Radar Charts: Build native pie, donut, gauge, radar, line, scatter, radial bar, rose, and sunburst charts through the opt-in polar coordinate entry.
 - docs/examples/annotations-and-overlays.md — Annotations and Overlays: Add direct labels, thresholds, change indicators, and explanatory layers without hiding chart semantics.
 - docs/examples/interactive-charts.md — Interactive Charts: Choose chart-owned focus or controlled application interactions for pinned detail, scrolling, zooming, and editing.
+- docs/examples/themes-and-motion.md — Themes and Motion: Apply inherited palettes and optional motion while keeping chart definitions separate from card layout and controls.
 - docs/reference/index.md — API Reference: Reference for TanStack Charts definitions, marks, scales, runtime, rendering, interaction, and framework adapters.
 - docs/reference/chart-definitions.md — Chart Definition API: Reference static and responsive chart definitions, build context, and identity-based updates.
 - docs/reference/chart-spec.md — Chart Spec: Reference for marks, axes, color, gradients, clipping, margins, guides, and themes in a TanStack Charts spec.

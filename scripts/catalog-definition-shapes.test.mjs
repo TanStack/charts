@@ -57,9 +57,36 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification.parameterless).toEqual([])
-    expect(classification.static).toBe(110)
+    expect(classification.static).toBe(115)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
-    expect(classification.static + classification.responsive.length).toBe(115)
+    expect(classification.static + classification.responsive.length).toBe(120)
+  })
+
+  it('classifies the base definition once when options are added', () => {
+    const classification = {
+      parameterless: [],
+      responsive: [],
+      static: 0,
+    }
+
+    classifyDefinitions(
+      'two-argument.ts',
+      `
+        defineChart({ marks: [] }, { focus: 'nearest' })
+        defineChart(defineChart({ marks: [] }), { keyboard: true })
+        defineChart(
+          defineChart(({ width }) => ({ marks: [], width })),
+          { keyboard: true },
+        )
+      `,
+      classification,
+    )
+
+    expect(classification).toEqual({
+      parameterless: [],
+      responsive: ['two-argument.ts'],
+      static: 2,
+    })
   })
 })
 
@@ -84,7 +111,7 @@ function classifyDefinitions(relativePath, source, classification) {
       ts.isCallExpression(node) &&
       ts.isIdentifier(node.expression) &&
       node.expression.text === 'defineChart' &&
-      node.arguments.length === 1
+      (node.arguments.length === 1 || node.arguments.length === 2)
     ) {
       const definition = unwrapParentheses(node.arguments[0])
 

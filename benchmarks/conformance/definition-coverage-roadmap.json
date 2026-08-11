@@ -3460,6 +3460,161 @@
       ]
     },
     {
+      "id": "120-themed-interactive-area",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/120-themed-interactive-area/chart.ts",
+        "cases/120-themed-interactive-area/tanstack.ts",
+        "cases/120-themed-interactive-area/tanstack.test.ts"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["chart.ts"],
+          "summary": "Compose the gradient area, line, focus points, sparse guides, tooltip, and keyed spring policy through the current definition API."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["tanstack.ts"],
+          "summary": "Retain the traffic card, range controls, and selected time-window state as application UI."
+        }
+      ]
+    },
+    {
+      "id": "121-active-bar-dashboard",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/121-active-bar-dashboard/chart.ts",
+        "cases/121-active-bar-dashboard/tanstack.test.ts",
+        "cases/121-active-bar-dashboard/view.tsx"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["chart.ts"],
+          "summary": "Compose gradient bars, focus states, the animated band ring, sparse guides, tooltip, and keyed spring updates as one native definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["view.tsx"],
+          "summary": "Retain the KPI totals and desktop/mobile selector as accessible application controls."
+        }
+      ]
+    },
+    {
+      "id": "122-premium-kpi-sparklines",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/122-premium-kpi-sparklines/chart.ts",
+        "cases/122-premium-kpi-sparklines/tanstack.test.ts",
+        "cases/122-premium-kpi-sparklines/view.tsx"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["chart.ts"],
+          "summary": "Build the three guide-free line and area sparklines from ordinary marks, gradients, CSS-variable paints, and keyed spring motion."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["view.tsx"],
+          "summary": "Retain metric labels, values, trend annotations, and responsive card layout as application content."
+        }
+      ]
+    },
+    {
+      "id": "123-active-donut-metric",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/123-active-donut-metric/chart.ts",
+        "cases/123-active-donut-metric/tanstack.test.ts",
+        "cases/123-active-donut-metric/view.tsx"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["chart.ts"],
+          "summary": "Compose source-linked pie allocation, rounded arcs, an expanded wedge, detached ring, center text, tooltip, and spring motion without custom SVG paths."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["view.tsx"],
+          "summary": "Retain the browser legend buttons and persistent selected-browser policy as accessible application state."
+        }
+      ]
+    },
+    {
+      "id": "124-theme-palette-matrix",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/124-theme-palette-matrix/chart.ts",
+        "cases/124-theme-palette-matrix/tanstack.test.ts",
+        "cases/124-theme-palette-matrix/view.tsx"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": ["chart.ts"],
+          "summary": "Render identical area, comparison line, terminal dot, gradient, and motion geometry through three scoped definition themes."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "before-definition",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["view.tsx"],
+          "summary": "Retain the responsive three-card matrix and palette labels as application composition around real chart surfaces."
+        }
+      ]
+    },
+    {
       "id": "bar-grouped",
       "coverage": "declarative",
       "disposition": "definition-now",

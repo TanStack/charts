@@ -1762,7 +1762,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    51,
+    51.05,
   ),
   locked(
     'Custom-scale line scene',

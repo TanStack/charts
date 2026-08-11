@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "order": 1250,
+  "id": "124-theme-palette-matrix",
+  "title": "Theme palette matrix",
+  "family": "theme",
+  "intent": "Render one compact gradient area and comparison line with neutral, vibrant, and monochrome CSS-variable palettes that follow light and dark color schemes.",
+  "support": "native",
+  "features": [
+    "three actual chart surfaces",
+    "shared source data",
+    "CSS-variable paint tokens",
+    "automatic light and dark inheritance",
+    "linear area gradients",
+    "keyed spring updates",
+    "reduced-motion policy"
+  ],
+  "geometry": [
+    { "role": "area", "count": 3 },
+    { "role": "line", "count": 6 },
+    { "role": "dot", "count": 3 }
+  ],
+  "source": {
+    "title": "shadcn/ui gradient area chart",
+    "url": "https://ui.shadcn.com/charts/area"
+  },
+  "ai": {
+    "create": "Create three compact copies of the same area-and-line chart using neutral, vibrant, and monochrome CSS-variable palettes, including a real gradient resource and automatic light/dark paint without rebuilding the shared data.",
+    "maintain": "Preserve one shared row array per revision, three real SVG chart surfaces, stable datum keys, palette-scoped CSS variables with light-dark fallbacks, unique resource prefixes, reduced-motion handling, and matching geometry across treatments."
+  }
+}

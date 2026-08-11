@@ -140,12 +140,12 @@ describe('definition coverage roadmap', () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
 
-    expect(auditedIds).toHaveLength(110)
-    expect(new Set(auditedIds).size).toBe(110)
-    expect(roadmapIds).toHaveLength(110)
-    expect(new Set(roadmapIds).size).toBe(110)
-    expect(overviewIds).toHaveLength(110)
-    expect(new Set(overviewIds).size).toBe(110)
+    expect(auditedIds).toHaveLength(115)
+    expect(new Set(auditedIds).size).toBe(115)
+    expect(roadmapIds).toHaveLength(115)
+    expect(new Set(roadmapIds).size).toBe(115)
+    expect(overviewIds).toHaveLength(115)
+    expect(new Set(overviewIds).size).toBe(115)
     expect([...roadmapIds].sort()).toEqual([...auditedIds].sort())
     expect([...roadmapIds].sort()).toEqual([...overviewIds].sort())
     expect([...roadmapIds].sort()).toEqual([...catalogIds].sort())
@@ -154,13 +154,13 @@ describe('definition coverage roadmap', () => {
 
     expect(countBy(roadmap.cases, 'disposition')).toEqual({
       'application-boundary': 2,
-      'definition-now': 58,
+      'definition-now': 63,
       'first-party-primitive': 35,
       'inline-custom-mark': 1,
       'optional-primitive': 14,
     })
     expect(countBy(roadmap.cases, 'phase')).toEqual({
-      'phase-0': 60,
+      'phase-0': 65,
       'phase-1': 2,
       'phase-2': 26,
       'phase-3': 11,
@@ -170,8 +170,8 @@ describe('definition coverage roadmap', () => {
     const roadmapById = new Map(roadmap.cases.map((entry) => [entry.id, entry]))
     const auditRows = coverageRows(audit, false)
     const overviewRows = coverageRows(overview, true)
-    expect(auditRows).toHaveLength(110)
-    expect(overviewRows).toHaveLength(110)
+    expect(auditRows).toHaveLength(115)
+    expect(overviewRows).toHaveLength(115)
     for (const row of auditRows) {
       expect(dispositionByLabel[row.disposition]).toBe(
         roadmapById.get(row.id)?.disposition,

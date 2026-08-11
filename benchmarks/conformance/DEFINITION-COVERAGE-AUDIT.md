@@ -1,14 +1,14 @@
 # Definition coverage audit
 
-Date: 2026-08-05
+Date: 2026-08-10
 
-Scope: all 110 catalog directories. The 67 cases previously classified as
+Scope: all 115 catalog directories. The 67 cases previously classified as
 strict custom authoring, preparation review, or shell-only are reviewed beside
 the former 42-case definition-native control group from
 [the custom authoring audit](./CUSTOM-AUTHORING-AUDIT.md). That audit remains
-the historical before-state; Case 119 was added afterward and is classified by
-the same ownership test. This document records the current disposition of every
-case.
+the historical before-state; Cases 119–124 were added afterward and are
+classified by the same ownership test. This document records the current
+disposition of every case.
 
 Delivery status, dependencies, acceptance criteria, and verification gates
 live in the [definition coverage plan](./DEFINITION-COVERAGE-PLAN.md) and its
@@ -16,8 +16,8 @@ live in the [definition coverage plan](./DEFINITION-COVERAGE-PLAN.md) and its
 
 ## Decision
 
-One hundred seven of the 110 cases present their visualization as a normal chart
-definition. Fifty-eight use the definition API without a new visualization
+One hundred twelve of the 115 cases present their visualization as a normal
+chart definition. Sixty-three use the definition API without a new visualization
 primitive. Thirty-five use a reusable first-party primitive, including Case
 70's final-scale bar thickness cap. Fourteen use a tree-shakeable first-party
 adapter around a heavier layout or gesture algorithm.
@@ -31,12 +31,12 @@ work:
 
 | Disposition           |   Cases | Meaning                                                                  |
 | --------------------- | ------: | ------------------------------------------------------------------------ |
-| Definition now        |      58 | Current marks and eager transforms are sufficient                        |
+| Definition now        |      63 | Current marks and eager transforms are sufficient                        |
 | First-party primitive |      35 | Add a reusable mark, transform, layout, guide, or controlled signal      |
 | Optional primitive    |      14 | Keep a heavy dependency granular, but hide its layout DTOs and lifecycle |
 | Application boundary  |       2 | The remaining work is product state, DOM layout, or data arrival         |
 | Inline custom mark    |       1 | The geometry is intentionally case-specific                              |
-| **Total**             | **110** |                                                                          |
+| **Total**             | **115** |                                                                          |
 
 A normal definition does not require every implementation algorithm to live
 in Charts core. D3 may implement an optional `sankeyDiagram`, `densityContour`,
@@ -96,7 +96,7 @@ The missing layers are narrower:
 
 | Candidate                                                          | Cases                           |
 | ------------------------------------------------------------------ | ------------------------------- |
-| Use current marks, transforms, geo, polar, and focus APIs directly | 58 definition-now cases         |
+| Use current marks, transforms, geo, polar, and focus APIs directly | 63 definition-now cases         |
 | `fold` / wide-to-long                                              | 27, 30, 75, 99                  |
 | Additional stack and cumulative layouts                            | 21, 26, 29, 64                  |
 | Statistical composites and profile marks                           | 15, 31, 33, 62, 63              |
@@ -244,6 +244,11 @@ ownership boundary.
 | [117 — Focus cursor motion](./cases/117-focus-cursor-motion/tanstack.ts)         | First-party primitive | Add a stable-key focus guide with x/y rules, marker, labels, and normal motion; remove the second SVG and spring loop.                                                                                                                                                                                                                                             |
 | [118 — Token calendar](./cases/118-token-usage-calendar/shell.ts)                | First-party primitive | Add per-tick text style, anchor, and offset accessors so the first month label needs no post-render DOM mutation.                                                                                                                                                                                                                                                  |
 | [119 — Stacked bar cursor](./cases/119-stacked-bar-band-cursor/chart.ts)         | First-party primitive | Use renderer-native `crosshair` axes for the categorical band, endpoint rule, labels, grouped focus, and ordinary definition motion; only conformance observation remains outside.                                                                                                                                                                                 |
+| [120 — Themed area card](./cases/120-themed-interactive-area/chart.ts)           | Definition now        | Native area, line, points, gradients, sparse guides, tooltip, and keyed spring policy own the chart; the range selector and card remain application UI.                                                                                                                                                                                                            |
+| [121 — Active bar dashboard](./cases/121-active-bar-dashboard/chart.ts)          | Definition now        | Native gradient bars, focus states, band cursor, tooltip, and spring updates own the chart; KPI totals double as application-owned series controls.                                                                                                                                                                                                                |
+| [122 — KPI sparklines](./cases/122-premium-kpi-sparklines/chart.ts)              | Definition now        | Three guide-free definitions use ordinary area and line marks, gradients, CSS-variable paint, and keyed spring updates; metric copy and responsive card layout remain application content.                                                                                                                                                                         |
+| [123 — Active donut](./cases/123-active-donut-metric/chart.ts)                   | Definition now        | Native pie allocation, rounded arcs, selected wedge and ring layers, center text, tooltip, and spring motion own the visualization; legend buttons own persistent selection.                                                                                                                                                                                       |
+| [124 — Theme matrix](./cases/124-theme-palette-matrix/chart.ts)                  | Definition now        | The same area-and-line definition is rendered through three scoped CSS-variable themes with identical geometry; only the three-card matrix and labels are application composition.                                                                                                                                                                                 |
 
 ## Reference evidence
 
@@ -275,8 +280,8 @@ bundle.
 
 ## Delivery result
 
-All 110 catalog directories now have one roadmap record and case-local
-evidence. All 107 normal-definition cases are verified against their current
+All 115 catalog directories now have one roadmap record and case-local
+evidence. All 112 normal-definition cases are verified against their current
 boundary; only cases 85, 86, and 116 retain accepted application or bespoke
 geometry work. The roadmap validator compares its IDs with the live catalog
 directories so a new case cannot silently remain outside this review.
