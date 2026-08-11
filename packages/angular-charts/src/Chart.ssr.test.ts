@@ -44,6 +44,7 @@ describe('Angular adapter SSR', () => {
     )
 
     expect(html).toContain('<svg')
+    expect(html).toContain('class="ts-chart__line"')
     expect(html).toContain('aria-label="Server revenue"')
   })
 })
