@@ -1,4 +1,4 @@
-import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { defineChart, dot, lineY } from '@tanstack/charts'
 import { aapl } from '@charts-poc/demo-data/aapl'
 import { handleX } from '@tanstack/charts/interaction/handle'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
@@ -17,18 +17,16 @@ import {
 import { tanstackCase } from '../../shared/mount'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import type { HandleXChange } from '@tanstack/charts/interaction/handle'
-import type { ChartHost, ChartHostOptions, ChartScene } from '@tanstack/charts'
+import type { ChartScene } from '@tanstack/charts'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
-  ConformanceInput,
   ConformanceJsonObject,
-  ConformanceMount,
   ConformanceTarget,
   ConformanceTestDriver,
 } from '../../types'
 
-interface PlaybackState {
+export interface PlaybackState {
   frame: Date
   dragging: boolean
   scrubCount: number
@@ -38,9 +36,9 @@ interface PlaybackState {
 const linePaint = '#2563eb'
 const playheadPaint = '#f97316'
 const margin = { top: 64, right: 24, bottom: 68, left: 56 }
-const playbackRows = selectPlaybackRows(aapl)
+export const playbackRows = selectPlaybackRows(aapl)
 const playbackDates = playbackRows.map((row) => row.Date)
-const initialFrame = playbackRows[initialPlaybackIndex]?.Date
+export const initialFrame = playbackRows[initialPlaybackIndex]?.Date
 if (!initialFrame) throw new Error('Playback requires an initial frame.')
 
 export function playbackDefinition(
@@ -122,138 +120,9 @@ export const catalogCase = tanstackCase(
   'AAPL closes with a draggable timeline playback scrubber',
 )
 
-export const mount: ConformanceMount = (container, input) => {
-  let currentInput = input
-  let accepted = cloneDate(initialFrame)
-  let state: PlaybackState = {
-    frame: cloneDate(accepted),
-    dragging: false,
-    scrubCount: 0,
-    playing: false,
-  }
-  let playbackTimer: ReturnType<typeof setInterval> | undefined
-  let host: ChartHost<AaplRow, Date, number> | undefined
+export { mount } from './view'
 
-  const document = container.ownerDocument
-  const view = document.createElement('div')
-  const chartSurface = document.createElement('div')
-  const controls = createPlaybackControls(document)
-  view.dataset.conformanceView = 'main'
-  view.style.position = 'relative'
-  view.style.touchAction = 'pan-y'
-  view.append(chartSurface, controls.toolbar, controls.status)
-  container.append(view)
-  sizeView(view, input)
-
-  const frameText = () => playbackValueText(rowForDate(state.frame))
-  const paint = () => controls.paint(frameText(), state.playing)
-  const stopPlayback = (message?: string) => {
-    if (playbackTimer !== undefined) clearInterval(playbackTimer)
-    playbackTimer = undefined
-    state = { ...state, playing: false }
-    paint()
-    if (message) controls.announce(`${message}. ${frameText()}`)
-  }
-  const stopForScrub = () => {
-    if (state.playing) stopPlayback()
-  }
-
-  const handleFrameChange = (next: Date, reason: HandleXChange<Date>) => {
-    stopForScrub()
-    if (reason.type === 'preview') {
-      state = { ...state, frame: cloneDate(next), dragging: true }
-      paint()
-      return
-    }
-    if (reason.type === 'cancel') {
-      state = {
-        ...state,
-        frame: cloneDate(reason.origin),
-        dragging: false,
-      }
-      paint()
-      controls.announce(`Scrub canceled. ${frameText()}`)
-      return
-    }
-    accepted = cloneDate(next)
-    state = {
-      ...state,
-      frame: cloneDate(next),
-      dragging: false,
-      scrubCount: state.scrubCount + 1,
-    }
-    host?.update(options())
-    paint()
-    controls.announce(`Frame selected. ${frameText()}`)
-  }
-
-  const options = (): ChartHostOptions<AaplRow, Date, number> => ({
-    definition: playbackDefinition(accepted, handleFrameChange),
-    width: currentInput.width,
-    height: currentInput.height,
-    ariaLabel: 'AAPL closes with a draggable timeline playback scrubber',
-  })
-
-  const applyFrame = (next: Date) => {
-    accepted = cloneDate(next)
-    state = { ...state, frame: cloneDate(next) }
-    host!.update(options())
-    paint()
-  }
-
-  const togglePlayback = () => {
-    if (state.playing) {
-      stopPlayback('Playback paused')
-      return
-    }
-    const lastIndex = playbackRows.length - 1
-    const restarting = indexForDate(state.frame) >= lastIndex
-    if (restarting) applyFrame(playbackRows[0]!.Date)
-    state = { ...state, playing: true, dragging: false }
-    playbackTimer = setInterval(() => {
-      const index = indexForDate(state.frame)
-      if (index >= playbackRows.length - 1) {
-        stopPlayback('Playback ended')
-        return
-      }
-      applyFrame(playbackRows[index + 1]!.Date)
-    }, 700)
-    paint()
-    controls.announce(
-      `${restarting ? 'Playback restarted' : 'Playback started'}. ${frameText()}`,
-    )
-  }
-
-  controls.playButton.addEventListener('click', togglePlayback)
-  host = mountChart(chartSurface, options())
-  paint()
-
-  const driver = createDriver(
-    view,
-    chartSurface,
-    controls.playButton,
-    () => host!.getScene(),
-    () => state,
-  )
-
-  return {
-    driver,
-    update(nextInput) {
-      currentInput = nextInput
-      sizeView(view, nextInput)
-      host!.update(options())
-      paint()
-    },
-    destroy() {
-      if (playbackTimer !== undefined) clearInterval(playbackTimer)
-      controls.playButton.removeEventListener('click', togglePlayback)
-      host!.destroy()
-      view.remove()
-    },
-  }
-}
-
-function createDriver(
+export function createDriver(
   view: HTMLElement,
   surface: HTMLElement,
   playButton: HTMLButtonElement,
@@ -373,95 +242,6 @@ function playbackGeometry(
   })
 }
 
-function createPlaybackControls(document: Document) {
-  const toolbar = document.createElement('div')
-  toolbar.className = 'ts-conformance-playback-toolbar'
-  toolbar.setAttribute('role', 'group')
-  toolbar.setAttribute('aria-label', 'Timeline playback controls')
-  Object.assign(toolbar.style, {
-    position: 'absolute',
-    top: '4px',
-    left: '56px',
-    right: '20px',
-    zIndex: '3',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: '8px',
-    pointerEvents: 'none',
-  })
-
-  const current = document.createElement('div')
-  current.className = 'ts-conformance-playback-current'
-  Object.assign(current.style, {
-    boxSizing: 'border-box',
-    minWidth: '0',
-    minHeight: '32px',
-    padding: '7px 9px',
-    border: '1px solid color-mix(in srgb, currentColor 32%, transparent)',
-    borderRadius: '999px',
-    overflow: 'hidden',
-    background: 'color-mix(in srgb, var(--ts-chart-2, #f97316) 12%, Canvas)',
-    color: 'inherit',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    font: '600 12px/1.2 system-ui, sans-serif',
-  })
-
-  const playButton = document.createElement('button')
-  playButton.className = 'ts-conformance-playback-button'
-  playButton.type = 'button'
-  Object.assign(playButton.style, {
-    flex: '0 0 auto',
-    width: '44px',
-    height: '44px',
-    border: '1px solid color-mix(in srgb, currentColor 32%, transparent)',
-    borderRadius: '10px',
-    background: 'color-mix(in srgb, var(--ts-chart-2, #f97316) 12%, Canvas)',
-    color: 'inherit',
-    cursor: 'pointer',
-    font: '700 16px/1 system-ui, sans-serif',
-    pointerEvents: 'auto',
-  })
-
-  const status = document.createElement('output')
-  status.className = 'ts-conformance-playback-announcement'
-  status.setAttribute('role', 'status')
-  status.setAttribute('aria-live', 'polite')
-  status.setAttribute('aria-atomic', 'true')
-  Object.assign(status.style, {
-    position: 'absolute',
-    width: '1px',
-    height: '1px',
-    padding: '0',
-    margin: '-1px',
-    overflow: 'hidden',
-    clipPath: 'inset(50%)',
-    whiteSpace: 'nowrap',
-  })
-  toolbar.append(current, playButton)
-
-  return {
-    toolbar,
-    status,
-    playButton,
-    paint(valueText: string, playing: boolean) {
-      current.textContent = valueText
-      playButton.textContent = playing ? '❚❚' : '▶'
-      playButton.setAttribute('aria-pressed', String(playing))
-      playButton.setAttribute(
-        'aria-label',
-        playing ? 'Pause timeline' : 'Play timeline',
-      )
-      playButton.title = playing ? 'Pause timeline' : 'Play timeline'
-    },
-    announce(message: string) {
-      status.value = message
-      status.textContent = message
-    },
-  }
-}
-
 function elementGeometry(element: SVGElement): ConformanceGeometrySample {
   const bounds = element.getBoundingClientRect()
   const style = getComputedStyle(element)
@@ -474,7 +254,7 @@ function elementGeometry(element: SVGElement): ConformanceGeometrySample {
   }
 }
 
-function rowForDate(date: Date) {
+export function rowForDate(date: Date) {
   const row = playbackRows.find(
     (candidate) => candidate.Date.getTime() === date.getTime(),
   )
@@ -482,7 +262,7 @@ function rowForDate(date: Date) {
   return row
 }
 
-function indexForDate(date: Date) {
+export function indexForDate(date: Date) {
   const index = playbackRows.findIndex(
     (row) => row.Date.getTime() === date.getTime(),
   )
@@ -490,11 +270,11 @@ function indexForDate(date: Date) {
   return index
 }
 
-function playbackValueText(row: AaplRow) {
+export function playbackValueText(row: AaplRow) {
   return `${playbackDateKey(row.Date)} · AAPL close $${row.Close.toFixed(2)}`
 }
 
-function cloneDate(date: Date) {
+export function cloneDate(date: Date) {
   return new Date(date.getTime())
 }
 
@@ -505,9 +285,4 @@ function center(element: HTMLElement | SVGElement) {
     y: bounds.top + bounds.height / 2,
     focusElement: element,
   }
-}
-
-function sizeView(view: HTMLDivElement, input: ConformanceInput) {
-  view.style.width = `${input.width}px`
-  view.style.height = `${input.height}px`
 }

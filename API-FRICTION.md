@@ -5237,32 +5237,38 @@ Each entry records:
 - Status: resolved
 - Severity: high
 - Owner: Documentation/Tooling
-- Observed in: catalog review of the axis-pointer tooltip, interactive legend,
-  linked data table, focus/context window, pinned nested-chart tooltip,
-  streaming controls, synchronized and free cursors, range brush, and time zoom
+- Observed in: catalog review of the catalog application, axis-pointer
+  tooltip, interactive legend, linked data table, focus/context window, pinned
+  nested-chart tooltip, resource timeline, streaming controls, synchronized and
+  free cursors, range brush, time zoom, playback, editable range, motion, and
+  calendar examples
 - Friction: the public TanStack examples assembled application-owned legends,
   tables, tooltip rows, buttons, and nested chart containers with long
   `createElement`, mutation, and listener blocks. The chart grammar remained
   visible, but the surrounding composition was unfamiliar copy-paste material
   for the primary React audience and obscured the adapter's intended ownership
-  boundary.
-- Decision: render application-owned composition with React and
-  `@tanstack/react-charts`, while keeping chart-only examples and the direct
-  `mountChart` lifecycle framework-neutral. A small conformance-only React
-  mount adapter translates the benchmark's mount, update, driver, and destroy
-  contract without entering authored-source totals. Catalog source discovery,
-  artifact validation, and raw-source publication now follow `.tsx` support
-  modules and classify the React bridge as harness code.
-- Verification: the focused TypeScript build reports zero diagnostics; source
-  loader, artifact, source-file, and source-view suites pass; and the
-  schema-v4 catalog build publishes all 102 cases with valid recursive source
-  closures. The definition-shape check follows migrated `view.tsx` modules, and
-  the loading graph accepts their lazy `.tsx?raw` source entries. Chromium
-  quick-profile checks pass visual and semantic interaction scenarios for all
-  ten migrated cases at 320px and 640px across both data revisions. Their
-  authored-source ratios remain 0.80–1.17× of the selected references, and the
-  measured isolated bundles include React rather than silently treating it as
-  benchmark-external infrastructure.
+  boundary. The catalog application itself still used `innerHTML`, string
+  templates, selector rebinding, and manual listener cleanup, and later
+  interaction and motion examples repeated the same application-shell pattern.
+- Decision: assume React for the catalog application and all application-owned
+  example composition, using `@tanstack/charts/react`. Keep direct DOM access
+  only at actual browser integration boundaries such as metadata, measurement,
+  renderer mounting, and conformance inspection. Chart-only lifecycle fixtures
+  and third-party reference adapters may stay imperative when they do not
+  author application UI. A small conformance-only React mount adapter translates
+  the benchmark's mount, update, driver, and destroy contract without entering
+  authored-source totals. Catalog source discovery, artifact validation, and
+  raw-source publication follow `.tsx` support modules and classify the React
+  bridge as harness code.
+- Verification: root TypeScript reports zero diagnostics; the focused React
+  example, source-loader, source-file, source-view, and catalog-index suites
+  pass; and the production catalog build publishes all 111 cases with valid
+  recursive source closures. Chromium quick-profile checks pass visual and
+  semantic interaction scenarios for all 14 examples migrated in the follow-up
+  at 320px and 640px across both data revisions. The browser run also verifies
+  preserved horizontal scroll, semantic synchronized focus, free-cursor input
+  precision, brush and zoom controls, playback, editable dates, motion, and the
+  calendar shell.
 
 ### F-179 — Animation clocks drift at fixed frame indices
 

@@ -42,10 +42,10 @@ describe('renderCatalogSourceView', () => {
     expect(html.indexOf('tanstack.ts')).toBeLessThan(html.indexOf('model.ts'))
     expect(html.indexOf('model.ts')).toBeLessThan(html.indexOf('data.ts'))
     expect(html).toMatch(
-      /<details class="source-file source-file-entry" open>[\s\S]*tanstack\.ts/,
+      /<details class="source-file source-file-entry" open="">[\s\S]*tanstack\.ts/,
     )
     expect(html).toMatch(
-      /<details class="source-file source-file-support" open>[\s\S]*model\.ts/,
+      /<details class="source-file source-file-support" open="">[\s\S]*model\.ts/,
     )
     expect(html).toMatch(
       /<details class="source-file source-file-fixture">[\s\S]*data\.ts/,

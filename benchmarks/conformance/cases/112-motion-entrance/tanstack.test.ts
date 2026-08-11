@@ -43,7 +43,7 @@ describe('declarative entrance motion', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/112-motion-entrance/tanstack.ts',
+        'benchmarks/conformance/cases/112-motion-entrance/view.tsx',
       ),
       'utf8',
     )
@@ -54,8 +54,8 @@ describe('declarative entrance motion', () => {
     const definitionSource = source.slice(start, end)
 
     expect(source).toContain("from '../../shared/motion'")
-    expect(source).toContain('controls.replay.addEventListener')
-    expect(source).toContain('settleChartMotion(chart')
+    expect(source).toContain('<ControlButton ref={replayRef} onClick={replay}>')
+    expect(source).toContain('settleChartMotion(viewRef.current')
     expect(definitionSource).toContain('defineChart({')
     expect(definitionSource).toContain('motion: {')
     expect(definitionSource).toContain('barY(rows, {')

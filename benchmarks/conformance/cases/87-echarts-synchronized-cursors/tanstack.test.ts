@@ -1,7 +1,8 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { travelers } from '@charts-poc/demo-data/travelers'
 import { createChartScene, resolveFocusScene } from '@tanstack/charts'
+import { act } from 'react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { selectSynchronizedCursorData } from './selection'
 import { catalogCase, mount, synchronizedCursorDefinition } from './tanstack'
@@ -112,16 +113,21 @@ describe('definition-owned synchronized cursors', () => {
   it('uses the native keyboard, pin, leave, update, and Escape lifecycle', () => {
     const container = document.createElement('div')
     document.body.append(container)
-    const handle = mount(container, input)
+    let handle!: ReturnType<typeof mount>
+    act(() => {
+      handle = mount(container, input)
+    })
     const svg = container.querySelector<SVGSVGElement>('svg.ts-chart')
     if (!svg || !handle.driver) throw new Error('Expected a mounted chart')
 
-    svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
-    for (let index = 0; index < 3; index += 1) {
-      svg.dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
-      )
-    }
+    act(() => {
+      svg.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+      for (let index = 0; index < 3; index += 1) {
+        svg.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
+        )
+      }
+    })
     expect(handle.driver.readState()).toMatchObject({
       shared: { date: '2020-12-13', pinned: false },
       crosshairs: {
@@ -133,9 +139,19 @@ describe('definition-owned synchronized cursors', () => {
       container.querySelectorAll('.ts-chart__focus-guide-x-rule'),
     ).toHaveLength(2)
 
-    svg.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
-    )
+    act(() => {
+      handle.update({ ...input, revision: 1 })
+      handle.update({ ...input, revision: 0 })
+    })
+    expect(handle.driver.readState()).toMatchObject({
+      shared: { date: '2020-12-13', pinned: false },
+    })
+
+    act(() => {
+      svg.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+      )
+    })
     expect(handle.driver.readState()).toMatchObject({
       shared: { date: '2020-12-13', pinned: true },
     })
@@ -147,19 +163,25 @@ describe('definition-owned synchronized cursors', () => {
       container.querySelector<HTMLElement>('.ts-chart-tooltip')?.hidden,
     ).toBe(false)
 
-    container.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
+    act(() => {
+      container.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }))
+    })
     expect(handle.driver.readState()).toMatchObject({
       shared: { date: '2020-12-13', pinned: true },
     })
 
-    handle.update({ ...input, revision: 1 })
+    act(() => {
+      handle.update({ ...input, revision: 1 })
+    })
     expect(handle.driver.readState()).toMatchObject({
       shared: { date: '2020-12-13', pinned: true },
     })
 
-    svg.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
-    )
+    act(() => {
+      svg.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+      )
+    })
     expect(handle.driver.readState()).toMatchObject({
       shared: { date: null, pinned: false },
       crosshairs: {
@@ -172,7 +194,9 @@ describe('definition-owned synchronized cursors', () => {
         ?.textContent,
     ).toBe('Focus either chart')
 
-    handle.destroy()
+    act(() => {
+      handle.destroy()
+    })
     container.remove()
   })
 
@@ -206,11 +230,9 @@ describe('definition-owned synchronized cursors', () => {
       'benchmarks/conformance/cases/87-echarts-synchronized-cursors',
     )
     const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
 
-    expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
     for (const forbidden of [
-      "from 'react'",
-      '@tanstack/charts/react',
       'createElementNS',
       'data-conformance-overlay',
       'scene.scales.x.map',
@@ -224,6 +246,8 @@ describe('definition-owned synchronized cursors', () => {
     expect(source).toContain('focusGuideX(rows')
     expect(source).toContain("focus: 'group-x'")
     expect(source).toContain("visibility: 'pinned'")
+    expect(view).toContain("from '@tanstack/charts/react'")
+    expect(view).toContain('<SummaryValue')
   })
 })
 

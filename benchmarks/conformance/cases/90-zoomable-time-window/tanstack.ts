@@ -1,5 +1,5 @@
 import { aapl } from '@charts-poc/demo-data/aapl'
-import { defineChart, dot, lineY, mountChart } from '@tanstack/charts'
+import { defineChart, dot, lineY } from '@tanstack/charts'
 import { zoomX } from '@tanstack/charts/interaction/zoom'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { decorative } from '@tanstack/charts/mark/decorative'
@@ -24,18 +24,16 @@ import type {
   ZoomXChange,
   ZoomXWindow,
 } from '@tanstack/charts/interaction/zoom'
-import type { ChartHost, ChartHostOptions, ChartScene } from '@tanstack/charts'
+import type { ChartScene } from '@tanstack/charts'
 import type {
   ConformanceGeometryQuery,
   ConformanceGeometrySample,
-  ConformanceInput,
   ConformanceJsonObject,
-  ConformanceMount,
   ConformanceTarget,
   ConformanceTestDriver,
 } from '../../types'
 
-interface ZoomState {
+export interface ZoomState {
   window: ZoomXWindow<Date>
   lastAction: 'none' | ZoomXAction
   active: boolean
@@ -126,111 +124,9 @@ export const catalogCase = tanstackCase(
   'Time series with a wheel-zoomable and pannable time viewport',
 )
 
-export const mount: ConformanceMount = (container, input) => {
-  let currentInput = input
-  let accepted = copyWindow(initialZoomWindow)
-  let state: ZoomState = {
-    window: copyWindow(accepted),
-    lastAction: 'none',
-    active: false,
-    wheelCaptured: false,
-  }
-  let host: ChartHost<AaplRow, Date, number> | undefined
+export { mount } from './view'
 
-  const document = container.ownerDocument
-  const shell = document.createElement('div')
-  const chartFrame = document.createElement('div')
-  const status = createZoomStatus(document)
-  const reset = createResetButton(document)
-  shell.dataset.conformanceView = 'main'
-  shell.style.position = 'relative'
-  chartFrame.style.position = 'relative'
-  shell.append(chartFrame, status, reset)
-  container.append(shell)
-  sizeShell(shell, chartFrame, input)
-
-  const updateStatus = () => {
-    const label = state.active
-      ? `${zoomDateKey(state.window.start)} → ${zoomDateKey(state.window.end)} · ${formatSpan(zoomSpanDays(state.window))} days`
-      : 'Focus chart to zoom'
-    status.value = label
-    status.textContent = label
-  }
-
-  const handleZoomChange = (
-    next: ZoomXWindow<Date>,
-    reason: ZoomXChange<Date>,
-  ) => {
-    accepted = copyWindow(next)
-    state = {
-      ...state,
-      window: copyWindow(next),
-      lastAction: reason.action,
-      wheelCaptured: state.wheelCaptured || reason.source === 'wheel',
-    }
-    updateStatus()
-    host?.update(options())
-  }
-
-  const handleActiveChange = (active: boolean) => {
-    state = { ...state, active }
-    updateStatus()
-  }
-
-  const options = (): ChartHostOptions<AaplRow, Date, number> => ({
-    definition: zoomTimeWindowDefinition(
-      accepted,
-      handleZoomChange,
-      handleActiveChange,
-    ),
-    width: currentInput.width,
-    height: currentInput.height,
-    ariaLabel: 'Time series with a wheel-zoomable and pannable time viewport',
-  })
-
-  host = mountChart(chartFrame, options())
-  updateStatus()
-
-  const applyReset = () => {
-    accepted = copyWindow(initialZoomWindow)
-    state = {
-      ...state,
-      window: copyWindow(accepted),
-      lastAction: 'reset',
-    }
-    host!.update(options())
-    updateStatus()
-    chartFrame.querySelector<SVGElement>('[data-chart-zoom-surface]')?.focus()
-  }
-  const preserveChartFocus = (event: PointerEvent) => event.preventDefault()
-  reset.addEventListener('pointerdown', preserveChartFocus)
-  reset.addEventListener('click', applyReset)
-
-  const driver = createDriver(
-    shell,
-    chartFrame,
-    () => host!.getScene(),
-    () => state,
-  )
-
-  return {
-    driver,
-    update(nextInput) {
-      currentInput = nextInput
-      sizeShell(shell, chartFrame, nextInput)
-      host!.update(options())
-      updateStatus()
-    },
-    destroy() {
-      reset.removeEventListener('pointerdown', preserveChartFocus)
-      reset.removeEventListener('click', applyReset)
-      host!.destroy()
-      shell.remove()
-    },
-  }
-}
-
-function createDriver(
+export function createDriver(
   shell: HTMLElement,
   surface: HTMLElement,
   getScene: () => ChartScene<AaplRow, Date, number>,
@@ -349,52 +245,13 @@ function zoomGeometry(
   return sample ? [sample] : []
 }
 
-function createZoomStatus(document: Document) {
-  const status = document.createElement('output')
-  status.dataset.conformanceZoomStatus = 'true'
-  status.setAttribute('role', 'status')
-  status.setAttribute('aria-live', 'polite')
-  Object.assign(status.style, {
-    position: 'absolute',
-    top: '10px',
-    right: '76px',
-    zIndex: '4',
-    padding: '4px 8px',
-    border: '1px solid color-mix(in srgb, CanvasText 24%, transparent)',
-    borderRadius: '999px',
-    background: 'Canvas',
-    color: 'CanvasText',
-    font: '600 12px/1.2 system-ui, sans-serif',
-    pointerEvents: 'none',
-  })
-  return status
+export function zoomStatusLabel(state: ZoomState) {
+  return state.active
+    ? `${zoomDateKey(state.window.start)} → ${zoomDateKey(state.window.end)} · ${formatSpan(zoomSpanDays(state.window))} days`
+    : 'Focus chart to zoom'
 }
 
-function createResetButton(document: Document) {
-  const reset = document.createElement('button')
-  reset.type = 'button'
-  reset.dataset.conformanceZoomReset = 'true'
-  reset.textContent = '↺'
-  reset.title = 'Reset zoom'
-  reset.setAttribute('aria-label', 'Reset zoom')
-  Object.assign(reset.style, {
-    position: 'absolute',
-    top: '6px',
-    right: '20px',
-    zIndex: '4',
-    width: '44px',
-    height: '44px',
-    border: '1px solid color-mix(in srgb, CanvasText 24%, transparent)',
-    borderRadius: '10px',
-    background: 'Canvas',
-    color: 'CanvasText',
-    cursor: 'pointer',
-    font: '700 20px/1 system-ui, sans-serif',
-  })
-  return reset
-}
-
-function copyWindow(window: ZoomXWindow<Date>): ZoomXWindow<Date> {
+export function copyWindow(window: ZoomXWindow<Date>): ZoomXWindow<Date> {
   return {
     start: new Date(window.start.getTime()),
     end: new Date(window.end.getTime()),
@@ -412,15 +269,4 @@ function center(element: HTMLElement | SVGElement) {
     y: bounds.top + bounds.height / 2,
     focusElement: element,
   }
-}
-
-function sizeShell(
-  shell: HTMLDivElement,
-  chartFrame: HTMLDivElement,
-  input: ConformanceInput,
-) {
-  shell.style.width = `${input.width}px`
-  shell.style.height = `${input.height}px`
-  chartFrame.style.width = `${input.width}px`
-  chartFrame.style.height = `${input.height}px`
 }
