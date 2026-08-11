@@ -7916,9 +7916,10 @@ Each entry records:
   remaining path geometry.
 - Verification: the focused reconciliation test changes both flags while
   interpolating arc radii and endpoints, and asserts valid flags at the
-  midpoint and exact target geometry at completion. Bundle review attributes
-  196 minified and 84–92 gzip bytes across the four locked DOM consumers to
-  the shared correctness fix; the exact baselines and six complete-consumer
+  midpoint and exact target geometry at completion. A second regression covers
+  the SVG grammar's adjacent `00` and `01` flag pairs. Bundle review attributes
+  250 minified and 133–145 gzip bytes across the four locked DOM consumers to the
+  shared correctness fix; the exact baselines and six complete-consumer
   ceilings record that reviewed cost.
 
 ### F-269 — Angular mounted its browser host during server rendering

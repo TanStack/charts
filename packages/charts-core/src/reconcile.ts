@@ -251,8 +251,9 @@ function interpolateAttribute(
   previous: string,
   next: string,
 ): ((progress: number) => string) | undefined {
-  const previousNumbers = extractNumbers(previous)
-  const nextNumbers = extractNumbers(next)
+  const path = name === 'd'
+  const previousNumbers = extractNumbers(previous, path)
+  const nextNumbers = extractNumbers(next, path)
   if (
     previousNumbers.skeleton !== nextNumbers.skeleton ||
     previousNumbers.values.length !== nextNumbers.values.length ||
@@ -261,8 +262,7 @@ function interpolateAttribute(
     return undefined
   }
 
-  const template =
-    name === 'd' ? markSvgArcFlags(nextNumbers.skeleton) : nextNumbers.skeleton
+  const template = nextNumbers.skeleton
   return (progress) => {
     let index = 0
     return template.replaceAll(/[#!]/g, (placeholder) => {
@@ -276,30 +276,39 @@ function interpolateAttribute(
   }
 }
 
-function markSvgArcFlags(path: string) {
-  let arc = false
-  let argument = 0
-  return path.replace(/[a-z]|#/gi, (token) => {
-    if (token !== '#') {
-      arc = /a/i.test(token)
-      argument = 0
-    } else {
-      const position = argument++ % 7
-      if (arc && position > 2 && position < 5) return '!'
-    }
-    return token
-  })
-}
-
-function extractNumbers(value: string) {
+function extractNumbers(value: string, path = false) {
   const values: number[] = []
-  const skeleton = value.replace(
-    /-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi,
-    (match) => {
-      values.push(Number(match))
-      return '#'
-    },
-  )
+  let skeleton = ''
+  let command = ''
+  let argument = 0
+  let index = 0
+
+  while (index < value.length) {
+    const rest = value.slice(index)
+    const arcPosition = argument % 7
+    const arcFlag =
+      path && /a/i.test(command) && arcPosition > 2 && arcPosition < 5
+    const match = arcFlag
+      ? /^[01]/u.exec(rest)
+      : /^-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/iu.exec(rest)
+
+    if (match) {
+      values.push(Number(match[0]))
+      skeleton += arcFlag ? '!' : '#'
+      argument += 1
+      index += match[0].length
+      continue
+    }
+
+    const character = value[index]!
+    skeleton += character
+    if (path && /[a-z]/i.test(character)) {
+      command = character
+      argument = 0
+    }
+    index += 1
+  }
+
   return { skeleton, values }
 }
 

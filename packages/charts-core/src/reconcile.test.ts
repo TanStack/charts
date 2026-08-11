@@ -117,6 +117,40 @@ describe('keyed SVG reconciliation', () => {
     cancelFrame.mockRestore()
   })
 
+  it('parses adjacent SVG arc flags as separate values', () => {
+    const container = document.createElement('div')
+    const callbacks: FrameRequestCallback[] = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callbacks.push(callback)
+        return callbacks.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    reconcileChartSvg(
+      container,
+      '<svg><path data-ts-key="arc" d="M 0 0 A 40 40 0 00 80 0"/></svg>',
+    )
+    const arc = container.querySelector('path')
+
+    reconcileChartSvg(
+      container,
+      '<svg><path data-ts-key="arc" d="M 10 0 A 50 50 0 01 100 0"/></svg>',
+      { duration: 100, easing: 'linear' },
+    )
+
+    callbacks.shift()?.(0)
+    callbacks.shift()?.(50)
+    expect(arc?.getAttribute('d')).toBe('M 5 0 A 45 45 0 01 90 0')
+    callbacks.shift()?.(100)
+    expect(arc?.getAttribute('d')).toBe('M 10 0 A 50 50 0 01 100 0')
+
+    requestFrame.mockRestore()
+    cancelFrame.mockRestore()
+  })
+
   it('interpolates numeric label typography and snaps categorical anchors', () => {
     const container = document.createElement('div')
     const callbacks: FrameRequestCallback[] = []
