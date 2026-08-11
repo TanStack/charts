@@ -190,7 +190,7 @@ tooltip entry:
 ```tsx
 import { Chart } from '@tanstack/charts/react/tooltip'
 
-;<Chart
+<Chart
   definition={letterFrequencyChart}
   height={320}
   ariaLabel="English letter frequencies"
