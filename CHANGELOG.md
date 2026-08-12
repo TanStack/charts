@@ -1,5 +1,83 @@
 # Changelog
 
+## 0.12.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#90](https://github.com/TanStack/charts/pull/90) [`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140) - Add angular grouped focus for radial charts and geometry-backed arc tooltips.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
 ## 0.11.2
 
 ### @tanstack/charts
