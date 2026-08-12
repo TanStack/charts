@@ -1,5 +1,83 @@
 # Changelog
 
+## 0.11.2
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#88](https://github.com/TanStack/charts/pull/88) [`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a) - Ship scenario-driven TanStack Charts skills for visualization design, responsive behavior, migration, interaction, accessibility, debugging, extension, and coordination with the TanStack data and application ecosystem.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a)]:
+  - @tanstack/charts@0.11.2
+
 ## 0.11.1
 
 ### @tanstack/charts

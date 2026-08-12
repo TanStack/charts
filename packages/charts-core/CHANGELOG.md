@@ -1,5 +1,11 @@
 # @tanstack/charts
 
+## 0.11.2
+
+### Patch Changes
+
+- [#88](https://github.com/TanStack/charts/pull/88) [`1f720ef`](https://github.com/TanStack/charts/commit/1f720ef3799d37ce0b38fd4cf2e135f6e24f104a) - Ship scenario-driven TanStack Charts skills for visualization design, responsive behavior, migration, interaction, accessibility, debugging, extension, and coordination with the TanStack data and application ecosystem.
+
 ## 0.11.1
 
 ### Patch Changes
