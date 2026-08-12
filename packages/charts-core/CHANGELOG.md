@@ -1,5 +1,11 @@
 # @tanstack/charts
 
+## 0.12.0
+
+### Minor Changes
+
+- [#90](https://github.com/TanStack/charts/pull/90) [`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140) - Add angular grouped focus for radial charts and geometry-backed arc tooltips.
+
 ## 0.11.2
 
 ### Patch Changes

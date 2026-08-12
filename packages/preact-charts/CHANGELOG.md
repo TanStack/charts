@@ -1,5 +1,12 @@
 # @tanstack/preact-charts
 
+## 0.12.0
+
+### Patch Changes
+
+- Updated dependencies [[`b9d8c54`](https://github.com/TanStack/charts/commit/b9d8c541ef6a94afdc1812555ee0e4459c81d140)]:
+  - @tanstack/charts@0.12.0
+
 ## 0.11.2
 
 ### Patch Changes
