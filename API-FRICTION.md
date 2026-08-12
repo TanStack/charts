@@ -308,6 +308,7 @@ Each entry records:
 | F-269 | Angular mounted its browser host during server rendering       | API                   | resolved   |
 | F-270 | Catalog migration left generated release evidence stale        | Tooling               | resolved   |
 | F-271 | Radial focus collapsed angular cross-sections to centroids     | API                   | resolved   |
+| F-272 | Pointer probes armed between transient inactive frames         | Tooling               | resolved   |
 
 ## Findings
 
@@ -7984,3 +7985,23 @@ Each entry records:
   radial bars 24.17, and polar line/scatter 25.28; their isolated ceilings now
   record those reviewed interaction costs while the locked representative-mark
   bundle remains unchanged at 25.59 KiB gzip.
+
+### F-272 — Pointer probes armed between transient inactive frames
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: radial-focus release PR stress partition 3
+- Friction: the Chart.js grouped-pointer cell moved outside the chart and
+  accepted its first inactive frame as settled. Its activation timer then
+  observed the tooltip active again and failed before measuring the target.
+  The exact cell passed locally, confirming a scheduling race rather than a
+  radial-focus regression, but the correctness failure was intentionally not
+  retryable.
+- Decision: require two consecutive inactive animation frames before arming
+  pointer activation timing. Keep renderer and correctness failures
+  non-retryable; this stabilizes the measured precondition instead of hiding a
+  failed sample with another attempt.
+- Verification: the exact Chart.js grouped-pointer cell and the complete quick
+  partition 3 pass with trusted activation, exact grouped series values, and
+  zero recovered retries.
