@@ -245,6 +245,18 @@ describe('public package exports', () => {
     }
   })
 
+  it('keeps angular focus on the polar subpath', async () => {
+    const [root, universal, polar] = await Promise.all([
+      import('@tanstack/charts'),
+      import('@tanstack/charts/universal'),
+      import('@tanstack/charts/polar'),
+    ])
+
+    expect(root).not.toHaveProperty('focusGroupAngle')
+    expect(universal).not.toHaveProperty('focusGroupAngle')
+    expect(polar).toHaveProperty('focusGroupAngle')
+  })
+
   it('keeps the optional hexbin algorithm on its exact spatial subpath', async () => {
     const [root, universal, spatial] = await Promise.all([
       import('@tanstack/charts'),

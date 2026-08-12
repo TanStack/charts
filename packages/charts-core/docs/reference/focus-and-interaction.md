@@ -139,6 +139,12 @@ or direct strategy use. The exact exported objects receive the same host-level
 containment behavior as their presets. A strategy that wraps or copies one of
 them is custom and owns its complete pointer resolution.
 
+`focusGroupAngle` is available from `@tanstack/charts/polar`. It resolves the
+nearest radial ray, groups points with the same semantic angle value, and
+orders keyboard tasks by angle. Use it for grouped radar, polar-line, and
+radial-dot tooltips. Painted `radialArc` geometry already participates in
+default nearest focus.
+
 ## Crosshair guides
 
 `crosshair` is a data-less presentation mark. It follows the chart's resolved

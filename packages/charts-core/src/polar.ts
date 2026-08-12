@@ -17,7 +17,11 @@ import {
 import { resolveCompositeChildMotion } from './composite-motion-internal'
 import { createMarkWithScaleValues } from './mark-with-scale-values'
 import { createPolarMark } from './polar-mark-internal'
-import { resolvePolarSector } from './polar-sector-internal'
+import { focusGroupAngle, withPolarFocusGeometry } from './polar-focus-internal'
+import {
+  resolvePolarSector,
+  tracePolarArcBoundary,
+} from './polar-sector-internal'
 import { resolveNumericScale, resolveScaleInput } from './scale-input'
 import { valueKey } from './scales'
 import type { Arc, CurveFactory, CurveFactoryLineOnly } from 'd3-shape'
@@ -48,6 +52,7 @@ import type {
 } from './polar-mark-internal'
 
 export { pie } from './polar-pie'
+export { focusGroupAngle }
 export type { PieDatum, PieOptions } from './polar-pie'
 export type {
   PolarLayoutContext,
@@ -347,11 +352,32 @@ export function radialArc<TDatum>(
           const centroid = generator.centroid(datum, datumIndex, data)
           const angleValue = (generatedStart + generatedEnd) / 2
           const radiusValue = (generatedInner + generatedOuter) / 2
+          const point = withPolarFocusGeometry(
+            {
+              key,
+              markId: id,
+              group,
+              groupLabel: group == null ? id : String(group),
+              datum,
+              datumIndex,
+              xValue: angleValue,
+              yValue: radiusValue,
+              x: layout.centerX + centroid[0],
+              y: layout.centerY + centroid[1],
+              color: fill,
+            },
+            layout,
+            angleValue,
+            radiusValue,
+            centroid[0],
+            centroid[1],
+          )
           nodes.push({
             kind: 'area',
             key,
-            points: [],
+            points: tracePolarArcBoundary(generator, datum, datumIndex, data),
             path,
+            interaction: { point, affinity: 'geometry' },
             style: {
               fill,
               fillOpacity: options.fillOpacity,
@@ -363,19 +389,7 @@ export function radialArc<TDatum>(
               lineJoin: 'round',
             },
           })
-          points.push({
-            key,
-            markId: id,
-            group,
-            groupLabel: group == null ? id : String(group),
-            datum,
-            datumIndex,
-            xValue: angleValue,
-            yValue: radiusValue,
-            x: layout.centerX + centroid[0],
-            y: layout.centerY + centroid[1],
-            color: fill,
-          })
+          points.push(point)
         })
 
         return {
@@ -545,22 +559,29 @@ export function radialBarRadius<TDatum>(
               : visualValue(options.stroke, datum, datumIndex, data, fallback)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           const [pointX, pointY] = pointRadial(angleBand.center, mappedRadius2)
-          const point: ChartPoint<TDatum, any, number> = {
-            key,
-            markId: id,
-            group,
-            groupLabel: group == null ? id : String(group),
-            datum,
-            datumIndex,
-            xValue: angleValue,
-            yValue: radiusValue,
-            y1Value: radius1Value,
-            y2Value: radius2Value,
-            yInterval: 'difference',
-            x: layout.centerX + pointX,
-            y: layout.centerY + pointY,
-            color: fill,
-          }
+          const point = withPolarFocusGeometry<ChartPoint<TDatum, any, number>>(
+            {
+              key,
+              markId: id,
+              group,
+              groupLabel: group == null ? id : String(group),
+              datum,
+              datumIndex,
+              xValue: angleValue,
+              yValue: radiusValue,
+              y1Value: radius1Value,
+              y2Value: radius2Value,
+              yInterval: 'difference',
+              x: layout.centerX + pointX,
+              y: layout.centerY + pointY,
+              color: fill,
+            },
+            layout,
+            angleBand.center,
+            mappedRadius2,
+            pointX,
+            pointY,
+          )
           nodes.push({
             kind: 'area',
             key,
@@ -732,22 +753,29 @@ export function radialBarAngle<TDatum>(
               : visualValue(options.stroke, datum, datumIndex, data, fallback)
           const key = `${id}:${valueKey(group)}:${valueKey(keys[datumIndex])}`
           const [pointX, pointY] = pointRadial(mappedAngle2, radiusBand.center)
-          const point: ChartPoint<TDatum, number, any> = {
-            key,
-            markId: id,
-            group,
-            groupLabel: group == null ? id : String(group),
-            datum,
-            datumIndex,
-            xValue: angleValue,
-            yValue: radiusValue,
-            x1Value: angle1Value,
-            x2Value: angle2Value,
-            xInterval: 'difference',
-            x: layout.centerX + pointX,
-            y: layout.centerY + pointY,
-            color: fill,
-          }
+          const point = withPolarFocusGeometry<ChartPoint<TDatum, number, any>>(
+            {
+              key,
+              markId: id,
+              group,
+              groupLabel: group == null ? id : String(group),
+              datum,
+              datumIndex,
+              xValue: angleValue,
+              yValue: radiusValue,
+              x1Value: angle1Value,
+              x2Value: angle2Value,
+              xInterval: 'difference',
+              x: layout.centerX + pointX,
+              y: layout.centerY + pointY,
+              color: fill,
+            },
+            layout,
+            mappedAngle2,
+            radiusBand.center,
+            pointX,
+            pointY,
+          )
           nodes.push({
             kind: 'area',
             key,
@@ -923,19 +951,26 @@ export function radialLine<TDatum>(
             }
             const [x, y] = pointRadial(row.angle, row.radius)
             const key = `${id}:${groupKey}:${valueKey(keys[row.datumIndex])}`
-            const point: ChartPoint<TDatum> = {
-              key,
-              markId: id,
-              group,
-              groupLabel: group == null ? id : String(group),
-              datum: data[row.datumIndex],
-              datumIndex: row.datumIndex,
-              xValue: row.angleValue,
-              yValue: row.radiusValue,
-              x: layout.centerX + x,
-              y: layout.centerY + y,
-              color: stroke,
-            }
+            const point = withPolarFocusGeometry<ChartPoint<TDatum>>(
+              {
+                key,
+                markId: id,
+                group,
+                groupLabel: group == null ? id : String(group),
+                datum: data[row.datumIndex],
+                datumIndex: row.datumIndex,
+                xValue: row.angleValue,
+                yValue: row.radiusValue,
+                x: layout.centerX + x,
+                y: layout.centerY + y,
+                color: stroke,
+              },
+              layout,
+              row.angle,
+              row.radius,
+              x,
+              y,
+            )
             points.push(point)
             if (options.points) {
               nodes.push({
@@ -1115,19 +1150,28 @@ export function radialArea<TDatum>(
             }
             const [x, y] = pointRadial(row.angle, row.radius)
             const key = `${id}:${groupKey}:${valueKey(keys[row.datumIndex])}`
-            points.push({
-              key,
-              markId: id,
-              group,
-              groupLabel: group == null ? id : String(group),
-              datum: data[row.datumIndex],
-              datumIndex: row.datumIndex,
-              xValue: row.angleValue,
-              yValue: row.radiusValue,
-              x: layout.centerX + x,
-              y: layout.centerY + y,
-              color: fill,
-            })
+            points.push(
+              withPolarFocusGeometry(
+                {
+                  key,
+                  markId: id,
+                  group,
+                  groupLabel: group == null ? id : String(group),
+                  datum: data[row.datumIndex],
+                  datumIndex: row.datumIndex,
+                  xValue: row.angleValue,
+                  yValue: row.radiusValue,
+                  x: layout.centerX + x,
+                  y: layout.centerY + y,
+                  color: fill,
+                },
+                layout,
+                row.angle,
+                row.radius,
+                x,
+                y,
+              ),
+            )
           }
         }
         return {
@@ -1300,19 +1344,28 @@ export function radialText<TDatum>(
             fontWeight: options.fontWeight,
             style: { fill },
           })
-          points.push({
-            key,
-            markId: id,
-            group,
-            groupLabel: group == null ? id : String(group),
-            datum,
-            datumIndex,
-            xValue: angleValue,
-            yValue: radiusValue,
-            x: layout.centerX + x,
-            y: layout.centerY + y,
-            color: fill,
-          })
+          points.push(
+            withPolarFocusGeometry(
+              {
+                key,
+                markId: id,
+                group,
+                groupLabel: group == null ? id : String(group),
+                datum,
+                datumIndex,
+                xValue: angleValue,
+                yValue: radiusValue,
+                x: layout.centerX + x,
+                y: layout.centerY + y,
+                color: fill,
+              },
+              layout,
+              anglePosition,
+              projectedRadius,
+              x,
+              y,
+            ),
+          )
         })
         return {
           nodes: [
@@ -1609,19 +1662,28 @@ export function radialDot<TDatum>(
               opacity: options.opacity,
             },
           })
-          points.push({
-            key,
-            markId: id,
-            group,
-            groupLabel: group == null ? id : String(group),
-            datum,
-            datumIndex,
-            xValue: angleValue,
-            yValue: radiusValue,
-            x: layout.centerX + x,
-            y: layout.centerY + y,
-            color: fill,
-          })
+          points.push(
+            withPolarFocusGeometry(
+              {
+                key,
+                markId: id,
+                group,
+                groupLabel: group == null ? id : String(group),
+                datum,
+                datumIndex,
+                xValue: angleValue,
+                yValue: radiusValue,
+                x: layout.centerX + x,
+                y: layout.centerY + y,
+                color: fill,
+              },
+              layout,
+              anglePosition,
+              radiusPosition,
+              x,
+              y,
+            ),
+          )
         })
         return {
           nodes: [

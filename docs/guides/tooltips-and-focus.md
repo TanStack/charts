@@ -48,6 +48,29 @@ category. A sparse snapped cursor can opt into
 `maxFocusDistance: Number.POSITIVE_INFINITY`; keep the finite default when
 empty space should mean no focus.
 
+## Angular focus
+
+Use `focusGroupAngle` for the radial equivalent of `group-x`:
+
+```ts
+import { defineChart, type ChartDefinition } from '@tanstack/charts'
+import { focusGroupAngle } from '@tanstack/charts/polar'
+import { tooltip } from '@tanstack/charts/tooltip'
+
+declare const radialDefinition: ChartDefinition
+
+const interactiveDefinition = defineChart(radialDefinition, {
+  focus: focusGroupAngle,
+  tooltip,
+})
+```
+
+The nearest radial ray selects the semantic angle, the closest radius becomes
+primary, and the tooltip receives one point per series at that angle. The
+strategy uses the same finite `maxFocusDistance` policy as axis grouping.
+Ordinary pie and donut charts can keep default nearest focus: `radialArc`
+attaches the exact painted slice geometry, including the donut hole.
+
 Default `primary` and `group` presentation follows the canonical focused scene
 points. Equal x/y/series values in another facet do not implicitly paint a
 second focus marker. To synchronize a visual cursor across facets without
