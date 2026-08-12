@@ -82,6 +82,10 @@ const callbackInventory = {
       'group navigation resolve',
     ],
     ['@tanstack/charts:src/focus.ts:axisFocus', 'group navigation resolve'],
+    [
+      '@tanstack/charts:src/polar-focus-internal.ts:focusGroupAngle',
+      'group navigation resolve',
+    ],
     ['@tanstack/charts:src/geo.ts:GeoProjectionDescriptor', 'type'],
     ['@tanstack/charts:src/geo.ts:GeoProjectionInput', '$call'],
     [

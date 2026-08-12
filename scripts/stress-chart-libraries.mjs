@@ -891,8 +891,13 @@ async function runTimingCell(
         })
       }
       globalThis.__stressPointerWaitInactive = async () => {
+        let inactiveFrames = 0
         for (let frame = 0; frame < 120; frame++) {
-          if (!globalThis.__stressPointerActive()) return true
+          if (globalThis.__stressPointerActive()) {
+            inactiveFrames = 0
+          } else if (++inactiveFrames >= 2) {
+            return true
+          }
           await nextFrame()
         }
         throw new Error('Pointer tooltip did not return to an inactive state.')

@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-11
+Last updated: 2026-08-12
 
 ## Triage rule
 
@@ -307,6 +307,8 @@ Each entry records:
 | F-268 | Animated arc flags became invalid fractional path values       | API                   | resolved   |
 | F-269 | Angular mounted its browser host during server rendering       | API                   | resolved   |
 | F-270 | Catalog migration left generated release evidence stale        | Tooling               | resolved   |
+| F-271 | Radial focus collapsed angular cross-sections to centroids     | API                   | resolved   |
+| F-272 | Pointer probes armed between transient inactive frames         | Tooling               | resolved   |
 
 ## Findings
 
@@ -7954,3 +7956,52 @@ Each entry records:
 - Verification: the focused roadmap test and catalog preview check pass. The
   only rendered asset change normalizes synchronized-cursor point keys from
   timestamp labels to the migrated ISO date labels; geometry is unchanged.
+
+### F-271 — Radial focus collapsed angular cross-sections to centroids
+
+- Status: resolved
+- Severity: high
+- Owner: API
+- Observed in: radial tooltip interaction review
+- Friction: polar lines, areas, and dots exposed only Cartesian centroid
+  anchors to the default nearest-point resolver. Moving around one semantic
+  angle could select a different radius or adjacent angle, and grouped radial
+  tooltips had no equivalent of `group-x`. `radialArc` also emitted a centroid
+  without attaching its already available painted boundary, so pie and donut
+  focus could disagree with the visible slice.
+- Decision: export `focusGroupAngle` from the exact polar subpath. It selects
+  the nearest bounded radial ray, uses radius distance as the primary-point
+  tie-breaker, groups one point per series at the same semantic angle, and
+  orders keyboard tasks angularly. Keep the strategy out of ordinary and
+  universal barrels. Attach the existing D3-replayed interaction boundary to
+  every `radialArc`, including authored generators.
+- Verification: focused polar tests resolve two series from a one-pixel
+  angular ray while both anchors are farther away, preserve the closest radius
+  as primary, and reduce keyboard navigation to one task per semantic angle.
+  Arc tests hit the painted annulus at zero fallback distance, reject its hole,
+  and reuse the exact point attached to the scene geometry. Polar, radial-bar,
+  sunburst, callable-surface, documentation, and root TypeScript checks pass.
+  The measured polar arc is 15.06 KiB gzip, gauge 24.08, radial labels 20.66,
+  radial bars 24.17, and polar line/scatter 25.28; their isolated ceilings now
+  record those reviewed interaction costs while the locked representative-mark
+  bundle remains unchanged at 25.59 KiB gzip.
+
+### F-272 — Pointer probes armed between transient inactive frames
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: radial-focus release PR stress partition 3
+- Friction: the Chart.js grouped-pointer cell moved outside the chart and
+  accepted its first inactive frame as settled. Its activation timer then
+  observed the tooltip active again and failed before measuring the target.
+  The exact cell passed locally, confirming a scheduling race rather than a
+  radial-focus regression, but the correctness failure was intentionally not
+  retryable.
+- Decision: require two consecutive inactive animation frames before arming
+  pointer activation timing. Keep renderer and correctness failures
+  non-retryable; this stabilizes the measured precondition instead of hiding a
+  failed sample with another attempt.
+- Verification: the exact Chart.js grouped-pointer cell and the complete quick
+  partition 3 pass with trusted activation, exact grouped series values, and
+  zero recovered retries.

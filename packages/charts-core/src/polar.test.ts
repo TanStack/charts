@@ -1,9 +1,17 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { scaleBand, scaleLinear, scaleOrdinal, scalePoint } from 'd3-scale'
-import { arc, areaRadial, curveLinearClosed, lineRadial } from 'd3-shape'
+import {
+  arc,
+  areaRadial,
+  curveLinearClosed,
+  lineRadial,
+  pointRadial,
+} from 'd3-shape'
 import * as rootExports from './index'
+import { resolveChartPointerFocus } from './interaction'
 import {
   angleGrid,
+  focusGroupAngle,
   pie,
   polar,
   radialArc,
@@ -14,7 +22,7 @@ import {
   radialRule,
   radialText,
 } from './polar'
-import { createChartScene, defineChart } from './scene'
+import { createChartScene, defineChart, findNearestPoint } from './scene'
 import type {
   ChartDefinition,
   ChartMotionContext,
@@ -95,6 +103,17 @@ describe('polar marks', () => {
       datum: arcs[0],
     })
     expect(small.points[0]?.datum).not.toHaveProperty('data')
+    expect(
+      smallPaths[0]?.kind === 'area' ? smallPaths[0].interaction : null,
+    ).toMatchObject({ point: small.points[0], affinity: 'geometry' })
+    const interior = pointRadial(
+      (arcs[0]!.startAngle + arcs[0]!.endAngle) / 2,
+      expectedRadius * 0.8,
+    )
+    expect(
+      findNearestPoint(small, 100 + interior[0], 80 + interior[1], 0),
+    ).toBe(small.points[0])
+    expect(findNearestPoint(small, 100, 80, 0)).toBeNull()
   })
 
   it('renders materialized pie gaps without applying arc padding twice', () => {
@@ -991,6 +1010,46 @@ describe('polar marks', () => {
       [100, 200],
       [0, 100],
     ])
+  })
+
+  it('groups radial series by the nearest angular ray', () => {
+    const rows = [
+      { id: 'a', direction: 'east', series: 'A', value: 0.3 },
+      { id: 'b', direction: 'east', series: 'B', value: 0.8 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            angle: {
+              scale: scalePoint<string>().domain([
+                'north',
+                'east',
+                'south',
+                'west',
+              ]),
+            },
+            radius: { scale: scaleLinear().domain([0, 1]) },
+            marks: [
+              radialLine(rows, {
+                angle: 'direction',
+                radius: 'value',
+                z: 'series',
+                key: 'id',
+              }),
+            ],
+          }),
+        ],
+        margin: 0,
+        focus: focusGroupAngle,
+      }),
+      { width: 200, height: 200 },
+    )
+
+    expect(
+      resolveChartPointerFocus(scene, focusGroupAngle, 165, 100, 1),
+    ).toEqual([scene.points[1], scene.points[0]])
+    expect(focusGroupAngle.navigation(scene.points)).toEqual([scene.points[0]])
   })
 
   it('preserves partial point-scale endpoints unless wrapping is explicit', () => {

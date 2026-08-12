@@ -1154,7 +1154,7 @@ const entries = [
   budgeted(
     'Polar arc + static SVG',
     'benchmarks/entries/charts-polar-arc-svg.ts',
-    14.7,
+    15.1,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   incrementalBudgeted(
@@ -1173,18 +1173,18 @@ const entries = [
   budgeted(
     'Polar gauge composition + static SVG',
     'benchmarks/entries/charts-polar-gauge-svg.ts',
-    23.75,
+    24.1,
   ),
   budgeted(
     'Radial labels + static SVG',
     'benchmarks/entries/charts-radial-label-svg.ts',
-    20.6,
+    20.7,
     { inputBoundary: { forbid: ['polarPie'] } },
   ),
   budgeted(
     'Polar radial bars + static SVG',
     'benchmarks/entries/charts-radial-bar-svg.ts',
-    24.1,
+    24.2,
     {
       inputBoundary: {
         require: ['polarMarks', 'd3ScaleRuntime', 'd3Shape'],
@@ -1195,7 +1195,7 @@ const entries = [
   budgeted(
     'Polar line + scatter composition + static SVG',
     'benchmarks/entries/charts-polar-line-scatter-svg.ts',
-    25.25,
+    25.3,
   ),
   locked(
     'Representative marks',
