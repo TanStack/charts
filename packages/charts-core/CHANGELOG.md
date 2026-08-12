@@ -1,5 +1,12 @@
 # @tanstack/charts
 
+## 0.11.1
+
+### Patch Changes
+
+- [#85](https://github.com/TanStack/charts/pull/85) [`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768) - Keep animated SVG arc flags valid throughout path interpolation and prevent the
+  Angular adapter from mounting its browser host during server rendering.
+
 ## 0.11.0
 
 ### Minor Changes

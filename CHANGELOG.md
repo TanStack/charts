@@ -1,5 +1,86 @@
 # Changelog
 
+## 0.11.1
+
+### @tanstack/charts
+
+#### Patch Changes
+
+- [#85](https://github.com/TanStack/charts/pull/85) [`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768) - Keep animated SVG arc flags valid throughout path interpolation and prevent the
+  Angular adapter from mounting its browser host during server rendering.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- [#85](https://github.com/TanStack/charts/pull/85) [`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768) - Keep animated SVG arc flags valid throughout path interpolation and prevent the
+  Angular adapter from mounting its browser host during server rendering.
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`11b37ab`](https://github.com/TanStack/charts/commit/11b37ab7ffa9e71a8ec3376ccfeac9797b130768)]:
+  - @tanstack/charts@0.11.1
+
 ## 0.11.0
 
 ### @tanstack/charts

@@ -3,7 +3,7 @@ title: Compare Libraries
 description: Compare TanStack Charts with measured and documentation-reviewed charting libraries.
 ---
 
-The latest published TanStack Charts release is `0.11.0`, while this page
+The latest published TanStack Charts release is `0.11.1`, while this page
 measures unreleased workspace source against pinned competitor packages. This
 comparison records architectural differences and reproducible evidence without
 turning untested behavior into a checkmark.
@@ -170,11 +170,11 @@ Canvas composition while keeping D3 and state ownership explicit.
 
 ## Evidence and reproduction
 
-- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.11.0/benchmarks/comparison/README.md)
+- [Standard comparison protocol](https://github.com/TanStack/charts/blob/v0.11.1/benchmarks/comparison/README.md)
 - [Current tracked bundle baseline](https://github.com/TanStack/charts/blob/main/benchmarks/comparison/bundle-baseline.json)
-- [Pinned release-source bundle baseline](https://github.com/TanStack/charts/blob/v0.11.0/benchmarks/comparison/bundle-baseline.json)
-- [Stress protocol](https://github.com/TanStack/charts/blob/v0.11.0/benchmarks/comparison/stress/README.md)
-- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.11.0/benchmarks/conformance/README.md)
+- [Pinned release-source bundle baseline](https://github.com/TanStack/charts/blob/v0.11.1/benchmarks/comparison/bundle-baseline.json)
+- [Stress protocol](https://github.com/TanStack/charts/blob/v0.11.1/benchmarks/comparison/stress/README.md)
+- [Catalog conformance protocol](https://github.com/TanStack/charts/blob/v0.11.1/benchmarks/conformance/README.md)
 
 ```sh
 pnpm benchmark:size
