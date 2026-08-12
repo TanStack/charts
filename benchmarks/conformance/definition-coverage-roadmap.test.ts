@@ -316,7 +316,10 @@ describe('definition coverage roadmap', () => {
           if (source.includes('/')) {
             expect(source).toMatch(/^(?:benchmarks|docs|packages|scripts)\//u)
           } else {
-            expect(authoredClosure.has(source)).toBe(true)
+            expect(
+              authoredClosure.has(source),
+              `${entry.id}: ${source} is not reachable from tanstack.ts`,
+            ).toBe(true)
           }
           expect(existsSync(sourcePath)).toBe(true)
         }

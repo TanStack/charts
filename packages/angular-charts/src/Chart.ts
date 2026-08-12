@@ -10,10 +10,10 @@ import {
   ViewChild,
   ViewContainerRef,
   ViewEncapsulation,
+  afterNextRender,
   inject,
 } from '@angular/core'
 import type {
-  AfterViewInit,
   EmbeddedViewRef,
   OnChanges,
   OnDestroy,
@@ -123,7 +123,7 @@ export class Chart<
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >
-  implements OnChanges, AfterViewInit, OnDestroy
+  implements OnChanges, OnDestroy
 {
   @Input({ required: true })
   declare options: ChartOptions<TDatum, TXValue, TYValue>
@@ -172,6 +172,12 @@ export class Chart<
     ChartTooltipBodyTemplateContext<TDatum, TXValue, TYValue>
   >
 
+  constructor() {
+    afterNextRender(() => {
+      this.adapter?.mount(this.surface.nativeElement)
+    })
+  }
+
   ngOnChanges(_changes: SimpleChanges) {
     if (!this.options) return
     const layout = resolveChartAdapterLayout(this.options)
@@ -192,10 +198,6 @@ export class Chart<
       .join(';')
 
     this.updateAdapter()
-  }
-
-  ngAfterViewInit() {
-    this.adapter?.mount(this.surface.nativeElement)
   }
 
   ngOnDestroy() {

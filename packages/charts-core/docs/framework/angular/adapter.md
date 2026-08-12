@@ -32,17 +32,17 @@ standalone component ships as a partial-compiled Angular package.
 ## Lifecycle
 
 `ngOnChanges` creates or updates one shared adapter controller.
-`ngAfterViewInit` mounts it into the prerendered surface, and `ngOnDestroy`
-cleans it up. Replace the complete `options` value when chart state changes;
-mutating the existing object does not produce an `OnPush` input change.
-Callbacks such as `onFocusChange` are functions inside `options`, not Angular
-outputs.
+Angular's `afterNextRender` mounts it into the prerendered surface in the
+browser, and `ngOnDestroy` cleans it up. Replace the complete `options` value
+when chart state changes; mutating the existing object does not produce an
+`OnPush` input change. Callbacks such as `onFocusChange` are functions inside
+`options`, not Angular outputs.
 
 ## Browser and server status
 
-The verified package contract covers browser mount, immutable updates, and
-teardown. Angular application SSR and hydration are not yet part of the
-adapter's tested public contract.
+The verified package contract covers complete SVG server rendering through
+Angular's `renderApplication`, browser mount, immutable updates, and teardown.
+Angular hydration is not yet part of the adapter's tested public contract.
 
 ## Presentation and rendering
 

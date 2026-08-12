@@ -2443,7 +2443,7 @@
       "evidence": [
         "cases/85-scrollable-resource-lanes/tanstack.ts",
         "cases/85-scrollable-resource-lanes/tanstack.test.ts",
-        "cases/85-scrollable-resource-lanes/shell.ts",
+        "cases/85-scrollable-resource-lanes/view.tsx",
         "DEFINITION-COVERAGE-PLAN.md"
       ],
       "work": [
@@ -2452,7 +2452,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["shell.ts"],
+          "sources": ["view.tsx"],
           "summary": "Retain native overflow, content-width and scroll-preservation policy, the fixed rail and legend, persistent task summary, and complete schedule alternative."
         },
         {
@@ -2460,7 +2460,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["tanstack.ts", "shell.ts"],
+          "sources": ["tanstack.ts", "view.tsx"],
           "summary": "Use the chart-owned focused point to reveal an offscreen task in the parent scroll viewport and update the persistent summary."
         }
       ]
@@ -2529,7 +2529,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["summary.ts"],
+          "sources": ["view.tsx"],
           "summary": "Retain the cross-view live value summary as an observer of chart-owned focus and selection events."
         }
       ]
@@ -2566,7 +2566,7 @@
           "stage": "post-render",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["controls.ts"],
+          "sources": ["view.tsx"],
           "summary": "Retain domain-specific semantic sliders and live status text over the same controlled position."
         }
       ]
@@ -2700,7 +2700,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "none",
-          "sources": ["tanstack.ts", "controls.ts", "model.ts"],
+          "sources": ["tanstack.ts", "view.tsx", "model.ts"],
           "summary": "Retain the date input, validation, event constraint, accepted end, commit transaction, status, and exact-value alternative."
         }
       ],
@@ -3415,7 +3415,7 @@
           "stage": "before-definition",
           "owner": "application",
           "coordinateSpace": "dom",
-          "sources": ["layout.ts", "shell.ts"],
+          "sources": ["layout.ts", "shell.tsx"],
           "summary": "Retain width-derived host sizing and tooltip presentation."
         }
       ]
