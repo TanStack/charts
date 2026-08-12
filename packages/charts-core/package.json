@@ -3,6 +3,9 @@
   "version": "0.11.1",
   "private": false,
   "license": "MIT",
+  "keywords": [
+    "tanstack-intent"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/TanStack/charts.git",
@@ -13,6 +16,7 @@
   "files": [
     "dist",
     "docs",
+    "skills",
     "LICENSE",
     "README.md",
     "llms.txt"
@@ -95,6 +99,7 @@
     }
   },
   "devDependencies": {
+    "@tanstack/intent": "^0.3.6",
     "@types/d3-array": "^3.2.2",
     "@types/d3-brush": "^3.0.6",
     "@types/d3-contour": "^3.0.6",
