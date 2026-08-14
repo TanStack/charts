@@ -854,6 +854,11 @@ Each entry records:
   two broad `import.meta.glob('./cases/*/*.ts')` registries. Its default entry
   registered 584 implementation and raw-source imports, including every
   comparison renderer, data/helper modules, and a `tanstack.test.ts` file.
+  Even after the production graph was narrowed, its public source entry was
+  still the conformance `tanstack.ts` adapter. Opening an example in the docs
+  therefore started on mount plumbing and followed shared harness modules
+  instead of showing the chart definition; some sandboxes contained source
+  from unrelated examples.
 - Decision: give each chart type an isolated entry module and share only the
   renderer-free host setup. Renderer-specific helpers with runtime imports
   live in separate modules. Tier variants also use direct build-time globals;
@@ -883,7 +888,16 @@ Each entry records:
   Every published TanStack root receives the same static-closure
   comparison-package check. The schema-v3 artifact validator rejects
   unreferenced files, unsafe paths, missing imports, invalid preloads, invalid
-  authored-source roles, and a comparison module not marked debug-only.
+  authored-source roles, and a comparison module not marked debug-only. The
+  source catalog now publishes one case-local `example.tsx` root per case.
+  Conformance adapters import that public definition, while the docs runtime
+  supplies its own hidden React mount entry and rejects any relative import
+  that leaves the case directory. `pnpm catalog:examples:check` validates all
+  188 public roots, their default exports, definition-first source order,
+  adapter ownership, unused source, and isolated relative source closures. The
+  largest public TypeScript closure contains four files. The shadcn generator
+  prunes unused variant helpers before writing each public example, while
+  hidden catalog adapters retain deterministic preview framing and focus.
 
 ### F-025 — Bundle maintenance clobbered the full comparison report
 

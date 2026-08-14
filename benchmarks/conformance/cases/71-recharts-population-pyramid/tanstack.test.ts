@@ -156,7 +156,7 @@ describe('definition-owned population pyramid', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/71-recharts-population-pyramid/tanstack.ts',
+        'benchmarks/conformance/cases/71-recharts-population-pyramid/example.tsx',
       ),
       'utf8',
     )

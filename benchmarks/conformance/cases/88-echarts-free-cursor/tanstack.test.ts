@@ -224,7 +224,7 @@ describe('definition-owned free cursor', () => {
       process.cwd(),
       'benchmarks/conformance/cases/88-echarts-free-cursor',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
     const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
     for (const forbidden of [

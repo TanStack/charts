@@ -229,7 +229,7 @@ describe('definition-owned synchronized cursors', () => {
       process.cwd(),
       'benchmarks/conformance/cases/87-echarts-synchronized-cursors',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
     const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
 
     for (const forbidden of [

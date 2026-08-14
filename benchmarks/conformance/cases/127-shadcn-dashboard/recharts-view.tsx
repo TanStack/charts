@@ -118,11 +118,7 @@ const RechartsDashboardView = forwardRef<
   ReactConformanceProps
 >(function RechartsDashboardView({ input }, ref) {
   return (
-    <ShadcnDashboard
-      ref={ref}
-      ChartRenderer={RechartsDashboardChart}
-      input={input}
-    />
+    <ShadcnDashboard ChartRenderer={RechartsDashboardChart} input={input} />
   )
 })
 

@@ -37,7 +37,7 @@ describe('native log-scale scatter preparation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/53-log-scale-scatter/tanstack.ts',
+        'benchmarks/conformance/cases/53-log-scale-scatter/example.tsx',
       ),
       'utf8',
     )

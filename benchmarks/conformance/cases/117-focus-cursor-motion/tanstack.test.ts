@@ -192,7 +192,7 @@ describe('definition-owned focus cursor motion', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/117-focus-cursor-motion/tanstack.ts',
+        'benchmarks/conformance/cases/117-focus-cursor-motion/example.tsx',
       ),
       'utf8',
     )

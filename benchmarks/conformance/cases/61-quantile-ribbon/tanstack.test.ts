@@ -94,7 +94,7 @@ describe('definition-owned quantile ribbon', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/61-quantile-ribbon/tanstack.ts',
+        'benchmarks/conformance/cases/61-quantile-ribbon/example.tsx',
       ),
       'utf8',
     )

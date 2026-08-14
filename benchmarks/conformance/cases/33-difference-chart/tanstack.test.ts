@@ -84,7 +84,7 @@ describe('definition-owned difference chart', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/33-difference-chart/tanstack.ts',
+        'benchmarks/conformance/cases/33-difference-chart/example.tsx',
       ),
       'utf8',
     )

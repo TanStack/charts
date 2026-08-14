@@ -57,7 +57,7 @@ describe('native boxplot definition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/15-boxplot/tanstack.ts',
+        'benchmarks/conformance/cases/15-boxplot/example.tsx',
       ),
       'utf8',
     )

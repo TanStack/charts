@@ -49,6 +49,45 @@ export function tanstackMount<
   interactiveTooltip: true | ChartTooltipOptions<TDatum> = true,
   previewOptions: CatalogPreviewOptions<TDatum, TXValue, TYValue> = {},
 ): TanStackConformanceCase<TDatum, TXValue, TYValue> {
+  return createTanstackMount(
+    createDefinition,
+    ariaLabel,
+    interactiveTooltip,
+    previewOptions,
+  )
+}
+
+export function tanstackExampleMount<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  createDefinition: (
+    input: ConformanceInput,
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>,
+  ariaLabel: string,
+  previewOptions: CatalogPreviewOptions<TDatum, TXValue, TYValue> = {},
+): TanStackConformanceCase<TDatum, TXValue, TYValue> {
+  return createTanstackMount(
+    createDefinition,
+    ariaLabel,
+    undefined,
+    previewOptions,
+  )
+}
+
+function createTanstackMount<
+  TDatum,
+  TXValue extends ChartValue = ChartValue,
+  TYValue extends ChartValue = ChartValue,
+>(
+  createDefinition: (
+    input: ConformanceInput,
+  ) => DomChartDefinition<TDatum, TXValue, TYValue>,
+  ariaLabel: string,
+  interactiveTooltip: true | ChartTooltipOptions<TDatum> | undefined,
+  previewOptions: CatalogPreviewOptions<TDatum, TXValue, TYValue>,
+): TanStackConformanceCase<TDatum, TXValue, TYValue> {
   const mount: ConformanceMount = (container, input) => {
     const options = {
       definition: withConformanceBehavior(
@@ -104,7 +143,7 @@ export interface TanStackConformanceCase<
     input: ConformanceInput,
   ) => DomChartDefinition<TDatum, TXValue, TYValue>
   ariaLabel: string
-  interactiveTooltip: true | ChartTooltipOptions<TDatum>
+  interactiveTooltip: true | ChartTooltipOptions<TDatum> | undefined
   mount: ConformanceMount
 }
 
@@ -135,7 +174,7 @@ export function withConformanceBehavior<
 >(
   definition: DomChartDefinition<TDatum, TXValue, TYValue>,
   input: ConformanceInput,
-  interactiveTooltip: true | ChartTooltipOptions<TDatum>,
+  interactiveTooltip: true | ChartTooltipOptions<TDatum> | undefined,
   previewOptions: CatalogPreviewOptions<TDatum, TXValue, TYValue> = {},
 ): DomChartDefinition<TDatum, TXValue, TYValue> {
   const presentation =
@@ -149,12 +188,16 @@ export function withConformanceBehavior<
       ? {}
       : { focus: false }),
     keyboard: input.interactive === true,
-    tooltip:
-      input.interactive !== true
-        ? false
-        : interactiveTooltip === true
-          ? tooltip
-          : { use: tooltip, ...interactiveTooltip },
+    ...(input.interactive !== true
+      ? { tooltip: false as const }
+      : interactiveTooltip === undefined
+        ? {}
+        : {
+            tooltip:
+              interactiveTooltip === true
+                ? tooltip
+                : { use: tooltip, ...interactiveTooltip },
+          }),
   }
 
   if (isResponsiveChartDefinition(presentation)) {

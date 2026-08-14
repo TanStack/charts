@@ -40,22 +40,27 @@ describe('declarative entrance motion', () => {
   })
 
   it('leaves only replay controls and renderer observation outside the definition', () => {
-    const source = readFileSync(
+    const shellSource = readFileSync(
       resolve(
         process.cwd(),
         'benchmarks/conformance/cases/112-motion-entrance/view.tsx',
       ),
       'utf8',
     )
-    const start = source.indexOf(
-      'export function motionEntranceDefinition(settings: MotionSettings)',
+    const definitionSource = readFileSync(
+      resolve(
+        process.cwd(),
+        'benchmarks/conformance/cases/112-motion-entrance/example.tsx',
+      ),
+      'utf8',
     )
-    const end = source.indexOf('function readEasing', start)
-    const definitionSource = source.slice(start, end)
 
-    expect(source).toContain("from '../../shared/motion'")
-    expect(source).toContain('<ControlButton ref={replayRef} onClick={replay}>')
-    expect(source).toContain('settleChartMotion(viewRef.current')
+    expect(shellSource).toContain("from './example'")
+    expect(shellSource).toContain("from '../../shared/motion'")
+    expect(shellSource).toContain(
+      '<ControlButton ref={replayRef} onClick={replay}>',
+    )
+    expect(shellSource).toContain('settleChartMotion(viewRef.current')
     expect(definitionSource).toContain('defineChart({')
     expect(definitionSource).toContain('motion: {')
     expect(definitionSource).toContain('barY(rows, {')

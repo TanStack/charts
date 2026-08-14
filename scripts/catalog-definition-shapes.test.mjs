@@ -9,11 +9,42 @@ const casesDirectory = path.resolve(
 )
 
 const responsiveDefinitions = [
-  '29-waterfall/tanstack.ts',
-  '85-scrollable-resource-lanes/tanstack.ts',
-  '92-editable-event-range/tanstack.ts',
-  'bar-grouped/tanstack.ts',
-  'bar-vertical-sorted/tanstack.ts',
+  '137-shadcn-area-interactive/example.tsx',
+  '152-shadcn-line-default/example.tsx',
+  '153-shadcn-line-dots-colors/example.tsx',
+  '154-shadcn-line-dots-custom/example.tsx',
+  '155-shadcn-line-dots/example.tsx',
+  '156-shadcn-line-interactive/example.tsx',
+  '157-shadcn-line-label-custom/example.tsx',
+  '158-shadcn-line-label/example.tsx',
+  '159-shadcn-line-linear/example.tsx',
+  '160-shadcn-line-multiple/example.tsx',
+  '161-shadcn-line-step/example.tsx',
+  '181-shadcn-radar-label-custom/example.tsx',
+  '186-shadcn-radial-label/example.tsx',
+  '29-waterfall/example.tsx',
+  '85-scrollable-resource-lanes/example.tsx',
+  '92-editable-event-range/example.tsx',
+  'bar-grouped/example.tsx',
+  'bar-vertical-sorted/example.tsx',
+]
+
+const indirectDefinitions = [
+  '130-shadcn-radar-multiple/example.tsx',
+  '172-shadcn-radar-default/example.tsx',
+  '173-shadcn-radar-dots/example.tsx',
+  '174-shadcn-radar-grid-circle-fill/example.tsx',
+  '175-shadcn-radar-grid-circle-no-lines/example.tsx',
+  '176-shadcn-radar-grid-circle/example.tsx',
+  '177-shadcn-radar-grid-custom/example.tsx',
+  '178-shadcn-radar-grid-fill/example.tsx',
+  '179-shadcn-radar-grid-none/example.tsx',
+  '180-shadcn-radar-icons/example.tsx',
+  '182-shadcn-radar-legend/example.tsx',
+  '183-shadcn-radar-lines-only/example.tsx',
+  '184-shadcn-radar-radius/example.tsx',
+  '185-shadcn-radial-grid/example.tsx',
+  '188-shadcn-radial-simple/example.tsx',
 ]
 
 describe('catalog definition shapes', () => {
@@ -27,23 +58,18 @@ describe('catalog definition shapes', () => {
         caseDirectories.map(async (directory) => {
           const caseEntries = await readdir(directory, { withFileTypes: true })
           return caseEntries
-            .filter(
-              (entry) =>
-                entry.isFile() &&
-                (entry.name === 'tanstack.ts' ||
-                  entry.name === 'tanstack-view.tsx' ||
-                  entry.name === 'view.tsx' ||
-                  entry.name === 'chart.ts'),
-            )
+            .filter((entry) => entry.isFile() && entry.name === 'example.tsx')
             .map((entry) => path.join(directory, entry.name))
         }),
       )
     ).flat()
 
     const classification = {
+      indirect: [],
       parameterless: [],
       responsive: [],
       static: 0,
+      staticFiles: [],
     }
 
     await Promise.all(
@@ -58,16 +84,26 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification.parameterless).toEqual([])
-    expect(classification.static).toBe(123)
+    expect(classification.static).toBe(160)
     expect(classification.responsive.sort()).toEqual(responsiveDefinitions)
-    expect(classification.static + classification.responsive.length).toBe(128)
+    expect(classification.indirect.sort()).toEqual(indirectDefinitions)
+    expect(classification.staticFiles).toHaveLength(155)
+    expect(
+      new Set([
+        ...classification.staticFiles,
+        ...classification.responsive,
+        ...classification.indirect,
+      ]).size,
+    ).toBe(files.length)
   })
 
   it('classifies the base definition once when options are added', () => {
     const classification = {
+      indirect: [],
       parameterless: [],
       responsive: [],
       static: 0,
+      staticFiles: [],
     }
 
     classifyDefinitions(
@@ -84,9 +120,11 @@ describe('catalog definition shapes', () => {
     )
 
     expect(classification).toEqual({
+      indirect: [],
       parameterless: [],
       responsive: ['two-argument.ts'],
       static: 2,
+      staticFiles: ['two-argument.ts'],
     })
   })
 })
@@ -98,6 +136,9 @@ function classifyDefinitions(relativePath, source, classification) {
     ts.ScriptTarget.Latest,
     true,
   )
+  let hasIndirectDefinition = false
+  let hasResponsiveDefinition = false
+  let hasStaticDefinition = false
 
   function visit(node) {
     if (
@@ -106,6 +147,7 @@ function classifyDefinitions(relativePath, source, classification) {
       node.expression.text === 'facetChart'
     ) {
       classification.static += 1
+      hasStaticDefinition = true
     }
 
     if (
@@ -118,6 +160,7 @@ function classifyDefinitions(relativePath, source, classification) {
 
       if (ts.isObjectLiteralExpression(definition)) {
         classification.static += 1
+        hasStaticDefinition = true
       } else if (ts.isArrowFunction(definition)) {
         if (definition.parameters.length === 0) {
           const { line } = sourceFile.getLineAndCharacterOfPosition(
@@ -126,7 +169,14 @@ function classifyDefinitions(relativePath, source, classification) {
           classification.parameterless.push(`${relativePath}:${line + 1}`)
         } else {
           classification.responsive.push(relativePath)
+          hasResponsiveDefinition = true
         }
+      } else if (!(
+        ts.isCallExpression(definition) &&
+        ts.isIdentifier(definition.expression) &&
+        definition.expression.text === 'defineChart'
+      )) {
+        hasIndirectDefinition = true
       }
     }
 
@@ -134,6 +184,14 @@ function classifyDefinitions(relativePath, source, classification) {
   }
 
   visit(sourceFile)
+  if (hasStaticDefinition) classification.staticFiles.push(relativePath)
+  if (
+    hasIndirectDefinition &&
+    !hasStaticDefinition &&
+    !hasResponsiveDefinition
+  ) {
+    classification.indirect.push(relativePath)
+  }
 }
 
 function unwrapParentheses(node) {

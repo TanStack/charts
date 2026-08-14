@@ -165,12 +165,12 @@ describe('declarative spring line motion', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/114-spring-line-motion/tanstack.ts',
+        'benchmarks/conformance/cases/114-spring-line-motion/example.tsx',
       ),
       'utf8',
     )
     const start = source.indexOf('export function springLineMotionDefinition(')
-    const end = source.length
+    const end = source.indexOf('export default function', start)
     const definitionSource = source.slice(start, end)
 
     const view = readFileSync(

@@ -1,3 +1,4 @@
+import { chartTableSelectionDefinition } from './example'
 import {
   forwardRef,
   useImperativeHandle,
@@ -5,85 +6,22 @@ import {
   useRef,
   useState,
 } from 'react'
-import { defineChart, dot } from '@tanstack/charts'
-import { controlledSignal } from '@tanstack/charts/interaction/signal'
-import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 import { Chart } from '@tanstack/charts/react'
 import { penguins } from '@charts-poc/demo-data/penguins'
-import { scaleLinear } from 'd3-scale'
 import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import {
   isSelectionId,
   penguinSelectionId,
   penguinSelectionLabel,
-  selectionRowId,
   selectionRows,
 } from './model'
 import type { ChartScene } from '@tanstack/charts'
-import type { KeyedSelectionChange } from '@tanstack/charts/selection'
 import type { ConformanceTarget, ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 import type { CompletePenguin, SelectionId } from './model'
 
 const catalogPreviewSelectionId = 'adelie-biscoe-female' satisfies SelectionId
-
-export function chartTableSelectionDefinition(
-  revision: number,
-  selectedId: SelectionId | null,
-  onSelectedIdChange: (selectedId: SelectionId | null) => void,
-) {
-  const rows = selectionRows(penguins, revision)
-  const selection = keyedSelection<
-    CompletePenguin,
-    SelectionId,
-    number,
-    number
-  >({
-    selected: controlledSignal<
-      SelectionId | null,
-      KeyedSelectionChange<CompletePenguin, SelectionId, number, number>
-    >(selectedId, (next) => onSelectedIdChange(next)),
-    key: (datum) => penguinSelectionId(datum),
-  })
-
-  return defineChart({
-    marks: [
-      dot(rows, {
-        id: 'observations',
-        x: 'flipper_length_mm',
-        y: 'body_mass_g',
-        key: selectionRowId,
-        r: 4.5,
-        fill: '#2563eb',
-      }),
-      whenSelected(
-        dot(rows, {
-          id: 'selected-observation',
-          x: 'flipper_length_mm',
-          y: 'body_mass_g',
-          key: selectionRowId,
-          r: 7,
-          fill: '#f97316',
-          stroke: '#ffffff',
-          strokeWidth: 2,
-        }),
-        selection,
-      ),
-    ],
-    x: { scale: scaleLinear, axis: { label: 'Flipper length (mm)' } },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 5 }, label: 'Body mass (g)' },
-    },
-    margin: { top: 16, right: 24, bottom: 42, left: 62 },
-    svgAnimation: false,
-    keyboard: true,
-    maxFocusDistance: 40,
-    selection,
-  })
-}
 
 const ChartTableExample = forwardRef<
   ConformanceTestDriver,

@@ -182,12 +182,12 @@ describe('declarative definition-owned motion', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/115-definition-motion/tanstack.ts',
+        'benchmarks/conformance/cases/115-definition-motion/example.tsx',
       ),
       'utf8',
     )
     const start = source.indexOf('export function definitionMotionDefinition(')
-    const end = source.length
+    const end = source.indexOf('export default function', start)
     const definitionSource = source.slice(start, end)
 
     const view = readFileSync(

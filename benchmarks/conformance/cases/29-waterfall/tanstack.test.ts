@@ -87,7 +87,7 @@ describe('definition-owned waterfall layout', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/29-waterfall/tanstack.ts',
+        'benchmarks/conformance/cases/29-waterfall/example.tsx',
       ),
       'utf8',
     )

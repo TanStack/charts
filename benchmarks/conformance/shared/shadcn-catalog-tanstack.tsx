@@ -60,7 +60,7 @@ import {
   shadcnChartMount,
 } from './shadcn-chart-card'
 import { createShadcnSpringRenderer } from './shadcn-motion'
-import interactiveAreaData from '../shadcn/area-interactive-data.json'
+import interactiveAreaData from '@charts-poc/demo-data/shadcn-area-interactive-data'
 import { tanstackCase } from './mount'
 import type { ChartPoint, ChartTooltipOptions } from '@tanstack/charts'
 import type { ChartDefinition, ChartValue } from '@tanstack/charts'

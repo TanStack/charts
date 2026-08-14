@@ -203,7 +203,7 @@ describe('basic Sankey composition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/111-basic-sankey/tanstack.ts',
+        'benchmarks/conformance/cases/111-basic-sankey/example.tsx',
       ),
       'utf8',
     )

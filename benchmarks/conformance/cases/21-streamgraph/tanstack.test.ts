@@ -53,7 +53,7 @@ describe('definition-owned streamgraph stack', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/21-streamgraph/tanstack.ts',
+        'benchmarks/conformance/cases/21-streamgraph/example.tsx',
       ),
       'utf8',
     )

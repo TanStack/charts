@@ -5,24 +5,23 @@
   "height": 600,
   "order": 1290,
   "id": "128-shadcn-bar-multiple",
-  "title": "shadcn bar chart – multiple",
+  "title": "shadcn Bar Chart - Multiple",
   "family": "bar",
-  "intent": "Reproduce shadcn/ui's grouped bar example while replacing Recharts with TanStack Charts.",
+  "intent": "Reproduce shadcn/ui's chart-bar-multiple example with TanStack Charts.",
   "support": "native",
-  "features": [
-    "grouped bars",
-    "rounded corners",
-    "horizontal grid",
-    "grouped tooltip",
-    "shadcn card shell"
+  "features": ["bar chart", "multiple", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 12
+    }
   ],
-  "geometry": [{ "role": "bar", "count": 12 }],
   "source": {
     "title": "shadcn/ui chart-bar-multiple",
     "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-multiple"
   },
   "ai": {
     "create": "Reproduce the official shadcn/ui chart-bar-multiple card and data with TanStack Charts.",
-    "maintain": "Preserve the pinned upstream data, grouped layout, axis treatment, tooltip labels, card dimensions, footer, and light and dark tokens."
+    "maintain": "Preserve the pinned upstream data, bar multiple treatment, card dimensions, and light and dark tokens."
   }
 }

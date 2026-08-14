@@ -64,7 +64,7 @@ describe('definition-owned connected-scatter direction', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/56-connected-scatter/tanstack.ts',
+        'benchmarks/conformance/cases/56-connected-scatter/example.tsx',
       ),
       'utf8',
     )

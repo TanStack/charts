@@ -60,7 +60,7 @@ describe('native pie allocation', () => {
 
   it('keeps allocation in the public polar definition surface', () => {
     const source = readFileSync(
-      resolve(process.cwd(), 'benchmarks/conformance/cases/76-pie/tanstack.ts'),
+      resolve(process.cwd(), 'benchmarks/conformance/cases/76-pie/example.tsx'),
       'utf8',
     )
 

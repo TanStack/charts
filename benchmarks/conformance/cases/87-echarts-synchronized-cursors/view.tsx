@@ -14,12 +14,12 @@ import {
   synchronizedCursorDatumAtDate,
 } from './model'
 import { selectSynchronizedCursorData } from './selection'
+import { createDriver } from './tanstack'
 import {
   chartHeight,
-  createDriver,
   summaryHeight,
   synchronizedCursorDefinition,
-} from './tanstack'
+} from './example'
 import type { ChartScene } from '@tanstack/charts'
 import type { ChartInteractionController } from '@tanstack/charts'
 import type { TravelersRow } from '@charts-poc/demo-data/travelers'

@@ -46,7 +46,7 @@ describe('native composed-chart bar sizing', () => {
     const closure = await loadTanStackSources('70-composed-chart')
     const source = closure.files.map((file) => file.source).join('\n')
 
-    expect(closure.files.map((file) => file.path)).toEqual(['tanstack.ts'])
+    expect(closure.files.map((file) => file.path)).toEqual(['example.tsx'])
     expect(closure.roles.support.files).toBe(0)
     expect(source).toContain('maxThickness: 20')
     expect(source).not.toContain('defineChart(({')

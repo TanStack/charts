@@ -2,7 +2,7 @@ import { usCountyUnemployment } from '@charts-poc/demo-data/us-county-unemployme
 import countiesAtlasJson from 'us-atlas/counties-10m.json'
 import { geoAlbersUsa, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
-import { simplifyPolygonGeometry } from '../../shared/fixtures/simplify-geo'
+import { simplifyPolygonGeometry } from '@charts-poc/demo-data/simplify-geo'
 import type { UsCountyUnemploymentRow } from '@charts-poc/demo-data/us-county-unemployment'
 import type {
   ExtendedFeature,

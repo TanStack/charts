@@ -132,7 +132,7 @@ describe('native center-donut allocation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/94-center-donut/tanstack.ts',
+        'benchmarks/conformance/cases/94-center-donut/example.tsx',
       ),
       'utf8',
     )

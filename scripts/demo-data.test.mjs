@@ -11,6 +11,13 @@ import {
 } from '../packages/charts-demo-data/src/parse-csv.js'
 
 const workspace = resolve(import.meta.dirname, '..')
+const supportExports = [
+  './country-atlas',
+  './learning-poverty-geography',
+  './shadcn',
+  './shadcn-area-interactive-data',
+  './simplify-geo',
+]
 
 describe('demo data', () => {
   it('parses quoted CSV rows without code generation', () => {
@@ -33,11 +40,20 @@ describe('demo data', () => {
         'utf8',
       ),
     )
-    const datasetExports = Object.keys(packageJson.exports)
-      .filter((specifier) => specifier !== './metadata')
+    const exactExports = Object.keys(packageJson.exports)
+    const datasetExports = exactExports
+      .filter(
+        (specifier) =>
+          specifier !== './metadata' && !supportExports.includes(specifier),
+      )
       .map((specifier) => specifier.slice(2))
       .sort()
 
+    expect(
+      exactExports
+        .filter((specifier) => supportExports.includes(specifier))
+        .sort(),
+    ).toEqual([...supportExports].sort())
     expect(demoDatasetMetadata.map(({ id }) => id).sort()).toEqual(
       datasetExports,
     )

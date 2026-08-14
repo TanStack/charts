@@ -146,7 +146,7 @@ describe('native radius-extending rose bars', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/97-rose/tanstack.ts',
+        'benchmarks/conformance/cases/97-rose/example.tsx',
       ),
       'utf8',
     )

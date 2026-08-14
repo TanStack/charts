@@ -1,3 +1,4 @@
+import { streamingWindowDefinition } from './example'
 import {
   forwardRef,
   useEffect,
@@ -6,12 +7,8 @@ import {
   useRef,
   useState,
 } from 'react'
-import { defineChart, dot, lineY } from '@tanstack/charts'
-import { decorative } from '@tanstack/charts/mark/decorative'
-import { tooltip } from '@tanstack/charts/tooltip'
 import { Chart } from '@tanstack/charts/react'
 import { downloads } from '@charts-poc/demo-data/downloads'
-import { scaleLinear, scaleUtc } from 'd3-scale'
 import { catalogPreviewDefinition } from '../../shared/preview'
 import { clientPointBounds } from '../../shared/driver-geometry'
 import { reactMount } from '../../shared/react-mount'
@@ -36,63 +33,6 @@ import type {
 import type { ReactConformanceProps } from '../../shared/react-mount'
 
 const color = '#2563eb'
-
-export function streamingWindowDefinition(
-  rows: readonly DownloadsRow[],
-  viewport: readonly [Date, Date],
-  viewportMode: StreamingViewportMode,
-) {
-  const visibleRows = visibleStreamingData(rows, viewport)
-  return defineChart({
-    marks: [
-      decorative(
-        lineY(visibleRows, {
-          id: 'stream-line',
-          x: 'date',
-          y: 'downloads',
-          stroke: color,
-          strokeWidth: 2.5,
-        }),
-      ),
-      dot(visibleRows, {
-        id: 'stream-points',
-        x: 'date',
-        y: 'downloads',
-        fill: color,
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(viewport),
-      axis: {
-        ticks: {
-          format: (value) =>
-            value.toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-              timeZone: 'UTC',
-            }),
-        },
-        label: streamingViewportLabel(viewportMode),
-      },
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 5 }, label: 'Downloads' },
-    },
-    margin: { top: 18, right: 24, bottom: 44, left: 58 },
-    svgAnimation: false,
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      format: (point) =>
-        `${formatStreamingDate(point.datum.date)} · ${point.datum.downloads.toLocaleString()} downloads`,
-    },
-  })
-}
 
 const StreamingExample = forwardRef<
   ConformanceTestDriver,

@@ -1,57 +1,11 @@
-import { areaY, defineChart, lineY } from '@tanstack/charts'
-import { sfTemperatures } from '@charts-poc/demo-data/sf-temperatures'
-import { scaleLinear, scaleUtc } from 'd3-scale'
-import type { ConformanceInput } from '../../types'
-import { tanstackMount } from '../../shared/mount'
-import { samplePreviewData } from '../../shared/preview'
+import { createExampleChart, exampleAriaLabel } from './example'
+import { tanstackExampleMount } from '../../shared/mount'
 
-const definition = (input: ConformanceInput) => {
-  const rows = samplePreviewData(sfTemperatures, input, 80, [
-    (row) => row.date.getTime(),
-    (row) => row.low,
-    (row) => row.high,
-  ])
-  return defineChart({
-    marks: [
-      areaY(rows, {
-        x: 'date',
-        y1: 'low',
-        y2: 'high',
-        fill: '#60a5fa',
-        fillOpacity: 0.24,
-      }),
-      lineY(rows, {
-        x: 'date',
-        y: 'low',
-        stroke: '#2563eb',
-        strokeWidth: 1.75,
-      }),
-      lineY(rows, {
-        x: 'date',
-        y: 'high',
-        stroke: '#dc2626',
-        strokeWidth: 1.75,
-      }),
-    ],
-    x: { scale: scaleUtc, axis: { label: 'Week' } },
-    y: { scale: scaleLinear, grid: true, axis: { label: 'Temperature (°F)' } },
-  })
-}
+export * from './example'
 
-export const mount = tanstackMount(
-  definition,
-  'San Francisco daily low-to-high temperature range',
-  {
-    format: ({ datum }) =>
-      `${datum.date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZone: 'UTC',
-      })} · ${datum.low.toLocaleString('en-US', {
-        maximumFractionDigits: 1,
-      })}–${datum.high.toLocaleString('en-US', {
-        maximumFractionDigits: 1,
-      })} °F`,
-  },
+export const mount = tanstackExampleMount(
+  () => createExampleChart(),
+  exampleAriaLabel,
 )
+
+export const catalogCase = mount

@@ -135,7 +135,7 @@ describe('native labeled pie composition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/93-labeled-pie/tanstack.ts',
+        'benchmarks/conformance/cases/93-labeled-pie/example.tsx',
       ),
       'utf8',
     )

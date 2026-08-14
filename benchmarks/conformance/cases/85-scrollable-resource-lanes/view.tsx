@@ -22,7 +22,7 @@ import {
   timelineStatuses,
 } from './scenario'
 import { timelineDateKey } from './model'
-import { resourceTimelineDefinition } from './tanstack'
+import { resourceTimelineDefinition } from './example'
 import type { ChartPoint, ChartScene } from '@tanstack/charts'
 import type { ResourceLane, ResourceTask } from './scenario'
 import type {

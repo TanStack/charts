@@ -114,7 +114,7 @@ describe('native concentric radial bars', () => {
       process.cwd(),
       'benchmarks/conformance/cases/100-radial-bars',
     )
-    const source = readFileSync(resolve(caseDirectory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(caseDirectory, 'example.tsx'), 'utf8')
 
     expect(source).toContain('radialBarAngle')
     expect(source).toContain("angle: 'frequency'")

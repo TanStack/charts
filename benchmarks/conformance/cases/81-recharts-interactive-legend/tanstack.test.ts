@@ -124,7 +124,7 @@ describe('definition-owned interactive legend', () => {
       process.cwd(),
       'benchmarks/conformance/cases/81-recharts-interactive-legend',
     )
-    const source = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
     for (const forbidden of [
       'flatMap(',

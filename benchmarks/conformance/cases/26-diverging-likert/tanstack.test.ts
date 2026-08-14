@@ -80,7 +80,7 @@ describe('definition-owned anchored Likert stack', () => {
       process.cwd(),
       'benchmarks/conformance/cases/26-diverging-likert',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
     expect(source).toContain('groupBy(likertSurvey')
     expect(source).toContain("outputs: { count: { reduce: 'count' } }")

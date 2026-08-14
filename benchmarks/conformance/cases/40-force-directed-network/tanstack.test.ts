@@ -165,7 +165,7 @@ describe('native force-directed network', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/40-force-directed-network/tanstack.ts',
+        'benchmarks/conformance/cases/40-force-directed-network/example.tsx',
       ),
       'utf8',
     )
@@ -181,7 +181,6 @@ function render(revision: number) {
     forceDefinition({
       ...size,
       revision,
-      interactive: true,
     } satisfies ConformanceInput),
     size,
   )

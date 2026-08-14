@@ -1,7 +1,7 @@
 import { act } from 'react'
 import { createChartScene } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { paletteMatrixDefinition } from './chart'
+import { paletteMatrixDefinition } from './example'
 import { paletteMatrixRows, palettePaint, paletteTreatments } from './model'
 import { mount as plotMount } from './plot'
 import { mount } from './tanstack'

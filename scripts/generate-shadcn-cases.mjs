@@ -1,6 +1,11 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { format } from 'prettier'
+import { getShadcnCatalogSpec } from '@charts-poc/demo-data/shadcn'
+import {
+  shadcnExampleSource,
+  shadcnExampleStyles,
+} from './shadcn-example-source.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
 const catalogPath = path.join(
@@ -10,13 +15,6 @@ const catalogPath = path.join(
 const casesRoot = path.join(root, 'benchmarks/conformance/cases')
 const coverageRoot = path.join(root, 'benchmarks/conformance')
 const catalog = JSON.parse(await readFile(catalogPath, 'utf8'))
-const handAuthoredCases = new Set([
-  'chart-bar-multiple',
-  'chart-pie-donut-text',
-  'chart-radar-multiple',
-  'chart-radial-text',
-  'chart-tooltip-advanced',
-])
 let nextCaseNumber =
   Math.max(
     126,
@@ -32,23 +30,68 @@ for (const entry of catalog.cases) {
     nextCaseNumber += 1
   }
   const caseNumber = Number(entry.localCaseId.match(/^(\d+)-/u)?.[1] ?? 0)
-  if (handAuthoredCases.has(entry.name)) continue
   const id = entry.localCaseId
   const directory = path.join(casesRoot, id)
   generatedCount += 1
   await mkdir(directory, { recursive: true })
   await writeFile(
     path.join(directory, 'case.json'),
-    `${JSON.stringify(metadata(entry, id, caseNumber), null, 2)}\n`,
+    await format(
+      `${JSON.stringify(metadata(entry, id, caseNumber), null, 2)}\n`,
+      {
+        parser: 'json',
+      },
+    ),
   )
   await writeFile(
     path.join(directory, 'tanstack.ts'),
-    `import { createShadcnTanStackExample } from '../../shared/shadcn-catalog-tanstack'\n\nconst example = createShadcnTanStackExample('${entry.name}')\n\nexport const shadcnDefinition = example.definition\nexport const catalogCase = example.catalogCase\nexport const mount = example.mount\n`,
+    await format(
+      `import { createElement } from 'react'
+import Example, { definition } from './example'
+import { shadcnChartMount } from '../../shared/shadcn-chart-card'
+import { tanstackExampleMount } from '../../shared/mount'
+import type { ConformanceInput } from '../../types'
+
+const ConformanceExample = ({ input }: { input: ConformanceInput }) =>
+  createElement(Example, { width: input.width, height: input.height })
+
+export * from './example'
+export const shadcnDefinition = definition
+${legacyDefinitionAlias(entry.name)}
+export const mount = shadcnChartMount(ConformanceExample)
+export const catalogCase = tanstackExampleMount(
+  () => definition,
+  ${JSON.stringify(`${officialTitle(entry.name)} implemented with TanStack Charts`)},
+  { guides: ${getShadcnCatalogSpec(entry.name).family !== 'pie'}, margin: true },
+)
+`,
+      { parser: 'typescript', semi: false, singleQuote: true },
+    ),
+  )
+  await writeFile(
+    path.join(directory, 'example.tsx'),
+    await shadcnExampleSource(getShadcnCatalogSpec(entry.name)),
+  )
+  await writeFile(
+    path.join(directory, 'styles.css'),
+    await shadcnExampleStyles(),
   )
   await writeFile(
     path.join(directory, 'recharts.ts'),
     `import { createShadcnRechartsExample } from '../../shared/shadcn-catalog-recharts'\n\nconst example = createShadcnRechartsExample('${entry.name}')\n\nexport const mount = example.mount\n`,
   )
+}
+
+function legacyDefinitionAlias(name) {
+  const aliases = {
+    'chart-bar-multiple': 'barMultipleDefinition',
+    'chart-pie-donut-text': 'pieDonutTextDefinition',
+    'chart-radar-multiple': 'radarMultipleDefinition',
+    'chart-radial-text': 'radialTextDefinition',
+    'chart-tooltip-advanced': 'advancedTooltipDefinition',
+  }
+  const alias = aliases[name]
+  return alias ? `export const ${alias} = definition` : ''
 }
 
 await writeFile(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`)
@@ -81,7 +124,10 @@ async function syncDefinitionCoverage() {
   }
   retainedCases.splice(insertionIndex, 0, ...generatedEntries)
   roadmap.cases = retainedCases
-  await writeFile(roadmapPath, `${JSON.stringify(roadmap, null, 2)}\n`)
+  await writeFile(
+    roadmapPath,
+    await format(`${JSON.stringify(roadmap, null, 2)}\n`, { parser: 'json' }),
+  )
 
   const counts = countCoverage(roadmap.cases)
   const auditPath = path.join(coverageRoot, roadmap.audit)
@@ -157,6 +203,16 @@ async function syncDefinitionCoverage() {
 
 function coverageEntry(entry) {
   const id = entry.localCaseId
+  const applicationSources =
+    entry.name === 'dashboard'
+      ? [
+          `benchmarks/conformance/cases/${id}/example.tsx`,
+          `benchmarks/conformance/cases/${id}/dashboard.tsx`,
+        ]
+      : [
+          `benchmarks/conformance/cases/${id}/example.tsx`,
+          `benchmarks/conformance/cases/${id}/styles.css`,
+        ]
   return {
     id,
     coverage: 'app-composed',
@@ -164,24 +220,24 @@ function coverageEntry(entry) {
     phase: 'phase-0',
     status: 'verified',
     capabilities: ['current-definition-api'],
-    evidence: [`cases/${id}/tanstack.ts`, `cases/${id}/case.json`],
+    evidence: [`cases/${id}/example.tsx`, `cases/${id}/case.json`],
     work: [
       {
         kind: 'definition-composition',
         stage: 'definition-builder',
         owner: 'charts',
         coordinateSpace: 'none',
-        sources: ['benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx'],
-        summary: `Compose the pinned shadcn ${entry.name} variant through the shared native ${entry.family} chart definition.`,
+        sources: [`benchmarks/conformance/cases/${id}/example.tsx`],
+        summary: `Define the pinned shadcn ${entry.name} variant as a self-contained native ${entry.family} chart example.`,
       },
       {
         kind: 'application-shell',
         stage: 'post-render',
         owner: 'application',
         coordinateSpace: 'dom',
-        sources: ['benchmarks/conformance/shared/shadcn-chart-card.tsx'],
+        sources: applicationSources,
         summary:
-          'Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations.',
+          'Keep the canonical shadcn card dimensions, typography, footer, and theme tokens with the public example.',
       },
     ],
   }
@@ -189,7 +245,7 @@ function coverageEntry(entry) {
 
 function auditRow(entry) {
   const label = entry.id.replace('-shadcn-', ' — shadcn ')
-  return `| [${label}](./cases/${entry.id}/tanstack.ts) | Definition now | Shared native TanStack Charts ${entry.id.split('-')[2]} definitions reproduce the pinned shadcn variant; the card remains application presentation. |`
+  return `| [${label}](./cases/${entry.id}/example.tsx) | Definition now | The self-contained native TanStack Charts ${entry.id.split('-')[2]} example reproduces the pinned shadcn variant and card presentation. |`
 }
 
 function overviewRow(entry) {
@@ -197,7 +253,7 @@ function overviewRow(entry) {
     (candidate) => candidate.localCaseId === entry.id,
   )
   const title = metadata ? officialTitle(metadata.name) : 'Dashboard'
-  return `| [${entry.id} — ${title}](./cases/${entry.id}/tanstack.ts) | Definition now | \`current-definition-api\` | \`tanstack.ts\`, \`case.json\` |`
+  return `| [${entry.id} — ${title}](./cases/${entry.id}/example.tsx) | Definition now | \`current-definition-api\` | \`example.tsx\`, \`case.json\` |`
 }
 
 function replaceGeneratedRows(source, generatedIds, rows, afterId) {

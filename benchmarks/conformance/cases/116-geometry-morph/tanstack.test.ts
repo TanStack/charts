@@ -171,7 +171,7 @@ describe('normalized-topology geometry morph', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/116-geometry-morph/tanstack.ts',
+        'benchmarks/conformance/cases/116-geometry-morph/example.tsx',
       ),
       'utf8',
     )

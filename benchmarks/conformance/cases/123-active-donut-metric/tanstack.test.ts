@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createChartScene, type SceneNode } from '@tanstack/charts'
-import { activeDonutArcs, activeDonutDefinition, donutSummary } from './chart'
+import { activeDonutArcs, activeDonutDefinition, donutSummary } from './example'
 import { activeDonutLayout } from './layout'
 import { mount as rechartsMount, sectorAngles } from './recharts'
 import { mount as tanstackMount } from './view'

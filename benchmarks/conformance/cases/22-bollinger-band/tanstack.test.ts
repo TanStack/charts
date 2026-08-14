@@ -67,7 +67,7 @@ describe('definition-owned Bollinger band', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/22-bollinger-band/tanstack.ts',
+        'benchmarks/conformance/cases/22-bollinger-band/example.tsx',
       ),
       'utf8',
     )

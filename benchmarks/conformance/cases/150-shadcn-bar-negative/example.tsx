@@ -1,0 +1,198 @@
+import { useMemo } from 'react'
+import {
+  barY,
+  defineChart,
+  text,
+  type ChartPoint,
+  type ChartValue,
+  type DomChartDefinition,
+} from '@tanstack/charts'
+import { RendererChart } from '@tanstack/charts/react/tooltip'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { motion } from '@tanstack/charts/motion'
+import { scaleBand, scaleLinear } from 'd3-scale'
+import {
+  shadcnColors,
+  type ShadcnMonthDatum,
+} from '@charts-poc/demo-data/shadcn'
+import './styles.css'
+function createDefinition() {
+  const negativeRows = [
+    { month: 'January', desktop: 186, mobile: 0, tablet: 0 },
+    { month: 'February', desktop: 205, mobile: 0, tablet: 0 },
+    { month: 'March', desktop: -207, mobile: 0, tablet: 0 },
+    { month: 'April', desktop: 173, mobile: 0, tablet: 0 },
+    { month: 'May', desktop: -209, mobile: 0, tablet: 0 },
+    { month: 'June', desktop: 214, mobile: 0, tablet: 0 },
+  ]
+  const rows = negativeRows
+  const marks = [
+    barY(rows, {
+      id: 'visitor-bars',
+      x: 'month',
+      y: 'desktop',
+      fill: (row) =>
+        true && row.desktop < 0 ? shadcnColors[1] : shadcnColors[0],
+      radius: 0,
+    }),
+    text(rows, {
+      id: 'visitor-labels',
+      x: 'month',
+      y: 'desktop',
+      ...{
+        text: (row: ShadcnMonthDatum) => row.month,
+        dy: (row: ShadcnMonthDatum) => (row.desktop < 0 ? 14 : -10),
+        fill: shadcnColors[0],
+        fontSize: 12,
+      },
+    }),
+  ]
+  return defineChart({
+    marks,
+    x: {
+      scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
+      axis: false,
+    },
+    y: { scale: scaleLinear, grid: true, axis: false },
+    margin: { top: 24, right: 5, bottom: 24, left: 5 },
+    theme: shadcnTheme(),
+  })
+}
+function shadcnTheme() {
+  return {
+    foreground: 'var(--muted-foreground, var(--muted))',
+    grid: 'var(--border)',
+    background: 'transparent',
+  }
+}
+function titleCase(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+function shadcnTooltipContent<TDatum>(points: readonly ChartPoint<TDatum>[]) {
+  return {
+    title: String(points[0]?.xValue ?? ''),
+    rows: points.map((point) => ({
+      label: titleCase(
+        String(
+          point.group ??
+            point.markId.replace(
+              /-?(bars|lines|areas|slices|values|radar)$/u,
+              '',
+            ),
+        ),
+      ),
+      value: Number(point.yValue ?? point.xValue ?? 0).toLocaleString('en-US'),
+      color: point.color,
+    })),
+  }
+}
+export function createExampleChart() {
+  return defineChart(createDefinition(), {
+    svgAnimation: false,
+    focus: 'group-x',
+    keyboard: true,
+    tooltip: {
+      use: tooltip,
+      className: 'sc-chart-tooltip',
+      anchor: 'group-center',
+      placement: 'auto',
+      offset: undefined,
+      sort: 'color-domain',
+      content: (points) => shadcnTooltipContent(points),
+    },
+  })
+}
+export const definition = createExampleChart()
+type ExampleDefinition = ReturnType<typeof createExampleChart>
+type ExampleDatum =
+  ExampleDefinition extends DomChartDefinition<
+    infer TDatum,
+    infer _TXValue,
+    infer _TYValue
+  >
+    ? TDatum
+    : never
+type ExampleXValue =
+  ExampleDefinition extends DomChartDefinition<
+    infer _TDatum,
+    infer TXValue extends ChartValue,
+    infer _TYValue
+  >
+    ? TXValue
+    : never
+type ExampleYValue =
+  ExampleDefinition extends DomChartDefinition<
+    infer _TDatum,
+    infer _TXValue,
+    infer TYValue extends ChartValue
+  >
+    ? TYValue
+    : never
+export interface ExampleProps {
+  width?: number
+  height?: number
+}
+export default function Example({ width = 640, height = 600 }: ExampleProps) {
+  const chartDefinition = definition
+  const renderer = useMemo(
+    () =>
+      motion<ExampleDatum, ExampleXValue, ExampleYValue>({
+        initial: 'always',
+        transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+      }),
+    [],
+  )
+  const contentWidth = Math.max(1, width - 50)
+  const chartWidth = contentWidth
+  const chartHeight = (contentWidth * 9) / 16
+  const headerAction = null
+  const legend = null
+  const footer = (
+    <TrendFooter note="Showing total visitors for the last 6 months" />
+  )
+  return (
+    <div className="sc-example" style={{ width, height }}>
+      <article className="sc-card sc-default" style={{ width }}>
+        <header className="sc-card-header">
+          <div className="sc-card-heading">
+            <h2>Bar Chart - Negative</h2>
+            <p>January - June 2024</p>
+          </div>
+          {headerAction ? (
+            <div className="sc-card-action">{headerAction}</div>
+          ) : null}
+        </header>
+        <div className="sc-card-content">
+          <div
+            className="sc-chart"
+            style={{ width: chartWidth, height: chartHeight }}
+          >
+            <RendererChart
+              definition={chartDefinition}
+              renderer={renderer}
+              initialWidth={chartWidth}
+              height={chartHeight}
+              ariaLabel="Bar Chart - Negative"
+            />
+          </div>
+          {legend ? <div className="sc-chart-footer">{legend}</div> : null}
+        </div>
+        {footer ? <footer className="sc-card-footer">{footer}</footer> : null}
+      </article>
+    </div>
+  )
+}
+function TrendFooter({ note }: { note: string }) {
+  return (
+    <>
+      <div className="sc-trend">
+        Trending up by 5.2% this month{' '}
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m3 17 6-6 4 4 8-8" />
+          <path d="M14 7h7v7" />
+        </svg>
+      </div>
+      <div className="sc-footer-note">{note}</div>
+    </>
+  )
+}

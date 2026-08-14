@@ -123,7 +123,7 @@ describe('definition-owned error bars', () => {
       'benchmarks/conformance/cases/14-error-bars',
     )
     const tanstackSource = readFileSync(
-      resolve(caseDirectory, 'tanstack.ts'),
+      resolve(caseDirectory, 'example.tsx'),
       'utf8',
     )
     const plotSource = readFileSync(resolve(caseDirectory, 'plot.ts'), 'utf8')

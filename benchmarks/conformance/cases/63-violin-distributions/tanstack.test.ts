@@ -200,7 +200,7 @@ describe('violin distribution comparison', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/63-violin-distributions/tanstack.ts',
+        'benchmarks/conformance/cases/63-violin-distributions/example.tsx',
       ),
       'utf8',
     )

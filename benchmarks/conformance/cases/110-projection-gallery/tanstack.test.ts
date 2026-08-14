@@ -3,10 +3,10 @@ import { resolve } from 'node:path'
 import { createChartRuntime } from '@tanstack/charts'
 import { geoPath } from 'd3-geo'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
+import { worldLand, worldSphere } from '@charts-poc/demo-data/country-atlas'
 import { projectionGalleryData } from './projection'
 import { projectionGalleryDefinition } from './tanstack'
-import type { LandFeature } from '../../shared/fixtures/country-atlas'
+import type { LandFeature } from '@charts-poc/demo-data/country-atlas'
 import type {
   ChartScene,
   ChartSpecDatum,
@@ -106,7 +106,7 @@ describe('declarative projection gallery', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/110-projection-gallery/tanstack.ts',
+        'benchmarks/conformance/cases/110-projection-gallery/example.tsx',
       ),
       'utf8',
     )
@@ -118,7 +118,7 @@ describe('declarative projection gallery', () => {
       'utf8',
     )
 
-    expect(source).toContain("import { facetChart } from '@tanstack/charts'")
+    expect(source).toContain('facetChart(projections, {')
     expect(source).toContain("fit: 'sphere'")
     expect(source).toContain('inset: 8')
     expect(source).toContain('columns: 2')

@@ -67,7 +67,7 @@ describe('definition-owned extrema annotations', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/58-select-extrema/tanstack.ts',
+        'benchmarks/conformance/cases/58-select-extrema/example.tsx',
       ),
       'utf8',
     )

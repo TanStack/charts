@@ -8,7 +8,7 @@ import {
 import { motion } from '@tanstack/charts/motion'
 import { Chart } from '@tanstack/charts/react/core'
 import { settleChartMotion } from '../../shared/motion'
-import { activeDonutDefinition, donutSummary } from './chart'
+import { activeDonutDefinition, donutSummary } from './example'
 import { activeDonutLayout } from './layout'
 import { browserRows } from './model'
 import { reactMount } from '../../shared/react-mount'
@@ -16,7 +16,7 @@ import type { CSSProperties } from 'react'
 import type { ChartPoint } from '@tanstack/charts'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
-import type { DonutDatum } from './chart'
+import type { DonutDatum } from './example'
 
 const palette = ['#7c3aed', '#06b6d4', '#f97316', '#ec4899', '#84cc16']
 

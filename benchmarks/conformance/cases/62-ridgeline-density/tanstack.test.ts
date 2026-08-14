@@ -181,7 +181,7 @@ describe('ridgeline density comparison', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/62-ridgeline-density/tanstack.ts',
+        'benchmarks/conformance/cases/62-ridgeline-density/example.tsx',
       ),
       'utf8',
     )

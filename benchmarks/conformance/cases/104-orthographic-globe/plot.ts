@@ -3,7 +3,7 @@ import {
   worldGraticule,
   worldLand,
   worldSphere,
-} from '../../shared/fixtures/country-atlas'
+} from '@charts-poc/demo-data/country-atlas'
 import { mountObservablePlot } from '../../shared/mount'
 import type { ConformanceMount } from '../../types'
 

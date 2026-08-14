@@ -3,7 +3,7 @@ import { motion } from '@tanstack/charts/motion'
 import { Chart } from '@tanstack/charts/react/core'
 import { settleChartMotion } from '../../shared/motion'
 import { reactMount } from '../../shared/react-mount'
-import { paletteMatrixDefinition } from './chart'
+import { paletteMatrixDefinition } from './example'
 import {
   paletteMatrixRows,
   palettePaint,

@@ -244,7 +244,7 @@ describe('drillable native sunburst', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/126-drillable-sunburst/tanstack.ts',
+        'benchmarks/conformance/cases/126-drillable-sunburst/example.tsx',
       ),
       'utf8',
     )

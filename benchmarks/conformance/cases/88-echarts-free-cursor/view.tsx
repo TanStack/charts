@@ -12,22 +12,22 @@ import { Chart } from '@tanstack/charts/react'
 import { reactMount } from '../../shared/react-mount'
 import { formatFreeCursorValue } from './format'
 import { freeCursorXDomain, freeCursorYDomain } from './model'
+import { createDriver } from './tanstack'
 import {
   chartHeight,
   clearedCursor,
-  createDriver,
   cursorControlsHeight,
   cursorState,
   freeCursorDefinition,
   roundedPosition,
-} from './tanstack'
+} from './example'
 import type { ChartScene } from '@tanstack/charts'
 import type {
   ContinuousCursorChange,
   ContinuousCursorPosition,
 } from '@tanstack/charts/interaction/cursor'
 import type { CompleteCar } from './model'
-import type { CursorState } from './tanstack'
+import type { CursorState } from './example'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 

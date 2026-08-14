@@ -45,7 +45,7 @@ describe('many-point scatter identity', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/73-many-point-scatter/tanstack.ts',
+        'benchmarks/conformance/cases/73-many-point-scatter/example.tsx',
       ),
       'utf8',
     )

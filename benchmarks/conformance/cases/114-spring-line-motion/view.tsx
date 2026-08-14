@@ -16,9 +16,9 @@ import {
 } from '../../shared/react-controls'
 import { reactMount } from '../../shared/react-mount'
 import { springLineStages } from './model'
-import { springLineMotionDefinition } from './tanstack'
+import { springLineMotionDefinition } from './example'
 import type { SpringLineRow } from './model'
-import type { SpringLineTransitionMode } from './tanstack'
+import type { SpringLineTransitionMode } from './example'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 

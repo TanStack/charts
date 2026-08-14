@@ -119,7 +119,7 @@ describe('definition-owned editable event handle', () => {
       process.cwd(),
       'benchmarks/conformance/cases/92-editable-event-range',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
     const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
 
     expect(existsSync(resolve(directory, 'overlay.ts'))).toBe(true)

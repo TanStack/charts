@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   dashboardTableRows,
   filterDashboardData,
@@ -15,11 +8,15 @@ import {
 } from './data'
 import { shadcnDashboardStyles } from './styles'
 import type { ComponentType, ReactNode, SVGProps } from 'react'
-import type { ConformanceInput, ConformanceTestDriver } from '../../types'
+
+export interface DashboardSize {
+  width: number
+  height: number
+}
 
 export interface DashboardChartProps {
   data: readonly DashboardDatum[]
-  input: ConformanceInput
+  input: DashboardSize
 }
 
 export function dashboardChartWidth(width: number): number {
@@ -72,7 +69,7 @@ export function dashboardTickValues(
 
 interface DashboardProps {
   ChartRenderer: ComponentType<DashboardChartProps>
-  input: ConformanceInput
+  input: DashboardSize
 }
 
 const ranges: readonly { value: DashboardRange; label: string }[] = [
@@ -136,11 +133,7 @@ const secondaryNavigation = [
   ['Search', 'search'],
 ] as const
 
-export const ShadcnDashboard = forwardRef<
-  ConformanceTestDriver,
-  DashboardProps
->(function ShadcnDashboard({ ChartRenderer, input }, ref) {
-  const rootRef = useRef<HTMLDivElement>(null)
+export function ShadcnDashboard({ ChartRenderer, input }: DashboardProps) {
   const [range, setRange] = useState<DashboardRange>(
     input.width < 768 ? '7d' : '90d',
   )
@@ -150,45 +143,8 @@ export const ShadcnDashboard = forwardRef<
     if (input.width < 768) setRange('7d')
   }, [input.width])
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      resolveTarget(target) {
-        if (target.view && target.view !== 'main') return null
-        const value = target.anchor.startsWith('range:')
-          ? target.anchor.slice('range:'.length)
-          : null
-        const element = rootRef.current?.querySelector<HTMLElement>(
-          `[data-range-value="${value}"]`,
-        )
-        return element ? center(element) : null
-      },
-      readState() {
-        return {
-          range,
-          chartRows: chartData.length,
-          tableRows: dashboardTableRows.length,
-        }
-      },
-      viewBounds(view) {
-        if (view && view !== 'main') return null
-        const bounds = rootRef.current?.getBoundingClientRect()
-        return bounds
-          ? {
-              x: bounds.left,
-              y: bounds.top,
-              width: bounds.width,
-              height: bounds.height,
-            }
-          : null
-      },
-    }),
-    [chartData.length, range],
-  )
-
   return (
     <div
-      ref={rootRef}
       className="shadcn-dashboard"
       data-conformance-view="main"
       data-range={range}
@@ -259,7 +215,7 @@ export const ShadcnDashboard = forwardRef<
       </div>
     </div>
   )
-})
+}
 
 function DashboardSidebar() {
   return (
@@ -674,13 +630,4 @@ const iconPaths: Record<IconName, ReactNode> = {
   'chevron-down': <path d="M7 9l5 5 5-5" />,
   'chevron-left': <path d="M15 6l-6 6 6 6" />,
   'chevron-right': <path d="M9 6l6 6-6 6" />,
-}
-
-function center(element: HTMLElement | SVGElement) {
-  const bounds = element.getBoundingClientRect()
-  return {
-    x: bounds.left + bounds.width / 2,
-    y: bounds.top + bounds.height / 2,
-    focusElement: element,
-  }
 }

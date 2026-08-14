@@ -1,6 +1,6 @@
 import { createChartRuntime } from '@tanstack/charts'
 import { describe, expect, it } from 'vitest'
-import { themedInteractiveAreaDefinition } from './chart'
+import { themedInteractiveAreaDefinition } from './example'
 import { themedAreaRows } from './model'
 import { catalogCase, mount } from './tanstack'
 import type { ConformanceInput } from '../../types'

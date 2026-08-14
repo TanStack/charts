@@ -318,7 +318,7 @@ describe('definition coverage roadmap', () => {
           } else {
             expect(
               authoredClosure.has(source),
-              `${entry.id}: ${source} is not reachable from tanstack.ts`,
+              `${entry.id}: ${source} is not reachable from example.tsx`,
             ).toBe(true)
           }
           expect(existsSync(sourcePath)).toBe(true)
