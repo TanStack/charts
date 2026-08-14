@@ -579,6 +579,6 @@ function motionContext(markId: string): ChartMotionContext {
 function resolveMotion(
   motion: ChartMotionDefinition<any> | undefined,
   context: ChartMotionContext,
-): ChartMotionTiming | undefined {
+): false | ChartMotionTiming | undefined {
   return typeof motion === 'function' ? motion(context) : motion
 }

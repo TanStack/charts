@@ -338,7 +338,8 @@ function angleGrid(options?: AngleGridOptions): PolarGuide
 `radialGrid` draws radius values as circles or polygons. Supply explicit
 `values`, or let `ticks` request values from the configured radius scale.
 Labels are off by default. Label angle, offset, rotation, format, fill, and
-font size are configurable.
+font size are configurable. Ring `fill` and `fillOpacity` can layer filled
+circle or polygon grids behind the chart marks.
 
 `angleGrid` draws spokes for explicit `values` or the configured angle domain.
 It can show labels around the circumference with `format` and `labelOffset`.

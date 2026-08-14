@@ -255,6 +255,51 @@ transient tooltip. Click, Enter, or Space can still pin the focused point; only
 the pinned surface and adapter body are mounted. The default is
 `visibility: 'focus'`.
 
+## Tooltip motion
+
+The built-in tooltip uses the active motion renderer's transition for entry,
+movement between points, retargeting, and exit:
+
+```ts
+import { motion } from '@tanstack/charts/motion'
+
+const renderer = motion({
+  transition: {
+    type: 'spring',
+    stiffness: 170,
+    damping: 18,
+    mass: 1,
+  },
+})
+
+const definition = defineChart({ marks, tooltip })
+
+mountChartRenderer(container, {
+  definition,
+  renderer,
+  width: 640,
+  height: 360,
+  ariaLabel: 'Monthly visitors',
+})
+```
+
+A static chart-level transition can refine the renderer fallback:
+
+```ts
+const definition = defineChart({
+  marks,
+  motion: {
+    transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+  },
+  tooltip,
+})
+```
+
+Set `tooltip.motion` to another transition to override both, or set it to
+`false` to keep the tooltip immediate. These options customize the active
+motion renderer; a static renderer stays immediate and does not import spring
+physics. The renderer's reduced-motion policy also applies to the tooltip.
+
 ## Application-owned pointer timing
 
 Set definition `pointer: false` when the application decides when inspection

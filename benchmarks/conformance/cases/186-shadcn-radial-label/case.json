@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1870,
+  "id": "186-shadcn-radial-label",
+  "title": "shadcn Radial Chart - Label",
+  "family": "radial",
+  "intent": "Reproduce shadcn/ui's chart-radial-label example with TanStack Charts.",
+  "support": "native",
+  "features": ["radial chart", "label", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 5,
+      "rendererRoles": {
+        "recharts": "arc",
+        "tanstack": "arc"
+      }
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radial-label",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-label"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radial-label card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radial label treatment, card dimensions, and light and dark tokens."
+  }
+}

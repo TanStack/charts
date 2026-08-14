@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1930,
+  "id": "192-shadcn-tooltip-icons",
+  "title": "shadcn Tooltip - Icons",
+  "family": "tooltip",
+  "intent": "Reproduce shadcn/ui's chart-tooltip-icons example with TanStack Charts.",
+  "support": "native",
+  "features": ["tooltip chart", "icons", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "bar",
+      "count": 10
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-tooltip-icons",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-icons"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-tooltip-icons card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, tooltip icons treatment, card dimensions, and light and dark tokens."
+  }
+}

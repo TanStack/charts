@@ -11,28 +11,28 @@
       "gzip": 19616
     },
     "Representative marks": {
-      "bytes": 71389,
-      "gzip": 26201
+      "bytes": 71536,
+      "gzip": 26220
     },
     "TanStack DOM host": {
-      "bytes": 70570,
-      "gzip": 24758
+      "bytes": 70878,
+      "gzip": 24859
     },
     "React adapter": {
-      "bytes": 72729,
-      "gzip": 25524
+      "bytes": 73037,
+      "gzip": 25621
     },
     "React line consumer": {
-      "bytes": 95923,
-      "gzip": 34754
+      "bytes": 96231,
+      "gzip": 34868
     },
     "Compact-scale line scene": {
       "bytes": 29572,
       "gzip": 10769
     },
     "React compact-scale line consumer": {
-      "bytes": 78424,
-      "gzip": 27684
+      "bytes": 78732,
+      "gzip": 27803
     },
     "Custom-scale line scene": {
       "bytes": 27756,

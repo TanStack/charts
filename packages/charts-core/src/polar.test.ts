@@ -297,6 +297,8 @@ describe('polar marks', () => {
               values: [50, 100],
               shape: 'polygon',
               labels: true,
+              fill: '#dbeafe',
+              fillOpacity: 0.2,
             }),
             angleGrid(),
           ],
@@ -382,6 +384,11 @@ describe('polar marks', () => {
     expect(
       nodes.filter((node) => node.kind === 'polyline').length,
     ).toBeGreaterThanOrEqual(3)
+    expect(
+      nodes.find(
+        (node) => node.kind === 'polyline' && node.style?.fill === '#dbeafe',
+      ),
+    ).toMatchObject({ style: { fillOpacity: 0.2 } })
     expect(scene.points).toHaveLength(9)
     expect(
       Math.max(...scene.points.map((point) => point.x)),
@@ -1222,7 +1229,7 @@ function authoredMotionContext(markId: string): ChartMotionContext {
 function resolveAuthoredMotion(
   motion: ChartMotionDefinition<any> | undefined,
   context: ChartMotionContext,
-): ChartMotionTiming | undefined {
+): false | ChartMotionTiming | undefined {
   return typeof motion === 'function' ? motion(context) : motion
 }
 

@@ -79,6 +79,18 @@ describe('catalog previews', () => {
     )
   })
 
+  it('does not treat semantic background IDs as CSS background paint', () => {
+    expect(() =>
+      validateCatalogPreviewSvg(
+        portable().replace(
+          '<g data-ts-key="marks"',
+          '<g data-ts-key="radial-background:object"',
+        ),
+        'line-gaps',
+      ),
+    ).not.toThrow()
+  })
+
   it('requires standalone XML rather than browser-tolerated HTML markup', () => {
     expect(() =>
       validateCatalogPreviewXml(
@@ -102,6 +114,7 @@ describe('catalog previews', () => {
       '118-token-usage-calendar',
       '120-themed-interactive-area',
       '121-active-bar-dashboard',
+      '130-shadcn-radar-multiple',
       '80-echarts-axis-pointer',
       'bar-horizontal-ranking',
     ])
@@ -111,6 +124,8 @@ describe('catalog previews', () => {
     expect(catalogMarginPreviewCaseIds).toEqual([
       '115-definition-motion',
       '118-token-usage-calendar',
+      '128-shadcn-bar-multiple',
+      '132-shadcn-tooltip-advanced',
       '80-echarts-axis-pointer',
       '81-recharts-interactive-legend',
       '88-echarts-free-cursor',
@@ -141,6 +156,9 @@ describe('catalog previews', () => {
       '123-active-donut-metric',
       '125-sales-funnel',
       '126-drillable-sunburst',
+      '129-shadcn-pie-donut-text',
+      '130-shadcn-radar-multiple',
+      '131-shadcn-radial-text',
       'bar-horizontal-ranking',
       'heatmap-labeled',
     ])
@@ -160,6 +178,13 @@ describe('catalog previews', () => {
       validateCatalogPreviewPresentation(
         '<g class="ts-chart__axes"><text x="0">label</text></g>',
         '115-definition-motion',
+      ),
+    ).not.toThrow()
+    expect(() =>
+      validateCatalogPreviewPresentation(
+        '<g class="ts-chart__axes"><text x="0">label</text></g>',
+        'shadcn-collection-case',
+        { guides: true, legend: true, text: 'retain' },
       ),
     ).not.toThrow()
     expect(() =>

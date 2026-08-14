@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1810,
+  "id": "180-shadcn-radar-icons",
+  "title": "shadcn Radar Chart - Icons",
+  "family": "radar",
+  "intent": "Reproduce shadcn/ui's chart-radar-icons example with TanStack Charts.",
+  "support": "native",
+  "features": ["radar chart", "icons", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "radar",
+      "count": 1
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-radar-icons",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-icons"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-radar-icons card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, radar icons treatment, card dimensions, and light and dark tokens."
+  }
+}

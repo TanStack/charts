@@ -1,4 +1,5 @@
 import { placeTooltip } from './tooltip-position'
+import { tooltipMotionController } from './renderer-motion-internal'
 import {
   createChartTooltipContent,
   orderChartTooltipPoints,
@@ -83,6 +84,7 @@ function createTooltipExtension<
   let portalInstance: ChartTooltipPortalExtensionInstance | undefined
   const { container } = extensionContext
   const view = container.ownerDocument.defaultView
+  const tooltipMotion = tooltipMotionController(extensionContext)
 
   function update(nextOptions: ChartTooltipOptions<TDatum, TXValue, TYValue>) {
     if (options !== nextOptions) bodyDirty = true
@@ -100,6 +102,9 @@ function createTooltipExtension<
     }
     const tooltipElement = ensureElement()
     syncPortal()
+    const motionSnapshot = tooltipMotion?.beforePaint(tooltipElement)
+    tooltipElement.style.visibility = 'hidden'
+    tooltipElement.removeAttribute('hidden')
     tooltipElement.className = options.className
       ? `ts-chart-tooltip ${options.className}`
       : 'ts-chart-tooltip'
@@ -137,8 +142,6 @@ function createTooltipExtension<
     tooltipElement.style.pointerEvents = nextContext.pinned ? 'auto' : 'none'
     tooltipElement.style.userSelect = nextContext.pinned ? 'text' : 'none'
     tooltipElement.dataset.sticky = String(nextContext.pinned)
-    tooltipElement.style.visibility = 'hidden'
-    tooltipElement.removeAttribute('hidden')
     anchor = resolveChartTooltipAnchor(
       nextContext.point,
       points,
@@ -149,6 +152,9 @@ function createTooltipExtension<
     )
     position()
     tooltipElement.style.removeProperty('visibility')
+    if (motionSnapshot) {
+      tooltipMotion?.afterPaint(tooltipElement, motionSnapshot, options.motion)
+    }
   }
 
   function ensureElement() {
@@ -317,9 +323,19 @@ function createTooltipExtension<
   function hide() {
     paintContext = undefined
     anchor = null
-    portalInstance?.hide()
-    element?.setAttribute('hidden', '')
-    hideTooltipBody()
+    const currentElement = element
+    if (!currentElement || currentElement.hidden) {
+      portalInstance?.hide()
+      hideTooltipBody()
+      return
+    }
+    const complete = () => {
+      portalInstance?.hide()
+      currentElement.setAttribute('hidden', '')
+      hideTooltipBody()
+    }
+    if (tooltipMotion?.hide(currentElement, options.motion, complete)) return
+    complete()
   }
 
   function destroy() {
@@ -332,6 +348,7 @@ function createTooltipExtension<
       view?.cancelAnimationFrame?.(positionFrame)
       positionFrame = undefined
     }
+    tooltipMotion?.destroy(element)
     resizeObserver?.disconnect()
     resizeObserver = undefined
     element?.remove()

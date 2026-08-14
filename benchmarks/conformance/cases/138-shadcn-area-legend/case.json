@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1390,
+  "id": "138-shadcn-area-legend",
+  "title": "shadcn Area Chart - Legend",
+  "family": "area",
+  "intent": "Reproduce shadcn/ui's chart-area-legend example with TanStack Charts.",
+  "support": "native",
+  "features": ["area chart", "legend", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "area",
+      "count": 2
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-area-legend",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-legend"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-area-legend card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, area legend treatment, card dimensions, and light and dark tokens."
+  }
+}

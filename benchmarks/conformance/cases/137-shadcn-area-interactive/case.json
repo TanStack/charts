@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1380,
+  "id": "137-shadcn-area-interactive",
+  "title": "shadcn Area Chart - Interactive",
+  "family": "area",
+  "intent": "Reproduce shadcn/ui's chart-area-interactive example with TanStack Charts.",
+  "support": "native",
+  "features": ["area chart", "interactive", "shadcn card shell"],
+  "geometry": [
+    {
+      "role": "area",
+      "count": 2
+    }
+  ],
+  "source": {
+    "title": "shadcn/ui chart-area-interactive",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-interactive"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-area-interactive card and data with TanStack Charts.",
+    "maintain": "Preserve the pinned upstream data, area interactive treatment, card dimensions, and light and dark tokens."
+  }
+}

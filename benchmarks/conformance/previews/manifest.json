@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "width": 288,
   "height": 192,
-  "sourceHash": "93452895c364c1dd0cc6b824137d35b8c43e0a022dca544e38dccea52b94fb88",
+  "sourceHash": "52f3f890587d74815d2bd2fb3c6ef09a97d84d333a76312ade628afb03062b9f",
   "assets": [
     {
       "id": "01-line-gaps",
@@ -26,23 +26,23 @@
     },
     {
       "id": "bar-vertical-sorted",
-      "sha256": "619bb54274e95dee9d0fdf744c31559b6fe9e48834960007ac829256d0deecca",
-      "bytes": 4129
+      "sha256": "3962f4645adc980cab0b3ce322f77285aff219c03c0b241ecbd96503cb150110",
+      "bytes": 5117
     },
     {
       "id": "bar-horizontal-ranking",
-      "sha256": "8a330ef99ea0a41b827545435be244fa4b948bba4518500686ed95e53a80c320",
-      "bytes": 6010
+      "sha256": "74035993b087ecc1153b3748ad8dbe71693734f9b7732b102734a1ac5a3587b4",
+      "bytes": 6314
     },
     {
       "id": "bar-grouped",
-      "sha256": "513ab2ff52f8e765ebe0fa2e25b1f85860872609a67e8accdd039ed0944237be",
-      "bytes": 1944
+      "sha256": "ee36013e993d90facd783866688dfbad1ad8999c6988fba6b69d2b463adf78e8",
+      "bytes": 2172
     },
     {
       "id": "bar-stacked",
-      "sha256": "b3d39b0dbaf4753352d3b15fd319777102796262aba9385813f5d16595e25b0c",
-      "bytes": 11479
+      "sha256": "ee00e20cf270e9a150cc24c943356a9f48ac5122ae3a619c2aab7d3ec7fd1770",
+      "bytes": 14215
     },
     {
       "id": "scatter-bubble",
@@ -66,8 +66,8 @@
     },
     {
       "id": "13-interval-timeline",
-      "sha256": "490ab60daf095965b3da1a265dd0b6d1556442f280cdd7429c54f015a6f38604",
-      "bytes": 2263
+      "sha256": "bb6baa0358b0572804dfe0a76f39d75fcd2bd4edb0264d1c1c2f298e44ce2b59",
+      "bytes": 2567
     },
     {
       "id": "14-error-bars",
@@ -76,8 +76,8 @@
     },
     {
       "id": "15-boxplot",
-      "sha256": "48abc37817fe79e93a36ca02f82ca0d4f1b19089b66e2576030507443ef9e37f",
-      "bytes": 5119
+      "sha256": "0d7c6d957037fc68d0e1b5bbd462aeb3468da527f7ba3a2fa9272abe77404c55",
+      "bytes": 5309
     },
     {
       "id": "16-lollipop",
@@ -126,8 +126,8 @@
     },
     {
       "id": "26-diverging-likert",
-      "sha256": "cefa185aaa4c38ced8f3bcf23da42878c5b47eafc13a339f509214d9be144bc0",
-      "bytes": 4989
+      "sha256": "2fb3dc56e74413d4ec923c43203a81096c67aa5e93ef92605aa0764df6faf1cd",
+      "bytes": 5939
     },
     {
       "id": "27-parallel-coordinates",
@@ -141,8 +141,8 @@
     },
     {
       "id": "29-waterfall",
-      "sha256": "1a328367909686681a28df949e72fe9c9ec7437c5caf62958575894410ea9534",
-      "bytes": 2229
+      "sha256": "32fba7866360d13d3d32b69185992ae378c2371665358292f27a9e0fd2d42b63",
+      "bytes": 2495
     },
     {
       "id": "30-slopegraph",
@@ -271,8 +271,8 @@
     },
     {
       "id": "59-grouped-reducer-bars",
-      "sha256": "6b7f891770cdee0886b174576454f012e0a7285ea7986999e02001753eda56a8",
-      "bytes": 2074
+      "sha256": "c188a770d7da9dac5a0ad9811ed3bc1e33c9fbee1dc06f98ba81d01a9918ac14",
+      "bytes": 2188
     },
     {
       "id": "60-lag-autocorrelation",
@@ -306,18 +306,18 @@
     },
     {
       "id": "70-composed-chart",
-      "sha256": "cbce365589d75552c75a43d305516bc7737f102fec6d4858d188c43639a50f14",
-      "bytes": 3655
+      "sha256": "6ea42d265d821403ae5823c58b6da307f5bdbd5a740bc2fb555587d288caa5a0",
+      "bytes": 3883
     },
     {
       "id": "71-recharts-population-pyramid",
-      "sha256": "98c5c30195522236c31885a9426bfe59dd1aa0ffb6e0a4ecdcacdc2b7109bb1c",
-      "bytes": 1967
+      "sha256": "4db93bf6571865d12ebe3dba3fd6043d612149cbfa7acef632530cd86d7b6fc4",
+      "bytes": 2195
     },
     {
       "id": "72-recharts-mixed-bars",
-      "sha256": "20633e483b48ec10866b44800e43d6c8b4ac154b73d3f8748cc1647e83ee9e6c",
-      "bytes": 4251
+      "sha256": "d44979007445584f8e19cb01fd8b8bd252d28df099ac286ba8da7fca2ad48db1",
+      "bytes": 5049
     },
     {
       "id": "73-many-point-scatter",
@@ -371,8 +371,8 @@
     },
     {
       "id": "84-pinned-nested-chart-tooltip",
-      "sha256": "8b9cb3866d0069a78f61d210e3c6977ab945496163d36e3b590149b3bf25a6cc",
-      "bytes": 21966
+      "sha256": "dd61cb71069007281cb2728080ed65cf870af83c307d2645c30523d1d2c111fe",
+      "bytes": 23030
     },
     {
       "id": "85-scrollable-resource-lanes",
@@ -516,13 +516,13 @@
     },
     {
       "id": "112-motion-entrance",
-      "sha256": "0296b7d31ec88ae89163516d5ad396ee4c564ae415606f5c58e471a35ac822c1",
-      "bytes": 2437
+      "sha256": "7c33d72d304faedb4597e421da0b5770da1ab11d07098ab387965e974f2c2847",
+      "bytes": 2741
     },
     {
       "id": "113-motion-updates",
-      "sha256": "1492bbf6f2927727597251d0a2ab01551db65c5a8ae1c3b791bd014492237236",
-      "bytes": 2435
+      "sha256": "d02e0db3f8790c84cec3c419e3070e72256b6a3eca227ad3166cf4618b8f7d3f",
+      "bytes": 2739
     },
     {
       "id": "114-spring-line-motion",
@@ -531,8 +531,8 @@
     },
     {
       "id": "115-definition-motion",
-      "sha256": "c6bced9e93514edc33a3887ed0d6fd57075123aa7c73d7ad11f75fd4abdaaeb3",
-      "bytes": 6012
+      "sha256": "707e4511b4f8290a8e23995fce9b280f9c84165d2eccb630904757aed0f305b6",
+      "bytes": 6240
     },
     {
       "id": "116-geometry-morph",
@@ -551,8 +551,8 @@
     },
     {
       "id": "119-stacked-bar-band-cursor",
-      "sha256": "5044b45076c324852f65d30f7c60369caa9c9abbae769ce73cf7176b81fcd898",
-      "bytes": 7610
+      "sha256": "3dba265ef8327ed8551d3a1f0bc53eecdc1deab8e99e7c0960b64666021dd39a",
+      "bytes": 8522
     },
     {
       "id": "120-themed-interactive-area",
@@ -561,8 +561,8 @@
     },
     {
       "id": "121-active-bar-dashboard",
-      "sha256": "fe4a57c4e21f73f6e270d0746c76e7a9b1c72ad441477bbe5cbf0a328be073f7",
-      "bytes": 11458
+      "sha256": "9c313c465979c8ff4a80f02904af955593d6bc0a582b9e19c2d79ab7deb957a1",
+      "bytes": 12370
     },
     {
       "id": "122-premium-kpi-sparklines",
@@ -588,6 +588,361 @@
       "id": "126-drillable-sunburst",
       "sha256": "163fd17e46238cb53209a371477b7bc78e196ccd66a385ee3ed2f6b60f675fc6",
       "bytes": 9111
+    },
+    {
+      "id": "127-shadcn-dashboard",
+      "sha256": "145c00805997cfac3b00f1380f93d7de82c5d82266992f28cda7f24145565fd8",
+      "bytes": 17838
+    },
+    {
+      "id": "128-shadcn-bar-multiple",
+      "sha256": "fdde89d276f842819c0d7b4ec8b29177f45bc31b44b530f712e7bbde86d9ef09",
+      "bytes": 3621
+    },
+    {
+      "id": "129-shadcn-pie-donut-text",
+      "sha256": "cea4adc3f89d3008744f5ec9e6513cc6d713c284c81e65aee974d8896b3dc66a",
+      "bytes": 3452
+    },
+    {
+      "id": "130-shadcn-radar-multiple",
+      "sha256": "21c4c3bdcb494b53bfc32722c8d34a0ad708bb9fef266cfafa619d6c4e7f1502",
+      "bytes": 5245
+    },
+    {
+      "id": "131-shadcn-radial-text",
+      "sha256": "a5152ef6e25530cb6b2aab4270ff27183b12603d47a81735c153c30da8aee3eb",
+      "bytes": 2796
+    },
+    {
+      "id": "132-shadcn-tooltip-advanced",
+      "sha256": "b7d813f5d1514872c2af10cdfccf2de4314f685b996de3b0e3e13295ff3fc61c",
+      "bytes": 3699
+    },
+    {
+      "id": "133-shadcn-area-axes",
+      "sha256": "046b6c5ded28e024911f19f5e876eff0aa5b68afcdcc52cce21cb65febaeeae6",
+      "bytes": 4460
+    },
+    {
+      "id": "134-shadcn-area-default",
+      "sha256": "9979dae9a4d4baec3c4e0b8290ecbe8b33cb65cb37e0a83805767901b14a49f1",
+      "bytes": 3229
+    },
+    {
+      "id": "135-shadcn-area-gradient",
+      "sha256": "cdf70c7fdba41e1a0157f306b7a62c84a312fbe46a86ee1efe835295ffed4d87",
+      "bytes": 4623
+    },
+    {
+      "id": "136-shadcn-area-icons",
+      "sha256": "bac5bc77762ca413a476d2bd1ff5fa5333d564e9b764ca5ab5fcc04496cd079e",
+      "bytes": 3790
+    },
+    {
+      "id": "137-shadcn-area-interactive",
+      "sha256": "813af06a599b468956f0484eecef9ee721095ab39b25db7b4c0c5d3348bd97bd",
+      "bytes": 19371
+    },
+    {
+      "id": "138-shadcn-area-legend",
+      "sha256": "7a3738fabf8b69783d372e5c4b36d30831e7aaadae5a9c0550abb2cb1231aa36",
+      "bytes": 3791
+    },
+    {
+      "id": "139-shadcn-area-linear",
+      "sha256": "6ec9dbb779f7f9813113e6fddacc2580bd516f4a962e55465aae5594e87f1cb2",
+      "bytes": 3022
+    },
+    {
+      "id": "140-shadcn-area-stacked-expand",
+      "sha256": "58ce0ba212267e6be27e6fe533c6cc0b7d6c3c158ac0a01d96029b1141eb8559",
+      "bytes": 4441
+    },
+    {
+      "id": "141-shadcn-area-stacked",
+      "sha256": "6043046de64945431315a6689651e362b994a6a309b188377b429c9914831296",
+      "bytes": 3792
+    },
+    {
+      "id": "142-shadcn-area-step",
+      "sha256": "51fecea4383f25623f676bde76ce0a04fb34d15547c7adcea6eac7ddeb290871",
+      "bytes": 3139
+    },
+    {
+      "id": "143-shadcn-bar-active",
+      "sha256": "c9c177369efe51d6aa0a5680af4cee908abe8c37ca7e3b3319c52c4c531cc787",
+      "bytes": 3592
+    },
+    {
+      "id": "144-shadcn-bar-default",
+      "sha256": "e478cf9890e61fd9459324b8802acabd002cf64aed8c62a38430768865e6e3e1",
+      "bytes": 3866
+    },
+    {
+      "id": "145-shadcn-bar-horizontal",
+      "sha256": "d3e127ac9c48a39292c61547c8188d23a500d79f10634bb03f83b71e6ff461b4",
+      "bytes": 3586
+    },
+    {
+      "id": "146-shadcn-bar-interactive",
+      "sha256": "9c7354c654e08d4aa93d8d38eb744d0bd4fdaf4b080a5cdad867b89ffe2bc06b",
+      "bytes": 20516
+    },
+    {
+      "id": "147-shadcn-bar-label-custom",
+      "sha256": "740689a87d611637eaa37674389e947c4458b9de0b8299c561fb378ac908cbb5",
+      "bytes": 5118
+    },
+    {
+      "id": "148-shadcn-bar-label",
+      "sha256": "d3fa1c26b13e93fe24bc120caa8a6a35ab93f002a644585cef5e516fba9450f5",
+      "bytes": 5012
+    },
+    {
+      "id": "149-shadcn-bar-mixed",
+      "sha256": "b09ee46e40e8924d9c1caf13b05b703ec226feaf036bc6549d29b3b38e13acd7",
+      "bytes": 3189
+    },
+    {
+      "id": "150-shadcn-bar-negative",
+      "sha256": "1adda58583b2f09357886d96736d176e6371ce5cfad863145b11cad0aa5e8e02",
+      "bytes": 4249
+    },
+    {
+      "id": "151-shadcn-bar-stacked",
+      "sha256": "4a1a335cb6d876dc1408ac6135d4be776f3d760c093d7833d3448839cc617370",
+      "bytes": 5138
+    },
+    {
+      "id": "152-shadcn-line-default",
+      "sha256": "ca54836082dfbbc13d5d7b32e40d6a90fee1f044ee133aa6f1822d374ae35e99",
+      "bytes": 3165
+    },
+    {
+      "id": "153-shadcn-line-dots-colors",
+      "sha256": "286b3ddd89651b558ebe6086489685d1b2fd6ced532c8e134ad97a7b90349946",
+      "bytes": 2806
+    },
+    {
+      "id": "154-shadcn-line-dots-custom",
+      "sha256": "9e3bf2816ee3eb817c89957aebb652b04c8fb1b1503dec15b975b3f39c471367",
+      "bytes": 5715
+    },
+    {
+      "id": "155-shadcn-line-dots",
+      "sha256": "ff111e61841d72c0810f4fee041e0d240d697aae8c1a0198c49534978d2740f6",
+      "bytes": 4396
+    },
+    {
+      "id": "156-shadcn-line-interactive",
+      "sha256": "018af8f456cc6984c0d4798a61eb72f8a9bc55ec690ee9a150f9fbcd08e7b6f2",
+      "bytes": 6603
+    },
+    {
+      "id": "157-shadcn-line-label-custom",
+      "sha256": "f71706e451ff05384b0d4c5880eee10e12c5e4864e716b481e8927892c70868c",
+      "bytes": 3173
+    },
+    {
+      "id": "158-shadcn-line-label",
+      "sha256": "8638f5aa26825f8e0c4b78f7821e8cf590d28823930a5d6c1b309ae671f52afd",
+      "bytes": 4461
+    },
+    {
+      "id": "159-shadcn-line-linear",
+      "sha256": "b67b8058ea00dd10f3c63821da5cbb2ece9f625c9c89be3693a1802b2b171c63",
+      "bytes": 3051
+    },
+    {
+      "id": "160-shadcn-line-multiple",
+      "sha256": "3ae0b06d7ab7530eb4b04d3b8ee0b2d1124aa6bf2dfe951810733122206a41b1",
+      "bytes": 3701
+    },
+    {
+      "id": "161-shadcn-line-step",
+      "sha256": "244345de610d3e3e848223748556807436d9193441fd4449e2f16f9f5b807847",
+      "bytes": 3121
+    },
+    {
+      "id": "162-shadcn-pie-donut-active",
+      "sha256": "fef7a72cf0e04ed91669ad9ef9d9ad8272c2a93b213ef7da8d354fb1e3bf1437",
+      "bytes": 3093
+    },
+    {
+      "id": "163-shadcn-pie-donut",
+      "sha256": "d91273f7fa22f039b21d1922c0e2e447b116302e1d0859650fe1527455d5decd",
+      "bytes": 2709
+    },
+    {
+      "id": "164-shadcn-pie-interactive",
+      "sha256": "15f2b56f8d92acd04700644cb55fe74ffa9124686e7fa81f41f8b545f0eab84b",
+      "bytes": 4065
+    },
+    {
+      "id": "165-shadcn-pie-label-custom",
+      "sha256": "f6cd81e25143da67ea82488b918f68bf117ddc2f3ef216f63f55f0fd65bb037a",
+      "bytes": 3660
+    },
+    {
+      "id": "166-shadcn-pie-label-list",
+      "sha256": "55a22fd89c14fc37aaa8e72f75894af5b809974d95571c240b9d585f76fd132f",
+      "bytes": 3771
+    },
+    {
+      "id": "167-shadcn-pie-label",
+      "sha256": "303190284a37a4a4556c6dc3ae31f0a7a0d6df4e984c39900ae21982bdb81ed7",
+      "bytes": 4627
+    },
+    {
+      "id": "168-shadcn-pie-legend",
+      "sha256": "e28f35b7c630f398c1137057f29a8614fffa0ac95773094be5a8cecf0ecf1efd",
+      "bytes": 2548
+    },
+    {
+      "id": "169-shadcn-pie-separator-none",
+      "sha256": "f556f261057af01a264b7f6c0b93bc14e15d1e0668f6d895fafc66e9f2a5b1c5",
+      "bytes": 2556
+    },
+    {
+      "id": "170-shadcn-pie-simple",
+      "sha256": "9f06d110eeab69d9deb07086c24948b16335cf5b77867ac44ace4a275c05d708",
+      "bytes": 2539
+    },
+    {
+      "id": "171-shadcn-pie-stacked",
+      "sha256": "3f5e43f29f4c875bbc5f74947ce72b16597be63bdc57f628d15c230b36832f70",
+      "bytes": 4038
+    },
+    {
+      "id": "172-shadcn-radar-default",
+      "sha256": "3a50f70c70b90839b4841872d6faa26b438cb5e19530038715c97026ff2f200b",
+      "bytes": 4953
+    },
+    {
+      "id": "173-shadcn-radar-dots",
+      "sha256": "0066b32e4654adf8e5286cef79c2d2199dbd3ad70bc58079863f039526ed58b1",
+      "bytes": 5861
+    },
+    {
+      "id": "174-shadcn-radar-grid-circle-fill",
+      "sha256": "55e33e6590390b15776757de6477e03d86234eb79b4fd8f01fd9fbb12b64b311",
+      "bytes": 5106
+    },
+    {
+      "id": "175-shadcn-radar-grid-circle-no-lines",
+      "sha256": "255f9cd98d662773e31a36d00a9da5dafe47581a06ec7ddaecc235dd551f0357",
+      "bytes": 5827
+    },
+    {
+      "id": "176-shadcn-radar-grid-circle",
+      "sha256": "15f642113d6c1088190ae35558560edbf81cf57ba8aa0c98f3da099a34d0fe83",
+      "bytes": 5828
+    },
+    {
+      "id": "177-shadcn-radar-grid-custom",
+      "sha256": "ab64a970c68964c5c82b2c5e2ad4f822dfced12b4871bddc74e4b3b27f387ee8",
+      "bytes": 4300
+    },
+    {
+      "id": "178-shadcn-radar-grid-fill",
+      "sha256": "79d2b691e7b221aa18ea2001e43cf90a7a91f2be0f276d168f8a16e07c763f27",
+      "bytes": 5139
+    },
+    {
+      "id": "179-shadcn-radar-grid-none",
+      "sha256": "25be27bc520446d2b5fde1f2fa2b1d018949aa693e2a01963b2e7d6f7c055642",
+      "bytes": 4879
+    },
+    {
+      "id": "180-shadcn-radar-icons",
+      "sha256": "a9627abd336749b82f0af94d6fa713df90f96b5048ef782d50c03383dd1323ad",
+      "bytes": 5390
+    },
+    {
+      "id": "181-shadcn-radar-label-custom",
+      "sha256": "f323ed67d5e38352a141706d4de90ac07dfc3a2e611b4a2fee577854c8aee3c8",
+      "bytes": 6755
+    },
+    {
+      "id": "182-shadcn-radar-legend",
+      "sha256": "6d28b45c6cc6627d091f5a71b8f421ffb1e57a705b3f753c1078c056043aa654",
+      "bytes": 5391
+    },
+    {
+      "id": "183-shadcn-radar-lines-only",
+      "sha256": "7bc623c11129957e31e27cfed662d95e0d7b9dc44d77df5f9f77716f622c5605",
+      "bytes": 5388
+    },
+    {
+      "id": "184-shadcn-radar-radius",
+      "sha256": "a9b80a463bbf98680c1076087263a43f21def1d5987c091bef32f3339c93c379",
+      "bytes": 4382
+    },
+    {
+      "id": "185-shadcn-radial-grid",
+      "sha256": "bce3f5b2cc278477be86183283270e1c9b8efa5c39497d3058b547c8e4a13833",
+      "bytes": 5069
+    },
+    {
+      "id": "186-shadcn-radial-label",
+      "sha256": "3f710d47b36556a296f0679b0fb7080437c6d12fbf0c50be2b877b8df39903fd",
+      "bytes": 5490
+    },
+    {
+      "id": "187-shadcn-radial-shape",
+      "sha256": "f3e7c9624f9a2492a099259878b35b4d2073c59d8fc8fa939bede873d884dfd7",
+      "bytes": 2691
+    },
+    {
+      "id": "188-shadcn-radial-simple",
+      "sha256": "25860b8e806941ccff530415e52d2a35cfe06028c70e7d0be02c78828e58de6a",
+      "bytes": 4006
+    },
+    {
+      "id": "189-shadcn-radial-stacked",
+      "sha256": "b20a43a82021e8463533621105459b524656603977b25d5727408e9399981b8d",
+      "bytes": 2817
+    },
+    {
+      "id": "190-shadcn-tooltip-default",
+      "sha256": "2f9be5d22ad3267642ec409fd0de635caa3953428e2a4c116e5b201983c0726f",
+      "bytes": 4864
+    },
+    {
+      "id": "191-shadcn-tooltip-formatter",
+      "sha256": "200e12d7fc4e2ab18d7c5f74036a2616bb36e6c210a8b0db68b94bf018ad2ef8",
+      "bytes": 4866
+    },
+    {
+      "id": "192-shadcn-tooltip-icons",
+      "sha256": "413952c585d41eca5d1aec1a6c45b6e5a85a8235e58e7d189da5e6463e7d9482",
+      "bytes": 4862
+    },
+    {
+      "id": "193-shadcn-tooltip-indicator-line",
+      "sha256": "6127c1ebcce557c8ce777282e334185c946a1f67e94e7011b805e6bec186881f",
+      "bytes": 4871
+    },
+    {
+      "id": "194-shadcn-tooltip-indicator-none",
+      "sha256": "bdd685138bebafb657f01d0b227975db159806480689dda5c0d7b204a776dd77",
+      "bytes": 4869
+    },
+    {
+      "id": "195-shadcn-tooltip-label-custom",
+      "sha256": "f15b0381b76c7996e510f662e9bffc7d9d0f9aac508d231973933057d63ab4ef",
+      "bytes": 4869
+    },
+    {
+      "id": "196-shadcn-tooltip-label-formatter",
+      "sha256": "ec03b2a32dbb8ce07faf36875e615476a78c25ead40471872e152e81eeb9a0ff",
+      "bytes": 4872
+    },
+    {
+      "id": "197-shadcn-tooltip-label-none",
+      "sha256": "e1c7ff8f10d6e164ac31bee9085f75f22e5001ef94626facbf9306d737148954",
+      "bytes": 4865
     }
   ]
 }

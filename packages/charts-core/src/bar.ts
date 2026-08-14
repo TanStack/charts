@@ -43,6 +43,10 @@ export interface BarYOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
+  stroke?: VisualChannel<TDatum, string>
+  strokeOpacity?: number
+  strokeWidth?: number
+  strokeDasharray?: VisualChannel<TDatum, string>
   layout?: BarLayout
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
@@ -63,6 +67,10 @@ export interface BarXOptions<TDatum> extends ChartMarkMotionOptions<TDatum> {
   key?: Channel<TDatum, ChartKey>
   fill?: VisualChannel<TDatum, string>
   fillOpacity?: number
+  stroke?: VisualChannel<TDatum, string>
+  strokeOpacity?: number
+  strokeWidth?: number
+  strokeDasharray?: VisualChannel<TDatum, string>
   layout?: BarLayout
   /** Pixels removed from both categorical edges after band layout. */
   inset?: number
@@ -198,6 +206,20 @@ export function barY<TDatum>(
             data,
             resolvedColor,
           )
+          const stroke = visualValue(
+            options.stroke,
+            datum,
+            datumIndex,
+            data,
+            'none',
+          )
+          const strokeDasharray = visualValue(
+            options.strokeDasharray,
+            datum,
+            datumIndex,
+            data,
+            'none',
+          )
           const center = scales.x.map(xValue)
           const baselinePosition = scales.y.map(y1Value)
           const valuePosition = scales.y.map(y2Value)
@@ -239,6 +261,10 @@ export function barY<TDatum>(
             style: {
               fill,
               fillOpacity: options.fillOpacity,
+              stroke,
+              strokeOpacity: options.strokeOpacity,
+              strokeWidth: options.strokeWidth,
+              strokeDasharray,
             },
           })
         })
@@ -385,6 +411,20 @@ export function barX<TDatum>(
             data,
             resolvedColor,
           )
+          const stroke = visualValue(
+            options.stroke,
+            datum,
+            datumIndex,
+            data,
+            'none',
+          )
+          const strokeDasharray = visualValue(
+            options.strokeDasharray,
+            datum,
+            datumIndex,
+            data,
+            'none',
+          )
           const baselinePosition = scales.x.map(x1Value)
           const valuePosition = scales.x.map(x2Value)
           const center = scales.y.map(yValue)
@@ -426,6 +466,10 @@ export function barX<TDatum>(
             style: {
               fill,
               fillOpacity: options.fillOpacity,
+              stroke,
+              strokeOpacity: options.strokeOpacity,
+              strokeWidth: options.strokeWidth,
+              strokeDasharray,
             },
           })
         })

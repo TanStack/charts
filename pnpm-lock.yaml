@@ -199,9 +199,15 @@ importers:
       octane:
         specifier: 0.1.13
         version: 0.1.13(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vite@8.1.5(@types/node@25.9.5)(esbuild@0.27.7)(less@4.8.1(supports-color@10.2.2))(sass@1.102.0)(terser@5.49.0)(yaml@2.9.0))
+      pixelmatch:
+        specifier: 7.1.0
+        version: 7.1.0
       playwright:
         specifier: 1.62.0
         version: 1.62.0
+      pngjs:
+        specifier: 7.0.0
+        version: 7.0.0
       prettier:
         specifier: ^3.8.4
         version: 3.9.6
@@ -7866,6 +7872,13 @@ packages:
       }
     engines: { node: '>=20.x' }
 
+  pixelmatch@7.1.0:
+    resolution:
+      {
+        integrity: sha512-1wrVzJ2STrpmONHKBy228LM1b84msXDUoAzVEl0R8Mz4Ce6EPr+IVtxm8+yvrqLYMHswREkjYFaMxnyGnaY3Ng==,
+      }
+    hasBin: true
+
   pkg-dir@8.0.0:
     resolution:
       {
@@ -7902,6 +7915,13 @@ packages:
         integrity: sha512-NCrCHhWmnQklfH4MtJMRjZ2a8c80qXeMlQMv2uVp9ISJMTt562SbGd6n2oq0PaPgKm7Z6pL9E2UlLIhC+SHL3w==,
       }
     engines: { node: '>=4.0.0' }
+
+  pngjs@7.0.0:
+    resolution:
+      {
+        integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==,
+      }
+    engines: { node: '>=14.19.0' }
 
   postcss@8.5.23:
     resolution:
@@ -14280,6 +14300,10 @@ snapshots:
     optionalDependencies:
       '@napi-rs/nice': 1.1.1
 
+  pixelmatch@7.1.0:
+    dependencies:
+      pngjs: 7.0.0
+
   pkg-dir@8.0.0:
     dependencies:
       find-up-simple: 1.0.1
@@ -14299,6 +14323,8 @@ snapshots:
       xmlbuilder: 15.1.1
 
   pngjs@3.4.0: {}
+
+  pngjs@7.0.0: {}
 
   postcss@8.5.23:
     dependencies:

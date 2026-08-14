@@ -3680,6 +3680,2278 @@
       ]
     },
     {
+      "id": "127-shadcn-dashboard",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/127-shadcn-dashboard/tanstack.ts",
+        "cases/127-shadcn-dashboard/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn dashboard variant through the shared native dashboard chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "133-shadcn-area-axes",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/133-shadcn-area-axes/tanstack.ts",
+        "cases/133-shadcn-area-axes/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-axes variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "134-shadcn-area-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/134-shadcn-area-default/tanstack.ts",
+        "cases/134-shadcn-area-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-default variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "135-shadcn-area-gradient",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/135-shadcn-area-gradient/tanstack.ts",
+        "cases/135-shadcn-area-gradient/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-gradient variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "136-shadcn-area-icons",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/136-shadcn-area-icons/tanstack.ts",
+        "cases/136-shadcn-area-icons/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-icons variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "137-shadcn-area-interactive",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/137-shadcn-area-interactive/tanstack.ts",
+        "cases/137-shadcn-area-interactive/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-interactive variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "138-shadcn-area-legend",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/138-shadcn-area-legend/tanstack.ts",
+        "cases/138-shadcn-area-legend/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-legend variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "139-shadcn-area-linear",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/139-shadcn-area-linear/tanstack.ts",
+        "cases/139-shadcn-area-linear/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-linear variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "140-shadcn-area-stacked-expand",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/140-shadcn-area-stacked-expand/tanstack.ts",
+        "cases/140-shadcn-area-stacked-expand/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-stacked-expand variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "141-shadcn-area-stacked",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/141-shadcn-area-stacked/tanstack.ts",
+        "cases/141-shadcn-area-stacked/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-stacked variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "142-shadcn-area-step",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/142-shadcn-area-step/tanstack.ts",
+        "cases/142-shadcn-area-step/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-area-step variant through the shared native area chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "143-shadcn-bar-active",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/143-shadcn-bar-active/tanstack.ts",
+        "cases/143-shadcn-bar-active/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-active variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "144-shadcn-bar-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/144-shadcn-bar-default/tanstack.ts",
+        "cases/144-shadcn-bar-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-default variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "145-shadcn-bar-horizontal",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/145-shadcn-bar-horizontal/tanstack.ts",
+        "cases/145-shadcn-bar-horizontal/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-horizontal variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "146-shadcn-bar-interactive",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/146-shadcn-bar-interactive/tanstack.ts",
+        "cases/146-shadcn-bar-interactive/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-interactive variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "147-shadcn-bar-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/147-shadcn-bar-label-custom/tanstack.ts",
+        "cases/147-shadcn-bar-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-label-custom variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "148-shadcn-bar-label",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/148-shadcn-bar-label/tanstack.ts",
+        "cases/148-shadcn-bar-label/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-label variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "149-shadcn-bar-mixed",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/149-shadcn-bar-mixed/tanstack.ts",
+        "cases/149-shadcn-bar-mixed/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-mixed variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "128-shadcn-bar-multiple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/128-shadcn-bar-multiple/tanstack.ts",
+        "cases/128-shadcn-bar-multiple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-multiple variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "150-shadcn-bar-negative",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/150-shadcn-bar-negative/tanstack.ts",
+        "cases/150-shadcn-bar-negative/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-negative variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "151-shadcn-bar-stacked",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/151-shadcn-bar-stacked/tanstack.ts",
+        "cases/151-shadcn-bar-stacked/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-bar-stacked variant through the shared native bar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "152-shadcn-line-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/152-shadcn-line-default/tanstack.ts",
+        "cases/152-shadcn-line-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-default variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "153-shadcn-line-dots-colors",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/153-shadcn-line-dots-colors/tanstack.ts",
+        "cases/153-shadcn-line-dots-colors/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-dots-colors variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "154-shadcn-line-dots-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/154-shadcn-line-dots-custom/tanstack.ts",
+        "cases/154-shadcn-line-dots-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-dots-custom variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "155-shadcn-line-dots",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/155-shadcn-line-dots/tanstack.ts",
+        "cases/155-shadcn-line-dots/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-dots variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "156-shadcn-line-interactive",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/156-shadcn-line-interactive/tanstack.ts",
+        "cases/156-shadcn-line-interactive/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-interactive variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "157-shadcn-line-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/157-shadcn-line-label-custom/tanstack.ts",
+        "cases/157-shadcn-line-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-label-custom variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "158-shadcn-line-label",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/158-shadcn-line-label/tanstack.ts",
+        "cases/158-shadcn-line-label/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-label variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "159-shadcn-line-linear",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/159-shadcn-line-linear/tanstack.ts",
+        "cases/159-shadcn-line-linear/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-linear variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "160-shadcn-line-multiple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/160-shadcn-line-multiple/tanstack.ts",
+        "cases/160-shadcn-line-multiple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-multiple variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "161-shadcn-line-step",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/161-shadcn-line-step/tanstack.ts",
+        "cases/161-shadcn-line-step/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-line-step variant through the shared native line chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "162-shadcn-pie-donut-active",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/162-shadcn-pie-donut-active/tanstack.ts",
+        "cases/162-shadcn-pie-donut-active/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-donut-active variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "129-shadcn-pie-donut-text",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/129-shadcn-pie-donut-text/tanstack.ts",
+        "cases/129-shadcn-pie-donut-text/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-donut-text variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "163-shadcn-pie-donut",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/163-shadcn-pie-donut/tanstack.ts",
+        "cases/163-shadcn-pie-donut/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-donut variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "164-shadcn-pie-interactive",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/164-shadcn-pie-interactive/tanstack.ts",
+        "cases/164-shadcn-pie-interactive/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-interactive variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "165-shadcn-pie-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/165-shadcn-pie-label-custom/tanstack.ts",
+        "cases/165-shadcn-pie-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-label-custom variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "166-shadcn-pie-label-list",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/166-shadcn-pie-label-list/tanstack.ts",
+        "cases/166-shadcn-pie-label-list/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-label-list variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "167-shadcn-pie-label",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/167-shadcn-pie-label/tanstack.ts",
+        "cases/167-shadcn-pie-label/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-label variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "168-shadcn-pie-legend",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/168-shadcn-pie-legend/tanstack.ts",
+        "cases/168-shadcn-pie-legend/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-legend variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "169-shadcn-pie-separator-none",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/169-shadcn-pie-separator-none/tanstack.ts",
+        "cases/169-shadcn-pie-separator-none/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-separator-none variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "170-shadcn-pie-simple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/170-shadcn-pie-simple/tanstack.ts",
+        "cases/170-shadcn-pie-simple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-simple variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "171-shadcn-pie-stacked",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/171-shadcn-pie-stacked/tanstack.ts",
+        "cases/171-shadcn-pie-stacked/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-pie-stacked variant through the shared native pie chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "172-shadcn-radar-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/172-shadcn-radar-default/tanstack.ts",
+        "cases/172-shadcn-radar-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-default variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "173-shadcn-radar-dots",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/173-shadcn-radar-dots/tanstack.ts",
+        "cases/173-shadcn-radar-dots/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-dots variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "174-shadcn-radar-grid-circle-fill",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/174-shadcn-radar-grid-circle-fill/tanstack.ts",
+        "cases/174-shadcn-radar-grid-circle-fill/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-grid-circle-fill variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "175-shadcn-radar-grid-circle-no-lines",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/175-shadcn-radar-grid-circle-no-lines/tanstack.ts",
+        "cases/175-shadcn-radar-grid-circle-no-lines/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-grid-circle-no-lines variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "176-shadcn-radar-grid-circle",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/176-shadcn-radar-grid-circle/tanstack.ts",
+        "cases/176-shadcn-radar-grid-circle/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-grid-circle variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "177-shadcn-radar-grid-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/177-shadcn-radar-grid-custom/tanstack.ts",
+        "cases/177-shadcn-radar-grid-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-grid-custom variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "178-shadcn-radar-grid-fill",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/178-shadcn-radar-grid-fill/tanstack.ts",
+        "cases/178-shadcn-radar-grid-fill/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-grid-fill variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "179-shadcn-radar-grid-none",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/179-shadcn-radar-grid-none/tanstack.ts",
+        "cases/179-shadcn-radar-grid-none/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-grid-none variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "180-shadcn-radar-icons",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/180-shadcn-radar-icons/tanstack.ts",
+        "cases/180-shadcn-radar-icons/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-icons variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "181-shadcn-radar-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/181-shadcn-radar-label-custom/tanstack.ts",
+        "cases/181-shadcn-radar-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-label-custom variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "182-shadcn-radar-legend",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/182-shadcn-radar-legend/tanstack.ts",
+        "cases/182-shadcn-radar-legend/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-legend variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "183-shadcn-radar-lines-only",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/183-shadcn-radar-lines-only/tanstack.ts",
+        "cases/183-shadcn-radar-lines-only/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-lines-only variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "130-shadcn-radar-multiple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/130-shadcn-radar-multiple/tanstack.ts",
+        "cases/130-shadcn-radar-multiple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-multiple variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "184-shadcn-radar-radius",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/184-shadcn-radar-radius/tanstack.ts",
+        "cases/184-shadcn-radar-radius/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radar-radius variant through the shared native radar chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "185-shadcn-radial-grid",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/185-shadcn-radial-grid/tanstack.ts",
+        "cases/185-shadcn-radial-grid/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radial-grid variant through the shared native radial chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "186-shadcn-radial-label",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/186-shadcn-radial-label/tanstack.ts",
+        "cases/186-shadcn-radial-label/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radial-label variant through the shared native radial chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "187-shadcn-radial-shape",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/187-shadcn-radial-shape/tanstack.ts",
+        "cases/187-shadcn-radial-shape/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radial-shape variant through the shared native radial chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "188-shadcn-radial-simple",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/188-shadcn-radial-simple/tanstack.ts",
+        "cases/188-shadcn-radial-simple/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radial-simple variant through the shared native radial chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "189-shadcn-radial-stacked",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/189-shadcn-radial-stacked/tanstack.ts",
+        "cases/189-shadcn-radial-stacked/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radial-stacked variant through the shared native radial chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "131-shadcn-radial-text",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/131-shadcn-radial-text/tanstack.ts",
+        "cases/131-shadcn-radial-text/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-radial-text variant through the shared native radial chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "132-shadcn-tooltip-advanced",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/132-shadcn-tooltip-advanced/tanstack.ts",
+        "cases/132-shadcn-tooltip-advanced/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-tooltip-advanced variant through the shared native tooltip chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "190-shadcn-tooltip-default",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/190-shadcn-tooltip-default/tanstack.ts",
+        "cases/190-shadcn-tooltip-default/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-tooltip-default variant through the shared native tooltip chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "191-shadcn-tooltip-formatter",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/191-shadcn-tooltip-formatter/tanstack.ts",
+        "cases/191-shadcn-tooltip-formatter/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-tooltip-formatter variant through the shared native tooltip chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "192-shadcn-tooltip-icons",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/192-shadcn-tooltip-icons/tanstack.ts",
+        "cases/192-shadcn-tooltip-icons/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-tooltip-icons variant through the shared native tooltip chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "193-shadcn-tooltip-indicator-line",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/193-shadcn-tooltip-indicator-line/tanstack.ts",
+        "cases/193-shadcn-tooltip-indicator-line/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-tooltip-indicator-line variant through the shared native tooltip chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "194-shadcn-tooltip-indicator-none",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/194-shadcn-tooltip-indicator-none/tanstack.ts",
+        "cases/194-shadcn-tooltip-indicator-none/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-tooltip-indicator-none variant through the shared native tooltip chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "195-shadcn-tooltip-label-custom",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/195-shadcn-tooltip-label-custom/tanstack.ts",
+        "cases/195-shadcn-tooltip-label-custom/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-tooltip-label-custom variant through the shared native tooltip chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "196-shadcn-tooltip-label-formatter",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/196-shadcn-tooltip-label-formatter/tanstack.ts",
+        "cases/196-shadcn-tooltip-label-formatter/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-tooltip-label-formatter variant through the shared native tooltip chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
+      "id": "197-shadcn-tooltip-label-none",
+      "coverage": "app-composed",
+      "disposition": "definition-now",
+      "phase": "phase-0",
+      "status": "verified",
+      "capabilities": ["current-definition-api"],
+      "evidence": [
+        "cases/197-shadcn-tooltip-label-none/tanstack.ts",
+        "cases/197-shadcn-tooltip-label-none/case.json"
+      ],
+      "work": [
+        {
+          "kind": "definition-composition",
+          "stage": "definition-builder",
+          "owner": "charts",
+          "coordinateSpace": "none",
+          "sources": [
+            "benchmarks/conformance/shared/shadcn-catalog-tanstack.tsx"
+          ],
+          "summary": "Compose the pinned shadcn chart-tooltip-label-none variant through the shared native tooltip chart definition."
+        },
+        {
+          "kind": "application-shell",
+          "stage": "post-render",
+          "owner": "application",
+          "coordinateSpace": "dom",
+          "sources": ["benchmarks/conformance/shared/shadcn-chart-card.tsx"],
+          "summary": "Share the canonical shadcn card dimensions, typography, footer, and theme tokens across renderer implementations."
+        }
+      ]
+    },
+    {
       "id": "bar-grouped",
       "coverage": "declarative",
       "disposition": "definition-now",

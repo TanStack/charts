@@ -58,6 +58,69 @@ describe('core marks and categorical scales', () => {
     expect(scene.points.map((point) => point.datum)).toEqual(data)
   })
 
+  it('resolves authored bar outlines in both orientations', () => {
+    const data = [
+      { id: 'a', category: 'Alpha', value: 12, stroke: 'red' },
+      { id: 'b', category: 'Beta', value: 18, stroke: 'blue' },
+    ]
+    const vertical = createChartScene(
+      defineChart({
+        marks: [
+          barY(data, {
+            x: 'category',
+            y: 'value',
+            stroke: (row) => row.stroke,
+            strokeOpacity: 0.75,
+            strokeWidth: 2,
+            strokeDasharray: (row) => (row.id === 'a' ? '4 2' : '2 1'),
+          }),
+        ],
+        ...bandXAxes(['Alpha', 'Beta'], [0, 18]),
+      }),
+      { width: 480, height: 260 },
+    )
+    const horizontal = createChartScene(
+      defineChart({
+        marks: [
+          barX(data, {
+            x: 'value',
+            y: 'category',
+            stroke: (row) => row.stroke,
+            strokeOpacity: 0.75,
+            strokeWidth: 2,
+            strokeDasharray: (row) => (row.id === 'a' ? '4 2' : '2 1'),
+          }),
+        ],
+        ...bandYAxes([0, 18], ['Alpha', 'Beta']),
+      }),
+      { width: 480, height: 260 },
+    )
+    const verticalBars = flatten(vertical.nodes).filter(
+      (node) => node.kind === 'rect',
+    )
+    const horizontalBars = flatten(horizontal.nodes).filter(
+      (node) => node.kind === 'rect',
+    )
+
+    expect(verticalBars.map((node) => node.style)).toEqual([
+      expect.objectContaining({
+        stroke: 'red',
+        strokeOpacity: 0.75,
+        strokeWidth: 2,
+        strokeDasharray: '4 2',
+      }),
+      expect.objectContaining({
+        stroke: 'blue',
+        strokeOpacity: 0.75,
+        strokeWidth: 2,
+        strokeDasharray: '2 1',
+      }),
+    ])
+    expect(horizontalBars.map((node) => node.style)).toEqual(
+      verticalBars.map((node) => node.style),
+    )
+  })
+
   it('caps resolved bar thickness without guessing final chart dimensions', () => {
     const data = [
       { id: 'a', category: 'Alpha', value: 12 },

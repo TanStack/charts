@@ -687,16 +687,19 @@ export interface ChartRollingPathMotion {
 
 export type ChartMotionPath = 'morph' | ChartRollingPathMotion
 
-export interface ChartMotionTiming {
-  delay?: number
+export interface ChartMotionTiming<TDatum = unknown> {
+  delay?: number | ((context: ChartMotionContext<TDatum>) => number | undefined)
   transition?: ChartMotionTransition
   /** How line and area paths move between compatible keyed updates. */
   path?: ChartMotionPath
 }
 
 export type ChartMotionDefinition<TDatum = unknown> =
-  | ChartMotionTiming
-  | ((context: ChartMotionContext<TDatum>) => ChartMotionTiming | undefined)
+  | false
+  | ChartMotionTiming<TDatum>
+  | ((
+      context: ChartMotionContext<TDatum>,
+    ) => false | ChartMotionTiming<TDatum> | undefined)
 
 export interface ChartMarkMotionOptions<TDatum = unknown> {
   motion?: ChartMotionDefinition<TDatum>
@@ -1403,6 +1406,8 @@ export interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
+  /** Overrides tooltip motion from the active motion renderer; `false` keeps it immediate. */
+  motion?: false | ChartMotionTransition
   portal?: ChartTooltipPortalInput
   items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
   sort?: ChartTooltipSort<TDatum, TXValue, TYValue>

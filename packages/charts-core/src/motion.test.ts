@@ -8,8 +8,8 @@ import { dot } from './dot'
 import { whenFocused } from './focus-mark'
 import { lineY } from './line'
 import { createMark } from './mark'
-import { motion } from './motion'
-import { polar, radialBarRadius } from './polar'
+import { motion, stagger } from './motion'
+import { polar, radialArea, radialBarRadius } from './polar'
 import { mountChartRenderer } from './renderer'
 import { createChartScene, defineChart } from './scene'
 import { chartSceneSource } from './scene-source'
@@ -162,6 +162,44 @@ describe('SVG motion', () => {
     ).toBe(false)
     adoptedSurface.destroy()
     request.mockRestore()
+  })
+
+  it('replays initial motion on adopted SVG only when explicitly requested', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [barY(rows, { x: 'category', y: 'value', key: 'id' })],
+        x: { scale: scaleBand().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+        guides: false,
+      }),
+      { width: 300, height: 200 },
+    )
+    const container = document.createElement('div')
+    container.innerHTML = renderChartSvg(scene, { ariaLabel: 'Adopted chart' })
+    const frames = installFrames()
+    const surface = motion({
+      initial: 'always',
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+
+    surface.render(scene, { ariaLabel: 'Adopted chart' })
+
+    expect(frames.request).toHaveBeenCalledOnce()
+    expect(container.querySelector('svg')?.dataset.tsMotionState).toBe(
+      'running',
+    )
+    expect(
+      Number(
+        container
+          .querySelector('g.ts-chart__bar-y rect')
+          ?.getAttribute('height'),
+      ),
+    ).toBe(0)
+
+    frames.run(0)
+    frames.run(100)
+    surface.destroy()
+    frames.restore()
   })
 
   it('is the sole animation owner when the definition also enables animate', () => {
@@ -1010,17 +1048,11 @@ describe('SVG motion', () => {
   })
 
   it('grows bars from their semantic baseline with bounded datum timing', () => {
-    const timing = vi.fn((context) =>
-      context.datum?.id === 'b'
-        ? {
-            delay: 40,
-            transition: { type: 'tween' as const, duration: 50 },
-          }
-        : undefined,
-    )
     const scene = createChartScene(
       defineChart({
-        motion: timing,
+        motion: {
+          ...stagger<(typeof rows)[number]>({ each: 40, roles: 'bar' }),
+        },
         marks: [
           barY(rows, {
             x: 'category',
@@ -1049,26 +1081,138 @@ describe('SVG motion', () => {
     expect(rectangles).toHaveLength(2)
     expect(Number(rectangles[0]?.getAttribute('y'))).toBeCloseTo(baseline)
     expect(rectangles[0]?.getAttribute('height')).toBe('0')
-    expect(timing.mock.calls.map(([context]) => context.datum?.id)).toEqual([
-      'a',
-      'b',
-    ])
-
     frames.run(0)
     frames.run(50)
     expect(Number(rectangles[0]?.getAttribute('height'))).toBeCloseTo(
       scene.chart.height * 0.4 * 0.5,
     )
     expect(Number(rectangles[1]?.getAttribute('height'))).toBeCloseTo(
-      scene.chart.height * 0.8 * 0.2,
+      scene.chart.height * 0.8 * 0.1,
     )
 
-    frames.run(120)
+    frames.run(140)
     expect(rectangles[0]?.hasAttribute('data-ts-motion-role')).toBe(false)
     expect(
       container.querySelector('svg')?.getAttribute('data-ts-motion-state'),
     ).toBe('finished')
 
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('lets a mark opt out of inherited chart motion', () => {
+    const animated = [{ id: 'animated', category: 'A', value: 40 }]
+    const immediate = [{ id: 'immediate', category: 'B', value: 80 }]
+    const scene = createChartScene(
+      defineChart({
+        motion: {
+          transition: { type: 'tween', duration: 100, easing: 'linear' },
+        },
+        marks: [
+          barY(animated, {
+            id: 'animated-bars',
+            x: 'category',
+            y: 'value',
+            key: 'id',
+          }),
+          barY(immediate, {
+            id: 'immediate-bars',
+            x: 'category',
+            y: 'value',
+            key: 'id',
+            motion: false,
+          }),
+        ],
+        x: { scale: scaleBand().domain(['A', 'B']) },
+        y: { scale: scaleLinear().domain([0, 100]) },
+        guides: false,
+      }),
+      { width: 300, height: 200 },
+    )
+    const container = document.createElement('div')
+    const frames = installFrames()
+    const surface = motion().mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Mixed motion bars' })
+    const animatedPoint = scene.points.find(
+      (point) => point.datum.id === 'animated',
+    )
+    const immediatePoint = scene.points.find(
+      (point) => point.datum.id === 'immediate',
+    )
+    const animatedRectangle = container.querySelector<SVGRectElement>(
+      `[data-ts-key="${animatedPoint?.key}"]`,
+    )
+    const immediateRectangle = container.querySelector<SVGRectElement>(
+      `[data-ts-key="${immediatePoint?.key}"]`,
+    )
+
+    expect(animatedRectangle?.getAttribute('height')).toBe('0')
+    expect(animatedRectangle?.dataset.tsMotionRole).toBe('bar')
+    expect(Number(immediateRectangle?.getAttribute('y'))).toBeCloseTo(
+      immediatePoint?.y ?? Number.NaN,
+    )
+    expect(immediateRectangle?.hasAttribute('data-ts-motion-role')).toBe(false)
+    expect(frames.request).toHaveBeenCalledOnce()
+
+    frames.run(0)
+    frames.run(100)
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('lets guide children re-enable motion below an axis opt-out', () => {
+    const definition = defineChart({
+      motion: {
+        transition: { type: 'tween', duration: 100, easing: 'linear' },
+      },
+      marks: [lineY([0, 1])],
+      margin: 0,
+      x: {
+        scale: scaleLinear().domain([0, 1]),
+        grid: true,
+        axis: {
+          motion: false,
+          ticks: {
+            values: [0, 1],
+            motion: {
+              transition: { type: 'tween', duration: 100, easing: 'linear' },
+            },
+          },
+          tickLabels: { motion: false },
+          label: { text: 'Period' },
+        },
+      },
+      y: { scale: scaleLinear().domain([0, 1]), axis: false },
+    })
+    const first = createChartScene(definition, { width: 300, height: 200 })
+    const next = createChartScene(definition, { width: 400, height: 200 })
+    const container = document.createElement('div')
+    const surface = motion({ initial: false, resize: true }).mount(
+      container,
+      () => {},
+    )
+    surface.render(first, { ariaLabel: 'Guide motion scopes' })
+    const frames = installManagedFrames()
+    surface.render(next, { ariaLabel: 'Guide motion scopes' })
+
+    expect(
+      [...container.querySelectorAll('[data-ts-key^="x-tick-rule:"]')].some(
+        (element) => element.getAttribute('data-ts-motion-role') === 'tick',
+      ),
+    ).toBe(true)
+    for (const selector of [
+      '[data-ts-key="x-axis"]',
+      '[data-ts-key^="x-grid:"]',
+      '[data-ts-key^="x-tick-label:"]',
+      '[data-ts-key="x-label"]',
+    ]) {
+      expect(
+        container.querySelector(selector)?.hasAttribute('data-ts-motion-role'),
+      ).toBe(false)
+    }
+
+    frames.run(0)
+    frames.run(100)
     surface.destroy()
     frames.restore()
   })
@@ -2230,6 +2374,17 @@ describe('SVG motion', () => {
         marks: [
           barY(rows, { x: 'category', y: 'value', key: 'id' }),
           lineY(rows, { x: 'category', y: 'value', key: 'id' }),
+          polar({
+            angle: { scale: scaleBand<string>().domain(['A']) },
+            radius: { scale: scaleLinear().domain([0, 100]) },
+            marks: [
+              radialBarRadius(rows, {
+                angle: 'category',
+                radius: 'value',
+                key: 'id',
+              }),
+            ],
+          }),
         ],
         x: { scale: scaleBand().domain(['A', 'B']) },
         y: { scale: scaleLinear().domain([0, 100]) },
@@ -2245,7 +2400,7 @@ describe('SVG motion', () => {
     const surface = renderer.mount(container, () => {})
     surface.render(scene, { ariaLabel: 'Composed chart' })
 
-    expect(container.querySelectorAll('[data-ts-motion-role]').length).toBe(3)
+    expect(container.querySelectorAll('[data-ts-motion-role]').length).toBe(4)
     expect(
       container.querySelector('clipPath[id^="ts-chart-motion-clip"]'),
     ).not.toBeNull()
@@ -2722,10 +2877,15 @@ describe('SVG motion', () => {
     frames.restore()
   })
 
-  it('reveals a complete line group through a chart-space clip', () => {
+  it('grows Cartesian line and area groups from the semantic baseline', () => {
     const scene = createChartScene(
       defineChart({
         marks: [
+          areaY(rows, {
+            x: 'category',
+            y: 'value',
+            key: 'id',
+          }),
           lineY(rows, {
             x: 'category',
             y: 'value',
@@ -2747,24 +2907,169 @@ describe('SVG motion', () => {
     const surface = renderer.mount(container, () => {})
     surface.render(scene, { ariaLabel: 'Line' })
     const line = container.querySelector<SVGGElement>('g.ts-chart__line')
-    const clipRectangle = container.querySelector<SVGRectElement>(
-      'clipPath[id^="ts-chart-motion-clip"] rect',
-    )
+    const area = container.querySelector<SVGGElement>('g.ts-chart__area')
+    const baseline = scene.scales.y?.map(0) ?? Number.NaN
 
-    expect(line?.getAttribute('clip-path')).toMatch(
-      /^url\(#ts-chart-motion-clip-/,
-    )
-    expect(clipRectangle?.getAttribute('width')).toBe('0')
+    expect(matrixTransform(line)).toEqual([1, 0, 0, 0, 0, baseline])
+    expect(matrixTransform(area)).toEqual([1, 0, 0, 0, 0, baseline])
     frames.run(0)
     frames.run(50)
-    expect(Number(clipRectangle?.getAttribute('width'))).toBeCloseTo(
-      scene.chart.width / 2,
-    )
+    expect(matrixTransform(line)).toEqual([1, 0, 0, 0.5, 0, baseline / 2])
+    expect(matrixTransform(area)).toEqual([1, 0, 0, 0.5, 0, baseline / 2])
     frames.run(100)
-    expect(line?.hasAttribute('clip-path')).toBe(false)
+    expect(line?.hasAttribute('transform')).toBe(false)
+    expect(area?.hasAttribute('transform')).toBe(false)
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('sweeps arcs around their polar angle on initial render', () => {
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            angle: { scale: scaleBand<string>().domain(['A']) },
+            radius: { scale: scaleLinear().domain([0, 100]) },
+            marks: [
+              radialBarRadius(rows, {
+                angle: 'category',
+                radius: 'value',
+                key: 'id',
+              }),
+            ],
+          }),
+        ],
+        guides: false,
+        margin: 0,
+      }),
+      { width: 200, height: 200 },
+    )
+    const container = document.createElement('div')
+    const renderer = motion({
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    })
+    const frames = installFrames()
+    const surface = renderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Radial bars' })
+    const arcs = container.querySelector<SVGGElement>('g.ts-chart__arc')
+    const clipPath = container.querySelector<SVGPathElement>(
+      'clipPath[id^="ts-chart-motion-clip"] path',
+    )
+
+    expect(arcs?.getAttribute('clip-path')).toMatch(
+      /^url\(#ts-chart-motion-clip-/,
+    )
+    expect(clipPath?.getAttribute('d')).toBe('M0 0Z')
+    frames.run(0)
+    frames.run(50)
+    expect(clipPath?.getAttribute('d')).not.toBe('M0 0Z')
+    frames.run(100)
+    expect(arcs?.hasAttribute('clip-path')).toBe(false)
     expect(
       container.querySelector('clipPath[id^="ts-chart-motion-clip"]'),
     ).toBeNull()
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('keeps removed arcs painted through their exit transition', () => {
+    const radialRows = [
+      { id: 'a', category: 'A', value: 40 },
+      { id: 'b', category: 'B', value: 80 },
+    ]
+    const makeScene = (data: typeof radialRows) =>
+      createChartScene(
+        defineChart({
+          marks: [
+            polar({
+              angle: { scale: scaleBand<string>().domain(['A', 'B']) },
+              radius: { scale: scaleLinear().domain([0, 100]) },
+              marks: [
+                radialBarRadius(data, {
+                  angle: 'category',
+                  radius: 'value',
+                  key: 'id',
+                }),
+              ],
+            }),
+          ],
+          guides: false,
+          margin: 0,
+        }),
+        { width: 200, height: 200 },
+      )
+    const container = document.createElement('div')
+    const surface = motion({
+      initial: false,
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    }).mount(container, () => {})
+    surface.render(makeScene(radialRows), { ariaLabel: 'Radial bars' })
+    const frames = installFrames()
+
+    surface.render(makeScene(radialRows.slice(0, 1)), {
+      ariaLabel: 'Radial bars',
+    })
+
+    const arcs = () => [
+      ...container.querySelectorAll<SVGPathElement>('g.ts-chart__arc > path'),
+    ]
+    expect(arcs()).toHaveLength(2)
+    frames.run(0)
+    frames.run(50)
+    expect(arcs()).toHaveLength(2)
+    expect(arcs().some((arc) => arc.getAttribute('opacity') === '0.5')).toBe(
+      true,
+    )
+    frames.run(100)
+    expect(arcs()).toHaveLength(1)
+
+    surface.destroy()
+    frames.restore()
+  })
+
+  it('grows radial path groups out from the polar center', () => {
+    const radialRows = [
+      { angle: 0, value: 40 },
+      { angle: 1, value: 80 },
+      { angle: 2, value: 60 },
+      { angle: 3, value: 70 },
+    ]
+    const scene = createChartScene(
+      defineChart({
+        marks: [
+          polar({
+            angle: { scale: scaleLinear().domain([0, 3]) },
+            radius: { scale: scaleLinear().domain([0, 100]) },
+            marks: [
+              radialArea(radialRows, {
+                angle: 'angle',
+                radius: 'value',
+              }),
+            ],
+          }),
+        ],
+        guides: false,
+        margin: 0,
+      }),
+      { width: 200, height: 200 },
+    )
+    const container = document.createElement('div')
+    const renderer = motion({
+      transition: { type: 'tween', duration: 100, easing: 'linear' },
+    })
+    const frames = installFrames()
+    const surface = renderer.mount(container, () => {})
+    surface.render(scene, { ariaLabel: 'Radar area' })
+    const area = container.querySelector<SVGGElement>('g.ts-chart__radial-area')
+
+    expect(area?.getAttribute('transform')).toBe('scale(0)')
+    frames.run(0)
+    frames.run(50)
+    expect(area?.getAttribute('transform')).toBe('scale(0.5)')
+    frames.run(100)
+    expect(area?.hasAttribute('transform')).toBe(false)
 
     surface.destroy()
     frames.restore()

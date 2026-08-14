@@ -4,6 +4,7 @@ import { createDomTextMeasurer } from './dom-text'
 import { findNearestPoint, viewportInteractionPoints } from './scene'
 import { focusDisabled } from './focus-disabled'
 import { nearestPoint } from './nearest'
+import { connectRendererTooltipMotion } from './renderer-motion-internal'
 import {
   chartPointFromNavigationOrder,
   chartPointFromSceneOrder,
@@ -42,6 +43,7 @@ import type {
   ChartTooltipInput,
   ChartTooltipOptions,
   ChartTooltipPosition,
+  ChartMotionTransition,
   ChartValue,
 } from './types'
 
@@ -1020,11 +1022,17 @@ export function mountChartRenderer<
     if (tooltipExtension !== input.extension || !tooltipInstance) {
       destroyTooltip()
       tooltipExtension = input.extension
-      tooltipInstance = input.extension.create({
-        container,
-        dismiss: dismissTooltip,
-        bodyChange: () => options.onTooltipBodyChange,
-      })
+      tooltipInstance = input.extension.create(
+        connectRendererTooltipMotion(
+          surface.renderer,
+          {
+            container,
+            dismiss: dismissTooltip,
+            bodyChange: () => options.onTooltipBodyChange,
+          },
+          resolveTooltipMotion,
+        ),
+      )
     }
     const instance = tooltipInstance
     instance.update(input.options)
@@ -1042,6 +1050,12 @@ export function mountChartRenderer<
       },
       pinned: interactionIsPinned(),
     })
+  }
+
+  function resolveTooltipMotion(): false | ChartMotionTransition | undefined {
+    const definition = options.definition.motion
+    if (definition === false) return false
+    return typeof definition === 'function' ? undefined : definition?.transition
   }
 
   function syncTooltip() {
