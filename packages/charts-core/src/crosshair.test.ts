@@ -10,6 +10,7 @@ import { createChartScene, defineChart } from './scene'
 import { stack } from './stack'
 import { linearAxes } from './test-scales'
 import type {
+  ChartAxisSide,
   ChartFocusState,
   ChartPoint,
   SceneGroup,
@@ -612,6 +613,19 @@ describe('crosshair', () => {
       [...positioned.under, ...positioned.over].flatMap(crosshairNodes),
     ).toHaveLength(1)
   })
+
+  it('follows the axis side with its value labels', () => {
+    const start = crosshairLabels('start')
+    const end = crosshairLabels('end')
+
+    expect(start.y.x).toBeLessThan(start.chart.x)
+    expect(start.y.anchor).toBe('end')
+    expect(start.x.y).toBeGreaterThan(start.chart.y + start.chart.height)
+
+    expect(end.y.x).toBeGreaterThan(end.chart.x + end.chart.width)
+    expect(end.y.anchor).toBe('start')
+    expect(end.x.y).toBeLessThan(end.chart.y)
+  })
 })
 
 if (false) {
@@ -634,6 +648,35 @@ if (false) {
 
 function focus(point: ChartPoint): ChartFocusState {
   return { primary: point, group: [point], source: 'pointer', pinned: false }
+}
+
+function crosshairLabels(side: ChartAxisSide) {
+  const rows = [
+    { x: 0, y: 1 },
+    { x: 2, y: 3 },
+  ]
+  const scene = createChartScene(
+    defineChart({
+      marks: [
+        dot(rows, { x: 'x', y: 'y' }),
+        crosshair({ x: { label: true }, y: { label: true } }),
+      ],
+      x: { scale: scaleLinear().domain([0, 2]), axis: { side } },
+      y: { scale: scaleLinear().domain([0, 4]), axis: { side } },
+    }),
+    { width: 320, height: 180 },
+  )
+  const point = scene.points.find((candidate) => candidate.datum === rows[1])!
+  const guide = findNode(
+    resolveFocusPresentation(scene, focus(point)).over,
+    'crosshair-1',
+  ) as SceneGroup
+
+  return {
+    chart: scene.chart,
+    x: findNode(guide.children, 'crosshair-1:x-label:text') as SceneLabel,
+    y: findNode(guide.children, 'crosshair-1:y-label:text') as SceneLabel,
+  }
 }
 
 function findNode(
