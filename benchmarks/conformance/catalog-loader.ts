@@ -238,6 +238,9 @@ function catalogSourceKind(
   if (path.startsWith('./shared/transforms/')) {
     return 'support'
   }
+  if (path.startsWith('./shared/shadcn-')) {
+    return path.endsWith('-data.ts') ? 'fixture' : 'support'
+  }
   if (path === './shared/data.ts' || path.startsWith('./shared/fixtures/')) {
     return 'fixture'
   }

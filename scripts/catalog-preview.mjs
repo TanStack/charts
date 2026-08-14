@@ -81,6 +81,7 @@ export const catalogGuidePreviewCaseIds = [
   '118-token-usage-calendar',
   '120-themed-interactive-area',
   '121-active-bar-dashboard',
+  '130-shadcn-radar-multiple',
   '80-echarts-axis-pointer',
   'bar-horizontal-ranking',
 ]
@@ -88,6 +89,8 @@ export const catalogLegendPreviewCaseIds = ['81-recharts-interactive-legend']
 export const catalogMarginPreviewCaseIds = [
   '115-definition-motion',
   '118-token-usage-calendar',
+  '128-shadcn-bar-multiple',
+  '132-shadcn-tooltip-advanced',
   '80-echarts-axis-pointer',
   '81-recharts-interactive-legend',
   '88-echarts-free-cursor',
@@ -118,6 +121,9 @@ export const catalogTextPreviewCaseIds = [
   '123-active-donut-metric',
   '125-sales-funnel',
   '126-drillable-sunburst',
+  '129-shadcn-pie-donut-text',
+  '130-shadcn-radar-multiple',
+  '131-shadcn-radial-text',
   'bar-horizontal-ranking',
   'heatmap-labeled',
 ]
@@ -177,6 +183,7 @@ export async function writeCatalogPreviews() {
         darkSvg,
         entry.id,
         JSDOM,
+        catalogPreviewPresentation(entry),
       )
       validateCatalogPreviewXml(portableSvg, entry.id, JSDOM)
       const assetPath = path.join(previewsDirectory, `${entry.id}.svg`)
@@ -248,6 +255,7 @@ export function isTransientCatalogPreviewBrowserError(error) {
 
 export async function checkCatalogPreviews() {
   const cases = await orderedCatalogCases()
+  const casesById = new Map(cases.map((entry) => [entry.id, entry]))
   const { JSDOM } = await import('jsdom')
   const expectedIds = cases.map((entry) => entry.id)
   const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
@@ -275,7 +283,11 @@ export async function checkCatalogPreviews() {
     )
     validateCatalogPreviewSvg(source, asset.id)
     validateCatalogPreviewXml(source, asset.id, JSDOM)
-    validateCatalogPreviewPresentation(source, asset.id)
+    validateCatalogPreviewPresentation(
+      source,
+      asset.id,
+      catalogPreviewPresentation(casesById.get(asset.id)),
+    )
     const actual = assetRecord(asset.id, source)
     assert(
       actual.sha256 === asset.sha256 && actual.bytes === asset.bytes,
@@ -291,6 +303,7 @@ export function createPortableCatalogPreviewSvg(
   darkSvg,
   caseId,
   JSDOM,
+  presentation = {},
 ) {
   validateCatalogPreviewSvg(lightSvg, caseId, false)
   validateCatalogPreviewSvg(darkSvg, caseId, false)
@@ -304,7 +317,7 @@ export function createPortableCatalogPreviewSvg(
     lightRoot.insertAdjacentHTML('afterbegin', portableThemeStyle(paints))
     const result = `${lightRoot.outerHTML}\n`
     validateCatalogPreviewSvg(result, caseId)
-    validateCatalogPreviewPresentation(result, caseId)
+    validateCatalogPreviewPresentation(result, caseId, presentation)
     return result
   } finally {
     lightDocument.window.close()
@@ -340,26 +353,32 @@ export function validateCatalogPreviewSvg(
       `catalog preview ${caseId} is missing its portable catalog theme`,
     )
     assert(
-      !trimmed.includes('background:'),
+      !/[{;]background\s*:/u.test(trimmed),
       `catalog preview ${caseId} must keep a transparent background`,
     )
   }
 }
 
-export function validateCatalogPreviewPresentation(svg, caseId) {
-  if (!guidePreviewCaseIdSet.has(caseId)) {
+export function validateCatalogPreviewPresentation(
+  svg,
+  caseId,
+  presentation = {},
+) {
+  if (!presentation.guides && !guidePreviewCaseIdSet.has(caseId)) {
     assert(
       !svg.includes('ts-chart__axes') && !svg.includes('ts-chart__grid'),
       `catalog preview ${caseId} must omit axes and grids`,
     )
   }
-  if (!legendPreviewCaseIdSet.has(caseId)) {
+  if (!presentation.legend && !legendPreviewCaseIdSet.has(caseId)) {
     assert(
       !svg.includes('ts-chart__legend'),
       `catalog preview ${caseId} must omit its legend`,
     )
   }
-  if (textPreviewCaseIdSet.has(caseId)) {
+  if (presentation.text === 'retain') {
+    // Collection previews retain whichever labels define each upstream variant.
+  } else if (textPreviewCaseIdSet.has(caseId)) {
     assert(
       svg.includes('<text '),
       `catalog preview ${caseId} must retain its feature-defining text`,
@@ -563,6 +582,12 @@ export function validateCatalogPreviewPresentation(svg, caseId) {
   }
 }
 
+function catalogPreviewPresentation(entry) {
+  return entry?.collections?.includes('shadcn')
+    ? { guides: true, legend: true, text: 'retain' }
+    : {}
+}
+
 export function validateCatalogPreviewXml(svg, caseId, JSDOM) {
   let document
   try {
@@ -751,99 +776,108 @@ async function renderCatalogPreviewVariant(context, origin, entry, theme) {
       errors.length === 0,
       `catalog preview ${entry.id} (${theme}) logged errors:\n${errors.join('\n')}`,
     )
-    return await page.locator('svg.ts-chart').evaluateAll((allElements) => {
-      const elements = allElements.filter((element) => {
-        const bounds = element.getBoundingClientRect()
-        const style = getComputedStyle(element)
-        return (
-          bounds.width > 0 &&
-          bounds.height > 0 &&
-          style.display !== 'none' &&
-          style.visibility !== 'hidden'
+    return await page
+      .locator('svg.ts-chart')
+      .evaluateAll((allElements) => {
+        const elements = allElements.filter((element) => {
+          const bounds = element.getBoundingClientRect()
+          const style = getComputedStyle(element)
+          return (
+            bounds.width > 0 &&
+            bounds.height > 0 &&
+            style.display !== 'none' &&
+            style.visibility !== 'hidden'
+          )
+        })
+        const container = elements[0]?.closest('.embed-chart')
+        if (!container)
+          throw new Error('Catalog preview has no chart container')
+        const containerBounds = container.getBoundingClientRect()
+        const overflow = elements.flatMap((element) =>
+          [...element.querySelectorAll('text')].flatMap((label) => {
+            if (!label.textContent?.trim()) return []
+            const style = getComputedStyle(label)
+            if (style.display === 'none' || style.visibility === 'hidden')
+              return []
+            const bounds = label.getBoundingClientRect()
+            const tolerance = 1
+            return bounds.left < containerBounds.left - tolerance ||
+              bounds.top < containerBounds.top - tolerance ||
+              bounds.right > containerBounds.right + tolerance ||
+              bounds.bottom > containerBounds.bottom + tolerance
+              ? [
+                  `${label.textContent.trim()} (${Math.round(bounds.left - containerBounds.left)},${Math.round(bounds.top - containerBounds.top)} ${Math.round(bounds.width)}×${Math.round(bounds.height)})`,
+                ]
+              : []
+          }),
+        )
+        if (overflow.length > 0) {
+          throw new Error(
+            `Catalog preview has clipped SVG labels:\n${overflow.join('\n')}`,
+          )
+        }
+
+        function cloneSurface(element) {
+          const source = element.cloneNode(true)
+          const controls = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'g',
+          )
+          controls.setAttribute('data-tanstack-catalog-preview-controls', '')
+          controls.setAttribute('aria-hidden', 'true')
+          for (const overlay of element.parentElement?.querySelectorAll(
+            ':scope > svg:not(.ts-chart)',
+          ) ?? []) {
+            const clone = overlay.cloneNode(true)
+            clone
+              .querySelectorAll(
+                '.overlay, [data-chart-handle-surface], [style*="display: none"]',
+              )
+              .forEach((node) => node.remove())
+            controls.append(...clone.childNodes)
+          }
+          if (controls.childNodes.length > 0) source.append(controls)
+          return source
+        }
+
+        if (elements.length === 1) {
+          return cloneSurface(elements[0]).outerHTML
+        }
+
+        const composed = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'svg',
+        )
+        composed.setAttribute('class', 'ts-chart')
+        composed.setAttribute('width', '100%')
+        composed.setAttribute('height', '100%')
+        composed.setAttribute('viewBox', '0 0 288 192')
+        composed.setAttribute('role', 'img')
+        composed.setAttribute(
+          'aria-label',
+          container.closest('[aria-label]')?.getAttribute('aria-label') ??
+            'Chart preview',
+        )
+        composed.setAttribute('data-tanstack-catalog-preview-surfaces', '')
+
+        for (const element of elements) {
+          const bounds = element.getBoundingClientRect()
+          const source = cloneSurface(element)
+          source.setAttribute('x', String(bounds.left - containerBounds.left))
+          source.setAttribute('y', String(bounds.top - containerBounds.top))
+          source.setAttribute('width', String(bounds.width))
+          source.setAttribute('height', String(bounds.height))
+          source.setAttribute('aria-hidden', 'true')
+          composed.append(source)
+        }
+        return composed.outerHTML
+      })
+      .catch((error) => {
+        throw new Error(
+          `catalog preview ${entry.id} (${theme}) failed presentation validation`,
+          { cause: error },
         )
       })
-      const container = elements[0]?.closest('.embed-chart')
-      if (!container) throw new Error('Catalog preview has no chart container')
-      const containerBounds = container.getBoundingClientRect()
-      const overflow = elements.flatMap((element) =>
-        [...element.querySelectorAll('text')].flatMap((label) => {
-          if (!label.textContent?.trim()) return []
-          const style = getComputedStyle(label)
-          if (style.display === 'none' || style.visibility === 'hidden')
-            return []
-          const bounds = label.getBoundingClientRect()
-          const tolerance = 1
-          return bounds.left < containerBounds.left - tolerance ||
-            bounds.top < containerBounds.top - tolerance ||
-            bounds.right > containerBounds.right + tolerance ||
-            bounds.bottom > containerBounds.bottom + tolerance
-            ? [
-                `${label.textContent.trim()} (${Math.round(bounds.left - containerBounds.left)},${Math.round(bounds.top - containerBounds.top)} ${Math.round(bounds.width)}×${Math.round(bounds.height)})`,
-              ]
-            : []
-        }),
-      )
-      if (overflow.length > 0) {
-        throw new Error(
-          `Catalog preview has clipped SVG labels:\n${overflow.join('\n')}`,
-        )
-      }
-
-      function cloneSurface(element) {
-        const source = element.cloneNode(true)
-        const controls = document.createElementNS(
-          'http://www.w3.org/2000/svg',
-          'g',
-        )
-        controls.setAttribute('data-tanstack-catalog-preview-controls', '')
-        controls.setAttribute('aria-hidden', 'true')
-        for (const overlay of element.parentElement?.querySelectorAll(
-          ':scope > svg:not(.ts-chart)',
-        ) ?? []) {
-          const clone = overlay.cloneNode(true)
-          clone
-            .querySelectorAll(
-              '.overlay, [data-chart-handle-surface], [style*="display: none"]',
-            )
-            .forEach((node) => node.remove())
-          controls.append(...clone.childNodes)
-        }
-        if (controls.childNodes.length > 0) source.append(controls)
-        return source
-      }
-
-      if (elements.length === 1) {
-        return cloneSurface(elements[0]).outerHTML
-      }
-
-      const composed = document.createElementNS(
-        'http://www.w3.org/2000/svg',
-        'svg',
-      )
-      composed.setAttribute('class', 'ts-chart')
-      composed.setAttribute('width', '100%')
-      composed.setAttribute('height', '100%')
-      composed.setAttribute('viewBox', '0 0 288 192')
-      composed.setAttribute('role', 'img')
-      composed.setAttribute(
-        'aria-label',
-        container.closest('[aria-label]')?.getAttribute('aria-label') ??
-          'Chart preview',
-      )
-      composed.setAttribute('data-tanstack-catalog-preview-surfaces', '')
-
-      for (const element of elements) {
-        const bounds = element.getBoundingClientRect()
-        const source = cloneSurface(element)
-        source.setAttribute('x', String(bounds.left - containerBounds.left))
-        source.setAttribute('y', String(bounds.top - containerBounds.top))
-        source.setAttribute('width', String(bounds.width))
-        source.setAttribute('height', String(bounds.height))
-        source.setAttribute('aria-hidden', 'true')
-        composed.append(source)
-      }
-      return composed.outerHTML
-    })
   } finally {
     await page.close()
   }

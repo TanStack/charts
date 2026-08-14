@@ -766,6 +766,290 @@
         {
           "label": "Drillable Flare sunburst",
           "to": "/charts/catalog/charts/126-drillable-sunburst/"
+        },
+        {
+          "label": "shadcn dashboard",
+          "to": "/charts/catalog/charts/127-shadcn-dashboard/"
+        },
+        {
+          "label": "shadcn bar chart – multiple",
+          "to": "/charts/catalog/charts/128-shadcn-bar-multiple/"
+        },
+        {
+          "label": "shadcn pie chart – donut with text",
+          "to": "/charts/catalog/charts/129-shadcn-pie-donut-text/"
+        },
+        {
+          "label": "shadcn radar chart – multiple",
+          "to": "/charts/catalog/charts/130-shadcn-radar-multiple/"
+        },
+        {
+          "label": "shadcn radial chart – text",
+          "to": "/charts/catalog/charts/131-shadcn-radial-text/"
+        },
+        {
+          "label": "shadcn tooltip – advanced",
+          "to": "/charts/catalog/charts/132-shadcn-tooltip-advanced/"
+        },
+        {
+          "label": "shadcn Area Chart - Axes",
+          "to": "/charts/catalog/charts/133-shadcn-area-axes/"
+        },
+        {
+          "label": "shadcn Area Chart",
+          "to": "/charts/catalog/charts/134-shadcn-area-default/"
+        },
+        {
+          "label": "shadcn Area Chart - Gradient",
+          "to": "/charts/catalog/charts/135-shadcn-area-gradient/"
+        },
+        {
+          "label": "shadcn Area Chart - Icons",
+          "to": "/charts/catalog/charts/136-shadcn-area-icons/"
+        },
+        {
+          "label": "shadcn Area Chart - Interactive",
+          "to": "/charts/catalog/charts/137-shadcn-area-interactive/"
+        },
+        {
+          "label": "shadcn Area Chart - Legend",
+          "to": "/charts/catalog/charts/138-shadcn-area-legend/"
+        },
+        {
+          "label": "shadcn Area Chart - Linear",
+          "to": "/charts/catalog/charts/139-shadcn-area-linear/"
+        },
+        {
+          "label": "shadcn Area Chart - Stacked Expanded",
+          "to": "/charts/catalog/charts/140-shadcn-area-stacked-expand/"
+        },
+        {
+          "label": "shadcn Area Chart - Stacked",
+          "to": "/charts/catalog/charts/141-shadcn-area-stacked/"
+        },
+        {
+          "label": "shadcn Area Chart - Step",
+          "to": "/charts/catalog/charts/142-shadcn-area-step/"
+        },
+        {
+          "label": "shadcn Bar Chart - Active",
+          "to": "/charts/catalog/charts/143-shadcn-bar-active/"
+        },
+        {
+          "label": "shadcn Bar Chart",
+          "to": "/charts/catalog/charts/144-shadcn-bar-default/"
+        },
+        {
+          "label": "shadcn Bar Chart - Horizontal",
+          "to": "/charts/catalog/charts/145-shadcn-bar-horizontal/"
+        },
+        {
+          "label": "shadcn Bar Chart - Interactive",
+          "to": "/charts/catalog/charts/146-shadcn-bar-interactive/"
+        },
+        {
+          "label": "shadcn Bar Chart - Custom Label",
+          "to": "/charts/catalog/charts/147-shadcn-bar-label-custom/"
+        },
+        {
+          "label": "shadcn Bar Chart - Label",
+          "to": "/charts/catalog/charts/148-shadcn-bar-label/"
+        },
+        {
+          "label": "shadcn Bar Chart - Mixed",
+          "to": "/charts/catalog/charts/149-shadcn-bar-mixed/"
+        },
+        {
+          "label": "shadcn Bar Chart - Negative",
+          "to": "/charts/catalog/charts/150-shadcn-bar-negative/"
+        },
+        {
+          "label": "shadcn Bar Chart - Stacked + Legend",
+          "to": "/charts/catalog/charts/151-shadcn-bar-stacked/"
+        },
+        {
+          "label": "shadcn Line Chart",
+          "to": "/charts/catalog/charts/152-shadcn-line-default/"
+        },
+        {
+          "label": "shadcn Line Chart - Dots Colors",
+          "to": "/charts/catalog/charts/153-shadcn-line-dots-colors/"
+        },
+        {
+          "label": "shadcn Line Chart - Custom Dots",
+          "to": "/charts/catalog/charts/154-shadcn-line-dots-custom/"
+        },
+        {
+          "label": "shadcn Line Chart - Dots",
+          "to": "/charts/catalog/charts/155-shadcn-line-dots/"
+        },
+        {
+          "label": "shadcn Line Chart - Interactive",
+          "to": "/charts/catalog/charts/156-shadcn-line-interactive/"
+        },
+        {
+          "label": "shadcn Line Chart - Custom Label",
+          "to": "/charts/catalog/charts/157-shadcn-line-label-custom/"
+        },
+        {
+          "label": "shadcn Line Chart - Label",
+          "to": "/charts/catalog/charts/158-shadcn-line-label/"
+        },
+        {
+          "label": "shadcn Line Chart - Linear",
+          "to": "/charts/catalog/charts/159-shadcn-line-linear/"
+        },
+        {
+          "label": "shadcn Line Chart - Multiple",
+          "to": "/charts/catalog/charts/160-shadcn-line-multiple/"
+        },
+        {
+          "label": "shadcn Line Chart - Step",
+          "to": "/charts/catalog/charts/161-shadcn-line-step/"
+        },
+        {
+          "label": "shadcn Pie Chart - Donut Active",
+          "to": "/charts/catalog/charts/162-shadcn-pie-donut-active/"
+        },
+        {
+          "label": "shadcn Pie Chart - Donut",
+          "to": "/charts/catalog/charts/163-shadcn-pie-donut/"
+        },
+        {
+          "label": "shadcn Pie Chart - Interactive",
+          "to": "/charts/catalog/charts/164-shadcn-pie-interactive/"
+        },
+        {
+          "label": "shadcn Pie Chart - Custom Label",
+          "to": "/charts/catalog/charts/165-shadcn-pie-label-custom/"
+        },
+        {
+          "label": "shadcn Pie Chart - Label List",
+          "to": "/charts/catalog/charts/166-shadcn-pie-label-list/"
+        },
+        {
+          "label": "shadcn Pie Chart - Label",
+          "to": "/charts/catalog/charts/167-shadcn-pie-label/"
+        },
+        {
+          "label": "shadcn Pie Chart - Legend",
+          "to": "/charts/catalog/charts/168-shadcn-pie-legend/"
+        },
+        {
+          "label": "shadcn Pie Chart - Separator None",
+          "to": "/charts/catalog/charts/169-shadcn-pie-separator-none/"
+        },
+        {
+          "label": "shadcn Pie Chart",
+          "to": "/charts/catalog/charts/170-shadcn-pie-simple/"
+        },
+        {
+          "label": "shadcn Pie Chart - Stacked",
+          "to": "/charts/catalog/charts/171-shadcn-pie-stacked/"
+        },
+        {
+          "label": "shadcn Radar Chart",
+          "to": "/charts/catalog/charts/172-shadcn-radar-default/"
+        },
+        {
+          "label": "shadcn Radar Chart - Dots",
+          "to": "/charts/catalog/charts/173-shadcn-radar-dots/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Circle Filled",
+          "to": "/charts/catalog/charts/174-shadcn-radar-grid-circle-fill/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Circle - No lines",
+          "to": "/charts/catalog/charts/175-shadcn-radar-grid-circle-no-lines/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Circle",
+          "to": "/charts/catalog/charts/176-shadcn-radar-grid-circle/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Custom",
+          "to": "/charts/catalog/charts/177-shadcn-radar-grid-custom/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid Filled",
+          "to": "/charts/catalog/charts/178-shadcn-radar-grid-fill/"
+        },
+        {
+          "label": "shadcn Radar Chart - Grid None",
+          "to": "/charts/catalog/charts/179-shadcn-radar-grid-none/"
+        },
+        {
+          "label": "shadcn Radar Chart - Icons",
+          "to": "/charts/catalog/charts/180-shadcn-radar-icons/"
+        },
+        {
+          "label": "shadcn Radar Chart - Custom Label",
+          "to": "/charts/catalog/charts/181-shadcn-radar-label-custom/"
+        },
+        {
+          "label": "shadcn Radar Chart - Legend",
+          "to": "/charts/catalog/charts/182-shadcn-radar-legend/"
+        },
+        {
+          "label": "shadcn Radar Chart - Lines Only",
+          "to": "/charts/catalog/charts/183-shadcn-radar-lines-only/"
+        },
+        {
+          "label": "shadcn Radar Chart - Radius Axis",
+          "to": "/charts/catalog/charts/184-shadcn-radar-radius/"
+        },
+        {
+          "label": "shadcn Radial Chart - Grid",
+          "to": "/charts/catalog/charts/185-shadcn-radial-grid/"
+        },
+        {
+          "label": "shadcn Radial Chart - Label",
+          "to": "/charts/catalog/charts/186-shadcn-radial-label/"
+        },
+        {
+          "label": "shadcn Radial Chart - Shape",
+          "to": "/charts/catalog/charts/187-shadcn-radial-shape/"
+        },
+        {
+          "label": "shadcn Radial Chart",
+          "to": "/charts/catalog/charts/188-shadcn-radial-simple/"
+        },
+        {
+          "label": "shadcn Radial Chart - Stacked",
+          "to": "/charts/catalog/charts/189-shadcn-radial-stacked/"
+        },
+        {
+          "label": "shadcn Tooltip - Default",
+          "to": "/charts/catalog/charts/190-shadcn-tooltip-default/"
+        },
+        {
+          "label": "shadcn Tooltip - Formatter",
+          "to": "/charts/catalog/charts/191-shadcn-tooltip-formatter/"
+        },
+        {
+          "label": "shadcn Tooltip - Icons",
+          "to": "/charts/catalog/charts/192-shadcn-tooltip-icons/"
+        },
+        {
+          "label": "shadcn Tooltip - Line Indicator",
+          "to": "/charts/catalog/charts/193-shadcn-tooltip-indicator-line/"
+        },
+        {
+          "label": "shadcn Tooltip - No Indicator",
+          "to": "/charts/catalog/charts/194-shadcn-tooltip-indicator-none/"
+        },
+        {
+          "label": "shadcn Tooltip - Custom label",
+          "to": "/charts/catalog/charts/195-shadcn-tooltip-label-custom/"
+        },
+        {
+          "label": "shadcn Tooltip - Label Formatter",
+          "to": "/charts/catalog/charts/196-shadcn-tooltip-label-formatter/"
+        },
+        {
+          "label": "shadcn Tooltip - No Label",
+          "to": "/charts/catalog/charts/197-shadcn-tooltip-label-none/"
         }
       ]
     },

@@ -136,6 +136,18 @@ function CatalogApp() {
     )
   }
 
+  if (route.view === 'collection') {
+    return route.collectionId === 'shadcn' ? (
+      <ShadcnCollectionPage
+        dark={dark}
+        link={link}
+        setDark={setDark}
+      />
+    ) : (
+      <NotFound link={link} />
+    )
+  }
+
   if (route.view === 'case') {
     const entry = casesById.get(route.caseId)
     if (!entry) return <NotFound link={link} />
@@ -160,6 +172,243 @@ function CatalogApp() {
   }
 
   return <NotFound link={link} />
+}
+
+function ShadcnCollectionPage({
+  dark,
+  link,
+  setDark,
+}: {
+  dark: boolean
+  link: RouteLinkFactory
+  setDark: (value: boolean) => void
+}) {
+  const allEntries = useMemo(() => collectionCases('shadcn'), [])
+  const [search, setSearch] = useState('')
+  const [family, setFamily] = useState('all')
+  const [copied, setCopied] = useState(false)
+  const collectionFamilies = useMemo(
+    () =>
+      [...new Set(allEntries.map((entry) => entry.family))].sort((left, right) =>
+        left.localeCompare(right),
+      ),
+    [allEntries],
+  )
+  const entries = useMemo(
+    () =>
+      allEntries.filter((entry) => {
+        if (family !== 'all' && entry.family !== family) return false
+        if (!search) return true
+        return [entry.title, entry.family, entry.intent, ...entry.features]
+          .join(' ')
+          .toLowerCase()
+          .includes(search)
+      }),
+    [allEntries, family, search],
+  )
+  useDocumentMeta(
+    'shadcn charts · TanStack Charts',
+    'TanStack Charts implementations of the official shadcn chart catalog.',
+  )
+
+  useEffect(() => {
+    document.body.classList.add('shadcn-catalog')
+    return () => document.body.classList.remove('shadcn-catalog')
+  }, [])
+
+  return (
+    <>
+      <SiteHeader active="shadcn" link={link} />
+      <main className="shadcn-gallery">
+        <header className="shadcn-gallery-header">
+          <div>
+            <h1>shadcn charts</h1>
+            <p>{allEntries.length} examples, rebuilt with TanStack Charts.</p>
+          </div>
+          <div className="shadcn-install">
+            <code>npm install @tanstack/charts</code>
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard
+                  .writeText('npm install @tanstack/charts')
+                  .then(() => setCopied(true))
+              }}
+            >
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+        </header>
+        <section className="shadcn-gallery-controls" aria-label="Chart filters">
+          <label>
+            <span className="sr-only">Search charts</span>
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value.toLowerCase())}
+              placeholder="Search charts"
+            />
+          </label>
+          <nav aria-label="Chart families">
+            {['all', ...collectionFamilies].map((entry) => (
+              <button
+                aria-pressed={entry === family}
+                key={entry}
+                onClick={() => setFamily(entry)}
+                type="button"
+              >
+                {entry === 'all' ? 'All' : titleCase(entry)}
+              </button>
+            ))}
+          </nav>
+          <button type="button" onClick={() => setDark(!dark)}>
+            {dark ? 'Light mode' : 'Dark mode'}
+          </button>
+        </section>
+        <div aria-live="polite">
+          {entries.length ? (
+            <>
+              <p className="shadcn-result-count">
+                {entries.length} chart{entries.length === 1 ? '' : 's'}
+              </p>
+              <div className="shadcn-chart-grid">
+                {entries.map((entry) => (
+                  <ShadcnCollectionCard
+                    entry={entry}
+                    key={entry.id}
+                    link={link}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="empty">No charts match those filters.</p>
+          )}
+        </div>
+      </main>
+    </>
+  )
+}
+
+function ShadcnCollectionCard({
+  entry,
+  link,
+}: {
+  entry: ConformanceCaseMeta
+  link: RouteLinkFactory
+}) {
+  return (
+    <article className="shadcn-chart-card">
+      <ShadcnCollectionPreview entry={entry} />
+      <footer>
+        <nav aria-label={shadcnDisplayTitle(entry.title)}>
+          <CatalogLink {...link({ view: 'case', caseId: entry.id })}>
+            Code
+          </CatalogLink>
+          <a
+            href={link({ view: 'embed', caseId: entry.id }).href}
+            target="_blank"
+          >
+            Preview
+          </a>
+          <a href={entry.source.url} target="_blank" rel="noreferrer">
+            Original
+          </a>
+        </nav>
+      </footer>
+    </article>
+  )
+}
+
+function ShadcnCollectionPreview({ entry }: { entry: ConformanceCaseMeta }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || visible) return
+    const observer = new IntersectionObserver(
+      ([observation]) => {
+        if (!observation?.isIntersecting) return
+        setVisible(true)
+        observer.disconnect()
+      },
+      { rootMargin: '500px 0px' },
+    )
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [visible])
+
+  useEffect(() => {
+    if (!visible) return
+    let active = true
+    let handle: ConformanceHandle | undefined
+    let resizeObserver: ResizeObserver | undefined
+    let cardResizeObserver: ResizeObserver | undefined
+    const mount = async () => {
+      try {
+        await document.fonts?.ready
+        const implementation = await loadTanStackImplementation(entry.id)
+        const container = containerRef.current
+        if (!active || !implementation || !container) return
+        container.replaceChildren()
+        let width = Math.max(1, container.clientWidth)
+        const height = caseChartHeight(entry)
+        handle = implementation.mount(container, {
+          width,
+          height,
+          revision: 0,
+          interactive: true,
+        })
+
+        const card = container.querySelector<HTMLElement>('.sc-card')
+        if (card) {
+          const fitPreviewToCard = () => {
+            const cardHeight = Math.ceil(card.getBoundingClientRect().height)
+            if (cardHeight > 0) container.style.height = `${cardHeight}px`
+          }
+          fitPreviewToCard()
+          cardResizeObserver = new ResizeObserver(fitPreviewToCard)
+          cardResizeObserver.observe(card)
+        }
+
+        resizeObserver = new ResizeObserver(() => {
+          const nextWidth = Math.max(1, container.clientWidth)
+          if (nextWidth === width) return
+          width = nextWidth
+          handle?.update({
+            width,
+            height,
+            revision: 0,
+            interactive: true,
+          })
+        })
+        resizeObserver.observe(container)
+      } catch (reason) {
+        if (!active) return
+        setError(reason instanceof Error ? reason.message : String(reason))
+      }
+    }
+    void mount()
+    return () => {
+      active = false
+      cardResizeObserver?.disconnect()
+      resizeObserver?.disconnect()
+      handle?.destroy()
+    }
+  }, [entry, visible])
+
+  return (
+    <div
+      className="shadcn-chart-preview"
+      data-case-id={entry.id}
+      ref={containerRef}
+      style={{ height: caseChartHeight(entry) }}
+    >
+      <span>{error ? `Renderer failed: ${error}` : 'Loading chart…'}</span>
+    </div>
+  )
 }
 
 interface SharedControls {
@@ -315,9 +564,18 @@ function CasePage({
   setDark: (value: boolean) => void
   update: () => void
 }) {
-  const index = conformanceCases.indexOf(entry)
-  const previous = conformanceCases[index - 1]
-  const next = conformanceCases[index + 1]
+  const siblings = entry.collections?.includes('shadcn')
+    ? collectionCases('shadcn')
+    : conformanceCases
+  const index = siblings.indexOf(entry)
+  const previous = siblings[index - 1]
+  const next = siblings[index + 1]
+  const backRoute = entry.collections?.includes('shadcn')
+    ? ({ view: 'collection', collectionId: 'shadcn' } as const)
+    : ({ view: 'index' } as const)
+  const backLabel = entry.collections?.includes('shadcn')
+    ? 'shadcn charts'
+    : 'Catalog'
   useDocumentMeta(
     `${entry.title} · TanStack Charts Catalog`,
     comparisonMode
@@ -330,8 +588,8 @@ function CasePage({
       <SiteHeader link={link} />
       <header className="detail-header">
         <div>
-          <CatalogLink className="back-link" {...link({ view: 'index' })}>
-            ← Catalog
+          <CatalogLink className="back-link" {...link(backRoute)}>
+            ← {backLabel}
           </CatalogLink>
           <p className="case-index">
             {String(entry.order).padStart(2, '0')} · {entry.family}
@@ -489,7 +747,8 @@ function CaseCard({
 }) {
   const referenceRenderer = getConformanceReferenceRenderer(entry)
   const renderers = catalogRenderers(referenceRenderer, comparisonMode)
-  const docsDirective = `<!-- ::chart-example id=${entry.id} height=${chartHeight} -->`
+  const height = caseChartHeight(entry)
+  const docsDirective = `<!-- ::chart-example id=${entry.id} height=${height} -->`
 
   return (
     <article className="case" id={`case-${entry.id}`}>
@@ -573,9 +832,10 @@ function RendererPanel({
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const handleRef = useRef<ConformanceHandle>(null)
+  const height = caseChartHeight(entry)
   const inputRef = useRef<ConformanceInput>({
     width: chartWidth,
-    height: chartHeight,
+    height,
     revision,
   })
   const [metric, setMetric] = useState('pending')
@@ -586,7 +846,7 @@ function RendererPanel({
     'pending',
   )
   const [error, setError] = useState('')
-  inputRef.current = { width: chartWidth, height: chartHeight, revision }
+  inputRef.current = { width: chartWidth, height, revision }
 
   useEffect(() => {
     let active = true
@@ -659,7 +919,7 @@ function RendererPanel({
       {state === 'gap' ? (
         <div
           className="chart"
-          style={{ width: chartWidth, minHeight: chartHeight }}
+          style={{ width: chartWidth, minHeight: height }}
         >
           <p className="gap">
             Not implemented. This is a recorded capability gap.
@@ -668,7 +928,7 @@ function RendererPanel({
       ) : state === 'error' ? (
         <div
           className="chart"
-          style={{ width: chartWidth, minHeight: chartHeight }}
+          style={{ width: chartWidth, minHeight: height }}
         >
           <p className="gap">{error}</p>
         </div>
@@ -676,7 +936,7 @@ function RendererPanel({
         <div
           className="chart"
           ref={containerRef}
-          style={{ width: chartWidth, minHeight: chartHeight }}
+          style={{ width: chartWidth, minHeight: height }}
         />
       )}
       <details className="source">
@@ -691,7 +951,11 @@ function RendererPanel({
 
 function EmbedPage({ entry }: { entry: ConformanceCaseMeta }) {
   const params = new URLSearchParams(window.location.search)
-  const height = parseChartEmbedHeight(params.get('height'))
+  const requestedHeight = params.get('height')
+  const height =
+    requestedHeight === null
+      ? caseChartHeight(entry)
+      : parseChartEmbedHeight(requestedHeight)
   const revision = parseChartEmbedRevision(params.get('revision'))
   const preview = params.get('preview') === '1'
   const parentOrigin = resolveChartEmbedParentOrigin(document.referrer)
@@ -820,7 +1084,7 @@ function SiteHeader({
   active,
   link,
 }: {
-  active?: 'catalog' | 'all'
+  active?: 'catalog' | 'all' | 'shadcn'
   link: RouteLinkFactory
 }) {
   return (
@@ -853,6 +1117,12 @@ function SiteHeader({
           {...link({ view: 'all' })}
         >
           All charts
+        </CatalogLink>
+        <CatalogLink
+          aria-current={active === 'shadcn' ? 'page' : undefined}
+          {...link({ view: 'collection', collectionId: 'shadcn' })}
+        >
+          shadcn
         </CatalogLink>
       </nav>
     </header>
@@ -1037,6 +1307,39 @@ function filterCases(search: string, family: string): ConformanceCaseMeta[] {
       .toLowerCase()
     return text.includes(search)
   })
+}
+
+function collectionCases(collectionId: string): ConformanceCaseMeta[] {
+  const familyOrder = [
+    'dashboard',
+    'area',
+    'bar',
+    'line',
+    'pie',
+    'radar',
+    'radial',
+    'tooltip',
+  ]
+  return conformanceCases
+    .filter((entry) => entry.collections?.includes(collectionId))
+    .sort(
+      (left, right) =>
+        familyOrder.indexOf(left.family) - familyOrder.indexOf(right.family) ||
+        left.source.url.localeCompare(right.source.url),
+    )
+}
+
+function shadcnDisplayTitle(title: string): string {
+  const display = title.replace(/^shadcn\s+/iu, '')
+  return display.charAt(0).toUpperCase() + display.slice(1)
+}
+
+function titleCase(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function caseChartHeight(entry: ConformanceCaseMeta): number {
+  return entry.height ?? chartHeight
 }
 
 function readCatalogLocation() {

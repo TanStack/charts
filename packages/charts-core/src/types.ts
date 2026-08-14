@@ -1403,6 +1403,8 @@ export interface ChartTooltipOptions<
   TYValue extends ChartValue = ChartValue,
 > {
   className?: string
+  /** Animates tooltip entry, movement, and exit. Inherits a static chart-level transition when omitted. */
+  motion?: false | ChartMotionTransition
   portal?: ChartTooltipPortalInput
   items?: readonly ChartTooltipItem<TDatum, TXValue, TYValue>[]
   sort?: ChartTooltipSort<TDatum, TXValue, TYValue>

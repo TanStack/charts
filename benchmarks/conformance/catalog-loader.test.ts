@@ -237,6 +237,28 @@ describe('loadCatalogSourceClosure', () => {
     expect(closure.roles.fixture.files).toBe(1)
   })
 
+  it('includes reusable shadcn chart primitives and their data', async () => {
+    const modules = {
+      './cases/example/tanstack.ts': async () =>
+        "import { example } from '../../shared/shadcn-catalog-tanstack'\nexport { example }\n",
+      './shared/shadcn-catalog-tanstack.ts': async () =>
+        "import { rows } from './shadcn-catalog-data'\nexport const example = rows\n",
+      './shared/shadcn-catalog-data.ts': async () =>
+        'export const rows = [1, 2, 3]\n',
+    }
+
+    const closure = await loadCatalogSourceClosure(
+      modules,
+      './cases/example/tanstack.ts',
+    )
+
+    expect(closure.files.map(({ kind, path }) => ({ kind, path }))).toEqual([
+      { kind: 'entry', path: 'tanstack.ts' },
+      { kind: 'support', path: 'shared/shadcn-catalog-tanstack.ts' },
+      { kind: 'fixture', path: 'shared/shadcn-catalog-data.ts' },
+    ])
+  })
+
   it('includes case-local model modules as authored support', async () => {
     const entrySource =
       "import { selectedRows } from './model'\nexport { selectedRows }\n"

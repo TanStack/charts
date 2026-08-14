@@ -255,6 +255,25 @@ transient tooltip. Click, Enter, or Space can still pin the focused point; only
 the pinned surface and adapter body are mounted. The default is
 `visibility: 'focus'`.
 
+## Tooltip motion
+
+A static chart motion transition also animates tooltip entry, movement between
+points, and exit:
+
+```ts
+const definition = defineChart({
+  marks,
+  motion: {
+    transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+  },
+  tooltip,
+})
+```
+
+Set `tooltip.motion` to another transition to override the chart transition, or
+set it to `false` to keep the tooltip immediate. Reduced-motion preferences
+disable these animations.
+
 ## Application-owned pointer timing
 
 Set definition `pointer: false` when the application decides when inspection

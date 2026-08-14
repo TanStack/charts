@@ -173,6 +173,74 @@ describe('renderer-neutral chart host', () => {
     expect(container.childElementCount).toBe(0)
   })
 
+  it('inherits chart spring motion for tooltip entry and exit', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      'animate',
+    )
+    const animations: Array<{
+      cancel: ReturnType<typeof vi.fn>
+      onfinish: (() => void) | null
+    }> = []
+    const animate = vi.fn(
+      (frames: Keyframe[], options: KeyframeAnimationOptions) => {
+        const animation = { cancel: vi.fn(), onfinish: null }
+        animations.push(animation)
+        return animation as unknown as Animation
+      },
+    )
+    Object.defineProperty(window.HTMLElement.prototype, 'animate', {
+      configurable: true,
+      value: animate,
+    })
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        motion: {
+          transition: {
+            type: 'spring',
+            stiffness: 170,
+            damping: 18,
+            mass: 1,
+          },
+        },
+        tooltip: tooltipExtension,
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Spring tooltip',
+    })
+
+    try {
+      fake.element.dispatchEvent(
+        new MouseEvent('pointermove', {
+          bubbles: true,
+          clientX: 123,
+          clientY: 45,
+        }),
+      )
+      const enterFrames = animate.mock.calls[0]?.[0]
+      const enterOptions = animate.mock.calls[0]?.[1]
+      expect(enterFrames?.length).toBeGreaterThan(2)
+      expect(enterOptions).toMatchObject({ easing: 'linear', fill: 'both' })
+
+      fake.element.dispatchEvent(
+        new MouseEvent('mouseleave', { bubbles: true }),
+      )
+      const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+      expect(animate).toHaveBeenCalledTimes(2)
+      expect(tooltip?.hidden).toBe(false)
+      animations.at(-1)?.onfinish?.()
+      expect(tooltip?.hidden).toBe(true)
+    } finally {
+      host.destroy()
+      restoreProperty(window.HTMLElement.prototype, 'animate', descriptor)
+    }
+  })
+
   it('delegates controlled client coordinate conversion to the mounted surface', () => {
     const fake = createFakeRenderer()
     const container = document.createElement('div')

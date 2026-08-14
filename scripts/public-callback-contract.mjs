@@ -42,8 +42,14 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/band.ts:BandXOptions', 'color fill key x z'],
     ['@tanstack/charts:src/band.ts:BandYOptions', 'color fill key y z'],
-    ['@tanstack/charts:src/bar.ts:BarXOptions', 'color fill key x x1 x2 y z'],
-    ['@tanstack/charts:src/bar.ts:BarYOptions', 'color fill key x y y1 y2 z'],
+    [
+      '@tanstack/charts:src/bar.ts:BarXOptions',
+      'color fill key stroke strokeDasharray x x1 x2 y z',
+    ],
+    [
+      '@tanstack/charts:src/bar.ts:BarYOptions',
+      'color fill key stroke strokeDasharray x y y1 y2 z',
+    ],
     ['@tanstack/charts:src/box.ts:BoxOptions', 'key'],
     ['@tanstack/charts:src/box.ts:BoxXCallOptions', 'motion'],
     ['@tanstack/charts:src/box.ts:BoxXOptions', 'x y'],
@@ -614,7 +620,7 @@ const callbackInventory = {
     ['@tanstack/charts:src/dom-types.ts:ChartTooltipExtension', 'create'],
     [
       '@tanstack/charts:src/dom-types.ts:ChartTooltipExtensionContext',
-      'bodyChange dismiss',
+      'bodyChange dismiss motion',
     ],
     [
       '@tanstack/charts:src/dom-types.ts:ChartTooltipExtensionInstance',

@@ -10630,6 +10630,2488 @@
           "path": "benchmarks/conformance/cases/126-drillable-sunburst/recharts.ts"
         }
       }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "height": 860,
+      "order": 1220,
+      "id": "121-shadcn-dashboard",
+      "title": "shadcn dashboard",
+      "family": "application",
+      "intent": "Reproduce shadcn/ui's canonical dashboard shell and interactive stacked-area card while replacing only Recharts with TanStack Charts.",
+      "support": "native",
+      "features": [
+        "responsive dashboard shell",
+        "stacked area chart",
+        "natural curves",
+        "linear gradient fills",
+        "grouped tooltip",
+        "responsive time-range controls",
+        "CSS-variable theming",
+        "application-level catalog viewport"
+      ],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui dashboard-01",
+        "url": "https://ui.shadcn.com/examples/dashboard"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui dashboard-01 layout and data. Keep the dashboard shell independent of the chart renderer, then implement its filtered, stacked, gradient area chart with TanStack Charts.",
+        "maintain": "Preserve the official dashboard data, responsive sidebar, metric cards, time-range behavior, table shell, natural stacked-area geometry, gradients, axis labels, tooltip content, light and dark themes, and a renderer-only compact catalog preview."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/121-shadcn-dashboard/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/121-shadcn-dashboard/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1230,
+      "id": "122-shadcn-bar-multiple",
+      "title": "shadcn bar chart – multiple",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's grouped bar example while replacing Recharts with TanStack Charts.",
+      "support": "native",
+      "features": [
+        "grouped bars",
+        "rounded corners",
+        "horizontal grid",
+        "grouped tooltip",
+        "shadcn card shell"
+      ],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 12
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-multiple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-multiple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-multiple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, grouped layout, axis treatment, tooltip labels, card dimensions, footer, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/122-shadcn-bar-multiple/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/122-shadcn-bar-multiple/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1240,
+      "id": "123-shadcn-pie-donut-text",
+      "title": "shadcn pie chart – donut with text",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's donut-with-center-text example while replacing Recharts with TanStack Charts.",
+      "support": "native",
+      "features": [
+        "donut chart",
+        "center text",
+        "sector separators",
+        "tooltip",
+        "shadcn card shell"
+      ],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        },
+        {
+          "role": "text",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-donut-text",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-donut-text"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-donut-text card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream browser data, donut radii, separators, center total and label, tooltip, card dimensions, footer, and themes."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/123-shadcn-pie-donut-text/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/123-shadcn-pie-donut-text/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1250,
+      "id": "124-shadcn-radar-multiple",
+      "title": "shadcn radar chart – multiple",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's multi-series radar example while replacing Recharts with TanStack Charts.",
+      "support": "native",
+      "features": [
+        "radar chart",
+        "multiple series",
+        "polygon grid",
+        "angle labels",
+        "grouped tooltip",
+        "shadcn card shell"
+      ],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-multiple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-multiple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-multiple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, polygon guide, angle labels, two filled profiles, tooltip, card dimensions, footer, and themes."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/124-shadcn-radar-multiple/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/124-shadcn-radar-multiple/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1260,
+      "id": "125-shadcn-radial-text",
+      "title": "shadcn radial chart – text",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's partial radial chart with center text while replacing Recharts with TanStack Charts.",
+      "support": "native",
+      "features": [
+        "partial radial bar",
+        "rounded caps",
+        "background track",
+        "center text",
+        "shadcn card shell"
+      ],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 2
+        },
+        {
+          "role": "text",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-text",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-text"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-text card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream value, 250-degree sweep, 80/90 radii, rounded track, center text, card dimensions, footer, and themes."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/125-shadcn-radial-text/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/125-shadcn-radial-text/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1270,
+      "id": "126-shadcn-tooltip-advanced",
+      "title": "shadcn tooltip – advanced",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's stacked-bar card and custom total tooltip while replacing Recharts with TanStack Charts.",
+      "support": "native",
+      "features": [
+        "stacked bars",
+        "rounded corners",
+        "rich tooltip body",
+        "computed total",
+        "default focus",
+        "shadcn card shell"
+      ],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 12
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-advanced",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-advanced"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-advanced card and data with TanStack Charts and its React tooltip composition entry.",
+        "maintain": "Preserve the pinned upstream data, stack order, weekday axis, initial focused day, 180-pixel rich tooltip, row labels, kcal units, total, card dimensions, and themes."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/126-shadcn-tooltip-advanced/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/126-shadcn-tooltip-advanced/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1280,
+      "id": "127-shadcn-area-axes",
+      "title": "shadcn Area Chart - Axes",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-axes example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "axes", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-axes",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-axes"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-axes card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area axes treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/127-shadcn-area-axes/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/127-shadcn-area-axes/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1290,
+      "id": "128-shadcn-area-default",
+      "title": "shadcn Area Chart",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area default treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/128-shadcn-area-default/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/128-shadcn-area-default/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1300,
+      "id": "129-shadcn-area-gradient",
+      "title": "shadcn Area Chart - Gradient",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-gradient example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "gradient", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-gradient",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-gradient"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-gradient card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area gradient treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/129-shadcn-area-gradient/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/129-shadcn-area-gradient/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1310,
+      "id": "130-shadcn-area-icons",
+      "title": "shadcn Area Chart - Icons",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-icons example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "icons", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-icons",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-icons"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-icons card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area icons treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/130-shadcn-area-icons/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/130-shadcn-area-icons/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1320,
+      "id": "131-shadcn-area-interactive",
+      "title": "shadcn Area Chart - Interactive",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-interactive example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "interactive", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-interactive"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-interactive card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area interactive treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/131-shadcn-area-interactive/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/131-shadcn-area-interactive/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1330,
+      "id": "132-shadcn-area-legend",
+      "title": "shadcn Area Chart - Legend",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-legend example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "legend", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-legend",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-legend"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-legend card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area legend treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/132-shadcn-area-legend/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/132-shadcn-area-legend/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1340,
+      "id": "133-shadcn-area-linear",
+      "title": "shadcn Area Chart - Linear",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-linear example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "linear", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-linear",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-linear"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-linear card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area linear treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/133-shadcn-area-linear/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/133-shadcn-area-linear/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1350,
+      "id": "134-shadcn-area-stacked-expand",
+      "title": "shadcn Area Chart - Stacked Expanded",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-stacked-expand example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "stacked expand", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 3
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-stacked-expand",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-stacked-expand"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-stacked-expand card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area stacked expand treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/134-shadcn-area-stacked-expand/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/134-shadcn-area-stacked-expand/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1360,
+      "id": "135-shadcn-area-stacked",
+      "title": "shadcn Area Chart - Stacked",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-stacked example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "stacked", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-stacked",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-stacked"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-stacked card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area stacked treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/135-shadcn-area-stacked/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/135-shadcn-area-stacked/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1370,
+      "id": "136-shadcn-area-step",
+      "title": "shadcn Area Chart - Step",
+      "family": "area",
+      "intent": "Reproduce shadcn/ui's chart-area-step example with TanStack Charts.",
+      "support": "native",
+      "features": ["area chart", "step", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "area",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-area-step",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-area-step"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-area-step card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, area step treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/136-shadcn-area-step/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/136-shadcn-area-step/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1380,
+      "id": "137-shadcn-bar-active",
+      "title": "shadcn Bar Chart - Active",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-active example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "active", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-active",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-active"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-active card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar active treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/137-shadcn-bar-active/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/137-shadcn-bar-active/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1390,
+      "id": "138-shadcn-bar-default",
+      "title": "shadcn Bar Chart",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar default treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/138-shadcn-bar-default/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/138-shadcn-bar-default/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1400,
+      "id": "139-shadcn-bar-horizontal",
+      "title": "shadcn Bar Chart - Horizontal",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-horizontal example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "horizontal", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-horizontal",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-horizontal"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-horizontal card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar horizontal treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/139-shadcn-bar-horizontal/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/139-shadcn-bar-horizontal/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1410,
+      "id": "140-shadcn-bar-interactive",
+      "title": "shadcn Bar Chart - Interactive",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-interactive example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "interactive", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-interactive"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-interactive card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar interactive treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/140-shadcn-bar-interactive/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/140-shadcn-bar-interactive/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1420,
+      "id": "141-shadcn-bar-label-custom",
+      "title": "shadcn Bar Chart - Custom Label",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/141-shadcn-bar-label-custom/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/141-shadcn-bar-label-custom/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1430,
+      "id": "142-shadcn-bar-label",
+      "title": "shadcn Bar Chart - Label",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-label example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "label", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-label",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-label"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-label card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar label treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/142-shadcn-bar-label/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/142-shadcn-bar-label/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1440,
+      "id": "143-shadcn-bar-mixed",
+      "title": "shadcn Bar Chart - Mixed",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-mixed example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "mixed", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-mixed",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-mixed"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-mixed card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar mixed treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/143-shadcn-bar-mixed/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/143-shadcn-bar-mixed/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1450,
+      "id": "144-shadcn-bar-negative",
+      "title": "shadcn Bar Chart - Negative",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-negative example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "negative", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 6
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-negative",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-negative"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-negative card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar negative treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/144-shadcn-bar-negative/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/144-shadcn-bar-negative/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1460,
+      "id": "145-shadcn-bar-stacked",
+      "title": "shadcn Bar Chart - Stacked + Legend",
+      "family": "bar",
+      "intent": "Reproduce shadcn/ui's chart-bar-stacked example with TanStack Charts.",
+      "support": "native",
+      "features": ["bar chart", "stacked", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 12
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-bar-stacked",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-bar-stacked"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-bar-stacked card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, bar stacked treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/145-shadcn-bar-stacked/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/145-shadcn-bar-stacked/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1470,
+      "id": "146-shadcn-line-default",
+      "title": "shadcn Line Chart",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line default treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/146-shadcn-line-default/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/146-shadcn-line-default/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1480,
+      "id": "147-shadcn-line-dots-colors",
+      "title": "shadcn Line Chart - Dots Colors",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-dots-colors example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "dots colors", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-dots-colors",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-dots-colors"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-dots-colors card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line dots colors treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/147-shadcn-line-dots-colors/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/147-shadcn-line-dots-colors/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1490,
+      "id": "148-shadcn-line-dots-custom",
+      "title": "shadcn Line Chart - Custom Dots",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-dots-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "dots custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-dots-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-dots-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-dots-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line dots custom treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/148-shadcn-line-dots-custom/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/148-shadcn-line-dots-custom/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1500,
+      "id": "149-shadcn-line-dots",
+      "title": "shadcn Line Chart - Dots",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-dots example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "dots", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-dots",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-dots"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-dots card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line dots treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/149-shadcn-line-dots/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/149-shadcn-line-dots/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1510,
+      "id": "150-shadcn-line-interactive",
+      "title": "shadcn Line Chart - Interactive",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-interactive example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "interactive", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-interactive"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-interactive card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line interactive treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/150-shadcn-line-interactive/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/150-shadcn-line-interactive/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1520,
+      "id": "151-shadcn-line-label-custom",
+      "title": "shadcn Line Chart - Custom Label",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/151-shadcn-line-label-custom/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/151-shadcn-line-label-custom/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1530,
+      "id": "152-shadcn-line-label",
+      "title": "shadcn Line Chart - Label",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-label example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "label", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-label",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-label"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-label card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line label treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/152-shadcn-line-label/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/152-shadcn-line-label/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1540,
+      "id": "153-shadcn-line-linear",
+      "title": "shadcn Line Chart - Linear",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-linear example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "linear", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-linear",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-linear"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-linear card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line linear treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/153-shadcn-line-linear/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/153-shadcn-line-linear/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1550,
+      "id": "154-shadcn-line-multiple",
+      "title": "shadcn Line Chart - Multiple",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-multiple example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "multiple", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-multiple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-multiple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-multiple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line multiple treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/154-shadcn-line-multiple/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/154-shadcn-line-multiple/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1560,
+      "id": "155-shadcn-line-step",
+      "title": "shadcn Line Chart - Step",
+      "family": "line",
+      "intent": "Reproduce shadcn/ui's chart-line-step example with TanStack Charts.",
+      "support": "native",
+      "features": ["line chart", "step", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "line",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-line-step",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-line-step"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-line-step card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, line step treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/155-shadcn-line-step/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/155-shadcn-line-step/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1570,
+      "id": "156-shadcn-pie-donut-active",
+      "title": "shadcn Pie Chart - Donut Active",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-donut-active example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "donut active", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-donut-active",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-donut-active"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-donut-active card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie donut active treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/156-shadcn-pie-donut-active/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/156-shadcn-pie-donut-active/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1580,
+      "id": "157-shadcn-pie-donut",
+      "title": "shadcn Pie Chart - Donut",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-donut example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "donut", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-donut",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-donut"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-donut card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie donut treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/157-shadcn-pie-donut/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/157-shadcn-pie-donut/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1590,
+      "id": "158-shadcn-pie-interactive",
+      "title": "shadcn Pie Chart - Interactive",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-interactive example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "interactive", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-interactive",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-interactive"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-interactive card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie interactive treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/158-shadcn-pie-interactive/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/158-shadcn-pie-interactive/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1600,
+      "id": "159-shadcn-pie-label-custom",
+      "title": "shadcn Pie Chart - Custom Label",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/159-shadcn-pie-label-custom/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/159-shadcn-pie-label-custom/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1610,
+      "id": "160-shadcn-pie-label-list",
+      "title": "shadcn Pie Chart - Label List",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-label-list example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "label list", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-label-list",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-label-list"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-label-list card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie label list treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/160-shadcn-pie-label-list/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/160-shadcn-pie-label-list/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1620,
+      "id": "161-shadcn-pie-label",
+      "title": "shadcn Pie Chart - Label",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-label example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "label", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-label",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-label"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-label card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie label treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/161-shadcn-pie-label/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/161-shadcn-pie-label/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1630,
+      "id": "162-shadcn-pie-legend",
+      "title": "shadcn Pie Chart - Legend",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-legend example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "legend", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-legend",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-legend"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-legend card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie legend treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/162-shadcn-pie-legend/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/162-shadcn-pie-legend/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1640,
+      "id": "163-shadcn-pie-separator-none",
+      "title": "shadcn Pie Chart - Separator None",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-separator-none example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "separator none", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-separator-none",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-separator-none"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-separator-none card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie separator none treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/163-shadcn-pie-separator-none/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/163-shadcn-pie-separator-none/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1650,
+      "id": "164-shadcn-pie-simple",
+      "title": "shadcn Pie Chart",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-simple example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-simple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-simple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-simple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie simple treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/164-shadcn-pie-simple/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/164-shadcn-pie-simple/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1660,
+      "id": "165-shadcn-pie-stacked",
+      "title": "shadcn Pie Chart - Stacked",
+      "family": "pie",
+      "intent": "Reproduce shadcn/ui's chart-pie-stacked example with TanStack Charts.",
+      "support": "native",
+      "features": ["pie chart", "stacked", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "arc",
+          "count": 5
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-pie-stacked",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-pie-stacked"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-pie-stacked card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, pie stacked treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/165-shadcn-pie-stacked/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/165-shadcn-pie-stacked/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1670,
+      "id": "166-shadcn-radar-default",
+      "title": "shadcn Radar Chart",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar default treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/166-shadcn-radar-default/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/166-shadcn-radar-default/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1680,
+      "id": "167-shadcn-radar-dots",
+      "title": "shadcn Radar Chart - Dots",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-dots example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "dots", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-dots",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-dots"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-dots card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar dots treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/167-shadcn-radar-dots/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/167-shadcn-radar-dots/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1690,
+      "id": "168-shadcn-radar-grid-circle-fill",
+      "title": "shadcn Radar Chart - Grid Circle Filled",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-circle-fill example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid circle fill", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-circle-fill",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-circle-fill"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-circle-fill card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid circle fill treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/168-shadcn-radar-grid-circle-fill/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/168-shadcn-radar-grid-circle-fill/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1700,
+      "id": "169-shadcn-radar-grid-circle-no-lines",
+      "title": "shadcn Radar Chart - Grid Circle - No lines",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-circle-no-lines example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid circle no lines", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-circle-no-lines",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-circle-no-lines"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-circle-no-lines card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid circle no lines treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/169-shadcn-radar-grid-circle-no-lines/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/169-shadcn-radar-grid-circle-no-lines/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1710,
+      "id": "170-shadcn-radar-grid-circle",
+      "title": "shadcn Radar Chart - Grid Circle",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-circle example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid circle", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-circle",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-circle"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-circle card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid circle treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/170-shadcn-radar-grid-circle/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/170-shadcn-radar-grid-circle/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1720,
+      "id": "171-shadcn-radar-grid-custom",
+      "title": "shadcn Radar Chart - Grid Custom",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid custom treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/171-shadcn-radar-grid-custom/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/171-shadcn-radar-grid-custom/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1730,
+      "id": "172-shadcn-radar-grid-fill",
+      "title": "shadcn Radar Chart - Grid Filled",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-fill example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid fill", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-fill",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-fill"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-fill card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid fill treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/172-shadcn-radar-grid-fill/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/172-shadcn-radar-grid-fill/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1740,
+      "id": "173-shadcn-radar-grid-none",
+      "title": "shadcn Radar Chart - Grid None",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-grid-none example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "grid none", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-grid-none",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-grid-none"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-grid-none card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar grid none treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/173-shadcn-radar-grid-none/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/173-shadcn-radar-grid-none/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1750,
+      "id": "174-shadcn-radar-icons",
+      "title": "shadcn Radar Chart - Icons",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-icons example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "icons", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-icons",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-icons"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-icons card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar icons treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/174-shadcn-radar-icons/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/174-shadcn-radar-icons/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1760,
+      "id": "175-shadcn-radar-label-custom",
+      "title": "shadcn Radar Chart - Custom Label",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/175-shadcn-radar-label-custom/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/175-shadcn-radar-label-custom/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1770,
+      "id": "176-shadcn-radar-legend",
+      "title": "shadcn Radar Chart - Legend",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-legend example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "legend", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 2
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-legend",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-legend"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-legend card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar legend treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/176-shadcn-radar-legend/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/176-shadcn-radar-legend/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1780,
+      "id": "177-shadcn-radar-lines-only",
+      "title": "shadcn Radar Chart - Lines Only",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-lines-only example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "lines only", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-lines-only",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-lines-only"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-lines-only card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar lines only treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/177-shadcn-radar-lines-only/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/177-shadcn-radar-lines-only/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1790,
+      "id": "178-shadcn-radar-radius",
+      "title": "shadcn Radar Chart - Radius Axis",
+      "family": "radar",
+      "intent": "Reproduce shadcn/ui's chart-radar-radius example with TanStack Charts.",
+      "support": "native",
+      "features": ["radar chart", "radius", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "radar",
+          "count": 1
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radar-radius",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radar-radius"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radar-radius card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radar radius treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/178-shadcn-radar-radius/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/178-shadcn-radar-radius/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1800,
+      "id": "179-shadcn-radial-grid",
+      "title": "shadcn Radial Chart - Grid",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-grid example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "grid", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 5,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-grid",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-grid"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-grid card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial grid treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/179-shadcn-radial-grid/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/179-shadcn-radial-grid/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1810,
+      "id": "180-shadcn-radial-label",
+      "title": "shadcn Radial Chart - Label",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-label example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "label", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 5,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-label",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-label"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-label card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial label treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/180-shadcn-radial-label/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/180-shadcn-radial-label/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1820,
+      "id": "181-shadcn-radial-shape",
+      "title": "shadcn Radial Chart - Shape",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-shape example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "shape", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 5,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-shape",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-shape"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-shape card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial shape treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/181-shadcn-radial-shape/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/181-shadcn-radial-shape/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1830,
+      "id": "182-shadcn-radial-simple",
+      "title": "shadcn Radial Chart",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-simple example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 1,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-simple",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-simple"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-simple card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial simple treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/182-shadcn-radial-simple/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/182-shadcn-radial-simple/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1840,
+      "id": "183-shadcn-radial-stacked",
+      "title": "shadcn Radial Chart - Stacked",
+      "family": "radial",
+      "intent": "Reproduce shadcn/ui's chart-radial-stacked example with TanStack Charts.",
+      "support": "native",
+      "features": ["radial chart", "stacked", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 5,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-radial-stacked",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-radial-stacked"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-radial-stacked card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, radial stacked treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/183-shadcn-radial-stacked/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/183-shadcn-radial-stacked/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1850,
+      "id": "184-shadcn-tooltip-default",
+      "title": "shadcn Tooltip - Default",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-default example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-default",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-default"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-default card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip default treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/184-shadcn-tooltip-default/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/184-shadcn-tooltip-default/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1860,
+      "id": "185-shadcn-tooltip-formatter",
+      "title": "shadcn Tooltip - Formatter",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-formatter example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "formatter", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-formatter",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-formatter"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-formatter card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip formatter treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/185-shadcn-tooltip-formatter/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/185-shadcn-tooltip-formatter/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1870,
+      "id": "186-shadcn-tooltip-icons",
+      "title": "shadcn Tooltip - Icons",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-icons example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "icons", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-icons",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-icons"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-icons card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip icons treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/186-shadcn-tooltip-icons/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/186-shadcn-tooltip-icons/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1880,
+      "id": "187-shadcn-tooltip-indicator-line",
+      "title": "shadcn Tooltip - Line Indicator",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-indicator-line example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "indicator line", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-indicator-line",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-indicator-line"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-indicator-line card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip indicator line treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/187-shadcn-tooltip-indicator-line/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/187-shadcn-tooltip-indicator-line/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1890,
+      "id": "188-shadcn-tooltip-indicator-none",
+      "title": "shadcn Tooltip - No Indicator",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-indicator-none example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "indicator none", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-indicator-none",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-indicator-none"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-indicator-none card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip indicator none treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/188-shadcn-tooltip-indicator-none/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/188-shadcn-tooltip-indicator-none/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1900,
+      "id": "189-shadcn-tooltip-label-custom",
+      "title": "shadcn Tooltip - Custom label",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-label-custom example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "label custom", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-label-custom",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-label-custom"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-label-custom card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip label custom treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/189-shadcn-tooltip-label-custom/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/189-shadcn-tooltip-label-custom/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1910,
+      "id": "190-shadcn-tooltip-label-formatter",
+      "title": "shadcn Tooltip - Label Formatter",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-label-formatter example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "label formatter", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-label-formatter",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-label-formatter"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-label-formatter card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip label formatter treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/190-shadcn-tooltip-label-formatter/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/190-shadcn-tooltip-label-formatter/recharts.ts"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "referenceRenderer": "recharts",
+      "collections": ["shadcn"],
+      "height": 600,
+      "order": 1920,
+      "id": "191-shadcn-tooltip-label-none",
+      "title": "shadcn Tooltip - No Label",
+      "family": "tooltip",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-label-none example with TanStack Charts.",
+      "support": "native",
+      "features": ["tooltip chart", "label none", "shadcn card shell"],
+      "geometry": [
+        {
+          "role": "bar",
+          "count": 10
+        }
+      ],
+      "source": {
+        "title": "shadcn/ui chart-tooltip-label-none",
+        "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-label-none"
+      },
+      "ai": {
+        "create": "Reproduce the official shadcn/ui chart-tooltip-label-none card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip label none treatment, card dimensions, and light and dark tokens."
+      },
+      "entries": {
+        "tanstack": "benchmarks/conformance/cases/191-shadcn-tooltip-label-none/tanstack.ts",
+        "reference": {
+          "renderer": "recharts",
+          "path": "benchmarks/conformance/cases/191-shadcn-tooltip-label-none/recharts.ts"
+        }
+      }
     }
   ]
 }

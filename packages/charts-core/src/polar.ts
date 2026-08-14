@@ -1726,6 +1726,8 @@ interface PolarGuideStyle {
   strokeOpacity?: number
   strokeWidth?: number
   strokeDasharray?: string
+  fill?: string
+  fillOpacity?: number
   labels?: boolean
   labelFill?: string
   labelFontSize?: number
@@ -1778,7 +1780,8 @@ export function radialGrid(options: RadialGridOptions = {}): PolarGuide {
             points: [],
             path,
             style: {
-              fill: 'none',
+              fill: options.fill ?? 'none',
+              fillOpacity: options.fillOpacity,
               stroke,
               strokeOpacity: options.strokeOpacity,
               strokeWidth: options.strokeWidth ?? 1,

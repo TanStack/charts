@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "referenceRenderer": "recharts",
+  "collections": ["shadcn"],
+  "height": 600,
+  "order": 1270,
+  "id": "126-shadcn-tooltip-advanced",
+  "title": "shadcn tooltip – advanced",
+  "family": "tooltip",
+  "intent": "Reproduce shadcn/ui's stacked-bar card and custom total tooltip while replacing Recharts with TanStack Charts.",
+  "support": "native",
+  "features": [
+    "stacked bars",
+    "rounded corners",
+    "rich tooltip body",
+    "computed total",
+    "default focus",
+    "shadcn card shell"
+  ],
+  "geometry": [{ "role": "bar", "count": 12 }],
+  "source": {
+    "title": "shadcn/ui chart-tooltip-advanced",
+    "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-advanced"
+  },
+  "ai": {
+    "create": "Reproduce the official shadcn/ui chart-tooltip-advanced card and data with TanStack Charts and its React tooltip composition entry.",
+    "maintain": "Preserve the pinned upstream data, stack order, weekday axis, initial focused day, 180-pixel rich tooltip, row labels, kcal units, total, card dimensions, and themes."
+  }
+}

@@ -42,6 +42,7 @@ import type {
   ChartTooltipInput,
   ChartTooltipOptions,
   ChartTooltipPosition,
+  ChartMotionTransition,
   ChartValue,
 } from './types'
 
@@ -1023,6 +1024,7 @@ export function mountChartRenderer<
       tooltipInstance = input.extension.create({
         container,
         dismiss: dismissTooltip,
+        motion: resolveTooltipMotion,
         bodyChange: () => options.onTooltipBodyChange,
       })
     }
@@ -1042,6 +1044,11 @@ export function mountChartRenderer<
       },
       pinned: interactionIsPinned(),
     })
+  }
+
+  function resolveTooltipMotion(): ChartMotionTransition | undefined {
+    const definition = options.definition.motion
+    return typeof definition === 'function' ? undefined : definition?.transition
   }
 
   function syncTooltip() {

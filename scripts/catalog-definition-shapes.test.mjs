@@ -31,6 +31,7 @@ describe('catalog definition shapes', () => {
               (entry) =>
                 entry.isFile() &&
                 (entry.name === 'tanstack.ts' ||
+                  entry.name === 'tanstack-view.tsx' ||
                   entry.name === 'view.tsx' ||
                   entry.name === 'chart.ts'),
             )
