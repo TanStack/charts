@@ -110,7 +110,8 @@
       "default": "./src/shadcn.ts"
     },
     "./shadcn-area-interactive-data": {
-      "default": "./src/shadcn-area-interactive-data.json"
+      "types": "./src/shadcn-area-interactive-data.ts",
+      "default": "./src/shadcn-area-interactive-data.ts"
     },
     "./survey": {
       "types": "./src/survey.d.ts",
