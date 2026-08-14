@@ -1,5 +1,12 @@
 # @tanstack/vue-charts
 
+## 0.13.0
+
+### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
 ## 0.12.0
 
 ### Patch Changes

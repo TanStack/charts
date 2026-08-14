@@ -1,5 +1,13 @@
 # @tanstack/charts
 
+## 0.13.0
+
+### Minor Changes
+
+- [#96](https://github.com/TanStack/charts/pull/96) [`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438) - Add ShadCN-compatible chart catalog support with renderer-owned tooltip and
+  entrance motion, composable stagger timing, motion cascade opt-outs, and
+  expanded polar presentation controls.
+
 ## 0.12.0
 
 ### Minor Changes

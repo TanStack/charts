@@ -1,5 +1,85 @@
 # Changelog
 
+## 0.13.0
+
+### @tanstack/charts
+
+#### Minor Changes
+
+- [#96](https://github.com/TanStack/charts/pull/96) [`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438) - Add ShadCN-compatible chart catalog support with renderer-owned tooltip and
+  entrance motion, composable stagger timing, motion cascade opt-outs, and
+  expanded polar presentation controls.
+
+### @tanstack/react-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/react-native-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/octane-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/preact-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/vue-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/solid-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/svelte-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/angular-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/lit-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
+### @tanstack/alpine-charts
+
+#### Patch Changes
+
+- Updated dependencies [[`56567ec`](https://github.com/TanStack/charts/commit/56567ec51902d8af0d0d730f3a31206999cc8438)]:
+  - @tanstack/charts@0.13.0
+
 ## 0.12.0
 
 ### @tanstack/charts
