@@ -4,7 +4,7 @@ description: Learn what TanStack Charts provides, how its grammar works, and whe
 ---
 
 These docs follow unreleased `main`. The latest published TanStack Charts
-release is `0.12.0`; it is pre-alpha and its API may change between releases.
+release is `0.13.0`; it is pre-alpha and its API may change between releases.
 
 TanStack Charts is a small, framework-agnostic chart grammar for TypeScript and
 JavaScript. Give each mark its natural data, map fields or accessors to visual
