@@ -24,7 +24,15 @@ const catalogIndexPath = path.join(
   'conformance',
   'catalog-index.json',
 )
+const shadcnCatalogPath = path.join(
+  rootDirectory,
+  'benchmarks',
+  'conformance',
+  'shadcn',
+  'catalog.json',
+)
 const caseIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const collectionIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 export async function readCatalogCases() {
   const directories = (
@@ -61,8 +69,9 @@ export async function readCatalogCases() {
   )
 }
 
-export function createCatalogIndex(cases) {
+export function createCatalogIndex(cases, collectionsByCaseId = new Map()) {
   validateAuthoredCases(cases)
+  validateCatalogCollections(cases, collectionsByCaseId)
 
   return {
     schemaVersion: catalogIndexSchemaVersion,
@@ -75,9 +84,11 @@ export function createCatalogIndex(cases) {
       .map(({ metadata }) => {
         const referenceRenderer =
           metadata.referenceRenderer ?? 'observable-plot'
+        const collection = collectionsByCaseId.get(metadata.id)
 
         return {
           ...metadata,
+          ...(collection ? { collection } : {}),
           entries: {
             tanstack: caseSourcePath(metadata.id, 'tanstack'),
             reference: {
@@ -90,6 +101,17 @@ export function createCatalogIndex(cases) {
           },
         }
       }),
+  }
+}
+
+function validateCatalogCollections(cases, collectionsByCaseId) {
+  const authoredIds = new Set(cases.map(({ metadata }) => metadata.id))
+  for (const [caseId, collection] of collectionsByCaseId) {
+    assert(authoredIds.has(caseId), `catalog collection references ${caseId}`)
+    assert(
+      typeof collection === 'string' && collectionIdPattern.test(collection),
+      `catalog collection for ${caseId} has an invalid ID`,
+    )
   }
 }
 
@@ -120,6 +142,13 @@ export function validateCatalogIndex(index) {
 
   for (const entry of index.cases) {
     const metadata = parseConformanceCaseMeta(entry, 'catalog-index.json')
+    if ('collection' in entry) {
+      assert(
+        typeof entry.collection === 'string' &&
+          collectionIdPattern.test(entry.collection),
+        `catalog index case ${metadata.id} has an invalid collection`,
+      )
+    }
     assert(
       caseIdPattern.test(metadata.id),
       `catalog index case ${metadata.id} has an invalid ID`,
@@ -164,12 +193,41 @@ export function validateCatalogIndex(index) {
 }
 
 export async function createCatalogIndexSource() {
-  const index = createCatalogIndex(await readCatalogCases())
+  const index = createCatalogIndex(
+    await readCatalogCases(),
+    await readCatalogCollections(),
+  )
   validateCatalogIndex(index)
   await validateCatalogIndexSourceEntries(index)
   return formatWithPrettier(`${JSON.stringify(index, null, 2)}\n`, {
     filepath: catalogIndexPath,
   })
+}
+
+async function readCatalogCollections() {
+  const source = await fs.readFile(shadcnCatalogPath, 'utf8')
+  const catalog = JSON.parse(source)
+  assert(
+    Array.isArray(catalog.cases),
+    'shadcn catalog must contain a cases array',
+  )
+
+  const caseIds = [
+    '127-shadcn-dashboard',
+    ...catalog.cases.map((entry) => entry.localCaseId),
+  ]
+  assert(
+    caseIds.every(
+      (caseId) => typeof caseId === 'string' && caseIdPattern.test(caseId),
+    ),
+    'shadcn catalog contains an invalid local case ID',
+  )
+  assert(
+    new Set(caseIds).size === caseIds.length,
+    'shadcn catalog contains duplicate local case IDs',
+  )
+
+  return new Map(caseIds.map((caseId) => [caseId, 'shadcn']))
 }
 
 export async function writeCatalogIndex() {

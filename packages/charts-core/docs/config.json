@@ -236,6 +236,11 @@
           "to": "examples/index"
         },
         {
+          "label": "shadcn/ui Charts",
+          "to": "/charts/catalog/collections/shadcn",
+          "tab": "examples"
+        },
+        {
           "label": "Lines and Areas",
           "to": "examples/lines-and-areas"
         },

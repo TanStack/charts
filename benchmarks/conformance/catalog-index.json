@@ -10665,6 +10665,7 @@
         "create": "Reproduce the official shadcn/ui dashboard-01 layout and data. Keep the dashboard shell independent of the chart renderer, then implement its filtered, stacked, gradient area chart with TanStack Charts.",
         "maintain": "Preserve the official dashboard data, responsive sidebar, metric cards, time-range behavior, table shell, natural stacked-area geometry, gradients, axis labels, tooltip content, light and dark themes, and a renderer-only compact catalog preview."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/127-shadcn-dashboard/tanstack.ts",
         "reference": {
@@ -10705,6 +10706,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-multiple card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, grouped layout, axis treatment, tooltip labels, card dimensions, footer, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/128-shadcn-bar-multiple/tanstack.ts",
         "reference": {
@@ -10749,6 +10751,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-donut-text card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream browser data, donut radii, separators, center total and label, tooltip, card dimensions, footer, and themes."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/129-shadcn-pie-donut-text/tanstack.ts",
         "reference": {
@@ -10790,6 +10793,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-multiple card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, polygon guide, angle labels, two filled profiles, tooltip, card dimensions, footer, and themes."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/130-shadcn-radar-multiple/tanstack.ts",
         "reference": {
@@ -10834,6 +10838,7 @@
         "create": "Reproduce the official shadcn/ui chart-radial-text card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream value, 250-degree sweep, 80/90 radii, rounded track, center text, card dimensions, footer, and themes."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/131-shadcn-radial-text/tanstack.ts",
         "reference": {
@@ -10875,6 +10880,7 @@
         "create": "Reproduce the official shadcn/ui chart-tooltip-advanced card and data with TanStack Charts and its React tooltip composition entry.",
         "maintain": "Preserve the pinned upstream data, stack order, weekday axis, initial focused day, 180-pixel rich tooltip, row labels, kcal units, total, card dimensions, and themes."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/tanstack.ts",
         "reference": {
@@ -10909,6 +10915,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-axes card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area axes treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/133-shadcn-area-axes/tanstack.ts",
         "reference": {
@@ -10943,6 +10950,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-default card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area default treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/134-shadcn-area-default/tanstack.ts",
         "reference": {
@@ -10977,6 +10985,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-gradient card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area gradient treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/135-shadcn-area-gradient/tanstack.ts",
         "reference": {
@@ -11011,6 +11020,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-icons card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area icons treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/136-shadcn-area-icons/tanstack.ts",
         "reference": {
@@ -11045,6 +11055,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-interactive card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area interactive treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/137-shadcn-area-interactive/tanstack.ts",
         "reference": {
@@ -11079,6 +11090,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-legend card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area legend treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/138-shadcn-area-legend/tanstack.ts",
         "reference": {
@@ -11113,6 +11125,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-linear card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area linear treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/139-shadcn-area-linear/tanstack.ts",
         "reference": {
@@ -11147,6 +11160,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-stacked-expand card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area stacked expand treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/tanstack.ts",
         "reference": {
@@ -11181,6 +11195,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-stacked card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area stacked treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/141-shadcn-area-stacked/tanstack.ts",
         "reference": {
@@ -11215,6 +11230,7 @@
         "create": "Reproduce the official shadcn/ui chart-area-step card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, area step treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/142-shadcn-area-step/tanstack.ts",
         "reference": {
@@ -11249,6 +11265,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-active card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, bar active treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/143-shadcn-bar-active/tanstack.ts",
         "reference": {
@@ -11283,6 +11300,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-default card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, bar default treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/144-shadcn-bar-default/tanstack.ts",
         "reference": {
@@ -11317,6 +11335,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-horizontal card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, bar horizontal treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/145-shadcn-bar-horizontal/tanstack.ts",
         "reference": {
@@ -11351,6 +11370,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-interactive card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, bar interactive treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/146-shadcn-bar-interactive/tanstack.ts",
         "reference": {
@@ -11385,6 +11405,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-label-custom card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, bar label custom treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/147-shadcn-bar-label-custom/tanstack.ts",
         "reference": {
@@ -11419,6 +11440,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-label card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, bar label treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/148-shadcn-bar-label/tanstack.ts",
         "reference": {
@@ -11453,6 +11475,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-mixed card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, bar mixed treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/149-shadcn-bar-mixed/tanstack.ts",
         "reference": {
@@ -11487,6 +11510,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-negative card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, bar negative treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/150-shadcn-bar-negative/tanstack.ts",
         "reference": {
@@ -11521,6 +11545,7 @@
         "create": "Reproduce the official shadcn/ui chart-bar-stacked card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, bar stacked treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/151-shadcn-bar-stacked/tanstack.ts",
         "reference": {
@@ -11555,6 +11580,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-default card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line default treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/152-shadcn-line-default/tanstack.ts",
         "reference": {
@@ -11589,6 +11615,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-dots-colors card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line dots colors treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/153-shadcn-line-dots-colors/tanstack.ts",
         "reference": {
@@ -11623,6 +11650,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-dots-custom card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line dots custom treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/154-shadcn-line-dots-custom/tanstack.ts",
         "reference": {
@@ -11657,6 +11685,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-dots card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line dots treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/155-shadcn-line-dots/tanstack.ts",
         "reference": {
@@ -11691,6 +11720,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-interactive card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line interactive treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/156-shadcn-line-interactive/tanstack.ts",
         "reference": {
@@ -11725,6 +11755,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-label-custom card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line label custom treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/157-shadcn-line-label-custom/tanstack.ts",
         "reference": {
@@ -11759,6 +11790,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-label card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line label treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/158-shadcn-line-label/tanstack.ts",
         "reference": {
@@ -11793,6 +11825,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-linear card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line linear treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/159-shadcn-line-linear/tanstack.ts",
         "reference": {
@@ -11827,6 +11860,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-multiple card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line multiple treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/160-shadcn-line-multiple/tanstack.ts",
         "reference": {
@@ -11861,6 +11895,7 @@
         "create": "Reproduce the official shadcn/ui chart-line-step card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, line step treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/161-shadcn-line-step/tanstack.ts",
         "reference": {
@@ -11895,6 +11930,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-donut-active card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie donut active treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/162-shadcn-pie-donut-active/tanstack.ts",
         "reference": {
@@ -11929,6 +11965,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-donut card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie donut treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/163-shadcn-pie-donut/tanstack.ts",
         "reference": {
@@ -11963,6 +12000,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-interactive card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie interactive treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/164-shadcn-pie-interactive/tanstack.ts",
         "reference": {
@@ -11997,6 +12035,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-label-custom card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie label custom treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/165-shadcn-pie-label-custom/tanstack.ts",
         "reference": {
@@ -12031,6 +12070,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-label-list card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie label list treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/166-shadcn-pie-label-list/tanstack.ts",
         "reference": {
@@ -12065,6 +12105,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-label card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie label treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/167-shadcn-pie-label/tanstack.ts",
         "reference": {
@@ -12099,6 +12140,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-legend card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie legend treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/168-shadcn-pie-legend/tanstack.ts",
         "reference": {
@@ -12133,6 +12175,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-separator-none card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie separator none treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/169-shadcn-pie-separator-none/tanstack.ts",
         "reference": {
@@ -12167,6 +12210,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-simple card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie simple treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/170-shadcn-pie-simple/tanstack.ts",
         "reference": {
@@ -12201,6 +12245,7 @@
         "create": "Reproduce the official shadcn/ui chart-pie-stacked card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, pie stacked treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/171-shadcn-pie-stacked/tanstack.ts",
         "reference": {
@@ -12235,6 +12280,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-default card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar default treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/172-shadcn-radar-default/tanstack.ts",
         "reference": {
@@ -12269,6 +12315,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-dots card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar dots treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/173-shadcn-radar-dots/tanstack.ts",
         "reference": {
@@ -12303,6 +12350,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-grid-circle-fill card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar grid circle fill treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/tanstack.ts",
         "reference": {
@@ -12337,6 +12385,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-grid-circle-no-lines card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar grid circle no lines treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/tanstack.ts",
         "reference": {
@@ -12371,6 +12420,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-grid-circle card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar grid circle treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/tanstack.ts",
         "reference": {
@@ -12405,6 +12455,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-grid-custom card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar grid custom treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/tanstack.ts",
         "reference": {
@@ -12439,6 +12490,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-grid-fill card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar grid fill treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/tanstack.ts",
         "reference": {
@@ -12473,6 +12525,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-grid-none card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar grid none treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/179-shadcn-radar-grid-none/tanstack.ts",
         "reference": {
@@ -12507,6 +12560,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-icons card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar icons treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/180-shadcn-radar-icons/tanstack.ts",
         "reference": {
@@ -12541,6 +12595,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-label-custom card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar label custom treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/181-shadcn-radar-label-custom/tanstack.ts",
         "reference": {
@@ -12575,6 +12630,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-legend card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar legend treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/182-shadcn-radar-legend/tanstack.ts",
         "reference": {
@@ -12609,6 +12665,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-lines-only card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar lines only treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/183-shadcn-radar-lines-only/tanstack.ts",
         "reference": {
@@ -12643,6 +12700,7 @@
         "create": "Reproduce the official shadcn/ui chart-radar-radius card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radar radius treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/184-shadcn-radar-radius/tanstack.ts",
         "reference": {
@@ -12681,6 +12739,7 @@
         "create": "Reproduce the official shadcn/ui chart-radial-grid card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radial grid treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/185-shadcn-radial-grid/tanstack.ts",
         "reference": {
@@ -12719,6 +12778,7 @@
         "create": "Reproduce the official shadcn/ui chart-radial-label card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radial label treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/186-shadcn-radial-label/tanstack.ts",
         "reference": {
@@ -12757,6 +12817,7 @@
         "create": "Reproduce the official shadcn/ui chart-radial-shape card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radial shape treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/187-shadcn-radial-shape/tanstack.ts",
         "reference": {
@@ -12795,6 +12856,7 @@
         "create": "Reproduce the official shadcn/ui chart-radial-simple card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radial simple treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/188-shadcn-radial-simple/tanstack.ts",
         "reference": {
@@ -12833,6 +12895,7 @@
         "create": "Reproduce the official shadcn/ui chart-radial-stacked card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, radial stacked treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/189-shadcn-radial-stacked/tanstack.ts",
         "reference": {
@@ -12867,6 +12930,7 @@
         "create": "Reproduce the official shadcn/ui chart-tooltip-default card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, tooltip default treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/190-shadcn-tooltip-default/tanstack.ts",
         "reference": {
@@ -12901,6 +12965,7 @@
         "create": "Reproduce the official shadcn/ui chart-tooltip-formatter card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, tooltip formatter treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/tanstack.ts",
         "reference": {
@@ -12935,6 +13000,7 @@
         "create": "Reproduce the official shadcn/ui chart-tooltip-icons card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, tooltip icons treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/192-shadcn-tooltip-icons/tanstack.ts",
         "reference": {
@@ -12969,6 +13035,7 @@
         "create": "Reproduce the official shadcn/ui chart-tooltip-indicator-line card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, tooltip indicator line treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/tanstack.ts",
         "reference": {
@@ -13003,6 +13070,7 @@
         "create": "Reproduce the official shadcn/ui chart-tooltip-indicator-none card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, tooltip indicator none treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/tanstack.ts",
         "reference": {
@@ -13037,6 +13105,7 @@
         "create": "Reproduce the official shadcn/ui chart-tooltip-label-custom card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, tooltip label custom treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/tanstack.ts",
         "reference": {
@@ -13071,6 +13140,7 @@
         "create": "Reproduce the official shadcn/ui chart-tooltip-label-formatter card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, tooltip label formatter treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/tanstack.ts",
         "reference": {
@@ -13105,6 +13175,7 @@
         "create": "Reproduce the official shadcn/ui chart-tooltip-label-none card and data with TanStack Charts.",
         "maintain": "Preserve the pinned upstream data, tooltip label none treatment, card dimensions, and light and dark tokens."
       },
+      "collection": "shadcn",
       "entries": {
         "tanstack": "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/tanstack.ts",
         "reference": {

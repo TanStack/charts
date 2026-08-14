@@ -321,6 +321,7 @@ Each entry records:
 | F-282 | Collection actions followed the viewport instead of the card   | Application           | resolved   |
 | F-283 | Interactive chart shells rendered inert controls               | Application           | resolved   |
 | F-284 | Stagger timing required repeated callback arithmetic           | API                   | resolved   |
+| F-285 | Absolute catalog links lost their docs navigation tab          | Documentation         | resolved   |
 
 ## Findings
 
@@ -8231,3 +8232,18 @@ Each entry records:
   filters, offsets, invalid inputs, native spread, and field precedence. The
   isolated entry is 0.26 KiB gzip and retains neither the SVG motion renderer
   nor spring physics.
+
+### F-285 — Absolute catalog links lost their docs navigation tab
+
+- Status: resolved
+- Severity: low
+- Owner: Documentation
+- Observed in: adding the ShadCN collection to the Charts docs navigation
+- Friction: tanstack.com's fallback tab inference recognizes docs example
+  paths, but an absolute `/charts/catalog/collections/shadcn` link contains no
+  `examples` segment. The valid link was therefore assigned to Guides and
+  disappeared while browsing the catalog's Examples tab.
+- Decision: declare `tab: "examples"` on the collection link instead of relying
+  on path inference for a non-docs route.
+- Verification: the local tanstack.com collection route renders the
+  `shadcn/ui Charts` sidebar item as active under Examples.
