@@ -1,2 +1,2 @@
-export { catalogCase, motionEntranceDefinition, mount } from './view'
-export type { MotionSettings } from './view'
+export * from './example'
+export { catalogCase, mount } from './view'

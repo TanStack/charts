@@ -1,5 +1,5 @@
 import { mountChartRenderer } from '@tanstack/charts/renderer'
-import { createStackedCursorRenderer, stackedCursorDefinition } from './chart'
+import { createStackedCursorRenderer, stackedCursorDefinition } from './example'
 import { catalogPreviewDefinition } from '../../shared/preview'
 import { tanstackCase } from '../../shared/mount'
 import {
@@ -13,6 +13,8 @@ import type {
   ConformanceMount,
   ConformanceTestDriver,
 } from '../../types'
+
+export { default as Example } from './example'
 
 export const catalogCase = tanstackCase(
   (input) =>

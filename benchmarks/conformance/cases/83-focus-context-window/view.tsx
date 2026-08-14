@@ -1,4 +1,8 @@
 import {
+  focusContextDetailDefinition,
+  focusContextOverviewDefinition,
+} from './example'
+import {
   forwardRef,
   useCallback,
   useImperativeHandle,
@@ -6,19 +10,13 @@ import {
   useRef,
   useState,
 } from 'react'
-import { defineChart, dot, lineY } from '@tanstack/charts'
-import { brushX } from '@tanstack/charts/interaction/brush'
-import { controlledSignal } from '@tanstack/charts/interaction/signal'
-import { keyedSelection, whenSelected } from '@tanstack/charts/selection'
 import { Chart } from '@tanstack/charts/react'
 import { aapl } from '@charts-poc/demo-data/aapl'
-import { scaleLinear, scaleUtc } from 'd3-scale'
 import { catalogPreviewDefinition } from '../../shared/preview'
 import { reactMount } from '../../shared/react-mount'
 import {
   dateFromAnchor,
   dateKey,
-  focusContextDomain,
   initialFocusContextWindow,
   monthlyAaplRows,
   rowsInWindow,
@@ -29,7 +27,6 @@ import type {
   BrushRange,
   BrushXChange,
 } from '@tanstack/charts/interaction/brush'
-import type { KeyedSelectionChange } from '@tanstack/charts/selection'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import type { FocusContextWindow } from './model'
 import type { ConformanceTarget, ConformanceTestDriver } from '../../types'
@@ -40,123 +37,9 @@ interface BrushStatus {
   outcome: 'idle' | 'dragging' | 'commit' | 'cancel'
 }
 
-const detailMargin = { top: 16, right: 24, bottom: 38, left: 52 }
-const overviewMargin = { top: 8, right: 24, bottom: 22, left: 52 }
 const gap = 8
 const focusContextRows = monthlyAaplRows(aapl)
 const focusContextDates = focusContextRows.map((row) => row.Date)
-const fullDomain = focusContextDomain(focusContextRows)
-
-export function focusContextDetailDefinition(window: FocusContextWindow) {
-  const rows = rowsInWindow(focusContextRows, window)
-  const selection = keyedSelection<AaplRow, string, Date, number>({
-    selected: controlledSignal<
-      string | null,
-      KeyedSelectionChange<AaplRow, string, Date, number>
-    >(dateKey(window.selected), () => {}),
-    key: (row) => dateKey(row.Date),
-  })
-  return defineChart(
-    defineChart({
-      marks: [
-        lineY(rows, {
-          id: 'detail-line',
-          x: 'Date',
-          y: 'Close',
-          stroke: '#2563eb',
-          strokeWidth: 2.5,
-        }),
-        dot(rows, {
-          id: 'detail-points',
-          x: 'Date',
-          y: 'Close',
-          fill: '#2563eb',
-          r: 3,
-        }),
-        whenSelected(
-          dot(rows, {
-            id: 'selected-point',
-            x: 'Date',
-            y: 'Close',
-            fill: '#f97316',
-            stroke: '#ffffff',
-            strokeWidth: 2,
-            r: 6,
-          }),
-          selection,
-        ),
-      ],
-      x: {
-        scale: scaleUtc().domain([window.start, window.end]),
-        axis: { label: 'Selected time window' },
-      },
-      y: {
-        scale: scaleLinear,
-        grid: true,
-        axis: { label: 'Close ($)' },
-      },
-      margin: detailMargin,
-    }),
-    { svgAnimation: false, keyboard: false },
-  )
-}
-
-export function focusContextOverviewDefinition(
-  window: FocusContextWindow,
-  onChange: (range: BrushRange<Date>, reason: BrushXChange<Date>) => void,
-) {
-  return defineChart(
-    defineChart({
-      marks: [
-        lineY(focusContextRows, {
-          id: 'overview-line',
-          x: 'Date',
-          y: 'Close',
-          stroke: '#2563eb',
-          strokeWidth: 1.75,
-        }),
-      ],
-      x: {
-        scale: scaleUtc().domain(fullDomain),
-        axis: {
-          ticks: {
-            count: 4,
-            format: (value) =>
-              value.toLocaleDateString(undefined, {
-                month: 'short',
-                timeZone: 'UTC',
-              }),
-          },
-        },
-      },
-      y: { scale: scaleLinear, axis: false },
-      margin: overviewMargin,
-      controls: [
-        brushX({
-          id: 'focus-window',
-          range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
-            { start: window.start, end: window.end },
-            (next, { reason }) => onChange(next, reason),
-          ),
-          values: focusContextDates,
-          ariaLabel: 'Selected time window',
-          startAriaLabel: 'Selected time window start',
-          endAriaLabel: 'Selected time window end',
-          format: monthLabel,
-          handleSize: 16,
-          selectionStyle: {
-            fill: '#2563eb',
-            fillOpacity: 0.16,
-            stroke: '#2563eb',
-            strokeWidth: 1.5,
-          },
-          handleStyle: { fill: '#2563eb', fillOpacity: 0.9 },
-        }),
-      ],
-    }),
-    { svgAnimation: false, keyboard: false },
-  )
-}
 
 const FocusContextExample = forwardRef<
   ConformanceTestDriver,

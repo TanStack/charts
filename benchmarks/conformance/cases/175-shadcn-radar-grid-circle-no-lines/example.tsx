@@ -1,0 +1,222 @@
+import { useMemo } from 'react'
+import {
+  defineChart,
+  type ChartPoint,
+  type ChartValue,
+  type DomChartDefinition,
+} from '@tanstack/charts'
+import {
+  angleGrid,
+  focusGroupAngle,
+  polar,
+  radialArea,
+  radialDot,
+  radialGrid,
+} from '@tanstack/charts/polar'
+import { RendererChart } from '@tanstack/charts/react/tooltip'
+import { tooltip } from '@tanstack/charts/tooltip'
+import { motion } from '@tanstack/charts/motion'
+import { scaleLinear, scalePoint } from 'd3-scale'
+import { curveLinearClosed } from 'd3-shape'
+import { shadcnColors, shadcnRadarDefault } from '@charts-poc/demo-data/shadcn'
+import './styles.css'
+const twoSeries = ['desktop', 'mobile'] as const
+function createDefinition() {
+  const rows = shadcnRadarDefault.map((row) =>
+    row.month === 'April' ? { ...row, desktop: 203 } : row,
+  )
+  const months = rows.map((row) => row.month)
+  const radiusMax = 320
+  const gridValues = Array.from({ length: 4 }, (_, index) =>
+    Math.round((radiusMax * (index + 1)) / 4),
+  )
+  const customLabels = false
+  const guides = [
+    radialGrid({
+      values: gridValues,
+      shape: 'circle',
+      stroke: 'var(--border)',
+      strokeOpacity: 1,
+      ...{},
+      ...{},
+    }),
+    angleGrid({
+      values: months,
+      labels: !customLabels,
+      labelOffset: 10,
+      labelFill: 'var(--muted-foreground)',
+      labelFontSize: 12,
+      stroke: 'transparent',
+      strokeOpacity: 1,
+    }),
+  ]
+  const chartSpec = (radiusRatio: number) => ({
+    marks: [
+      polar({
+        radiusRatio,
+        angle: { scale: scalePoint<string>().domain(months), wrap: true },
+        radius: { scale: scaleLinear().domain([0, radiusMax]) },
+        guides,
+        marks: [
+          radialArea(rows, {
+            id: 'desktop-radar',
+            className: 'ts-chart__radar',
+            angle: 'month',
+            radius: 'desktop',
+            key: 'month',
+            z: () => 'desktop',
+            curve: curveLinearClosed,
+            fill: shadcnColors[0],
+            fillOpacity: 0.6,
+            stroke: shadcnColors[0],
+            strokeOpacity: 1,
+            strokeWidth: 1,
+          }),
+          radialDot(rows, {
+            id: 'radar-dots',
+            angle: 'month',
+            radius: 'desktop',
+            key: 'month',
+            z: () => 'desktop',
+            r: 4,
+            fill: shadcnColors[0],
+          }),
+        ],
+      }),
+    ],
+    color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
+    margin: 0,
+  })
+  return defineChart(chartSpec(0.76))
+}
+function shadcnTooltipContent<TDatum>(points: readonly ChartPoint<TDatum>[]) {
+  return {
+    title: String(points[0]?.xValue ?? ''),
+    rows: points.map((point) => ({
+      label: titleCase(
+        String(
+          point.group ??
+            point.markId.replace(
+              /-?(bars|lines|areas|slices|values|radar)$/u,
+              '',
+            ),
+        ),
+      ),
+      value: Number(point.yValue ?? point.xValue ?? 0).toLocaleString('en-US'),
+      color: point.color,
+    })),
+  }
+}
+function titleCase(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+export function createExampleChart() {
+  return defineChart(createDefinition(), {
+    svgAnimation: false,
+    focus: focusGroupAngle,
+    keyboard: true,
+    tooltip: {
+      use: tooltip,
+      className: 'sc-chart-tooltip',
+      anchor: 'group-center',
+      placement: 'auto',
+      offset: undefined,
+      sort: 'color-domain',
+      content: (points) => shadcnTooltipContent(points),
+    },
+  })
+}
+export const definition = createExampleChart()
+type ExampleDefinition = ReturnType<typeof createExampleChart>
+type ExampleDatum =
+  ExampleDefinition extends DomChartDefinition<
+    infer TDatum,
+    infer _TXValue,
+    infer _TYValue
+  >
+    ? TDatum
+    : never
+type ExampleXValue =
+  ExampleDefinition extends DomChartDefinition<
+    infer _TDatum,
+    infer TXValue extends ChartValue,
+    infer _TYValue
+  >
+    ? TXValue
+    : never
+type ExampleYValue =
+  ExampleDefinition extends DomChartDefinition<
+    infer _TDatum,
+    infer _TXValue,
+    infer TYValue extends ChartValue
+  >
+    ? TYValue
+    : never
+export interface ExampleProps {
+  width?: number
+  height?: number
+}
+export default function Example({ width = 640, height = 600 }: ExampleProps) {
+  const chartDefinition = definition
+  const renderer = useMemo(
+    () =>
+      motion<ExampleDatum, ExampleXValue, ExampleYValue>({
+        initial: 'always',
+        transition: { type: 'spring', stiffness: 170, damping: 18, mass: 1 },
+      }),
+    [],
+  )
+  const contentWidth = Math.max(1, width - 50)
+  const chartWidth = Math.min(250, contentWidth)
+  const chartHeight = chartWidth
+  const headerAction = null
+  const legend = null
+  const footer = <TrendFooter note="January - June 2024" />
+  return (
+    <div className="sc-example" style={{ width, height }}>
+      <article className="sc-card sc-default" style={{ width }}>
+        <header className="sc-card-header" style={{ paddingBottom: 16 }}>
+          <div className="sc-card-heading">
+            <h2>Radar Chart - Grid Circle - No lines</h2>
+            <p>Showing total visitors for the last 6 months</p>
+          </div>
+          {headerAction ? (
+            <div className="sc-card-action">{headerAction}</div>
+          ) : null}
+        </header>
+        <div className="sc-card-content sc-centered">
+          <div
+            className="sc-chart"
+            style={{ width: chartWidth, height: chartHeight }}
+          >
+            <RendererChart
+              definition={chartDefinition}
+              renderer={renderer}
+              initialWidth={chartWidth}
+              height={chartHeight}
+              ariaLabel="Radar Chart - Grid Circle - No lines"
+            />
+          </div>
+          {legend ? <div className="sc-chart-footer">{legend}</div> : null}
+        </div>
+        {footer ? (
+          <footer className="sc-card-footer sc-centered">{footer}</footer>
+        ) : null}
+      </article>
+    </div>
+  )
+}
+function TrendFooter({ note }: { note: string }) {
+  return (
+    <>
+      <div className="sc-trend">
+        Trending up by 5.2% this month{' '}
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m3 17 6-6 4 4 8-8" />
+          <path d="M14 7h7v7" />
+        </svg>
+      </div>
+      <div className="sc-footer-note">{note}</div>
+    </>
+  )
+}

@@ -9,12 +9,12 @@ import {
 import { Chart } from '@tanstack/charts/react'
 import { reactMount } from '../../shared/react-mount'
 import { initialZoomWindow } from './model'
+import { createDriver } from './tanstack'
 import {
   copyWindow,
-  createDriver,
   zoomStatusLabel,
   zoomTimeWindowDefinition,
-} from './tanstack'
+} from './example'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import type { ChartScene } from '@tanstack/charts'
 import type {
@@ -23,7 +23,7 @@ import type {
 } from '@tanstack/charts/interaction/zoom'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 import type { ConformanceTestDriver } from '../../types'
-import type { ZoomState } from './tanstack'
+import type { ZoomState } from './example'
 
 const ZoomTimeWindowExample = forwardRef<
   ConformanceTestDriver,

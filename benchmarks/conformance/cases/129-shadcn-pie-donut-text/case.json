@@ -5,20 +5,16 @@
   "height": 600,
   "order": 1300,
   "id": "129-shadcn-pie-donut-text",
-  "title": "shadcn pie chart – donut with text",
+  "title": "shadcn Pie Chart - Donut with Text",
   "family": "pie",
-  "intent": "Reproduce shadcn/ui's donut-with-center-text example while replacing Recharts with TanStack Charts.",
+  "intent": "Reproduce shadcn/ui's chart-pie-donut-text example with TanStack Charts.",
   "support": "native",
-  "features": [
-    "donut chart",
-    "center text",
-    "sector separators",
-    "tooltip",
-    "shadcn card shell"
-  ],
+  "features": ["pie chart", "donut text", "shadcn card shell"],
   "geometry": [
-    { "role": "arc", "count": 5 },
-    { "role": "text", "count": 2 }
+    {
+      "role": "arc",
+      "count": 5
+    }
   ],
   "source": {
     "title": "shadcn/ui chart-pie-donut-text",
@@ -26,6 +22,6 @@
   },
   "ai": {
     "create": "Reproduce the official shadcn/ui chart-pie-donut-text card and data with TanStack Charts.",
-    "maintain": "Preserve the pinned upstream browser data, donut radii, separators, center total and label, tooltip, card dimensions, footer, and themes."
+    "maintain": "Preserve the pinned upstream data, pie donut text treatment, card dimensions, and light and dark tokens."
   }
 }

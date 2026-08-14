@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createChartScene } from '@tanstack/charts'
-import { activeBarDashboardDefinition } from './chart'
+import { activeBarDashboardDefinition } from './example'
 import { dashboardRows, metricTotal } from './model'
 import { mount } from './view'
 

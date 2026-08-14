@@ -1,22 +1,30 @@
-import { defineChart, dot, lineY } from '@tanstack/charts'
-import { aapl } from '@charts-poc/demo-data/aapl'
-import { handleX } from '@tanstack/charts/interaction/handle'
-import { controlledSignal } from '@tanstack/charts/interaction/signal'
-import { decorative } from '@tanstack/charts/mark/decorative'
-import { scaleLinear, scaleUtc } from 'd3-scale'
+import {
+  playbackRows,
+  initialFrame,
+  playbackDefinition,
+  rowForDate,
+  indexForDate,
+  playbackValueText,
+  cloneDate,
+} from './example'
+import type { PlaybackState } from './example'
+export {
+  playbackRows,
+  initialFrame,
+  playbackDefinition,
+  rowForDate,
+  indexForDate,
+  playbackValueText,
+  cloneDate,
+} from './example'
+export type { PlaybackState } from './example'
 import {
   clientPointBounds,
   scenePointToClient,
 } from '../../shared/driver-geometry'
-import {
-  initialPlaybackIndex,
-  playbackDateKey,
-  playbackIndexFromAnchor,
-  selectPlaybackRows,
-} from './model'
+import { playbackDateKey, playbackIndexFromAnchor } from './model'
 import { tanstackCase } from '../../shared/mount'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
-import type { HandleXChange } from '@tanstack/charts/interaction/handle'
 import type { ChartScene } from '@tanstack/charts'
 import type {
   ConformanceGeometryQuery,
@@ -26,94 +34,10 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-export interface PlaybackState {
-  frame: Date
-  dragging: boolean
-  scrubCount: number
-  playing: boolean
-}
+export { default as Example } from './example'
 
 const linePaint = '#2563eb'
-const playheadPaint = '#f97316'
-const margin = { top: 64, right: 24, bottom: 68, left: 56 }
-export const playbackRows = selectPlaybackRows(aapl)
-const playbackDates = playbackRows.map((row) => row.Date)
-export const initialFrame = playbackRows[initialPlaybackIndex]?.Date
 if (!initialFrame) throw new Error('Playback requires an initial frame.')
-
-export function playbackDefinition(
-  frame: Date,
-  onChange: (value: Date, reason: HandleXChange<Date>) => void,
-  preview = false,
-) {
-  return defineChart({
-    marks: [
-      decorative(
-        lineY(playbackRows, {
-          id: 'playback-line',
-          x: 'Date',
-          y: 'Close',
-          stroke: linePaint,
-          strokeWidth: 2.5,
-        }),
-      ),
-      dot(playbackRows, {
-        id: 'playback-points',
-        x: 'Date',
-        y: 'Close',
-        fill: linePaint,
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc,
-      axis: {
-        ticks: {
-          format: (value) =>
-            value.toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-              timeZone: 'UTC',
-            }),
-        },
-      },
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
-    },
-    controls: [
-      handleX({
-        id: 'playback-frame',
-        value: controlledSignal<Date, HandleXChange<Date>>(
-          frame,
-          (next, { reason }) => onChange(next, reason),
-        ),
-        values: playbackDates,
-        cross: { edge: 'bottom', offset: preview ? -18 : 34 },
-        trackStyle: {
-          fill: 'color-mix(in srgb, currentColor 52%, transparent)',
-        },
-        ruleStyle: { fill: playheadPaint },
-        handleStyle: {
-          fill: playheadPaint,
-          stroke: 'Canvas',
-          strokeWidth: 2,
-        },
-        hitSize: 44,
-        ariaLabel: 'Timeline frame',
-        format: (value) => playbackValueText(rowForDate(value)),
-      }),
-    ],
-    svgAnimation: false,
-    keyboard: false,
-    focusRing: false,
-    margin: preview ? 0 : margin,
-  })
-}
 
 export const catalogCase = tanstackCase(
   () => playbackDefinition(initialFrame, () => {}, true),
@@ -252,30 +176,6 @@ function elementGeometry(element: SVGElement): ConformanceGeometrySample {
     height: bounds.height,
     paint: style.fill || style.stroke,
   }
-}
-
-export function rowForDate(date: Date) {
-  const row = playbackRows.find(
-    (candidate) => candidate.Date.getTime() === date.getTime(),
-  )
-  if (!row) throw new Error('Playback frame must be an observed date.')
-  return row
-}
-
-export function indexForDate(date: Date) {
-  const index = playbackRows.findIndex(
-    (row) => row.Date.getTime() === date.getTime(),
-  )
-  if (index < 0) throw new Error('Playback frame must be an observed date.')
-  return index
-}
-
-export function playbackValueText(row: AaplRow) {
-  return `${playbackDateKey(row.Date)} · AAPL close $${row.Close.toFixed(2)}`
-}
-
-export function cloneDate(date: Date) {
-  return new Date(date.getTime())
 }
 
 function center(element: HTMLElement | SVGElement) {

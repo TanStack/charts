@@ -130,10 +130,12 @@ describe('definition-owned streaming window', () => {
       'benchmarks/conformance/cases/86-streaming-window-preservation',
     )
     const view = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
+    const example = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
     const echarts = readFileSync(resolve(directory, 'echarts.ts'), 'utf8')
 
+    expect(view).toContain("from './example'")
     expect(view).toContain('streamingWindowDefinition(')
-    expect(view).toContain('decorative(')
+    expect(example).toContain('decorative(')
     expect(view).not.toContain('<svg')
     expect(view).not.toContain("key: 'date'")
     for (const source of [view, echarts]) {

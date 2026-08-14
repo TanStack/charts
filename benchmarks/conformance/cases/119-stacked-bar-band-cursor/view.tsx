@@ -1,7 +1,7 @@
 import { forwardRef, useMemo } from 'react'
 import { defineChart } from '@tanstack/charts'
 import { Chart } from '@tanstack/charts/react/core'
-import { createStackedCursorRenderer, stackedCursorDefinition } from './chart'
+import { createStackedCursorRenderer, stackedCursorDefinition } from './example'
 import { stackedCursorRowsForRevision } from './model'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'

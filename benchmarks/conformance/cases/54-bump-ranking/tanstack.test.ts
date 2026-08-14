@@ -51,7 +51,7 @@ describe('native bump-ranking labels', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/54-bump-ranking/tanstack.ts',
+        'benchmarks/conformance/cases/54-bump-ranking/example.tsx',
       ),
       'utf8',
     )

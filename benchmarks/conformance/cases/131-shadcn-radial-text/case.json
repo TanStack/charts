@@ -5,20 +5,20 @@
   "height": 600,
   "order": 1320,
   "id": "131-shadcn-radial-text",
-  "title": "shadcn radial chart – text",
+  "title": "shadcn Radial Chart - Text",
   "family": "radial",
-  "intent": "Reproduce shadcn/ui's partial radial chart with center text while replacing Recharts with TanStack Charts.",
+  "intent": "Reproduce shadcn/ui's chart-radial-text example with TanStack Charts.",
   "support": "native",
-  "features": [
-    "partial radial bar",
-    "rounded caps",
-    "background track",
-    "center text",
-    "shadcn card shell"
-  ],
+  "features": ["radial chart", "text", "shadcn card shell"],
   "geometry": [
-    { "role": "arc", "count": 2 },
-    { "role": "text", "count": 2 }
+    {
+      "role": "bar",
+      "count": 1,
+      "rendererRoles": {
+        "recharts": "arc",
+        "tanstack": "arc"
+      }
+    }
   ],
   "source": {
     "title": "shadcn/ui chart-radial-text",
@@ -26,6 +26,6 @@
   },
   "ai": {
     "create": "Reproduce the official shadcn/ui chart-radial-text card and data with TanStack Charts.",
-    "maintain": "Preserve the pinned upstream value, 250-degree sweep, 80/90 radii, rounded track, center text, card dimensions, footer, and themes."
+    "maintain": "Preserve the pinned upstream data, radial text treatment, card dimensions, and light and dark tokens."
   }
 }

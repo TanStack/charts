@@ -79,7 +79,7 @@ describe('native responsive treemap', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/74-recharts-treemap/tanstack.ts',
+        'benchmarks/conformance/cases/74-recharts-treemap/example.tsx',
       ),
       'utf8',
     )

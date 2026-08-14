@@ -1,66 +1,8 @@
-import { cars } from '@charts-poc/demo-data/cars'
-import { d3Curve, defineChart, lineY, rank } from '@tanstack/charts'
-import { scaleLinear } from 'd3-scale'
-import { curveStepAfter } from 'd3-shape'
-import { tanstackMount } from '../../shared/mount'
-import { samplePreviewData } from '../../shared/preview'
-import type { CarsRow } from '@charts-poc/demo-data/cars'
-import type { ConformanceInput } from '../../types'
+import { createExampleChart, exampleAriaLabel } from './example'
+import { tanstackExampleMount } from '../../shared/mount'
 
-type CarWithEconomy = CarsRow & { 'economy (mpg)': number }
+export * from './example'
 
-const completeCars = cars.filter(
-  (row): row is CarWithEconomy => row['economy (mpg)'] !== null,
-)
+export const mount = tanstackExampleMount(createExampleChart, exampleAriaLabel)
 
-const percent = new Intl.NumberFormat('en-US', {
-  style: 'percent',
-  maximumFractionDigits: 0,
-})
-
-export const empiricalCdfDefinition = (input: ConformanceInput) => {
-  const source = completeCars
-    .slice(input.revision * 8)
-    .sort((left, right) => left['economy (mpg)'] - right['economy (mpg)'])
-  const ranked = rank(source, { value: 'economy (mpg)', order: 'ascending' })
-  const fullRows = ranked.map((row) => ({
-    ...row,
-    probability: row.rank / source.length,
-  }))
-  const rows = samplePreviewData(fullRows, input, 80, [
-    (row) => row['economy (mpg)'],
-    (row) => row.probability,
-  ])
-
-  return defineChart({
-    marks: [
-      lineY(rows, {
-        id: 'empirical-cdf',
-        key: (row) => `${row.name}:${row.year}`,
-        x: 'economy (mpg)',
-        y: 'probability',
-        curve: d3Curve(curveStepAfter),
-        stroke: '#2563eb',
-        strokeWidth: 2,
-      }),
-    ],
-    x: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { label: 'Fuel economy (mpg)' },
-    },
-    y: {
-      scale: scaleLinear().domain([0, 1]),
-      grid: true,
-      axis: {
-        ticks: { format: (value) => percent.format(value) },
-        label: 'Cumulative proportion',
-      },
-    },
-  })
-}
-
-export const mount = tanstackMount(
-  empiricalCdfDefinition,
-  'Empirical cumulative distribution',
-)
+export const catalogCase = mount

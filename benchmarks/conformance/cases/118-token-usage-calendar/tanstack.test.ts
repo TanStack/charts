@@ -103,7 +103,7 @@ describe('definition-owned token activity calendar', () => {
     const definitionSource = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/118-token-usage-calendar/tanstack.ts',
+        'benchmarks/conformance/cases/118-token-usage-calendar/example.tsx',
       ),
       'utf8',
     )
@@ -115,7 +115,7 @@ describe('definition-owned token activity calendar', () => {
       'utf8',
     )
 
-    expect(definitionSource).toContain('fontSize: 13')
+    expect(definitionSource).toContain('fontSize: input.preview ? 8 : 13')
     expect(definitionSource).toContain('opacity: 0.62')
     expect(definitionSource).toContain("index === 0 ? 'start' : undefined")
     expect(definitionSource).toContain('-bandwidth / 2')

@@ -1,17 +1,14 @@
+import { themedAreaTooltip } from './example'
+export { themedAreaTooltip } from './example'
 import { defineChart } from '@tanstack/charts'
 import { motion } from '@tanstack/charts/motion'
 import { mountChartRenderer } from '@tanstack/charts/renderer'
 import { tooltip } from '@tanstack/charts/tooltip'
 import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import { tanstackCase } from '../../shared/mount'
-import { themedAreaSpring, themedInteractiveAreaDefinition } from './chart'
-import {
-  formatThemedAreaTooltip,
-  themedAreaRanges,
-  themedAreaRows,
-  themedAreaRangeDays,
-} from './model'
-import type { ChartPoint, ChartTooltipOptions } from '@tanstack/charts'
+import { themedAreaSpring, themedInteractiveAreaDefinition } from './example'
+import { themedAreaRanges, themedAreaRows, themedAreaRangeDays } from './model'
+import type { ChartPoint } from '@tanstack/charts'
 import type { ThemedAreaRange, ThemedAreaRow } from './model'
 import type {
   ConformanceInput,
@@ -19,16 +16,10 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
+export { default as Example } from './example'
+
 const ariaLabel = 'Daily visitors with selectable 7, 30, and 90 day ranges'
 let themedAreaMountId = 0
-
-export const themedAreaTooltip: ChartTooltipOptions<ThemedAreaRow> = {
-  anchor: 'point',
-  placement: ['top', 'right', 'left', 'bottom'],
-  className: 'themed-area-tooltip',
-  offset: 10,
-  format: ({ datum }) => formatThemedAreaTooltip(datum),
-}
 
 export const catalogCase = tanstackCase(
   (input) =>

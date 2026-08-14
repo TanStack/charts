@@ -74,7 +74,7 @@ describe('definition-owned linear regression', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/31-linear-regression/tanstack.ts',
+        'benchmarks/conformance/cases/31-linear-regression/example.tsx',
       ),
       'utf8',
     )

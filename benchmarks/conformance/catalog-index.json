@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "source": {
     "repo": "tanstack/charts",
     "pathRoot": "benchmarks/conformance/"
@@ -35,11 +35,7 @@
         "maintain": "Change which calendar months are treated as missing while keeping the AAPL rows untouched, the accessor explicit, and compact and wide layouts readable."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/01-line-gaps/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/01-line-gaps/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/01-line-gaps/example.tsx"
       }
     },
     {
@@ -77,11 +73,7 @@
         "maintain": "Move the direct labels from the newest dated observation to the oldest dated observation of each industry while retaining industry colors, inferred callback data, and readable label space."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/02-multi-line-end-labels/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/02-multi-line-end-labels/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/02-multi-line-end-labels/example.tsx"
       }
     },
     {
@@ -119,11 +111,7 @@
         "maintain": "Add a 32-degree freezing reference rule and make the band react to light and dark themes while preserving the explicit low/high interval, boundary line geometry, and cast-free field inference."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/03-temperature-range-band/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/03-temperature-range-band/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/03-temperature-range-band/example.tsx"
       }
     },
     {
@@ -160,11 +148,7 @@
         "maintain": "Convert the chart to a normalized 100% stack while keeping both implementations on the same imported industry observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/04-stacked-time-area/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/04-stacked-time-area/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/04-stacked-time-area/example.tsx"
       }
     },
     {
@@ -196,11 +180,7 @@
         "maintain": "Change bar presentation while preserving the source letter and frequency channels, descending order, zero baseline, and visible labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/bar-vertical-sorted/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/bar-vertical-sorted/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/bar-vertical-sorted/example.tsx"
       }
     },
     {
@@ -236,11 +216,7 @@
         "maintain": "Change the selected metros or container width while keeping the population rank correct and every source label visible."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/bar-horizontal-ranking/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/bar-horizontal-ranking/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/bar-horizontal-ranking/example.tsx"
       }
     },
     {
@@ -284,11 +260,7 @@
         "maintain": "Change the selected observations or width without stacking or overlapping the two sex groups within each species."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/bar-grouped/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/bar-grouped/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/bar-grouped/example.tsx"
       }
     },
     {
@@ -330,11 +302,7 @@
         "maintain": "Change the visible date range while keeping cause order, monthly boundaries, inferred colors, and the zero baseline correct."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/bar-stacked/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/bar-stacked/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/bar-stacked/example.tsx"
       }
     },
     {
@@ -366,11 +334,7 @@
         "maintain": "Change the species palette and radius range without renaming or reshaping the imported observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/scatter-bubble/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/scatter-bubble/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/scatter-bubble/example.tsx"
       }
     },
     {
@@ -402,11 +366,7 @@
         "maintain": "Change the threshold boundaries while retaining the imported rows and keeping the Plot and TanStack transforms semantically equivalent."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/histogram/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/histogram/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/histogram/example.tsx"
       }
     },
     {
@@ -443,11 +403,7 @@
         "maintain": "Change the color treatment or label contrast while preserving all 600 imported episodes, source fields, cells, and labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/heatmap-labeled/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/heatmap-labeled/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/heatmap-labeled/example.tsx"
       }
     },
     {
@@ -487,11 +443,7 @@
         "maintain": "Change the facet layout while preserving shared domains, series order, and all 44 source observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/facets-anscombe/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/facets-anscombe/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/facets-anscombe/example.tsx"
       }
     },
     {
@@ -524,11 +476,7 @@
         "maintain": "Change the selected trading window without changing the source data model, clipping date labels, or introducing casts."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/13-interval-timeline/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/13-interval-timeline/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/13-interval-timeline/example.tsx"
       }
     },
     {
@@ -575,11 +523,7 @@
         "maintain": "Change the authored uncertainty estimator while retaining contributing-observation lineage, typed reducer outputs, and automatic species spacing."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/14-error-bars/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/14-error-bars/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/14-error-bars/example.tsx"
       }
     },
     {
@@ -629,11 +573,7 @@
         "maintain": "Switch to boxX while preserving raw-row lineage, Tukey whisker semantics, outliers, stable Run identity, and inferred category types."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/15-boxplot/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/15-boxplot/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/15-boxplot/example.tsx"
       }
     },
     {
@@ -674,11 +614,7 @@
         "maintain": "Switch between horizontal and vertical orientation while retaining the source letter and frequency fields, sorted order, and zero baseline."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/16-lollipop/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/16-lollipop/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/16-lollipop/example.tsx"
       }
     },
     {
@@ -714,11 +650,7 @@
         "maintain": "Change the metro selection while preserving the imported wide row model, chronological endpoint colors, and source field names."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/17-dumbbell/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/17-dumbbell/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/17-dumbbell/example.tsx"
       }
     },
     {
@@ -751,11 +683,7 @@
         "maintain": "Convert the cumulative count to cumulative proportion without reshaping the imported observations or replacing data-driven bin inference with authored boundaries."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/18-cumulative-histogram/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/18-cumulative-histogram/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/18-cumulative-histogram/example.tsx"
       }
     },
     {
@@ -793,11 +721,7 @@
         "maintain": "Change the rolling window and alignment while preserving separate high and low calculations and the same imported observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/19-moving-average-line/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/19-moving-average-line/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/19-moving-average-line/example.tsx"
       }
     },
     {
@@ -834,11 +758,7 @@
         "maintain": "Change the industry order while keeping each month normalized to 100%, colors stable, the percent guide accurate, and the imported rows untouched."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/20-normalized-stacked-area/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/20-normalized-stacked-area/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/20-normalized-stacked-area/example.tsx"
       }
     },
     {
@@ -872,11 +792,7 @@
         "maintain": "Change the stack order or offset while retaining raw industry rows, source identity, equivalent zero-origin wiggle semantics, and inferred interval points."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/21-streamgraph/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/21-streamgraph/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/21-streamgraph/example.tsx"
       }
     },
     {
@@ -915,11 +831,7 @@
         "maintain": "Change the authored window or deviation multiplier while preserving direct source lineage, full trailing-window semantics, and one shared transformed row set for the area and mean line."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/22-bollinger-band/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/22-bollinger-band/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/22-bollinger-band/example.tsx"
       }
     },
     {
@@ -952,11 +864,7 @@
         "maintain": "Change the bin interval while preserving equivalent Plot and granular d3-array boundaries, continuous color semantics, and inferred endpoint types."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/24-quantitative-binned-heatmap/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/24-quantitative-binned-heatmap/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/24-quantitative-binned-heatmap/example.tsx"
       }
     },
     {
@@ -989,11 +897,7 @@
         "maintain": "Change the selected weather window while preserving UTC week alignment, raw date and precipitation fields, complete daily cells, and responsive labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/25-calendar-heatmap/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/25-calendar-heatmap/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/25-calendar-heatmap/example.tsx"
       }
     },
     {
@@ -1026,11 +930,7 @@
         "maintain": "Reorder response categories while keeping the neutral anchor, response-count lineage, stable colors, and categorical keys explicit in the chart definition."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/26-diverging-likert/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/26-diverging-likert/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/26-diverging-likert/example.tsx"
       }
     },
     {
@@ -1070,11 +970,7 @@
         "maintain": "Add or reorder metrics while preserving authored metric direction, last-row country selection, normalized quantitative domains, and stable country-event identity."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/27-parallel-coordinates/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/27-parallel-coordinates/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/27-parallel-coordinates/example.tsx"
       }
     },
     {
@@ -1111,11 +1007,7 @@
         "maintain": "Change the selected trading window while preserving all 60 interval segments, raw AAPL field names, date identity, and typed endpoint channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/28-candlestick/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/28-candlestick/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/28-candlestick/example.tsx"
       }
     },
     {
@@ -1148,11 +1040,7 @@
         "maintain": "Change the year window while keeping adjacent difference semantics, cumulative interval ownership, stable year identity, direct lineage, and the zero-based net total explicit."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/29-waterfall/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/29-waterfall/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/29-waterfall/example.tsx"
       }
     },
     {
@@ -1195,11 +1083,7 @@
         "maintain": "Change the periods while retaining explicit field-to-year display mapping, nyt_display colors, stable metro-period identity, and the visible fold and selection transforms."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/30-slopegraph/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/30-slopegraph/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/30-slopegraph/example.tsx"
       }
     },
     {
@@ -1239,11 +1123,7 @@
         "maintain": "Change the selected automobiles while retaining raw source rows, source field names, aggregate regression lineage, and cast-free channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/31-linear-regression/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/31-linear-regression/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/31-linear-regression/example.tsx"
       }
     },
     {
@@ -1276,11 +1156,7 @@
         "maintain": "Change the metro selection or arrowhead size while retaining the source endpoint fields, one semantic arrow per metro, and stable identity."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/32-change-arrows/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/32-change-arrows/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/32-change-arrows/example.tsx"
       }
     },
     {
@@ -1317,11 +1193,7 @@
         "maintain": "Change the selected date window or rolling period without losing exact crossing boundaries, semantic colors, the original Date and Close fields, inferred extents, or cast-free channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/33-difference-chart/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/33-difference-chart/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/33-difference-chart/example.tsx"
       }
     },
     {
@@ -1405,11 +1277,7 @@
         "maintain": "Make the tooltip sticky on selection while keeping the raw stock observations, pointer, keyboard, and update behavior aligned."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/34-pointer-tooltip/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/34-pointer-tooltip/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/34-pointer-tooltip/example.tsx"
       }
     },
     {
@@ -1498,11 +1366,7 @@
         "maintain": "Add another industry while preserving one swatch and value per group, keyboard navigation by month, and top-layer responsive tooltip positioning."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/35-grouped-tooltip/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/35-grouped-tooltip/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/35-grouped-tooltip/example.tsx"
       }
     },
     {
@@ -1544,11 +1408,7 @@
         "maintain": "Change the selected Flare rows while preserving raw-row lineage, stable path and link identities, deterministic static coordinates, and mirrored branch and leaf labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/36-hierarchy-tree/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/36-hierarchy-tree/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/36-hierarchy-tree/example.tsx"
       }
     },
     {
@@ -1585,11 +1445,7 @@
         "maintain": "Change the selected cars while preserving final-screen topology, both endpoint records, stable point-derived edge keys, and cast-free source channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/37-delaunay-network/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/37-delaunay-network/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/37-delaunay-network/example.tsx"
       }
     },
     {
@@ -1622,11 +1478,7 @@
         "maintain": "Change the selected longitude window while keeping the threshold sequence, source grid dimensions, vertical orientation, and literal contour palette aligned across both implementations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/38-contour-topography/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/38-contour-topography/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/38-contour-topography/example.tsx"
       }
     },
     {
@@ -1658,11 +1510,7 @@
         "maintain": "Preserve D3-native density thresholds, pixel bandwidth, scale domains, structured multipolygon output, and responsive final-screen estimation."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/39-density-contours/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/39-density-contours/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/39-density-contours/example.tsx"
       }
     },
     {
@@ -1696,11 +1544,7 @@
         "maintain": "Preserve source feature ids and properties, responsive planar fitting, one path per published feature, and the geo entrypoint boundary."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/40-geojson-map/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/40-geojson-map/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/40-geojson-map/example.tsx"
       }
     },
     {
@@ -1743,11 +1587,7 @@
         "maintain": "Change force strengths or the selected subgraph while preserving raw id, group, source, target, and value fields, stable identities, deterministic static layout, and padded quantitative domains."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/40-force-directed-network/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/40-force-directed-network/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/40-force-directed-network/example.tsx"
       }
     },
     {
@@ -1779,11 +1619,7 @@
         "maintain": "Change the unit precision while preserving the source letter and frequency fields, cumulative rounding, one stable position per unit, responsive near-square cells, and consistent letter colors."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/41-waffle-unit-chart/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/41-waffle-unit-chart/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/41-waffle-unit-chart/example.tsx"
       }
     },
     {
@@ -1816,11 +1652,7 @@
         "maintain": "Change the field density and vector anchor while retaining typed channels, responsive scales, and one semantic vector per sample."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/42-vector-field/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/42-vector-field/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/42-vector-field/example.tsx"
       }
     },
     {
@@ -1852,11 +1684,7 @@
         "maintain": "Change bin width and thresholds while preserving raw-row lineage, fixed-pixel bins, stable keys, and cast-free channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/43-hexbin-density/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/43-hexbin-density/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/43-hexbin-density/example.tsx"
       }
     },
     {
@@ -1893,11 +1721,7 @@
         "maintain": "Change frame inset and styling while retaining the imported rows, source fields, responsive inner-bound alignment, and suppressed guides."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/44-framed-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/44-framed-scatter/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/44-framed-scatter/example.tsx"
       }
     },
     {
@@ -1930,11 +1754,7 @@
         "maintain": "Split the distribution by cylinders while computing ranks within each group and retaining the imported rows and explicit zero-to-one probability domains."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/50-empirical-cdf/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/50-empirical-cdf/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/50-empirical-cdf/example.tsx"
       }
     },
     {
@@ -1968,11 +1788,7 @@
         "maintain": "Change the fixed bin boundaries while preserving explicit species order, facet-local sum normalization, aggregate source lineage, and shared outer scale semantics."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/51-faceted-distributions/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/51-faceted-distributions/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/51-faceted-distributions/example.tsx"
       }
     },
     {
@@ -2005,11 +1821,7 @@
         "maintain": "Change the dot radius while retaining the source field and updating both collision distance and mark radius for deterministic responsive layout."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/52-beeswarm-dodge/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/52-beeswarm-dodge/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/52-beeswarm-dodge/example.tsx"
       }
     },
     {
@@ -2042,11 +1854,7 @@
         "maintain": "Change the selected Flare rows, log base, or domain while rejecting non-positive sizes and preserving the linear hierarchy-depth encoding."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/53-log-scale-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/53-log-scale-scatter/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/53-log-scale-scatter/example.tsx"
       }
     },
     {
@@ -2087,11 +1895,7 @@
         "maintain": "Change the industry or year selection while retaining the original date, industry, and unemployed fields through the ranking transform, stable series colors, and labels at the newest observation."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/54-bump-ranking/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/54-bump-ranking/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/54-bump-ranking/example.tsx"
       }
     },
     {
@@ -2132,11 +1936,7 @@
         "maintain": "Change the industry selection or index date while retaining the original date, industry, and unemployed fields through normalization, stable colors, inferred channels, and percentage labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/55-indexed-multi-line/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/55-indexed-multi-line/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/55-indexed-multi-line/example.tsx"
       }
     },
     {
@@ -2181,11 +1981,7 @@
         "maintain": "Change label cadence and arrow sampling while retaining chronological order, responsive quantitative scales, and a single inferred row type."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/56-connected-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/56-connected-scatter/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/56-connected-scatter/example.tsx"
       }
     },
     {
@@ -2223,11 +2019,7 @@
         "maintain": "Change the bin boundaries while retaining complete boundary semantics, responsive shared scales, inferred fields, and separate scatter and marginal regions."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/57-scatter-marginal-histograms/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/57-scatter-marginal-histograms/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/57-scatter-marginal-histograms/example.tsx"
       }
     },
     {
@@ -2268,11 +2060,7 @@
         "maintain": "Change the selected date window while preserving the original Date and Close fields, unique extrema selection, stable point keys, inferred extents, and labels that stay inside the plot."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/58-select-extrema/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/58-select-extrema/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/58-select-extrema/example.tsx"
       }
     },
     {
@@ -2310,11 +2098,7 @@
         "maintain": "Add another reducer or change the species order while preserving the original source fields, source category order, zero baseline, and inferred aggregate rows."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/59-grouped-reducer-bars/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/59-grouped-reducer-bars/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/59-grouped-reducer-bars/example.tsx"
       }
     },
     {
@@ -2352,11 +2136,7 @@
         "maintain": "Change the date window or lag interval while preserving the original Date and Close fields through the pair transform, input order, incomplete-pair removal, stable keys, explicit equal domains, and the identity reference."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/60-lag-autocorrelation/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/60-lag-autocorrelation/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/60-lag-autocorrelation/example.tsx"
       }
     },
     {
@@ -2395,11 +2175,7 @@
         "maintain": "Change the percentile interval while preserving the original date, industry, and unemployed fields through the reducer, UTC grouping, inferred extents, stable keys, and matching D3 quantile semantics."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/61-quantile-ribbon/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/61-quantile-ribbon/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/61-quantile-ribbon/example.tsx"
       }
     },
     {
@@ -2440,11 +2216,7 @@
         "maintain": "Change the selected seasons while keeping semantic category baselines, grouped bin lineage, normalization, labels, identity, colors, and responsive overlap geometry aligned."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/62-ridgeline-density/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/62-ridgeline-density/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/62-ridgeline-density/example.tsx"
       }
     },
     {
@@ -2491,11 +2263,7 @@
         "maintain": "Change the authored body-mass boundaries while preserving bin and summary lineage, semantic species centers, normalized widths, median indicators, colors, and responsive symmetry."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/63-violin-distributions/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/63-violin-distributions/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/63-violin-distributions/example.tsx"
       }
     },
     {
@@ -2533,11 +2301,7 @@
         "maintain": "Add a question or response while preserving semantic categories, both normalization denominators, explicit Likert ordering, nested source lineage, stable cell identity, labels, colors, and complete zero-to-one bounds."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/64-marimekko-mosaic/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/64-marimekko-mosaic/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/64-marimekko-mosaic/example.tsx"
       }
     },
     {
@@ -2612,11 +2376,7 @@
         "maintain": "Change the selected cars while retaining bounded structured cells, stable source identity, dot-owned nearest focus, matching color domains, typed tooltip rows, responsive clipping, and keyboard focus."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/65-voronoi-nearest-tooltip/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/65-voronoi-nearest-tooltip/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/65-voronoi-nearest-tooltip/example.tsx"
       }
     },
     {
@@ -2662,11 +2422,7 @@
         "maintain": "Select a different weather window while preserving source dates and measures, mark order, colors, and cast-free channel inference."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/70-composed-chart/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/70-composed-chart/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/70-composed-chart/example.tsx"
       }
     },
     {
@@ -2701,11 +2457,7 @@
         "maintain": "Select a different observation window while preserving grouped-count lineage, the signed channel, explicit stack and color order, symmetric domain, species order, and absolute count tick labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/71-recharts-population-pyramid/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/71-recharts-population-pyramid/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/71-recharts-population-pyramid/example.tsx"
       }
     },
     {
@@ -2738,11 +2490,7 @@
         "maintain": "Select a different weather window while preserving source dates and measures, explicit stack intervals, shared group placement, fixed colors, and inferred numeric extent."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/72-recharts-mixed-bars/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/72-recharts-mixed-bars/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/72-recharts-mixed-bars/example.tsx"
       }
     },
     {
@@ -2775,11 +2523,7 @@
         "maintain": "Change the selected car window while preserving raw field names, stable model identity, inferred extents, cylinder colors, and cast-free channels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/73-many-point-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/73-many-point-scatter/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/73-many-point-scatter/example.tsx"
       }
     },
     {
@@ -2819,11 +2563,7 @@
         "maintain": "Change the selected Flare subtree while preserving authored order, raw-row lineage, deterministic squarification, stable leaf identity, colors, and fitted label placement."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/74-recharts-treemap/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/74-recharts-treemap/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/74-recharts-treemap/example.tsx"
       }
     },
     {
@@ -2865,11 +2605,7 @@
         "maintain": "Change the subject or events while preserving authored metric direction, source population, event order, percentage guide values, stable event identity, and label placement."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/75-radar/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/75-radar/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/75-radar/example.tsx"
       }
     },
     {
@@ -2906,11 +2642,7 @@
         "maintain": "Change the selected letters while preserving raw field names, source order, full-circle orientation, responsive radius, stable identities, and exact categorical fills."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/76-pie/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/76-pie/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/76-pie/example.tsx"
       }
     },
     {
@@ -2947,11 +2679,7 @@
         "maintain": "Change the selected letters while preserving raw field names, flat source lineage, the inner-radius ratio, clockwise source order, stable identities, and exact categorical fills."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/77-donut/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/77-donut/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/77-donut/example.tsx"
       }
     },
     {
@@ -2989,11 +2717,7 @@
         "maintain": "Change the selected question while preserving the visible reducer, flat source lineage, partial sweep, responsive radii, stable agreement and remainder identities, and exact fills."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/78-gauge/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/78-gauge/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/78-gauge/example.tsx"
       }
     },
     {
@@ -3188,11 +2912,7 @@
         "maintain": "Change the selected industries while preserving semantic date anchors, native grouped focus, the definition-owned focus guide and tooltip, SVG accessibility, and the original observations."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/80-echarts-axis-pointer/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/80-echarts-axis-pointer/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/80-echarts-axis-pointer/example.tsx"
       }
     },
     {
@@ -3440,11 +3160,7 @@
         "maintain": "Keep one grouped line mark over the raw selected rows, stable series IDs, the full categorical and quantitative domains, and application-owned controlled visibility through the native interactive legend."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/81-recharts-interactive-legend/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/81-recharts-interactive-legend/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/81-recharts-interactive-legend/example.tsx"
       }
     },
     {
@@ -3740,11 +3456,7 @@
         "maintain": "Keep one raw observation dataset, stable semantic keys, controlled selection, and the decorative selected mark in the definition. Retain the semantic HTML table, status announcement, clear action, representative-row policy, and persistence in the application shell."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/82-chart-table-selection/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/82-chart-table-selection/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/82-chart-table-selection/example.tsx"
       }
     },
     {
@@ -4346,11 +4058,7 @@
         "maintain": "Keep the selected date and window as application state, preserve them across catalog updates and resizes, and resolve test targets through chart coordinates rather than DOM order."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/83-focus-context-window/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/83-focus-context-window/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/83-focus-context-window/example.tsx"
       }
     },
     {
@@ -4721,11 +4429,7 @@
         "maintain": "Preserve twelve stable month IDs, two stacked generation bars per month, the gray consumption area and line, the compact two-row summary, always-visible solar-coverage footer, six detailed rows, four-bar nested chart, native inert/status versus interactive/dialog semantics, reduced-motion behavior, and Escape plus close-button dismissal."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/84-pinned-nested-chart-tooltip/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/84-pinned-nested-chart-tooltip/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/84-pinned-nested-chart-tooltip/example.tsx"
       }
     },
     {
@@ -5017,11 +4721,7 @@
         "maintain": "Keep browser scrolling in the application layer, use the resolved y scale to align the fixed lane rail, retain stable task IDs and explicit UTC and band scales, and preserve scroll position across updates."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/85-scrollable-resource-lanes/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/85-scrollable-resource-lanes/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/85-scrollable-resource-lanes/example.tsx"
       }
     },
     {
@@ -5351,11 +5051,7 @@
         "maintain": "Use each observation date as stable identity, derive the visible slice from the explicit viewport, and advance through source rows independently from the locked scale domain."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/86-streaming-window-preservation/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/86-streaming-window-preservation/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/86-streaming-window-preservation/example.tsx"
       }
     },
     {
@@ -5722,11 +5418,7 @@
         "maintain": "Keep source dates as row identity, group points by view, and let one view-grid definition own linked focus guides and pinning while the semantic summary only observes native focus changes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/87-echarts-synchronized-cursors/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/87-echarts-synchronized-cursors/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/87-echarts-synchronized-cursors/example.tsx"
       }
     },
     {
@@ -5995,11 +5687,7 @@
         "maintain": "Keep transient cursor movement DOM-only, constrain it to resolved chart bounds, hide it on leave, and express cursor geometry and scale inversion through the continuous cursor behavior."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/88-echarts-free-cursor/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/88-echarts-free-cursor/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/88-echarts-free-cursor/example.tsx"
       }
     },
     {
@@ -6460,11 +6148,7 @@
         "maintain": "Keep the semantic range controlled by the application, let the brush behavior own resolved-scale mapping, snapping, painting, handles, and gesture lifecycle, and keep the range summary outside the renderer."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/89-brush-range-selection/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/89-brush-range-selection/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/89-brush-range-selection/example.tsx"
       }
     },
     {
@@ -7168,11 +6852,7 @@
         "maintain": "Keep the semantic window controlled by the application, let zoomX own resolved-scale inversion and gesture lifecycle, leave wheel and vertical touch scrolling unconsumed until intentional plot focus, and keep status, reset, visible-row, and persistence policy outside the renderer."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/90-zoomable-time-window/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/90-zoomable-time-window/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/90-zoomable-time-window/example.tsx"
       }
     },
     {
@@ -7836,11 +7516,7 @@
         "maintain": "Keep the playback clock and transport controls in the application, let handleX own final-scale placement, irregular-date snapping, direct manipulation, cancellation, and slider semantics, and preserve the semantic frame across catalog updates and resizes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/91-timeline-playback-scrubber/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/91-timeline-playback-scrubber/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/91-timeline-playback-scrubber/example.tsx"
       }
     },
     {
@@ -8405,11 +8081,7 @@
         "maintain": "Keep scale-resolved placement, candidate snapping, direct manipulation, cancellation, and slider semantics in handleX; keep event IDs, date constraints, validation, and duration status in application-owned state."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/92-editable-event-range/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/92-editable-event-range/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/92-editable-event-range/example.tsx"
       }
     },
     {
@@ -8457,11 +8129,7 @@
         "maintain": "Change the selected letters while preserving raw letter and frequency fields, source order, arc identity, responsive offsets, side-aware text anchors, and label-to-slice color."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/93-labeled-pie/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/93-labeled-pie/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/93-labeled-pie/example.tsx"
       }
     },
     {
@@ -8504,11 +8172,7 @@
         "maintain": "Change the selected letters while preserving flat source lineage, semantic letter identities, the responsive inner-radius ratio, and a center total recomputed from the same selected rows."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/94-center-donut/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/94-center-donut/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/94-center-donut/example.tsx"
       }
     },
     {
@@ -8546,11 +8210,7 @@
         "maintain": "Change the selected letters while preserving flat source lineage, raw letter and frequency fields, explicit gap size, responsive radii, rounded corners, source order, and semantic arc identity."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/95-rounded-donut/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/95-rounded-donut/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/95-rounded-donut/example.tsx"
       }
     },
     {
@@ -8587,11 +8247,7 @@
         "maintain": "Keep domain-specific family aggregation in the case while preserving independent declarative allocation, aligned family totals, ring order, flat lineage, semantic keys, the inter-ring gap, and responsive radii."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/96-nested-donut/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/96-nested-donut/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/96-nested-donut/example.tsx"
       }
     },
     {
@@ -8630,11 +8286,7 @@
         "maintain": "Change the selected letters without changing source order, the dataset-wide maximum, the responsive 30%-to-100% radial range, the physical zero-radius baseline, raw row identity, or semantic letter keys and colors."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/97-rose/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/97-rose/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/97-rose/example.tsx"
       }
     },
     {
@@ -8686,11 +8338,7 @@
         "maintain": "Change the selected county without changing threshold or tick boundaries; preserve semantic mark keys, flat pie lineage, the zero-to-thirty-percent angle domain, the responsive radius, and native polar mark ownership."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/98-needle-gauge/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/98-needle-gauge/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/98-needle-gauge/example.tsx"
       }
     },
     {
@@ -8735,11 +8383,7 @@
         "maintain": "Update either profile while preserving authored metric direction, event order, first-row country selection, stable country-event identity, the fixed zero-to-one radial domain, and shared guide geometry."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/99-comparative-radar/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/99-comparative-radar/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/99-comparative-radar/example.tsx"
       }
     },
     {
@@ -8776,11 +8420,7 @@
         "maintain": "Change the selected letters without changing radius-band order or the shared angular domain; preserve raw field names, responsive radius ranges, semantic keys, and exact per-letter fills."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/100-radial-bars/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/100-radial-bars/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/100-radial-bars/example.tsx"
       }
     },
     {
@@ -8817,11 +8457,7 @@
         "maintain": "Change the selected Flare rows while preserving raw row lineage, hierarchy order, global angular allocation, responsive rings, stable node identity, and branch color inheritance."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/101-sunburst/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/101-sunburst/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/101-sunburst/example.tsx"
       }
     },
     {
@@ -8857,11 +8493,7 @@
         "maintain": "Preserve source field names, the explicit country-name aliases, missing-atlas behavior for tiny states, threshold color semantics, and one shared topology conversion."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/102-world-choropleth/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/102-world-choropleth/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/102-world-choropleth/example.tsx"
       }
     },
     {
@@ -8897,11 +8529,7 @@
         "maintain": "Keep the join and centroid transform visible, preserve source population values, draw larger symbols first, and use the same square-root radius range in both renderers."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/103-bubble-map/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/103-bubble-map/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/103-bubble-map/example.tsx"
       }
     },
     {
@@ -8937,11 +8565,7 @@
         "maintain": "Keep the real land topology conversion, sphere, D3 graticule, rotation, clipping, responsive fit, and paint order aligned."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/104-orthographic-globe/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/104-orthographic-globe/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/104-orthographic-globe/example.tsx"
       }
     },
     {
@@ -8977,11 +8601,7 @@
         "maintain": "Preserve the published coordinate order, visible route construction, ten-degree rotation, antimeridian clipping, D3 geographic resampling, and responsive sphere fitting."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/105-route-map/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/105-route-map/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/105-route-map/example.tsx"
       }
     },
     {
@@ -9022,11 +8642,7 @@
         "maintain": "Keep source rows and field names intact, preserve chronological order, explicit calendar and temperature domains, responsive center and radius, and visible year selection."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/106-polar-line/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/106-polar-line/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/106-polar-line/example.tsx"
       }
     },
     {
@@ -9066,11 +8682,7 @@
         "maintain": "Keep source longitude, latitude, u, and v fields intact; preserve the visible band selection, fixed direction and speed domains, responsive layout, and constant symbol size."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/107-polar-scatter/tanstack.ts",
-        "reference": {
-          "renderer": "echarts",
-          "path": "benchmarks/conformance/cases/107-polar-scatter/echarts.ts"
-        }
+        "example": "benchmarks/conformance/cases/107-polar-scatter/example.tsx"
       }
     },
     {
@@ -9108,11 +8720,7 @@
         "maintain": "Preserve source field names, explicit name aliases, atlas identity, responsive projection fitting, stable country keys, quantized colors, and theme-aware borders."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/108-country-choropleth/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/108-country-choropleth/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/108-country-choropleth/example.tsx"
       }
     },
     {
@@ -9150,11 +8758,7 @@
         "maintain": "Preserve all source rates and names, visible TopoJSON conversion and FIPS join, the explicit Albers-USA territory filter, stable county identity, Alaska and Hawaii insets, quantile colors, and one path per projected county."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/109-us-state-choropleth/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/109-us-state-choropleth/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/109-us-state-choropleth/example.tsx"
       }
     },
     {
@@ -9192,11 +8796,7 @@
         "maintain": "Preserve pane order, shared real land geometry, per-projection identity, responsive fitting, sphere outlines, and theme-aware borders while updating paint."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/110-projection-gallery/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/110-projection-gallery/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/110-projection-gallery/example.tsx"
       }
     },
     {
@@ -9239,11 +8839,7 @@
         "maintain": "Keep this example intentionally minimal: preserve the simple split-and-recombine dataset, a revision-varying split with a total of 10, flow conservation, responsive bounds, flat link caps, one label per node, and native link/rect/text composition without adding semantic color overrides or decorative labels."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/111-basic-sankey/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/111-basic-sankey/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/111-basic-sankey/example.tsx"
       }
     },
     {
@@ -9287,11 +8883,7 @@
         "maintain": "Change statement values through the bounded revision model while preserving unique IDs, flow conservation at every intermediate subtotal, left-aligned sink depths, responsive bounds, semantic profit and cost colors, flat link caps, direct labels, and native link/rect/text composition."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/111-sankey-flow/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/111-sankey-flow/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/111-sankey-flow/example.tsx"
       }
     },
     {
@@ -9330,11 +8922,7 @@
         "maintain": "Preserve the eight stable datum keys, baseline growth, independent line timing, featured-datum override, reduced-motion behavior, and direct @tanstack/charts/motion renderer boundary."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/112-motion-entrance/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/112-motion-entrance/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/112-motion-entrance/example.tsx"
       }
     },
     {
@@ -9374,11 +8962,7 @@
         "maintain": "Preserve stable datum keys, enter/update/exit phase semantics, value and velocity continuity during interrupted springs, rest-based settling, presentation-aware pointer resolution, and the direct @tanstack/charts/motion renderer boundary."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/113-motion-updates/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/113-motion-updates/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/113-motion-updates/example.tsx"
       }
     },
     {
@@ -9411,11 +8995,7 @@
         "maintain": "Keep both series keyed, preserve value and velocity on spring interruption, and let the comparison series use a distinct transition."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/114-spring-line-motion/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/114-spring-line-motion/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/114-spring-line-motion/example.tsx"
       }
     },
     {
@@ -9454,11 +9034,7 @@
         "maintain": "Keep motion configuration renderer-neutral, preserve spring momentum on interrupted mark updates, and keep guide transitions as local definition overrides."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/115-definition-motion/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/115-definition-motion/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/115-definition-motion/example.tsx"
       }
     },
     {
@@ -9495,11 +9071,7 @@
         "maintain": "Keep every datum keyed across modes, preserve the fixed path sample count, and verify that an interrupted spring carries path-token velocity into the next chart form."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/116-geometry-morph/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/116-geometry-morph/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/116-geometry-morph/example.tsx"
       }
     },
     {
@@ -9636,11 +9208,7 @@
         "maintain": "Keep focus semantics in mark states, preserve spring velocity and label alignment during rapid pointer retargeting, and support the same focus movement from the keyboard."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/117-focus-cursor-motion/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/117-focus-cursor-motion/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/117-focus-cursor-motion/example.tsx"
       }
     },
     {
@@ -9718,11 +9286,7 @@
         "maintain": "Preserve the explicit UTC day domain, 364 complete daily cells, transform lineage, deterministic revisions, Sunday week alignment, twelve month labels, weekday order, accessible color meaning, late-timeline activity shape, and consistent zero-usage treatment."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/118-token-usage-calendar/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/118-token-usage-calendar/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/118-token-usage-calendar/example.tsx"
       }
     },
     {
@@ -10001,11 +9565,7 @@
         "maintain": "Keep the labeled x band and y rule as stable renderer-native guides, preserve their spring motion and keyed update continuity, and verify the band's exact rendered four-pixel outset plus label alignment across responsive sizes and themes."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/119-stacked-bar-band-cursor/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/119-stacked-bar-band-cursor/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/119-stacked-bar-band-cursor/example.tsx"
       }
     },
     {
@@ -10183,11 +9743,7 @@
         "maintain": "Preserve stable date keys across range changes, motion with reduced-motion fallback, three-label 288 by 192 preview readability, and complete visual ownership through theme tokens rather than custom SVG overlays."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/120-themed-interactive-area/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/120-themed-interactive-area/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/120-themed-interactive-area/example.tsx"
       }
     },
     {
@@ -10304,11 +9860,7 @@
         "maintain": "Preserve 24 stable day keys, metric-specific totals and tooltips, keyboard-operable selectors, reduced-motion behavior, and one native chart definition rather than drawing the active state in React."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/121-active-bar-dashboard/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/121-active-bar-dashboard/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/121-active-bar-dashboard/example.tsx"
       }
     },
     {
@@ -10364,11 +9916,7 @@
         "maintain": "Preserve the three stable keyed series, spring continuity across revisions, reduced-motion behavior, inherited light and dark tokens, restrained metric copy, and responsive three-surface preview."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/122-premium-kpi-sparklines/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/122-premium-kpi-sparklines/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/122-premium-kpi-sparklines/example.tsx"
       }
     },
     {
@@ -10488,11 +10036,7 @@
         "maintain": "Preserve stable browser identities, native pie allocation, CSS-variable colors, the seven-arc composition, synchronized center and legend state, spring continuity, and reduced-motion behavior without custom SVG paths."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/123-active-donut-metric/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/123-active-donut-metric/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/123-active-donut-metric/example.tsx"
       }
     },
     {
@@ -10535,11 +10079,7 @@
         "maintain": "Preserve one shared row array per revision, three real SVG chart surfaces, stable datum keys, palette-scoped CSS variables with light-dark fallbacks, unique resource prefixes, reduced-motion handling, and matching geometry across treatments."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/124-theme-palette-matrix/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/124-theme-palette-matrix/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/124-theme-palette-matrix/example.tsx"
       }
     },
     {
@@ -10580,11 +10120,7 @@
         "maintain": "Keep stage order, semantic keys, proportional widths, centered extents, direct labels, raw values, and the tapered final edge stable across responsive sizes and data revisions."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/125-sales-funnel/tanstack.ts",
-        "reference": {
-          "renderer": "observable-plot",
-          "path": "benchmarks/conformance/cases/125-sales-funnel/plot.ts"
-        }
+        "example": "benchmarks/conformance/cases/125-sales-funnel/example.tsx"
       }
     },
     {
@@ -10624,11 +10160,7 @@
         "maintain": "Keep the full flat hierarchy as source data, preserve canonical node IDs and ancestry across root changes, leave navigation state and the center back control in the application, and keep motion centered by interpolating sector angles and radii before regenerating each path."
       },
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/126-drillable-sunburst/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/126-drillable-sunburst/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/126-drillable-sunburst/example.tsx"
       }
     },
     {
@@ -10667,11 +10199,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/127-shadcn-dashboard/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/127-shadcn-dashboard/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/127-shadcn-dashboard/example.tsx"
       }
     },
     {
@@ -10681,17 +10209,11 @@
       "height": 600,
       "order": 1290,
       "id": "128-shadcn-bar-multiple",
-      "title": "shadcn bar chart – multiple",
+      "title": "shadcn Bar Chart - Multiple",
       "family": "bar",
-      "intent": "Reproduce shadcn/ui's grouped bar example while replacing Recharts with TanStack Charts.",
+      "intent": "Reproduce shadcn/ui's chart-bar-multiple example with TanStack Charts.",
       "support": "native",
-      "features": [
-        "grouped bars",
-        "rounded corners",
-        "horizontal grid",
-        "grouped tooltip",
-        "shadcn card shell"
-      ],
+      "features": ["bar chart", "multiple", "shadcn card shell"],
       "geometry": [
         {
           "role": "bar",
@@ -10704,15 +10226,11 @@
       },
       "ai": {
         "create": "Reproduce the official shadcn/ui chart-bar-multiple card and data with TanStack Charts.",
-        "maintain": "Preserve the pinned upstream data, grouped layout, axis treatment, tooltip labels, card dimensions, footer, and light and dark tokens."
+        "maintain": "Preserve the pinned upstream data, bar multiple treatment, card dimensions, and light and dark tokens."
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/128-shadcn-bar-multiple/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/128-shadcn-bar-multiple/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/128-shadcn-bar-multiple/example.tsx"
       }
     },
     {
@@ -10722,25 +10240,15 @@
       "height": 600,
       "order": 1300,
       "id": "129-shadcn-pie-donut-text",
-      "title": "shadcn pie chart – donut with text",
+      "title": "shadcn Pie Chart - Donut with Text",
       "family": "pie",
-      "intent": "Reproduce shadcn/ui's donut-with-center-text example while replacing Recharts with TanStack Charts.",
+      "intent": "Reproduce shadcn/ui's chart-pie-donut-text example with TanStack Charts.",
       "support": "native",
-      "features": [
-        "donut chart",
-        "center text",
-        "sector separators",
-        "tooltip",
-        "shadcn card shell"
-      ],
+      "features": ["pie chart", "donut text", "shadcn card shell"],
       "geometry": [
         {
           "role": "arc",
           "count": 5
-        },
-        {
-          "role": "text",
-          "count": 2
         }
       ],
       "source": {
@@ -10749,15 +10257,11 @@
       },
       "ai": {
         "create": "Reproduce the official shadcn/ui chart-pie-donut-text card and data with TanStack Charts.",
-        "maintain": "Preserve the pinned upstream browser data, donut radii, separators, center total and label, tooltip, card dimensions, footer, and themes."
+        "maintain": "Preserve the pinned upstream data, pie donut text treatment, card dimensions, and light and dark tokens."
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/129-shadcn-pie-donut-text/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/129-shadcn-pie-donut-text/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/129-shadcn-pie-donut-text/example.tsx"
       }
     },
     {
@@ -10767,18 +10271,11 @@
       "height": 600,
       "order": 1310,
       "id": "130-shadcn-radar-multiple",
-      "title": "shadcn radar chart – multiple",
+      "title": "shadcn Radar Chart - Multiple",
       "family": "radar",
-      "intent": "Reproduce shadcn/ui's multi-series radar example while replacing Recharts with TanStack Charts.",
+      "intent": "Reproduce shadcn/ui's chart-radar-multiple example with TanStack Charts.",
       "support": "native",
-      "features": [
-        "radar chart",
-        "multiple series",
-        "polygon grid",
-        "angle labels",
-        "grouped tooltip",
-        "shadcn card shell"
-      ],
+      "features": ["radar chart", "multiple", "shadcn card shell"],
       "geometry": [
         {
           "role": "radar",
@@ -10791,15 +10288,11 @@
       },
       "ai": {
         "create": "Reproduce the official shadcn/ui chart-radar-multiple card and data with TanStack Charts.",
-        "maintain": "Preserve the pinned upstream data, polygon guide, angle labels, two filled profiles, tooltip, card dimensions, footer, and themes."
+        "maintain": "Preserve the pinned upstream data, radar multiple treatment, card dimensions, and light and dark tokens."
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/130-shadcn-radar-multiple/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/130-shadcn-radar-multiple/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/130-shadcn-radar-multiple/example.tsx"
       }
     },
     {
@@ -10809,25 +10302,19 @@
       "height": 600,
       "order": 1320,
       "id": "131-shadcn-radial-text",
-      "title": "shadcn radial chart – text",
+      "title": "shadcn Radial Chart - Text",
       "family": "radial",
-      "intent": "Reproduce shadcn/ui's partial radial chart with center text while replacing Recharts with TanStack Charts.",
+      "intent": "Reproduce shadcn/ui's chart-radial-text example with TanStack Charts.",
       "support": "native",
-      "features": [
-        "partial radial bar",
-        "rounded caps",
-        "background track",
-        "center text",
-        "shadcn card shell"
-      ],
+      "features": ["radial chart", "text", "shadcn card shell"],
       "geometry": [
         {
-          "role": "arc",
-          "count": 2
-        },
-        {
-          "role": "text",
-          "count": 2
+          "role": "bar",
+          "count": 1,
+          "rendererRoles": {
+            "recharts": "arc",
+            "tanstack": "arc"
+          }
         }
       ],
       "source": {
@@ -10836,15 +10323,11 @@
       },
       "ai": {
         "create": "Reproduce the official shadcn/ui chart-radial-text card and data with TanStack Charts.",
-        "maintain": "Preserve the pinned upstream value, 250-degree sweep, 80/90 radii, rounded track, center text, card dimensions, footer, and themes."
+        "maintain": "Preserve the pinned upstream data, radial text treatment, card dimensions, and light and dark tokens."
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/131-shadcn-radial-text/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/131-shadcn-radial-text/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/131-shadcn-radial-text/example.tsx"
       }
     },
     {
@@ -10854,22 +10337,15 @@
       "height": 600,
       "order": 1330,
       "id": "132-shadcn-tooltip-advanced",
-      "title": "shadcn tooltip – advanced",
+      "title": "shadcn Tooltip - Advanced",
       "family": "tooltip",
-      "intent": "Reproduce shadcn/ui's stacked-bar card and custom total tooltip while replacing Recharts with TanStack Charts.",
+      "intent": "Reproduce shadcn/ui's chart-tooltip-advanced example with TanStack Charts.",
       "support": "native",
-      "features": [
-        "stacked bars",
-        "rounded corners",
-        "rich tooltip body",
-        "computed total",
-        "default focus",
-        "shadcn card shell"
-      ],
+      "features": ["tooltip chart", "advanced", "shadcn card shell"],
       "geometry": [
         {
           "role": "bar",
-          "count": 12
+          "count": 10
         }
       ],
       "source": {
@@ -10877,16 +10353,12 @@
         "url": "https://ui.shadcn.com/view/new-york-v4/chart-tooltip-advanced"
       },
       "ai": {
-        "create": "Reproduce the official shadcn/ui chart-tooltip-advanced card and data with TanStack Charts and its React tooltip composition entry.",
-        "maintain": "Preserve the pinned upstream data, stack order, weekday axis, initial focused day, 180-pixel rich tooltip, row labels, kcal units, total, card dimensions, and themes."
+        "create": "Reproduce the official shadcn/ui chart-tooltip-advanced card and data with TanStack Charts.",
+        "maintain": "Preserve the pinned upstream data, tooltip advanced treatment, card dimensions, and light and dark tokens."
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/132-shadcn-tooltip-advanced/example.tsx"
       }
     },
     {
@@ -10917,11 +10389,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/133-shadcn-area-axes/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/133-shadcn-area-axes/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/133-shadcn-area-axes/example.tsx"
       }
     },
     {
@@ -10952,11 +10420,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/134-shadcn-area-default/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/134-shadcn-area-default/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/134-shadcn-area-default/example.tsx"
       }
     },
     {
@@ -10987,11 +10451,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/135-shadcn-area-gradient/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/135-shadcn-area-gradient/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/135-shadcn-area-gradient/example.tsx"
       }
     },
     {
@@ -11022,11 +10482,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/136-shadcn-area-icons/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/136-shadcn-area-icons/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/136-shadcn-area-icons/example.tsx"
       }
     },
     {
@@ -11057,11 +10513,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/137-shadcn-area-interactive/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/137-shadcn-area-interactive/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/137-shadcn-area-interactive/example.tsx"
       }
     },
     {
@@ -11092,11 +10544,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/138-shadcn-area-legend/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/138-shadcn-area-legend/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/138-shadcn-area-legend/example.tsx"
       }
     },
     {
@@ -11127,11 +10575,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/139-shadcn-area-linear/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/139-shadcn-area-linear/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/139-shadcn-area-linear/example.tsx"
       }
     },
     {
@@ -11162,11 +10606,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/140-shadcn-area-stacked-expand/example.tsx"
       }
     },
     {
@@ -11197,11 +10637,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/141-shadcn-area-stacked/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/141-shadcn-area-stacked/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/141-shadcn-area-stacked/example.tsx"
       }
     },
     {
@@ -11232,11 +10668,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/142-shadcn-area-step/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/142-shadcn-area-step/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/142-shadcn-area-step/example.tsx"
       }
     },
     {
@@ -11267,11 +10699,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/143-shadcn-bar-active/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/143-shadcn-bar-active/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/143-shadcn-bar-active/example.tsx"
       }
     },
     {
@@ -11302,11 +10730,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/144-shadcn-bar-default/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/144-shadcn-bar-default/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/144-shadcn-bar-default/example.tsx"
       }
     },
     {
@@ -11337,11 +10761,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/145-shadcn-bar-horizontal/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/145-shadcn-bar-horizontal/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/145-shadcn-bar-horizontal/example.tsx"
       }
     },
     {
@@ -11372,11 +10792,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/146-shadcn-bar-interactive/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/146-shadcn-bar-interactive/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/146-shadcn-bar-interactive/example.tsx"
       }
     },
     {
@@ -11407,11 +10823,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/147-shadcn-bar-label-custom/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/147-shadcn-bar-label-custom/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/147-shadcn-bar-label-custom/example.tsx"
       }
     },
     {
@@ -11442,11 +10854,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/148-shadcn-bar-label/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/148-shadcn-bar-label/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/148-shadcn-bar-label/example.tsx"
       }
     },
     {
@@ -11477,11 +10885,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/149-shadcn-bar-mixed/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/149-shadcn-bar-mixed/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/149-shadcn-bar-mixed/example.tsx"
       }
     },
     {
@@ -11512,11 +10916,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/150-shadcn-bar-negative/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/150-shadcn-bar-negative/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/150-shadcn-bar-negative/example.tsx"
       }
     },
     {
@@ -11547,11 +10947,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/151-shadcn-bar-stacked/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/151-shadcn-bar-stacked/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/151-shadcn-bar-stacked/example.tsx"
       }
     },
     {
@@ -11582,11 +10978,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/152-shadcn-line-default/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/152-shadcn-line-default/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/152-shadcn-line-default/example.tsx"
       }
     },
     {
@@ -11617,11 +11009,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/153-shadcn-line-dots-colors/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/153-shadcn-line-dots-colors/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/153-shadcn-line-dots-colors/example.tsx"
       }
     },
     {
@@ -11652,11 +11040,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/154-shadcn-line-dots-custom/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/154-shadcn-line-dots-custom/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/154-shadcn-line-dots-custom/example.tsx"
       }
     },
     {
@@ -11687,11 +11071,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/155-shadcn-line-dots/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/155-shadcn-line-dots/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/155-shadcn-line-dots/example.tsx"
       }
     },
     {
@@ -11722,11 +11102,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/156-shadcn-line-interactive/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/156-shadcn-line-interactive/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/156-shadcn-line-interactive/example.tsx"
       }
     },
     {
@@ -11757,11 +11133,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/157-shadcn-line-label-custom/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/157-shadcn-line-label-custom/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/157-shadcn-line-label-custom/example.tsx"
       }
     },
     {
@@ -11792,11 +11164,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/158-shadcn-line-label/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/158-shadcn-line-label/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/158-shadcn-line-label/example.tsx"
       }
     },
     {
@@ -11827,11 +11195,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/159-shadcn-line-linear/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/159-shadcn-line-linear/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/159-shadcn-line-linear/example.tsx"
       }
     },
     {
@@ -11862,11 +11226,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/160-shadcn-line-multiple/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/160-shadcn-line-multiple/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/160-shadcn-line-multiple/example.tsx"
       }
     },
     {
@@ -11897,11 +11257,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/161-shadcn-line-step/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/161-shadcn-line-step/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/161-shadcn-line-step/example.tsx"
       }
     },
     {
@@ -11932,11 +11288,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/162-shadcn-pie-donut-active/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/162-shadcn-pie-donut-active/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/162-shadcn-pie-donut-active/example.tsx"
       }
     },
     {
@@ -11967,11 +11319,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/163-shadcn-pie-donut/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/163-shadcn-pie-donut/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/163-shadcn-pie-donut/example.tsx"
       }
     },
     {
@@ -12002,11 +11350,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/164-shadcn-pie-interactive/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/164-shadcn-pie-interactive/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/164-shadcn-pie-interactive/example.tsx"
       }
     },
     {
@@ -12037,11 +11381,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/165-shadcn-pie-label-custom/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/165-shadcn-pie-label-custom/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/165-shadcn-pie-label-custom/example.tsx"
       }
     },
     {
@@ -12072,11 +11412,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/166-shadcn-pie-label-list/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/166-shadcn-pie-label-list/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/166-shadcn-pie-label-list/example.tsx"
       }
     },
     {
@@ -12107,11 +11443,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/167-shadcn-pie-label/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/167-shadcn-pie-label/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/167-shadcn-pie-label/example.tsx"
       }
     },
     {
@@ -12142,11 +11474,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/168-shadcn-pie-legend/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/168-shadcn-pie-legend/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/168-shadcn-pie-legend/example.tsx"
       }
     },
     {
@@ -12177,11 +11505,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/169-shadcn-pie-separator-none/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/169-shadcn-pie-separator-none/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/169-shadcn-pie-separator-none/example.tsx"
       }
     },
     {
@@ -12212,11 +11536,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/170-shadcn-pie-simple/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/170-shadcn-pie-simple/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/170-shadcn-pie-simple/example.tsx"
       }
     },
     {
@@ -12247,11 +11567,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/171-shadcn-pie-stacked/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/171-shadcn-pie-stacked/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/171-shadcn-pie-stacked/example.tsx"
       }
     },
     {
@@ -12282,11 +11598,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/172-shadcn-radar-default/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/172-shadcn-radar-default/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/172-shadcn-radar-default/example.tsx"
       }
     },
     {
@@ -12317,11 +11629,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/173-shadcn-radar-dots/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/173-shadcn-radar-dots/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/173-shadcn-radar-dots/example.tsx"
       }
     },
     {
@@ -12352,11 +11660,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/174-shadcn-radar-grid-circle-fill/example.tsx"
       }
     },
     {
@@ -12387,11 +11691,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/175-shadcn-radar-grid-circle-no-lines/example.tsx"
       }
     },
     {
@@ -12422,11 +11722,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/176-shadcn-radar-grid-circle/example.tsx"
       }
     },
     {
@@ -12457,11 +11753,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/177-shadcn-radar-grid-custom/example.tsx"
       }
     },
     {
@@ -12492,11 +11784,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/178-shadcn-radar-grid-fill/example.tsx"
       }
     },
     {
@@ -12527,11 +11815,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/179-shadcn-radar-grid-none/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/179-shadcn-radar-grid-none/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/179-shadcn-radar-grid-none/example.tsx"
       }
     },
     {
@@ -12562,11 +11846,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/180-shadcn-radar-icons/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/180-shadcn-radar-icons/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/180-shadcn-radar-icons/example.tsx"
       }
     },
     {
@@ -12597,11 +11877,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/181-shadcn-radar-label-custom/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/181-shadcn-radar-label-custom/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/181-shadcn-radar-label-custom/example.tsx"
       }
     },
     {
@@ -12632,11 +11908,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/182-shadcn-radar-legend/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/182-shadcn-radar-legend/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/182-shadcn-radar-legend/example.tsx"
       }
     },
     {
@@ -12667,11 +11939,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/183-shadcn-radar-lines-only/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/183-shadcn-radar-lines-only/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/183-shadcn-radar-lines-only/example.tsx"
       }
     },
     {
@@ -12702,11 +11970,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/184-shadcn-radar-radius/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/184-shadcn-radar-radius/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/184-shadcn-radar-radius/example.tsx"
       }
     },
     {
@@ -12741,11 +12005,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/185-shadcn-radial-grid/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/185-shadcn-radial-grid/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/185-shadcn-radial-grid/example.tsx"
       }
     },
     {
@@ -12780,11 +12040,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/186-shadcn-radial-label/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/186-shadcn-radial-label/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/186-shadcn-radial-label/example.tsx"
       }
     },
     {
@@ -12819,11 +12075,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/187-shadcn-radial-shape/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/187-shadcn-radial-shape/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/187-shadcn-radial-shape/example.tsx"
       }
     },
     {
@@ -12858,11 +12110,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/188-shadcn-radial-simple/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/188-shadcn-radial-simple/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/188-shadcn-radial-simple/example.tsx"
       }
     },
     {
@@ -12897,11 +12145,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/189-shadcn-radial-stacked/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/189-shadcn-radial-stacked/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/189-shadcn-radial-stacked/example.tsx"
       }
     },
     {
@@ -12932,11 +12176,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/190-shadcn-tooltip-default/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/190-shadcn-tooltip-default/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/190-shadcn-tooltip-default/example.tsx"
       }
     },
     {
@@ -12967,11 +12207,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/191-shadcn-tooltip-formatter/example.tsx"
       }
     },
     {
@@ -13002,11 +12238,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/192-shadcn-tooltip-icons/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/192-shadcn-tooltip-icons/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/192-shadcn-tooltip-icons/example.tsx"
       }
     },
     {
@@ -13037,11 +12269,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/193-shadcn-tooltip-indicator-line/example.tsx"
       }
     },
     {
@@ -13072,11 +12300,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/194-shadcn-tooltip-indicator-none/example.tsx"
       }
     },
     {
@@ -13107,11 +12331,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/195-shadcn-tooltip-label-custom/example.tsx"
       }
     },
     {
@@ -13142,11 +12362,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/196-shadcn-tooltip-label-formatter/example.tsx"
       }
     },
     {
@@ -13177,11 +12393,7 @@
       },
       "collection": "shadcn",
       "entries": {
-        "tanstack": "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/tanstack.ts",
-        "reference": {
-          "renderer": "recharts",
-          "path": "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/recharts.ts"
-        }
+        "example": "benchmarks/conformance/cases/197-shadcn-tooltip-label-none/example.tsx"
       }
     }
   ]

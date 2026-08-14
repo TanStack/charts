@@ -142,7 +142,7 @@ describe('native hierarchy tree', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/36-hierarchy-tree/tanstack.ts',
+        'benchmarks/conformance/cases/36-hierarchy-tree/example.tsx',
       ),
       'utf8',
     )
@@ -159,7 +159,6 @@ function render(revision: number) {
     treeDefinition({
       ...size,
       revision,
-      interactive: true,
     } satisfies ConformanceInput),
     size,
   )

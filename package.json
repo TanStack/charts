@@ -27,6 +27,8 @@
     "canvas:check": "node scripts/check-canvas-renderer.mjs",
     "catalog:index": "node scripts/catalog-index.mjs --write",
     "catalog:index:check": "nx run charts-workspace:catalog-index-check",
+    "catalog:examples:clean": "node scripts/clean-catalog-examples.mjs",
+    "catalog:examples:check": "node scripts/check-catalog-examples.mjs",
     "catalog:previews": "node scripts/catalog-preview.mjs --write",
     "catalog:previews:check": "nx run charts-workspace:catalog-preview-check",
     "shadcn:catalog:check": "node scripts/shadcn-catalog.mjs",

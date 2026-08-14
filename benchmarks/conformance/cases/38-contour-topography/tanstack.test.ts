@@ -12,7 +12,6 @@ describe('native scalar-grid contours', () => {
         width: 640,
         height: 400,
         revision: 0,
-        interactive: true,
       } satisfies ConformanceInput),
       { width: 640, height: 400 },
     )

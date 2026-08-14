@@ -104,7 +104,7 @@ describe('folded radar profile', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/75-radar/tanstack.ts',
+        'benchmarks/conformance/cases/75-radar/example.tsx',
       ),
       'utf8',
     )

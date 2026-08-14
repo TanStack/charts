@@ -277,7 +277,7 @@ describe('Apple income statement Sankey composition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/111-sankey-flow/tanstack.ts',
+        'benchmarks/conformance/cases/111-sankey-flow/example.tsx',
       ),
       'utf8',
     )

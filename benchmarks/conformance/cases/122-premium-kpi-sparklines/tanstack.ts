@@ -2,5 +2,6 @@ export {
   createPremiumKpiRenderer,
   premiumKpiDefinition,
   premiumKpiSpring,
-} from './chart'
+} from './example'
+export { default as Example } from './example'
 export { catalogComponent, mount } from './view'

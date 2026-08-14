@@ -7,7 +7,11 @@ import {
   projectedUnemploymentCounties,
   unemploymentCounties,
 } from '../../cases/109-us-state-choropleth/transform'
-import { detailedWorldLand, worldCountries, worldLand } from './country-atlas'
+import {
+  detailedWorldLand,
+  worldCountries,
+  worldLand,
+} from '@charts-poc/demo-data/country-atlas'
 import {
   learningPovertyCountries,
   learningPovertyPointsByPopulation,

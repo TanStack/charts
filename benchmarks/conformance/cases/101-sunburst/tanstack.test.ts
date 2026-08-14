@@ -172,7 +172,7 @@ describe('native responsive sunburst', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/101-sunburst/tanstack.ts',
+        'benchmarks/conformance/cases/101-sunburst/example.tsx',
       ),
       'utf8',
     )

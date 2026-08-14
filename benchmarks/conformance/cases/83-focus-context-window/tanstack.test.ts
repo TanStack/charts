@@ -114,13 +114,12 @@ describe('definition-owned focus/context brush', () => {
       process.cwd(),
       'benchmarks/conformance/cases/83-focus-context-window',
     )
-    const entry = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const entry = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
     const source = readFileSync(resolve(directory, 'view.tsx'), 'utf8')
 
-    expect(entry).toContain("from './view'")
+    expect(source).toContain("from './example'")
     expect(entry).toContain('focusContextDetailDefinition')
     expect(entry).toContain('focusContextOverviewDefinition')
-    expect(entry).not.toContain('brushX(')
 
     for (const forbidden of [
       "from 'd3-brush'",
@@ -133,14 +132,15 @@ describe('definition-owned focus/context brush', () => {
       '<svg',
       'selectedRows',
     ]) {
+      expect(entry).not.toContain(forbidden)
       expect(source).not.toContain(forbidden)
     }
-    expect(source).toContain("from '@tanstack/charts/interaction/brush'")
-    expect(source).toContain("from '@tanstack/charts/selection'")
-    expect(source).toContain('controls: [')
-    expect(source).toContain('brushX({')
-    expect(source).toContain('keyedSelection<')
-    expect(source).toContain('whenSelected(')
+    expect(entry).toContain("from '@tanstack/charts/interaction/brush'")
+    expect(entry).toContain("from '@tanstack/charts/selection'")
+    expect(entry).toContain('controls: [')
+    expect(entry).toContain('brushX({')
+    expect(entry).toContain('keyedSelection<')
+    expect(entry).toContain('whenSelected(')
     expect(source).toContain('if (input.preview)')
     expect(source.match(/<Chart\b/g)).toHaveLength(4)
     expect(source.match(/definition=\{detailDefinition\}/g)).toHaveLength(1)
@@ -151,8 +151,8 @@ describe('definition-owned focus/context brush', () => {
     expect(source).toContain(
       'definition={catalogPreviewDefinition(overviewDefinition)}',
     )
-    expect(source).not.toContain("from '@tanstack/charts/view'")
-    expect(source).not.toContain('viewGrid(')
+    expect(entry).not.toContain("from '@tanstack/charts/view'")
+    expect(entry).not.toContain('viewGrid(')
   })
 })
 

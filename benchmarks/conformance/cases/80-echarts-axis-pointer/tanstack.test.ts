@@ -202,12 +202,11 @@ describe('definition-owned snapped axis pointer', () => {
       process.cwd(),
       'benchmarks/conformance/cases/80-echarts-axis-pointer',
     )
-    const source = readFileSync(resolve(directory, 'tanstack.ts'), 'utf8')
+    const source = readFileSync(resolve(directory, 'example.tsx'), 'utf8')
 
     expect(existsSync(resolve(directory, 'view.tsx'))).toBe(false)
     for (const forbidden of [
       "from 'react'",
-      '@tanstack/charts/react',
       'useState',
       'onRender',
       'positionTooltip',

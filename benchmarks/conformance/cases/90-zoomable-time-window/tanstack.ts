@@ -1,9 +1,16 @@
+import {
+  zoomTimeWindowDefinition,
+  zoomStatusLabel,
+  copyWindow,
+} from './example'
+import type { ZoomState } from './example'
+export {
+  zoomTimeWindowDefinition,
+  zoomStatusLabel,
+  copyWindow,
+} from './example'
+export type { ZoomState } from './example'
 import { aapl } from '@charts-poc/demo-data/aapl'
-import { defineChart, dot, lineY } from '@tanstack/charts'
-import { zoomX } from '@tanstack/charts/interaction/zoom'
-import { controlledSignal } from '@tanstack/charts/interaction/signal'
-import { decorative } from '@tanstack/charts/mark/decorative'
-import { scaleLinear, scaleUtc } from 'd3-scale'
 import {
   clientPointBounds,
   scenePointToClient,
@@ -15,15 +22,10 @@ import {
   visibleZoomData,
   zoomDateFromAnchor,
   zoomDateKey,
-  zoomFullDomain,
   zoomSpanDays,
 } from './model'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
-import type {
-  ZoomXAction,
-  ZoomXChange,
-  ZoomXWindow,
-} from '@tanstack/charts/interaction/zoom'
+import type { ZoomXWindow } from '@tanstack/charts/interaction/zoom'
 import type { ChartScene } from '@tanstack/charts'
 import type {
   ConformanceGeometryQuery,
@@ -33,86 +35,13 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-export interface ZoomState {
-  window: ZoomXWindow<Date>
-  lastAction: 'none' | ZoomXAction
-  active: boolean
-  wheelCaptured: boolean
-}
+export { default as Example } from './example'
 
 const color = '#0f766e'
 const zoomRows = selectZoomRows(aapl)
-const zoomDateFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-  timeZone: 'UTC',
-})
 const catalogPreviewWindow: ZoomXWindow<Date> = {
   start: new Date(Date.UTC(2018, 0, 8)),
   end: new Date(Date.UTC(2018, 0, 16)),
-}
-
-export function zoomTimeWindowDefinition(
-  window: ZoomXWindow<Date>,
-  onChange: (window: ZoomXWindow<Date>, reason: ZoomXChange<Date>) => void,
-  onActiveChange?: (active: boolean) => void,
-) {
-  const rows = visibleZoomData(zoomRows, window)
-  return defineChart({
-    marks: [
-      decorative(
-        lineY(rows, {
-          id: 'zoom-series-line',
-          x: 'Date',
-          y: 'Close',
-          stroke: color,
-          strokeWidth: 2.5,
-        }),
-      ),
-      dot(rows, {
-        id: 'zoom-series-points',
-        x: 'Date',
-        y: 'Close',
-        fill: color,
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain([window.start, window.end]),
-      axis: {
-        ticks: { format: (value) => zoomDateFormatter.format(value) },
-        label: 'Date',
-      },
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
-    },
-    controls: [
-      zoomX({
-        id: 'time-window',
-        window: controlledSignal<ZoomXWindow<Date>, ZoomXChange<Date>>(
-          window,
-          (next, { reason }) => onChange(next, reason),
-        ),
-        extent: zoomFullDomain,
-        scaleExtent: [1, 8],
-        ariaLabel:
-          'Zoomable time window. Focus the chart before wheel zoom; drag or use a horizontal wheel to pan; use plus, minus, arrow keys, or Home.',
-        ariaDescription:
-          'Wheel zoom; drag or horizontal wheel pan; plus and minus zoom; arrows pan; Home resets.',
-        format: zoomDateKey,
-        onActiveChange,
-      }),
-    ],
-    svgAnimation: false,
-    keyboard: false,
-    focusRing: false,
-    margin: { top: 56, right: 24, bottom: 44, left: 58 },
-  })
 }
 
 export const catalogCase = tanstackCase(
@@ -243,23 +172,6 @@ function zoomGeometry(
     paint: color,
   })
   return sample ? [sample] : []
-}
-
-export function zoomStatusLabel(state: ZoomState) {
-  return state.active
-    ? `${zoomDateKey(state.window.start)} → ${zoomDateKey(state.window.end)} · ${formatSpan(zoomSpanDays(state.window))} days`
-    : 'Focus chart to zoom'
-}
-
-export function copyWindow(window: ZoomXWindow<Date>): ZoomXWindow<Date> {
-  return {
-    start: new Date(window.start.getTime()),
-    end: new Date(window.end.getTime()),
-  }
-}
-
-function formatSpan(days: number) {
-  return Number.isInteger(days) ? String(days) : days.toFixed(1)
 }
 
 function center(element: HTMLElement | SVGElement) {

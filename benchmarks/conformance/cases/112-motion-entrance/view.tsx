@@ -1,3 +1,5 @@
+import { motionEntranceDefinition } from './example'
+import type { MotionSettings } from './example'
 import {
   forwardRef,
   useImperativeHandle,
@@ -5,10 +7,8 @@ import {
   useRef,
   useState,
 } from 'react'
-import { barY, defineChart, lineY } from '@tanstack/charts'
 import { motion } from '@tanstack/charts/motion'
 import { Chart } from '@tanstack/charts/react/core'
-import { scaleBand, scaleLinear } from 'd3-scale'
 import { readChartMotionState, settleChartMotion } from '../../shared/motion'
 import {
   ControlBar,
@@ -18,18 +18,9 @@ import {
 } from '../../shared/react-controls'
 import { reactMount } from '../../shared/react-mount'
 import { tanstackCase } from '../../shared/mount'
-import { entranceRows as rows } from './model'
-import type { ChartMotionTweenTransition } from '@tanstack/charts'
 import type { MotionRow } from './model'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
-
-export interface MotionSettings {
-  duration: number
-  staggerMs: number
-  easing: ChartMotionTweenTransition['easing']
-  customTiming: boolean
-}
 
 const initialSettings: MotionSettings = {
   duration: 1_100,
@@ -166,51 +157,6 @@ const MotionEntranceExample = forwardRef<
 })
 
 export const mount = reactMount(MotionEntranceExample)
-
-export function motionEntranceDefinition(settings: MotionSettings) {
-  const { duration, easing, staggerMs, customTiming } = settings
-  return defineChart({
-    motion: {
-      transition: { type: 'tween', duration, easing },
-    },
-    marks: [
-      barY(rows, {
-        x: 'period',
-        y: 'actual',
-        key: 'id',
-        fill: '#7c3aed',
-        radius: 7,
-        inset: 4,
-        motion(context) {
-          if (customTiming && context.datum?.featured) {
-            return {
-              delay: duration * 0.19,
-              transition: { type: 'tween', duration: duration * 0.64 },
-            }
-          }
-          return { delay: context.datumIndex * staggerMs }
-        },
-      }),
-      lineY(rows, {
-        x: 'period',
-        y: 'target',
-        key: 'id',
-        stroke: '#f97316',
-        strokeWidth: 3,
-        motion: customTiming
-          ? {
-              delay: duration * 0.1,
-              transition: { type: 'tween', duration: duration * 0.78 },
-            }
-          : undefined,
-      }),
-    ],
-    x: { scale: scaleBand().domain(rows.map((row) => row.period)) },
-    y: { scale: scaleLinear().domain([0, 100]) },
-    guides: false,
-    margin: { top: 20, right: 20, bottom: 20, left: 20 },
-  })
-}
 
 export const catalogCase = tanstackCase(
   () => motionEntranceDefinition(initialSettings),

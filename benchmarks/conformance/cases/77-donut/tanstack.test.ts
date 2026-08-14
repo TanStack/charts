@@ -66,7 +66,7 @@ describe('native donut allocation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/77-donut/tanstack.ts',
+        'benchmarks/conformance/cases/77-donut/example.tsx',
       ),
       'utf8',
     )

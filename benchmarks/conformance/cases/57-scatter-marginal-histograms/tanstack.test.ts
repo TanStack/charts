@@ -136,7 +136,7 @@ describe('scatterplot with marginal histograms', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/57-scatter-marginal-histograms/tanstack.ts',
+        'benchmarks/conformance/cases/57-scatter-marginal-histograms/example.tsx',
       ),
       'utf8',
     )

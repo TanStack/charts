@@ -1,8 +1,8 @@
 import * as Plot from '@observablehq/plot'
-import { worldLand, worldSphere } from '../../shared/fixtures/country-atlas'
-import { learningPovertyPointsByPopulation } from '../../shared/transforms/learning-poverty'
+import { worldLand, worldSphere } from '@charts-poc/demo-data/country-atlas'
+import { learningPovertyPointsByPopulation } from '@charts-poc/demo-data/learning-poverty-geography'
 import { mountObservablePlot } from '../../shared/mount'
-import type { LearningPovertyPoint } from '../../shared/transforms/learning-poverty'
+import type { LearningPovertyPoint } from '@charts-poc/demo-data/learning-poverty-geography'
 import type { ConformanceMount } from '../../types'
 
 const fills = ['#2563eb', '#0891b2']

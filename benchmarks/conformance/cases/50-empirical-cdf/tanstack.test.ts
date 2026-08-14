@@ -65,7 +65,7 @@ describe('native empirical CDF preparation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/50-empirical-cdf/tanstack.ts',
+        'benchmarks/conformance/cases/50-empirical-cdf/example.tsx',
       ),
       'utf8',
     )

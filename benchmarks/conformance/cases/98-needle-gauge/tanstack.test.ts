@@ -181,7 +181,7 @@ describe('native needle-gauge composition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/98-needle-gauge/tanstack.ts',
+        'benchmarks/conformance/cases/98-needle-gauge/example.tsx',
       ),
       'utf8',
     )

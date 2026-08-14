@@ -83,7 +83,7 @@ describe('native gauge allocation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/78-gauge/tanstack.ts',
+        'benchmarks/conformance/cases/78-gauge/example.tsx',
       ),
       'utf8',
     )

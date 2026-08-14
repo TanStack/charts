@@ -127,7 +127,7 @@ describe('native nested-donut allocation', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/96-nested-donut/tanstack.ts',
+        'benchmarks/conformance/cases/96-nested-donut/example.tsx',
       ),
       'utf8',
     )

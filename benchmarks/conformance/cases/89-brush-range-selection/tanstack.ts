@@ -1,9 +1,8 @@
+import { brushRangeDefinition, brushRangeStatus, copyRange } from './example'
+import type { BrushState } from './example'
+export { brushRangeDefinition, brushRangeStatus, copyRange } from './example'
+export type { BrushState } from './example'
 import { aapl } from '@charts-poc/demo-data/aapl'
-import { defineChart, dot, lineY } from '@tanstack/charts'
-import { brushX } from '@tanstack/charts/interaction/brush'
-import { controlledSignal } from '@tanstack/charts/interaction/signal'
-import { decorative } from '@tanstack/charts/mark/decorative'
-import { scaleLinear, scaleUtc } from 'd3-scale'
 import {
   clientPointBounds,
   scenePointToClient,
@@ -12,19 +11,14 @@ import { tanstackCase } from '../../shared/mount'
 import {
   brushDateFromAnchor,
   brushDateKey,
-  brushDomain,
   brushRangeSummary,
-  brushShortDate,
   initialBrushRange,
   monthlyAaplRows,
   observedBrushDates,
 } from './model'
-import { brushSelectionFill, normalizedElementFill } from './paint'
+import { normalizedElementFill } from './paint'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
-import type {
-  BrushRange,
-  BrushXChange,
-} from '@tanstack/charts/interaction/brush'
+import type { BrushRange } from '@tanstack/charts/interaction/brush'
 import type { ChartScene } from '@tanstack/charts'
 import type {
   ConformanceGeometryQuery,
@@ -34,91 +28,11 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
-export interface BrushState {
-  range: BrushRange<Date>
-  dragging: boolean
-}
+export { default as Example } from './example'
 
 const color = '#2563eb'
 const brushRows = monthlyAaplRows(aapl)
 const brushDates = observedBrushDates(brushRows)
-const fullDomain = brushDomain(brushDates)
-const brushMonthFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  timeZone: 'UTC',
-})
-
-export function brushRangeDefinition(
-  range: BrushRange<Date>,
-  onChange: (range: BrushRange<Date>, reason: BrushXChange<Date>) => void,
-) {
-  return defineChart({
-    marks: [
-      decorative(
-        lineY(brushRows, {
-          id: 'brush-series-line',
-          x: 'Date',
-          y: 'Close',
-          stroke: color,
-          strokeWidth: 2.5,
-        }),
-      ),
-      dot(brushRows, {
-        id: 'brush-series-points',
-        x: 'Date',
-        y: 'Close',
-        fill: color,
-        r: 3.5,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-    ],
-    x: {
-      scale: scaleUtc().domain(fullDomain),
-      axis: {
-        ticks: { format: (value) => brushMonthFormatter.format(value) },
-        label: 'Month',
-      },
-    },
-    y: {
-      scale: scaleLinear,
-      grid: true,
-      axis: { ticks: { count: 4 }, label: 'AAPL close ($)' },
-    },
-    controls: [
-      brushX({
-        id: 'monthly-range',
-        range: controlledSignal<BrushRange<Date>, BrushXChange<Date>>(
-          range,
-          (next, { reason }) => onChange(next, reason),
-        ),
-        values: brushDates,
-        ariaLabel:
-          'Monthly range brush. Drag to select; focus either handle and use arrow keys, Home, or End to adjust.',
-        startAriaLabel: 'Range start',
-        endAriaLabel: 'Range end',
-        format: brushDateKey,
-        handleSize: 16,
-        selectionStyle: {
-          fill: brushSelectionFill,
-          fillOpacity: 1,
-          stroke: color,
-          strokeWidth: 1,
-        },
-        handleStyle: {
-          fill: 'Canvas',
-          fillOpacity: 1,
-          stroke: color,
-          strokeWidth: 2,
-        },
-      }),
-    ],
-    svgAnimation: false,
-    keyboard: false,
-    focusRing: false,
-    margin: { top: 52, right: 24, bottom: 44, left: 58 },
-  })
-}
 
 export const catalogCase = tanstackCase(
   () => brushRangeDefinition(initialBrushRange(brushDates), () => {}),
@@ -258,21 +172,6 @@ function brushGeometry(
       paint: 'missing-tanstack-rendered-brush-fill',
     },
   ]
-}
-
-export function brushRangeStatus(range: BrushRange<Date>) {
-  const summary = brushRangeSummary(brushRows, range)
-  return {
-    label: `${brushShortDate(range.start)} → ${brushShortDate(range.end)} · ${summary.count} AAPL closes · avg $${summary.average.toFixed(1)}`,
-    ariaLabel: `${brushDateKey(range.start)} through ${brushDateKey(range.end)}, ${summary.count} AAPL closing prices, average $${summary.average.toFixed(1)}`,
-  }
-}
-
-export function copyRange(range: BrushRange<Date>): BrushRange<Date> {
-  return {
-    start: new Date(range.start.getTime()),
-    end: new Date(range.end.getTime()),
-  }
 }
 
 function center(element: HTMLElement | SVGElement) {

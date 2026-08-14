@@ -90,7 +90,7 @@ describe('definition-owned faceted distributions', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/51-faceted-distributions/tanstack.ts',
+        'benchmarks/conformance/cases/51-faceted-distributions/example.tsx',
       ),
       'utf8',
     )

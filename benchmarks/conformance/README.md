@@ -8,8 +8,9 @@ behavior select that renderer explicitly without creating a second harness.
 Each case owns:
 
 - one typed raw data fixture and intent;
+- one self-contained public `example.tsx` with the chart definition;
 - one isolated reference implementation;
-- one isolated TanStack implementation;
+- one thin TanStack conformance adapter that imports the public example;
 - official source provenance;
 - semantic geometry expectations;
 - optional renderer-independent interaction scenarios;
@@ -58,6 +59,9 @@ pnpm dev:conformance
 # Validate case metadata, source entries, ordering, and index drift
 pnpm catalog:index:check
 
+# Validate every public example and its case-local source closure
+pnpm catalog:examples:check
+
 # Render the checked-in source-derived catalog previews
 pnpm catalog:previews
 
@@ -100,8 +104,12 @@ current boundary and case-local evidence for every case.
 
 `catalog-index.json` is the checked-in metadata contract for consumers that load
 source directly from the Charts repository. It contains every parsed
-`case.json` field plus the TanStack and reference entry paths. The index does
+`case.json` field plus the public `example.tsx` entry path. The index does
 not embed compiled modules, source closures, previews, datasets, or assets.
+Every public entry has a default React export and may import only files from its
+own case directory. Conformance code imports the definition from that entry;
+the adapter, driver, tests, and comparison renderer are not published to the
+docs sandbox.
 
 Every case also has a checked-in source-derived preview at
 `benchmarks/conformance/previews/<caseId>.svg`. The generator mounts the actual
@@ -133,7 +141,7 @@ its source entries from that same revision.
 
 The Vite application remains the local authoring and conformance surface at
 `http://localhost:5194/`. TanStack.com owns the public catalog routes and chrome.
-It reads `catalog-index.json`, case source, and the checked-in preview SVGs from
+It reads `catalog-index.json`, each self-contained example source closure, and the checked-in preview SVGs from
 one pinned Charts revision, then runs full examples in the site notebook
 runtime. The site does not maintain parallel preview implementations or consume
 a generated catalog branch or published renderable-catalog package.

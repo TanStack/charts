@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { format as formatWithPrettier } from 'prettier'
 import { parseConformanceCaseMeta } from '../benchmarks/conformance/metadata.ts'
 
-export const catalogIndexSchemaVersion = 1
+export const catalogIndexSchemaVersion = 2
 export const catalogIndexSourceRepository = 'tanstack/charts'
 export const catalogIndexSourcePathRoot = 'benchmarks/conformance/'
 
@@ -82,22 +82,13 @@ export function createCatalogIndex(cases, collectionsByCaseId = new Map()) {
     cases: [...cases]
       .sort((left, right) => left.metadata.order - right.metadata.order)
       .map(({ metadata }) => {
-        const referenceRenderer =
-          metadata.referenceRenderer ?? 'observable-plot'
         const collection = collectionsByCaseId.get(metadata.id)
 
         return {
           ...metadata,
           ...(collection ? { collection } : {}),
           entries: {
-            tanstack: caseSourcePath(metadata.id, 'tanstack'),
-            reference: {
-              renderer: referenceRenderer,
-              path: caseSourcePath(
-                metadata.id,
-                rendererFileName(referenceRenderer),
-              ),
-            },
+            example: caseSourcePath(metadata.id, 'example'),
           },
         }
       }),
@@ -170,14 +161,10 @@ export function validateCatalogIndex(index) {
     orders.add(metadata.order)
     previousOrder = metadata.order
 
-    const referenceRenderer = metadata.referenceRenderer ?? 'observable-plot'
     assert(
       isRecord(entry.entries) &&
-        entry.entries.tanstack === caseSourcePath(metadata.id, 'tanstack') &&
-        isRecord(entry.entries.reference) &&
-        entry.entries.reference.renderer === referenceRenderer &&
-        entry.entries.reference.path ===
-          caseSourcePath(metadata.id, rendererFileName(referenceRenderer)),
+        Object.keys(entry.entries).length === 1 &&
+        entry.entries.example === caseSourcePath(metadata.id, 'example'),
       `catalog index case ${metadata.id} has invalid source entries`,
     )
     assert(
@@ -262,10 +249,7 @@ export async function checkCatalogIndex() {
 
 async function validateCatalogIndexSourceEntries(index) {
   for (const entry of index.cases) {
-    for (const sourcePath of [
-      entry.entries.tanstack,
-      entry.entries.reference.path,
-    ]) {
+    for (const sourcePath of [entry.entries.example]) {
       const sourceFile = path.join(rootDirectory, ...sourcePath.split('/'))
       let stats
       try {
@@ -310,12 +294,9 @@ function validateAuthoredCases(cases) {
   }
 }
 
-function rendererFileName(renderer) {
-  return renderer === 'observable-plot' ? 'plot' : renderer
-}
-
 function caseSourcePath(id, rendererFile) {
-  return `benchmarks/conformance/cases/${id}/${rendererFile}.ts`
+  const extension = rendererFile === 'example' ? 'tsx' : 'ts'
+  return `benchmarks/conformance/cases/${id}/${rendererFile}.${extension}`
 }
 
 function isRecord(value) {

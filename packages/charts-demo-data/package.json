@@ -61,6 +61,18 @@
       "types": "./src/learning-poverty.d.ts",
       "default": "./src/learning-poverty.js"
     },
+    "./country-atlas": {
+      "types": "./src/country-atlas.ts",
+      "default": "./src/country-atlas.ts"
+    },
+    "./learning-poverty-geography": {
+      "types": "./src/learning-poverty-geography.ts",
+      "default": "./src/learning-poverty-geography.ts"
+    },
+    "./simplify-geo": {
+      "types": "./src/simplify-geo.ts",
+      "default": "./src/simplify-geo.ts"
+    },
     "./metadata": {
       "types": "./src/metadata.d.ts",
       "default": "./src/metadata.js"
@@ -92,6 +104,13 @@
     "./simpsons": {
       "types": "./src/simpsons.d.ts",
       "default": "./src/simpsons.js"
+    },
+    "./shadcn": {
+      "types": "./src/shadcn.ts",
+      "default": "./src/shadcn.ts"
+    },
+    "./shadcn-area-interactive-data": {
+      "default": "./src/shadcn-area-interactive-data.json"
     },
     "./survey": {
       "types": "./src/survey.d.ts",

@@ -1,14 +1,8 @@
+import { axisPointerDefinition } from './example'
+export { axisPointerDefinition } from './example'
 import { industries } from '@charts-poc/demo-data/industries'
-import {
-  colorLegend,
-  defineChart,
-  dot,
-  lineY,
-  mountChart,
-} from '@tanstack/charts'
-import { focusGuideX } from '@tanstack/charts/focus/guide'
+import { mountChart } from '@tanstack/charts'
 import { tooltip } from '@tanstack/charts/tooltip'
-import { scaleLinear, scaleUtc } from 'd3-scale'
 import {
   clientPointBounds,
   scenePointToClient,
@@ -39,6 +33,8 @@ import type {
   ConformanceTestDriver,
 } from '../../types'
 
+export { default as Example } from './example'
+
 const month = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   timeZone: 'UTC',
@@ -68,79 +64,6 @@ const axisPointerTooltip: ChartTooltipOptions<AxisPointerDatum> = {
     },
     { channel: 'group', label: 'Industry' },
   ],
-}
-
-export const axisPointerDefinition = (input: ConformanceInput) => {
-  const rows = axisPointerData(industries, input.revision)
-
-  return defineChart({
-    marks: [
-      lineY(rows, {
-        id: 'industry-lines',
-        x: 'date',
-        y: 'unemployed',
-        z: 'industry',
-        color: 'industry',
-        key: axisPointerKey,
-        strokeWidth: 2,
-      }),
-      dot(rows, {
-        id: 'industry-points',
-        x: 'date',
-        y: 'unemployed',
-        z: 'industry',
-        color: 'industry',
-        key: axisPointerKey,
-        r: 3,
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      }),
-      focusGuideX(rows, {
-        id: 'axis-pointer-guide',
-        x: 'date',
-        y: 'unemployed',
-        z: 'industry',
-        key: axisPointerKey,
-        xRule: {
-          stroke: '#64748b',
-          strokeWidth: 1,
-          strokeDasharray: '4 4',
-        },
-      }),
-    ],
-    x: {
-      scale: scaleUtc,
-      axis: { ticks: { format: (value) => month.format(value) } },
-    },
-    y: {
-      scale: scaleLinear,
-      grid: input.preview !== true,
-      axis: {
-        ticks: { count: 5 },
-        ...(input.preview === true ? {} : { label: 'Unemployed (thousands)' }),
-      },
-    },
-    color: {
-      domain: axisPointerIndustries,
-      range: axisPointerIndustries.map(
-        (industry) => axisPointerColors[industry],
-      ),
-      legend: colorLegend({ itemWidth: 100 }),
-    },
-    focus: 'group-x',
-    focusRing: false,
-    maxFocusDistance: Number.POSITIVE_INFINITY,
-    svgAnimation: false,
-    keyboard: true,
-    tooltip: {
-      use: tooltip,
-      ...axisPointerTooltip,
-    },
-    margin:
-      input.preview === true
-        ? { top: 4, right: 4, bottom: 22, left: 38 }
-        : { top: 38, right: 24, bottom: 45, left: 60 },
-  })
 }
 
 export const catalogCase = tanstackCase(
@@ -219,10 +142,6 @@ export const mount: ConformanceMount = (container, input) => {
       host.destroy()
     },
   }
-}
-
-function axisPointerKey(row: AxisPointerDatum) {
-  return `${row.industry}:${axisPointerDateKey(row.date)}`
 }
 
 function resolveTarget(

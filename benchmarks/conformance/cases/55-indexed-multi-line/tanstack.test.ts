@@ -85,7 +85,7 @@ describe('definition-owned indexed industry lines', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/55-indexed-multi-line/tanstack.ts',
+        'benchmarks/conformance/cases/55-indexed-multi-line/example.tsx',
       ),
       'utf8',
     )

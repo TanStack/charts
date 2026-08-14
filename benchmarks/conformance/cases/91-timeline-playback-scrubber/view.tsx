@@ -9,22 +9,22 @@ import {
 } from 'react'
 import { Chart } from '@tanstack/charts/react'
 import { reactMount } from '../../shared/react-mount'
+import { createDriver } from './tanstack'
 import {
   cloneDate,
-  createDriver,
   indexForDate,
   initialFrame,
   playbackDefinition,
   playbackRows,
   playbackValueText,
   rowForDate,
-} from './tanstack'
+} from './example'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
 import type { ChartScene } from '@tanstack/charts'
 import type { HandleXChange } from '@tanstack/charts/interaction/handle'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 import type { ConformanceTestDriver } from '../../types'
-import type { PlaybackState } from './tanstack'
+import type { PlaybackState } from './example'
 
 const PlaybackExample = forwardRef<
   ConformanceTestDriver,

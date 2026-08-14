@@ -78,7 +78,7 @@ describe('definition-owned Albers USA choropleth', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/109-us-state-choropleth/tanstack.ts',
+        'benchmarks/conformance/cases/109-us-state-choropleth/example.tsx',
       ),
       'utf8',
     )

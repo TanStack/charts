@@ -79,7 +79,7 @@ describe('folded parallel coordinates', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/27-parallel-coordinates/tanstack.ts',
+        'benchmarks/conformance/cases/27-parallel-coordinates/example.tsx',
       ),
       'utf8',
     )

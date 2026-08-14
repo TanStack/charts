@@ -198,7 +198,7 @@ describe('declarative keyed motion updates', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/113-motion-updates/tanstack.ts',
+        'benchmarks/conformance/cases/113-motion-updates/example.tsx',
       ),
       'utf8',
     )

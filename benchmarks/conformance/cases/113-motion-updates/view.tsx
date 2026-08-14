@@ -16,10 +16,10 @@ import {
   RangeField,
 } from '../../shared/react-controls'
 import { reactMount } from '../../shared/react-mount'
-import { motionUpdatesDefinition, readEasing, springRegime } from './tanstack'
+import { motionUpdatesDefinition, readEasing, springRegime } from './example'
 import { updateStages as stages } from './model'
 import type { UpdateRow } from './model'
-import type { UpdateSettings } from './tanstack'
+import type { UpdateSettings } from './example'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 

@@ -1,72 +1,8 @@
-import { defineChart } from '@tanstack/charts'
-import {
-  pie,
-  polar,
-  radialArc,
-  radialRule,
-  radialText,
-} from '@tanstack/charts/polar'
-import { alphabet } from '@charts-poc/demo-data/alphabet'
-import { scaleLinear } from 'd3-scale'
-import { selectLabeledPieData } from './selection'
-import { tanstackCase } from '../../shared/mount'
-import type { ConformanceInput } from '../../types'
+import { createExampleChart, exampleAriaLabel } from './example'
+import { tanstackExampleMount } from '../../shared/mount'
 
-const tau = Math.PI * 2
-const radiusRatio = 0.56
-const labelOffset = 20
-const colors = ['#2563eb', '#7c3aed', '#db2777', '#f59e0b']
+export * from './example'
 
-export const labeledPieDefinition = (input: ConformanceInput) => {
-  const arcs = pie(selectLabeledPieData(alphabet, input.revision), {
-    value: 'frequency',
-  })
+export const mount = tanstackExampleMount(createExampleChart, exampleAriaLabel)
 
-  return defineChart({
-    marks: [
-      polar({
-        radiusRatio,
-        angle: { scale: scaleLinear().domain([0, tau]) },
-        radius: { scale: scaleLinear().domain([0, 1]) },
-        marks: [
-          radialArc(arcs, {
-            id: 'letter-slices',
-            key: 'letter',
-            color: 'letter',
-          }),
-          radialRule(arcs, {
-            id: 'letter-leaders',
-            angle: 'angle',
-            radius1: 1,
-            radius2: 1,
-            radius2Offset: labelOffset,
-            key: 'letter',
-            stroke: '#94a3b8',
-            strokeWidth: 1,
-          }),
-          radialText(arcs, {
-            id: 'letter-labels',
-            angle: 'angle',
-            radius: 1,
-            radiusOffset: labelOffset,
-            text: 'letter',
-            key: 'letter',
-            color: 'letter',
-            fontSize: 12,
-            fontWeight: 500,
-            anchor: 'outside',
-          }),
-        ],
-      }),
-    ],
-    color: { range: colors },
-    margin: 0,
-  })
-}
-
-export const catalogCase = tanstackCase(
-  labeledPieDefinition,
-  'Letter frequency pie with labels',
-)
-
-export const mount = catalogCase.mount
+export const catalogCase = mount

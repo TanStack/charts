@@ -16,20 +16,20 @@ import {
   editableEventEndValues,
 } from './model'
 import { editableEvents, initialEditableEventEnd } from './scenario'
+import { createDriver } from './tanstack'
 import {
   cloneDate,
-  createDriver,
   editableAriaLabel,
   editableEventDefinition,
   editableSummaryText,
-} from './tanstack'
+} from './example'
 import type { ChartScene } from '@tanstack/charts'
 import type { HandleXChange } from '@tanstack/charts/interaction/handle'
 import type { FormEvent, KeyboardEvent, PointerEvent } from 'react'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 import type { ConformanceTestDriver } from '../../types'
 import type { EditableEvent } from './scenario'
-import type { EditableState } from './tanstack'
+import type { EditableState } from './example'
 
 const validationMessage = 'Choose a release end date within the range.'
 

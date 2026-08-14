@@ -68,7 +68,7 @@ describe('folded slopegraph', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/30-slopegraph/tanstack.ts',
+        'benchmarks/conformance/cases/30-slopegraph/example.tsx',
       ),
       'utf8',
     )

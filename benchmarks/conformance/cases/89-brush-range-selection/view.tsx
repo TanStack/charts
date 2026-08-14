@@ -10,19 +10,15 @@ import { Chart } from '@tanstack/charts/react'
 import { reactMount } from '../../shared/react-mount'
 import { initialBrushRange, observedBrushDates, monthlyAaplRows } from './model'
 import { aapl } from '@charts-poc/demo-data/aapl'
-import {
-  brushRangeDefinition,
-  brushRangeStatus,
-  copyRange,
-  createDriver,
-} from './tanstack'
+import { createDriver } from './tanstack'
+import { brushRangeDefinition, brushRangeStatus, copyRange } from './example'
 import type { ChartScene } from '@tanstack/charts'
 import type {
   BrushRange,
   BrushXChange,
 } from '@tanstack/charts/interaction/brush'
 import type { AaplRow } from '@charts-poc/demo-data/aapl'
-import type { BrushState } from './tanstack'
+import type { BrushState } from './example'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
 

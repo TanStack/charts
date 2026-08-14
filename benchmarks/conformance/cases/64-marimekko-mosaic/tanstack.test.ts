@@ -176,7 +176,7 @@ describe('Marimekko survey composition', () => {
     const source = readFileSync(
       resolve(
         process.cwd(),
-        'benchmarks/conformance/cases/64-marimekko-mosaic/tanstack.ts',
+        'benchmarks/conformance/cases/64-marimekko-mosaic/example.tsx',
       ),
       'utf8',
     )
