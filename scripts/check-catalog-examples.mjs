@@ -5,7 +5,10 @@ import ts from 'typescript'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const casesRoot = path.join(root, 'benchmarks', 'conformance', 'cases')
+const demoDataRoot = path.join(root, 'packages', 'charts-demo-data', 'src')
 const sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.json', '.css']
+const browserModuleExtensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs']
+const demoDataPrefixes = ['@charts-poc/demo-data/', '@tanstack/charts-data/']
 const forbiddenPublicNames =
   /\b(?:Conformance|tanstackCase|tanstackMount|reactMount|catalogPreviewDefinition)\b/
 
@@ -69,6 +72,23 @@ for (const directory of directories) {
     }
 
     for (const specifier of importSpecifiers(source, sourcePath)) {
+      const demoDataPrefix = demoDataPrefixes.find((prefix) =>
+        specifier.startsWith(prefix),
+      )
+      if (demoDataPrefix) {
+        const demoDataSpecifier = specifier.slice(demoDataPrefix.length)
+        const resolved = await resolveImport(
+          demoDataRoot,
+          `./${demoDataSpecifier}`,
+          browserModuleExtensions,
+        )
+        if (!resolved) {
+          failures.push(
+            `${directory}/${relativePath}: demo-data import is not a browser module (${specifier})`,
+          )
+        }
+        continue
+      }
       if (!specifier.startsWith('.')) continue
       const resolved = await resolveImport(path.dirname(sourcePath), specifier)
       if (!resolved) {
@@ -190,13 +210,13 @@ function importSpecifiers(source, sourcePath) {
   return specifiers
 }
 
-async function resolveImport(parent, specifier) {
+async function resolveImport(parent, specifier, extensions = sourceExtensions) {
   const target = path.resolve(parent, specifier)
   const candidates = path.extname(target)
     ? [target]
     : [
-        ...sourceExtensions.map((extension) => `${target}${extension}`),
-        ...sourceExtensions.map((extension) =>
+        ...extensions.map((extension) => `${target}${extension}`),
+        ...extensions.map((extension) =>
           path.join(target, `index${extension}`),
         ),
       ]

@@ -322,6 +322,7 @@ Each entry records:
 | F-283 | Interactive chart shells rendered inert controls               | Application           | resolved   |
 | F-284 | Stagger timing required repeated callback arithmetic           | API                   | resolved   |
 | F-285 | Absolute catalog links lost their docs navigation tab          | Documentation         | resolved   |
+| F-286 | Browser imports treated raw JSON as a source module            | Tooling               | resolved   |
 
 ## Findings
 
@@ -8261,3 +8262,22 @@ Each entry records:
   on path inference for a non-docs route.
 - Verification: the local tanstack.com collection route renders the
   `shadcn/ui Charts` sidebar item as active under Examples.
+
+### F-286 — Browser imports treated raw JSON as a source module
+
+- Status: resolved
+- Severity: high
+- Owner: Tooling
+- Observed in: opening the published ShadCN area-interactive catalog example
+- Friction: the example imported an extensionless JSON fixture through the
+  catalog's revision-pinned esm.sh source prefix. esm.sh returned 404 because
+  raw JSON was not a resolvable JavaScript entry, leaving the sandbox root
+  empty while its status remained Running. The same fixture affected the area,
+  bar, and line interactive examples.
+- Decision: expose the fixture as a TypeScript module and validate every
+  catalog demo-data import against a browser-loadable JavaScript or TypeScript
+  source module. JSON and declaration-only files no longer satisfy the public
+  example contract.
+- Verification: the catalog contract validates all example imports, and the
+  revision-pinned esm.sh URL for the fixture returns a JavaScript module that
+  renders the production sandbox.

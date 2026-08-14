@@ -1,4 +1,4 @@
-[
+const interactiveAreaData = [
   {
     "date": "2024-04-01",
     "desktop": 222,
@@ -454,4 +454,6 @@
     "desktop": 446,
     "mobile": 400
   }
-]
+] as const
+
+export default interactiveAreaData
