@@ -1,4 +1,5 @@
 import type {
+  ChartAxisSide,
   ChartBounds,
   ChartMargin,
   ChartTextMeasurer,
@@ -25,6 +26,23 @@ const defaultTypography = {
 export interface GuideMarginOptions {
   inset?: number
   measureText?: ChartTextMeasurer
+}
+
+export interface AxisPlacement {
+  edge: number
+  sign: 1 | -1
+}
+
+export function axisPlacement(
+  axis: 'x' | 'y',
+  chart: ChartBounds,
+  side: ChartAxisSide | undefined,
+): AxisPlacement {
+  const end = side === 'end'
+  if (axis === 'x') {
+    return { edge: end ? chart.y : chart.y + chart.height, sign: end ? -1 : 1 }
+  }
+  return { edge: end ? chart.x + chart.width : chart.x, sign: end ? 1 : -1 }
 }
 
 export function estimateSceneText(

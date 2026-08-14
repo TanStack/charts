@@ -6,6 +6,7 @@ import { createMark } from './mark'
 import { createChartScene, defineChart } from './scene'
 import { text } from './text'
 import type {
+  ChartAxisSide,
   ChartAxisTickLabelContext,
   ChartAxisTickLabelOptions,
   ChartAxisTickLabelValue,
@@ -803,7 +804,69 @@ describe('automatic scene guide layout', () => {
       true,
     )
   })
+
+  it('places an end-side y axis against the right plot edge', () => {
+    const scene = sceneWithSides({ y: 'end' })
+    const nodes = flatten(scene.nodes)
+    const right = scene.chart.x + scene.chart.width
+    const axis = nodes.find((node) => node.key === 'y-axis')!
+    const tick = nodes.find((node) => node.key.startsWith('y-tick-rule:'))!
+    const label = nodes.find(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.startsWith('y-tick-label:'),
+    )!
+
+    expect(axis).toMatchObject({ x1: right, x2: right })
+    expect(tick).toMatchObject({ x1: right + 4, x2: right })
+    expect(label).toMatchObject({ x: right + 8, anchor: 'start' })
+    expect(nodes.find((node) => node.key === 'y-label')).toMatchObject({
+      rotate: 90,
+    })
+    expect(scene.margin.right).toBeGreaterThan(scene.margin.left)
+  })
+
+  it('places an end-side x axis against the top plot edge', () => {
+    const scene = sceneWithSides({ x: 'end' })
+    const nodes = flatten(scene.nodes)
+    const top = scene.chart.y
+    const axis = nodes.find((node) => node.key === 'x-axis')!
+    const tick = nodes.find((node) => node.key.startsWith('x-tick-rule:'))!
+    const label = nodes.find(
+      (node): node is SceneLabel =>
+        node.kind === 'label' && node.key.startsWith('x-tick-label:'),
+    )!
+
+    expect(axis).toMatchObject({ y1: top, y2: top })
+    expect(tick).toMatchObject({ y1: top, y2: top - 4 })
+    expect(label).toMatchObject({ y: top - 8 })
+    expect(scene.margin.top).toBeGreaterThan(scene.margin.bottom)
+  })
+
+  it('keeps start-side placement identical to an unset side', () => {
+    const explicit = flatten(sceneWithSides({ x: 'start', y: 'start' }).nodes)
+    const implicit = flatten(sceneWithSides({}).nodes)
+
+    expect(explicit).toEqual(implicit)
+  })
 })
+
+function sceneWithSides(sides: { x?: ChartAxisSide; y?: ChartAxisSide }) {
+  return createChartScene(
+    defineChart({
+      marks: [lineY([1, 2, 3])],
+      x: {
+        scale: scaleLinear().domain([0, 2]),
+        axis: { side: sides.x, ticks: { values: [0, 2] }, label: 'Release' },
+      },
+      y: {
+        scale: scaleLinear().domain([0, 3]),
+        axis: { side: sides.y, ticks: { values: [0, 3] }, label: 'Downloads' },
+      },
+    }),
+    { width: 480, height: 240 },
+    { measureText },
+  )
+}
 
 function sceneWithYFormat(format: (value: unknown) => string) {
   return createChartScene(

@@ -5,7 +5,7 @@ observed difficulty from examples, production migrations, tests, and agent
 evaluations so later API, documentation, and TanStack Intent skill work is
 based on evidence.
 
-Last updated: 2026-08-12
+Last updated: 2026-08-14
 
 ## Triage rule
 
@@ -321,6 +321,7 @@ Each entry records:
 | F-282 | Collection actions followed the viewport instead of the card   | Application           | resolved   |
 | F-283 | Interactive chart shells rendered inert controls               | Application           | resolved   |
 | F-284 | Stagger timing required repeated callback arithmetic           | API                   | resolved   |
+| F-285 | A right-to-left locale could not move the value axis           | API                   | resolved   |
 
 ## Findings
 
@@ -8231,3 +8232,32 @@ Each entry records:
   filters, offsets, invalid inputs, native spread, and field precedence. The
   isolated entry is 0.26 KiB gzip and retains neither the SVG motion renderer
   nor spring physics.
+
+### F-285 — A right-to-left locale could not move the value axis
+
+- Status: resolved
+- Severity: medium
+- Owner: API
+- Observed in: migrating a bilingual production dashboard from Recharts, whose
+  Arabic locale reads the value axis on the right
+- Friction: `ChartAxisPresentationOptions` exposed the axis line, ticks, tick
+  labels, and title, but no placement, so the y axis always rendered against
+  the left plot edge. `x.reverse` already ordered categories right to left,
+  which left the axis as the only wrong element on the screen. Mirroring the
+  container with `transform: scaleX(-1)` reversed the marks and the tick text
+  and broke pointer hit-testing, and `direction: rtl` on the host changed
+  nothing because placement is resolved during layout. The migration shipped
+  with a knowingly misplaced axis in Arabic.
+- Decision: add `axis.side` with `start` and `end` rather than physical `left`
+  and `right`, so one spelling serves both dimensions and composes with the
+  existing `reverse`. Resolve the placement once per axis into a plot edge and
+  an outward sign, then derive the axis line, tick stubs, tick labels and their
+  default anchor, the title and its rotation, and the crosshair value label
+  from that pair. Automatic margins already grow from measured label bounds, so
+  the reserved gutter follows the placement without new layout code.
+- Verification: scene tests assert the end-side y axis line, stubs, labels, and
+  90 degree title against the right plot edge with the reserved margin moving
+  from left to right, the end-side x axis against the top edge, and an explicit
+  `start` producing a node tree identical to an unset side. A crosshair test
+  asserts both value labels follow the placement, including the label anchor.
+  The existing 897 core tests pass unchanged.

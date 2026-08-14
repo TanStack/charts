@@ -156,10 +156,26 @@ const x = {
 | `axis.ticks`      | Configure candidates, stubs, padding, and formatting |
 | `axis.tickLabels` | Configure label rotation and collision thinning      |
 | `axis.label`      | Configure the axis title and offset                  |
+| `axis.side`       | Place the axis on the opposite plot edge             |
 | `grid`            | Draw grid lines at semantic candidates               |
 | `reverse`         | Reverse the responsive range                         |
 
 The y grid defaults to visible and the x grid defaults to hidden when `grid` is omitted.
+
+`axis.side` defaults to `start`, which places the y axis left and the x axis
+bottom. `end` places the y axis right and the x axis top, and moves that axis's
+stubs, tick labels, title, and crosshair value label with it. Automatic margins
+follow the placement, so the reserved gutter moves rather than being duplicated.
+
+A right-to-left locale reads the value axis on the right, which is `side` on the
+y axis combined with `reverse` on the x axis:
+
+```ts
+const chart = {
+  x: { scale: xScale, reverse: true },
+  y: { scale: yScale, axis: { side: 'end' } },
+}
+```
 
 Candidate generation and label layout are separate. Choose at most one of
 `axis.ticks.count`, `axis.ticks.spacing`, and `axis.ticks.values`. Grid lines
