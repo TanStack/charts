@@ -14,10 +14,7 @@ import {
 import { PieDonutTextCard } from './view'
 import { shadcnChartMount } from '../../shared/shadcn-chart-card'
 import { tanstackCase } from '../../shared/mount'
-import {
-  createShadcnSpringRenderer,
-  shadcnSpringMotion,
-} from '../../shared/shadcn-motion'
+import { createShadcnSpringRenderer } from '../../shared/shadcn-motion'
 import type { ChartTooltipOptions } from '@tanstack/charts'
 import type { PieDatum } from '@tanstack/charts/polar'
 import type { ConformanceInput } from '../../types'
@@ -30,7 +27,6 @@ const arcs = pie(browserData, {
 })
 
 export const pieDonutTextDefinition = defineChart({
-  motion: shadcnSpringMotion,
   marks: [
     polar({
       radiusRatio: 0.768,

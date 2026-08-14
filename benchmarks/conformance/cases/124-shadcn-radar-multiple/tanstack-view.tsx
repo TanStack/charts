@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { defineChart } from '@tanstack/charts'
 import {
   angleGrid,
+  focusGroupAngle,
   polar,
   radialArea,
   radialGrid,
@@ -20,15 +21,11 @@ import {
 import { RadarMultipleCard } from './view'
 import { shadcnChartMount } from '../../shared/shadcn-chart-card'
 import { tanstackCase } from '../../shared/mount'
-import {
-  createShadcnSpringRenderer,
-  shadcnSpringMotion,
-} from '../../shared/shadcn-motion'
+import { createShadcnSpringRenderer } from '../../shared/shadcn-motion'
 import type { ChartTooltipOptions } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
 export const radarMultipleDefinition = defineChart({
-  motion: shadcnSpringMotion,
   marks: [
     polar({
       radiusRatio: 0.76,
@@ -58,6 +55,7 @@ export const radarMultipleDefinition = defineChart({
             angle: 'month',
             radius: 'visitors',
             key: 'month',
+            z: 'series',
             curve: curveLinearClosed,
             fill: radarColors[0],
             fillOpacity: 0.6,
@@ -73,6 +71,7 @@ export const radarMultipleDefinition = defineChart({
             angle: 'month',
             radius: 'visitors',
             key: 'month',
+            z: 'series',
             curve: curveLinearClosed,
             fill: radarColors[1],
             fillOpacity: 1,
@@ -109,7 +108,7 @@ function TanStackView({ input }: { input: ConformanceInput }) {
     () =>
       defineChart(radarMultipleDefinition, {
         svgAnimation: false,
-        focus: 'group-x',
+        focus: focusGroupAngle,
         keyboard: true,
         tooltip: { use: tooltip, ...radarTooltip },
       }),

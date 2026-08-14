@@ -163,6 +163,57 @@ describe('compositeMark', () => {
     })
   })
 
+  it('lets child motion disable or re-enable its composite parent', () => {
+    const context: ChartMotionContext<Row> = {
+      phase: 'enter',
+      role: 'dot',
+      key: 'compound:dots:a',
+      markId: 'compound:dots',
+      seriesKey: 'compound:dots',
+      seriesIndex: 0,
+      datumIndex: 0,
+      datumCount: 2,
+      datum: rows[0],
+      point: undefined,
+    }
+    const disabledChild = compositeMark(
+      [
+        dot(rows, {
+          id: 'dots',
+          x: 'category',
+          y: 'value',
+          motion: false,
+        }),
+      ],
+      {
+        id: 'compound',
+        motion: { transition: { type: 'spring', damping: 18 } },
+      },
+    ).initialize({ markIndex: 0 })
+    const enabledChild = compositeMark(
+      [
+        dot(rows, {
+          id: 'dots',
+          x: 'category',
+          y: 'value',
+          motion: { delay: 20 },
+        }),
+      ],
+      { id: 'compound', motion: false },
+    ).initialize({ markIndex: 0 })
+
+    expect(
+      typeof disabledChild.motion === 'function'
+        ? disabledChild.motion(context)
+        : disabledChild.motion,
+    ).toBe(false)
+    expect(
+      typeof enabledChild.motion === 'function'
+        ? enabledChild.motion(context)
+        : enabledChild.motion,
+    ).toEqual({ delay: 20 })
+  })
+
   it('rejects duplicate ids and nested resolved layouts', () => {
     const duplicate = compositeMark([
       dot(rows, { id: 'same', x: 'category', y: 'value' }),

@@ -91,6 +91,9 @@ const retainedInputGroups = {
   sceneMotionContract: [
     /(?:^|\/)packages\/charts-core\/src\/scene-motion-internal\.ts$/u,
   ],
+  motionDefinition: [
+    /(?:^|\/)packages\/charts-core\/src\/motion-definition\.ts$/u,
+  ],
   springRuntime: [/(?:^|\/)packages\/charts-core\/src\/spring\.ts$/u],
   focusGuide: [/(?:^|\/)packages\/charts-core\/src\/focus-guide\.ts$/u],
   focusMark: [/(?:^|\/)packages\/charts-core\/src\/focus-mark\.ts$/u],
@@ -900,7 +903,7 @@ const entries = [
   budgeted(
     'Composite mark + static SVG',
     'benchmarks/entries/charts-composite-mark.ts',
-    26.45,
+    26.5,
     {
       inputBoundary: {
         require: [
@@ -1195,7 +1198,7 @@ const entries = [
   budgeted(
     'Polar line + scatter composition + static SVG',
     'benchmarks/entries/charts-polar-line-scatter-svg.ts',
-    25.3,
+    25.32,
   ),
   locked(
     'Representative marks',
@@ -1656,6 +1659,26 @@ const entries = [
           'compactBandKernel',
           'compactOrdinal',
           'reactTooltipBridge',
+          'motionRuntime',
+          'springRuntime',
+          'transformRuntime',
+          'd3Runtime',
+        ],
+      },
+    },
+  ),
+  budgeted(
+    'Motion timing utilities',
+    'benchmarks/entries/charts-motion-definition.ts',
+    0.5,
+    {
+      inputBoundary: {
+        require: ['motionDefinition'],
+        forbid: [
+          'motionRuntime',
+          'springRuntime',
+          'tooltipExtension',
+          'tooltipPortal',
           'transformRuntime',
           'd3Runtime',
         ],
@@ -1665,7 +1688,7 @@ const entries = [
   budgeted(
     'Motion SVG renderer',
     'benchmarks/entries/charts-motion-svg-renderer.ts',
-    18.2,
+    19.65,
     {
       rendererBoundary: 'svg',
       inputBoundary: {
@@ -1771,7 +1794,7 @@ const entries = [
   budgeted(
     'Stats parity surface',
     'benchmarks/entries/charts-stats-parity.ts',
-    51.2,
+    51.25,
   ),
   locked(
     'Custom-scale line scene',

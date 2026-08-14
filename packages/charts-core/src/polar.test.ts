@@ -1229,7 +1229,7 @@ function authoredMotionContext(markId: string): ChartMotionContext {
 function resolveAuthoredMotion(
   motion: ChartMotionDefinition<any> | undefined,
   context: ChartMotionContext,
-): ChartMotionTiming | undefined {
+): false | ChartMotionTiming | undefined {
   return typeof motion === 'function' ? motion(context) : motion
 }
 

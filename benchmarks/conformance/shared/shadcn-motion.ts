@@ -9,16 +9,13 @@ export const shadcnSpringTransition = {
   mass: 1,
 } as const satisfies ChartMotionSpringTransition
 
-export const shadcnSpringMotion = {
-  transition: shadcnSpringTransition,
-}
-
 export function createShadcnSpringRenderer<
   TDatum = unknown,
   TXValue extends ChartValue = ChartValue,
   TYValue extends ChartValue = ChartValue,
 >() {
   return motion<TDatum, TXValue, TYValue>({
+    initial: 'always',
     transition: shadcnSpringTransition,
   })
 }

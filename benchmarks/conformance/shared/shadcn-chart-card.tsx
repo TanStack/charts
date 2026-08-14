@@ -300,10 +300,14 @@ export const shadcnChartCardStyles = `
   .sc-interactive-pie .sc-chart { transform: translateY(55px); }
   .sc-interactive-pie .sc-card-action { transform: translateY(48px); }
   .sc-card-action { margin-left: auto; }
-  .sc-select-display { display: flex; min-width: 130px; height: 36px; align-items: center; gap: 8px; justify-content: space-between; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--background); color: var(--foreground); font-size: 14px; box-shadow: 0 1px 2px rgb(0 0 0 / 4%); }
-  .sc-select-display svg { width: 14px; height: 14px; color: var(--muted-foreground); }
-  .sc-select-swatch { width: 12px; height: 12px; border-radius: 3px; }
-  .sc-bar-metric { display: grid; width: 168px; align-content: center; gap: 6px; padding: 16px 32px; border-left: 1px solid var(--border); }
+  .sc-select-display { position: relative; display: flex; min-width: 130px; height: 36px; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--background); color: var(--foreground); font-size: 14px; box-shadow: 0 1px 2px rgb(0 0 0 / 4%); }
+  .sc-select-display:focus-within { outline: 2px solid var(--foreground); outline-offset: 2px; }
+  .sc-select-display select { min-width: 0; flex: 1; appearance: none; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+  .sc-select-display svg { width: 14px; height: 14px; flex: none; color: var(--muted-foreground); pointer-events: none; }
+  .sc-select-swatch { width: 12px; height: 12px; flex: none; border-radius: 3px; }
+  .sc-bar-metric { display: grid; width: 168px; align-content: center; gap: 6px; padding: 16px 32px; border: 0; border-left: 1px solid var(--border); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .sc-bar-metric[data-active='true'] { background: var(--muted); }
+  .sc-bar-metric:focus-visible { outline: 2px solid var(--foreground); outline-offset: -3px; }
   .sc-bar-metric span { color: var(--muted-foreground); font-size: 12px; }
   .sc-bar-metric strong { font-size: 30px; line-height: 1; letter-spacing: -0.03em; }
 `

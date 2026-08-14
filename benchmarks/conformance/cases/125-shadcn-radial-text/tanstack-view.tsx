@@ -13,10 +13,7 @@ import { radialCenterLabels, radialData, type RadialDatum } from './data'
 import { RadialTextCard } from './view'
 import { shadcnChartMount } from '../../shared/shadcn-chart-card'
 import { tanstackCase } from '../../shared/mount'
-import {
-  createShadcnSpringRenderer,
-  shadcnSpringMotion,
-} from '../../shared/shadcn-motion'
+import { createShadcnSpringRenderer } from '../../shared/shadcn-motion'
 import type { ConformanceInput } from '../../types'
 import type { PieDatum } from '@tanstack/charts/polar'
 
@@ -30,7 +27,6 @@ type RadialTextDatum =
   | (typeof radialCenterLabels)[number]
 
 export const radialTextDefinition = defineChart({
-  motion: shadcnSpringMotion,
   marks: [
     polar({
       angle: { scale: scaleLinear().domain([0, Math.PI * 2]) },
@@ -104,7 +100,10 @@ function TanStackView({ input }: { input: ConformanceInput }) {
   )
   const definition = useMemo(
     () =>
-      defineChart(radialTextDefinition, { svgAnimation: false, focus: false }),
+      defineChart(radialTextDefinition, {
+        svgAnimation: false,
+        focus: 'nearest',
+      }),
     [],
   )
   return (

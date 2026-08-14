@@ -5,7 +5,6 @@ import type {
   ChartFocusState,
   ChartHostControl,
   ChartHostControlExtensionToken,
-  ChartMotionTransition,
   ChartPoint,
   ChartScene,
   ChartSvgRenderer,
@@ -172,7 +171,6 @@ export interface ChartTooltipExtensionContext<
 > {
   container: HTMLElement
   dismiss: () => void
-  motion: () => ChartMotionTransition | undefined
   bodyChange: () =>
     | ((
         target: ChartTooltipBodyTarget<TDatum, TXValue, TYValue> | null,

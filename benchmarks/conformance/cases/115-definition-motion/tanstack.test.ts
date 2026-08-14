@@ -283,7 +283,7 @@ function guideMotionContext(
 function resolveMotion<TDatum>(
   definition: ChartMotionDefinition<TDatum> | undefined,
   context: ChartMotionContext<TDatum>,
-): ChartMotionTiming | undefined {
+): false | ChartMotionTiming<TDatum> | undefined {
   return typeof definition === 'function' ? definition(context) : definition
 }
 

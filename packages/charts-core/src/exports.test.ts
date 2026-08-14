@@ -90,6 +90,24 @@ describe('public package exports', () => {
     expect(portalModule.portal.id).toBe('portal')
   })
 
+  it('keeps motion and timing utilities on the optional motion subpath', async () => {
+    const [root, universal, motionModule, definitionModule] = await Promise.all(
+      [
+        import('@tanstack/charts'),
+        import('@tanstack/charts/universal'),
+        import('@tanstack/charts/motion'),
+        import('@tanstack/charts/motion/definition'),
+      ],
+    )
+
+    for (const name of ['motion', 'stagger']) {
+      expect(root).not.toHaveProperty(name)
+      expect(universal).not.toHaveProperty(name)
+      expect(motionModule).toHaveProperty(name)
+    }
+    expect(Object.keys(definitionModule)).toEqual(['stagger'])
+  })
+
   it('keeps focus guide marks on their exact subpath', async () => {
     const [root, universal, guide] = await Promise.all([
       import('@tanstack/charts'),

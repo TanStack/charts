@@ -13,15 +13,11 @@ import {
 import { AdvancedTooltipCard } from './view'
 import { shadcnChartMount } from '../../shared/shadcn-chart-card'
 import { tanstackCase } from '../../shared/mount'
-import {
-  createShadcnSpringRenderer,
-  shadcnSpringMotion,
-} from '../../shared/shadcn-motion'
+import { createShadcnSpringRenderer } from '../../shared/shadcn-motion'
 import type { ChartPoint, ChartTooltipOptions } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
 export const advancedTooltipDefinition = defineChart({
-  motion: shadcnSpringMotion,
   marks: [
     barY(activityPoints, {
       id: 'activity-bars',
@@ -118,7 +114,6 @@ function TanStackView({ input }: { input: ConformanceInput }) {
       defineChart(advancedTooltipDefinition, {
         svgAnimation: false,
         focus: 'group-x',
-        focusRing: false,
         keyboard: true,
         tooltip: { use: tooltip, ...activityTooltip },
       }),

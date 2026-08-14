@@ -346,6 +346,7 @@ const callbackInventory = {
     ],
     ['@tanstack/charts:src/types.ts:ChartMarkStateValue', '$call'],
     ['@tanstack/charts:src/types.ts:ChartMotionDefinition', '$call'],
+    ['@tanstack/charts:src/types.ts:ChartMotionTiming', 'delay'],
     ['@tanstack/charts:src/types.ts:ChartMotionTweenTransition', 'easing'],
     ['@tanstack/charts:src/types.ts:ChartScale', 'resolve'],
     ['@tanstack/charts:src/types.ts:ChartScaleResolver', '$call'],
@@ -620,7 +621,7 @@ const callbackInventory = {
     ['@tanstack/charts:src/dom-types.ts:ChartTooltipExtension', 'create'],
     [
       '@tanstack/charts:src/dom-types.ts:ChartTooltipExtensionContext',
-      'bodyChange dismiss motion',
+      'bodyChange dismiss',
     ],
     [
       '@tanstack/charts:src/dom-types.ts:ChartTooltipExtensionInstance',

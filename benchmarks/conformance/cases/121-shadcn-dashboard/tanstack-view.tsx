@@ -20,10 +20,7 @@ import {
 } from './data'
 import { reactMount } from '../../shared/react-mount'
 import { tanstackCase } from '../../shared/mount'
-import {
-  createShadcnSpringRenderer,
-  shadcnSpringMotion,
-} from '../../shared/shadcn-motion'
+import { createShadcnSpringRenderer } from '../../shared/shadcn-motion'
 import type { ChartTooltipContent, ChartTooltipOptions } from '@tanstack/charts'
 import type { ConformanceTestDriver } from '../../types'
 import type { ReactConformanceProps } from '../../shared/react-mount'
@@ -41,7 +38,6 @@ export function shadcnDashboardChartDefinition(
   const tickValues = dashboardTickValues(data, width)
 
   return defineChart({
-    motion: shadcnSpringMotion,
     marks: [
       areaY(rows, {
         id: 'visitor-areas',

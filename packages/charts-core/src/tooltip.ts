@@ -1,5 +1,5 @@
 import { placeTooltip } from './tooltip-position'
-import { createChartSpring } from './spring'
+import { tooltipMotionController } from './renderer-motion-internal'
 import {
   createChartTooltipContent,
   orderChartTooltipPoints,
@@ -23,7 +23,6 @@ import type {
   ChartTooltipItem,
   ChartTooltipOptions,
   ChartTooltipPortalOptions,
-  ChartMotionTransition,
   ChartValue,
 } from './types'
 
@@ -81,12 +80,11 @@ function createTooltipExtension<
   let anchor: { x: number; y: number } | null = null
   let positionFrame: number | undefined
   let resizeObserver: ResizeObserver | undefined
-  let tooltipAnimation: Animation | undefined
-  let hideGeneration = 0
   let portalExtension: ChartTooltipPortalExtension | undefined
   let portalInstance: ChartTooltipPortalExtensionInstance | undefined
   const { container } = extensionContext
   const view = container.ownerDocument.defaultView
+  const tooltipMotion = tooltipMotionController(extensionContext)
 
   function update(nextOptions: ChartTooltipOptions<TDatum, TXValue, TYValue>) {
     if (options !== nextOptions) bodyDirty = true
@@ -104,6 +102,9 @@ function createTooltipExtension<
     }
     const tooltipElement = ensureElement()
     syncPortal()
+    const motionSnapshot = tooltipMotion?.beforePaint(tooltipElement)
+    tooltipElement.style.visibility = 'hidden'
+    tooltipElement.removeAttribute('hidden')
     tooltipElement.className = options.className
       ? `ts-chart-tooltip ${options.className}`
       : 'ts-chart-tooltip'
@@ -141,14 +142,6 @@ function createTooltipExtension<
     tooltipElement.style.pointerEvents = nextContext.pinned ? 'auto' : 'none'
     tooltipElement.style.userSelect = nextContext.pinned ? 'text' : 'none'
     tooltipElement.dataset.sticky = String(nextContext.pinned)
-    const entering = tooltipElement.hasAttribute('hidden')
-    const previousLeft = finiteStyleNumber(tooltipElement.style.left)
-    const previousTop = finiteStyleNumber(tooltipElement.style.top)
-    hideGeneration += 1
-    tooltipAnimation?.cancel()
-    tooltipAnimation = undefined
-    tooltipElement.style.visibility = 'hidden'
-    tooltipElement.removeAttribute('hidden')
     anchor = resolveChartTooltipAnchor(
       nextContext.point,
       points,
@@ -159,7 +152,9 @@ function createTooltipExtension<
     )
     position()
     tooltipElement.style.removeProperty('visibility')
-    animateVisibleTooltip(tooltipElement, entering, previousLeft, previousTop)
+    if (motionSnapshot) {
+      tooltipMotion?.afterPaint(tooltipElement, motionSnapshot, options.motion)
+    }
   }
 
   function ensureElement() {
@@ -334,36 +329,13 @@ function createTooltipExtension<
       hideTooltipBody()
       return
     }
-    const transition = resolveMotion()
-    if (!transition || prefersReducedMotion()) {
+    const complete = () => {
       portalInstance?.hide()
       currentElement.setAttribute('hidden', '')
       hideTooltipBody()
-      return
     }
-    const generation = ++hideGeneration
-    tooltipAnimation?.cancel()
-    tooltipAnimation = animateTooltip(
-      currentElement,
-      transition,
-      { opacity: 1, scale: 1, x: 0, y: 0 },
-      { opacity: 0, scale: 0.96, x: 0, y: 0 },
-    )
-    if (!tooltipAnimation) {
-      portalInstance?.hide()
-      currentElement.setAttribute('hidden', '')
-      hideTooltipBody()
-      return
-    }
-    tooltipAnimation.onfinish = () => {
-      if (generation !== hideGeneration) return
-      portalInstance?.hide()
-      currentElement.setAttribute('hidden', '')
-      currentElement.style.removeProperty('opacity')
-      currentElement.style.removeProperty('transform')
-      hideTooltipBody()
-      tooltipAnimation = undefined
-    }
+    if (tooltipMotion?.hide(currentElement, options.motion, complete)) return
+    complete()
   }
 
   function destroy() {
@@ -376,8 +348,7 @@ function createTooltipExtension<
       view?.cancelAnimationFrame?.(positionFrame)
       positionFrame = undefined
     }
-    tooltipAnimation?.cancel()
-    tooltipAnimation = undefined
+    tooltipMotion?.destroy(element)
     resizeObserver?.disconnect()
     resizeObserver = undefined
     element?.remove()
@@ -391,143 +362,6 @@ function createTooltipExtension<
     contains: (target) => Boolean(target && element?.contains(target as Node)),
     destroy,
   }
-
-  function resolveMotion() {
-    return options.motion === false
-      ? undefined
-      : (options.motion ?? extensionContext.motion())
-  }
-
-  function prefersReducedMotion() {
-    return Boolean(
-      view?.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
-    )
-  }
-
-  function animateVisibleTooltip(
-    tooltipElement: HTMLElement,
-    entering: boolean,
-    previousLeft: number | undefined,
-    previousTop: number | undefined,
-  ) {
-    const transition = resolveMotion()
-    if (!transition || prefersReducedMotion()) {
-      tooltipElement.style.removeProperty('opacity')
-      tooltipElement.style.removeProperty('transform')
-      return
-    }
-    const nextLeft = finiteStyleNumber(tooltipElement.style.left)
-    const nextTop = finiteStyleNumber(tooltipElement.style.top)
-    const x =
-      entering || previousLeft === undefined || nextLeft === undefined
-        ? 0
-        : previousLeft - nextLeft
-    const y =
-      entering || previousTop === undefined || nextTop === undefined
-        ? 0
-        : previousTop - nextTop
-    if (!entering && Math.abs(x) < 0.5 && Math.abs(y) < 0.5) return
-    tooltipAnimation = animateTooltip(
-      tooltipElement,
-      transition,
-      {
-        opacity: entering ? 0 : 1,
-        scale: entering ? 0.96 : 1,
-        x,
-        y,
-      },
-      { opacity: 1, scale: 1, x: 0, y: 0 },
-    )
-    if (tooltipAnimation) {
-      tooltipAnimation.onfinish = () => {
-        tooltipElement.style.removeProperty('opacity')
-        tooltipElement.style.removeProperty('transform')
-        tooltipAnimation = undefined
-      }
-    }
-  }
-}
-
-interface TooltipMotionState {
-  opacity: number
-  scale: number
-  x: number
-  y: number
-}
-
-function animateTooltip(
-  element: HTMLElement,
-  transition: ChartMotionTransition,
-  from: TooltipMotionState,
-  to: TooltipMotionState,
-) {
-  if (typeof element.animate !== 'function') return undefined
-  const sampled = tooltipMotionSamples(transition)
-  const keyframes = sampled.values.map((progress, index) => ({
-    offset: sampled.offsets[index],
-    opacity: interpolate(from.opacity, to.opacity, progress),
-    transform: `translate(${interpolate(from.x, to.x, progress)}px, ${interpolate(from.y, to.y, progress)}px) scale(${interpolate(from.scale, to.scale, progress)})`,
-  }))
-  return element.animate(keyframes, {
-    duration: sampled.duration,
-    easing: sampled.easing,
-    fill: 'both',
-  })
-}
-
-function tooltipMotionSamples(transition: ChartMotionTransition) {
-  if (transition.type !== 'spring') {
-    if (typeof transition.easing === 'function') {
-      const offsets = Array.from({ length: 31 }, (_, index) => index / 30)
-      return {
-        duration: Math.max(0, transition.duration ?? 250),
-        easing: 'linear',
-        offsets,
-        values: offsets.map(transition.easing),
-      }
-    }
-    return {
-      duration: Math.max(0, transition.duration ?? 250),
-      easing: transition.easing ?? 'ease-out',
-      offsets: [0, 1],
-      values: [0, 1],
-    }
-  }
-  const spring = createChartSpring(transition)
-  const offsets: number[] = []
-  const values: number[] = []
-  let duration = 0
-  for (let elapsed = 0; elapsed <= 2_000; elapsed += 16) {
-    const sample = spring.sample(elapsed)
-    duration = elapsed
-    offsets.push(elapsed)
-    values.push(sample.value)
-    if (sample.done && elapsed > 0) break
-  }
-  if (duration === 0)
-    return {
-      duration: 0,
-      easing: 'linear',
-      offsets: [0, 1],
-      values: [0, 1],
-    }
-  offsets[offsets.length - 1] = duration
-  values[values.length - 1] = 1
-  return {
-    duration,
-    easing: 'linear',
-    offsets: offsets.map((elapsed) => elapsed / duration),
-    values,
-  }
-}
-
-function interpolate(from: number, to: number, progress: number) {
-  return from + (to - from) * progress
-}
-
-function finiteStyleNumber(value: string) {
-  const number = Number.parseFloat(value)
-  return Number.isFinite(number) ? number : undefined
 }
 
 function samePointList(

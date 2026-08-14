@@ -3,6 +3,7 @@ import { scaleBand, scaleLinear } from 'd3-scale'
 import { barY } from './bar'
 import { createChartCursor, cursorHost } from './cursor'
 import { lineY } from './line'
+import { motion } from './motion'
 import { mountChartRenderer } from './renderer'
 import { defineChart, findNearestPoint } from './scene'
 import { stack } from './stack'
@@ -193,43 +194,34 @@ describe('renderer-neutral chart host', () => {
       configurable: true,
       value: animate,
     })
-    const fake = createFakeRenderer()
     const container = document.createElement('div')
     const host = mountChartRenderer(container, {
       definition: defineChart(definition, {
         maxFocusDistance: 1_000,
-        motion: {
-          transition: {
-            type: 'spring',
-            stiffness: 170,
-            damping: 18,
-            mass: 1,
-          },
-        },
         tooltip: tooltipExtension,
       }),
-      renderer: fake.renderer,
+      renderer: motion<Datum, number, number>({
+        initial: false,
+        transition: {
+          type: 'spring',
+          stiffness: 170,
+          damping: 18,
+          mass: 1,
+        },
+      }),
       width: 480,
       height: 260,
       ariaLabel: 'Spring tooltip',
     })
 
     try {
-      fake.element.dispatchEvent(
-        new MouseEvent('pointermove', {
-          bubbles: true,
-          clientX: 123,
-          clientY: 45,
-        }),
-      )
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
       const enterFrames = animate.mock.calls[0]?.[0]
       const enterOptions = animate.mock.calls[0]?.[1]
       expect(enterFrames?.length).toBeGreaterThan(2)
       expect(enterOptions).toMatchObject({ easing: 'linear', fill: 'both' })
 
-      fake.element.dispatchEvent(
-        new MouseEvent('mouseleave', { bubbles: true }),
-      )
+      host.interaction.setControlledFocus(null)
       const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
       expect(animate).toHaveBeenCalledTimes(2)
       expect(tooltip?.hidden).toBe(false)
@@ -238,6 +230,172 @@ describe('renderer-neutral chart host', () => {
     } finally {
       host.destroy()
       restoreProperty(window.HTMLElement.prototype, 'animate', descriptor)
+    }
+  })
+
+  it('lets chart motion disable tooltip motion while a tooltip override re-enables it', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      'animate',
+    )
+    const animate = vi.fn(() => ({
+      cancel: vi.fn(),
+      onfinish: null,
+    }))
+    Object.defineProperty(window.HTMLElement.prototype, 'animate', {
+      configurable: true,
+      value: animate,
+    })
+    const immediateContainer = document.createElement('div')
+    const immediate = mountChartRenderer(immediateContainer, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        motion: false,
+        tooltip: tooltipExtension,
+      }),
+      renderer: motion<Datum, number, number>({ initial: false }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Immediate tooltip',
+    })
+    const animatedContainer = document.createElement('div')
+    const animated = mountChartRenderer(animatedContainer, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        motion: false,
+        tooltip: {
+          use: tooltipExtension,
+          motion: { type: 'tween', duration: 100 },
+        },
+      }),
+      renderer: motion<Datum, number, number>({ initial: false }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Animated tooltip override',
+    })
+
+    try {
+      immediate.interaction.setControlledFocus(immediate.getScene().points[0]!)
+      expect(animate).not.toHaveBeenCalled()
+      animated.interaction.setControlledFocus(animated.getScene().points[0]!)
+      expect(animate).toHaveBeenCalledOnce()
+    } finally {
+      immediate.destroy()
+      animated.destroy()
+      restoreProperty(window.HTMLElement.prototype, 'animate', descriptor)
+    }
+  })
+
+  it('keeps tooltips immediate without a renderer motion capability', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      window.HTMLElement.prototype,
+      'animate',
+    )
+    const animate = vi.fn()
+    Object.defineProperty(window.HTMLElement.prototype, 'animate', {
+      configurable: true,
+      value: animate,
+    })
+    const fake = createFakeRenderer()
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        motion: {
+          transition: { type: 'spring', stiffness: 170, damping: 18 },
+        },
+        tooltip: {
+          use: tooltipExtension,
+          motion: { type: 'spring', stiffness: 200 },
+        },
+      }),
+      renderer: fake.renderer,
+      width: 480,
+      height: 260,
+      ariaLabel: 'Static tooltip',
+    })
+
+    try {
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      host.interaction.setControlledFocus(null)
+
+      expect(animate).not.toHaveBeenCalled()
+      expect(
+        container.querySelector<HTMLElement>('.ts-chart-tooltip')?.hidden,
+      ).toBe(true)
+    } finally {
+      host.destroy()
+      restoreProperty(window.HTMLElement.prototype, 'animate', descriptor)
+    }
+  })
+
+  it('retargets tooltip springs from the live position and velocity', () => {
+    let currentTime = 1_000
+    const frames: Array<FrameRequestCallback> = []
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback)
+        return frames.length
+      })
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {})
+    const performanceNow = vi
+      .spyOn(window.performance, 'now')
+      .mockImplementation(() => currentTime)
+    const container = document.createElement('div')
+    const host = mountChartRenderer(container, {
+      definition: defineChart(definition, {
+        maxFocusDistance: 1_000,
+        tooltip: tooltipExtension,
+      }),
+      renderer: motion<Datum, number, number>({
+        initial: false,
+        transition: {
+          type: 'spring',
+          stiffness: 170,
+          damping: 18,
+          mass: 1,
+        },
+      }),
+      width: 480,
+      height: 260,
+      ariaLabel: 'Retargeted spring tooltip',
+    })
+
+    try {
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      const tooltip = container.querySelector<HTMLElement>('.ts-chart-tooltip')
+      if (!tooltip) throw new Error('Expected chart tooltip')
+      const firstLeft = Number.parseFloat(tooltip.style.left)
+
+      host.interaction.setControlledFocus(host.getScene().points[1]!)
+      const secondLeft = Number.parseFloat(tooltip.style.left)
+      expect(secondLeft).not.toBe(firstLeft)
+      expect(requestFrame).toHaveBeenCalled()
+
+      frames.at(-1)?.(1_016)
+      currentTime = 1_016
+      const movingX = Number.parseFloat(tooltip.style.translate)
+      const visualLeftBeforeRetarget = secondLeft + movingX
+
+      host.interaction.setControlledFocus(host.getScene().points[0]!)
+      const retargetedLeft = Number.parseFloat(tooltip.style.left)
+      const retargetedX = Number.parseFloat(tooltip.style.translate)
+      expect(retargetedLeft + retargetedX).toBeCloseTo(
+        visualLeftBeforeRetarget,
+        5,
+      )
+
+      frames.at(-1)?.(1_017)
+      expect(Number.parseFloat(tooltip.style.translate)).toBeGreaterThan(
+        retargetedX,
+      )
+    } finally {
+      host.destroy()
+      requestFrame.mockRestore()
+      cancelFrame.mockRestore()
+      performanceNow.mockRestore()
     }
   })
 

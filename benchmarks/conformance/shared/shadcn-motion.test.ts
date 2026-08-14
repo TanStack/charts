@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { createChartScene, type StaticChartDefinition } from '@tanstack/charts'
 import { shadcnDashboardChartDefinition } from '../cases/121-shadcn-dashboard/tanstack'
 import { barMultipleDefinition } from '../cases/122-shadcn-bar-multiple/tanstack'
 import { pieDonutTextDefinition } from '../cases/123-shadcn-pie-donut-text/tanstack'
@@ -6,9 +7,10 @@ import { radarMultipleDefinition } from '../cases/124-shadcn-radar-multiple/tans
 import { radialTextDefinition } from '../cases/125-shadcn-radial-text/tanstack'
 import { advancedTooltipDefinition } from '../cases/126-shadcn-tooltip-advanced/tanstack'
 import { createShadcnTanStackExample } from './shadcn-catalog-tanstack'
+import type { ShadcnMonthDatum } from './shadcn-catalog-data'
+import { focusGroupAngle } from '@tanstack/charts/polar'
 import {
   createShadcnSpringRenderer,
-  shadcnSpringMotion,
   shadcnSpringTransition,
 } from './shadcn-motion'
 
@@ -23,7 +25,7 @@ describe('shadcn chart motion', () => {
     expect(createShadcnSpringRenderer().id).toBe('svg:svg-motion')
   })
 
-  it('applies the spring policy to dedicated and generated chart definitions', () => {
+  it('keeps dedicated and generated definitions free of duplicate spring policy', () => {
     const dedicatedDefinitions = [
       shadcnDashboardChartDefinition([]),
       barMultipleDefinition,
@@ -46,7 +48,50 @@ describe('shadcn chart motion', () => {
       ...dedicatedDefinitions,
       ...generatedDefinitions,
     ]) {
-      expect(definition.motion).toEqual(shadcnSpringMotion)
+      expect(
+        'motion' in definition ? definition.motion : undefined,
+      ).toBeUndefined()
     }
+  })
+
+  it('keeps the native focus marker enabled across generated families', () => {
+    const definitions = [
+      'chart-area-default',
+      'chart-bar-default',
+      'chart-line-default',
+      'chart-pie-simple',
+      'chart-radar-default',
+      'chart-radial-simple',
+      'chart-tooltip-default',
+    ].map((name) => createShadcnTanStackExample(name).definition)
+
+    for (const definition of definitions) {
+      expect(definition.focus).not.toBe(false)
+      expect(definition.focusRing).not.toBe(false)
+    }
+    expect(definitions[4]?.focus).toBe(focusGroupAngle)
+    expect(definitions[3]?.focus).toBe('nearest')
+    expect(definitions[5]?.focus).toBe('nearest')
+  })
+
+  it('groups generated radar points by semantic angle and series', () => {
+    const definition =
+      createShadcnTanStackExample('chart-radar-legend').definition
+    expect('chart' in definition).toBe(false)
+    if ('chart' in definition) return
+    const scene = createChartScene(
+      definition as unknown as StaticChartDefinition<
+        ShadcnMonthDatum,
+        string,
+        number
+      >,
+      { width: 300, height: 250 },
+    )
+    const january = scene.points.filter((point) => point.xValue === 'January')
+
+    expect(january.map((point) => point.group)).toEqual(['desktop', 'mobile'])
+    expect(focusGroupAngle.group(scene.points, { point: january[0]! })).toEqual(
+      january,
+    )
   })
 })

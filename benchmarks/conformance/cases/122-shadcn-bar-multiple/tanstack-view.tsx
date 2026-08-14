@@ -7,10 +7,7 @@ import { visitorMonths, type VisitorMonth } from './data'
 import { BarMultipleCard } from './view'
 import { shadcnChartMount } from '../../shared/shadcn-chart-card'
 import { tanstackCase } from '../../shared/mount'
-import {
-  createShadcnSpringRenderer,
-  shadcnSpringMotion,
-} from '../../shared/shadcn-motion'
+import { createShadcnSpringRenderer } from '../../shared/shadcn-motion'
 import type { ChartTooltipOptions } from '@tanstack/charts'
 import type { ConformanceInput } from '../../types'
 
@@ -25,7 +22,6 @@ const groupScale = scaleBand<string>()
   .paddingOuter(0)
 
 export const barMultipleDefinition = defineChart({
-  motion: shadcnSpringMotion,
   marks: [
     barY(visitorMonths, {
       id: 'desktop-bars',

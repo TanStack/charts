@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   areaY,
   barX,
@@ -14,6 +14,7 @@ import {
 } from '@tanstack/charts'
 import {
   angleGrid,
+  focusGroupAngle,
   pie,
   polar,
   radialArc,
@@ -58,7 +59,7 @@ import {
   ShadcnTrendFooter,
   shadcnChartMount,
 } from './shadcn-chart-card'
-import { createShadcnSpringRenderer, shadcnSpringMotion } from './shadcn-motion'
+import { createShadcnSpringRenderer } from './shadcn-motion'
 import interactiveAreaData from '../shadcn/area-interactive-data.json'
 import { tanstackCase } from './mount'
 import type { ChartPoint, ChartTooltipOptions } from '@tanstack/charts'
@@ -66,7 +67,7 @@ import type { ChartDefinition, ChartValue } from '@tanstack/charts'
 import type { ConformanceInput } from '../types'
 
 const monthSeries = ['desktop', 'mobile', 'tablet'] as const
-const twoSeries = monthSeries.slice(0, 2)
+const twoSeries = ['desktop', 'mobile'] as const
 const browserNames = shadcnBrowsers.map((row) => row.browser)
 const activityNames = ['running', 'swimming'] as const
 const horizontalVariants = new Set(['horizontal', 'label-custom', 'mixed'])
@@ -83,6 +84,33 @@ const interactiveBarRows: readonly ShadcnMonthDatum[] = interactiveAreaRows.map(
     tablet: 0,
   }),
 )
+const interactivePieRows: readonly ShadcnBrowserDatum[] = [
+  { browser: 'january', visitors: 186 },
+  { browser: 'february', visitors: 305 },
+  { browser: 'march', visitors: 237 },
+  { browser: 'april', visitors: 173 },
+  { browser: 'may', visitors: 209 },
+]
+const interactiveTimeRangeOptions = [
+  { value: '90d', label: 'Last 3 months' },
+  { value: '30d', label: 'Last 30 days' },
+  { value: '7d', label: 'Last 7 days' },
+] as const
+
+type InteractiveTimeRange = '90d' | '30d' | '7d'
+type InteractiveSeries = (typeof twoSeries)[number]
+
+interface ShadcnInteractiveState {
+  timeRange: InteractiveTimeRange
+  series: InteractiveSeries
+  month: string
+}
+
+type ShadcnInteractiveDefinitionFactory<
+  TDatum,
+  TXValue extends ChartValue,
+  TYValue extends ChartValue,
+> = (state: ShadcnInteractiveState) => ChartDefinition<TDatum, TXValue, TYValue>
 
 type ShadcnRadialCatalogDatum =
   | ShadcnBrowserDatum
@@ -100,20 +128,44 @@ type ShadcnRadialCatalogDatum =
 export function createShadcnTanStackExample(name: string) {
   const spec = getShadcnCatalogSpec(name)
   if (spec.family === 'area') {
-    return createShadcnExample(spec, buildAreaDefinition(spec))
+    return createShadcnExample(
+      spec,
+      buildAreaDefinition(spec),
+      spec.variant === 'interactive'
+        ? ({ timeRange }) => buildInteractiveAreaDefinition(timeRange)
+        : undefined,
+    )
   }
   if (spec.family === 'bar') {
     return createShadcnExample<
       ShadcnMonthDatum | ShadcnSeriesDatum | ShadcnBrowserDatum,
       string | number,
       string | number
-    >(spec, buildBarDefinition(spec))
+    >(
+      spec,
+      buildBarDefinition(spec),
+      spec.variant === 'interactive'
+        ? ({ series }) => buildInteractiveBarDefinition(series)
+        : undefined,
+    )
   }
   if (spec.family === 'line') {
-    return createShadcnExample(spec, buildLineDefinition(spec))
+    return createShadcnExample(
+      spec,
+      buildLineDefinition(spec),
+      spec.variant === 'interactive'
+        ? ({ series }) => buildInteractiveLineDefinition(series)
+        : undefined,
+    )
   }
   if (spec.family === 'pie') {
-    return createShadcnExample(spec, buildPieDefinition(spec))
+    return createShadcnExample(
+      spec,
+      buildPieDefinition(spec),
+      spec.variant === 'interactive'
+        ? ({ month }) => buildInteractivePieDefinition(month)
+        : undefined,
+    )
   }
   if (spec.family === 'radar') {
     return createShadcnExample(spec, buildRadarDefinition(spec))
@@ -135,6 +187,11 @@ function createShadcnExample<
 >(
   spec: ShadcnCatalogSpec,
   definition: ChartDefinition<TDatum, TXValue, TYValue>,
+  interactiveDefinitionFactory?: ShadcnInteractiveDefinitionFactory<
+    TDatum,
+    TXValue,
+    TYValue
+  >,
 ) {
   const tooltipOptions: ChartTooltipOptions<TDatum, TXValue, TYValue> = {
     className: 'sc-chart-tooltip',
@@ -151,31 +208,26 @@ function createShadcnExample<
     content:
       spec.family === 'tooltip'
         ? () => ({ rows: [] })
-        : (points) => ({
-            title: String(points[0]?.xValue ?? ''),
-            rows: points.map((point) => ({
-              label: point.markId.replace(
-                /-?(bars|lines|areas|slices|values)$/u,
-                '',
-              ),
-              value: Number(point.yValue ?? point.xValue ?? 0).toLocaleString(
-                'en-US',
-              ),
-              color: point.color,
-            })),
-          }),
+        : (points) => shadcnTooltipContent(spec, points),
   }
   const chartOptions = {
     svgAnimation: false,
-    motion: shadcnSpringMotion,
-    focus: spec.family === 'radial' ? false : 'group-x',
-    focusRing: false,
+    focus:
+      spec.family === 'radar'
+        ? focusGroupAngle
+        : spec.family === 'pie' || spec.family === 'radial'
+          ? 'nearest'
+          : 'group-x',
     keyboard: spec.family !== 'radial',
     tooltip: { use: tooltip, ...tooltipOptions },
   } as const
-  const interactiveDefinition = isResponsiveChartDefinition(definition)
-    ? defineChart(definition, chartOptions)
-    : defineChart(definition, chartOptions)
+  const applyChartOptions = (
+    source: ChartDefinition<TDatum, TXValue, TYValue>,
+  ) =>
+    isResponsiveChartDefinition(source)
+      ? defineChart(source, chartOptions)
+      : defineChart(source, chartOptions)
+  const interactiveDefinition = applyChartOptions(definition)
   const catalogCase = tanstackCase(
     () => interactiveDefinition,
     `${spec.title} implemented with TanStack Charts`,
@@ -185,7 +237,23 @@ function createShadcnExample<
 
   function TanStackView({ input }: { input: ConformanceInput }) {
     const seededTooltip = useRef(false)
-    const chartDefinition = useMemo(() => interactiveDefinition, [])
+    const [timeRange, setTimeRange] = useState<InteractiveTimeRange>('90d')
+    const [activeSeries, setActiveSeries] =
+      useState<InteractiveSeries>('desktop')
+    const [activeMonth, setActiveMonth] = useState('january')
+    const chartDefinition = useMemo(
+      () =>
+        interactiveDefinitionFactory
+          ? applyChartOptions(
+              interactiveDefinitionFactory({
+                timeRange,
+                series: activeSeries,
+                month: activeMonth,
+              }),
+            )
+          : interactiveDefinition,
+      [timeRange, activeSeries, activeMonth],
+    )
     const renderer = useMemo(
       () => createShadcnSpringRenderer<TDatum, TXValue, TYValue>(),
       [],
@@ -200,12 +268,27 @@ function createShadcnExample<
       )
     const headerAction =
       (spec.family === 'bar' || spec.family === 'line') && interactive ? (
-        <ShadcnBarMetrics />
+        <ShadcnBarMetrics active={activeSeries} onChange={setActiveSeries} />
       ) : interactive ? (
-        <ShadcnSelectDisplay
-          label={spec.family === 'area' ? 'Last 3 months' : 'January'}
-          swatch={spec.family === 'pie' ? shadcnColors[0] : undefined}
-        />
+        spec.family === 'area' ? (
+          <ShadcnSelectControl
+            ariaLabel="Select a value"
+            value={timeRange}
+            options={interactiveTimeRangeOptions}
+            onChange={(value) => setTimeRange(value as InteractiveTimeRange)}
+          />
+        ) : (
+          <ShadcnSelectControl
+            ariaLabel="Select a value"
+            value={activeMonth}
+            options={interactivePieRows.map((row, index) => ({
+              value: row.browser,
+              label: titleCase(row.browser),
+              swatch: shadcnColors[index],
+            }))}
+            onChange={setActiveMonth}
+          />
+        )
       ) : undefined
 
     return (
@@ -297,6 +380,56 @@ function createShadcnExample<
     catalogCase,
     mount: shadcnChartMount(TanStackView),
   }
+}
+
+function shadcnTooltipContent<TDatum>(
+  spec: ShadcnCatalogSpec,
+  points: readonly ChartPoint<TDatum>[],
+) {
+  if (spec.family === 'pie' || spec.family === 'radial') {
+    const point = points.find((candidate) => browserMetric(candidate.datum))
+    const metric = point && browserMetric(point.datum)
+    return metric
+      ? {
+          title: titleCase(metric.browser),
+          rows: [
+            {
+              label: 'Visitors',
+              value: metric.visitors.toLocaleString('en-US'),
+              color: point.color,
+            },
+          ],
+        }
+      : { rows: [] }
+  }
+
+  return {
+    title: String(points[0]?.xValue ?? ''),
+    rows: points.map((point) => ({
+      label: titleCase(
+        String(
+          point.group ??
+            point.markId.replace(
+              /-?(bars|lines|areas|slices|values|radar)$/u,
+              '',
+            ),
+        ),
+      ),
+      value: Number(point.yValue ?? point.xValue ?? 0).toLocaleString('en-US'),
+      color: point.color,
+    })),
+  }
+}
+
+function browserMetric(datum: unknown) {
+  if (!datum || typeof datum !== 'object') return undefined
+  const browser = Reflect.get(datum, 'browser')
+  const visitors = Reflect.get(datum, 'visitors')
+  return typeof browser === 'string' &&
+    typeof visitors === 'number' &&
+    Number.isFinite(visitors)
+    ? { browser, visitors }
+    : undefined
 }
 
 function buildAreaDefinition(spec: ShadcnCatalogSpec) {
@@ -420,8 +553,11 @@ function buildAreaDefinition(spec: ShadcnCatalogSpec) {
   })
 }
 
-function buildInteractiveAreaDefinition() {
-  const rows: ShadcnSeriesDatum[] = interactiveAreaRows.flatMap((row) => [
+function buildInteractiveAreaDefinition(
+  timeRange: InteractiveTimeRange = '90d',
+) {
+  const filteredRows = filterInteractiveAreaRows(timeRange)
+  const rows: ShadcnSeriesDatum[] = filteredRows.flatMap((row) => [
     { month: row.date, series: 'mobile', value: row.mobile },
     { month: row.date, series: 'desktop', value: row.desktop },
   ])
@@ -448,16 +584,7 @@ function buildInteractiveAreaDefinition() {
       axis: {
         line: false,
         ticks: {
-          values: [
-            '2024-04-10',
-            '2024-04-21',
-            '2024-05-02',
-            '2024-05-13',
-            '2024-05-25',
-            '2024-06-05',
-            '2024-06-16',
-            '2024-06-29',
-          ],
+          values: interactiveDateTicks(timeRange),
           size: 0,
           padding: 10,
           format: formatMonthDay,
@@ -497,41 +624,7 @@ function buildInteractiveAreaDefinition() {
 
 function buildBarDefinition(spec: ShadcnCatalogSpec) {
   if (spec.variant === 'interactive') {
-    return defineChart({
-      marks: [
-        barY(interactiveBarRows, {
-          id: 'daily-bars',
-          x: 'month',
-          y: 'desktop',
-          fill: shadcnColors[1],
-        }),
-      ],
-      x: {
-        scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
-        axis: {
-          line: false,
-          ticks: {
-            values: [
-              '2024-04-01',
-              '2024-04-11',
-              '2024-04-22',
-              '2024-05-03',
-              '2024-05-14',
-              '2024-05-26',
-              '2024-06-06',
-              '2024-06-17',
-              '2024-06-29',
-            ],
-            size: 0,
-            padding: 10,
-            format: formatMonthDay,
-          },
-        },
-      },
-      y: { scale: scaleLinear, grid: true, axis: false },
-      margin: { top: 5, right: 12, bottom: 25, left: 12 },
-      theme: shadcnTheme(),
-    })
+    return buildInteractiveBarDefinition()
   }
   if (spec.variant === 'active') {
     const rows = shadcnBrowsers.map((row) =>
@@ -753,6 +846,49 @@ function buildBarDefinition(spec: ShadcnCatalogSpec) {
   })
 }
 
+function buildInteractiveBarDefinition(
+  activeSeries: InteractiveSeries = 'desktop',
+) {
+  return defineChart({
+    marks: [
+      barY(interactiveBarRows, {
+        id: 'daily-bars',
+        x: 'month',
+        y: (row) => row[activeSeries],
+        z: () => activeSeries,
+        key: 'month',
+        fill: activeSeries === 'desktop' ? shadcnColors[1] : shadcnColors[0],
+      }),
+    ],
+    x: {
+      scale: () => scaleBand<string>().paddingInner(0.2).paddingOuter(0.1),
+      axis: {
+        line: false,
+        ticks: {
+          values: [
+            '2024-04-01',
+            '2024-04-11',
+            '2024-04-22',
+            '2024-05-03',
+            '2024-05-14',
+            '2024-05-26',
+            '2024-06-06',
+            '2024-06-17',
+            '2024-06-29',
+          ],
+          size: 0,
+          padding: 10,
+          format: formatMonthDay,
+        },
+      },
+    },
+    y: { scale: scaleLinear, grid: true, axis: false },
+    color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
+    margin: { top: 5, right: 12, bottom: 25, left: 12 },
+    theme: shadcnTheme(),
+  })
+}
+
 function groupedBarDefinition() {
   const rows = shadcnSeriesRows.filter(
     (row) => row.series === 'desktop' || row.series === 'mobile',
@@ -934,15 +1070,19 @@ function buildLineDefinition(spec: ShadcnCatalogSpec) {
   }))
 }
 
-function buildInteractiveLineDefinition() {
+function buildInteractiveLineDefinition(
+  activeSeries: InteractiveSeries = 'desktop',
+) {
   return defineChart(({ width }) => ({
     marks: [
       lineY(interactiveBarRows, {
         id: 'daily-line',
         x: 'month',
-        y: 'desktop',
+        y: (row) => row[activeSeries],
+        z: () => activeSeries,
+        key: 'month',
         curve: d3Curve(curveMonotoneX),
-        stroke: shadcnColors[0],
+        stroke: activeSeries === 'desktop' ? shadcnColors[0] : shadcnColors[1],
         strokeWidth: 2,
       }),
     ],
@@ -976,6 +1116,7 @@ function buildInteractiveLineDefinition() {
         tickLabels: false,
       },
     },
+    color: { domain: twoSeries, range: shadcnColors.slice(0, 2) },
     margin: {
       top: 5,
       right: width < 400 ? 24 : 12,
@@ -1152,20 +1293,19 @@ function buildStackedPieDefinition() {
   })
 }
 
-function buildInteractivePieDefinition() {
-  const rows: ShadcnBrowserDatum[] = [
-    { browser: 'january', visitors: 186 },
-    { browser: 'february', visitors: 305 },
-    { browser: 'march', visitors: 237 },
-    { browser: 'april', visitors: 173 },
-    { browser: 'may', visitors: 209 },
-  ]
-  const arcs = pie(rows, {
+function buildInteractivePieDefinition(activeMonth = 'january') {
+  const arcs = pie(interactivePieRows, {
     value: 'visitors',
     startAngle: Math.PI / 2,
     endAngle: (-Math.PI * 3) / 2,
   })
-  const active = arcs.filter((row) => row.browser === 'january')
+  const activeIndex = Math.max(
+    0,
+    interactivePieRows.findIndex((row) => row.browser === activeMonth),
+  )
+  const activeRow = interactivePieRows[activeIndex]!
+  const active = arcs.filter((row) => row.browser === activeRow.browser)
+  const activeColor = shadcnColors[activeIndex]!
   return defineChart({
     marks: [
       polar({
@@ -1186,7 +1326,7 @@ function buildInteractivePieDefinition() {
             key: 'browser',
             innerRadius: 60,
             outerRadius: ({ radius }) => radius + 10,
-            fill: shadcnColors[0],
+            fill: activeColor,
             stroke: 'var(--background)',
             strokeWidth: 5,
           }),
@@ -1195,21 +1335,31 @@ function buildInteractivePieDefinition() {
             key: 'browser',
             innerRadius: ({ radius }) => radius + 12,
             outerRadius: ({ radius }) => radius + 25,
-            fill: shadcnColors[0],
+            fill: activeColor,
             stroke: 'var(--background)',
             strokeWidth: 3,
           }),
-          radialText([{ id: 'total', angle: 0, radius: 0, text: '186' }], {
-            id: 'active-total',
-            angle: 'angle',
-            radius: 'radius',
-            key: 'id',
-            text: 'text',
-            dy: -5,
-            fill: 'var(--foreground)',
-            fontSize: 30,
-            fontWeight: 700,
-          }),
+          radialText(
+            [
+              {
+                id: 'total',
+                angle: 0,
+                radius: 0,
+                text: String(activeRow.visitors),
+              },
+            ],
+            {
+              id: 'active-total',
+              angle: 'angle',
+              radius: 'radius',
+              key: 'id',
+              text: 'text',
+              dy: -5,
+              fill: 'var(--foreground)',
+              fontSize: 30,
+              fontWeight: 700,
+            },
+          ),
           radialText([{ id: 'label', angle: 0, radius: 0, text: 'Visitors' }], {
             id: 'active-label',
             angle: 'angle',
@@ -1224,7 +1374,7 @@ function buildInteractivePieDefinition() {
       }),
     ],
     color: {
-      domain: rows.map((row) => row.browser),
+      domain: interactivePieRows.map((row) => row.browser),
       range: shadcnColors,
     },
     margin: 0,
@@ -1326,6 +1476,7 @@ function buildRadarDefinition(spec: ShadcnCatalogSpec) {
             angle: 'month',
             radius: 'desktop',
             key: 'month',
+            z: () => 'desktop',
             curve: curveLinearClosed,
             fill: shadcnColors[0],
             fillOpacity:
@@ -1342,6 +1493,7 @@ function buildRadarDefinition(spec: ShadcnCatalogSpec) {
                   angle: 'month',
                   radius: 'mobile',
                   key: 'month',
+                  z: () => 'mobile',
                   curve: curveLinearClosed,
                   fill: shadcnColors[1],
                   fillOpacity: spec.variant === 'lines-only' ? 0 : 1,
@@ -1357,6 +1509,7 @@ function buildRadarDefinition(spec: ShadcnCatalogSpec) {
                   angle: 'month',
                   radius: 'desktop',
                   key: 'month',
+                  z: () => 'desktop',
                   r: 4,
                   fill: shadcnColors[0],
                 }),
@@ -1369,6 +1522,7 @@ function buildRadarDefinition(spec: ShadcnCatalogSpec) {
                   angle: 'month',
                   radius: () => radiusMax,
                   key: 'month',
+                  z: () => 'desktop',
                   text: (row) => `${row.desktop}/${row.mobile ?? 0}`,
                   anchor: 'outside',
                   radiusOffset: 15,
@@ -1382,6 +1536,7 @@ function buildRadarDefinition(spec: ShadcnCatalogSpec) {
                   angle: 'month',
                   radius: () => radiusMax,
                   key: 'month',
+                  z: () => 'desktop',
                   text: 'month',
                   anchor: 'outside',
                   radiusOffset: 15,
@@ -1812,19 +1967,37 @@ function ShadcnActivityIcon({ activity }: { activity: string }) {
   )
 }
 
-function ShadcnSelectDisplay({
-  label,
-  swatch,
+function ShadcnSelectControl({
+  ariaLabel,
+  value,
+  options,
+  onChange,
 }: {
-  label: string
-  swatch?: string
+  ariaLabel: string
+  value: string
+  options: readonly { value: string; label: string; swatch?: string }[]
+  onChange: (value: string) => void
 }) {
+  const selected = options.find((option) => option.value === value)
   return (
-    <div className="sc-select-display">
-      {swatch ? (
-        <span className="sc-select-swatch" style={{ background: swatch }} />
+    <label className="sc-select-display">
+      {selected?.swatch ? (
+        <span
+          className="sc-select-swatch"
+          style={{ background: selected.swatch }}
+        />
       ) : null}
-      <span>{label}</span>
+      <select
+        aria-label={ariaLabel}
+        value={value}
+        onChange={(event) => onChange(event.currentTarget.value)}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path
           d="m6 9 6 6 6-6"
@@ -1833,23 +2006,71 @@ function ShadcnSelectDisplay({
           strokeWidth="2"
         />
       </svg>
-    </div>
+    </label>
   )
 }
 
-function ShadcnBarMetrics() {
+function ShadcnBarMetrics({
+  active,
+  onChange,
+}: {
+  active: InteractiveSeries
+  onChange: (series: InteractiveSeries) => void
+}) {
+  const totals = {
+    desktop: interactiveBarRows.reduce((sum, row) => sum + row.desktop, 0),
+    mobile: interactiveBarRows.reduce((sum, row) => sum + row.mobile, 0),
+  }
   return (
     <>
-      <div className="sc-bar-metric">
-        <span>Desktop</span>
-        <strong>24,828</strong>
-      </div>
-      <div className="sc-bar-metric">
-        <span>Mobile</span>
-        <strong>25,010</strong>
-      </div>
+      {twoSeries.map((series) => (
+        <button
+          key={series}
+          type="button"
+          className="sc-bar-metric"
+          data-active={active === series}
+          aria-pressed={active === series}
+          onClick={() => onChange(series)}
+        >
+          <span>{titleCase(series)}</span>
+          <strong>{totals[series].toLocaleString('en-US')}</strong>
+        </button>
+      ))}
     </>
   )
+}
+
+function filterInteractiveAreaRows(timeRange: InteractiveTimeRange) {
+  const days = timeRange === '30d' ? 30 : timeRange === '7d' ? 7 : 90
+  const start = new Date('2024-06-30T00:00:00Z')
+  start.setUTCDate(start.getUTCDate() - days)
+  const firstDate = start.toISOString().slice(0, 10)
+  return interactiveAreaRows.filter((row) => row.date >= firstDate)
+}
+
+function interactiveDateTicks(timeRange: InteractiveTimeRange) {
+  if (timeRange === '7d') {
+    return ['2024-06-23', '2024-06-25', '2024-06-27', '2024-06-29']
+  }
+  if (timeRange === '30d') {
+    return [
+      '2024-06-01',
+      '2024-06-08',
+      '2024-06-15',
+      '2024-06-22',
+      '2024-06-29',
+    ]
+  }
+  return [
+    '2024-04-10',
+    '2024-04-21',
+    '2024-05-02',
+    '2024-05-13',
+    '2024-05-25',
+    '2024-06-05',
+    '2024-06-16',
+    '2024-06-29',
+  ]
 }
 
 function shadcnXAxis() {
