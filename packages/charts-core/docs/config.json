@@ -777,23 +777,23 @@
           "to": "/charts/catalog/charts/127-shadcn-dashboard/"
         },
         {
-          "label": "shadcn bar chart – multiple",
+          "label": "shadcn Bar Chart - Multiple",
           "to": "/charts/catalog/charts/128-shadcn-bar-multiple/"
         },
         {
-          "label": "shadcn pie chart – donut with text",
+          "label": "shadcn Pie Chart - Donut with Text",
           "to": "/charts/catalog/charts/129-shadcn-pie-donut-text/"
         },
         {
-          "label": "shadcn radar chart – multiple",
+          "label": "shadcn Radar Chart - Multiple",
           "to": "/charts/catalog/charts/130-shadcn-radar-multiple/"
         },
         {
-          "label": "shadcn radial chart – text",
+          "label": "shadcn Radial Chart - Text",
           "to": "/charts/catalog/charts/131-shadcn-radial-text/"
         },
         {
-          "label": "shadcn tooltip – advanced",
+          "label": "shadcn Tooltip - Advanced",
           "to": "/charts/catalog/charts/132-shadcn-tooltip-advanced/"
         },
         {
