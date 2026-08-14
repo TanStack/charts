@@ -286,6 +286,7 @@ export type {
   ChartAxisOptions,
   ChartAxisLabelOptions,
   ChartAxisPresentationOptions,
+  ChartAxisSide,
   ChartAxisTickLabelContext,
   ChartAxisTickLabelOptions,
   ChartAxisTickLabelThinOptions,

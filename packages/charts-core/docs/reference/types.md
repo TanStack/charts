@@ -206,7 +206,8 @@ See [Scene nodes](./runtime-and-scene.md#scene-nodes).
 | `ChartAxisOptions`              | Required positional scale and optional guide behavior                 |
 | `ChartAxisViewportOptions`      | Continuous semantic window and transient pixel translation            |
 | `ChartAxisGuideOptions`         | Guide behavior without the scale field                                |
-| `ChartAxisPresentationOptions`  | Axis line, ticks, tick labels, and title presentation                 |
+| `ChartAxisPresentationOptions`  | Axis line, ticks, tick labels, title, and side presentation           |
+| `ChartAxisSide`                 | Plot edge that carries the axis                                       |
 | `ChartAxisTickOptions`          | Candidate values, density, formatting, size, and padding              |
 | `ChartAxisTickLabelOptions`     | Per-candidate typography, anchor, offset, rotation, and thinning      |
 | `ChartAxisTickLabelContext`     | Semantic value, stable candidate index, pixel position, and bandwidth |

@@ -1,8 +1,10 @@
 import { createColorScale, valueKey } from './scales'
 import { resolveConfiguredScale } from './configured-scale'
 import {
+  axisPlacement,
   measureSceneLabelBounds,
   withChartTextTypography,
+  type AxisPlacement,
 } from './guide-layout'
 import { nearestScenePoint } from './nearest'
 import { mapScenePointReferences } from './scene-point-map'
@@ -13,6 +15,7 @@ import type {
   MaterializedChannel,
   ChartAxisOptions,
   ChartAxisPresentationOptions,
+  ChartAxisSide,
   ChartAxisTickLabelContext,
   ChartAxisTickLabelOptions,
   ChartAxisTickLabelValue,
@@ -34,6 +37,7 @@ import type {
   ChartMarkState,
   ChartPoint,
   SceneFocusGuide,
+  SceneFocusGuideAxis,
   ResolvedColorScale,
   ChartScene,
   ChartScaleResolver,
@@ -343,6 +347,8 @@ function createChartSceneWithScaleResolver<
   const translateX = scales.x.viewport?.translate ?? 0
   const translateY = scales.y.viewport?.translate ?? 0
   const focusGuides: SceneFocusGuide[] = []
+  const xAxisSide = axisPresentation(definition.x)?.side
+  const yAxisSide = axisPresentation(definition.y)?.side
   const firstBaseMarkIndex = marks.findIndex(
     (mark) => !mark.focus && !mark.focusGuideOnly,
   )
@@ -403,7 +409,12 @@ function createChartSceneWithScaleResolver<
         ? 'under'
         : 'over'
     for (const guide of rendered.focusGuides ?? []) {
-      focusGuides.push({ ...guide, placement: guide.placement ?? placement })
+      focusGuides.push({
+        ...guide,
+        placement: guide.placement ?? placement,
+        x: withGuideAxisSide(guide.x, xAxisSide),
+        y: withGuideAxisSide(guide.y, yAxisSide),
+      })
     }
     if (mark.focus) {
       const retarget = mark.focus.retarget === true
@@ -1135,6 +1146,8 @@ function createAxes(
   const showY = axes & 2
   const xAxis = axisPresentation(definition.x)
   const yAxis = axisPresentation(definition.y)
+  const xPlacement = axisPlacement('x', chart, xAxis?.side)
+  const yPlacement = axisPlacement('y', chart, yAxis?.side)
   const children: SceneNode[] =
     !showX || xAxis?.line === false
       ? []
@@ -1144,8 +1157,8 @@ function createAxes(
             key: 'x-axis',
             x1: chart.x,
             x2: chart.x + chart.width,
-            y1: chart.y + chart.height,
-            y2: chart.y + chart.height,
+            y1: xPlacement.edge,
+            y2: xPlacement.edge,
             style: {
               stroke: theme.foreground,
               strokeOpacity: 0.28,
@@ -1156,8 +1169,8 @@ function createAxes(
     children.push({
       kind: 'rule',
       key: 'y-axis',
-      x1: chart.x,
-      x2: chart.x,
+      x1: yPlacement.edge,
+      x2: yPlacement.edge,
       y1: chart.y,
       y2: chart.y + chart.height,
       style: {
@@ -1168,8 +1181,8 @@ function createAxes(
   }
   const xTickLabels = tickLabelPresentation(xAxis)
   const yTickLabels = tickLabelPresentation(yAxis)
-  let xTickBottom = chart.y + chart.height
-  let yTickLeft = chart.x
+  let xTickExtent = xPlacement.edge
+  let yTickExtent = yPlacement.edge
   const inset = axes ? automaticGuideInset : 0
   const margin = uniformMargin(inset)
 
@@ -1196,7 +1209,7 @@ function createAxes(
       : createTickLabelCandidates(
           'x',
           withKeptTicks(scales.x, definition.x, xTickLabels),
-          chart,
+          xPlacement,
           xTickSize,
           xTickPadding,
           xTickLabels,
@@ -1211,7 +1224,7 @@ function createAxes(
       : createTickLabelCandidates(
           'y',
           withKeptTicks(scales.y, definition.y, yTickLabels),
-          chart,
+          yPlacement,
           yTickSize,
           yTickPadding,
           yTickLabels,
@@ -1237,8 +1250,8 @@ function createAxes(
         key: `x-tick-rule:${key}`,
         x1: tick.position,
         x2: tick.position,
-        y1: chart.y + chart.height,
-        y2: chart.y + chart.height + xTickSize,
+        y1: xPlacement.edge,
+        y2: xPlacement.edge + xPlacement.sign * xTickSize,
         style: {
           stroke: theme.foreground,
           strokeOpacity: 0.28,
@@ -1250,7 +1263,7 @@ function createAxes(
   for (const candidate of showX ? visibleXLabels : []) {
     const bounds = addLabel(candidate.label)
     if (axisLabelText(xAxis) && axisLabelOffset(xAxis) === 'auto') {
-      xTickBottom = Math.max(xTickBottom, bounds.y + bounds.height)
+      xTickExtent = extendTickExtent(xTickExtent, bounds, 'x', xPlacement.sign)
     }
     children.push(candidate.label)
   }
@@ -1261,8 +1274,8 @@ function createAxes(
       children.push({
         kind: 'rule',
         key: `y-tick-rule:${key}`,
-        x1: chart.x - yTickSize,
-        x2: chart.x,
+        x1: yPlacement.edge + yPlacement.sign * yTickSize,
+        x2: yPlacement.edge,
         y1: tick.position,
         y2: tick.position,
         style: {
@@ -1276,7 +1289,7 @@ function createAxes(
   for (const candidate of showY ? visibleYLabels : []) {
     const bounds = addLabel(candidate.label)
     if (axisLabelText(yAxis) && axisLabelOffset(yAxis) === 'auto') {
-      yTickLeft = Math.min(yTickLeft, bounds.x)
+      yTickExtent = extendTickExtent(yTickExtent, bounds, 'y', yPlacement.sign)
     }
     children.push(candidate.label)
   }
@@ -1285,16 +1298,17 @@ function createAxes(
   if (showX && xAxisLabel) {
     const offset = axisLabelOffset(xAxis)
     const hasOffset = offset !== 'auto'
+    const hangingBaseline = !hasOffset && xPlacement.sign > 0
     const label: SceneLabel = {
       kind: 'label',
       key: 'x-label',
       x: chart.x + chart.width / 2,
       y: hasOffset
-        ? chart.y + chart.height + Math.max(0, finiteMargin(offset))
-        : xTickBottom + 8,
+        ? xPlacement.edge + xPlacement.sign * Math.max(0, finiteMargin(offset))
+        : xTickExtent + xPlacement.sign * 8,
       text: xAxisLabel,
       anchor: 'middle',
-      baseline: hasOffset ? 'auto' : 'hanging',
+      baseline: hangingBaseline ? 'hanging' : 'auto',
       fontSize: width < 360 ? 10 : 11,
       fontWeight: 600,
       style: { fill: theme.foreground, fillOpacity: 0.76 },
@@ -1308,25 +1322,28 @@ function createAxes(
     const yLabel: SceneLabel = {
       kind: 'label',
       key: 'y-label',
-      x: chart.x,
+      x: yPlacement.edge,
       y: chart.y + chart.height / 2,
       text: yAxisLabel,
       anchor: 'middle',
       baseline: 'middle',
-      rotate: -90,
+      rotate: yPlacement.sign > 0 ? 90 : -90,
       fontSize: 11,
       fontWeight: 600,
       style: { fill: theme.foreground, fillOpacity: 0.76 },
     }
     const offset = axisLabelOffset(yAxis)
     if (offset !== 'auto') {
-      yLabel.x = chart.x - Math.max(0, finiteMargin(offset))
+      yLabel.x =
+        yPlacement.edge + yPlacement.sign * Math.max(0, finiteMargin(offset))
     } else {
       const localBounds = measureSceneLabelBounds(
         { ...yLabel, x: 0, y: 0 },
         measureText,
       )
-      yLabel.x = yTickLeft - 8 - (localBounds.x + localBounds.width)
+      const localEdge =
+        yPlacement.sign > 0 ? localBounds.x : localBounds.x + localBounds.width
+      yLabel.x = yTickExtent + yPlacement.sign * 8 - localEdge
     }
     addLabel(yLabel)
     children.push(yLabel)
@@ -1404,6 +1421,26 @@ function axisLabelOffset(
     : 'auto'
 }
 
+function withGuideAxisSide(
+  axis: SceneFocusGuideAxis | undefined,
+  side: ChartAxisSide | undefined,
+): SceneFocusGuideAxis | undefined {
+  if (!axis || side === undefined) return axis
+  return { ...axis, side }
+}
+
+function extendTickExtent(
+  extent: number,
+  bounds: ChartBounds,
+  axis: 'x' | 'y',
+  sign: 1 | -1,
+): number {
+  const near = axis === 'x' ? bounds.y : bounds.x
+  const far = near + (axis === 'x' ? bounds.height : bounds.width)
+  if (sign > 0) return Math.max(extent, far)
+  return Math.min(extent, near)
+}
+
 interface TickLabelCandidate {
   value: ChartValue
   label: SceneLabel
@@ -1444,7 +1481,7 @@ function withKeptTicks(
 function createTickLabelCandidates(
   axis: 'x' | 'y',
   ticks: readonly (ChartTick & { hard?: boolean })[],
-  chart: ChartBounds,
+  placement: AxisPlacement,
   size: number,
   padding: number,
   options: ChartAxisTickLabelOptions,
@@ -1468,9 +1505,11 @@ function createTickLabelCandidates(
     const opacity = resolveTickLabelValue(options.opacity, context)
     const dx = resolveTickLabelValue(options.dx, context) ?? 0
     const dy = resolveTickLabelValue(options.dy, context) ?? 0
+    const crossAnchor = placement.sign > 0 ? 'start' : 'end'
+    const baselineDrop = placement.sign > 0 ? fontSize * 0.8 : 0
     const defaultAnchor =
       axis === 'y'
-        ? 'end'
+        ? crossAnchor
         : (rotate ?? 0) < 0
           ? 'end'
           : (rotate ?? 0) > 0
@@ -1484,7 +1523,11 @@ function createTickLabelCandidates(
             kind: 'label',
             key: `x-tick-label:${valueKey(tick.value)}`,
             x: tick.position + dx,
-            y: chart.y + chart.height + size + padding + fontSize * 0.8 + dy,
+            y:
+              placement.edge +
+              placement.sign * (size + padding) +
+              baselineDrop +
+              dy,
             text: tick.label,
             anchor,
             rotate,
@@ -1498,7 +1541,7 @@ function createTickLabelCandidates(
         : {
             kind: 'label',
             key: `y-tick-label:${valueKey(tick.value)}`,
-            x: chart.x - size - padding + dx,
+            x: placement.edge + placement.sign * (size + padding) + dx,
             y: tick.position + dy,
             text: tick.label,
             anchor,

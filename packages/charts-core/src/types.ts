@@ -358,11 +358,18 @@ export interface ChartAxisLabelOptions {
   motion?: ChartMotionDefinition
 }
 
+/**
+ * Axis placement. `y` places `start` left and `end` right; `x` places `start`
+ * bottom and `end` top.
+ */
+export type ChartAxisSide = 'start' | 'end'
+
 export interface ChartAxisPresentationOptions<TValue extends ChartValue = any> {
   line?: boolean
   ticks?: false | ChartAxisTickOptions<TValue>
   tickLabels?: false | ChartAxisTickLabelOptions<TValue>
   label?: string | ChartAxisLabelOptions
+  side?: ChartAxisSide
   motion?: ChartMotionDefinition
 }
 
@@ -1205,6 +1212,8 @@ export interface SceneFocusGuideAxis {
   label?: SceneFocusGuideLabel
   /** Categorical band geometry that replaces the axis rule when present. */
   band?: SceneFocusGuideBand
+  /** Chart axis placement the guide label follows. */
+  side?: ChartAxisSide
 }
 
 export interface SceneFocusGuideBand {

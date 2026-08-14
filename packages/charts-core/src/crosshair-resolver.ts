@@ -1,4 +1,4 @@
-import { measureSceneLabelBounds } from './guide-layout'
+import { axisPlacement, measureSceneLabelBounds } from './guide-layout'
 import { valueKey } from './scales'
 import type {
   ChartBounds,
@@ -219,6 +219,8 @@ function resolveFocusGuide(
       })
     }
     if (guide.x.label && target.xValue !== undefined) {
+      const placement = axisPlacement('x', guide.chart, guide.x.side)
+      const baselineDrop = placement.sign > 0 ? guide.x.label.fontSize * 0.8 : 0
       children.push(
         ...guideLabels(
           clampLabel(
@@ -229,10 +231,9 @@ function resolveFocusGuide(
                 'ts-chart__crosshair-label ts-chart__crosshair-label--x',
               x: labelX,
               y:
-                guide.chart.y +
-                guide.chart.height +
-                guide.x.label.offset +
-                guide.x.label.fontSize * 0.8,
+                placement.edge +
+                placement.sign * guide.x.label.offset +
+                baselineDrop,
               text: formatGuideValue(
                 scene,
                 'x',
@@ -287,6 +288,7 @@ function resolveFocusGuide(
       })
     }
     if (guide.y.label && target.yValue !== undefined) {
+      const placement = axisPlacement('y', guide.chart, guide.y.side)
       children.push(
         ...guideLabels(
           clampLabel(
@@ -295,7 +297,7 @@ function resolveFocusGuide(
               key: `${guide.key}:y-label`,
               className:
                 'ts-chart__crosshair-label ts-chart__crosshair-label--y',
-              x: guide.chart.x - guide.y.label.offset,
+              x: placement.edge + placement.sign * guide.y.label.offset,
               y: labelY,
               text: formatGuideValue(
                 scene,
@@ -303,7 +305,7 @@ function resolveFocusGuide(
                 target.yValue,
                 guide.y.label.format,
               ),
-              anchor: 'end',
+              anchor: placement.sign > 0 ? 'start' : 'end',
               baseline: 'middle',
               fontSize: guide.y.label.fontSize,
               fontWeight: guide.y.label.fontWeight,
